@@ -374,7 +374,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 
 ## Content
 - Title names the measure ("Revenue", "Hours against capacity"); the description says what the figure is and over which range ("Invoiced so far in 2026"); axis labels are short (Q1, Jan, 9 am).
-- Before there is data, keep the card title and put an EmptyState in the card: it takes the next heading level in Body/Extra/Bold, so it never outranks or outsizes the card title.
+- Before there is data, keep the card title and put an EmptyState in the card: it takes the next heading level in Body/Extra/Bold and the Small size, so it never outranks or outsizes the card title.
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

@@ -179,7 +179,7 @@ function FilteredToNothing() {
           })}
         </List>
       ) : (
-        <EmptyState illustration headingLevel={5} title="No tasks match"
+        <EmptyState size="sm" headingLevel={5} title="No tasks match"
           secondaryAction={{ label: "Clear filters", onClick: clear }}
           icon="icon-check-circle-broken-line">
           {`Try another filter, or clear them to see all ${plural(myTasks.length, "task")}.`}
@@ -213,7 +213,7 @@ function AllCaughtUp() {
         ]} />
       </Stack>}>
       {view === "open" ? (
-        <EmptyState illustration headingLevel={5} title="You're all caught up" icon="icon-star-04-line">
+        <EmptyState size="sm" headingLevel={5} title="You're all caught up" icon="icon-star-04-line">
           New review requests from your team show up here.
         </EmptyState>
       ) : (
@@ -357,7 +357,7 @@ function ClientUploads() {
           The file server didn't answer in time.
         </InlineMessage>
       ) : (
-        <EmptyState illustration headingLevel={5} title="No uploads yet"
+        <EmptyState size="sm" headingLevel={5} icon="icon-upload-cloud-line" title="No uploads yet"
           primaryAction={{ label: "Request files", onClick: () => setAsking(true) }}>
           {`Files ${saola.client} shares for ${saola.name} show up here.`}
         </EmptyState>
@@ -375,7 +375,7 @@ function ClientUploads() {
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "First run",
-    description: "A new page has nothing yet, so the Empty State keeps its illustration and carries the page's only Primary. Once an expense exists the table takes over and Add expense moves to the page header; deleting the last one brings the Empty State back.",
+    description: "A new page has nothing yet, so the Empty State takes the page at size Medium (240 illustration) and carries the page's only Primary. Once an expense exists the table takes over and Add expense moves to the page header; deleting the last one brings the Empty State back.",
     wide: true,
     screen: true,
     code: `<PageHeader title="Expenses" description="What you paid for the studio. Mai Ho approves them every Friday."
@@ -413,7 +413,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Filtered to nothing",
-    description: "When filters leave nothing, the title says no tasks match and the only action is the way out: Clear filters as the Tertiary. Focus moves to the first filter once it is gone.",
+    description: "When filters leave nothing, the title says no tasks match and the only action is the way out: Clear filters as the Tertiary. It fills one ListBox, not the page, so it is Small (size=\"sm\", 120 illustration). Focus moves to the first filter once it is gone.",
     code: `const clear = () => { setOn([]); focusFirstFilter(); };
 
 {/* The Empty State takes the list's place in the ListBox's Body-Slot. */}
@@ -421,7 +421,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {visible.length ? (
     <List aria-label="My tasks">…</List>
   ) : (
-    <EmptyState illustration headingLevel={5} title="No tasks match"
+    <EmptyState size="sm" headingLevel={5} title="No tasks match"
       secondaryAction={{ label: "Clear filters", onClick: clear }}
       icon="icon-check-circle-broken-line">
       {\`Try another filter, or clear them to see all \${plural(myTasks.length, "task")}.\`}
@@ -441,7 +441,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   ]} />
 </Stack>}>
   {view === "open" ? (
-    <EmptyState illustration headingLevel={5} title="You're all caught up" icon="icon-star-04-line">
+    <EmptyState size="sm" headingLevel={5} title="You're all caught up" icon="icon-star-04-line">
       New review requests from your team show up here.
     </EmptyState>
   ) : (
@@ -467,7 +467,7 @@ const retry = () => { load(); refreshRef.current?.focus(); };
       The file server didn't answer in time.
     </InlineMessage>
   ) : (
-    <EmptyState illustration headingLevel={5} title="No uploads yet"
+    <EmptyState size="sm" headingLevel={5} icon="icon-upload-cloud-line" title="No uploads yet"
       primaryAction={{ label: "Request files", onClick: () => setAsking(true) }}>
       Files Saola Outdoor shares for Brand refresh show up here.
     </EmptyState>

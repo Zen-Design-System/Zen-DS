@@ -2,10 +2,15 @@ import { createContext, useContext, type HTMLAttributes, type ReactElement, type
 import { Button, type ButtonLevel } from "../Button";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
+import { scaleKey } from "../_shared/scale";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import "./empty-state.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+
+export const emptyStateSizes = ["sm", "md"] as const;
+/** Short (canonical) or long Figma spelling — both render the same. */
+export type EmptyStateSize = "sm" | "md" | "small" | "medium";
 
 export interface EmptyStateAction {
   label: ReactNode;
@@ -35,7 +40,17 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   compactTitle?: boolean;
   /** Figma Caption (Body/Base/Regular, Content/Neutral/Light). */
   children?: ReactNode;
-  /** Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art; `false` hides it. */
+  /**
+   * Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main
+   * content (first run, a page with no results, no access). `sm` (120): it fills one region of a page that still shows
+   * other content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside
+   * a ChartCard (set for you).
+   */
+  size?: EmptyStateSize;
+  /**
+   * Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art. `false` hides it —
+   * avoid it: where space is short use `size="sm"` (harness: empty-state/keep-illustration).
+   */
   illustration?: boolean | ReactNode;
   /** Icon at the centre of the placeholder illustration: an icon name or an icon element. */
   icon?: IconName | ReactElement;
@@ -49,11 +64,22 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   overrides?: NestedOverrides;
 }
 
-/** Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon. */
-export function EmptyStateIllustration({ icon = "icon-user-circle-line", ref }: { icon?: IconName | ReactElement; /** The root `<span>` element. */ ref?: Ref<HTMLSpanElement> }) {
+/**
+ * Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon.
+ * Medium 240 with a Popular/2XLarge icon; Small 120, the same art at half scale with a Popular/Medium icon and the
+ * same 1px grid and 2px rings.
+ */
+export function EmptyStateIllustration({ icon = "icon-user-circle-line", size: sizeProp = "md", ref }: {
+  icon?: IconName | ReactElement;
+  /** `md` 240 (default) · `sm` 120. */
+  size?: EmptyStateSize;
+  /** The root `<span>` element. */
+  ref?: Ref<HTMLSpanElement>;
+}) {
   const nest = useNested();
+  const size = scaleKey(sizeProp, emptyStateSizes);
   return (
-    <span ref={ref} className="zen-empty-state__illustration" aria-hidden="true">
+    <span ref={ref} className={`zen-empty-state__illustration zen-empty-state__illustration--${size}`} aria-hidden="true">
       <svg viewBox="0 0 240 240" width="240" height="240" className="zen-empty-state__art">
         <g className="zen-empty-state__grid">
           {[40, 93, 146, 199].map((x) => <line key={`v${x}`} x1={x} x2={x} y1={40} y2={200} />)}
@@ -77,21 +103,22 @@ type EmptyStateHeadingLevel = NonNullable<EmptyStateProps["headingLevel"]>;
 export const EmptyStateCardContext = createContext<EmptyStateHeadingLevel | undefined>(undefined);
 
 /**
- * Figma Empty-State (6085:25796): 320px centred column — illustration (240), gap XSmall, then the content wrapper
+ * Figma Empty-State (6085:25796): 320px centred column — illustration (240, or 120 at `size="sm"`), gap XSmall, then the content wrapper
  * (gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.
  * Inside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or
  * outsizes the card title (see `headingLevel`).
  */
-export function EmptyState({ ref, title, headingLevel, compactTitle = false, children, illustration = true, icon, primaryAction, secondaryAction, className, overrides, ...rest }: EmptyStateProps) {
+export function EmptyState({ ref, title, headingLevel, compactTitle = false, children, size: sizeProp, illustration = true, icon, primaryAction, secondaryAction, className, overrides, ...rest }: EmptyStateProps) {
   const nest = useNested(overrides);
   const cardLevel = useContext(EmptyStateCardContext);
-  const art = illustration === true ? nest("Illustration", <EmptyStateIllustration icon={icon} />) : nest.slot(illustration || null);
+  const size = scaleKey(sizeProp ?? (cardLevel === undefined ? "md" : "sm"), emptyStateSizes);
+  const art = illustration === true ? nest("Illustration", <EmptyStateIllustration icon={icon} size={size} />) : nest.slot(illustration || null);
   const hasActions = Boolean(primaryAction || secondaryAction);
   const level = headingLevel ?? (cardLevel === undefined ? 3 : (Math.min(cardLevel + 1, 6) as EmptyStateHeadingLevel));
   const titleStyle: TypographyStyleName = compactTitle || cardLevel !== undefined || level >= 4 ? "Body/Extra/Bold" : "Heading/4";
   const Heading = `h${level}` as "h2" | "h3" | "h4" | "h5" | "h6";
   return (
-    <section {...rest} ref={ref} className={["zen-empty-state", className].filter(Boolean).join(" ")}>
+    <section {...rest} ref={ref} className={["zen-empty-state", `zen-empty-state--${size}`, className].filter(Boolean).join(" ")}>
       {art}
       <div className="zen-empty-state__body">
         <div className="zen-empty-state__content">

@@ -34,7 +34,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Skeleton](skeleton.md) | `motion/reduced-motion`, `motion/token-only`, `motion/no-layout-animation`, `interaction/no-noop-handler` |
 | [Divider](divider.md) | `divider/no-double`, `interaction/no-noop-handler` |
 | [Inline Message](inline-message.md) | `inline-message/needs-content`, `inline-message/custom-needs-visual`, `api/deprecated-prop`, `api/overrides-studio-only`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
-| [Empty State](empty-state.md) | `empty-state/needs-title`, `empty-state/action-label`, `empty-state/way-out-tertiary`, `api/overrides-studio-only`, `icon/unknown-name`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
+| [Empty State](empty-state.md) | `empty-state/needs-title`, `empty-state/action-label`, `empty-state/way-out-tertiary`, `empty-state/keep-illustration`, `empty-state/small-in-box`, `api/overrides-studio-only`, `icon/unknown-name`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Stepper](stepper.md) | `stepper/needs-label`, `stepper/step-count`, `api/overrides-studio-only`, `icon/unknown-name`, `interaction/no-noop-handler` |
 | [Slider](slider.md) | `slider/needs-name`, `slider/white-no-small`, `slider/solid-icon`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Slider Field](slider-field.md) | `slider-field/value-in-range`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |

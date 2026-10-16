@@ -271,11 +271,11 @@ export function MobileListTemplate() {
       ) : (
         <Stack paddingX="lg" paddingY="xl">
           {term ? (
-            <EmptyState headingLevel={2} illustration={false} title={emptyTitle} secondaryAction={{ label: "Clear search", onClick: clearSearchAndFocus }}>
+            <EmptyState headingLevel={2} icon="icon-search-medium-line" title={emptyTitle} secondaryAction={{ label: "Clear search", onClick: clearSearchAndFocus }}>
               Try an order number or a print name.
             </EmptyState>
           ) : (
-            <EmptyState headingLevel={2} illustration={false} title={emptyTitle} secondaryAction={{ label: "Clear filters", onClick: clearFiltersAndFocus }}>
+            <EmptyState headingLevel={2} icon="icon-search-medium-line" title={emptyTitle} secondaryAction={{ label: "Clear filters", onClick: clearFiltersAndFocus }}>
               Try another status or date.
             </EmptyState>
           )}

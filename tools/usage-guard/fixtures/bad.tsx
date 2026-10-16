@@ -147,7 +147,11 @@ export const Bad = () => <>
   {/* expect: table/actions-flat */}
   <TableActions><IconButton onClick={act} aria-label="Actions for Ava" icon={<Icon name="icon-dots-horizontal-line" />} /></TableActions>
   {/* expect: empty-state/way-out-tertiary */}
-  <EmptyState title="No members match" illustration={false} primaryAction={{ label: "Clear filters", onClick: reset }} />
+  <EmptyState title="No members match" size="sm" primaryAction={{ label: "Clear filters", onClick: reset }} />
+  {/* expect: empty-state/keep-illustration */}
+  <EmptyState title="No files yet" illustration={false} primaryAction={{ label: "Upload file", onClick: upload }} />
+  {/* expect: empty-state/small-in-box */}
+  <Card theme="border"><EmptyState title="No invoices yet" headingLevel={4} primaryAction={{ label: "Create invoice", onClick: create }} /></Card>
   {/* expect: stepper/needs-label */}
   <Stepper steps={steps} current={1} />
   {/* expect: stepper/step-count */}

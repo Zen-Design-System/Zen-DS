@@ -279,10 +279,10 @@ export function HrMyLeavesTemplate() {
   const sheetFilter = sheet ? filters[sheet] : null;
   const check = <Icon name="icon-check-line" size="base" decorative />;
   const noRequests = !requests.length
-    ? <EmptyState title="No leave requests yet" headingLevel={3} illustration={false} icon="icon-calendar-heart-line" primaryAction={{ label: "Request leave", onClick: () => startRequest() }}>Your requests show here with their status.</EmptyState>
+    ? <EmptyState title="No leave requests yet" headingLevel={3} size="sm" icon="icon-calendar-heart-line" primaryAction={{ label: "Request leave", onClick: () => startRequest() }}>Your requests show here with their status.</EmptyState>
     : kindFilter.length || statusFilter.length || !query.trim()
-      ? <EmptyState title="No leave requests match" headingLevel={3} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another leave type or status.</EmptyState>
-      : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={3} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Search by leave type, reason or date.</EmptyState>;
+      ? <EmptyState title="No leave requests match" headingLevel={3} size="sm" icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another leave type or status.</EmptyState>
+      : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={3} size="sm" icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Search by leave type, reason or date.</EmptyState>;
   const tiles = (kinds: typeof leaveKindList) => (
     <Grid columns="repeat(auto-fit, minmax(min(100%, 150px), 1fr))" gap="md">
       {kinds.map((kind) => {

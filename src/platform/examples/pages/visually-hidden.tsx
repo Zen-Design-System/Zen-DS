@@ -209,7 +209,7 @@ function FilesTable() {
         <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{`${plural(rows.length, "file")} · ${starred.filter((id) => rows.some((row) => row.id === id)).length} starred`}</Text>
       </Stack>
       <Table className="px-visually-hidden-files" aria-labelledby={headingId} columns={columns} rows={rows}
-        empty={<EmptyState illustration={false} headingLevel={5} title="Every file is archived"
+        empty={<EmptyState size="sm" headingLevel={5} icon="icon-folder-line" title="Every file is archived"
           secondaryAction={{ label: "Restore files", onClick: () => setRows(firstFiles) }}>Archived files stay in Archive for 30 days.</EmptyState>} />
     </Stack>
   );

@@ -7,6 +7,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P2 · Figma Empty-State Size=Small (2026-10-16, for the user/designer):** code has `EmptyState size="sm"` (120
+  illustration, Popular/Medium icon, 1px / 2px lines) for widgets, cards and sections; Figma `Empty-State` (6085:25796)
+  and `Empty-State/Illustration/Placeholder` (6085:25816) are single components (Medium only), and the file is
+  read-only to sessions. Add a Size variant (Medium, Small) to both, then re-capture the contract and run
+  `tools/figma-docs` (its Empty-State rules already name Small). The widget mock-ups (Members › Invite / No results,
+  Leads by salesperson, Time worked) hide the illustration today.
 - **P2 · Templates take the phone chrome (2026-10-16, follow-up of the responsive header P3, waits for the user):**
   AdminList, Detail, Dashboard, SettingsForm and HrShell keep their PageHeader in the content and have no
   `topNavigation` / `bottomNavigation`, so on a phone they show the drawer and the desktop header rows. Each needs its

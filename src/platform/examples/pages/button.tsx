@@ -213,7 +213,7 @@ function DeleteFileExample() {
         </ListBox>
       ) : (
         <Card theme="flat">
-          <EmptyState illustration={false} headingLevel={4} title="No files yet" primaryAction={{ label: "Upload files", onClick: upload }}>
+          <EmptyState size="sm" headingLevel={4} icon="icon-folder-line" title="No files yet" primaryAction={{ label: "Upload files", onClick: upload }}>
             Files you add to Loyalty app show up here.
           </EmptyState>
         </Card>

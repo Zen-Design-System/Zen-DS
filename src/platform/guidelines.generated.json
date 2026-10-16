@@ -735,7 +735,7 @@
       "Debounce remote search (~250ms) and keep the query when results refresh.",
       "Show the result count in an aria-live region (\"12 results\").",
       "When the filter opens a Bottom Sheet, panel or Popover, pass filterHasPopup (\"dialog\", \"menu\", \"listbox\") and filterExpanded={open}; aria-expanded on Search itself lands on the input.",
-      "When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (illustration={false} in narrow panels such as sidebars and pickers)."
+      "When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (size=\"sm\" in narrow panels such as sidebars and pickers)."
     ],
     "dont": [
       "Don't hide search behind an icon on desktop when search is a primary task.",
@@ -3410,7 +3410,7 @@
     "avoid": [
       "Loading → Skeleton.",
       "Errors that need a retry → Inline Message (negative) with an action.",
-      "Tiny regions (a single table cell) → a short line of text."
+      "Tiny regions with no room for the Small illustration (a table cell, a menu, a select list) → a short line of text."
     ],
     "api": [
       [
@@ -3429,9 +3429,14 @@
         "Body/Extra/Bold title for a Card you title yourself, as ChartCard does for you"
       ],
       [
+        "Size",
+        "size",
+        "md: 240 illustration, the Empty State fills a page (default) · sm: 120, it fills a widget, card or section (default inside a ChartCard)"
+      ],
+      [
         "Illustration",
         "illustration · icon",
-        "placeholder with a centre icon; a node replaces it; false hides it"
+        "placeholder with a centre icon (swap it to match what is missing); a node replaces it; false hides it — avoid"
       ],
       [
         "CTAs",
@@ -3443,10 +3448,13 @@
     "do": [
       "Say what is empty in the title (\"No projects yet\", \"No results for “tokns”\").",
       "Give the next step as a verb in primaryAction (Primary); a way out such as Clear filters or Clear search goes alone in secondaryAction (Tertiary) (harness: empty-state/way-out-tertiary).",
-      "Drop the illustration inside lists, tables and cards; keep it for full pages.",
+      "Pick the size from where it sits: Medium (240) when the Empty State fills the page's main content — first run, a page with no results, no access; Small (120) when it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a sidebar, side panel, sheet, popover or dialog (harness: empty-state/small-in-box; ChartCard sets Small for you).",
+      "Keep the illustration and swap its icon to match what is missing (icon=\"icon-folder-line\").",
       "Keep the caption to one sentence."
     ],
     "dont": [
+      "Don't hide the illustration (illustration={false}): where space is short use size=\"sm\" (harness: empty-state/keep-illustration).",
+      "Don't put a Medium Empty State in a widget, card or panel, or a Small one on a page that is empty.",
       "Don't show an Empty State while data is still loading.",
       "Don't leave a first-run screen without an action.",
       "Don't use vague action labels (harness: empty-state/action-label).",
@@ -3488,6 +3496,18 @@
         "severity": "warn",
         "summary": "A way out of an empty result (Clear filters, Clear search, Reset) is secondaryAction (Tertiary); primaryAction is the next step (\"Create project\").",
         "allow": "way-out-primary"
+      },
+      {
+        "id": "empty-state/keep-illustration",
+        "severity": "warn",
+        "summary": "Keep the illustration: where space is short use size=\"sm\" (the 120 illustration), never illustration={false}.",
+        "allow": "no-illustration"
+      },
+      {
+        "id": "empty-state/small-in-box",
+        "severity": "warn",
+        "summary": "Size Medium (240) is for an Empty State that fills a page; in a Card, ChartCard, MetricCard, ListBox, Sidebar, Popover, Dialog, Modal Form, Side Panel or Bottom Sheet use size=\"sm\" (ChartCard sets it for you).",
+        "allow": "medium-in-box"
       },
       {
         "id": "api/overrides-studio-only",
@@ -7079,7 +7099,7 @@
     ],
     "content": [
       "Title names the measure (\"Revenue\", \"Hours against capacity\"); the description says what the figure is and over which range (\"Invoiced so far in 2026\"); axis labels are short (Q1, Jan, 9 am).",
-      "Before there is data, keep the card title and put an EmptyState in the card: it takes the next heading level in Body/Extra/Bold, so it never outranks or outsizes the card title."
+      "Before there is data, keep the card title and put an EmptyState in the card: it takes the next heading level in Body/Extra/Bold and the Small size, so it never outranks or outsizes the card title."
     ],
     "refs": [
       [

@@ -100,7 +100,7 @@ function PeopleDirectoryExample() {
               ))}
             </List>
           ) : (
-            <EmptyState illustration={false} headingLevel={4} title="No projects yet">{`${opened.name.split(" ")[0]} isn't on a project team right now.`}</EmptyState>
+            <EmptyState size="sm" headingLevel={4} icon="icon-folder-line" title="No projects yet">{`${opened.name.split(" ")[0]} isn't on a project team right now.`}</EmptyState>
           )}
         </Stack>
       </SidePanel>
@@ -177,7 +177,7 @@ function AllFiltersExample() {
           </Stack>
           {/* The table is the page's content: it lies on the page, no Card. */}
           <Table aria-label="Leave requests" columns={requestColumns} rows={rows}
-            empty={<EmptyState illustration={false} headingLevel={2} title="No requests match" secondaryAction={{ label: "Clear filters", onClick: clearAll }}>Try another status or fewer filters.</EmptyState>} />
+            empty={<EmptyState headingLevel={2} icon="icon-search-medium-line" title="No requests match" secondaryAction={{ label: "Clear filters", onClick: clearAll }}>Try another status or fewer filters.</EmptyState>} />
         </Stack>
       </Stack>
       {/* Small: a column of choices. The primary counts what Apply would show, so nobody applies their way to nothing. */}

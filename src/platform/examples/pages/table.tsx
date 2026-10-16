@@ -370,7 +370,7 @@ function FirstRunExample() {
         {guests.length ? <Button level="tertiary" startIcon="icon-user-plus-line" onClick={() => setInviting(true)}>Invite guest</Button> : null}
       </Stack>
       <Table className="px-table-keep-empty" aria-labelledby={headingId} columns={columns} rows={guests}
-        empty={<Box className="px-table-empty-view"><EmptyState headingLevel={5} illustration title="No guests yet" primaryAction={{ label: "Invite guest", onClick: () => setInviting(true) }}>
+        empty={<Box className="px-table-empty-view"><EmptyState headingLevel={5} illustration icon="icon-users-line" title="No guests yet" primaryAction={{ label: "Invite guest", onClick: () => setInviting(true) }}>
           Invite people from Saola Outdoor to review designs and leave comments.
         </EmptyState></Box>} />
       <DemoFieldDialog open={inviting} onOpenChange={setInviting} title="Invite a guest" description="Guests can view Brand refresh and comment on designs."
@@ -620,7 +620,7 @@ const opened = projects.find((project) => project.id === openId);
     </TableActions>
   ) },
 ]}
-  empty={<EmptyState headingLevel={5} illustration={false} title="No guests yet"
+  empty={<EmptyState headingLevel={5} size="sm" icon="icon-users-line" title="No guests yet"
     primaryAction={{ label: "Invite guest", onClick: openInvite }}>
     Invite people from Saola Outdoor to review designs and leave comments.
   </EmptyState>} />`,

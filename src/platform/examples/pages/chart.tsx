@@ -170,7 +170,7 @@ function NoDataExample() {
         {points.length ? (
           <LineChart aria-label="Hours logged on Brand refresh per week, since Sep 21, 2026" data={points} format={hours} height={220} />
         ) : (
-          <EmptyState illustration={false} title="No hours logged yet" primaryAction={{ label: "Import timesheets", onClick: importTimesheets }}>
+          <EmptyState icon="icon-clock-line" title="No hours logged yet" primaryAction={{ label: "Import timesheets", onClick: importTimesheets }}>
             Time the team logs on Brand refresh shows here week by week.
           </EmptyState>
         )}
@@ -837,7 +837,7 @@ const importTimesheets = () => {
   {points.length ? (
     <LineChart aria-label="Hours logged on Brand refresh per week, since Sep 21, 2026" data={points} format={hours} height={220} />
   ) : (
-    <EmptyState illustration={false} title="No hours logged yet" primaryAction={{ label: "Import timesheets", onClick: importTimesheets }}>
+    <EmptyState icon="icon-clock-line" title="No hours logged yet" primaryAction={{ label: "Import timesheets", onClick: importTimesheets }}>
       Time the team logs on Brand refresh shows here week by week.
     </EmptyState>
   )}

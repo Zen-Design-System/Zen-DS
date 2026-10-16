@@ -167,7 +167,7 @@ function StudioOverviewExample() {
           ))}
         </Grid>
       ) : (
-        <EmptyState illustration={false} headingLevel={5} title="No metrics on the overview"
+        <EmptyState size="sm" headingLevel={5} icon="icon-bar-chart-up-line" title="No metrics on the overview"
           secondaryAction={{ label: "Show all metrics", onClick: showAll }}>Every metric is hidden from the overview.</EmptyState>
       )}
       <SidePanel type="modal" open={panelOpen} onOpenChange={setPanelOpen} title={panelKpi.label} description={`${studio.name} · ${at.range}`}>

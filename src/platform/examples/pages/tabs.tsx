@@ -233,7 +233,7 @@ function DraftInvoiceExample() {
                 trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(draftInvoice.amount, true)}</Text>} />
             </List>
           ) : (
-            <EmptyState headingLevel={5} illustration={false} title="No payments yet">Payments from {draftInvoice.client} show up here.</EmptyState>
+            <EmptyState headingLevel={5} size="sm" icon="icon-credit-card-line" title="No payments yet">Payments from {draftInvoice.client} show up here.</EmptyState>
           )}
         </TabPanel>
         <TabPanel idPrefix={prefix} id="history" hidden={tab !== "history"}>
@@ -309,7 +309,7 @@ function YourWorkExample() {
           <Box ref={panelRef}>
             {reviews.length
               ? rows(reviews, "Reviews waiting for you", (item) => <IconButton level="tertiary" icon="icon-check-line" aria-label={`Approve ${item.title}`} onClick={() => approve(item)} />)
-              : <EmptyState headingLevel={5} illustration={false} title="No reviews waiting">Review requests from your team show up here.</EmptyState>}
+              : <EmptyState headingLevel={5} size="sm" icon="icon-check-done-line" title="No reviews waiting">Review requests from your team show up here.</EmptyState>}
           </Box>
         </TabPanel>
         <TabPanel idPrefix={prefix} id="mentions" hidden={tab !== "mentions"}>{rows(mentions, "Mentions")}</TabPanel>
@@ -441,7 +441,7 @@ function ProfileOnPhoneExample() {
             </List>
           </Box>
         ) : (
-          <EmptyState headingLevel={2} illustration={false} title="No projects yet">Projects {person.name.split(" ")[0]} joins show up here.</EmptyState>
+          <EmptyState headingLevel={2} icon="icon-folder-line" title="No projects yet">Projects {person.name.split(" ")[0]} joins show up here.</EmptyState>
         )}
       </TabPanel>
       <TabPanel idPrefix={prefix} id="time-off" hidden={tab !== "time-off"}>
@@ -456,7 +456,7 @@ function ProfileOnPhoneExample() {
             </List>
           </Box>
         ) : (
-          <EmptyState headingLevel={2} illustration={false} title="No time off yet">Leave {person.name.split(" ")[0]} books shows up here.</EmptyState>
+          <EmptyState headingLevel={2} icon="icon-calendar-heart-line" title="No time off yet">Leave {person.name.split(" ")[0]} books shows up here.</EmptyState>
         )}
       </TabPanel>
     </PlatformPhone>
@@ -569,7 +569,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       ))}
     </List>
   ) : (
-    <EmptyState headingLevel={5} illustration={false} title="No reviews waiting">Review requests from your team show up here.</EmptyState>
+    <EmptyState headingLevel={5} size="sm" icon="icon-check-done-line" title="No reviews waiting">Review requests from your team show up here.</EmptyState>
   )}
 </TabPanel>`,
   },

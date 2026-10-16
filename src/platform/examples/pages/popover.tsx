@@ -380,7 +380,7 @@ function BulkFileActions() {
         <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{picked.length ? `${count} selected` : plural(rows.length, "file")}</Text>
       </Stack>
       <Table aria-label="Recent files" rows={rows} getRowId={(row) => row.id} selectable selectedIds={picked} onSelectionChange={setPicked}
-        empty={<EmptyState illustration={false} title="No files yet" primaryAction={{ label: "Restore files", onClick: () => setRows(sortFiles(studioFiles, "updated")) }}>Deleted files stay in the trash for 30 days.</EmptyState>}
+        empty={<EmptyState size="sm" icon="icon-folder-line" title="No files yet" primaryAction={{ label: "Restore files", onClick: () => setRows(sortFiles(studioFiles, "updated")) }}>Deleted files stay in the trash for 30 days.</EmptyState>}
         columns={[
           { id: "name", header: "Name", cell: (row) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={personName(row.owner)}>{row.name}</TableMedia> },
           { id: "size", header: "Size", align: "right", width: "120px", cell: (row) => <TableText>{formatBytes(row.bytes)}</TableText> },

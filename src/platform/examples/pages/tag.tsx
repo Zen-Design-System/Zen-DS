@@ -196,7 +196,7 @@ function FilterByTag() {
         <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{plural(rows.length, "finding")}</Text>
       </Stack>
       <Table aria-label="Research findings" columns={columns} rows={rows}
-        empty={<EmptyState illustration={false} headingLevel={4} title="No findings match" secondaryAction={{ label: "Clear filter", onClick: () => setTag(null) }}>Try another tag.</EmptyState>} />
+        empty={<EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No findings match" secondaryAction={{ label: "Clear filter", onClick: () => setTag(null) }}>Try another tag.</EmptyState>} />
     </Stack>
   );
 }

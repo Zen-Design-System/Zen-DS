@@ -73,7 +73,7 @@ function SelectFilesExample() {
         </Stack>
       </Stack>
       <Table className="px-checkbox-table" aria-labelledby={headingId} rows={rows} columns={columns} selectable selectedIds={selected} onSelectionChange={setSelected}
-        empty={<EmptyState headingLevel={5} illustration={false} title="No files yet" primaryAction={{ label: "Restore files", onClick: () => setRows(recentFiles) }}>Files your team shares in projects show up here.</EmptyState>} />
+        empty={<EmptyState headingLevel={5} size="sm" icon="icon-folder-line" title="No files yet" primaryAction={{ label: "Restore files", onClick: () => setRows(recentFiles) }}>Files your team shares in projects show up here.</EmptyState>} />
     </Stack>
   );
 }
@@ -311,7 +311,7 @@ const remove = () => {
   {/* Not a widget: the table sits on the page, no Card */}
   <Table aria-labelledby="recent-files" rows={rows} columns={columns}
     selectable selectedIds={selected} onSelectionChange={setSelected}
-    empty={<EmptyState headingLevel={5} illustration={false} title="No files yet" primaryAction={{ label: "Restore files", onClick: restore }}>
+    empty={<EmptyState headingLevel={5} size="sm" icon="icon-folder-line" title="No files yet" primaryAction={{ label: "Restore files", onClick: restore }}>
       Files your team shares in projects show up here.
     </EmptyState>} />
 </Stack>`,

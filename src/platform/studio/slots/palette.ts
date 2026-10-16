@@ -803,8 +803,8 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<InlineMessage theme="info" title="Invoices go out on the 1st">The client gets a PDF by email.</InlineMessage>`,
   },
   {
-    id: "empty-state", label: "Empty state", group: "Feedback", caption: "Without illustration", root: "EmptyState", components: ["EmptyState"], interactive: false, input: false,
-    build: (ctx) => `<EmptyState illustration={false} headingLevel={${level(ctx)}} title="No files yet">Files you add to this project appear here.</EmptyState>`,
+    id: "empty-state", label: "Empty state", group: "Feedback", caption: "Small", root: "EmptyState", components: ["EmptyState"], interactive: false, input: false,
+    build: (ctx) => `<EmptyState size="sm" icon="icon-folder-line" headingLevel={${level(ctx)}} title="No files yet">Files you add to this project appear here.</EmptyState>`,
   },
   {
     id: "alert-banner", label: "Alert banner", group: "Feedback", caption: "Info", root: "AlertBanner", components: ["AlertBanner"], interactive: false, input: false,
