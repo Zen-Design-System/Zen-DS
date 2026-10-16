@@ -84,7 +84,8 @@ Files in this skill:
    - Phone: a 390-wide frame in the Mobile mode of Breakpoint & Grids and the Comfortable mode of Component Size, with
      `Top-Navigation/Mobile` and, for top-level screens, `Bottom-Navigation/Mobile/*`.
    - A phone version of a desktop screen: move each header part to its phone place by
-     `references/component-usage-rules.md` §17 (Breadcrumbs → Back on a child, the title → Expand-Heading on a root,
+     `references/component-usage-rules.md` §17 (Breadcrumbs → Back on a child, its icon `icon-chevron-left-line-medium`
+     and never a left arrow (§10, audit `navigation/back-chevron`), the title → Expand-Heading on a root,
      at most 3 `Nav-Slot/Action` in Top-Trailing, the rest in a ⋯ Bottom-Sheet, the account avatar in Top-Leading,
      the Sidebar's first 4 rows + More in Bottom-Navigation) and turn off the booleans of parts the screen lacks.
    - Before a screen like one of Zen's templates (`◆ HR-Platform`, `◆ Finance`, `◆ Social`, `◆ Logistic`,

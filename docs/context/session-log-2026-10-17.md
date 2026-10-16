@@ -87,3 +87,16 @@ của desktop", then "cân chỉnh … toạ độ và size" of the hover/active
   (the list scrolls, so 8 would clip the bleed). Guideline: large only as the desktop top-navigation bar.
 - Platform: Tabs example "Workspace top navigation" (bar on Canvas, Divider as baseline, account Menu, 4 panels).
 - Left as is (user: "giữ nguyên các size cũ"): Figma Medium's fill bleeds 12, code's 8.
+
+## Figma Back chevron rule in the audit (session "Bug"; user: "Sai rule … chốt rule về button back … đảm bảo không bị lại lỗi này")
+
+- ◇ Master-Layout · Variants: C5 · Stack detail (15923:8476) and C4 · Media + Bottom sheet (15922:8357) had
+  icon-arrow-left-line as Back; swapped through Leading-Icon-Src to icon-chevron-left-line-medium (colour variable kept).
+  The library default is icon-plus-line, so the arrow came from the build; the audit had no check.
+- `zen-figma-audit.js`: `navigation/back-chevron` (error) on screens ≤ 1024 wide or with Top-Navigation/Mobile|Tablet:
+  a left-arrow icon held by Top-Leading / Leading-Slot / Nav-Action / Top-Navigation / Button, steppers (Date Picker,
+  Pagination, Carousel) skipped. Row in `references/audit-rules.md`, pointer in SKILL.md. Live: C5/C4/B6 clean (B6 is
+  desktop); a rolled-back negative run on C5 reports 1 finding. `npm run ai-kit:check` passes.
+- Same night: B2 Inbox fixed (Panes left padding, list side padding for the 12px List-Item bleed, Segmented slot FILL,
+  thread rebuilt with Chat/Section/Time + Chat/Section/Conversation), audit 0/0; Chart/Multi-Line-Chart compare
+  Tooltip anchored to the active sector (Compare-Grid › Tooltip-Track) so it stays on the hover line at any width.

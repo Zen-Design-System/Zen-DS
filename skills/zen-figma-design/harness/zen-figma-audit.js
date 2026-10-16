@@ -54,6 +54,8 @@
 //                                     colour mode: only the screen frame does; a dark widget is Card Solid/Neutral
 //   theme/on-white-solid     error    text or an icon on a Background/White-Solid fill (white in Light and Dark mode)
 //                                     that is not Content/On-White-Overlay/*: Neutral and Inverse flip with the mode
+//   navigation/back-chevron  error    a left arrow (icon-arrow-left-*, icon-arrow-narrow-left-*) as Back in a Top-Navigation,
+//                                     Nav-Action or Button on a phone or tablet screen: Back is icon-chevron-left-line-medium
 
 const ROOT_IDS = [];
 const MAX_PER_RULE = 25;
@@ -421,6 +423,36 @@ async function checkModeOverrides(root) {
   }
 }
 
+// Back on a phone or tablet is the left chevron, never a left arrow (component-usage-rules §10, code harness
+// navigation/back-chevron; user 2026-10-17: "chúng ta có chốt rule về button back. nhưng lúc này build trong figma lại sai").
+const LEFT_ARROW_ICON = /^icon-arrow(-narrow)?-left/;
+const BACK_HOLDER = /Top-Leading|Leading-Slot|Nav-Action|Top-Navigation|^Button\//;
+// Arrows that step through content keep theirs (§10 "Not covered").
+const STEPPER = /Date-Picker|Calendar|Pagination|Carousel|Stepper/i;
+function shownIn(node, screen) {
+  for (let current = node; current && current !== screen; current = current.parent) if (current.visible === false) return false;
+  return true;
+}
+async function checkBackChevron(root) {
+  const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
+  for (const screen of screens) {
+    const instances = screen.findAll((node) => node.type === "INSTANCE");
+    const device = instances.some((node) => /^Top-Navigation\/(Mobile|Tablet)/.test(node.name));
+    if (screen.width > 1024 && !device) continue; // desktop keeps its arrows (Side Panel, Modal back)
+    for (const node of instances) {
+      if (!shownIn(node, screen)) continue;
+      const main = await node.getMainComponentAsync();
+      if (!main || !LEFT_ARROW_ICON.test(main.name)) continue;
+      let holder = null;
+      for (let current = node.parent; current && current !== screen; current = current.parent) {
+        if (STEPPER.test(current.name)) { holder = null; break; }
+        if (!holder && BACK_HOLDER.test(current.name)) holder = current;
+      }
+      if (holder) report("navigation/back-chevron", ERROR, node, `${main.name} in ${holder.name}: Back on a phone or tablet is icon-chevron-left-line-medium (swap the icon property; never a left arrow)`);
+    }
+  }
+}
+
 const PLACEHOLDER = /lorem|ipsum|dolor sit/i;
 // A List-Box footer action's label (user rule 2026-10-16, code harness listbox/footer-action-tertiary).
 const ACTION_LABEL = /^(open|go to|view|see|show|manage|browse|all)\b/i;
@@ -617,6 +649,7 @@ for (const root of roots) await walk(root, root.type === "INSTANCE" ? root : nul
 for (const root of roots) checkShadowClips(root);
 for (const root of roots) await checkThemePairing(root);
 for (const root of roots) await checkModeOverrides(root);
+for (const root of roots) await checkBackChevron(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {
