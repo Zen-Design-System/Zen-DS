@@ -719,6 +719,7 @@ function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: 
         {/* The screen's title for the outline; the bar shows it at bar size (a content h1 would be Heading/1). */}
         <VisuallyHidden as="h1">Zen AI</VisuallyHidden>
         <Stack direction="row" gap="sm" align="center" justify="between" wrap className="px-ai-ui-screen__bar">
+          {/* zen-allow-visual-heading: the visible bar label repeats the visually hidden h1 above at bar size (aria-hidden), so the outline has one h1 and the bar no oversized title. */}
           <Text as="span" textStyle="Heading/4" aria-hidden="true">Zen AI</Text>
           <Stack direction="row" gap="sm" align="center" wrap>
             <ModelTag demo={demo} />
