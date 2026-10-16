@@ -12,6 +12,10 @@
 .zen-pagination__pages { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-pagination__navigator { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-pagination__range { color: var(--zen-color-content-neutral-strongest, #111); white-space: nowrap; }
+/* Inline / Manually (774:29083): the range fills the row and ends at the arrows (Label Fill, right-aligned), so a
+   pagination as wide as its table puts the page size at the start and the range with the arrows at the end. One that
+   hugs its content has no room to give it. */
+.zen-pagination:is([data-tone="inline"], [data-tone="manually"]) .zen-pagination__range { flex: 1 1 auto; text-align: end; }
 
 /* Item: round, Select-Item/Size/Small 24 (XSmall) or Medium 32 (Small); Flat fill, Flat/Hover on hover. */
 .zen-pagination__item {

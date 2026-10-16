@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Studio → Figma import matches the page (2026-10-17, user: "Bản import ở figma và bản studio còn chưa chính xác"): a
+  Metric-Card draws the page's sparkline, spark bars, goal and footer instead of Figma's sample; a ProgressBar fills its
+  exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its
+  `valueLabel`; a sidebar row shows its counter; the top bar's Search fills up to 400px; Pagination writes its range and
+  page size; cards in a grid row stay as tall as the tallest (none clipped). Pagination Inline / Manually: the range
+  fills the row and ends at the arrows, as in Figma. Charts (Stack-Bar, Donut) still draw Figma's sample (next step).
 - EmptyState `size` (2026-10-16, user): `md` (default, 240 illustration) when the Empty State fills a page, `sm` (120,
   the same art at half scale, 1px / 2px lines kept, Popular/Medium icon) in a widget, card, table, list, tab panel,
   sidebar, panel, sheet or dialog; ChartCard makes it `sm` for you. `EmptyStateIllustration` takes `size` too. New

@@ -11,3 +11,15 @@ export const sameValue = (a, b) => a === b || (typeof a === "string" && typeof b
 
 /** Box surface (layout.css) → the Color/Background variable that paints it (figma-push writes it, figma-pull reads it). */
 export const BOX_SURFACE = { surface: "Background/Surface/Default", "surface-alt": "Background/Surface/Alt", subtle: "Background/Neutral/Subtle/Default", pale: "Background/Neutral/Pale/Default", canvas: "Background/Canvas/Default" };
+
+/** Figma Progress-Bar's fill steps and how far each fills (the live file, 2026-10-16: Low 20%, Medium 40%, Good 80%). */
+const PROGRESS_STEPS = [["Low", 20], ["Medium", 40], ["Good", 80], ["Done", 100]];
+/** A 0–100 value as the Progress-Bar step that fills nearest to it (37% → Medium 40%, not Low 20%); None only for 0. */
+export const progressStep = (value) => (value <= 0 ? "None" : PROGRESS_STEPS.reduce((best, step) => (Math.abs(step[1] - value) < Math.abs(best[1] - value) ? step : best))[0]);
+/** The Progress-Bar's Container is a grid of two Flex columns, the fill and the rest (the live file, 2026-10-17): a
+ *  0–100 value as those shares, the plugin's `columns` edit, so the instance fills exactly as the code does. */
+export const PROGRESS_TRACK = "Container";
+export const progressColumns = (value) => {
+  const share = Math.max(0, Math.min(100, Number(value) || 0));
+  return [share, 100 - share];
+};
