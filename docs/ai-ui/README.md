@@ -167,6 +167,10 @@ controller for the field (`src/ai-ui/live.mjs`, isomorphic):
 
 - every change is debounced (300 ms), then a cheap `classify` names the likely intent — `keywordClassifier` runs on the
   device, so no keystroke leaves it until an intent is likely (handoff: consent, or classify on-device);
+- a sentence the classifier does not know need not stay silent: the demo wraps the classifier so that, after a few
+  words, it answers `{ intent: "free", confidence: 0.6 }` (the lowest the composer accepts, so a known intent replaces
+  it the moment its words appear) and `compose` gets the sentence as it is — the model composes anything; without one
+  the demo says what it can build.
 - at `minConfidence` (0.6) the intent's Skeleton shows at once (tier 1) and `compose` is asked for the real UI with an
   `AbortSignal` (tier 2/3); a keystroke during composing drops the stale answer;
 - an unsure guess never clears what is shown; a different intent replaces it only when clearly more likely

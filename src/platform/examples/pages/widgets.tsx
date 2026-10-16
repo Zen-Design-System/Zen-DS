@@ -30,7 +30,7 @@ export const page: PlatformPage = "widgets";
 
 function KpiWidget() {
   return (
-    <MetricCard theme="flat" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"
+    <MetricCard theme="flat" variant="title-highlight" size="large" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"
       trend={{ direction: "positive", label: "+4% vs. August" }} />
   );
 }
@@ -262,7 +262,7 @@ const pattern = (id: string, Widget: () => ReactNode, description: string): Patt
 /** The page's groups, in the palette's order: what a widget answers (how it moves, against what, toward which goal…). */
 const groups: { id: string; label: string; patterns: Pattern[] }[] = [
   { id: "metrics", label: "Metrics", patterns: [
-    pattern("widget-kpi", KpiWidget, "The plainest widget: a label, the number already formatted (\"5,900 h\") and its change, with a Dock Icon in the measure's colour. The trend badge says against what."),
+    pattern("widget-kpi", KpiWidget, "The plainest widget, laid out like the others (Title-Highlight, Large): its title, the number already formatted (\"5,900 h\") and its change, with a Dock Icon in the measure's colour at its corner. The trend badge says against what."),
     pattern("widget-kpi-sparkline", KpiSparklineWidget, "The number with its last twelve months as a line, the current month at the end dot. The value and trend say the numbers; the line gets an accessible summary from series and format."),
     pattern("widget-kpi-spark-bars", KpiSparkBarsWidget, "Twelve weeks as bars under this week's hours, the current week in the Secondary colour. Bars suit an amount per period; a line suits a level that moves."),
     pattern("widget-goal-progress", GoalProgressWidget, "How far a measure has come toward its goal: a stacked progress bar under the number, its label from format (\"of $290,000 goal\") and the share at the end."),

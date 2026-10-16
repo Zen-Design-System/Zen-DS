@@ -25,7 +25,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   DatePicker "October 2026" (2), Small Pagination 216px (1), Rating "Freelance illustrators" + Sort chip (1), Settings form
   Avatar 2XL + FileUpload (1) — a `wrap` there changes 390/1512, so stack them on phones or accept. Not 320 layout:
   templates "Show all" target (1, the audit counts a link clipped inside a template's scroll frame), text-style
-  rhythm/scale debt also recorded at 390/1512 (8) and widgets "9 text styles" (1; the same gallery is now recorded at 1512 / 390 / dark too: 9 widget types in one
+  rhythm/scale debt also recorded at 390/1512 (8) and widgets "8 text styles" (1; the same gallery is now recorded at 1512 / 390 / dark too, 9 → 8 after the user's Heading/1 call: 7 widget types in one
   example, a designer call whether a gallery may exceed 7 styles).
 - **P3 · Designer question: Navigation-Mobile/Top/Action-Icon-Gap is 20 (2026-10-15):** Component Size spacing now aliases
   Spacing/Gap|Padding, but the Gap ladder has no 20 (16 Medium, 24 Large), so this one stays on `dm-20`. Keep, or move it to a
@@ -51,6 +51,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   contenteditable, tier M). Needs Figma.
 - **P3 · Keycap component (2026-10-15, designer):** keyboard hints ("Tab to keep as booking") need a Kbd; the AI UI demo
   uses Tag for now.
+- **P2 · AI UI: "AI glow" gradient tokens (2026-10-15, designer):** the Zen AI screen on Patterns › AI UI draws the
+  "AI is working" sphere (after Dribbble "Sphere AI Assistant") from Support Pink Solid/Soft, Violet Soft, Cyan
+  Solid/Soft + Surface/Default (demo CSS; a page tint and a ring around the field were tried and dropped at the
+  user's word); the product's own gradient for it (ring, card edge, thinking dots) needs colours in Figma first, then `tokens:build` —
+  `tokens.css` has no gradient token today. Pointer: `src/platform/examples/pages/ai-ui.css` (`.px-ai-ui-orb`); if the orb stays, it becomes a
+  component (AiChatBubble `thinking="orb"`?) with Figma first.
 - **P2 · AI UI: spec format, this tree or A2UI / json-render (2026-10-14, user; handoff Q2):** the runtime uses Zen's own
   node tree (Studio dialect shape). An A2UI exporter is possible on top; decide before a native renderer is needed.
 - **P2 · AI UI: a 4-column Table in a 600 / 390 px chat column (2026-10-14, designer):** needs ~608 px and scrolls

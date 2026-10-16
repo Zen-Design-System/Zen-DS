@@ -164,3 +164,11 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   (a new page's tabs are now the Sidebar's Home · Projects · People, not the seed's four), HO-01 (the export is one
   AppShell with its phone parts), NO-16 (a photo on the desktop account shows in the linked bar's copy too). Updated
   and green alone; gate rerun.
+## Widgets gallery text styles (user: "cho xem trước", then two calls)
+
+- Previewed the Widgets gallery (9 text styles across 7 MetricCard types; each card uses 3–5). The user's calls:
+  comparison figures Heading/4 → Heading/1 (`MetricWidget.tsx` wraps the column value in Heading/1; `metric-widget.css`
+  stacks the columns at `16.5em` of a body sized to Heading/1: 462 / 528 / 594px in Dashboard / Mobile / Popular, probed
+  with no overflow; Figma Metric-Card Type=Comparison set to the Heading/1 style, no placed comparison cards to sweep), and
+  the gallery's first widget (KPI) to Title-Highlight Large (`widgets.tsx`, Studio palette). The gallery now has 8 styles
+  (Display/4 only in the Hero). Docs margins under 375px kept (user: "ok").

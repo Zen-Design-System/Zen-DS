@@ -1,19 +1,59 @@
 /* AI UI examples (examples/pages/ai-ui.tsx). */
 
-/* The assistant screen (PreviewWindow): the conversation scrolls, the field stays docked; padding is the page margin at
-   the sides (Margin/Comfortable), as the AI Chat page's screen. */
-.px-ai-ui-screen { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 100%; height: 100%; }
-.px-ai-ui-screen__scroll { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xlarge, 24px); }
-.px-ai-ui-screen__dock { padding: 0 var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); }
+/* The assistant screen (PreviewWindow) and the phone screen keep their Canvas (the user, 2026-10-15: no page gradient);
+   the AI shows itself in the Liquid Glass field and the working-state ring below. */
+.px-ai-ui-screen, .px-ai-ui-phone-flow { position: relative; z-index: 0; }
+
+/* Desktop: the bar on top, then the conversation scrolls while the field stays docked at the bottom of the scroll
+   (sticky), so the bubbles pass under the glass. Padding is the page margin at the sides (Margin/Comfortable), as the
+   AI Chat page's screen; the thread grows to push the dock down when the conversation is short. */
+.px-ai-ui-screen { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 100%; height: 100%; }
+.px-ai-ui-screen__bar { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) 0; }
+.px-ai-ui-screen__flow { display: flex; min-height: 100%; flex-direction: column; }
+.px-ai-ui-screen__thread { flex: 1 0 auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xlarge, 24px); }
+.px-ai-ui-screen__dock { position: sticky; z-index: 1; bottom: 0; padding: 0 var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); }
 /* The field lines up with the conversation column (AiChatThread: max 800, centred). */
 .px-ai-ui-column { width: 100%; max-width: 800px; margin-inline: auto; }
 
-/* The panel beside the conversation (what the conversation sees): its own scroll, the screen's margin on the right. */
-.px-ai-ui-aside { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) 0; }
-/* Shared state as JSON: keep the line breaks of JSON.stringify, wrap long values. */
-.px-ai-ui-json { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* A new bubble, and the answer replacing its thinking dots, fade in (opacity only). */
+.px-ai-ui-enter, .px-ai-ui-enter .zen-ai-bubble__content { animation: px-ai-ui-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
 
-/* Phone: the thread keeps the screen margin (Margin/Comfortable, 20 on phones); the docked field is a strip whose bottom
-   clears the home indicator, as the AI Chat page's phone. */
-.px-ai-ui-phone-body { padding: var(--zen-margin-comfortable, 20px); }
-.px-ai-ui-phone-dock { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
+/* The panel (what the conversation sees) lies over the screen's right edge, so the conversation keeps its width at any
+   window size; a Surface Box with Shadow/Bottom/Level-3, its own scroll, the screen's margin at the sides; it fades in. */
+.px-ai-ui-aside { position: absolute; z-index: 2; top: 0; right: 0; bottom: 0; width: min(320px, 100%); box-sizing: border-box; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); animation: px-ai-ui-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
+
+/* Phone: the same flow inside the phone's scrolling screen. The thread keeps the screen margin (Margin/Comfortable, 20
+   on phones); the docked field is a strip whose bottom clears the home indicator, as the AI Chat page's phone. */
+.px-ai-ui-phone-flow { display: flex; min-height: 100%; flex-direction: column; }
+.px-ai-ui-phone-body { flex: 1 0 auto; padding: var(--zen-margin-comfortable, 20px); }
+/* The composer phone: the greeting fills the screen inside the margin (as the AI Chat phone's home), the composer sits at
+   the end of the flow (in flow, not sticky: the card above the field pushes the greeting up and the screen follows). */
+.px-ai-ui-phone-home { display: flex; flex: 1 0 auto; box-sizing: border-box; align-items: center; padding: var(--zen-margin-comfortable, 20px); }
+.px-ai-ui-phone-composer { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
+.px-ai-ui-phone-dock { position: sticky; z-index: 1; bottom: 0; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
+/* PlatformPhone pads a screen without a footer by the safe area; the dock already clears the home indicator, so that
+   padding floated the field twice as high (the user, 2026-10-15: "chat box nằm hơi cao trên mobile"). */
+.platform-phone:has(> .platform-phone__screen > .px-ai-ui-phone-flow) > .platform-phone__screen { padding-bottom: 0; }
+
+/* The composer card (docs/research/ai-ui-live-composer-ux-2026-10-15.md §4): the guess card and each new guess fade
+   in (opacity only, so reduced motion needs no fallback). A height transition would need a settled state before the
+   DatePicker popover may overflow; left for the pattern's own CSS. */
+.px-ai-ui-composer, .px-ai-ui-composer__guess { animation: px-ai-ui-fade var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
+@keyframes px-ai-ui-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* The AI at work, a sphere after the Dribbble shot "Sphere AI Assistant" (the user, 2026-10-15): frosted glass, light,
+   with soft colour inside — a pink pool low, a lavender haze high on the right, an aurora band of lavender → white →
+   cyan sweeping across the middle — a faint cyan rim and a highlight top-left. Three blurred layers (blur = a share of
+   the size) move slowly: the pools drift, the band slides and tilts; every distance and the tilt's swing are multiplied
+   by --zen-motion-movement (still under reduced motion), nothing turns. Loops are exempt from the duration tokens.
+   Element-Size/Popular/3-XLarge (56) in the bubble that waits for the answer, Popular/Medium (20) on the composer
+   card's type row. Tokens: Support Pink Solid/Soft, Violet Soft, Cyan Solid/Subtle, Surface/Default. */
+.px-ai-ui-orb { --px-ai-ui-orb: var(--zen-element-size-popular-3-xlarge, 56px); position: relative; display: inline-block; overflow: hidden; width: var(--px-ai-ui-orb); height: var(--px-ai-ui-orb); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); vertical-align: middle; background: radial-gradient(circle at 50% 45%, var(--zen-color-background-surface-default, #fff) 55%, var(--zen-color-background-support-cyan-soft, #c9f0f7) 100%); }
+.px-ai-ui-orb--sm { --px-ai-ui-orb: var(--zen-element-size-popular-medium, 20px); }
+.px-ai-ui-orb > i { position: absolute; inset: 0; display: block; border-radius: inherit; }
+.px-ai-ui-orb > i:nth-child(1) { background: radial-gradient(closest-side at 50% 76%, var(--zen-color-background-support-pink-solid, #ff66d4) 0%, var(--zen-color-background-support-pink-solid, #ff66d4) 28%, var(--zen-color-background-support-pink-soft, #fbd0f0) 62%, transparent 100%); filter: blur(calc(var(--px-ai-ui-orb) / 12)); animation: px-ai-ui-drift 7s var(--zen-motion-ease-standard, ease-in-out) infinite alternate; }
+.px-ai-ui-orb > i:nth-child(2) { background: radial-gradient(closest-side at 70% 26%, var(--zen-color-background-support-violet-soft, #e4defc) 0%, transparent 100%); filter: blur(calc(var(--px-ai-ui-orb) / 10)); animation: px-ai-ui-drift 9s var(--zen-motion-ease-standard, ease-in-out) infinite alternate-reverse; }
+.px-ai-ui-orb > i:nth-child(3) { background: linear-gradient(180deg, transparent 0%, var(--zen-color-background-surface-default, #fff) 40%, transparent 48%), linear-gradient(90deg, var(--zen-color-background-support-violet-soft, #e4defc) 0%, var(--zen-color-background-surface-default, #fff) 42%, var(--zen-color-background-support-cyan-solid, #21b8d8) 85%, var(--zen-color-background-support-cyan-solid, #21b8d8) 100%); filter: blur(calc(var(--px-ai-ui-orb) / 12)); animation: px-ai-ui-sweep 6s var(--zen-motion-ease-standard, ease-in-out) infinite alternate; }
+.px-ai-ui-orb::after { position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(closest-side at 32% 22%, var(--zen-color-background-surface-default, #fff) 0%, transparent 100%); opacity: .75; content: ""; pointer-events: none; }
+@keyframes px-ai-ui-drift { from { translate: calc(-6% * var(--zen-motion-movement, 1)) calc(2% * var(--zen-motion-movement, 1)); } to { translate: calc(6% * var(--zen-motion-movement, 1)) calc(-3% * var(--zen-motion-movement, 1)); } }
+@keyframes px-ai-ui-sweep { from { transform: translateX(calc(-10% * var(--zen-motion-movement, 1))) rotate(calc(-11deg - 6deg * var(--zen-motion-movement, 1))) scale(1.5, .26); } to { transform: translateX(calc(10% * var(--zen-motion-movement, 1))) rotate(calc(-11deg + 6deg * var(--zen-motion-movement, 1))) scale(1.5, .26); } }

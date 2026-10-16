@@ -534,3 +534,81 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   spacing in a chat column); the booking actions row wraps (the gate's density check: Cancel / Schedule outgrew the
   390 px column at Comfortable once the Card's padding came in). Gate `--only=ai-ui --isolated` green; sheets reviewed.
   Not committed, not pushed, not merged (the user: "làm xong khoan commit, push hay merge").
+- P1-b/c applied on the demo (the user: "đồng ý"): `LiveTypingExample` is the composer card — AiChatField, then a flat
+  Card (type row `intentMeta` icon + label + "likely" / "kept", the slot title as Heading/4, `SlotChips` with `dropdown`
+  for heard values and `state="placeholder"` "+ Add …" for empty ones, the template through `composerBody()` which drops
+  the spec's heading and button row, a footer with KeyHints and Cancel / Schedule run by `primaryActionOf` +
+  `resolveArgs`). `sure` = pinned, answered, or confidence ≥ 0.85; chips show while guessing, the form once sure or a
+  chip is opened. Gate findings fixed at the owner: focus audit (the DatePicker popover was clipped by the body's
+  overflow → no height transition, fade only), gap ladder §13 in the footer (md between groups, sm / xs inside), nested
+  corners (the pill field moved out of the card). Gate `--only=ai-ui --isolated` green; sheets reviewed.
+- P1-d applied on the demo (the user: "giao diện của AI chat chưa tối ưu … làm tiếp rồi commit sau"): `ComposerScreen`
+  has a bar (h1 "Zen AI" at Heading/4, `ModelTag`, the panel button), the thread and the suggestion chips in a column
+  that scrolls under a sticky `AiChatField fieldStyle="liquid-glass"` (the chips moved out of the dock: text showed
+  between them); the screen and the phone flow carry the AI Chat playground's Liquid Glass tint with a 16 s opacity-only
+  breathing layer (`zen-allow-canvas-layer`; an AI-glow gradient of its own waits for tokens); bubbles and answers get
+  `.px-ai-ui-enter` (fade, Motion/Duration/Base); `useScrollToEnd` follows the turns and the catalog (the first answer's
+  Card was cut by the dock); the aside is "What Zen AI sees" — `DescriptionList` rows from `flatten(demo.shared)` and
+  the events — a Surface Box with Shadow/Bottom/Level-3 over the screen's right edge (a Grid column crushed the chat
+  below 960), opened by the bar's button (`aria-expanded`, `aria-controls` while open) and closed by an `IconButton`;
+  the dev note under the field is gone (the Tag and the example description say who answers); the phone's
+  `TopNavigation` is `liquid-glass` (compact-alt's Surface/Alt fill cut a grey band through the tint) and its flow
+  reaches under the overlaid header. Gate `--only=ai-ui --isolated` green after two of its findings were fixed: the
+  visible h1 at Heading/4 (hierarchy: a content h1 is Heading/1, only a TopNavigation bar title keeps bar size) is
+  a VisuallyHidden h1 again with the bar's title as Text; the bar wraps at 390 (the Tag and the button overflowed).
+  Usage harness and style guard run on the two files directly (edits went through scripts, so the gate saw 0 UI
+  files). Sheets 390 / 1512 reviewed. No JS effect
+  library: gradients, glass and fades are CSS + the Liquid Glass hook already in the field.
+- Working-state ring (the user: "gradient tôi nói là hiệu ứng lúc thinking … chứ đâu phải gradient nền"): the gradient
+  the user meant is the AI-at-work effect, not a page tint. `.px-ai-ui-glow` wraps the three fields (desktop dock,
+  phone dock, composer card) with `data-busy` from `demo.busy` / the live composer's `skeleton` + `composing` phases:
+  a Padding/3-XSmall ring (masked pseudo-element, conic gradient of Support Pink/Violet/Cyan Solid) turning on an
+  `@property` angle multiplied by `--zen-motion-movement` (still under reduced motion), a blurred halo under it, both
+  fading in and out at Motion/Duration/Base. Style guard made the width and the radius step tokens. The page tint from
+  P1-d stays until the user says otherwise (reported as a question). The live composer's "skeleton" phase is the
+  working state for a first guess (`composing` only edits a kept spec). `useScrollToEnd` also follows the thread's
+  growth while the reader is at the end (the 390 sheet showed the chips under the dock). Then the user: "bỏ nền
+  gradient đi" — the P1-d page tint and its breathing layer are gone (screens on their Canvas, the phone back to
+  `TopNavigation type="compact-alt"`); the Liquid Glass field and the ring stay. Gate `--only=ai-ui --isolated`
+  green; sheets 390 / 1512 reviewed.
+- The orb (the user: "màu cho thanh xấu quá. Tôi nghĩ có thể thử 1 cục tròn như siri"): the ring around the field is
+  gone; `Orb` (`.px-ai-ui-orb`, a span with role="status") is a sphere of Support Cyan/Violet/Pink Solid + Violet Rich
+  (conic) under a Surface/Default highlight (radial), with a blurred halo (`::after`, Padding/XSmall out); sphere and
+  halo turn in opposite directions on the `@property` angle × `--zen-motion-movement`, the sphere breathes by a
+  registered number × movement (still under reduced motion). 28 px (Element-Size/Popular/Large) in the AI bubble that
+  waits for the answer (instead of the component's dots, demo only), 16 px (Popular/Base) in the composer card's type
+  row while `skeleton` / `composing`. `useScrollToEnd` now takes the scroller's ref, so the phone's screen follows the
+  conversation too (the orb sat under the dock). Style guard: the halo's reach through a token (raw -40% flagged).
+  Phone dock (the user: "chat box nằm hơi cao trên mobile"): PlatformPhone pads a footer-less screen by the safe
+  area and the dock cleared the home indicator again, so the field floated 64 px up; the page zeroes that padding
+  for its own flow (`:has`), the field sits 36 px from the bottom as the AI Chat phone's. Gate `--only=ai-ui
+  --isolated` green; sheets reviewed. Next (the user): the orb should follow the Dribbble "Sphere AI Assistant"
+  shot; `dribbble.com` / `cdn.dribbble.com` are refused by the sandbox's network policy, a screenshot or the
+  domain allowed is needed first.
+- The sphere (the user: https://dribbble.com/shots/27218429-Sphere-AI-Assistant, "nên làm giống vầy"; the user
+  allowed `cdn.dribbble.com` in the environment's network policy, the mp4 was read as frames with ffmpeg): the conic
+  Siri-style orb is replaced by a frosted glass sphere — base Surface/Default → Cyan Soft at the rim, a pink pool low
+  (Pink Solid → Pink Soft), a lavender haze high right (Violet Soft), an aurora band of Violet Soft → white → Cyan
+  Solid with a white crest sweeping across the middle, a highlight top-left — three blurred `<i>` layers (blur as a
+  share of the size) that drift and slide on `--zen-motion-movement`-scaled distances (still under reduced motion;
+  nothing turns). 56 px (Element-Size/Popular/3-XLarge) in the waiting bubble, 20 px (Popular/Medium) on the composer
+  card. Style guard made the rim a gradient (hand-written box-shadow flagged) and the band's shape a transform (a
+  percentage inset flagged). Gate `--only=ai-ui --isolated` green; sheets reviewed.
+- P1-e, the composer on a phone (the user: "làm tiếp"; study §4 phone wireframe and F9, the P1 item still open; P2
+  onward need Figma and the Figma MCP does not connect in this session): `LiveTypingExample` takes `placement`
+  ("above" puts the card over the field), `fieldStyle` and `placeholder`; `LiveTypingPhone` is a PlatformPhone with
+  the AiChatBlock greeting filling the screen and the composer at the end of the flow (in flow, not sticky: the card
+  pushes the greeting up and `useScrollToEnd` keeps the field in view). On the phone the footer shows a "Keep as …"
+  tertiary button instead of Tab / Esc / Enter hints. New example "Composed while typing, on a phone". Gate
+  `--only=ai-ui --isolated` green with one warning (dead click on the empty "Add place" chip once the form is shown;
+  fixed in the next change); sheets reviewed.
+- P1-f, listening and free text (the user: "tôi muốn type gì cũng được", then "khi tôi type thì model có hiệu ứng
+  real time listening"): `Orb` takes `beat` (a Web Animations `scale` pulse per keystroke, step × movement, duration
+  from the motion tokens; nothing under reduced motion); `LiveTypingExample` keeps `hearing` for 900 ms after a key
+  and shows the sphere on the type row meanwhile; before any guess the card is one row "Zen AI · listening".
+  `keywordOrFree` wraps the keyword classifier: no known intent and ≥ 3 words → `free` at 0.6 (a known intent, ≥ 0.8,
+  replaces it at once); `compose` sends the sentence as it is to `/ai-ui/compose` when the server is enabled, else
+  the demo answers a Markdown note on what it can build. `intentMeta` gains `free` ("Zen AI", icon-zen) and `keep`
+  labels (phone button / Tab hint). `SlotChips interactive={!showForm}`: heard values stay as plain chips, empty ones
+  go, once the form is shown (the gate's dead-click warning). README: a bullet under "Composing while typing". Gate
+  `--only=ai-ui --isolated` green, no warnings; sheets reviewed.

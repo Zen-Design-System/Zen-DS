@@ -572,7 +572,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-kpi", label: "KPI card", caption: "Icon, number and trend", root: "MetricCard", components: ["MetricCard"],
     code: () => lines(
-      `<MetricCard theme="flat" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"`,
+      `<MetricCard theme="flat" variant="title-highlight" size="large" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"`,
       `  trend={{ direction: "positive", label: "+4% vs. August" }} />`,
     ),
   }),
