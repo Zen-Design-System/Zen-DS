@@ -36,8 +36,8 @@ Last updated: 2026-10-15.
   `get_catalog` + `check_spec`; `npm run ai-ui:eval` measures the loop on 20 prompts (valid-spec rate, wrong UI, time
   to first UI, the classifier on partial input; `--dry` and `--classifier-only` need no key; the first live run needs
   `ANTHROPIC_API_KEY`). PR #64 merged 2026-10-15; the follow-ups (`anthropic-workspace-id` for multi-workspace
-  keys, a visible reason when the model call fails) were PR #74, merged by the user 2026-10-15 16:48Z. Since then the
-  branch carries as PR #87 (opened 2026-10-16 at the user's word, base `main`, no conflicts) the live-composer UX study
+  keys, a visible reason when the model call fails) were PR #74, merged by the user 2026-10-15 16:48Z. The commits
+  since then (cea2b95 … f23a27f) are in `main` through PR #83 (merged 2026-10-16, f420bb8): the live-composer UX study
   (`docs/research/ai-ui-live-composer-ux-2026-10-15.md`: ShapeShift reference, plan P1 … P4) and its P1 steps on the
   page: composed forms on a flat Card, "Composed while typing" as the composer card (type row, slot chips, form once
   sure, key hints + primary action), and the Zen AI screen as the product (bar, Liquid Glass field the thread scrolls

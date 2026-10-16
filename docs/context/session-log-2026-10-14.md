@@ -617,5 +617,6 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   Lumen Bank" reaches `/ai-ui/compose` as it is and the card shows the model's field and button, the bar's Tag the
   model's name (`.qa/preview/free-model.mjs`). PR #74 turned out merged by the user on 2026-10-15 16:48Z (head
   8cad3db); the seven commits since (cea2b95 … f23a27f) sit on the branch with no PR, 39 behind `main`, no
-  conflicts (`git merge-tree`). The user: "mở PR đi" → PR #87 (base main) carries the eight commits; merging stays
-  the user's step.
+  conflicts (`git merge-tree`). They reached `main` through PR #83 (the supervisor's, merged 2026-10-16, f420bb8: main
+  merged in, the "On a phone" description combined with #76's edge case, the bar label marked zen-allow-visual-heading).
+  PR #87 (the user: "mở PR đi") then carried only these notes, corrected to say so.
