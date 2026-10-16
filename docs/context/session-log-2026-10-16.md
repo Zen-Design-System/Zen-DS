@@ -268,3 +268,12 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   descriptions mention Size (Radial's stacked `&amp;#39;` escape fixed).
 - Not done: Gauge keeps its 240 (not asked); the Figma rings no longer grow with a stretched card (a Size is picked
   instead; code still grows them).
+
+## Studio Play: large title folds, system bars stay (user: "Có", after the Expenses re-check)
+
+- `builder/proto/runtime.tsx` Screen: in Present / Play (its root is inside `.studio-present__scroll`) a TopNavigation
+  with a `largeTitle` and no `scrollRef` / `collapsed` gets that scroller as `scrollRef` (a new ref object once found,
+  so the TopNavigation's effect links again). The status bar and home indicator ride 0-high sticky boxes
+  (`.studio-builder-screen__pin`, top / bottom) inside `__main`; `DeviceBars` takes `part`. Canvas frames unchanged
+  (Playwright: no pin, no link). Checked in Play at 430 × 932: 80px folds the title, 30px settles open, bars stay.
+

@@ -1,4 +1,4 @@
-import { Children, createContext, isValidElement, useContext, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
+import { Children, cloneElement, createContext, isValidElement, useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactElement, type ReactNode, type RefObject } from "react";
 import { AppShell } from "../../../../components/AppShell";
 import { ZenPortalProvider } from "../../../../components/Portal";
 import { DeviceBars, SAFE_AREAS, type DeviceOs } from "./DeviceBars";
@@ -87,7 +87,28 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   height?: number;
 };
 
+/** The Present / Play page that scrolls this screen (board/board.css .studio-present__scroll); none on the canvas. */
+function usePresentScroller(rootRef: RefObject<HTMLDivElement | null>) {
+  const [scroller, setScroller] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => { setScroller(rootRef.current?.closest<HTMLElement>(".studio-present__scroll") ?? null); }, [rootRef]);
+  // A new object once the scroller is known: TopNavigation reads `scrollRef.current` when it links (its effect runs
+  // before this one), so the ref must change to link again.
+  return useMemo(() => (scroller ? { current: scroller } : null), [scroller]);
+}
+
+/** In Present and Play a Top Navigation with a large title follows the page's scroll, as on iOS (TopNavigation
+ *  `scrollRef`): the large title folds under the bar and the bar title fades in. The page's own `scrollRef` or
+ *  `collapsed` wins; on the canvas nothing scrolls, so the large title stays open. */
+function withScrollLink(topNavigation: ReactNode, scrollRef: RefObject<HTMLElement | null> | null): ReactNode {
+  if (!scrollRef || !isValidElement(topNavigation)) return topNavigation;
+  const props = topNavigation.props as { largeTitle?: unknown; scrollRef?: unknown; collapsed?: unknown };
+  if (props.largeTitle == null || props.largeTitle === "" || props.scrollRef !== undefined || props.collapsed !== undefined) return topNavigation;
+  return cloneElement(topNavigation as ReactElement<{ scrollRef?: RefObject<HTMLElement | null> }>, { scrollRef });
+}
+
 export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width: _width, height, ...rest }: ScreenProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const presentScroll = usePresentScroller(rootRef);
   const phone = device === "phone";
   // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone).
   const os = useContext(PageOsContext);
@@ -100,9 +121,13 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
   const desktop = active === "desktop";
   const chrome = desktop ? Boolean(sidebar || header) : Boolean(topNavigation || bottomNavigation);
   const content = desktop ? children : withoutMasterLayout(children);
+  // Present and Play scroll the whole screen in the page: its system bars stay at the edges of the window, as a phone's
+  // do (a canvas frame draws them on its own edges).
+  const pinBars = Boolean(presentScroll && bars && device !== "desktop" && chrome && !desktop);
   return (
     <div
       {...rest}
+      ref={rootRef}
       className="studio-builder-screen"
       data-screen={id}
       data-screen-state={state}
@@ -128,13 +153,15 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
         </>
       ) : (
         <div className="studio-builder-screen__main">
-          {topNavigation ? <div className="studio-builder-screen__top">{topNavigation}</div> : null}
+          {pinBars ? <div className="studio-builder-screen__pin" data-edge="top"><DeviceBars os={os} device={device as "phone" | "tablet"} part="status" /></div> : null}
+          {topNavigation ? <div className="studio-builder-screen__top">{withScrollLink(topNavigation, presentScroll)}</div> : null}
           <div className="studio-builder-screen__content">{content}</div>
           {bottomNavigation ? <div className="studio-builder-screen__bottom">{bottomNavigation}</div> : null}
+          {pinBars ? <div className="studio-builder-screen__pin" data-edge="bottom"><DeviceBars os={os} device={device as "phone" | "tablet"} part="home" /></div> : null}
         </div>
       )}
-      {/* Last, beside the app (never inside __main, where the Screen's slots are found). */}
-      {bars && device !== "desktop" ? <DeviceBars os={os} device={device} /> : null}
+      {/* Last, beside the app (never inside __main, where the Screen's slots are found; Present and Play pin them there). */}
+      {bars && device !== "desktop" && !pinBars ? <DeviceBars os={os} device={device} /> : null}
     </div>
   );
 }
