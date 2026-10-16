@@ -26,6 +26,21 @@ async function readBoard(localPage: string) {
   return tree.board ? { engine, tree: tree as PageTree & { board: PageNode }, frames: tree.board.children.filter((child): child is PageNode => child.kind === "element") } : null;
 }
 
+/** Removes a Screen or Overlay (`screen:<id>` / `overlay:<id>`) from a builder page's Board, one edit and one undo step,
+ *  as Figma's Delete on a selected frame (the user 2026-10-16: "Chưa bấm delete frame màn hình"); the selection clears. */
+export async function removeFrame(localPage: string, frameId: string): Promise<boolean> {
+  const [kind, id] = frameId.split(":");
+  if ((kind !== "screen" && kind !== "overlay") || !id) return false;
+  const [board, page] = await Promise.all([readBoard(localPage), getPage(localPage)]);
+  const frame = board?.frames.find((node) => node.name === (kind === "screen" ? "Screen" : "Overlay") && literal(node, "id") === id);
+  if (!board || !page || !frame) return false;
+  const title = String(literal(frame, "title") ?? id);
+  // A removal names the text it was read from (the server refuses it without the file's hash).
+  const response = await applyEdit({ file: pageFile(localPage), loc: frame.loc, name: frame.name, ops: [{ op: "removeElement" } as EditOp], hash: board.engine.sha1(page.text) }, `Delete ${title}`);
+  if (response.ok) studioStore.setState({ selection: null });
+  return Boolean(response.ok);
+}
+
 export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, holds }: Placement = {}): Promise<boolean> {
   let board = await readBoard(localPage);
   if (!board) return false;
