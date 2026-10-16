@@ -34,6 +34,7 @@ import { BuilderBoard } from "./builder/BuilderBoard";
 import { StudioHome } from "./builder/StudioHome";
 import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
+import { removeFrame } from "./builder/proto/addFrame";
 import { startPageMirror } from "./builder/store/mirrors";
 import { cachedPage } from "./builder/store/pageStore";
 import { ChromePortalContext, ChromeScope, useChromeAttributes } from "./shell/ChromeScope";
@@ -427,6 +428,16 @@ export function StudioApp() {
           && target.getAttribute("aria-expanded") !== "true");
         const here = !target || target === document.body || target.matches(".studio-viewport") || inspectorControl
           || Boolean(row && row === target && (row.getAttribute("data-kind") === "node" || row.getAttribute("data-kind") === "part") && row.getAttribute("aria-selected") === "true");
+        // A selected Screen or Overlay of a page you made goes as one edit (Figma deletes a selected frame), also from its
+        // name on the canvas (a button the click focused) or its selected row in Layers.
+        const onFrame = here || Boolean(target?.closest(".studio-frame-label[data-selected='true']"))
+          || Boolean(row && row === target && row.getAttribute("data-kind") === "frame" && row.getAttribute("aria-selected") === "true");
+        if (!doc && !event.repeat && !event.shiftKey && onFrame && state.tool === "select" && selection?.kind === "frame" && state.localPage
+          && /^(screen|overlay):/.test(selection.frameId) && canEdit(state)) {
+          event.preventDefault();
+          void removeFrame(state.localPage, selection.frameId);
+          return;
+        }
         if (doc || event.repeat || event.shiftKey || !here || state.tool !== "select" || selection?.kind !== "node") return;
         if (selection.part) {
           // A data-slot item goes like a layer (its host stays selected); so does a nested slot's group, its title or its

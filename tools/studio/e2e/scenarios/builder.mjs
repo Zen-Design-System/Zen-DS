@@ -712,6 +712,32 @@ export const rows = [
     },
   },
   {
+    id: "B-44", feature: "Delete on a selected Screen of a page you made removes it, from its name on the canvas (one ⌘Z brings it back)", wp: "user 2026-10-16: \"Chưa bấm delete frame màn hình\"",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      // A second Screen to delete: ⌥-drag screen-1 by its name drops a copy (B-37).
+      const label1 = page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]');
+      const box = await label1.boundingBox();
+      const from = { x: box.x + 8, y: box.y + box.height / 2 };
+      await page.mouse.move(from.x, from.y);
+      await page.keyboard.down("Alt");
+      await page.mouse.down();
+      for (let step = 1; step <= 6; step += 1) await page.mouse.move(from.x + (200 * step) / 6, from.y);
+      await page.mouse.up();
+      await page.keyboard.up("Alt");
+      const has = async (screen) => new RegExp(`<Screen id="${screen}"`).test((await pageText(page, id)) ?? "");
+      await until(() => has("screen-2"), { message: "a copy screen-2" });
+      // Select it by its name (the click focuses the name's button) and press Delete, as a person does.
+      await page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-2"]').click();
+      await page.keyboard.press("Delete");
+      await until(async () => !(await has("screen-2")) && (await has("screen-1")), { message: "Delete removes screen-2 and keeps screen-1" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press(process.platform === "darwin" ? "Meta+z" : "Control+z");
+      await until(() => has("screen-2"), { message: "⌘Z brings screen-2 back" });
+      return "Delete from the frame's name removes it · ⌘Z restores";
+    },
+  },
+  {
     id: "B-21", feature: "Right-click on a selected Stack's spacing (its padding) opens the canvas menu for that Stack", wp: "studio fixes 2026-10-09",
     async run(ctx) {
       const { page, id } = await newPage(ctx);

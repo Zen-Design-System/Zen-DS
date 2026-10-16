@@ -87,10 +87,18 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   height?: number;
 };
 
-/** The Present / Play page that scrolls this screen (board/board.css .studio-present__scroll); none on the canvas. */
+/** What scrolls this screen in Present / Play (inside board/board.css .studio-present__scroll; none on the canvas): the
+ *  nearest ancestor that scrolls its overflow (the example stage), else the present page itself. Linking the page while
+ *  the stage scrolled left a large title open over the content (the user 2026-10-16, the Expenses phone screen). */
 function usePresentScroller(rootRef: RefObject<HTMLDivElement | null>) {
   const [scroller, setScroller] = useState<HTMLElement | null>(null);
-  useLayoutEffect(() => { setScroller(rootRef.current?.closest<HTMLElement>(".studio-present__scroll") ?? null); }, [rootRef]);
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    const present = root?.closest<HTMLElement>(".studio-present__scroll") ?? null;
+    let node = present ? root?.parentElement ?? null : null;
+    while (node && node !== present && !/(auto|scroll)/.test(getComputedStyle(node).overflowY)) node = node.parentElement;
+    setScroller(present ? node ?? present : null);
+  }, [rootRef]);
   // A new object once the scroller is known: TopNavigation reads `scrollRef.current` when it links (its effect runs
   // before this one), so the ref must change to link again.
   return useMemo(() => (scroller ? { current: scroller } : null), [scroller]);
