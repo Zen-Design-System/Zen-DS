@@ -7581,7 +7581,7 @@
     "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
     "use": [
       "Every signed-in web app screen (dashboards, admin, HR and settings).",
-      "Desktop and tablet app frames: below 1024px the Sidebar becomes a drawer; on phones the same page takes a TopNavigation + BottomNavigation instead (see Do).",
+      "One app frame for desktop, tablet and phone: below 1024px the Sidebar becomes a drawer; under 744px topNavigation and bottomNavigation take over from the top bar (see Do).",
       "Top-bar icon actions with an unread dot or count → AppShellAction.",
       "The account menu → Menu with an AppShellAccount trigger."
     ],
@@ -7638,9 +7638,14 @@
         "default · alt (white page) · flat (pair with Sidebar background=\"flat\")"
       ],
       [
+        "Phone (Top-Navigation/Mobile, Bottom-Navigation)",
+        "topNavigation · bottomNavigation",
+        "under 744px they replace the top bar and sections: the TopNavigation holds the page title (the h1), Back and up to three actions, the BottomNavigation the roots; the Sidebar still opens as the drawer (useAppShell().openNav()); tablets and desktops ignore them"
+      ],
+      [
         "Breakpoint",
         "layout",
-        "auto (the shell's own width: < 1024px → drawer) · sidebar · drawer (previews and tests only)"
+        "auto (the shell's own width: < 1024px → drawer, < 744px with topNavigation / bottomNavigation → phone) · sidebar · drawer · phone (previews and tests only)"
       ],
       [
         "—",
@@ -7657,7 +7662,7 @@
       "Show unread items on the action itself (AppShellAction count or dot) so the count is also in its accessible name.",
       "Store the rail state from onSidebarCollapsedChange so the Sidebar opens the way people left it.",
       "Let layout follow the shell's width; force it only for previews and tests.",
-      "On phones (useZen()?.breakpoint === \"mobile\"), draw the page's content between a TopNavigation and a BottomNavigation instead of the AppShell, mapped from it: Sidebar rows → BottomNavigation (up to 5; more → the first 4 + More), Breadcrumbs → the Back chevron on a child screen, the PageHeader title → the bar's title (large on a root), at most 3 trailing actions (Search, +, notifications, then ⋯ More), the account → the avatar in leading on a root. Every desktop header action stays reachable, and the title stays in sections so each layout has one h1 (component-usage-rules §17, skill zen-responsive-screens)."
+      "For an app that runs on phones, give the shell topNavigation and bottomNavigation mapped from its header: Sidebar rows → BottomNavigation (up to 5; more → the first 4 + More), Breadcrumbs → the Back chevron on a child screen, the PageHeader title → the bar's title (large on a root), at most 3 trailing actions (Search, +, notifications, then ⋯ More), the account → the avatar in leading on a root. Every desktop header action stays reachable (component-usage-rules §17, skill zen-responsive-screens)."
     ],
     "dont": [
       "Don't build your own sidebar + main flex layout or your own drawer.",
@@ -7665,7 +7670,9 @@
       "Don't nest AppShells (harness: app-shell/nested).",
       "Don't repeat the Breadcrumbs in the PageHeader when the top bar shows them (harness: app-shell/breadcrumbs-once).",
       "Don't force layout in an app (harness: app-shell/forced-layout).",
-      "Don't hand-build a bell with a red dot; use AppShellAction."
+      "Don't hand-build a bell with a red dot; use AppShellAction.",
+      "Don't put the page's PageHeader in the content when the shell has a topNavigation: on a phone it stays beside the bar's title, two h1s; it belongs in sections (harness: app-shell/page-header-in-sections).",
+      "Don't give the phone bar other words than the PageHeader title (harness: app-shell/top-navigation-title)."
     ],
     "a11y": [
       "The first Tab stop is a \"Skip to content\" link: it moves focus to <main> (tabindex=-1) without touching the URL, so hash routers keep working.",
@@ -7737,8 +7744,20 @@
       {
         "id": "app-shell/forced-layout",
         "severity": "warn",
-        "summary": "An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px); layout=\"sidebar\" or \"drawer\" is for previews and tests. (App mode only.)",
+        "summary": "An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px, the phone chrome under 744px); layout=\"sidebar\", \"drawer\" or \"phone\" is for previews and tests. (App mode only.)",
         "allow": "forced-layout"
+      },
+      {
+        "id": "app-shell/page-header-in-sections",
+        "severity": "warn",
+        "summary": "With a phone TopNavigation (topNavigation), the page's PageHeader goes in sections: in the content a phone keeps it beside the bar's title, two h1s (component-usage-rules §17).",
+        "allow": "page-header-in-content"
+      },
+      {
+        "id": "app-shell/top-navigation-title",
+        "severity": "warn",
+        "summary": "The phone bar (topNavigation's TopNavigation title) and the page header (sections' PageHeader title) say the same words (component-usage-rules §17).",
+        "allow": "phone-title"
       },
       {
         "id": "api/overrides-studio-only",

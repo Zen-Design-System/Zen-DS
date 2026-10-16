@@ -786,6 +786,96 @@ const moreActivity: { id: string; actor: PersonId; verb: string; object: string;
   { id: "a14", actor: "bao", verb: "published", object: "Zen tokens 0.4", at: daysFromToday(-12, 16, 30) },
 ];
 
+/**
+ * The studio's web app on a phone (component-usage-rules §17): the same AppShell, its header moved to the phone's bars.
+ * Under 744px the shell draws `topNavigation` and `bottomNavigation` instead of the top bar and the page header row.
+ */
+function StudioAppOnPhone() {
+  const { toast } = useToast();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState<"home" | "projects" | "invoices">("projects");
+  const [unseen, setUnseen] = useState(3);
+  const [list, setList] = useState(phoneProjects);
+  const [creating, setCreating] = useState(false);
+  // On a phone the account menu is an action sheet (a Popover fits a pointer, not a thumb).
+  const [accountOpen, setAccountOpen] = useState(false);
+  const form = useFormState<{ name: string; client: string }>({
+    initialValues: { name: "", client: "Phin & Co" },
+    validate: (values) => ({ name: values.name.trim() ? undefined : "Enter a project name" }),
+    onSubmit: (values, { reset }) => {
+      setList((current) => [{ id: `new-${current.length}`, name: values.name.trim(), client: values.client, icon: "icon-cube-line", theme: "neutral", status: "Planning", due: daysFromToday(90) }, ...current]);
+      setCreating(false);
+      reset();
+      toast({ type: "positive", title: "Project created", children: values.name.trim() });
+    },
+  });
+  const titles = { home: "Home", projects: "Projects", invoices: "Invoices" } as const;
+  const title = titles[page];
+  // The Sidebar's rows are the roots: up to five go straight into the Bottom Navigation.
+  const rows = [
+    { id: "home", label: "Home", icon: "icon-home-03-line" as const },
+    { id: "projects", label: "Projects", icon: "icon-folder-line" as const },
+    { id: "invoices", label: "Invoices", icon: "icon-receipt-line" as const },
+  ];
+  // Tapping the current root again scrolls it back to the top.
+  const go = (next: string) => { if (next === page) screenRef.current?.scrollTo({ top: 0 }); setPage(next as typeof page); };
+  const newProject = page === "projects" ? () => setCreating(true) : undefined;
+  return (
+    <PlatformPhone label="Zen app" canvas="alt" screenRef={screenRef}>
+      <AppShell
+        sidebar={<Sidebar logo={studioLogo} sections={[{ items: rows }]} selectedId={page} onItemClick={(item) => go(item.id)} />}
+        header={<Breadcrumbs master={false} items={page === "home" ? [{ id: "home", label: "Home" }] : [{ id: "home", label: "Home" }, { id: page, label: title }]}
+          onNavigate={(item, event) => { event.preventDefault(); go(String(item.id)); }} />}
+        headerActions={<>
+          <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unseen} onClick={() => setUnseen(0)} />
+          <AppShellAccount name={me.name} src={me.photo} onClick={() => setAccountOpen(true)} />
+        </>}
+        sections={<PageHeader title={title} actions={newProject ? <Button level="primary" onClick={newProject}>New project</Button> : undefined} />}
+        // The phone's bar: the account leads a root, the Primary becomes "+", Notifications keeps its dot.
+        topNavigation={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef}
+          leading={<AppShellAccount name={me.name} src={me.photo} onClick={() => setAccountOpen(true)} />}
+          trailing={[
+            ...(newProject ? [{ icon: "icon-plus-line" as const, label: "New project", onClick: newProject }] : []),
+            { icon: "icon-bell-01-line" as const, label: unseen ? `Notifications, ${unseen} new` : "Notifications", dot: unseen > 0, onClick: () => setUnseen(0) },
+          ]} />}
+        bottomNavigation={<BottomNavigation aria-label={studio.name} value={page} onValueChange={go} showLabels items={rows} />}
+      >
+        {/* The screen margin (lg) insets the rows sideways, xs above and below, as a List-Box on a phone. */}
+        <Box paddingX="lg" paddingY="xs">
+          {page === "invoices" ? (
+            <List aria-label="Invoices">
+              {invoices.map((invoice) => (
+                <ListItem key={invoice.number} title={invoice.number} caption={`${invoice.client} · ${formatMoney(invoice.amount, true)}`}
+                  trailing={badge(invoice.status, invoiceStatusTheme[invoice.status])} />
+              ))}
+            </List>
+          ) : (
+            <List aria-label={page === "home" ? "Projects due soon" : "Projects"}>
+              {(page === "home" ? list.slice(0, 4) : list).map((item) => (
+                <ListItem key={item.id} title={item.name} caption={page === "home" ? `${item.client} · due ${formatDate(item.due)}` : item.client}
+                  leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" size="md" />}
+                  trailing={page === "home" ? undefined : badge(item.status, projectStatusTheme[item.status])} />
+              ))}
+            </List>
+          )}
+        </Box>
+      </AppShell>
+      <BottomSheet inline open={creating} onOpenChange={(open) => { setCreating(open); if (!open) form.reset(); }} title="New project" onSubmit={form.handleSubmit}
+        primaryAction={{ label: "Create project" }} secondaryAction={{ label: "Cancel" }}>
+        <InputField label="Project name" placeholder="Saola trail guide" data-autofocus="" {...form.field("name")} />
+        <SelectField label="Client" options={clientOptions} {...form.selectField("client")} />
+      </BottomSheet>
+      <BottomSheet inline type="action" open={accountOpen} onOpenChange={setAccountOpen} title={me.name}
+        items={[
+          { id: "profile", label: "Profile", icon: "icon-user-circle-line" },
+          { id: "settings", label: "Settings", icon: "icon-settings-01-line" },
+          { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line" },
+        ]}
+        onSelect={(item) => { setAccountOpen(false); toast({ title: `${item.label} isn't part of this demo` }); }} />
+    </PlatformPhone>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio app",
@@ -911,6 +1001,30 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unseen} onClick={() => go("notifications")} />
     <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={accountItems} />
   </>}
+>
+  <Page id={page} />
+</AppShell>`,
+  },
+  {
+    title: "Desktop and phone",
+    description: "The same app on a phone: one AppShell that also takes the phone's bars. Under 744px it draws them instead of the top bar and the page header row. The Sidebar's three rows are the Bottom Navigation, the page title is the bar's large title (the screen's one h1), New project becomes the + action, Notifications keeps its dot as the next action, and the account leads the bar. Tapping the current root again scrolls it to the top.",
+    render: () => <StudioAppOnPhone />,
+    code: `<AppShell
+  sidebar={<Sidebar logo={logo} sections={[{ items: rows }]} selectedId={page} onItemClick={(item) => go(item.id)} />}
+  header={<Breadcrumbs master={false} items={crumbs} />}
+  headerActions={<>
+    <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unseen} onClick={openInbox} />
+    <AppShellAccount name="Alex Duong" src={alex.photo} onClick={openAccount} />
+  </>}
+  sections={<PageHeader title="Projects" actions={<Button level="primary" onClick={newProject}>New project</Button>} />}
+  // Phones (under 744px): the same header in the phone's bars (component-usage-rules §17).
+  topNavigation={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef}
+    leading={<AppShellAccount name="Alex Duong" src={alex.photo} onClick={openAccount} />}
+    trailing={[
+      { icon: "icon-plus-line", label: "New project", onClick: newProject },
+      { icon: "icon-bell-01-line", label: "Notifications, 3 new", dot: unseen > 0, onClick: openInbox },
+    ]} />}
+  bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" value={page} onValueChange={go} showLabels items={rows} />}
 >
   <Page id={page} />
 </AppShell>`,

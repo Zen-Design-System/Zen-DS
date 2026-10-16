@@ -151,7 +151,7 @@ export function matchOption(value: string, options: readonly string[]): string {
 export function isSkippedProp(name: string) {
   // hidden / hiddenSlots: a builder page's layer and slot visibility, set by the eye, ⇧⌘H and the slot switches
   // (edit/visibility.ts), not typed as attributes.
-  return name === "hidden" || name === "hiddenSlots" || name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "overrides" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
+  return name === "hidden" || name === "hiddenSlots" || name === "phoneLinked" || name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "overrides" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
 }
 
 export const typographyKeys = Object.keys(typographyStyles);

@@ -7,6 +7,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P2 · Templates take the phone chrome (2026-10-16, follow-up of the responsive header P3, waits for the user):**
+  AdminList, Detail, Dashboard, SettingsForm and HrShell keep their PageHeader in the content and have no
+  `topNavigation` / `bottomNavigation`, so on a phone they show the drawer and the desktop header rows. Each needs its
+  PageHeader moved into `sections` (a small desktop spacing change to review at 1512 / 390) and its phone parts by
+  `docs/component-usage-rules.md` §17. Zen Studio pages made from them already get the phone parts (P4).
 - **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
   chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
   examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read

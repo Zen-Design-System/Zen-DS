@@ -89,6 +89,13 @@ function ScreenSection({ frameId }: { frameId: string }) {
   // Off hides a part and keeps its layers (`hiddenSlots`, Figma's boolean; edit/visibility.ts): on brings them back as
   // they were. A part never written gets its starting component.
   const screenOff = hiddenSlotsOf(node.props[HIDDEN_SLOTS_PROP]);
+  // The phone parts drawn from the desktop header (tools/studio/responsive-header.mjs): Reset to desktop links one again,
+  // and the page's next write draws it.
+  const phoneLinked = hiddenSlotsOf(node.props.phoneLinked);
+  const resetToDesktop = (prop: string) => {
+    const next = [...new Set([...phoneLinked, prop])];
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [{ op: "setProp", name: "phoneLinked", value: { kind: "expression", code: JSON.stringify(next) } }] }, `${prop === "topNavigation" ? "Top" : "Bottom"} navigation follows the desktop`);
+  };
   const writePart = (part: (typeof SCREEN_CHROME)[number], on: boolean) => {
     const label = `${part.label} ${on ? "on" : "off"}`;
     const keep = (on && screenOff.includes(part.prop)) || (!on && node.props[part.prop]?.kind === "element") ? slotSwitchOp(screenOff, part.prop, on) : null;
@@ -184,7 +191,13 @@ function ScreenSection({ frameId }: { frameId: string }) {
           key={part.prop}
           name={part.prop}
           code={`Screen ${part.prop}`}
-          fields={[<Toggle key={part.prop} label={part.label} checked={node.props[part.prop]?.kind === "element" && !screenOff.includes(part.prop)} disabled={!admin} onCheckedChange={(next) => writePart(part, next)} />]}
+          fields={[
+            <Toggle key={part.prop} label={part.label} checked={node.props[part.prop]?.kind === "element" && !screenOff.includes(part.prop)} disabled={!admin} onCheckedChange={(next) => writePart(part, next)} />,
+            // With a desktop AppShell the phone parts follow its header (component-usage-rules §17) until edited here.
+            ...(shell ? [phoneLinked.includes(part.prop)
+              ? <span key="linked" className={`studio-inspector__note ${typographyStyles["Caption/Regular"]}`}>Follows the desktop header</span>
+              : <Button key="reset" level="tertiary" size="sm" disabled={!admin} onClick={() => resetToDesktop(part.prop)}>Reset to desktop</Button>] : []),
+          ]}
         />
       ))}
       <InspectorFields

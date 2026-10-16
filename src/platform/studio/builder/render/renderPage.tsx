@@ -1,7 +1,7 @@
 import { createElement, Fragment, isValidElement, type ReactNode } from "react";
 import { screenLayout } from "../../../../../tools/studio/screen-chrome.mjs";
 import { requiredFunctions, standInKind } from "../../../../../tools/studio/standins.mjs";
-import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, hiddenOn, hiddenSlotsOf } from "../../../../../tools/studio/visibility.mjs";
+import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, STUDIO_ONLY_PROPS, hiddenOn, hiddenSlotsOf } from "../../../../../tools/studio/visibility.mjs";
 import * as Zen from "../../../../index";
 import { resolveMediaDeep } from "../library/media";
 import { Board, Overlay, protoHandler, Screen, type ProtoActions } from "../proto/runtime";
@@ -228,7 +228,7 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   // A builder page's photo is `zen-media:<key>` (builder/library/media.ts): this build's URL, in a prop's data too (a
   // Table row's picture).
   for (const [name, value] of Object.entries(node.props)) {
-    if (name === HIDDEN_PROP || name === HIDDEN_SLOTS_PROP || slotsOff.has(name)) continue;
+    if (STUDIO_ONLY_PROPS.has(name) || slotsOff.has(name)) continue;
     props[name] = resolveMediaDeep(valueOf(value, scope, ctx));
   }
   prototypeProps(node, props, ctx);

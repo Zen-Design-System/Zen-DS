@@ -49,21 +49,23 @@ Situations beyond these (search-led list, media, selection mode, conversation) f
 
 ## 4. Build it where you work
 
-**Code (React).** One content, two chromes: on phones (`useZen()?.breakpoint === "mobile"`, under 744px) the
-TopNavigation and BottomNavigation around the content; otherwise the AppShell around the same content (§17's example):
+**Code (React).** Give AppShell both sets; the shell picks by its width (under 744px it draws `topNavigation` and
+`bottomNavigation` instead of the top bar and `sections`; the Sidebar still opens as the drawer):
 
 ```tsx
-return phone
-  ? <><TopNavigation title="Expenses" largeTitle="Expenses" leading={…} trailing={[…]} sticky /><main>{content}</main><BottomNavigation value="expenses" items={[…]} /></>
-  : <AppShell sidebar={…} header={…} headerActions={…} sections={<PageHeader title="Expenses" … />}>{content}</AppShell>;
+<AppShell sidebar={…} header={…} headerActions={…} sections={<PageHeader title="Expenses" … />}
+  topNavigation={<TopNavigation title="Expenses" largeTitle="Expenses" leading={…} trailing={[…]} />}
+  bottomNavigation={<BottomNavigation value="expenses" items={[…]} />}>
 ```
 
-Put the page title in the AppShell's `sections`, never in the shared content, or the phone shows two h1s. Run
-`npm run usage:check`.
+Put the page title in `sections`, never in the content, or the phone shows two h1s (harness
+`app-shell/page-header-in-sections`, `app-shell/top-navigation-title`). Run `npm run usage:check`.
 
-**Zen Studio.** A Screen keeps both sets: its desktop AppShell and, in the Screen section, its Top and Bottom
-Navigation (the phone layout draws the AppShell's content between them). Build the phone set by the mapping above. To
-keep a layer on one layout only, use **Hide on mobile / Hide on desktop** (the layer's menu), not delete.
+**Zen Studio.** A Screen's phone parts (its Top and Bottom Navigation) are drawn from its desktop AppShell by this
+mapping and stay **linked to desktop**: change the desktop title, actions or Sidebar rows and they follow. Edit a part
+on the phone and it becomes your own; **Reset to desktop** (Screen section) links it again. The export writes them as
+the AppShell's `topNavigation` / `bottomNavigation`. To keep a layer on one layout only, use **Hide on mobile / Hide on
+desktop** (the layer's menu), not delete.
 
 **Figma.** Build the phone frame next to the desktop one: a 390-wide frame (Breakpoint & Grids Mobile, Component Size
 Comfortable) with `Top-Navigation/Mobile` (Top-Leading, Top-Heading-Text or Expand-Heading, Top-Trailing with at most
