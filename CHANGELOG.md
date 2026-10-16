@@ -23,6 +23,14 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- Studio → Figma: copy a frame straight into Figma (2026-10-16, user: "copy trực tiếp frame vào figma … tự bind lại
+  component, style và variables"): ⌘C on a frame (or its Screen layer; menu Copy for Figma) also carries the frame's
+  Figma export, which ⌘V in the Zen plugin places on the page you have open. Exports carry the library's keys
+  (`docs/figma-contracts/library-keys.json`, `tools/studio/library-keys.mjs`), so the plugin binds sets, icons, text
+  styles and variables in any file that uses the published Zen library, not only in the Zen file; what the library
+  lacks becomes a placeholder, and the plugin's Re-bind to Zen binds it once the library has it. Push: a DockIcon,
+  Avatar, Icon… in a stretching column hugs (was FILL, a 520px Dock-Icon), and a plain Stack around wrapping text fills
+  its column (a centred tagline collapsed to 175px).
 - DashboardHeader control-bar result count (2026-10-16, user: "hơi bự, nên đưa về body"): "86 expenses" is Body/Base/Regular
   (was Heading/Subheading), in code and in Figma Primitives/Dashboard/Header Type=Control-Bar (its description says so);
   harness `dashboard-header/count-body` (error) flags a Heading or a heading/display text style passed as the count.
