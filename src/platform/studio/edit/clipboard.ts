@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { MenuEntry } from "../../../components/Menu";
 import { announceEditStatus, applyEdit, currentEditStatus, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { canvasApi } from "../canvas/viewport";
+import { copyFrameForFigma, frameFigmaClip, writeFrameClip } from "../builder/export/figmaClipboard";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { propSpecs } from "../inspector/propSchema";
 import { findBySrc, isTypingTarget, parentHit, type FiberHit } from "../select/picker";
@@ -108,8 +109,20 @@ function prefetch() {
   if (!selection || selection.src === readFor) return;
   readFor = selection.src;
   ready = null;
+  figmaReady = null;
   void readLayer(selection).then((read) => { if (read && readFor === selection.src) ready = { src: selection.src, ...read }; });
+  // A Screen of a page you made: its Figma export too, as ⌘C on its frame carries it (builder/frameKeys.ts).
+  const screen = screenOf(selection);
+  if (screen) void frameFigmaClip(screen.localPage, screen.frameId).then((next) => { if (readFor === selection.src && "html" in next) figmaReady = { src: selection.src, html: next.html }; });
 }
+
+/** The selected Screen (or Overlay) of a page you made, which copies for Figma too; null for any other layer. */
+function screenOf(selection: NodeSelection): { localPage: string; frameId: string } | null {
+  const { localPage } = studioStore.getState();
+  return localPage && selection.frameId && /^(screen|overlay):/.test(selection.frameId) && (selection.name === "Screen" || selection.name === "Overlay") ? { localPage, frameId: selection.frameId } : null;
+}
+/** The selected Screen's Figma export, read ahead for the copy event (the clipboard's HTML: export/figmaClipboard.ts). */
+let figmaReady: { src: string; html: string } | null = null;
 
 /** ⌘C / ⌘X on a multi-selection: the layers' code in source order (they paste together, in that order). */
 async function copyLayers(cut: boolean) {
@@ -135,7 +148,15 @@ async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cu
   if (!cached || !data) await navigator.clipboard?.writeText(read.code).catch(() => undefined);
   const at = parseSrc(selection.src)!;
   clip = { file: at.file, loc: read.loc, name: read.element.name, tag: read.tag, code: read.code, cut, wrapped: read.wrapped, state: read.state };
-  if (!cut) done(`Copied ${read.element.name} · ${clipboardShortcuts.paste} to paste`);
+  if (cut) return true;
+  // A Screen of a page you made goes to Figma as well: ⌘V in the Zen plugin places it.
+  const screen = screenOf(selection);
+  if (!screen) { done(`Copied ${read.element.name} · ${clipboardShortcuts.paste} to paste`); return true; }
+  const copied = `Copied ${read.element.name} · ${clipboardShortcuts.paste} pastes it here or in the Zen plugin in Figma`;
+  if (cached && data && figmaReady?.src === selection.src) { data.setData("text/html", figmaReady.html); done(copied); return true; }
+  const html = frameFigmaClip(screen.localPage, screen.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
+  done(`Copied ${read.element.name} — preparing it for Figma…`);
+  void writeFrameClip(read.code, html).then(() => done(copied), (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }));
   return true;
 }
 
@@ -435,6 +456,8 @@ export function clipboardMenuItems(selection: StudioSelection | null): MenuEntry
   const reason = editable.ok ? undefined : editable.reason;
   return [
     { id: "clip-copy", label: "Copy", icon: "icon-copy-line", shortcut: clipboardShortcuts.copy, onSelect: () => { void copyLayer(node, null, false); } },
+    // A Screen of a page you made: Copy carries it to Figma too; this names it (⌘V in the Zen plugin places it).
+    ...(screenOf(node) ? [{ id: "clip-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { const screen = screenOf(node)!; void copyFrameForFigma(screen.localPage, screen.frameId); } }] : []),
     { id: "clip-cut", label: "Cut", icon: "icon-scissors-line", shortcut: clipboardShortcuts.cut, disabled: !editable.ok, caption: reason, onSelect: () => { void copyLayer(node, null, true).then((copied) => { if (copied) void removeSelection(node); }); } },
     { id: "clip-paste", label: "Paste", icon: "icon-clipboard-line", shortcut: clipboardShortcuts.paste, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, false); } },
     { id: "clip-replace", label: "Paste to replace", icon: "icon-switch-horizontal-01-line", shortcut: clipboardShortcuts.replace, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, true); } },

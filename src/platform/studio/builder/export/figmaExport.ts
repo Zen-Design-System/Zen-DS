@@ -1,8 +1,11 @@
 import contract from "../../../../../docs/figma-contracts/component-properties.json";
+import libraryKeys from "../../../../../docs/figma-contracts/library-keys.json";
 import api from "../../../api.generated.json";
-import { printPage, sha1, type PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
+import { docFromText, printPage, sha1, type PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
+import { onlyFrame } from "../../../../../tools/studio/figma-clip.mjs";
 import { apiPropsOf, figmaMapping, type FigmaMapping } from "../../../../../tools/studio/figma-map.mjs";
-import { figmaPackage } from "../../../../../tools/studio/figma-push.mjs";
+import { figmaPackage, type FigmaPackage } from "../../../../../tools/studio/figma-push.mjs";
+import type { LibraryKeyTable } from "../../../../../tools/studio/library-keys.mjs";
 import { iconNames } from "../../../../icons/generated/names";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import { FIGMA_PROPS } from "../../inspector/figmaProps.generated";
@@ -32,7 +35,7 @@ const repoMapping = () => (mapping ??= figmaMapping({
   dataSlots: DATA_SLOTS,
 }));
 
-export type FigmaExport = { file: string; json: string; notes: string[] } | { error: string };
+export type FigmaExport = { file: string; json: string; pkg: FigmaPackage; notes: string[] } | { error: string };
 
 /** A blob as base64 (no data: prefix). */
 const base64Of = (blob: Blob) => new Promise<string>((resolve, reject) => {
@@ -58,12 +61,21 @@ async function pictureBytes(src: string): Promise<string | null> {
   }
 }
 
-export async function exportFigma({ id, title, text, doc }: { id: string; title: string; text: string; doc?: PageDoc | null }): Promise<FigmaExport> {
-  const source = doc ? printPage(doc, { ids: true }) : text;
-  const { pkg, notes } = figmaPackage(source, { mapping: repoMapping(), nestedLayers: NESTED_LAYERS, page: { id, title } });
+/**
+ * `frame`: one frame of the page (⌘C on a frame, Copy for Figma; tools/studio/figma-clip.mjs), named on the export so the
+ * plugin tells two frames of a page apart. Its export is not kept: Update from Figma compares a whole page's export.
+ */
+export async function exportFigma({ id, title, text, doc, frame }: { id: string; title: string; text: string; doc?: PageDoc | null; frame?: string }): Promise<FigmaExport> {
+  const framed = frame ? onlyFrame(doc ?? docFromText(text).doc, frame) : null;
+  if (frame && !framed) return { error: "That frame is no longer on the page" };
+  const shown = framed ?? doc;
+  const source = shown ? printPage(shown, { ids: true }) : text;
+  // With the library's keys the plugin binds the frame in any file that uses the published Zen library, not only Zen's.
+  const { pkg, notes } = figmaPackage(source, { mapping: repoMapping(), nestedLayers: NESTED_LAYERS, page: { id, title }, libraryKeys: libraryKeys as LibraryKeyTable });
   if (!pkg) return { error: notes.join("; ") || "The page has no Screen to export" };
+  if (frame) pkg.page.frame = frame;
   // Only a page with its document has keys that stay put (its element ids): its export is kept for Update from Figma.
-  if (doc) {
+  if (doc && !frame) {
     const version = sha1(JSON.stringify(pkg.frame)).slice(0, 12);
     pkg.page.version = version;
     try {
@@ -80,5 +92,5 @@ export async function exportFigma({ id, title, text, doc }: { id: string; title:
     images[src] = await pictureBytes(src);
     if (!images[src]) notes.push(`the picture ${src} could not be read: Figma keeps the component's own`);
   }
-  return { file: `${id}.figma.json`, json: `${JSON.stringify(pkg, null, 2)}\n`, notes };
+  return { file: `${id}.figma.json`, json: `${JSON.stringify(pkg, null, 2)}\n`, pkg, notes };
 }

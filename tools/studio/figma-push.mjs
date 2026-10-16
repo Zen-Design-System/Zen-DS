@@ -4,7 +4,8 @@
 // mapping (figma-pull.mjs repoMapping / figmaMapping) and the nested layers (inspector/nestedLayers.generated.ts).
 //
 //   figmaFromPage(text, { mapping, nestedLayers }) → { frame, notes }    every node keyed by its element's document id
-//   figmaPackage(text, { mapping, nestedLayers, page: { id, title } }) → { pkg, notes }   the file the plugin imports
+//   figmaPackage(text, { mapping, nestedLayers, page: { id, title }, libraryKeys }) → { pkg, notes }   the file the plugin
+//                                                 imports; with the library's keys (library-keys.mjs) it binds in any file
 //
 // Frames (Stack, Grid; absolute layers with their constraints and insets), text, instances (variant, boolean, text and
 // icon properties, the label, slot content, `overrides` as nested instances, an icon-only control's name), data slots
@@ -21,10 +22,15 @@ import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
+import { libraryKeysFor } from "./library-keys.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 
 /** A spacing step's Figma variable name: md → Medium ("Spacing/Gap/Medium"). */
 const STEP_NAMES = { "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge", giant: "Giant", xgiant: "XGiant", "2xgiant": "2XGiant" };
+/** Whether a pushed layer is wrapping text, or a plain column frame (no fill) around some: it needs a width to wrap in. */
+const wrapsText = (node) => (node?.type === "TEXT" && !node.autoWidth) || (node?.type === "FRAME" && !node.fill && node.layout?.mode === "VERTICAL" && (node.children ?? []).some((child) => !child.absolute && wrapsText(child)));
+/** Components with a size of their own in CSS (a definite width and height): a Stack's stretch never resizes them. */
+const INTRINSIC_SIZE = new Set(["Avatar", "Chip", "DockIcon", "FileIcon", "Flag", "Icon", "IconButton"]);
 /** The width of a Screen's frame by its device (figma-pull's deviceOf reads it back). */
 const DEVICE_WIDTH = { phone: 390, tablet: 768, desktop: 1440 };
 const DRAWN_BY_PULL = new Set(["Board", "Screen", "Overlay"]);
@@ -915,7 +921,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const fills = (element, parent) => {
     const code = codeProps(element);
     const row = parent?.direction === "row";
-    return { fillW: code.width === "fill" || (!row && parent?.stretch), fillH: code.height === "fill" || (row && parent?.stretch) };
+    // A component of a set size (a definite CSS width: DockIcon, Avatar…) is passed by a column's stretch; FILL in Figma
+    // would scale it (a Large Dock-Icon in a Card came out 520px wide and tall, 2026-10-16).
+    const sized = INTRINSIC_SIZE.has(element.name);
+    return { fillW: code.width === "fill" || (!row && parent?.stretch && !sized), fillH: code.height === "fill" || (row && parent?.stretch && !sized) };
   };
 
   /** A frame's width in px where the push knows it: a width of its own, else its parent's when it fills it; maxWidth caps it. */
@@ -1050,7 +1059,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // fills. A Divider between layers of a row takes the room they leave (divider.css).
       // A text on one line (wrap={false}) keeps Auto width unless it is given a width.
       const oneLine = node.autoWidth && own.width !== "fill";
-      const wide = (fillW && !oneLine) || shareW || (node.type === "TEXT" && !row && !node.autoWidth) || (row && child.name === "Divider");
+      // A plain Stack in a column that holds wrapping text: CSS shrinks it to fit, which for text longer than the line is
+      // the column's width; Figma's Hug around a Fill text collapses the text to a sliver (a centred tagline came out 175px
+      // wide, 2026-10-16). It fills; one with a surface keeps hugging (its background would spread).
+      const holdsWrap = !row && !own.width && wrapsText(node);
+      const wide = (fillW && !oneLine) || shareW || holdsWrap || (node.type === "TEXT" && !row && !node.autoWidth) || (row && child.name === "Divider");
       return { ...node, ...(wide ? { fillW: true } : {}), ...(fillH || shareH ? { fillH: true } : {}) };
     }).filter(Boolean);
     if (grid && !fit) {
@@ -1606,13 +1619,19 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   return { frame, notes: [...counted].map(([note, count]) => (count > 1 ? `${note} (×${count})` : note)), images: [...images] };
 }
 
-/** The file the Zen plugin's Import from Studio reads: `{ format: "zen-studio-figma", version: 1, page, frame }`. */
-export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId } = {}) {
+/**
+ * The file the Zen plugin's Import from Studio reads: `{ format: "zen-studio-figma", version: 1, page, frame }`. With
+ * `libraryKeys` (docs/figma-contracts/library-keys.json) it also carries `library`, the keys of the sets, icons, styles
+ * and variable collections it uses, so the plugin imports them from the published library in a file other than Zen's.
+ */
+export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId, libraryKeys } = {}) {
   const { frame, notes, images } = figmaFromPage(text, { mapping, nestedLayers, newId });
   if (!frame) return { pkg: null, notes, images: [] };
   // A frame with nothing in it would import as an empty frame: say why instead.
   if (!frame.children?.length) return { pkg: null, notes: [`nothing on the page has a place in Figma${notes.length ? ` (${notes.join("; ")})` : ""}`], images: [] };
   // `images`: picture source → base64 bytes, which the caller fills (the Studio reads its uploads and the dev server's
   // files; the CLI reads repo files): a picture left null keeps the component's own.
-  return { pkg: { format: "zen-studio-figma", version: 1, page: { id: page.id ?? null, title: page.title ?? frame.name }, frame, images: Object.fromEntries(images.map((src) => [src, null])) }, notes, images };
+  const pkg = { format: "zen-studio-figma", version: 1, page: { id: page.id ?? null, title: page.title ?? frame.name }, frame, images: Object.fromEntries(images.map((src) => [src, null])) };
+  if (libraryKeys) pkg.library = libraryKeysFor(pkg, libraryKeys);
+  return { pkg, notes, images };
 }

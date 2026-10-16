@@ -1397,6 +1397,40 @@ export default function Page() {
   ok("metric type pull: Figma's ⋮ on is a note (subAction needs its handler)", freshNotes.some((note) => /Sub-Action shows in Figma; set subAction/.test(note)));
 }
 
+// A component of a set size in a column that stretches (Stack's default) hugs in Figma, as CSS passes it by; a Button
+// still fills (a Large Dock-Icon in a Card came out 520px wide and tall in Figma, 2026-10-16).
+{
+  const page = `// @zen-page {"format":1,"title":"Sized"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Button, DockIcon, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Sized" device="desktop">
+        <Stack gap="md">
+          <DockIcon size="large" icon="icon-book-open-solid" />
+          <Button>Open</Button>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const dock = find(frame, (node) => node.set?.name === "Dock-Icon");
+  const button = find(frame, (node) => node.set?.name === "Button/Main");
+  check("a Dock-Icon in a stretching column hugs; a Button fills", [Boolean(dock?.fillW), Boolean(button?.fillW)], [false, true]);
+  // A centred Stack around a long text (a hero tagline) fills its column, so the text wraps at the column's width, not at
+  // a sliver; a Box with a surface around the same text keeps hugging.
+  const hero = (inner) => page.replace("<DockIcon size=\"large\" icon=\"icon-book-open-solid\" />\n          <Button>Open</Button>", inner).replace("<Stack gap=\"md\">", "<Stack gap=\"md\" align=\"center\">").replace("import { Button, DockIcon, Stack }", "import { Box, Stack, Text }");
+  const tagline = find(push(hero("<Stack gap=\"3xl\" align=\"center\"><Text align=\"center\">Zen is a comprehensive set of components, guidelines and code.</Text></Stack>")).frame, (node) => node.type === "FRAME" && node.layout?.gap === 48);
+  const boxed = find(push(hero("<Box surface=\"subtle\"><Text>Zen is a comprehensive set of components.</Text></Box>")).frame, (node) => node.type === "FRAME" && node.fill);
+  check("a plain Stack around wrapping text fills a centred column; a Box with a surface hugs", [Boolean(tagline?.fillW), Boolean(boxed?.fillW)], [true, false]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

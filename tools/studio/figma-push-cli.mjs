@@ -19,7 +19,9 @@ if (!file) {
 const id = file.split("/").pop().replace(/\.zen\.tsx$|\.tsx$/, "");
 // Keys: the page's data-zen-id where it has them, else counted in order (k1, k2…): the same file, the same keys.
 let counter = 0;
-const { pkg, notes } = figmaPackage(fs.readFileSync(file, "utf8"), { mapping: await repoMapping(), nestedLayers: NESTED_LAYERS, page: { id }, newId: () => `k${++counter}` });
+// The library's keys: the plugin binds the frame in any file that uses the published Zen library (library-keys.mjs).
+const libraryKeys = JSON.parse(fs.readFileSync(new URL("../../docs/figma-contracts/library-keys.json", import.meta.url), "utf8"));
+const { pkg, notes } = figmaPackage(fs.readFileSync(file, "utf8"), { mapping: await repoMapping(), nestedLayers: NESTED_LAYERS, page: { id }, newId: () => `k${++counter}`, libraryKeys });
 if (!pkg) {
   for (const note of notes) console.error(`error: ${note}`);
   process.exit(1);
