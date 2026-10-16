@@ -75,6 +75,19 @@
 - Colour balance (user: "Nghiên cứu thêm harness và rule cho việc cân bằng màu"): research + measurements +
   proposal in docs/research/colour-balance-rule-2026-10-17.md; nothing built, 4 questions to the user.
 
+## Chart Color = Primary | Secondary in Figma (tier M, Figma only; user: "thêm variant để đổi lại dùng secondary trước, hover là primary")
+- AskUserQuestion: every chart using Primary/Secondary; Figma first, code + Studio after review; property `Color`.
+- Survey: only Bar-Chart has "rest Primary, active Secondary"; Stack/Grouped/Combo/Area/Donut/Radial/Gauge/Funnel/Bullet
+  use them as series 1/2 (or value/target, last stage). Line, Multi-Line (Accent), Bar-List (Primary only), Heatmap left out.
+- Built in `9nZv4uW2LT21yuHabMTCh1` ❖ Chart: existing variants renamed `…, Color=Primary` (instances keep them: all
+  file instances read back Primary), each cloned to `Color=Secondary` with the sector styles swapped on own layers,
+  `.Chart/Legend-Item` instances switched by their `Color`, Stack-Bar segment overrides swapped, Area gradients Accent ↔
+  Neutral (the Stacked chart's Engineering pair). Bar 16, Stack 8, Area 16, Grouped 8, Combo 8, Donut 32 (SLOT
+  re-cloned), Radial 16; Gauge 15968:130382, Funnel 15968:130460, Bullet 15968:130554 are new sets (combineAsVariants,
+  keys unchanged, descriptions moved to the set). Every clone matched its source by tree signature (0 diffs).
+- Horizontal sets wrap at their old width (Secondary row under Primary); section "Chart components" re-laid (it had
+  Donut over Radial), the Widget themes and .Primitives sections moved down 1852.
+
 ## Tabs size Large, the desktop top-navigation tab (session "Master layout variations") — tier S + tokens
 User: "Thêm size tab large giữ nguyên font size tăng size lên 64", "thêm token của nó", "Tab size này dùng cho top nav
 của desktop", then "cân chỉnh … toạ độ và size" of the hover/active fill, "chỉ chỉnh cho large size thôi".

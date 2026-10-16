@@ -7,6 +7,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P1 · Chart `Color = Primary | Secondary`, phase 2 in code + Studio (2026-10-17, waits for the user's Figma review;
+  user chose "Figma trước, code sau khi duyệt"):** the 10 Figma chart sets have it (session log 2026-10-17, "Chart
+  Color"). Code: one prop on BarChart, StackBarChart, AreaChart, GroupedBarChart, ComboChart, DonutChart, RadialChart,
+  GaugeChart, FunnelChart, BulletChart that swaps Sector/Primary and /Secondary (BarChart's `color`/`activeColor` are
+  raw CSS, so the prop needs its own name), stacked/single area fill to the Neutral pair; Studio figma-charts push/pull
+  of `Color`; Gauge/Funnel/Bullet are sets now (ids in `CHART_SETS` are their Primary variants, keys unchanged);
+  re-capture library-keys + component-properties; figma-docs text for the property.
 - **P2 · Figma Empty-State Size=Small (2026-10-16, for the user/designer):** code has `EmptyState size="sm"` (120
   illustration, Popular/Medium icon, 1px / 2px lines) for widgets, cards and sections; Figma `Empty-State` (6085:25796)
   and `Empty-State/Illustration/Placeholder` (6085:25816) are single components (Medium only), and the file is
