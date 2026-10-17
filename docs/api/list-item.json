@@ -359,7 +359,7 @@
         },
         {
           "name": "toggleSize",
-          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"md\"",
           "description": "Toggle-Button size. Default md.",

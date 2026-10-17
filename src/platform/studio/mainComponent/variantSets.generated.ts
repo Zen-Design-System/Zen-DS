@@ -1094,11 +1094,15 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Level",
           "names": [
             "Primary",
-            "Secondary"
+            "Secondary",
+            "Black-Overlay",
+            "White-Overlay"
           ],
           "values": [
             "primary",
-            "secondary"
+            "secondary",
+            "black-overlay",
+            "white-overlay"
           ],
           "default": "secondary"
         },
@@ -1167,6 +1171,21 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "small"
           ],
           "default": "small"
+        },
+        {
+          "prop": "level",
+          "label": "Level",
+          "names": [
+            "Secondary",
+            "Black-Overlay",
+            "White-Overlay"
+          ],
+          "values": [
+            "secondary",
+            "black-overlay",
+            "white-overlay"
+          ],
+          "default": "secondary"
         },
         {
           "prop": "theme",
@@ -1243,11 +1262,15 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Level",
           "names": [
             "Primary",
-            "Secondary"
+            "Secondary",
+            "Black-Overlay",
+            "White-Overlay"
           ],
           "values": [
             "primary",
-            "secondary"
+            "secondary",
+            "black-overlay",
+            "white-overlay"
           ],
           "default": "secondary"
         },
@@ -2586,11 +2609,15 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Level",
           "names": [
             "Secondary",
-            "Primary"
+            "Primary",
+            "Black-Overlay",
+            "White-Overlay"
           ],
           "values": [
             "secondary",
-            "primary"
+            "primary",
+            "black-overlay",
+            "white-overlay"
           ],
           "default": "secondary"
         }
@@ -2711,12 +2738,14 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "names": [
             "Small",
             "Medium",
-            "Large"
+            "Large",
+            "XLarge"
           ],
           "values": [
             "small",
             "medium",
-            "large"
+            "large",
+            "xlarge"
           ],
           "default": "small"
         },
@@ -2775,12 +2804,14 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "names": [
             "Large",
             "Medium",
-            "Small"
+            "Small",
+            "XLarge"
           ],
           "values": [
             "large",
             "medium",
-            "small"
+            "small",
+            "xlarge"
           ],
           "default": "medium"
         },
@@ -2813,7 +2844,14 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "false"
         }
       ],
-      "toggles": []
+      "toggles": [
+        {
+          "prop": "icon",
+          "label": "Icon",
+          "on": "icon-marker-pin-01-solid",
+          "default": true
+        }
+      ]
     }
   ],
   "Tooltip": [

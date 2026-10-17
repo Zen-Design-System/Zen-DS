@@ -1,0 +1,4 @@
+/* Chip examples (src/platform/examples/pages/chip.tsx). Tokens only. */
+
+/* "On a colour band": the Brand/Accent band under the overlay chips. */
+.px-chip-band { background: var(--zen-color-background-accent-solid-default, #f755c9); }

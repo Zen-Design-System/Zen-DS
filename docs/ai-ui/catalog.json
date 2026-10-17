@@ -4050,9 +4050,13 @@
         "level": {
           "enum": [
             "primary",
-            "secondary"
+            "secondary",
+            "black-overlay",
+            "white-overlay",
+            "overlay"
           ],
-          "default": "secondary"
+          "default": "secondary",
+          "description": "Secondary (default) or Primary on a page surface (Advanced chips are always Secondary there)."
         },
         "theme": {
           "enum": [
@@ -4335,7 +4339,10 @@
         "level": {
           "enum": [
             "primary",
-            "secondary"
+            "secondary",
+            "black-overlay",
+            "white-overlay",
+            "overlay"
           ],
           "default": "primary",
           "description": "Chip level."
@@ -12494,7 +12501,10 @@
         "level": {
           "enum": [
             "primary",
-            "secondary"
+            "secondary",
+            "black-overlay",
+            "white-overlay",
+            "overlay"
           ],
           "default": "secondary",
           "description": "Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis."
@@ -15622,12 +15632,19 @@
             "sm",
             "md",
             "lg",
+            "xl",
             "small",
             "medium",
-            "large"
+            "large",
+            "xlarge"
           ],
           "default": "sm",
           "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+        },
+        "icon": {
+          "x-kind": "node",
+          "x-icon": true,
+          "description": "XLarge only (Figma Icon + Icon-Src): an icon in the dot, an icon name (`\"icon-moon-01-line\"`) or a node."
         },
         "label": {
           "x-kind": "node",
@@ -15729,9 +15746,11 @@
             "sm",
             "md",
             "lg",
+            "xl",
             "small",
             "medium",
-            "large"
+            "large",
+            "xlarge"
           ],
           "default": "md",
           "description": "Toggle-Button size."
@@ -16536,6 +16555,7 @@
       "title": "Chip / Pill",
       "file": "docs/guidelines/chip.md",
       "do": [
+        "On a colour band, a Solid hue card or a photo, give every chip an overlay level (ChipGroup too): black-overlay by default (level=\"overlay\"), white-overlay on a solid colour. Primary and Secondary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.",
         "When exactly one value applies (Repeat: Daily / Weekly / Monthly), use <ChipGroup>: it is a radio group with roving focus and aria-checked; never hand-set role=\"radio\" on Chips.",
         "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
         "Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.",
@@ -16551,6 +16571,7 @@
       ],
       "dont": [
         "Don't use Secondary or any Button to open a filter list.",
+        "Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.",
         "In a row that scrolls sideways on a wider screen (overflow-x: auto clips both axes), pass `popoverPortal` so the chip's menu opens in the overlay layer, whole and anchored under it; leave it off inside a Dialog or Bottom Sheet.",
         "Don't use Segmented to filter data (Segmented switches views).",
         "Don't give a Normal or Number-only chip popoverItems.",
@@ -16648,6 +16669,7 @@
       "do": [
         "Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.",
         "Keep the default level (Secondary), the most common case; set level=\"primary\" only when the switch needs extra emphasis (e.g. a billing-period toggle).",
+        "On a colour band, a Solid hue card or a photo, set an overlay level: black-overlay by default (level=\"overlay\"), white-overlay on a solid colour. Secondary and Primary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.",
         "Name the control with aria-label.",
         "Keep labels to one or two words; icon-only items still need a label for assistive tech.",
         "Use badges for counts and hide them at zero.",
@@ -16659,6 +16681,7 @@
       ],
       "dont": [
         "Don't use Segmented as a filter.",
+        "Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.",
         "Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).",
         "Don't mix icon-only and labelled items in one control.",
         "Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again."
@@ -16680,6 +16703,7 @@
       "do": [
         "Apply the change immediately; no confirm button.",
         "On phones use size large: components keep their full size on mobile, the smaller sizes are for dense desktop rows, tables and panels (harness: mobile/full-size-controls).",
+        "Use size xlarge for the one setting that leads a screen (Do not disturb, Location sharing), with an icon that names the setting; a list of settings stays large.",
         "Use a master toggle to disable dependent toggles, and explain in its caption.",
         "Label the setting, not the state (\"Email notifications\", not \"On\")."
       ],

@@ -277,7 +277,7 @@
       [
         "Level",
         "level",
-        "primary · secondary (normal only)"
+        "primary · secondary (normal only) · black-overlay (every variant; also level=\"overlay\", the default overlay: a Black-Overlay chip with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay chip with light text); both turn White/Solid with dark text when selected, static tokens, the same in light and dark mode"
       ],
       [
         "Theme",
@@ -324,6 +324,7 @@
       ]
     ],
     "do": [
+      "On a colour band, a Solid hue card or a photo, give every chip an overlay level (ChipGroup too): black-overlay by default (level=\"overlay\"), white-overlay on a solid colour. Primary and Secondary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.",
       "When exactly one value applies (Repeat: Daily / Weekly / Monthly), use <ChipGroup>: it is a radio group with roving focus and aria-checked; never hand-set role=\"radio\" on Chips.",
       "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
       "Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.",
@@ -339,6 +340,7 @@
     ],
     "dont": [
       "Don't use Secondary or any Button to open a filter list.",
+      "Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.",
       "In a row that scrolls sideways on a wider screen (overflow-x: auto clips both axes), pass `popoverPortal` so the chip's menu opens in the overlay layer, whole and anchored under it; leave it off inside a Dialog or Bottom Sheet.",
       "Don't use Segmented to filter data (Segmented switches views).",
       "Don't give a Normal or Number-only chip popoverItems.",
@@ -800,7 +802,7 @@
       [
         "Level",
         "level",
-        "secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment)"
+        "secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment) · black-overlay (also level=\"overlay\", the default overlay: a Black-Overlay track with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay track with light text); both select with a White/Solid segment, static tokens, the same in light and dark mode"
       ],
       [
         "Size",
@@ -851,6 +853,7 @@
     "do": [
       "Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.",
       "Keep the default level (Secondary), the most common case; set level=\"primary\" only when the switch needs extra emphasis (e.g. a billing-period toggle).",
+      "On a colour band, a Solid hue card or a photo, set an overlay level: black-overlay by default (level=\"overlay\"), white-overlay on a solid colour. Secondary and Primary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.",
       "Name the control with aria-label.",
       "Keep labels to one or two words; icon-only items still need a label for assistive tech.",
       "Use badges for counts and hide them at zero.",
@@ -862,6 +865,7 @@
     ],
     "dont": [
       "Don't use Segmented as a filter.",
+      "Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.",
       "Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).",
       "Don't mix icon-only and labelled items in one control.",
       "Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again."
@@ -950,7 +954,12 @@
       [
         "Size",
         "size",
-        "small · medium · large (phones: large; small and medium for dense desktop rows, tables and panels)"
+        "small · medium · large (phones: large; small and medium for dense desktop rows, tables and panels) · xlarge (48px, the one setting that leads a screen: Focus, Location sharing)"
+      ],
+      [
+        "Icon",
+        "icon",
+        "xlarge only: an icon in the dot (Figma Icon-Src), Light while off and Strongest while on (Toggle/Dot/Content)"
       ],
       [
         "Theme",
@@ -982,6 +991,7 @@
     "do": [
       "Apply the change immediately; no confirm button.",
       "On phones use size large: components keep their full size on mobile, the smaller sizes are for dense desktop rows, tables and panels (harness: mobile/full-size-controls).",
+      "Use size xlarge for the one setting that leads a screen (Do not disturb, Location sharing), with an icon that names the setting; a list of settings stays large.",
       "Use a master toggle to disable dependent toggles, and explain in its caption.",
       "Label the setting, not the state (\"Email notifications\", not \"On\")."
     ],
@@ -1031,7 +1041,7 @@
       {
         "id": "mobile/full-size-controls",
         "severity": "error",
-        "summary": "On phones components keep their full size: Toggle and ToggleButton are size large, inputs medium or larger; the small sizes are for dense desktop rows, tables and panels.",
+        "summary": "On phones components keep their full size: Toggle and ToggleButton are size large (or xlarge, the 48px switch), inputs medium or larger; the small sizes are for dense desktop rows, tables and panels.",
         "allow": "mobile-size"
       },
       {
@@ -6533,7 +6543,7 @@
       {
         "id": "mobile/full-size-controls",
         "severity": "error",
-        "summary": "On phones components keep their full size: Toggle and ToggleButton are size large, inputs medium or larger; the small sizes are for dense desktop rows, tables and panels.",
+        "summary": "On phones components keep their full size: Toggle and ToggleButton are size large (or xlarge, the 48px switch), inputs medium or larger; the small sizes are for dense desktop rows, tables and panels.",
         "allow": "mobile-size"
       },
       {

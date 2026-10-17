@@ -270,6 +270,29 @@ function PhoneSettingsExample() {
   );
 }
 
+/* ───────────── Focus on a phone (XLarge) ───────────── */
+
+function FocusModeExample() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  const [quiet, setQuiet] = useState(false);
+  return (
+    // One setting leads the screen, so it takes the XLarge switch (48px) with an icon in its dot; the caption says what
+    // the switch does right now.
+    <PlatformPhone label="Focus" canvas="alt" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="alt" title="Focus" largeTitle="Focus" scrollRef={screenRef} />}>
+      <Stack gap="lg" padding="lg">
+        <Card theme="flat">
+          <FormFieldset kind="toggle" legend="Focus" hideLegend>
+            <Toggle size="xl" icon="icon-moon-01-line" label="Do not disturb" bold
+              caption={quiet ? `Calls and alerts stay silent until ${formatTime(daysFromToday(1, 7, 0))}` : "Calls and alerts come through"}
+              checked={quiet} onCheckedChange={setQuiet} />
+          </FormFieldset>
+        </Card>
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Notification settings",
@@ -387,6 +410,25 @@ const connect = async () => {
     Google didn't answer in time, so nothing was synced.
   </InlineMessage>
 ) : null}`,
+  },
+  {
+    title: "Focus on a phone",
+    description: "When one setting leads the screen, its switch is size xl: 48px tall, with an icon in the dot that names the setting. The icon is Light while off and Strongest while on; the caption says what the switch does right now.",
+    render: () => <FocusModeExample />,
+    code: `const [quiet, setQuiet] = useState(false);
+
+<PlatformPhone canvas="alt" headerOverlay screenRef={screenRef}
+  header={<TopNavigation type="alt" title="Focus" largeTitle="Focus" scrollRef={screenRef} />}>
+  <Stack gap="lg" padding="lg">
+    <Card theme="flat">
+      <FormFieldset kind="toggle" legend="Focus" hideLegend>
+        <Toggle size="xl" icon="icon-moon-01-line" label="Do not disturb" bold
+          caption={quiet ? "Calls and alerts stay silent until 7:00 am" : "Calls and alerts come through"}
+          checked={quiet} onCheckedChange={setQuiet} />
+      </FormFieldset>
+    </Card>
+  </Stack>
+</PlatformPhone>`,
   },
   {
     title: "Phone settings",

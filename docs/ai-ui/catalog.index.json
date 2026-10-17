@@ -756,7 +756,7 @@
       "name": "Toggle",
       "status": "verified",
       "purpose": "Turn a setting on or off with immediate effect.",
-      "props": "checked? defaultChecked? onCheckedChange? size? label caption? bold? theme?"
+      "props": "checked? defaultChecked? onCheckedChange? size? icon? label caption? bold? theme?"
     },
     {
       "name": "ToggleListItem",

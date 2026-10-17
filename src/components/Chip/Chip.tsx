@@ -19,7 +19,8 @@ import { composeEventHandlers } from "../_shared/compose-event-handlers";
 /** Figma's three Chip/Pill component sets. */
 export const chipVariants = ["advanced", "normal", "number-only"] as const;
 export const chipSizes = ["xsmall", "small", "medium"] as const;
-export const chipLevels = ["primary", "secondary"] as const;
+/** Black-Overlay and White-Overlay: chips on a colour band or photo, in static tokens (as Button's overlay levels). */
+export const chipLevels = ["primary", "secondary", "black-overlay", "white-overlay"] as const;
 export const chipThemes = ["text-only", "leading-icon", "leading-photo"] as const;
 export const chipStates = ["default", "hover", "press", "focused", "placeholder", "disabled"] as const;
 
@@ -28,7 +29,8 @@ export type ChipVariant = (typeof chipVariants)[number];
 type ChipSizeKey = (typeof chipSizes)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
 export type ChipSize = "xs" | "sm" | "md" | "xsmall" | "small" | "medium";
-export type ChipLevel = (typeof chipLevels)[number];
+/** A Figma level, or `"overlay"`: the default overlay, Black-Overlay. */
+export type ChipLevel = (typeof chipLevels)[number] | "overlay";
 export type ChipTheme = (typeof chipThemes)[number];
 export type ChipState = (typeof chipStates)[number];
 export type ChipSelectionMode = "single" | "multiple";
@@ -43,6 +45,10 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   /** Medium by default, on desktop and phones (a filter row lines up with Search and Buttons at 40px); small only inside a
    *  genuinely narrow component space. Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: ChipSize;
+  /** Secondary (default) or Primary on a page surface (Advanced chips are always Secondary there). On a colour band or
+   *  photo, for every variant: `black-overlay` (or `"overlay"`, the default overlay: a Black-Overlay chip, light text) or
+   *  `white-overlay` (on a solid colour: a White-Overlay chip, light text); both turn White/Solid with dark text when
+   *  selected and look the same in light and dark mode. */
   level?: ChipLevel;
   theme?: ChipTheme;
   state?: ChipState;
@@ -124,13 +130,16 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
  * compact indicator for counts or rankings": it renders a `<span>` in the Default state, with no hover, no focus stop
  * and no dead click, and the ref points at that span. Give it `onClick` or `selected` to make it a pressable number
  * (Hover, Focused, Selected). Normal and Advanced chips always do something; Figma: a read-only label is a Tag.
+ * `level="black-overlay"` (`"overlay"`) and `"white-overlay"` put any variant on a colour band or photo in static tokens
+ * that do not switch with the mode, as Button's overlay levels: a Background/Black-Overlay or White-Overlay chip with
+ * light text (Content/On-Black-Overlay, Content/On-Colors), Background/White/Solid with On-White-Overlay text when selected.
  */
 export function Chip({
     ref,
     children,
     variant = "advanced",
     size: sizeProp = "md",
-    level = "secondary",
+    level: levelProp = "secondary",
     theme,
     state = "default",
     selected: selectedProp,
@@ -276,7 +285,9 @@ export function Chip({
   const countSuffix = countName && !ownName && !textLabel ? <VisuallyHidden>{`, ${countName}`}</VisuallyHidden> : null;
   const resolvedTrailing = trailing ?? (multipleTrailing ?? (showRemove ? singleRemove : showDropdown ? <Icon name={isPopoverOpen || state === "press" ? "icon-chevron-up-line" : "icon-chevron-down-line"} size="2xs" /> : null));
   const resolvedValue = value ?? counter;
-  const resolvedLevel = variant === "advanced" ? "secondary" : level;
+  // "overlay" is the default overlay level; Advanced chips have no Primary (Figma Chip/Advanced).
+  const level = levelProp === "overlay" ? "black-overlay" : levelProp;
+  const resolvedLevel = variant === "advanced" && !level.endsWith("overlay") ? "secondary" : level;
   const setPopoverOpen = (nextOpen: boolean, { fromKeyboard = false, restoreFocus = false } = {}) => {
     setOpenedFromKeyboard(nextOpen && fromKeyboard);
     setUncontrolledPopoverOpen(nextOpen);

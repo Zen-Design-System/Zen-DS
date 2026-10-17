@@ -8,7 +8,7 @@
 /* Figma Level=Primary track: no fill (its Neutral/Subtle fill is hidden) and a 2px INSIDE stroke Color/Border/Neutral/Subtle/Default.
    Figma strokes take no room in auto layout, so the ring is an inset shadow drawn in the 2px padding, never a border. */
 .zen-segmented[data-level="primary"] { background: none; box-shadow: inset 0 0 0 2px var(--zen-color-border-neutral-subtle-default, rgb(0 0 0 / 8%)); }
-.zen-segmented__item { position: relative; display: inline-flex; min-width: 0; flex-shrink: 0; height: var(--zen-segmented-size-medium, 32px); box-sizing: border-box; align-items: center; justify-content: center; gap: var(--zen-segmented-spacing-medium-gap, 0px); padding: var(--zen-segmented-spacing-medium-vertical-padding, 8px) var(--zen-segmented-spacing-medium-horizontal-padding, 8px); border: 0; border-radius: var(--zen-segmented-item-corner-radius-medium, 1000px); background: var(--zen-segmented-item-primary-background-unselected-default, transparent); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: pointer; white-space: nowrap; }
+.zen-segmented__item { position: relative; display: inline-flex; min-width: 0; flex-shrink: 0; height: var(--zen-segmented-size-medium, 32px); box-sizing: border-box; align-items: center; justify-content: center; gap: var(--zen-segmented-spacing-medium-gap, 0px); padding: var(--zen-segmented-spacing-medium-vertical-padding, 8px) var(--zen-segmented-spacing-medium-horizontal-padding, 10px); border: 0; border-radius: var(--zen-segmented-item-corner-radius-medium, 1000px); background: var(--zen-segmented-item-primary-background-unselected-default, transparent); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: pointer; white-space: nowrap; }
 .zen-segmented[data-size="small"] .zen-segmented__item { height: var(--zen-segmented-size-small, 24px); gap: var(--zen-segmented-spacing-small-gap, 0px); padding: var(--zen-segmented-spacing-small-vertical-padding, 4px) var(--zen-segmented-spacing-small-horizontal-padding, 6px); border-radius: var(--zen-segmented-item-corner-radius-small, 1000px); }
 .zen-segmented[data-level="secondary"] .zen-segmented__item { background: var(--zen-segmented-item-secondary-background-unselected-default, transparent); }
 .zen-segmented__item:not([data-selected="true"]):hover:not(:disabled), .zen-segmented__item:not([data-selected="true"])[data-state="hover"]:not(:disabled) { background: var(--zen-segmented-item-primary-background-unselected-hover, rgb(1 1 1 / 6%)); }
@@ -29,6 +29,24 @@
 .zen-segmented__badge { display: inline-flex; align-items: center; justify-content: center; }
 /* Figma Badge slot = a Wrapper frame around Badge-Counter XSmall: Medium pads it by Spacing/Padding/3XSmall on both sides, Small by 0. */
 .zen-segmented[data-size="medium"] .zen-segmented__badge { padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
+
+/* Level=Black-Overlay (the default overlay) and White-Overlay (on a solid colour): the control on a colour band or photo,
+   as Button's overlay levels. Only static tokens, which do not switch with the mode, because the surface under it does
+   not either. The selected segment is Background/White/Solid with On-White-Overlay text in both. Hover darkens a
+   Black-Overlay segment and lightens a White-Overlay one (its label turns dark there, as it will once selected). */
+.zen-segmented[data-level="black-overlay"] { background: var(--zen-color-background-black-overlay-default, rgb(0 0 0 / 40%)); }
+.zen-segmented[data-level="white-overlay"] { background: var(--zen-color-background-white-overlay-default, rgb(255 255 255 / 40%)); }
+.zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item { background: transparent; }
+.zen-segmented[data-level="black-overlay"] .zen-segmented__item { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 82%)); }
+.zen-segmented[data-level="white-overlay"] .zen-segmented__item { color: var(--zen-color-content-on-colors, #fff); }
+.zen-segmented[data-level="black-overlay"] .zen-segmented__item:not([data-selected="true"]):is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)); color: var(--zen-color-content-on-black-overlay-strongest, rgb(255 255 255 / 96%)); }
+.zen-segmented[data-level="white-overlay"] .zen-segmented__item:not([data-selected="true"]):is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-white-overlay-default, rgb(255 255 255 / 40%)); color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
+.zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item[data-selected="true"] { background: var(--zen-color-background-white-solid-default, #fff); color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
+/* The ring takes the segment's label colour (currentColor): no Color/Focus token is static, Focus/Accent vanishes on a
+   Brand/Accent band and Focus/Neutral turns white in dark mode, invisible on the white selected segment. */
+.zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item:is(:focus-visible, [data-state="focused"]) { box-shadow: inset 0 0 0 3px currentColor; }
+/* The selected segment's counter is Neutral/Solid, which turns light in dark mode: pin it to Black/Solid on the white segment. */
+.zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item[data-selected="true"] .zen-badge--counter { --zen-badge-bg: var(--zen-color-background-black-solid-default, #202020); --zen-badge-icon: var(--zen-color-content-on-black-overlay-strongest, #fff); --zen-badge-content: var(--zen-color-content-on-black-overlay-strongest, #fff); }
 
 /* fullWidth: the control fills its container and every item takes an equal share (labels ellipsize if they must). */
 .zen-segmented[data-full-width="true"] { display: flex; width: 100%; }

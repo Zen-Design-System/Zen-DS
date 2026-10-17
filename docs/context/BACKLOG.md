@@ -7,6 +7,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P3 · White-Overlay label contrast (2026-10-17, for the designer):** Chip/Segmented `white-overlay` (user's choice:
+  light text on a White-Overlay fill, as Button/Overlay White-Overlay) reads 1.8:1 on Brand/Accent #FF6BD5 (white on
+  the bare band is already 2.5:1); it suits darker solid colours. Decide whether to keep it for light brand colours or
+  steer them to `black-overlay` in the guideline (session log 2026-10-17, "Chip + Segmented overlay").
 - **P1 · Chart `Color = Primary | Secondary`, phase 2 in code + Studio (2026-10-17, waits for the user's Figma review;
   user chose "Figma trước, code sau khi duyệt"):** the 10 Figma chart sets have it (session log 2026-10-17, "Chart
   Color"). Code: one prop on BarChart, StackBarChart, AreaChart, GroupedBarChart, ComboChart, DonutChart, RadialChart,

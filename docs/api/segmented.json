@@ -6,7 +6,7 @@
     {
       "name": "Segmented",
       "file": "src/components/Segmented/Segmented.tsx",
-      "description": "Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill track (Spacing/Padding/3XSmall) of toggle\nsegments (Segmented/Size/Small or Medium), Secondary (default, a Neutral/Subtle track) or Primary (an outlined track: no\nfill, a 2px Color/Border/Neutral/Subtle/Default ring). An icon-only segment (Item Label=false:\n`label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.",
+      "description": "Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill track (Spacing/Padding/3XSmall) of toggle\nsegments (Segmented/Size/Small or Medium), Secondary (default, a Neutral/Subtle track) or Primary (an outlined track: no\nfill, a 2px Color/Border/Neutral/Subtle/Default ring). Black-Overlay and White-Overlay put it on a colour band or photo\nin static tokens that do not switch with the mode (as Button's overlay levels): a Background/Black-Overlay or\nWhite-Overlay track, light text (Content/On-Black-Overlay, Content/On-Colors) and a Background/White/Solid selected\nsegment with On-White-Overlay text. An icon-only segment (Item Label=false:\n`label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -60,10 +60,10 @@
         },
         {
           "name": "level",
-          "type": "\"primary\" | \"secondary\"",
+          "type": "\"primary\" | \"secondary\" | \"black-overlay\" | \"white-overlay\" | \"overlay\"",
           "required": false,
           "default": "\"secondary\"",
-          "description": "Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis.",
+          "description": "Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis.\n On a colour band or photo: `black-overlay` (or `\"overlay\"`, the default overlay: a Black-Overlay track, light text)\n or `white-overlay` (on a solid colour: a White-Overlay track, light text); both select with a White/Solid segment\n and look the same in light and dark mode.",
           "deprecated": null
         },
         {
@@ -157,7 +157,7 @@
         },
         {
           "name": "level",
-          "type": "\"primary\" | \"secondary\"",
+          "type": "\"primary\" | \"secondary\" | \"black-overlay\" | \"white-overlay\" | \"overlay\"",
           "required": false,
           "default": "\"secondary\"",
           "description": "Level of the parent Segmented; selects the counter colour when this item is selected.",

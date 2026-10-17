@@ -530,7 +530,10 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
     const chipLeading = resolvedChipTheme === "leading-icon" ? <Icon name="icon-cube-line" size={resolvedChipSize === "medium" ? "base" : "sm"} decorative /> : undefined;
     // Leading-Photo renders the shared Avatar/Single (Photo) primitive from an image source.
     const chipPhoto = resolvedChipTheme === "leading-photo" ? samplePhoto : undefined;
-    const resolvedChipLevel = (chipLevel ?? "secondary") as ChipLevel;
+    // Advanced chips have no Primary (Figma Chip/Advanced): Secondary or an overlay level.
+    const resolvedChipLevel = (resolvedChipVariant === "advanced" && chipLevel === "primary" ? "secondary" : chipLevel ?? "secondary") as ChipLevel;
+    const chipLevelProp = `
+  level="${resolvedChipLevel}"`;
     const chipStatusOptions = [{ id: "active", label: "Active" }, { id: "paused", label: "Paused" }, { id: "archived", label: "Archived" }];
     const chipThemeProps = `${resolvedChipTheme === "leading-icon" ? `
   leading={<Icon name="icon-cube-line" decorative />}` : ""}${resolvedChipTheme === "leading-photo" ? `
@@ -539,13 +542,13 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
     const chipCode = resolvedChipVariant === "number-only"
       ? `import { Chip } from "@zen-ds/react";
 
-<Chip variant="number-only" size="${resolvedChipSize}" value={count}${chipDisabled ? " disabled" : ""} />`
+<Chip variant="number-only" size="${resolvedChipSize}" level="${resolvedChipLevel}" value={count}${chipDisabled ? " disabled" : ""} />`
       : resolvedChipVariant === "advanced"
         ? `import { Chip } from "@zen-ds/react";
 
 <Chip
   variant="advanced"
-  size="${resolvedChipSize}"${chipThemeProps}
+  size="${resolvedChipSize}"${resolvedChipLevel.endsWith("overlay") ? chipLevelProp : ""}${chipThemeProps}
   dropdown
   selectionMode="${chipMultiple ? "multiple" : "single"}"
   selectionCount={selected.length}
@@ -564,8 +567,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
 
 <Chip
   variant="normal"
-  size="${resolvedChipSize}"
-  level="${resolvedChipLevel}"${chipThemeProps}
+  size="${resolvedChipSize}"${chipLevelProp}${chipThemeProps}
   select={selected}
   aria-pressed={selected}
   onClick={() => setSelected(!selected)}
@@ -579,17 +581,18 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
           <PlaygroundControls aria-label="Chip playground controls">
             <PlaygroundFilterChip label="Variant" value={chipVariant} onChange={(value) => setChipVariant(String(value) || undefined)} options={["advanced", "normal", "number-only"].map((id) => ({ id, label: id }))} />
             <PlaygroundFilterChip label="Size" value={resolvedChipSize} onChange={(value) => setChipSize(String(value) || undefined)} options={allowedChipSizes.map((id) => ({ id, label: id }))} />
-            {resolvedChipVariant === "normal" ? <PlaygroundFilterChip label="Level" value={chipLevel} onChange={(value) => setChipLevel(String(value) || undefined)} options={["primary", "secondary"].map((id) => ({ id, label: id }))} /> : null}
+            <PlaygroundFilterChip label="Level" value={resolvedChipLevel} onChange={(value) => setChipLevel(String(value) || undefined)} options={(resolvedChipVariant === "advanced" ? ["secondary", "black-overlay", "white-overlay"] : ["primary", "secondary", "black-overlay", "white-overlay"]).map((id) => ({ id, label: id }))} />
             {resolvedChipVariant === "advanced" ? <PlaygroundToggle label="Multiple" selected={chipMultiple} onChange={(on) => { setChipMultiple(on); if (!on) setChipSelected((current) => current.slice(0, 1)); }} /> : null}
             {resolvedChipVariant !== "number-only" ? <PlaygroundFilterChip label="Theme" value={chipThemes} multiple onChange={(value) => setChipThemes(Array.isArray(value) ? value : [value])} options={["text-only", "leading-icon", "leading-photo"].map((id) => ({ id, label: id }))} /> : null}
             <PlaygroundToggle label="Disabled" selected={chipDisabled} onChange={setChipDisabled} />
           </PlaygroundControls>
-          <div data-typography={previewTypography} className="platform-example-row">
+          {/* Overlay previews on a Brand/Accent band, the surface it is for. */}
+          <div data-typography={previewTypography} className="platform-example-row" data-surface={resolvedChipLevel.endsWith("overlay") ? "accent" : undefined}>
             {resolvedChipVariant === "number-only" ? (
-              <Chip variant="number-only" size={resolvedChipSize} value={chipSelected.length || 3} state={resolvedChipState} />
+              <Chip variant="number-only" size={resolvedChipSize} level={resolvedChipLevel} value={chipSelected.length || 3} state={resolvedChipState} />
             ) : resolvedChipVariant === "advanced" ? (
               <Chip
-                variant="advanced" size={resolvedChipSize} state={resolvedChipState} theme={resolvedChipTheme} leading={chipLeading} photoSrc={chipPhoto}
+                variant="advanced" size={resolvedChipSize} level={resolvedChipLevel} state={resolvedChipState} theme={resolvedChipTheme} leading={chipLeading} photoSrc={chipPhoto}
                 selectionMode={chipMultiple ? "multiple" : "single"} selectionCount={chipSelected.length} select={chipSelected.length > 0} dropdown
                 popoverOpen={chipOpen} onPopoverOpenChange={setChipOpen} popoverMultiple={chipMultiple} popoverLabel="Status"
                 popoverItems={chipStatusOptions.map((option) => ({ ...option, selected: chipSelected.includes(option.id) }))}
@@ -978,7 +981,7 @@ const rules = [
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Segmented</h2>
         <PlaygroundControls aria-label="Segmented playground controls">
-          <PlaygroundFilterChip label="Level" value={segmentedLevel} onChange={(value) => setSegmentedLevel(String(value) || undefined)} options={["secondary", "primary"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Level" value={segmentedLevel} onChange={(value) => setSegmentedLevel(String(value) || undefined)} options={["secondary", "primary", "black-overlay", "white-overlay"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={segmentedSize} onChange={(value) => setSegmentedSize(String(value) || undefined)} options={["small", "medium"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Icon" selected={segmentedIcon} onChange={setSegmentedIcon} />
           <PlaygroundToggle label="Label" selected={segmentedLabel} onChange={setSegmentedLabel} />
@@ -986,7 +989,7 @@ const rules = [
           <PlaygroundToggle label="Disabled" selected={segmentedDisabled} onChange={setSegmentedDisabled} />
           <PlaygroundToggle label="Full width" selected={segmentedFull} onChange={setSegmentedFull} />
         </PlaygroundControls>
-        <div data-typography={previewTypography} className="platform-example-row" style={segmentedFull ? { display: "block" } : undefined}><Segmented aria-label="Section" fullWidth={segmentedFull} level={resolvedLevel} size={resolvedSize} disabled={segmentedDisabled} value={segmentedValue} onChange={setSegmentedValue} options={segmentedOptions} /></div>
+        <div data-typography={previewTypography} className="platform-example-row" data-surface={resolvedLevel.endsWith("overlay") ? "accent" : undefined} style={segmentedFull ? { display: "block" } : undefined}><Segmented aria-label="Section" fullWidth={segmentedFull} level={resolvedLevel} size={resolvedSize} disabled={segmentedDisabled} value={segmentedValue} onChange={setSegmentedValue} options={segmentedOptions} /></div>
         <PlatformCode code={`import { Segmented } from "@zen-ds/react";
 
 <Segmented
@@ -1014,18 +1017,19 @@ const rules = [
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Toggle</h2>
         <PlaygroundControls aria-label="Toggle playground controls">
-          <PlaygroundFilterChip label="Size" value={toggleSize} onChange={(value) => setToggleSize(String(value) || undefined)} options={["small", "medium", "large"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Size" value={toggleSize} onChange={(value) => setToggleSize(String(value) || undefined)} options={["small", "medium", "large", "xlarge"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Theme" value={toggleTheme} onChange={(value) => setToggleTheme(String(value) || undefined)} options={["text-first", "toggle-first"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Selected" selected={toggleSelected} onChange={setToggleSelected} />
           <PlaygroundToggle label="Caption" selected={toggleCaption} onChange={setToggleCaption} />
           <PlaygroundToggle label="Bold" selected={toggleBold} onChange={setToggleBold} />
           <PlaygroundToggle label="Disabled" selected={toggleDisabled} onChange={setToggleDisabled} />
         </PlaygroundControls>
-        <div data-typography={previewTypography} className="platform-example-row"><Toggle size={resolvedSize} disabled={toggleDisabled} theme={resolvedTheme} selected={toggleSelected} onSelectedChange={setToggleSelected} label="Enable notifications" caption={toggleCaption ? "Receive updates for this workspace." : undefined} bold={toggleBold} /></div>
+        <div data-typography={previewTypography} className="platform-example-row"><Toggle size={resolvedSize} icon={resolvedSize === "xlarge" ? "icon-bell-01-line" : undefined} disabled={toggleDisabled} theme={resolvedTheme} selected={toggleSelected} onSelectedChange={setToggleSelected} label="Enable notifications" caption={toggleCaption ? "Receive updates for this workspace." : undefined} bold={toggleBold} /></div>
         <PlatformCode code={`import { Toggle } from "@zen-ds/react";
 
 <Toggle
-  size="${resolvedSize}"
+  size="${resolvedSize}"${resolvedSize === "xlarge" ? `
+  icon="icon-bell-01-line"` : ""}
   theme="${resolvedTheme}"${toggleDisabled ? `
   disabled` : ""}
   selected={selected}

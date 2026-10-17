@@ -23,7 +23,7 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 | Variant | `variant` | advanced (default) · normal · number-only |
 | Own state | `popoverItems without onPopoverSelect · defaultSelected · defaultPopoverOpen` | uncontrolled: the chip keeps the choice from the items marked selected (the one picked value as its label, a count for multiple, × clears); a Normal chip with defaultSelected turns itself on and off. Pass onPopoverSelect / selected when the app filters with it |
 | Size | `size` | xsmall (normal only) · small · medium |
-| Level | `level` | primary · secondary (normal only) |
+| Level | `level` | primary · secondary (normal only) · black-overlay (every variant; also level="overlay", the default overlay: a Black-Overlay chip with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay chip with light text); both turn White/Solid with dark text when selected, static tokens, the same in light and dark mode |
 | Theme | `leading / photoSrc` | text-only · leading-icon · leading-photo |
 | Select / Dropdown | `selected / dropdown` | selected styling (select is the deprecated alias); chevron only — the chip opens its own Popover only with popoverItems (or onPopoverCreate) |
 | External surface | `onClick + aria-haspopup="dialog" + aria-expanded + popoverOpen` | a chip that opens a Bottom Sheet or filter panel; popoverOpen flips the chevron |
@@ -34,7 +34,7 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 Generated from the TypeScript source; full JSON in `docs/api/chip.json`.
 
 ### Chip
-Figma Chip/Pill: `Chip/Advanced` (512:7659, the filter control that owns a Popover), `Chip/Normal` (512:6843, toggle pills) and `Chip/Number-Only` (1536:26687). A chip is a `<button>`. A Number-only chip with nothing to do (no `onClick` or other press handler, no `selected`, not `disabled`) is a count, which Figma describes as a "numeric-only compact indicator for counts or rankings": it renders a `<span>` in the Default state, with no hover, no focus stop and no dead click, and the ref points at that span. Give it `onClick` or `selected` to make it a pressable number (Hover, Focused, Selected). Normal and Advanced chips always do something; Figma: a read-only label is a Tag.
+Figma Chip/Pill: `Chip/Advanced` (512:7659, the filter control that owns a Popover), `Chip/Normal` (512:6843, toggle pills) and `Chip/Number-Only` (1536:26687). A chip is a `<button>`. A Number-only chip with nothing to do (no `onClick` or other press handler, no `selected`, not `disabled`) is a count, which Figma describes as a "numeric-only compact indicator for counts or rankings": it renders a `<span>` in the Default state, with no hover, no focus stop and no dead click, and the ref points at that span. Give it `onClick` or `selected` to make it a pressable number (Hover, Focused, Selected). Normal and Advanced chips always do something; Figma: a read-only label is a Tag. `level="black-overlay"` (`"overlay"`) and `"white-overlay"` put any variant on a colour band or photo in static tokens that do not switch with the mode, as Button's overlay levels: a Background/Black-Overlay or White-Overlay chip with light text (Content/On-Black-Overlay, Content/On-Colors), Background/White/Solid with On-White-Overlay text when selected.
 
 Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 
@@ -44,7 +44,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `children` | `ReactNode` | — |  |
 | `variant` | `"advanced" \| "normal" \| "number-only"` | `"advanced"` | Component set: Advanced, Normal, or Number-only. |
 | `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"md"` | Medium by default, on desktop and phones (a filter row lines up with Search and Buttons at 40px); small only inside a genuinely narrow component space. Short (sm, md…) or Figma (small, medium…) spelling. |
-| `level` | `"primary" \| "secondary"` | `"secondary"` |  |
+| `level` | `"primary" \| "secondary" \| "black-overlay" \| "white-overlay" \| "overlay"` | `"secondary"` | Secondary (default) or Primary on a page surface (Advanced chips are always Secondary there). On a colour band or photo, for every variant: `black-overlay` (or `"overlay"`, the default overlay: a Black-Overlay chip, light text) or `white-overlay` (on a solid colour: a White-Overlay chip, light text); both turn White/Solid with dark text when selected and look the same in light and dark mode. |
 | `theme` | `"text-only" \| "leading-icon" \| "leading-photo"` | — |  |
 | `state` | `"default" \| "hover" \| "press" \| "focused" \| "placeholder" \| "disabled"` | `"default"` |  |
 | `selected` | `boolean` | — | Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling. |
@@ -92,7 +92,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`
 | `onValueChange` | `(value: string) => void` | — | Called with the picked chip's value (a press, or an arrow key moving the choice). |
 | `aria-label` | `string` | — | Names the group when no visible label does (or pass `aria-labelledby`). |
 | `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"sm"` | Chip size (short or long spelling). Default sm. |
-| `level` | `"primary" \| "secondary"` | `"primary"` | Chip level. Default primary. |
+| `level` | `"primary" \| "secondary" \| "black-overlay" \| "white-overlay" \| "overlay"` | `"primary"` | Chip level. Default primary. |
 | `disabled` | `boolean` | `false` | Every chip does nothing. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the chips it draws, by layer (`{ "Chip[week]": { level: "secondary" } }`). Written by Zen Studio; app code sets the options. |
@@ -115,6 +115,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | Delete / Backspace | Clear the selection (when clearable) |
 
 ## ✅ Do
+- On a colour band, a Solid hue card or a photo, give every chip an overlay level (ChipGroup too): black-overlay by default (level="overlay"), white-overlay on a solid colour. Primary and Secondary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.
 - When exactly one value applies (Repeat: Daily / Weekly / Monthly), use `<ChipGroup>`: it is a radio group with roving focus and aria-checked; never hand-set role="radio" on Chips.
 - Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.
 - Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.
@@ -130,6 +131,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 
 ## ❌ Don't
 - Don't use Secondary or any Button to open a filter list.
+- Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.
 - In a row that scrolls sideways on a wider screen (overflow-x: auto clips both axes), pass `popoverPortal` so the chip's menu opens in the overlay layer, whole and anchored under it; leave it off inside a Dialog or Bottom Sheet.
 - Don't use Segmented to filter data (Segmented switches views).
 - Don't give a Normal or Number-only chip popoverItems.

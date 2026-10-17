@@ -721,7 +721,9 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Primary": "primary",
-          "Secondary": "secondary"
+          "Secondary": "secondary",
+          "Black-Overlay": "black-overlay",
+          "White-Overlay": "white-overlay"
         }
       },
       {
@@ -1966,7 +1968,9 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Secondary": "secondary",
-          "Primary": "primary"
+          "Primary": "primary",
+          "Black-Overlay": "black-overlay",
+          "White-Overlay": "white-overlay"
         }
       }
     ],
@@ -2054,7 +2058,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "options": {
           "Small": "small",
           "Medium": "medium",
-          "Large": "large"
+          "Large": "large",
+          "XLarge": "xlarge"
         }
       },
       {
@@ -2091,13 +2096,20 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     "figma": "1523:104",
     "own": [
       {
+        "prop": "icon",
+        "label": "Icon-Src",
+        "type": "INSTANCE_SWAP",
+        "default": "icon-marker-pin-01-solid"
+      },
+      {
         "prop": "size",
         "label": "Size",
         "type": "VARIANT",
         "options": {
           "Large": "large",
           "Medium": "medium",
-          "Small": "small"
+          "Small": "small",
+          "XLarge": "xlarge"
         }
       },
       {
@@ -2120,7 +2132,22 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Icon",
+        "prop": "icon",
+        "on": "icon-marker-pin-01-solid",
+        "when": [
+          {
+            "prop": "size",
+            "oneOf": [
+              "xlarge"
+            ],
+            "default": "medium"
+          }
+        ]
+      }
+    ]
   },
   "Tooltip": {
     "figma": "1595:2220",

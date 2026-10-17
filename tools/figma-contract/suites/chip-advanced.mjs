@@ -1,4 +1,5 @@
-// Figma Chip/Advanced (512:7659): Size × Theme × State (Default/Hover/Press/Focused/Placeholder) × Select.
+// Figma Chip/Advanced (512:7659): Size × Level (Secondary, Black-Overlay, White-Overlay) × Theme × State
+// (Default/Hover/Press/Focused/Placeholder) × Select.
 // Select=Yes nests .Chip/Trailing (Single = icon-x-circle-solid); Select=No shows the dropdown chevron.
 export default {
   contract: "docs/figma-contracts/checkbox-radio-chip-popover.json",
@@ -8,6 +9,7 @@ export default {
     variant: "advanced",
     label: "Chip",
     size: vp.Size.toLowerCase(),
+    level: vp.Level.toLowerCase(),
     state: vp.State.toLowerCase(),
     select: vp.Select === "Yes",
     leadingKind: vp.Theme === "Leading-Icon" ? "icon" : vp.Theme === "Leading-Photo" ? "photo" : undefined,

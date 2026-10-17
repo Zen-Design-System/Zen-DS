@@ -168,6 +168,35 @@ function ReportPeriodExample() {
   );
 }
 
+/* ───────────── On a colour band ───────────── */
+
+type BandMeasure = "hours" | "invoiced";
+
+function ColourBandExample() {
+  const [measure, setMeasure] = useState<BandMeasure>("hours");
+  const headingId = useId();
+  const kpi = overview.month[measure];
+  return (
+    // Brand/Accent band (Background/Accent/Solid): the same pink in light and dark mode, so everything on it takes static
+    // tones and an overlay level (here the default, Black-Overlay), never mode tokens.
+    <Box as="section" className="px-segmented-band" padding="lg" radius="lg" aria-labelledby={headingId}>
+      <Stack gap="md">
+        <Stack direction="row" justify="between" align="center" gap="sm" wrap>
+          <Heading level={4} id={headingId} textStyle="Heading/Subheading" tone="on-white-overlay-strongest">September at the studio</Heading>
+          <Segmented level="black-overlay" aria-label="Measure" value={measure} onValueChange={(id) => setMeasure(id as BandMeasure)} options={[
+            { id: "hours", label: "Hours" },
+            { id: "invoiced", label: "Invoiced" },
+          ]} />
+        </Stack>
+        <Stack gap="2xs" role="status">
+          <Text textStyle="Heading/1" tone="on-white-overlay-strongest">{kpi.value}</Text>
+          <Text textStyle="Body/Small/Regular" tone="on-white-overlay-base">{kpi.trend.label}</Text>
+        </Stack>
+      </Stack>
+    </Box>
+  );
+}
+
 /* ───────────── Open and resolved ───────────── */
 
 type ReviewComment = { id: string; author: PersonId; text: string; resolved: boolean };
@@ -451,6 +480,29 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     icon="icon-clock-line" iconTheme="blue" />
   {/* Utilisation, Invoiced */}
 </Grid>`,
+  },
+  {
+    title: "On a colour band",
+    description: "On a colour band or a photo the switch takes an overlay level: black-overlay (the default, also level=\"overlay\"), a dark track with light text, or white-overlay on a solid colour, a light track with light text. The selected segment is white with dark text. These tokens do not switch with the mode, like the band under them, so the control looks the same in light and dark mode.",
+    render: () => <ColourBandExample />,
+    code: `const [measure, setMeasure] = useState("hours");
+
+{/* .band { background: var(--zen-color-background-accent-solid-default) } */}
+<Box as="section" className="band" padding="lg" radius="lg" aria-labelledby={headingId}>
+  <Stack gap="md">
+    <Stack direction="row" justify="between" align="center" gap="sm" wrap>
+      <Heading level={4} id={headingId} textStyle="Heading/Subheading" tone="on-white-overlay-strongest">September at the studio</Heading>
+      <Segmented level="black-overlay" aria-label="Measure" value={measure} onValueChange={setMeasure} options={[
+        { id: "hours", label: "Hours" },
+        { id: "invoiced", label: "Invoiced" },
+      ]} />
+    </Stack>
+    <Stack gap="2xs" role="status">
+      <Text textStyle="Heading/1" tone="on-white-overlay-strongest">{kpi.value}</Text>
+      <Text textStyle="Body/Small/Regular" tone="on-white-overlay-base">{kpi.trend.label}</Text>
+    </Stack>
+  </Stack>
+</Box>`,
   },
   {
     title: "Open and resolved",

@@ -1663,6 +1663,36 @@
         }
       },
       {
+        "name": "Toggle/Dot/Content/Unselected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/On-White-Overlay/Light}",
+          "Brand - S1": "{Color/Content/On-White-Overlay/Light}",
+          "Neutral - S2": "{Color/Content/On-White-Overlay/Light}",
+          "Brand - S2": "{Color/Content/On-White-Overlay/Light}",
+          "Neutral - S3": "{Color/Content/On-White-Overlay/Light}",
+          "Neutral - S4": "{Color/Content/On-White-Overlay/Light}",
+          "Neutral - S5": "{Color/Content/On-White-Overlay/Light}",
+          "Neutral - S6": "{Color/Content/On-White-Overlay/Light}",
+          "Neutral - S7": "{Color/Content/On-White-Overlay/Light}"
+        }
+      },
+      {
+        "name": "Toggle/Dot/Content/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Neutral/Strongest}",
+          "Brand - S1": "{Color/Content/On-White-Overlay/Strongest}",
+          "Neutral - S2": "{Color/Content/Neutral/Strongest}",
+          "Brand - S2": "{Color/Content/On-White-Overlay/Strongest}",
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S4": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S5": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S6": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S7": "{Color/Content/Neutral/Strongest}"
+        }
+      },
+      {
         "name": "Segmented-Item-Primary/Background/Seclected/Hover",
         "type": "COLOR",
         "valuesByMode": {

@@ -9,6 +9,7 @@
 .zen-toggle-button { --zen-toggle-dot-size: var(--zen-toggle-item-size-medium, 16px); position: relative; display: inline-flex; flex: 0 0 auto; cursor: pointer; }
 .zen-toggle-button[data-size="small"] { --zen-toggle-dot-size: var(--zen-toggle-item-size-small, 12px); }
 .zen-toggle-button[data-size="large"] { --zen-toggle-dot-size: var(--zen-toggle-item-size-large, 20px); }
+.zen-toggle-button[data-size="xlarge"] { --zen-toggle-dot-size: var(--zen-toggle-item-size-xlarge, 44px); }
 .zen-toggle-button__track { position: relative; display: flex; width: calc(var(--zen-toggle-dot-size) * 2 + 2 * var(--zen-spacing-padding-3-xsmall, 2px)); height: calc(var(--zen-toggle-dot-size) + 2 * var(--zen-spacing-padding-3-xsmall, 2px)); box-sizing: border-box; align-items: center; padding: var(--zen-spacing-padding-3-xsmall, 2px); overflow: hidden; border-radius: var(--zen-segmented-container-corner-radius-small, 1000px); background-color: var(--zen-toggle-bar-background-unselected-default, rgb(1 1 1 / 6%)); background-image: linear-gradient(var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)), var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%))); transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
 }
 .zen-toggle-button__dot { display: block; width: var(--zen-toggle-dot-size); height: var(--zen-toggle-dot-size); --zen-toggle-dot-stroke: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); border-radius: var(--zen-segmented-item-corner-radius-small, 1000px); box-sizing: border-box; background: var(--zen-toggle-dot-background-unselected-default, #fff); box-shadow: 0 0 0 .5px var(--zen-toggle-dot-stroke), var(--zen-style-shadow-action-basic-shadow, 0 1px 1px var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%))); transform: translateX(0); transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease), background-color var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease);
@@ -22,6 +23,12 @@
 .zen-toggle-button[data-state="disabled"] .zen-toggle-button__dot { --zen-toggle-dot-stroke: transparent; background: var(--zen-toggle-dot-background-unselected-disabled, rgb(1 1 1 / 6%)); box-shadow: none; }
 .zen-toggle-button[data-state="disabled"][data-selected="true"] .zen-toggle-button__track { background: var(--zen-toggle-bar-background-seclected-disabled, #dbdbdb); }
 .zen-toggle-button[data-state="disabled"][data-selected="true"] .zen-toggle-button__dot { background: var(--zen-toggle-dot-background-seclected-disabled, #fff); }
+/* XLarge (Figma Toggle-Button Size=XLarge, 48px): the dot holds the icon (Icon-Src) at Element-Size/Popular/Medium, in
+   Toggle/Dot/Content: Unselected (the Light tone on the white dot) while off, Selected (Strongest) while on. */
+.zen-toggle-button[data-size="xlarge"] .zen-toggle-button__dot { display: flex; align-items: center; justify-content: center; color: var(--zen-toggle-dot-content-unselected, rgb(0 0 0 / 45%)); }
+.zen-toggle-button[data-size="xlarge"] .zen-toggle-button__dot > .zen-icon { width: var(--zen-element-size-popular-medium, 24px); height: var(--zen-element-size-popular-medium, 24px); }
+.zen-toggle-button[data-size="xlarge"][data-selected="true"] .zen-toggle-button__dot { color: var(--zen-toggle-dot-content-selected, #111); }
+.zen-toggle-button[data-size="xlarge"][data-state="disabled"] .zen-toggle-button__dot { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
 /* The focusable element is the role="switch" span (the native input is hidden from everyone): its focus ring sits on the
    track, never the browser outline (Figma Toggle-Button 1523:104 has no Focused variant: house :focus-visible ring). */
 .zen-toggle-button:focus-visible { outline: none; }

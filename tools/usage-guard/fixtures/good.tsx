@@ -213,6 +213,7 @@ export const Good = () => <>
   <Thumbnail src={photo} alt="" size="sm" />
   <ActionBar primaryAction={{ label: "Add to cart", onClick: add }} secondaryAction={{ label: "Save for later", onClick: save }} />
   <PlatformPhone label="Settings"><Toggle label="Sync over Wi-Fi only" size="lg" checked={wifi} onCheckedChange={setWifi} /><InputField label="Name" value={name} onValueChange={setName} /></PlatformPhone>
+  <PlatformPhone label="Focus"><Toggle label="Do not disturb" size="xl" icon="icon-moon-01-line" checked={wifi} onCheckedChange={setWifi} /></PlatformPhone>
   <BottomSheet open={open} onOpenChange={setOpen} title="Filters"><ToggleButton aria-label="In stock only" size="large" checked={inStock} onCheckedChange={setInStock} /><SelectField label="Sort" size="md" options={sorts} /></BottomSheet>
   <ActionBar><Button level="primary" size="lg" onClick={add}>Add to cart</Button><Button level="tertiary" size="lg" onClick={save}>Save for later</Button></ActionBar>
   <ActionBar direction="horizontal" summary={<Text textStyle="Body/Small/Regular" tone="base" role="status">3 unsaved changes</Text>}><Button level="tertiary" onClick={undo}>Undo changes</Button><Button level="primary" type="submit">Save changes</Button></ActionBar>

@@ -26,6 +26,7 @@ import {
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
+import "./chip.css";
 
 export const page: PlatformPage = "chip";
 
@@ -327,6 +328,57 @@ function PhoneFiltersExample() {
   );
 }
 
+/* ───────────── On a colour band ───────────── */
+
+const bandStatuses: TaskStatus[] = ["To do", "In progress", "In review"];
+const openTasks = tasks.filter((task) => task.status !== "Done");
+const openAssignees = [...new Set(openTasks.map((task) => task.assignee))];
+
+function ColourBandExample() {
+  const headingId = useId();
+  const [on, setOn] = useState<TaskStatus[]>(["In progress"]);
+  const [assignee, setAssignee] = useState<PersonId | null>(null);
+  const toggle = (value: TaskStatus) => setOn((list) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
+  const clearAll = () => { setOn([]); setAssignee(null); };
+  const shown = openTasks.filter((task) => (!on.length || on.includes(task.status)) && (!assignee || task.assignee === assignee));
+  return (
+    <Stack as="section" gap="md" aria-labelledby={headingId}>
+      {/* Brand/Accent band (Background/Accent/Solid): the same pink in light and dark mode, so the chips on it take an
+          overlay level (the default, Black-Overlay) and the text static On-White-Overlay tones. */}
+      <Box className="px-chip-band" padding="lg" radius="lg">
+        <Stack gap="md">
+          <Stack gap="2xs">
+            <Heading level={4} id={headingId} textStyle="Heading/Subheading" tone="on-white-overlay-strongest">Open tasks</Heading>
+            <Text role="status" textStyle="Body/Small/Regular" tone="on-white-overlay-base">{plural(shown.length, "task")}</Text>
+          </Stack>
+          <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
+            <Chip variant="advanced" level="black-overlay" selected={assignee !== null} popoverLabel="Assignee"
+              popoverItems={openAssignees.map((id) => ({ id, label: people[id].name, selected: id === assignee }))}
+              onPopoverSelect={(item) => setAssignee(item.id as PersonId)} onClearSelection={() => setAssignee(null)}>
+              {assignee ? people[assignee].name : "Assignee"}
+            </Chip>
+            {bandStatuses.map((status) => (
+              <Chip key={status} variant="normal" level="black-overlay" selected={on.includes(status)} onClick={() => toggle(status)}>{status}</Chip>
+            ))}
+          </Stack>
+        </Stack>
+      </Box>
+      {shown.length ? (
+        <List aria-label="Open tasks">
+          {shown.map((task) => (
+            <ListItem key={task.id} title={task.title} caption={`${task.key} · ${task.status} · ${people[task.assignee].name}`}
+              leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} />
+          ))}
+        </List>
+      ) : (
+        <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No tasks match" secondaryAction={{ label: "Clear filters", onClick: clearAll }}>
+          Turn on another status or pick someone else.
+        </EmptyState>
+      )}
+    </Stack>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Task filters",
@@ -434,6 +486,34 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     </List>
   </BottomSheet>
 </PlatformPhone>`,
+  },
+  {
+    title: "On a colour band",
+    description: "On a colour band or a photo every chip takes an overlay level: black-overlay (the default, also level=\"overlay\"), a dark chip with light text, or white-overlay on a solid colour. Selected chips turn white with dark text, and the focus ring takes the label colour, since the Accent ring would vanish on the band. The tokens do not switch with the mode, so the row looks the same in light and dark mode.",
+    render: () => <ColourBandExample />,
+    code: `const [on, setOn] = useState(["In progress"]);
+const [assignee, setAssignee] = useState(null);
+
+{/* .band { background: var(--zen-color-background-accent-solid-default) } */}
+<Box className="band" padding="lg" radius="lg">
+  <Stack gap="md">
+    <Stack gap="2xs">
+      <Heading level={4} id={headingId} textStyle="Heading/Subheading" tone="on-white-overlay-strongest">Open tasks</Heading>
+      <Text role="status" textStyle="Body/Small/Regular" tone="on-white-overlay-base">{plural(shown.length, "task")}</Text>
+    </Stack>
+    <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
+      <Chip variant="advanced" level="black-overlay" selected={assignee !== null} popoverLabel="Assignee"
+        popoverItems={assignees.map((id) => ({ id, label: people[id].name, selected: id === assignee }))}
+        onPopoverSelect={(item) => setAssignee(item.id)} onClearSelection={() => setAssignee(null)}>
+        {assignee ? people[assignee].name : "Assignee"}
+      </Chip>
+      {["To do", "In progress", "In review"].map((status) => (
+        <Chip key={status} variant="normal" level="black-overlay" selected={on.includes(status)} onClick={() => toggle(status)}>{status}</Chip>
+      ))}
+    </Stack>
+  </Stack>
+</Box>
+<List aria-label="Open tasks">{/* a ListItem per task, or an EmptyState with Clear filters */}</List>`,
   },
   {
     title: "Pick one",

@@ -461,8 +461,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return node;
   }
 
-  /** A Segmented's Level and Size on its items (Segmented.tsx: secondary, md), as Figma's item options. */
-  const segmentLook = (code) => ({ Level: code.level === "primary" ? "Primary" : "Secondary", Size: ["sm", "small"].includes(code.size) ? "Small" : "Medium" });
+  /** A Segmented's Level and Size on its items (Segmented.tsx: secondary, md; "overlay" = Black-Overlay), as Figma's item options. */
+  const SEGMENT_LEVEL = { primary: "Primary", overlay: "Black-Overlay", "black-overlay": "Black-Overlay", "white-overlay": "White-Overlay" };
+  const segmentLook = (code) => ({ Level: SEGMENT_LEVEL[code.level] ?? "Secondary", Size: ["sm", "small"].includes(code.size) ? "Small" : "Medium" });
 
   /** AppShellAction as Figma's Dashboard Header Action-Item: Theme Flat, its notification dot or number, the glyph it draws. */
   function actionItemNode(code, id) {
