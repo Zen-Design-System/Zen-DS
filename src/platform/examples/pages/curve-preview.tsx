@@ -32,7 +32,7 @@ function TransitionPanelExample() {
   const [duration, setDuration] = useState(0.5);
   const [bounce, setBounce] = useState(0.3);
   return (
-    <Card theme="flat" spacing="sm" maxWidth={360}>
+    <Card theme="flat" maxWidth={360}>
       <Stack gap="none">
         <Stack gap="xs" paddingY="md">
           <Heading level={3} textStyle="Heading/4">Photo Stack</Heading>

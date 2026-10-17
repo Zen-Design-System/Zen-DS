@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Harness `card/spacing-by-count` (warn, 2026-10-17, user: "nếu từ 3 card trở nên thì dùng card/box variant spacing
+  Small. Còn mặc định là dùng Medium"): three or more cards side by side take `spacing="small"`, one or two keep Medium,
+  the default; a card around a Voice frame (which pads itself) stays Small. It counts mapped literal arrays and
+  components whose root is a Card. Platform examples follow it.
 - Text on Zen brand solids follows the live Figma again (2026-10-17, user: "Đồng bộ On-Brand theo Figma"): Base
   Colors On-Brand-Default and On-Brand-Hover are white (were black 86% since 2026-10-13), so
   `--zen-color-content-on-accent-*` on Zen pink is white. White on Zen/9 `#F755C9` is 2.96:1 (black 86% was 6.22:1).

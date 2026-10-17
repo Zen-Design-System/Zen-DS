@@ -221,7 +221,7 @@ function FileToolbarExample() {
     buttons[(next + buttons.length) % buttons.length]?.focus();
   };
   return (
-    <Card theme="flat" spacing="sm">
+    <Card theme="flat">
       <Stack gap="md" className="px-divider-file">
         {/* On a narrow screen the zoom group and its divider step aside (people pinch to zoom there), so a divider never
             wraps onto the end of a line. */}

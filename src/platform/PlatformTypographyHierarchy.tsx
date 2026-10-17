@@ -94,7 +94,7 @@ function MasterPageExample() {
           <Heading level={2} textStyle="Heading/4">Time off</Heading>
           <div className="pth-cards">
             {[["Annual leave", "12", "days remaining"], ["Sick leave", "4", "days remaining"]].map(([title, value, meta]) => (
-              <Card key={title} theme="flat" spacing="small">
+              <Card key={title} theme="flat">
                 <Stack gap="2xs">
                   <Heading level={3} textStyle="Heading/Subheading">{title}</Heading>
                   {/* A value is big, but it is not a heading: Display/4 in a span. */}

@@ -424,7 +424,7 @@ function LayerSettingsExample() {
   const [radius, setRadius] = useState(16);
   const [blur, setBlur] = useState(0);
   return (
-    <Card theme="flat" spacing="sm" maxWidth={320} as="section" aria-labelledby={titleId}>
+    <Card theme="flat" maxWidth={320} as="section" aria-labelledby={titleId}>
       <Stack gap="none">
         <Stack gap="xs" paddingY="md">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Social banner</Heading>
@@ -566,7 +566,7 @@ const submit = () => {
     title: "Layer settings",
     description: "Small (size=\"sm\") is for dense panels and cards: its Body/Base/Bold titles sit under the panel heading and group short rows of inline fields and sliders. Size and Fill start open; Corners and blur, used less, waits closed.",
     render: () => <LayerSettingsExample />,
-    code: `<Card theme="flat" spacing="sm" maxWidth={320} as="section" aria-labelledby={titleId}>
+    code: `<Card theme="flat" maxWidth={320} as="section" aria-labelledby={titleId}>
   <Stack gap="none">
     <Stack gap="xs" paddingY="md">
       <Heading level={4} id={titleId} textStyle="Heading/Subheading">Social banner</Heading>

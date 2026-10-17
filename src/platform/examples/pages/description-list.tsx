@@ -673,7 +673,7 @@ const retry = () => { titleRef.current?.focus(); load(opened.id); };
       ? <Button level="tertiary" onClick={reopen}>Reopen task</Button>
       : <Button level="primary" onClick={markDone}>Mark as done</Button>}
   </Stack>
-  <Card as="section" theme="flat" spacing="small" aria-labelledby="details">
+  <Card as="section" theme="flat" aria-labelledby="details">
     <Stack gap="md">
       <Heading level={4} id="details" textStyle="Heading/Subheading">Details</Heading>
       {/* Narrower than stackBelow (280px by default): each term sits above its value. */}
