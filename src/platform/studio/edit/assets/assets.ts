@@ -13,6 +13,7 @@ import type { EditOp, StateDecl, StudioSelection } from "../../types";
 import type { DropTarget, NodeSelection } from "../arrange";
 import { insertCode, notRecommended } from "../clipboard";
 import { dropTargetAt, kidsOf, publishDragView, type DropContext } from "../drag";
+import { floatingCode } from "../autoLayoutPlan";
 import { snapBox, SNAP_PX, type FrameBox } from "../../builder/render/framePlace";
 import { annotatedAt, findBySrc, fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf, type FiberHit } from "../../select/picker";
 import { withoutPart } from "../../select/parts";
@@ -183,18 +184,6 @@ export function refusalFor(target: DropTarget): string | null {
   const parent: StudioSelection = { kind: "node", src: target.parentSrc, name: target.parentName, frameId: target.frameId, panelId: target.panelId, instance: 0 };
   const check = canStructurallyEdit(parent);
   return check.ok ? null : check.reason;
-}
-
-/**
- * The code of a layer placed at (x, y) px in a Frame without auto layout: a Stack, Grid, Box or Shape floats itself
- * (position absolute, insets), anything else floats in a Box of its own (the Studio's floating wrapper, which a later
- * drag moves with smart guides, edit/drag.ts floatOf).
- */
-export function floatingCode(code: string, root: string, x: number, y: number): string {
-  const place = `position="absolute" insetLeft={${Math.round(x)}} insetTop={${Math.round(y)}}`;
-  const trimmed = code.trim();
-  if (/^(Stack|Grid|Box|Shape)$/.test(root) && trimmed.startsWith(`<${root}`)) return trimmed.replace(new RegExp(`^<${root}(?=[\\s/>])`), `<${root} ${place}`);
-  return `<Box ${place}>\n${trimmed.split("\n").map((line) => `  ${line}`).join("\n")}\n</Box>`;
 }
 
 /** Adds `item` where a drag or the toolbar's placement points (one edit; the new layer selected). `free`: the px it goes

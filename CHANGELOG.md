@@ -28,6 +28,15 @@ removed (four unused colour ramps were, see Removed).
   children in a component that has none (Top Navigation, Shape, charts), a block in text, an App shell inside a layer or
   beside content, a Top / Bottom Navigation in a Screen's content. Checked by `npm run studio:dnd` (19,286 engine cases)
   and the opt-in E2E group `dnd` (real drags of every Assets item, `npm run studio:e2e -- --only=dnd`).
+- Zen Studio Variables (2026-10-17, user: "Cách sắp xếp nên theo nhóm chứ?", "Các chip chứa variable padding hơi kì"):
+  the table lists group by group as the groups tree reads, one header per group (a file that interleaves Brand/1,
+  Brand-Alpha/1, Brand/2 showed "Light / Brand" twice); an alias chip's swatch sits as far from its top, bottom and left
+  (4px), whatever the density.
+- Zen Studio Add / Remove auto layout (2026-10-17, user: "test luôn phần add auto layout và detach auto layout"):
+  an Action bar keeps its own `position` (static / sticky / fixed) when its Frame takes auto layout (it was removed as if
+  it were an X / Y); a painted Frame with nothing in it now gets its auto layout (a Stack inside, it stayed a plain
+  Box); the alignment read from the layers is the line they share best (start, centre or end), whatever their order in
+  the code. Checked by `npm run studio:dnd` (12,564 more cases) and the `dnd` E2E rows DND-07 / DND-08.
 - Zen Studio speaks Figma (2026-10-17, user: "Còn dùng ngôn ngữ dev nhiều quá", "Convert được Box(Frame) to Stack(auto
   layout)"): a Frame's Inspector has Figma's Auto layout "+" (⇧A adds auto layout to the Frame in place, ⌥⇧A or "−"
   removes it), the canvas menu and Quick actions say Add auto layout / Remove auto layout / Frame selection; a layer reads

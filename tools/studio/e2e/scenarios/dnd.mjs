@@ -9,7 +9,7 @@ import { eachElement, parsePage } from "../../dialect.mjs";
 import { codeOfItem, components, grow, items } from "../../dnd-engine.mjs";
 import { newPageText } from "../../dialect.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
-import { openAssetLibrary, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { openAssetLibrary, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, mineOption, pageText, seededPage, selectedName } from "./builder.mjs";
 
 /* ── the seed: a phone page (bars, body Stack with a List Box, a Card, a free Box) and an empty phone Screen ───────── */
@@ -271,8 +271,8 @@ async function campaign(ctx, all, label) {
 }
 
 /** Selects the layer `name` on the canvas: the deepest layer at its middle, then Escape up to it (Figma's Esc). */
-async function selectLayer(page, id, name) {
-  await clickNamed(page, id, name);
+async function selectLayer(page, id, name, index = 0) {
+  await clickNamed(page, id, name, index);
   // The Inspector names the selection once it has drawn it: wait for a name, then go up one layer at a time.
   let now = "";
   await until(async () => Boolean(now = await selectedName(page)), { timeout: 3000 }).catch(() => undefined);
@@ -442,6 +442,221 @@ async function story(ctx) {
   return `${steps.length} drops (${steps.slice(0, 2).join(" · ")} …); canvas Screen ${Math.round(frame.height / zoom)}px with its bar on top; Play scrolled ${measured.scrolled}px, bar at ${Math.round(measured.navTop)}px, last block whole`;
 }
 
+/* ── Add / Remove auto layout (user, 2026-10-17: "test luôn phần add auto layout và detach auto layout") ─────────── */
+
+/** The body's last layer as the page text has it (the frame these rows work on). */
+const frameIn = (text) => kidsOfBody(text).at(-1);
+const kidsOfBody = (text) => (bodyOf(text)?.node.children ?? []).filter((child) => child.kind === "element");
+const layersOf = (node) => (node?.children ?? []).filter((child) => child.kind === "element");
+/** A floating layer's own element: a float wrapper's one layer, else itself. */
+const ownOf = (node) => (node.name === "Box" && Object.keys(node.props).every((prop) => ["position", "insetLeft", "insetTop", "insetRight", "insetBottom", "constraintX", "constraintY"].includes(prop)) && layersOf(node).length === 1 ? layersOf(node)[0] : node);
+const rectAt = (page, id, loc) => page.evaluate((src) => window.__e2e.rectOf(src), `local:${id}.zen.tsx:${loc}`);
+async function key(page, combo) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press(combo);
+}
+/** Waits for the page text to change, then returns it (throws with `what` when it does not). */
+async function next(page, id, before, what) {
+  const after = await changed(page, id, before, 6000);
+  if (!after) throw new Error(`${what}: nothing written (status: ${await statusText(page).catch(() => "")})`);
+  return after;
+}
+/** ⌘Z until the page reads `text` again (`steps` edits back). */
+async function undoTo(page, id, text, steps) {
+  for (let step = 0; step < steps; step += 1) {
+    const before = (await pageText(page, id)) ?? "";
+    await key(page, "ControlOrMeta+z");
+    await changed(page, id, before, 4000);
+  }
+  return ((await pageText(page, id)) ?? "") === text;
+}
+
+/** Clicks the Inspector's button `name`, or says what is selected and which buttons the Inspector shows. */
+async function inspectorButton(page, name) {
+  const button = page.locator("#studio-right").getByRole("button", { name, exact: true }).first();
+  if (await button.waitFor({ state: "visible", timeout: 3000 }).then(() => true, () => false)) { await button.click(); return; }
+  const shown = await page.locator("#studio-right button[aria-label]").evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")).slice(0, 14));
+  throw new Error(`no "${name}" in the Inspector (selected: ${await selectedName(page)}; buttons: ${shown.join(", ")})`);
+}
+
+/** A phone page whose body ends in a Frame (`frame`). */
+const framePage = (frame) => (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", frame);
+
+/**
+ * Every Assets item, as a person does it: dropped into an empty Frame (it floats where it is dropped), the Frame takes
+ * auto layout (⇧A: a column, the item then the caption, no X / Y left), then loses it (⌥⇧A: a Box of its size, every
+ * layer floating where it showed, nothing moves on the canvas), then three ⌘Z bring the page back.
+ */
+async function autoLayoutItems(ctx, all) {
+  const list = all.slice(0, Number(process.env.ZEN_DND_LIMIT) || all.length);
+  await ctx.studio();
+  const { page, id } = await seededPage(ctx, framePage('<Box width={358} height={560}>\n<Box position="absolute" insetLeft={16} insetTop={500}>\n<Text tone="base">Caption</Text>\n</Box>\n</Box>'), /height=\{560\}/);
+  const seed = (await pageText(page, id)) ?? "";
+  await fit(page);
+  const failures = [];
+  let cases = 0;
+  for (const item of list) {
+    if (item.root === "AppShell" || BAR[item.root]) continue;
+    const tile = await tileOf(page, item).catch(() => null);
+    if (!tile) continue;
+    const frame = await page.evaluate((src) => window.__e2e.rectOf(src), `local:${id}.zen.tsx:${frameIn(seed).loc}`);
+    cases += 2;
+    try {
+      // Dropped at the Frame's top left (16, 16 in its px; the canvas zoom scales it).
+      const zoom = frame.width / 358;
+      await dragTo(page, center(tile), { x: frame.x + 16 * zoom + 2, y: frame.y + 16 * zoom + 2 });
+      const dropped = await next(page, id, seed, `${item.id} dropped`);
+      const placed = layersOf(frameIn(dropped));
+      if (placed.length !== 2 || !placed.every((layer) => layer.props.position?.value === "absolute")) throw new Error(`${item.id}: the drop did not float in the Frame (${placed.map((layer) => layer.name).join(", ")})`);
+      // The Frame selected from its Layers row (the first Box: its layers' rows follow it), then ⇧A.
+      await showLeftTab(page, "layers");
+      await page.locator('.studio-layers__tree [role="treeitem"][data-kind="node"]').filter({ hasText: /^\s*Box\b/ }).first().click();
+      await until(async () => (await selectedName(page)) === "Box", { timeout: 3000 }).catch(() => undefined);
+      await key(page, "Shift+A");
+      const added = await next(page, id, dropped, `${item.id} ⇧A`);
+      const stack = frameIn(added);
+      const order = layersOf(stack).map((layer) => layer.name);
+      if (stack.name !== "Stack" || order.join() !== `${item.root},Text`) throw new Error(`${item.id} ⇧A: ${stack.name} > ${order.join(", ")}`);
+      if (layersOf(stack).some((layer) => ["Stack", "Grid", "Box", "Shape"].includes(layer.name) && "position" in layer.props)) throw new Error(`${item.id} ⇧A: a layer kept its X / Y`);
+      // Where each layer shows now, then ⌥⇧A: the same places, floating in a Box of the Stack's size.
+      await sleep(250);
+      const before = await Promise.all(layersOf(stack).map((layer) => rectAt(page, id, layer.loc)));
+      await key(page, "Alt+Shift+A");
+      const removed = await next(page, id, added, `${item.id} ⌥⇧A`);
+      const box = frameIn(removed);
+      if (box.name !== "Box" || typeof box.props.width?.value !== "number" || !layersOf(box).every((layer) => layer.props.position?.value === "absolute")) throw new Error(`${item.id} ⌥⇧A: ${box.name}(${Object.keys(box.props)}) > ${layersOf(box).map((layer) => layer.name).join(", ")}`);
+      await sleep(300);
+      const after = await Promise.all(layersOf(box).map((layer) => rectAt(page, id, ownOf(layer).loc)));
+      const moved = before.map((rect, index) => (rect && after[index] ? Math.max(Math.abs(rect.x - after[index].x), Math.abs(rect.y - after[index].y)) / zoom : 0));
+      if (moved.some((delta) => delta > 1.5)) throw new Error(`${item.id} ⌥⇧A: a layer moved ${Math.round(Math.max(...moved))}px`);
+    } catch (error) {
+      failures.push(error.message.split("\n")[0]);
+    }
+    if (!(await undoTo(page, id, seed, 3).catch(() => false)) && !(await restore(ctx, page, id, seed).then((how) => how !== "rewritten").catch(() => false))) failures.push(`${item.id}: three ⌘Z did not bring the page back`);
+    await page.keyboard.press("Escape");
+  }
+  if (failures.length) throw new Error(`${failures.length} of ${cases} wrong · ${failures.slice(0, 6).join(" | ")}`);
+  return `${cases} auto layout changes right (⇧A then ⌥⇧A on every Assets item dropped in a Frame), each undone`;
+}
+
+/** The arrangement cases and the other ways in (Inspector +/−, the canvas menu, a layer or two that are not a Frame). */
+async function autoLayoutCases(ctx) {
+  await ctx.studio();
+  const shapes = [
+    '<Shape type="rectangle" position="absolute" insetLeft={208} insetTop={30} width={80} height={40} />',
+    '<Shape type="ellipse" position="absolute" insetLeft={16} insetTop={16} width={80} height={68} />',
+    '<Shape type="rectangle" position="absolute" insetLeft={112} insetTop={20} width={80} height={60} />',
+  ];
+  const results = [];
+  let stage = "start";
+  try {
+  // 1. Three Shapes in a row, drawn out of order, centred across: ⇧A → a row, left to right, centred, gap 16 (md), padding 16.
+  stage = "case 1";
+  {
+    const { page, id } = await seededPage(ctx, framePage(`<Box width={320} height={120}>\n${shapes.join("\n")}\n</Box>`), /insetLeft=\{208\}/);
+    const seed = (await pageText(page, id)) ?? "";
+    await fit(page);
+    const frameRect = await rectAt(page, id, frameIn(seed).loc);
+    // ⌘-click the Frame's empty corner: the Frame itself.
+    await page.keyboard.down("ControlOrMeta");
+    await page.mouse.click(frameRect.x + frameRect.width - 6, frameRect.y + frameRect.height - 6);
+    await page.keyboard.up("ControlOrMeta");
+    await sleep(300);
+    // The Inspector's Auto layout + (Figma's), not the key.
+    await inspectorButton(page, "Add auto layout");
+    const added = await next(page, id, seed, "Inspector Auto layout +");
+    const stack = frameIn(added);
+    const props = Object.fromEntries(Object.entries(stack.props).map(([key, value]) => [key, value.value]));
+    const widths = layersOf(stack).map((layer) => layer.props.insetLeft === undefined);
+    if (stack.name !== "Stack" || props.direction !== "row" || props.align !== "center" || props.padding !== "md" || "gap" in props) throw new Error(`3 Shapes in a row: ${stack.name} ${JSON.stringify(props)}`);
+    if (layersOf(stack).map((layer) => layer.props.type?.value).join() !== "ellipse,rectangle,rectangle" || !widths.every(Boolean)) throw new Error(`3 Shapes in a row: order ${layersOf(stack).map((layer) => layer.props.type?.value)}`);
+    // The Inspector's − takes it off again, every Shape where it showed.
+    await inspectorButton(page, "Remove auto layout");
+    const removed = await next(page, id, added, "Inspector Auto layout −");
+    if (frameIn(removed).name !== "Box") throw new Error("Inspector −: still auto layout");
+    if (!(await undoTo(page, id, seed, 2))) throw new Error("3 Shapes: two ⌘Z did not bring the page back");
+    results.push("row of 3 (Inspector + / −)");
+  }
+  // 2. A painted, empty Frame: the canvas menu's Add auto layout → its Box keeps the fill, a Stack inside.
+  stage = "case 2";
+  {
+    const { page, id } = await seededPage(ctx, framePage('<Box surface="surface" radius="md" width={200} height={120} />'), /surface="surface" radius="md"/);
+    const seed = (await pageText(page, id)) ?? "";
+    await fit(page);
+    const frameRect = await rectAt(page, id, frameIn(seed).loc);
+    await page.keyboard.down("ControlOrMeta");
+    await page.mouse.click(frameRect.x + 14, frameRect.y + 14);
+    await page.keyboard.up("ControlOrMeta");
+    await sleep(300);
+    // Off the middle: an empty Frame shows its insert button (+) there.
+    await page.mouse.click(frameRect.x + 14, frameRect.y + 14, { button: "right" });
+    await page.getByRole("menuitem", { name: /^Add auto layout/ }).first().click();
+    const added = await next(page, id, seed, "canvas menu Add auto layout");
+    const frame = frameIn(added);
+    if (frame.name !== "Box" || frame.props.surface?.value !== "surface" || layersOf(frame)[0]?.name !== "Stack") throw new Error(`painted empty Frame: ${frame.name} > ${layersOf(frame).map((layer) => layer.name)}`);
+    if (!(await undoTo(page, id, seed, 1))) throw new Error("painted Frame: ⌘Z did not bring the page back");
+    results.push("painted empty Frame (canvas menu)");
+  }
+  // 3. An Action bar in flow keeps its own position (static) through ⇧A.
+  stage = "case action bar";
+  {
+    const bar = ITEMS.find((one) => one.id === "action-bar");
+    const { page, id } = await seededPage(ctx, framePage(`<Box>\n${bar.code}\n</Box>`), /<ActionBar position="static"/);
+    const seed = (await pageText(page, id)) ?? "";
+    await fit(page);
+    await selectLayer(page, id, "ActionBar");
+    await key(page, "Escape");
+    await sleep(250);
+    await key(page, "Shift+A");
+    const added = await next(page, id, seed, "⇧A on a Frame with an Action bar");
+    if (frameIn(added).name !== "Stack" || !/<ActionBar position="static"/.test(added)) throw new Error("the Action bar lost its own position (static)");
+    if (!(await undoTo(page, id, seed, 1))) throw new Error("Action bar: ⌘Z did not bring the page back");
+    results.push("Action bar keeps position=static");
+  }
+  // 4. A Stack (row, gap sm, padding md): ⌥⇧A → nothing moves; ⇧A → the same row, gap and padding again.
+  stage = "case 3";
+  {
+    const { page, id } = await seededPage(ctx, framePage('<Stack direction="row" gap="sm" padding="md">\n<Button level="secondary">Back</Button>\n<Button level="primary">Next</Button>\n</Stack>'), /level="primary">Next/);
+    const seed = (await pageText(page, id)) ?? "";
+    await fit(page);
+    await selectLayer(page, id, "Button", 0);
+    await key(page, "Escape");
+    await sleep(250);
+    const stack = frameIn(seed);
+    const before = await Promise.all(layersOf(stack).map((layer) => rectAt(page, id, layer.loc)));
+    await key(page, "Alt+Shift+A");
+    const removed = await next(page, id, seed, "⌥⇧A on a row");
+    await sleep(300);
+    const box = frameIn(removed);
+    const after = await Promise.all(layersOf(box).map((layer) => rectAt(page, id, ownOf(layer).loc)));
+    const moved = Math.max(...before.map((rect, index) => Math.max(Math.abs(rect.x - after[index].x), Math.abs(rect.y - after[index].y))));
+    if (box.name !== "Box" || moved > 1.5) throw new Error(`⌥⇧A on a row: ${box.name}, a Button moved ${Math.round(moved)}px`);
+    await key(page, "Shift+A");
+    const back = frameIn(await next(page, id, removed, "⇧A back"));
+    const props = Object.fromEntries(Object.entries(back.props).map(([key, value]) => [key, value.value]));
+    if (back.name !== "Stack" || props.direction !== "row" || props.gap !== "sm" || props.padding !== "md") throw new Error(`⌥⇧A then ⇧A: ${back.name} ${JSON.stringify(props)} (was row, gap sm, padding md)`);
+    if (!(await undoTo(page, id, seed, 2))) throw new Error("row: two ⌘Z did not bring the page back");
+    results.push("row → ⌥⇧A (nothing moves) → ⇧A (row, sm, md)");
+  }
+  // 5. ⇧A on one Text (not a Frame): it goes into a new auto layout frame.
+  stage = "case 4";
+  {
+    const { page, id } = await seededPage(ctx, framePage('<Box>\n<Text tone="base">One</Text>\n</Box>'), />One</);
+    const seed = (await pageText(page, id)) ?? "";
+    await fit(page);
+    await selectLayer(page, id, "Text", 1);
+    await key(page, "Shift+A");
+    const added = await next(page, id, seed, "⇧A on a Text");
+    if (!/<Stack[^>]*>\s*<Text tone="base">One<\/Text>\s*<\/Stack>/.test(added)) throw new Error(`⇧A on a Text: not wrapped in a Stack (${added.slice(added.lastIndexOf("<Box", added.indexOf(">One<")), added.indexOf(">One<") + 40).replace(/\s+/g, " ")})`);
+    if (!(await undoTo(page, id, seed, 1))) throw new Error("Text: ⌘Z did not bring the page back");
+    results.push("⇧A wraps one Text");
+  }
+  } catch (error) {
+    throw new Error(`${stage}: ${error.message.split("\n")[0]} (done: ${results.join(" · ") || "none"})`);
+  }
+  return results.join(" · ");
+}
+
 const third = Math.ceil(ITEMS.length / 3);
 export const rows = [
   { id: "DND-01", feature: `Assets drag, items 1–${third}: each onto an empty Screen (no frame, no Stack), before a Card, onto the Top navigation, into a Card, into a free Box, onto the board; checked in the page, across the phone, one ⌘Z each`, wp: "dnd campaign 2026-10-17", timeout: 1_800_000, run: (ctx) => campaign(ctx, ITEMS.slice(0, third), "a") },
@@ -449,5 +664,7 @@ export const rows = [
   { id: "DND-03", feature: `Assets drag, items ${2 * third + 1}–${ITEMS.length}: the same places`, wp: "dnd campaign 2026-10-17", timeout: 1_800_000, run: (ctx) => campaign(ctx, ITEMS.slice(2 * third), "c") },
   { id: "DND-04", feature: "Canvas moves: Text, List box, Card and Box dragged to an empty Screen and to the top of the body (moved, not copied, one ⌘Z)", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: moves },
   { id: "DND-06", feature: "Layers panel drags: a row onto an empty Screen's frame row goes into that Screen; onto a row's upper half goes before it (one ⌘Z each)", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: layersMoves },
+  { id: "DND-07", feature: "Auto layout on every Assets item: dropped into an empty Frame (floats there), ⇧A (a column, item then caption, no X / Y), ⌥⇧A (a Box of its size, nothing moves on the canvas), three ⌘Z back", wp: "auto layout campaign 2026-10-17", timeout: 2_400_000, run: (ctx) => autoLayoutItems(ctx, ITEMS) },
+  { id: "DND-08", feature: "Auto layout cases: 3 Shapes drawn out of order in a centred row (Inspector + → row, left to right, centred; −), a painted empty Frame (canvas menu → Box > Stack), an Action bar keeps position, a row ⌥⇧A then ⇧A comes back the same, ⇧A on one Text wraps it", wp: "auto layout campaign 2026-10-17", timeout: 600_000, run: autoLayoutCases },
   { id: "DND-05", feature: "The user's story on an empty phone page: Top navigation dropped on the top becomes the Screen's bar, a List box, content past the phone; the canvas draws it whole, Play scrolls to the end with the bar in place", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: story },
 ];

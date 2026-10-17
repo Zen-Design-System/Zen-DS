@@ -38,8 +38,8 @@ function seeds() {
 
 /* ── places a drop can go ───────────────────────────────────────────────────────────────────────────────────────── */
 
-// A Screen's bars never land in its content; an AppShell lands on a Screen only. A Sidebar in content is allowed (no
-// rule says otherwise yet: BACKLOG question), counted apart.
+// A Screen's bars never land in its content; an AppShell lands on an empty Screen only. Allowed and counted apart (user,
+// 2026-10-17: "1. có 2. Cả 2"): a Sidebar in a Screen's content, any component in a Screen's bar (a custom header).
 const CHROME = new Set(["TopNavigation", "BottomNavigation"]);
 /** Every element, its parents, and whether it sits in a Screen bar (a prop) rather than in the content. */
 function elementsOf(text) {
@@ -172,7 +172,7 @@ for (const seed of seeds().filter((one) => !only || one.name === only)) {
         tally.accepted += 1;
         const issues = validateDialect(result.text, { components });
         if (issues.length) note("accepted-invalid-page", { seed: seed.name, label, issue: issues[0]?.message ?? String(issues[0]) });
-        // Another component in a bar (a custom header: a Search, a Stack) is the person's call, as in Figma: counted only.
+        // Another component in a bar (a custom header: a Search, a Stack) is allowed (user, 2026-10-17): counted only.
         if (!own) barsHoldingOther += 1;
       }
     }
@@ -224,7 +224,7 @@ for (const finding of allFindings) {
 console.log("Findings by kind and target:");
 for (const [key, { n, example }] of [...grouped].sort((a, b) => b[1].n - a[1].n).slice(0, 60)) console.log(`  ${n} × ${key} — e.g. ${example.seed ?? ""} ${example.label ?? ""}${example.issue ? ` · ${example.issue}` : ""}${example.error ? ` · ${String(example.error).slice(0, 140)}` : ""}${example.paste ? ` · paste: ${String(example.paste).slice(0, 80)} | insert: ${String(example.insert).slice(0, 80)}` : ""}${example.changed ? ` · changed ${example.changed}` : ""}${example.lost ? ` · lost ${example.lost}` : ""}`);
 if (process.argv.includes("--verbose")) for (const finding of findings.slice(0, 40)) console.log(`  · ${finding.kind} · ${finding.seed ?? ""} · ${finding.label ?? finding.item ?? ""}${finding.issue ? ` · ${finding.issue}` : ""}${finding.error ? ` · ${String(finding.error).slice(0, 160)}` : ""}${finding.lost ? ` · lost ${finding.lost}` : ""}${finding.changed ? ` · changed ${finding.changed}` : ""}${finding.paste ? ` · paste: ${String(finding.paste).slice(0, 90)} | insert: ${String(finding.insert).slice(0, 90)}` : ""}`);
-console.log(`Allowed, counted: a Sidebar in a Screen's content ${sidebarsInContent} · another component in a Screen bar ${barsHoldingOther}`);
+console.log(`Allowed (user 2026-10-17), counted: a Sidebar in a Screen's content ${sidebarsInContent} · a custom header in a Screen bar ${barsHoldingOther}`);
 console.log("Refusals (most common):");
 for (const [message, n] of top) console.log(`  ${n} × ${message}`);
 const out = flag("json");

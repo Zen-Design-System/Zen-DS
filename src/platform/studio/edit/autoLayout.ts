@@ -9,6 +9,7 @@ import { expectRender, renderedNow } from "../select/remap";
 import { familyKeyForPx, tokenPx } from "../select/spacing";
 import { canStructurallyEdit } from "../slots/actions";
 import { wrapSelection } from "../select/wrapSelection";
+import { addPlan, PAINTS, removePlan } from "./autoLayoutPlan";
 import { flushStudioStore, studioStore } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 
@@ -24,12 +25,7 @@ import type { SourceElement, StudioSelection } from "../types";
  *   itself in a Box around it), nothing moves on the screen.
  */
 
-const POSITION = ["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft"];
-const FLOW = ["direction", "gap", "align", "justify", "wrap", "padding", "paddingX", "paddingY", "fillChildren"];
-/** A Box prop that paints: such a frame keeps its Box and takes the auto layout inside. */
-const PAINTS = ["surface", "border", "radius", "radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft", "effectStyle", "clip", "scroll"];
-const FLOATS = new Set(["Stack", "Grid", "Box", "Shape"]);
-
+const nearestKeyOf = (host: Element) => (scale: "gap" | "padding", px: number) => nearestKey(host, scale, px, scale === "gap" ? GAP_KEYS : PADDING_KEYS);
 const fail = (message: string) => { announceEditStatus({ kind: "error", message, at: Date.now() }); return false; };
 const say = (message: string) => inspectorStatus.set("positive", message);
 
@@ -90,32 +86,9 @@ export async function addAutoLayout(selection: Extract<StudioSelection, { kind: 
   if (!layers) return fail("The frame holds a list or code: lay it out in the code");
   const engine = await loadEngine();
   const source = await studioApi.source(at.file);
-  // Side by side when the layers' centres spread more across than down (Figma reads their places the same way).
-  const spread = (values: number[]) => (values.length ? Math.max(...values) - Math.min(...values) : 0);
-  const row = layers.length > 1 && spread(layers.map((layer) => layer.box.x + layer.box.w / 2)) > spread(layers.map((layer) => layer.box.y + layer.box.h / 2));
-  const order = layers.map((_, index) => index).sort((a, b) => (row ? layers[a].box.x - layers[b].box.x : layers[a].box.y - layers[b].box.y));
-  const sorted = order.map((index) => layers[index]);
-  const gaps = sorted.slice(1).map((layer, index) => (row ? layer.box.x - (sorted[index].box.x + sorted[index].box.w) : layer.box.y - (sorted[index].box.y + sorted[index].box.h)));
-  const gap = gaps.length ? nearestKey(host, "gap", Math.max(0, gaps.reduce((sum, value) => sum + value, 0) / gaps.length), GAP_KEYS) : undefined;
-  const left = layers.length ? Math.max(0, Math.min(...layers.map((layer) => layer.box.x))) : 0;
-  const top = layers.length ? Math.max(0, Math.min(...layers.map((layer) => layer.box.y))) : 0;
-  const padX = nearestKey(host, "padding", left, PADDING_KEYS);
-  const padY = nearestKey(host, "padding", top, PADDING_KEYS);
-  const padding = padX === padY ? { padding: padX === "none" ? undefined : padX } : { paddingX: padX === "none" ? undefined : padX, paddingY: padY === "none" ? undefined : padY };
-  // Across the flow: the edge (or centre) the layers share.
-  const near = (values: number[]) => values.every((value) => Math.abs(value - values[0]) < 2);
-  const align = layers.length < 2 ? undefined
-    : near(layers.map((layer) => (row ? layer.box.y : layer.box.x))) ? undefined
-      : near(layers.map((layer) => (row ? layer.box.y + layer.box.h / 2 : layer.box.x + layer.box.w / 2))) ? "center"
-        : near(layers.map((layer) => (row ? layer.box.y + layer.box.h : layer.box.x + layer.box.w))) ? "end" : undefined;
-  // Stack's own defaults (column, gap md) stay unwritten.
-  const stackGap = gap ?? "none";
-  const flow = { direction: row ? "row" : undefined, gap: stackGap === "md" ? undefined : stackGap, align };
-  const children = layers.map((layer) => (isFloatWrapper(layer.element) ? { unwrap: true } : { remove: POSITION }));
   const painted = PAINTS.some((prop) => written(element, prop));
-  const plan = painted
-    ? { tag: "Box", set: padding, remove: ["width", "height", "padding", "paddingX", "paddingY"], children, order, wrap: { tag: "Stack", set: flow } }
-    : { tag: "Stack", set: { ...flow, ...padding }, remove: ["width", "height", "padding", "paddingX", "paddingY", ...PAINTS], children, order };
+  const { row, gap: stackGap, padding, plan } = addPlan(layers.map((layer) => ({ box: layer.box, name: layer.element.name, floatWrapper: isFloatWrapper(layer.element) })), nearestKeyOf(host), painted);
+  const pads = Object.values(padding).filter(Boolean);
   let code: string;
   try {
     code = engine.relayoutCode(source.content, element.range!, plan);
@@ -123,7 +96,7 @@ export async function addAutoLayout(selection: Extract<StudioSelection, { kind: 
     return fail(error instanceof Error ? error.message : String(error));
   }
   const done = await replaceWith(selection, at, element, code, "Add auto layout", painted ? "Box" : "Stack");
-  if (done) say(`Auto layout: ${row ? "horizontal" : "vertical"}, gap ${stackGap}${padX !== "none" || padY !== "none" ? `, padding ${padX === padY ? padX : `${padX} × ${padY}`}` : ""}`);
+  if (done) say(`Auto layout: ${row ? "horizontal" : "vertical"}, gap ${stackGap}${pads.length ? `, padding ${pads.join(" × ")}` : ""}`);
   return done;
 }
 
@@ -137,15 +110,8 @@ export async function removeAutoLayout(selection: Extract<StudioSelection, { kin
   if (!layers) return fail("The frame holds a list or code: lay it out in the code");
   const engine = await loadEngine();
   const source = await studioApi.source(at.file);
-  const px = (value: number) => Math.round(value);
-  const children = layers.map((layer) => {
-    const place = { position: "absolute", insetLeft: px(layer.box.x), insetTop: px(layer.box.y) };
-    // A layer that fills the flow keeps the size it shows (Figma: Fill becomes Fixed once the frame has no auto layout).
-    const sized = (axis: "width" | "height") => (layer.element.attributes.some((attr) => attr.kind === "string" && attr.name === axis && attr.value === "fill") ? px(axis === "width" ? layer.box.w : layer.box.h) : undefined);
-    if (FLOATS.has(layer.element.name)) return { set: { ...place, width: sized("width"), height: sized("height") }, remove: ["alignSelf"] };
-    return { float: { set: place } };
-  });
-  const plan = { tag: "Box", set: { width: px(host.offsetWidth), height: px(host.offsetHeight) }, remove: [...FLOW, "width", "height"], children };
+  const filled = (layer: Layer, axis: "width" | "height") => layer.element.attributes.some((attr) => attr.kind === "string" && attr.name === axis && attr.value === "fill");
+  const plan = removePlan(layers.map((layer) => ({ box: layer.box, name: layer.element.name, floatWrapper: false, fill: { width: filled(layer, "width"), height: filled(layer, "height") } })), { width: host.offsetWidth, height: host.offsetHeight });
   let code: string;
   try {
     code = engine.relayoutCode(source.content, element.range!, plan);

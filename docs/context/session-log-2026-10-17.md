@@ -603,7 +603,30 @@ top test list box, content dài quá trang mobile… scroll thử… test hơn 1
 - (7) An App shell dragged into a layer showed an accepting label, then the engine refused it: it goes only on an empty
   Screen (assets.ts shellAt; engine childRefusal parentHasChildren), the drag says why.
 - Results: matrix 19,286 cases, 0 findings (first run: 2,195 findings, 1,802 drag≠click, 393 bars in content). Counted,
-  allowed (BACKLOG P3 questions): Sidebar in a Screen's content (111), another component in a Screen bar (1,140).
+  allowed by the user's answers (2026-10-17: "1. có 2. Cả 2"): a Sidebar may drop into a Screen's content (111), and a
+  Screen's bar holds a Top / Bottom Navigation or a custom header (any component: Swap instance on the bar, MCP insert
+  with `prop`; 1,140). Browser, second full run with every fix: DND-01 205/205, DND-02 205/205, DND-03 195/195, DND-04
+  8/8 moves, DND-06 3/3 Layers drags, DND-05 story ✓ — 626 real cases; with the matrix about 19,900 cases.
   Browser, first full run (before fixes 4–7 and the free-frame drops): DND-02 205/205, DND-01 204/205 and DND-03 189/195
   (harness: same-name order, a frame drawing again after ⌘Z; app-shell = fix 7), DND-05 story ✓ (Screen 1330px,
   Play scroll to the end, bar at 0px).
+
+## Add / Remove auto layout campaign (session "Figma-like freeform editing", tier S)
+User: "test luôn phần add auto layout và detach auto layout"; also answered the drop questions ("1. có 2. Cả 2": Sidebar
+in content allowed, a Screen bar holds a navigation or a custom header; BACKLOG line removed).
+- The plans moved out of edit/autoLayout.ts into pure `edit/autoLayoutPlan.ts` (addPlan, removePlan, floatingCode) so
+  `tools/studio/autolayout-matrix.mjs` runs them: 11,987 generated arrangements (rows / columns, start / centre / end,
+  every gap and padding step, shuffled source order) judged by how they were made, and every Assets item in a Frame
+  (floating, in flow, painted) and in a Stack (Remove, then Add back to the same Stack): 12,564 cases, 0 findings.
+- Found and fixed: (1) Add auto layout removed a component's own `position` (ActionBar static / sticky / fixed) as if
+  it were X / Y: only Stack / Grid / Box / Shape lose position props. (2) A painted empty Frame stayed a Box with no
+  auto layout (relayout.mjs returned it self-closing, without its Stack). (3) The cross-axis alignment depended on
+  which layer came first in the code (within 2px of the first): now the best-shared line, order-independent.
+- E2E (opt-in group dnd): DND-07 every Assets item dropped into an empty Frame → ⇧A → ⌥⇧A (no layer moves > 1.5px) →
+  three ⌘Z; DND-08 three Shapes out of order (Inspector + → row, left to right, centred; −), painted empty Frame via
+  the canvas menu, Action bar position kept, row ⌥⇧A then ⇧A returns row / sm / md, ⇧A wraps one Text.
+- Variables window (user, with screenshots): rows go group by group in the groups tree's order (variablesModel rowsOf,
+  stable within a group; selftest "group by group"); the alias chip is the swatch plus the 2XSmall inset on each side
+  (it was a fixed Medium height, 20px in the Studio's density, with a 1px border on the left only: 2 / 2 / 4px), its
+  outline an inner ring. Measured in the browser: 4 / 4 / 4px, 24px.
+
