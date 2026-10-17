@@ -124,6 +124,10 @@ Last updated: 2026-10-17.
 - **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min). Since 2026-10-16 (user) the audit runs at 1512 + 390 + 320 (320: every kind baselined, debt in BACKLOG P1) and has `card-gap` / `legend-column`; Studio E2E PT-11 checks Play's sticky Sidebar.
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
+- **Studio drag and drop + auto layout tests (2026-10-17, PR #121 stacked on #119):** `npm run studio:dnd` (engine:
+  19,286 drop / insert / move cases + 12,564 Add / Remove auto layout cases, must report 0 findings) and the opt-in E2E
+  group `dnd` (`npm run studio:e2e -- --only=dnd`, ~30 min, real drags of every Assets item; `ZEN_DND_ONLY=<ids>` /
+  `ZEN_DND_LIMIT=<n>`). Run both after any drop, insert or auto layout change. Drop rules: memory "studio-drag-drop-rules".
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures
