@@ -102,10 +102,17 @@ export async function until(fn, { timeout = 6000, interval = 100, message = "con
   throw new Error(`Timed out waiting for ${message}${last instanceof Error ? ` (${last.message})` : ""}`);
 }
 
-/** The left panel header's Document | Studio switch on Studio: the folders and the pages people made (user, 2026-10-09). */
+/** Studio (the folders and the pages people made, user 2026-10-09) through the Zen Studio menu's Switch to Studio (no
+ *  Document | Studio Segmented since 2026-10-17). Nothing when the menu offers Switch to Document (already there). */
 export async function openStudioSpace(page) {
-  const studio = page.locator(".studio-space").first().getByRole("button", { name: "Studio", exact: true });
-  if ((await studio.getAttribute("aria-pressed")) !== "true") { await studio.click(); await sleep(200); }
+  // Already there (the app root says which space it shows): no menu, so an open dialog is left as it is.
+  if ((await page.locator(".studio-app").first().getAttribute("data-space")) === "studio") return;
+  await page.getByRole("button", { name: "Zen Studio menu" }).first().click();
+  const menu = page.getByRole("menu", { name: "Zen Studio" });
+  await menu.waitFor({ state: "visible" });
+  const studio = menu.getByRole("menuitem", { name: "Switch to Studio", exact: true });
+  if (await studio.count()) { await studio.click(); await sleep(200); }
+  else await page.keyboard.press("Escape");
 }
 
 export async function showLeftTab(page, tab) {

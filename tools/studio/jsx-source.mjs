@@ -28,7 +28,7 @@ import { isPictureValue, pictureExpression } from "./picture.mjs";
 import MagicString from "magic-string";
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
 import { UNIT, importEdits, pathTo, piece } from "./source-helpers.mjs";
-import { SLOT_OPS, applySlotOp, isSharedFile, sharedRefusal } from "./slots.mjs";
+import { LOCAL_PAGE, SLOT_OPS, applySlotOp, builderImportEdits, isSharedFile, sharedRefusal } from "./slots.mjs";
 import { setScreenFramePart } from "./screen-frame.mjs";
 
 const BOM = "\uFEFF";
@@ -2237,7 +2237,9 @@ function applyWrap(code, bom, text, ast, element, ops, { snippets, file, eol, li
   if (ops.length !== 1) return fail("invalid", "wrap cannot be combined with other ops");
   const op = ops[0];
   const tag = op.tag ?? "Box";
-  if (!WRAP_TAGS.includes(tag)) return fail("invalid", `wrap puts the element in ${WRAP_TAGS.join(", ")} (not ${JSON.stringify(op.tag)})`);
+  // A builder page's layer becomes a main component in place (Figma's ⌥⌘K): <Component id name> around it.
+  const component = tag === "Component" && LOCAL_PAGE.test(file ?? "");
+  if (!WRAP_TAGS.includes(tag) && !component) return fail("invalid", `wrap puts the element in ${WRAP_TAGS.join(", ")} (not ${JSON.stringify(op.tag)})`);
   const props = op.props ?? {};
   if (props === null || typeof props !== "object" || Array.isArray(props)) return fail("invalid", "wrap `props` must be an object of { name: EditValue }");
   if (op.with !== undefined) return applyWrapMany(code, bom, text, ast, element, op, { tag, props, snippets, file, eol, lineCommentEnds });
@@ -2252,7 +2254,7 @@ function applyWrap(code, bom, text, ast, element, ops, { snippets, file, eol, li
     if (!nodePath) throw new EditError("not-found", "The element is not in the file's tree");
     wrapPlace(element, nodePath);
     const startsLine = /^[ \t]*$/.test(text.slice(lineStartOf(text, element.start), element.start));
-    const imports = importEdits(ast, text, eol, file, [tag], [], { action: "wrapping", looseTarget: true }).map((edit) => ({ ...edit, isImport: true }));
+    const imports = component ? builderImportEdits(ast, text, eol, ["Component"]) : importEdits(ast, text, eol, file, [tag], [], { action: "wrapping", looseTarget: true }).map((edit) => ({ ...edit, isImport: true }));
     edits = [...wrapEdits(text, element, { tag, attrs, eol, lineCommentEnds, startsLine }), ...imports];
     next = applyEdits(text, edits);
     // The wrapper starts where the element did, moved by the import edits above it.

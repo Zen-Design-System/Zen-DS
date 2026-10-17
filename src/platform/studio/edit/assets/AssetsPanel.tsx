@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../../components/Button";
 import { EmptyState } from "../../../../components/EmptyState";
 import { Icon } from "../../../../components/Icon";
@@ -11,7 +11,9 @@ import { GROUP_ICON, searchCatalog } from "../../builder/library/catalog";
 import { iconTitle, searchIconGlyphs, searchLibraryPhotos } from "../../builder/library/icons";
 import { PALETTE, PALETTE_GROUPS, type PaletteItem } from "../../slots/palette";
 import { useStudio } from "../../store";
-import { announceEditStatus } from "../../api";
+import { announceEditStatus, subscribeStudioWrites } from "../../api";
+import { pageFile } from "../../builder/store/pageStore";
+import { mainsOf, type MainRef } from "../localComponents";
 import { altOf, removeUpload, UPLOAD_ACCEPT, uploadPhotos, useUploads } from "../../builder/assets/uploads";
 import { iconInsertable, insertAsset, insertItem, paletteInsertable, photoInsertable, pressAsset, uploadInsertable, type Insertable } from "./assets";
 import { AssetThumb } from "./AssetThumb";
@@ -106,6 +108,49 @@ export function AssetsPanel() {
 
 /* ── the libraries (no search) ───────────────────────────────────────────────────────────────────── */
 
+/** The open page's main components (Figma's Local components), read again after every write. */
+function useLocalComponents(): MainRef[] {
+  const localPage = useStudio((state) => state.localPage);
+  const [mains, setMains] = useState<MainRef[]>([]);
+  useEffect(() => {
+    if (!localPage) { setMains([]); return undefined; }
+    let alive = true;
+    const load = () => { void mainsOf(pageFile(localPage)).then((next) => { if (alive) setMains(next); }).catch(() => undefined); };
+    load();
+    const stop = subscribeStudioWrites(() => load());
+    return () => { alive = false; stop(); };
+  }, [localPage]);
+  return mains;
+}
+
+/** An instance of a page's own component, as an asset: a click or a drag places `<Use of>` there. */
+const instanceInsertable = (main: MainRef): Insertable => ({ label: main.name, root: "Use", code: (file) => (file && /^local:/.test(file) ? `<Use of="${main.id}" />` : null), refusal: "Instances of a page's own components go on that page" });
+
+/** Figma's Assets › Local components: the page's main components, first. */
+function LocalComponents() {
+  const mains = useLocalComponents();
+  if (!mains.length) return null;
+  return (
+    <>
+      <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Local components</p>
+      <ul className="studio-assets__list" aria-label="Local components">
+        {mains.map((main) => (
+          <li key={main.id}>
+            <button type="button" className="studio-assets__library studio-assets__local" aria-label={`${main.name}, local component`} title={`${main.name} · ${main.uses.length} instance${main.uses.length === 1 ? "" : "s"} · click or drag for one more`} {...pressProps(instanceInsertable(main))}>
+              <span className="studio-assets__library-icon" data-component="main"><Icon name="icon-diamond-line" size="sm" decorative /></span>
+              <span className="studio-assets__library-text">
+                <span className={`studio-assets__name ${typographyStyles["Body/Small/Medium"]}`}>{main.name}</span>
+                <span className={`studio-assets__source ${typographyStyles["Caption/Regular"]}`}>This page</span>
+              </span>
+              <span className={`studio-assets__count ${typographyStyles["Caption/Regular"]}`}>{main.uses.length}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
   const uploads = useUploads();
   const counts: Record<Library, number> = useMemo(() => ({
@@ -115,6 +160,7 @@ function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
   }), []);
   return (
     <div className="studio-assets__scroll">
+      <LocalComponents />
       <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Libraries</p>
       <ul className="studio-assets__list" aria-label="Libraries">
         {LIBRARIES.map((entry) => {

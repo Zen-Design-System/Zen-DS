@@ -16,7 +16,7 @@ import { useFrameKeys } from "./frameKeys";
 import { notifyFramesMoved } from "../board/frames";
 import { notifyCanvas } from "../canvas/viewport";
 import { assetIdsOf, missingAssets, useUploadsVersion } from "./assets/uploads";
-import { cacheGeneration, renderCache, renderFrame, type PageNode, type RenderCache } from "./render/renderPage";
+import { cacheGeneration, componentsKey, componentsOf, renderCache, renderFrame, type PageNode, type RenderCache } from "./render/renderPage";
 import { engineNow, zenComponents } from "./engine";
 import { setPlaces } from "../select/srcIds";
 import { setHiddenLayers } from "../edit/visibility";
@@ -100,7 +100,9 @@ export function BuilderBoard({ id }: { id: string }) {
   const cacheRef = useRef<RenderCache | null>(null);
   cacheRef.current ??= renderCache();
   const mockKey = useMemo(() => JSON.stringify(tree?.mock ?? null), [tree]);
-  if (tree) cacheGeneration(cacheRef.current, tree, `${file}|${protoKey(proto)}|${uploads}|${mockKey}`);
+  // The page's main components (an instance is drawn from its main): their signature is part of the cache's env.
+  const components = useMemo(() => componentsOf(tree?.board ?? null), [tree]);
+  if (tree) cacheGeneration(cacheRef.current, tree, `${file}|${protoKey(proto)}|${uploads}|${mockKey}|${componentsKey(components)}`);
   // The page's document ids by place (doc.mjs locsOf): the canvas marks elements by id, and the Studio reads their place
   // back from select/srcIds.ts, set here in the render that shows this text. A page without a document (never edited
   // since it was made) is marked by place.
@@ -117,7 +119,7 @@ export function BuilderBoard({ id }: { id: string }) {
   const frames = useMemo(() => {
     if (!tree?.board) return [];
     // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
-    const ctx = { file, mock: tree.mock, proto, cache: cacheRef.current ?? undefined, ids: places?.idAt };
+    const ctx = { file, mock: tree.mock, proto, cache: cacheRef.current ?? undefined, ids: places?.idAt, components };
     return tree.board.children.filter((child): child is PageNode => child.kind === "element").map((node) => {
       const frame = frameOf(node);
       const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => renderFrame(node, ctx) };

@@ -5,7 +5,8 @@
 export { applyOps, changedRange, describeElement, sha1 } from "./jsx-source.mjs";
 export { describeSlots, withSlots, requiredFromApi } from "./slots.mjs";
 export { dataFieldEdit, originsOf } from "./data-source.mjs";
-export { boardFrames, frameCode, freeFrameId, newPageText, pageHeader, parsePage, protoCode, validateDialect } from "./dialect.mjs";
+export { boardFrames, eachElement, frameCode, freeFrameId, localComponents, newPageText, pageHeader, parsePage, protoCode, validateDialect } from "./dialect.mjs";
 export { phoneChromeCode, phoneLinkedOf, planPhoneSync, PHONE_LINKED_PROP } from "./responsive-header.mjs";
 export { ID_PROP, docFromText, editDoc, elementText, locMap, locsOf, newDocId, printPage, withoutIds } from "./doc.mjs";
 export { migrateScreenFrame } from "./screen-frame.mjs";
+export { relayoutCode } from "./relayout.mjs";

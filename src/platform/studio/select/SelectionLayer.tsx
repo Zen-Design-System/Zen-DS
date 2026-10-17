@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { ArcHandles } from "./ArcHandles";
+import { layerName, objectIcon } from "./layerNames";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
@@ -35,7 +37,9 @@ import "./select.css";
  */
 
 /** An outline with its name tag: `meta` is the file:line of an element, "in <Owner>" for a part. */
-type Tagged = Box & { name: string; src: string; meta: string };
+type Tagged = Box & { name: string; src: string; meta: string; component?: "main" | "instance" };
+/** Figma's component colour: a main component's root layer or an instance (`<Use>`), from the marks renderPage gives them. */
+const componentKind = (props: Record<string, unknown> | undefined) => (props?.["data-zen-main"] ? "main" as const : props?.["data-zen-instance"] ? "instance" as const : undefined);
 /** `spacing`: the selection's padding and gap areas; `spacingOwner`: the element they belong to. */
 type Overlay = { hover: Tagged | null; selected: Tagged | null; owner: Box | null; instances: Box[]; extras: Box[]; items: Box[]; spacing: SpacingArea[]; spacingOwner: SpacingOwner | null };
 type Pick =
@@ -176,7 +180,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
       const group = owner ? dataGroupOfPart(hit as PartHit) : null;
       if (group) return { ...box, name: group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section", src: hit.src, meta: `in ${group.slot.name}` };
-      return { ...box, name: hit.name, src: hit.src, meta: owner ? `in ${owner.name}` : "" };
+      return { ...box, name: layerName(hit.name, hit.props), src: hit.src, meta: owner ? `in ${owner.name}` : "", component: owner ? undefined : componentKind(hit.props) };
     };
     const part = partRef.current;
     const selected = part ?? selectedRef.current;
@@ -781,8 +785,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const path = layersAt(picked.hit, picked.frame);
     const selected = selectedRef.current;
     const layers = (path ? path.path.slice(path.root + 1) : [picked.hit]).reverse().slice(0, 12).map((hit) => ({
-      name: hit.name,
-      component: hit.isComponent,
+      // As Layers shows it: "Rectangle" with its shape icon, a frame's #, a component's cube (select/layerNames.ts).
+      name: layerName(hit.name, hit.props),
+      icon: objectIcon(hit.name, hit.props) ?? (hit.isComponent ? "icon-cube-line" as const : "icon-code-02-line" as const),
       selected: Boolean(selected && sameElement(hit, selected)),
       select: () => choose(hit, false),
     }));
@@ -1024,6 +1029,13 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         onPassDoubleClick={onDoubleClick}
         onPassContextMenu={onContextMenu}
       />
+      {/* Figma's arc handles on a selected ellipse (Sweep, Start, Ratio), above the resize handles. */}
+      <ArcHandles
+        box={overlay.selected}
+        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
+        interactive={tool === "select" && !presenting}
+        viewport={viewport}
+      />
       <ResizeLayer
         box={overlay.selected}
         // One element: parts (deep select) are read-only and a Shift multi-selection has no one size.
@@ -1036,7 +1048,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       {overlay.items.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="extra-item" style={style(box)} />)}
       {overlay.owner ? <div className="studio-selection__outline" data-kind="owner" style={style(overlay.owner)} /> : null}
       {hover ? (
-        <div className="studio-selection__outline" data-kind="hover" style={style(hover)}>
+        <div className="studio-selection__outline" data-kind="hover" data-component={hover.component} style={style(hover)}>
           <span className="studio-selection__tag" data-place={hover.y < 24 ? "below" : "above"}>
             <span className={typographyStyles["Caption/Medium"]}>{hover.name}</span>
             {hover.meta.startsWith("in ") ? <span className={`studio-selection__tag-src ${typographyStyles["Caption/Regular"]}`}>{hover.meta}</span> : null}
@@ -1044,7 +1056,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         </div>
       ) : null}
       {selected ? (
-        <div className="studio-selection__outline" data-kind="selected" style={style(selected)}>
+        <div className="studio-selection__outline" data-kind="selected" data-component={selected.component} style={style(selected)}>
           <span className="studio-selection__tag" data-place={selected.y < 24 ? "below" : "above"}>
             <span className={typographyStyles["Caption/Medium"]}>{selected.name}</span>
             {selected.meta ? <span className={`studio-selection__tag-src ${typographyStyles["Caption/Regular"]}`}>{selected.meta}</span> : null}
