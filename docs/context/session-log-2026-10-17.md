@@ -494,3 +494,18 @@ code + Studio in full; bright solids = follow the tokens and add On-Bright (whit
 - Open (BACKLOG P2): mobile library components' default shape (question for the user); native-pack re-capture.
 - Gate: `npm run qa` (search, top-navigation, bottom-sheet) PASS, report .qa/reports/2026-10-17T11-18-10-c9cbf549.md
   (a first run's bottom-sheet@390 crash did not reproduce: audit 390/320 clean). Not committed (commits come from one place).
+
+## A drawn shape is an object, never a component (session "Figma-like freeform editing", tier S)
+User: "tại sao shape lại là component? Shape chỉ nên được vẽ ra là 1 object thôi, việc tạo component phải là do người dùng".
+- Seen (walk on :5198): a drawn Rectangle's Inspector said "Zen component · Shape docs" with the cube in component colour,
+  Swap instance and Reset all overrides; its canvas menu offered Swap / Detach instance; Assets › Components listed
+  Rectangle and Ellipse.
+- Fixed (branch zen/fix/shape-is-an-object-20261017, cherry-picked onto zen/feat/studio-components-20261017):
+  `nodeKind("Shape")` = "shape"; `select/layerNames.ts objectIcon` gives Layers, the Inspector header and Select layer ›
+  one icon per object (shape, frame #, auto layout, text T), component colour only for components; Swap instance only on
+  component layers, Detach instance only where it applies; no shapes in the palette.
+- Checks: E2E DR-15 (new) + draw 15/15, instance / starters / shell / select / structural 98/98, palette selftest 2361,
+  tsc. Rule recorded: research doc §6 (2), CHANGELOG, memory drawn-objects-not-components.
+- Gate on the components branch (`--all`): 0 errors; new ⚠ contrast on ai-ui (Schedule 2.96:1, white on Zen/9) comes
+  from #109 (On-Brand → white, the user's choice), not this branch → BACKLOG P1 question for the designer.
+

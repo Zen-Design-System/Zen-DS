@@ -7,6 +7,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
+  (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
+  (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
+  rule gives Zen black text on step 9. Shown by ai-ui › "Follow-ups edit, not rebuild" (Schedule). Pointer:
+  tokens/source/figma/base-colors-project.json Light/On-Brand-Default, Figma Base Colors (Project).
 - **P1 · Studio Variables like Figma — approved (user, 2026-10-17):** Studio is a second source of token values (edit in
   Studio → tokens/source → push to Figma by the Zen plugin; the Figma sync stays). Next after the components PR. Audit and
   plan: `docs/research/studio-figma-native-parity-2026-10-17.md` §5b and P5.
