@@ -90,6 +90,9 @@ removed (four unused colour ramps were, see Removed).
   cho các button Overlay"): Figma Button/Overlay and Button/Icon-Overlay get `Level=Inverse Subtle` (55 variants), a
   translucent Background/Inverse/Subtle fill with Content/Inverse/Strongest and the Overlay blur. Studio's Properties
   panel and Main component frame list it.
+- RadialChart / DonutChart with the legend at the start or end (2026-10-17, chart audit): the ring box starts at the
+  ring's size, so the legend sits Gap/Large beside the ring on one line instead of being squeezed and wrapped by a
+  300px box (the SVG's default width), as in Figma.
 - Studio → Figma direct paste (2026-10-17, user: "paste trực tiếp vào figma không qua plugin"): ⌘C on a frame of a
   page you made, ⌘V on the Zen file's canvas places real layers without the plugin, bound to the file's components,
   variables and styles (`tools/studio/figma-native.mjs`, Figma's own clipboard format; component skeletons in

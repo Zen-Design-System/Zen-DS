@@ -173,6 +173,14 @@ các phần này, Đang làm cho mobile nên có rule về vùng chạm tối th
   row closer than 16 to the next block.
 - E2 Popular and E6 AI-Discoveries gaps → Gap/Medium.
 
+## Donut corners: Figma ↔ code (tier S, session "Figma và Studio import chính xác"; user: "pie chart Figma không có bo góc")
+- Library: Chart/Donut-Chart 15324:80365, all 32 variants: 160 Slice vectors cornerRadius 0 → 4 (DonutChart.tsx
+  CORNER_PX = 4; the 4px gaps were already drawn). Undo: back to 0.
+- Plugin (local 275faae, dist 11:38): setting vectorPaths resets every vertex to mitre joins, so imported slices lost the
+  round joins of their 8px same-colour stroke; the join is set again after the path (test mock now resets joins too).
+- Direct paste: frames with a radius came out square (`rectangleCornerRadiiIndependent` false → Figma reads the unset
+  `cornerRadius`); fixed in PR #103 by session "Giám sát".
+
 ## Chip + Segmented overlay (session 1d39f7fe) — tier M
 User (screenshot: a Segmented "Nutrition / Activity" on a pink band): "Bổ sung Chip, Segmented cho case overlay. Case
 chưa đáp ứng là hình đính kèm. đảm bảo work trên dark và light mode".
@@ -215,6 +223,17 @@ chưa đáp ứng là hình đính kèm. đảm bảo work trên dark và light 
   updated. `suites/chip-advanced.mjs` now passes `level`. Chip/Normal 7056/7056, Advanced 5148/5148, Number-Only
   1344/1344 checks match in light/neutral-s1 and dark/brand-s1. `part-props-build`: Segmented passes `levelProp` to
   its items (a resolved local hid the pass-through from the Studio inspector).
+
+## Chart parity Figma ↔ code (tier M, session "Figma và Studio import chính xác"; user: "so tiếp các biểu đồ còn lại")
+- 13 sets audited by 5 read-only agents; findings in `docs/research/chart-parity-audit-2026-10-17.md`.
+- Fixed in Figma: Bar-Chart vertical Average rule caps ROUND (8 variants; dots were invisible), Bullet Goal + Rows
+  frames no longer clip (target tick showed 20 of 24px), Bar-List fills proportional to the leader (user 2026-10-14;
+  BACKLOG item replaced). Fixed in code: the ring box beside a start/end legend starts at the ring's size (chart.css), so
+  Radial/Donut no longer leave a 90px gap and wrap the legend.
+- Direct paste follow-ups: pack reads PROP_REF-only property links (Title-Highlight Custom-Slot), lists 2,019 variables
+  (variables probe), slot content frames carry the slot's corners/clip/limits (Stack-Bar columns were square); writer:
+  fill along a hugging parent's main axis hugs (Dashboard's Export button was cut to "Expor"; the plugin collapses it to
+  1px, not fixed there yet). Dashboard direct paste = its plugin import (346 frames, 405 instances, 174 texts).
 
 ## Zen colour ramp re-sync (session 1d39f7fe) — tier XS
 User: "Update lại token màu của Zen trong global (chỉ dãy màu Zen)".

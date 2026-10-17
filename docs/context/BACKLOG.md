@@ -129,10 +129,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Studio inspector has no chart Figma properties (charts phase 2, 2026-10-14):** the chart sets are missing from
   `docs/figma-contracts/component-properties.json` (captured 2026-10-05), so the inspector's Figma-props rows (Show
   Legend, Show Average, Type, Orientation …) are absent for charts; push/pull carry them. Needs a contract re-capture.
-- **P2 · BarList leader length (designer, 2026-10-14):** Figma Chart/Bar-List draws the leader bar at 78% of its track
-  (216 of 276px); code fills the track with the leader. Which is meant? (User 2026-10-14: "tính theo tỷ lệ của giá
-  trị cho đúng" — code is proportional; the Figma fix was refused by the tool's shared-library guard: the user edits it
-  or allows the write.)
+- **P2 · Chart parity, designer decisions and Figma active states (2026-10-17):** active X pill (20px hug, Medium vs
+  sector-wide 16px Bold), 88% dim of inactive columns, Bar label padding/thinning, Tooltip anchor and lanes, Heatmap
+  density token, Chart Card description gap; Figma lacks the Line/Multi-Line active dot, Area Stacked and Grouped/Combo
+  active states, Radial default variant. Pointer: `docs/research/chart-parity-audit-2026-10-17.md` §2–§4.
 - **P2 · Figma chart/widget bugs found in the widgets batch (designer, 2026-10-14; Figma not edited):** Bar-Chart
   Vertical `Average › Rule` 15335:2421 strokeCap NONE (no dots); Segmented `Item-List` FIXED 114 in Line, Stack-Bar,
   Multi-Line, Chart-Card and Heatmap (labels overlap); Area fills bound to Background/Accent|Neutral while lines use the
