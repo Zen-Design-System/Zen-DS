@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
+import { useContext, useEffect, useRef, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { InputField, InputLeadingTrailing, type InputLeadingTrailingOption } from "../Input";
@@ -10,6 +10,7 @@ import { useMergedRefs } from "../_shared/merge-refs";
 import "./search.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { SearchShapeContext } from "../_shared/search-shape";
 
 export const searchSizes = ["small", "medium"] as const;
 export const searchThemes = ["default", "filter-icon", "filter-dropdown"] as const;
@@ -37,7 +38,9 @@ export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   size?: SearchSize;
   /** Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset
    * shadow and focus ring follow, and on the filter affordance; `default` keeps Corner-Radius/Input of the size.
-   * Prefer `rounded` for searches on phone screens (recommended, not required). Ignored with `variant="popover"`. */
+   * Prefer `rounded` for searches on phone screens. Default `default`, but `rounded` inside a TopNavigation control bar
+   * or a BottomSheet (a phone's built-in search); pass `shape="default"` there to keep the square field. Ignored with
+   * `variant="popover"`. */
   shape?: SearchShape;
   /** Optional Input label above the field; when set it also names the input. */
   label?: ReactNode;
@@ -92,7 +95,7 @@ export function Search(
   {
     variant = "default",
     size: requestedSize = "md",
-    shape = "default",
+    shape: shapeProp,
     label,
     theme = "default",
     state,
@@ -123,6 +126,8 @@ export function Search(
     ...inputProps
   }: SearchProps,
 ) {
+  const contextShape = useContext(SearchShapeContext);
+  const shape = shapeProp ?? contextShape ?? "default";
   const t = useZenLabels();
   const nest = useNested(overrides);
   const placeholder = placeholderProp ?? t.search;

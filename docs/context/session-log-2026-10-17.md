@@ -551,3 +551,9 @@ thành icon palette".
   ("Bỏ các thay đổi UI cũ trong plugin đi"). Backup: Zen-DS `backups/plugin-ui-paste-box-wip-2026-10-17.patch`; the plugin
   repo is clean, rebuilt, `npm test` green.
 
+## Search Rounded by default on phones (session "Giám sát", tier S; user: "mặc định nhưng cho sửa")
+- `_shared/search-shape.ts` SearchShapeContext; Search resolves `shape ?? context ?? "default"`; TopNavigation wraps its
+  control bar (three placements) and BottomSheet its search in `rounded`, so the Input phone sheet follows.
+- Studio: figma-push writes Shape=Rounded for the control bar's Searches that set no shape (by element id); figma-pull
+  leaves Rounded unsaid there and writes `shape="default"` for a Default one. figma-push selftest +3 checks (277).
+- Test: tests/interaction/search-shape-on-phones.test.tsx (3). Figma library default left to the designer (BACKLOG).
