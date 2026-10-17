@@ -1,12 +1,12 @@
 import { Component, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { ZenPortalProvider } from "../../../../components/Portal";
 import { previewAttributes } from "../../shell/modes";
-import { useStudio } from "../../store";
 import type { PaletteItem } from "../../slots/palette";
 import { loadEngine, zenComponents } from "../engine";
 import { renderNode, type PageNode, type PageTree } from "../render/renderPage";
 import type { ProtoActions } from "../proto/runtime";
 import { previewPageText } from "./preview";
+import { useCanvasPreview } from "../../project/activeProject";
 
 /*
  * The focused library item drawn for real (Studio builder GĐ3 M2, spec §3c): parsed by the engine (loaded on the first
@@ -105,7 +105,7 @@ export function renderInert(node: PageNode, portal: HTMLElement, fallback: React
 }
 
 export function ItemPreview({ item }: { item: PaletteItem }) {
-  const preview = useStudio((state) => state.preview);
+  const { preview, brand } = useCanvasPreview();
   const node = useItemNode(item);
   const paneRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -140,7 +140,7 @@ export function ItemPreview({ item }: { item: PaletteItem }) {
   }, [node]);
 
   return (
-    <div ref={paneRef} className="studio-qi__preview" data-e2e="quick-insert-preview" data-ready={node ? "true" : undefined} aria-hidden="true" inert {...previewAttributes(preview)}>
+    <div ref={paneRef} className="studio-qi__preview" data-e2e="quick-insert-preview" data-ready={node ? "true" : undefined} aria-hidden="true" inert {...previewAttributes(preview, brand)}>
       {node ? (
         <div ref={stageRef} className="studio-qi__stage" style={{ width: STAGE_WIDTH, transform: `translate(${place.x}px, ${place.y}px) scale(${place.scale})` }} data-zen-overlay-root="">
           {portal ? renderInert(node, portal) : null}

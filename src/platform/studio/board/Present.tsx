@@ -14,6 +14,7 @@ import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
 import { presentEscapeOwners, useViewportFit, VIEWPORT_PRESETS, ViewportHandles, type PresentViewport } from "./presentViewport";
 import "./board.css";
+import { useCanvasPreview } from "../project/activeProject";
 
 /** Present's own modes: what the user picked in its Modes panel. They hold while ‹ › step between examples and are
  *  forgotten when Present ends; the canvas never sees them. */
@@ -39,7 +40,7 @@ export function Present() {
 }
 
 function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportChange }: { frame: StudioFrameEntry; example: StudioExample; own: PresentModes; onModeChange: (key: ModeKey, value: string) => void; viewport: PresentViewport; onViewportChange: (viewport: PresentViewport) => void }) {
-  const canvasModes = useStudio((state) => state.preview);
+  const { preview: canvasModes, brand } = useCanvasPreview();
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[frame.id]);
   const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
@@ -58,7 +59,7 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   useLayoutEffect(() => setPhone(Boolean(stageRef.current?.querySelector(".platform-phone"))), []);
   const theme = own.theme ?? override?.theme ?? canvasModes.theme;
   const preview: StudioPreviewSettings = { ...canvasModes, ...(phone ? PHONE_MODES : null), ...own, theme };
-  const modes = previewAttributes(preview);
+  const modes = previewAttributes(preview, brand);
   // Light/dark changes the presented example only, like every other mode here (user, 2026-10-09: the Studio's UI keeps
   // its own modes in Play and Present).
   const toggleTheme = () => onModeChange("theme", theme === "dark" ? "light" : "dark");

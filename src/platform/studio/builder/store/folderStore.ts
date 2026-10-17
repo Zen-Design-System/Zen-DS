@@ -8,7 +8,8 @@ import { listPages, movePage, run, SETTINGS, trashPage } from "./pageStore";
  * (PageRecord.folder). The page files a mirror keeps (.zen-studio/pages/, a linked folder) do not carry the folder.
  */
 
-export type StudioFolder = { id: string; name: string; createdAt: number };
+/** `project`: the Studio project the folder sits in (2026-10-17); none: a folder of Drafts. */
+export type StudioFolder = { id: string; name: string; createdAt: number; project?: string };
 
 const KEY = "folders";
 let folders: StudioFolder[] = [];
@@ -34,13 +35,13 @@ async function save(next: StudioFolder[]): Promise<void> {
   channel?.postMessage("changed");
 }
 
-/** A new folder ("Checkout flows"), at the end of the list; returns its id. */
-export async function createFolder(name: string): Promise<string> {
+/** A new folder ("Checkout flows") in a project (none: Drafts), at the end of the list; returns its id. */
+export async function createFolder(name: string, project: string | null = null): Promise<string> {
   await load();
   const base = `folder-${slugOf(name)}`;
   let id = base;
   for (let n = 2; folders.some((folder) => folder.id === id); n += 1) id = `${base}-${n}`;
-  await save([...folders, { id, name, createdAt: Date.now() }]);
+  await save([...folders, { id, name, createdAt: Date.now(), ...(project ? { project } : {}) }]);
   return id;
 }
 

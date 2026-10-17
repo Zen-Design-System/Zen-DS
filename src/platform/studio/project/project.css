@@ -1,0 +1,162 @@
+/* Studio projects (2026-10-17): the projects grid on the Studio home, the Pages panel's project bar, and the project
+   theme page (ProjectSetup) with its specimen (ThemePreview). Tokens only; sizes that are not tokens are layout px. */
+
+/* ── projects grid ────────────────────────────────────────────────────────────────────────────────────────────── */
+
+.studio-projects {
+  display: grid;
+  height: 100%;
+  box-sizing: border-box;
+  align-content: start;
+  gap: var(--zen-spacing-gap-large, 24px);
+  overflow: auto;
+  /* Clear of the Studio's floating corner bar at the top right. */
+  padding: var(--zen-spacing-padding-4-xlarge, 48px) var(--zen-spacing-padding-2-xlarge, 32px) var(--zen-spacing-padding-2-xlarge, 32px);
+}
+/* Title and New project together on the left: the Studio's floating corner bar holds the top right. */
+.studio-projects__head { display: flex; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
+.studio-projects__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); margin: 0; padding: 0; list-style: none; }
+.studio-projects__grid > li { display: grid; min-width: 0; }
+.studio-projects__card { position: relative; display: grid; min-width: 0; }
+.studio-projects__card .zen-card__content { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
+.studio-projects__card:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-projects__card:has(.studio-projects__open:focus-visible) { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 2px; }
+/* The thumbnail: the project's own modes, its Primary ramp, a button and a badge (inert, never focused). */
+/* zen-allow-canvas-layer: the thumbnail is a small picture of a page in the project, on its Canvas */
+.studio-projects__thumb {
+  display: grid;
+  aspect-ratio: 16 / 9;
+  box-sizing: border-box;
+  align-content: center;
+  gap: var(--zen-spacing-gap-small, 12px);
+  overflow: hidden;
+  padding: var(--zen-spacing-padding-medium, 16px);
+  border-radius: var(--zen-corner-radius-base, 12px);
+  background: var(--zen-color-background-canvas-default);
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default);
+}
+.studio-projects__swatches { display: grid; grid-template-columns: repeat(12, 1fr); overflow: hidden; margin: 0; padding: 0; border-radius: var(--zen-corner-radius-small, 8px); list-style: none; }
+.studio-projects__swatches > li { height: 20px; }
+.studio-projects__sample { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-projects__text { display: grid; min-width: 0; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-inline-end: var(--zen-spacing-padding-2-xlarge, 32px); }
+/* The name is the card's link: its hit area covers the whole card; the ⋯ menu sits above it. */
+.studio-projects__open { display: block; min-width: 0; margin: 0; padding: 0; border: 0; background: none; color: inherit; text-align: start; cursor: pointer; }
+.studio-projects__open::after { position: absolute; inset: 0; border-radius: inherit; content: ""; }
+.studio-projects__open:focus-visible { outline: none; }
+.studio-projects__menu { position: absolute; z-index: 1; right: var(--zen-spacing-padding-xsmall, 8px); bottom: var(--zen-spacing-padding-xsmall, 8px); }
+.studio-projects__new {
+  display: flex;
+  min-height: 200px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  border: 1px dashed var(--zen-color-border-neutral-subtle-default);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  background: none;
+  color: var(--zen-color-content-neutral-base);
+  cursor: pointer;
+}
+.studio-projects__new:hover { background: var(--zen-color-background-neutral-flat-hover); color: var(--zen-color-content-neutral-strongest); }
+.studio-projects__new:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 2px; }
+
+/* ── the Pages panel's project bar ───────────────────────────────────────────────────────────────────────────── */
+
+.studio-project-bar { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-bottom: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-project-bar__name { display: flex; min-width: 0; flex: 1; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); height: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: none; color: inherit; cursor: pointer; }
+.studio-project-bar__name:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-project-bar__name:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: -2px; }
+/* The project's Primary (its own mode on the dot: data-brand + data-theme). */
+.studio-project-bar__dot { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-accent-solid-default); }
+
+/* ── the theme page ──────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* zen-allow-canvas-layer: the theme page is a full-window page of its own, as Present is */
+.studio-project-setup {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--zen-color-background-canvas-default, #f7f7f7);
+  color: var(--zen-color-content-neutral-strongest, #111);
+}
+.studio-project-setup:focus { outline: none; }
+.studio-project-setup__bar {
+  display: flex;
+  min-height: 48px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: 0 var(--zen-spacing-padding-small, 12px);
+  background: var(--zen-color-background-surface-default);
+  box-shadow: 0 1px 0 var(--zen-color-border-neutral-pale-default);
+}
+.studio-project-setup__title { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-project-setup__history { display: flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-project-setup__actions { display: flex; gap: var(--zen-spacing-gap-xsmall, 8px); margin-inline-start: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-project-setup__body { display: grid; min-height: 0; flex: 1; grid-template-columns: 320px minmax(0, 1fr); }
+.studio-project-setup__settings {
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: var(--zen-spacing-padding-large, 20px);
+  background: var(--zen-color-background-surface-default);
+  box-shadow: 1px 0 0 var(--zen-color-border-neutral-pale-default);
+}
+.studio-project-setup__preview { min-height: 0; overflow: auto; padding: var(--zen-spacing-padding-xlarge, 24px); }
+.studio-project-setup__strip { display: grid; grid-template-columns: repeat(12, 1fr); overflow: hidden; margin: var(--zen-spacing-gap-xsmall, 8px) 0 0; padding: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); list-style: none; }
+.studio-project-setup__strip > li { height: 16px; }
+.studio-project-setup__sectors { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0 0 var(--zen-spacing-gap-xsmall, 8px); padding: 0; list-style: none; }
+.studio-project-setup__sector { height: 20px; border-radius: var(--zen-corner-radius-xsmall, 4px); }
+.studio-project-setup__tiles { display: grid; grid-template-columns: repeat(var(--studio-tiles, 4), minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-project-setup__tile {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-small, 8px);
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default);
+  color: inherit;
+  cursor: pointer;
+}
+.studio-project-setup__tile:hover { background: var(--zen-color-background-neutral-flat-hover); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover); }
+.studio-project-setup__tile[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--zen-color-border-neutral-solid-default); }
+.studio-project-setup__tile:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 2px; }
+/* Corner radius: a card corner in that mode (its own data-radius sets the Base radius it reads). */
+.studio-project-setup__radius-art { display: block; width: 40px; height: 28px; overflow: hidden; }
+.studio-project-setup__radius-art > span { display: block; width: 56px; height: 44px; border-top-left-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default); box-shadow: inset 2px 2px 0 var(--zen-color-border-neutral-solid-default); }
+/* Component theme: the primary button fill and a selected chip's fill of that mode, in the draft's colours (read from
+   the probes: ProjectSetup DraftProbes). */
+.studio-project-setup__theme-art { display: flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-project-setup__theme-fill { display: block; width: 20px; height: 16px; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+/* Off screen and out of the way: never seen, hit or read. */
+.studio-project-setup__probes { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; visibility: hidden; }
+.studio-project-setup__reset { padding: var(--zen-spacing-padding-small, 12px); }
+
+/* ── the preview gallery ─────────────────────────────────────────────────────────────────────────────────────── */
+
+.studio-theme-preview { display: grid; max-width: 1280px; gap: var(--zen-spacing-gap-medium, 16px); margin-inline: auto; }
+.studio-theme-preview__tabs { display: flex; justify-content: center; }
+.studio-theme-preview__columns { display: grid; grid-template-columns: repeat(var(--studio-preview-columns, 1), minmax(0, 1fr)); gap: var(--zen-spacing-gap-large, 24px); }
+.studio-theme-preview__columns[data-columns="2"] { --studio-preview-columns: 2; }
+.studio-theme-preview__column { display: grid; min-width: 0; align-content: start; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+.studio-theme-preview__sectors { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
+.studio-theme-preview__sectors > li { display: grid; justify-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-theme-preview__sector { display: block; width: 100%; height: 40px; border-radius: var(--zen-corner-radius-small, 8px); }
+.studio-theme-preview__ramp { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-theme-preview__steps { display: grid; grid-template-columns: repeat(12, 1fr); overflow: hidden; margin: 0; padding: 0; border-radius: var(--zen-corner-radius-small, 8px); list-style: none; }
+.studio-theme-preview__step { height: 28px; }
+
+@media (max-width: 900px) {
+  /* One scrolling column: the settings, then the preview (each its own height, not squeezed into the window's). */
+  .studio-project-setup__body { grid-template-columns: minmax(0, 1fr); align-content: start; overflow: auto; }
+  .studio-project-setup__settings, .studio-project-setup__preview { min-height: auto; overflow: visible; }
+  .studio-project-setup__preview { padding: var(--zen-spacing-padding-medium, 16px); }
+  .studio-theme-preview__columns[data-columns="2"] { --studio-preview-columns: 1; }
+  .studio-project-setup__bar { flex-wrap: wrap; padding-block: var(--zen-spacing-padding-xsmall, 8px); }
+  .studio-projects { padding: var(--zen-spacing-padding-4-xlarge, 48px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px); }
+}

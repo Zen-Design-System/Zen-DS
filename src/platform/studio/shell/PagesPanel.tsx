@@ -10,6 +10,10 @@ import { NewPageDialog } from "../builder/NewPageDialog";
 import { FolderDialog, StudioFolderTree } from "../builder/StudioFolders";
 import { useFolders } from "../builder/store/folderStore";
 import { usePages } from "../builder/store/pageStore";
+import { useHomeView } from "../project/activeProject";
+import { ProjectBar, ProjectsList } from "../project/ProjectsHome";
+import { pageProjectOf } from "../project/pageProject";
+import { DRAFTS, useProjects } from "../project/projectStore";
 import { filterSections, navigate, openLocalPage, pageSections, type PageNavItem } from "./navigation";
 import "./shell.css";
 
@@ -28,8 +32,16 @@ export function PagesPanel() {
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);
   const studio = useStudio((state) => state.space === "studio") || Boolean(localPage);
-  const myPages = usePages();
-  const folders = useFolders();
+  const allPages = usePages();
+  const allFolders = useFolders();
+  // Studio projects (2026-10-17): the panel lists the open project's folders and pages (none open: Drafts); on the
+  // projects grid it lists the projects, and a search looks through every page.
+  const view = useHomeView();
+  const known = new Set(useProjects().map((item) => item.id));
+  const grid = studio && !localPage && view === null;
+  const scope = localPage ? pageProjectOf(localPage, known) : view && view !== DRAFTS && known.has(view) ? view : null;
+  const myPages = grid ? allPages : allPages.filter((item) => pageProjectOf(item.id, known) === scope);
+  const folders = grid ? allFolders : allFolders.filter((folder) => (folder.project && known.has(folder.project) ? folder.project : null) === scope);
   // New page: open, and the folder it lands in (null: none).
   const [creating, setCreating] = useState<{ folder: string | null } | null>(null);
   const [newFolder, setNewFolder] = useState(false);
@@ -113,10 +125,13 @@ export function PagesPanel() {
       <div ref={scrollRef} className="studio-pages__scroll" onKeyDown={moveFocus}>
         {/* Studio space: the folders and the pages people made (builder pages kept in this browser). */}
         {studio ? (
-          <div className="studio-pages__section" data-section="mine">
-            <MyPagesHeader onNew={() => setCreating({ folder: null })} onNewFolder={() => setNewFolder(true)} />
-            <StudioFolderTree folders={folders} pages={mine} searching={searching} onNewPage={(folder) => setCreating({ folder })} />
-          </div>
+          grid && !searching ? <ProjectsList onNewPage={() => setCreating({ folder: null })} /> : (
+            <div className="studio-pages__section" data-section="mine">
+              <ProjectBar />
+              <MyPagesHeader onNew={() => setCreating({ folder: null })} onNewFolder={() => setNewFolder(true)} />
+              <StudioFolderTree folders={folders} pages={mine} searching={searching} onNewPage={(folder) => setCreating({ folder })} />
+            </div>
+          )
         ) : null}
         {searching && !results ? (
           <EmptyState className="studio-pages__empty" title="No pages found" headingLevel={2} compactTitle icon="icon-search-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>
