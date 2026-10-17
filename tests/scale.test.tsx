@@ -4,7 +4,7 @@
  * step in both spellings. Required props come from the smoke-test fixtures.
  */
 import { createElement, type ComponentType } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import * as Zen from "../src/index";
 import { fixtures } from "./smoke/fixtures";
@@ -56,6 +56,9 @@ describe("size props: short and long spellings render the same", () => {
         // The test compares static DOM: no pointer events reach it, so a hover preview (Rating fills the stars under a
         // pointer that an earlier test left on the page) never makes one render differ from the other.
         const screen = await render(<div style={{ pointerEvents: "none" }}>{fixture.wrap ? fixture.wrap(element) : element}</div>);
+        // A Flag or a lazy icon draws a placeholder (data-loading) until its SVG arrives: wait for it, so one render
+        // caught mid-load never differs from the other (Flag lg vs large on CI, 2026-10-17).
+        await vi.waitFor(() => expect(screen.container.querySelector("[data-loading]")).toBeNull(), { timeout: 3000 });
         const out = normalise(screen.container.innerHTML);
         await screen.unmount();
         return out;
