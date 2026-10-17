@@ -8,7 +8,7 @@ import { loadEngine } from "./engine";
 import { snapshotTemplate, templateChoices, type TemplateChoice } from "./starters/fromTemplate";
 import { pageFromSnapshot } from "./starters/newPageFromFrame";
 import { TemplateThumb } from "./starters/TemplateThumb";
-import { freeId, listPages, movePage, putPage, setPageProject } from "./store/pageStore";
+import { freeId, listPages, movePage, putPage } from "./store/pageStore";
 import { withHeaderProject } from "./store/pageModel";
 import { activeProjectId } from "../project/activeProject";
 
@@ -66,9 +66,8 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
         const result = await snapshotTemplate(template.id);
         const page = result ? await pageFromSnapshot(result.shot, { title: result.title, from: `the ${result.title} template` }) : null;
         if (!page) { setError("This template could not be copied: the status line says why"); return; }
+        // pageFromSnapshot already put it in the open project (header `project`).
         if (folder) await movePage(page, folder);
-        // In a Studio project, the page is the project's (header `project`): it draws in its theme.
-        if (project) await setPageProject(page, project);
         reset();
         onOpenChange(false);
       } finally {

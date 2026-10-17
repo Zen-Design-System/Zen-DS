@@ -462,7 +462,16 @@ export async function syncMirror(): Promise<void> {
     await loadAll();
     const remote = await target.list();
     if (mirror !== target) return;
-    const steps = planSync([...cache.values()], remote, target.key);
+    let steps = planSync([...cache.values()], remote, target.key);
+    // "The folder lost this page" is read from a listing that can predate a page this tab has just written: its file
+    // lands while the listing runs (the folder's change event fires on the temporary file), and the page is marked
+    // synced before the plan is made. A page made in a project then went to the Trash a second later (user,
+    // 2026-10-18: "Tạo page mới trong project vừa tạo nó lại nhảy vào draft"). A fresh listing confirms the loss first.
+    if (steps.some((step) => step.kind === "trash-local")) {
+      const again = new Set((await target.list()).map((row) => row.id));
+      if (mirror !== target) return;
+      steps = steps.filter((step) => step.kind !== "trash-local" || !again.has(step.id));
+    }
     for (const step of steps) {
       const record = cache.get(step.id);
       if (step.kind === "take") {
