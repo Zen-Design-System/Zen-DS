@@ -67,6 +67,8 @@
 //                                     gap is at least what each control lacks of 44 on that side (two 32px Chips → 12)
 //   spacing/controls-to-content  warning  a control row (Chips, Segmented, Tabs, Search) closer than Gap/Medium (16)
 //                                     to the content it controls: they are blocks, not a label pair
+//   navigation/icon-style    error    a Bottom-Navigation item whose icon style does not match its selection: the
+//                                     selected item shows the solid icon, every other item the line icon
 //   spacing/section-gap      error    a phone screen's Body (the frame that stacks its sections) not spaced by
 //                                     Component Size Layout-Mobile/Section-Gap (Compact 24, Comfortable 32)
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
@@ -607,6 +609,25 @@ async function checkSectionGap(root) {
   }
 }
 
+// Navigation icons (user 2026-10-17: "Dùng icon không đồng bộ"): in a Bottom-Navigation the selected item shows the
+// solid icon and every other item the line icon of the same family; an icon without a solid version is not a tab icon.
+async function checkNavIcons(root) {
+  for (const nav of root.findAll ? root.findAll((node) => node.type === "INSTANCE" && /^Bottom-Navigation\//.test(node.name)) : []) {
+    if (nav.visible === false) continue;
+    const slot = nav.findOne((node) => node.type === "SLOT");
+    for (const item of slot ? slot.children : []) {
+      if (item.type !== "INSTANCE" || item.visible === false) continue;
+      const key = Object.keys(item.componentProperties).find((name) => name.startsWith("Icon-Src"));
+      if (!key) continue;
+      const icon = await figma.getNodeByIdAsync(item.componentProperties[key].value);
+      const selected = item.componentProperties.Select?.value === "Yes";
+      const name = icon?.name ?? "";
+      if (selected && !/-solid$/.test(name)) report("navigation/icon-style", ERROR, item, `the selected item shows ${name || "a line icon"}: use its -solid version (pick an icon that has one)`);
+      if (!selected && /-solid$/.test(name)) report("navigation/icon-style", ERROR, item, `an unselected item shows ${name}: use its -line version; solid marks only the current tab`);
+    }
+  }
+}
+
 const PLACEHOLDER = /lorem|ipsum|dolor sit/i;
 // A List-Box footer action's label (user rule 2026-10-16, code harness listbox/footer-action-tertiary).
 const ACTION_LABEL = /^(open|go to|view|see|show|manage|browse|all)\b/i;
@@ -807,6 +828,7 @@ for (const root of roots) await checkBackChevron(root);
 for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkSectionGap(root);
+for (const root of roots) await checkNavIcons(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {

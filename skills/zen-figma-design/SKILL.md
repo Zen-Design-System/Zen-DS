@@ -86,6 +86,9 @@ Files in this skill:
     - Labels name the outcome: never "OK", "Submit" or "Yes".
   - **Not a button:** switching views is Segmented or Tabs; choosing a filter, sort or scope (an address, a period) is
     a Chip; Back is `icon-chevron-left-line-medium`.
+  - **Navigation icons:** in a Bottom-Navigation the selected item shows the solid icon and every other item the line
+    icon of the same family (audit `navigation/icon-style`). Never set a solid icon on every screen's Home; pick tab
+    icons that have both styles.
   - **Colour:** Brand / Accent is the screen's main colour: bands, the hero and the selected state. Other hues may
     support it on smaller parts (category icons, a streak badge, initials), never lead it.
 - **Real states, not look-alikes.** A field that shows a value is `State=Inputted` (Default and Focused are the empty
@@ -170,3 +173,12 @@ after setting `ROOT_IDS` to the screens to check (or leave it empty to check the
 Tell the user, per screen: the frame name and id, the audit result (errors 0, warnings left and why), the
 components used, anything the library lacked (and what you built locally instead), and open questions for the
 designer. Do not call a screen done while the audit reports errors or an item of the QA checklist (§3) is open.
+
+**A slip the user catches becomes a rule** (user 2026-10-17: "từ đây về sau bổ sung nguyên tắc. Luôn làm đúng không
+lại sai"). In the same turn:
+- fix it on every screen it touches, not only the one shown;
+- write the principle into this skill (§2, screen-rules or the usage rules);
+- add an audit check when a script can see it (with its row in references/audit-rules.md);
+- rerun the full QA (audit, checklist, a screenshot of every screen) before reporting.
+
+The same class of mistake must not come back.

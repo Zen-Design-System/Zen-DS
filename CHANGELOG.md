@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Figma skill: every slip the user catches becomes a rule. Prompted on 2026-10-17 by "Dùng icon không đồng bộ",
+  "từ đây về sau bổ sung nguyên tắc. Luôn làm đúng không lại sai" and "Bạn cần học cách tôi làm".
+  - The audit adds `navigation/icon-style`: in a Bottom-Navigation the selected item is solid, the others line.
+  - figma-gotchas gets a "Modes" section: emoji Dock-Icons, text growth and scroll after a Component Size or
+    Typography change.
+  - screen-rules §4 gets "Learned from the designer's own edits": section = one frame, overlays in padded wrappers,
+    Medium cards, Toggle-Button power, Small steppers, a White-Overlay Segmented on colour, Solid shortcut rows.
 - Toggle and ToggleButton take `size="xl"` (`xlarge`, 2026-10-17, user: "thêm 1 bảng toggle size XLarge cao 48px …
   có thêm icon bên trong toggle dot"): a 48px switch (dot 44, `Toggle/Item/Size/XLarge`; Comfortable 52) with `icon`
   in its dot, Light while off and Strongest while on (new Component Theme tokens `Toggle/Dot/Content/Unselected` and
