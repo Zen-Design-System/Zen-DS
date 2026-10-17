@@ -77,18 +77,19 @@ export function componentSlug(name: string): string | null {
 /** The layout primitives (and a detach's output): Box, Stack, Grid, Container, Text, Heading. */
 export const layoutPrimitives = new Set(["Box", "Stack", "Grid", "Container", "Text", "Heading"]);
 
-/** What a selected JSX element is: a Zen component, a layout primitive, a local (capitalised, not in the API) component
- * or a host element. */
-export type NodeKind = "zen" | "primitive" | "local" | "element";
+/** What a selected JSX element is: a Zen component, a layout primitive, a drawn shape (Figma's RECTANGLE, ELLIPSE…: an
+ * object, not a component — user, 2026-10-17), a local (capitalised, not in the API) component or a host element. */
+export type NodeKind = "zen" | "primitive" | "shape" | "local" | "element";
 
 export function nodeKind(name: string): NodeKind {
   if (!/^[A-Z]/.test(name)) return "element";
   if (layoutPrimitives.has(name)) return "primitive";
+  if (name === "Shape") return "shape";
   // A library export without an API page (ZenPortal: react-docgen does not read it) is still the library's.
   return componentSchema(name) || zenComponents.has(name) ? "zen" : "local";
 }
 
-export const kindLabel = (kind: NodeKind) => ({ zen: "Zen component", primitive: "Layout primitive", local: "Local component", element: "HTML element" })[kind];
+export const kindLabel = (kind: NodeKind) => ({ zen: "Zen component", primitive: "Layout primitive", shape: "Shape", local: "Local component", element: "HTML element" })[kind];
 
 /** Sentence-case labels for props whose camelCase name reads badly; anything else falls back to propLabel's split. */
 const propLabels: Record<string, string> = {

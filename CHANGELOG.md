@@ -20,7 +20,9 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio toward native Figma (2026-10-17, user: "Đưa về sát native với Figma nhất … vì chúng ta cần convert
   người dùng từ Figma"). Research and plan: `docs/research/studio-figma-native-parity-2026-10-17.md` (five audits,
   ~80 Figma behaviours graded). First phase:
-  - New `Shape` (src/components/Shape): Figma's Rectangle, Ellipse with its arc (`arcStart` °, `arcSweep` %,
+  - New `Shape` primitive (src/components/Shape), the code of a drawn object as Box is a frame's — never a component in
+    Studio: no component icon or colour, Swap / Detach instance or Assets entry; a component is made only by the person
+    (⌥⌘K). Figma's Rectangle, Ellipse with its arc (`arcStart` °, `arcSweep` %,
     `arcRatio` %), Line, Arrow, Polygon and Star; `fill` from Color/Background and `stroke` from Color/Border (token
     paths only), `strokeWeight`, `strokeAlign`, `radius`, `pointCount`, `starRatio`, `rotation`, `opacity`. Harness:
     `shape/token-paint`, `shape/px-offset-in-auto-layout`, `shape/line-no-height`.

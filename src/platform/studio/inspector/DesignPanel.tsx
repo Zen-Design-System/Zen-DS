@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
 import { ComponentSection } from "./ComponentSection";
-import { layerName } from "../select/layerNames";
+import { layerName, objectIcon } from "../select/layerNames";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
@@ -734,6 +734,11 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
 
   // Header (option B): title row, then labelled rows (Type, Docs, Used in, Repeats) and, for a detachable type, Detach.
   const kind = nodeKind(name);
+  // Its icon as the Layers row's (a shape's own, a frame's #, text's T); the component colour only for a component: a
+  // Zen instance or one the person made (⌥⌘K), never a drawn object (user, 2026-10-17).
+  const headProps: Record<string, unknown> = { ...selectedHit(selection)?.props, type: element?.attributes.find((attr) => attr.kind === "string" && attr.name === "type")?.value };
+  const headComponent = kind === "zen" || kind === "local" || Boolean(headProps["data-zen-main"] || headProps["data-zen-instance"]);
+  const headIcon = objectIcon(name, headProps) ?? (headComponent ? "icon-cube-line" : "icon-code-02-line");
   const slug = kind === "zen" || kind === "primitive" ? componentSlug(name) : null;
   const docsPage = slug && slug in pageLabels && slug !== currentPage ? (slug as PlatformPage) : null;
   // The link names no file: "Show code" (the Code tab has the line; plan criterion 7). A Studio page's own file is no
@@ -810,9 +815,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
           layer the panel reads (file:line:col), for tools; the screen says "Show code". */}
       <header className="studio-inspector__head-block" data-inspector-src={selection.src}>
         <div className="studio-inspector__title-row">
-          <span className="studio-inspector__kind-icon" data-component={isComponent || undefined} aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
+          <span className="studio-inspector__kind-icon" data-component={headComponent || undefined} aria-hidden="true"><Icon name={headIcon} size={16} /></span>
           {/* Cut to one line: its full name on hover. */}
-          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{layerName(name, { ...selectedHit(selection)?.props, type: element?.attributes.find((attr) => attr.kind === "string" && attr.name === "type")?.value })}</Heading>
+          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{layerName(name, headProps)}</Heading>
           {repeats ? (
             <span className={`studio-inspector__count ${typographyStyles["Body/Small/Medium"]}`} title={repeats}>
               <span aria-hidden="true">{`×${instances}`}</span>

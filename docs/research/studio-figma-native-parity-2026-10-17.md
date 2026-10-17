@@ -159,6 +159,12 @@ Figma gets it too, so Studio's Variables must also push values to Figma (the Zen
 2. **`Shape`** is a new primitive (src/components/Shape): Figma's RECTANGLE, ELLIPSE (+ arc), LINE, arrow, polygon,
    STAR, sized and placed like Box. Colours are tokens: `fill` from Color/Background, `stroke` from Color/Border (no
    hex). Figma's default grey #D9D9D9 → Background/Support/Neutral/Soft.
+   **A drawn object is an object, never a component** (user, 2026-10-17: "Shape chỉ nên được vẽ ra là 1 object thôi,
+   việc tạo component phải là do người dùng"). `<Shape>` is only the code a drawn shape needs, as `<Box>` is a frame's and
+   `<Text>` a text's. Studio shows shapes, frames and text with their own icons (Layers, the Inspector header, Select
+   layer ›), names the kind "Shape", and offers no Swap / Detach instance, Reset all overrides, docs link or component
+   colour for them; shapes come from the canvas tools only, never from Assets. A component exists only where the person
+   made one (⌥⌘K) or placed a Zen component. Checks: E2E DR-15, palette selftest "no Shape in the palette".
 3. **Keys follow Figma** where Studio used a Figma key for something else: A = Frame (Stack keeps its toolbar button),
    R / O / L / ⇧L shapes; resize ⇧ = keep ratio, ⌥ = from the centre.
 

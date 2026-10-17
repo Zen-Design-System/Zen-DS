@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { ArcHandles } from "./ArcHandles";
-import { layerName } from "./layerNames";
+import { layerName, objectIcon } from "./layerNames";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
@@ -785,8 +785,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const path = layersAt(picked.hit, picked.frame);
     const selected = selectedRef.current;
     const layers = (path ? path.path.slice(path.root + 1) : [picked.hit]).reverse().slice(0, 12).map((hit) => ({
-      name: hit.name,
-      component: hit.isComponent,
+      // As Layers shows it: "Rectangle" with its shape icon, a frame's #, a component's cube (select/layerNames.ts).
+      name: layerName(hit.name, hit.props),
+      icon: objectIcon(hit.name, hit.props) ?? (hit.isComponent ? "icon-cube-line" as const : "icon-code-02-line" as const),
       selected: Boolean(selected && sameElement(hit, selected)),
       select: () => choose(hit, false),
     }));

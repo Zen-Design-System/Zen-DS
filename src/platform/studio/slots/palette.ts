@@ -1070,15 +1070,6 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "divider", label: "Divider", group: "Layout", root: "Divider", components: ["Divider"], interactive: false, input: false,
     build: () => `<Divider />`,
   },
-  // Figma's shapes (Shape, 2026-10-17): placed in the flow at Figma's click size; the toolbar's R / O / L draw them.
-  {
-    id: "rectangle", label: "Rectangle", group: "Layout", caption: "Shape (R)", root: "Shape", components: ["Shape"], interactive: false, input: false,
-    build: () => `<Shape type="rectangle" width={100} height={100} />`,
-  },
-  {
-    id: "ellipse", label: "Ellipse", group: "Layout", caption: "Shape (O), arc", root: "Shape", components: ["Shape"], interactive: false, input: false,
-    build: () => `<Shape type="ellipse" width={100} height={100} />`,
-  },
   {
     id: "accordion", label: "Accordion", group: "Layout", caption: "Collapsible section", root: "Accordion", components: ["Accordion"], interactive: true, input: false,
     // headingLevel defaults to 3: written only when the host outline needs another level.
