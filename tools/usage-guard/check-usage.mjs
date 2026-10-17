@@ -221,6 +221,28 @@ const nearestBox = (src, start, tags = BOX_TAGS) => {
   }
   return stack.at(-1) ?? null;
 };
+/** Pages that set a Canvas: AppShell and PlatformPhone (`canvas`, Canvas/Default unless set) and a painting
+ *  ZenProvider (Canvas/Default). */
+const CANVAS_TAGS = ["AppShell", "PlatformPhone", "ZenProvider"];
+/**
+ * The Canvas a box sits right on: "default" (Canvas/Default, the grey page), another canvas name (alt, flat, surface,
+ * media), or null when no such page wraps it, a box (Card, ListBox, an overlay) sits between them, or the canvas is an
+ * expression.
+ */
+const canvasOf = (src, start) => {
+  const host = nearestBox(src, start, [...BOX_TAGS, ...CANVAS_TAGS]);
+  if (!CANVAS_TAGS.includes(host)) return null;
+  const opening = [...src.slice(0, start).matchAll(new RegExp(`<${host}\\b`, "g"))].at(-1);
+  if (!opening) return null;
+  const close = tagClose(src, opening.index + host.length + 1);
+  const tag = src.slice(opening.index, close < 0 ? start : close + 1);
+  if (host === "ZenProvider") return /\bpaint=\{false\}/.test(tag) ? null : "default";
+  const value = /\bcanvas=(?:"([\w-]+)"|\{\s*"([\w-]+)"\s*\})/.exec(tag);
+  if (!value && /\bcanvas=/.test(tag)) return null;
+  const canvas = value ? value[1] ?? value[2] : "default";
+  return canvas === "canvas" ? "default" : canvas;
+};
+
 /** Regions of a page where an Empty State is Small (empty-state/small-in-box): widgets, lists, panels and overlays. */
 const EMPTY_STATE_BOXES = [...BOX_TAGS, "Popover", "Sidebar"];
 /** A Card or ListBox right inside an overlay takes theme="on-container": message, or false. */
@@ -1173,12 +1195,12 @@ export const rules = [
     summary: "A Card right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
     check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "shadow") },
   { id: "card/color-ignored", components: ["Card", "MetricCard", "ChartCard"], severity: "warn", allow: "card-color", guideline: "docs/guidelines/card.md",
-    summary: "Card color is the Figma Color of theme=\"pale\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+    summary: "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
     check: ({ tag, attrs }) => {
       const own = topLevel(attrs);
       if (!has(own, "color") || opaque(attrs) || (has(own, "theme") && literal(own, "theme") === undefined)) return false;
       const theme = literal(own, "theme") ?? (tag === "ChartCard" ? "flat" : "shadow");
-      return !["pale", "semi-pale", "solid"].includes(theme) && `sets color on theme="${theme}", which has no Color in Figma — use theme="pale" (colour on a box) or theme="solid" (the one widget that stands out), or drop color.`;
+      return !["pale", "semi-pale", "subtle", "solid"].includes(theme) && `sets color on theme="${theme}", which has no Color in Figma — use theme="subtle" (colour on a box on Canvas/Default), theme="pale" (on a white page) or theme="solid" (the one widget that stands out), or drop color.`;
     } },
   { id: "card/surface-ignored", components: ["Card", "ChartCard"], severity: "warn", allow: "card-surface", guideline: "docs/guidelines/card.md",
     summary: "Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill.",
@@ -1196,8 +1218,16 @@ export const rules = [
       const own = topLevel(attrs);
       const color = literal(own, "color");
       const theme = literal(own, "theme");
-      if (theme === "pale" && color === "accent") return `is theme="pale" color="accent": Figma has no Pale Accent and it renders as Pale Neutral — use theme="solid" color="accent" for the stand-out, or a Pale hue.`;
+      if ((theme === "pale" || theme === "subtle") && color === "accent") return `is theme="${theme}" color="accent": Figma has no ${theme === "pale" ? "Pale" : "Subtle"} Accent and it renders as ${theme === "pale" ? "Pale" : "Subtle"} Neutral — use theme="solid" color="accent" for the stand-out, or color="brand".`;
       return theme === "solid" && ["violet", "green", "blue", "purple"].includes(color) && `is theme="solid" color="${color}": Figma has no Solid ${color} and it renders as Solid Neutral — use theme="pale" color="${color}", or a Solid colour Figma draws (neutral, brand, cyan, yellow, orange, accent).`;
+    } },
+  { id: "card/pale-on-canvas-default", components: ["Card", "MetricCard", "ChartCard"], severity: "error", allow: "card-pale-canvas", guideline: "docs/guidelines/card.md",
+    summary: "On a Canvas/Default page (the grey canvas: AppShell and PlatformPhone unless their canvas says otherwise, a painting ZenProvider) a colour box is theme=\"subtle\" (Support/<Color>/Subtle): Pale fades into the grey. Pale is for white pages (Canvas/Alt, Canvas/Flat, a Surface screen) and imagery (user rule 2026-10-17).",
+    check: ({ attrs, src, start, end }) => {
+      const own = topLevel(attrs);
+      const theme = literal(own, "theme");
+      if (inCodeSample(src, end) || opaque(attrs) || (theme !== "pale" && theme !== "semi-pale")) return false;
+      return canvasOf(src, start) === "default" && `is theme="${theme}" on a Canvas/Default page, where Pale fades into the grey — use theme="subtle" (Support/<Color>/Subtle); Pale is for Canvas/Alt and Canvas/Flat pages.`;
     } },
   { id: "card/spacing-by-count", components: ["Card", "MetricCard"], severity: "warn", allow: "card-spacing", guideline: "docs/guidelines/card.md",
     summary: "On a phone (a PlatformPhone frame or a BottomSheet), three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two keep Spacing=Medium, the default. Desktop cards keep Medium and are not judged. MetricCard counts as a card (type=\"tile\" is Small by default). User rule 2026-10-17, mobile only.",

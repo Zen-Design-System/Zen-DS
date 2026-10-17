@@ -179,6 +179,12 @@ export const Bad = () => <>
   <div><Card theme="pale" color="accent">Payout</Card></div>
   {/* expect: card/surface-ignored */}
   <div><Card theme="flat" surface="flat">Hours</Card></div>
+  {/* expect: card/pale-on-canvas-default */}
+  <AppShell sidebar={null}><Card theme="pale" color="cyan">Invoiced</Card></AppShell>
+  {/* expect: card/pale-on-canvas-default */}
+  <PlatformPhone label="Budget"><MetricCard theme="pale" color="green" label="Saved" value="$1,240" /></PlatformPhone>
+  {/* expect: card/solid-color */}
+  <div><Card theme="subtle" color="accent">Payout</Card></div>
   {/* expect: card/surface-ignored */}
   <ChartCard title="Revenue" theme="pale" surface="alt"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
   {/* On a phone (card/spacing-by-count judges PlatformPhone frames and BottomSheets only). */}
