@@ -520,3 +520,21 @@ User: "tại sao shape lại là component? Shape chỉ nên được vẽ ra l�
 - Gate on the components branch (`--all`): 0 errors; new ⚠ contrast on ai-ui (Schedule 2.96:1, white on Zen/9) comes
   from #109 (On-Brand → white, the user's choice), not this branch → BACKLOG P1 question for the designer.
 
+## Zen Studio Variables like Figma, v1 (session "Figma-like freeform editing", tier L)
+User: Studio may be a second source of token values (edit in Studio → repo → Figma); later "đổi icon chỗ variable màu
+thành icon palette".
+- Built (branch zen/feat/studio-variables-20261017, from the components branch): Figma's Local variables window
+  (Page panel › Local variables, Quick actions › Open variables) on the 11 collections; edits are drafts of
+  tokens/source/figma/*.json (undo / history / Save as any Studio edit); `load` serves tokens.css built from the drafts
+  (scripts/token-outputs.mjs, the build as a function; outputs byte-identical); Save runs build-tokens, native and
+  check-token-coverage; Copy for Figma → plugin `zen-studio-variables` (commits 5e7d5ae, 5b15a5d in the plugin repo).
+- Rules: names unique across collections and CSS names; rename / delete refused while read (aliases + src readers);
+  Zen-High-Contrast written by the algorithm (960/960 match today) and read-only.
+- Checks: variables.selftest 11, variablesModel.selftest 6, E2E VA-01…04, Save walked (build ✓ check ✓ package ✓),
+  tsc. Found on the way: relayout.selftest was never in studio:selftest (added); the plugin's dynamic-page safety test
+  was red since ed9bec6 (a comment) — fixed.
+- Plugin UI: the uncommitted Paste-from-Studio box work (index.html, src/ui/main.js, styles.css,
+  tests/studio-paste-ui.test.js, a closed session's, 2026-10-17 00:40) was not committed; the user then had it discarded
+  ("Bỏ các thay đổi UI cũ trong plugin đi"). Backup: Zen-DS `backups/plugin-ui-paste-box-wip-2026-10-17.patch`; the plugin
+  repo is clean, rebuilt, `npm test` green.
+

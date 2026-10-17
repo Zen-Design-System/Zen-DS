@@ -45,6 +45,15 @@ removed (four unused colour ramps were, see Removed).
   - Figma export and import: shapes become RECTANGLE / ELLIPSE (arcData) / LINE (arrow cap) / POLYGON / STAR with
     colour and corner variables, and come back as `<Shape>` (the Zen plugin's Import from Studio draws them).
   - Zen Studio menu holds Switch to Studio / Document; the floating Document | Studio Segmented is gone (user).
+  - Variables like Figma (user: Studio may write token values): Page panel › Local variables (and Quick actions) opens
+    Figma's Local variables window on the 11 token collections — groups, a column per mode, search, type filter; a value
+    cell edits a colour (picker + opacity), number or text, or aliases another variable (Variables tab; Detach alias);
+    rows rename (`/` makes groups), duplicate and delete (refused while code or another variable reads it, naming them);
+    Create variable. Each change is a draft of `tokens/source/figma/*.json` with ⌘Z; while drafted the dev server serves
+    tokens.css built from the drafts, so the canvas changes at once; ⌘S writes it and runs tokens:build + tokens:check;
+    Global Colors' Zen-High-Contrast follows the Zen values by the high-contrast algorithm. Copy for Figma hands the saved
+    changes to the Zen plugin (Import from Studio writes the local variables). `scripts/token-outputs.mjs` is the token
+    build as a pure function (the build's output is unchanged).
   - Components like Figma on a page you made: ⌥⌘K makes the selected layer a main component where it is
     (`<Component id name>`), ⌘D / ⌥-drag of a main and Assets › Local components add instances (`<Use of>`) that
     follow it, ⌥⌘B detaches one; the Inspector names the component (rename, Create instance, Select instances, Swap,

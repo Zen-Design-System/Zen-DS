@@ -1,0 +1,135 @@
+// Variables rows (Figma's Local variables on the Zen tokens, P5 2026-10-17; research
+// docs/research/studio-figma-native-parity-2026-10-17.md §10): the window from the Page panel, a value edited as a draft
+// the canvas shows at once and ⌘Z takes back, an alias picked from the Variables tab, a variable created and named in
+// place, a delete refused while code reads the variable. Nothing is saved (a Save runs the token build in the worktree);
+// the run drops every draft between rows.
+import { sleep, until } from "../lib/studio.mjs";
+import { seededPage } from "./builder.mjs";
+
+const emptyPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop" width={800} height={500} />
+    </Board>
+  );
+}
+`;
+
+/** The Studio on a page with nothing selected, the Variables window opened from the Page panel. */
+async function openVariables(ctx) {
+  const { page } = await seededPage(ctx, emptyPage, /width=\{800\}/);
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  await page.locator("#studio-right").getByRole("button", { name: "Local variables" }).click();
+  const win = page.locator('[data-e2e="variables"]');
+  await win.waitFor({ timeout: 10_000 });
+  await until(async () => (await win.locator("[data-variable]").count()) > 3, { timeout: 15_000, message: "the variables listed" });
+  return { page, win };
+}
+
+async function collection(page, win, name) {
+  await win.locator(".studio-vars__head").getByRole("button").first().click();
+  await page.getByRole("menuitem", { name: new RegExp(`^${name.replace(/[()]/g, "\\$&")}`) }).click();
+  await until(async () => (await win.locator(".studio-vars__head").getByRole("button").first().innerText()).trim() === name, { message: `the ${name} collection` });
+}
+
+const cssVar = (page, name) => page.evaluate((prop) => getComputedStyle(document.documentElement).getPropertyValue(prop).trim(), name);
+const source = async (ctx, file) => (await ctx.api.source(file)).content;
+
+export const rows = [
+  {
+    id: "VA-01", feature: "Page panel › Local variables opens Figma's window: the 11 Zen collections, a column per mode, the groups; Esc closes it", wp: "P5 variables",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      await win.locator(".studio-vars__head").getByRole("button").first().click();
+      const listed = await page.getByRole("menu", { name: "Collections" }).getByRole("menuitem").count();
+      await page.keyboard.press("Escape");
+      if (listed !== 11) throw new Error(`${listed} collections listed, want 11`);
+      await collection(page, win, "Component Theme");
+      const columns = await win.getByRole("columnheader").allInnerTexts();
+      if (columns.length !== 10 || columns[0].trim() !== "Name") throw new Error(`columns: ${columns.join(" | ")}`);
+      const groups = await win.getByRole("navigation", { name: "Groups" }).getByRole("button").count();
+      await win.focus();
+      await page.keyboard.press("Escape");
+      await until(async () => (await win.count()) === 0, { message: "the window closed" });
+      return `11 collections · Component Theme: ${columns.slice(1).join(", ")} · ${groups} group rows`;
+    },
+  },
+  {
+    id: "VA-02", feature: "A colour edit is a draft the canvas shows at once (tokens.css from the draft), Global Colors' Zen-High-Contrast follows and is read-only, ⌘Z takes it back", wp: "P5 variables",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      await collection(page, win, "Global Colors");
+      await win.getByRole("searchbox", { name: "Search variables" }).fill("light blue 9");
+      const before = await cssVar(page, "--zen-light-blue-9");
+      const derived = win.locator('[data-variable="Light/Blue/9"] [aria-label="Light/Blue/9, Zen-High-Contrast"]');
+      if ((await derived.getAttribute("aria-readonly")) !== "true") throw new Error("Zen-High-Contrast is editable");
+      await win.locator('[data-variable="Light/Blue/9"] [aria-label="Light/Blue/9, Zen"]').click();
+      const editor = page.getByRole("dialog", { name: "Light/Blue/9, Zen" });
+      await editor.waitFor({ timeout: 5000 });
+      await editor.getByRole("textbox", { name: "Hex value" }).fill("FF0000");
+      await editor.getByRole("textbox", { name: "Hex value" }).press("Enter");
+      await until(async () => (await cssVar(page, "--zen-light-blue-9")).toUpperCase() === "#FF0000", { timeout: 10_000, message: "the canvas reads the drafted colour" });
+      const drafts = (await ctx.api.drafts()).drafts.map((row) => row.file);
+      if (!drafts.includes("tokens/source/figma/global-colors.json")) throw new Error(`drafts: ${drafts.join(", ")}`);
+      const text = await source(ctx, "tokens/source/figma/global-colors.json");
+      if (!/"name": "Light\/Blue\/9",\n\s+"type": "COLOR",\n\s+"valuesByMode": \{\n\s+"Zen": "#FF0000",\n\s+"Zen-High-Contrast": "#FF0000"/.test(text)) throw new Error("the draft does not hold Zen and its high-contrast value #FF0000");
+      await win.locator('[data-variable="Light/Blue/9"] [aria-label="Light/Blue/9, Zen"]').focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await cssVar(page, "--zen-light-blue-9")) === before, { timeout: 10_000, message: "⌘Z puts the colour back" });
+      return `--zen-light-blue-9 ${before} → #FF0000 (draft, high contrast follows) → ⌘Z → ${before}`;
+    },
+  },
+  {
+    id: "VA-03", feature: "An alias from the Variables tab: Color/Content/Accent/Base (Light) → Light/Blue/10, written {Light/Blue/10}; Detach alias writes the value it showed", wp: "P5 variables",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      await collection(page, win, "Mode Colors (Semantic)");
+      await win.getByRole("searchbox", { name: "Search variables" }).fill("content accent base");
+      const cell = win.locator('[data-variable="Color/Content/Accent/Base"] [aria-label="Color/Content/Accent/Base, Light"]');
+      await cell.click();
+      const editor = page.getByRole("dialog", { name: "Color/Content/Accent/Base, Light" });
+      await editor.waitFor({ timeout: 5000 });
+      await editor.getByRole("searchbox", { name: "Search variables" }).fill("light blue 10");
+      await editor.getByRole("button", { name: /^Light\/Blue\/10\b/ }).first().click();
+      const file = "tokens/source/figma/mode-colors-semantic.json";
+      const token = (text) => /"name": "Color\/Content\/Accent\/Base",\n\s+"type": "COLOR",\n\s+"valuesByMode": \{\n\s+"Light": "([^"]+)"/.exec(text)?.[1];
+      await until(async () => token(await source(ctx, file)) === "{Light/Blue/10}", { timeout: 10_000, message: "the alias written" });
+      await until(async () => /Blue\/10/.test(await cell.innerText()), { message: "the chip shows Blue/10" });
+      await cell.click();
+      await page.getByRole("dialog", { name: "Color/Content/Accent/Base, Light" }).getByRole("button", { name: "Detach alias" }).click();
+      await until(async () => /^#[0-9A-F]{6}/.test(token(await source(ctx, file)) ?? ""), { timeout: 10_000, message: "the detached value written" });
+      return `{Light/Blue/10} → detached ${token(await source(ctx, file))}`;
+    },
+  },
+  {
+    id: "VA-04", feature: "Create variable › Number names it in place; Delete is refused while code reads the variable (Spacing/Gap/Small), the refusal names the readers", wp: "P5 variables",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      await collection(page, win, "Spacing");
+      await win.getByRole("button", { name: "Create variable" }).click();
+      await page.getByRole("menuitem", { name: "Number" }).click();
+      const rename = win.getByRole("textbox", { name: /^Rename / });
+      await rename.waitFor({ timeout: 5000 });
+      await rename.fill("E2E Huge");
+      await rename.press("Enter");
+      const file = "tokens/source/figma/spacing.json";
+      await until(async () => /"name": "[^"]*E2E Huge"/.test(await source(ctx, file)), { timeout: 10_000, message: "the new variable named" });
+      const before = await source(ctx, file);
+      await win.getByRole("searchbox", { name: "Search variables" }).fill("gap small");
+      const row = win.locator('[data-variable="Spacing/Gap/Small"]');
+      await row.hover();
+      await row.getByRole("button", { name: "Small actions" }).click();
+      await page.getByRole("menuitem", { name: "Delete variable" }).click();
+      await until(async () => /read by .*(css|tsx|ts)/.test(await win.locator(".studio-vars__status").innerText()), { message: "the refusal names its readers" });
+      await sleep(300);
+      if ((await source(ctx, file)) !== before) throw new Error("the refused delete changed the file");
+      return `${/"name": "([^"]*E2E Huge)"/.exec(before)?.[1]} created · delete of Spacing/Gap/Small refused: ${(await win.locator(".studio-vars__status").innerText()).slice(0, 90)}`;
+    },
+  },
+];

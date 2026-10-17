@@ -12,9 +12,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
   rule gives Zen black text on step 9. Shown by ai-ui › "Follow-ups edit, not rebuild" (Schedule). Pointer:
   tokens/source/figma/base-colors-project.json Light/On-Brand-Default, Figma Base Colors (Project).
-- **P1 · Studio Variables like Figma — approved (user, 2026-10-17):** Studio is a second source of token values (edit in
-  Studio → tokens/source → push to Figma by the Zen plugin; the Figma sync stays). Next after the components PR. Audit and
-  plan: `docs/research/studio-figma-native-parity-2026-10-17.md` §5b and P5.
+- **P2 · Studio Variables v2 (2026-10-17):** v1 is built (branch zen/feat/studio-variables-20261017: Local variables
+  window, edit / alias / create / rename / duplicate / delete, drafts + live tokens.css, Save builds the tokens, Copy for
+  Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
+  variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
+  frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
 - **P2 · Studio components v2 (2026-10-17):** v1 is built (⌥⌘K, instances, Go to main, Detach, swap, React export,
   push to Figma). Open: instance overrides (text, visibility) + Reset all changes, component properties, variants, pull of
   local components from Figma. Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §9.

@@ -5,6 +5,7 @@ import { modKey, presentShortcut } from "../../shell/modKey";
 import { detachSelection, detachShortcut, offersDetach } from "../../inspector/detach";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../../select/wrapSelection";
 import { openShortcuts } from "../../shell/shortcutsOpen";
+import { openVariables } from "../../variables/variablesState";
 import { toggleSidePanels } from "../../shell/layout";
 import { duplicateSelection, duplicateShortcut, removeSelection, removeShortcut } from "../../slots/actions";
 import { toggleStudioTheme } from "../../shell/modes";
@@ -78,6 +79,7 @@ export function commands(): Command[] {
     { id: "panels", group: "View", label: "Show / hide the side panels", shortcut: `${modKey}\\`, keywords: "ui", run: toggleSidePanels },
     { id: "theme", group: "View", label: state.chromeTheme === "dark" ? "Light mode" : "Dark mode", keywords: "theme dark light interface canvas mode", run: toggleStudioTheme },
     { id: "pages", group: "Panels", label: "Show Pages", run: () => studioStore.setState({ leftTab: "pages" }) },
+    { id: "variables", group: "Panels", label: "Open variables", keywords: "tokens local variables colours modes collection", run: openVariables },
     { id: "layers", group: "Panels", label: "Show Layers", run: () => studioStore.setState({ leftTab: "layers" }) },
     { id: "assets", group: "Panels", label: "Show Assets", keywords: "components insert add", run: () => studioStore.setState({ leftTab: "assets" }) },
     { id: "design", group: "Panels", label: "Show Design", keywords: "inspector properties", run: () => studioStore.setState({ inspectorTab: "design" }) },
