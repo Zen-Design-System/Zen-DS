@@ -571,7 +571,7 @@ function QuarterWidgets() {
       {/* The row's widgets share a theme (Flat on Canvas/Default); the one that matters most stands out as Solid Neutral.
           Three share the row: each column at least 30% wide, one per row once 220px no longer fits. */}
       <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
-        <Card as="section" theme="solid" color="neutral" spacing="small" aria-labelledby={invoicedId}>
+        <Card as="section" theme="solid" color="neutral" aria-labelledby={invoicedId}>
           <Stack gap="md">
             <Stack gap="xs" align="start">
               <Heading level={4} id={invoicedId} textStyle="Heading/Subheading">Invoiced in Q3</Heading>
@@ -585,7 +585,7 @@ function QuarterWidgets() {
             </Stack>
           </Stack>
         </Card>
-        <Card as="section" theme="flat" spacing="small" aria-labelledby={collectedId}>
+        <Card as="section" theme="flat" aria-labelledby={collectedId}>
           <Stack gap="md">
             <Stack gap="xs" align="start">
               <Heading level={4} id={collectedId} textStyle="Heading/Subheading">Collected in Q3</Heading>
@@ -595,7 +595,7 @@ function QuarterWidgets() {
             <ProgressBar value={Math.round((q3Collected / q3Invoiced) * 100)} label layout="stacked" valueLabel={`${Math.round((q3Collected / q3Invoiced) * 100)}% of invoiced`} aria-label="Collected of invoiced" />
           </Stack>
         </Card>
-        <Card as="section" theme="flat" spacing="small" aria-labelledby={outstandingId}>
+        <Card as="section" theme="flat" aria-labelledby={outstandingId}>
           <Stack gap="md">
             <Stack gap="xs" align="start">
               <Heading level={4} id={outstandingId} textStyle="Heading/Subheading">Outstanding</Heading>
@@ -871,7 +871,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     render: () => <QuarterWidgets />,
     code: `{/* The row shares one theme; the widget that matters most stands out (one Solid per row). */}
 <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
-  <Card as="section" theme="solid" color="neutral" spacing="small" aria-labelledby={invoicedId}>
+  <Card as="section" theme="solid" color="neutral" aria-labelledby={invoicedId}>
     <Stack gap="md">
       <Stack gap="xs" align="start">
         <Heading level={4} id={invoicedId} textStyle="Heading/Subheading">Invoiced in Q3</Heading>
@@ -884,7 +884,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       </Stack>
     </Stack>
   </Card>
-  <Card as="section" theme="flat" spacing="small" aria-labelledby={collectedId}>
+  <Card as="section" theme="flat" aria-labelledby={collectedId}>
     <Stack gap="md">
       <Stack gap="xs" align="start">
         <Heading level={4} id={collectedId} textStyle="Heading/Subheading">Collected in Q3</Heading>
@@ -894,7 +894,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       <ProgressBar value={93} label layout="stacked" valueLabel="93% of invoiced" aria-label="Collected of invoiced" />
     </Stack>
   </Card>
-  <Card as="section" theme="flat" spacing="small" aria-labelledby={outstandingId}>
+  <Card as="section" theme="flat" aria-labelledby={outstandingId}>
     <Stack gap="md">
       <Stack gap="xs" align="start">
         <Heading level={4} id={outstandingId} textStyle="Heading/Subheading">Outstanding</Heading>

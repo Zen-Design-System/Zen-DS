@@ -2721,6 +2721,11 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
             "prop": "color",
             "label": "Color",
             "type": "VARIANT"
+          },
+          {
+            "prop": "spacing",
+            "label": "Spacing",
+            "type": "VARIANT"
           }
         ]
       }

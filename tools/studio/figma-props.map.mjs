@@ -464,7 +464,7 @@ export const FIGMA_PROPS = {
       Card: {
         when: "label",
         set: "Card",
-        props: { Content: skip("the Metric-Card's own layers"), "Sub-Action": skip("subAction (Object properties)"), Theme: "theme", Color: "color", Surface: skip("MetricCard has no surface prop"), Spacing: skip("Metric-Card draws Card Medium"), Active: skip("a MetricCard is not selectable") },
+        props: { Content: skip("the Metric-Card's own layers"), "Sub-Action": skip("subAction (Object properties)"), Theme: "theme", Color: "color", Surface: skip("MetricCard has no surface prop"), Spacing: "spacing", Active: skip("a MetricCard is not selectable") },
       },
     },
   },

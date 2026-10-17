@@ -300,7 +300,7 @@ const enclosingFunction = (text, decls, at) => {
 /** The JSX elements of a file (code samples in template strings left out), from one pass that rebuilds the element
  *  tree: { name, start, parent (id, -1 at the root of a function or prop), count (1, or what a mapped element renders:
  *  NaN when unknown), inRepeat (an ancestor repeats, so its siblings don't tell how many show), owner (for a root
- *  element, the function it is the root of) }. `cardNames`: Card, and the components whose root is a Card. */
+ *  element, the function it is the root of) }. `cardNames`: Card, MetricCard, and the components whose root is one. */
 let cardTreeCache = { src: null, tree: null };
 const cardTree = (src) => {
   if (cardTreeCache.src === src) return cardTreeCache.tree;
@@ -309,7 +309,7 @@ const cardTree = (src) => {
   // Code samples by backtick parity on the raw source, as inCodeSample: a `// …` line inside a sample is no comment.
   const ticks = [...src.matchAll(/(?<!\\)`/g)].map((t) => t.index);
   const decls = [...text.matchAll(DECL_RE)].map((d) => ({ index: d.index, end: d.index + d[0].length, name: d[1] ?? d[2], braced: Boolean(d[1]) || d[3] === "function" }));
-  const nodes = [], stack = [], cardNames = new Set(["Card"]);
+  const nodes = [], stack = [], cardNames = new Set(["Card", "MetricCard"]);
   let tick = 0;
   const re = /<(\/?)([A-Za-z][\w.-]*|(?=>))/g;
   for (let m; (m = re.exec(text));) {
@@ -326,7 +326,7 @@ const cardTree = (src) => {
     const node = { name: name.replace(/^\w+\.(?=Card$)/, ""), start: m.index, id: nodes.length, body: close + 1, parent: parent ? parent.id : -1,
       count: repeat ? repeat.count : 1, inRepeat: Boolean(parent?.repeats), repeats: Boolean(parent?.repeats || repeat), owner: null };
     // A root card that the function returns (`return <Card …>`, `=> cond ? <Card …>`), not one kept in a variable.
-    if (!parent && node.name === "Card" && /(?:\breturn|=>)[^;{}]*$/.test(text.slice(Math.max(0, m.index - 400), m.index))) {
+    if (!parent && ["Card", "MetricCard"].includes(node.name) && /(?:\breturn|=>)[^;{}]*$/.test(text.slice(Math.max(0, m.index - 400), m.index))) {
       node.owner = enclosingFunction(text, decls, m.index);
       if (/^[A-Z]/.test(node.owner ?? "")) cardNames.add(node.owner);
     }
@@ -344,26 +344,33 @@ const cardsBeside = ({ nodes, cardNames }, node) => {
   const known = group.filter((n) => Number.isFinite(n.count));
   return { shown: known.reduce((sum, n) => sum + n.count, 0), exact: known.length === group.length && !node.inRepeat };
 };
-/** card/spacing-by-count: three or more cards side by side take Spacing=Small, fewer keep Medium (user rule 2026-10-17).
- *  A component's root card is judged where the component is used (`<StatCard />` ×3 in a Grid); one used nowhere in
- *  the file, or only called as a function (`boardCard(task)`), is not judged. */
+/** A phone: the element sits inside a PlatformPhone frame or a BottomSheet (the frames mobile/full-size-controls reads). */
+const PHONE_FRAMES = new Set(["PlatformPhone", "BottomSheet"]);
+const onPhone = ({ nodes }, node) => { for (let p = node.parent; p >= 0; p = nodes[p].parent) if (PHONE_FRAMES.has(nodes[p].name)) return true; return false; };
+/** card/spacing-by-count: on a phone, three or more cards side by side take Spacing=Small, fewer keep Medium (user rule
+ *  2026-10-17; "rule đó chỉ áp dụng cho mobile": desktop cards keep Medium and are not judged). Card and MetricCard
+ *  (a Metric-Card is an exposed Card; type="tile" is Small by default). A component's root card is judged where the
+ *  component is used (`<StatCard />` ×3 in a Grid); one used nowhere in the file, or only called as a function
+ *  (`boardCard(task)`), is not judged. */
 const cardSpacingFinding = (attrs, src, start, children) => {
   const own = topLevel(attrs);
   if (opaque(attrs) || (has(own, "spacing") && literal(own, "spacing") === undefined)) return false;
   const tree = cardTree(src);
   const me = tree.nodes.find((n) => n.start === start);
   if (!me) return false;
-  const uses = me.parent < 0 && me.count === 1 ? tree.nodes.filter((n) => n.name === me.owner && /^[A-Z]/.test(n.name)) : [me];
+  const uses = (me.parent < 0 && me.count === 1 ? tree.nodes.filter((n) => n.name === me.owner && /^[A-Z]/.test(n.name)) : [me])
+    .filter((n) => onPhone(tree, n));
   const sites = uses.map((n) => cardsBeside(tree, n));
   if (!sites.length) return false;
-  const spacing = step(literal(own, "spacing") ?? "md");
+  const tile = me.name === "MetricCard" && literal(own, "type") === "tile";
+  const spacing = step(literal(own, "spacing") ?? (tile ? "sm" : "md"));
   const fewest = Math.min(...sites.map((s) => s.shown)), most = Math.max(...sites.map((s) => s.shown));
   const where = uses[0] === me ? "" : ` (where <${me.owner}> is used)`;
-  if (fewest >= 3) return spacing !== "sm" && `is one of ${fewest} cards in its group${where} at Spacing=Medium — three or more cards take spacing="small" (Card-padding-small, Corner-Radius/Large).`;
+  if (fewest >= 3) return spacing !== "sm" && `is one of ${fewest} cards in its group${where} on a phone at Spacing=Medium — three or more cards take spacing="small" (Card-padding-small, Corner-Radius/Large).`;
   // A Voice frame pads itself (Spacing/Padding/XLarge, Figma 15081:1294): the card around it stays Small, so the
   // three actions keep their row on a phone.
-  if (/<(VoiceRecorder|AiVoiceConversation)\b/.test(children)) return false;
-  return spacing === "sm" && most < 3 && sites.every((s) => s.exact) && `is ${most === 1 ? "a card on its own" : `one of ${most} cards`}${where} at Spacing=Small — Small is for groups of three or more cards; fewer keep Medium (the default).`;
+  if (/<(VoiceRecorder|AiVoiceConversation)\b/.test(children) || tile) return false;
+  return spacing === "sm" && most < 3 && sites.every((s) => s.exact) && `is ${most === 1 ? "a card on its own" : `one of ${most} cards`}${where} on a phone at Spacing=Small — Small is for groups of three or more cards; fewer keep Medium (the default).`;
 };
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
@@ -1212,8 +1219,8 @@ export const rules = [
       if (theme === "pale" && color === "accent") return `is theme="pale" color="accent": Figma has no Pale Accent and it renders as Pale Neutral — use theme="solid" color="accent" for the stand-out, or a Pale hue.`;
       return theme === "solid" && ["violet", "green", "blue", "purple"].includes(color) && `is theme="solid" color="${color}": Figma has no Solid ${color} and it renders as Solid Neutral — use theme="pale" color="${color}", or a Solid colour Figma draws (neutral, brand, cyan, yellow, orange, accent).`;
     } },
-  { id: "card/spacing-by-count", components: ["Card"], severity: "warn", allow: "card-spacing", guideline: "docs/guidelines/card.md",
-    summary: "Three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two cards keep Spacing=Medium, the default (user rule 2026-10-17); a card around a Voice frame, which pads itself, stays Small.",
+  { id: "card/spacing-by-count", components: ["Card", "MetricCard"], severity: "warn", allow: "card-spacing", guideline: "docs/guidelines/card.md",
+    summary: "On a phone (a PlatformPhone frame or a BottomSheet), three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two keep Spacing=Medium, the default. Desktop cards keep Medium and are not judged. MetricCard counts as a card (type=\"tile\" is Small by default). User rule 2026-10-17, mobile only.",
     check: ({ attrs, src, start, children }) => cardSpacingFinding(attrs, src, start, children) },
   { id: "listbox/on-container-in-overlay", components: ["ListBox"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/list-item.md",
     summary: "A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
