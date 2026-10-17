@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { nativeMessage, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
+import { diffMessages } from "./native-diff.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const pack = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/native-pack.json"), "utf8"));
@@ -116,6 +117,39 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(id(slice.styleIdForFill.guid) === pack.styles["Color Chart Sector/Primary"][0] && slice.fillPaints.length === 1, "a vector binds its paint style and shows its paints");
 }
 
+// --- swaps as Figma's own copy writes them (native-diff against the plugin's import; paste rounds 2–9, 2026-10-17) ------
+{
+  const cell = { type: "INSTANCE", name: "Vietnam Airlines", set: { id: "1603:5099", name: "Primitives/Table/Cell/Dock-Icon-Cell" }, props: { Bold: "Yes", Subtext: "Yes" },
+    nested: [{ path: "Text-Cell", props: { Caption: true }, textList: ["Vietnam Airlines", "Travel"] }, { path: "Dock-Icon", set: { id: "308:45902", name: "Dock-Icon" }, props: { Size: "XSmall", Theme: "Blue", Background: "Subtle", "Icon-Src": "icon-plane-line" } }] };
+  const plus = { type: "INSTANCE", name: "New", set: { id: "1026:8312", name: "Button/Main" }, props: { Size: "Medium (Base)", Level: "Primary", "Leading-Icon": true, "Leading-Icon-Src": "icon-plus-line" }, text: "New" };
+  const between = { type: "FRAME", name: "Row", layout: { mode: "HORIZONTAL", gap: 8, primary: "SPACE_BETWEEN" }, children: [] };
+  const { message, notes } = run([cell, plus, between]);
+  check(notes.length === 0, `swaps: no notes (${notes.join("; ")})`);
+  const [cellNode, plusNode] = instances(message);
+  const blue = variantNamed("308:45902", "Size=XSmall, Theme=Blue, Background=Subtle");
+  const dockRow = pack.symbols[id(cellNode.symbolData.symbolID)].nodes.find((r) => r[3] === "Dock-Icon")[0];
+  const swap = overrides(cellNode).find((o) => o.guidPath.guids.length === 1 && id(o.guidPath.guids[0]) === dockRow && o.overriddenSymbolID);
+  check(id(swap?.overriddenSymbolID) === blue, "the nested Dock-Icon switches to the Blue variant");
+  check(swap?.componentPropAssignments?.length === 1 && swap.componentPropAssignments[0].varValue.dataType === "SYMBOL_ID", "its override lists only the assignment the paste changes (Icon-Src), not the component's others");
+  const iconRow = pack.symbols[blue].nodes.find((r) => r[2] === "INSTANCE");
+  const kept = overrides(cellNode).filter((o) => o.overrideLevel === 2);
+  const keptIcon = kept.find((o) => o.guidPath.guids.length === 2 && id(o.guidPath.guids[1]) === iconRow[0]);
+  check(keptIcon?.name === "Icon", "what the swap keeps is its own entry: the renamed layer's name, at the swapped layer's depth");
+  const keptFill = kept.find((o) => o.guidPath.guids.length === 3 && o.fillPaints);
+  check(id(keptFill?.fillPaints[0].colorVar.value.alias.guid) === pack.variables["Color/Content/Support/Blue/Light"][0], "and the variant's icon colour, on the new icon's Vector, by variable id");
+  const skeleton = message.nodeChanges.find((n) => id(n.guid) === iconRow[0]);
+  check((skeleton?.symbolData.symbolOverrides ?? []).some((o) => o.fillPaints), "the variant's skeleton carries its own overrides on the nested icon (Figma reads what a swap keeps from it)");
+  check((skeleton?.parameterConsumptionMap?.entries ?? []).some((e) => e.variableField === "OVERRIDDEN_SYMBOL_ID" && e.variableData.dataType === "PROP_REF") && id(skeleton?.overrideKey) === iconRow[0], "and the PROP_REF linking its swap to Icon-Src, with its override key");
+  check(message.nodeChanges.filter((n) => n.type === "SYMBOL").every((n) => !n.componentKey), "no component keys on skeletons (not needed by Figma; the pack stays smaller)");
+  check(message.nodeChanges.filter((n) => n.type === "INSTANCE" && n.guid.sessionID === 2147480000).every((n) => n.strokeWeight === undefined && n.strokeAlign === undefined), "instances carry no stroke fields (they would override their component's)");
+  const plusIcon = (plusNode.componentPropAssignments ?? []).find((a) => a.varValue?.dataType === "SYMBOL_ID");
+  check(!plusIcon, "an icon the component already shows is not assigned again (a re-set swap drops its colour)");
+  const row = message.nodeChanges.find((n) => n.type === "FRAME" && n.name === "Row");
+  check(row?.stackPrimaryAlignItems === "SPACE_EVENLY", "space between is SPACE_EVENLY in Figma's data");
+  const copies = JSON.stringify(message, (k, v) => (typeof v === "bigint" ? Number(v) : v)).match(/"sessionID":15052,/g);
+  check(!copies, "no ref to a library copy of a variable (15052:…)");
+}
+
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------
 {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, "tools/studio/fixtures/figma-expenses.json"), "utf8"));
@@ -129,6 +163,15 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   const back = await readFigmaClipboard(html);
   check(back?.message.nodeChanges.length === message.nodeChanges.length, "the paste html reads back with every node");
   check(back?.meta.fileKey === pack.file, "the paste names the Zen file");
+  // Siblings never share a position: a layer appended to a copied slot content goes after the copy's own children
+  // (a Goal-Progress card's hint took the first child's "!" and Figma drew it on top, user 2026-10-17).
+  const byParent = new Map();
+  for (const n of message.nodeChanges) if (n.parentIndex) { const k = id(n.parentIndex.guid); if (!byParent.has(k)) byParent.set(k, []); byParent.get(k).push(n.parentIndex.position); }
+  const shared = [...byParent.values()].filter((list) => new Set(list).size !== list.length).length;
+  check(shared === 0, `no two siblings share a position (${shared} parents do)`);
+  // native-diff (the comparison with Figma's own copy of the plugin's import) finds nothing between a paste and itself.
+  const same = diffMessages(pack, message, message.clipboardSelectionRegions[0].nodes[0], message);
+  check(same.kinds.length === 0 && same.counts.INSTANCE > 150, `native-diff: a paste equals itself (${same.kinds.slice(0, 3).map((k) => k.kind).join("; ")})`);
 }
 
 if (failures.length) { console.error(`✗ figma-native selftest: ${failures.length}/${checks} failed\n  ${failures.join("\n  ")}`); process.exit(1); }
