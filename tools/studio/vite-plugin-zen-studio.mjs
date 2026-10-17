@@ -18,6 +18,8 @@
 // detach.mjs and drafts.mjs; `node tools/studio/selftest.mjs` tests them.
 // Builder pages (2026-10-06, GĐ2 M2): GET /pages, POST /pages/write, POST /pages/trash keep the pages made in the
 // Studio in the gitignored `.zen-studio/pages/` (pages-folder.mjs: id regex, no links, 2 MB, dialect check first).
+// Projects (2026-10-17): GET /projects, POST /projects/write, POST /projects/trash keep Studio projects (a name and a theme
+// that is one extra Base Colors (Project) mode) in `.zen-studio/projects/<id>/` (projects-folder.mjs).
 // Promote (2026-10-07, GĐ5 M5): POST /promote writes a builder page into the repo as src/templates/studio/<Name>Template.tsx
 // with its photos (promote.mjs), then TypeScript and the harness on it; an existing different template needs
 // { overwrite: true }. ZEN_STUDIO_PROMOTE_DIR (relative to the root) moves it for the E2E server.
@@ -38,6 +40,7 @@ import { SLOT_OPS, describeSlots, requiredFromApi, withSlots } from "./slots.mjs
 import { componentModulesFrom } from "./component-modules.mjs";
 import { validateDialect } from "./dialect.mjs";
 import { PAGES_DIR, PagesError, pagesFolder } from "./pages-folder.mjs";
+import { PROJECTS_DIR, ProjectsError, projectsFolder } from "./projects-folder.mjs";
 import { PROMOTE_DIR, planPromotion, typecheck, writePromotion } from "./promote.mjs";
 import { attachRelay, createRelay } from "./mcp/relay.mjs";
 import { MCP_PATH, studioMcp } from "./mcp/server.mjs";
@@ -55,6 +58,8 @@ const HARNESS_TIMEOUT = 60_000;
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
 const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
+/** Studio projects (2026-10-17, projects-folder.mjs): their own set, so the routes above merge cleanly. */
+const PROJECT_ROUTES = new Set(["/projects", "/projects/write", "/projects/trash"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -315,12 +320,24 @@ export function zenStudio() {
         const result = await exclusive(() => pagesCall(() => (route === "POST /pages/write" ? pages().write(body.id, body.text) : pages().trash(body.id))));
         return send(res, 200, { ok: true, ...result });
       }
+      // Studio projects (2026-10-17): .zen-studio/projects/<id>/{project.json, theme.css}; a project's theme is one more
+      // Base Colors (Project) mode, never a change to tokens/source.
+      if (route === "GET /projects") {
+        checkToken(req);
+        return send(res, 200, { ok: true, dir: projects().dir, projects: await projectsCall(() => projects().list()) });
+      }
+      if (route === "POST /projects/write" || route === "POST /projects/trash") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        const result = await exclusive(() => projectsCall(() => (route === "POST /projects/write" ? projects().write(body.project) : projects().trash(body.id))));
+        return send(res, 200, { ok: true, ...result });
+      }
       if (route === "POST /promote") {
         checkWriteHeaders(req);
         const body = await readJson(req);
         return send(res, 200, await promote(body));
       }
-      if (ROUTES.has(url.pathname.slice(PREFIX.length))) throw new HttpError("invalid", `${req.method} is not allowed here`, 405);
+      if (ROUTES.has(url.pathname.slice(PREFIX.length)) || PROJECT_ROUTES.has(url.pathname.slice(PREFIX.length))) throw new HttpError("invalid", `${req.method} is not allowed here`, 405);
       throw new HttpError("not-found", `Unknown endpoint ${url.pathname}`);
     } catch (error) {
       if (!(error instanceof HttpError)) throw error;
@@ -1152,6 +1169,21 @@ export function zenStudio() {
       return await task();
     } catch (error) {
       if (error instanceof PagesError) throw new HttpError(error.code, error.message);
+      throw error;
+    }
+  }
+
+  let projectsCache = null;
+  /** The Studio projects folder (projects-folder.mjs). ZEN_STUDIO_PROJECTS_DIR keeps the E2E server's apart. */
+  function projects() {
+    projectsCache ??= projectsFolder(root, { dir: process.env.ZEN_STUDIO_PROJECTS_DIR || PROJECTS_DIR });
+    return projectsCache;
+  }
+  async function projectsCall(task) {
+    try {
+      return await task();
+    } catch (error) {
+      if (error instanceof ProjectsError) throw new HttpError(error.code, error.message);
       throw error;
     }
   }

@@ -52,6 +52,10 @@ Last updated: 2026-10-15.
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
+- **Studio projects + theme (2026-10-17, phase 1):** branch `zen/feat/studio-projects-theme-20261017` (worktree
+  `../Zen-DS-projects`). Projects like Figma files; each theme is one extra Base Colors (Project) mode
+  `data-brand="p-<id>"` in `.zen-studio/projects/<id>/` (never tokens/source). Spec, gotchas and phases 2–3:
+  `docs/research/studio-projects-theme-2026-10-17.md`.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:
   Figma first, review, then code (tier L each). Ids: session-log-2026-10-17 "Calendar / Schedule / Timeline in Figma".

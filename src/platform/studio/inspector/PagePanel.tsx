@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button } from "../../../components/Button";
+import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -11,10 +11,14 @@ import { focusFrame, frameIcon, useFrames } from "./frames";
 import { InspectorFields, InspectorItem, InspectorSection } from "./Section";
 
 import { openExport } from "../builder/export/exportState";
-import { pagesPersist, renamePage, setPageOs, usePage, useStorage } from "../builder/store/pageStore";
+import { pagesPersist, renamePage, setPageOs, setPageProject, usePage, useStorage } from "../builder/store/pageStore";
 import { headerOs } from "../builder/store/pageModel";
 import { Segmented } from "../../../components/Segmented";
-import { InputField } from "../../../components/Input";
+import { InputField, SelectField } from "../../../components/Input";
+import { useCanvasPreview } from "../project/activeProject";
+import { openProjectSetup } from "../project/ProjectSetup";
+import { pageProjectOf } from "../project/pageProject";
+import { useProjects } from "../project/projectStore";
 /*
  * Inspector with nothing selected (spec §6): the page, a one-line summary of the canvas preview modes (the toolbar
  * Modes popover is the one place to change them) and the frames on the board.
@@ -62,12 +66,32 @@ function PageOs({ id, text }: { id: string; text: string }) {
   );
 }
 
+/** The page's Studio project (Drafts: the Zen theme): moving it there gives it that project's theme. */
+function PageProject({ id }: { id: string }) {
+  const admin = useStudio((state) => state.role === "admin");
+  const projects = useProjects();
+  const current = pageProjectOf(id, new Set(projects.map((project) => project.id)));
+  return (
+    <SelectField
+      aria-label="Project"
+      size="sm"
+      disabled={!admin}
+      value={current ?? ""}
+      onValueChange={(value) => { void setPageProject(id, value || null); }}
+      options={[{ value: "", label: "Drafts", meta: "Zen" }, ...projects.map((project) => ({ value: project.id, label: project.name }))]}
+    />
+  );
+}
+
 /** Design tab with nothing selected. */
 export function PagePanel() {
   const page = useStudio((state) => state.page);
   const localPage = useStudio((state) => state.localPage);
   const builderPage = usePage(localPage);
-  const preview = useStudio((state) => state.preview);
+  // The modes the canvas draws in: the Studio's, with the page's project's over them.
+  const { preview } = useCanvasPreview();
+  const projects = useProjects();
+  const project = localPage ? projects.find((item) => item.id === pageProjectOf(localPage, new Set(projects.map((entry) => entry.id)))) ?? null : null;
   const frames = useFrames(page);
   // A builder page (Studio builder GĐ2) names itself and says where it is kept; a docs page's description is on the
   // board (its title block), not here too (user, 2026-10-07).
@@ -95,6 +119,9 @@ export function PagePanel() {
           <InspectorFields name="title" labels={["Name"]} fields={[<PageName key="name" id={localPage} title={builderPage.title} />]} />
           {/* One OS for the page (user, 2026-10-10): its phone and tablet Screens draw that OS's status and bottom bars. */}
           <InspectorFields name="os" labels={["Mobile OS"]} fields={[<PageOs key="os" id={localPage} text={builderPage.text} />]} />
+          {/* Studio projects (2026-10-17): the page draws in its project's theme; Drafts keep Zen's. */}
+          <InspectorFields name="project" labels={["Project"]} fields={[<PageProject key="project" id={localPage} />]}
+            icon={project ? <IconButton icon="icon-palette-line" aria-label={`${project.name} theme`} tooltip="Project theme" appearance="flat" level="secondary" size="xs" onClick={() => openProjectSetup({ kind: "edit", id: project.id })} /> : null} />
         </InspectorSection>
       ) : null}
       {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here. */}

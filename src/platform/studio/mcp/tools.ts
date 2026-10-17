@@ -10,6 +10,8 @@ import { openLocalPage } from "../shell/navigation";
 import { studioStore } from "../store";
 import type { EditOp, EditResponse, EditValue } from "../types";
 import { childLayers, FRAME_NAMES, findLayer, frameOf, layerLine, outline, type DocNode } from "./tree";
+import { withHeaderProject } from "../builder/store/pageModel";
+import { activeProjectId } from "../project/activeProject";
 
 /*
  * The Studio MCP's tools as the open tab runs them (spec docs/research/studio-mcp-canvas-2026-10-15.md §5; M0, M1; the
@@ -460,7 +462,8 @@ async function createPage(args: Args): Promise<ToolAnswer> {
   const device = args.device === undefined ? "desktop" : args.device;
   if (device !== "desktop" && device !== "tablet" && device !== "phone") return refuse("invalid", "`device` is desktop, tablet or phone");
   const [engine, id] = await Promise.all([loadEngine(), freeId(title)]);
-  await putPage(id, engine.newPageText({ title, device, chrome: args.chrome !== false }), { title });
+  // In a Studio project (the page or the home open in the tab), the page is the project's and draws in its theme.
+  await putPage(id, withHeaderProject(engine.newPageText({ title, device, chrome: args.chrome !== false }), activeProjectId()), { title });
   openLocalPage(id);
   const page = await openPage();
   if (!page || page.id !== id) return answer(`Made the page "${title}" (${id}); open it with open_page.`);

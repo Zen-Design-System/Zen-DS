@@ -468,3 +468,29 @@ code + Studio in full; bright solids = follow the tokens and add On-Bright (whit
 - Open (BACKLOG P2): mobile library components' default shape (question for the user); native-pack re-capture.
 - Gate: `npm run qa` (search, top-navigation, bottom-sheet) PASS, report .qa/reports/2026-10-17T11-18-10-c9cbf549.md
   (a first run's bottom-sheet@390 crash did not reproduce: audit 390/320 clean). Not committed (commits come from one place).
+
+## Studio projects + project theme, phase 1 (tier L, session "Studio project theme customization"; user: "tạo dự án như Figma … set theme cho Dự án … không đè vào codebase hiện tại mà chỉ sinh thêm 1 mode riêng", then "sinh động như trang tailwind color app", "chart nên chia nhiều sector")
+- Decisions: Drafts for pages with no project, the four radius modes, build phase 1. Spec and next phases:
+  `docs/research/studio-projects-theme-2026-10-17.md`. Branch `zen/feat/studio-projects-theme-20261017`, worktree
+  `../Zen-DS-projects`.
+- A project's theme is one extra Base Colors (Project) mode, `[data-brand="p-<id>"]`. It is kept in
+  `.zen-studio/projects/<id>/{project.json, theme.css}` (`tools/studio/projects-folder.mjs`, routes GET /projects and
+  POST /projects/write|trash). tokens/source and tokens.css are untouched. Pages join a project through the header key
+  `project`.
+- Ramps: `tools/studio/zen-ramp.generated.mjs`, copied from the Zen plugin's `generateExpectedPalette` by
+  `zen-ramp-extract.mjs`. The selftest rebuilds all 960 values of the 20 shipped ramps exactly, and Zen's On-Brand.
+- UI:
+  - Studio home is a projects grid with themed thumbnails.
+  - Pages panel: project bar and list; New project / New page on the grid.
+  - Theme page `project/ProjectSetup.tsx`: the settings, plus a gallery with Cards / Charts (7 sectors) / Dashboard /
+    Website / Components in Light, Dark or Both. A chart-sector change opens Charts; ⌘Z steps through changes.
+  - Inspector: a Project row (move the page, open its theme); Preview modes show the project's modes.
+- Canvas, Present, Play, insert previews and the HTML export draw in the project's mode.
+- Library: Chart sectors 3–7 read `--zen-chart-sector-*` and `-subtle`, with today's colours as fallbacks. Sector 7 is
+  back to Green Soft (regressed to Red Soft in cc3a97b9; the Figma style is Green Soft); the guideline text is fixed too.
+- Gotcha: swatches inside Studio chrome show Neutral-S7, because tokens.css re-resolves the component theme under a
+  `[data-component-theme]` ancestor. The theme page reads its tile and sector colours from probes outside the chrome.
+- Checks:
+  - tsc ✓; studio selftests ✓ (project-theme 1664, projects-folder 13, pageModel 45); usage + style guard clean.
+  - Playwright on a private :5191: create → home → page has `data-brand="p-…"`; settings round-trip; 390px stacks with
+    no overflow.

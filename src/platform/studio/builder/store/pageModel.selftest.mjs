@@ -2,7 +2,7 @@
 // Self-test of the builder PageStore's pure rules (./pageModel.ts, imported directly: Node strips the types): header
 // title, ids, hash, revisions, Trash, and the sync plan with a folder mirror.
 // Run: node src/platform/studio/builder/store/pageModel.selftest.mjs
-import { headerOs, headerTitle, idFromFileName, withHeaderOs, keepsRevision, planSync, REVISION_GAP_MS, slugOf, textHash, trashDaysLeft, trashExpired, TRASH_MS, withHeaderTitle, withScreenTitles } from "./pageModel.ts";
+import { headerOs, headerProject, headerTitle, idFromFileName, withHeaderOs, withHeaderProject, keepsRevision, planSync, REVISION_GAP_MS, slugOf, textHash, trashDaysLeft, trashExpired, TRASH_MS, withHeaderTitle, withScreenTitles } from "./pageModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -26,6 +26,12 @@ check("os unset is iOS", headerOs(page("A")), "ios");
 check("os android written", withHeaderOs('// @zen-page {"format":1,"title":"A"}\nrest', "android"), '// @zen-page {"format":1,"title":"A","os":"android"}\nrest');
 check("os read back", headerOs('// @zen-page {"format":1,"title":"A","os":"android"}\nrest'), "android");
 check("os iOS removes the key", withHeaderOs('// @zen-page {"format":1,"title":"A","os":"android","x":2}\r\nrest', "ios"), '// @zen-page {"format":1,"title":"A","x":2}\r\nrest');
+// Studio projects (2026-10-17): the header's project; none is a draft.
+check("project unset is a draft", headerProject(page("A")), null);
+check("project written", withHeaderProject('// @zen-page {"format":1,"title":"A"}\nrest', "acme"), '// @zen-page {"format":1,"title":"A","project":"acme"}\nrest');
+check("project read back", headerProject('// @zen-page {"format":1,"title":"A","project":"acme"}\nrest'), "acme");
+check("project null removes the key", withHeaderProject('// @zen-page {"format":1,"project":"acme","title":"A"}\nrest', null), '// @zen-page {"format":1,"title":"A"}\nrest');
+check("a bad project id is a draft", headerProject('// @zen-page {"format":1,"title":"A","project":"../x"}\nrest'), null);
 check("os without a header", withHeaderOs("abc", "android"), "abc");
 check("a Screen named after the page follows its new name", withScreenTitles('<Screen id="screen-1" title="Untitled page" device="desktop">\n<Text>Untitled page</Text>', "Untitled page", "Checkout"), '<Screen id="screen-1" title="Checkout" device="desktop">\n<Text>Untitled page</Text>');
 check("a Screen named otherwise keeps its name", withScreenTitles('<Screen id="s" title="Cart">', "Untitled page", "Checkout"), '<Screen id="s" title="Cart">');

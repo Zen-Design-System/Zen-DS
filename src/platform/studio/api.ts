@@ -69,7 +69,7 @@ function serverToken(renew: boolean): Promise<string | null> {
 }
 
 /** A request with the role and the server's token (writes, and GET /drafts); renews the token once when refused for it. */
-async function authorized<T>(path: string, body?: unknown, timeout?: number): Promise<Reply<T> | null> {
+export async function authorized<T>(path: string, body?: unknown, timeout?: number): Promise<Reply<T> | null> {
   const attempt = async (renew: boolean) => {
     const key = await serverToken(renew);
     const headers: Record<string, string> = { [STUDIO_ROLE_HEADER]: studioStore.getState().role };

@@ -18,6 +18,7 @@ import { CLICKABLE, itemElement, layerElements } from "./protoDom";
 import { DEFAULT_DELAY, optionsOf, protoSourcesOf, type ProtoOptions } from "./protoModel";
 import { placesItself } from "./protoTriggers";
 import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, protoHandler, type PageDevice, type ProtoActions } from "./runtime";
+import { useCanvasPreview } from "../../project/activeProject";
 
 /*
  * Play (Studio builder GĐ2 M3, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d): the page runs full
@@ -92,7 +93,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const { toast } = useToast();
   // Preview modes change here and in Present only (the toolbar has none): Play's own, light/dark included, over the
   // canvas modes. They change the page being played, never the Studio's UI (its bar keeps the chrome modes).
-  const canvasModes = useStudio((state) => state.preview);
+  const { preview: canvasModes, brand } = useCanvasPreview();
   const [own, setOwn] = useState<Partial<StudioPreviewSettings>>({});
   const modes: StudioPreviewSettings = { ...canvasModes, ...own };
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((current) => ({ ...current, [key]: value })), []);
@@ -231,7 +232,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const screenTitle = screen ? String(literal(screen, "title") ?? current) : "";
 
   return (
-    <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes)}>
+    <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes, brand)}>
       <PresentBar title={screenTitle && screenTitle !== title ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
         viewport={viewport} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}
         leading={<>

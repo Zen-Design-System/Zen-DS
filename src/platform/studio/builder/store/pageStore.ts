@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerFigma, headerTitle, withHeaderOs, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
+import { headerFigma, headerProject, headerTitle, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 
 /*
@@ -282,6 +282,18 @@ export async function setPageOs(id: string, os: "ios" | "android"): Promise<void
   if (text !== page.text) await putPage(id, text, { title: page.title, reason: "edit" });
 }
 
+/** Moves the page into a Studio project (header `project`; null: back to Drafts). The page's document keeps its
+ *  layers, with the same header. */
+export async function setPageProject(id: string, project: string | null): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderProject(page.text, project);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  if (project) header.project = project; else delete header.project;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
+}
+
 /** A copy of the page under a new id ("<title> copy"); returns the new id. */
 export async function duplicatePage(id: string): Promise<string> {
   const page = await getPage(id);
@@ -503,6 +515,16 @@ export function usePage(id: string | null): PageRecord | null {
 }
 
 /** Every live page's meta (newest first), re-rendering on changes. */
+/** A live page's Studio project (header `project`; null: a draft; undefined: not read yet), re-rendering only when it
+ *  changes — not on every edit, as usePage does (StudioApp and the canvas read it). */
+export function usePageProject(id: string | null): string | null | undefined {
+  const read = () => {
+    const record = id ? cache.get(id) : undefined;
+    return record && isLive(record) ? headerProject(record.text) : undefined;
+  };
+  return useSyncExternalStore(subscribe, read, read);
+}
+
 export function usePages(): PageMeta[] {
   useVersion();
   useEffect(() => { if (!listed) void loadAll(); }, []);
