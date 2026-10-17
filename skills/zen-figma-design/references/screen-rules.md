@@ -145,6 +145,38 @@ Pick each component's guideline (`guidelines/<slug>.md`) before placing it.
   `createAutoLayout()` turns Clip content on, and the cards' shadows were cut on a dashboard (user, 2026-10-13). The
   page pattern's own frames leave room (Body padding); your frames must not take it away.
 
+### Learned from the designer's own edits (◇ Master-Layout · Variants, 2026-10-17)
+
+The user rebuilt parts of the generated screens by hand. These are their choices; do the same from the start.
+
+- **A titled section is one frame.**
+  - The Section-Header (Heading/4 + Button/Flat Small) and its content sit in one vertical frame with
+    `Spacing/Gap/Medium`. A Chip row and the list it filters belong together the same way.
+  - Only the sections are children of the Body, spaced by `Layout-Mobile/Section-Gap`. A header that is a Body
+    sibling of its own content gets the section gap between them, which reads as two sections.
+- **Overlays on a photo** (a heart, a badge, a brand panel, thumbnails, a LIVE tag) sit in a `Wrapper` auto-layout
+  frame whose padding is a token (`Spacing/Padding/XSmall` for a button or badge at a corner, `Spacing/Padding/Small`
+  for a panel or a thumbnail row). The wrapper is pinned to its corner by constraints, never placed by raw x/y.
+- **Card spacing by width:**
+  - full-width content cards and two-column cards: `Spacing=Medium`;
+  - three-or-more-up tiles (climate, macros): `Spacing=Small`.
+- **A device's power** on a detail screen is a `Toggle-Button` XLarge at the start of the status row, with the status
+  value block aligned to the end (`counterAxisAlignItems = MAX`).
+  - A control that cannot be switched from here shows the Toggle-Button `State=Disabled` (a lock's status).
+  - In a grid card, power is a small `Button/Icon-Main` XSmall in the card's bottom row (`SPACE_BETWEEN`, aligned to
+    the bottom).
+- **Steppers** (− value +) use `Button/Icon-Main` Small Tertiary; the value carries the weight.
+- **On a Solid colour band**, a view switch is `Segmented Level=White-Overlay`.
+- **A row of shortcut Dock-Icons** (a shop's quick actions) is all `Background=Solid`: the first or main one in
+  Accent, the others in supporting hues (Orange, Violet, Cyan, Golden). A row of cards that each lead with a
+  Dock-Icon (scenes) keeps Subtle icons, with the main card's icon Accent Solid.
+- **A hero action on a Brand Pale stage** (unlock) can be a large `Button/Icon-Main` Surface: white on pale, with an
+  Accent label under it.
+- **Imagery** is generous: device and product photos fill their card's picture area (108 in a two-column card, about
+  260 on a detail screen).
+- **The floating Bottom-Navigation's action** is the main create action ("+") unless the screen's job says
+  otherwise.
+
 ## 5. Checklist after the audit passes (look at the screenshot)
 
 - One clear main action per area; the eye lands on the title, then the main content.

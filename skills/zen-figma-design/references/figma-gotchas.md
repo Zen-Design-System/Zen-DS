@@ -60,3 +60,16 @@ skill covers the general API rules (fonts, pages, auto-layout sizing); these are
   names. Scope it with `includeLibraryKeys` (the key `get_libraries` returns for the file's Zen library).
 - Import a set by key (`figma.importComponentSetByKeyAsync`) and pick the variant with `setProperties`, not by
   importing the variant's own component.
+
+## Modes (Component Size, Typography)
+
+The domain picks the Component Size and Typography modes, so a screen must hold up in each (user 2026-10-17). After
+you pick or change a mode on a screen, recheck it:
+- **Dock-Icon `Theme=Emoji`** keeps its emoji's font size while the tile grows (Large: 48 → 56 in Comfortable), so
+  the emoji looks small. Set the emoji text to about 82% of the tile (46 in a 56 tile) and keep its Icon frame
+  inside the tile.
+- Text that grows can overflow fixed boxes. Let it wrap (`textAutoResize = "HEIGHT"`, Fill width) or truncate it
+  (`textTruncation = "ENDING"`, `maxLines`). Split a value from its unit ("6.2" + "kWh today"). Stack a name above
+  its price instead of beside it.
+- A Body that grows past the screen scrolls: set the screen to Overflow Vertical with its bars fixed. A Chip row that
+  grows past the width scrolls horizontally. Never trim content to fit one mode.

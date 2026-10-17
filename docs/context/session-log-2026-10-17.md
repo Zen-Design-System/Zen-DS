@@ -300,3 +300,25 @@ trong toggle dot", then (AskUserQuestion → icon by state, refined in chat) "t�
   --pages=toggle,list-item` ✓ PASS (token sources left out of scope: additions only, `tokens:check` ✓). Studio:
   `studio:selftest` exit 0; `studio:e2e --only=inspector,handoff` 30 works · 0 broken. Figma description of Toggle
   updated (figma-docs, backup frame).
+
+## Figma skill: rules from the user's catches and edits (session "Master layout variations") — tier S
+User: "Dùng icon không đồng bộ" (F12 nav), "Làm Master layout nên QA lại kỹ trước khi done", "từ đây về sau bổ
+sung nguyên tắc. Luôn làm đúng không lại sai", "đọc lại các cách tôi dùng component và spacing trong các file tôi
+chỉnh sửa … học thêm cho skill".
+- Navigation icons: every Bottom-Navigation in D/E/F now shows the selected item solid and the others line (Scenes
+  moved to stars-01: magic-wand has no solid). The audit adds `navigation/icon-style`.
+- I inventoried the user's hand edits on ◇ Master-Layout · Variants (frames, gaps, variants):
+  - section header + content grouped into one frame;
+  - overlays in padded Wrapper frames;
+  - Card Spacing=Medium for two-column and full-width cards;
+  - Toggle-Button XLarge power with the value aligned to the end;
+  - Small steppers;
+  - Segmented White-Overlay on a Solid band;
+  - Solid shortcut rows;
+  - a Surface unlock button;
+  - "+" as the floating action.
+
+  These went into screen-rules §4, and the same fixes were applied to my remaining screens: the E1 Stores section,
+  E2/F7 overlay wrappers, Medium cards on E1/E6/D1, wider E5 tree cards, and the E3 fill and E6 chip row.
+- SKILL §5: a slip the user catches → fix it everywhere + rule + audit check in the same turn. figma-gotchas gets
+  "Modes" (emoji Dock-Icons at ~82% of the tile, text wrap/truncate, scroll instead of trimming).
