@@ -214,6 +214,31 @@ export function projectThemeCss(id, theme, { name, brand = projectBrand(id) } = 
   ].join("\n");
 }
 
+const capital = (word) => word[0].toUpperCase() + word.slice(1);
+/**
+ * The project's mode as Figma variable values of Base Colors (Project): `{ "Light/Brand/9": "{Light/Indigo/9}" | "#4F46E5",
+ * … }` — the variables projectThemeCss declares, by their Figma names (Brand, Neutral, the status roles, each 12 solid +
+ * 12 alpha steps per side; On-Brand Default / Hover / Pressed). The Variables window shows it as the project's column; a
+ * Figma export writes it as the project's mode. Variables it leaves out keep the Zen mode's value.
+ */
+export function projectBaseValues(theme) {
+  const palettes = projectPalettes(theme);
+  const values = {};
+  const ramp = (role, palette) => {
+    for (const [side, solid, alpha] of [["Light", "lightSolid", "lightAlpha"], ["Dark", "darkSolid", "darkAlpha"]]) {
+      for (let index = 0; index < 12; index += 1) {
+        values[`${side}/${role}/${index + 1}`] = palette.alias ? `{${side}/${palette.alias}/${index + 1}}` : palette[solid][index].toUpperCase();
+        values[`${side}/${role}-Alpha/${index + 1}`] = palette.alias ? `{${side}/${palette.alias}-Alpha/${index + 1}}` : palette[alpha][index].toUpperCase();
+      }
+    }
+  };
+  ramp("Brand", palettes.primary);
+  ramp("Neutral", palettes.neutral);
+  for (const [role, name] of Object.entries(theme.status)) ramp(capital(role), { alias: name });
+  for (const side of ["light", "dark"]) for (const state of ["default", "hover", "pressed"]) values[`${capital(side)}/On-Brand-${capital(state)}`] = palettes.onBrand[side][state].toUpperCase();
+  return values;
+}
+
 /** The ZenProvider / data-* modes a project's frames render in (Light / Dark stays the canvas's own switch). */
 export function projectModes(theme) {
   const { componentTheme, density, radius, typography, emphasis } = theme.modes;

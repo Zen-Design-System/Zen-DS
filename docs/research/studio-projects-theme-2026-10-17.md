@@ -90,7 +90,8 @@ generated against; then Primary.
     `[data-brand=…][data-contrast="high"]`.
   - Present and Play start from the project's modes, Modes panel included.
   - MCP `list_projects` / `create_project` / `set_project_theme`.
-  - The Variables window shows the project's mode as a read-only column of Base Colors (Project).
+  - ~~The Variables window shows the project's mode as a read-only column of Base Colors (Project).~~ Done
+    2026-10-18 (project/projectVariables.ts).
 - Phase 3:
   - **Export to code**: `theme.css` + `<ZenProvider brand="p-<id>" …>`. This needs `brand` to accept project ids in
     the public type.

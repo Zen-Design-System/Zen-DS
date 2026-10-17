@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateExpectedPalette } from "./zen-ramp.generated.mjs";
-import { RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultProjectTheme, normalizeProject, projectIdFor, projectModes, projectPalettes, projectThemeCss, tintedNeutralAnchor } from "./project-theme.mjs";
+import { RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultProjectTheme, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectThemeCss, tintedNeutralAnchor } from "./project-theme.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const collection = (file) => Object.values(JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma", file), "utf8")))[0];
@@ -77,6 +77,16 @@ ok(() => assert.equal(normalizeProject({ id: "acme", name: "  " }).project, null
   ok(() => assert.equal(errors.length, 2), `two replaced values (${errors.join("; ")})`);
 }
 ok(() => assert.deepEqual(projectModes(defaultProjectTheme()), { componentTheme: "brand-s1", density: "compact", radius: "rounded", typography: "dashboard", emphasis: "medium" }), "modes");
+
+// 6b. The project's Figma values: the default theme gives exactly the Zen mode's Base Colors (Project) values.
+{
+  const values = projectBaseValues(defaultProjectTheme());
+  ok(() => assert.equal(Object.keys(values).length, 48 * 6 + 6), "Figma values: 6 roles + On-Brand");
+  for (const [name, value] of Object.entries(values)) ok(() => assert.equal(String(value).toUpperCase(), String(baseColors(name)).toUpperCase(), `${name}: ${value} vs Zen ${baseColors(name)}`), `figma ${name}`);
+  const custom = projectBaseValues({ ...defaultProjectTheme(), primary: { hex: "#4F46E5" } });
+  ok(() => assert.equal(custom["Light/Brand/9"], "#4F46E5"), "custom Brand 9 is the colour");
+  ok(() => assert.match(custom["Dark/Brand-Alpha/3"], /^#[0-9A-F]{8}$/), "custom alpha is #RRGGBBAA");
+}
 
 // 7. Ids from names, Vietnamese included.
 ok(() => assert.equal(projectIdFor("Dự án Đìzai Studio"), "du-an-dizai-studio"), "vi id");

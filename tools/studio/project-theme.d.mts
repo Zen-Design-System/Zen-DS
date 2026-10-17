@@ -42,3 +42,4 @@ export function tintedNeutralAnchor(primaryHex: string): string;
 export function projectPalettes(theme: ProjectTheme): { primary: Palette; neutral: Palette; onBrand: { light: OnBrand; dark: OnBrand } };
 export function projectThemeCss(id: string, theme: ProjectTheme, options?: { name?: string; brand?: string }): string;
 export function projectModes(theme: ProjectTheme): ProjectModes;
+export function projectBaseValues(theme: ProjectTheme): Record<string, string>;

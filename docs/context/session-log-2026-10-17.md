@@ -589,6 +589,14 @@ thành icon palette".
     now takes the project in its first write (pageFromSnapshot).
   - Checked: blank pages (from the project home and from the panel) and template pages keep their project, including
     after a rename.
+- Follow-up (user, 2026-10-18: "không truy xuất được Local variable của dự án"):
+  - The 5191 server returned 404 for /variables. Its restart had failed during the merge, while package.json still had
+    conflict markers, so it kept the old plugin. Restarted.
+  - The Variables window now shows the open project's mode as the first column of Base Colors (Project), from
+    `projectBaseValues(theme)`: aliases to the shipped ramps or the custom hex; the selftest checks the default theme
+    equals the Zen mode exactly. Every collection resolves through that column, so Mode Colors' chips show the
+    project's colours.
+  - The column is read-only: a click opens Project settings. tokens/source keeps only the Zen mode.
 - Follow-up (user: "Chưa bỏ segmented dời chỗ đổi document và studio vào menu hả?"): main already had it from
   another session (the brand menu's Switch to Document / Switch to Studio), so the merge took main's version and
   dropped this session's parallel one (Open Document / Open Studio).
