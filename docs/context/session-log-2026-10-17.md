@@ -523,5 +523,7 @@ thành icon palette".
   tsc. Found on the way: relayout.selftest was never in studio:selftest (added); the plugin's dynamic-page safety test
   was red since ed9bec6 (a comment) — fixed.
 - Plugin UI: the uncommitted Paste-from-Studio box work (index.html, src/ui/main.js, styles.css,
-  tests/studio-paste-ui.test.js, a closed session's, 2026-10-17 00:40) is left in the working tree; only my lines committed.
+  tests/studio-paste-ui.test.js, a closed session's, 2026-10-17 00:40) was not committed; the user then had it discarded
+  ("Bỏ các thay đổi UI cũ trong plugin đi"). Backup: Zen-DS `backups/plugin-ui-paste-box-wip-2026-10-17.patch`; the plugin
+  repo is clean, rebuilt, `npm test` green.
 
