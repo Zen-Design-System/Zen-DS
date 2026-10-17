@@ -155,6 +155,28 @@ export function indexPack(pack) {
   return { pack, tree, byName, styles: pack.styles, variables: pack.variables };
 }
 
+/**
+ * A guidPath under one component (`from`) as the same layers under another (`to`), by their names from the root, level
+ * by level through nested instances; a lone layer of a kind (an icon's one Vector) matches when the names differ.
+ */
+function matchLayers(index, from, to, rel) {
+  const namesOf = (tree, row) => { const out = []; for (let r = row; r; r = r.parent < 0 ? null : tree.rows[r.parent]) out.unshift(r.name); return out.join("/"); };
+  const out = [];
+  for (const step of rel) {
+    if (!from || !to) return null;
+    const row = from.rows.find((r) => r.id === step);
+    if (!row) return null;
+    const names = namesOf(from, row);
+    let match = to.rows.find((r) => namesOf(to, r) === names);
+    if (!match) { const same = to.rows.filter((r) => r.type === row.type); if (same.length === 1 && from.rows.filter((r) => r.type === row.type).length === 1) match = same[0]; }
+    if (!match) return null;
+    out.push(match.id);
+    from = index.tree(row.main);
+    to = index.tree(match.main);
+  }
+  return out;
+}
+
 /** A variant's property values from its name ("Size=Small, Level=Primary"). */
 const variantValues = (name) => Object.fromEntries(String(name).split(",").map((part) => part.split("=").map((s) => s.trim())).filter((pair) => pair.length === 2));
 const variantOf = (options, on) => options.find((option) => (on ? ["yes", "true", "on"] : ["no", "false", "off"]).includes(String(option).toLowerCase())) ?? null;
@@ -356,7 +378,8 @@ class Writer {
     } else {
       if (layout.gap) fields.stackSpacing = layout.gap;
       vars.push(["STACK_SPACING", layout.gapVar]);
-      if (layout.primary && layout.primary !== "MIN") fields.stackPrimaryAlignItems = layout.primary;
+      // The Plugin API's SPACE_BETWEEN is SPACE_EVENLY in Figma's own data (its SPACE_BETWEEN is another value).
+      if (layout.primary && layout.primary !== "MIN") fields.stackPrimaryAlignItems = layout.primary === "SPACE_BETWEEN" ? "SPACE_EVENLY" : layout.primary;
       if (layout.counter && layout.counter !== "MIN") fields.stackCounterAlignItems = layout.counter;
       if (layout.mode === "HORIZONTAL" && layout.wrap) {
         fields.stackWrap = "WRAP";
@@ -525,8 +548,9 @@ class Writer {
     const w = spec.size || spec.fixedWidth || tree.w, h = spec.size || tree.h;
     const pos = this.position(spec, parentInfo, w, h);
     const node = {
+      // No stroke fields: on an instance they override its component's (a nav item's 3px outside ring became 1px inside).
       guid: id, phase: "CREATED", parentIndex: { guid: parent, position: this.place(parent) }, type: "INSTANCE", name: spec.name || tree.name, visible: true, opacity: 1,
-      size: { x: pos.w, y: pos.h }, transform: at(pos.x, pos.y), ...FRAME_FIELDS,
+      size: { x: pos.w, y: pos.h }, transform: at(pos.x, pos.y),
       symbolData: { symbolID: guid(main), symbolOverrides: [], uniformScaleFactor: 1 },
       ...this.childFields(spec, parentInfo),
     };
@@ -617,14 +641,52 @@ class Writer {
       tree.rows.forEach((row, index) => {
         const parentId = row.parent < 0 ? guid(id) : guid(tree.rows[row.parent].id);
         const node = { guid: guid(row.id), phase: "CREATED", parentIndex: { guid: parentId, position: position(row.parent < 0 ? tree.roots.indexOf(index) : tree.rows[row.parent].children.indexOf(index)) }, type: row.type, name: row.name, visible: row.visible, opacity: 1, size: { x: row.w, y: row.h }, transform: at(row.x, row.y) };
-        if (row.main) { node.symbolData = { symbolID: guid(row.main) }; queue.push(row.main); }
+        if (row.main) {
+          node.symbolData = { symbolID: guid(row.main) };
+          node.overrideKey = guid(row.id);
+          queue.push(row.main);
+          // The component's own changes to this nested instance, as its definition holds them. When a paste swaps the
+          // instance's icon, Figma works out what the swap keeps from this definition, not from the paste's entries: a
+          // bare skeleton kept no colour (Dock-Icon's icon back to its own black, 2026-10-17 paste tests F/G).
+          const overrides = definitionOverrides(row);
+          if (overrides.length) node.symbolData.symbolOverrides = overrides;
+          for (const entry of overrides) if (entry.overriddenSymbolID) queue.push(key(entry.overriddenSymbolID));
+          const assigns = (row.more.assigns ?? []).filter((a) => !isSlotAssignment(a));
+          if (assigns.length) {
+            node.componentPropAssignments = structuredClone(assigns);
+            for (const a of assigns) if (a.varValue?.value?.symbolIdValue) queue.push(key(a.varValue.value.symbolIdValue.guid));
+          }
+        }
         if (row.refs.length) node.componentPropRefs = row.refs.map(([defId, field]) => ({ defID: guid(defId), componentPropNodeField: field }));
+        if (row.more.pcm) node.parameterConsumptionMap = { entries: structuredClone(row.more.pcm) };
         if (row.more.cols) { node.stackMode = "GRID"; node.gridColumns = { entries: row.more.cols.map((c, i) => ({ id: guid(c), position: position(i) })) }; node.gridRows = { entries: row.more.rows.map((r, i) => ({ id: guid(r), position: position(i) })) }; }
         out.push(node);
       });
     }
     return out;
   }
+}
+
+/**
+ * A nested instance's overrides in its component's definition, from the pack: its own entry (`keep.self`, addressed by
+ * its symbol), its entries on its component's layers (`keep.ovs`), and the swaps and visibility it sets (`ovs`).
+ */
+function definitionOverrides(row) {
+  const byPath = new Map();
+  const at = (guids) => {
+    const k = guids.join("/");
+    if (!byPath.has(k)) byPath.set(k, { guidPath: { guids: guids.map(guid) } });
+    return byPath.get(k);
+  };
+  // Figma's order: the entries on the component's layers, then the instance's own.
+  for (const [rel, fields] of row.more.keep?.ovs ?? []) Object.assign(at(rel), structuredClone(fields));
+  for (const [rel, o] of row.more.ovs ?? []) {
+    const entry = at(rel);
+    if (o.s) entry.overriddenSymbolID = guid(o.s);
+    if (typeof o.v === "boolean") entry.visible = o.v;
+  }
+  if (row.more.keep?.self) Object.assign(at([row.main]), structuredClone(row.more.keep.self));
+  return [...byPath.values()];
 }
 
 function initialValue(type, initial) {
@@ -653,6 +715,7 @@ class InstanceBuild {
     this.root = {};
     this.assignments = [];
     this.swaps = new Map();
+    this.kept = new Map();
     this.copies = new Map();
     this.subs = new Map();
     this.parent = parent;
@@ -695,7 +758,7 @@ class InstanceBuild {
   }
   /** The overrides, the instance's own first (it addresses the variant the instance shows). */
   overridesList(symbol) {
-    const out = [...this.byPath.values()];
+    const out = [...this.byPath.values(), ...this.kept.values()];
     if (Object.keys(this.root).length) out.unshift({ guidPath: { guids: [guid(symbol)] }, ...this.root });
     return out;
   }
@@ -703,12 +766,16 @@ class InstanceBuild {
   symbolAt(path) {
     let symbol = this.symbol;
     const inherited = new Map();
+    // The assignments the component holding a nested instance sets on it (a Metric-Trend's Badge: Leading-Icon-Src).
+    let ownerAssigns = [];
     for (let i = 0; i < path.length; i++) {
       const row = this.w.index.tree(symbol)?.rows.find((r) => r.id === path[i]);
       if (!row || row.type !== "INSTANCE") return null;
       const abs = path.slice(0, i + 1).join("/");
-      symbol = this.swaps.get(abs) ?? this.base.get(abs)?.s ?? inherited.get(abs) ?? row.main;
+      const assigned = ownerAssigns.find((a) => a.varValue?.dataType === "SYMBOL_ID" && row.refs.some(([d, f]) => f === "OVERRIDDEN_SYMBOL_ID" && d === key(a.defID)));
+      symbol = this.swaps.get(abs) ?? this.base.get(abs)?.s ?? inherited.get(abs) ?? (assigned ? key(assigned.varValue.value.symbolIdValue.guid) : null) ?? row.main;
       for (const [rel, o] of row.more.ovs ?? []) { const k = `${abs}/${rel.join("/")}`; if (o.s && !inherited.has(k)) inherited.set(k, o.s); }
+      ownerAssigns = row.more.assigns ?? [];
     }
     return symbol;
   }
@@ -792,13 +859,15 @@ class InstanceBuild {
       if (node.type !== "INSTANCE") node.overrideKey = ALL_ONES;
       return node;
     });
+    // Layers appended to the copy later (an edit's `append`: a Goal-Progress card's hint) go after its own children:
+    // the writer's next position for each copied parent starts past them (a shared "!" let Figma put the hint first).
+    for (const [p, count] of rank) if (p >= 0) this.w.order.set(key(ids[p]), Math.max(this.w.order.get(key(ids[p])) ?? 0, count));
     const record = { content, nodes, root: ids[0], build: this };
     this.copies.set(content.key, record);
     this.w.materialized.push(record);
-    // The nested instance keeps the component's other assignments; ours (props set by this paste) win.
+    // Only the slot's assignment, as Figma's copy writes it: the component's other assignments stay its own.
     const owner = this.override(content.owner);
     const assignments = (owner.componentPropAssignments ??= []);
-    for (const a of structuredClone(this.rowAt(content.owner)?.more.assigns ?? [])) if (!assignments.some((x) => key(x.defID) === key(a.defID))) assignments.push(a);
     const slot = { defID: guid(content.slotDef), value: {}, varValue: { value: { slotContentIdValue: { guid: ids[0] } }, dataType: "SLOT_CONTENT_ID", resolvedDataType: "SLOT_CONTENT_ID" } };
     const at = assignments.findIndex((a) => key(a.defID) === content.slotDef);
     if (at >= 0) assignments[at] = slot; else assignments.push(slot);
@@ -826,6 +895,8 @@ class InstanceBuild {
     this.target(ref).textData = textData(text);
   }
   setVisible(ref, visible) {
+    // Already so: nothing to write (the plugin's setProperties writes no override for it either).
+    if (this.visibleOf(ref) === visible) return;
     const def = this.boundDef(ref, "VISIBLE");
     if (def) { this.assignOwn(ref, def, { boolValue: visible }, { value: { boolValue: visible }, dataType: "BOOLEAN", resolvedDataType: "BOOLEAN" }); return; }
     this.target(ref).visible = visible;
@@ -850,7 +921,7 @@ class InstanceBuild {
     this.w.symbolsUsed.add(symbol);
     if (ref.kind === "row") {
       const def = this.boundDef(ref, "OVERRIDDEN_SYMBOL_ID");
-      if (def) { ref.build.swaps.set(ref.path.join("/"), symbol); this.assignOwn(ref, def, { guidValue: guid(symbol) }, { value: { symbolIdValue: { guid: guid(symbol) } }, dataType: "SYMBOL_ID", resolvedDataType: "SYMBOL_ID" }); return; }
+      if (def) { ref.build.swaps.set(ref.path.join("/"), symbol); this.assignOwn(ref, def, { guidValue: guid(symbol) }, { value: { symbolIdValue: { guid: guid(symbol) } }, dataType: "SYMBOL_ID", resolvedDataType: "SYMBOL_ID" }); ref.build.carry(ref.path, symbol); return; }
       ref.build.swap(ref.path, symbol);
       return;
     }
@@ -866,6 +937,45 @@ class InstanceBuild {
     if (!path.length) { this.touch(); this.symbol = symbol; return; }
     this.swaps.set(path.join("/"), symbol);
     this.override(path).overriddenSymbolID = guid(symbol);
+    this.carry(path, symbol);
+  }
+  /**
+   * What Figma keeps when the layer at `path` swaps to another component (a property, an icon, another set or variant),
+   * as its copy of the plugin's import writes it: the layer's own overrides of its old component (`keep.self`: a renamed
+   * layer's name, its size variables, its fill) and its overrides on the old component's layers matched by name in the
+   * new one (`keep.ovs`), in entries of their own marked with the swapped layer's depth (`overrideLevel`). Without them a
+   * swapped icon pastes at its own 20px, black, renamed.
+   */
+  carry(path, target) {
+    const row = this.rowAt(path);
+    const from = row?.type === "INSTANCE" ? this.w.index.tree(row.main) : null;
+    const to = this.w.index.tree(target);
+    if (!from || !to || target === row.main) return;
+    const level = path.length;
+    const keep = row.more.keep ?? {};
+    // A variant of the same set brings its own look: Figma keeps only the layer's name (Metric-Icon's Dock-Icon theme).
+    if (from.set && from.set === to.set) {
+      if (keep.self?.name) this.keptAt(path, level).name ??= keep.self.name;
+      return;
+    }
+    if (keep.self) {
+      const entry = this.keptAt(path, level);
+      // A size bound to variables is left to them, as Figma's copy writes a kept entry.
+      const bound = [...(keep.self.variableConsumptionMap?.entries ?? []), ...(keep.self.parameterConsumptionMap?.entries ?? [])].some((b) => (b.variableField === "WIDTH" || b.variableField === "HEIGHT") && b.variableData?.value?.alias);
+      for (const [field, value] of Object.entries(keep.self)) if (field !== "overrideLevel" && !(bound && (field === "size" || field === "targetAspectRatio"))) entry[field] ??= structuredClone(value);
+    }
+    for (const [rel, fields] of keep.ovs ?? []) {
+      const mapped = matchLayers(this.w.index, from, to, rel);
+      if (!mapped) continue;
+      const layer = this.keptAt([...path, ...mapped], level + (fields.overrideLevel ?? 0));
+      for (const [field, value] of Object.entries(fields)) if (field !== "overrideLevel") layer[field] ??= structuredClone(value);
+    }
+  }
+  keptAt(path, level) {
+    this.touch();
+    const k = path.join("/");
+    if (!this.kept.has(k)) this.kept.set(k, { guidPath: { guids: path.map(guid) }, overrideLevel: level });
+    return this.kept.get(k);
   }
   applyProps(path, props, where) {
     if (!props) return;
@@ -890,11 +1000,15 @@ class InstanceBuild {
       if (def && def[1] !== "VARIANT" && def[1] !== "SLOT") this.assign(path, symbol, def, value, where);
     }
   }
-  /** The assignment list of the instance at `path`: a nested one's override starts from its component's assignments. */
+  /**
+   * The assignment list of the instance at `path`. A nested one's override lists only what this paste changes, as
+   * Figma's own copy does: Figma merges it with the component's assignments, and restating a swap the component sets
+   * applies it again without what Figma kept from it (an icon back at 20px, black).
+   */
   assignmentsAt(path) {
     if (!path.length) { this.touch(); return this.assignments; }
     const entry = this.override(path);
-    if (!entry.componentPropAssignments) entry.componentPropAssignments = structuredClone(this.rowAt(path)?.more.assigns ?? []);
+    entry.componentPropAssignments ??= [];
     return entry.componentPropAssignments;
   }
   assign(path, symbol, def, value, where) {
@@ -902,15 +1016,20 @@ class InstanceBuild {
     const tree = this.w.index.tree(symbol);
     const own = tree.set ? tree.defs?.[setLevel] : setLevel;
     if (!own) { this.w.note(`${where}: ${name} has no id on ${tree.name}`); return; }
+    // An icon the instance already shows takes no assignment (the plugin skips it): set again, Figma swaps it afresh
+    // without what it kept (memory: INSTANCE_SWAP colour loss). Booleans and texts are written as Figma's copy does.
+    const listed = (path.length ? this.byPath.get(path.join("/"))?.componentPropAssignments : this.assignments)?.some((a) => key(a.defID) === own);
     let assignment;
     if (type === "BOOL") assignment = { defID: guid(own), value: { boolValue: !!value }, varValue: { value: { boolValue: !!value }, dataType: "BOOLEAN", resolvedDataType: "BOOLEAN" } };
     else if (type === "TEXT") assignment = { defID: guid(own), value: { textValue: textData(value) }, varValue: { value: { textDataValue: textData(value) }, dataType: "TEXT_DATA", resolvedDataType: "TEXT_DATA" } };
     else if (type === "INSTANCE_SWAP") {
       const target = this.w.componentNamed(value);
       if (!target) { this.w.note(`${where}: no component named ${value} for ${name}`); return; }
+      const bound = this.layers(path).filter((layer) => layer.kind === "row" && layer.build === this && layer.row.refs.some(([d, f]) => d === own && f === "OVERRIDDEN_SYMBOL_ID"));
+      if (!listed && bound.length && bound.every((layer) => this.symbolAt(layer.path) === target)) return;
       this.w.symbolsUsed.add(target);
       assignment = { defID: guid(own), value: { guidValue: guid(target) }, varValue: { value: { symbolIdValue: { guid: guid(target) } }, dataType: "SYMBOL_ID", resolvedDataType: "SYMBOL_ID" } };
-      for (const layer of this.layers(path)) if (layer.kind === "row" && layer.build === this && layer.row.refs.some(([d, f]) => d === own && f === "OVERRIDDEN_SYMBOL_ID")) this.swaps.set(layer.path.join("/"), target);
+      for (const layer of bound) { this.carry(layer.path, target); this.swaps.set(layer.path.join("/"), target); }
     } else return;
     const list = this.assignmentsAt(path);
     const existing = list.findIndex((a) => key(a.defID) === own);

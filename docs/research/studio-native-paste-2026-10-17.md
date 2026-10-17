@@ -85,7 +85,8 @@ Những điều phải làm đúng như Figma (đã đo):
 - Layer gắn thuộc tính (TEXT_DATA, VISIBLE, OVERRIDDEN_SYMBOL_ID) đổi bằng phép gán thuộc tính trên instance chủ của nó,
   không bằng override thẳng: Figma tự đổi như vậy khi plugin đặt chữ.
 - Sửa một layer trong nội dung slot mà component đặt sẵn: Figma chép cả nội dung đó, gán bản chép cho slot bằng override
-  trên instance lồng (giữ các phép gán khác của component). Phép gán slot không có `value` là bản sót, Figma không hiện.
+  trên instance lồng; override đó chỉ có phép gán slot (bản Figma copy, §7). Phép gán slot không có `value` là bản sót,
+  Figma không hiện.
 - Override đổi variant mà component đặt trên instance lồng của nó quyết định layer nào đang hiện: thứ tự ưu tiên là bản
   dán, nội dung chép, rồi component ngoài cùng trước.
 - Chromium viết html qua `navigator.clipboard.write` thì đổi `<!--` trong thuộc tính thành `&lt;!--`: canvas Figma bỏ qua.
@@ -93,3 +94,32 @@ Những điều phải làm đúng như Figma (đã đo):
 
 Còn mở: file khác ngoài file Zen (cần thư viện publish và định nghĩa đầy đủ: instance trỏ symbol thư viện bằng
 `componentKey`), ảnh trong slot, menu Copy for Figma (đường ghi bất đồng bộ, chỉ plugin đọc được).
+
+## 7. Đối chiếu với bản Figma tự copy (2026-10-17, user: "Copy paste vẫn lỗi mà", rồi "theo cách bạn đề xuất")
+
+Thay cho tìm lỗi bằng mắt: `tools/studio/native-diff.mjs --pkg=<export> --oracle=<html>` so bản dán thẳng với bản Figma tự
+copy của khung plugin đã import cùng export đó (plugin dựng bằng runtime của Figma nên là chuẩn), từng instance, từng
+override, nhóm theo loại. Dashboard: 1.807 → 112 khác biệt (còn lại chủ yếu là cách ghi slot, §8). Những quy tắc đo được:
+
+- Override chỉ ghi phép gán bản dán thay đổi. Ghi lại phép gán đổi icon của component làm Figma đổi lại từ đầu, mất màu.
+  Không gán lại icon đang hiện (plugin cũng bỏ qua).
+- Đổi component một layer (thuộc tính Icon-Src, icon, set khác): Figma giữ override của instance cũ (mục `self` có guidPath
+  là symbol của nó: tên đã đặt, cỡ/biến cỡ, fill; và mục của các layer con, ghép theo tên), thành mục riêng có
+  `overrideLevel` = độ sâu layer bị đổi. Đổi variant cùng set: chỉ giữ tên.
+- Instance không mang `strokeWeight`/`strokeAlign` (đè giá trị của component). "Space between" là `SPACE_EVENLY`.
+- Biến trong bản dán bằng `{guid}`; `{assetRef}` chỉ chạy khi clipboard có node VARIABLE (thiếu thì icon co 1px).
+- Gói định nghĩa có bản sao biến từ thư viện publish (guid ≠ publishID, vd. 15052:45): đổi về biến gốc (chữ trắng).
+- **Khi bản dán đổi icon, Figma tính phần giữ lại từ định nghĩa đi kèm clipboard**, không từ file. Chín lần dán (một
+  lần dán nhiều dòng, mỗi dòng một biến thể/icon đầy đủ hoặc khung xương) cho thấy: instance lồng trong khung xương phải
+  có override của component (`keep`) và mục `PROP_REF` trong `parameterConsumptionMap` (OVERRIDDEN_SYMBOL_ID → định nghĩa
+  thuộc tính) cùng `overrideKey`; icon để khung xương vẫn được. `componentKey` và fill của hình trên khung xương không cần
+  (bỏ đi cho gói nhỏ). Chữ vừa dán được Figma dàn lại muộn: ngay sau khi dán, render bounds (và ảnh chụp server) có thể
+  ra bề rộng cũ của component (chữ FILL căn phải ở 232px); khi khung hiện trên màn hình Figma dàn lại đúng.
+- Dán tự động (osascript) vào canvas ngừng nhận clipboard do script ghi; clipboard Figma tự ghi thì vẫn dán được. Kiểm
+  bằng native-diff trước, nhờ user dán một lần cho nhiều trường hợp.
+
+## 8. Còn mở
+
+Cách ghi slot ở cấp ngoài như Figma (nội dung "Contents" của List-Item, "Header-Text" của Header: bản dán ghi override vào
+layer mặc định của slot; vẫn hiện đúng), chiều cao tối thiểu của hàng grid (plugin đo sau khi dựng), biến alias trong phần
+giữ lại (Figma ghi biến đích: Strongest thay Button-Tertiary/Content/Default, cùng màu), gói định nghĩa 18,9 MB (gzip 0,9).

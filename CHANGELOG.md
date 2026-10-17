@@ -50,6 +50,15 @@ removed (four unused colour ramps were, see Removed).
   - Figma export and import: shapes become RECTANGLE / ELLIPSE (arcData) / LINE (arrow cap) / POLYGON / STAR with
     colour and corner variables, and come back as `<Shape>` (the Zen plugin's Import from Studio draws them).
   - Zen Studio menu holds Switch to Studio / Document; the floating Document | Studio Segmented is gone (user).
+  - Variables like Figma (user: Studio may write token values): Page panel › Local variables (and Quick actions) opens
+    Figma's Local variables window on the 11 token collections — groups, a column per mode, search, type filter; a value
+    cell edits a colour (picker + opacity), number or text, or aliases another variable (Variables tab; Detach alias);
+    rows rename (`/` makes groups), duplicate and delete (refused while code or another variable reads it, naming them);
+    Create variable. Each change is a draft of `tokens/source/figma/*.json` with ⌘Z; while drafted the dev server serves
+    tokens.css built from the drafts, so the canvas changes at once; ⌘S writes it and runs tokens:build + tokens:check;
+    Global Colors' Zen-High-Contrast follows the Zen values by the high-contrast algorithm. Copy for Figma hands the saved
+    changes to the Zen plugin (Import from Studio writes the local variables). `scripts/token-outputs.mjs` is the token
+    build as a pure function (the build's output is unchanged).
   - Components like Figma on a page you made: ⌥⌘K makes the selected layer a main component where it is
     (`<Component id name>`), ⌘D / ⌥-drag of a main and Assets › Local components add instances (`<Use of>`) that
     follow it, ⌥⌘B detaches one; the Inspector names the component (rename, Create instance, Select instances, Swap,
@@ -193,6 +202,10 @@ removed (four unused colour ramps were, see Removed).
   layer for layer like the plugin's import. Other files still paste through the Zen plugin.
   Stack-Bar columns round their corners and clip their segments in both the paste and the plugin's import (the bar is
   its own frame, Corner-Radius/Small; the slot's corners sat on the empty space above the bar, user: "cột vẫn vuông").
+  Icons a page swaps (a table's Dock-Icon, a badge's or button's icon) keep their colour, size and layer name, and list
+  titles are no longer white, and a layer the page appends to a card (Goal-Progress's hint) stays last (user: "Copy
+  paste vẫn lỗi mà", "vẫn sai vị trí của các element trong slot"): the paste writes overrides as Figma's own copy does,
+  checked with `node tools/studio/native-diff.mjs` against Figma's copy of the plugin's import.
 - Studio → Figma import matches the page (2026-10-17, user: "Bản import ở figma và bản studio còn chưa chính xác"): a
   Metric-Card draws the page's sparkline, spark bars, goal and footer instead of Figma's sample; a ProgressBar fills its
   exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its
