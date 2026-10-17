@@ -372,7 +372,7 @@ class Writer {
     if (spec.fillStyle) { const style = this.style(spec.fillStyle, spec.name); if (style) node.styleIdForFill = { guid: guid(style[0]) }; }
     if (typeof spec.radius === "number") {
       for (const corner of ["rectangleTopLeftCornerRadius", "rectangleTopRightCornerRadius", "rectangleBottomLeftCornerRadius", "rectangleBottomRightCornerRadius"]) node[corner] = spec.radius;
-      node.rectangleCornerRadiiIndependent = false;
+      node.rectangleCornerRadiiIndependent = true;
       if (spec.radiusVar) vars.push(["RECTANGLE_TOP_LEFT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_TOP_RIGHT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_BOTTOM_LEFT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS", spec.radiusVar]);
     }
     if (spec.scroll && spec.scroll !== "NONE") node.scrollDirection = spec.scroll;
