@@ -4017,7 +4017,7 @@
       [
         "Spacing",
         "spacing",
-        "medium (default: Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large): small once three or more cards sit side by side, medium for one or two (harness card/spacing-by-count)"
+        "medium (default: Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large): on a phone, small once three or more cards sit side by side and medium for one or two; desktop cards keep medium (harness card/spacing-by-count)"
       ],
       [
         "Active",
@@ -4046,7 +4046,7 @@
       ]
     ],
     "do": [
-      "Count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge).",
+      "On a phone, count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge). Desktop cards keep Medium whatever their number.",
       "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
       "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
       "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
@@ -4064,7 +4064,7 @@
     "dont": [
       "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
       "Don't nest cards inside cards.",
-      "Don't leave a row of three or more cards at Medium, or shrink a card on its own to Small.",
+      "On a phone, don't leave three or more cards at Medium, or shrink a card on its own to Small.",
       "Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).",
       "Don't use Active as decoration; it means selected.",
       "Don't make a whole row Solid: one widget stands out, the rest share the row's theme.",
@@ -4125,7 +4125,7 @@
       {
         "id": "card/spacing-by-count",
         "severity": "warn",
-        "summary": "Three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two cards keep Spacing=Medium, the default (user rule 2026-10-17); a card around a Voice frame, which pads itself, stays Small.",
+        "summary": "On a phone (a PlatformPhone frame or a BottomSheet), three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two keep Spacing=Medium, the default. Desktop cards keep Medium and are not judged. MetricCard counts as a card (type=\"tile\" is Small by default). User rule 2026-10-17, mobile only.",
         "allow": "card-spacing"
       },
       {
@@ -5246,6 +5246,11 @@
         "Motion",
         "MetricCard animate",
         "The line wipes in, bars rise, segments grow (the chart family's timing); reduced motion fades; animate={false} turns it off"
+      ],
+      [
+        "Spacing",
+        "spacing",
+        "MetricCard: medium (default) · small (Card-padding-small; type=\"tile\" defaults to it). On a phone, three or more side by side take small (harness card/spacing-by-count); desktop dashboards keep medium"
       ]
     ],
     "keyboard": [],
@@ -5296,6 +5301,12 @@
         "severity": "error",
         "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
         "allow": "card-color"
+      },
+      {
+        "id": "card/spacing-by-count",
+        "severity": "warn",
+        "summary": "On a phone (a PlatformPhone frame or a BottomSheet), three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two keep Spacing=Medium, the default. Desktop cards keep Medium and are not judged. MetricCard counts as a card (type=\"tile\" is Small by default). User rule 2026-10-17, mobile only.",
+        "allow": "card-spacing"
       },
       {
         "id": "metric/formatted-value",
