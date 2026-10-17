@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerFigma, headerTitle, withHeaderOs, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
+import { headerFigma, headerProject, headerTitle, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 
 /*
@@ -282,6 +282,18 @@ export async function setPageOs(id: string, os: "ios" | "android"): Promise<void
   if (text !== page.text) await putPage(id, text, { title: page.title, reason: "edit" });
 }
 
+/** Moves the page into a Studio project (header `project`; null: back to Drafts). The page's document keeps its
+ *  layers, with the same header. */
+export async function setPageProject(id: string, project: string | null): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderProject(page.text, project);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  if (project) header.project = project; else delete header.project;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
+}
+
 /** A copy of the page under a new id ("<title> copy"); returns the new id. */
 export async function duplicatePage(id: string): Promise<string> {
   const page = await getPage(id);
@@ -450,7 +462,16 @@ export async function syncMirror(): Promise<void> {
     await loadAll();
     const remote = await target.list();
     if (mirror !== target) return;
-    const steps = planSync([...cache.values()], remote, target.key);
+    let steps = planSync([...cache.values()], remote, target.key);
+    // "The folder lost this page" is read from a listing that can predate a page this tab has just written: its file
+    // lands while the listing runs (the folder's change event fires on the temporary file), and the page is marked
+    // synced before the plan is made. A page made in a project then went to the Trash a second later (user,
+    // 2026-10-18: "Tạo page mới trong project vừa tạo nó lại nhảy vào draft"). A fresh listing confirms the loss first.
+    if (steps.some((step) => step.kind === "trash-local")) {
+      const again = new Set((await target.list()).map((row) => row.id));
+      if (mirror !== target) return;
+      steps = steps.filter((step) => step.kind !== "trash-local" || !again.has(step.id));
+    }
     for (const step of steps) {
       const record = cache.get(step.id);
       if (step.kind === "take") {
@@ -503,6 +524,16 @@ export function usePage(id: string | null): PageRecord | null {
 }
 
 /** Every live page's meta (newest first), re-rendering on changes. */
+/** A live page's Studio project (header `project`; null: a draft; undefined: not read yet), re-rendering only when it
+ *  changes — not on every edit, as usePage does (StudioApp and the canvas read it). */
+export function usePageProject(id: string | null): string | null | undefined {
+  const read = () => {
+    const record = id ? cache.get(id) : undefined;
+    return record && isLive(record) ? headerProject(record.text) : undefined;
+  };
+  return useSyncExternalStore(subscribe, read, read);
+}
+
 export function usePages(): PageMeta[] {
   useVersion();
   useEffect(() => { if (!listed) void loadAll(); }, []);

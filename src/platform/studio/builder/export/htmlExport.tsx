@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { ZenProvider } from "../../../../components/Provider";
+import { ZenProvider, type ZenBrand } from "../../../../components/Provider";
 import resetCss from "../../../../styles/reset.css?inline";
 import { componentName } from "../../../../../tools/studio/browser-compile.mjs";
 import { zipFiles, type ZipInput } from "../../../../../tools/studio/zip.mjs";
@@ -14,6 +14,7 @@ import { componentsOf, renderFrame, type PageNode, type PageTree } from "../rend
 import { pageKey, studioStore } from "../../store";
 import { designNames, guidelineNotes, handoffMarkdown, type FocusStop, type GuidelineNotes, type HandoffFrame } from "./handoff";
 import { drawPng, undrawable } from "./screenshot";
+import { previewForPage } from "../../project/activeProject";
 
 /*
  * HTML export (Studio builder GĐ5 M2, spec docs/research/studio-builder-handoff-spec-2026-10-07.md §3b'): each Screen and
@@ -296,12 +297,14 @@ const BREAKPOINT: Record<PageDevice, "mobile" | "tablet" | "desktop"> = { phone:
 type RenderedFrame = { node: PageNode; frame: PageFrame; file: string; title: string; root: HTMLElement | null };
 type Rendered = { tree: PageTree; frames: RenderedFrame[]; dispose: () => void };
 
-/** The ZenProvider props the canvas draws a frame in: the Studio's Modes, a frame's own theme over them (the open page). */
+/** The ZenProvider props the canvas draws a frame in: the Studio's Modes with the page's project's over them
+ *  (project/activeProject.ts), a frame's own theme over those (the open page). `brand`: the project's Base Colors mode
+ *  ("p-<id>", a Studio-only mode the Studio injects; ZenProvider's type names the shipped brands only). */
 export function canvasModes(id: string, frameId?: string) {
   const state = studioStore.getState();
-  const { preview } = state;
+  const { preview, brand } = previewForPage(id, state.preview);
   const own = frameId && state.localPage === id ? state.frameOverrides[pageKey(state.page, state.collection, state.localPage)]?.[frameId]?.theme : undefined;
-  return { theme: own ?? preview.theme, componentTheme: preview.componentTheme, density: preview.density, typography: preview.typography, radius: preview.radius, emphasis: preview.emphasis, contrast: preview.contrast ?? "standard" };
+  return { theme: own ?? preview.theme, componentTheme: preview.componentTheme, density: preview.density, typography: preview.typography, radius: preview.radius, emphasis: preview.emphasis, contrast: preview.contrast ?? "standard", brand: brand as ZenBrand };
 }
 
 /** Renders the page's frames off screen, as the canvas draws them; `dispose` unmounts them. */
@@ -332,7 +335,7 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
         <PageOsContext value={pageOsOf(tree.header)}>
         {frames.map(({ node, frame }) => (
           <div key={frame.id} data-export-frame={frame.id} style={{ width: frame.width }}>
-            <ZenProvider {...canvasModes(id, frame.id)} brand="zen" breakpoint={BREAKPOINT[frame.device]} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
+            <ZenProvider {...canvasModes(id, frame.id)} breakpoint={BREAKPOINT[frame.device]} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
           </div>
         ))}
         </PageOsContext>

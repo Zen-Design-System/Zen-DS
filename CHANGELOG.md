@@ -64,6 +64,15 @@ removed (four unused colour ramps were, see Removed).
     follow it, ⌥⌘B detaches one; the Inspector names the component (rename, Create instance, Select instances, Swap,
     Go to main); violet outline and ◇ in Layers; Export writes one React function per component; Figma push makes a
     COMPONENT and its INSTANCEs.
+- Zen Studio projects (2026-10-17, user: "tạo dự án như Figma … set theme cho Dự án"): the Studio home is a projects
+  grid (Drafts + projects); New project and Project settings open a theme page — Primary and Neutral (a Zen ramp or any
+  colour, ramps made by the Zen Figma plugin's own generator), status colours, chart sectors 3–7, corner radius,
+  component theme, size, typography, emphasis — with a live gallery (Cards, Charts, Dashboard, Website, Components) in
+  Light, Dark or both. A project's theme is one extra Base Colors (Project) mode, `data-brand="p-<id>"`, kept in
+  `.zen-studio/projects/<id>/`; tokens/source and tokens.css do not change. Its pages (header `project`) draw in it.
+- Chart sectors 3–7 read `--zen-chart-sector-tertiary … -septenary` (and `-subtle` for fades) before today's colours,
+  so a Studio project can recolour them; without them nothing changes. The 7th sector is Support/Green/Soft again (it
+  had gone back to Red Soft; the Figma style "Color Chart Sector/Septenary" is Green Soft).
 - Search `shape` (2026-10-17, Figma Search/Default `Shape` = Default · Rounded): `shape="rounded"` is a pill
   (Corner-Radius/Rounded on the field, its focus ring and the filter affordance). Recommended, not required, for
   searches on phone screens; the platform's phone examples use it.

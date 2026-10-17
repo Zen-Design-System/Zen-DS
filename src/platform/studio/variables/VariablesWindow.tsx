@@ -16,6 +16,9 @@ import { canEdit, useStudio } from "../store";
 import { aliasOf, aliasOptions, colorParts, colorWith, groupOf, groupsOf, indexOf, newName, resolved, rowsOf, shortName, TYPE_LABEL, type Entry, type Row, type Variable, type VariableType } from "./variablesModel";
 import { closeVariables, subscribeVariables, variablesOpen } from "./variablesState";
 import "./variables.css";
+import { useActiveProject } from "../project/activeProject";
+import { openProjectSetup } from "../project/ProjectSetup";
+import { PROJECT_COLLECTION, withProjectMode } from "../project/projectVariables";
 
 /*
  * Figma's Local variables window on the Zen tokens (research docs/research/studio-figma-native-parity-2026-10-17.md §10;
@@ -221,8 +224,12 @@ function VariablesPanel() {
     };
   }, [load]);
 
-  const index = useMemo(() => indexOf(collections ?? []), [collections]);
-  const collection = collections?.find((each) => each.file === file) ?? collections?.find((each) => each.name === "Mode Colors (Semantic)") ?? collections?.[0] ?? null;
+  // A Studio project open: Base Colors (Project) shows its mode first (project/projectVariables.ts), read from its theme.
+  const project = useActiveProject();
+  const shownCollections = useMemo(() => withProjectMode(collections, project) as VariableCollection[] | null, [collections, project]);
+  const index = useMemo(() => indexOf(shownCollections ?? []), [shownCollections]);
+  const collection = shownCollections?.find((each) => each.file === file) ?? shownCollections?.find((each) => each.name === "Mode Colors (Semantic)") ?? shownCollections?.[0] ?? null;
+  const projectMode = project && collection?.name === PROJECT_COLLECTION ? collection.modes[0] : null;
   const groups = useMemo(() => (collection ? groupsOf(collection) : []), [collection]);
   const rows: Row[] = useMemo(() => (collection ? rowsOf(collection, { group, query, type }) : []), [collection, group, query, type]);
   const modes = collection?.modes ?? [];
@@ -278,6 +285,8 @@ function VariablesPanel() {
     if (!entry || entry.kind !== "variable" || col < 1) return;
     const mode = modes[col - 1];
     if (collection?.name === "Global Colors" && mode === DERIVED_MODE) { say(`${DERIVED_MODE} follows the Zen values (the high-contrast algorithm): change the Zen value`); return; }
+    // The project's column is its theme's output: Project settings changes it (Primary, Neutral, status colours).
+    if (project && mode === projectMode) { openProjectSetup({ kind: "edit", id: project.id }); return; }
     if (!editable) { say("View only — switch to Admin to edit"); return; }
     const cell = gridRef.current?.querySelector<HTMLElement>(`[data-cell="${row}:${col}"]`);
     if (!cell) return;
@@ -421,7 +430,7 @@ function VariablesPanel() {
           <div className="studio-vars__row studio-vars__row--head" role="row" aria-rowindex={1}>
             <div className={`studio-vars__cell studio-vars__cell--name ${typographyStyles["Body/Small/Medium"]}`} role="columnheader">Name</div>
             {modes.map((mode) => (
-              <div key={mode} className={`studio-vars__cell ${typographyStyles["Body/Small/Medium"]}`} role="columnheader" title={collection.name === "Global Colors" && mode === DERIVED_MODE ? "Follows the Zen values (the high-contrast algorithm)" : undefined}>{mode}</div>
+              <div key={mode} className={`studio-vars__cell ${typographyStyles["Body/Small/Medium"]}`} role="columnheader" title={collection.name === "Global Colors" && mode === DERIVED_MODE ? "Follows the Zen values (the high-contrast algorithm)" : mode === projectMode ? "This project's theme — change it in Project settings" : undefined}>{mode}</div>
             ))}
           </div>
           <div className="studio-vars__rows" style={{ height: rows.length * ROW_HEIGHT }}>
@@ -475,7 +484,7 @@ function VariablesPanel() {
                   </div>
                   {modes.map((mode, modeIndex) => {
                     const col = modeIndex + 1;
-                    const derived = collection.name === "Global Colors" && mode === DERIVED_MODE;
+                    const derived = (collection.name === "Global Colors" && mode === DERIVED_MODE) || mode === projectMode;
                     return (
                       <div
                         key={mode}

@@ -15,12 +15,15 @@ import { assetIdsOf, putAsset } from "./assets/uploads";
 import { loadEngine, zenComponents } from "./engine";
 import { openExport } from "./export/exportState";
 import { canLinkFolder, linkFolder, reconnectFolder, resyncPages, unlinkFolder } from "./store/mirrors";
-import { idFromFileName, trashDaysLeft, type RevisionReason } from "./store/pageModel";
+import { headerProject, idFromFileName, trashDaysLeft, type RevisionReason } from "./store/pageModel";
+import { activeProjectId } from "../project/activeProject";
+import { pageProjectOf } from "../project/pageProject";
+import { useProjects } from "../project/projectStore";
 import { RenameField } from "./RenameField";
 import { importPulled, pulledPageOf, readPulled } from "./figmaUpdate";
 import { UpdateFromFigmaDialog, type FigmaUpdate } from "./UpdateFromFigmaDialog";
 import { useFolders } from "./store/folderStore";
-import { deleteForever, duplicatePage, getPage, importPage, listRevisions, movePage, renamePage, restorePage, restoreRevision, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
+import { deleteForever, duplicatePage, getPage, importPage, listRevisions, movePage, renamePage, restorePage, restoreRevision, setPageProject, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
 
 /*
  * My pages in the Pages panel (Studio builder GĐ2 M2, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2c):
@@ -61,7 +64,7 @@ function leaveIfOpen(id: string) {
 
 /** The Studio space's kicker ("Folders") with New page, New folder and the section's options, then where the pages are
  *  kept. */
-export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNewFolder?: () => void }) {
+export function MyPagesHeader({ onNew, onNewFolder, onNewProject, kicker = "Folders" }: { onNew: () => void; onNewFolder?: () => void; onNewProject?: () => void; kicker?: string }) {
   const admin = useStudio((state) => state.role === "admin");
   const storage = useStorage();
   const storageTip = useIconTooltip(storageText(storage), { placement: "bottom" });
@@ -109,7 +112,11 @@ export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNew
         else opened.push(await importPulled(pulled, idFromFileName(entry.name)));
         continue;
       }
-      opened.push(await importPage(entry.text, idFromFileName(entry.name)));
+      const imported = await importPage(entry.text, idFromFileName(entry.name));
+      // A page from no project lands in the one open (header `project`); one that names a project keeps it.
+      const project = activeProjectId();
+      if (project && !headerProject(entry.text)) await setPageProject(imported, project);
+      opened.push(imported);
     }
     if (opened.length === 1 && !updates.length) openLocalPage(opened[0]);
     if (updates.length) setFigmaUpdates((queued) => [...queued, ...updates]);
@@ -130,12 +137,13 @@ export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNew
     <>
       <div className="studio-pages__kicker-row">
         <span className="studio-pages__kicker studio-pages__kicker--info">
-          <Text as="span" id="studio-pages-mine" textStyle="Caption/Medium" tone="base">Folders</Text>
+          <Text as="span" id="studio-pages-mine" textStyle="Caption/Medium" tone="base">{kicker}</Text>
           {/* Where the pages are kept, in an info tooltip (user, 2026-10-09: not a line of its own). Zen's icon tooltip: a
               fixed layer in the portal, flipped and kept inside the window, so the scrolling panel never cuts it off. */}
           <button type="button" className="studio-pages__info" aria-label={storageText(storage)} {...storageTip.bind({})}><Icon name="icon-info-circle-line" size="2xs" decorative /></button>
           {storageTip.tooltip}
         </span>
+        {onNewProject ? <IconButton icon="icon-folder-plus-line" aria-label="New project" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNewProject} /> : null}
         {onNewFolder ? <IconButton icon="icon-folder-plus-line" aria-label="New folder" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNewFolder} /> : null}
         <IconButton icon="icon-plus-line" aria-label="New page" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNew} />
         <Menu align="end" aria-label="Studio options" items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="Studio options" appearance="flat" level="primary" size="xs" />} />
@@ -199,7 +207,10 @@ const sameRow = (a: MyPageRowProps, b: MyPageRowProps) => a.current === b.curren
  *  page write redraws its own row only, not every row on the way to the canvas (2026-10-13 edit latency). */
 export const MyPageRow = memo(function MyPageRow({ item, current, tabIndex, nested = false }: MyPageRowProps) {
   const admin = useStudio((state) => state.role === "admin");
-  const folders = useFolders();
+  // Move to: the folders of the page's own project (Drafts: the folders of no project).
+  const known = new Set(useProjects().map((project) => project.id));
+  const scope = pageProjectOf(item.id, known);
+  const folders = useFolders().filter((folder) => (folder.project && known.has(folder.project) ? folder.project : null) === scope);
   const [dialog, setDialog] = useState<null | "history">(null);
   // Rename in place (double-click the row, or Rename…), as Figma renames a layer.
   const [renaming, setRenaming] = useState(false);

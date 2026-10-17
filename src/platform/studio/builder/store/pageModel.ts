@@ -69,6 +69,32 @@ export function withHeaderTitle(text: string, title: string): string {
   return `${match[1]}${JSON.stringify({ ...value, title })}${match[3]}${text.slice(match[0].length)}`;
 }
 
+/** The Studio project the page belongs to (header `project`, 2026-10-17), or null: a draft in the shipped Zen theme. */
+export function headerProject(text: string): string | null {
+  const match = HEADER.exec(text);
+  try {
+    const project = match ? (JSON.parse(match[2]) as { project?: unknown }).project : undefined;
+    return typeof project === "string" && /^[a-z0-9][a-z0-9-]{0,47}$/.test(project) ? project : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The text with the header's `project` set (null: left out, a draft); unchanged without a readable header. */
+export function withHeaderProject(text: string, project: string | null): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { project: _old, ...rest } = value;
+  return `${match[1]}${JSON.stringify(project ? { ...rest, project } : rest)}${match[3]}${text.slice(match[0].length)}`;
+}
+
 /** The page's mobile OS (header `os`; user, 2026-10-10): what its phone and tablet Screens simulate. iOS when unset. */
 export function headerOs(text: string): "ios" | "android" {
   const match = HEADER.exec(text);
