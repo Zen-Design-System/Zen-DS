@@ -686,9 +686,17 @@ const shapeTypeOf = (node: LayerNode) => (node.kind === "node" && node.name === 
 /** The name a row shows: a Shape's Figma type name (select/layerNames.ts), else the layer's name. */
 const rowLabel = (node: LayerNode) => (node.kind === "node" ? shownName(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : node.name);
 
+/** "main" for a main component's root layer, "instance" for an instance (renderPage's marks), else undefined. */
+const componentOfRow = (node: LayerNode) => {
+  const props = node.kind === "node" ? (node.fiber?.memoizedProps as Record<string, unknown> | null) : null;
+  return props?.["data-zen-main"] ? "main" : props?.["data-zen-instance"] ? "instance" : undefined;
+};
+
 function rowIcon(node: LayerNode): IconName {
   if (node.kind === "frame") return "icon-layout-alt-01-line";
-  // Figma's layer icons: a shape's own, a frame's # (Box), auto layout by its direction (Stack).
+  // Figma's layer icons: a component's ◇ (its main and its instances), a shape's own, a frame's # (Box), auto layout
+  // by its direction (Stack).
+  if (componentOfRow(node)) return "icon-diamond-line";
   const shape = shapeTypeOf(node);
   if (shape) return SHAPE_ICONS[shape] ?? "icon-square-line";
   if (node.kind === "node" && node.name === "Box") return "icon-hash-01-line";
@@ -1049,7 +1057,7 @@ export function LayersPanel() {
               >
                 <Icon name="icon-chevron-right-line-small" size={16} />
               </span>
-              <span className="studio-layers__icon" aria-hidden="true">
+              <span className="studio-layers__icon" data-component={componentOfRow(node)} aria-hidden="true">
                 <Icon name={rowIcon(node)} size={16} />
               </span>
               <span className="studio-layers__name">{rowLabel(node)}</span>

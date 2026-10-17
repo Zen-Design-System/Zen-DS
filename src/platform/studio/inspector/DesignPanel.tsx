@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
+import { ComponentSection } from "./ComponentSection";
 import { layerName } from "../select/layerNames";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
@@ -654,7 +655,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // A component whose JSX children are a content slot lists them in the Slots section, not again under Content.
   const childrenInSlots = Boolean(slotOf(name, "children"));
   const documented = new Set(specs.map((spec) => spec.name));
-  const otherAttributes = (element?.attributes ?? []).filter((attr): attr is SourceAttr => attr.kind !== "spread" && !documented.has(attr.name) && !isSkippedProp(attr.name));
+  // An instance's `of` is its component (ComponentSection), not a loose attribute.
+  const otherAttributes = (element?.attributes ?? []).filter((attr): attr is SourceAttr => attr.kind !== "spread" && !documented.has(attr.name) && !isSkippedProp(attr.name) && !(name === "Use" && (attr.name === "of" || attr.name === "overrides")));
   const spreads = (element?.attributes ?? []).filter((attr) => attr.kind === "spread");
   const texts = (element?.children ?? []).flatMap((child) => (child.kind === "text" && child.value.trim() ? [child] : []));
   const expressions = (element?.children ?? []).flatMap((child) => (child.kind === "expression" ? [child] : []));
@@ -810,7 +812,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" data-component={isComponent || undefined} aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
           {/* Cut to one line: its full name on hover. */}
-          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{layerName(name, { type: element?.attributes.find((attr) => attr.kind === "string" && attr.name === "type")?.value })}</Heading>
+          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{layerName(name, { ...selectedHit(selection)?.props, type: element?.attributes.find((attr) => attr.kind === "string" && attr.name === "type")?.value })}</Heading>
           {repeats ? (
             <span className={`studio-inspector__count ${typographyStyles["Body/Small/Medium"]}`} title={repeats}>
               <span aria-hidden="true">{`×${instances}`}</span>
@@ -901,6 +903,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         </p>
       ) : null}
 
+      {/* A page's own component (Figma UI3 puts it first): the main's name and actions, or the instance's component. */}
+      {element && /^local:/.test(element.file) ? <ComponentSection selection={selection} disabled={api.disabled} /> : null}
       {/* Figma UI3 order: Position (Ignore auto layout, constraints), then Layout, then Properties. */}
       {element ? <PositionSection selection={selection} element={element} api={api} component={name} /> : null}
 

@@ -365,6 +365,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
 
   // Each node carries its element's document id (`key`): the plugin keeps it on the layer, so importing the page again
   // updates the same layers (Zen plugin src/plugin/studio-import.js).
+  /** The page's own components by id → name (their instances are named after them, as Figma names an instance). */
+  const localNames = new Map();
+  const collect = (node) => {
+    if (!node || node.kind !== "element") return;
+    if (node.name === "Component" && node.props.id?.kind === "literal") localNames.set(String(node.props.id.value), String(node.props.name?.value ?? node.props.id.value));
+    for (const value of Object.values(node.props)) if (value?.kind === "element") collect(value.node);
+    for (const child of node.children ?? []) collect(child.kind === "map" ? child.node : child);
+  };
+  collect(doc.board);
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
@@ -399,6 +408,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (element.name === "Stack" || element.name === "Grid" || element.name === "Box") node = frameNode(element, code, id, parent);
     // Figma's own shapes (Shape): RECTANGLE, ELLIPSE with its arcData, LINE (an arrow's end cap), POLYGON, STAR.
     else if (element.name === "Shape") node = shapeNode(code, id);
+    // A page's own component: its main as Figma's COMPONENT around its layer, each instance an INSTANCE of it (the
+    // importer makes the main first, then the instances; `local` is the page's component id).
+    else if (element.name === "Component") {
+      const root = element.children.find((child) => child.kind === "element");
+      const inner = root ? convert(root, parent) : null;
+      // The main hugs its layer (Figma's component frame around one layer); the layer keeps its own sizing inside.
+      node = { type: "COMPONENT", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component"), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
+    } else if (element.name === "Use") node = { type: "INSTANCE", local: String(code.of ?? ""), name: localNames.get(String(code.of ?? "")) ?? "Instance", ...(id ? { id } : {}), hugW: true, hugH: true };
     else if (element.name === "Text" || element.name === "Heading") {
       const align = { center: "CENTER", end: "RIGHT", justify: "JUSTIFIED" }[code.align];
       // Text.tsx's defaults: Body/Base/Regular in Neutral Strongest; a tone paints with its Color/Content variable.

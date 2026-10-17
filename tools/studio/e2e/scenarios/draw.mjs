@@ -248,6 +248,69 @@ export const rows = [
     },
   },
   {
+    id: "DR-12", feature: "⌥⌘K makes the selected layer a main component in place; ⌘D on it makes an instance; Layers shows both by name", wp: "P4 components",
+    async run(ctx) {
+      const { page, text } = await seededPage(ctx, freePage('<Shape type="star" position="absolute" insetLeft={60} insetTop={60} width={120} height={120} fill="support-yellow-solid" />'), /type="star"/);
+      await focusScreen(page);
+      const star = await page.locator('.zen-shape[data-type="star"]').boundingBox();
+      await page.mouse.click(star.x + star.width / 2, star.y + star.height / 2);
+      await until(async () => (await page.locator("#studio-right h2").first().innerText()).trim() === "Star", { message: "the Star selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyK");
+      await until(async () => /<Component id="star" name="Star">\s*<Shape type="star"/.test(await text()), { message: "the star as a main component" });
+      await until(async () => (await page.locator(".studio-selection__outline[data-kind='selected'][data-component='main']").count()) === 1, { message: "the main's violet outline" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => /<\/Component>\s*<Use of="star" \/>/.test(await text()), { message: "an instance after the main" });
+      await until(async () => (await page.locator("#studio-right").getByRole("button", { name: "Go to main component" }).count()) === 1, { message: "the instance selected (Instance section)" });
+      const names = (await page.locator("#studio-left .studio-layers__name").allInnerTexts()).map((name) => name.trim());
+      if (names.filter((name) => name === "Star").length < 2) throw new Error(`Layers: ${names.join(", ")}`);
+      return names.join(", ");
+    },
+  },
+  {
+    id: "DR-13", feature: "An instance follows its main: an edit of the main shows in it; Detach (⌥⌘B) writes the main's layers in its place", wp: "P4 components",
+    async run(ctx) {
+      const body = '<Component id="dot" name="Dot">\n          <Shape type="ellipse" width={40} height={40} fill="accent-solid" />\n        </Component>\n        <Box position="absolute" insetLeft={200} insetTop={40}>\n          <Use of="dot" />\n        </Box>';
+      const seeded = (title) => freePage()(title).replace(' width={800} height={500} />', ` width={800} height={500}>\n        ${body}\n      </Screen>`).replace('import { Board, Screen, proto } from "@zen-ds/react/builder";', 'import { Board, Component, Screen, Use, proto } from "@zen-ds/react/builder";\nimport { Box, Shape } from "@zen-ds/react";');
+      const { page, text } = await seededPage(ctx, seeded, /<Use of="dot"/);
+      await focusScreen(page);
+      await until(async () => (await page.locator('.zen-shape[data-type="ellipse"]').count()) === 2, { message: "the main and its instance drawn" });
+      // The main is the first ellipse (its own place); change its fill in the code through the Inspector's Fill list.
+      const main = await page.locator('.zen-shape[data-type="ellipse"]').first().boundingBox();
+      await page.mouse.click(main.x + main.width / 2, main.y + main.height / 2);
+      await until(async () => (await page.locator("#studio-right h2").first().innerText()).trim() === "Dot", { message: "the main selected" });
+      const right = page.locator("#studio-right");
+      await right.getByRole("spinbutton", { name: "Opacity", exact: true }).fill("40");
+      await right.getByRole("spinbutton", { name: "Opacity", exact: true }).press("Enter");
+      await until(async () => /<Shape type="ellipse"[^>]*opacity=\{40\}/.test(await text()), { message: "the main's opacity 40" });
+      await until(async () => (await page.locator('.zen-shape[data-type="ellipse"]').evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity))).every((value) => value === "0.4"), { message: "the instance follows (opacity 0.4)" });
+      const instance = await page.locator('.zen-shape[data-type="ellipse"]').nth(1).boundingBox();
+      await page.mouse.click(instance.x + instance.width / 2, instance.y + instance.height / 2);
+      await until(async () => (await right.getByRole("button", { name: "Detach" }).count()) === 1, { message: "the instance selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyB");
+      await until(async () => !/<Use\b/.test(await text()) && (((await text()).match(/<Shape type="ellipse"/g) ?? []).length === 2), { message: "the instance detached into its own Shape" });
+      return "main edit shown in the instance; detached";
+    },
+  },
+  {
+    id: "DR-14", feature: "Assets › Local components lists the page's components; a click adds an instance", wp: "P4 components",
+    async run(ctx) {
+      const seeded = (title) => freePage()(title).replace(' width={800} height={500} />', ' width={800} height={500}>\n        <Stack padding="lg">\n          <Component id="tag" name="Tag">\n            <Shape type="rectangle" width={60} height={24} radius="full" fill="support-mint-soft" />\n          </Component>\n        </Stack>\n      </Screen>').replace('import { Board, Screen, proto } from "@zen-ds/react/builder";', 'import { Board, Component, Screen, proto } from "@zen-ds/react/builder";\nimport { Shape, Stack } from "@zen-ds/react";');
+      const { page, text } = await seededPage(ctx, seeded, /<Component id="tag"/);
+      await focusScreen(page);
+      const stack = await page.locator('[data-studio-frame="screen:screen-1"] .zen-stack').first().boundingBox();
+      await page.mouse.click(stack.x + stack.width - 6, stack.y + stack.height - 6);
+      await page.locator("#studio-left").getByRole("tab", { name: "Assets" }).click();
+      const local = page.locator("#studio-left").getByRole("button", { name: "Tag, local component" });
+      await local.waitFor({ state: "visible", timeout: 5000 });
+      await local.click();
+      await until(async () => /<Use of="tag" \/>/.test(await text()), { message: "an instance added from Assets" });
+      return "Local components › Tag → <Use of=\"tag\" />";
+    },
+  },
+  {
     id: "DR-08", feature: "Layers names a Shape as Figma's tool does (Ellipse, Line) with its icon", wp: "P1 layers",
     async run(ctx) {
       const { page } = await seededPage(ctx, freePage('<Shape type="ellipse" position="absolute" insetLeft={40} insetTop={40} width={80} height={80} />\n        <Shape type="line" position="absolute" insetLeft={40} insetTop={200} width={120} />'), /type="line"/);

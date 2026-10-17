@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { createComponent, createInstance, deleteMain, detachInstance, mainOfSelection } from "./edit/localComponents";
 import { addAutoLayout, removeAutoLayout } from "./edit/autoLayout";
 import { ZenPortalProvider } from "../../components/Portal";
 import { TabPanel, Tabs } from "../../components/Tabs";
@@ -360,12 +361,23 @@ export function StudioApp() {
         void wrapSelection("box");
         return;
       }
-      // ⌥⌘B / Ctrl+Alt+B detaches the selected component instance (Figma's Detach instance), in the Select tool.
+      // ⌥⌘B / Ctrl+Alt+B detaches the selected component instance (Figma's Detach instance), in the Select tool: an
+      // instance of a page's own component (<Use>) takes its main's layers (edit/localComponents.ts).
       if (mod && event.altKey && !event.shiftKey && event.code === "KeyB") {
         const selection = state.selection;
         if (doc || state.tool !== "select" || selection?.kind !== "node" || selection.part) return;
         event.preventDefault();
-        void detachSelection(selection);
+        if (selection.name === "Use") void detachInstance(selection);
+        else void detachSelection(selection);
+        return;
+      }
+      // ⌥⌘K / Ctrl+Alt+K: Figma's Create component — the selected layer becomes a main component where it is.
+      if (mod && event.altKey && !event.shiftKey && event.code === "KeyK") {
+        const selection = state.selection;
+        if (doc || inExample) return;
+        event.preventDefault();
+        if (event.repeat || state.tool !== "select" || selection?.kind !== "node" || selection.part || !state.localPage || multiSelection.get().length) return;
+        void createComponent(selection);
         return;
       }
       // ⌥⌘↵ / Ctrl+Alt+Enter presents the selected frame (Figma's Present; it was F until 2026-10-15).
@@ -399,6 +411,11 @@ export function StudioApp() {
         }
         // Several layers: each copied after itself in one edit (edit/multi.ts).
         if (multiSelection.get().length) { void duplicateLayers(); return; }
+        // A main component duplicates as an instance of it (Figma); any other layer as a copy.
+        if (state.localPage) {
+          void mainOfSelection(selection).then((main) => (main ? createInstance(main, selection) : duplicateSelection(selection)));
+          return;
+        }
         void duplicateSelection(selection);
         return;
       }
@@ -464,6 +481,8 @@ export function StudioApp() {
         event.preventDefault();
         // Several layers: all removed in one edit (edit/multi.ts).
         if (multiSelection.get().length) { void removeLayers(); return; }
+        // A main component goes with its <Component> (edit/localComponents.ts deleteMain), unless instances use it.
+        if (state.localPage) { void deleteMain(selection).then((handled) => { if (!handled) void removeSelection(selection); }); return; }
         void removeSelection(selection);
         return;
       }

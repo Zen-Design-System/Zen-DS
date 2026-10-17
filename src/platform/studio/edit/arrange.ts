@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { mainOfSelection, type MainRef } from "./localComponents";
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { findBySrc, isTypingTarget } from "../select/picker";
@@ -94,6 +95,11 @@ export async function moveLayer(layer: NodeSelection, target: DropTarget, copy: 
   if (from.file !== to.file) {
     fail(`Layers move within their own file: ${from.file.slice(from.file.lastIndexOf("/") + 1)} — copy it in the code to use it elsewhere`);
     return false;
+  }
+  // ⌥-drag of a main component drops an instance of it there (Figma), not a second main.
+  if (copy && /^local:/.test(from.file)) {
+    const main = await mainOfSelection(layer);
+    if (main) return dropInstance(main, target);
   }
   busy = true;
   try {
@@ -202,4 +208,21 @@ export function useArrangeKeys() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+}
+
+/** An instance of `main` where a drag drops it (one edit; the instance selected). */
+async function dropInstance(main: MainRef, target: DropTarget): Promise<boolean> {
+  const to = parseSrc(target.parentSrc);
+  if (!to) return false;
+  const parent = await studioApi.element(to.file, to.loc);
+  if (!parent) { fail(`${target.parentName} is no longer there`); return false; }
+  const op = { op: "pasteCode", code: `<Use of="${main.id}" />` } as Extract<EditOp, { op: "pasteCode" }>;
+  if (target.before) op.before = parseSrc(target.before)?.loc;
+  else if (target.after) op.after = parseSrc(target.after)?.loc;
+  const before = renderedNow(canvasApi.getWorldElement());
+  const response = await applyEdit({ file: to.file, loc: to.loc, name: parent.name, ops: [op], hash: parent.hash }, `Instance of ${main.name}`);
+  if (!response.ok || !response.inserted) return false;
+  const landed: NodeSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: "Use", frameId: target.frameId, panelId: target.panelId, instance: 0 };
+  follow(landed, before);
+  return true;
 }

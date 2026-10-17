@@ -53,3 +53,8 @@ export function relayoutCode(text: string, range: { start: number; end: number }
   order?: number[];
   wrap?: { tag: string; set?: Record<string, string | number | true | { code: string } | undefined> };
 }): string;
+
+/** A page's main components (dialect.mjs localComponents): `<Component id name>` and the one layer it holds. */
+export function localComponents(tree: unknown): Array<{ id: string | null; name: string | null; loc: string; node: { loc: string; props: Record<string, unknown> }; root: { loc: string; name: string } | null }>;
+/** Every element node of a parsed page's subtree (dialect.mjs eachElement). */
+export function eachElement(node: unknown, visit: (node: { name: string; loc: string; props: Record<string, { kind: string; value?: unknown }> }, parents: unknown[]) => void): void;

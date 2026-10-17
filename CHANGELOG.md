@@ -37,6 +37,11 @@ removed (four unused colour ramps were, see Removed).
   - Figma export and import: shapes become RECTANGLE / ELLIPSE (arcData) / LINE (arrow cap) / POLYGON / STAR with
     colour and corner variables, and come back as `<Shape>` (the Zen plugin's Import from Studio draws them).
   - Zen Studio menu holds Switch to Studio / Document; the floating Document | Studio Segmented is gone (user).
+  - Components like Figma on a page you made: ⌥⌘K makes the selected layer a main component where it is
+    (`<Component id name>`), ⌘D / ⌥-drag of a main and Assets › Local components add instances (`<Use of>`) that
+    follow it, ⌥⌘B detaches one; the Inspector names the component (rename, Create instance, Select instances, Swap,
+    Go to main); violet outline and ◇ in Layers; Export writes one React function per component; Figma push makes a
+    COMPONENT and its INSTANCEs.
 - Zen Figma skill: every slip the user catches becomes a rule. Prompted on 2026-10-17 by "Dùng icon không đồng bộ",
   "từ đây về sau bổ sung nguyên tắc. Luôn làm đúng không lại sai" and "Bạn cần học cách tôi làm".
   - The audit adds `navigation/icon-style`: in a Bottom-Navigation the selected item is solid, the others line.

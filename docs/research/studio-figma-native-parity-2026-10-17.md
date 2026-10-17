@@ -233,3 +233,12 @@ Export: each `Component` becomes a React function in the exported file (its over
 props), each `Use` a call of it. Figma push: COMPONENT and INSTANCE nodes (the plugin creates the main once, then
 instances with overrides); pull reads local components back. Engine: ops `createComponent { locs, name }`,
 `detachUse`, `resetUse`; layer ids (`data-zen-id`) key the overrides so they survive edits of the main.
+
+**P4 status (2026-10-17, branch `zen/feat/studio-components-20261017`):** built v1 as specified above — dialect
+`Component` / `Use` (checks: one layer, unique ids, known `of`, no instance inside its own main), renderer (the main's
+root layer marked as the main, an instance drawn from its main as one layer; the render cache keys on the mains'
+signatures so an edit of a main redraws its instances), ⌥⌘K, ⌘D / ⌥-drag of a main → instance, ⌥⌘B detach, Delete of a
+main (refused while instances use it), Inspector Component / Instance section (rename, Create instance, Select
+instances, Swap, Go to main, Detach), Assets › Local components, violet outline / tag / ◇ icons, React export (one
+function per main), Figma push (COMPONENT + INSTANCE, plugin commit ed9bec6). Not yet: overrides and component
+properties (text / boolean / swap), variants, Figma pull of local components.
