@@ -615,7 +615,8 @@ function QuarterWidgets() {
   );
 }
 
-/** Each project keeps its own hue (Support/<Color>/Pale): the Card colour closest to its Dock Icon theme. */
+/** Each project keeps its own hue (Support/<Color>/Pale on a white page, /Subtle on Canvas/Default): the Card colour
+ *  closest to its Dock Icon theme. */
 const projectColor: Record<string, CardColor> = { orange: "orange", blue: "blue", teal: "cyan", purple: "purple", indigo: "violet", green: "green" };
 
 function PhoneProjectColours() {
@@ -642,6 +643,25 @@ function PhoneProjectColours() {
 
 const payroll = { amount: 48200, people: 18, day: daysFromToday(2) };
 const hours = { total: "1,284 h", capacity: 86 };
+
+function GreyCanvasProjects() {
+  const open = projects.filter((project) => project.status !== "Completed").slice(0, 3);
+  return (
+    // On the grey Canvas/Default, colour on a box is Subtle: Pale would fade into the page (user rule 2026-10-17).
+    // One column, as a project list: three cards never leave one alone on a second row.
+    <Stack gap="md">
+      {open.map((project) => (
+        <Card key={project.id} as="section" theme="subtle" color={projectColor[project.theme] ?? "neutral"} aria-labelledby={`grey-project-${project.id}`}>
+          <Stack gap="xs">
+            <Heading level={4} id={`grey-project-${project.id}`} textStyle="Heading/Subheading" truncate={2}>{project.name}</Heading>
+            <Text as="span" textStyle="Body/Small/Regular" tone="base" truncate>{`${project.client} · ${formatDue(project.due)}`}</Text>
+            <ProgressBar value={project.progress} label aria-label={`${project.name} progress`} />
+          </Stack>
+        </Card>
+      ))}
+    </Stack>
+  );
+}
 
 function PayrollStandOut() {
   const { toast } = useToast();
@@ -928,6 +948,23 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     ))}
   </Stack>
 </PlatformPhone>`,
+  },
+  {
+    title: "Colour on the grey canvas",
+    description: "On the grey Canvas/Default a Pale tint fades into the page, so colour on a box is Subtle: theme=\"subtle\" with the project's color (Support/<Color>/Subtle), neutral text, any of the nine hues. Pale stays for white pages.",
+    render: () => <GreyCanvasProjects />,
+    code: `<Stack gap="md">
+  {open.map((project) => (
+    <Card key={project.id} as="section" theme="subtle" color={projectColor[project.theme] ?? "neutral"}
+      aria-labelledby={\`grey-project-\${project.id}\`}>
+      <Stack gap="xs">
+        <Heading level={4} id={\`grey-project-\${project.id}\`} textStyle="Heading/Subheading" truncate={2}>{project.name}</Heading>
+        <Text as="span" textStyle="Body/Small/Regular" tone="base" truncate>{\`\${project.client} · \${formatDue(project.due)}\`}</Text>
+        <ProgressBar value={project.progress} label aria-label={\`\${project.name} progress\`} />
+      </Stack>
+    </Card>
+  ))}
+</Stack>`,
   },
   {
     title: "Stand out in a hue",

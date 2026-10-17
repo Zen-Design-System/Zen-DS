@@ -219,7 +219,7 @@ export interface ChartCardProps {
   /** Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas
    *  next to other Shadow cards (metric cards on a dashboard). */
   theme?: CardTheme;
-  /** Figma nested Card Color, for theme="pale" or "solid": the Card's hue (Solid Neutral is the dark widget; see Card). */
+  /** Figma nested Card Color, for theme="pale", "subtle" or "solid": the Card's hue (Solid Neutral is the dark widget; see Card). */
   color?: CardColor;
   /** Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card. */
   surface?: CardSurface;
