@@ -637,7 +637,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Pale": "pale",
           "Border": "border",
           "On-Container": "on-container",
-          "Solid": "solid"
+          "Solid": "solid",
+          "Subtle": "subtle"
         }
       },
       {

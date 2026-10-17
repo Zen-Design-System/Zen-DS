@@ -12,6 +12,7 @@ import { MyPageRow } from "./MyPages";
 import { RenameField } from "./RenameField";
 import { createFolder, deleteFolder, renameFolder, type StudioFolder } from "./store/folderStore";
 import { cachedPage, type PageMeta } from "./store/pageStore";
+import { activeProjectId } from "../project/activeProject";
 
 /*
  * The Studio space's folders (user, 2026-10-09: "Studio lets people make folders and pages / canvases inside each"):
@@ -34,7 +35,7 @@ export function FolderDialog({ onClose, onCreated }: { onClose: () => void; onCr
       onSubmit={() => {
         const value = name.trim();
         if (!value) { setError("Give the folder a name"); return; }
-        void createFolder(value).then((id) => { onCreated?.(id); onClose(); }, fail);
+        void createFolder(value, activeProjectId()).then((id) => { onCreated?.(id); onClose(); }, fail);
       }}
       primaryAction={{ label: "Create folder" }}
       secondaryAction={{ label: "Cancel" }}

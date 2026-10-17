@@ -33,7 +33,9 @@ import { selectedPartStore } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
 import { SharedConfirm } from "./shell/SharedConfirm";
 import { BuilderBoard } from "./builder/BuilderBoard";
-import { StudioHome } from "./builder/StudioHome";
+import { StudioHome } from "./project/ProjectsHome";
+import { ProjectSetup, useProjectSetup } from "./project/ProjectSetup";
+import { startProjects } from "./project/projectStore";
 import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { VariablesWindow } from "./variables/VariablesWindow";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
@@ -60,6 +62,7 @@ import { ensurePageDoc } from "./builder/localApi";
 import { AiChip } from "./mcp/AiChip";
 import { startMcpRuntime } from "./mcp/runtime";
 import "./studio.css";
+import { useCanvasPreview, useRememberPageProject } from "./project/activeProject";
 
 /** An open overlay owns Escape (it closes first): a popover, menu, listbox, dialog, or an expanded combobox/trigger. */
 function escapeOwnedByOverlay(event: KeyboardEvent) {
@@ -111,6 +114,8 @@ function useRouting() {
   // ?play=<screen> on a builder page opens it in Play.
   useEffect(() => {
     void startPageMirror();
+    // Studio projects (project/projectStore.ts): their modes must be in place before a project's page draws.
+    startProjects();
     const play = new URLSearchParams(window.location.search).get("play");
     if (play !== null && studioStore.getState().localPage && !isPlaying(studioStore.getState().presenting)) startPlay(play || null);
   }, []);
@@ -166,12 +171,13 @@ const WorldContent = memo(function WorldContent({ page, collection }: { page: Pl
  */
 export function StudioApp() {
   useRouting();
+  useRememberPageProject();
   const page = useStudio((state) => state.page);
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);
   const selection = useStudio((state) => state.selection);
   const chromeTheme = useStudio((state) => state.chromeTheme);
-  const preview = useStudio((state) => state.preview);
+  const { preview, brand } = useCanvasPreview();
   const leftTab = useStudio((state) => state.leftTab);
   const drawer = useStudio((state) => state.drawer);
   const presenting = useStudio((state) => state.presenting);
@@ -553,7 +559,9 @@ export function StudioApp() {
 
   const leftOpen = leftDocked || drawer === "left";
   const rightOpen = rightDocked || drawer === "right";
-  const inert = presenting ? true : undefined;
+  // Present, Play and the project theme page (project/ProjectSetup.tsx) cover the Studio: what is under them is inert.
+  const settingUp = useProjectSetup() !== null;
+  const inert = presenting || settingUp ? true : undefined;
   const panelTabs = (
     <div className="studio-left__tabs">
     <Tabs
@@ -612,7 +620,7 @@ export function StudioApp() {
               zoom with it); this layer takes what renders outside a frame, and a frame's portals until its layer mounts. The class official-portal-root is what examples and the full-screen code
               look for. data-zen-isolation-root: a modal's isolation (inert) stays inside this layer, so the canvas keeps
               taking Studio's clicks (Select, E2E O-02/O-04) and the chrome stays usable. */}
-          <div ref={setPreviewPortal} className="official-portal-root studio-portal-root" data-zen-isolation-root="" {...previewAttributes(preview)} />
+          <div ref={setPreviewPortal} className="official-portal-root studio-portal-root" data-zen-isolation-root="" {...previewAttributes(preview, brand)} />
           {/* Zoom, tools and tip float above that layer: an overlay left open never covers them (canvas/CanvasChrome). */}
           {docPage ? null : <CanvasChrome />}
           {docPage ? null : <AiChip />}
@@ -643,6 +651,8 @@ export function StudioApp() {
         </StudioBridgeContext>
         {/* Play (Studio builder GĐ2 M3): a builder page run full screen with live prototype actions. */}
         <Player />
+        {/* New project / Project settings: the project's theme page, full window. */}
+        <ProjectSetup />
 
         <ChromeScope className="studio-dialogs">
           <ShortcutsDialog />

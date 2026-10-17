@@ -29,22 +29,26 @@
    zen-allow-surface-flat: Figma's Card Border × Surface=Flat is Surface/Flat (user, 2026-10-14), not a navigation bar. */
 .zen-card[data-surface="flat"] { --zen-card-surface: var(--zen-color-background-surface-flat, #fff); }
 /* Color (Figma Card Color, Pale and Solid only; Card.tsx sets data-color on those themes, so a card never inherits
-   another card's fill). Pale: Support/<Color>/Pale (6643:51022, 15480:87358–87418, 15530:526, 15530:550). Solid: Neutral
+   another card's fill). Pale: Support/<Color>/Pale (6643:51022, 15480:87358–87418, 15530:526, 15530:550). Subtle:
+   Support/<Color>/Subtle (16195:138554–138668). Solid: Neutral
    Background/Neutral/Solid/Default (15480:87472), a hue Support/<Color>/Solid (15480:87478–87496), Accent
    Background/Accent/Solid/Default (Solid only, 16109:23445/23454); Figma has no Solid Violet, Green, Blue or Purple and
    no Pale Accent, and Card.tsx renders those as Neutral. */
-.zen-card[data-color="neutral"] { --zen-card-pale: var(--zen-color-background-support-neutral-pale); --zen-card-solid: var(--zen-color-background-neutral-solid-default); }
-.zen-card[data-color="brand"] { --zen-card-pale: var(--zen-color-background-support-brand-pale); --zen-card-solid: var(--zen-color-background-support-brand-solid); }
-.zen-card[data-color="cyan"] { --zen-card-pale: var(--zen-color-background-support-cyan-pale); --zen-card-solid: var(--zen-color-background-support-cyan-solid); }
-.zen-card[data-color="violet"] { --zen-card-pale: var(--zen-color-background-support-violet-pale); }
-.zen-card[data-color="green"] { --zen-card-pale: var(--zen-color-background-support-green-pale); }
-.zen-card[data-color="yellow"] { --zen-card-pale: var(--zen-color-background-support-yellow-pale); --zen-card-solid: var(--zen-color-background-support-yellow-solid); }
-.zen-card[data-color="orange"] { --zen-card-pale: var(--zen-color-background-support-orange-pale); --zen-card-solid: var(--zen-color-background-support-orange-solid); }
-.zen-card[data-color="blue"] { --zen-card-pale: var(--zen-color-background-support-blue-pale); }
-.zen-card[data-color="purple"] { --zen-card-pale: var(--zen-color-background-support-purple-pale); }
+.zen-card[data-color="neutral"] { --zen-card-pale: var(--zen-color-background-support-neutral-pale); --zen-card-subtle: var(--zen-color-background-support-neutral-subtle); --zen-card-solid: var(--zen-color-background-neutral-solid-default); }
+.zen-card[data-color="brand"] { --zen-card-pale: var(--zen-color-background-support-brand-pale); --zen-card-subtle: var(--zen-color-background-support-brand-subtle); --zen-card-solid: var(--zen-color-background-support-brand-solid); }
+.zen-card[data-color="cyan"] { --zen-card-pale: var(--zen-color-background-support-cyan-pale); --zen-card-subtle: var(--zen-color-background-support-cyan-subtle); --zen-card-solid: var(--zen-color-background-support-cyan-solid); }
+.zen-card[data-color="violet"] { --zen-card-pale: var(--zen-color-background-support-violet-pale); --zen-card-subtle: var(--zen-color-background-support-violet-subtle); }
+.zen-card[data-color="green"] { --zen-card-pale: var(--zen-color-background-support-green-pale); --zen-card-subtle: var(--zen-color-background-support-green-subtle); }
+.zen-card[data-color="yellow"] { --zen-card-pale: var(--zen-color-background-support-yellow-pale); --zen-card-subtle: var(--zen-color-background-support-yellow-subtle); --zen-card-solid: var(--zen-color-background-support-yellow-solid); }
+.zen-card[data-color="orange"] { --zen-card-pale: var(--zen-color-background-support-orange-pale); --zen-card-subtle: var(--zen-color-background-support-orange-subtle); --zen-card-solid: var(--zen-color-background-support-orange-solid); }
+.zen-card[data-color="blue"] { --zen-card-pale: var(--zen-color-background-support-blue-pale); --zen-card-subtle: var(--zen-color-background-support-blue-subtle); }
+.zen-card[data-color="purple"] { --zen-card-pale: var(--zen-color-background-support-purple-pale); --zen-card-subtle: var(--zen-color-background-support-purple-subtle); }
 .zen-card[data-color="accent"] { --zen-card-solid: var(--zen-color-background-accent-solid-default); }
 /* Pale: Support/<Color>/Pale + Effect/Overlay (background blur 100). */
 .zen-card[data-tone="pale"] { background: var(--zen-card-pale, var(--zen-color-background-support-neutral-pale)); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+/* Subtle (16195:138560…, user rule 2026-10-17): Support/<Color>/Subtle + Effect/Overlay — the colour box on a
+   Canvas/Default page, where Pale fades into the grey. */
+.zen-card[data-tone="subtle"] { background: var(--zen-card-subtle, var(--zen-color-background-support-neutral-subtle)); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 /* Solid: the one widget of a row that stands out (user rule 2026-10-14). No shadow, blur or stroke. */
 .zen-card[data-tone="solid"] { background: var(--zen-card-solid, var(--zen-color-background-neutral-solid-default)); }
 /* What the children of a Solid card read. Never a mode switch (one page = one mode): the page keeps its mode and every

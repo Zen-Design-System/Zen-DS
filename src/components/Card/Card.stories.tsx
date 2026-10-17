@@ -33,6 +33,11 @@ export const PaleColors: Story = {
   args: { theme: "pale" },
   decorators: [() => <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 200px)", gap: "var(--zen-spacing-gap-medium, 16px)", padding: "var(--zen-spacing-padding-large, 20px)", background: "var(--zen-color-background-canvas-alt)" }}>{cardColors.map((color) => <Card key={color} theme="pale" color={color} subAction={{ label: "More actions" }}><Widget title={color} /></Card>)}</div>],
 };
+/** Figma Theme=Subtle × Color (Support/<Color>/Subtle): colour on a box on the grey Canvas/Default, where Pale fades. */
+export const SubtleColors: Story = {
+  args: { theme: "subtle" },
+  decorators: [() => <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 200px)", gap: "var(--zen-spacing-gap-medium, 16px)", padding: "var(--zen-spacing-padding-large, 20px)", background: "var(--zen-color-background-canvas-default)" }}>{cardColors.map((color) => <Card key={color} theme="subtle" color={color} subAction={{ label: "More actions" }}><Widget title={color} /></Card>)}</div>],
+};
 /** Figma Theme=Solid × Color: the one widget of a row that stands out. Neutral is the dark widget (Content/Inverse/*). */
 export const SolidColors: Story = {
   args: { theme: "solid" },

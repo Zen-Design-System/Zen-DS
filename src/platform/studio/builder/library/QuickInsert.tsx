@@ -16,6 +16,7 @@ import type { LibraryPhoto } from "./media";
 import { closeQuickInsert, quickInsertMode, subscribeQuickInsert, type QuickInsertMode } from "./quickInsertState";
 import { describeTarget, insertTarget } from "./target";
 import "./library.css";
+import { useCanvasPreview } from "../../project/activeProject";
 
 /*
  * Quick insert (Studio builder GĐ3 M2, spec docs/research/studio-builder-library-spec-2026-10-06.md §3c), Figma's ⇧I:
@@ -63,7 +64,7 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
    *  pointer, which must not steal the focus from the keyboard (only a real move does). */
   const pointer = useRef<{ x: number; y: number } | null>(null);
   const selection = useStudio((state) => state.selection);
-  const preview = useStudio((state) => state.preview);
+  const { preview, brand } = useCanvasPreview();
   const results = useMemo(() => entriesFor(query, mode), [query, mode]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the target follows the selection (and is read again on open)
   const target = useMemo(() => insertTarget(), [selection]);
@@ -186,7 +187,7 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
         )}
         {entry?.kind === "component" ? <ItemPreview item={entry.item} />
           : entry?.kind === "icon" ? (
-            <div className="studio-qi__preview" data-e2e="quick-insert-preview" data-ready="true" aria-hidden="true" {...previewAttributes(preview)}>
+            <div className="studio-qi__preview" data-e2e="quick-insert-preview" data-ready="true" aria-hidden="true" {...previewAttributes(preview, brand)}>
               <Icon name={entry.name} size="3xl" decorative className="studio-qi__glyph" />
             </div>
           ) : entry?.kind === "photo" ? (

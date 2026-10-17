@@ -62,6 +62,8 @@ export async function startServer(root, { port: wanted, watchOnly } = {}) {
   fs.rmSync(draftsFileOf(root, port), { force: true });
   fs.rmSync(path.join(root, pagesDirOf(port), ".."), { recursive: true, force: true });
   process.env.ZEN_STUDIO_PAGES_DIR = pagesDirOf(port);
+  // Its projects sit beside its pages (projects-folder.mjs), emptied with them.
+  process.env.ZEN_STUDIO_PROJECTS_DIR = path.posix.join(path.posix.dirname(pagesDirOf(port)), "projects");
   fs.rmSync(path.join(root, `${DRAFTS_DIR}/e2e-promote-${port}`), { recursive: true, force: true });
   process.env.ZEN_STUDIO_PROMOTE_DIR = promoteDirOf(port);
   const { createServer, createLogger } = await import("vite");

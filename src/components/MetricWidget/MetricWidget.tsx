@@ -235,7 +235,7 @@ export type MetricCardProps = Omit<MetricProps, "value" | "variant"> & {
   value?: ReactNode;
   /** Card theme (Figma Metric-Card uses Shadow; Type=Hero a Brand Pale fill: theme="pale" color="brand" by default). */
   theme?: CardTheme;
-  /** Card Color (Figma Card Color, for theme="pale" or "solid"): the Card's hue. Solid Neutral is the dark widget; see Card. */
+  /** Card Color (Figma Card Color, for theme="pale", "subtle" or "solid"): the Card's hue. Solid Neutral is the dark widget; see Card. */
   color?: CardColor;
   /** Card Sub-Action (Figma: ⋮ Button/Icon-Flat). */
   subAction?: CardSubAction | ReactNode;

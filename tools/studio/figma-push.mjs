@@ -144,13 +144,13 @@ const NOT_DRAWN = new Set(["VisuallyHidden"]);
  * 2026-10-12), pushed as `strokeBottom: 0`. A Box counts when it paints a surface or a border.
  */
 const SURFACES = new Set(["Card", "ChartCard", "MetricCard", "Accordion", "SidePanel", "Dialog", "ModalForm", "BottomSheet", "Popover", "ListBox"]);
-/** Figma Card's Solid colours (15480:87472–87496); Pale has all nine. */
+/** Figma Card's Solid colours (15480:87472–87496); Pale and Subtle have all nine (no Accent). */
 const CARD_SOLID_COLORS = new Set(["Neutral", "Brand", "Cyan", "Yellow", "Orange"]);
 /** Figma Card's Surface per Theme (Card 6643:51021: Alt on Flat and Border, Flat on Border); the others draw Default. */
 const CARD_SURFACES = { Flat: new Set(["Default", "Alt"]), Border: new Set(["Default", "Alt", "Flat"]) };
 /**
  * A Card's Theme × Color × Surface × Active as a variant Figma has (Card 6643:51021), drawn as the code draws it: Color
- * only on Pale and Solid (Card.tsx ignores it elsewhere), a Solid hue Figma lacks as Solid Neutral, Shadow on Surface/Alt
+ * only on Pale, Subtle and Solid (Card.tsx ignores it elsewhere; a Pale or Subtle Accent is Neutral), a Solid hue Figma lacks as Solid Neutral, Shadow on Surface/Alt
  * as Flat on Surface/Alt (Card.tsx drops the shadow there), a Surface the theme does not take as Default (Card.tsx
  * ignores Flat off Border; Pale, On-Container and Solid keep their own fill), and Active=Yes only on a Neutral card (the
  * code's selected look is the Surface fill with no hue; Solid has no Active=Yes).
@@ -165,7 +165,11 @@ function cardVariant(props, notes, where) {
     props.Surface = "Default";
   }
   if ("Color" in props) {
-    if (props.Theme !== "Pale" && props.Theme !== "Solid") props.Color = "Neutral";
+    if (props.Theme !== "Pale" && props.Theme !== "Subtle" && props.Theme !== "Solid") props.Color = "Neutral";
+    else if (props.Theme !== "Solid" && props.Color === "Accent") {
+      notes.push(`${where}: Figma has no ${props.Theme} Accent (the code draws ${props.Theme} Neutral): Color Neutral`);
+      props.Color = "Neutral";
+    }
     else if (props.Theme === "Solid" && !CARD_SOLID_COLORS.has(props.Color)) {
       notes.push(`${where}: Figma has no Solid ${props.Color} (the code draws Solid Neutral): Color Neutral`);
       props.Color = "Neutral";

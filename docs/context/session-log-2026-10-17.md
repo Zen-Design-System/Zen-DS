@@ -582,3 +582,75 @@ User: "phần copy paste trực tiếp và import cần test kiểm tra nhiều 
   board's own frame-width mistake (fixed) and the plugin's fixedWidth bug (fixed).
 - E2E: HO-10 updated for the Master-Layout export.
 
+
+## Studio projects + project theme, phase 1 (tier L, session "Studio project theme customization"; user: "tạo dự án như Figma … set theme cho Dự án … không đè vào codebase hiện tại mà chỉ sinh thêm 1 mode riêng", then "sinh động như trang tailwind color app", "chart nên chia nhiều sector")
+- Decisions: Drafts for pages with no project, the four radius modes, build phase 1. Spec and next phases:
+  `docs/research/studio-projects-theme-2026-10-17.md`. Branch `zen/feat/studio-projects-theme-20261017`, worktree
+  `../Zen-DS-projects`.
+- A project's theme is one extra Base Colors (Project) mode, `[data-brand="p-<id>"]`. It is kept in
+  `.zen-studio/projects/<id>/{project.json, theme.css}` (`tools/studio/projects-folder.mjs`, routes GET /projects and
+  POST /projects/write|trash). tokens/source and tokens.css are untouched. Pages join a project through the header key
+  `project`.
+- Ramps: `tools/studio/zen-ramp.generated.mjs`, copied from the Zen plugin's `generateExpectedPalette` by
+  `zen-ramp-extract.mjs`. The selftest rebuilds all 960 values of the 20 shipped ramps exactly, and Zen's On-Brand.
+- UI:
+  - Studio home is a projects grid with themed thumbnails.
+  - Pages panel: project bar and list; New project / New page on the grid.
+  - Theme page `project/ProjectSetup.tsx`: the settings, plus a gallery with Cards / Charts (7 sectors) / Dashboard /
+    Website / Components in Light, Dark or Both. A chart-sector change opens Charts; ⌘Z steps through changes.
+  - Inspector: a Project row (move the page, open its theme); Preview modes show the project's modes.
+- Canvas, Present, Play, insert previews and the HTML export draw in the project's mode.
+- Library: Chart sectors 3–7 read `--zen-chart-sector-*` and `-subtle`, with today's colours as fallbacks. Sector 7 is
+  back to Green Soft (regressed to Red Soft in cc3a97b9; the Figma style is Green Soft); the guideline text is fixed too.
+- Gotcha: swatches inside Studio chrome show Neutral-S7, because tokens.css re-resolves the component theme under a
+  `[data-component-theme]` ancestor. The theme page reads its tile and sector colours from probes outside the chrome.
+- Checks:
+  - tsc ✓; studio selftests ✓ (project-theme 1664, projects-folder 13, pageModel 45); usage + style guard clean.
+  - Playwright on a private :5191: create → home → page has `data-brand="p-…"`; settings round-trip; 390px stacks with
+    no overflow.
+- Follow-up (user, 2026-10-18: "Không bấm tạo project được"):
+  - A new project now starts as "Untitled project" (2, 3…), with the name selected. Before, an empty name only showed
+    a small error under the field.
+  - Sync fix: a project only this browser has goes back up to the dev folder only if it was saved while no server
+    answered (pending). Before, a project trashed in another browser came back.
+- Follow-up (user, 2026-10-18: "Tạo page mới trong project vừa tạo nó lại nhảy vào draft"). Two causes:
+  - A page sync race (it predates projects): the tab re-synced on the folder's change event, which fires on the
+    temporary file. That listing missed the page just written, the page was already marked synced, and the plan sent
+    it to the Trash about 1 s after it was made. A fresh listing now confirms a lost page before it is trashed.
+  - A page from a template only got `project` after it opened, and its document wrote the text back without it. It
+    now takes the project in its first write (pageFromSnapshot).
+  - Checked: blank pages (from the project home and from the panel) and template pages keep their project, including
+    after a rename.
+- Follow-up (user, 2026-10-18: "không truy xuất được Local variable của dự án"):
+  - The 5191 server returned 404 for /variables. Its restart had failed during the merge, while package.json still had
+    conflict markers, so it kept the old plugin. Restarted.
+  - The Variables window now shows the open project's mode as the first column of Base Colors (Project), from
+    `projectBaseValues(theme)`: aliases to the shipped ramps or the custom hex; the selftest checks the default theme
+    equals the Zen mode exactly. Every collection resolves through that column, so Mode Colors' chips show the
+    project's colours.
+  - The column is read-only: a click opens Project settings. tokens/source keeps only the Zen mode.
+- Follow-up (user: "Chưa bỏ segmented dời chỗ đổi document và studio vào menu hả?"): main already had it from
+  another session (the brand menu's Switch to Document / Switch to Studio), so the merge took main's version and
+  dropped this session's parallel one (Open Document / Open Studio).
+## Card Theme=Subtle (tier M, session "Studio project theme customization"; user: "nên thêm rule nếu nền canvas là default thì Card không dùng pale mà dùng subtle", then chose "Thêm Theme=Subtle")
+- Figma (9nZv4uW2LT21yuHabMTCh1, Card 6643:51021):
+  - 20 variants Theme=Subtle (16195:138554 … 138668), cloned from Pale: the slot and the Sub-Action refs were restored,
+    and the tree signature matches its source.
+  - Fills bind Color/Background/Support/<Color>/Subtle. Active=Yes keeps Surface/Default.
+  - Neutral sits in column 4 beside Pale; the hues sit in new rows 13–14.
+  - The set's description now names Subtle (tools/figma-docs; Card added to FORCE). The old text is in "Description
+    backup 2026-10-17" on 🔒 ARCHIVED.
+- Code and tools:
+  - `cardThemes` gains `subtle`: `--zen-card-subtle` per hue plus the Effect/Overlay blur. A Subtle Accent draws Neutral,
+    as Pale does.
+  - Story `SubtleColors`; example "Colour on the grey canvas" (card page).
+  - Guideline source updated; the component-properties contract has Card Theme `Subtle`. Studio figmaProps and
+    variantSets were regenerated; figma-push and figma-metric map Subtle.
+- Harness `card/pale-on-canvas-default` (error, 210 rules). The canvas comes from the nearest AppShell or PlatformPhone
+  `canvas` (Default unless set), or from a painting ZenProvider; a box in between skips the check. Fixtures are
+  bad ×2 + good ×3, and the repo has 0 findings today.
+- Figma audit `theme/box-on-canvas`: Subtle is the colour family of Canvas/Default, and Pale there is told to use
+  Subtle. Also updated: screen-rules §1 and audit-rules.md (AI kit ✓).
+- Checks: tsc ✓, usage:selftest ✓, ai-kit:check ✓; tests/interaction/card-color 9/9 (Subtle fills and axe, Light and
+  Dark).
+- List-Box keeps Pale only (user, 2026-10-18: List-Box Subtle "không").

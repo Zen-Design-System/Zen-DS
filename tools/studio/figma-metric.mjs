@@ -39,8 +39,8 @@ const TREND_OPTION = { positive: "Positive", negative: "Negative", normal: "Norm
 const TREND_DIRECTION = { Positive: "positive", Negative: "negative", Normal: "normal" };
 /** Card Theme / Color (Figma Card 6643:51021) ↔ code; Figma's Hero card is Solid Brand with its fill overridden to
  *  Support/Brand/Pale, which code draws as theme="pale" color="brand" (MetricCard's Hero default). */
-const CARD_THEME = { shadow: "Shadow", flat: "Flat", pale: "Pale", "semi-pale": "Pale", border: "Border", "on-container": "On-Container", solid: "Solid" };
-const THEME_OF = { Shadow: "shadow", Flat: "flat", Pale: "pale", Border: "border", "On-Container": "on-container", Solid: "solid" };
+const CARD_THEME = { shadow: "Shadow", flat: "Flat", pale: "Pale", "semi-pale": "Pale", border: "Border", "on-container": "On-Container", solid: "Solid", subtle: "Subtle" };
+const THEME_OF = { Shadow: "shadow", Flat: "flat", Pale: "pale", Border: "border", "On-Container": "on-container", Solid: "solid", Subtle: "subtle" };
 const capital = (word) => (typeof word === "string" && word ? word[0].toUpperCase() + word.slice(1) : word);
 const words = (value) => (typeof value === "string" || typeof value === "number" ? String(value) : null);
 

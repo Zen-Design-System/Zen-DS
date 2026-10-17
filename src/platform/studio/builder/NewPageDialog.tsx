@@ -9,6 +9,8 @@ import { snapshotTemplate, templateChoices, type TemplateChoice } from "./starte
 import { pageFromSnapshot } from "./starters/newPageFromFrame";
 import { TemplateThumb } from "./starters/TemplateThumb";
 import { freeId, listPages, movePage, putPage } from "./store/pageStore";
+import { withHeaderProject } from "./store/pageModel";
+import { activeProjectId } from "../project/activeProject";
 
 /*
  * New page (Studio builder GĐ2; spec §5 M1): a blank page on a device, or (GĐ3b M3) one of the platform's page templates
@@ -57,12 +59,14 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
   // No title or device to fill in first (user, 2026-10-09): a template keeps its own; a blank page is "Untitled page" on a
   // desktop Screen. Both change as you work: the page's Name with nothing selected, a Screen's Device in its frame panel.
   const create = async () => {
+    const project = activeProjectId();
     if (template) {
       setBusy(true);
       try {
         const result = await snapshotTemplate(template.id);
         const page = result ? await pageFromSnapshot(result.shot, { title: result.title, from: `the ${result.title} template` }) : null;
         if (!page) { setError("This template could not be copied: the status line says why"); return; }
+        // pageFromSnapshot already put it in the open project (header `project`).
         if (folder) await movePage(page, folder);
         reset();
         onOpenChange(false);
@@ -74,7 +78,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
     const name = await untitledName();
     const [engine, page] = await Promise.all([loadEngine(), freeId(name)]);
     // "empty": one desktop Screen with nothing in it, as Figma's new frame (user, 2026-10-16).
-    await putPage(page, engine.newPageText({ title: name, device: "desktop", empty: start === "empty" }), { title: name, folder });
+    await putPage(page, withHeaderProject(engine.newPageText({ title: name, device: "desktop", empty: start === "empty" }), project), { title: name, folder });
     reset();
     onOpenChange(false);
     openLocalPage(page);
