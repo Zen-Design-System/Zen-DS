@@ -4,7 +4,7 @@ import { GROUP_ICON } from "../../builder/library/catalog";
 import { renderInert, useItemNode } from "../../builder/library/ItemPreview";
 import { previewAttributes } from "../../shell/modes";
 import type { PaletteItem } from "../../slots/palette";
-import { useStudio } from "../../store";
+import { useCanvasPreview } from "../../project/activeProject";
 
 /*
  * An Assets thumbnail (Figma's asset grid, user 2026-10-09): the component drawn for real — the same engine render as
@@ -16,7 +16,7 @@ import { useStudio } from "../../store";
 const STAGE_MAX = 360;
 
 export function AssetThumb({ item }: { item: PaletteItem }) {
-  const preview = useStudio((state) => state.preview);
+  const { preview, brand } = useCanvasPreview();
   const tileRef = useRef<HTMLSpanElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [seen, setSeen] = useState(false);
@@ -49,7 +49,7 @@ export function AssetThumb({ item }: { item: PaletteItem }) {
   }, [node]);
 
   return (
-    <span ref={tileRef} className="studio-assets__thumb" data-ready={node ? "true" : undefined} aria-hidden="true" inert {...previewAttributes(preview)}>
+    <span ref={tileRef} className="studio-assets__thumb" data-ready={node ? "true" : undefined} aria-hidden="true" inert {...previewAttributes(preview, brand)}>
       {node ? (
         <div ref={stageRef} className="studio-assets__stage" style={{ maxWidth: STAGE_MAX, transform: `scale(${scale})` }} data-zen-overlay-root="">
           {portal ? renderInert(node, portal, <Icon name={GROUP_ICON[item.group]} size="lg" decorative />) : null}

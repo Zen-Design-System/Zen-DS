@@ -309,6 +309,21 @@ exactly one snippet, it is replaced by the new code (on one line, or re-indented
 
 The result must parse at least as well as the original, or the edit is refused (`invalid`).
 
+### Projects (2026-10-17)
+
+- **What a project is:** a name and a theme, kept in `.zen-studio/projects/<id>/project.json` (`projects-folder.mjs`).
+  Each save also writes `theme.css`: the project's Base Colors (Project) mode `[data-brand="p-<id>"]`
+  (`project-theme.mjs`).
+- **Endpoints:**
+  - `GET /projects`: `{ ok, dir, projects: [{ project, errors, mtime }] }`. Needs the token.
+  - `POST /projects/write` with `{ project }`: normalises the project first; an unknown value falls back to its default.
+  - `POST /projects/trash` with `{ id }`: moves the folder to `.zen-studio/trash/projects/`.
+- **Pages:** a page names its project in its header (`"project":"<id>"`).
+- **Ramps:** custom Primary and Neutral ramps come from `zen-ramp.generated.mjs` (the Zen plugin's generator; rerun
+  `zen-ramp-extract.mjs` after the plugin changes it).
+- **E2E:** the E2E server keeps its projects beside its pages (`ZEN_STUDIO_PROJECTS_DIR`).
+- **Spec:** `docs/research/studio-projects-theme-2026-10-17.md`.
+
 ## 3. Detach component (`detach.mjs`, op `{ op: "detach", measured?, instance? }`)
 
 Figma's Detach instance, at source level: a presentational component instance becomes Zen layout primitives with token

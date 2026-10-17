@@ -3025,7 +3025,7 @@
         "KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).",
         "A selectable option with rich content (Active marks the choice).",
         "Framing a List or a group of settings (Border).",
-        "A dashboard widget in colour: Pale in any of the nine hues, or the one widget of a row that stands out (Solid)."
+        "A dashboard widget in colour: Subtle on the grey Canvas/Default, Pale on a white page, in any of the nine hues; or the one widget of a row that stands out (Solid)."
       ],
       "avoid": [
         "Page sections that are just spacing → layout, not a card.",
@@ -3078,6 +3078,7 @@
             "border",
             "on-container",
             "solid",
+            "subtle",
             "semi-pale"
           ],
           "default": "shadow",
@@ -3097,7 +3098,7 @@
             "accent"
           ],
           "default": "neutral",
-          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan ·"
+          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550), theme=\"subtle\" (Support/<Color>/Subtle, the same nine hues: 16195:138578…13"
         },
         "spacing": {
           "enum": [
@@ -3281,6 +3282,7 @@
             "border",
             "on-container",
             "solid",
+            "subtle",
             "semi-pale"
           ],
           "default": "flat",
@@ -3299,7 +3301,7 @@
             "purple",
             "accent"
           ],
-          "description": "Figma nested Card Color, for theme=\"pale\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card)."
+          "description": "Figma nested Card Color, for theme=\"pale\", \"subtle\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card)."
         },
         "surface": {
           "enum": [
@@ -10422,6 +10424,7 @@
             "border",
             "on-container",
             "solid",
+            "subtle",
             "semi-pale"
           ],
           "description": "Card theme (Figma Metric-Card uses Shadow; Type=Hero a Brand Pale fill: theme=\"pale\" color=\"brand\" by default)."
@@ -10439,7 +10442,7 @@
             "purple",
             "accent"
           ],
-          "description": "Card Color (Figma Card Color, for theme=\"pale\" or \"solid\"): the Card's hue."
+          "description": "Card Color (Figma Card Color, for theme=\"pale\", \"subtle\" or \"solid\"): the Card's hue."
         },
         "subAction": {
           "anyOf": [
@@ -18171,7 +18174,7 @@
         "Put secondary card actions in the Sub-Action menu.",
         "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
         "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"border\" surface=\"flat\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
-        "Put colour on a box with theme=\"pale\" and a color (any of the nine hues, content stays neutral), e.g. a card per project or client on a white Canvas/Alt page.",
+        "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
         "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
         "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
         "On Brand, Cyan, Orange and Accent the white On-Colors text measures about 3:1: keep what you write there short and large (the number, a title), and put long or small text on another card.",
@@ -18182,6 +18185,7 @@
         "Don't nest cards inside cards.",
         "On a phone, don't leave three or more cards at Medium, or shrink a card on its own to Small.",
         "Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).",
+        "Don't put a Pale card on the grey Canvas/Default: it fades into the page; use theme=\"subtle\" (harness card/pale-on-canvas-default).",
         "Don't use Active as decoration; it means selected.",
         "Don't make a whole row Solid: one widget stands out, the rest share the row's theme.",
         "Don't set data-theme or a dark mode on one card to darken it: one page is one mode, and theme=\"solid\" color=\"neutral\" re-points only its content tokens.",
@@ -18193,6 +18197,7 @@
         "card/color-ignored",
         "card/surface-ignored",
         "card/solid-color",
+        "card/pale-on-canvas-default",
         "card/spacing-by-count",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -18434,6 +18439,7 @@
       "rules": [
         "card/color-ignored",
         "card/solid-color",
+        "card/pale-on-canvas-default",
         "card/spacing-by-count",
         "metric/formatted-value",
         "metric/type-data",
@@ -18745,6 +18751,7 @@
         "card/color-ignored",
         "card/surface-ignored",
         "card/solid-color",
+        "card/pale-on-canvas-default",
         "chart/stack-needs-legend",
         "chart/needs-name",
         "chart/shares-need-legend",

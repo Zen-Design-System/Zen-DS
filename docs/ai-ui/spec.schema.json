@@ -6769,6 +6769,7 @@
                       "border",
                       "on-container",
                       "solid",
+                      "subtle",
                       "semi-pale"
                     ]
                   },
@@ -6798,7 +6799,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan ·"
+                "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550), theme=\"subtle\" (Support/<Color>/Subtle, the same nine hues: 16195:138578…13"
               },
               "spacing": {
                 "anyOf": [
@@ -7190,6 +7191,7 @@
                       "border",
                       "on-container",
                       "solid",
+                      "subtle",
                       "semi-pale"
                     ]
                   },
@@ -7219,7 +7221,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma nested Card Color, for theme=\"pale\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card)."
+                "description": "Figma nested Card Color, for theme=\"pale\", \"subtle\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card)."
               },
               "surface": {
                 "anyOf": [
@@ -21043,6 +21045,7 @@
                       "border",
                       "on-container",
                       "solid",
+                      "subtle",
                       "semi-pale"
                     ]
                   },
@@ -21072,7 +21075,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Card Color (Figma Card Color, for theme=\"pale\" or \"solid\"): the Card's hue."
+                "description": "Card Color (Figma Card Color, for theme=\"pale\", \"subtle\" or \"solid\"): the Card's hue."
               },
               "subAction": {
                 "anyOf": [

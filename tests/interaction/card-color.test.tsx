@@ -23,7 +23,7 @@ const resolve = (scope: Element, name: string) => {
   return value;
 };
 
-const Widget = ({ theme, color }: { theme: "pale" | "solid"; color: CardColor }) => (
+const Widget = ({ theme, color }: { theme: "pale" | "subtle" | "solid"; color: CardColor }) => (
   <Card theme={theme} color={color} subAction={{ label: "More actions", onClick: () => undefined }} data-testid={`${theme}-${color}`}>
     <Heading level={3} textStyle="Heading/Subheading">Invoiced this year</Heading>
     <Text textStyle="Heading/2">$798,300</Text>
@@ -45,11 +45,14 @@ describe("Card colour", () => {
         <Card theme="semi-pale" color="cyan">e</Card>
         <Card theme="pale" color="accent">f</Card>
         <Card theme="solid" color="accent">g</Card>
+        <Card theme="subtle" color="green">h</Card>
+        <Card theme="subtle" color="accent">i</Card>
       </ZenProvider>,
     );
     const cards = [...screen.container.querySelectorAll(".zen-card")];
     expect(cards.map((card) => [card.getAttribute("data-tone"), card.getAttribute("data-color")])).toEqual([
       ["pale", "violet"], ["solid", "neutral"], ["solid", "brand"], ["flat", null], ["pale", "cyan"], ["pale", "neutral"], ["solid", "accent"],
+      ["subtle", "green"], ["subtle", "neutral"],
     ]);
   });
 
@@ -57,6 +60,7 @@ describe("Card colour", () => {
     const screen = await render(
       <ZenProvider theme="light">
         {cardColors.map((color) => <Card key={color} theme="pale" color={color} data-testid={`pale-${color}`}>x</Card>)}
+        {cardColors.map((color) => <Card key={`s-${color}`} theme="subtle" color={color} data-testid={`subtle-${color}`}>x</Card>)}
         {cardSolidColors.map((color) => <Card key={color} theme="solid" color={color} data-testid={`solid-${color}`}>x</Card>)}
       </ZenProvider>,
     );
@@ -65,6 +69,11 @@ describe("Card colour", () => {
       const card = screen.container.querySelector(`[data-testid="pale-${color}"]`)!;
       // Figma has no Pale Accent: it draws as Pale Neutral.
       expect(getComputedStyle(card).backgroundColor, `pale ${color}`).toBe(resolve(page, `--zen-color-background-support-${color === "accent" ? "neutral" : color}-pale`));
+    }
+    for (const color of cardColors) {
+      // Subtle (user rule 2026-10-17): Support/<Color>/Subtle; no Subtle Accent either.
+      const card = screen.container.querySelector(`[data-testid="subtle-${color}"]`)!;
+      expect(getComputedStyle(card).backgroundColor, `subtle ${color}`).toBe(resolve(page, `--zen-color-background-support-${color === "accent" ? "neutral" : color}-subtle`));
     }
     for (const color of cardSolidColors) {
       const card = screen.container.querySelector(`[data-testid="solid-${color}"]`)!;
@@ -140,7 +149,7 @@ describe("Card colour", () => {
       }
     });
 
-    it(`passes axe colour contrast for every Pale colour, Solid Neutral and Solid Yellow (${theme})`, async () => {
+    it(`passes axe colour contrast for every Pale and Subtle colour, Solid Neutral and Solid Yellow (${theme})`, async () => {
       // White On-Colors / On-Accent text measures about 3:1 on Brand, Cyan, Orange and Accent: the user chose the tokens'
       // own family there (2026-10-17), so those solids are left out of the contrast check.
       const checked = cardSolidColors.filter((color) => color === "neutral" || color === "yellow");
@@ -148,6 +157,7 @@ describe("Card colour", () => {
         <ZenProvider theme={theme}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 240px)", gap: 16, padding: 16 }}>
             {cardColors.map((color) => <Widget key={`p-${color}`} theme="pale" color={color} />)}
+            {cardColors.map((color) => <Widget key={`t-${color}`} theme="subtle" color={color} />)}
             {checked.map((color) => <Widget key={`s-${color}`} theme="solid" color={color} />)}
           </div>
         </ZenProvider>,
