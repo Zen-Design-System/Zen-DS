@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Text on Zen brand solids follows the live Figma again (2026-10-17, user: "Đồng bộ On-Brand theo Figma"): Base
+  Colors On-Brand-Default and On-Brand-Hover are white (were black 86% since 2026-10-13), so
+  `--zen-color-content-on-accent-*` on Zen pink is white. White on Zen/9 `#F755C9` is 2.96:1 (black 86% was 6.22:1).
 - Zen Figma skill: every slip the user catches becomes a rule. Prompted on 2026-10-17 by "Dùng icon không đồng bộ",
   "từ đây về sau bổ sung nguyên tắc. Luôn làm đúng không lại sai" and "Bạn cần học cách tôi làm".
   - The audit adds `navigation/icon-style`: in a Bottom-Navigation the selected item is solid, the others line.

@@ -2192,14 +2192,14 @@
         "name": "Light/On-Brand-Default",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#000000DB"
+          "Zen": "#FFFFFF"
         }
       },
       {
         "name": "Dark/On-Brand-Default",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#000000DB"
+          "Zen": "#FFFFFF"
         }
       },
       {
@@ -2234,14 +2234,14 @@
         "name": "Light/On-Brand-Hover",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#000000DB"
+          "Zen": "#FFFFFF"
         }
       },
       {
         "name": "Dark/On-Brand-Hover",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#000000DB"
+          "Zen": "#FFFFFF"
         }
       },
       {

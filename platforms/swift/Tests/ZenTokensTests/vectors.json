@@ -406,7 +406,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#000000DB"
+  "expected": "#FFFFFF"
  },
  {
   "name": "Button-Primary/Content/Default",
@@ -934,7 +934,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#000000DB"
+  "expected": "#FFFFFF"
  },
  {
   "name": "Checkbox/Icon-Check/Default",
@@ -3142,7 +3142,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#000000DB"
+  "expected": "#FFFFFF"
  },
  {
   "name": "Date-Picker-Item/Content/Selected",
