@@ -201,6 +201,13 @@ removed (four unused colour ramps were, see Removed).
   titles are no longer white, and a layer the page appends to a card (Goal-Progress's hint) stays last (user: "Copy
   paste vẫn lỗi mà", "vẫn sai vị trí của các element trong slot"): the paste writes overrides as Figma's own copy does,
   checked with `node tools/studio/native-diff.mjs` against Figma's copy of the plugin's import.
+- Studio → Figma checked on 438 pages (2026-10-18, user: "phần copy paste trực tiếp và import cần test kiểm tra nhiều
+  hơn"): every example frame and template went through the push and the direct paste, and a 78-frame board was
+  compared with Figma's copy of the plugin's import. Both paths now give the Screen frame its Canvas fill and its
+  900 / 844 minimum height. PageHeader eyebrows, chat time stamps and plain texts get the code's text styles. A
+  workspace Sidebar keeps its menu, the Hero MetricCard keeps its button words, and a Tile keeps its content when its
+  Card changes theme. A frame of a set width keeps it in the plugin. The direct-paste definitions were recaptured,
+  adding the Chip and Segmented Overlay levels and Toggle XLarge.
 - AppShell goes to Figma as the Zen file's Master-Layout (2026-10-18, user: "app shell và master layout không khớp với
   nhau thành component master layout trong figma"): the plugin's import and the direct paste place one
   Patterns/Pages/Density-Medium (Level=Master) instance instead of frames. The Sidebar sits in its Sidebar pattern

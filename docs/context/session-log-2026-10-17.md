@@ -566,3 +566,19 @@ User: "app shell và master layout không khớp với nhau thành component mas
   sizes 1440×1516, padding bound, Sidebar full height); the user confirmed on screen (server reads lag, §7b).
 - Selftests: push 275, pull 76, native 57 (+10), plugin `npm test`; BACKLOG P2 nested Grid row stretch (pre-existing).
 
+## Studio → Figma test run (same session, 2026-10-18, tier M)
+User: "phần copy paste trực tiếp và import cần test kiểm tra nhiều hơn", then "xử lý".
+- Corpus: starters-coverage's "New page from this frame" on every example frame + the 15 templates → 438 pages
+  (scratchpad tools make-corpus / check-corpus: push → native message → invariants: guids, sibling positions, slot
+  contents, symbols, variables, kiwi encode). 0 structural problems; writer notes 26 → 11 pages (left: Shapes P2,
+  library gaps in BACKLOG).
+- Board of 78 frames imported by the plugin, copied, `native-diff` against the paste: 3,304 differences of 74 kinds,
+  most representation; the visual ones fixed (see CHANGELOG). Findings fixed at their owners: Screen frame canvas +
+  min height (push, pull, writer, plugin), eyebrow / ChatDateDivider / bare text styles, workspace Sidebar slots,
+  Hero Button/Main (nested paths match full slashed names first, writer + plugin), swapped owner's slot content,
+  hug layer axis, grid cell fill axes, plugin fixedWidth after hug, Autocomplete Text, Seen by=5+, example icon.
+- Pack recaptured in full (11 probe frames; Chip/Segmented Overlay, Toggle XLarge, Metric-Card Tile were stale).
+- The user stopped the last board import (too slow): no rendered side-by-side yet; the 2nd plugin import showed the
+  board's own frame-width mistake (fixed) and the plugin's fixedWidth bug (fixed).
+- E2E: HO-10 updated for the Master-Layout export.
+
