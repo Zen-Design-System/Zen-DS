@@ -102,10 +102,14 @@ export async function until(fn, { timeout = 6000, interval = 100, message = "con
   throw new Error(`Timed out waiting for ${message}${last instanceof Error ? ` (${last.message})` : ""}`);
 }
 
-/** The left panel header's Document | Studio switch on Studio: the folders and the pages people made (user, 2026-10-09). */
+/** The Studio space (projects and the pages people made), from the brand menu's Open Studio (user, 2026-10-17: the
+ *  Document | Studio switch moved into the menu); already there, the menu offers Open Document and is closed again. */
 export async function openStudioSpace(page) {
-  const studio = page.locator(".studio-space").first().getByRole("button", { name: "Studio", exact: true });
-  if ((await studio.getAttribute("aria-pressed")) !== "true") { await studio.click(); await sleep(200); }
+  await page.locator(".studio-brand:visible").first().click();
+  const open = page.getByRole("menuitem", { name: /^Open Studio/ });
+  const back = page.getByRole("menuitem", { name: /^Open Document/ });
+  await open.or(back).first().waitFor({ state: "visible", timeout: 5000 });
+  if (await open.count()) { await open.click(); await sleep(200); } else await page.keyboard.press("Escape");
 }
 
 export async function showLeftTab(page, tab) {

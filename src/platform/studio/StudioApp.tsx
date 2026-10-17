@@ -51,7 +51,7 @@ import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
 import { PanelResizer } from "./shell/PanelResizer";
 import { ShortcutsDialog } from "./shell/ShortcutsDialog";
 import { openShortcuts } from "./shell/shortcutsOpen";
-import { CollapsedLeftBar, CollapsedRightBar, DrawerClose, LeftHeader, RightHeader, SpaceBar } from "./shell/PanelHeaders";
+import { CollapsedLeftBar, CollapsedRightBar, DrawerClose, LeftHeader, RightHeader } from "./shell/PanelHeaders";
 import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";
 import type { StudioLeftTab } from "./types";
@@ -599,7 +599,6 @@ export function StudioApp() {
           </ChromeScope>
         )}
         {leftDocked || presenting ? null : <ChromeScope className="studio-bar-scope" inert={inert}><CollapsedLeftBar layout={layout} /></ChromeScope>}
-        {layout.phone || presenting ? null : <ChromeScope className="studio-space-bar" inert={inert}><SpaceBar /></ChromeScope>}
         {rightDocked || presenting || docPage ? null : <ChromeScope className="studio-bar-scope" inert={inert}><CollapsedRightBar layout={layout} /></ChromeScope>}
 
         {leftDocked && !presenting ? <PanelResizer side="left" width={panels.left} label="Resize Pages and layers panel" controls="studio-left" /> : null}

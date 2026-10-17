@@ -10,7 +10,7 @@
   align-content: start;
   gap: var(--zen-spacing-gap-large, 24px);
   overflow: auto;
-  /* Clear of the floating Document | Studio switch at the top. */
+  /* Clear of the Studio's floating corner bar at the top right. */
   padding: var(--zen-spacing-padding-4-xlarge, 48px) var(--zen-spacing-padding-2-xlarge, 32px) var(--zen-spacing-padding-2-xlarge, 32px);
 }
 /* Title and New project together on the left: the Studio's floating corner bar holds the top right. */
@@ -21,7 +21,7 @@
 .studio-projects__card .zen-card__content { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
 .studio-projects__card:hover { background: var(--zen-color-background-neutral-flat-hover); }
 .studio-projects__card:has(.studio-projects__open:focus-visible) { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 2px; }
-/* The thumbnail: the project's own modes, its Primary ramp and three of its components (inert, never focused). */
+/* The thumbnail: the project's own modes, its Primary ramp, a button and a badge (inert, never focused). */
 /* zen-allow-canvas-layer: the thumbnail is a small picture of a page in the project, on its Canvas */
 .studio-projects__thumb {
   display: grid;

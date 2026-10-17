@@ -230,7 +230,7 @@ Last updated: 2026-10-15.
   `chartCore.tsx`; `showAverage` (Line, Bar, Stack-bar); Studio palette items; harness `chart/*`. Spec
   `docs/research/chart-family-spec-2026-10-12.md`; the Figma side (❖ Chart page, IDs in spec §5.1) is built from it in
   the official file at the user's request. Open: Export › Figma mapping and Figma contracts (BACKLOG).
-- **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
+- **Zen Studio spaces (2026-10-09; since 2026-10-17 switched from the brand menu, Open Document / Open Studio — no floating switch):** the toolbar centre was a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview
   modes change only in Present / Play (their bar's Modes panel); the toolbar has light/dark only. E2E: `openStudioSpace`.

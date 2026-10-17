@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Badge } from "../../../components/Badge";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
-import { Chip } from "../../../components/Chip";
 import { Dialog } from "../../../components/Dialog";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
@@ -91,7 +90,6 @@ function ProjectCard({ project, pages }: { project: Project | null; pages: numbe
           {/* zen-allow-action-handler: the thumbnail is inert, a picture of the project's button (the card opens the project). */}
           <Button level="primary" size="sm">Get started</Button>
           <Badge theme="accent" size="sm">New</Badge>
-          <Chip size="sm" selected>Active</Chip>
         </span>
       </ZenProvider>
       <div className="studio-projects__text">

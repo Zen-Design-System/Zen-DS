@@ -1,7 +1,6 @@
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu } from "../../../components/Menu";
-import { Segmented } from "../../../components/Segmented";
 import { redoEdit, undoEdit, useStudioServer } from "../api";
 import { ZoomMenu } from "../canvas/ZoomControls";
 import { useStudioDrafts } from "../sourceDrafts";
@@ -40,7 +39,9 @@ function useWritable() {
   return editable && server.ready && server.writable;
 }
 
-/** The Zen mark and its menu: shortcuts, light/dark, panels, classic docs, log out (and, on a phone, undo/redo/role).
+/** The Zen mark and its menu: the other space (Open Document / Open Studio, as Figma's menu starts with "Back to files";
+ * user, 2026-10-17: the Document | Studio switch moved here), shortcuts, light/dark, panels, classic docs, log out (and,
+ * on a phone, undo/redo/role).
  * `compact`: the mark and a chevron only (corner bars, a phone's drawer); else "Zen Studio" beside the mark. */
 export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; compact?: boolean }) {
   const { phone } = layout;
@@ -51,10 +52,17 @@ export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; co
   const role = useStudio((state) => state.role);
   const writable = useWritable();
   const user = useAuthUser();
+  const inStudio = useStudio((state) => state.space === "studio" || Boolean(state.localPage));
   return (
     <Menu
       aria-label="Zen Studio"
       items={[
+        // The other space: Document (the docs pages) or Studio (projects and the pages made here; it reopens the page
+        // made last while it is still there).
+        inStudio
+          ? { id: "space-document", label: "Open Document", icon: "icon-book-open-line", caption: "Docs and components", onSelect: () => setSpace("document") }
+          : { id: "space-studio", label: "Open Studio", icon: "icon-layers-three-01-line", caption: "Projects and your pages", onSelect: () => setSpace("studio", (id) => Boolean(cachedPage(id))) },
+        { type: "separator" as const, id: "space-separator" },
         // A phone has no room for these in the panel headers: they live here instead (E2E S-07).
         ...(phone ? [
           { id: "undo", label: "Undo", shortcut: `${modKey}Z`, disabled: !writable || !undoCount, onSelect: () => { void undoEdit(); } },
@@ -81,47 +89,20 @@ export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; co
   );
 }
 
-/** Document | Studio: the docs pages or the pages made in the Studio. `floating`: the pill at the top centre of the
- * canvas (it hugs its labels); else it fills the left header (a phone's drawer). */
-export function SpaceSwitch({ floating = false }: { floating?: boolean }) {
-  const space = useStudio((state) => state.space);
-  const localPage = useStudio((state) => state.localPage);
-  return (
-    <Segmented
-      className="studio-space"
-      aria-label="Space"
-      size="sm"
-      level="secondary"
-      fullWidth={!floating}
-      value={localPage ? "studio" : space}
-      // Studio reopens the page made last, while it is still there.
-      onValueChange={(next) => setSpace(next === "studio" ? "studio" : "document", (id) => Boolean(cachedPage(id)))}
-      options={[{ id: "document", label: "Document" }, { id: "studio", label: "Studio" }]}
-    />
-  );
-}
-
 /** The Close button of a side panel open as a drawer (Escape and the scrim close it too). */
 export function DrawerClose({ label }: { label: string }) {
   return <IconButton className="studio-drawer__close" appearance="flat" level="primary" size="sm" aria-label={label} icon={<Icon name="icon-x-line" />} onClick={() => studioStore.setState({ drawer: null })} />;
 }
 
-/** The left panel's header: the brand menu (and Close while it is a drawer with no tab row; with one, Close ends the
- * tab row). Document | Studio floats at the top centre of the canvas (SpaceBar; user, 2026-10-15: in the header it was
- * cut to "Docu…"), except on a phone, where it stays here. */
+/** The left panel's header: the brand menu, which also opens the other space (Document | Studio; user, 2026-10-17:
+ * no floating switch any more), and Close while it is a drawer with no tab row (with one, Close ends the tab row). */
 export function LeftHeader({ layout, drawer }: { layout: PanelLayout; drawer: boolean }) {
   return (
     <div className="studio-panel-head">
       <BrandMenu layout={layout} compact={layout.phone} />
-      {layout.phone ? <SpaceSwitch /> : null}
       {drawer ? <DrawerClose label="Close pages and layers" /> : null}
     </div>
   );
-}
-
-/** Document | Studio as a floating pill at the top centre of the part of the canvas the panels leave. */
-export function SpaceBar() {
-  return <SpaceSwitch floating />;
 }
 
 /** The admin's drafts (count · Save all) or the viewer's "drafts shown" note, and the read-only chip. */

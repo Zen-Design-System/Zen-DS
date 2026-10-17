@@ -494,3 +494,7 @@ code + Studio in full; bright solids = follow the tokens and add On-Bright (whit
   - tsc ✓; studio selftests ✓ (project-theme 1664, projects-folder 13, pageModel 45); usage + style guard clean.
   - Playwright on a private :5191: create → home → page has `data-brand="p-…"`; settings round-trip; 390px stacks with
     no overflow.
+- Follow-up (user: "Chưa bỏ segmented dời chỗ đổi document và studio vào menu hả?"): the floating Document | Studio
+  Segmented (SpaceBar / SpaceSwitch, and the phone header's copy) is gone. The brand menu starts with Open Document
+  (in Studio) or Open Studio (in Document); Studio still reopens the page made last. The E2E `openStudioSpace()` opens
+  the space from the menu.

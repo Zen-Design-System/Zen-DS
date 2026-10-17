@@ -23,6 +23,8 @@ removed (four unused colour ramps were, see Removed).
   component theme, size, typography, emphasis — with a live gallery (Cards, Charts, Dashboard, Website, Components) in
   Light, Dark or both. A project's theme is one extra Base Colors (Project) mode, `data-brand="p-<id>"`, kept in
   `.zen-studio/projects/<id>/`; tokens/source and tokens.css do not change. Its pages (header `project`) draw in it.
+- Zen Studio: Document | Studio is no longer a floating switch at the top of the canvas; the brand menu opens the other
+  space (Open Document / Open Studio, as Figma's menu starts with "Back to files"; user, 2026-10-17).
 - Chart sectors 3–7 read `--zen-chart-sector-tertiary … -septenary` (and `-subtle` for fades) before today's colours,
   so a Studio project can recolour them; without them nothing changes. The 7th sector is Support/Green/Soft again (it
   had gone back to Red Soft; the Figma style "Color Chart Sector/Septenary" is Green Soft).
