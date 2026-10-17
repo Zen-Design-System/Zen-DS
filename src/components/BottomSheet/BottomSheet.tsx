@@ -12,6 +12,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./bottom-sheet.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { SearchShapeContext } from "../_shared/search-shape";
 import { useMergedRefs } from "../_shared/merge-refs";
 
 /** Figma Type: Modal (contents + Actions footer) · Action (a list of Sheet-Actions items). */
@@ -191,7 +192,7 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
           <div className="zen-bottom-sheet__close"><TopNavigationActionButton action={{ icon: "icon-x-medium-line", label: closeLabel, onClick: () => onOpenChange(false) }} variant="default" /></div>
         </div>
       </div>
-      {search ? <div className="zen-bottom-sheet__search">{search}</div> : null}
+      {search ? <div className="zen-bottom-sheet__search"><SearchShapeContext.Provider value="rounded">{search}</SearchShapeContext.Provider></div> : null}
       {isForm && onSubmit ? (
         <form className="zen-bottom-sheet__form" onSubmit={(event) => { event.preventDefault(); onSubmit(event); }}>{body}{footer}</form>
       ) : <>{body}{footer}</>}

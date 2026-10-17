@@ -739,3 +739,9 @@ in content allowed, a Screen bar holds a navigation or a custom header; BACKLOG 
   content box) on the layer or its floating Box, and isFloatWrapper accepts that width / height so ⇧A gives the layer
   back. The metric ⌘Z miss and the 4 others pass alone (ZEN_DND_ONLY=metric,icon,file-icon,flag,nps-scale: 10/10).
 
+## Search Rounded by default on phones (session "Giám sát", tier S; user: "mặc định nhưng cho sửa")
+- `_shared/search-shape.ts` SearchShapeContext; Search resolves `shape ?? context ?? "default"`; TopNavigation wraps its
+  control bar (three placements) and BottomSheet its search in `rounded`, so the Input phone sheet follows.
+- Studio: figma-push writes Shape=Rounded for the control bar's Searches that set no shape (by element id); figma-pull
+  leaves Rounded unsaid there and writes `shape="default"` for a Default one. figma-push selftest +3 checks (277).
+- Test: tests/interaction/search-shape-on-phones.test.tsx (3). Figma library default left to the designer (BACKLOG).

@@ -59,6 +59,10 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio: a phone Screen's Top and Bottom Navigation stay at its top and foot on the canvas (2026-10-17, user: "Khi
   tạo trang mới thì lỗi bottom nhảy lên trên"). They were sticky to the Studio window, so in a window shorter than the
   Screen the bottom bar climbed up to the Screen's top; Play, Present and the exported page keep them sticky.
+- A phone's built-in search is Rounded by default (2026-10-17, user: "mặc định nhưng cho sửa"): a Search in a
+  TopNavigation control bar or a BottomSheet (so also the Input family's phone sheet) takes `shape="rounded"` unless it
+  sets its own `shape`; elsewhere Search keeps the default shape. Zen Studio pushes a control-bar Search as
+  Shape=Rounded and pulls it back without the prop.
 - Card spacing by count is a phone rule (2026-10-17, user: "rule đó chỉ áp dụng cho mobile"): `card/spacing-by-count`
   now judges cards inside a PlatformPhone frame or a BottomSheet only; desktop cards keep Medium whatever their number,
   so the desktop rows #110 had set to Small (Card quarter widgets, Dock Icon project types, Text milestones) are Medium

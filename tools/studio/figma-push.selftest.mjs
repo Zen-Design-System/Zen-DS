@@ -717,6 +717,35 @@ export default function Page() {
   const back = shape(pageFromFigma(frame, { mapping }).text);
   check("round trip: the Screen's topNavigation and the page's TopNavigations come back the same", back, shape(nav.replace(/, group: "call"/g, "")));
 }
+// A Search in a TopNavigation's control bar is a pill by default (SearchShapeContext, user 2026-10-17: "mặc định nhưng
+// cho sửa"): the push writes Shape=Rounded unless the page sets shape, and the pull leaves Rounded unsaid there.
+{
+  const page = (control) => `// @zen-page {"format":1,"title":"Search bar"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Search, Stack, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Files" device="phone">
+        <Stack>
+          <TopNavigation title="Files" controlBar={${control}} />
+          <Text>Body</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const shapeOf = (text) => find(push(text).frame, (node) => node.set?.name === "Search/Default")?.props.Shape;
+  check("control-bar Search: Shape=Rounded by default, the page's shape=\"default\" kept", [shapeOf(page(`<Search placeholder="Search files" />`)), shapeOf(page(`<Search shape="default" placeholder="Search files" />`))], ["Rounded", "Default"]);
+  for (const control of [`<Search />`, `<Search shape="default" />`]) {
+    const text = page(control);
+    check(`control-bar Search round trip (${control.includes("default") ? "Default" : "Rounded"})`, shape(pageFromFigma(push(text).frame, { mapping }).text), shape(text));
+  }
+}
 
 // 16. A Top-Navigation/Mobile as the pull reads it in Figma (readTopNav; the instance an import placed, 2026-10-13).
 {

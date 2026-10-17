@@ -1110,6 +1110,21 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // top-navigation.css .zen-top-nav__control: Padding/2XSmall above, Padding/XSmall below, the bar's side margin
       // (Padding/Large, Medium when compact) on the sides; Figma's Control-Bar has none of its own.
       const control = convert(element.props.controlBar.node, { direction: "column", stretch: true });
+      // A Search in the control bar is a pill unless the page sets its shape (SearchShapeContext, user 2026-10-17): the
+      // Searches with no `shape` in the page (by element id, the layer's key) draw Shape=Rounded.
+      const unshaped = new Set();
+      const collect = (el) => {
+        if (el?.kind !== "element") return;
+        if (el.name === "Search" && el.props?.shape === undefined && el.id) unshaped.add(el.id);
+        for (const child of el.children ?? []) collect(child);
+      };
+      collect(element.props.controlBar.node);
+      const roundSearches = (layer) => {
+        if (!layer) return;
+        if (layer.type === "INSTANCE" && layer.set?.name === "Search/Default" && unshaped.has(layer.key) && layer.props) layer.props.Shape = "Rounded";
+        for (const child of [...(layer.children ?? []), ...(layer.slots ?? []).flatMap((slot) => slot.children ?? [])]) roundSearches(child);
+      };
+      roundSearches(control);
       const side = code.margin === "compact" ? 16 : 20;
       if (control) slots.push({ name: "Control-Slot", children: [{ type: "FRAME", name: "Control", layout: { mode: "VERTICAL", gap: 0, padding: [4, side, 8, side], counter: "MIN", primary: "MIN" }, children: [{ ...control, fillW: true }], fillW: true }] });
     }
