@@ -648,7 +648,8 @@ function GreyCanvasProjects() {
   const open = projects.filter((project) => project.status !== "Completed").slice(0, 3);
   return (
     // On the grey Canvas/Default, colour on a box is Subtle: Pale would fade into the page (user rule 2026-10-17).
-    <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
+    // One column, as a project list: three cards never leave one alone on a second row.
+    <Stack gap="md">
       {open.map((project) => (
         <Card key={project.id} as="section" theme="subtle" color={projectColor[project.theme] ?? "neutral"} aria-labelledby={`grey-project-${project.id}`}>
           <Stack gap="xs">
@@ -658,7 +659,7 @@ function GreyCanvasProjects() {
           </Stack>
         </Card>
       ))}
-    </Grid>
+    </Stack>
   );
 }
 
@@ -952,7 +953,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Colour on the grey canvas",
     description: "On the grey Canvas/Default a Pale tint fades into the page, so colour on a box is Subtle: theme=\"subtle\" with the project's color (Support/<Color>/Subtle), neutral text, any of the nine hues. Pale stays for white pages.",
     render: () => <GreyCanvasProjects />,
-    code: `<Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
+    code: `<Stack gap="md">
   {open.map((project) => (
     <Card key={project.id} as="section" theme="subtle" color={projectColor[project.theme] ?? "neutral"}
       aria-labelledby={\`grey-project-\${project.id}\`}>
@@ -963,7 +964,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       </Stack>
     </Card>
   ))}
-</Grid>`,
+</Stack>`,
   },
   {
     title: "Stand out in a hue",
