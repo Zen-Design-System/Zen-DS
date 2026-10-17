@@ -263,6 +263,19 @@ User: "Update lại token màu của Zen trong global (chỉ dãy màu Zen)".
   `figma-charts.mjs`: the bar is its own `Stack` frame (radius 8 bound to Corner-Radius/Small, clip, Flex rows per
   series) in the column's second row, as chart.css `.zen-chart__stack`. Fixture rewritten, selftests updated; QA paste
   "Expenses (bar corners)" 16079:284368 shows rounded columns; the user re-pasted from Studio: "cột đã bo góc".
+- Direct paste still wrong (user: "Copy paste vẫn lỗi mà"), then the user approved "theo cách bạn đề xuất": compare
+  with Figma's own copy instead of fixing by eye. New `tools/studio/native-diff.mjs` (paste vs Figma's copy of the
+  plugin's import of the same export): Dashboard 1,807 → 112 differences. Fixed: white titles (pack refs to library
+  copies of variables → own variables), icons swapped through a property (no restated component assignments; carry the
+  old instance's own overrides as level-marked entries; no re-set of the shown icon; variant swap keeps the name), no
+  stroke fields on instances, space-between = SPACE_EVENLY. Icon colours needed nine user pastes: Figma computes what a
+  swap keeps from the clipboard's definitions, so skeleton nested instances now carry their component overrides + the
+  PROP_REF swap link + overrideKey (round 7 bisect: Figma's Icon instance node alone fixed it); componentKey and shape
+  paints left out (not needed). Pasted texts lay out lazily (a right-aligned pagination range read 521 → later 1248).
+  User: Goal-Progress hint drawn on top → an `append` into a copied slot content shared the first child's position;
+  the writer's position counter now starts past copied children (no shared sibling positions on either page). Round 10
+  (16181:111643): hint last, every Dock-Icon coloured. Pack 18.9 MB. Metric pack recapture went into #111.
+
 ## Segmented component size re-sync (session 1d39f7fe) — tier XS
 User: "Update token component size của segmented".
 - Live Figma Component Size (modes Compact, Comfortable), the 14 `Segmented/*` variables vs `component-size.json`: one
@@ -520,6 +533,24 @@ User: "tại sao shape lại là component? Shape chỉ nên được vẽ ra l�
 - Gate on the components branch (`--all`): 0 errors; new ⚠ contrast on ai-ui (Schedule 2.96:1, white on Zen/9) comes
   from #109 (On-Brand → white, the user's choice), not this branch → BACKLOG P1 question for the designer.
 
+## Zen Studio Variables like Figma, v1 (session "Figma-like freeform editing", tier L)
+User: Studio may be a second source of token values (edit in Studio → repo → Figma); later "đổi icon chỗ variable màu
+thành icon palette".
+- Built (branch zen/feat/studio-variables-20261017, from the components branch): Figma's Local variables window
+  (Page panel › Local variables, Quick actions › Open variables) on the 11 collections; edits are drafts of
+  tokens/source/figma/*.json (undo / history / Save as any Studio edit); `load` serves tokens.css built from the drafts
+  (scripts/token-outputs.mjs, the build as a function; outputs byte-identical); Save runs build-tokens, native and
+  check-token-coverage; Copy for Figma → plugin `zen-studio-variables` (commits 5e7d5ae, 5b15a5d in the plugin repo).
+- Rules: names unique across collections and CSS names; rename / delete refused while read (aliases + src readers);
+  Zen-High-Contrast written by the algorithm (960/960 match today) and read-only.
+- Checks: variables.selftest 11, variablesModel.selftest 6, E2E VA-01…04, Save walked (build ✓ check ✓ package ✓),
+  tsc. Found on the way: relayout.selftest was never in studio:selftest (added); the plugin's dynamic-page safety test
+  was red since ed9bec6 (a comment) — fixed.
+- Plugin UI: the uncommitted Paste-from-Studio box work (index.html, src/ui/main.js, styles.css,
+  tests/studio-paste-ui.test.js, a closed session's, 2026-10-17 00:40) was not committed; the user then had it discarded
+  ("Bỏ các thay đổi UI cũ trong plugin đi"). Backup: Zen-DS `backups/plugin-ui-paste-box-wip-2026-10-17.patch`; the plugin
+  repo is clean, rebuilt, `npm test` green.
+
 ## Studio projects + project theme, phase 1 (tier L, session "Studio project theme customization"; user: "tạo dự án như Figma … set theme cho Dự án … không đè vào codebase hiện tại mà chỉ sinh thêm 1 mode riêng", then "sinh động như trang tailwind color app", "chart nên chia nhiều sector")
 - Decisions: Drafts for pages with no project, the four radius modes, build phase 1. Spec and next phases:
   `docs/research/studio-projects-theme-2026-10-17.md`. Branch `zen/feat/studio-projects-theme-20261017`, worktree
@@ -569,4 +600,4 @@ User: "tại sao shape lại là component? Shape chỉ nên được vẽ ra l�
   Subtle. Also updated: screen-rules §1 and audit-rules.md (AI kit ✓).
 - Checks: tsc ✓, usage:selftest ✓, ai-kit:check ✓; tests/interaction/card-color 9/9 (Subtle fills and axe, Light and
   Dark).
-- Open (BACKLOG P2, a question for the user): List-Box has Pale but no Subtle theme.
+- List-Box keeps Pale only (user, 2026-10-18: List-Box Subtle "không").

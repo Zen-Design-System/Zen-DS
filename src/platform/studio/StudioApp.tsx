@@ -37,6 +37,7 @@ import { StudioHome } from "./project/ProjectsHome";
 import { ProjectSetup, useProjectSetup } from "./project/ProjectSetup";
 import { startProjects } from "./project/projectStore";
 import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
+import { VariablesWindow } from "./variables/VariablesWindow";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
 import { removeFrame } from "./builder/proto/addFrame";
 import { startPageMirror } from "./builder/store/mirrors";
@@ -656,6 +657,7 @@ export function StudioApp() {
         <ChromeScope className="studio-dialogs">
           <ShortcutsDialog />
           <QuickInsert />
+          <VariablesWindow />
           <DetachDialog />
           <ExportDialog />
           <SlotConfirm />

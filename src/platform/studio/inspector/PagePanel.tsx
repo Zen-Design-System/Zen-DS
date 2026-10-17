@@ -11,6 +11,7 @@ import { focusFrame, frameIcon, useFrames } from "./frames";
 import { InspectorFields, InspectorItem, InspectorSection } from "./Section";
 
 import { openExport } from "../builder/export/exportState";
+import { openVariables } from "../variables/variablesState";
 import { pagesPersist, renamePage, setPageOs, setPageProject, usePage, useStorage } from "../builder/store/pageStore";
 import { headerOs } from "../builder/store/pageModel";
 import { Segmented } from "../../../components/Segmented";
@@ -124,6 +125,12 @@ export function PagePanel() {
             icon={project ? <IconButton icon="icon-palette-line" aria-label={`${project.name} theme`} tooltip="Project theme" appearance="flat" level="secondary" size="xs" onClick={() => openProjectSetup({ kind: "edit", id: project.id })} /> : null} />
         </InspectorSection>
       ) : null}
+      {/* Figma's right panel with nothing selected: Local variables opens the Variables window (the Zen tokens). */}
+      <InspectorSection title="Variables">
+        <div className="studio-inspector__actions">
+          <Button level="tertiary" size="sm" startIcon="icon-hexagon-01-line" onClick={openVariables}>Local variables</Button>
+        </div>
+      </InspectorSection>
       {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here. */}
       <InspectorSection title="Preview modes">
         <p className={`studio-inspector__summary ${typographyStyles["Body/Small/Regular"]}`}>{summary}</p>
