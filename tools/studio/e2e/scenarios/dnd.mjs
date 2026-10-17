@@ -271,10 +271,14 @@ async function campaign(ctx, all, label) {
 
 /** Selects the layer `name` on the canvas: the deepest layer at its middle, then Escape up to it (Figma's Esc). */
 async function selectLayer(page, id, name, index = 0) {
+  // With nothing selected the Inspector names the page: the click's layer is the first other name it shows.
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await sleep(150);
+  const pageName = await selectedName(page);
   await clickNamed(page, id, name, index);
-  // The Inspector names the selection once it has drawn it: wait for a name, then go up one layer at a time.
   let now = "";
-  await until(async () => Boolean(now = await selectedName(page)), { timeout: 3000 }).catch(() => undefined);
+  await until(async () => { now = await selectedName(page); return Boolean(now) && now !== pageName; }, { timeout: 3000 }).catch(() => undefined);
   for (let up = 0; up < 5 && now !== name; up += 1) {
     const was = now;
     await page.keyboard.press("Escape");
