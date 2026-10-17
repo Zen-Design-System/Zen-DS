@@ -425,6 +425,8 @@ class Writer {
       frameMaskDisabled: spec.clip !== true,
       ...fields,
       ...(root ? {} : this.childFields(spec, parentInfo)),
+      // The page frame's own minimum (the Screen's height): no parent to place it in, but its size limits apply.
+      ...(root && spec.minH ? { minSize: { value: { x: 0, y: spec.minH } } } : {}),
     };
     if (spec.fillStyle) { const style = this.style(spec.fillStyle, spec.name); if (style) node.styleIdForFill = { guid: guid(style[0]) }; }
     if (typeof spec.radius === "number") {
