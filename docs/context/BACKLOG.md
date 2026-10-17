@@ -182,6 +182,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   tools/studio/figma-native.mjs for RECTANGLE/ELLIPSE arc/LINE arrow/POLYGON/STAR and Component → COMPONENT, Use →
   INSTANCE, after zen/feat/studio-components-20261017 merges (spec: figma-push.mjs shapeNode; reference: plugin
   studio-import.js 3ba73f9, ed9bec6).
+- **P2 · Figma library gaps the 438-page Studio → Figma test found (2026-10-18, questions for the designer):** (a)
+  Accordion/Text has no content slot, so an open Accordion's content cannot be drawn (the push notes it); (b) Dock-Icon
+  has Theme=Emoji only at Medium and Large (the HR templates use XSmall in table cells: the default variant shows);
+  (c) Chat/Section/Read-List Seen by=5+ holds four Avatars after "+N" where Chat.tsx draws five (the push writes four).
+  Pointer: session log 2026-10-17 "Studio → Figma test run", figma-push.mjs chatMessageNode.
 - **P2 · A Grid stretched in its parent's row keeps its own row at content height (2026-10-18, AppShell paste):** the
   Dashboard's two metric Grids sit side by side in an outer Grid; in Figma the second Grid is stretched to 228 but its
   Hug row stays 198, so Utilization and Active projects are shorter than Revenue and Profit margin (CSS stretches the

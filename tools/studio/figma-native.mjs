@@ -291,7 +291,10 @@ class Writer {
       if (along) out.stackChildPrimaryGrow = 1;
       if (across) out.stackChildAlignSelf = "STRETCH";
     } else if (parentMode === "GRID") {
-      if (fill.w || fill.h) { out.stackChildPrimaryGrow = 1; out.stackChildAlignSelf = "STRETCH"; }
+      // A grid cell fills its track's width by growing and its height by stretching (Figma's copy of the plugin's
+      // grid cells): one axis no longer fills both (a hugging Segmented grew, cells stretched to the row).
+      if (fill.w) out.stackChildPrimaryGrow = 1;
+      if (fill.h) out.stackChildAlignSelf = "STRETCH";
       if (spec.cell && parentInfo.tracks) {
         const row = parentInfo.tracks.rows[spec.cell.row], col = parentInfo.tracks.cols[spec.cell.col];
         if (row && col) { out.gridRowAnchor = row; out.gridColumnAnchor = col; }
