@@ -1,7 +1,8 @@
 import { useEffect } from "react";
+import { mainOfSelection, type MainRef } from "./localComponents";
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { canvasApi } from "../canvas/viewport";
-import { isTypingTarget } from "../select/picker";
+import { findBySrc, isTypingTarget } from "../select/picker";
 import { multiSelection } from "../select/multiSelection";
 import { expectRender, renderedNow } from "../select/remap";
 import { canStructurallyEdit, constHolderOf, insideWrap, moveMapRow, structuralBlock, studioWrapOf } from "../slots/actions";
@@ -95,6 +96,11 @@ export async function moveLayer(layer: NodeSelection, target: DropTarget, copy: 
     fail(`Layers move within their own file: ${from.file.slice(from.file.lastIndexOf("/") + 1)} — copy it in the code to use it elsewhere`);
     return false;
   }
+  // ⌥-drag of a main component drops an instance of it there (Figma), not a second main.
+  if (copy && /^local:/.test(from.file)) {
+    const main = await mainOfSelection(layer);
+    if (main) return dropInstance(main, target);
+  }
   busy = true;
   try {
     // A component in its Studio wrap Stack moves (or is copied) with that Stack (GĐ4 M4); dropped into that very Stack,
@@ -121,8 +127,48 @@ export async function moveLayer(layer: NodeSelection, target: DropTarget, copy: 
   }
 }
 
+/** The selected layer's own floating DOM node (Stack, Grid, Box or Shape with position="absolute"), or null. */
+function floatingHost(selection: NodeSelection): HTMLElement | null {
+  const world = canvasApi.getWorldElement();
+  if (!world) return null;
+  const hits = findBySrc(world, selection.src);
+  const host = (hits[selection.instance] ?? hits[0])?.hosts[0];
+  return host instanceof HTMLElement && host.dataset.position === "absolute" && host.matches(".zen-stack, .zen-grid, .zen-box, .zen-shape") ? host : null;
+}
+
+/** The px an inset is written as (`insetLeft={40}`), or null (a token step, a binding, or none). */
+function writtenPx(element: { attributes: Array<{ kind: string; name: string; value?: string }> }, prop: string): number | null {
+  const attr = element.attributes.find((candidate) => candidate.kind === "expression" && candidate.name === prop);
+  const value = attr?.value !== undefined ? Number(attr.value) : NaN;
+  return Number.isFinite(value) ? value : null;
+}
+
 /**
- * Arrow keys on the canvas (Figma's reorder in auto layout): ← / ↑ one place earlier, → / ↓ one place later. Only while
+ * Figma's nudge for a floating layer: the arrows move it 1 px (⇧ 10 px) on its left / top offsets, written as px (one
+ * edit, one undo step each). A layer pinned to another edge moves on that edge's offset.
+ */
+async function nudgeLayer(selection: NodeSelection, host: HTMLElement, dx: number, dy: number) {
+  const at = parseSrc(selection.src);
+  if (!at) return;
+  const element = await studioApi.element(at.file, at.loc);
+  if (!element) { fail(`${selection.name} is no longer there — select it again`); return; }
+  const constraint = (prop: string, fallback: string) => element.attributes.find((attr) => attr.kind === "string" && attr.name === prop)?.value ?? fallback;
+  const block = host.offsetParent instanceof HTMLElement ? host.offsetParent : null;
+  const ops: EditOp[] = [];
+  const axis = (delta: number, pin: string, start: string, end: string, offset: number, size: number, inner: number) => {
+    if (!delta || pin === "center") return;
+    if (pin === "left" || pin === "top" || pin === "left-right" || pin === "top-bottom") ops.push({ op: "setProp", name: start, value: { kind: "number", value: (writtenPx(element, start) ?? Math.round(offset)) + delta } } as EditOp);
+    if (pin === "right" || pin === "bottom" || pin === "left-right" || pin === "top-bottom") ops.push({ op: "setProp", name: end, value: { kind: "number", value: (writtenPx(element, end) ?? Math.round(inner - offset - size)) - delta } } as EditOp);
+  };
+  axis(dx, constraint("constraintX", "left"), "insetLeft", "insetRight", host.offsetLeft, host.offsetWidth, block?.clientWidth ?? 0);
+  axis(dy, constraint("constraintY", "top"), "insetTop", "insetBottom", host.offsetTop, host.offsetHeight, block?.clientHeight ?? 0);
+  if (!ops.length) return;
+  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops, hash: element.hash }, `Nudge ${selection.name}`);
+}
+
+/**
+ * Arrow keys on the canvas (Figma's reorder in auto layout): ← / ↑ one place earlier, → / ↓ one place later; a floating
+ * layer (a frame without auto layout's, or one that ignores auto layout) is nudged instead, 1 px, ⇧ 10 px. Only while
  * the canvas itself has focus, in the Select tool, with a layer selected (not a part; several: all of one parent) and no
  * text being edited.
  */
@@ -130,7 +176,7 @@ export function useArrangeKeys() {
   useEffect(() => {
     let running = false;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.isComposing || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      if (event.defaultPrevented || event.isComposing || event.metaKey || event.ctrlKey || event.altKey) return;
       const to = event.key === "ArrowLeft" || event.key === "ArrowUp" ? "prev" : event.key === "ArrowRight" || event.key === "ArrowDown" ? "next" : null;
       if (!to) return;
       const target = event.target instanceof Element ? event.target : null;
@@ -139,6 +185,18 @@ export function useArrangeKeys() {
       const state = studioStore.getState();
       const selection = state.selection;
       if (state.tool !== "select" || state.presenting || !canEdit(state) || selection?.kind !== "node" || selection.part) return;
+      const floating = multiSelection.get().length ? null : floatingHost(selection);
+      if (floating) {
+        event.preventDefault();
+        if (running) return;
+        running = true;
+        const step = event.shiftKey ? 10 : 1;
+        const dx = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
+        const dy = event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0;
+        void nudgeLayer(selection, floating, dx, dy).finally(() => { running = false; });
+        return;
+      }
+      if (event.shiftKey) return;
       event.preventDefault();
       // A held key moves once per answer, never queues a burst.
       if (running) return;
@@ -150,4 +208,21 @@ export function useArrangeKeys() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+}
+
+/** An instance of `main` where a drag drops it (one edit; the instance selected). */
+async function dropInstance(main: MainRef, target: DropTarget): Promise<boolean> {
+  const to = parseSrc(target.parentSrc);
+  if (!to) return false;
+  const parent = await studioApi.element(to.file, to.loc);
+  if (!parent) { fail(`${target.parentName} is no longer there`); return false; }
+  const op = { op: "pasteCode", code: `<Use of="${main.id}" />` } as Extract<EditOp, { op: "pasteCode" }>;
+  if (target.before) op.before = parseSrc(target.before)?.loc;
+  else if (target.after) op.after = parseSrc(target.after)?.loc;
+  const before = renderedNow(canvasApi.getWorldElement());
+  const response = await applyEdit({ file: to.file, loc: to.loc, name: parent.name, ops: [op], hash: parent.hash }, `Instance of ${main.name}`);
+  if (!response.ok || !response.inserted) return false;
+  const landed: NodeSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: "Use", frameId: target.frameId, panelId: target.panelId, instance: 0 };
+  follow(landed, before);
+  return true;
 }

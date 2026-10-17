@@ -30,9 +30,9 @@ export const detachKeys = isMac ? "Alt+Meta+B" : "Control+Alt+B";
 
 /**
  * The detach output and the layout primitives: they are the frames a detach produces, not instances, so the inspector
- * offers no Detach for them (host elements neither).
+ * offers no Detach for them (host elements neither). A drawn Shape is an object too (Figma's RECTANGLE, ELLIPSE…).
  */
-const primitiveNames = new Set(["Box", "Stack", "Grid", "Text", "Heading", "Container"]);
+const primitiveNames = new Set(["Box", "Stack", "Grid", "Text", "Heading", "Container", "Shape"]);
 
 /** Whether the inspector offers Detach for an element of this name (a Zen component that is not a layout primitive). */
 export const offersDetach = (name: string) => /^[A-Z]/.test(name) && !name.includes(".") && !primitiveNames.has(name);

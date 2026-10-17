@@ -620,6 +620,12 @@
       "props": "label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout? options? onValueChange? placeholder? onFocus? onBlur? popoverLabel? popoverSearch? popoverSearchPlaceholder? popoverWidth? popoverOpen? defaultPopoverOpen? onPopoverOpenChange? readOnly? aria-label? aria-labelledby? aria-describedby? disabled? required? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
     },
     {
+      "name": "Shape",
+      "status": "stable",
+      "purpose": "Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon and Star — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? type? fill? stroke? strokeWeight? strokeAlign? radius? arcStart? arcSweep? arcRatio? pointCount? starRatio? rotation? opacity? label? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
       "name": "Sidebar",
       "status": "verified",
       "chrome": true,

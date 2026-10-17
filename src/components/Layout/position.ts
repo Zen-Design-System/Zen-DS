@@ -7,11 +7,16 @@
  * nested absolute child never inherits its parent's). position.css reads them. Unset or `position="static"` renders
  * nothing, so existing pages keep their exact output (the sizing contract, sizing.ts).
  *
- * Offsets are Spacing/Padding tokens only (none … 4xl). There are no negative or percentage offsets: overhangs (status
- * dots, notification badges, a Card sub-action) belong to the components that own them.
+ * Offsets are Spacing/Padding tokens (none … 4xl) or, for a layer drawn in a free frame (Figma's frame without auto layout,
+ * Zen Studio 2026-10-17), px numbers: Figma's X / Y are free px, only gap and padding are spacing. There are no
+ * percentage offsets, and overhangs of a component (status dots, notification badges, a Card sub-action) still belong
+ * to the components that own them.
  */
 import { paddingValue, type ZenPadding } from "../_shared/scale";
 import "./position.css";
+
+/** An absolute offset: a Spacing/Padding token, or px (Figma's free X / Y in a frame without auto layout). */
+export type LayoutInset = ZenPadding | number;
 
 /** Figma layoutPositioning AUTO | ABSOLUTE, spelled as the CSS keywords (as ActionBar's own `position`). */
 export const layoutPositions = ["static", "absolute"] as const;
@@ -47,15 +52,16 @@ export interface LayoutPositionProps {
    * Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·
    * xl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the
    * top edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the
-   * frame's padding for absolute children.
+   * frame's padding for absolute children. A number is px: Figma's Y in a free frame (a Box or Screen without auto
+   * layout, where Zen Studio draws shapes and frames); it may be negative (the layer starts above the frame and clips).
    */
-  insetTop?: ZenPadding;
-  /** Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none. */
-  insetRight?: ZenPadding;
-  /** Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none. */
-  insetBottom?: ZenPadding;
-  /** Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none. */
-  insetLeft?: ZenPadding;
+  insetTop?: LayoutInset;
+  /** Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none. */
+  insetRight?: LayoutInset;
+  /** Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none. */
+  insetBottom?: LayoutInset;
+  /** Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none. */
+  insetLeft?: LayoutInset;
 }
 
 /** Prop names owned by the Position section (Studio filters these out of the generic Properties list). */
@@ -68,7 +74,7 @@ export interface LayoutPositionOutput {
   vars: Record<`--${string}`, string>;
 }
 
-const inset = (token: ZenPadding | undefined) => paddingValue(token) ?? "0px";
+const inset = (value: LayoutInset | undefined) => (typeof value === "number" ? (Number.isFinite(value) ? `${Math.round(value * 100) / 100}px` : "0px") : paddingValue(value) ?? "0px");
 
 /**
  * Data attributes and custom properties for the position props, the same `{ attributes, vars }` shape as

@@ -367,6 +367,32 @@ chỉnh sửa … học thêm cho skill".
 - SKILL §5: a slip the user catches → fix it everywhere + rule + audit check in the same turn. figma-gotchas gets
   "Modes" (emoji Dock-Icons at ~82% of the tile, text wrap/truncate, scroll instead of trimming).
 
+## Zen Studio → native Figma, phase 1: shapes, arc, free frames (session "Figma-like freeform editing", tier L)
+
+User: "Tiếp tục improve tính năng để có thể chỉnh sửa tự do như Figma … vẽ hình ellipse và cho chỉnh arc … y hệt Figma",
+then "Nghiên cứu lại tất cả hành vi của Studio. Đưa về sát native với Figma nhất … vì chúng ta cần convert người dùng từ
+Figma", "Cần nhắc cho cả tính năng quản lý variables", and "Chế độ studio và doc không dùng segmented nữa … đổi bên trong
+khu vực giống trong ảnh" (the Zen Studio menu). Worktree `../Zen-DS-shapes`, branch `zen/feat/studio-shapes-20261017`.
+
+- Research: five code audits (canvas/selection, drawing/transform, frames/auto layout, components/inspector, variables),
+  ~80 Figma behaviours graded, decisions and the P1–P5 plan in `docs/research/studio-figma-native-parity-2026-10-17.md`.
+- `Shape` component (Rectangle, Ellipse + arc, Line, Arrow, Polygon, Star; tokens only) with geometry shared by the
+  canvas, the arc handles and the Figma export (`Shape/geometry.ts`); exact Figma variable names in `Shape/paint.ts`.
+  Guideline, API docs, stories, platform page (5 examples, playground, Do/Don't), 3 harness rules (211 total).
+- `position.ts`: insets take px (Figma X / Y in a free frame). Screen is `position: relative` (builder.css).
+- Fixed on the way (gate-free bugs): an empty Screen refused every drop ("has no children to drop into", arrange.mjs
+  OPENABLE), and the first component on a page with no `@zen-ds/react` import was imported from `./src/components/…`
+  (slots.mjs importChanges: builder pages always use the package).
+- Draw engine `src/platform/studio/draw/` (drawModel.ts pure + selftest 24; drawTool.ts on the canvas), toolbar shape
+  menu, keys R O L ⇧L, A = Frame; Frame inside a Screen hands the press to drawTool (nested Box).
+- Arc handles `select/ArcHandles.tsx` (live path, raw end angle as Figma, re-read on repaint via MutationObserver);
+  Inspector `appearance/ShapeSections.tsx`, `inspector/palettes.ts` + PropField SwatchControl (tone, fill, stroke),
+  `controls/ScrubNumberField.tsx` + `numberMath.ts` (selftest 24), PositionSection X / Y px + Rotation, drag.ts free
+  moves with smart guides, arrange.ts nudges, ResizeLayer px edges + ⇧ ratio on corners, layer names (`layerNames.ts`).
+- Figma: figma-push `shapeNode`, figma-pull `shapeElement` (selftest +7, 76), Zen plugin `studio-import.js` shape
+  builder + `strokeWith` + rotation about the centre (plugin commit 3ba73f9, its tests pass).
+- Walk (private server :5199, Playwright): draw frame / ellipse / rectangle / line, arc sweep 47.2 %, ratio 24 %,
+  start 270°, move 107→160 px, nudge, Layers "Ellipse", Inspector sections — screenshots looked at.
 ## Metric-Inline/Title-Highlight: Figma → code/Studio check (tier S)
 
 - Read live 7523:507049 (5 sizes): props unchanged from the 2026-10-05 contract; auto layout, gaps, text styles,
@@ -479,3 +505,18 @@ code + Studio in full; bright solids = follow the tokens and add On-Bright (whit
   card/spacing-by-count findings.
 - Colour balance (docs/research/colour-balance-rule-2026-10-17.md): the user answered the 4 questions (no fixed hue
   cap, hero counts, one hue per person for avatar initials, warnings everywhere); the rules are not built yet.
+
+## A drawn shape is an object, never a component (session "Figma-like freeform editing", tier S)
+User: "tại sao shape lại là component? Shape chỉ nên được vẽ ra là 1 object thôi, việc tạo component phải là do người dùng".
+- Seen (walk on :5198): a drawn Rectangle's Inspector said "Zen component · Shape docs" with the cube in component colour,
+  Swap instance and Reset all overrides; its canvas menu offered Swap / Detach instance; Assets › Components listed
+  Rectangle and Ellipse.
+- Fixed (branch zen/fix/shape-is-an-object-20261017, cherry-picked onto zen/feat/studio-components-20261017):
+  `nodeKind("Shape")` = "shape"; `select/layerNames.ts objectIcon` gives Layers, the Inspector header and Select layer ›
+  one icon per object (shape, frame #, auto layout, text T), component colour only for components; Swap instance only on
+  component layers, Detach instance only where it applies; no shapes in the palette.
+- Checks: E2E DR-15 (new) + draw 15/15, instance / starters / shell / select / structural 98/98, palette selftest 2361,
+  tsc. Rule recorded: research doc §6 (2), CHANGELOG, memory drawn-objects-not-components.
+- Gate on the components branch (`--all`): 0 errors; new ⚠ contrast on ai-ui (Schedule 2.96:1, white on Zen/9) comes
+  from #109 (On-Brand → white, the user's choice), not this branch → BACKLOG P1 question for the designer.
+

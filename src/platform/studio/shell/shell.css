@@ -19,7 +19,6 @@
   gap: var(--zen-spacing-gap-2-xsmall, 4px);
   padding: var(--zen-spacing-padding-xsmall, 8px);
 }
-.studio-panel-head > .studio-space { min-width: 0; flex: 1 1 auto; }
 /* Groups are told apart by space, not rules: 4px inside a group, 8px (Gap/XSmall) between groups. */
 .studio-panel-head__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-panel-head__end { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-inline-start: auto; }
@@ -48,22 +47,6 @@
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
 }
 .studio-bar--left { left: var(--studio-edge); }
-/* Document | Studio: a pill at the top centre of the visible canvas (between the docked panels), as the canvas tools are
-   at its bottom centre; auto margins centre it (no translateX(-50%) half pixel). */
-.studio-space-bar {
-  position: absolute;
-  z-index: 22;
-  top: var(--studio-edge);
-  right: var(--studio-inset-right, 0px);
-  left: var(--studio-inset-left, 0px);
-  width: max-content;
-  margin-inline: auto;
-  padding: var(--zen-spacing-padding-3-xsmall, 2px);
-  border-radius: var(--zen-corner-radius-rounded, 1000px);
-  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
-  background: var(--zen-color-background-surface-default, #fff);
-  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
-}
 .studio-bar--right { right: var(--studio-edge); }
 
 /* ── Side panels ── */
