@@ -243,3 +243,39 @@ main (refused while instances use it), Inspector Component / Instance section (r
 instances, Swap, Go to main, Detach), Assets › Local components, violet outline / tag / ◇ icons, React export (one
 function per main), Figma push (COMPONENT + INSTANCE, plugin commit ed9bec6). Not yet: overrides and component
 properties (text / boolean / swap), variants, Figma pull of local components.
+
+## 10. P5 spec — Variables like Figma (approved by the user 2026-10-17: Studio may write token values)
+
+Figma: with nothing selected, the right panel's **Local variables** opens a floating window: a collection switcher,
+a groups tree ("All variables" first), a table with **one column per mode**, search, and per cell the value (colour
+swatch + hex + opacity, number, string, boolean) or an **alias chip** (→ another variable). Clicking a value edits it
+(colour picker with a Libraries tab of variables to alias, number field, text); right-click a row: Rename (`/` makes
+groups), Duplicate, Delete; **+ Create variable** (Color, Number, String, Boolean). Every change is one ⌘Z.
+
+Zen Studio, v1 (this branch, `zen/feat/studio-variables-20261017`):
+
+| Figma | Zen Studio |
+|---|---|
+| Local variables window | `Variables` window over the canvas (draggable header, Esc closes), opened from the Page panel (nothing selected) › Variables › Open variables |
+| Collections, groups, modes | the 11 collections of `tokens/source/figma/*.json`; groups from the `/` names; a column per mode (Component Theme has 9) |
+| Value cells, alias chips | hex + opacity % on a swatch, numbers, strings, booleans; an alias shows its target's short name and resolved swatch |
+| Edit a value, alias, detach alias | colour: Zen ColorPicker + Opacity, or Variables tab (same type, any collection) → alias; number / string inline; Detach alias writes the resolved value |
+| Create / rename / duplicate / delete | in the collection's file; names unique across all collections and their CSS names (`--zen-…`) too; rename and delete are refused while code or another variable reads the variable (they would break CSS) — the refusal names the readers |
+| ⌘Z | each change is one draft edit of the collection's JSON (Studio drafts, undo, history), never a separate stack |
+| Live result | while a token file has a draft, the dev server serves `src/styles/tokens.css` built from the drafts (the build's own code), so the canvas shows the change at once |
+| Publish | ⌘S (Save) writes the JSON, runs `tokens:build` (+ native) and `tokens:check`; a variables package (`zen-studio-variables` v1: the changed variables by collection, name and mode) is offered for the Zen plugin's Import from Studio, which writes the values in Figma — so the next Figma → repo sync agrees |
+
+Code: `scripts/token-outputs.mjs` (tokens.css / generated.ts / catalog from collections, shared by `build-tokens.mjs` and
+the dev server), `tools/studio/variables.mjs` (+ selftest: ops on a collection's JSON, checks, the Figma package),
+server routes `GET /variables`, `POST /variable-edit`; Studio `src/platform/studio/variables/`.
+Not in v1 (named so nothing is lost): modes (add / rename / delete — each needs a ZenProvider axis), new collections,
+description / scoping / code syntax, apply a variable from any Inspector field (E5), Change variable mode per frame (E6).
+
+**P5 v1 status (2026-10-17, branch `zen/feat/studio-variables-20261017`):** built as above. Window
+`src/platform/studio/variables/` (VariablesWindow, variablesModel + selftest, variablesState), server
+`tools/studio/variables-host.mjs` + routes in vite-plugin-zen-studio.mjs, ops `tools/studio/variables.mjs` (+ selftest),
+plugin `zen-studio-variables` (plugin commits 5e7d5ae, 5b15a5d). Decisions: rename / delete refused while code or a
+variable reads it (rewriting every CSS reader is a refactor, not an edit); Global Colors' Zen-High-Contrast is derived
+(read-only, written by the algorithm after each Zen edit, as the plugin does in Figma); the hand-over base
+(`.zen-studio/variables-figma.json`) is the text before the first save since the last Copy for Figma. Checks: E2E VA-01…04,
+a Save walked end to end (build + check + package). Colour variables show a palette icon (user).

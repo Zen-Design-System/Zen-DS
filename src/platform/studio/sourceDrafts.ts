@@ -149,7 +149,7 @@ function reportSave(result: SaveResult, frameLabel?: string) {
     announceEditStatus({ kind: "error", message: `Not saved: ${result.error}`, at });
     return;
   }
-  const { saved, conflicts, harness } = result;
+  const { saved, conflicts, harness, tokens } = result;
   const conflictLines = conflicts.map((entry) => `${fileName(entry.file)} kept as a draft: ${entry.reason}`);
   if (!saved.length && !conflicts.length) {
     announceEditStatus({ kind: "unchanged", message: "Nothing to save", at });
@@ -162,8 +162,11 @@ function reportSave(result: SaveResult, frameLabel?: string) {
   const parts = [frameLabel ? `Saved “${frameLabel}”` : saved.length === 1 ? `Saved ${fileName(saved[0].file)}` : `Saved ${plural(saved.length, "file")}`];
   parts.push(harness.findings.length ? plural(harness.findings.length, "harness finding") : harness.ok ? "harness clean" : "harness failed");
   if (conflicts.length) parts.push(`${plural(conflicts.length, "conflict")} kept as draft`);
-  const clean = harness.ok && !harness.findings.length && !conflicts.length;
-  announceEditStatus({ kind: clean ? "saved" : "warning", message: parts.join(" · "), details: clean ? undefined : listMore([...conflictLines, ...harness.findings.map(shortPaths)]), at });
+  // Variables (token sources): the token build ran after the write; Figma gets the values from the Variables window.
+  const failedStep = tokens?.steps.find((step) => !step.ok);
+  if (tokens) parts.push(tokens.ok ? `tokens built${tokens.figma.changes ? ` · ${plural(tokens.figma.changes, "variable change")} for Figma` : ""}` : `token build failed (${failedStep?.step.replace(/^scripts\//, "") ?? "?"})`);
+  const clean = harness.ok && !harness.findings.length && !conflicts.length && (!tokens || tokens.ok);
+  announceEditStatus({ kind: clean ? "saved" : "warning", message: parts.join(" · "), details: clean ? undefined : listMore([...conflictLines, ...harness.findings.map(shortPaths), ...(failedStep ? failedStep.output.split("\n").slice(-6) : [])]), at });
 }
 
 /**
