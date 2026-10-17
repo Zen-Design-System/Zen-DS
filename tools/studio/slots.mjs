@@ -31,7 +31,7 @@
 //   withSlots(element, slots)                 → the SourceElement with those fields merged in
 //   mapLine(before, after, line)              → where a line of `before` sits in `after` (src/platform/studio/code/diff.ts)
 //   componentModulesFrom(root)                → in component-modules.mjs (Node only: it reads the disk)
-//   requiredFromApi(api)                      → { requiredChildren, requiredProps } from src/platform/api.generated.json
+//   requiredFromApi(api)                      → { requiredChildren, requiredProps, childless } from src/platform/api.generated.json
 //   SLOT_OPS, isSlotFile(rel)
 //
 // Rules (spec, user decisions 2026-10-03):
@@ -72,7 +72,7 @@ import { parseExpression } from "@babel/parser";
 import { CHROME_MARK, EditError, applyEdits, changedRange, chromeFunctions, collapseJsxText, describeAttr, describeAttrsIn, findElement, formatAttr, insideAny, isAnnotatedFile, jsxName, parseLoc, parseSource, sha1, snippetLiterals, staticString, walk } from "./jsx-source.mjs";
 import { isPlaygroundFile } from "./shared-code.mjs";
 import { UNIT, pathTo, piece } from "./source-helpers.mjs";
-import { manyPlan, moveToPlan, pasteCodePlan, replacePlan } from "./arrange.mjs";
+import { childRefusal, holdsElements, inScreenContent, manyPlan, moveToPlan, pasteCodePlan, replacePlan } from "./arrange.mjs";
 import { ITEM_OPS, itemPlan } from "./items.mjs";
 
 const BOM = "\uFEFF";
@@ -1470,6 +1470,12 @@ function insertPlan(ctx, nodePath, op) {
     return insertIntoContainer(ctx, container, at, code);
   };
   if (prop === null) {
+    // A component without children (Top Navigation, Shape, a chart) takes none, and a block never goes into text: the
+    // same answer a drag gets (arrange.mjs landing; user, 2026-10-17, dnd-matrix).
+    const ownName = parentName.slice(parentName.lastIndexOf(".") + 1);
+    if (ctx.childless.has(ownName)) refuse(`<${parentName}> has no children to drop into; drop beside it instead.`);
+    const refusal = childRefusal(code.name, parentName, { screenContent: builderPage && inScreenContent(nodePath), parentHasChildren: holdsElements(element) });
+    if (refusal) refuse(refusal);
     if (element.openingElement.selfClosing) {
       atIndex([]);
       snippet = { kind: "self-closing" };
@@ -2887,7 +2893,7 @@ const ARRANGE_HELPERS = { builderImportEdits, BUILDER_RUNTIME, LOCAL_PAGE, child
 const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, builderImportEdits, LOCAL_PAGE, FUNCTION_TYPES, JS_GLOBALS };
 
 export function applySlotOp(code, loc, name, op, options = {}) {
-  const { snippets = true, file, componentModules, requiredChildren, requiredProps, hash, base, shared = false } = options;
+  const { snippets = true, file, componentModules, requiredChildren, requiredProps, childless, hash, base, shared = false } = options;
   if (!op || typeof op !== "object" || !SLOT_OPS.has(op.op)) return fail("invalid", `Unknown slot op ${JSON.stringify(op?.op)}`);
   if (typeof code !== "string") return fail("invalid", "No source text");
   // A property on several layers (op many, setProps) is a prop edit, allowed wherever one layer's props are (any annotated
@@ -2923,6 +2929,7 @@ export function applySlotOp(code, loc, name, op, options = {}) {
     folders: asFolders(componentModules),
     requiredChildren: requiredChildren instanceof Set ? requiredChildren : new Set(Array.isArray(requiredChildren) ? requiredChildren : []),
     requiredProps: requiredProps instanceof Map ? requiredProps : new Map(Object.entries(requiredProps ?? {}).map(([key, value]) => [key, new Set(value)])),
+    childless: childless instanceof Set ? childless : new Set(Array.isArray(childless) ? childless : []),
   };
   let plan;
   let next;
@@ -3152,8 +3159,11 @@ export function withSlots(element, slots) {
 export function requiredFromApi(api) {
   const requiredChildren = new Set();
   const requiredProps = new Map();
+  const childless = new Set();
   for (const list of Object.values(api ?? {})) {
     for (const component of Array.isArray(list) ? list : []) {
+      // Documented props and no `children`: the component draws no content of its own (insertChild refuses into it).
+      if (typeof component?.name === "string" && component.props?.length && !component.props.some((prop) => prop?.name === "children")) childless.add(component.name);
       for (const prop of component?.props ?? []) {
         if (!prop?.required || typeof component.name !== "string") continue;
         if (prop.name === "children") requiredChildren.add(component.name);
@@ -3164,5 +3174,5 @@ export function requiredFromApi(api) {
       }
     }
   }
-  return { requiredChildren, requiredProps };
+  return { requiredChildren, requiredProps, childless };
 }

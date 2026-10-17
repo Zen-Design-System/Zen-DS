@@ -161,14 +161,18 @@ export const entryDefaultIcon = (entry: PropEntry) => (typeof entry === "string"
  * A select's options with their Figma names: the options Figma has first, in Figma's order and named as in Figma, then
  * the ones only the code has, as written. `match` maps a code value onto the editor's option ("medium" → "md").
  */
-export function figmaOptions(options: readonly string[], names: Readonly<Record<string, string>>, match: (value: string, options: readonly string[]) => string): { options: string[]; labels: Record<string, string> } {
+export function figmaOptions(options: readonly string[], names: Readonly<Record<string, string>>, match: (value: string, options: readonly string[]) => string, keep?: string): { options: string[]; labels: Record<string, string> } {
   const labels: Record<string, string> = {};
   for (const [value, name] of Object.entries(names)) {
     const option = match(value, options);
     if (options.includes(option) && !(option in labels)) labels[option] = name;
   }
   const named = Object.keys(labels);
-  return { options: [...named, ...options.filter((option) => !(option in labels))], labels };
+  // Only Figma's values, as its instance panel lists them (user, 2026-10-17: "chưa giống 100% component trên figma"): a
+  // code-only value (Button size 2xs) shows only while the layer holds it, so the field can still read it.
+  if (!named.length) return { options: [...options], labels };
+  const kept = keep === undefined ? undefined : match(keep, options);
+  return { options: [...named, ...options.filter((option) => !(option in labels) && option === kept)], labels };
 }
 
 /** Figma option name → code value (generated) as code value → name; a set's path ("Button/Main") names it by its last part. */
@@ -183,6 +187,14 @@ export const entryWarnings = (entry: PropEntry, props: Readonly<Record<string, u
   typeof entry === "string" ? [] : (entry.warn ?? []).filter((warning) => holds(warning.when, props)).map((warning) => warning.text);
 
 /** Every prop the groups place (in a nested group or the component's own list). */
+/**
+ * A prop only code reads, which no Figma panel has: the HTML element and its type, ids, links, form attributes,
+ * accessibility names and handlers. The Inspector folds these into Code properties (user, 2026-10-17: "Còn dùng ngôn ngữ
+ * dev nhiều quá"); content and state (title, value, label, src, disabled, open…) stay with Figma's rows.
+ */
+const CODE_PROPS = new Set(["as", "type", "id", "idPrefix", "href", "linkAs", "htmlFor", "role", "tabIndex", "autoFocus", "noValidate", "maxLength", "accept", "anchorRef", "popoverPortal", "className", "style", "ref"]);
+export const isCodeProp = (prop: string) => CODE_PROPS.has(prop) || /^(aria|data)-/.test(prop) || /^on[A-Z]/.test(prop);
+
 export function placedProps(groups: ComponentGroups): Set<string> {
   return new Set([...groups.own.map(entryProp), ...groups.after.map(entryProp), ...groups.nested.flatMap((group) => group.props.map(entryProp))]);
 }

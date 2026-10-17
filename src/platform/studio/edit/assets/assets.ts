@@ -1,8 +1,8 @@
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../../api";
-import { canvasApi, getViewportBox } from "../../canvas/viewport";
+import { canvasApi, getViewport, getViewportBox } from "../../canvas/viewport";
 import { multiSelection } from "../../select/multiSelection";
 import { expectRender, renderedNow } from "../../select/remap";
-import { canStructurallyEdit, swapSelection } from "../../slots/actions";
+import { canStructurallyEdit, pasteWarningIn, swapSelection } from "../../slots/actions";
 import { altOf, ASSET_PREFIX, type Upload } from "../../builder/assets/uploads";
 import { MEDIA_PREFIX, photoCode, type LibraryPhoto } from "../../builder/library/media";
 import { insertTarget } from "../../builder/library/target";
@@ -11,9 +11,11 @@ import type { ContentSlot } from "../../slots/registry";
 import { canEdit, flushStudioStore, studioStore } from "../../store";
 import type { EditOp, StateDecl, StudioSelection } from "../../types";
 import type { DropTarget, NodeSelection } from "../arrange";
-import { insertCode } from "../clipboard";
-import { dropTargetAt, publishDragView, type DropContext } from "../drag";
-import { fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf } from "../../select/picker";
+import { insertCode, notRecommended } from "../clipboard";
+import { dropTargetAt, kidsOf, publishDragView, type DropContext } from "../drag";
+import { floatingCode } from "../autoLayoutPlan";
+import { snapBox, SNAP_PX, type FrameBox } from "../../builder/render/framePlace";
+import { annotatedAt, findBySrc, fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf, type FiberHit } from "../../select/picker";
 import { withoutPart } from "../../select/parts";
 import { nestedPicture, PICTURED, writePicture } from "./picture";
 
@@ -141,6 +143,13 @@ export function insertItem(item: Insertable) {
   if (image && item.photo) { void swapPhoto(image, item.photo, item.label); return; }
   const target = insertTarget();
   if (typeof target === "string") { fail(target); return; }
+  // A Top / Bottom Navigation goes to the bar of the Screen the insert would go to.
+  if (BARS[item.root]) {
+    const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.src)[0]?.hosts[0];
+    const bar = barOf(host?.closest<HTMLElement>(".studio-builder-screen") ?? null, item.root);
+    if (typeof bar === "string") { fail(bar); return; }
+    if (bar) { void dropBar(item, bar); return; }
+  }
   const file = parseSrc(target.src)?.file;
   const code = item.code(file);
   if (code === null) { fail(item.refusal); return; }
@@ -177,33 +186,135 @@ export function refusalFor(target: DropTarget): string | null {
   return check.ok ? null : check.reason;
 }
 
-/** Adds `item` where a drag or the toolbar's placement points (one edit; the new layer selected). */
-export async function dropAsset(item: Insertable, target: DropTarget) {
+/** Adds `item` where a drag or the toolbar's placement points (one edit; the new layer selected). `free`: the px it goes
+ *  to in a Frame without auto layout (placed there, floating), else it joins the layout's flow. */
+export async function dropAsset(item: Insertable, target: DropTarget, free?: { x: number; y: number } | null) {
   const at = parseSrc(target.parentSrc);
   if (!at) return;
   const parent = await studioApi.element(at.file, at.loc);
   if (!parent) { fail(`${target.parentName} is no longer there`); return; }
-  const code = item.code(at.file);
-  if (code === null) { fail(item.refusal); return; }
+  const written = item.code(at.file);
+  if (written === null) { fail(item.refusal); return; }
+  const code = free ? floatingCode(written, item.root, free.x, free.y) : written;
   const state = stateFor(item, at.file);
   const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}) };
   if (target.before) op.before = parseSrc(target.before)?.loc;
   else if (target.after) op.after = parseSrc(target.after)?.loc;
   const before = renderedNow(canvasApi.getWorldElement());
+  // The host's rules judge a drop as they judge a click (a Card in a Card, a control in a clickable card): it still lands.
+  const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0];
+  const warning = host ? await pasteWarningIn(host, target.frameId, target.panelId, code).catch(() => null) : null;
   const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, `Add ${item.label}`);
   if (!response.ok || !response.inserted) return;
-  const next: StudioSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: item.root, frameId: target.frameId, panelId: target.panelId, instance: 0 };
+  notRecommended(warning);
+  const next: StudioSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: free && !/^(Stack|Grid|Box|Shape)$/.test(item.root) ? "Box" : item.root, frameId: target.frameId, panelId: target.panelId, instance: 0 };
   multiSelection.clear();
   expectRender(next, before, () => undefined, 1500);
   studioStore.setState({ selection: next });
   flushStudioStore();
 }
 
+/* ── a Screen's bars ──────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * A Top or Bottom Navigation dragged over a phone or tablet Screen goes to its bar (Screen topNavigation /
+ * bottomNavigation), never into its content (user, 2026-10-17: "Kéo top navigation vào rồi đặt lên top"); over a Screen
+ * that has one, it replaces it. `box`: where the overlay draws (the bar, or a band at the Screen's edge).
+ */
+type BarTarget = { screen: FiberHit; prop: "topNavigation" | "bottomNavigation"; label: string; replaces: FiberHit | null; box: DOMRect };
+const BARS: Readonly<Record<string, { prop: BarTarget["prop"]; part: "top" | "bottom"; label: string; height: number }>> = {
+  TopNavigation: { prop: "topNavigation", part: "top", label: "Top navigation", height: 56 },
+  BottomNavigation: { prop: "bottomNavigation", part: "bottom", label: "Bottom navigation", height: 64 },
+};
+
+/** The bar of the Screen under (x, y) that `root` goes to, why it cannot (a desktop Screen), or null (not a bar item). */
+function barAt(x: number, y: number, root: string): BarTarget | string | null {
+  const world = canvasApi.getWorldElement();
+  if (!BARS[root] || !world) return null;
+  const under = document.elementsFromPoint(x, y).find((element) => world.contains(element) && element !== world);
+  return barOf(under?.closest<HTMLElement>(".studio-builder-screen") ?? null, root);
+}
+
+/** The bar of the Screen drawn by `host` that `root` goes to, why it cannot, or null (no Screen, not a bar item). */
+function barOf(host: HTMLElement | null, root: string): BarTarget | string | null {
+  const bar = BARS[root];
+  if (!bar) return null;
+  const screen = host ? annotatedAt(host) : null;
+  if (!host || !screen || screen.name !== "Screen") return null;
+  if (host.dataset.layout !== "mobile") return `${bar.label} is a phone bar: this Screen has the desktop layout`;
+  const holder = host.querySelector(`:scope > .studio-builder-screen__main > .studio-builder-screen__${bar.part}`);
+  const replaces = holder?.firstElementChild ? annotatedAt(holder.firstElementChild) : null;
+  const edge = host.getBoundingClientRect();
+  const scale = host.offsetWidth ? edge.width / host.offsetWidth : 1;
+  const band = bar.height * scale;
+  const box = holder ? holder.getBoundingClientRect() : new DOMRect(edge.left, bar.part === "top" ? edge.top : edge.bottom - band, edge.width, band);
+  return { screen, prop: bar.prop, label: replaces ? `Replace ${bar.label.toLowerCase()}` : bar.label, replaces, box };
+}
+
+/** Puts `item` in its Screen's bar, or in place of the bar there (one edit; the new bar selected). */
+async function dropBar(item: Insertable, bar: BarTarget) {
+  const at = parseSrc(bar.screen.src);
+  const world = canvasApi.getWorldElement();
+  if (!at || !world) return;
+  const code = item.code(at.file);
+  if (code === null) { fail(item.refusal); return; }
+  const target = bar.replaces ? parseSrc(bar.replaces.src) : at;
+  const element = target ? await studioApi.element(target.file, target.loc) : null;
+  if (!target || !element) { fail(`${bar.replaces ? bar.replaces.name : "The Screen"} is no longer there`); return; }
+  const op = (bar.replaces ? { op: "replaceElement", code } : { op: "insertChild", prop: bar.prop, code }) as EditOp;
+  const before = renderedNow(world);
+  const response = await applyEdit({ file: target.file, loc: target.loc, name: element.name, ops: [op], hash: element.hash }, `${bar.replaces ? "Replace" : "Add"} ${item.label}`);
+  if (!response.ok) return;
+  const inserted = response.inserted ?? (bar.replaces ? { loc: target.loc } : null);
+  if (!inserted) return;
+  const host = bar.screen.hosts[0];
+  const next: StudioSelection = { kind: "node", src: `${response.file}:${inserted.loc}`, name: item.root, frameId: frameOf(host), panelId: panelOf(host), instance: 0 };
+  multiSelection.clear();
+  expectRender(next, before, () => undefined, 1500);
+  studioStore.setState({ selection: next });
+  flushStudioStore();
+}
+
+/* ── a Frame without auto layout ─────────────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * A drop into a Frame without auto layout (a Box whose layers all float, or none: Figma's frame) lands where the pointer
+ * is, its corner snapped to the frame's and its layers' edges and centres (Figma's smart guides, red); ⌘ / Ctrl drops
+ * without snapping (user, 2026-10-17: "kéo thả có smart guide, để dễ align y như figma"). A Box that lays its layers out
+ * in flow keeps the insertion line. Null for any other drop.
+ */
+type FreeDrop = { x: number; y: number; guides: Array<{ x: number; y: number; w: number; h: number }> };
+function freeDropAt(target: DropTarget, pointer: { x: number; y: number }, noSnap: boolean): FreeDrop | null {
+  if (target.parentName !== "Box") return null;
+  const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0]?.hosts[0];
+  if (!(host instanceof HTMLElement) || !host.matches(".zen-box")) return null;
+  const kids = Array.from(host.children).filter((child): child is HTMLElement => child instanceof HTMLElement);
+  if (!kids.every((child) => child.dataset.position === "absolute")) return null;
+  const outer = host.getBoundingClientRect();
+  const scale = host.offsetWidth ? outer.width / host.offsetWidth || 1 : 1;
+  const local = (x: number, y: number) => ({ x: (x - outer.left) / scale - host.clientLeft, y: (y - outer.top) / scale - host.clientTop });
+  const point = local(pointer.x, pointer.y);
+  const others: FrameBox[] = [
+    { x: 0, y: 0, width: host.clientWidth, height: host.clientHeight },
+    ...kids.map((kid) => { const box = kid.getBoundingClientRect(); const at = local(box.left, box.top); return { x: at.x, y: at.y, width: box.width / scale, height: box.height / scale }; }),
+  ];
+  const snapped = noSnap ? { dx: 0, dy: 0, guides: [] } : snapBox({ x: point.x, y: point.y, width: 0, height: 0 }, others, SNAP_PX / (getViewport().zoom || 1));
+  const x = Math.max(0, Math.round(point.x + snapped.dx));
+  const y = Math.max(0, Math.round(point.y + snapped.dy));
+  const screen = (px: number, py: number) => ({ x: outer.left + (px + host.clientLeft) * scale, y: outer.top + (py + host.clientTop) * scale });
+  const guides = snapped.guides.map((guide) => {
+    const from = guide.axis === "x" ? screen(guide.at, guide.from) : screen(guide.from, guide.at);
+    const length = (guide.to - guide.from) * scale;
+    return guide.axis === "x" ? { x: from.x, y: from.y, w: 1, h: length } : { x: from.x, y: from.y, w: length, h: 1 };
+  });
+  return { x, y, guides };
+}
+
 /* ── dragging an asset onto the canvas ───────────────────────────────────────────────────────────────────────────── */
 
 const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false };
 
-type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null; swap: ReturnType<typeof picturedAt> };
+type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null; swap: ReturnType<typeof picturedAt>; bar: BarTarget | null; free: FreeDrop | null };
 let drag: Drag | null = null;
 
 const overCanvas = (x: number, y: number) => {
@@ -236,9 +347,34 @@ function onMove(event: PointerEvent) {
     publishDragView({ line: null, into: { x: box.x, y: box.y, w: box.width, h: box.height }, pointer, label: `Picture of ${selection.name}`, tone: "info" });
     return;
   }
+  // A Top / Bottom Navigation over a phone Screen: its bar.
+  const bar = barAt(pointer.x, pointer.y, current.item.root);
+  current.bar = bar && typeof bar === "object" ? bar : null;
+  if (bar) {
+    current.target = null;
+    current.refusal = typeof bar === "string" ? bar : refusalFor({ parentSrc: bar.screen.src, parentName: "Screen", frameId: frameOf(bar.screen.hosts[0]), panelId: panelOf(bar.screen.hosts[0]) });
+    const box = typeof bar === "string" ? null : bar.box;
+    publishDragView({ line: null, into: box ? { x: box.x, y: box.y, w: box.width, h: box.height } : null, pointer, label: current.refusal ?? (bar as BarTarget).label, tone: current.refusal ? "negative" : "info" });
+    return;
+  }
+  // An App shell is a whole page: it goes on an empty Screen, never into a layer (the engine says the same).
+  const shell = current.item.root === "AppShell" ? shellAt(pointer.x, pointer.y) : null;
+  if (shell) {
+    current.target = typeof shell === "string" ? null : shell;
+    current.refusal = typeof shell === "string" ? shell : refusalFor(shell);
+    current.free = null;
+    publishDragView({ line: null, into: typeof shell === "string" ? null : shell.into, pointer, label: current.refusal ?? current.item.label, tone: current.refusal ? "negative" : "info" });
+    return;
+  }
   const { target, reason } = dropTargetAt(pointer.x, pointer.y, NOTHING);
   current.target = target;
-  current.refusal = reason ?? (target ? refusalFor(target) : null);
+  // Nowhere to land is said, never silent: the board outside a frame takes frames only (Figma would make a loose layer).
+  current.refusal = reason ?? (target ? refusalFor(target) : overFrame(pointer.x, pointer.y) ? null : "Drop it into a frame");
+  current.free = target && !current.refusal ? freeDropAt(target, pointer, event.metaKey || event.ctrlKey) : null;
+  if (current.free && target) {
+    publishDragView({ line: null, into: target.into, pointer, label: `${current.item.label} · ${current.free.x}, ${current.free.y}`, tone: "info", guides: current.free.guides });
+    return;
+  }
   publishDragView({
     line: target && !current.refusal ? target.line : null,
     into: target ? target.into : null,
@@ -273,7 +409,26 @@ function stop(commit: boolean) {
     void writePicture(selection, current.item.photo, current.item.label);
     return;
   }
-  if (commit && current.target && !current.refusal) void dropAsset(current.item, current.target);
+  if (commit && current.bar && !current.refusal) { void dropBar(current.item, current.bar); return; }
+  if (commit && current.target && !current.refusal) void dropAsset(current.item, current.target, current.free);
+}
+
+/** The empty Screen under (x, y) an App shell goes into, why not (a Screen with content), or null (no Screen there). */
+function shellAt(x: number, y: number): (DropTarget & { into: { x: number; y: number; w: number; h: number } }) | string | null {
+  const world = canvasApi.getWorldElement();
+  const under = world ? document.elementsFromPoint(x, y).find((element) => world.contains(element) && element !== world) : null;
+  const host = under?.closest<HTMLElement>(".studio-builder-screen");
+  const screen = host ? annotatedAt(host) : null;
+  if (!host || !screen || screen.name !== "Screen") return null;
+  if (kidsOf(screen).length) return "An App shell is a whole page: drop it on an empty Screen";
+  const box = host.getBoundingClientRect();
+  return { parentSrc: screen.src, parentName: "Screen", frameId: frameOf(host), panelId: panelOf(host), into: { x: box.x, y: box.y, w: box.width, h: box.height } };
+}
+
+/** Whether (x, y) is on a frame of the board (a Screen or an Overlay), not the board's empty space. */
+function overFrame(x: number, y: number) {
+  const world = canvasApi.getWorldElement();
+  return document.elementsFromPoint(x, y).some((element) => world?.contains(element) && element !== world && Boolean(element.closest("[data-studio-frame]")));
 }
 
 function onUp() { stop(true); }
@@ -290,7 +445,7 @@ export function pressAsset(event: PointerEvent, item: Insertable) {
   if (event.button !== 0 || drag) return;
   if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
   event.preventDefault();
-  drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null, swap: null };
+  drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null, swap: null, bar: null, free: null };
   window.addEventListener("pointermove", onMove, true);
   window.addEventListener("pointerup", onUp, true);
   window.addEventListener("pointercancel", onCancel, true);

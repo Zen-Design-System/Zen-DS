@@ -22,6 +22,34 @@ removed (four unused colour ramps were, see Removed).
   Pale tint fades; Pale stays for white pages and imagery. New harness rule `card/pale-on-canvas-default` (error: a
   Pale Card, MetricCard or ChartCard right on an AppShell, PlatformPhone or ZenProvider whose canvas is Default), the
   Figma audit's `theme/box-on-canvas` asks for Subtle there, and Studio pushes and pulls the new theme.
+- Zen Studio drag and drop as in Figma (2026-10-17, user: "test hết mọi case kéo thả, kéo component vào mà không có
+  box(frame) hoặc stack. Kéo top navigation vào rồi đặt lên top…", "kéo thả có smart guide"): a component dropped on a
+  Screen with no Stack lands in it (the drop did nothing), and on a new page's Screen it goes into the page body; a Top or
+  Bottom Navigation dropped or clicked onto a phone Screen becomes its top or bottom bar (replacing the one there); a
+  layer drags from one Screen to another; a drop into a Frame without auto layout lands where it is dropped, snapped with
+  red smart guides (⌘ drops without snapping); outside every frame the drag says "Drop it into a frame"; a drop against
+  the host's rules says "Not recommended" as a click does; an App shell goes only on an empty Screen (the drag says so);
+  a Layers row dropped on a Screen's row goes into that Screen. A click and the MCP now refuse what a drag refuses:
+  children in a component that has none (Top Navigation, Shape, charts), a block in text, an App shell inside a layer or
+  beside content, a Top / Bottom Navigation in a Screen's content. Checked by `npm run studio:dnd` (19,286 engine cases)
+  and the opt-in E2E group `dnd` (real drags of every Assets item, `npm run studio:e2e -- --only=dnd`).
+- Zen Studio Variables (2026-10-17, user: "Cách sắp xếp nên theo nhóm chứ?", "Các chip chứa variable padding hơi kì"):
+  the table lists group by group as the groups tree reads, one header per group (a file that interleaves Brand/1,
+  Brand-Alpha/1, Brand/2 showed "Light / Brand" twice); an alias chip's swatch sits as far from its top, bottom and left
+  (4px), whatever the density.
+- Zen Studio Add / Remove auto layout (2026-10-17, user: "test luôn phần add auto layout và detach auto layout"):
+  an Action bar keeps its own `position` (static / sticky / fixed) when its Frame takes auto layout (it was removed as if
+  it were an X / Y); a painted Frame with nothing in it now gets its auto layout (a Stack inside, it stayed a plain
+  Box); the alignment read from the layers is the line they share best (start, centre or end), whatever their order in
+  the code; Remove auto layout works on a Stack holding an Icon, Flag or File icon (it said "holds a list or code"), and a
+  layer the auto layout stretched keeps its size once it floats (it shrank and moved). Checked by `npm run studio:dnd`
+  (12,564 more cases) and the `dnd` E2E rows DND-07 / DND-08.
+- Zen Studio speaks Figma (2026-10-17, user: "Còn dùng ngôn ngữ dev nhiều quá", "Convert được Box(Frame) to Stack(auto
+  layout)"): a Frame's Inspector has Figma's Auto layout "+" (⇧A adds auto layout to the Frame in place, ⌥⇧A or "−"
+  removes it), the canvas menu and Quick actions say Add auto layout / Remove auto layout / Frame selection; a layer reads
+  Frame, Auto layout, Text, Instance or Shape; property selects offer only the values Figma's component has, and spacing
+  and radius steps read Figma's names (Medium, XLarge, Base, Margin-Comfortable). Props Figma has no property for (HTML
+  element, Scroll, Html for…) wait in a closed "Code properties" section.
 - Padding takes the page margins (2026-10-17, user: "User vẫn chưa chọn được margin token cho padding khi thiết kế"):
   `padding` / `paddingX` / `paddingY` (and Form `inset`, layout insets) accept `margin-comfortable` (24, 20 on a phone) and
   `margin-compact` (20, 16 on a phone), Figma's Breakpoint & Grids margins, which follow the breakpoint (`ZenMargin`).

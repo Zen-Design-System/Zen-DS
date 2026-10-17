@@ -8,7 +8,7 @@ export function sha1(text: string): string;
 export function changedRange(before: string, after: string): { from: number; to: number };
 export function describeSlots(code: string, file: string, loc: string, options?: { base?: string }): Record<string, unknown> | null;
 export function withSlots(element: Record<string, unknown> | null, slots: Record<string, unknown> | null): Record<string, unknown> | null;
-export function requiredFromApi(api: unknown): { requiredChildren: Set<string>; requiredProps: Map<string, Set<string>> };
+export function requiredFromApi(api: unknown): { requiredChildren: Set<string>; requiredProps: Map<string, Set<string>>; childless: Set<string> };
 export function dataFieldEdit(code: string, file: string, loc: string, name: string, op: unknown, options?: { read?: (rel: string) => string | null }): { file: string; code: string; source: string; changed: boolean } | EngineError;
 export function originsOf(code: string, file: string, loc: string, targets: Array<{ prop: string } | { child: number } | { tableRows: true }>, options?: { read?: (rel: string) => string | null }): Array<Record<string, unknown>>;
 export type DialectError = { line: number; column: number; message: string };

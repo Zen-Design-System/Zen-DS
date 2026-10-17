@@ -41,6 +41,23 @@ const TEXT_PARENTS = new Set(["p", "span", "a", "button", "label", "strong", "em
 /** Elements that render a block box (Zen layout and surfaces, block host tags). */
 const BLOCKS = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions", "List", "ListItem", "Table", "Divider", "EmptyState", "InlineMessage", "DescriptionList", "Metric", "MetricCard", "div", "section", "article", "aside", "header", "footer", "main", "nav", "ul", "ol", "li", "table", "form", "fieldset", "figure", "p", "h1", "h2", "h3", "h4", "h5", "h6"]);
 const lastSegment = (value) => value.slice(value.lastIndexOf(".") + 1);
+/** The components a builder page's Screen holds in a bar prop (topNavigation, bottomNavigation), by their bar. */
+const SCREEN_BARS = { TopNavigation: "top", BottomNavigation: "bottom" };
+/**
+ * Whether `path` (to an element, itself included) is inside a builder page's Screen: its nearest Screen / Overlay is a
+ * Screen. Anything that goes into an element there is content, also in a prop's element (a Sidebar row); a Screen's own
+ * bar takes its component through the prop (insertChild `prop`), which is not asked.
+ */
+export function inScreenContent(path) {
+  for (let k = path.length - 1; k >= 0; k -= 1) {
+    const node = path[k];
+    if (node?.type !== "JSXElement") continue;
+    const name = jsxName(node.openingElement.name);
+    if (name === "Screen") return true;
+    if (name === "Overlay" || name === "Board") return false;
+  }
+  return false;
+}
 
 /**
  * Elements a component clones or checks by type (src/platform/studio/cloning.json, the list op wrap reads too): one cannot
@@ -167,7 +184,7 @@ export function moveToPlan(ctx, nodePath, op, h) {
   const { parent, parentName, parentPath } = destination(ctx, h, op.parent);
   if (moving.start <= parent.start && parent.end <= moving.end) h.refuse(`${what} cannot go inside itself.`);
   clonedPlace(h, element, path, holderAt, parent, copy);
-  landing(h, name, parent, parentName);
+  landing(h, name, parent, parentName, ctx, parentPath);
   const { entries, at, replaced } = positionIn(ctx, h, parent, parentName, op);
   if (replaced && replaced.start <= element.start && element.end <= replaced.end) h.refuse(`${what} is inside the layer it would replace; paste it elsewhere.`);
   if (!copy) {
@@ -221,15 +238,34 @@ function destination(ctx, h, loc) {
   return { parent, parentName: jsxName(parent.openingElement.name), parentPath };
 }
 
-/** Whether an element named `name` may land in `parent` (cloning parents, text, a self-closing tag that cannot open). */
-function landing(h, name, parent, parentName) {
+/**
+ * Why an element named `name` cannot be a child of `parentName` whatever the place: a cloning parent that takes other
+ * children, or a block in a parent that holds text. Null when it can. insertChild asks too (slots.mjs insertPlan), so a
+ * click, the MCP and a drag agree (tools/studio/dnd-matrix.mjs).
+ */
+export function childRefusal(name, parentName, { screenContent = false, parentHasChildren = false } = {}) {
   const target = lastSegment(parentName);
+  // A builder page's Top / Bottom Navigation is its Screen's bar (Screen topNavigation / bottomNavigation): never content.
+  const bar = screenContent ? SCREEN_BARS[lastSegment(name)] : null;
+  if (bar) return `<${name}> is the Screen's ${bar} bar: drop it on the ${bar} of the Screen, not into its content.`;
+  // An App shell is a whole page (a Screen's master layout): it goes on a Screen, never inside a layer of one.
+  if (screenContent && lastSegment(name) === "AppShell" && (target !== "Screen" || parentHasChildren)) return target === "Screen" ? "<AppShell> is a whole page: drop it on an empty Screen." : `<AppShell> is a whole page: drop it on an empty Screen, not inside <${parentName}>.`;
   const into = cloning.parents[target];
   if (into) {
-    if (!Array.isArray(into.only)) h.refuse(`<${target}> takes one child, which it clones; drop beside it instead.`);
-    if (!into.only.includes(lastSegment(name))) h.refuse(`<${target}> holds ${into.only.map((only) => `<${only}>`).join(", ")} only; drop <${name}> beside it instead.`);
+    if (!Array.isArray(into.only)) return `<${target}> takes one child, which it clones; drop beside it instead.`;
+    if (!into.only.includes(lastSegment(name))) return `<${target}> holds ${into.only.map((only) => `<${only}>`).join(", ")} only; drop <${name}> beside it instead.`;
   }
-  if (TEXT_PARENTS.has(target) && BLOCKS.has(lastSegment(name))) h.refuse(`<${parentName}> holds text; <${name}> would put a block inside it. Drop it beside <${parentName}> instead.`);
+  if (TEXT_PARENTS.has(target) && BLOCKS.has(lastSegment(name))) return `<${parentName}> holds text; <${name}> would put a block inside it. Drop it beside <${parentName}> instead.`;
+  return null;
+}
+
+/** Whether an element named `name` may land in `parent` (cloning parents, text, a self-closing tag that cannot open). */
+/** Whether `element` holds an element among its children (not text, not props). */
+export const holdsElements = (element) => !element.openingElement.selfClosing && element.children.some((child) => child.type === "JSXElement" || (child.type === "JSXExpressionContainer" && child.expression.type !== "JSXEmptyExpression"));
+
+function landing(h, name, parent, parentName, ctx, parentPath) {
+  const refusal = childRefusal(name, parentName, { screenContent: h.LOCAL_PAGE.test(ctx?.file ?? "") && Boolean(parentPath) && inScreenContent(parentPath), parentHasChildren: holdsElements(parent) });
+  if (refusal) h.refuse(refusal);
   if (parent.openingElement.selfClosing && !(OPENABLE.has(parentName) || (/^[a-z]/.test(parentName) && !VOID_TAGS.has(parentName)))) {
     h.refuse(`<${parentName}> has no children to drop into; drop beside it instead.`);
   }
@@ -325,7 +361,7 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   if (annotated) h.refuse("The code carries data-zen-src; the Studio adds it");
   const node = elements[0];
   const name = jsxName(node.openingElement.name);
-  for (const element of elements) landing(h, jsxName(element.openingElement.name), parent, parentName);
+  for (const element of elements) landing(h, jsxName(element.openingElement.name), parent, parentName, ctx, nodePath);
   const { entries, at, replaced } = positionIn(ctx, h, parent, parentName, op);
   const needed = [];
   const runtime = [];
@@ -529,7 +565,7 @@ function manyMoveToPlan(ctx, outer, op, h) {
     if (holder?.type !== "JSXElement" && holder?.type !== "JSXFragment") h.refuse(`${what} sits in ${holder?.type === "JSXAttribute" ? "a prop" : h.WHERE[holder?.type] ?? "code the Studio does not restructure"}; only an element's children can be ${copy ? "copied" : "moved"} together. Edit it in the code.`);
     if (element.start <= parent.start && parent.end <= element.end) h.refuse(`${what} cannot go inside itself.`);
     clonedPlace(h, element, nodePath, holderAt, parent, copy);
-    landing(h, name, parent, parentName);
+    landing(h, name, parent, parentName, ctx, parentPath);
     if (copy && element.openingElement.attributes.some((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "key")) h.refuse(`${what} has a key; a copy would repeat it. Edit it in the code.`);
     for (const used of freeNames(element, h.patternNames, h.FUNCTION_TYPES)) {
       const here = h.bindingOf(nodePath, used);

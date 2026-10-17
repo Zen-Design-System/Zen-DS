@@ -296,7 +296,8 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
 }
 
 /** "Not recommended: …" under the paste's outcome line (it pasted all the same, as an insert from the picker does). */
-function notRecommended(reason: string | null) {
+/** Adds the host rules' "Not recommended" reason to the edit's status (the layer still lands). */
+export function notRecommended(reason: string | null) {
   const now = currentEditStatus();
   if (!reason || !now) return;
   announceEditStatus({ ...now, details: [...(now.details ?? []), `Not recommended: ${reason}`] });

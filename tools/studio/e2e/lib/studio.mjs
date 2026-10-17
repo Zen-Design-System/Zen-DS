@@ -231,6 +231,13 @@ export async function openAssetLibrary(page, kind) {
 
 export const inspectorRow = (page, prop) => page.locator(`#studio-right [data-prop="${prop}"]`).first();
 
+/** Opens the Inspector's Code properties (what only code reads: HTML element, Type, Link, aria…), closed by default. */
+export async function openCodeProperties(page) {
+  const details = page.locator('#studio-right [data-e2e="code-properties"]').first();
+  await details.waitFor({ state: "attached", timeout: 5000 });
+  if (!(await details.evaluate((el) => el.open))) await details.locator("summary").click();
+}
+
 /** The canvas status hint text (CanvasStatus), where the Studio reports refusals and results. */
 export async function statusText(page) {
   return page.evaluate(() => [...document.querySelectorAll('[role="status"]')].map((el) => el.textContent?.trim()).filter(Boolean).join(" | "));

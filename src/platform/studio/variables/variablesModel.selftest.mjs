@@ -31,6 +31,12 @@ test("rows: a header before each group, filtered by group, words and type", () =
   assert.deepEqual(rows({ type: "FLOAT" }), ["# Spacing", "Spacing/Gap"]);
 });
 
+test("rows go group by group, one header each, whatever order the file writes them in", () => {
+  const brand = { file: "b", name: "Base Colors", modes: ["Zen"], tokens: ["Light/Brand/1", "Light/Brand-Alpha/1", "Light/Brand/2", "Light/Brand/3", "Light/Brand-Alpha/2", "Dark/Brand/1"].map((name) => ({ name, type: "COLOR", valuesByMode: { Zen: "#FFFFFF" } })) };
+  const rows = rowsOf(brand).map((row) => (row.kind === "group" ? `# ${row.path}` : row.variable.name));
+  assert.deepEqual(rows, ["# Light/Brand", "Light/Brand/1", "Light/Brand/2", "Light/Brand/3", "# Light/Brand-Alpha", "Light/Brand-Alpha/1", "Light/Brand-Alpha/2", "# Dark/Brand", "Dark/Brand/1"]);
+});
+
 test("values resolve through aliases, into another collection's first mode", () => {
   assert.equal(resolved(index, "Color/Content/Accent/Light", "Light"), "#0F73FF");
   assert.equal(resolved(index, "Color/Content/Accent/Base", "Dark"), "#0D66E5");

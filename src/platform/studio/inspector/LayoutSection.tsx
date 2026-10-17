@@ -18,6 +18,9 @@ import {
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
 import { InspectorFields, InspectorSection } from "./Section";
+import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
+import { autoLayoutShortcut } from "../select/wrapSelection";
+import { useStudio } from "../store";
 
 /*
  * The Auto layout / Layout section in Figma UI3's words and field grid (docs/research/studio-inspector-figma-spec-2026-10-09.md
@@ -116,6 +119,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   /** The selection's rendered element (the frame's breakpoint, the grid's tracks). */
   host: HTMLElement | null;
 }) {
+  const selection = useStudio((state) => state.selection);
   const [splitView, setSplitView] = useState(false);
   const spec = (name: string) => specs.find((candidate) => candidate.name === name);
   const state = (name: string) => api.valueFor(name).state;
@@ -377,8 +381,23 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   // Everything else keeps its row (bound or spread values, Container, Form gap, FormFieldset gap, Grid padding…).
   const rest = specs.filter((candidate) => !handled.has(candidate.name)).map((candidate) => field(candidate.name));
   const warnings = layoutWarnings(component, written);
+  // Figma's Auto layout header (user, 2026-10-17: "Convert được Box(Frame) to Stack(auto layout)"): + on a frame without
+  // auto layout turns it into one (⇧A), − on an auto layout frame takes it away (⌥⇧A); layers keep where they show.
+  const frameAlone = component === "Box" && isFrameWithoutAutoLayout(selection);
+  const autoLayoutAlone = component === "Stack" && isAutoLayoutFrame(selection);
+  const removeAction = autoLayoutAlone ? <IconButton icon="icon-minus-line" appearance="flat" size="xs" aria-label="Remove auto layout" tooltip={`Remove auto layout · ${removeAutoLayoutShortcut}`} disabled={disabled} onClick={() => { void removeAutoLayoutFromSelection(); }} /> : undefined;
   return (
-    <InspectorSection title={component === "Stack" || component === "Grid" || component === "FormFieldset" ? "Auto layout" : "Layout"} note={note} fieldGrid>
+    <>
+    {frameAlone ? (
+      <InspectorSection
+        title="Auto layout"
+        className="studio-inspector__section--head-only"
+        actions={<IconButton icon="icon-plus-line" appearance="flat" size="xs" aria-label="Add auto layout" tooltip={`Add auto layout · ${autoLayoutShortcut}`} disabled={disabled} onClick={() => { void addAutoLayoutToSelection(); }} />}
+      >
+        {null}
+      </InspectorSection>
+    ) : null}
+    <InspectorSection title={component === "Stack" || component === "Grid" || component === "FormFieldset" ? "Auto layout" : "Layout"} note={note} fieldGrid actions={removeAction}>
       {groups}
       {rest}
       {warnings.map((warning) => (
@@ -392,5 +411,6 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
         </div>
       ))}
     </InspectorSection>
+    </>
   );
 }

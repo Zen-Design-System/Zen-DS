@@ -42,7 +42,7 @@ let options: Record<string, unknown> | null = null;
 export async function engineOptions(): Promise<Record<string, unknown>> {
   if (options) return options;
   const engine = await loadEngine();
-  const { requiredProps } = engine.requiredFromApi(api);
-  options = { componentModules: new Map([...zenComponents].map((name) => [name, name])), requiredChildren: new Set<string>(), requiredProps };
+  const { requiredProps, childless } = engine.requiredFromApi(api);
+  options = { componentModules: new Map([...zenComponents].map((name) => [name, name])), requiredChildren: new Set<string>(), requiredProps, childless };
   return options;
 }
