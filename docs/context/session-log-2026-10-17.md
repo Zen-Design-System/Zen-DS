@@ -629,4 +629,10 @@ in content allowed, a Screen bar holds a navigation or a custom header; BACKLOG 
   stable within a group; selftest "group by group"); the alias chip is the swatch plus the 2XSmall inset on each side
   (it was a fixed Medium height, 20px in the Studio's density, with a 1px border on the left only: 2 / 2 / 4px), its
   outline an inner ring. Measured in the browser: 4 / 4 / 4px, 24px.
+- DND-07 full run (224 cases, final code before these fixes): 219 right; found (4) Remove auto layout refused a Stack
+  holding an Icon / File icon / Flag ("holds a list or code": their nodes are SVG, readFrame took HTML only) — layers
+  now measure as any Element, and a layer that is not drawn says so; (5) a layer the flow stretched (NpsScale) shrank
+  and moved 3px once floating — Remove auto layout keeps a flow-given size (written fill, or stretched across the
+  content box) on the layer or its floating Box, and isFloatWrapper accepts that width / height so ⇧A gives the layer
+  back. The metric ⌘Z miss and the 4 others pass alone (ZEN_DND_ONLY=metric,icon,file-icon,flag,nps-scale: 10/10).
 

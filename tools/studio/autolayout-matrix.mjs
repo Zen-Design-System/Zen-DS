@@ -182,7 +182,9 @@ for (const item of items.filter((one) => one.code)) {
     cases += 2;
     const { text, node } = framed(`<Stack gap="sm" padding="md">\n${item.code}\n${TEXT}\n</Stack>`);
     const boxes = [{ x: 16, y: 16, w: 200, h: 120 }, { x: 16, y: 148, w: 120, h: 20 }];
-    const plan = removePlan(kids(node).map((kid, index) => ({ box: boxes[index], name: kid.name, floatWrapper: false, fill: { width: kid.props.width?.value === "fill" } })), { width: 358, height: 184 });
+    // The item stretched across the Stack's content (326 = 358 − 2 × 16), the caption at its own width.
+    const measured = [{ ...boxes[0], w: 326 }, boxes[1]];
+    const plan = removePlan(kids(node).map((kid, index) => ({ box: measured[index], name: kid.name, floatWrapper: false, fill: { width: index === 0 } })), { width: 358, height: 184 });
     const out = relayout(text, node, plan);
     if (out.error) { fail("remove-refused", `${item.id}: ${out.error}`); continue; }
     const frame = lastLayer(out.text);
@@ -192,8 +194,9 @@ for (const item of items.filter((one) => one.code)) {
     else if (frame.name !== "Box" || frame.props.width?.value !== 358 || frame.props.height?.value !== 184 || ["gap", "padding", "direction"].some((prop) => prop in frame.props)) fail("remove-frame", `${item.id}: ${frame.name} ${JSON.stringify(Object.keys(frame.props))}`);
     else if (inner.length !== 2 || !inner.every(floating)) fail("remove-not-floating", `${item.id}: ${inner.map((kid) => `${kid.name}${floating(kid) ? "" : "(flow)"}`).join(", ")}`);
     else if (inner[0].props.insetLeft?.value !== 16 || inner[0].props.insetTop?.value !== 16 || inner[1].props.insetTop?.value !== 148) fail("remove-place", `${item.id}`);
+    else if (inner[0].props.width?.value !== 326 || "width" in inner[1].props) fail("remove-size", `${item.id}: the stretched layer is ${inner[0].props.width?.value ?? "unsized"}, the caption ${inner[1].props.width?.value ?? "its own width"}`);
     // Back: Add auto layout from the same places (the float wrappers give their layers back).
-    const back = relayout(out.text, frame, addPlan(inner.map((kid, index) => ({ box: boxes[index], name: kid.name, floatWrapper: kid.name === "Box" && Object.keys(kid.props).every((prop) => POSITION.includes(prop)) && kids(kid).length === 1 })), keyOf, false).plan);
+    const back = relayout(out.text, frame, addPlan(inner.map((kid, index) => ({ box: boxes[index], name: kid.name, floatWrapper: kid.name === "Box" && Object.keys(kid.props).every((prop) => POSITION.includes(prop) || prop === "width" || prop === "height") && kids(kid).length === 1 })), keyOf, false).plan);
     if (back.error) { fail("roundtrip-refused", `${item.id}: ${back.error}`); continue; }
     const again = lastLayer(back.text);
     const was = tags(text);

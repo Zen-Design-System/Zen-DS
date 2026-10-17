@@ -73,7 +73,7 @@ export function relayoutCode(text, range, plan) {
     const rest = self ? "" : source.slice(layer.openingElement.end, layer.end);
     const code = dedent(source, layer.start, open + rest);
     if (!own.float) return code;
-    const floatAttrs = Object.entries(own.float.set ?? {}).map(([prop, value]) => attrText(prop, value));
+    const floatAttrs = Object.entries(own.float.set ?? {}).filter(([, value]) => value !== undefined && value !== null && value !== false).map(([prop, value]) => attrText(prop, value));
     return `<Box${floatAttrs.length ? ` ${floatAttrs.join(" ")}` : ""}>\n${indentBy(code, "  ")}\n</Box>`;
   });
   const order = plan.order ?? written.map((_, index) => index);

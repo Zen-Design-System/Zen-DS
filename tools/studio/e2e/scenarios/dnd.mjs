@@ -211,8 +211,7 @@ const PLACES = [
 
 /** Drags each of `list` to each place, judges the result, puts the page back; throws with the failures at the end. */
 async function campaign(ctx, all, label) {
-  // ZEN_DND_LIMIT=<n>: the first n items only (a quick try of the harness).
-  const list = all.slice(0, Number(process.env.ZEN_DND_LIMIT) || all.length);
+  const list = chosen(all);
   // The session first: ctx.studio() goes back to the host page when asked later.
   const session = await ctx.studio();
   const { page, id } = await seededPage(ctx, richPhone, /id="screen-2"/);
@@ -449,7 +448,7 @@ const frameIn = (text) => kidsOfBody(text).at(-1);
 const kidsOfBody = (text) => (bodyOf(text)?.node.children ?? []).filter((child) => child.kind === "element");
 const layersOf = (node) => (node?.children ?? []).filter((child) => child.kind === "element");
 /** A floating layer's own element: a float wrapper's one layer, else itself. */
-const ownOf = (node) => (node.name === "Box" && Object.keys(node.props).every((prop) => ["position", "insetLeft", "insetTop", "insetRight", "insetBottom", "constraintX", "constraintY"].includes(prop)) && layersOf(node).length === 1 ? layersOf(node)[0] : node);
+const ownOf = (node) => (node.name === "Box" && Object.keys(node.props).every((prop) => ["position", "insetLeft", "insetTop", "insetRight", "insetBottom", "constraintX", "constraintY", "width", "height"].includes(prop)) && layersOf(node).length === 1 ? layersOf(node)[0] : node);
 const rectAt = (page, id, loc) => page.evaluate((src) => window.__e2e.rectOf(src), `local:${id}.zen.tsx:${loc}`);
 async function key(page, combo) {
   await page.locator(".studio-viewport").focus();
@@ -487,8 +486,11 @@ const framePage = (frame) => (title) => grow(newPageText({ title, device: "phone
  * auto layout (⇧A: a column, the item then the caption, no X / Y left), then loses it (⌥⇧A: a Box of its size, every
  * layer floating where it showed, nothing moves on the canvas), then three ⌘Z bring the page back.
  */
+/** The items a run takes: ZEN_DND_ONLY=<id,id> those, else ZEN_DND_LIMIT=<n> the first n, else all. */
+const chosen = (all) => (process.env.ZEN_DND_ONLY ? all.filter((item) => process.env.ZEN_DND_ONLY.split(",").includes(item.id)) : all.slice(0, Number(process.env.ZEN_DND_LIMIT) || all.length));
+
 async function autoLayoutItems(ctx, all) {
-  const list = all.slice(0, Number(process.env.ZEN_DND_LIMIT) || all.length);
+  const list = chosen(all);
   await ctx.studio();
   const { page, id } = await seededPage(ctx, framePage('<Box width={358} height={560}>\n<Box position="absolute" insetLeft={16} insetTop={500}>\n<Text tone="base">Caption</Text>\n</Box>\n</Box>'), /height=\{560\}/);
   const seed = (await pageText(page, id)) ?? "";

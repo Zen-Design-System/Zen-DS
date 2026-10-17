@@ -11,7 +11,7 @@ export type PlanLayer = {
   name: string;
   /** A Box that only floats one layer (position/float.ts isFloatWrapper): Add auto layout gives the layer back. */
   floatWrapper: boolean;
-  /** Its width / height written as "fill" (Remove auto layout fixes them at the size they show). */
+  /** Its width / height sized by the flow (written "fill", or stretched): Remove auto layout fixes them as they show. */
   fill?: { width?: boolean; height?: boolean };
 };
 
@@ -84,8 +84,10 @@ export function removePlan(layers: readonly PlanLayer[], size: { width: number; 
   const px = (value: number) => Math.round(value);
   const children = layers.map((layer) => {
     const place = { position: "absolute", insetLeft: px(layer.box.x), insetTop: px(layer.box.y) };
-    if (FLOATS.has(layer.name)) return { set: { ...place, width: layer.fill?.width ? px(layer.box.w) : undefined, height: layer.fill?.height ? px(layer.box.h) : undefined }, remove: ["alignSelf"] };
-    return { float: { set: place } };
+    const size = { width: layer.fill?.width ? px(layer.box.w) : undefined, height: layer.fill?.height ? px(layer.box.h) : undefined };
+    if (FLOATS.has(layer.name)) return { set: { ...place, ...size }, remove: ["alignSelf"] };
+    // Another component floats in a Box; a size the flow gave it goes on that Box, which it fills as before.
+    return { float: { set: { ...place, ...size } } };
   });
   return { tag: "Box", set: { width: px(size.width), height: px(size.height) }, remove: [...FLOW, "width", "height"], children };
 }

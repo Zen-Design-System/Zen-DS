@@ -29,7 +29,8 @@ const nearestKeyOf = (host: Element) => (scale: "gap" | "padding", px: number) =
 const fail = (message: string) => { announceEditStatus({ kind: "error", message, at: Date.now() }); return false; };
 const say = (message: string) => inspectorStatus.set("positive", message);
 
-type Layer = { element: SourceElement; host: HTMLElement; box: { x: number; y: number; w: number; h: number } };
+// A layer's node may be an SVG element (an Icon, a Flag, a File icon draw as <svg>): it measures the same.
+type Layer = { element: SourceElement; host: Element; box: { x: number; y: number; w: number; h: number } };
 
 /** The frame's element, its rendered node and its layers measured in its own px (from its padding box). */
 async function readFrame(selection: Extract<StudioSelection, { kind: "node" }>) {
@@ -45,14 +46,14 @@ async function readFrame(selection: Extract<StudioSelection, { kind: "node" }>) 
   const layers: Layer[] = [];
   for (const child of element.children) {
     if (child.kind === "text" && !child.value.trim()) continue;
-    if (child.kind !== "element") return { at, element, host, layers: null };
+    if (child.kind !== "element") return { at, element, host, layers: null, why: "The frame holds a list or code: lay it out in the code" };
     const childElement = await studioApi.element(at.file, child.loc);
-    const childHost = findBySrc(world, `${at.file}:${child.loc}`).map((hit) => hit.hosts.find((node): node is HTMLElement => node instanceof HTMLElement)).find((node) => node && host.contains(node));
-    if (!childElement || !childHost) return { at, element, host, layers: null };
+    const childHost = findBySrc(world, `${at.file}:${child.loc}`).map((hit) => hit.hosts.find((node): node is Element => node instanceof Element)).find((node) => node && host.contains(node));
+    if (!childElement || !childHost) return { at, element, host, layers: null, why: `${childElement?.name ?? "A layer"} in the frame is not drawn right now (hidden?): show it, then try again` };
     const rect = childHost.getBoundingClientRect();
     layers.push({ element: childElement, host: childHost, box: { x: (rect.left - origin.left) / zoom - host.clientLeft, y: (rect.top - origin.top) / zoom - host.clientTop, w: rect.width / zoom, h: rect.height / zoom } });
   }
-  return { at, element, host, layers };
+  return { at, element, host, layers, why: "" };
 }
 
 const written = (element: SourceElement, prop: string) => element.attributes.some((attr) => attr.kind !== "spread" && attr.name === prop);
@@ -83,7 +84,7 @@ export async function addAutoLayout(selection: Extract<StudioSelection, { kind: 
   const frame = await readFrame(selection);
   if (!frame) return fail("The frame is not on the canvas right now");
   const { at, element, host, layers } = frame;
-  if (!layers) return fail("The frame holds a list or code: lay it out in the code");
+  if (!layers) return fail(frame.why);
   const engine = await loadEngine();
   const source = await studioApi.source(at.file);
   const painted = PAINTS.some((prop) => written(element, prop));
@@ -107,11 +108,16 @@ export async function removeAutoLayout(selection: Extract<StudioSelection, { kin
   const frame = await readFrame(selection);
   if (!frame) return fail("The frame is not on the canvas right now");
   const { at, element, host, layers } = frame;
-  if (!layers) return fail("The frame holds a list or code: lay it out in the code");
+  if (!layers) return fail(frame.why);
   const engine = await loadEngine();
   const source = await studioApi.source(at.file);
-  const filled = (layer: Layer, axis: "width" | "height") => layer.element.attributes.some((attr) => attr.kind === "string" && attr.name === axis && attr.value === "fill");
-  const plan = removePlan(layers.map((layer) => ({ box: layer.box, name: layer.element.name, floatWrapper: false, fill: { width: filled(layer, "width"), height: filled(layer, "height") } })), { width: host.offsetWidth, height: host.offsetHeight });
+  // A layer the flow sizes (written "fill", or stretched across the frame's content box) keeps the size it shows once
+  // it floats (Figma: Fill becomes Fixed); else a floating Box would shrink it to its content and it would move.
+  const style = getComputedStyle(host);
+  const content = { w: host.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight), h: host.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) };
+  const sized = (layer: Layer, axis: "width" | "height") => layer.element.attributes.some((attr) => attr.kind === "string" && attr.name === axis && attr.value === "fill")
+    || Math.abs((axis === "width" ? layer.box.w : layer.box.h) - (axis === "width" ? content.w : content.h)) < 0.5;
+  const plan = removePlan(layers.map((layer) => ({ box: layer.box, name: layer.element.name, floatWrapper: false, fill: { width: sized(layer, "width"), height: sized(layer, "height") } })), { width: host.offsetWidth, height: host.offsetHeight });
   let code: string;
   try {
     code = engine.relayoutCode(source.content, element.range!, plan);

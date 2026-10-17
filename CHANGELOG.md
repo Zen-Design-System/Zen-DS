@@ -36,7 +36,9 @@ removed (four unused colour ramps were, see Removed).
   an Action bar keeps its own `position` (static / sticky / fixed) when its Frame takes auto layout (it was removed as if
   it were an X / Y); a painted Frame with nothing in it now gets its auto layout (a Stack inside, it stayed a plain
   Box); the alignment read from the layers is the line they share best (start, centre or end), whatever their order in
-  the code. Checked by `npm run studio:dnd` (12,564 more cases) and the `dnd` E2E rows DND-07 / DND-08.
+  the code; Remove auto layout works on a Stack holding an Icon, Flag or File icon (it said "holds a list or code"), and a
+  layer the auto layout stretched keeps its size once it floats (it shrank and moved). Checked by `npm run studio:dnd`
+  (12,564 more cases) and the `dnd` E2E rows DND-07 / DND-08.
 - Zen Studio speaks Figma (2026-10-17, user: "Còn dùng ngôn ngữ dev nhiều quá", "Convert được Box(Frame) to Stack(auto
   layout)"): a Frame's Inspector has Figma's Auto layout "+" (⇧A adds auto layout to the Frame in place, ⌥⇧A or "−"
   removes it), the canvas menu and Quick actions say Add auto layout / Remove auto layout / Frame selection; a layer reads
