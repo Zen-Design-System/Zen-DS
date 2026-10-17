@@ -17,14 +17,45 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Card spacing by count is a phone rule (2026-10-17, user: "rule đó chỉ áp dụng cho mobile"): `card/spacing-by-count`
+  now judges cards inside a PlatformPhone frame or a BottomSheet only; desktop cards keep Medium whatever their number,
+  so the desktop rows #110 had set to Small (Card quarter widgets, Dock Icon project types, Text milestones) are Medium
+  again. MetricCard counts too and takes `spacing` (user: "MetricCard có nhận prop spacing không? Có"): Medium by
+  default, Small for `type="tile"`; Studio reads and writes the Metric-Card's Card Spacing. The phone "Metric types"
+  example stacks its three cards at Small.
+- Zen Studio toward native Figma (2026-10-17, user: "Đưa về sát native với Figma nhất … vì chúng ta cần convert
+  người dùng từ Figma"). Research and plan: `docs/research/studio-figma-native-parity-2026-10-17.md` (five audits,
+  ~80 Figma behaviours graded). First phase:
+  - New `Shape` primitive (src/components/Shape), the code of a drawn object as Box is a frame's — never a component in
+    Studio: no component icon or colour, Swap / Detach instance or Assets entry; a component is made only by the person
+    (⌥⌘K). Figma's Rectangle, Ellipse with its arc (`arcStart` °, `arcSweep` %,
+    `arcRatio` %), Line, Arrow, Polygon and Star; `fill` from Color/Background and `stroke` from Color/Border (token
+    paths only), `strokeWeight`, `strokeAlign`, `radius`, `pointCount`, `starRatio`, `rotation`, `opacity`. Harness:
+    `shape/token-paint`, `shape/px-offset-in-auto-layout`, `shape/line-no-height`.
+  - Layout position insets take px (`insetLeft={40}`): Figma's X / Y for a layer in a free frame (a Box or a Screen
+    without auto layout). Gap, padding and radius stay tokens.
+  - Studio draws as Figma does: Rectangle R, Ellipse O, Line L, Arrow ⇧L, Polygon and Star (toolbar shape menu), A = Frame;
+    a click places 100 × 100, a drag draws with ⇧ (equal sides, 45° lines), ⌥ (from the centre), Space (moves it),
+    smart guides and a live size; the layer goes into the frame under the pointer (free frame: at X / Y; auto layout:
+    into the flow). Frame (F) inside a Screen draws a nested frame. An empty Screen now takes layers.
+  - Ellipse arc handles on the canvas (Sweep, Start, Ratio, with live values); Inspector shape panel (Arc, Count,
+    Opacity, Fill, Stroke with token swatches, X / Y in px, Rotation); number fields scrub, step ±1 / ⇧ ±10 and take
+    math ("+8", "100/3"); a free frame's layers move by px with red smart guides and nudge 1 / ⇧ 10 px; ⇧ on a corner
+    keeps the ratio; Layers name shapes Ellipse / Line… with Figma's icons.
+  - Figma export and import: shapes become RECTANGLE / ELLIPSE (arcData) / LINE (arrow cap) / POLYGON / STAR with
+    colour and corner variables, and come back as `<Shape>` (the Zen plugin's Import from Studio draws them).
+  - Zen Studio menu holds Switch to Studio / Document; the floating Document | Studio Segmented is gone (user).
+  - Components like Figma on a page you made: ⌥⌘K makes the selected layer a main component where it is
+    (`<Component id name>`), ⌘D / ⌥-drag of a main and Assets › Local components add instances (`<Use of>`) that
+    follow it, ⌥⌘B detaches one; the Inspector names the component (rename, Create instance, Select instances, Swap,
+    Go to main); violet outline and ◇ in Layers; Export writes one React function per component; Figma push makes a
+    COMPONENT and its INSTANCEs.
 - Zen Studio projects (2026-10-17, user: "tạo dự án như Figma … set theme cho Dự án"): the Studio home is a projects
   grid (Drafts + projects); New project and Project settings open a theme page — Primary and Neutral (a Zen ramp or any
   colour, ramps made by the Zen Figma plugin's own generator), status colours, chart sectors 3–7, corner radius,
   component theme, size, typography, emphasis — with a live gallery (Cards, Charts, Dashboard, Website, Components) in
   Light, Dark or both. A project's theme is one extra Base Colors (Project) mode, `data-brand="p-<id>"`, kept in
   `.zen-studio/projects/<id>/`; tokens/source and tokens.css do not change. Its pages (header `project`) draw in it.
-- Zen Studio: Document | Studio is no longer a floating switch at the top of the canvas; the brand menu opens the other
-  space (Open Document / Open Studio, as Figma's menu starts with "Back to files"; user, 2026-10-17).
 - Chart sectors 3–7 read `--zen-chart-sector-tertiary … -septenary` (and `-subtle` for fades) before today's colours,
   so a Studio project can recolour them; without them nothing changes. The 7th sector is Support/Green/Soft again (it
   had gone back to Red Soft; the Figma style "Color Chart Sector/Septenary" is Green Soft).

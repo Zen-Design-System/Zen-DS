@@ -1,0 +1,169 @@
+import { Badge } from "../../../components/Badge";
+import { Button } from "../../../components/Button";
+import { Card } from "../../../components/Card";
+import { Box, Stack } from "../../../components/Layout";
+import { Shape } from "../../../components/Shape";
+import { Heading, Text } from "../../../components/Text";
+import { useToast } from "../../../components/Toast";
+import type { PlatformPage } from "../../PlatformExamples";
+import { studio } from "../data";
+import type { ExampleDef } from "../types";
+
+export const page: PlatformPage = "shape";
+
+/* Shapes as a Zen Studio designer draws them with R, O, L, ⇧L, Polygon and Star: decoration and marks in a free frame
+   (a Box with a size: each Shape at its X / Y, px insets), coloured with tokens only. Data stays in the components that
+   carry values (charts, progress, rating). */
+
+/** The Hanoi studio's meeting rooms on Wednesday, Sep 30 (free or booked at 10:30). */
+const rooms = [
+  { id: "a", name: "Sen", x: 16, y: 16, w: 120, h: 84, booked: false },
+  { id: "b", name: "Mai", x: 144, y: 16, w: 96, h: 84, booked: true },
+  { id: "c", name: "Lotus lounge", x: 16, y: 108, w: 224, h: 72, booked: false },
+];
+
+/** The welcome card: copy, an action, and its decoration in a free frame beside them. */
+function WelcomeCard() {
+  const { toast } = useToast();
+  return (
+    <Card theme="flat">
+      <Stack direction="row" gap="lg" align="center" wrap>
+        <Stack gap="xs" width="fill" minWidth={200}>
+          <Heading level={3} textStyle="Heading/4">Welcome to {studio.name}</Heading>
+          <Text tone="base">Your workspace is ready. Invite the team to start.</Text>
+          <Button size="sm" onClick={() => toast({ title: "Invite link copied", children: `${studio.domain}/join` })}>Invite people</Button>
+        </Stack>
+        <Box width={160} height={120}>
+          <Shape type="ellipse" position="absolute" insetLeft={24} insetTop={8} width={96} height={96} arcRatio={60} fill="accent-solid" />
+          <Shape type="ellipse" position="absolute" insetLeft={88} insetTop={56} width={64} height={64} arcStart={180} arcSweep={50} fill="support-yellow-solid" />
+          <Shape type="star" position="absolute" insetLeft={4} insetTop={72} width={40} height={40} fill="support-sky-solid" />
+        </Box>
+      </Stack>
+    </Card>
+  );
+}
+
+/** A product tour tip: the text, the arrow drawn to the button, the button. */
+function TourTip() {
+  const { toast } = useToast();
+  return (
+    <Box width={256} height={150} surface="surface" radius="lg">
+      <Box position="absolute" insetLeft={16} insetTop={16}><Text>Scan a receipt to add it</Text></Box>
+      <Shape type="arrow" position="absolute" insetLeft={80} insetTop={74} width={76} rotation={-40} strokeWeight={2} stroke="accent-solid" />
+      <Box position="absolute" insetLeft={152} insetTop={98}><Button size="sm" startIcon="icon-scan-line" onClick={() => toast({ title: "Camera opened", children: "Point it at the receipt" })}>Scan</Button></Box>
+    </Box>
+  );
+}
+
+export const examples: ExampleDef[] = [
+  {
+    title: "Welcome card art",
+    description: "Decoration drawn in a free frame beside the copy: a ring, a half pie and a star at their X / Y, in Accent and Support colours. They are decorative, so they carry no label.",
+    code: `<Card theme="flat">
+  <Stack direction="row" gap="lg" align="center" wrap>
+    <Stack gap="xs" width="fill" minWidth={200}>
+      <Heading level={3} textStyle="Heading/4">Welcome to ${studio.name}</Heading>
+      <Text tone="base">Your workspace is ready. Invite the team to start.</Text>
+      <Button size="sm" onClick={() => toast({ title: "Invite link copied" })}>Invite people</Button>
+    </Stack>
+    <Box width={160} height={120}>
+      <Shape type="ellipse" position="absolute" insetLeft={24} insetTop={8} width={96} height={96} arcRatio={60} fill="accent-solid" />
+      <Shape type="ellipse" position="absolute" insetLeft={88} insetTop={56} width={64} height={64} arcStart={180} arcSweep={50} fill="support-yellow-solid" />
+      <Shape type="star" position="absolute" insetLeft={4} insetTop={72} width={40} height={40} fill="support-sky-solid" />
+    </Box>
+  </Stack>
+</Card>`,
+    render: () => <WelcomeCard />,
+  },
+  {
+    title: "A splash mark from arcs",
+    description: "Two ring segments (an ellipse arc each: Start, Sweep, Ratio) turned around a full circle make the Phin & Co loyalty app's splash mark. Drag the arc handles in Zen Studio to shape them.",
+    code: `<Box width={120} height={120}>
+  <Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={120} height={120} arcStart={135} arcSweep={75} arcRatio={82} fill="support-orange-solid" />
+  <Shape type="ellipse" position="absolute" insetLeft={18} insetTop={18} width={84} height={84} arcStart={315} arcSweep={50} arcRatio={70} fill="support-orange-rich" />
+  <Shape type="ellipse" position="absolute" insetLeft={40} insetTop={40} width={40} height={40} fill="support-brown-solid" />
+</Box>`,
+    render: () => (
+      <Stack direction="row" gap="lg" align="center">
+        <Box width={120} height={120}>
+          <Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={120} height={120} arcStart={135} arcSweep={75} arcRatio={82} fill="support-orange-solid" />
+          <Shape type="ellipse" position="absolute" insetLeft={18} insetTop={18} width={84} height={84} arcStart={315} arcSweep={50} arcRatio={70} fill="support-orange-rich" />
+          <Shape type="ellipse" position="absolute" insetLeft={40} insetTop={40} width={40} height={40} fill="support-brown-solid" />
+        </Box>
+        <Stack gap="2xs">
+          <Text textStyle="Body/Base/Bold">Phin & Co</Text>
+          <Text tone="base">Loyalty app splash</Text>
+        </Stack>
+      </Stack>
+    ),
+  },
+  {
+    title: "Room booking plan",
+    description: "The Hanoi studio's rooms as rectangles at their place on the plan, filled by status (Positive free, Negative booked); each room is labelled for assistive tech and named on the plan.",
+    code: `<Box width={256} height={196} surface="surface-alt" radius="md">
+  {rooms.map((room) => (
+    <Stack key={room.id} position="absolute" insetLeft={room.x} insetTop={room.y} width={room.w} height={room.h} align="center" justify="center">
+      <Shape position="absolute" width="fill" height="fill" fill={room.booked ? "negative-subtle" : "positive-subtle"}
+        stroke={room.booked ? "negative-subtle" : "positive-subtle"} label={\`\${room.name}, \${room.booked ? "booked" : "free"}\`} />
+      <Text textStyle="Caption/Medium" tone={room.booked ? "negative-strongest" : "positive-strongest"}>{room.name}</Text>
+    </Stack>
+  ))}
+</Box>`,
+    render: () => (
+      <Stack gap="sm">
+        <Box width={256} height={196} surface="surface-alt" radius="md">
+          {rooms.map((room) => (
+            <Stack key={room.id} position="absolute" insetLeft={room.x} insetTop={room.y} width={room.w} height={room.h} align="center" justify="center">
+              <Shape position="absolute" width="fill" height="fill" fill={room.booked ? "negative-subtle" : "positive-subtle"} stroke={room.booked ? "negative-subtle" : "positive-subtle"} label={`${room.name}, ${room.booked ? "booked" : "free"}`} />
+              <Text textStyle="Caption/Medium" tone={room.booked ? "negative-strongest" : "positive-strongest"}>{room.name}</Text>
+            </Stack>
+          ))}
+        </Box>
+        <Stack direction="row" gap="xs">
+          <Badge background="subtle" theme="green">Free</Badge>
+          <Badge background="subtle" theme="red">Booked</Badge>
+        </Stack>
+      </Stack>
+    ),
+  },
+  {
+    title: "Arrow callout in a product tour",
+    description: "An Arrow (⇧L) drawn from the tip text to the button it explains; its angle is its rotation and its length its width, as Figma stores a line.",
+    code: `<Box width={256} height={150} surface="surface" radius="lg">
+  <Box position="absolute" insetLeft={16} insetTop={16}><Text>Scan a receipt to add it</Text></Box>
+  <Shape type="arrow" position="absolute" insetLeft={80} insetTop={74} width={76} rotation={-40} strokeWeight={2} stroke="accent-solid" />
+  <Box position="absolute" insetLeft={152} insetTop={98}><Button size="sm" startIcon="icon-scan-line" onClick={scan}>Scan</Button></Box>
+</Box>`,
+    render: () => <TourTip />,
+  },
+  {
+    title: "Promo star on a menu item",
+    description: "A Star behind the discount on the Phin & Co menu: decoration on a Subtle fill under Strongest text, so the price stays readable and the star carries no meaning on its own.",
+    code: `<Card theme="flat">
+  <Stack direction="row" gap="md" align="center">
+    <Stack width={64} height={64} align="center" justify="center">
+      <Shape type="star" position="absolute" pointCount={12} starRatio={80} width="fill" height="fill" fill="support-yellow-subtle" />
+      <Text textStyle="Body/Small/Bold">−20%</Text>
+    </Stack>
+    <Stack gap="2xs">
+      <Text textStyle="Body/Base/Bold">Cà phê muối</Text>
+      <Text tone="base">$3.00 · $2.40 today</Text>
+    </Stack>
+  </Stack>
+</Card>`,
+    render: () => (
+      <Card theme="flat">
+        <Stack direction="row" gap="md" align="center">
+          <Stack width={64} height={64} align="center" justify="center">
+            <Shape type="star" position="absolute" pointCount={12} starRatio={80} width="fill" height="fill" fill="support-yellow-subtle" />
+            <Text textStyle="Body/Small/Bold">−20%</Text>
+          </Stack>
+          <Stack gap="2xs">
+            <Text textStyle="Body/Base/Bold">Cà phê muối</Text>
+            <Text tone="base">$3.00 · $2.40 today</Text>
+          </Stack>
+        </Stack>
+      </Card>
+    ),
+  },
+];

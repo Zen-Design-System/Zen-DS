@@ -8,7 +8,6 @@ import { Popover, PopoverItem } from "../../../components/Popover";
 import { Segmented } from "../../../components/Segmented";
 import { SliderField } from "../../../components/SliderField";
 import { ToggleButton } from "../../../components/Toggle";
-import { contentToneGroups, contentTones, contentToneToken, contentToneVar, resolveContentTone, type ContentTone } from "../../../components/_shared/contentTone";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { studioApi } from "../api";
@@ -24,6 +23,7 @@ import { scaleOfType } from "./controls/scale";
 import { InspectorRow, NoInlineLabel, useInlineLabel } from "./Section";
 import { numberRange, type NumberRange } from "./numberRanges";
 import { toneWarning } from "./toneRules";
+import { paletteFor, tonePalette, type SwatchPalette } from "./palettes";
 
 /*
  * One editable prop (spec §6): the editor follows the prop's type; the row shows whether the source sets a literal
@@ -485,32 +485,30 @@ export function TypographyControl({ label, value, fallback, disabled, onSet, emp
 }
 
 /**
- * Text and icon colour roles: every resting Color/Content token by its path (_shared/contentTone.ts — Text, Heading,
- * Icon, and Link's hyperlink/inherit). A `tone` prop whose options are all tones gets the swatch control below.
+ * Colour roles offered as token swatches (inspector/palettes.ts): Text, Heading and Icon `tone` (every resting
+ * Color/Content token by its path, _shared/contentTone.ts), a Shape's `fill` (Color/Background) and `stroke`
+ * (Color/Border). A prop whose options all belong to one of them gets the swatch control below.
  */
-const toneSet = new Set<string>(contentTones);
-export const isToneOptions = (options: readonly string[]) => options.length > 0 && options.every((option) => toneSet.has(option));
-const toneOf = (option: string) => resolveContentTone(option as ContentTone);
-const toneCaption = (option: string) => contentToneToken(option as ContentTone) ?? "Parent's colour";
-/** A round swatch in the tone's colour (its token, inline); a dashed ring for `inherit` or nothing set. */
-function ToneSwatch({ tone }: { tone: string | undefined }) {
-  const token = tone && toneSet.has(tone) ? contentToneVar(tone as ContentTone) : null;
+export const isToneOptions = (options: readonly string[]) => options.length > 0 && options.every((option) => tonePalette.has(option));
+/** A round swatch in the option's colour (its token, inline); a dashed ring for `inherit`, `none` or nothing set. */
+function PaletteSwatch({ palette, option }: { palette: SwatchPalette; option: string | undefined }) {
+  const token = option && palette.has(option) ? palette.colorOf(option) : null;
   return <span className="studio-tone-swatch" data-swatch={token ? undefined : "none"} style={token ? { color: `var(${token})` } : undefined} aria-hidden="true" />;
 }
 
-/** The value's swatch at the end of an inline tone field: Figma Inline-Field Type=Color's Color-Swatch. */
-function InlineToneSwatch({ tone }: { tone: string | undefined }) {
-  const token = tone && toneSet.has(tone) ? contentToneVar(tone as ContentTone) : null;
-  return token ? <ColorSwatch color={`var(${token})`} size="sm" /> : <ToneSwatch tone={tone} />;
+/** The value's swatch at the end of an inline colour field: Figma Inline-Field Type=Color's Color-Swatch. */
+function InlinePaletteSwatch({ palette, option }: { palette: SwatchPalette; option: string | undefined }) {
+  const token = option && palette.has(option) ? palette.colorOf(option) : null;
+  return token ? <ColorSwatch color={`var(${token})`} size="sm" /> : <PaletteSwatch palette={palette} option={option} />;
 }
 
 /**
- * A `tone` prop (Text, Heading, Icon, Link): like a select, but the trigger and every option lead with a swatch of the
- * colour the tone paints, named after its Color/Content token. The list groups the tones by token family (Neutral,
- * Accent … Support, overlays, on fills) and searches by name or token; aliases (secondary, accent, inverse) select the
- * tone they paint with. The SelectField's own list stays closed (as in TypographyControl).
+ * A colour prop (`tone`, `fill`, `stroke`): like a select, but the trigger and every option lead with a swatch of the
+ * colour it paints, named after its token (Figma's variable list). The list groups the options by token family and
+ * searches by name or token; aliases (secondary, accent, inverse) select the tone they paint with. The SelectField's own
+ * list stays closed (as in TypographyControl).
  */
-export function ToneControl({ label, value, fallback, disabled, onSet, options, component }: ControlProps<string> & { options: string[]; component?: string }) {
+export function SwatchControl({ label, value, fallback, disabled, onSet, options, component, palette }: ControlProps<string> & { options: string[]; component?: string; palette: SwatchPalette }) {
   const inlineLabel = useInlineLabel();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -519,23 +517,24 @@ export function ToneControl({ label, value, fallback, disabled, onSet, options, 
   const listId = useId();
   const matched = value === undefined ? undefined : matchOption(value, options);
   const shown = matched ?? (fallback === undefined ? undefined : matchOption(fallback, options));
-  const current = shown !== undefined && toneSet.has(shown) ? toneOf(shown) : undefined;
+  const current = shown !== undefined && palette.has(shown) ? palette.resolve(shown) : undefined;
+  const isTone = palette === tonePalette;
   const groups = useMemo(() => {
     if (!open) return [];
     const offered = new Set(options);
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    const hit = (tone: string) => terms.every((term) => tone.includes(term) || toneCaption(tone).toLowerCase().includes(term));
-    return contentToneGroups
-      .map(({ name, tones }) => ({ name, tones: tones.filter((tone) => offered.has(tone) && hit(tone)) }))
-      .filter(({ tones }) => tones.length);
-  }, [open, options, query]);
+    const hit = (option: string) => terms.every((term) => option.includes(term) || palette.caption(option).toLowerCase().includes(term));
+    return palette.groups
+      .map(({ name, options: members }) => ({ name, members: members.filter((option) => offered.has(option) && hit(option)) }))
+      .filter(({ members }) => members.length);
+  }, [open, options, query, palette]);
   useEffect(() => {
     const trigger = anchorRef.current?.querySelector<HTMLElement>(".zen-select__trigger");
     if (!trigger) return;
     trigger.setAttribute("aria-expanded", String(open));
     trigger.setAttribute("aria-controls", `${listId}-list`);
   }, [open, listId]);
-  // The current tone in view when the list opens (Support sits far below the first rows).
+  // The current colour in view when the list opens (Support sits far below the first rows).
   useEffect(() => {
     if (!open) return undefined;
     const frame = requestAnimationFrame(() => popoverRef.current?.querySelector(".zen-popover__item.is-selected")?.scrollIntoView({ block: "nearest" }));
@@ -546,7 +545,7 @@ export function ToneControl({ label, value, fallback, disabled, onSet, options, 
     close();
     anchorRef.current?.querySelector<HTMLElement>(".zen-select__trigger")?.focus();
     // An alias already written (accent, secondary) stays when its own tone is picked again.
-    if (matched === undefined || toneOf(next) !== toneOf(matched)) onSet(next);
+    if (matched === undefined || palette.resolve(next) !== palette.resolve(matched)) onSet(next);
   };
   return (
     <div ref={anchorRef} className="studio-tone-control">
@@ -559,20 +558,20 @@ export function ToneControl({ label, value, fallback, disabled, onSet, options, 
         disabled={disabled}
         value={shown ?? ""}
         placeholder="—"
-        leading={inlineLabel ? undefined : <ToneSwatch tone={shown} />}
-        trailing={inlineLabel ? <InlineToneSwatch tone={shown} /> : undefined}
+        leading={inlineLabel ? undefined : <PaletteSwatch palette={palette} option={shown} />}
+        trailing={inlineLabel ? <InlinePaletteSwatch palette={palette} option={shown} /> : undefined}
         options={shown ? [{ value: shown, label: shown }] : []}
         popoverOpen={false}
         onPopoverOpenChange={(next) => { if (next) setOpen((was) => !was); }}
       />
       <Popover ref={popoverRef} id={`${listId}-list`} open={open} onOpenChange={(next) => { if (!next) close(); }} anchorRef={anchorRef}
         search searchValue={query} onSearchChange={setQuery} searchPlaceholder="Search colours" aria-label={`${label} options`} autoFocus>
-        {groups.map(({ name, tones }) => (
+        {groups.map(({ name, members }) => (
           <div key={name} role="group" aria-labelledby={`${listId}-${name}`} className="studio-type-control__group">
             <div id={`${listId}-${name}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{name}</div>
-            {tones.map((tone) => (
-              <PopoverItem key={tone} label={tone} caption={[toneCaption(tone), toneWarning(toneOf(tone), component)].filter(Boolean).join(" · ")} leading={<ToneSwatch tone={tone} />}
-                selected={tone === current} onSelect={() => pick(tone)} />
+            {members.map((option) => (
+              <PopoverItem key={option} label={option} caption={[palette.caption(option), isTone ? toneWarning(palette.resolve(option), component) : null].filter(Boolean).join(" · ")} leading={<PaletteSwatch palette={palette} option={option} />}
+                selected={option === current} onSelect={() => pick(option)} />
             ))}
           </div>
         ))}
@@ -581,6 +580,9 @@ export function ToneControl({ label, value, fallback, disabled, onSet, options, 
     </div>
   );
 }
+
+/** Text and icon colour roles (`tone`): the swatch control on Color/Content. */
+export const ToneControl = (props: ControlProps<string> & { options: string[]; component?: string }) => <SwatchControl {...props} palette={tonePalette} />;
 
 /** Icon names matching every search term: the exact name first, then names that start with it, then a word start. */
 export function rankIcons(query: string, names: readonly string[] = allIconNames): string[] {
@@ -841,8 +843,9 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       const scale = scaleOfType(spec.type);
       const enumValue = typeof literal === "string" ? literal : literal === undefined ? undefined : String(literal);
       const enumFallback = typeof fallback === "string" ? fallback : undefined;
-      return spec.name === "tone" && isToneOptions(editor.options)
-        ? <ToneControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} component={extra.component} />
+      const palette = paletteFor(spec.name, editor.options);
+      return palette
+        ? <SwatchControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} component={extra.component} palette={palette} />
         : scale
           ? <ScaleField {...common} prop={spec.name} scale={scale} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />
           : <EnumControl {...common} {...namedOptions(editor.options, extra.optionLabels)} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />;

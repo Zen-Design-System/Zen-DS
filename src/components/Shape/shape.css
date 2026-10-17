@@ -1,0 +1,31 @@
+/* Zen Shape (Shape.tsx): Figma's native shapes. Colours come from the element's own --zen-shape-fill / -stroke (Color
+   tokens set by the fill / stroke props); a size the props leave unset is Figma's click size, 100 × 100. */
+.zen-shape {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--zen-shape-default-width, 100px);
+  height: 100px;
+  transform-origin: 50% 50%;
+}
+.zen-shape[data-w="fixed"] { width: var(--zen-layout-width); }
+.zen-shape[data-h="fixed"] { height: var(--zen-layout-height); }
+.zen-shape[data-w="fill"] { width: 100%; }
+.zen-shape[data-h="fill"] { height: 100%; }
+.zen-shape[data-min-w] { min-width: var(--zen-layout-min-width); }
+.zen-shape[data-max-w] { max-width: var(--zen-layout-max-width); }
+.zen-shape[data-min-h] { min-height: var(--zen-layout-min-height); }
+.zen-shape[data-max-h] { max-height: var(--zen-layout-max-height); }
+
+/* Rectangle: the element itself paints (the radius follows the Corner-Radius tokens and mode). Strokes are box shadows
+   so the box keeps its size: inside, centred (half in, half out) or outside, as Figma's strokeAlign. */
+.zen-shape[data-type="rectangle"] { border-radius: var(--zen-shape-radius, 0); background: var(--zen-shape-fill, transparent); }
+.zen-shape[data-type="rectangle"][data-stroke-align="inside"] { box-shadow: inset 0 0 0 var(--zen-shape-stroke-weight) var(--zen-shape-stroke); }
+.zen-shape[data-type="rectangle"][data-stroke-align="outside"] { box-shadow: 0 0 0 var(--zen-shape-stroke-weight) var(--zen-shape-stroke); }
+.zen-shape[data-type="rectangle"][data-stroke-align="center"] { box-shadow: inset 0 0 0 calc(var(--zen-shape-stroke-weight) / 2) var(--zen-shape-stroke), 0 0 0 calc(var(--zen-shape-stroke-weight) / 2) var(--zen-shape-stroke); }
+
+/* Ellipse, polygon, star: an SVG drawn in the element's own px box; strokes may reach past it (outside, centre). */
+.zen-shape__drawing { position: absolute; top: 0; left: 0; display: block; overflow: visible; pointer-events: none; }
+
+/* Line and arrow: no height (Figma's LINE); the stroke straddles the line, drawn past the 0-high box. */
+.zen-shape:is([data-type="line"], [data-type="arrow"]) { height: 0; min-height: 0; }

@@ -136,6 +136,14 @@ export const Bad = () => <>
   {/* expect: divider/no-double */}
   <Divider />
   <Divider color="medium" />
+  {/* expect: shape/token-paint */}
+  <Shape type="ellipse" width={80} height={80} fill="#FF6B00" />
+  <Stack>
+    {/* expect: shape/px-offset-in-auto-layout */}
+    <Shape position="absolute" insetLeft={24} insetTop={12} width={40} height={40} />
+  </Stack>
+  {/* expect: shape/line-no-height */}
+  <Shape type="line" width={120} height={2} />
   {/* expect: inline-message/needs-content */}
   <InlineMessage theme="info" />
   {/* expect: inline-message/custom-needs-visual */}
@@ -181,12 +189,15 @@ export const Bad = () => <>
   <div><Card theme="flat" surface="flat">Hours</Card></div>
   {/* expect: card/surface-ignored */}
   <ChartCard title="Revenue" theme="pale" surface="alt"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
+  {/* On a phone (card/spacing-by-count judges PlatformPhone frames and BottomSheets only). */}
   {/* expect: card/spacing-by-count */}
-  <Grid columns={3} gap="md"><Card>Inside</Card><Card spacing="small">Humidity</Card><Card spacing="small">kWh today</Card></Grid>
+  <PlatformPhone label="Home"><Grid columns={3} gap="md"><Card>Inside</Card><Card spacing="small">Humidity</Card><Card spacing="small">kWh today</Card></Grid></PlatformPhone>
   {/* expect: card/spacing-by-count */}
-  <Grid columns={3} gap="md">{["Inside", "Humidity", "kWh today"].map((label) => <Card key={label}>{label}</Card>)}</Grid>
+  <PlatformPhone label="Home"><Grid columns={3} gap="md">{["Inside", "Humidity", "kWh today"].map((label) => <Card key={label}>{label}</Card>)}</Grid></PlatformPhone>
   {/* expect: card/spacing-by-count */}
-  <Stack gap="md"><Card spacing="small">Devices</Card></Stack>
+  <PlatformPhone label="Home"><Stack gap="md"><Card spacing="small">Devices</Card></Stack></PlatformPhone>
+  {/* expect: card/spacing-by-count */}
+  <PlatformPhone label="Energy"><Grid columns={3} gap="sm"><MetricCard label="Today" value="12 kWh" /><MetricCard spacing="small" label="Week" value="80 kWh" /><MetricCard spacing="small" label="Month" value="320 kWh" /></Grid></PlatformPhone>
   {/* expect: listbox/on-container-in-overlay */}
   <Dialog open={open} onOpenChange={setOpen} title="Members"><ListBox><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></Dialog>
   {/* expect: listbox/footer-action-tertiary */}
@@ -497,4 +508,4 @@ export const Bad = () => <>
 // A component's root card is judged where the component is used: three side by side take Small.
 // expect: card/spacing-by-count
 function StatCard({ label }: { label: string }) { return <Card theme="flat">{label}</Card>; }
-export const Stats = () => <Grid columns={3} gap="md"><StatCard label="Inside" /><StatCard label="Humidity" /><StatCard label="kWh today" /></Grid>;
+export const Stats = () => <PlatformPhone label="Home"><Grid columns={3} gap="md"><StatCard label="Inside" /><StatCard label="Humidity" /><StatCard label="kWh today" /></Grid></PlatformPhone>;

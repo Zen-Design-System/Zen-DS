@@ -8,7 +8,7 @@ import { canvasApi } from "../../canvas/viewport";
 import { previewAttributes, type ModeKey } from "../../shell/modes";
 import { studioStore, useStudio } from "../../store";
 import type { StudioPreviewSettings } from "../../types";
-import { renderNode, type PageNode, type PageTree } from "../render/renderPage";
+import { componentsOf, renderNode, type PageNode, type PageTree } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { useUploadsVersion } from "../assets/uploads";
@@ -227,7 +227,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
     const timer = window.setTimeout(() => protoHandler(live.current, delayed.action, delayed.args)(), optionsOf(delayed.action, delayed.args).delay ?? DEFAULT_DELAY);
     return () => window.clearTimeout(timer);
   }, [currentKey, delayed]);
-  const ctx = { file: pageFile(id), mock: tree?.mock ?? {}, proto: actions };
+  const ctx = { file: pageFile(id), mock: tree?.mock ?? {}, proto: actions, components: componentsOf(tree?.board ?? null) };
   const title = page?.title ?? id;
   const screenTitle = screen ? String(literal(screen, "title") ?? current) : "";
 

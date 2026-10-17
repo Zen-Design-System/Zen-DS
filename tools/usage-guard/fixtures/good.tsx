@@ -83,6 +83,10 @@ export const Good = () => <>
   <InputField label="Email" placeholder="name@company.com" />
   <Sidebar sections={sections} subMenu={<SidebarSubMenu items={subItems} />} subMenuLabel="Projects" onSubMenuClose={close} />
   <Divider />
+  <Box width={160} height={120}>
+    <Shape type="ellipse" position="absolute" insetLeft={24} insetTop={8} width={96} height={96} arcRatio={60} fill="accent-solid" />
+    <Shape type="line" position="absolute" insetLeft={8} insetTop={110} width={140} rotation={10} stroke="neutral-subtle" />
+  </Box>
   <InlineMessage theme="info" title="Invites expire after 7 days">Resend the invite from Members.</InlineMessage>
   <InlineMessage theme="custom" icon={<Avatar size="small" alt="">AC</Avatar>} title="Ava shared a file" />
   <EmptyState title="No projects yet" primaryAction={{ label: "Create project", onClick: create }}>Projects you create show up here.</EmptyState>
@@ -91,11 +95,16 @@ export const Good = () => <>
   <Slider aria-labelledby="brightness-label" theme="white" size="large" />
   <RichTextField label="Announcement" onValueChange={(html) => setHtml(html)} />
   {/* Catalogue cards sit in their own <div>: side by side they would read as one group (card/spacing-by-count). */}
-  <Grid columns={3} gap="md"><Card spacing="small">Inside</Card><Card spacing="small">Humidity</Card><Card spacing="sm">kWh today</Card></Grid>
-  <Grid columns={3} gap="md">{["Inside", "Humidity", "kWh today"].map((label) => <Card key={label} spacing="small">{label}</Card>)}</Grid>
-  <Grid columns={3} gap="md">{rooms.map((room) => <Card key={room} spacing="small">{room}</Card>)}</Grid>
-  <Stack gap="md"><Card>Devices</Card></Stack>
-  <Stack gap="md"><Card theme="flat" spacing="small"><VoiceRecorder state="ready" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} /></Card></Stack>
+  <PlatformPhone label="Home"><Grid columns={3} gap="md"><Card spacing="small">Inside</Card><Card spacing="small">Humidity</Card><Card spacing="sm">kWh today</Card></Grid></PlatformPhone>
+  <PlatformPhone label="Home"><Grid columns={3} gap="md">{["Inside", "Humidity", "kWh today"].map((label) => <Card key={label} spacing="small">{label}</Card>)}</Grid></PlatformPhone>
+  <PlatformPhone label="Home"><Grid columns={3} gap="md">{rooms.map((room) => <Card key={room} spacing="small">{room}</Card>)}</Grid></PlatformPhone>
+  <PlatformPhone label="Home"><Stack gap="md"><Card>Devices</Card></Stack></PlatformPhone>
+  {/* Desktop cards keep Medium whatever their number: the rule is for phones only. */}
+  <Grid columns={3} gap="md"><Card>Revenue</Card><Card>Expenses</Card><Card>Profit</Card></Grid>
+  <Grid columns={4} gap="md"><MetricCard label="Revenue" value="$12.4K" /><MetricCard label="Orders" value="320" /><MetricCard label="Refunds" value="4" /><MetricCard label="Visitors" value="9.1K" /></Grid>
+  <PlatformPhone label="Energy"><Grid columns={3} gap="sm"><MetricCard spacing="small" label="Today" value="12 kWh" /><MetricCard spacing="small" label="Week" value="80 kWh" /><MetricCard spacing="small" label="Month" value="320 kWh" /></Grid></PlatformPhone>
+  <PlatformPhone label="Stats"><Grid columns={2} gap="sm"><MetricCard type="tile" label="Success rate" value="56%" /><MetricCard type="tile" label="Sessions" value="1.2K" /></Grid></PlatformPhone>
+  <PlatformPhone label="Voice"><Stack gap="md"><Card theme="flat" spacing="small"><VoiceRecorder state="ready" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} /></Card></Stack></PlatformPhone>
   <div><Card onClick={open} aria-label="Zen website"><Text>Zen website</Text></Card></div>
   <div><Card theme="pale" color="violet"><Text>Design hours</Text></Card></div>
   <div><Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card></div>
@@ -292,6 +301,6 @@ export const Good = () => <>
 
 // A component's root card is judged where the component is used: three side by side take Small, one keeps Medium.
 function DeviceCard({ label }: { label: string }) { return <Card theme="flat" spacing="small">{label}</Card>; }
-export const Devices = () => <Grid columns={3} gap="md"><DeviceCard label="HomePod mini" /><DeviceCard label="Ceiling light" /><DeviceCard label="Blinds" /></Grid>;
+export const Devices = () => <PlatformPhone label="Devices"><Grid columns={3} gap="md"><DeviceCard label="HomePod mini" /><DeviceCard label="Ceiling light" /><DeviceCard label="Blinds" /></Grid></PlatformPhone>;
 function RoomsCard() { return <Card theme="flat">Rooms</Card>; }
-export const Home = () => <Stack gap="md"><RoomsCard /></Stack>;
+export const Home = () => <PlatformPhone label="Home"><Stack gap="md"><RoomsCard /></Stack></PlatformPhone>;

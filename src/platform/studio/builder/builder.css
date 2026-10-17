@@ -22,7 +22,8 @@
 .studio-builder-board__errors { display: flex; max-width: 720px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
 
 /* A Screen is a page: the Canvas layer, at least a device's height. */
-.studio-builder-screen { display: flow-root; min-height: var(--studio-screen-height, 900px); border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
+/* Relative: a layer drawn on the Screen sits at its X / Y (a frame without auto layout, Figma's). */
+.studio-builder-screen { position: relative; display: flow-root; min-height: var(--studio-screen-height, 900px); border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
 .studio-builder-screen[data-device="phone"] { min-height: var(--studio-screen-height, 844px); }
 /* The app frame (Screen's sidebar · header, or top · bottom navigation): the Screen becomes a row (desktop) or a column
    (mobile) around its content, which keeps the page's own padding. The bottom bar sits at the screen's foot. */

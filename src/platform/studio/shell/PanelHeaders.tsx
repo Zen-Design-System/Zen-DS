@@ -19,7 +19,8 @@ import { signOut, useAuthUser } from "../../auth/pocketbase";
 
 /*
  * Zen Studio's chrome as Figma UI3's floating panels (user, 2026-10-15): no toolbar row. The left panel's header holds
- * the brand menu and the Document | Studio switch, the right panel's header the role, undo/redo and the drafts; the
+ * the brand menu (with the Document / Studio switch since 2026-10-17: no Segmented over the canvas, the user: "có thể
+ * gây nặng bộ nhớ"), the right panel's header the role, undo/redo and the drafts; the
  * zoom sits on the Inspector's tab row. A panel that is not docked (narrow window, or hidden with ⌘\) leaves a small
  * floating bar in its corner that opens it as a drawer. Light/dark is in the brand menu, as Figma's theme.
  */
@@ -39,9 +40,8 @@ function useWritable() {
   return editable && server.ready && server.writable;
 }
 
-/** The Zen mark and its menu: the other space (Open Document / Open Studio, as Figma's menu starts with "Back to files";
- * user, 2026-10-17: the Document | Studio switch moved here), shortcuts, light/dark, panels, classic docs, log out (and,
- * on a phone, undo/redo/role).
+/** The Zen mark and its menu: Document / Studio, light/dark, shortcuts, panels, classic docs, log out (and, on a phone,
+ * undo/redo/role).
  * `compact`: the mark and a chevron only (corner bars, a phone's drawer); else "Zen Studio" beside the mark. */
 export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; compact?: boolean }) {
   const { phone } = layout;
@@ -52,17 +52,13 @@ export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; co
   const role = useStudio((state) => state.role);
   const writable = useWritable();
   const user = useAuthUser();
-  const inStudio = useStudio((state) => state.space === "studio" || Boolean(state.localPage));
+  const space = useStudio((state) => state.space);
+  const localPage = useStudio((state) => state.localPage);
+  const inStudio = Boolean(localPage) || space === "studio";
   return (
     <Menu
       aria-label="Zen Studio"
       items={[
-        // The other space: Document (the docs pages) or Studio (projects and the pages made here; it reopens the page
-        // made last while it is still there).
-        inStudio
-          ? { id: "space-document", label: "Open Document", icon: "icon-book-open-line", caption: "Docs and components", onSelect: () => setSpace("document") }
-          : { id: "space-studio", label: "Open Studio", icon: "icon-layers-three-01-line", caption: "Projects and your pages", onSelect: () => setSpace("studio", (id) => Boolean(cachedPage(id))) },
-        { type: "separator" as const, id: "space-separator" },
         // A phone has no room for these in the panel headers: they live here instead (E2E S-07).
         ...(phone ? [
           { id: "undo", label: "Undo", shortcut: `${modKey}Z`, disabled: !writable || !undoCount, onSelect: () => { void undoEdit(); } },
@@ -70,6 +66,9 @@ export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; co
           { id: "role", label: role === "admin" ? "View as Viewer" : "Edit as Admin", onSelect: () => studioStore.setState({ role: role === "admin" ? "viewer" : "admin" }) },
           { type: "separator" as const, id: "phone-separator" },
         ] : []),
+        // Document | Studio, as the theme's toggle: the docs pages or the pages made in the Studio (Studio reopens the page
+        // made last, while it is still there).
+        { id: "space", label: inStudio ? "Switch to Document" : "Switch to Studio", onSelect: () => setSpace(inStudio ? "document" : "studio", (id) => Boolean(cachedPage(id))) },
         { id: "theme", label: chromeTheme === "dark" ? "Light mode" : "Dark mode", onSelect: toggleStudioTheme },
         { id: "shortcuts", label: "Keyboard shortcuts…", shortcut: "?", onSelect: openShortcuts },
         { id: "panels", label: ui ? "Hide side panels" : "Show side panels", shortcut: `${modKey}\\`, onSelect: toggleSidePanels },
@@ -94,8 +93,8 @@ export function DrawerClose({ label }: { label: string }) {
   return <IconButton className="studio-drawer__close" appearance="flat" level="primary" size="sm" aria-label={label} icon={<Icon name="icon-x-line" />} onClick={() => studioStore.setState({ drawer: null })} />;
 }
 
-/** The left panel's header: the brand menu, which also opens the other space (Document | Studio; user, 2026-10-17:
- * no floating switch any more), and Close while it is a drawer with no tab row (with one, Close ends the tab row). */
+/** The left panel's header: the brand menu, which holds Document / Studio (and Close while it is a drawer with no tab
+ * row; with one, Close ends the tab row). */
 export function LeftHeader({ layout, drawer }: { layout: PanelLayout; drawer: boolean }) {
   return (
     <div className="studio-panel-head">

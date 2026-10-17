@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-15.
+Last updated: 2026-10-17.
 
 ## Read order
 
@@ -124,6 +124,15 @@ Last updated: 2026-10-15.
 - **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min). Since 2026-10-16 (user) the audit runs at 1512 + 390 + 320 (320: every kind baselined, debt in BACKLOG P1) and has `card-gap` / `legend-column`; Studio E2E PT-11 checks Play's sticky Sidebar.
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
+- **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
+  `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
+  arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures
+  (`studio/draw/`), arc handles, shape Inspector, ⇧A / ⌥⇧A, Figma keys (`edit/figmaKeys.ts`), push / pull / plugin
+  import of shapes; Document / Studio moved into the Zen Studio menu. E2E group `draw`. Components on a page you made
+  (P4 v1: ⌥⌘K `<Component>`, `<Use of>` instances, ⌥⌘B, Assets › Local, export + push). Rule (user): a drawn shape,
+  frame or text is an object, never shown as a component (`select/layerNames.ts objectIcon`, `nodeKind` "shape", E2E
+  DR-15). Shipped together as one PR (branch zen/feat/studio-components-20261017). Next: P5 Variables v1 on
+  zen/feat/studio-variables-20261017 (PR after this one); open: P2–P3 rest, P4 v2 (BACKLOG).
 - **Zen Studio Screen = master layout (2026-10-15, user):** a builder Screen's desktop frame is one root `<AppShell>`
   (`tools/studio/screen-frame.mjs`, op `screenFrame`; parts in `screen-chrome.mjs` FRAME_PARTS); the Screen's own
   `sidebar`/`header` props are legacy, moved into it when a page opens (`localApi.ts` moveScreenFrame). The mobile layout
@@ -230,7 +239,7 @@ Last updated: 2026-10-15.
   `chartCore.tsx`; `showAverage` (Line, Bar, Stack-bar); Studio palette items; harness `chart/*`. Spec
   `docs/research/chart-family-spec-2026-10-12.md`; the Figma side (❖ Chart page, IDs in spec §5.1) is built from it in
   the official file at the user's request. Open: Export › Figma mapping and Figma contracts (BACKLOG).
-- **Zen Studio spaces (2026-10-09; since 2026-10-17 switched from the brand menu, Open Document / Open Studio — no floating switch):** the toolbar centre was a Document | Studio switch (`state.space`, `?space=studio`,
+- **Zen Studio spaces (2026-10-09; since 2026-10-17 the brand menu’s Switch to Document / Switch to Studio, no floating switch):** the toolbar centre was a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview
   modes change only in Present / Play (their bar's Modes panel); the toolbar has light/dark only. E2E: `openStudioSpace`.

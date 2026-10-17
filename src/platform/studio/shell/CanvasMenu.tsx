@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { Menu, type MenuEntry, type MenuItemData } from "../../../components/Menu";
 import { ZenPortalProvider } from "../../../components/Portal";
+import type { IconName } from "../../../icons/generated/names";
 import { parseSrc, studioApi, type DetachPlanReply } from "../api";
 import { detachSelection, detachShortcut, offersDetach, renderCount, withRowCheck } from "../inspector/detach";
 import { useExtraSelection } from "../select/multiSelection";
@@ -38,7 +39,7 @@ import "./shell.css";
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 type MenuTarget = { kind: "node"; selection: NodeSelection } | { kind: "frame"; frameId: string } | { kind: "canvas" };
 /** A layer under the pointer that "Select layer" offers (Figma's submenu): its name and how to select it. */
-export type LayerUnderPointer = { name: string; component: boolean; selected: boolean; select: () => void };
+export type LayerUnderPointer = { name: string; icon: IconName; selected: boolean; select: () => void };
 /** `listing`: the menu shows only the layers under the pointer ("Select layer ›" chosen). */
 type MenuState = { x: number; y: number; target: MenuTarget; at: number; layers?: readonly LayerUnderPointer[]; listing?: boolean };
 /** What Menu's placement keeps between the anchor and the window edge: its 8px margin, its 4px gap and the 1px anchor
@@ -160,12 +161,12 @@ export function CanvasMenu() {
     { id: "select-layer", label: "Select layer", icon: "icon-layers-three-01-line", shortcut: "›", onSelect: () => { const current = menu; window.setTimeout(() => set({ ...current, listing: true, at: Date.now() }), 0); } },
     { type: "separator", id: "select-layer-separator" },
   ] : [];
-  const layerItems: MenuEntry[] = [{ type: "group", id: "select-layer-list", label: "Select layer", items: under.map((layer, index) => ({ id: `select-layer-${index}`, label: layer.name, icon: layer.component ? "icon-cube-line" as const : "icon-code-02-line" as const, caption: layer.selected ? "Selected" : undefined, onSelect: layer.select })) }];
+  const layerItems: MenuEntry[] = [{ type: "group", id: "select-layer-list", label: "Select layer", items: under.map((layer, index) => ({ id: `select-layer-${index}`, label: layer.name, icon: layer.icon, caption: layer.selected ? "Selected" : undefined, onSelect: layer.select })) }];
   const entries: MenuEntry[] = menu?.listing ? layerItems
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...visibility, detach, ...slotItems.trailing];
+        : [...selectLayer, ...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 

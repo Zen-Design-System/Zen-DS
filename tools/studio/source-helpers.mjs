@@ -14,7 +14,7 @@ export const FUNCTION_TYPES = new Set(["FunctionDeclaration", "FunctionExpressio
 /** Where each name a recipe writes (and each detachable component) lives: src/components/<Folder>. */
 export const COMPONENT_FOLDER = {
   Box: "Layout", Stack: "Layout", Grid: "Layout", Text: "Text", Heading: "Text", Icon: "Icon", Button: "Button", IconButton: "Button",
-  DockIcon: "DockIcon", Avatar: "Avatar", Divider: "Divider", MetricTrend: "MetricWidget", EmptyStateIllustration: "EmptyState",
+  DockIcon: "DockIcon", Avatar: "Avatar", Divider: "Divider", Shape: "Shape", MetricTrend: "MetricWidget", EmptyStateIllustration: "EmptyState",
   Card: "Card", ListItem: "ListItem", ListBox: "ListItem", MetricCard: "MetricWidget", Metric: "MetricWidget", EmptyState: "EmptyState",
   DescriptionList: "DescriptionList", InlineMessage: "InlineMessage", Badge: "Badge", Tag: "Tag",
 };
