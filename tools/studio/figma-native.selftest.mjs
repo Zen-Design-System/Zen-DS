@@ -95,6 +95,19 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(id(hello?.styleIdForText.guid) === pack.styles["Body/Base/Bold"][0] && hello?.fontSize === pack.styles["Body/Base/Bold"][2].fontSize, "a text binds its style by id and repeats its font");
 }
 
+// --- corner radii and a slot Figma links only through a PROP_REF (Title-Highlight's Custom-Slot) ---------------------
+{
+  const pill = { type: "FRAME", name: "Pill", radius: 1000, radiusVar: "Corner-Radius/Rounded", layout: { mode: "HORIZONTAL", padding: [2, 4, 2, 4] }, children: [{ type: "TEXT", characters: "34%" }] };
+  const metric = { type: "INSTANCE", name: "Highlight", set: { id: "7523:507049", name: "Primitives/Metric/Metric-Inline/Title-Highlight" }, props: { Custom: true }, slots: [{ name: "Custom-Slot", children: [{ type: "TEXT", characters: "Custom" }] }] };
+  const { message, notes } = run([pill, metric]);
+  check(notes.length === 0, `radius + PROP_REF slot: no notes (${notes.join("; ")})`);
+  const frame = message.nodeChanges.find((n) => n.name === "Pill");
+  check(frame.rectangleCornerRadiiIndependent === true && frame.rectangleTopLeftCornerRadius === 1000 && frame.rectangleBottomRightCornerRadius === 1000, "a radius sets the four corners, independent (Figma reads cornerRadius otherwise)");
+  check(frame.parameterConsumptionMap.entries.filter((e) => /CORNER_RADIUS$/.test(e.variableField)).length === 4, "the four corners bind the radius variable");
+  const [instance] = instances(message).filter((n) => n.name === "Highlight");
+  check((instance.componentPropAssignments ?? []).some((a) => a.varValue?.dataType === "SLOT_CONTENT_ID"), "a slot linked only by PROP_REF takes the export's content");
+}
+
 // --- a vector in a free-form parent ------------------------------------------------------------------------------
 {
   const { message } = run([{ type: "FRAME", name: "Free", children: [{ type: "VECTOR", name: "Slice", d: "M 50 0 L 100 50 L 50 100 Z", box: { w: 100, h: 100 }, place: { x: 0, y: 0, w: 1, h: 1 }, fillStyle: "Color Chart Sector/Primary" }] }]);

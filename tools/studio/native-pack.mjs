@@ -6,7 +6,8 @@
 //
 //   node tools/studio/native-pack.mjs probe-code --part=N   use_figma code: instances of part N (0-based) of the push's sets
 //   node tools/studio/native-pack.mjs probe-code --icons    use_figma code: an instance of every icon on the icon page,
-//                                                           and a frame that uses every text, paint and effect style
+//                                                           a frame that uses every text, paint and effect style, and one
+//                                                           that binds every variable but the Global Colors primitives
 //   node tools/studio/native-pack.mjs capture --frames=a:b,c:d [--keep]   macOS + Figma desktop: copy each probe frame,
 //                                                           then write the pack (needs Accessibility for the terminal app)
 //   node tools/studio/native-pack.mjs write --files=a.html,b.html   copies saved by hand → the pack
@@ -34,8 +35,25 @@ export const ICON_PAGE = "1340:4450";
 
 const id = (guid) => (guid ? `${guid.sessionID}:${guid.localID}` : "");
 /** Fields a slot's content frame copies from the slot (its auto layout), and a grid's own track ids. */
-const slotLayout = (node) => Object.fromEntries(Object.entries(node).filter(([key]) => /^stack/.test(key) || key === "frameMaskDisabled" || /^grid(Rows|Columns|RowsSizing|ColumnsSizing|RowGap|ColumnGap)$/.test(key)));
-const isSlot = (node) => (node.componentPropRefs ?? []).some((ref) => ref.componentPropNodeField === "SLOT_CONTENT_ID" && !ref.isDeleted);
+/** What a slot's content frame takes from the slot: everything it shows (layout, corners and their variables, clip, size
+ * limits, fills, strokes, effects), not its identity or its links to the component's properties (Figma's own copies). */
+const SLOT_SKIP = new Set(["guid", "phase", "parentIndex", "type", "name", "visible", "size", "transform", "componentPropRefs", "pluginData", "overrideKey", "derivedSymbolData", "derivedSymbolDataLayoutVersion", "editInfo", "isSlot"]);
+const slotLayout = (node) => {
+  const out = Object.fromEntries(Object.entries(node).filter(([key]) => !SLOT_SKIP.has(key)));
+  if (out.parameterConsumptionMap) out.parameterConsumptionMap = { entries: (out.parameterConsumptionMap.entries ?? []).filter((entry) => entry.variableData?.value?.alias) };
+  return out;
+};
+/** A layer's links to its component's properties: componentPropRefs, and the PROP_REF entries Figma keeps some only in. */
+const PROP_FIELDS = ["VISIBLE", "TEXT_DATA", "OVERRIDDEN_SYMBOL_ID", "SLOT_CONTENT_ID"];
+function refsOf(node) {
+  const out = (node.componentPropRefs ?? []).filter((ref) => !ref.isDeleted).map((ref) => [id(ref.defID), ref.componentPropNodeField]);
+  for (const entry of node.parameterConsumptionMap?.entries ?? []) {
+    const def = entry.variableData?.value?.propRefValue?.defId;
+    if (def && PROP_FIELDS.includes(entry.variableField) && !out.some(([d, f]) => d === id(def) && f === entry.variableField)) out.push([id(def), entry.variableField]);
+  }
+  return out;
+}
+const isSlot = (node) => refsOf(node).some(([, field]) => field === "SLOT_CONTENT_ID");
 const round = (value) => Math.round((value ?? 0) * 100) / 100;
 
 /** The use_figma code that adds part `part` of `ids` to the probe: frames of up to PROBE_FRAME_SIZE instances. */
@@ -95,7 +113,21 @@ for (const style of await figma.getLocalTextStylesAsync()) { await figma.loadFon
 for (const style of await figma.getLocalPaintStylesAsync()) { const rect = figma.createRectangle(); rect.resize(8, 8); styles.appendChild(rect); await rect.setFillStyleIdAsync(style.id); }
 for (const style of await figma.getLocalEffectStylesAsync()) { const rect = figma.createRectangle(); rect.resize(8, 8); styles.appendChild(rect); await rect.setEffectStyleIdAsync(style.id); }
 frames.push(styles);
-return icons.length + " icons and the styles in " + frames.map((f) => f.id).join(",");
+// Every variable once (the paste binds by id; Studio pages use tokens no component does), primitives aside.
+const variables = figma.createFrame(); variables.name = "Variables"; variables.fills = []; variables.clipsContent = false; probe.appendChild(variables); variables.x = 7000; variables.y = -1200;
+const skip = new Set((await figma.variables.getLocalVariableCollectionsAsync()).filter((c) => c.name === "Global Colors").map((c) => c.id));
+await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+let at = 0;
+for (const v of (await figma.variables.getLocalVariablesAsync()).filter((v) => !skip.has(v.variableCollectionId))) {
+  const x = (at % 50) * 12, y = Math.floor(at / 50) * 12; at++;
+  if (v.resolvedType === "COLOR") { const r = figma.createRectangle(); r.resize(10, 10); variables.appendChild(r); r.x = x; r.y = y; r.fills = [figma.variables.setBoundVariableForPaint({ type: "SOLID", color: { r: 0, g: 0, b: 0 } }, "color", v)]; }
+  else if (v.resolvedType === "FLOAT") { const f = figma.createFrame(); f.resize(10, 10); f.layoutMode = "HORIZONTAL"; variables.appendChild(f); f.x = x; f.y = y; f.setBoundVariable("itemSpacing", v); }
+  else if (v.resolvedType === "STRING") { const t = figma.createText(); variables.appendChild(t); t.x = x; t.y = y; t.characters = "a"; t.setBoundVariable("characters", v); }
+  else if (v.resolvedType === "BOOLEAN") { const r = figma.createRectangle(); r.resize(10, 10); variables.appendChild(r); r.x = x; r.y = y; r.setBoundVariable("visible", v); }
+}
+variables.resize(620, Math.ceil(at / 50) * 12 + 12);
+frames.push(variables);
+return icons.length + " icons, the styles and " + at + " variables in " + frames.map((f) => f.id).join(",");
 `.trim();
 }
 
@@ -143,8 +175,8 @@ export function packFrom(copies, { read }) {
     const rows = [];
     const walk = (owner, at) => {
       for (const child of children.get(id(owner.guid)) ?? []) {
-        const refs = (child.componentPropRefs ?? []).filter((ref) => !ref.isDeleted).map((ref) => [id(ref.defID), ref.componentPropNodeField]);
-        let more = isSlot(child) ? { slot: slotLayout(child) } : child.stackMode === "GRID" ? { cols: (child.gridColumns?.entries ?? []).map((entry) => id(entry.id)), rows: (child.gridRows?.entries ?? []).map((entry) => id(entry.id)) } : 0;
+        const refs = refsOf(child);
+        let more = isSlot(child) ? { slot: localRefs(slotLayout(child)) } : child.stackMode === "GRID" ? { cols: (child.gridColumns?.entries ?? []).map((entry) => id(entry.id)), rows: (child.gridRows?.entries ?? []).map((entry) => id(entry.id)) } : 0;
         if (child.type === "INSTANCE" && child.componentPropAssignments?.length) more = { ...(more || {}), assigns: localRefs(child.componentPropAssignments) };
         // The component's own overrides on this nested instance that change what shows below it: swaps and visibility.
         const ovs = (child.symbolData?.symbolOverrides ?? []).filter((entry) => entry.overriddenSymbolID || typeof entry.visible === "boolean").map((entry) => [entry.guidPath.guids.map(id), { ...(entry.overriddenSymbolID ? { s: id(entry.overriddenSymbolID) } : {}), ...(typeof entry.visible === "boolean" ? { v: entry.visible } : {}) }]);

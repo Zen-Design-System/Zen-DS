@@ -118,6 +118,15 @@ function vectorFields(subpaths) {
   return { minX, minY, size, vectorData: { vectorNetworkBlob: { blob: base64Of(vectorNetwork(subpaths, minX, minY)) }, normalizedSize: size } };
 }
 
+/** Whether a laid-out frame (Figma's fields) hugs its content along x and y: an unset primary sizing hugs. */
+function hugsOf(node) {
+  const mode = node.stackMode ?? "NONE";
+  if (mode === "NONE") return { hugW: false, hugH: false };
+  const horizontal = mode === "HORIZONTAL" || mode === "GRID";
+  const primary = node.stackPrimarySizing !== "FIXED", counter = /^RESIZE_TO_FIT/.test(node.stackCounterSizing ?? "");
+  return horizontal ? { hugW: primary, hugH: counter } : { hugW: counter, hugH: primary };
+}
+
 /** The importer's short name for a layer: a set's first segment, a primitive's last (studio-import.js layerKey). */
 export function layerKey(name) {
   const text = String(name ?? "");
@@ -174,7 +183,7 @@ class Writer {
   }
   /** Layers appended inside a copied content node (the importer's edits.append on a frame). */
   appendTo(node, specs) {
-    const info = { mode: node.stackMode ?? "NONE", w: node.size?.x, h: node.size?.y, internal: true };
+    const info = { mode: node.stackMode ?? "NONE", w: node.size?.x, h: node.size?.y, internal: true, ...hugsOf(node) };
     for (const spec of specs) this.build(spec, node.guid, info);
   }
   /** Copied contents: their instances take their builds' final state; all go to the internal canvas. */
@@ -231,16 +240,26 @@ class Writer {
   push(node, parentInfo) { (parentInfo?.internal ? this.internal : this.scene).push(node); return node; }
 
   /** The sizing a node takes in its parent (the importer's applyPlacement) as Figma's child fields. */
+  /**
+   * Fill along an axis only where the parent has room to give. Along a parent's main axis, a parent that hugs gives none
+   * (CSS: a percentage in a shrink-to-fit box is the content's size; Figma collapses such a child), so the child hugs.
+   * Across it, Figma stretches a child to the tallest sibling even in a hugging parent (a sidebar beside the content).
+   */
+  fills(spec, parentInfo) {
+    const mode = parentInfo?.mode ?? "NONE";
+    return { w: !!spec.fillW && !(mode === "HORIZONTAL" && parentInfo?.hugW), h: !!spec.fillH && !(mode === "VERTICAL" && parentInfo?.hugH) };
+  }
   childFields(spec, parentInfo, ownMode) {
     const out = {};
     const parentMode = parentInfo?.mode ?? "NONE";
+    const fill = this.fills(spec, parentInfo);
     if (parentMode === "HORIZONTAL" || parentMode === "VERTICAL") {
-      const along = parentMode === "HORIZONTAL" ? spec.fillW : spec.fillH;
-      const across = parentMode === "HORIZONTAL" ? spec.fillH : spec.fillW;
+      const along = parentMode === "HORIZONTAL" ? fill.w : fill.h;
+      const across = parentMode === "HORIZONTAL" ? fill.h : fill.w;
       if (along) out.stackChildPrimaryGrow = 1;
       if (across) out.stackChildAlignSelf = "STRETCH";
     } else if (parentMode === "GRID") {
-      if (spec.fillW || spec.fillH) { out.stackChildPrimaryGrow = 1; out.stackChildAlignSelf = "STRETCH"; }
+      if (fill.w || fill.h) { out.stackChildPrimaryGrow = 1; out.stackChildAlignSelf = "STRETCH"; }
       if (spec.cell && parentInfo.tracks) {
         const row = parentInfo.tracks.rows[spec.cell.row], col = parentInfo.tracks.cols[spec.cell.col];
         if (row && col) { out.gridRowAnchor = row; out.gridColumnAnchor = col; }
@@ -356,7 +375,8 @@ class Writer {
 
   frame(spec, parent, parentInfo, { root = false } = {}) {
     const id = this.fresh();
-    const sizing = root ? { w: "FIXED", h: "HUG" } : { w: spec.fillW ? "FILL" : spec.fixedWidth ? "FIXED" : "HUG", h: spec.fillH ? "FILL" : "HUG" };
+    const fill = this.fills(spec, parentInfo);
+    const sizing = root ? { w: "FIXED", h: "HUG" } : { w: fill.w ? "FILL" : spec.fixedWidth ? "FIXED" : "HUG", h: fill.h ? "FILL" : "HUG" };
     const { fields, vars = [], mode, tracks } = this.layout(spec, spec.layout, sizing);
     const guess = root ? { w: this.pkg.frame.width || 1440, h: 100 } : this.estimate(spec);
     const w = guess.w, h = guess.h;
@@ -380,7 +400,7 @@ class Writer {
     Object.assign(node, this.bindings(vars));
     if (spec.fill) node.fillPaints = this.paint(spec.fill, spec.name);
     this.push(node, parentInfo);
-    const info = { mode, tracks, w: pos.w, h: pos.h, internal: parentInfo?.internal };
+    const info = { mode, tracks, w: pos.w, h: pos.h, internal: parentInfo?.internal, hugW: mode !== "NONE" && sizing.w === "HUG", hugH: mode !== "NONE" && sizing.h === "HUG" };
     for (const child of spec.children ?? []) this.build(child, id, info);
     return node;
   }
@@ -396,7 +416,7 @@ class Writer {
     const node = {
       guid: id, phase: "CREATED", parentIndex: { guid: parent, position: this.place(parent) }, type: "TEXT", name: spec.name || characters.slice(0, 40) || "Text", visible: true, opacity: 1,
       size: { x: pos.w, y: pos.h }, transform: at(pos.x, pos.y), ...TEXT_FIELDS, ...font, textData: textData(characters),
-      textAutoResize: spec.fillW ? "HEIGHT" : "WIDTH_AND_HEIGHT", autoRename: !spec.name,
+      textAutoResize: this.fills(spec, parentInfo).w ? "HEIGHT" : "WIDTH_AND_HEIGHT", autoRename: !spec.name,
       textAlignHorizontal: spec.align || "LEFT",
       fillPaints: spec.fill ? this.paint(spec.fill, `Text "${characters}"`) : [{ type: "SOLID", color: { r: 0, g: 0, b: 0, a: 1 }, opacity: 1, visible: true, blendMode: "NORMAL" }],
       ...this.childFields(spec, parentInfo),
@@ -521,7 +541,8 @@ class Writer {
     // Hug or fill along the instance's own axes (the importer's layoutSizing on an instance).
     if (tree.mode && tree.mode !== "NONE") {
       const horizontalPrimary = tree.mode === "HORIZONTAL" || tree.mode === "GRID";
-      const sizeOf = (axis) => (axis === "w" ? (spec.fillW ? "FILL" : spec.hugW ? "HUG" : spec.fixedWidth ? "FIXED" : null) : spec.fillH ? "FILL" : spec.hugH ? "HUG" : null);
+      const fill = this.fills(spec, parentInfo);
+      const sizeOf = (axis) => (axis === "w" ? (fill.w ? "FILL" : spec.hugW || spec.fillW ? "HUG" : spec.fixedWidth ? "FIXED" : null) : fill.h ? "FILL" : spec.hugH || spec.fillH ? "HUG" : null);
       const primary = sizeOf(horizontalPrimary ? "w" : "h"), counter = sizeOf(horizontalPrimary ? "h" : "w");
       if (primary) rootOverride.stackPrimarySizing = primary === "HUG" ? "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE" : "FIXED";
       if (counter) rootOverride.stackCounterSizing = counter === "HUG" ? "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE" : "FIXED";
@@ -562,7 +583,7 @@ class Writer {
     }
     this.internal.push(frame);
     const tracks = slotRow.more.cols ? { cols: slotRow.more.cols.map(guid), rows: slotRow.more.rows.map(guid) } : frame.gridColumns ? { cols: frame.gridColumns.entries.map((entry) => entry.id), rows: frame.gridRows.entries.map((entry) => entry.id) } : null;
-    const info = { mode: frame.stackMode ?? "NONE", tracks, w: slotRow.w, h: slotRow.h, internal: true };
+    const info = { mode: frame.stackMode ?? "NONE", tracks, w: slotRow.w, h: slotRow.h, internal: true, ...hugsOf(frame) };
     for (const child of slotSpec.children ?? []) this.build(child, id, info);
     void parentInfo;
     return id;

@@ -172,3 +172,42 @@ các phần này, Đang làm cho mobile nên có rule về vùng chạm tối th
   or with Top-Navigation/Mobile|Tablet, and `spacing/controls-to-content` (warning) for a Chip/Segmented/Tabs/Search
   row closer than 16 to the next block.
 - E2 Popular and E6 AI-Discoveries gaps → Gap/Medium.
+
+## Donut corners: Figma ↔ code (tier S, session "Figma và Studio import chính xác"; user: "pie chart Figma không có bo góc")
+- Library: Chart/Donut-Chart 15324:80365, all 32 variants: 160 Slice vectors cornerRadius 0 → 4 (DonutChart.tsx
+  CORNER_PX = 4; the 4px gaps were already drawn). Undo: back to 0.
+- Plugin (local 275faae, dist 11:38): setting vectorPaths resets every vertex to mitre joins, so imported slices lost the
+  round joins of their 8px same-colour stroke; the join is set again after the path (test mock now resets joins too).
+- Direct paste: frames with a radius came out square (`rectangleCornerRadiiIndependent` false → Figma reads the unset
+  `cornerRadius`); fixed in PR #103 by session "Giám sát".
+- Follow-up (user: "overlay sao dùng màu tối???", then "Nên có 2 option nền tối chữ sáng mặc định và nền sáng chữ sáng
+  trên nền màu solid", "thêm trong Figma cho đồng bộ"): the dark-tint level became two levels, as Button/Overlay:
+  `black-overlay` (default; `level="overlay"` resolves to it) = Black-Overlay Default/Hover/Pressed + On-Black-Overlay
+  text, `white-overlay` = White-Overlay + On-Colors text (segment hover: a White-Overlay pill with dark text). Selected
+  = White/Solid + On-White-Overlay/Strongest, counters On-Color / Black-Solid, focus ring = currentColor (no allow
+  needed). No color-mix and no new token any more. Playgrounds list both levels and preview them on Brand/Accent.
+- Figma (user-approved write): `Primitives/Segmented/Item` +16 variants (GRID 8 rows), `Segmented` +2 (SLOT re-cloned,
+  items swapped), Chip/Number-Only +24, Chip/Advanced +96 (GRID 18 rows), Chip/Normal +108 (rows stacked below): clones
+  of Level=Secondary with paints remapped by variable name, borders dropped, Effect/Overlay (unselected) or
+  Shadow/Action/Basic (selected), badges swapped to On-Color / Neutral-Solid + Black-Solid override; 0 ref mismatches,
+  0 leftover Secondary or mode tokens. Review frames "Overlay review — Segmented" / "— Chip" (Brand/Accent band) sit
+  beside the docs frames. Studio: figma-push `segmentLook` and figma-pull map the overlay levels.
+- Contrast on #FF6BD5: black-overlay text 4.7:1 (unselected segment, Base) to 5.9:1 (chip, Strongest); white-overlay
+  light text 1.8:1 (BACKLOG P3 for the designer); a chip's outside ring in its light label colour reads 2.4:1 on the band.
+- Contracts: the filtered capture (`mcp-capture/capture-template.js` with `__setSpec(id, vp => /Overlay/…)`, chunks
+  read back by `assemble.cjs`) appended the overlay variants to `checkbox-radio-chip-popover.json` (Chip/Normal 216,
+  Advanced 144, Number-Only 48) and `segmented-toggle-badge-avatarstack.json` (Item 32, Segmented 4), Level options
+  updated. `suites/chip-advanced.mjs` now passes `level`. Chip/Normal 7056/7056, Advanced 5148/5148, Number-Only
+  1344/1344 checks match in light/neutral-s1 and dark/brand-s1. `part-props-build`: Segmented passes `levelProp` to
+  its items (a resolved local hid the pass-through from the Studio inspector).
+
+## Chart parity Figma ↔ code (tier M, session "Figma và Studio import chính xác"; user: "so tiếp các biểu đồ còn lại")
+- 13 sets audited by 5 read-only agents; findings in `docs/research/chart-parity-audit-2026-10-17.md`.
+- Fixed in Figma: Bar-Chart vertical Average rule caps ROUND (8 variants; dots were invisible), Bullet Goal + Rows
+  frames no longer clip (target tick showed 20 of 24px), Bar-List fills proportional to the leader (user 2026-10-14;
+  BACKLOG item replaced). Fixed in code: the ring box beside a start/end legend starts at the ring's size (chart.css), so
+  Radial/Donut no longer leave a 90px gap and wrap the legend.
+- Direct paste follow-ups: pack reads PROP_REF-only property links (Title-Highlight Custom-Slot), lists 2,019 variables
+  (variables probe), slot content frames carry the slot's corners/clip/limits (Stack-Bar columns were square); writer:
+  fill along a hugging parent's main axis hugs (Dashboard's Export button was cut to "Expor"; the plugin collapses it to
+  1px, not fixed there yet). Dashboard direct paste = its plugin import (346 frames, 405 instances, 174 texts).

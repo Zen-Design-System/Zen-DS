@@ -138,6 +138,9 @@
 /* Start: the legend leads on one line; once they wrap, wrap-reverse puts the ring on top and the legend under it. */
 .zen-chart-round[data-legend="start"] { flex-wrap: wrap-reverse; }
 .zen-chart-round[data-legend="start"] > .zen-chart__legend { order: -1; }
+/* The ring box starts at the ring's size: its own width would come from the SVG inside (300px by default) and leave a
+   wide gap beside a smaller ring, squeezing the legend (Figma: the ring, Gap/Large, then the legend). */
+.zen-chart-round:is([data-legend="start"], [data-legend="end"]) > .zen-chart--round { flex: 0 1 var(--zen-chart-size, 200px); }
 .zen-chart-round[data-legend="start"] > .zen-chart__legend, .zen-chart-round[data-legend="end"] > .zen-chart__legend { flex: 1 1 100px; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* Wrapped under (or over) the ring in a narrow box (ChartBlock data-wrapped): the legend is a centred row that wraps, as
    the legend under any chart (Figma auto layout Wrap), not a tall column beside nothing. */
