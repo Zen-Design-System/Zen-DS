@@ -7,11 +7,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P1 · Studio Variables like Figma — question for the user (2026-10-17):** may Studio become a second source of token
-  values (edit in Studio → tokens/source → push to Figma by the Zen plugin), or must every value edit go to Figma first and
-  come back by the sync? Audit and plan: `docs/research/studio-figma-native-parity-2026-10-17.md` §5b and P5.
-- **P1 · Studio components like Figma (⌥⌘K), spec first (2026-10-17):** a page-local main component (Board-level frame,
-  purple ◇), instances from Assets › Local, overrides, Go to main, Detach, React export. Pointer: same doc, P4.
+- **P1 · Studio Variables like Figma — approved (user, 2026-10-17):** Studio is a second source of token values (edit in
+  Studio → tokens/source → push to Figma by the Zen plugin; the Figma sync stays). Next after the components PR. Audit and
+  plan: `docs/research/studio-figma-native-parity-2026-10-17.md` §5b and P5.
+- **P2 · Studio components v2 (2026-10-17):** v1 is built (⌥⌘K, instances, Go to main, Detach, swap, React export,
+  push to Figma). Open: instance overrides (text, visibility) + Reset all changes, component properties, variants, pull of
+  local components from Figma. Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §9.
 - **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 5 examples; not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.

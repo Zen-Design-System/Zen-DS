@@ -189,8 +189,8 @@ variables, and from Assets): collections, groups tree, a column per mode, search
 (colour picker on tokens of the same collection, numbers, alias "→ variable" chips), create / rename / delete; the
 dev server writes `tokens/source/figma/*.json` as a draft (⌘S runs tokens:build + tokens:check) and builds a variables
 package for the Zen plugin to apply in Figma; frames get "Change variable mode" for every collection, written in the
-page. **Open question for the user:** may Studio become a second source of token values (Studio → repo → Figma), or
-must every value edit go to Figma first and come back by the sync?
+page. **User's answer (2026-10-17): yes** — Studio is a second source of token values (edit in Studio → `tokens/source`
+→ pushed to Figma by the Zen plugin); the Figma → repo sync stays.
 
 Later (named so nothing is lost): pen / vector editing, boolean operations, gradients and image fills, layout grids,
 rulers and guides, per-layer export, Scale tool K, comments.
@@ -211,8 +211,9 @@ figma-pull +7; Zen plugin `studio-import.test.js` shapes):
 - **P3 partly:** ⌘A, ⌘] ⌘[ ⌥⌘] ⌥⌘[, `\`, bare + / −, 0–9 opacity on shapes, ⌥A ⌥D ⌥W ⌥S ⌥H ⌥V on a free frame's
   layer, the shortcuts sheet. Open: ⌘G / ⇧⌘G, Enter = all children, Delete selects nothing, rename / lock in Layers,
   multi-frame marquee, flip ⇧H ⇧V, rotation handles on the canvas.
-- **P4 (components) and P5 (variables)** wait: P4 needs its spec (a page-local main component in the dialect and the
-  export), P5 needs the user's answer on where token values may be edited first.
+- **P4 (components)** v1 built (§9). **P5 (variables)** approved 2026-10-17 (Studio may write token values, then push them
+  to Figma); next after the components PR. Native ⌘V of shapes and local components to Figma approved the same day; the
+  "Figma và Studio import" session builds it in `tools/studio/figma-native.mjs` after this branch merges.
 
 ## 9. P4 spec — components like Figma (draft, 2026-10-17)
 
