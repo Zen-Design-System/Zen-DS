@@ -1591,6 +1591,15 @@
         }
       },
       {
+        "name": "Layout-Mobile/Section-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Spacing/Gap/Large}",
+          "Comfortable": "{Spacing/Gap/XLarge}",
+          "Studio": "{Spacing/Gap/Large}"
+        }
+      },
+      {
         "name": "Tag/Spacing/Medium/Minimum-Padding",
         "type": "FLOAT",
         "valuesByMode": {

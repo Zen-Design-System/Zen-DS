@@ -17,6 +17,18 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Token `--zen-layout-mobile-section-gap` (Figma Component Size `Layout-Mobile/Section-Gap`): Compact 24 (Gap/Large),
+  Comfortable 32 (Gap/XLarge). It is the gap between the sections of a phone screen, never less (2026-10-17, user:
+  "spacing giữa các section trong mobile … comfortable luôn là 32px. Compact là 24px. tạo token").
+  - Usage rules §13, the skill and the Figma audit (`spacing/section-gap`) require it.
+  - The audit no longer reports scroll content as clipped: a Body or Chip row running past a frame set to scroll.
+    The domain picks Component Size and Typography, so screens must hold up in either mode.
+- Touch targets on phones and tablets (usage rules §13, 2026-10-17, user: "Đang làm cho mobile nên có rule về vùng chạm
+  tối thiểu để làm spacing cho an toàn").
+  - Every control keeps a 44 × 44 hit area. Between two neighbours the gap is at least what each lacks of 44 (two Small
+    Chip rows or buttons → 12).
+  - A control row (Chips, Segmented, Tabs, Search) sits `md` 16 above the content it controls.
+  - The Figma audit checks both: `touch/target-spacing` (error) and `spacing/controls-to-content` (warning).
 - Figma audit `button/*` rules and a QA checklist in the `zen-figma-design` skill (2026-10-17, user: "Luôn luôn kiểm
   tra để không bị sai rule dùng button role", "bổ sung skill dùng figma luôn check các rule khi dùng component … QA lại
   trước khi done"). The audit now checks the Figma side of the code harness's Button rules:

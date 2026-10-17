@@ -1300,6 +1300,7 @@ export const tokens = {
   "Input/Spacing/XLarge/Outside-Field-Gap": "var(--zen-input-spacing-xlarge-outside-field-gap)",
   "Input/Spacing/XLarge/Vertical-Padding": "var(--zen-input-spacing-xlarge-vertical-padding)",
   "Interactive-List-Item-Radius": "var(--zen-interactive-list-item-radius)",
+  "Layout-Mobile/Section-Gap": "var(--zen-layout-mobile-section-gap)",
   "Light/Blue-Alpha/1": "var(--zen-light-blue-alpha-1)",
   "Light/Blue-Alpha/10": "var(--zen-light-blue-alpha-10)",
   "Light/Blue-Alpha/11": "var(--zen-light-blue-alpha-11)",
@@ -2280,7 +2281,7 @@ export const tokenCollections = {
       "Comfortable",
       "Studio"
     ],
-    "variableCount": 195
+    "variableCount": 196
   },
   "spacing": {
     "name": "Spacing",

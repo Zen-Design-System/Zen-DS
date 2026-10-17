@@ -134,7 +134,12 @@ Files in this skill:
    - every Accent is a promoted CTA;
    - view switches are Segmented or Tabs, filters and scopes are Chips;
    - buttons on photos are Overlay;
-   - the footer order is right.
+   - the footer order is right;
+   - on phones and tablets, every control keeps a 44px hit area (two Small Chip rows or buttons ≥ 12 apart), and a
+     control row sits ≥ 16 above the content it controls (screen-rules §2, audit `touch/target-spacing`,
+     `spacing/controls-to-content`);
+   - a phone Body's gap is Component Size `Layout-Mobile/Section-Gap` (24 Compact, 32 Comfortable);
+   - the screen still works in the other Component Size and Typography mode: switch them and look.
 3. **Colour:** Brand / Accent leads; supporting hues stay small; status colours sit only on status elements.
 4. **Screenshot review** (`get_screenshot`, which also renders emoji): hierarchy, alignment, nothing cut or covered by
    the navigation, real copy, no default component text.

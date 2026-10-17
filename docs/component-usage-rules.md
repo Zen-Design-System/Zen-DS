@@ -307,12 +307,15 @@ picks the step, and the same relationship gets the same step on every screen:
 | Pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags or Badges | `2xs` | Gap/2XSmall 4 |
 | A thing and its label or description (label → control, heading → supporting line, kicker → list); controls in one toolbar row (Chips, IconButtons, Search) | `xs` | Gap/XSmall 8 |
 | A group acting as one: text Buttons side by side, choices in a group | `sm` | Gap/Small 12 |
-| Blocks inside one surface (header → body → actions), stacked form fields, toolbar → table, cards in a grid | `md` | Gap/Medium 16 |
+| Blocks inside one surface (header → body → actions), stacked form fields, toolbar → table, a control row (Chips, Segmented, Tabs, Search) → the content it controls, cards in a grid | `md` | Gap/Medium 16 |
 | Columns of a layout, groups inside one surface | `lg` | Gap/Large 24 |
 | Sections of a page (Figma Master-Layout Body › Content) | `xl` | Gap/XLarge 32 |
 
 - Page and screen bodies use the margin tokens (Margin-Comfortable 24 on desktop, Margin-Compact 20 on phones) through
-  Container / AppShell; phone sections step down to `lg`.
+  Container / AppShell.
+- **Phone sections** (user rule 2026-10-17) are spaced by `--zen-layout-mobile-section-gap` (Figma Component Size
+  `Layout-Mobile/Section-Gap`): Compact 24, Comfortable 32, never less. The domain picks the Component Size and
+  Typography modes, and the section gap follows them. Groups inside a section keep their own ladder step.
 - A surface is a Card with `spacing` (small 16, medium 24); content inside keeps the surface's inset. A strip inside a
   surface (toolbar, summary, footer) has `sm` block padding and the surface's horizontal inset.
 - The gap between groups is always at least one step larger than the gap inside them. Siblings are spaced by the
@@ -328,6 +331,26 @@ picks the step, and the same relationship gets the same step on every screen:
   - a gap that is not one of the six steps of the current density (`3xs`, `2xl`, `3xl`, `giant`, padding tokens, px);
   - peer groups laid out alike whose own gap is wider than the gap between them.
   A heading or toolbar above one group is a label → content relationship and is not compared.
+
+### Touch targets on phones and tablets
+
+User rule 2026-10-17: "Đang làm cho mobile nên có rule về vùng chạm tối thiểu để làm spacing cho an toàn".
+
+- Every control on a touch screen has a 44 × 44px hit area. The sources:
+  - Apple HIG asks for 44pt, and Zen's mobile Nav-Action is 44.
+  - Material asks for 48dp.
+  - WCAG 2.5.8 sets 24px as the floor; 2.5.5 asks for 44.
+- A control drawn smaller keeps the rest of its 44px as free space: no other control may sit inside it.
+  - A Small Chip or Button (32 high) needs 6px free above and below.
+  - A 24px Toggle needs 10px.
+- Between two neighbouring controls, the gap is at least what each lacks of 44 on that side:
+  - two Small Chip rows → 12;
+  - a Small Chip above a Medium Button (40) → 8;
+  - two Small IconButtons side by side → 12.
+- The ladder still picks the step. On touch screens, take the larger of the ladder step and this minimum.
+- A control row (Chips, Segmented, Tabs, Search) and the content it controls are blocks (`md` 16), never a label pair
+  (`xs` 8): a Chip row is not the heading of the cards under it.
+- Checked in Figma by the Zen audit: `touch/target-spacing` (error) and `spacing/controls-to-content` (warning).
 
 ## 14. A Table that is not a widget needs no container
 

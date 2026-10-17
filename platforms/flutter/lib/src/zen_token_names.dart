@@ -2066,6 +2066,7 @@ abstract final class ZenToken {
   static const String tabItemSizeSmallHeight = 'Tab-Item/Size/Small/Height';
   static const String tabItemSizeMediumHeight = 'Tab-Item/Size/Medium/Height';
   static const String tabItemSizeLargeHeight = 'Tab-Item/Size/Large/Height';
+  static const String layoutMobileSectionGap = 'Layout-Mobile/Section-Gap';
   static const String tagSpacingMediumMinimumPadding = 'Tag/Spacing/Medium/Minimum-Padding';
   static const String tagSpacingSmallMinimumPadding = 'Tag/Spacing/Small/Minimum-Padding';
   static const String badgeSpacingMediumCustomize = 'Badge/Spacing/Medium/Customize';

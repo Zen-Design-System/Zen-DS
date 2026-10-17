@@ -3552,6 +3552,54 @@
   "expected": 12
  },
  {
+  "name": "Input/Size/Heading-H3",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Input/Size/Heading-H3",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Input/Size/Heading-H3",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Input/Size/Heading-H3",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Input/Size/Heading-H3",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
   "name": "Input/Spacing/Small/Horizontal-Padding",
   "context": {},
   "type": "FLOAT",
@@ -3646,6 +3694,54 @@
   },
   "type": "FLOAT",
   "expected": 2
+ },
+ {
+  "name": "Layout-Mobile/Section-Gap",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Layout-Mobile/Section-Gap",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Layout-Mobile/Section-Gap",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Layout-Mobile/Section-Gap",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Layout-Mobile/Section-Gap",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 32
  },
  {
   "name": "Light/Brand/1",
@@ -4462,54 +4558,6 @@
   },
   "type": "FLOAT",
   "expected": 24
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {},
-  "type": "FLOAT",
-  "expected": 20
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {
-   "mode-colors-semantic": "Dark"
-  },
-  "type": "FLOAT",
-  "expected": 20
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "component-colors-theme": "Brand - S1",
-   "component-size": "Compact",
-   "corner-radius": "Smooth"
-  },
-  "type": "FLOAT",
-  "expected": 20
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "typography-configuration": "Mobile",
-   "corner-radius": "Standard"
-  },
-  "type": "FLOAT",
-  "expected": 20
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {
-   "mode-colors-semantic": "Light",
-   "component-colors-theme": "Neutral - S4",
-   "component-size": "Comfortable",
-   "corner-radius": "Luxury",
-   "emphasis-level": "Strong",
-   "breakpoint-grids": "Mobile"
-  },
-  "type": "FLOAT",
-  "expected": 20
  },
  {
   "name": "Overlay/White/10",
@@ -5854,54 +5902,6 @@
   },
   "type": "FLOAT",
   "expected": 24
- },
- {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
-  "context": {},
-  "type": "FLOAT",
-  "expected": 4
- },
- {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
-  "context": {
-   "mode-colors-semantic": "Dark"
-  },
-  "type": "FLOAT",
-  "expected": 4
- },
- {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "component-colors-theme": "Brand - S1",
-   "component-size": "Compact",
-   "corner-radius": "Smooth"
-  },
-  "type": "FLOAT",
-  "expected": 4
- },
- {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "typography-configuration": "Mobile",
-   "corner-radius": "Standard"
-  },
-  "type": "FLOAT",
-  "expected": 4
- },
- {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
-  "context": {
-   "mode-colors-semantic": "Light",
-   "component-colors-theme": "Neutral - S4",
-   "component-size": "Comfortable",
-   "corner-radius": "Luxury",
-   "emphasis-level": "Strong",
-   "breakpoint-grids": "Mobile"
-  },
-  "type": "FLOAT",
-  "expected": 4
  },
  {
   "name": "Text-Area/Spacing/Medium/Vertical-Padding",

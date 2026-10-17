@@ -42,5 +42,12 @@ and text that is crushed or sticks out.
 | `button/small-full-width` | error | a Small, XSmall or 2XSmall text button set to Fill | set `Size=Medium (Base)` (or larger) for a full-width button, or let the small one hug its label |
 | `button/overlay-on-imagery` | warning | a Button/Main or Icon-Main sits on a photo | swap to `Button/Overlay` or `Button/Icon-Overlay` (`White` on a light photo, `Black Overlay` / `Inverse` on a dark one); keep the icon through its swap property |
 | `button/vague-label` | warning | a button labelled OK, Yes, Submit or Click here | name the outcome with a verb ("Save changes", "Select", "Send invite") |
+| `touch/target-spacing` | error | on a phone or tablet screen, two controls (buttons, Chips, Toggles, fields, Segmented, Tabs, Search) sit closer than their 44px hit areas allow | raise the gap of their parent to the ladder step at or above what both lack of 44 (two 32px rows → `Spacing/Gap/Small` 12; a 32 and a 40 → 8; a 24 Toggle and a 32 → 16). Never shrink a control to make it fit |
+| `spacing/controls-to-content` | warning | a control row (Chips, Segmented, Tabs, Search) sits closer than 16 to the content it controls | set that gap to `Spacing/Gap/Medium` (16), or wrap heading + controls in their own frame and give the section gap Medium; a control row is a block, not a label |
+| `spacing/section-gap` | error | a phone screen's Body (the frame named Body / Content / Sections that stacks its sections) has a gap not bound to Component Size `Layout-Mobile/Section-Gap` | `body.setBoundVariable("itemSpacing", <Layout-Mobile/Section-Gap>)`: 24 in Compact, 32 in Comfortable. Never a fixed px or a plain ladder step |
+
+Content that runs on past the far end of a frame set to scroll (a screen with Prototype → Overflow Vertical, a Chip
+row with Horizontal) is scroll content and is not reported as `bounds/clipped`. Set the screen to scroll and its bars
+to Fixed instead of trimming content that no longer fits after a mode change.
 
 Run it again after every fix batch. It shows at most `MAX_PER_RULE` (25) findings per rule; `counts` has the totals.

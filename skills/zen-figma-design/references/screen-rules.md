@@ -53,15 +53,30 @@ Components own their inner padding and gap; never change them. Between elements,
 | Pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags | `Spacing/Gap/2XSmall` | 4 |
 | A thing and its label or description; controls in one toolbar row (Chips, icon buttons, Search) | `Spacing/Gap/XSmall` | 8 |
 | A group acting as one: text buttons side by side, choices in a group | `Spacing/Gap/Small` | 12 |
-| Blocks inside one surface (header → body → actions), stacked form fields, toolbar → table, cards in a grid | `Spacing/Gap/Medium` | 16 |
+| Blocks inside one surface (header → body → actions), stacked form fields, toolbar → table, a control row (Chips, Segmented, Tabs, Search) → the content it controls, cards in a grid | `Spacing/Gap/Medium` | 16 |
 | Columns of a layout, groups inside one surface | `Spacing/Gap/Large` | 24 |
 | Sections of a page (the Content slot's sections) | `Spacing/Gap/XLarge` | 32 |
 
-- Page margins come from Breakpoint & Grids: `Margin-Comfortable` (24 desktop) and `Margin-Compact` (20 phone);
-  a phone section steps down to Large.
+- Page margins come from Breakpoint & Grids: `Margin-Comfortable` (24 desktop) and `Margin-Compact` (20 phone).
+- **Phone sections:** bind the Body's gap (the frame that stacks the sections under the Top-Navigation) to Component
+  Size `Layout-Mobile/Section-Gap`: Compact 24, Comfortable 32, never less (user rule 2026-10-17; audit
+  `spacing/section-gap`).
+  - The domain picks the Component Size and Typography modes, so a screen must hold up in each: bind sizes and gaps,
+    let text wrap or truncate, and keep rows that may grow scrollable.
+  - A Body longer than the screen sits in a screen set to scroll vertically, with the bars fixed.
+  - A Chip row wider than the screen scrolls horizontally, with 2px block padding for the Chips' shadow.
 - The gap between groups is always at least one step larger than the gap inside them. Siblings are spaced by the
   parent's gap, never by empty frames or nudged positions.
 - A pair that belongs together sits tight (2XSmall); separate groups get Large.
+- **Touch targets (phone and tablet screens).** Every control keeps a 44 × 44 hit area, so a smaller one keeps the
+  rest as free space.
+  - The gap between two neighbouring controls is at least what each lacks of 44 on that side:
+    - Small Chip rows or Small buttons (32) → 12, `Spacing/Gap/Small`;
+    - a 32 next to a 40 → 8;
+    - a 24 Toggle next to a 32 → 16.
+  - Take the larger of this and the ladder step.
+  - A control row (Chips, Segmented, Tabs, Search) → the content it controls is `Spacing/Gap/Medium` (16) or more.
+  - Audit: `touch/target-spacing`, `spacing/controls-to-content`.
 - Accordion: Title → Contents is the Accordion's own gap (Medium and Large `Spacing/Gap/Small` 12, XLarge 16), one step
   more than the 8 between the rows inside it (user rule 2026-10-14). Put the list frame (gap `Spacing/Gap/XSmall`)
   straight in the Contents slot; never pad it to move it off the title.

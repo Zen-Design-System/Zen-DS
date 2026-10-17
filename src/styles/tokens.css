@@ -3647,6 +3647,7 @@
   --zen-tab-item-size-small-height: var(--zen-dm-32);
   --zen-tab-item-size-medium-height: var(--zen-dm-40);
   --zen-tab-item-size-large-height: var(--zen-dm-64);
+  --zen-layout-mobile-section-gap: var(--zen-spacing-gap-large);
   --zen-tag-spacing-medium-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-tag-spacing-small-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-badge-spacing-medium-customize: var(--zen-spacing-padding-3-xsmall);
@@ -3846,6 +3847,7 @@
   --zen-tab-item-size-small-height: var(--zen-dm-40);
   --zen-tab-item-size-medium-height: var(--zen-dm-48);
   --zen-tab-item-size-large-height: var(--zen-dm-72);
+  --zen-layout-mobile-section-gap: var(--zen-spacing-gap-xlarge);
   --zen-tag-spacing-medium-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-tag-spacing-small-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-badge-spacing-medium-customize: var(--zen-spacing-padding-3-xsmall);
@@ -4045,6 +4047,7 @@
   --zen-tab-item-size-small-height: var(--zen-dm-28);
   --zen-tab-item-size-medium-height: var(--zen-dm-32);
   --zen-tab-item-size-large-height: var(--zen-dm-64);
+  --zen-layout-mobile-section-gap: var(--zen-spacing-gap-large);
   --zen-tag-spacing-medium-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-tag-spacing-small-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-badge-spacing-medium-customize: var(--zen-spacing-padding-3-xsmall);
