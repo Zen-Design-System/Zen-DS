@@ -1295,7 +1295,7 @@ function convertNode(node, ctx) {
         // Tabs and Segmented draw their look on each item (figma-push): the first item's Size (and a Segmented's Level).
         const look = rowsOf(slot.children ?? [])[0]?.props ?? {};
         if ((set.code === "Tabs" || set.code === "Segmented") && look.Size === "Small") props.size = literal("sm");
-        if (set.code === "Segmented" && look.Level === "Primary") props.level = literal("primary");
+        if (set.code === "Segmented" && look.Level && look.Level !== "Secondary") props.level = literal(look.Level.toLowerCase());
         if (set.code === "Breadcrumbs") breadcrumbsLook(rowsOf(slot.children ?? []), props);
         continue;
       }

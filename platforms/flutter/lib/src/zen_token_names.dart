@@ -1885,6 +1885,8 @@ abstract final class ZenToken {
   static const String chipSecondaryBorderSelected = 'Chip-Secondary/Border/Selected';
   static const String chipSecondaryBorderWeigthActive = 'Chip-Secondary/Border/Weigth-Active';
   static const String toggleBarBackgroundSeclectedHover = 'Toggle/Bar/Background/Seclected/Hover';
+  static const String toggleDotContentUnselected = 'Toggle/Dot/Content/Unselected';
+  static const String toggleDotContentSelected = 'Toggle/Dot/Content/Selected';
   static const String segmentedItemPrimaryBackgroundSeclectedHover = 'Segmented-Item-Primary/Background/Seclected/Hover';
   static const String segmentedItemSecondaryBackgroundSeclectedHover = 'Segmented-Item-Secondary/Background/Seclected/Hover';
   static const String inputBorderDisabled = 'Input/Border/Disabled';
@@ -2026,6 +2028,7 @@ abstract final class ZenToken {
   static const String toggleItemSizeMedium = 'Toggle/Item/Size/Medium';
   static const String toggleItemSizeSmall = 'Toggle/Item/Size/Small';
   static const String toggleItemSizeLarge = 'Toggle/Item/Size/Large';
+  static const String toggleItemSizeXLarge = 'Toggle/Item/Size/XLarge';
   static const String sidebarDefaultWidth = 'Sidebar/Default-Width';
   static const String globalControlBarSize = 'Global-Control-Bar/Size';
   static const String tabItemSizeMediumMinWidth = 'Tab-Item/Size/Medium/Min-Width';

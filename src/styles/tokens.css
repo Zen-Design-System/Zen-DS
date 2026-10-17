@@ -914,53 +914,53 @@
   --zen-dark-blue-alpha-11: #92C2FFF5;
   --zen-dark-blue-alpha-12: #EDF8FFF5;
   --zen-light-zen-1: #FFFBFD;
-  --zen-light-zen-2: #FFF4FB;
-  --zen-light-zen-3: #FFE5F5;
-  --zen-light-zen-4: #FFD0ED;
-  --zen-light-zen-5: #FFB9E6;
-  --zen-light-zen-6: #FFA6E1;
-  --zen-light-zen-7: #FF94DD;
-  --zen-light-zen-8: #FF83DB;
-  --zen-light-zen-9: #FF6BD5;
-  --zen-light-zen-10: #F663CE;
-  --zen-light-zen-11: #941F7B;
-  --zen-light-zen-12: #5F004F;
+  --zen-light-zen-2: #FFF4FA;
+  --zen-light-zen-3: #FFE5F4;
+  --zen-light-zen-4: #FFD0EC;
+  --zen-light-zen-5: #FFBAE5;
+  --zen-light-zen-6: #FFA6DF;
+  --zen-light-zen-7: #FF95DB;
+  --zen-light-zen-8: #FF84D9;
+  --zen-light-zen-9: #F755C9;
+  --zen-light-zen-10: #DC39B2;
+  --zen-light-zen-11: #950678;
+  --zen-light-zen-12: #5A004A;
   --zen-light-zen-alpha-1: #FF058204;
-  --zen-light-zen-alpha-2: #FF05A40B;
-  --zen-light-zen-alpha-3: #FF009D1A;
-  --zen-light-zen-alpha-4: #FF019E2F;
-  --zen-light-zen-alpha-5: #FF00A446;
-  --zen-light-zen-alpha-6: #FF01A959;
-  --zen-light-zen-alpha-7: #FF00AE6B;
-  --zen-light-zen-alpha-8: #FF00B57C;
-  --zen-light-zen-alpha-9: #FF00B794;
-  --zen-light-zen-alpha-10: #F000AF9C;
-  --zen-light-zen-alpha-11: #850069E0;
-  --zen-light-zen-alpha-12: #5F004F;
-  --zen-dark-zen-1: #161114;
-  --zen-dark-zen-2: #251720;
-  --zen-dark-zen-3: #371C2E;
-  --zen-dark-zen-4: #4C233F;
-  --zen-dark-zen-5: #61264F;
-  --zen-dark-zen-6: #75255F;
-  --zen-dark-zen-7: #881F6E;
-  --zen-dark-zen-8: #922677;
-  --zen-dark-zen-9: #FF6BD5;
-  --zen-dark-zen-10: #FFA7E2;
-  --zen-dark-zen-11: #FFC9ED;
-  --zen-dark-zen-12: #FFF0FA;
+  --zen-light-zen-alpha-2: #FF058D0B;
+  --zen-light-zen-alpha-3: #FF00931A;
+  --zen-light-zen-alpha-4: #FF01982F;
+  --zen-light-zen-alpha-5: #FF009F45;
+  --zen-light-zen-alpha-6: #FF01A459;
+  --zen-light-zen-alpha-7: #FF00A86A;
+  --zen-light-zen-alpha-8: #FF00B07B;
+  --zen-light-zen-alpha-9: #F300AEAA;
+  --zen-light-zen-alpha-10: #D2009CC6;
+  --zen-light-zen-alpha-11: #930075F9;
+  --zen-light-zen-alpha-12: #5A004A;
+  --zen-dark-zen-1: #161014;
+  --zen-dark-zen-2: #261620;
+  --zen-dark-zen-3: #381B2E;
+  --zen-dark-zen-4: #4E213F;
+  --zen-dark-zen-5: #642351;
+  --zen-dark-zen-6: #792060;
+  --zen-dark-zen-7: #8D166F;
+  --zen-dark-zen-8: #961E78;
+  --zen-dark-zen-9: #F755C9;
+  --zen-dark-zen-10: #FF7BD6;
+  --zen-dark-zen-11: #FFB1E5;
+  --zen-dark-zen-12: #FFEDF9;
   --zen-dark-zen-alpha-1: #FF00FF01;
-  --zen-dark-zen-alpha-2: #FD50BF15;
-  --zen-dark-zen-alpha-3: #FE52C428;
-  --zen-dark-zen-alpha-4: #FF57CA3E;
-  --zen-dark-zen-alpha-5: #FF4EC955;
-  --zen-dark-zen-alpha-6: #FF3FCA6B;
-  --zen-dark-zen-alpha-7: #FF2CCB7F;
-  --zen-dark-zen-alpha-8: #FF37CD8A;
-  --zen-dark-zen-alpha-9: #FF6FDDF5;
-  --zen-dark-zen-alpha-10: #FFADEBF5;
-  --zen-dark-zen-alpha-11: #FFD1F6F5;
-  --zen-dark-zen-alpha-12: #FFF9FFF5;
+  --zen-dark-zen-alpha-2: #FD41B716;
+  --zen-dark-zen-alpha-3: #FE4AC029;
+  --zen-dark-zen-alpha-4: #FE4DC341;
+  --zen-dark-zen-alpha-5: #FF43C858;
+  --zen-dark-zen-alpha-6: #FF32C56F;
+  --zen-dark-zen-alpha-7: #FF1AC584;
+  --zen-dark-zen-alpha-8: #FF28C98E;
+  --zen-dark-zen-alpha-9: #FF58D1F5;
+  --zen-dark-zen-alpha-10: #FF7FDEF5;
+  --zen-dark-zen-alpha-11: #FFB8EEF5;
+  --zen-dark-zen-alpha-12: #FFF6FFF5;
 }
 
 /* Global Dimensions / Mode 1 */
@@ -2374,6 +2374,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: #FFFFFF00;
@@ -2508,6 +2510,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-accent-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-on-white-overlay-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: #FFFFFF00;
@@ -2649,6 +2653,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: #FFFFFF00;
@@ -2790,6 +2796,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-accent-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-on-white-overlay-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: #FFFFFF00;
@@ -2925,6 +2933,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-neutral-subtle-default);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-secondary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: #FFFFFF00;
@@ -3056,6 +3066,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: var(--zen-color-border-disabled);
@@ -3189,6 +3201,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: #FFFFFF00;
@@ -3327,6 +3341,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-subtle);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: var(--zen-color-border-disabled);
@@ -3461,6 +3477,8 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-toggle-dot-content-unselected: var(--zen-color-content-on-white-overlay-light);
+  --zen-toggle-dot-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-input-border-disabled: #FFFFFF00;
@@ -3590,7 +3608,7 @@
   --zen-tag-spacing-small-vertical-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-tag-spacing-small-gap: var(--zen-spacing-gap-3-xsmall);
   --zen-tag-spacing-small-text-wrapper-padding: var(--zen-spacing-padding-2-xsmall);
-  --zen-segmented-spacing-medium-horizontal-padding: var(--zen-spacing-padding-xsmall);
+  --zen-segmented-spacing-medium-horizontal-padding: 10px;
   --zen-segmented-spacing-medium-vertical-padding: var(--zen-spacing-padding-xsmall);
   --zen-segmented-spacing-medium-gap: 0px;
   --zen-segmented-spacing-medium-text-wrapper-padding: var(--zen-spacing-padding-xsmall);
@@ -3607,6 +3625,7 @@
   --zen-toggle-item-size-medium: var(--zen-dm-16);
   --zen-toggle-item-size-small: var(--zen-dm-12);
   --zen-toggle-item-size-large: var(--zen-dm-20);
+  --zen-toggle-item-size-xlarge: var(--zen-dm-44);
   --zen-sidebar-default-width: 240px;
   --zen-global-control-bar-size: var(--zen-dm-68);
   --zen-tab-item-size-medium-min-width: var(--zen-dm-40);
@@ -3790,7 +3809,7 @@
   --zen-tag-spacing-small-vertical-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-tag-spacing-small-gap: var(--zen-spacing-gap-3-xsmall);
   --zen-tag-spacing-small-text-wrapper-padding: var(--zen-spacing-padding-2-xsmall);
-  --zen-segmented-spacing-medium-horizontal-padding: var(--zen-spacing-padding-xsmall);
+  --zen-segmented-spacing-medium-horizontal-padding: 10px;
   --zen-segmented-spacing-medium-vertical-padding: var(--zen-spacing-padding-xsmall);
   --zen-segmented-spacing-medium-gap: 0px;
   --zen-segmented-spacing-medium-text-wrapper-padding: var(--zen-spacing-padding-xsmall);
@@ -3807,6 +3826,7 @@
   --zen-toggle-item-size-medium: var(--zen-dm-20);
   --zen-toggle-item-size-small: var(--zen-dm-16);
   --zen-toggle-item-size-large: var(--zen-dm-24);
+  --zen-toggle-item-size-xlarge: var(--zen-dm-48);
   --zen-sidebar-default-width: 260px;
   --zen-global-control-bar-size: var(--zen-dm-80);
   --zen-tab-item-size-medium-min-width: var(--zen-dm-48);
@@ -4007,6 +4027,7 @@
   --zen-toggle-item-size-medium: var(--zen-dm-16);
   --zen-toggle-item-size-small: var(--zen-dm-12);
   --zen-toggle-item-size-large: var(--zen-dm-20);
+  --zen-toggle-item-size-xlarge: var(--zen-dm-44);
   --zen-sidebar-default-width: 240px;
   --zen-global-control-bar-size: var(--zen-dm-68);
   --zen-tab-item-size-medium-min-width: var(--zen-dm-32);
@@ -4647,7 +4668,7 @@
   --zen-typography-letter-spacing-body-code: 0px;
 }
 
-/* Global Colors / Zen-High-Contrast (Figma): 151 values */
+/* Global Colors / Zen-High-Contrast (Figma): 153 values */
 [data-contrast="high"] {
   --zen-light-tomato-alpha-5: #891C008A;
   --zen-light-tomato-alpha-6: #981F009E;
@@ -4794,12 +4815,14 @@
   --zen-dark-blue-alpha-5: #5A99FF99;
   --zen-dark-blue-alpha-6: #478EFFB7;
   --zen-dark-blue-alpha-7: #3C85FFD5;
-  --zen-light-zen-alpha-5: #82005680;
-  --zen-light-zen-alpha-6: #93006492;
-  --zen-light-zen-alpha-7: #A0006FA3;
-  --zen-dark-zen-alpha-5: #FF85D683;
-  --zen-dark-zen-alpha-6: #FF76D49B;
-  --zen-dark-zen-alpha-7: #FF67D2B2;
+  --zen-light-zen-10: #CB25A3;
+  --zen-light-zen-alpha-5: #82005480;
+  --zen-light-zen-alpha-6: #93006092;
+  --zen-light-zen-alpha-7: #9F006BA2;
+  --zen-light-zen-alpha-10: #C20093DA;
+  --zen-dark-zen-alpha-5: #FF7ED587;
+  --zen-dark-zen-alpha-6: #FF6ED0A1;
+  --zen-dark-zen-alpha-7: #FF5ECEB8;
 }
 
 /* Global Colors / Zen again, for a standard scope inside a high one */
@@ -4949,12 +4972,14 @@
   --zen-dark-blue-alpha-5: #1E75FF6A;
   --zen-dark-blue-alpha-6: #0C6EFF86;
   --zen-dark-blue-alpha-7: #0065FFA3;
-  --zen-light-zen-alpha-5: #FF00A446;
-  --zen-light-zen-alpha-6: #FF01A959;
-  --zen-light-zen-alpha-7: #FF00AE6B;
-  --zen-dark-zen-alpha-5: #FF4EC955;
-  --zen-dark-zen-alpha-6: #FF3FCA6B;
-  --zen-dark-zen-alpha-7: #FF2CCB7F;
+  --zen-light-zen-10: #DC39B2;
+  --zen-light-zen-alpha-5: #FF009F45;
+  --zen-light-zen-alpha-6: #FF01A459;
+  --zen-light-zen-alpha-7: #FF00A86A;
+  --zen-light-zen-alpha-10: #D2009CC6;
+  --zen-dark-zen-alpha-5: #FF43C858;
+  --zen-dark-zen-alpha-6: #FF32C56F;
+  --zen-dark-zen-alpha-7: #FF1AC584;
 }
 
 /* Base Colors (Project) / Zen, re-declared under a contrast scope */

@@ -362,7 +362,15 @@ export const FIGMA_PROPS = {
     sets: { Toggle: null },
     props: { Size: "size", State: "state", Select: { prop: "checked", bool: true }, Theme: "theme" },
   },
-  ToggleButton: { sets: { "Toggle-Button": null }, props: { Size: "size", State: { prop: "state", values: { "Default-Hover": "hover" } }, Select: { prop: "checked", bool: true } } },
+  ToggleButton: {
+    sets: { "Toggle-Button": null },
+    props: {
+      Size: "size", State: { prop: "state", values: { "Default-Hover": "hover" } }, Select: { prop: "checked", bool: true },
+      // XLarge's dot icon (Toggle.tsx `icon`): the layer exists only at Size=XLarge.
+      Icon: { toggle: "icon", on: { swap: "Icon-Src" }, when: [{ prop: "size", oneOf: ["xlarge"], default: "medium" }] },
+      "Icon-Src": "icon",
+    },
+  },
   Tooltip: { sets: { Tooltip: null }, props: { Slot: skip("the trigger is the element's child"), Color: { prop: "color", values: { "Black-Overlay": "black-overlay" } }, Size: "size" } },
   Toast: {
     sets: { "Toast-Message": null },

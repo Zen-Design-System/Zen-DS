@@ -125,6 +125,52 @@
   --zen-chip-icon: var(--zen-chip-primary-content-selected, #fff);
 }
 
+/* Level=Black-Overlay (the default overlay) and White-Overlay (on a solid colour): chips on a colour band or photo, for
+   every variant, as Button's overlay levels. Only static tokens, which do not switch with the mode, because the surface
+   under them does not either: Background/Black-Overlay or White-Overlay (Default/Hover/Pressed) with light text, no
+   stroke and no shadow; Selected is Background/White/Solid with On-White-Overlay text and the action shadow. */
+.zen-chip[data-level="black-overlay"] {
+  --zen-chip-background: var(--zen-color-background-black-overlay-default, rgb(0 0 0 / 40%));
+  --zen-chip-background-hover: var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%));
+  --zen-chip-background-pressed: var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%));
+  --zen-chip-content: var(--zen-color-content-on-black-overlay-strongest, rgb(255 255 255 / 96%));
+  --zen-chip-icon: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 82%));
+}
+
+.zen-chip[data-level="white-overlay"] {
+  --zen-chip-background: var(--zen-color-background-white-overlay-default, rgb(255 255 255 / 40%));
+  --zen-chip-background-hover: var(--zen-color-background-white-overlay-hover, rgb(255 255 255 / 50%));
+  --zen-chip-background-pressed: var(--zen-color-background-white-overlay-pressed, rgb(255 255 255 / 60%));
+  --zen-chip-content: var(--zen-color-content-on-colors, #fff);
+  --zen-chip-icon: var(--zen-color-content-on-colors, #fff);
+}
+
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"]) {
+  --zen-chip-shadow-off: none;
+  --zen-chip-shadow-off-hover: none;
+  --zen-chip-border: transparent;
+}
+
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"])[data-select="true"] {
+  --zen-chip-background: var(--zen-color-background-white-solid-default, #fff);
+  --zen-chip-background-hover: var(--zen-color-background-white-solid-hover, #f9f9f9);
+  --zen-chip-background-pressed: var(--zen-color-background-white-solid-pressed, #f0f0f0);
+  --zen-chip-shadow-off: var(--zen-style-shadow-action-basic-shadow);
+  --zen-chip-shadow-off-hover: var(--zen-style-shadow-action-basic-shadow);
+  --zen-chip-content: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%));
+  --zen-chip-icon: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%));
+  --zen-chip-stroke-width: 1px;
+}
+
+/* Overlay chips press one step further (Pressed), and hover/press keep their own icon colour. */
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"]):is([data-state="press"], :active:not(:disabled, [data-static="true"])) { background: var(--zen-chip-background-pressed); }
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"])[data-select="false"]:is([data-state="hover"], [data-state="press"], :hover, :active):not(:disabled) { --zen-chip-icon: var(--zen-chip-content); }
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"])[data-state="placeholder"] .zen-chip__label { color: var(--zen-color-content-on-black-overlay-placeholder, rgb(255 255 255 / 52%)); }
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"]) :is(.zen-chip__remove, .zen-chip__multi-remove) { color: var(--zen-chip-content); }
+/* Counters: White/Solid on the overlay chip; Black/Solid on the white Selected chip (Neutral/Solid would turn light in dark mode). */
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-badge.zen-badge--counter { --zen-badge-bg: var(--zen-color-background-white-solid-default, #fff); --zen-badge-icon: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); --zen-badge-content: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"])[data-select="true"] .zen-badge.zen-badge--counter { --zen-badge-bg: var(--zen-color-background-black-solid-default, #202020); --zen-badge-icon: var(--zen-color-content-on-black-overlay-strongest, #fff); --zen-badge-content: var(--zen-color-content-on-black-overlay-strongest, #fff); }
+
 /* A Number-only chip with nothing to do is a count (a <span>, Chip.tsx): the Default state only — no pointer, and the
    pointer hover / press below skip it. A forced data-state still draws that state for specimens. */
 .zen-chip[data-static="true"] { cursor: default; }
@@ -158,6 +204,10 @@
   content: "";
   pointer-events: none;
 }
+
+/* An overlay chip's ring takes its label colour (currentColor): no Color/Focus token is static, Focus/Accent vanishes on
+   a Brand/Accent band and Focus/Neutral turns white in dark mode. */
+.zen-chip:is([data-level="black-overlay"], [data-level="white-overlay"]):is([data-state="focused"], :focus-visible)::before { border-color: currentColor; }
 
 .zen-chip[data-state="placeholder"] .zen-chip__label { color: var(--zen-color-content-placeholder); }
 .zen-chip:disabled,

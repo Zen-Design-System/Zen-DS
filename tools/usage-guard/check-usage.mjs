@@ -1550,11 +1550,11 @@ export const rules = [
       return small && `stretches a size "${small}" Button across a vertical bar — use size="lg" (or primaryAction / secondaryAction, which size themselves).`;
     } },
   { id: "mobile/full-size-controls", components: ["PlatformPhone", "BottomSheet"], severity: "error", allow: "mobile-size", guideline: "docs/guidelines/toggle.md",
-    summary: "On phones components keep their full size: Toggle and ToggleButton are size large, inputs medium or larger; the small sizes are for dense desktop rows, tables and panels.",
+    summary: "On phones components keep their full size: Toggle and ToggleButton are size large (or xlarge, the 48px switch), inputs medium or larger; the small sizes are for dense desktop rows, tables and panels.",
     check: ({ attrs, children }) => {
       const src = `${attrs}\n${children}`;
       const toggle = ["Toggle", "ToggleButton"].flatMap((tag) => openingTags(src, tag).map((a) => [tag, topLevel(a)]))
-        .find(([, a]) => expr(a, "size") === undefined && !/^(lg|large)$/.test(literal(a, "size") ?? ""));
+        .find(([, a]) => expr(a, "size") === undefined && !/^(lg|large|xl|xlarge)$/.test(literal(a, "size") ?? ""));
       if (toggle) return `has a ${toggle[0]} of size ${literal(toggle[1], "size") ?? "(default)"} on a phone — use size="lg".`;
       const field = ["InputField", "TextAreaField", "SelectField", "DateField", "ColorField", "AutocompleteField", "NumberField", "HeadingField", "Search"]
         .flatMap((tag) => openingTags(src, tag).map((a) => [tag, literal(topLevel(a), "size")])).find(([, size]) => /^(xs|xsmall|sm|small)$/.test(size ?? ""));

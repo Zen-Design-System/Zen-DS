@@ -1,17 +1,19 @@
 import { useRef, type ChangeEvent, type InputHTMLAttributes, type ReactNode, type Ref } from "react";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { scaleKey } from "../_shared/scale";
+import { renderIcon } from "../_shared/icon";
+import type { IconName } from "../Icon";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./toggle.css";
 
-export const toggleSizes = ["small", "medium", "large"] as const;
+export const toggleSizes = ["small", "medium", "large", "xlarge"] as const;
 /** Figma Toggle-Button State: Default, Default-Hover (`hover`) and Disabled. Toggle (with label) exposes Default and Disabled. */
 export const toggleStates = ["default", "hover", "disabled"] as const;
 export const toggleThemes = ["text-first", "toggle-first"] as const;
 /** CSS / Figma key (the `data-size` value). */
 type ToggleSizeKey = (typeof toggleSizes)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
-export type ToggleSize = "sm" | "md" | "lg" | "small" | "medium" | "large";
+export type ToggleSize = "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large" | "xlarge";
 export type ToggleState = (typeof toggleStates)[number];
 export type ToggleTheme = (typeof toggleThemes)[number];
 
@@ -26,8 +28,12 @@ export interface ToggleButtonProps extends Omit<InputHTMLAttributes<HTMLInputEle
   selected?: boolean;
   /** @deprecated Use defaultChecked. */
   defaultSelected?: boolean;
-  /** Short (sm, md…) or Figma (small, medium…) spelling. */
+  /** Short (sm, md…) or Figma (small, medium…) spelling. XLarge (`xl`) is the 48px switch with an icon in its dot. */
   size?: ToggleSize;
+  /** XLarge only (Figma Icon + Icon-Src): an icon in the dot, an icon name (`"icon-moon-01-line"`) or a node. It takes
+   *  Toggle/Dot/Content/Unselected (Light) while off and /Selected (Strongest) while on; smaller dots have no room for
+   *  it and leave it out. */
+  icon?: IconName | ReactNode;
   state?: ToggleState;
   /** @deprecated Use onCheckedChange (or read event.target.checked). */
   onSelectedChange?: (selected: boolean, event: ChangeEvent<HTMLInputElement>) => void;
@@ -35,7 +41,7 @@ export interface ToggleButtonProps extends Omit<InputHTMLAttributes<HTMLInputEle
   ref?: Ref<HTMLSpanElement>;
 }
 
-export function ToggleButton({ checked, defaultChecked, onCheckedChange, selected, defaultSelected, size: sizeProp = "md", state = "default", disabled, className, onSelectedChange, onChange, "aria-labelledby": labelledBy, "aria-describedby": describedBy, ref, ...inputProps }: ToggleButtonProps) {
+export function ToggleButton({ checked, defaultChecked, onCheckedChange, selected, defaultSelected, size: sizeProp = "md", icon, state = "default", disabled, className, onSelectedChange, onChange, "aria-labelledby": labelledBy, "aria-describedby": describedBy, ref, ...inputProps }: ToggleButtonProps) {
   const size = scaleKey(sizeProp, toggleSizes);
   // `checked` / `defaultChecked` are the canonical names; `selected` / `defaultSelected` still work (the new name wins).
   const [isSelected, setSelected] = useControllableState({ value: checked ?? selected, defaultValue: defaultChecked ?? defaultSelected ?? false, onChange: onCheckedChange, name: "ToggleButton checked" });
@@ -76,7 +82,7 @@ export function ToggleButton({ checked, defaultChecked, onCheckedChange, selecte
       }}
     >
       <span className="zen-toggle-button__track" aria-hidden="true">
-        <span className="zen-toggle-button__dot" />
+        <span className="zen-toggle-button__dot">{size === "xlarge" && icon ? renderIcon(icon) : null}</span>
       </span>
       {/* The native checkbox only carries name/value for forms and fires the change event; the span above is the
           switch that takes focus and is announced. `hidden` takes the checkbox out of focus and the accessibility

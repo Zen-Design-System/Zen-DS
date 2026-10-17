@@ -52,10 +52,18 @@
         },
         {
           "name": "size",
-          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"sm\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling. XLarge (`xl`) is the 48px switch with an icon in its dot.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "XLarge only (Figma Icon + Icon-Src): an icon in the dot, an icon name (`\"icon-moon-01-line\"`) or a node. It takes\n Toggle/Dot/Content/Unselected (Light) while off and /Selected (Strongest) while on; smaller dots have no room for\n it and leave it out.",
           "deprecated": null
         },
         {
@@ -165,10 +173,18 @@
         },
         {
           "name": "size",
-          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling. XLarge (`xl`) is the 48px switch with an icon in its dot.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "XLarge only (Figma Icon + Icon-Src): an icon in the dot, an icon name (`\"icon-moon-01-line\"`) or a node. It takes\n Toggle/Dot/Content/Unselected (Light) while off and /Selected (Strongest) while on; smaller dots have no room for\n it and leave it out.",
           "deprecated": null
         },
         {

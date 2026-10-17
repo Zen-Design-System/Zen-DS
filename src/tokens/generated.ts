@@ -2109,9 +2109,12 @@ export const tokens = {
   "Toggle/Dot/Background/Seclected-Disabled": "var(--zen-toggle-dot-background-seclected-disabled)",
   "Toggle/Dot/Background/Unselected-Default": "var(--zen-toggle-dot-background-unselected-default)",
   "Toggle/Dot/Background/Unselected-Disabled": "var(--zen-toggle-dot-background-unselected-disabled)",
+  "Toggle/Dot/Content/Selected": "var(--zen-toggle-dot-content-selected)",
+  "Toggle/Dot/Content/Unselected": "var(--zen-toggle-dot-content-unselected)",
   "Toggle/Item/Size/Large": "var(--zen-toggle-item-size-large)",
   "Toggle/Item/Size/Medium": "var(--zen-toggle-item-size-medium)",
   "Toggle/Item/Size/Small": "var(--zen-toggle-item-size-small)",
+  "Toggle/Item/Size/XLarge": "var(--zen-toggle-item-size-xlarge)",
   "Typography/Font-Family/Button": "var(--zen-typography-font-family-button)",
   "Typography/Font-Family/Dev": "var(--zen-typography-font-family-dev)",
   "Typography/Font-Family/Display": "var(--zen-typography-font-family-display)",
@@ -2272,7 +2275,7 @@ export const tokenCollections = {
       "Neutral - S6",
       "Neutral - S7"
     ],
-    "variableCount": 115
+    "variableCount": 117
   },
   "component-size": {
     "name": "Component Size",
@@ -2281,7 +2284,7 @@ export const tokenCollections = {
       "Comfortable",
       "Studio"
     ],
-    "variableCount": 196
+    "variableCount": 197
   },
   "spacing": {
     "name": "Spacing",

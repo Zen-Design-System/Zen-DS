@@ -8854,13 +8854,17 @@
                   {
                     "enum": [
                       "primary",
-                      "secondary"
+                      "secondary",
+                      "black-overlay",
+                      "white-overlay",
+                      "overlay"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Secondary (default) or Primary on a page surface (Advanced chips are always Secondary there)."
               },
               "theme": {
                 "anyOf": [
@@ -9508,7 +9512,10 @@
                   {
                     "enum": [
                       "primary",
-                      "secondary"
+                      "secondary",
+                      "black-overlay",
+                      "white-overlay",
+                      "overlay"
                     ]
                   },
                   {
@@ -25821,7 +25828,10 @@
                   {
                     "enum": [
                       "primary",
-                      "secondary"
+                      "secondary",
+                      "black-overlay",
+                      "white-overlay",
+                      "overlay"
                     ]
                   },
                   {
@@ -32250,9 +32260,11 @@
                       "sm",
                       "md",
                       "lg",
+                      "xl",
                       "small",
                       "medium",
-                      "large"
+                      "large",
+                      "xlarge"
                     ]
                   },
                   {
@@ -32260,6 +32272,36 @@
                   }
                 ],
                 "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+              },
+              "icon": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "XLarge only (Figma Icon + Icon-Src): an icon in the dot, an icon name (`\"icon-moon-01-line\"`) or a node."
               },
               "label": {
                 "anyOf": [
@@ -32528,9 +32570,11 @@
                       "sm",
                       "md",
                       "lg",
+                      "xl",
                       "small",
                       "medium",
-                      "large"
+                      "large",
+                      "xlarge"
                     ]
                   },
                   {

@@ -194,3 +194,25 @@ export const PaddingMatrix: Story = {
     </div>
   ),
 };
+
+/** Black-Overlay (the default overlay) and White-Overlay on a Brand/Accent band: static tokens, so light and dark mode render the same. */
+export const Overlay: Story = {
+  render: () => (
+    <div style={{ display: "grid", gap: 12, padding: 24, borderRadius: 16, background: "var(--zen-color-background-accent-solid-default)" }}>
+      {(["black-overlay", "white-overlay"] as const).map((level) => (
+        <div key={level} style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+          <Chip variant="normal" level={level} size="small">Default</Chip>
+          <Chip variant="normal" level={level} size="small" state="hover">Hover</Chip>
+          <Chip variant="normal" level={level} size="small" selected>Selected</Chip>
+          <Chip variant="normal" level={level} size="small" state="focused">Focused</Chip>
+          <Chip variant="normal" level={level} size="small" state="disabled">Disabled</Chip>
+          <Chip variant="normal" level={level} size="small" theme="leading-icon" leading={<Icon name="icon-grid-01-line" size="sm" />}>Icon</Chip>
+          <Chip variant="normal" level={level} size="small" counter={4}>Counter</Chip>
+          <Chip variant="advanced" level={level}>Assignee</Chip>
+          <Chip variant="advanced" level={level} selectionMode="multiple" selectionCount={3} selected>Status</Chip>
+          <Chip variant="number-only" level={level} size="small" value={12} onClick={() => undefined} />
+        </div>
+      ))}
+    </div>
+  ),
+};

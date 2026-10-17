@@ -7,7 +7,7 @@ const meta = {
   tags: ["autodocs"],
   parameters: { layout: "centered" },
   args: { label: "Email notifications", caption: "A summary of mentions and replies.", defaultChecked: true, size: "sm", theme: "text-first" },
-  argTypes: { size: { control: "inline-radio", options: ["sm", "md", "lg"] }, theme: { control: "inline-radio", options: toggleThemes }, onCheckedChange: { action: "checked" } },
+  argTypes: { size: { control: "inline-radio", options: ["sm", "md", "lg", "xl"] }, theme: { control: "inline-radio", options: toggleThemes }, onCheckedChange: { action: "checked" } },
 } satisfies Meta<typeof Toggle>;
 
 export default meta;
@@ -22,6 +22,17 @@ export const Settings: Story = {
       <Toggle label="Mentions and replies" defaultChecked />
       <Toggle label="Weekly digest" caption="Every Monday." defaultChecked />
       <Toggle label="Product updates" />
+    </div>
+  ),
+};
+
+/** XLarge (48px): an icon in the dot, Light while off and Strongest while on. */
+export const XLarge: Story = {
+  render: () => (
+    <div style={{ display: "grid", gap: 16, width: 360 }}>
+      <Toggle size="xl" icon="icon-moon-01-line" label="Do not disturb" caption="Silence calls and alerts." />
+      <Toggle size="xl" icon="icon-moon-01-line" label="Do not disturb" caption="Silence calls and alerts." defaultChecked />
+      <Toggle size="xl" icon="icon-moon-01-line" label="Do not disturb" disabled defaultChecked />
     </div>
   ),
 };

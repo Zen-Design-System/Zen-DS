@@ -362,6 +362,9 @@
 .platform-input-preview > .zen-rich-text-field { width: 100%; }
 .platform-input-conditions-demo { display: grid; width: 100%; gap: var(--zen-spacing-gap-small, 12px); }
 .platform-example-row { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-small, 12px); align-items: center; }
+/* A playground set to an overlay level (Chip, Segmented: black-overlay, white-overlay) previews on a Brand/Accent band, the
+   surface those levels are for. */
+.platform-example-panel--stack > .platform-example-row[data-surface="accent"] { background: var(--zen-color-background-accent-solid-default, #f755c9); }
 /* Room for the open Popover (Search + Label + 4 items) below the Chip / Select trigger. */
 .platform-example-panel--stack > .platform-popover-preview { min-height: 340px; align-items: flex-start; }
 .platform-popover-select { width: min(240px, 100%); }

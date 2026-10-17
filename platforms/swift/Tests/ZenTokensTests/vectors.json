@@ -99,7 +99,7 @@
   "name": "Button-Accent/Background/Default",
   "context": {},
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Button-Accent/Background/Default",
@@ -107,7 +107,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Button-Accent/Background/Default",
@@ -128,7 +128,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Button-Accent/Background/Default",
@@ -141,13 +141,13 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Button-Accent/Background/Hover",
   "context": {},
   "type": "COLOR",
-  "expected": "#F663CE"
+  "expected": "#DC39B2"
  },
  {
   "name": "Button-Accent/Background/Hover",
@@ -155,7 +155,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FFA7E2"
+  "expected": "#FF7BD6"
  },
  {
   "name": "Button-Accent/Background/Hover",
@@ -176,7 +176,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FFA7E2"
+  "expected": "#FF7BD6"
  },
  {
   "name": "Button-Accent/Background/Hover",
@@ -189,13 +189,13 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#F663CE"
+  "expected": "#DC39B2"
  },
  {
   "name": "Button-Accent/Background/Pressed",
   "context": {},
   "type": "COLOR",
-  "expected": "#941F7B"
+  "expected": "#950678"
  },
  {
   "name": "Button-Accent/Background/Pressed",
@@ -203,7 +203,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FFC9ED"
+  "expected": "#FFB1E5"
  },
  {
   "name": "Button-Accent/Background/Pressed",
@@ -224,7 +224,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FFC9ED"
+  "expected": "#FFB1E5"
  },
  {
   "name": "Button-Accent/Background/Pressed",
@@ -237,7 +237,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#941F7B"
+  "expected": "#950678"
  },
  {
   "name": "Button-Primary/Background/Default",
@@ -262,7 +262,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Button-Primary/Background/Default",
@@ -310,7 +310,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FFA7E2"
+  "expected": "#FF7BD6"
  },
  {
   "name": "Button-Primary/Background/Hover",
@@ -358,7 +358,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FFC9ED"
+  "expected": "#FFB1E5"
  },
  {
   "name": "Button-Primary/Background/Pressed",
@@ -742,7 +742,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Checkbox/Background/Seclected/Default",
@@ -1491,7 +1491,7 @@
   "name": "Color/Border/Support/Brand/Solid",
   "context": {},
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Color/Border/Support/Brand/Solid",
@@ -1499,7 +1499,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Color/Border/Support/Brand/Solid",
@@ -1510,7 +1510,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Color/Border/Support/Brand/Solid",
@@ -1520,7 +1520,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Color/Border/Support/Brand/Solid",
@@ -1533,7 +1533,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#FF6BD5"
+  "expected": "#F755C9"
  },
  {
   "name": "Color/Border/Support/Sky/Solid",
@@ -2403,7 +2403,7 @@
   "name": "Dark/Brand/4",
   "context": {},
   "type": "COLOR",
-  "expected": "#4C233F"
+  "expected": "#4E213F"
  },
  {
   "name": "Dark/Brand/4",
@@ -2411,7 +2411,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#4C233F"
+  "expected": "#4E213F"
  },
  {
   "name": "Dark/Brand/4",
@@ -2422,7 +2422,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#4C233F"
+  "expected": "#4E213F"
  },
  {
   "name": "Dark/Brand/4",
@@ -2432,7 +2432,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#4C233F"
+  "expected": "#4E213F"
  },
  {
   "name": "Dark/Brand/4",
@@ -2445,7 +2445,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#4C233F"
+  "expected": "#4E213F"
  },
  {
   "name": "Dark/Brown/1",
@@ -3094,7 +3094,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FF57CA3E"
+  "expected": "#FE4DC341"
  },
  {
   "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
@@ -3552,54 +3552,6 @@
   "expected": 12
  },
  {
-  "name": "Input/Size/Heading-H3",
-  "context": {},
-  "type": "FLOAT",
-  "expected": 32
- },
- {
-  "name": "Input/Size/Heading-H3",
-  "context": {
-   "mode-colors-semantic": "Dark"
-  },
-  "type": "FLOAT",
-  "expected": 32
- },
- {
-  "name": "Input/Size/Heading-H3",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "component-colors-theme": "Brand - S1",
-   "component-size": "Compact",
-   "corner-radius": "Smooth"
-  },
-  "type": "FLOAT",
-  "expected": 32
- },
- {
-  "name": "Input/Size/Heading-H3",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "typography-configuration": "Mobile",
-   "corner-radius": "Standard"
-  },
-  "type": "FLOAT",
-  "expected": 32
- },
- {
-  "name": "Input/Size/Heading-H3",
-  "context": {
-   "mode-colors-semantic": "Light",
-   "component-colors-theme": "Neutral - S4",
-   "component-size": "Comfortable",
-   "corner-radius": "Luxury",
-   "emphasis-level": "Strong",
-   "breakpoint-grids": "Mobile"
-  },
-  "type": "FLOAT",
-  "expected": 36
- },
- {
   "name": "Input/Spacing/Small/Horizontal-Padding",
   "context": {},
   "type": "FLOAT",
@@ -3694,54 +3646,6 @@
   },
   "type": "FLOAT",
   "expected": 2
- },
- {
-  "name": "Layout-Mobile/Section-Gap",
-  "context": {},
-  "type": "FLOAT",
-  "expected": 24
- },
- {
-  "name": "Layout-Mobile/Section-Gap",
-  "context": {
-   "mode-colors-semantic": "Dark"
-  },
-  "type": "FLOAT",
-  "expected": 24
- },
- {
-  "name": "Layout-Mobile/Section-Gap",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "component-colors-theme": "Brand - S1",
-   "component-size": "Compact",
-   "corner-radius": "Smooth"
-  },
-  "type": "FLOAT",
-  "expected": 24
- },
- {
-  "name": "Layout-Mobile/Section-Gap",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "typography-configuration": "Mobile",
-   "corner-radius": "Standard"
-  },
-  "type": "FLOAT",
-  "expected": 24
- },
- {
-  "name": "Layout-Mobile/Section-Gap",
-  "context": {
-   "mode-colors-semantic": "Light",
-   "component-colors-theme": "Neutral - S4",
-   "component-size": "Comfortable",
-   "corner-radius": "Luxury",
-   "emphasis-level": "Strong",
-   "breakpoint-grids": "Mobile"
-  },
-  "type": "FLOAT",
-  "expected": 32
  },
  {
   "name": "Light/Brand/1",
@@ -4512,21 +4416,21 @@
   "expected": 2
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Gap",
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
   "context": {},
   "type": "FLOAT",
-  "expected": 24
+  "expected": 10
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Gap",
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
   "context": {
    "mode-colors-semantic": "Dark"
   },
   "type": "FLOAT",
-  "expected": 24
+  "expected": 10
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Gap",
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -4534,20 +4438,20 @@
    "corner-radius": "Smooth"
   },
   "type": "FLOAT",
-  "expected": 24
+  "expected": 10
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Gap",
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
    "corner-radius": "Standard"
   },
   "type": "FLOAT",
-  "expected": 24
+  "expected": 10
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Gap",
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
@@ -4557,7 +4461,55 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "FLOAT",
-  "expected": 24
+  "expected": 10
+ },
+ {
+  "name": "Navigation-Mobile/Top/Bar-Size",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Navigation-Mobile/Top/Bar-Size",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Navigation-Mobile/Top/Bar-Size",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Navigation-Mobile/Top/Bar-Size",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Navigation-Mobile/Top/Bar-Size",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 64
  },
  {
   "name": "Overlay/White/10",
@@ -5760,21 +5712,21 @@
   "expected": 8
  },
  {
-  "name": "Tab-Item/Spacing/Small/Vertical-Padding",
+  "name": "Tab-Item/Size/Large/Height",
   "context": {},
   "type": "FLOAT",
-  "expected": 8
+  "expected": 64
  },
  {
-  "name": "Tab-Item/Spacing/Small/Vertical-Padding",
+  "name": "Tab-Item/Size/Large/Height",
   "context": {
    "mode-colors-semantic": "Dark"
   },
   "type": "FLOAT",
-  "expected": 8
+  "expected": 64
  },
  {
-  "name": "Tab-Item/Spacing/Small/Vertical-Padding",
+  "name": "Tab-Item/Size/Large/Height",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -5782,20 +5734,20 @@
    "corner-radius": "Smooth"
   },
   "type": "FLOAT",
-  "expected": 8
+  "expected": 64
  },
  {
-  "name": "Tab-Item/Spacing/Small/Vertical-Padding",
+  "name": "Tab-Item/Size/Large/Height",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
    "corner-radius": "Standard"
   },
   "type": "FLOAT",
-  "expected": 8
+  "expected": 64
  },
  {
-  "name": "Tab-Item/Spacing/Small/Vertical-Padding",
+  "name": "Tab-Item/Size/Large/Height",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
@@ -5805,7 +5757,55 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "FLOAT",
-  "expected": 8
+  "expected": 72
+ },
+ {
+  "name": "Tab-Item/Spacing/Small/Horizontal-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab-Item/Spacing/Small/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab-Item/Spacing/Small/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab-Item/Spacing/Small/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab-Item/Spacing/Small/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 0
  },
  {
   "name": "Tab/Content/Default",

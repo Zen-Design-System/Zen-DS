@@ -7313,88 +7313,88 @@
         "name": "Light/Zen/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFF4FB",
-          "Zen-High-Contrast": "#FFF4FB"
+          "Zen": "#FFF4FA",
+          "Zen-High-Contrast": "#FFF4FA"
         }
       },
       {
         "name": "Light/Zen/3",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFE5F5",
-          "Zen-High-Contrast": "#FFE5F5"
+          "Zen": "#FFE5F4",
+          "Zen-High-Contrast": "#FFE5F4"
         }
       },
       {
         "name": "Light/Zen/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFD0ED",
-          "Zen-High-Contrast": "#FFD0ED"
+          "Zen": "#FFD0EC",
+          "Zen-High-Contrast": "#FFD0EC"
         }
       },
       {
         "name": "Light/Zen/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFB9E6",
-          "Zen-High-Contrast": "#FFB9E6"
+          "Zen": "#FFBAE5",
+          "Zen-High-Contrast": "#FFBAE5"
         }
       },
       {
         "name": "Light/Zen/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFA6E1",
-          "Zen-High-Contrast": "#FFA6E1"
+          "Zen": "#FFA6DF",
+          "Zen-High-Contrast": "#FFA6DF"
         }
       },
       {
         "name": "Light/Zen/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF94DD",
-          "Zen-High-Contrast": "#FF94DD"
+          "Zen": "#FF95DB",
+          "Zen-High-Contrast": "#FF95DB"
         }
       },
       {
         "name": "Light/Zen/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF83DB",
-          "Zen-High-Contrast": "#FF83DB"
+          "Zen": "#FF84D9",
+          "Zen-High-Contrast": "#FF84D9"
         }
       },
       {
         "name": "Light/Zen/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF6BD5",
-          "Zen-High-Contrast": "#FF6BD5"
+          "Zen": "#F755C9",
+          "Zen-High-Contrast": "#F755C9"
         }
       },
       {
         "name": "Light/Zen/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#F663CE",
-          "Zen-High-Contrast": "#F663CE"
+          "Zen": "#DC39B2",
+          "Zen-High-Contrast": "#CB25A3"
         }
       },
       {
         "name": "Light/Zen/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#941F7B",
-          "Zen-High-Contrast": "#941F7B"
+          "Zen": "#950678",
+          "Zen-High-Contrast": "#950678"
         }
       },
       {
         "name": "Light/Zen/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#5F004F",
-          "Zen-High-Contrast": "#5F004F"
+          "Zen": "#5A004A",
+          "Zen-High-Contrast": "#5A004A"
         }
       },
       {
@@ -7409,184 +7409,184 @@
         "name": "Light/Zen-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF05A40B",
-          "Zen-High-Contrast": "#FF05A40B"
+          "Zen": "#FF058D0B",
+          "Zen-High-Contrast": "#FF058D0B"
         }
       },
       {
         "name": "Light/Zen-Alpha/3",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF009D1A",
-          "Zen-High-Contrast": "#FF009D1A"
+          "Zen": "#FF00931A",
+          "Zen-High-Contrast": "#FF00931A"
         }
       },
       {
         "name": "Light/Zen-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF019E2F",
-          "Zen-High-Contrast": "#FF019E2F"
+          "Zen": "#FF01982F",
+          "Zen-High-Contrast": "#FF01982F"
         }
       },
       {
         "name": "Light/Zen-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF00A446",
-          "Zen-High-Contrast": "#82005680"
+          "Zen": "#FF009F45",
+          "Zen-High-Contrast": "#82005480"
         }
       },
       {
         "name": "Light/Zen-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF01A959",
-          "Zen-High-Contrast": "#93006492"
+          "Zen": "#FF01A459",
+          "Zen-High-Contrast": "#93006092"
         }
       },
       {
         "name": "Light/Zen-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF00AE6B",
-          "Zen-High-Contrast": "#A0006FA3"
+          "Zen": "#FF00A86A",
+          "Zen-High-Contrast": "#9F006BA2"
         }
       },
       {
         "name": "Light/Zen-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF00B57C",
-          "Zen-High-Contrast": "#FF00B57C"
+          "Zen": "#FF00B07B",
+          "Zen-High-Contrast": "#FF00B07B"
         }
       },
       {
         "name": "Light/Zen-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF00B794",
-          "Zen-High-Contrast": "#FF00B794"
+          "Zen": "#F300AEAA",
+          "Zen-High-Contrast": "#F300AEAA"
         }
       },
       {
         "name": "Light/Zen-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#F000AF9C",
-          "Zen-High-Contrast": "#F000AF9C"
+          "Zen": "#D2009CC6",
+          "Zen-High-Contrast": "#C20093DA"
         }
       },
       {
         "name": "Light/Zen-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#850069E0",
-          "Zen-High-Contrast": "#850069E0"
+          "Zen": "#930075F9",
+          "Zen-High-Contrast": "#930075F9"
         }
       },
       {
         "name": "Light/Zen-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#5F004F",
-          "Zen-High-Contrast": "#5F004F"
+          "Zen": "#5A004A",
+          "Zen-High-Contrast": "#5A004A"
         }
       },
       {
         "name": "Dark/Zen/1",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#161114",
-          "Zen-High-Contrast": "#161114"
+          "Zen": "#161014",
+          "Zen-High-Contrast": "#161014"
         }
       },
       {
         "name": "Dark/Zen/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#251720",
-          "Zen-High-Contrast": "#251720"
+          "Zen": "#261620",
+          "Zen-High-Contrast": "#261620"
         }
       },
       {
         "name": "Dark/Zen/3",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#371C2E",
-          "Zen-High-Contrast": "#371C2E"
+          "Zen": "#381B2E",
+          "Zen-High-Contrast": "#381B2E"
         }
       },
       {
         "name": "Dark/Zen/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4C233F",
-          "Zen-High-Contrast": "#4C233F"
+          "Zen": "#4E213F",
+          "Zen-High-Contrast": "#4E213F"
         }
       },
       {
         "name": "Dark/Zen/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#61264F",
-          "Zen-High-Contrast": "#61264F"
+          "Zen": "#642351",
+          "Zen-High-Contrast": "#642351"
         }
       },
       {
         "name": "Dark/Zen/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#75255F",
-          "Zen-High-Contrast": "#75255F"
+          "Zen": "#792060",
+          "Zen-High-Contrast": "#792060"
         }
       },
       {
         "name": "Dark/Zen/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#881F6E",
-          "Zen-High-Contrast": "#881F6E"
+          "Zen": "#8D166F",
+          "Zen-High-Contrast": "#8D166F"
         }
       },
       {
         "name": "Dark/Zen/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#922677",
-          "Zen-High-Contrast": "#922677"
+          "Zen": "#961E78",
+          "Zen-High-Contrast": "#961E78"
         }
       },
       {
         "name": "Dark/Zen/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF6BD5",
-          "Zen-High-Contrast": "#FF6BD5"
+          "Zen": "#F755C9",
+          "Zen-High-Contrast": "#F755C9"
         }
       },
       {
         "name": "Dark/Zen/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFA7E2",
-          "Zen-High-Contrast": "#FFA7E2"
+          "Zen": "#FF7BD6",
+          "Zen-High-Contrast": "#FF7BD6"
         }
       },
       {
         "name": "Dark/Zen/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFC9ED",
-          "Zen-High-Contrast": "#FFC9ED"
+          "Zen": "#FFB1E5",
+          "Zen-High-Contrast": "#FFB1E5"
         }
       },
       {
         "name": "Dark/Zen/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFF0FA",
-          "Zen-High-Contrast": "#FFF0FA"
+          "Zen": "#FFEDF9",
+          "Zen-High-Contrast": "#FFEDF9"
         }
       },
       {
@@ -7601,88 +7601,88 @@
         "name": "Dark/Zen-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FD50BF15",
-          "Zen-High-Contrast": "#FD50BF15"
+          "Zen": "#FD41B716",
+          "Zen-High-Contrast": "#FD41B716"
         }
       },
       {
         "name": "Dark/Zen-Alpha/3",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FE52C428",
-          "Zen-High-Contrast": "#FE52C428"
+          "Zen": "#FE4AC029",
+          "Zen-High-Contrast": "#FE4AC029"
         }
       },
       {
         "name": "Dark/Zen-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF57CA3E",
-          "Zen-High-Contrast": "#FF57CA3E"
+          "Zen": "#FE4DC341",
+          "Zen-High-Contrast": "#FE4DC341"
         }
       },
       {
         "name": "Dark/Zen-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF4EC955",
-          "Zen-High-Contrast": "#FF85D683"
+          "Zen": "#FF43C858",
+          "Zen-High-Contrast": "#FF7ED587"
         }
       },
       {
         "name": "Dark/Zen-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF3FCA6B",
-          "Zen-High-Contrast": "#FF76D49B"
+          "Zen": "#FF32C56F",
+          "Zen-High-Contrast": "#FF6ED0A1"
         }
       },
       {
         "name": "Dark/Zen-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF2CCB7F",
-          "Zen-High-Contrast": "#FF67D2B2"
+          "Zen": "#FF1AC584",
+          "Zen-High-Contrast": "#FF5ECEB8"
         }
       },
       {
         "name": "Dark/Zen-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF37CD8A",
-          "Zen-High-Contrast": "#FF37CD8A"
+          "Zen": "#FF28C98E",
+          "Zen-High-Contrast": "#FF28C98E"
         }
       },
       {
         "name": "Dark/Zen-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF6FDDF5",
-          "Zen-High-Contrast": "#FF6FDDF5"
+          "Zen": "#FF58D1F5",
+          "Zen-High-Contrast": "#FF58D1F5"
         }
       },
       {
         "name": "Dark/Zen-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFADEBF5",
-          "Zen-High-Contrast": "#FFADEBF5"
+          "Zen": "#FF7FDEF5",
+          "Zen-High-Contrast": "#FF7FDEF5"
         }
       },
       {
         "name": "Dark/Zen-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFD1F6F5",
-          "Zen-High-Contrast": "#FFD1F6F5"
+          "Zen": "#FFB8EEF5",
+          "Zen-High-Contrast": "#FFB8EEF5"
         }
       },
       {
         "name": "Dark/Zen-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFF9FFF5",
-          "Zen-High-Contrast": "#FFF9FFF5"
+          "Zen": "#FFF6FFF5",
+          "Zen-High-Contrast": "#FFF6FFF5"
         }
       }
     ]

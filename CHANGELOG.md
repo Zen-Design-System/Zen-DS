@@ -17,6 +17,28 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Toggle and ToggleButton take `size="xl"` (`xlarge`, 2026-10-17, user: "thêm 1 bảng toggle size XLarge cao 48px …
+  có thêm icon bên trong toggle dot"): a 48px switch (dot 44, `Toggle/Item/Size/XLarge`; Comfortable 52) with `icon`
+  in its dot, Light while off and Strongest while on (new Component Theme tokens `Toggle/Dot/Content/Unselected` and
+  `/Selected`, readable on the white and the Inverse dot in both modes). Figma Toggle-Button and Toggle have
+  Size=XLarge (Icon + Icon-Src on Toggle-Button); Studio maps Icon/Icon-Src to `icon`. The harness's
+  mobile/full-size-controls accepts xl on phones.
+- Segmented Medium segments pad 10 at the sides (was 8, Spacing/Padding/XSmall), as the live Figma file's
+  Component Size › `Segmented/Spacing/Medium/Horizontal-Padding` (2026-10-17, user: "Update token component size của
+  segmented"); Compact and Comfortable alike, the repo-only Studio mode stays 6. The other 13 Segmented size tokens
+  already matched Figma.
+- The Zen colour ramp (Global Colors › Light/Dark Zen and Zen-Alpha 1–12) follows the live Figma file again
+  (2026-10-17, user: "Update lại token màu của Zen trong global (chỉ dãy màu Zen)"): 45 of 48 values change, e.g.
+  Zen/9 `#FF6BD5` → `#F755C9` in both themes (Brand/Accent and its focus ring), Light/Zen/10 `#F663CE` → `#DC39B2`
+  (High-Contrast `#CB25A3`), Dark/Zen/10 `#FFA7E2` → `#FF7BD6`. No token was added, removed or renamed; the
+  SwiftUI and Flutter token packages are regenerated.
+- Chip and Segmented take two overlay levels (2026-10-17, user: "Bổ sung Chip, Segmented cho case overlay … đảm bảo
+  work trên dark và light mode", then "2 option nền tối chữ sáng mặc định và nền sáng chữ sáng trên nền màu solid"):
+  `black-overlay` (also `level="overlay"`, the default overlay: Background/Black-Overlay, light text) and
+  `white-overlay` (on a solid colour: Background/White-Overlay, light text). Selected = White/Solid with dark text; the
+  focus ring takes the label colour. Static tokens, so a Brand/Accent band looks the same in light and dark mode. Every
+  Chip variant, ChipGroup too. Figma has the same `Level=Black-Overlay | White-Overlay` on Chip/Normal, Chip/Advanced,
+  Chip/Number-Only, Segmented and Primitives/Segmented/Item; Studio push/pull maps them.
 - Token `--zen-layout-mobile-section-gap` (Figma Component Size `Layout-Mobile/Section-Gap`): Compact 24 (Gap/Large),
   Comfortable 32 (Gap/XLarge). It is the gap between the sections of a phone screen, never less (2026-10-17, user:
   "spacing giữa các section trong mobile … comfortable luôn là 32px. Compact là 24px. tạo token").

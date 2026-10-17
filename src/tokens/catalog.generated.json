@@ -43,7 +43,7 @@
         "Neutral - S6",
         "Neutral - S7"
       ],
-      "variableCount": 115
+      "variableCount": 117
     },
     "component-size": {
       "name": "Component Size",
@@ -52,7 +52,7 @@
         "Comfortable",
         "Studio"
       ],
-      "variableCount": 196
+      "variableCount": 197
     },
     "spacing": {
       "name": "Spacing",
@@ -12888,8 +12888,8 @@
       "name": "Light/Zen/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFF4FB",
-        "Zen-High-Contrast": "#FFF4FB"
+        "Zen": "#FFF4FA",
+        "Zen-High-Contrast": "#FFF4FA"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -12902,8 +12902,8 @@
       "name": "Light/Zen/3",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFE5F5",
-        "Zen-High-Contrast": "#FFE5F5"
+        "Zen": "#FFE5F4",
+        "Zen-High-Contrast": "#FFE5F4"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -12916,8 +12916,8 @@
       "name": "Light/Zen/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFD0ED",
-        "Zen-High-Contrast": "#FFD0ED"
+        "Zen": "#FFD0EC",
+        "Zen-High-Contrast": "#FFD0EC"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -12930,8 +12930,8 @@
       "name": "Light/Zen/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFB9E6",
-        "Zen-High-Contrast": "#FFB9E6"
+        "Zen": "#FFBAE5",
+        "Zen-High-Contrast": "#FFBAE5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -12944,8 +12944,8 @@
       "name": "Light/Zen/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFA6E1",
-        "Zen-High-Contrast": "#FFA6E1"
+        "Zen": "#FFA6DF",
+        "Zen-High-Contrast": "#FFA6DF"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -12958,8 +12958,8 @@
       "name": "Light/Zen/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF94DD",
-        "Zen-High-Contrast": "#FF94DD"
+        "Zen": "#FF95DB",
+        "Zen-High-Contrast": "#FF95DB"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -12972,8 +12972,8 @@
       "name": "Light/Zen/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF83DB",
-        "Zen-High-Contrast": "#FF83DB"
+        "Zen": "#FF84D9",
+        "Zen-High-Contrast": "#FF84D9"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -12986,8 +12986,8 @@
       "name": "Light/Zen/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF6BD5",
-        "Zen-High-Contrast": "#FF6BD5"
+        "Zen": "#F755C9",
+        "Zen-High-Contrast": "#F755C9"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13000,8 +13000,8 @@
       "name": "Light/Zen/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#F663CE",
-        "Zen-High-Contrast": "#F663CE"
+        "Zen": "#DC39B2",
+        "Zen-High-Contrast": "#CB25A3"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13014,8 +13014,8 @@
       "name": "Light/Zen/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#941F7B",
-        "Zen-High-Contrast": "#941F7B"
+        "Zen": "#950678",
+        "Zen-High-Contrast": "#950678"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13028,8 +13028,8 @@
       "name": "Light/Zen/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#5F004F",
-        "Zen-High-Contrast": "#5F004F"
+        "Zen": "#5A004A",
+        "Zen-High-Contrast": "#5A004A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13056,8 +13056,8 @@
       "name": "Light/Zen-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF05A40B",
-        "Zen-High-Contrast": "#FF05A40B"
+        "Zen": "#FF058D0B",
+        "Zen-High-Contrast": "#FF058D0B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13070,8 +13070,8 @@
       "name": "Light/Zen-Alpha/3",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF009D1A",
-        "Zen-High-Contrast": "#FF009D1A"
+        "Zen": "#FF00931A",
+        "Zen-High-Contrast": "#FF00931A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13084,8 +13084,8 @@
       "name": "Light/Zen-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF019E2F",
-        "Zen-High-Contrast": "#FF019E2F"
+        "Zen": "#FF01982F",
+        "Zen-High-Contrast": "#FF01982F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13098,8 +13098,8 @@
       "name": "Light/Zen-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF00A446",
-        "Zen-High-Contrast": "#82005680"
+        "Zen": "#FF009F45",
+        "Zen-High-Contrast": "#82005480"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13112,8 +13112,8 @@
       "name": "Light/Zen-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF01A959",
-        "Zen-High-Contrast": "#93006492"
+        "Zen": "#FF01A459",
+        "Zen-High-Contrast": "#93006092"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13126,8 +13126,8 @@
       "name": "Light/Zen-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF00AE6B",
-        "Zen-High-Contrast": "#A0006FA3"
+        "Zen": "#FF00A86A",
+        "Zen-High-Contrast": "#9F006BA2"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13140,8 +13140,8 @@
       "name": "Light/Zen-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF00B57C",
-        "Zen-High-Contrast": "#FF00B57C"
+        "Zen": "#FF00B07B",
+        "Zen-High-Contrast": "#FF00B07B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13154,8 +13154,8 @@
       "name": "Light/Zen-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF00B794",
-        "Zen-High-Contrast": "#FF00B794"
+        "Zen": "#F300AEAA",
+        "Zen-High-Contrast": "#F300AEAA"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13168,8 +13168,8 @@
       "name": "Light/Zen-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#F000AF9C",
-        "Zen-High-Contrast": "#F000AF9C"
+        "Zen": "#D2009CC6",
+        "Zen-High-Contrast": "#C20093DA"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13182,8 +13182,8 @@
       "name": "Light/Zen-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#850069E0",
-        "Zen-High-Contrast": "#850069E0"
+        "Zen": "#930075F9",
+        "Zen-High-Contrast": "#930075F9"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13196,8 +13196,8 @@
       "name": "Light/Zen-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#5F004F",
-        "Zen-High-Contrast": "#5F004F"
+        "Zen": "#5A004A",
+        "Zen-High-Contrast": "#5A004A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13210,8 +13210,8 @@
       "name": "Dark/Zen/1",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#161114",
-        "Zen-High-Contrast": "#161114"
+        "Zen": "#161014",
+        "Zen-High-Contrast": "#161014"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13224,8 +13224,8 @@
       "name": "Dark/Zen/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#251720",
-        "Zen-High-Contrast": "#251720"
+        "Zen": "#261620",
+        "Zen-High-Contrast": "#261620"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13238,8 +13238,8 @@
       "name": "Dark/Zen/3",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#371C2E",
-        "Zen-High-Contrast": "#371C2E"
+        "Zen": "#381B2E",
+        "Zen-High-Contrast": "#381B2E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13252,8 +13252,8 @@
       "name": "Dark/Zen/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4C233F",
-        "Zen-High-Contrast": "#4C233F"
+        "Zen": "#4E213F",
+        "Zen-High-Contrast": "#4E213F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13266,8 +13266,8 @@
       "name": "Dark/Zen/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#61264F",
-        "Zen-High-Contrast": "#61264F"
+        "Zen": "#642351",
+        "Zen-High-Contrast": "#642351"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13280,8 +13280,8 @@
       "name": "Dark/Zen/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#75255F",
-        "Zen-High-Contrast": "#75255F"
+        "Zen": "#792060",
+        "Zen-High-Contrast": "#792060"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13294,8 +13294,8 @@
       "name": "Dark/Zen/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#881F6E",
-        "Zen-High-Contrast": "#881F6E"
+        "Zen": "#8D166F",
+        "Zen-High-Contrast": "#8D166F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13308,8 +13308,8 @@
       "name": "Dark/Zen/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#922677",
-        "Zen-High-Contrast": "#922677"
+        "Zen": "#961E78",
+        "Zen-High-Contrast": "#961E78"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13322,8 +13322,8 @@
       "name": "Dark/Zen/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF6BD5",
-        "Zen-High-Contrast": "#FF6BD5"
+        "Zen": "#F755C9",
+        "Zen-High-Contrast": "#F755C9"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13336,8 +13336,8 @@
       "name": "Dark/Zen/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFA7E2",
-        "Zen-High-Contrast": "#FFA7E2"
+        "Zen": "#FF7BD6",
+        "Zen-High-Contrast": "#FF7BD6"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13350,8 +13350,8 @@
       "name": "Dark/Zen/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFC9ED",
-        "Zen-High-Contrast": "#FFC9ED"
+        "Zen": "#FFB1E5",
+        "Zen-High-Contrast": "#FFB1E5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13364,8 +13364,8 @@
       "name": "Dark/Zen/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFF0FA",
-        "Zen-High-Contrast": "#FFF0FA"
+        "Zen": "#FFEDF9",
+        "Zen-High-Contrast": "#FFEDF9"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13392,8 +13392,8 @@
       "name": "Dark/Zen-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FD50BF15",
-        "Zen-High-Contrast": "#FD50BF15"
+        "Zen": "#FD41B716",
+        "Zen-High-Contrast": "#FD41B716"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13406,8 +13406,8 @@
       "name": "Dark/Zen-Alpha/3",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FE52C428",
-        "Zen-High-Contrast": "#FE52C428"
+        "Zen": "#FE4AC029",
+        "Zen-High-Contrast": "#FE4AC029"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13420,8 +13420,8 @@
       "name": "Dark/Zen-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF57CA3E",
-        "Zen-High-Contrast": "#FF57CA3E"
+        "Zen": "#FE4DC341",
+        "Zen-High-Contrast": "#FE4DC341"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13434,8 +13434,8 @@
       "name": "Dark/Zen-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF4EC955",
-        "Zen-High-Contrast": "#FF85D683"
+        "Zen": "#FF43C858",
+        "Zen-High-Contrast": "#FF7ED587"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13448,8 +13448,8 @@
       "name": "Dark/Zen-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF3FCA6B",
-        "Zen-High-Contrast": "#FF76D49B"
+        "Zen": "#FF32C56F",
+        "Zen-High-Contrast": "#FF6ED0A1"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13462,8 +13462,8 @@
       "name": "Dark/Zen-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF2CCB7F",
-        "Zen-High-Contrast": "#FF67D2B2"
+        "Zen": "#FF1AC584",
+        "Zen-High-Contrast": "#FF5ECEB8"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13476,8 +13476,8 @@
       "name": "Dark/Zen-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF37CD8A",
-        "Zen-High-Contrast": "#FF37CD8A"
+        "Zen": "#FF28C98E",
+        "Zen-High-Contrast": "#FF28C98E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13490,8 +13490,8 @@
       "name": "Dark/Zen-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF6FDDF5",
-        "Zen-High-Contrast": "#FF6FDDF5"
+        "Zen": "#FF58D1F5",
+        "Zen-High-Contrast": "#FF58D1F5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13504,8 +13504,8 @@
       "name": "Dark/Zen-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFADEBF5",
-        "Zen-High-Contrast": "#FFADEBF5"
+        "Zen": "#FF7FDEF5",
+        "Zen-High-Contrast": "#FF7FDEF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13518,8 +13518,8 @@
       "name": "Dark/Zen-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFD1F6F5",
-        "Zen-High-Contrast": "#FFD1F6F5"
+        "Zen": "#FFB8EEF5",
+        "Zen-High-Contrast": "#FFB8EEF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13532,8 +13532,8 @@
       "name": "Dark/Zen-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFF9FFF5",
-        "Zen-High-Contrast": "#FFF9FFF5"
+        "Zen": "#FFF6FFF5",
+        "Zen-High-Contrast": "#FFF6FFF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -27281,6 +27281,62 @@
       ]
     },
     {
+      "name": "Toggle/Dot/Content/Unselected",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Neutral - S1": "{Color/Content/On-White-Overlay/Light}",
+        "Brand - S1": "{Color/Content/On-White-Overlay/Light}",
+        "Neutral - S2": "{Color/Content/On-White-Overlay/Light}",
+        "Brand - S2": "{Color/Content/On-White-Overlay/Light}",
+        "Neutral - S3": "{Color/Content/On-White-Overlay/Light}",
+        "Neutral - S4": "{Color/Content/On-White-Overlay/Light}",
+        "Neutral - S5": "{Color/Content/On-White-Overlay/Light}",
+        "Neutral - S6": "{Color/Content/On-White-Overlay/Light}",
+        "Neutral - S7": "{Color/Content/On-White-Overlay/Light}"
+      },
+      "collectionSlug": "component-colors-theme",
+      "collectionName": "Component Theme",
+      "modes": [
+        "Neutral - S1",
+        "Brand - S1",
+        "Neutral - S2",
+        "Brand - S2",
+        "Neutral - S3",
+        "Neutral - S4",
+        "Neutral - S5",
+        "Neutral - S6",
+        "Neutral - S7"
+      ]
+    },
+    {
+      "name": "Toggle/Dot/Content/Selected",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Neutral - S1": "{Color/Content/Neutral/Strongest}",
+        "Brand - S1": "{Color/Content/On-White-Overlay/Strongest}",
+        "Neutral - S2": "{Color/Content/Neutral/Strongest}",
+        "Brand - S2": "{Color/Content/On-White-Overlay/Strongest}",
+        "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+        "Neutral - S4": "{Color/Content/Neutral/Strongest}",
+        "Neutral - S5": "{Color/Content/Neutral/Strongest}",
+        "Neutral - S6": "{Color/Content/Neutral/Strongest}",
+        "Neutral - S7": "{Color/Content/Neutral/Strongest}"
+      },
+      "collectionSlug": "component-colors-theme",
+      "collectionName": "Component Theme",
+      "modes": [
+        "Neutral - S1",
+        "Brand - S1",
+        "Neutral - S2",
+        "Brand - S2",
+        "Neutral - S3",
+        "Neutral - S4",
+        "Neutral - S5",
+        "Neutral - S6",
+        "Neutral - S7"
+      ]
+    },
+    {
       "name": "Segmented-Item-Primary/Background/Seclected/Hover",
       "type": "COLOR",
       "valuesByMode": {
@@ -29328,8 +29384,8 @@
       "name": "Segmented/Spacing/Medium/Horizontal-Padding",
       "type": "FLOAT",
       "valuesByMode": {
-        "Compact": "{Spacing/Padding/XSmall}",
-        "Comfortable": "{Spacing/Padding/XSmall}",
+        "Compact": 10,
+        "Comfortable": 10,
         "Studio": 6
       },
       "collectionSlug": "component-size",
@@ -29587,6 +29643,22 @@
         "Compact": "{dm-20}",
         "Comfortable": "{dm-24}",
         "Studio": "{dm-20}"
+      },
+      "collectionSlug": "component-size",
+      "collectionName": "Component Size",
+      "modes": [
+        "Compact",
+        "Comfortable",
+        "Studio"
+      ]
+    },
+    {
+      "name": "Toggle/Item/Size/XLarge",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Compact": "{dm-44}",
+        "Comfortable": "{dm-48}",
+        "Studio": "{dm-44}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",

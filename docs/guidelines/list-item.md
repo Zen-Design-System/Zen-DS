@@ -104,7 +104,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
 | `defaultChecked` | `boolean` | — | Initial state when uncontrolled. Default false. |
 | `onCheckedChange` | `(checked: boolean) => void` | — | Called with the new state on a press anywhere on the row, or Space / Enter on the switch. |
 | `disabled` | `boolean` | `false` | The row and its switch do nothing; the switch shows Disabled. |
-| `toggleSize` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"md"` | Toggle-Button size. Default md. |
+| `toggleSize` | `"sm" \| "md" \| "lg" \| "xl" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Toggle-Button size. Default md. |
 | `name` | `string` | — | Form field name of the switch's checkbox (submitted as "on" while checked). |
 | `as` | `"li" \| "div"` | `"li"` | Root element. Default `li` (inside a List); `div` outside one. |
 | `className` | `string` | — |  |

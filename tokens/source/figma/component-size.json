@@ -1081,8 +1081,8 @@
         "name": "Segmented/Spacing/Medium/Horizontal-Padding",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": "{Spacing/Padding/XSmall}",
-          "Comfortable": "{Spacing/Padding/XSmall}",
+          "Compact": 10,
+          "Comfortable": 10,
           "Studio": 6
         }
       },
@@ -1228,6 +1228,15 @@
           "Compact": "{dm-20}",
           "Comfortable": "{dm-24}",
           "Studio": "{dm-20}"
+        }
+      },
+      {
+        "name": "Toggle/Item/Size/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-44}",
+          "Comfortable": "{dm-48}",
+          "Studio": "{dm-44}"
         }
       },
       {

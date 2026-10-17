@@ -7,3 +7,5 @@
 /* File tiles: a list without bullets, and a file preview with the same 4:3 frame as the photos. */
 .px-segmented-preview { display: grid; aspect-ratio: 4 / 3; place-items: center; }
 
+/* "On a colour band": the Brand/Accent band under an overlay Segmented. */
+.px-segmented-band { background: var(--zen-color-background-accent-solid-default, #f755c9); }

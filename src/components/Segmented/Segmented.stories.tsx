@@ -29,3 +29,14 @@ export const Controlled: Story = {
     return <Segmented {...args} value={value} onValueChange={setValue} options={[{ id: "list", label: "List", leading: "icon-list-line" }, { id: "grid", label: "Grid", leading: "icon-grid-01-line" }]} />;
   },
 };
+
+/** Black-Overlay (the default overlay) and White-Overlay on a Brand/Accent band: static tokens, so light and dark mode render the same. */
+export const Overlay: Story = {
+  args: { options: [{ id: "nutrition", label: "Nutrition" }, { id: "activity", label: "Activity", badge: 3 }], defaultValue: "nutrition" },
+  render: (args) => (
+    <div style={{ display: "grid", gap: 12, padding: 24, borderRadius: 16, background: "var(--zen-color-background-accent-solid-default)" }}>
+      <Segmented {...args} level="black-overlay" />
+      <Segmented {...args} level="white-overlay" />
+    </div>
+  ),
+};

@@ -236,10 +236,10 @@
         },
         {
           "name": "level",
-          "type": "\"primary\" | \"secondary\"",
+          "type": "\"primary\" | \"secondary\" | \"black-overlay\" | \"white-overlay\" | \"overlay\"",
           "required": false,
           "default": "\"secondary\"",
-          "description": "",
+          "description": "Secondary (default) or Primary on a page surface (Advanced chips are always Secondary there). On a colour band or\n photo, for every variant: `black-overlay` (or `\"overlay\"`, the default overlay: a Black-Overlay chip, light text) or\n `white-overlay` (on a solid colour: a White-Overlay chip, light text); both turn White/Solid with dark text when\n selected and look the same in light and dark mode.",
           "deprecated": null
         },
         {
@@ -562,7 +562,7 @@
         },
         {
           "name": "level",
-          "type": "\"primary\" | \"secondary\"",
+          "type": "\"primary\" | \"secondary\" | \"black-overlay\" | \"white-overlay\" | \"overlay\"",
           "required": false,
           "default": "\"primary\"",
           "description": "Chip level. Default primary.",
@@ -3026,10 +3026,10 @@
         },
         {
           "name": "level",
-          "type": "\"primary\" | \"secondary\"",
+          "type": "\"primary\" | \"secondary\" | \"black-overlay\" | \"white-overlay\" | \"overlay\"",
           "required": false,
           "default": "\"secondary\"",
-          "description": "Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis.",
+          "description": "Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis.\n On a colour band or photo: `black-overlay` (or `\"overlay\"`, the default overlay: a Black-Overlay track, light text)\n or `white-overlay` (on a solid colour: a White-Overlay track, light text); both select with a White/Solid segment\n and look the same in light and dark mode.",
           "deprecated": null
         },
         {
@@ -3120,7 +3120,7 @@
         },
         {
           "name": "level",
-          "type": "\"primary\" | \"secondary\"",
+          "type": "\"primary\" | \"secondary\" | \"black-overlay\" | \"white-overlay\" | \"overlay\"",
           "required": false,
           "default": "\"secondary\"",
           "description": "Level of the parent Segmented; selects the counter colour when this item is selected.",
@@ -3192,10 +3192,18 @@
         },
         {
           "name": "size",
-          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"sm\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling. XLarge (`xl`) is the 48px switch with an icon in its dot.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "XLarge only (Figma Icon + Icon-Src): an icon in the dot, an icon name (`\"icon-moon-01-line\"`) or a node. It takes\n Toggle/Dot/Content/Unselected (Light) while off and /Selected (Strongest) while on; smaller dots have no room for\n it and leave it out.",
           "deprecated": null
         },
         {
@@ -3302,10 +3310,18 @@
         },
         {
           "name": "size",
-          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling. XLarge (`xl`) is the 48px switch with an icon in its dot.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "XLarge only (Figma Icon + Icon-Src): an icon in the dot, an icon name (`\"icon-moon-01-line\"`) or a node. It takes\n Toggle/Dot/Content/Unselected (Light) while off and /Selected (Strongest) while on; smaller dots have no room for\n it and leave it out.",
           "deprecated": null
         },
         {
@@ -9361,7 +9377,7 @@
         },
         {
           "name": "toggleSize",
-          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"md\"",
           "description": "Toggle-Button size. Default md.",

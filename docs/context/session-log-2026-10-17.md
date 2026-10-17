@@ -180,6 +180,29 @@ các phần này, Đang làm cho mobile nên có rule về vùng chạm tối th
   round joins of their 8px same-colour stroke; the join is set again after the path (test mock now resets joins too).
 - Direct paste: frames with a radius came out square (`rectangleCornerRadiiIndependent` false → Figma reads the unset
   `cornerRadius`); fixed in PR #103 by session "Giám sát".
+
+## Chip + Segmented overlay (session 1d39f7fe) — tier M
+User (screenshot: a Segmented "Nutrition / Activity" on a pink band): "Bổ sung Chip, Segmented cho case overlay. Case
+chưa đáp ứng là hình đính kèm. đảm bảo work trên dark và light mode".
+- Figma (live file): `Segmented` 1238:892 has Level=Secondary|Primary only, `Primitives/Segmented/Item` 1204:11690 the
+  same; no Overlay anywhere → code-only level, Figma question in BACKLOG (P2).
+- The reference measured: band #E561C4, track 7.5% black (= light Neutral/Subtle), unselected label 49% black (alpha-10),
+  selected #121212 on white. In dark mode Secondary flips (Inverse/Solid → near-black pill, white-alpha track and text).
+- `level="overlay"` on Segmented and Chip (every variant; ChipGroup through ChipLevel), static tokens only:
+
+| Element | Token (light = dark) |
+| --- | --- |
+| Track / resting chip | `color-mix(Black-Overlay/Default 20%)` = 8% black (no static subtle black token) |
+| Hover | `color-mix(Black-Overlay/Hover 20%)` |
+| Selected | Background/White/Solid (+ hover White/Solid/Hover), Action basic shadow |
+| Text | On-White-Overlay/Strongest (selected, chips), /Base (unselected segment, resting chip icon) |
+| Focus ring | On-White-Overlay/Strongest, `zen-allow-focus-ring-token` (Accent vanishes on Brand, Neutral turns white in dark) |
+| Counters | unselected Badge `on-color`; selected pinned to Black/Solid + On-Black-Overlay/Strongest |
+
+- Contrast on Brand/Accent #FF6BD5 (same in both modes): unselected label Base 4.6:1 (Light, as in the screenshot,
+  would be 2.6:1 light / 2.9:1 dark), Strongest 6.7:1, selected 18.7:1, ring 7.8:1 on the band.
+- Platform: "On a colour band" on Segmented (hours / invoiced on a Brand/Accent band) and Chip (Advanced Assignee +
+  Normal status toggles, list below). Stories `Overlay`. Guideline Level rows, a do and a don't each.
 - Follow-up (user: "overlay sao dùng màu tối???", then "Nên có 2 option nền tối chữ sáng mặc định và nền sáng chữ sáng
   trên nền màu solid", "thêm trong Figma cho đồng bộ"): the dark-tint level became two levels, as Button/Overlay:
   `black-overlay` (default; `level="overlay"` resolves to it) = Black-Overlay Default/Hover/Pressed + On-Black-Overlay
@@ -211,3 +234,69 @@ các phần này, Đang làm cho mobile nên có rule về vùng chạm tối th
   (variables probe), slot content frames carry the slot's corners/clip/limits (Stack-Bar columns were square); writer:
   fill along a hugging parent's main axis hugs (Dashboard's Export button was cut to "Expor"; the plugin collapses it to
   1px, not fixed there yet). Dashboard direct paste = its plugin import (346 frames, 405 instances, 174 texts).
+
+## Zen colour ramp re-sync (session 1d39f7fe) — tier XS
+User: "Update lại token màu của Zen trong global (chỉ dãy màu Zen)".
+- Read Global Colors from the live file (use_figma, modes Zen / Zen-High-Contrast): Light/Dark Zen and Zen-Alpha 1–12,
+  48 variables, no aliases. 45 values differ from `tokens/source/figma/global-colors.json` (Zen/9 #FF6BD5 → #F755C9;
+  Light/Zen/10 #F663CE → #DC39B2, HC #CB25A3; Light/Zen-Alpha/10 HC #C20093DA; Dark/Zen/10 #FFA7E2 → #FF7BD6 …);
+  Light/Zen/1 and Zen-Alpha/1 (both themes) were already equal. Only those 48 entries were written (same JSON format);
+  `figma.collections.json` › source records the sync.
+- `npm run tokens:build` (also picked up another session's uncommitted `component-size.json`: Layout-Mobile/Section-Gap
+  appears in tokens.css and the native packages); `tokens:check` 0 failures, `tokens:native:check` up to date.
+- Token gate: `npm run qa -- --isolated --files=tokens/source/figma/global-colors.json,…` ✓ PASS (token fast path:
+  tokens/styles check, 23 Figma suites, 70 browser tests, audit 1512/390/320 + dark, 0 new findings).
+
+## Chip + Segmented overlay — Figma descriptions and checks (session 1d39f7fe)
+- `tools/figma-docs/component-descriptions.mjs`: Level rows for Chip/Normal, Chip/Advanced, Chip/Number-Only and
+  Segmented name Black-Overlay / White-Overlay; written to Figma with `build.mjs sets "…"` (these four forced in the
+  local copy of the script, as their old texts came from the tool; old texts in "Description backup 2026-10-17").
+- `docs/figma-contracts/component-properties.json`: Level options of the five sets updated in place.
+- Studio: figma-push/pull selftests ✓ (269/69), `part-props-build --check` ✓; `npm run studio:e2e -- --only=handoff,
+  nested` 33 works · 0 broken (new row HO-11 not in the baseline). The gate's full E2E matrix run (qa6) ended with "no
+  summary" after 3115 s, a run that never finished, not a failing row.
+- Missed step, caught by session "Figma và Studio import chính xác": after the component-properties.json edit,
+  `figma-props-build.mjs` and `variant-sets-build.mjs` had to run (figmaProps.generated.ts, variantSets.generated.ts:
+  the overlay Level options). Rebuilt; both checks ✓, `npm run studio:selftest` exit 0. Rule: any edit to
+  docs/figma-contracts/component-properties.json is followed by those two builds.
+
+## Segmented component size re-sync (session 1d39f7fe) — tier XS
+User: "Update token component size của segmented".
+- Live Figma Component Size (modes Compact, Comfortable), the 14 `Segmented/*` variables vs `component-size.json`: one
+  differs, `Segmented/Spacing/Medium/Horizontal-Padding` = 10 / 10 raw in Figma (repo `{Spacing/Padding/XSmall}` = 8).
+  Written as a targeted edit (the file carries another session's uncommitted Layout-Mobile/Section-Gap block); the
+  repo-only Studio mode keeps 6. Raw 10 has no Spacing step, like Small/Horizontal-Padding 6.
+- `tokens:build`, `tokens:check` 0 failures, native tokens up to date; segmented.css fallback 8px → 10px. The
+  Segmented contract stores bound variable names, so no re-capture.
+- Segmented size gate: see the next section's gate line once it finishes (scope was every page: token diff vs HEAD).
+
+## Toggle XLarge (session 1d39f7fe) — tier M (new size, Figma + code + Studio)
+User: "thêm 1 bảng toggle size XLarge cao 48px (thêm token nhé, làm cho cả Figma và studio). bản này có thêm icon bên
+trong toggle dot", then (AskUserQuestion → icon by state, refined in chat) "tắt thì không cần x", "icon chỉ nằm đúng trên
+1 dot", "nên dùng icon mặc định không quy định là check hay x", "khi tắt màu light", "khi on thì màu strongest".
+- Figma variables: Component Size `Toggle/Item/Size/XLarge` (Compact dm-44, Comfortable dm-48; WIDTH_HEIGHT; hidden),
+  Component Theme `Toggle/Dot/Content/Unselected` (On-White-Overlay/Light in every theme: the dot is White-Solid in both
+  modes) and `/Selected` (Neutral/Strongest on Neutral themes' Inverse dot, On-White-Overlay/Strongest on Brand themes'
+  White dot). Plain Content/Neutral/Light|Strongest would turn white on the white dot in dark mode.
+- Figma sets: Toggle-Button +6 Size=XLarge (clones of Large, dot + Blank bound to XLarge, an `Icon` instance of the
+  default icon-marker-pin-01-solid at Element-Size/Popular/Medium in Toggle-Dot, fill Toggle/Dot/Content/* or
+  Content/Disabled; new properties Icon (boolean) + Icon-Src (swap)); set resized, .Primitives/Toggle/Content moved
+  down. Toggle +8 Size=XLarge (GRID rows 6-7), nested Toggle-Button swapped and exposed.
+- Code: `toggleSizes` + xlarge, `ToggleSize` + xl/xlarge, `icon` (renderIcon, xlarge only), toggle.css XLarge block
+  (dot flex-centred, icon Element-Size/Popular/Medium, colours from the new tokens). Tokens added to component-size.json
+  (Studio mode dm-44 = Compact) and component-theme.json; `tokens:build`.
+- Docs/harness: guideline Size + Icon rows and a do; mobile/full-size-controls accepts xl|xlarge (good.tsx case);
+  stories XLarge; playground size xlarge (icon-bell-01-line); example "Focus on a phone".
+- Studio: figma-props.map ToggleButton `Icon` → toggle `icon` (when size xlarge) + `Icon-Src` → icon;
+  component-properties.json (Toggle-Button: Icon, Icon-Src, Size +XLarge; Toggle: Size +XLarge) then figma-props-build
+  and variant-sets-build in the same step; `studio:selftest` exit 0.
+- Contract: filtered capture (Size=XLarge) appended to segmented-toggle-badge-avatarstack.json (Toggle 32,
+  Toggle-Button 24, props with Icon / Icon-Src). The stock assembler keeps one capture per file; a hash filter
+  (ONLY_HASH copy in the scratchpad) picked the right one.
+- Measured on the platform (phone = Comfortable): track 100×52, dot 48, icon 28; light/dark × off/on icon colours as
+  asked (Light grey on white; black on white / white on the dark Inverse dot).
+- Gates: Segmented size + Zen ramp scope `npm run qa -- --isolated --files=…component-size.json,segmented.css` ✓ PASS
+  (57 pages, audit 1534 s, dark, behaviour, 23 suites). Toggle XLarge `--files=Toggle…,examples,harness,contract
+  --pages=toggle,list-item` ✓ PASS (token sources left out of scope: additions only, `tokens:check` ✓). Studio:
+  `studio:selftest` exit 0; `studio:e2e --only=inspector,handoff` 30 works · 0 broken. Figma description of Toggle
+  updated (figma-docs, backup frame).
