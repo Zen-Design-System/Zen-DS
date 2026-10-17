@@ -132,7 +132,7 @@ function NavigationBar() {
 }
 
 // ——— 3. The rows of a dashboard page (Figma Header/Dashboard) —————————————————————————————————————
-const navSections = [{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "time-off", label: "Time off", icon: "icon-calendar-line" }, { id: "team", label: "Team", icon: "icon-users-01-line" }] }];
+const navSections = [{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "time-off", label: "Time off", icon: "icon-calendar-line" }, { id: "team", label: "Team", icon: "icon-users-line" }] }];
 function DashboardPage() {
   const { toast } = useToast();
   const [section, setSection] = useState("time-off");

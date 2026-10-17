@@ -41,7 +41,7 @@ const id = (guid) => (guid ? `${guid.sessionID}:${guid.localID}` : "");
  *  assignments, plugin data and what Figma derives again. `overrideLevel` stays: it marks what Figma kept from a swap
  *  (the depth of the swapped layer), and a paste that restates the swap must restate those with it. */
 const KEEP_SKIP = new Set(["guidPath", "overriddenSymbolID", "visible", "componentPropAssignments", "pluginData", "overrideKey", "derivedSymbolData", "derivedTextData", "textData", "editInfo", "targetAspectRatio", "proportionsConstrained", "borderTopWeight", "borderBottomWeight", "borderLeftWeight", "borderRightWeight"]);
-const SLOT_SKIP = new Set(["guid", "phase", "parentIndex", "type", "name", "visible", "size", "transform", "componentPropRefs", "pluginData", "overrideKey", "derivedSymbolData", "derivedSymbolDataLayoutVersion", "editInfo", "isSlot"]);
+const SLOT_SKIP = new Set(["guid", "phase", "parentIndex", "type", "name", "visible", "size", "transform", "componentPropRefs", "pluginData", "overrideKey", "derivedSymbolData", "derivedSymbolDataLayoutVersion", "editInfo", "isSlot", "detachedSymbolId"]);
 const slotLayout = (node) => {
   const out = Object.fromEntries(Object.entries(node).filter(([key]) => !SLOT_SKIP.has(key)));
   if (out.parameterConsumptionMap) out.parameterConsumptionMap = { entries: (out.parameterConsumptionMap.entries ?? []).filter((entry) => entry.variableData?.value?.alias) };

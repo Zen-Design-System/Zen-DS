@@ -299,7 +299,8 @@ class Writer {
       }
     }
     if (spec.minW || spec.minH || spec.maxW || spec.maxH) {
-      if (spec.minW || spec.minH) out.minSize = { value: { x: spec.minW ?? UNSET, y: spec.minH ?? UNSET } };
+      // Figma writes 0 for the axis without a minimum (its copy of the plugin's import).
+      if (spec.minW || spec.minH) out.minSize = { value: { x: spec.minW ?? 0, y: spec.minH ?? 0 } };
       if (spec.maxW || spec.maxH) out.maxSize = { value: { x: spec.maxW ?? UNSET, y: spec.maxH ?? UNSET } };
     }
     if (spec.absolute && parentMode !== "GRID" && parentMode !== "NONE") {
@@ -617,7 +618,7 @@ class Writer {
   slotContent(slotRow, slotSpec, parentInfo) {
     const id = this.fresh();
     const layout = { ...(slotRow.more.slot ?? {}) };
-    delete layout.stackChildAlignSelf; delete layout.stackChildPrimaryGrow; delete layout.stackPositioning;
+    delete layout.stackChildAlignSelf; delete layout.stackChildPrimaryGrow; delete layout.stackPositioning; delete layout.detachedSymbolId;
     const frame = {
       guid: id, phase: "CREATED", parentIndex: { guid: INTERNAL, position: this.place(INTERNAL) }, type: "FRAME", name: slotRow.name, isSlotContent: true, visible: true, opacity: 1,
       size: { x: slotRow.w, y: slotRow.h }, transform: at(slotRow.x, slotRow.y), ...FRAME_FIELDS, frameMaskDisabled: true, ...layout,
@@ -827,7 +828,12 @@ class InstanceBuild {
     const copy = this.copies.get(k);
     if (copy) return copy.content;
     // A component's slot assignment without a `value` is a leftover Figma does not show (the slot keeps its own layers).
-    const a = (this.rowAt(ownerPath)?.more.assigns ?? []).find((x) => isSlotAssignment(x) && key(x.defID) === slotDef && "value" in x);
+    // The owner's assignment names the slot of the variant its component placed; a page that swaps that variant (a
+    // Metric-Card Tile's Card made Solid) still shows it: both ids stand for one set-level property.
+    const row = this.rowAt(ownerPath);
+    const setLevelOf = (symbol, own) => { const tree = this.w.index.tree(symbol); return Object.entries(tree?.defs ?? {}).find(([, id]) => id === own)?.[0] ?? own; };
+    const wanted = setLevelOf(this.symbolAt(ownerPath), slotDef);
+    const a = (row?.more.assigns ?? []).find((x) => isSlotAssignment(x) && "value" in x && (key(x.defID) === slotDef || setLevelOf(row.main, key(x.defID)) === wanted));
     if (!a) return null;
     const template = key(a.varValue.value.slotContentIdValue.guid);
     return this.w.index.pack.contents[template] ? { key: k, template, owner: ownerPath, slotDef } : null;
@@ -1091,7 +1097,18 @@ class InstanceBuild {
   /** A nested instance by the importer's path ("Name[i]/Inner"). */
   nestedAt(pathText) {
     let current = null;
-    for (const segment of String(pathText).split("/")) {
+    const segments = String(pathText).split("/");
+    for (let i = 0; i < segments.length; i++) {
+      // A layer named with slashes ("Button/Main", the Hero's button beside a hidden Button/Icon-Main): its full name
+      // first, longest first; else the segment (a name or its first part, layerKey).
+      let whole = null;
+      for (let j = segments.length; j > i + 1 && !whole; j--) {
+        const full = segments.slice(i, j).join("/");
+        whole = this.descendants(current).find((ref) => ref.type === "INSTANCE" && ref.name === full) ?? null;
+        if (whole) i = j - 1;
+      }
+      if (whole) { current = whole; continue; }
+      const segment = segments[i];
       const match = /^(.*?)(?:\[(\d+)\])?$/.exec(segment);
       const name = match[1], index = match[2] ? Number(match[2]) : 0;
       const instances = this.descendants(current).filter((ref) => ref.type === "INSTANCE");
@@ -1233,9 +1250,9 @@ class InstanceBuild {
   hugLayer(hug, where) {
     const ref = this.layers([]).find((item) => item.name === hug.name);
     if (!ref) { this.w.note(`${where}: no layer ${hug.name} to hug`); return; }
-    const entry = this.target(ref);
-    if (hug.w) entry.stackPrimarySizing = "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE";
-    if (hug.h) entry.stackCounterSizing = "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE";
+    // By the layer's own direction, and no longer growing in its parent (a List-Box's Container-Slot is a column: its
+    // height was written on the wrong axis, Figma's copy of the plugin's import hugs it as below).
+    this.sizeLayer(ref, { hugW: hug.w, hugH: hug.h }, `${where} › ${hug.name}`);
   }
   hide(name, where) {
     const ref = this.layers([]).find((item) => item.name === name);

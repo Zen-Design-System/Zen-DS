@@ -576,6 +576,8 @@ function controlLabelParts(node, props, own) {
   if (typeof caption === "string" && caption && content?.props?.Subtext !== false) props.caption = literal(caption);
 }
 
+/** A workspace Side-Bar's panel slots, as the Basic Side-Bar names them (figma-push WORKSPACE_SLOTS, the other way). */
+const FROM_WORKSPACE_SLOT = { "Child-Header-Content": "Header-Content", "Child-Body-Content": "Body-Content", "Child-Footer-Content": "Footer-Content" };
 /** Figma slots a component takes as a node prop, not as its children (Sidebar: Header-Content, Footer-Content). */
 const SLOT_PROPS = {
   Sidebar: { "Header-Content": "brand", "Footer-Content": "footer" },
@@ -1436,6 +1438,8 @@ function convertNode(node, ctx) {
     // IconButton's level has no static default: the one Button.tsx resolves (Main Tertiary, Flat Primary, Overlay
     // Accent) is left out (figma-push writes it, the other way).
     if (set.code === "IconButton" && props.level?.kind === "literal" && props.level.value === ({ flat: "primary", overlay: "accent" }[props.appearance?.value] ?? "tertiary")) delete props.level;
+    // A workspace Side-Bar's panel slots (Child-…) are the Sidebar's own (figma-push WORKSPACE_SLOTS).
+    if (set.code === "Sidebar") for (const slot of node.slots ?? []) slot.name = FROM_WORKSPACE_SLOT[slot.name] ?? slot.name;
     for (const slot of node.slots ?? []) {
       // A nested instance's slot (figma-push `within`): its owner reads it (a ChatMessage's reactions).
       if (handled.has(slot.name) || own.slots.has(slot.name) || slot.within) continue;
@@ -1763,9 +1767,13 @@ function withSeenBy(element, readList, ctx) {
 
 /** Chat/Section/Conversation runs as one ChatThread: each run's messages (its Conversations slot), the other layers between. */
 function chatThreadElement(node, ctx) {
+  // A time between runs (figma-push: a ChatDateDivider frame around its centred Caption text).
+  const divider = (child) => child.type === "FRAME" && child.name === "ChatDateDivider" && (child.children ?? []).length === 1 && child.children[0].type === "TEXT"
+    ? { kind: "element", name: "ChatDateDivider", props: {}, children: [{ kind: "text", value: child.children[0].characters ?? "" }] }
+    : null;
   const children = (node.children ?? []).flatMap((child) => (child.type === "INSTANCE" && child.set?.name === CHAT_SECTION
     ? (child.slots ?? []).flatMap((slot) => slot.children ?? []).map((item) => convert(item, ctx))
-    : [convert(child, ctx)])).filter(Boolean);
+    : [divider(child) ?? convert(child, ctx)])).filter(Boolean);
   return { kind: "element", name: "ChatThread", props: {}, children };
 }
 
@@ -1927,6 +1935,17 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   // A copy: the slots take their owner's key (slotKeys), and a push's frame read back here stays as it was.
   frame = frame ? JSON.parse(JSON.stringify(frame)) : frame;
   slotKeys(frame);
+  // The Screen's own canvas and height, which figma-push writes on the page frame: Screen props, not a Box surface.
+  const screenProps = {};
+  const canvasFill = /^(?:Color\/)?Background\/Canvas\/(Default|Alt|Flat)$/.exec(String(frame?.fill ?? ""));
+  if (canvasFill) {
+    delete frame.fill;
+    if (canvasFill[1] !== "Default") screenProps.canvas = literal(canvasFill[1].toLowerCase());
+  }
+  if (typeof frame?.minH === "number") {
+    if (frame.minH !== (deviceOf(frame.width) === "phone" ? 844 : 900)) screenProps.height = literal(frame.minH);
+    delete frame.minH;
+  }
   const chrome = screenChrome(frame, ctx);
   let root = chrome ? chrome.root : convert(frame, ctx);
   // The push's page frame around an app frame (a column holding only the AppShell): the AppShell itself.
@@ -1937,7 +1956,7 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   const own = (part) => (frame ? idOf(frame, ctx, part) : undefined);
   // A Stack, or an AppShell (an app frame), is the Screen's content as it is; anything else goes in a Stack.
   const content = root ? (root.name === "Stack" || root.name === "AppShell" ? root : { kind: "element", id: own("content"), name: "Stack", props: {}, children: [root] }) : null;
-  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...(chrome?.props ?? {}) }, children: content ? [content] : [] };
+  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...screenProps, ...(chrome?.props ?? {}) }, children: content ? [content] : [] };
   const board = { kind: "element", id: own("board") ?? "board", name: "Board", props: {}, children: [screen] };
   // Elements no layer stands for take their place under their parent (deterministic: the same frame, the same ids).
   const walk = (node) => {

@@ -335,6 +335,10 @@ export default function Page() {
 {
   const { frame, notes } = push(DASH);
   const shell = frame.children[0];
+  // The Screen frame as Studio draws it (builder.css): Canvas/Default (or the Screen's canvas), at least 900 tall, a phone
+  // 844; the plugin's frame was Figma's default white, the paste's had no fill (board test, 2026-10-18).
+  const altScreen = push(DASH.replace('device="desktop">', 'device="desktop" canvas="alt">')).frame;
+  check("Screen frame: Canvas/Default and 900 minimum, the Screen's canvas when set, a phone's 844; read back as the Screen's canvas (no Box)", [frame.fill, frame.minH, altScreen.fill, push(DASH.replace('device="desktop">', 'device="phone">')).frame.minH, /<Screen[^>]*canvas="alt"/.test(pageFromFigma(altScreen, { mapping }).text), /surface="canvas"/.test(pageFromFigma(frame, { mapping }).text)], ["Background/Canvas/Default", 900, "Background/Canvas/Alt", 844, true, false]);
   check("AppShell: the page is Canvas (the master layout's own fill, canvas=\"alt\" overrides it)", [shell.set?.name, shell.fill, push(DASH.replace("<AppShell ", '<AppShell canvas="alt" ')).frame.children[0].fill], ["Patterns/Pages/Density-Medium", undefined, "Background/Canvas/Alt"]);
   const [fit, fixed] = find(frame, (node) => node.name === "Stack" && node.children?.some((child) => child.name === "Grid")).children.filter((child) => child.name === "Grid");
   // The page is 1440 less the open Sidebar's 240: auto-fit 496 + 16 takes 2 columns, the third card on a second row.
@@ -527,6 +531,49 @@ export default function Page() {
   ok("logoCollapsed / the rail noted as nothing", !notes.some((note) => /Sidebar.*(logoCollapsed|not written)/.test(note)));
   const back = pageFromFigma(frame, { mapping }).text;
   ok("round trip: the rail comes back a collapsed Sidebar, its rows' labels and its groups' titles kept, no Divider row", /<Sidebar[^>]*\bcollapsed\b/.test(back) && /label: "Modules"/.test(back) && /label: "People"/.test(back) && !/Divider/.test(back.slice(back.indexOf("<Sidebar"), back.indexOf("/>", back.indexOf("<Sidebar")))));
+}
+
+{
+  // A workspace Sidebar (template "Empty and error states", corpus test 2026-10-18): its set names the panel's slots
+  // Child-…; the sections went to a Body-Content it does not have, and come back from Child-Body-Content.
+  const page = WIDTHS.replace('<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>', '<Sidebar aria-label="Main" variant="workspace" selectedId="home" sections={[{ id: "main", items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "people", label: "People", icon: "icon-users-line" }] }]} />');
+  const { frame } = push(page);
+  const side = masterSidebar(frame);
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("workspace Sidebar: the Workspace set in the master's pattern, its sections in Child-Body-Content, read back as the sections", [side.master.nested.find((entry) => entry.path === "Patterns/Patterns")?.set?.name, side.slots.map((slot) => slot.name), /variant="workspace"/.test(back) && /label: "People"/.test(back)], ["Side-Bar/Master/Workspace", ["Child-Body-Content", "Child-Footer-Content"], true]);
+}
+
+{
+  // Texts as the code draws them (board test vs the plugin's import, 2026-10-18): a PageHeader eyebrow in
+  // Body/Small/Medium Neutral Base, a ChatDateDivider a centred Caption/Regular in Neutral Light (and back), not bare
+  // texts that imported at Figma's 12px and pasted at 14px black.
+  const page = `// @zen-page {"format":1,"title":"Texts"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { ChatDateDivider, ChatMessage, ChatThread, PageHeader, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Texts" device="desktop">
+        <Stack gap="lg">
+          <PageHeader eyebrow="Lumen Bank" title="Online banking" />
+          <ChatThread>
+            <ChatDateDivider>Yesterday at 5:20 pm</ChatDateDivider>
+            <ChatMessage side="others">See you there</ChatMessage>
+          </ChatThread>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const eyebrow = find(frame, (node) => node.type === "TEXT" && node.characters === "Lumen Bank");
+  const time = find(frame, (node) => node.type === "TEXT" && node.characters === "Yesterday at 5:20 pm");
+  check("eyebrow and chat time in the code's text styles and tones", [eyebrow?.textStyle, eyebrow?.fill, time?.textStyle, time?.fill, time?.align], ["Body/Small/Medium", "Content/Neutral/Base", "Caption/Regular", "Content/Neutral/Light", "CENTER"]);
+  ok("a ChatDateDivider comes back as itself", /<ChatDateDivider>Yesterday at 5:20 pm<\/ChatDateDivider>/.test(pageFromFigma(frame, { mapping }).text));
 }
 
 // 13. A Table inside a surface (a Card, a Box with a surface or a border) drops its last row's bottom rule, as table.css
@@ -1414,7 +1461,7 @@ export default function Page() {
     { path: "Title-Highlight[0]", props: { Trend: true }, texts: { Label: "Invoiced", "Metric-Number": "$98,100" } }, { path: "Title-Highlight[0]/Trend", props: { Trend: "Negative" }, textList: ["−7% vs. September"] },
     { path: "Title-Highlight[1]", props: { Trend: false }, texts: { Label: "Collected", "Metric-Number": "$91,000" } },
   ]]);
-  check("metric type: the dark Hero's Card (Solid Neutral) and its button words", [hero.nested.find((entry) => entry.path === "Card").props, hero.nested.find((entry) => entry.path === "Button")], [{ "Sub-Action": false, Theme: "Solid", Color: "Neutral" }, { path: "Button", textList: ["Open report"] }]);
+  check("metric type: the dark Hero's Card (Solid Neutral) and its button words", [hero.nested.find((entry) => entry.path === "Card").props, hero.nested.find((entry) => entry.path === "Button/Main")], [{ "Sub-Action": false, Theme: "Solid", Color: "Neutral" }, { path: "Button/Main", textList: ["Open report"] }]);
   ok("metric type: notes say Figma keeps three comparison columns, and no sample marks where the page has data", !typedNotes.some((note) => /draws its own sample/.test(note)) && typedNotes.some((note) => /2 comparison columns; Figma's Comparison draws 3/.test(note)));
   ok("metric type: KPI keeps its Metric-Inline", kpi.slots?.[0]?.children?.[0]?.set?.name === "Primitives/Metric/Metric-Inline/Icon-Highlight");
   const { text: back } = pageFromFigma(frame, { mapping });
