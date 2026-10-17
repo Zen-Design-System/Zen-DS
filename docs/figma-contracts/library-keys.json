@@ -355,6 +355,11 @@
       "type": "COMPONENT_SET",
       "key": "d3029c1cc330c21d5f3149ab32042167eb15c2ff"
     },
+    "16104:4826": {
+      "name": "Primitives/Metric/Metric-Tile",
+      "type": "COMPONENT_SET",
+      "key": "f0883e14642b16263749ce586fbb7f0e5ee531a8"
+    },
     "1625:8328": {
       "name": "Stepper-Bar/Horizontal",
       "type": "COMPONENT_SET",
@@ -530,6 +535,16 @@
       "type": "COMPONENT_SET",
       "key": "bc27cc30fa89c2a6afe1c53dab3ddc663ea63403"
     },
+    "4122:34662": {
+      "name": "Header/Dashboard",
+      "type": "COMPONENT_SET",
+      "key": "fdcef7dc0e935348d1792be565f357ea0e5ac9e2"
+    },
+    "4122:41886": {
+      "name": "Patterns/Pages/Density-Medium",
+      "type": "COMPONENT_SET",
+      "key": "6ba5e7d0f2a720807cf5eac5ecac901a30d6030b"
+    },
     "4218:1270": {
       "name": "AI/Chat-Bubble",
       "type": "COMPONENT_SET",
@@ -609,6 +624,11 @@
       "name": "Side-Bar/Master/Small-Density",
       "type": "COMPONENT_SET",
       "key": "1cca393d971c48ed570d8f3e6d8b5ed97990b9d1"
+    },
+    "6040:67524": {
+      "name": "Patterns/Sidebar/Density-Medium",
+      "type": "COMPONENT_SET",
+      "key": "1a3970adbd847f87ba2981bf0ddda11c5704aafc"
     },
     "6044:81281": {
       "name": "Primitives/Sidebar/Menu-Item/Section-Title",
@@ -790,11 +810,6 @@
       "name": "Metric-Card",
       "type": "COMPONENT_SET",
       "key": "9945b0851f81821c610cc09de04bd1849002b27e"
-    },
-    "16104:4826": {
-      "name": "Primitives/Metric/Metric-Tile",
-      "type": "COMPONENT_SET",
-      "key": "f0883e14642b16263749ce586fbb7f0e5ee531a8"
     },
     "6643:73471": {
       "name": "Sector=4-Sectors",

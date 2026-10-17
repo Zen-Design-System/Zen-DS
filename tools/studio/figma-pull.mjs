@@ -581,6 +581,8 @@ function controlLabelParts(node, props, own) {
   if (typeof caption === "string" && caption && content?.props?.Subtext !== false) props.caption = literal(caption);
 }
 
+/** A workspace Side-Bar's panel slots, as the Basic Side-Bar names them (figma-push WORKSPACE_SLOTS, the other way). */
+const FROM_WORKSPACE_SLOT = { "Child-Header-Content": "Header-Content", "Child-Body-Content": "Body-Content", "Child-Footer-Content": "Footer-Content" };
 /** Figma slots a component takes as a node prop, not as its children (Sidebar: Header-Content, Footer-Content). */
 const SLOT_PROPS = {
   Sidebar: { "Header-Content": "brand", "Footer-Content": "footer" },
@@ -1071,7 +1073,12 @@ function appShellElement(node, ctx) {
   let children = [];
   const pageNode = after.find((part) => !part.absolute && part.type !== "INSTANCE" && part.type !== "TEXT");
   if (pageNode) {
-    const inside = (pageNode.children ?? []).filter((child) => (child.absolute ? (pinned.push(child), false) : true));
+    // The master layout's Body: the page is its Content slot's layers, Floating-Actions › Floating-Item the floating action.
+    const bodyLayers = (pageNode.children ?? []).flatMap((child) => {
+      if (child.name === "Floating-Actions") { pinned.push(child); return []; }
+      return child.type === "SLOT" && child.name === "Content" ? child.children ?? [] : [child];
+    });
+    const inside = bodyLayers.filter((child) => (child.absolute ? (pinned.push(child), false) : true));
     const elements = inside.map((child) => convert(child, ctx)).filter(Boolean);
     const padding = pageNode.layout?.padding ?? [];
     children = padding.some(Boolean) ? [frameElement({ ...pageNode, children: inside }, elements, ctx)] : elements;
@@ -1086,6 +1093,60 @@ function appShellElement(node, ctx) {
   }
   if (asideNode) props.aside = { kind: "element", node: convert(asideNode, ctx) };
   return { kind: "element", name: "AppShell", props, children };
+}
+
+/** Figma's ◇ Master-Layout page pattern and the Sidebar pattern in it (figma-push.mjs MASTER_LAYOUT_SET). */
+const MASTER_LAYOUT = "Patterns/Pages/Density-Medium";
+const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar/Density-Medium";
+/**
+ * Figma's ◇ Master-Layout as the push writes it (figma-push.mjs masterLayoutNode: an instance of Patterns/Pages/
+ * Density-Medium with nested writes and slots) in the shape appShellElement reads, the one a placed master gives the
+ * read (Patterns/… is a composition): the Side-Bar its Sidebar pattern holds, a column of Header/Dashboard's rows and
+ * Body (the Content slot's layers; Floating-Item's action pinned), the Side-Panel. Null for another instance.
+ */
+function masterLayoutFrame(node) {
+  if (node.type !== "INSTANCE" || node.set?.name !== MASTER_LAYOUT) return null;
+  const props = node.props ?? {};
+  const nested = node.nested ?? [];
+  const slots = node.slots ?? [];
+  const firstOf = (slot) => (Array.isArray(slot.within) ? slot.within[0] : slot.within);
+  const slotNamed = (name) => slots.find((slot) => slot.name === name && firstOf(slot) !== MASTER_SIDEBAR_PATTERN);
+  /** An instance's own writes the push placed under `path` (`within` starting with `layers`), at its own root again. */
+  const partAt = (path, layers, fallbackSet) => {
+    const own = nested.find((entry) => entry.path === path) ?? {};
+    const prefix = `${path}/`;
+    return {
+      type: "INSTANCE", name: own.name ?? path, set: own.set ?? fallbackSet, props: own.props ?? {},
+      ...(own.text !== undefined ? { text: own.text } : {}), ...(own.texts ? { texts: own.texts } : {}),
+      nested: nested.filter((entry) => entry.path.startsWith(prefix)).map((entry) => ({ ...entry, path: entry.path.slice(prefix.length) })),
+      slots: slots.filter((slot) => Array.isArray(slot.within) && layers.every((name, i) => slot.within[i] === name)).map((slot) => {
+        const rest = slot.within.slice(layers.length);
+        const { within, ...bare } = slot;
+        return rest.length ? { ...bare, within: rest.length === 1 ? rest[0] : rest } : bare;
+      }),
+    };
+  };
+  const layers = [];
+  if (props.Sidebar !== false) {
+    const sidebarSlot = slots.find((slot) => firstOf(slot) === MASTER_SIDEBAR_PATTERN);
+    const inner = sidebarSlot ? sidebarSlot.within.slice(0, 2) : [MASTER_SIDEBAR_PATTERN, "Patterns/Density/Comfortable/Sidebar/Yes"];
+    // The Side-Bar's hidden layers: the master's edits inside it.
+    const hide = (node.edits ?? []).filter((edit) => edit.visible === false && Array.isArray(edit.layer) && edit.layer.length === inner.length + 1 && inner.every((name, i) => edit.layer[i] === name)).map((edit) => edit.layer[inner.length]);
+    layers.push({ ...partAt("Patterns/Patterns", inner, { name: "Side-Bar/Master/Basic" }), ...(hide.length ? { hide } : {}) });
+  }
+  // The rows as the read gives them: Dashboard header instances (their padding is the master's own).
+  const rows = (slotNamed("Sections")?.children ?? []).map(({ padding, paddingVars, ...row }) => row);
+  const floating = slotNamed("Floating-Item")?.children?.[0];
+  layers.push({
+    type: "FRAME", name: "Main-Container", layout: { mode: "VERTICAL" },
+    children: [
+      { type: "FRAME", name: "Header/Dashboard", layout: { mode: "VERTICAL" }, children: rows },
+      { type: "FRAME", name: "Body", layout: { mode: "VERTICAL", padding: [0, 0, 0, 0] }, children: slotNamed("Content")?.children ?? [] },
+      ...(floating ? [{ ...floating, absolute: { cx: "MAX", cy: "MAX" } }] : []),
+    ],
+  });
+  if (props["Side-Panel"]) layers.push(partAt("Side-Panel", ["Side-Panel"], { name: "Side-Panel" }));
+  return { type: "FRAME", id: node.id, key: node.key, name: node.name, layout: { mode: "HORIZONTAL" }, children: layers };
 }
 
 /** Each element's Figma layer: its parent reads its Fill container from it. */
@@ -1270,6 +1331,9 @@ function shapeElement(node, ctx) {
 function convertNode(node, ctx) {
   const { mapping, notes } = ctx;
   if (!node) return null;
+  // Figma's ◇ Master-Layout written by the push: AppShell (the read of a placed one comes as frames, below).
+  const master = masterLayoutFrame(node);
+  if (master) { const shell = appShellElement(master, ctx); if (shell) return shell; }
   if (node.shape) return shapeElement(node, ctx);
   if (DRAWINGS.has(node.type)) { ctx.drawings.push(node.name); return null; }
   if (node.type === "TABLE") return tableElement(node, ctx);
@@ -1379,6 +1443,8 @@ function convertNode(node, ctx) {
     // IconButton's level has no static default: the one Button.tsx resolves (Main Tertiary, Flat Primary, Overlay
     // Accent) is left out (figma-push writes it, the other way).
     if (set.code === "IconButton" && props.level?.kind === "literal" && props.level.value === ({ flat: "primary", overlay: "accent" }[props.appearance?.value] ?? "tertiary")) delete props.level;
+    // A workspace Side-Bar's panel slots (Child-…) are the Sidebar's own (figma-push WORKSPACE_SLOTS).
+    if (set.code === "Sidebar") for (const slot of node.slots ?? []) slot.name = FROM_WORKSPACE_SLOT[slot.name] ?? slot.name;
     for (const slot of node.slots ?? []) {
       // A nested instance's slot (figma-push `within`): its owner reads it (a ChatMessage's reactions).
       if (handled.has(slot.name) || own.slots.has(slot.name) || slot.within) continue;
@@ -1706,9 +1772,13 @@ function withSeenBy(element, readList, ctx) {
 
 /** Chat/Section/Conversation runs as one ChatThread: each run's messages (its Conversations slot), the other layers between. */
 function chatThreadElement(node, ctx) {
+  // A time between runs (figma-push: a ChatDateDivider frame around its centred Caption text).
+  const divider = (child) => child.type === "FRAME" && child.name === "ChatDateDivider" && (child.children ?? []).length === 1 && child.children[0].type === "TEXT"
+    ? { kind: "element", name: "ChatDateDivider", props: {}, children: [{ kind: "text", value: child.children[0].characters ?? "" }] }
+    : null;
   const children = (node.children ?? []).flatMap((child) => (child.type === "INSTANCE" && child.set?.name === CHAT_SECTION
     ? (child.slots ?? []).flatMap((slot) => slot.children ?? []).map((item) => convert(item, ctx))
-    : [convert(child, ctx)])).filter(Boolean);
+    : [divider(child) ?? convert(child, ctx)])).filter(Boolean);
   return { kind: "element", name: "ChatThread", props: {}, children };
 }
 
@@ -1870,6 +1940,17 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   // A copy: the slots take their owner's key (slotKeys), and a push's frame read back here stays as it was.
   frame = frame ? JSON.parse(JSON.stringify(frame)) : frame;
   slotKeys(frame);
+  // The Screen's own canvas and height, which figma-push writes on the page frame: Screen props, not a Box surface.
+  const screenProps = {};
+  const canvasFill = /^(?:Color\/)?Background\/Canvas\/(Default|Alt|Flat)$/.exec(String(frame?.fill ?? ""));
+  if (canvasFill) {
+    delete frame.fill;
+    if (canvasFill[1] !== "Default") screenProps.canvas = literal(canvasFill[1].toLowerCase());
+  }
+  if (typeof frame?.minH === "number") {
+    if (frame.minH !== (deviceOf(frame.width) === "phone" ? 844 : 900)) screenProps.height = literal(frame.minH);
+    delete frame.minH;
+  }
   const chrome = screenChrome(frame, ctx);
   let root = chrome ? chrome.root : convert(frame, ctx);
   // The push's page frame around an app frame (a column holding only the AppShell): the AppShell itself.
@@ -1880,7 +1961,7 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   const own = (part) => (frame ? idOf(frame, ctx, part) : undefined);
   // A Stack, or an AppShell (an app frame), is the Screen's content as it is; anything else goes in a Stack.
   const content = root ? (root.name === "Stack" || root.name === "AppShell" ? root : { kind: "element", id: own("content"), name: "Stack", props: {}, children: [root] }) : null;
-  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...(chrome?.props ?? {}) }, children: content ? [content] : [] };
+  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...screenProps, ...(chrome?.props ?? {}) }, children: content ? [content] : [] };
   const board = { kind: "element", id: own("board") ?? "board", name: "Board", props: {}, children: [screen] };
   // Elements no layer stands for take their place under their parent (deterministic: the same frame, the same ids).
   const walk = (node) => {

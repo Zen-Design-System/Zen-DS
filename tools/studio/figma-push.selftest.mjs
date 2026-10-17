@@ -29,6 +29,13 @@ const shape = (text) => {
   return tree(docFromText(text).doc.board);
 };
 const find = (node, test) => (test(node) ? node : [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].map((child) => find(child, test)).find(Boolean) ?? null);
+/** The AppShell's Side-Bar in Figma's Master-Layout: its props (the nested Patterns/Patterns entry, the pattern's Expand), its slots (within the pattern). */
+const masterSidebar = (frame) => {
+  const master = find(frame, (node) => node.set?.name === "Patterns/Pages/Density-Medium");
+  if (!master) return null;
+  const at = (path) => master.nested?.find((entry) => entry.path === path);
+  return { master, pattern: at("Patterns")?.props ?? {}, props: at("Patterns/Patterns")?.props ?? {}, slots: master.slots.filter((slot) => slot.within?.[0] === "Patterns/Sidebar/Density-Medium") };
+};
 
 // 1. A pulled frame (figma-pull.selftest's Team, without the shape outside the library) goes up and comes back the same.
 const TEAM = {
@@ -152,16 +159,19 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
   const overviews = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-overviews.json", import.meta.url), "utf8")).frame, { mapping }).text;
   const { frame, notes } = push(overviews);
   check("Overviews: nothing left out", notes, []);
-  const sidebar = find(frame, (node) => node.set?.name === "Side-Bar/Master/Basic");
-  check("Overviews: the Sidebar's slots (brand, sections, footer)", sidebar?.slots?.map((slot) => slot.name), ["Header-Content", "Body-Content", "Footer-Content"]);
-  const body = sidebar.slots.find((slot) => slot.name === "Body-Content").children;
+  // AppShell as Figma's Master-Layout: the Sidebar's slots sit in the Side-Bar its Sidebar pattern holds.
+  const master = find(frame, (node) => node.set?.name === "Patterns/Pages/Density-Medium");
+  const sidebarSlots = (master?.slots ?? []).filter((slot) => slot.within?.[0] === "Patterns/Sidebar/Density-Medium");
+  check("Overviews: the Sidebar's slots (brand, sections, footer)", sidebarSlots.map((slot) => slot.name), ["Header-Content", "Body-Content", "Footer-Content"]);
+  const body = sidebarSlots.find((slot) => slot.name === "Body-Content").children;
   const selected = body.flatMap((section) => section.children).find((item) => item.props?.Select === "Yes");
   ok("Overviews: sections as frames, the selected Menu-Item says Select Yes", body.every((section) => section.type === "FRAME") && selected?.set.name === "Primitives/Side-Bar/Menu-Item/Master");
   const header = find(frame, (node) => node.set?.name === "Primitives/Dashboard/Header");
   ok("Overviews: a Dashboard header's slots and texts", header?.slots?.length > 0);
   check("Overviews: Breadcrumbs items in their Item-List slot", find(frame, (node) => node.set?.name === "Breadcrumbs")?.slots?.[0]?.children.every((item) => item.set.name === "Primitives/Breadcrumbs/Item/Slot"), true);
   const absolutes = []; const collect = (node) => { if (node.absolute) absolutes.push(node.absolute); (node.children ?? []).forEach(collect); (node.slots ?? []).forEach((slot) => slot.children.forEach(collect)); }; collect(frame);
-  check("Overviews: layers outside the auto layout keep their constraints and insets (top right 32; the AppShell's floating action bottom right, Margin-Comfortable in)", absolutes.map((box) => [box.cx, box.cy, box.right, box.top]), [["MAX", "MIN", 32, 32], ["MAX", "MAX", 24, 0]]);
+  check("Overviews: layers outside the auto layout keep their constraints and insets (top right 32)", absolutes.map((box) => [box.cx, box.cy, box.right, box.top]), [["MAX", "MIN", 32, 32]]);
+  check("Overviews: the AppShell's floating action in the master's Floating-Item (Floating-Actions on)", [master?.props["Floating-Actions"], master?.slots.find((slot) => slot.name === "Floating-Item")?.within, master?.slots.find((slot) => slot.name === "Floating-Item")?.children.length], [true, ["Floating-Actions"], 1]);
 }
 {
   const pictured = PAGE.replace('<Icon name="icon-star-01-line" />', '<Avatar src="zen-media:abc123" alt="Alex" />').replace("import { Button, Card, Grid, Icon, IconButton, Stack, Text }", "import { Avatar, Button, Card, Grid, Icon, IconButton, Stack, Text }");
@@ -219,20 +229,23 @@ export default function Page() {
 {
   const { frame, notes } = push(SHELL);
   const shell = frame.children[0];
-  check("AppShell: a row of the Sidebar (fill height) and its column (fill width), filling the frame", { name: shell?.name, mode: shell?.layout.mode, fillW: shell?.fillW, parts: shell?.children.map((child) => [child.set?.name ?? child.name, Boolean(child.fillH), Boolean(child.fillW)]) }, { name: "AppShell", mode: "HORIZONTAL", fillW: true, parts: [["Side-Bar/Master/Basic", true, false], ["Column", false, true]] });
-  const sidebar = shell.children[0];
-  check("AppShell: Sidebar rows in Body-Content, the selected one Select Yes; no logo: Header-Content emptied (Figma's sample LOGO and Collapse go); no footer: Footer-Content emptied, its container hidden", [sidebar.slots?.map((slot) => [slot.name, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), sidebar.hide], [[["Header-Content", []], ["Body-Content", ["Home:No", "People:Yes"]], ["Footer-Content", []]], ["Divider", "Footer-Container"]]);
-  const column = shell.children[1];
-  check("AppShell: its column is the top bar (Header) then the page (Main)", column.children.map((child) => child.name), ["Header", "Main"]);
-  const bar = column.children[0].children[0];
-  check("AppShell: the top bar is the Dashboard header Type=Navigation, padded as Figma's Navigation row (Margin-Comfortable, Padding/XSmall below)", { set: bar.set.name, type: bar.props.Type, padding: column.children[0].layout.padding }, { set: "Primitives/Dashboard/Header", type: "Navigation", padding: [24, 24, 8, 24] });
+  // AppShell as Figma's ◇ Master-Layout (user 2026-10-17: "app shell và master layout không khớp …"): one instance.
+  check("AppShell: Figma's Master-Layout (Patterns/Pages/Density-Medium Level=Master) filling the frame: Sidebar on, no Side-Panel, no floating action", { name: shell?.name, set: shell?.set?.name, props: shell?.props, fillW: shell?.fillW }, { name: "AppShell", set: "Patterns/Pages/Density-Medium", props: { Level: "Master", Sidebar: true, "Side-Panel": false, "Floating-Actions": false }, fillW: true });
+  const slotOf = (name) => shell.slots.find((slot) => slot.name === name);
+  const inner = ["Patterns/Sidebar/Density-Medium", "Patterns/Density/Comfortable/Sidebar/Yes"];
+  check("AppShell: the Sidebar pattern Expand=Yes; its Side-Bar's rows in Body-Content (the selected one Select Yes), no logo: Header-Content emptied, no footer: Footer-Content emptied, its container hidden inside the Side-Bar (not the master's first layer of that name)", { expand: shell.nested.find((entry) => entry.path === "Patterns")?.props, slots: shell.slots.filter((slot) => slot.within?.[0] === inner[0]).map((slot) => [slot.name, slot.within, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), hide: shell.hide, hidden: shell.edits.filter((edit) => edit.visible === false).map((edit) => edit.layer) }, { expand: { Expand: "Yes" }, slots: [["Header-Content", inner, []], ["Body-Content", inner, ["Home:No", "People:Yes"]], ["Footer-Content", inner, []]], hide: undefined, hidden: [[...inner, "Divider"], [...inner, "Footer-Container"]] });
+  const sections = slotOf("Sections");
+  const bar = sections.children[0];
+  check("AppShell: Header/Dashboard's Sections hold the top bar, the Dashboard header Type=Navigation padded as the master's own row (Margin-Comfortable, Padding/XSmall below)", { within: sections.within, rows: sections.children.length, set: bar.set.name, type: bar.props.Type, padding: bar.padding, vars: bar.paddingVars }, { within: ["Header/Dashboard"], rows: 1, set: "Primitives/Dashboard/Header", type: "Navigation", padding: [24, 24, 8, 24], vars: ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/XSmall", "Margin-Comfortable"] });
   check("AppShell: Leading-Slots the collapse toggle and the header, Trailing-Slots the actions and the account's Avatar", bar.slots.map((slot) => [slot.name, slot.children.map((child) => child.set.name)]), [["Leading-Slots", ["Button/Icon-Flat", "Breadcrumbs"]], ["Trailing-Slots", ["Primitives/Dashboard/Header/Action-Item", "Avatar/Single"]]]);
   check("a slot with content turns its block on (Nav-Trailing-Block), one without stays off", [bar.props["Nav-Trailing-Block"], bar.props["Nav-Center-Block"]], [true, false]);
   const account = find(bar, (node) => node.set?.name === "Avatar/Single");
   check("AppShellAccount (a Menu's trigger): its Avatar, named by the person, the initials", [account?.name, account?.text, account?.props.Size], ["Khoa Dang", "KD", "Medium"]);
-  const main = column.children[1];
-  const container = main.children[0];
-  check("Container: a frame of its layers with the gutter (Margin-Comfortable each side)", [container?.name, container?.layout.padding, container?.fillW], ["Container", [0, 24, 0, 24], true]);
+  const content = slotOf("Content");
+  const main = content.children[0];
+  check("Container: in Body's Content slot, a frame of its layers with the gutter (Margin-Comfortable each side); Body unpadded as AppShell's main is", [content.within, main?.name, main?.layout.padding, main?.fillW, shell.edits.find((edit) => edit.padding)], [["Body"], "Container", [0, 24, 0, 24], true, { layer: ["Body"], padding: [0, 0, 0, 0], hugH: true }]);
+  // Figma's master is one viewport tall (982) with its Content filling it: a longer page was cut off (2026-10-17).
+  check("AppShell grows with its page: Main-Container, Body and the Content slot hug, the Side-Bar is as tall, the viewport's 982 stays the minimum", { min: shell.minH, content: content.hugH, hug: shell.edits.filter((edit) => edit.hugH).map((edit) => edit.layer.join(" › ")), fill: shell.edits.filter((edit) => edit.fillH).map((edit) => edit.layer.join(" › ")) }, { min: 982, content: true, hug: ["Main-Container", "Body"], fill: [inner.join(" › ")] });
   const header = find(main, (node) => node.props?.Type === "Main");
   check("PageHeader: the Dashboard header Type=Main, its title, SubHeading and actions (Actions on)", [header?.text, header?.texts?.SubHeading, header?.props.Actions, header?.slots?.[0]?.name, header?.slots?.[0]?.children.map((button) => button.text)], ["Team members", "12 people", true, "Action-Slots", ["Export", "Invite"]]);
   check("Heading: text in its level's style (h2 Heading/4)", find(main, (node) => node.type === "TEXT" && node.characters === "Admins")?.textStyle, "Heading/4");
@@ -322,7 +335,11 @@ export default function Page() {
 {
   const { frame, notes } = push(DASH);
   const shell = frame.children[0];
-  check("AppShell: the page is Canvas", shell.fill, "Background/Canvas/Default");
+  // The Screen frame as Studio draws it (builder.css): Canvas/Default (or the Screen's canvas), at least 900 tall, a phone
+  // 844; the plugin's frame was Figma's default white, the paste's had no fill (board test, 2026-10-18).
+  const altScreen = push(DASH.replace('device="desktop">', 'device="desktop" canvas="alt">')).frame;
+  check("Screen frame: Canvas/Default and 900 minimum, the Screen's canvas when set, a phone's 844; read back as the Screen's canvas (no Box)", [frame.fill, frame.minH, altScreen.fill, push(DASH.replace('device="desktop">', 'device="phone">')).frame.minH, /<Screen[^>]*canvas="alt"/.test(pageFromFigma(altScreen, { mapping }).text), /surface="canvas"/.test(pageFromFigma(frame, { mapping }).text)], ["Background/Canvas/Default", 900, "Background/Canvas/Alt", 844, true, false]);
+  check("AppShell: the page is Canvas (the master layout's own fill, canvas=\"alt\" overrides it)", [shell.set?.name, shell.fill, push(DASH.replace("<AppShell ", '<AppShell canvas="alt" ')).frame.children[0].fill], ["Patterns/Pages/Density-Medium", undefined, "Background/Canvas/Alt"]);
   const [fit, fixed] = find(frame, (node) => node.name === "Stack" && node.children?.some((child) => child.name === "Grid")).children.filter((child) => child.name === "Grid");
   // The page is 1440 less the open Sidebar's 240: auto-fit 496 + 16 takes 2 columns, the third card on a second row.
   check("Grid of columns that fit, in a page of known width: as many even columns as fit, Gap/Medium both ways, its cells keep the minimum (cards as tall as the row)", { layout: [fit.layout.mode, fit.layout.wrap, fit.layout.gap, fit.layout.rowGap, fit.layout.rowGapVar, fit.layout.grid], cells: fit.children.map((cell) => [cell.fillW, cell.fillH, cell.minW, cell.cell.col, cell.cell.row]) }, { layout: ["GRID", undefined, 16, 16, "Spacing/Gap/Medium", { columns: 2, rows: 2, sizes: [{ type: "FLEX", value: 1 }, { type: "FLEX", value: 1 }] }], cells: [[true, true, 496, 0, 0], [true, true, 496, 1, 0], [true, true, 496, 0, 1]] });
@@ -504,16 +521,59 @@ export default function Page() {
     .replace("import { AppShell,", "import { AppShell, Avatar,")
     .replace('<Grid minColumnWidth={480} gap="lg">', '<Grid minColumnWidth={400}>');
   const { frame, notes } = push(rail);
-  const side = find(frame, (node) => node.set?.name === "Side-Bar/Master/Basic");
+  const side = masterSidebar(frame);
   const header = side.slots.find((slot) => slot.name === "Header-Content").children;
   const groups = side.slots.find((slot) => slot.name === "Body-Content").children;
-  check("collapsed Sidebar: Expand No, the brand's mark alone in the header", [side.props.Expand, header.map((layer) => layer.set?.name ?? layer.type)], ["No", ["Avatar/Single"]]);
+  check("collapsed Sidebar: the pattern and its Side-Bar Expand No (the pattern's Sidebar/No layer), the brand's mark alone in the header", [side.pattern.Expand, side.props.Expand, side.slots[0].within, header.map((layer) => layer.set?.name ?? layer.type)], ["No", "No", ["Patterns/Sidebar/Density-Medium", "Patterns/Density/Comfortable/Sidebar/No"], ["Avatar/Single"]]);
   check("collapsed Sidebar: rows their icon alone (no label, as wide as it), titles gone, a Divider opening the later group", groups.map((group) => group.children.map((layer) => [layer.set?.name, layer.props?.Label, layer.hugW ?? layer.fillW, layer.text, layer.hugLayers?.[0]?.name])), [[["Primitives/Side-Bar/Menu-Item/Master", false, true, undefined, "Element"]], [["Divider", undefined, true, undefined, undefined], ["Primitives/Side-Bar/Menu-Item/Master", false, true, undefined, "Element"]]]);
   // 1440 − 84 (rail) − 48 (Container's gutter) = 1308: (1308 + 16) / (400 + 16) → 3 columns (an open Sidebar leaves room for 2).
   check("the page beside the rail is 84 narrower than the frame, not 240: 3 columns of 400", find(frame, (node) => node.name === "Grid")?.layout.grid?.columns, 3);
   ok("logoCollapsed / the rail noted as nothing", !notes.some((note) => /Sidebar.*(logoCollapsed|not written)/.test(note)));
   const back = pageFromFigma(frame, { mapping }).text;
   ok("round trip: the rail comes back a collapsed Sidebar, its rows' labels and its groups' titles kept, no Divider row", /<Sidebar[^>]*\bcollapsed\b/.test(back) && /label: "Modules"/.test(back) && /label: "People"/.test(back) && !/Divider/.test(back.slice(back.indexOf("<Sidebar"), back.indexOf("/>", back.indexOf("<Sidebar")))));
+}
+
+{
+  // A workspace Sidebar (template "Empty and error states", corpus test 2026-10-18): its set names the panel's slots
+  // Child-…; the sections went to a Body-Content it does not have, and come back from Child-Body-Content.
+  const page = WIDTHS.replace('<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>', '<Sidebar aria-label="Main" variant="workspace" selectedId="home" sections={[{ id: "main", items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "people", label: "People", icon: "icon-users-line" }] }]} />');
+  const { frame } = push(page);
+  const side = masterSidebar(frame);
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("workspace Sidebar: the Workspace set in the master's pattern, its sections in Child-Body-Content, read back as the sections", [side.master.nested.find((entry) => entry.path === "Patterns/Patterns")?.set?.name, side.slots.map((slot) => slot.name), /variant="workspace"/.test(back) && /label: "People"/.test(back)], ["Side-Bar/Master/Workspace", ["Child-Body-Content", "Child-Footer-Content"], true]);
+}
+
+{
+  // Texts as the code draws them (board test vs the plugin's import, 2026-10-18): a PageHeader eyebrow in
+  // Body/Small/Medium Neutral Base, a ChatDateDivider a centred Caption/Regular in Neutral Light (and back), not bare
+  // texts that imported at Figma's 12px and pasted at 14px black.
+  const page = `// @zen-page {"format":1,"title":"Texts"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { ChatDateDivider, ChatMessage, ChatThread, PageHeader, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Texts" device="desktop">
+        <Stack gap="lg">
+          <PageHeader eyebrow="Lumen Bank" title="Online banking" />
+          <ChatThread>
+            <ChatDateDivider>Yesterday at 5:20 pm</ChatDateDivider>
+            <ChatMessage side="others">See you there</ChatMessage>
+          </ChatThread>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const eyebrow = find(frame, (node) => node.type === "TEXT" && node.characters === "Lumen Bank");
+  const time = find(frame, (node) => node.type === "TEXT" && node.characters === "Yesterday at 5:20 pm");
+  check("eyebrow and chat time in the code's text styles and tones", [eyebrow?.textStyle, eyebrow?.fill, time?.textStyle, time?.fill, time?.align], ["Body/Small/Medium", "Content/Neutral/Base", "Caption/Regular", "Content/Neutral/Light", "CENTER"]);
+  ok("a ChatDateDivider comes back as itself", /<ChatDateDivider>Yesterday at 5:20 pm<\/ChatDateDivider>/.test(pageFromFigma(frame, { mapping }).text));
 }
 
 // 13. A Table inside a surface (a Card, a Box with a surface or a border) drops its last row's bottom rule, as table.css
@@ -1401,7 +1461,7 @@ export default function Page() {
     { path: "Title-Highlight[0]", props: { Trend: true }, texts: { Label: "Invoiced", "Metric-Number": "$98,100" } }, { path: "Title-Highlight[0]/Trend", props: { Trend: "Negative" }, textList: ["−7% vs. September"] },
     { path: "Title-Highlight[1]", props: { Trend: false }, texts: { Label: "Collected", "Metric-Number": "$91,000" } },
   ]]);
-  check("metric type: the dark Hero's Card (Solid Neutral) and its button words", [hero.nested.find((entry) => entry.path === "Card").props, hero.nested.find((entry) => entry.path === "Button")], [{ "Sub-Action": false, Theme: "Solid", Color: "Neutral" }, { path: "Button", textList: ["Open report"] }]);
+  check("metric type: the dark Hero's Card (Solid Neutral) and its button words", [hero.nested.find((entry) => entry.path === "Card").props, hero.nested.find((entry) => entry.path === "Button/Main")], [{ "Sub-Action": false, Theme: "Solid", Color: "Neutral" }, { path: "Button/Main", textList: ["Open report"] }]);
   ok("metric type: notes say Figma keeps three comparison columns, and no sample marks where the page has data", !typedNotes.some((note) => /draws its own sample/.test(note)) && typedNotes.some((note) => /2 comparison columns; Figma's Comparison draws 3/.test(note)));
   ok("metric type: KPI keeps its Metric-Inline", kpi.slots?.[0]?.children?.[0]?.set?.name === "Primitives/Metric/Metric-Inline/Icon-Highlight");
   const { text: back } = pageFromFigma(frame, { mapping });
