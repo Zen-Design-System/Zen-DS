@@ -581,6 +581,14 @@ thành icon palette".
     a small error under the field.
   - Sync fix: a project only this browser has goes back up to the dev folder only if it was saved while no server
     answered (pending). Before, a project trashed in another browser came back.
+- Follow-up (user, 2026-10-18: "Tạo page mới trong project vừa tạo nó lại nhảy vào draft"). Two causes:
+  - A page sync race (it predates projects): the tab re-synced on the folder's change event, which fires on the
+    temporary file. That listing missed the page just written, the page was already marked synced, and the plan sent
+    it to the Trash about 1 s after it was made. A fresh listing now confirms a lost page before it is trashed.
+  - A page from a template only got `project` after it opened, and its document wrote the text back without it. It
+    now takes the project in its first write (pageFromSnapshot).
+  - Checked: blank pages (from the project home and from the panel) and template pages keep their project, including
+    after a rename.
 - Follow-up (user: "Chưa bỏ segmented dời chỗ đổi document và studio vào menu hả?"): main already had it from
   another session (the brand menu's Switch to Document / Switch to Studio), so the merge took main's version and
   dropped this session's parallel one (Open Document / Open Studio).
