@@ -210,7 +210,8 @@ Last updated: 2026-10-17.
   PR #24):** Studio Export › Figma + the Zen plugin's Import from Studio (plugin folder `~/Documents/zen-ds-figma-plugin-main`,
   local git since 2026-10-12), Check Figma bindings (binding-diff.mjs), Download for Figma after a token save
   (rebind.mjs). Coverage (2026-10-12/13, spec §8, merged to main via PRs #26 #30 #31 #32): app pages export whole
-  (AppShell, Screen chrome, code-only wrappers as frames); AppShell's top bar is a DashboardHeader navigation (72px as
+  (Screen chrome, code-only wrappers as frames; AppShell as the ◇ Master-Layout instance Patterns/Pages/Density-Medium
+  since 2026-10-18, research doc studio-native-paste §7b); AppShell's top bar is a DashboardHeader navigation (72px as
   Figma) and app frames pull back as AppShell; Clip content on Stack / Grid / Box (Studio toggle, Figma round trip);
   a design copy keeps its Table cells; sessions "Lỗi UI" / "Kết nối file Figma Pokeslide" made the Dashboard and the
   templates import as they look (tried in the live file, page "Studio exports — QA"; even fit grids, metric / chart

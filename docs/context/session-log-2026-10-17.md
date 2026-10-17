@@ -551,3 +551,18 @@ thành icon palette".
   ("Bỏ các thay đổi UI cũ trong plugin đi"). Backup: Zen-DS `backups/plugin-ui-paste-box-wip-2026-10-17.patch`; the plugin
   repo is clean, rebuilt, `npm test` green.
 
+## AppShell → Figma Master-Layout (session 6b8336f6, 2026-10-17 → 18, tier M)
+User: "app shell và master layout không khớp với nhau thành component master layout trong figma"; chose "Làm ngay".
+- Built (branch zen/feat/appshell-master-layout-20261017, worktree ../Zen-DS-wt-mastershell): AppShell → instance
+  Patterns/Pages/Density-Medium Level=Master in figma-push (masterLayoutNode) and back in figma-pull
+  (masterLayoutFrame); plugin studio-import.js e0d10a9 (instance padding, minH, hug/fill + padding edits).
+- Measured on Figma's own copies: the master is a viewport tall with Content FILL (page cut) → hug chain + Side-Bar
+  stretch + minSize 982; an instance's own padding lives in its self override; Fill on a bound width must unbind it
+  (the paste went 1440 → 1512); Body's unbound padding as entries without variableData. Pack: +3 sets, rows keep a
+  frame's `mode`, symbols their `bound` size fields (20.4 MB).
+- Found and fixed on the way: Metric action/custom only where the set has them (Icon-Highlight); a nested hug kept
+  filling its parent (chart Segmented stretched in the paste, hugged in the plugin).
+- Checked in the Zen file: direct paste of Dashboard and HR · Expense overview, plugin import of Dashboard (identical
+  sizes 1440×1516, padding bound, Sidebar full height); the user confirmed on screen (server reads lag, §7b).
+- Selftests: push 275, pull 76, native 57 (+10), plugin `npm test`; BACKLOG P2 nested Grid row stretch (pre-existing).
+

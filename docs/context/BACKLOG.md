@@ -182,6 +182,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   tools/studio/figma-native.mjs for RECTANGLE/ELLIPSE arc/LINE arrow/POLYGON/STAR and Component → COMPONENT, Use →
   INSTANCE, after zen/feat/studio-components-20261017 merges (spec: figma-push.mjs shapeNode; reference: plugin
   studio-import.js 3ba73f9, ed9bec6).
+- **P2 · A Grid stretched in its parent's row keeps its own row at content height (2026-10-18, AppShell paste):** the
+  Dashboard's two metric Grids sit side by side in an outer Grid; in Figma the second Grid is stretched to 228 but its
+  Hug row stays 198, so Utilization and Active projects are shorter than Revenue and Profit margin (CSS stretches the
+  row). Both the plugin's import and the direct paste; existed before the master layout. Likely: such a Grid's rows
+  Flex (needs a Figma check: use_figma does not lay out new grids). Pointer: figma-push.mjs Grid rows, plugin
+  settleGridRows.
 - **P3 · Direct paste parity left after native-diff (2026-10-17):** slot contents written at Figma's outer level, grid row
   minimum heights, kept overrides by resolved variable, and a smaller pack (18.9 MB). Pointer: research doc §8.
 - **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
