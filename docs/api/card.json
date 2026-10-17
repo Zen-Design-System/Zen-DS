@@ -68,10 +68,10 @@
         },
         {
           "name": "color",
-          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\" | \"accent\"",
           "required": false,
           "default": "\"neutral\"",
-          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, all nine: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\"\n (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid; Figma has no Solid\n violet, green, blue or purple, which render as Solid Neutral — harness card/solid-color). Shadow, Flat, Border and\n On-Container ignore it (harness card/color-ignored). A Solid card re-points the content, border and track tokens\n its children read (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*); the page keeps its mode.",
+          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550) and\n theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid;\n accent: Background/Accent/Solid/Default, Solid only; Figma has no Solid violet, green, blue or purple and no Pale\n accent, which render as Solid / Pale Neutral — harness card/solid-color). Shadow, Flat, Border and On-Container\n ignore it (harness card/color-ignored). A Solid card re-points the neutral tokens its children read to the fill's\n own family (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*; Accent → Content/On-Accent; Yellow →\n Content/On-Brights; the other hues → Content/On-Colors) and tells its Metric parts which family to draw; the page\n keeps its mode.",
           "deprecated": null
         },
         {

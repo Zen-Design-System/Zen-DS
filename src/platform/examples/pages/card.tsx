@@ -931,7 +931,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Stand out in a hue",
-    description: "A time-sensitive widget can stand out in a hue instead: Solid Yellow keeps neutral text and a neutral Primary button. Approving updates the status line and offers Undo.",
+    description: "A time-sensitive widget can stand out in a hue instead: on Solid Yellow the text reads Content/On-Brights by itself (content follows the fill; Brand, Cyan and Orange read white On-Colors) and the button stays a neutral Primary. Approving updates the status line and offers Undo.",
     render: () => <PayrollStandOut />,
     code: `<Grid minColumnWidth={220} gap="md">
   <Card as="section" theme="solid" color="yellow" aria-labelledby={payrollId}>

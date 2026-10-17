@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from "react";
 import { Badge } from "../Badge";
 import { Card, type CardColor, type CardSubAction, type CardTheme } from "../Card";
+import { useCardContent } from "../Card/card-content";
 import { DockIcon, type DockIconBackground, type DockIconTheme } from "../DockIcon";
 import { Icon, type IconName } from "../Icon";
 import { ProgressBar } from "../Progress";
@@ -23,18 +24,30 @@ type MetricSizeKey = (typeof metricSizes)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
 export type MetricSize = "xs" | "sm" | "md" | "lg" | "xl" | "xsmall" | "small" | "medium" | "large" | "xlarge";
 export type MetricTrendDirection = "positive" | "negative" | "normal";
+/** Figma Metric-Trend Content: the badge's family on the fill under it. */
+export type MetricTrendContent = "default" | "inverse" | "on-color";
 
-/** Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Subtle Badge — Positive green (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral. */
-export function MetricTrend({ trend = "normal", children, ref }: {
+/**
+ * Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge. Content=Default is Subtle — Positive green
+ * (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral. On a Solid fill the badge takes the fill's family
+ * whatever the direction (the arrow tells it): Inverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and
+ * colour solids. Inside a Solid Card it follows the card unless `content` is set.
+ */
+export function MetricTrend({ trend = "normal", content: contentProp, children, ref }: {
   trend?: MetricTrendDirection;
+  /** Figma Content (Default · Inverse · On-Color). Default: the enclosing Solid Card's family (Inverse on Neutral, On-Color
+   *  on Accent and the hues), else Default. */
+  content?: MetricTrendContent;
   children: ReactNode;
   /** Forwarded to the Badge's root `<span>`. */
   ref?: Ref<HTMLSpanElement>;
 }) {
   const nest = useNested();
-  const theme = trend === "positive" ? "green" : trend === "negative" ? "red" : "neutral";
+  const on = useCardContent();
+  const content = contentProp ?? (on === "inverse" ? "inverse" : on ? "on-color" : "default");
+  const theme = content !== "default" ? content : trend === "positive" ? "green" : trend === "negative" ? "red" : "neutral";
   const icon: IconName | null = trend === "positive" ? "icon-arrow-circle-up-solid" : trend === "negative" ? "icon-arrow-circle-down-solid" : null;
-  return nest("Badge", <Badge ref={ref} size="small" theme={theme} background="subtle" leading={icon ? <Icon name={icon} decorative /> : undefined} leadingIcon={Boolean(icon)}>{children}</Badge>);
+  return nest("Badge", <Badge ref={ref} size="small" theme={theme} background={content === "default" ? "subtle" : "solid"} leading={icon ? <Icon name={icon} decorative /> : undefined} leadingIcon={Boolean(icon)}>{children}</Badge>);
 }
 
 /** Figma Metric-Inline label and number text styles per Size. */
@@ -48,9 +61,11 @@ export interface MetricProps {
   value: ReactNode;
   /** Figma Trend: { direction, label } → Metric-Trend badge. */
   trend?: { direction: MetricTrendDirection; label: ReactNode };
-  /** Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it. */
+  /** Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it. MetricCard type="tile":
+   *  Neutral Solid, `icon-activity-line` by default. */
   icon?: IconName | false;
-  /** Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral. */
+  /** Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral; a tile on a Solid card
+   *  takes the fill's family (Inverse on Neutral, On-Color on Accent and the hues). */
   iconTheme?: DockIconTheme;
   /** Dock-Icon Background: Subtle (default) or Solid for the one metric that should lead. */
   iconBackground?: DockIconBackground;
@@ -74,17 +89,20 @@ export interface MetricProps {
    * Dock-Icon stays at the contents' bottom-right corner.
    */
   custom?: ReactNode;
-  /** Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the
-   *  metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour
-   *  (`var(--zen-color-background-support-blue-solid)`). */
+  /** Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight
+   *  XLarge/Large, …/2XSmall below) that ties the metric to a chart series. `true` is Color/Background/Accent/Solid; a
+   *  string is the series colour (`var(--zen-color-background-support-blue-solid)`). Title-Highlight draws it at
+   *  Small/XSmall only (Figma's XLarge–Medium title row has no dot). */
   metricColor?: boolean | string;
   /** Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count
    *  of what the metric covers, e.g. "3" open invoices). */
   counter?: ReactNode;
-  /** Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. */
+  /** Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title,
+   *  Spacing/Gap/XSmall from it. */
   labelIcon?: IconName | ReactNode;
-  /** Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows
-   *  this text in a Tooltip on hover and focus; say how the number is worked out. */
+  /** Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px
+   *  after the Caption label at Small/XSmall, that shows this text in a Tooltip on hover and focus; say how the number
+   *  is worked out. */
   hint?: ReactNode;
   className?: string;
   /** Forwarded to the root `<div>`. */
@@ -115,24 +133,33 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
     const dock = iconSize ? (iconSize === "lg" || iconSize === "large" ? "large" : "medium") : stacked ? "large" : "medium";
     const mark = nest("Icon", iconEmoji ? <DockIcon className="zen-metric__icon" theme="emoji" emoji={iconEmoji} background={iconBackground} size={dock} />
       : icon ? <DockIcon className="zen-metric__icon" icon={icon} theme={iconTheme} background={iconBackground} size={dock} /> : null);
+    // Figma Hint: 20px (Element-Size/Popular/Base) after the title at XLarge–Medium, 12px (…/XSmall) after the Caption label below.
+    const hintMark = hint ? (
+      <Tooltip content={hint} size="small">
+        {/* zen-allow-raw-icon-button: Figma Hint is a bare info glyph (no button container), as InputLabel's tooltip icon; the Tooltip names and explains it. */}
+        <button type="button" className="zen-metric__hint" aria-label={typeof hint === "string" ? hint : t.moreInformation}><Icon name="icon-info-circle-line" size={titled ? "base" : "xs"} decorative /></button>
+      </Tooltip>
+    ) : null;
     const body = (
       <>
         <div className="zen-metric__contents">
           {titled ? (
             <div className="zen-metric__header">
-              {/* Figma Header › Label-Container: [Label-Icon] Label, then the Hint icon; the action stays at the end. */}
+              {/* Figma Header › Label-Container: Wrapper ([Label-Icon] Label), then the Hint icon; the action stays at the end.
+                  No Metric-Color here: Figma draws its dot only in the Caption row of Small/XSmall. */}
               <span className="zen-metric__title-row">
-                {dot}
-                {labelIcon ? <span className="zen-metric__label-icon">{nest("Label-Icon", renderIcon(labelIcon, { size: "md" }))}</span> : null}
-                <span className={`zen-metric__title ${typographyStyles["Heading/Subheading"]}`}>{label}</span>
-                {/* zen-allow-raw-icon-button: Figma Hint is a bare 20px info glyph (no button container), as InputLabel's tooltip icon; the Tooltip names and explains it. */}
-                {hint ? <Tooltip content={hint} size="small"><button type="button" className="zen-metric__hint" aria-label={typeof hint === "string" ? hint : t.moreInformation}><Icon name="icon-info-circle-line" size="base" decorative /></button></Tooltip> : null}
+                <span className="zen-metric__title-label">
+                  {labelIcon ? <span className="zen-metric__label-icon">{nest("Label-Icon", renderIcon(labelIcon, { size: "md" }))}</span> : null}
+                  <span className={`zen-metric__title ${typographyStyles["Heading/Subheading"]}`}>{label}</span>
+                </span>
+                {hintMark}
               </span>
               {nest.slot(action)}
             </div>
           ) : null}
           <div className="zen-metric__content">
-            {titled ? null : <span className="zen-metric__label-row">{dot}<span className={`zen-metric__label ${typographyStyles["Caption/Regular"]}`}>{label}</span></span>}
+            {/* Figma Metric-Title: [Color] Label [Hint], Spacing/Gap/2XSmall apart. */}
+            {titled ? null : <span className="zen-metric__label-row">{dot}<span className={`zen-metric__label ${typographyStyles["Caption/Regular"]}`}>{label}</span>{hintMark}</span>}
             <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
             {trend ? nest("Trend", <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend>) : null}
           </div>
@@ -168,7 +195,7 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
 }
 
 /** Figma Metric-Card Type (6643:64008): what the card draws under its title and number. */
-export const metricCardTypes = ["kpi", "sparkline", "spark-bars", "goal-progress", "comparison", "category-bar", "hero"] as const;
+export const metricCardTypes = ["kpi", "sparkline", "spark-bars", "goal-progress", "comparison", "category-bar", "hero", "tile"] as const;
 export type MetricCardType = (typeof metricCardTypes)[number];
 
 /** Goal-Progress: how far the metric has come toward its goal (Figma Progress-Bar Theme=Accent, Layout=Stacked). */
@@ -222,7 +249,11 @@ export type MetricCardProps = Omit<MetricProps, "value" | "variant"> & {
    * bars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;
    * `comparison` (15481:1848) the `label` as a Heading/Subheading title over the `comparison` columns; `category-bar`
    * (15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral
-   * trend line from `series` on a Brand Pale card (theme="solid" for the dark widget), with `footer` for its button.
+   * trend line from `series` on a Brand Pale card (theme="solid" for the dark widget), with `footer` for its button;
+   * `tile` (16104:4827) a phone stat tile, Figma Metric-Tile in a Card Spacing=Small: the title, number and trend over
+   * the Dock-Icon. Its `size` is Medium (default: two-up, Display/3) or Small (three-up, Heading/3), and its content follows
+   * the card's fill (Figma Content: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on
+   * Yellow).
    */
   type?: MetricCardType;
   /** sparkline · spark-bars · hero: the values in order, oldest first; the last is the current period (the Secondary bar).
@@ -252,7 +283,36 @@ export type MetricCardProps = Omit<MetricProps, "value" | "variant"> & {
 };
 
 /** The Metric size each Figma Metric-Card type draws. */
-const typeSize: Record<Exclude<MetricCardType, "kpi" | "comparison">, MetricSize> = { sparkline: "lg", "spark-bars": "lg", "goal-progress": "lg", "category-bar": "lg", hero: "xl" };
+const typeSize: Record<Exclude<MetricCardType, "kpi" | "comparison" | "tile">, MetricSize> = { sparkline: "lg", "spark-bars": "lg", "goal-progress": "lg", "category-bar": "lg", hero: "xl" };
+
+/** Figma Metric-Tile Size: Medium (two-up) or Small (three-up); the Metric spellings below Medium draw Small. */
+const tileSmall = (size: MetricSize | undefined) => size === "sm" || size === "small" || size === "xs" || size === "xsmall";
+
+/**
+ * Figma Primitives/Metric/Metric-Tile (16104:4826): Value (Metric-Title Neutral/Base, Metric-Number Neutral/Strongest,
+ * the trend; Spacing/Gap/2XSmall) over the Dock-Icon, Spacing/Gap/Small apart. Medium: Body/Small/Medium, Display/3,
+ * Dock-Icon Medium; Small: Caption/Medium, Heading/3, Dock-Icon Small. Its Content follows the card it sits in: the text
+ * reads the card's re-pointed tokens, the trend its Content, and the Dock-Icon Inverse on Solid Neutral, On-Color on Accent
+ * and the hues (Neutral Solid elsewhere).
+ */
+function MetricTile({ label, value, trend, icon = "icon-activity-line", iconTheme, iconEmoji, size }: Pick<MetricProps, "label" | "value" | "trend" | "icon" | "iconTheme" | "iconEmoji" | "size">) {
+  const nest = useNested();
+  const on = useCardContent();
+  const small = tileSmall(size);
+  const theme = iconTheme ?? (on === "inverse" ? "inverse" : on ? "on-color" : "neutral");
+  const dock = small ? "small" : "medium";
+  const mark = iconEmoji ? <DockIcon theme="emoji" emoji={iconEmoji} background="solid" size={dock} /> : icon ? <DockIcon icon={icon} theme={theme} background="solid" size={dock} /> : null;
+  return (
+    <div className="zen-metric-tile" data-size={small ? "small" : "medium"}>
+      <div className="zen-metric-tile__value">
+        <span className={`zen-metric-tile__label ${typographyStyles[small ? "Caption/Medium" : "Body/Small/Medium"]}`}>{label}</span>
+        <span className={`zen-metric-tile__number ${typographyStyles[small ? "Heading/3" : "Display/3"]}`}>{value}</span>
+        {trend ? nest("Trend", <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend>) : null}
+      </div>
+      {mark ? nest("Metric-Icon", mark) : null}
+    </div>
+  );
+}
 
 /**
  * Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric and a ⋮ Sub-Action. Type=KPI is an
@@ -260,19 +320,19 @@ const typeSize: Record<Exclude<MetricCardType, "kpi" | "comparison">, MetricSize
  */
 export function MetricCard({ theme: themeProp, color: colorProp, subAction, className, overrides, type = "kpi", variant = "title-highlight", series, seriesLabel, goal, comparison, categories, format = defaultFormat, footer, headingLevel = 3, animate = true, ref, ...metric }: MetricCardProps) {
   const t = useZenLabels();
-  // Figma Type=Hero: a Card whose fill is Support/Brand/Pale (its Solid Brand card, fill overridden) and a trend badge
-  // Theme=On-Color, Background=Solid (a white pill) on that fill; Solid Neutral (15487:89034) is the dark Hero. Written
-  // overrides still win.
+  // Figma Type=Hero: a Card whose fill is Support/Brand/Pale (its Solid Brand card, fill overridden) and a Metric-Trend
+  // Content=On-Color (a white pill) on that fill; on a Solid card the trend follows the card (Solid Neutral, 15487:89034,
+  // is Inverse). Written overrides still win.
   const hero = type === "hero";
-  const nest = useNested(hero ? { "Metric/Trend/Badge": { theme: "on-color", background: "solid" }, ...overrides } : overrides);
   const theme = themeProp ?? (hero ? "pale" : "shadow");
+  const nest = useNested(hero && theme !== "solid" ? { "Metric/Trend": { content: "on-color" }, ...overrides } : overrides);
   const color = colorProp ?? (hero && theme === "pale" ? "brand" : undefined);
   const values = (series ?? []).filter((value) => Number.isFinite(value));
   const seriesName = useSeriesName(values, format, seriesLabel);
   const card = (content: ReactNode) => (
     // zen-allow-overrides: MetricCard passes its own overrides on, so the Card's Sub-Action and the Metric's layers
     // (`Metric/Icon`) read the same table.
-    <Card ref={ref} theme={theme} color={color} subAction={subAction} className={["zen-metric-card", className].filter(Boolean).join(" ")} data-type={type === "kpi" ? undefined : type} overrides={overrides}>
+    <Card ref={ref} theme={theme} color={color} subAction={subAction} spacing={type === "tile" ? "sm" : undefined} className={["zen-metric-card", className].filter(Boolean).join(" ")} data-type={type === "kpi" ? undefined : type} overrides={overrides}>
       {content}
     </Card>
   );
@@ -280,6 +340,10 @@ export function MetricCard({ theme: themeProp, color: colorProp, subAction, clas
   if (type === "kpi") {
     const kpi = { ...metric, variant, size: metric.size ?? (variant === "title-highlight" ? "lg" : "xl") } as const;
     return card(foot ? <div className="zen-metric-card__body">{nest("Metric", <Metric {...kpi} value={metric.value} />)}{foot}</div> : nest("Metric", <Metric {...kpi} value={metric.value} />));
+  }
+  if (type === "tile") {
+    // Figma Metric-Card Type=Tile: the Card (Spacing=Small) around a Metric-Tile, whose content follows the card's fill.
+    return card(nest("Metric-Tile", <MetricTile label={metric.label} value={metric.value} trend={metric.trend} icon={metric.icon} iconTheme={metric.iconTheme} iconEmoji={metric.iconEmoji} size={metric.size} />));
   }
   if (type === "comparison") {
     // The title heads the columns under it, as a ChartCard's title: a heading (the outline), Heading/Subheading (the look).

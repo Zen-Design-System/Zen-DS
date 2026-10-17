@@ -20,6 +20,7 @@
 //   radius/unbound           error    a corner radius with no Corner-Radius variable
 //   effect/no-style          error    a shadow or blur with no Zen effect style
 //   layout/absolute          warning  a frame with 2+ children and no auto layout
+//   layout/row-drift         warning  side-by-side columns of equal rows end a row at different heights (grid lines drift)
 //   shape/loose              warning  a hand-drawn shape outside any component (use a Zen component or a local one)
 //   component/detached       warning  a frame named like a Zen component that is not an instance (detached)
 //   bounds/overflow          error    a layer sticking out of its parent (also when the parent does not clip; a centred
@@ -54,6 +55,11 @@
 //                                     colour mode: only the screen frame does; a dark widget is Card Solid/Neutral
 //   theme/on-white-solid     error    text or an icon on a Background/White-Solid fill (white in Light and Dark mode)
 //                                     that is not Content/On-White-Overlay/*: Neutral and Inverse flip with the mode
+//   theme/on-solid-content   error    content on a Solid fill outside the fill's family: Neutral/Solid → Content/Inverse
+//                                     (Dock-Icon, Badge, Metric-Tile, Metric-Trend Inverse); Accent/Solid →
+//                                     Content/On-Accent (Metric-Tile On-Accent); Yellow, Sky, Mint, Golden, Warning →
+//                                     Content/On-Brights (Metric-Tile On-Bright); any other Support, Positive, Negative, Info solid →
+//                                     Content/On-Colors (Metric-Tile On-Color); chips on a colour solid are On-Color
 //   navigation/back-chevron  error    a left arrow (icon-arrow-left-*, icon-arrow-narrow-left-*) as Back in a Top-Navigation,
 //                                     Nav-Action or Button on a phone or tablet screen: Back is icon-chevron-left-line-medium
 //   button/one-primary       error    two Primary Button/Main or Icon-Main side by side (one parent); warning when a screen
@@ -62,6 +68,9 @@
 //   button/accent-is-promoted   warning  an Accent Button/Main or Icon-Main: only a promoted CTA (onboarding, upsell)
 //   button/small-full-width  error    a Small / XSmall / 2XSmall text button stretched to Fill: small buttons hug
 //   button/overlay-on-imagery   warning  a Button/Main or Icon-Main on a photo: buttons on imagery are Overlay
+//   button/in-card-flat      error    a Button/Icon-Main inside a card or with the ⋮/⋯ icon: card actions are Icon-Flat
+//   button/in-card-wrapper   warning  a flat icon action in a card outside an Element-Size/Popular/Base Wrapper (bleed)
+//   spacing/control-gap      error    a button closer than Gap/XSmall (8) to the text or button beside it
 //   button/vague-label       warning  a button labelled OK, Yes, Submit or Click here
 //   touch/target-spacing     error    on a phone or tablet, two controls closer than their 44px hit areas allow: the
 //                                     gap is at least what each control lacks of 44 on that side (two 32px Chips → 12)
@@ -510,6 +519,42 @@ function onImagery(node, screen) {
   }
   return false;
 }
+// Card actions (user 2026-10-17, Schedule/Event-Card: "các dạng action này trong card nên dùng flat"): an icon action
+// inside a card, and any ⋮ / ⋯ menu trigger, is Button/Icon-Flat (Zen's Card Sub-Action: Small, Secondary, ⋮).
+const MORE_ICON = /^icon-dots-(horizontal|vertical)/;
+async function isMoreIcon(node) {
+  const key = Object.keys(node.componentProperties ?? {}).find((name) => name.startsWith("Leading-Icon-Src"));
+  const icon = key ? await figma.getNodeByIdAsync(node.componentProperties[key].value) : null;
+  return MORE_ICON.test(icon?.name ?? "");
+}
+function inCard(node, screen) {
+  for (let current = node.parent; current && current !== screen.parent; current = current.parent) {
+    if (/card/i.test(current.name) || (current.type === "INSTANCE" && /^(Card|Component\/List-Box)$/.test(setOf(current)))) return true;
+  }
+  return false;
+}
+// The Card Sub-Action's Wrapper: one child, no clip, smaller than the button, width bound to an Element-Size variable.
+function inSizeWrapper(node) {
+  const wrapper = node.parent;
+  return Boolean(wrapper && wrapper.type === "FRAME" && !wrapper.clipsContent && wrapper.children.length === 1
+    && wrapper.width < node.width && wrapper.boundVariables && wrapper.boundVariables.width);
+}
+// Control gap (user 2026-10-17, Schedule/Day-Planner: "chữ và button sát quá"): a button sits at least Gap/XSmall (8)
+// from the text or button beside it; Gap/2XSmall (4) only joins one inline item (icon + text, a Badge beside a title).
+async function checkControlGap(root) {
+  const isButton = async (node) => node.type === "INSTANCE" && BUTTON_SET.test(await setNameOf(node));
+  for (const frame of root.findAll ? root.findAll((node) => (node.type === "FRAME" || node.type === "COMPONENT") && node.layoutMode !== "NONE") : []) {
+    if (!authored(frame) || frame.primaryAxisAlignItems === "SPACE_BETWEEN" || frame.itemSpacing >= 8 - TOLERANCE) continue;
+    const kids = frame.children.filter((child) => child.visible !== false && child.layoutPositioning !== "ABSOLUTE");
+    for (let i = 0; i < kids.length - 1; i++) {
+      const [a, b] = [kids[i], kids[i + 1]];
+      const [buttonA, buttonB] = [await isButton(a), await isButton(b)];
+      if (!(buttonA || buttonB) || !(buttonA || a.type === "TEXT") || !(buttonB || b.type === "TEXT")) continue;
+      report("spacing/control-gap", ERROR, frame, `${a.name} and ${b.name} sit ${frame.itemSpacing}px apart: a button beside text or another button is Spacing/Gap/XSmall (8) or more; 2XSmall joins only one inline item (icon + text, a Badge beside a title)`);
+      break;
+    }
+  }
+}
 async function checkButtonRoles(root) {
   const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
   for (const screen of screens) {
@@ -526,6 +571,8 @@ async function checkButtonRoles(root) {
       if (solid && level === "Accent") report("button/accent-is-promoted", WARNING, node, "Accent is only for a promoted CTA (onboarding, upsell, the floating feedback action); an ordinary main action is Primary");
       if ((kind === "Main" || kind === "Flat") && /^(Small|XSmall|2XSmall)$/.test(size) && node.layoutSizingHorizontal === "FILL") report("button/small-full-width", ERROR, node, `a ${size} button stretched to Fill: small buttons hug their label; a full-width button is Medium or larger`);
       if (solid && onImagery(node, screen)) report("button/overlay-on-imagery", WARNING, node, "a Button/Main or Icon-Main on a photo: use Button/Overlay or Icon-Overlay (White, White Overlay, Black Overlay, Inverse)");
+      if (kind === "Icon-Main" && ((await isMoreIcon(node)) || inCard(node, screen))) report("button/in-card-flat", ERROR, node, "an icon action inside a card or with the ⋮/⋯ icon is Button/Icon-Flat: Secondary for the quiet ⋮ menu (the Card Sub-Action, Small, icon-dots-vertical-line), Primary for a row action; Icon-Main Tertiary is for toolbars and control rows");
+      if (kind === "Icon-Flat" && inCard(node, screen) && !inSizeWrapper(node)) report("button/in-card-wrapper", WARNING, node, "a flat icon action in a card sits in a Wrapper sized by Element-Size/Popular/Base (20, no clip, centred), as the Card Sub-Action does: the button bleeds evenly and the row keeps the icon's size");
       const label = kind === "Main" || kind === "Flat" || kind === "Overlay" ? node.findOne((child) => child.type === "TEXT") : null;
       if (label && VAGUE_LABEL.test(label.characters.trim())) report("button/vague-label", WARNING, node, `"${label.characters}": start with a verb and name the outcome ("Save changes", "Select")`);
     }
@@ -624,6 +671,27 @@ async function checkNavIcons(root) {
       const name = icon?.name ?? "";
       if (selected && !/-solid$/.test(name)) report("navigation/icon-style", ERROR, item, `the selected item shows ${name || "a line icon"}: use its -solid version (pick an icon that has one)`);
       if (!selected && /-solid$/.test(name)) report("navigation/icon-style", ERROR, item, `an unselected item shows ${name}: use its -line version; solid marks only the current tab`);
+    }
+  }
+}
+
+// Row drift (user 2026-10-17, Schedule/Resource-Grid: "Cẩn thận các lỗi này"): side-by-side columns of equal rows (a
+// row header column beside a track, a gutter beside day columns) must end every row at the same height. A hug cell
+// with a 1px rule grows 1px when its stroke counts in the layout (createAutoLayout's default), so the lines drift.
+function checkRowDrift(root) {
+  const rowsOf = (column) => column.children.filter((row) => row.visible !== false && row.layoutPositioning !== "ABSOLUTE");
+  const uniform = (rows) => Math.max(...rows.map((row) => row.height)) - Math.min(...rows.map((row) => row.height)) <= TOLERANCE;
+  for (const frame of root.findAll ? root.findAll((node) => node.type === "FRAME" && node.layoutMode === "HORIZONTAL") : []) {
+    if (!authored(frame)) continue;
+    const columns = frame.children.filter((child) => child.visible !== false && child.type === "FRAME" && child.layoutMode === "VERTICAL" && rowsOf(child).length >= 3 && uniform(rowsOf(child)));
+    if (columns.length < 2) continue;
+    const ends = columns.map((column) => rowsOf(column).map((row) => box(row)).filter(Boolean).map((b) => b.y + b.height));
+    if (!ends.every((list) => list.length === ends[0].length)) continue;
+    for (let i = 0; i < ends[0].length; i++) {
+      const drift = Math.max(...ends.map((list) => list[i])) - Math.min(...ends.map((list) => list[i]));
+      if (drift <= TOLERANCE) continue;
+      report("layout/row-drift", WARNING, frame, `row ${i + 1} of ${columns.map((column) => column.name).join(" / ")} ends ${Math.round(drift)}px apart: one fixed row height, and strokesIncludedInLayout = false on every frame that draws a grid rule`);
+      break;
     }
   }
 }
@@ -781,18 +849,80 @@ async function checkOnWhiteSolid(node) {
   report("theme/on-white-solid", ERROR, node, `${name.replace("Color/", "")} on Background/White-Solid: use Content/On-White-Overlay/* (the fill stays white in Dark mode${/Neutral|Inverse/.test(name) ? ", this colour turns light there" : ""})`);
 }
 
+// Content on a Solid fill takes the fill's own family (variable descriptions, component-usage-rules §7). `tile` and
+// `trend` are the Content variants of Metric-Tile and Metric-Trend; `chip` the Theme a Dock-Icon or Badge takes there.
+const SOLID_FAMILIES = [
+  { fill: /Background\/Neutral\/Solid\//, text: /Content\/Inverse\//, family: "Content/Inverse/*", tile: "Inverse", trend: "Inverse", chip: "Inverse" },
+  { fill: /Background\/Accent\/Solid\//, text: /Content\/On-Accent\//, family: "Content/On-Accent/*", tile: "On-Accent", trend: "On-Color", chip: "On-Color" },
+  { fill: /Background\/(Support\/(Yellow|Sky|Mint|Golden)\/Solid|Warning\/Solid\/)/, text: /Content\/On-Brights$/, family: "Content/On-Brights", tile: "On-Bright", trend: "On-Color", chip: "On-Color" },
+  { fill: /Background\/(Support\/[^/]+\/Solid|Positive\/Solid\/|Negative\/Solid\/|Info\/Solid\/)/, text: /Content\/On-Colors$/, family: "Content/On-Colors", tile: "On-Color", trend: "On-Color", chip: "On-Color" },
+];
+
+/** The nearest painted layer above `node`, when it is a Solid fill of a SOLID_FAMILIES row: { fill, row }. */
+async function solidBelow(node) {
+  for (let current = node.parent; current && current.type !== "PAGE" && current.type !== "SECTION"; current = current.parent) {
+    const paints = "fills" in current && !isMixed(current.fills) ? visiblePaints(current.fills) : [];
+    const solid = paints.find((paint) => paint.type === "SOLID");
+    if (solid) {
+      const fill = (await paintVar(solid)) ?? "";
+      const row = SOLID_FAMILIES.find((family) => family.fill.test(fill));
+      return row ? { fill: fill.replace("Color/", ""), row } : null;
+    }
+    if (paints.length) return null;
+    if (rootIds.has(current.id)) return null;
+  }
+  return null;
+}
+
+/** Text or a placed icon on a Solid fill: its colour comes from the fill's family. */
+async function checkOnSolid(node) {
+  let paint;
+  if (node.type === "TEXT") paint = isMixed(node.fills) ? null : visiblePaints(node.fills).find((candidate) => candidate.type === "SOLID");
+  else {
+    const vector = node.findOne((child) => child.type === "VECTOR" || child.type === "BOOLEAN_OPERATION");
+    paint = vector && !isMixed(vector.fills) ? visiblePaints(vector.fills).find((candidate) => candidate.type === "SOLID") : null;
+  }
+  if (!paint) return;
+  const below = await solidBelow(node);
+  if (!below) return;
+  const name = (await paintVar(paint)) ?? "a raw colour";
+  if (below.row.text.test(name)) return;
+  report("theme/on-solid-content", ERROR, node, `${name.replace("Color/", "")} on ${below.fill}: use ${below.row.family}`);
+}
+
+/** Zen parts that carry their own content colours (Metric-Tile, Metric-Trend, Dock-Icon, Badge) set to the fill's family. */
+async function checkSolidPairing(instance) {
+  const set = setOf(instance);
+  const kind = set === "Primitives/Metric/Metric-Tile" ? "tile" : set === ".Primitives/Metrics/Metric-Trend" ? "trend" : set === "Dock-Icon" || set === "Badge" ? "chip" : null;
+  if (!kind) return;
+  const below = await solidBelow(instance);
+  if (!below) return;
+  const props = instance.componentProperties;
+  if (kind === "chip") {
+    const theme = props.Theme && props.Theme.value;
+    const wrong = below.row.chip === "Inverse" ? ["On-Color", "Neutral"] : ["Inverse", "Neutral"];
+    if (wrong.includes(theme)) report("theme/on-solid-content", ERROR, instance, `${set} Theme=${theme} on ${below.fill}: use Theme=${below.row.chip}`);
+    return;
+  }
+  const content = props.Content && props.Content.value;
+  const want = below.row[kind];
+  if (content === want) return;
+  report("theme/on-solid-content", ERROR, instance, `${set} Content=${content} on ${below.fill}: use Content=${want}`);
+}
+
 async function walk(node, instanceRoot, isRoot) {
   if (!node.visible) return;
   const inInstance = Boolean(instanceRoot);
   if (!isRoot && !inInstance) checkBounds(node);
   if (node.type === "TEXT") {
-    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); await checkOnWhiteSolid(node); }
+    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); await checkOnWhiteSolid(node); await checkOnSolid(node); }
     checkText(node, instanceRoot);
     return;
   }
   if (node.type === "INSTANCE") {
     if (!inInstance) await checkInstanceOverrides(node);
-    if (!inInstance && /^ic(on)?-/i.test(node.name)) await checkOnWhiteSolid(node);
+    if (!inInstance && /^ic(on)?-/i.test(node.name)) { await checkOnWhiteSolid(node); await checkOnSolid(node); }
+    if (!inInstance) await checkSolidPairing(node);
     if (!inInstance && footerActionHugs(node)) report("list-box/footer-action-hug", ERROR, node, "the footer Button hugs on a desktop or tablet screen: set its width to Fill (Hug only on mobile)");
   } else if (!inInstance) {
     checkPaints(node);
@@ -829,6 +959,8 @@ for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkSectionGap(root);
 for (const root of roots) await checkNavIcons(root);
+for (const root of roots) checkRowDrift(root);
+for (const root of roots) await checkControlGap(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {

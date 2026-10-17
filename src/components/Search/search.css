@@ -14,6 +14,11 @@
    2px Input/Border/Hover (input.css); Focused and Typing take Input/Border/Popover-Search at 1px, transparent in every
    Component Theme except Neutral-S7 (Color/Focus/Neutral/Subtle). */
 .zen-search.zen-search--popover[data-size] > .zen-input__control { border-radius: var(--zen-corner-radius-input-medium, 12px); }
+/* Figma Search/Default Shape=Rounded (2026-10-17): the Field-Only instance and its Container on Corner-Radius/Rounded,
+   a pill at every size; the inside stroke, the inset shadow and the focus ring follow through border-radius: inherit
+   and the box-shadow. The filter affordance's hover fill is a pill too. Recommended for searches on phone screens. */
+.zen-search.zen-search--rounded[data-size] > .zen-input__control,
+.zen-search.zen-search--rounded .zen-input-leading-trailing--interactive { border-radius: var(--zen-corner-radius-rounded, 1000px); }
 /* Specificity 0,7,0: must beat input.css's focus rule
    `.zen-input-field:is([data-state…]) .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus))` (0,6,0). */
 .zen-search.zen-search--popover[data-size]:is([data-state="focused"], [data-state="typing"]) > .zen-input__control:not(:has(.zen-input-leading-trailing__picker :focus)),

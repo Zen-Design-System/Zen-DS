@@ -9,11 +9,15 @@
 /* Figma Metric-Title (Icon-Highlight) / Label-Container (Title-Highlight): [Color] [Label-Icon] Label [Counter | Hint],
    Spacing/Gap/2XSmall apart, centred on the label line. */
 .zen-metric__label-row, .zen-metric__title-row { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.zen-metric__color { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-accent-solid-default, #ff66d4); }
+.zen-metric__color { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-accent-solid-default, #ff66d4); }
+/* Figma Color: Element-Size/Popular/XSmall on Icon-Highlight XLarge/Large (the stacked layout), …/2XSmall everywhere else. */
+.zen-metric[data-layout="stacked"] .zen-metric__color { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
 .zen-metric__counter { flex: 0 0 auto; }
 .zen-metric__label-icon { display: inline-flex; width: var(--zen-element-size-popular-medium, 24px); height: var(--zen-element-size-popular-medium, 24px); flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-metric__label-icon > .zen-icon { width: 100%; height: 100%; }
 .zen-metric__hint { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: none; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: help; }
+/* Title-Highlight Small/XSmall: the Hint after the Caption label is Element-Size/Popular/XSmall. */
+.zen-metric__label-row .zen-metric__hint { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
 .zen-metric__hint:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
 .zen-metric__value { color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
 .zen-metric-card { min-width: 0; }
@@ -25,6 +29,8 @@
 .zen-metric[data-variant="title-highlight"][data-size="medium"] .zen-metric__contents { gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-metric[data-variant="title-highlight"]:is([data-size="small"], [data-size="xsmall"]) .zen-metric__contents { gap: var(--zen-spacing-gap-small, 12px); }
 .zen-metric__header { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); }
+/* Figma Label-Container › Wrapper: [Label-Icon] Label, Spacing/Gap/XSmall apart (the Hint follows at Spacing/Gap/2XSmall). */
+.zen-metric__title-label { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-metric__title { min-width: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-metric[data-variant="title-highlight"] .zen-metric__content { align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 /* The number never runs under the corner icon. */
@@ -129,3 +135,11 @@
 @media (prefers-reduced-motion: reduce) {
   .zen-metric-spark:not([data-animate="false"]) .zen-metric-spark__marks, .zen-metric-bars:not([data-animate="false"]) .zen-metric-bars__bar, .zen-metric-categories:not([data-animate="false"]) .zen-metric-categories__segment { animation-name: zen-metric-fade; }
 }
+
+/* Figma Primitives/Metric/Metric-Tile (16104:4826), MetricCard type="tile": Value (title, number, trend;
+   Spacing/Gap/2XSmall) over the Dock-Icon, Spacing/Gap/Small apart, the width of the card's content. Title Neutral/Base,
+   number Neutral/Strongest: a Solid card re-points them to its fill's family (card.css). */
+.zen-metric-tile { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-metric-tile__value { display: flex; width: 100%; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-metric-tile__label { width: 100%; color: var(--zen-color-content-neutral-base); overflow-wrap: anywhere; }
+.zen-metric-tile__number { width: 100%; color: var(--zen-color-content-neutral-strongest); overflow-wrap: anywhere; }

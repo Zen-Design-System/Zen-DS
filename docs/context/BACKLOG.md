@@ -7,6 +7,15 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) for the user: should the
+  searches built into mobile library components (Top-Navigation Mobile control bar, Bottom-Sheet search, the Input
+  family's phone sheet) default to Rounded? Left at Default, since the rule is "recommend, don't force". (b) native
+  paste: `docs/figma-contracts/native-pack.json` has no Search/Default Shape yet, so a direct ⌘V of `shape="rounded"`
+  lands as Default with a note (the plugin import is right); re-capture the Search/Default probe (`native-pack.mjs
+  probe-code` + `capture`, Figma desktop).
+- **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
+  unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
+  (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).
 - **P3 · White-Overlay label contrast (2026-10-17, for the designer):** Chip/Segmented `white-overlay` (user's choice:
   light text on a White-Overlay fill, as Button/Overlay White-Overlay) reads 1.8:1 on Brand/Accent #FF6BD5 (white on
   the bare band is already 2.5:1); it suits darker solid colours. Decide whether to keep it for light brand colours or
@@ -136,9 +145,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Figma chart/widget bugs found in the widgets batch (designer, 2026-10-14; Figma not edited):** Bar-Chart
   Vertical `Average › Rule` 15335:2421 strokeCap NONE (no dots); Segmented `Item-List` FIXED 114 in Line, Stack-Bar,
   Multi-Line, Chart-Card and Heatmap (labels overlap); Area fills bound to Background/Accent|Neutral while lines use the
-  Chart Sector styles (drift in a theme where they differ); coloured Solid Cards bind Content/Neutral (fails in dark,
-  Light 2.9:1 on Cyan/Orange — code re-points); Solid hue cards: the series in the card's own hue uses Brand in code
-  (On-Color/Tertiary washes out as an area); white on Solid Yellow 1.7:1; no Border/Inverse/Pale|Subtle token;
+  Chart Sector styles (drift in a theme where they differ); (settled 2026-10-17: Solid Card content follows the fill,
+  On-Colors / On-Brights / On-Accent in Figma and code); Solid hue cards: the series in the card's own hue uses Brand in code
+  (On-Color/Tertiary washes out as an area); no Border/Inverse/Pale|Subtle token;
   Metric-Card Hero keeps a Brand Pale fill override on a Solid Brand Card (make it Pale/Brand?). Older chart diffs
   to settle: X-label pill (16 tall Bold full-width vs 20 Medium hug), bar lanes
   38/26 vs 36/28, horizontal/heatmap axis gaps 8 vs 16. Detail: `docs/research/widget-patterns-spec-2026-10-14.md`,

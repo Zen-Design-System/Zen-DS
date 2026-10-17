@@ -102,6 +102,7 @@ export const Good = () => <>
   <div><Card theme="border" surface="flat"><Text>Hours this week</Text></Card></div>
   <div><Card theme="shadow" surface="alt"><Text>Outstanding</Text></Card></div>
   <MetricCard theme="solid" color="yellow" label="Next payout" value="$12,400" />
+  <MetricCard theme="solid" color="accent" type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "+24%" }} />
   <ChartCard title="Revenue" theme="pale" color="cyan"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
   <div><Card theme="border" subAction={{ label: "More actions", onClick: openMenu }}><Text>Q4 review</Text></Card></div>
   <ListItem title="Ava Chen" onClick={open} trailing={<Text>9:41</Text>} />

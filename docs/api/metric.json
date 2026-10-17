@@ -39,7 +39,7 @@
           "type": "IconName | false",
           "required": false,
           "default": "\"icon-home-02-solid\"",
-          "description": "Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it.",
+          "description": "Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it. MetricCard type=\"tile\":\n Neutral Solid, `icon-activity-line` by default.",
           "deprecated": null
         },
         {
@@ -47,7 +47,7 @@
           "type": "DockIconTheme",
           "required": false,
           "default": "\"neutral\"",
-          "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral.",
+          "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral; a tile on a Solid card\n takes the fill's family (Inverse on Neutral, On-Color on Accent and the hues).",
           "deprecated": null
         },
         {
@@ -111,7 +111,7 @@
           "type": "boolean | string",
           "required": false,
           "default": "false",
-          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "description": "Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight\n XLarge/Large, …/2XSmall below) that ties the metric to a chart series. `true` is Color/Background/Accent/Solid; a\n string is the series colour (`var(--zen-color-background-support-blue-solid)`). Title-Highlight draws it at\n Small/XSmall only (Figma's XLarge–Medium title row has no dot).",
           "deprecated": null
         },
         {
@@ -127,7 +127,7 @@
           "type": "IconName | ReactNode",
           "required": false,
           "default": null,
-          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title,\n Spacing/Gap/XSmall from it.",
           "deprecated": null
         },
         {
@@ -135,7 +135,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
+          "description": "Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px\n after the Caption label at Small/XSmall, that shows this text in a Tooltip on hover and focus; say how the number\n is worked out.",
           "deprecated": null
         },
         {
@@ -197,7 +197,7 @@
         },
         {
           "name": "color",
-          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\" | \"accent\"",
           "required": false,
           "default": null,
           "description": "Card Color (Figma Card Color, for theme=\"pale\" or \"solid\"): the Card's hue. Solid Neutral is the dark widget; see Card.",
@@ -221,10 +221,10 @@
         },
         {
           "name": "type",
-          "type": "\"kpi\" | \"sparkline\" | \"spark-bars\" | \"goal-progress\" | \"comparison\" | \"category-bar\" | \"hero\"",
+          "type": "\"kpi\" | \"sparkline\" | \"spark-bars\" | \"goal-progress\" | \"comparison\" | \"category-bar\" | \"hero\" | \"tile\"",
           "required": false,
           "default": "\"kpi\"",
-          "description": "Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): a Title-Highlight Metric, Large (`variant` picks\nIcon-Highlight). Every other\ntype draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart\n(Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)\nbars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;\n`comparison` (15481:1848) the `label` as a Heading/Subheading title over the `comparison` columns; `category-bar`\n(15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral\ntrend line from `series` on a Brand Pale card (theme=\"solid\" for the dark widget), with `footer` for its button.",
+          "description": "Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): a Title-Highlight Metric, Large (`variant` picks\nIcon-Highlight). Every other\ntype draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart\n(Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)\nbars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;\n`comparison` (15481:1848) the `label` as a Heading/Subheading title over the `comparison` columns; `category-bar`\n(15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral\ntrend line from `series` on a Brand Pale card (theme=\"solid\" for the dark widget), with `footer` for its button;\n`tile` (16104:4827) a phone stat tile, Figma Metric-Tile in a Card Spacing=Small: the title, number and trend over\nthe Dock-Icon. Its `size` is Medium (default: two-up, Display/3) or Small (three-up, Heading/3), and its content follows\nthe card's fill (Figma Content: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on\nYellow).",
           "deprecated": null
         },
         {
@@ -320,7 +320,7 @@
           "type": "IconName | false",
           "required": false,
           "default": null,
-          "description": "Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it.",
+          "description": "Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it. MetricCard type=\"tile\":\n Neutral Solid, `icon-activity-line` by default.",
           "deprecated": null
         },
         {
@@ -328,7 +328,7 @@
           "type": "DockIconTheme",
           "required": false,
           "default": null,
-          "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral.",
+          "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral; a tile on a Solid card\n takes the fill's family (Inverse on Neutral, On-Color on Accent and the hues).",
           "deprecated": null
         },
         {
@@ -384,7 +384,7 @@
           "type": "boolean | string",
           "required": false,
           "default": null,
-          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "description": "Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight\n XLarge/Large, …/2XSmall below) that ties the metric to a chart series. `true` is Color/Background/Accent/Solid; a\n string is the series colour (`var(--zen-color-background-support-blue-solid)`). Title-Highlight draws it at\n Small/XSmall only (Figma's XLarge–Medium title row has no dot).",
           "deprecated": null
         },
         {
@@ -400,7 +400,7 @@
           "type": "IconName | ReactNode",
           "required": false,
           "default": null,
-          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title,\n Spacing/Gap/XSmall from it.",
           "deprecated": null
         },
         {
@@ -408,7 +408,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
+          "description": "Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px\n after the Caption label at Small/XSmall, that shows this text in a Tooltip on hover and focus; say how the number\n is worked out.",
           "deprecated": null
         },
         {

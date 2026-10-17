@@ -1433,7 +1433,7 @@
         },
         {
           "name": "color",
-          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\" | \"accent\"",
           "required": false,
           "default": null,
           "description": "Figma nested Card Color, for theme=\"pale\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card).",

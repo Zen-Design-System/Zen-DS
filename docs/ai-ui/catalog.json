@@ -3051,10 +3051,11 @@
             "yellow",
             "orange",
             "blue",
-            "purple"
+            "purple",
+            "accent"
           ],
           "default": "neutral",
-          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, all nine: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan · yell"
+          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan ·"
         },
         "spacing": {
           "enum": [
@@ -3253,7 +3254,8 @@
             "yellow",
             "orange",
             "blue",
-            "purple"
+            "purple",
+            "accent"
           ],
           "description": "Figma nested Card Color, for theme=\"pale\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card)."
         },
@@ -10115,7 +10117,8 @@
         "A number toward its goal → MetricCard type=\"goal-progress\".",
         "Two to four related numbers under one title (invoiced, collected, overdue) → MetricCard type=\"comparison\".",
         "A total and its 2–7 parts → MetricCard type=\"category-bar\".",
-        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button."
+        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button.",
+        "Phone stat tiles two-up (size medium) or three-up (size small) → MetricCard type=\"tile\": the title, number and trend over the Dock-Icon; on a Solid card its content follows the fill."
       ],
       "avoid": [
         "A series people read point by point (axes, a value per period) → LineChart or BarChart in a ChartCard; a sparkline only shows the shape.",
@@ -10266,7 +10269,7 @@
             }
           ],
           "default": false,
-          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series."
+          "description": "Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight XLarge/Large, …/2XSmall below) that ties the metric to a chart seri"
         },
         "counter": {
           "x-kind": "node",
@@ -10275,11 +10278,11 @@
         "labelIcon": {
           "x-kind": "node",
           "x-icon": true,
-          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title."
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title, Spacing/Gap/XSmall from it."
         },
         "hint": {
           "x-kind": "node",
-          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is"
+          "description": "Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px after the Caption label at Small/XSmall, that shows this text in"
         }
       },
       "requiredActions": [],
@@ -10305,7 +10308,8 @@
         "A number toward its goal → MetricCard type=\"goal-progress\".",
         "Two to four related numbers under one title (invoiced, collected, overdue) → MetricCard type=\"comparison\".",
         "A total and its 2–7 parts → MetricCard type=\"category-bar\".",
-        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button."
+        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button.",
+        "Phone stat tiles two-up (size medium) or three-up (size small) → MetricCard type=\"tile\": the title, number and trend over the Dock-Icon; on a Solid card its content follows the fill."
       ],
       "avoid": [
         "A series people read point by point (axes, a value per period) → LineChart or BarChart in a ChartCard; a sparkline only shows the shape.",
@@ -10350,7 +10354,8 @@
             "yellow",
             "orange",
             "blue",
-            "purple"
+            "purple",
+            "accent"
           ],
           "description": "Card Color (Figma Card Color, for theme=\"pale\" or \"solid\"): the Card's hue."
         },
@@ -10373,7 +10378,8 @@
             "goal-progress",
             "comparison",
             "category-bar",
-            "hero"
+            "hero",
+            "tile"
           ],
           "default": "kpi",
           "description": "Figma Metric-Card Type (6643:64008)."
@@ -10535,7 +10541,7 @@
               "type": "string"
             }
           ],
-          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series."
+          "description": "Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight XLarge/Large, …/2XSmall below) that ties the metric to a chart seri"
         },
         "counter": {
           "x-kind": "node",
@@ -10544,11 +10550,11 @@
         "labelIcon": {
           "x-kind": "node",
           "x-icon": true,
-          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title."
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title, Spacing/Gap/XSmall from it."
         },
         "hint": {
           "x-kind": "node",
-          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is"
+          "description": "Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px after the Caption label at Small/XSmall, that shows this text in"
         }
       },
       "requiredActions": [],
@@ -12236,6 +12242,14 @@
           ],
           "default": "md",
           "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+        },
+        "shape": {
+          "enum": [
+            "default",
+            "rounded"
+          ],
+          "default": "default",
+          "description": "Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset shadow and focus ring follow, and on the filter affordance; `default"
         },
         "label": {
           "x-kind": "node",
@@ -16642,6 +16656,7 @@
       "file": "docs/guidelines/search.md",
       "do": [
         "Describe the scope in the placeholder (\"Search components\").",
+        "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded): recommended, not required; desktop toolbars keep the default shape.",
         "Filter live and show an empty state that echoes the query.",
         "Let Enter open the first result; the clear button resets to recent items.",
         "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",

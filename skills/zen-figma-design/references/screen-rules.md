@@ -34,6 +34,15 @@ in a Chart-Card's (or a Card's) Content slot, and the box takes the theme.
   (Content/Inverse, Border/Inverse, Button `Level=Inverse`). Never set a colour mode on a component, a card or any layer
   inside a screen to make it dark or light: the screen frame's Light/Dark mode is the only mode switch (user,
   2026-10-14).
+- Content on a Solid fill takes the fill's own family (user, 2026-10-17: "Inverse là nằm trên nền neutral solid,
+  content phải dùng inverse tokens"; audit `theme/on-solid-content`):
+  - `Background/Neutral/Solid` → `Content/Inverse/*`, Dock-Icon and Badge `Theme=Inverse`, Metric-Tile and
+    Metric-Trend `Content=Inverse`. An On-Color (White-Solid) chip there turns white-on-white in Dark mode.
+  - `Background/Accent/Solid` → `Content/On-Accent/*`, Metric-Tile `Content=On-Accent`.
+  - Any other Support, Positive, Negative or Info Solid → `Content/On-Colors`, Metric-Tile `Content=On-Color`.
+    Yellow, Sky, Mint, Golden and Warning are bright: `Content/On-Brights`, Metric-Tile `Content=On-Bright`.
+  - On Accent and colour solids, Dock-Icons and Badges are `Theme=On-Color`, and Metric-Trend is `Content=On-Color`.
+    Never Neutral content on a colour solid, even a light one.
 - Library gaps until the designer adds them (override by variable, never raw): Side-Bar/Master/Basic has no background
   variant, Top-Navigation/Mobile has no Flat type, Bottom-Navigation has no surface choice and carries an unstyled
   shadow (remove it unless the screen is elevated).
@@ -97,7 +106,7 @@ Components own their inner padding and gap; never change them. Between elements,
 | Destructive action | Level=Danger or Danger Subtle | a red-painted Primary |
 | Filter, sort, scope, status, owner, period | `Chip/Advanced` (with its popover), in the header's `Type=Control-Bar` row | a Button or a Segmented |
 | Switching views or sections | `Segmented` or `Tab-Bar` | Chips |
-| Search | `Search/Default` | a Text-Field with a magnifier |
+| Search | `Search/Default`; on phone screens prefer `Shape=Rounded` (a pill; recommended, not required) | a Text-Field with a magnifier |
 | A list of people, items, approvals, settings | `Component/List-Box` holding `List-Item` rows | a Card with hand-made rows |
 | Tabular data | Table cells (`Table/Cell/*`, `Primitives/Table/*`) on the canvas, full width | a Table inside a Card (unless it is a dashboard widget) |
 | A number that matters (KPI) | `Metric-Card` / `Primitives/Metric/*` | a Card with big text |

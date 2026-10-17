@@ -19,8 +19,21 @@ describe("Metric-Inline props", () => {
   it("shows the hint on focus and puts the label icon before the title", async () => {
     const screen = await render(<Metric variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line" hint="Paid invoices from the last 14 days" value="$4,812.40" />);
     const titleRow = document.querySelector(".zen-metric__title-row")!;
-    expect(titleRow.firstElementChild?.className).toContain("zen-metric__label-icon");
+    // Figma Label-Container › Wrapper: [Label-Icon] Label, Spacing/Gap/XSmall apart, then the 20px Hint.
+    const wrapper = titleRow.querySelector(".zen-metric__title-label")!;
+    expect(wrapper.firstElementChild?.className).toContain("zen-metric__label-icon");
+    expect(getComputedStyle(wrapper).columnGap).toBe("8px");
+    expect(titleRow.querySelector(".zen-metric__hint")!.getBoundingClientRect().width).toBe(20);
     await userEvent.tab();
     await expect.element(screen.getByRole("tooltip")).toHaveTextContent("Paid invoices from the last 14 days");
+  });
+
+  it("puts the 12px hint after the Caption label at Small and no dot in the title row (Figma 7523:507049)", async () => {
+    await render(<Metric variant="title-highlight" size="sm" icon={false} label="Payout" hint="How it is worked out" metricColor value="$4,812.40" />);
+    const row = document.querySelector(".zen-metric__label-row")!;
+    expect([...row.querySelectorAll(".zen-metric__color, .zen-metric__label, .zen-metric__hint")].map((child) => child.className.split(" ")[0])).toEqual(["zen-metric__color", "zen-metric__label", "zen-metric__hint"]);
+    expect(row.querySelector(".zen-metric__hint")!.getBoundingClientRect().width).toBe(12);
+    await render(<Metric variant="title-highlight" size="md" icon={false} label="Payout" metricColor value="$4,812.40" />);
+    expect(document.querySelector(".zen-metric__title-row .zen-metric__color")).toBeNull();
   });
 });

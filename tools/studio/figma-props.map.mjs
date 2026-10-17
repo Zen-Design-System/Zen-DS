@@ -71,8 +71,10 @@ const METRIC = {
     Counter: { toggle: "counter", on: "3" },
     "Dock-Icon": skip("icon={false} hides the dock icon; the icon itself is the Icon row"),
     Action: skip("a node with no content slot yet"),
-    // MetricWidget.tsx draws the hint and the label icon in the title row of XLarge–Medium only.
-    Hint: { toggle: "hint", on: "How this number is worked out", when: [TITLED] },
+    // Figma Title-Highlight (read live 2026-10-17): the Hint follows the title at XLarge–Medium and the Caption label at
+    // Small/XSmall; the Label-Icon is in the title row of XLarge–Medium only. Metric-Color's dot is only in the Caption
+    // row (Icon-Highlight, Title-Highlight Small/XSmall); Figma shows the boolean on every size, so the row stays.
+    Hint: { toggle: "hint", on: "How this number is worked out" },
     "Label-Icon": { toggle: "labelIcon", on: "icon-wallet-02-line", when: [TITLED] },
     Size: "size",
     Custom: { toggle: "custom", on: "slot" },
@@ -293,7 +295,7 @@ export const FIGMA_PROPS = {
   Search: {
     sets: { "Search/Default": "default", "Search/Popover": "popover" },
     setProp: "variant",
-    props: { Size: "size", Theme: "theme", State: "state", "Icon-Search": { prop: "iconSearch", bool: true } },
+    props: { Size: "size", Shape: "shape", Theme: "theme", State: "state", "Icon-Search": { prop: "iconSearch", bool: true } },
   },
   Slider: {
     sets: { "Slider/Horizontal": null },

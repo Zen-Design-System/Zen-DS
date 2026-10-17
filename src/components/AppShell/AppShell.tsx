@@ -10,7 +10,6 @@ import { Sidebar, type SidebarProps } from "../Sidebar";
 import { useIconTooltip } from "../Tooltip";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { useZen, useZenLabels } from "../_shared/zen-context";
-import { typographyStyles } from "../../tokens/typography.generated";
 import "../Motion/motion.css";
 import "./app-shell.css";
 import { SidebarShellContext } from "../_shared/sidebar-shell";
@@ -524,11 +523,8 @@ export function AppShellAction({ icon, count, dot = false, tone = "default", app
   return (
     <span className={["zen-app-shell-action", className].filter(Boolean).join(" ")} data-appearance={appearance}>
       {nest("Button", <IconButton {...buttonProps} ref={ref} appearance={appearance === "flat" ? "flat" : "main"} level={appearance === "flat" ? "primary" : "tertiary"} size="md" icon={icon} aria-label={name} tooltip={tooltip ?? label} />)}
-      {unread ? (
-        <span className="zen-app-shell-action__notification" data-style="number" data-tone={tone} aria-hidden="true">
-          <span className={typographyStyles["Label/Small/Medium"]}>{unread > 99 ? "99+" : unread}</span>
-        </span>
-      ) : dot ? <NotificationDot className="zen-app-shell-action__dot" tone={tone} /> : null}
+      {unread ? <NotificationDot className="zen-app-shell-action__number" tone={tone} value={unread > 99 ? "99+" : unread} />
+        : dot ? <NotificationDot className="zen-app-shell-action__dot" tone={tone} /> : null}
     </span>
   );
 }

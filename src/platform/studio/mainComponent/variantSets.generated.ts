@@ -1006,7 +1006,8 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "Yellow",
             "Orange",
             "Blue",
-            "Purple"
+            "Purple",
+            "Accent"
           ],
           "values": [
             "neutral",
@@ -1017,7 +1018,8 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "yellow",
             "orange",
             "blue",
-            "purple"
+            "purple",
+            "accent"
           ],
           "default": "neutral"
         },
@@ -2272,6 +2274,19 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "small"
         },
         {
+          "prop": "shape",
+          "label": "Shape",
+          "names": [
+            "Default",
+            "Rounded"
+          ],
+          "values": [
+            "default",
+            "rounded"
+          ],
+          "default": "default"
+        },
+        {
           "prop": "theme",
           "label": "Theme",
           "names": [
@@ -3367,7 +3382,8 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "Goal-Progress",
             "Comparison",
             "Category-Bar",
-            "Hero"
+            "Hero",
+            "Tile"
           ],
           "values": [
             "kpi",
@@ -3376,7 +3392,8 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "goal-progress",
             "comparison",
             "category-bar",
-            "hero"
+            "hero",
+            "tile"
           ],
           "default": "kpi"
         }

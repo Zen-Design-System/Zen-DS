@@ -1184,11 +1184,13 @@ export const rules = [
       return !takes.includes(surface) && `sets surface="${surface}" on theme="${theme}", which Figma draws without it — ${surface === "flat" ? "Surface=Flat is a Border card's (theme=\"border\")" : "Pale, On-Container and Solid keep their own fill"}; drop surface or change the theme.`;
     } },
   { id: "card/solid-color", components: ["Card", "MetricCard", "ChartCard"], severity: "error", allow: "card-color", guideline: "docs/guidelines/card.md",
-    summary: "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
+    summary: "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
     check: ({ attrs }) => {
       const own = topLevel(attrs);
       const color = literal(own, "color");
-      return literal(own, "theme") === "solid" && ["violet", "green", "blue", "purple"].includes(color) && `is theme="solid" color="${color}": Figma has no Solid ${color} and it renders as Solid Neutral — use theme="pale" color="${color}", or a Solid colour Figma draws (neutral, brand, cyan, yellow, orange).`;
+      const theme = literal(own, "theme");
+      if (theme === "pale" && color === "accent") return `is theme="pale" color="accent": Figma has no Pale Accent and it renders as Pale Neutral — use theme="solid" color="accent" for the stand-out, or a Pale hue.`;
+      return theme === "solid" && ["violet", "green", "blue", "purple"].includes(color) && `is theme="solid" color="${color}": Figma has no Solid ${color} and it renders as Solid Neutral — use theme="pale" color="${color}", or a Solid colour Figma draws (neutral, brand, cyan, yellow, orange, accent).`;
     } },
   { id: "card/spacing-by-count", components: ["Card"], severity: "warn", allow: "card-spacing", guideline: "docs/guidelines/card.md",
     summary: "Three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two cards keep Spacing=Medium, the default (user rule 2026-10-17); a card around a Voice frame, which pads itself, stays Small.",

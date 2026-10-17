@@ -1,6 +1,9 @@
-/* Figma Primitives/Notification-Dot (4116:21789), Style=Dot: 8×8, Corner-Radius/Rounded, Color/Background/Negative/Solid
-   (Theme=Default; Active = Positive, Accent = Accent) with a 2px Color/Border/Inverse stroke OUTSIDE. Each component
-   places it (top/left/right); the dot itself is drawn here once. */
-.zen-notification-dot { --zen-notification-dot-fill: var(--zen-color-background-negative-solid-default, #e5532e); position: absolute; width: 8px; height: 8px; box-sizing: border-box; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-notification-dot-fill); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); pointer-events: none; }
+/* Figma Primitives/Notification-Dot (4116:21789): Corner-Radius/Rounded, Color/Background/Negative/Solid (Theme=Default;
+   Active = Positive, Accent = Accent) with a 2px Color/Border/Inverse stroke OUTSIDE. Style=Dot is 8×8; Style=Number is
+   a Badge of Badge/Size/XSmall (height and min width), Badge/Spacing/Small vertical padding and Text-Wrapper padding,
+   Caption/Regular in Content/On-Colors (On-Accent/Default on Accent). Each component places it (top/left/right); the
+   dot itself is drawn here once. */
+.zen-notification-dot { --zen-notification-dot-fill: var(--zen-color-background-negative-solid-default, #e5532e); --zen-notification-dot-content: var(--zen-color-content-on-colors, #fff); position: absolute; width: 8px; height: 8px; box-sizing: border-box; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-notification-dot-fill); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); pointer-events: none; }
 .zen-notification-dot[data-tone="active"] { --zen-notification-dot-fill: var(--zen-color-background-positive-solid-default, #2e9d5b); }
-.zen-notification-dot[data-tone="accent"] { --zen-notification-dot-fill: var(--zen-color-background-accent-solid-default, #ff66d4); }
+.zen-notification-dot[data-tone="accent"] { --zen-notification-dot-fill: var(--zen-color-background-accent-solid-default, #f755c9); --zen-notification-dot-content: var(--zen-color-content-on-accent-default, #fff); }
+.zen-notification-dot[data-style="number"] { display: inline-flex; width: auto; height: var(--zen-badge-size-xsmall, 16px); min-width: var(--zen-badge-size-xsmall, 16px); align-items: center; justify-content: center; padding: var(--zen-badge-spacing-small-vertical-padding, 2px) var(--zen-badge-spacing-small-text-wrapper-padding, 4px); color: var(--zen-notification-dot-content); white-space: nowrap; }

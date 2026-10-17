@@ -175,6 +175,8 @@ export const Bad = () => <>
   <MetricCard color="cyan" label="Invoiced" value="$48,200" />
   {/* expect: card/solid-color */}
   <div><Card theme="solid" color="green">Collected</Card></div>
+  {/* expect: card/solid-color */}
+  <div><Card theme="pale" color="accent">Payout</Card></div>
   {/* expect: card/surface-ignored */}
   <div><Card theme="flat" surface="flat">Hours</Card></div>
   {/* expect: card/surface-ignored */}

@@ -685,6 +685,11 @@
         "small · medium"
       ],
       [
+        "Shape",
+        "shape",
+        "default (Corner-Radius/Input) · rounded (a pill, recommended on phone screens)"
+      ],
+      [
         "Icon-Search",
         "iconSearch",
         "magnifier on/off"
@@ -731,6 +736,7 @@
     ],
     "do": [
       "Describe the scope in the placeholder (\"Search components\").",
+      "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded): recommended, not required; desktop toolbars keep the default shape.",
       "Filter live and show an empty state that echoes the query.",
       "Let Enter open the first result; the clear button resets to recent items.",
       "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",
@@ -4001,7 +4007,7 @@
       [
         "Color",
         "color",
-        "neutral (default) · brand · cyan · violet · green · yellow · orange · blue · purple, for pale (Support/<Color>/Pale, all nine) and solid (neutral: Background/Neutral/Solid with Content/Inverse/* content; brand · cyan · yellow · orange: Support/<Color>/Solid with neutral content; violet, green, blue and purple render as Solid Neutral, harness card/solid-color). Shadow, Flat, Border and On-Container ignore it (harness card/color-ignored). MetricCard and ChartCard pass it to their Card"
+        "neutral (default) · brand · cyan · violet · green · yellow · orange · blue · purple · accent, for pale (Support/<Color>/Pale, the nine hues; Pale accent renders as Pale Neutral) and solid (neutral: Background/Neutral/Solid with Content/Inverse/* content; brand · cyan · orange: Support/<Color>/Solid with Content/On-Colors; yellow: with Content/On-Brights; accent: Background/Accent/Solid with Content/On-Accent; violet, green, blue and purple render as Solid Neutral, harness card/solid-color). Shadow, Flat, Border and On-Container ignore it (harness card/color-ignored). MetricCard and ChartCard pass it to their Card"
       ],
       [
         "Surface",
@@ -4113,7 +4119,7 @@
       {
         "id": "card/solid-color",
         "severity": "error",
-        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
+        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
         "allow": "card-color"
       },
       {
@@ -5155,7 +5161,8 @@
       "A number toward its goal → MetricCard type=\"goal-progress\".",
       "Two to four related numbers under one title (invoiced, collected, overdue) → MetricCard type=\"comparison\".",
       "A total and its 2–7 parts → MetricCard type=\"category-bar\".",
-      "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button."
+      "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button.",
+      "Phone stat tiles two-up (size medium) or three-up (size small) → MetricCard type=\"tile\": the title, number and trend over the Dock-Icon; on a Solid card its content follows the fill."
     ],
     "avoid": [
       "A series people read point by point (axes, a value per period) → LineChart or BarChart in a ChartCard; a sparkline only shows the shape.",
@@ -5183,7 +5190,7 @@
       [
         "Trend",
         "trend {direction: positive · negative · normal, label}",
-        "Small Subtle Badge: green / red / neutral"
+        "Small Subtle Badge: green / red / neutral. Inside a Solid card it follows the fill (Figma Metric-Trend Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction; MetricTrend content sets it"
       ],
       [
         "Icon",
@@ -5203,7 +5210,12 @@
       [
         "Type",
         "MetricCard type",
-        "kpi (default: Icon-Highlight XLarge) · sparkline · spark-bars · goal-progress · category-bar (Title-Highlight Large) · comparison (Heading/Subheading title + Small columns) · hero (Title-Highlight XLarge); Figma Metric-Card Type"
+        "kpi (default: Icon-Highlight XLarge) · sparkline · spark-bars · goal-progress · category-bar (Title-Highlight Large) · comparison (Heading/Subheading title + Small columns) · hero (Title-Highlight XLarge) · tile (Metric-Tile in a Card Spacing=Small); Figma Metric-Card Type"
+      ],
+      [
+        "Tile",
+        "type=\"tile\" · size · icon · iconTheme",
+        "Figma Metric-Tile: medium (default, two-up: Body/Small/Medium title, Display/3 number, Dock-Icon Medium) · small (three-up: Caption/Medium, Heading/3, Dock-Icon Small); title Neutral/Base, number Neutral/Strongest, Gap/2XSmall, then the Dock-Icon (Neutral Solid, icon-activity-line) Gap/Small below. Its Figma Content follows the card: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on Yellow"
       ],
       [
         "Series",
@@ -5282,7 +5294,7 @@
       {
         "id": "card/solid-color",
         "severity": "error",
-        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
+        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
         "allow": "card-color"
       },
       {
@@ -7159,7 +7171,7 @@
       {
         "id": "card/solid-color",
         "severity": "error",
-        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
+        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
         "allow": "card-color"
       },
       {

@@ -60,6 +60,9 @@ Files in this skill:
   (only on Canvas/Default). The audit's `theme/*` rules check it.
 - **One colour mode per screen.** Only the screen frame sets Light or Dark; never a component, card or layer inside it.
   A dark widget is Card `Solid` / `Neutral` (`Background/Neutral/Solid`) with Inverse content tokens (screen-rules §1).
+- **Content follows its Solid fill.** Neutral Solid → Inverse, Accent Solid → On-Accent, other colour solids →
+  On-Colors (On-Brights on Yellow, Sky, Mint, Golden). Pick Metric-Tile `Content`, Metric-Trend `Content` and Dock-Icon /
+  Badge `Theme` to match (screen-rules §1, audit `theme/on-solid-content`).
 - **No shadow is ever cut.** Frames made with `createFrame()` / `createAutoLayout()` clip their content by default, so
   set `clipsContent = false` on every frame you add (rows, sections, toolbars, wrappers) unless it must hide something;
   a Shadow card's shadow reaches past the card (about 8px below, 4px aside). Check every screen with the audit's
@@ -83,6 +86,15 @@ Files in this skill:
     - A full-width button is Medium or larger; Small buttons hug their label.
   - **Buttons in context:**
     - Buttons on a photo are `Button/Overlay` or `Button/Icon-Overlay`.
+    - Icon actions inside a card (an event card, a list row, a widget) are `Button/Icon-Flat`, never a bordered
+      Icon-Main: the ⋮ / ⋯ menu is Zen's Card Sub-Action (Small, Secondary, `icon-dots-vertical-line`), a row action
+      (add, edit) is Flat Primary. Put it in a `Wrapper` frame 20×20 with width and height bound to
+      `Element-Size/Popular/Base` (centred, no clip), as the Card does: the 32px button bleeds 6px each side and the
+      row keeps the icon's size. Icon-Main Tertiary stays for toolbars and control rows (audit `button/in-card-flat`,
+      `button/in-card-wrapper`; user 2026-10-17).
+    - A button sits at least `Spacing/Gap/XSmall` (8) from the heading, label or button beside it: "a thing and its
+      control" and "controls in one toolbar row" are the XSmall rung. `Gap/2XSmall` (4) only joins one inline item (an
+      icon and its text, a Badge beside a title). Audit `spacing/control-gap` (user 2026-10-17: "chữ và button sát quá").
     - Labels name the outcome: never "OK", "Submit" or "Yes".
   - **Not a button:** switching views is Segmented or Tabs; choosing a filter, sort or scope (an address, a period) is
     a Chip; Back is `icon-chevron-left-line-medium`.

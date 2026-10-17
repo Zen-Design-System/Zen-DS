@@ -351,8 +351,8 @@ export const componentDescriptions = {
     what: "The search field: find or filter content by typing.",
     use: ["Filtering a visible list or table as people type (the header's Control-Bar row).", "Global or entity search with results below."],
     instead: ["A form value → Input/Text-Field.", "A choice from a short known list → Input/Select-Field or Chip/Advanced."],
-    props: [["Theme", "Default · Filter-Icon · Filter-Dropdown (a filter affordance at the end)"], ["State", "Default · Hover · Focused · Typing · Inputted — a field that shows a query is Inputted"], ["Size", "Small in dense toolbars, Medium otherwise"]],
-    rules: ["Never a Text-Field with a magnifier icon instead.", "In a toolbar, keep it about 320px wide."],
+    props: [["Theme", "Default · Filter-Icon · Filter-Dropdown (a filter affordance at the end)"], ["State", "Default · Hover · Focused · Typing · Inputted — a field that shows a query is Inputted"], ["Size", "Small in dense toolbars, Medium otherwise"], ["Shape", "Default (Corner-Radius/Input) · Rounded (a pill, Corner-Radius/Rounded) — prefer Rounded on phone screens"]],
+    rules: ["Never a Text-Field with a magnifier icon instead.", "In a toolbar, keep it about 320px wide.", "On mobile, prefer Shape=Rounded (recommended, not required)."],
     code: "`<Search>`",
   }),
   "Search/Popover": card({ what: "The search field at the top of a Popover/Default list (pickers with many options).", code: "`<Popover search>`" }),
@@ -816,5 +816,6 @@ export const componentDescriptions = {
  */
 export const GENERIC = [/\*\*Overview:\*\*/, /Original Notes/, /^Data visualization elements/, /^Purpose-specific voice component/, /^\s*$/];
 // Sets whose Figma description is replaced even when it is specific: the property-panel sets drafted in Figma on
-// 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55; Accordion/Text since Size=Small (2026-10-15).
-export const FORCE = new Set(["Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text"]);
+// 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55; Accordion/Text since Size=Small (2026-10-15);
+// Search/Default since Shape (2026-10-17).
+export const FORCE = new Set(["Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default"]);

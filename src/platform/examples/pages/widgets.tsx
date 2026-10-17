@@ -89,6 +89,13 @@ function HeroWidget() {
   );
 }
 
+function StatTileWidget() {
+  return (
+    <MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%"
+      trend={{ direction: "positive", label: "+24% vs. last year" }} />
+  );
+}
+
 function RevenueTrendWidget() {
   return (
     <ChartCard title="Revenue" icon="icon-line-chart-up-line" description="Invoiced over the last 12 months" value="$1,014,900">
@@ -269,6 +276,7 @@ const groups: { id: string; label: string; patterns: Pattern[] }[] = [
     pattern("widget-period-comparison", PeriodComparisonWidget, "Two to four numbers of one period side by side, each with its own change; the label becomes the card's title. The columns stack on a narrow card."),
     pattern("widget-category-split", CategorySplitWidget, "One total split into its parts: a bar of shares under the number, then a row per part with its amount and share, largest first."),
     pattern("widget-hero", HeroWidget, "The row's one stand-out: Card Solid Neutral, the dark widget, its trend line in neutral marks and its button Overlay Inverse. One Hero a row; the widgets around it stay flat."),
+    pattern("widget-metric-tile", StatTileWidget, "A phone stat tile: the title, number and trend over the Dock-Icon, in a Small card; two Medium tiles a row, three Small ones. On a Solid card its content follows the fill: Inverse on Neutral, On-Accent on Accent, On-Colors on Brand, Cyan and Orange, On-Brights on Yellow."),
   ] },
   { id: "trends", label: "Trends", patterns: [
     pattern("widget-revenue-trend", RevenueTrendWidget, "One measure over a year: a line over its flat area, the year's total as the card's figure. The axis and the Tooltip abbreviate (\"$105.7K\"); the figure above the chart never does."),
@@ -400,6 +408,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   { title: "Period comparison", ...widgetExample("widget-period-comparison") },
   { title: "Category split", ...widgetExample("widget-category-split") },
   { title: "Hero metric", ...widgetExample("widget-hero") },
+  { title: "Stat tile", ...widgetExample("widget-metric-tile") },
   { title: "Revenue trend", ...widgetExample("widget-revenue-trend") },
   { title: "Hours by team", ...widgetExample("widget-hours-by-team") },
   { title: "Invoiced vs collected", ...widgetExample("widget-invoiced-collected") },
