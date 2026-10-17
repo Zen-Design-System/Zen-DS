@@ -208,8 +208,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     Stack). This is inherent, since nothing in Figma holds that detail.
   - A pull in another browser has no export kept, so it falls back to a two-way comparison.
 - **P2 · Examples' last 112 classNames (2026-10-13, branch zen/feat/examples-classnames):** P1–P5 of the Studio → Figma
-  coverage are done (spec §8). What is left has no Zen prop, so it waits for the user: (1) padding on the page-margin
-  token (Figma Margin/Comfortable: 24, 20 on a phone) and per-side padding (Figma auto layout has both): ai-chat,
+  coverage are done (spec §8). What is left has no Zen prop, so it waits for the user: (1) per-side padding (Figma auto
+  layout has it; the page-margin padding is done since 2026-10-17: `padding="margin-comfortable"`): ai-chat,
   bottom-navigation safe area, checkbox indent; (2) component internals: Table min-width, ProgressBar label width,
   Toggle width, a Card's content filling its height, SidePanel height when docked, Segmented hug; (3) Skeleton widths,
   `ch` / rem widths and min-heights on mode tokens (Badge size, line heights); (4) media (img / video / photo buttons);

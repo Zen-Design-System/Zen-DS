@@ -7444,7 +7444,7 @@
       [
         "Padding (Spacing/Padding)",
         "padding · paddingX · paddingY",
-        "3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48"
+        "3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; or a page margin that follows the breakpoint (Figma Breakpoint & Grids): margin-comfortable 24 (20 on a phone) for a page or screen body, margin-compact 20 (16 on a phone)"
       ],
       [
         "Direction / alignment",

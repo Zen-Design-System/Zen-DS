@@ -99,8 +99,8 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("live: span-2 cards on 8 columns, 2 to a row: a Grid of 2 columns", page.includes("<Grid columns={2} width=\"fill\">"));
   check("live: the cards in Figma's placement order (row by row), not the layers panel's",
     [...page.matchAll(/<Text textStyle="Heading\/4">(?:\{")?([^<"]+)/g)].map((match) => match[1]), ["Foundation", "Components", "Patterns", "Resources & Tools", "Development"]);
-  ok("live: an app frame (the Sidebar pattern beside Main-Container under Header/Dashboard) is an AppShell straight in the Screen, Header/Dashboard's other row its sections, Body's layers its page with Body's padding",
-    /<Screen[^>]*>\s*<AppShell sidebar=\{<Sidebar /.test(page) && /sections=\{<DashboardHeader type="custom">/.test(page) && /\}>\s*<Stack gap="xs" padding="xl">/.test(page));
+  ok("live: an app frame (the Sidebar pattern beside Main-Container under Header/Dashboard) is an AppShell straight in the Screen, Header/Dashboard's other row its sections, Body's layers its page with Body's padding (bound to Margin-Comfortable in Figma: the page margin, since 2026-10-17)",
+    /<Screen[^>]*>\s*<AppShell sidebar=\{<Sidebar /.test(page) && /sections=\{<DashboardHeader type="custom">/.test(page) && /\}>\s*<Stack gap="xs" padding="margin-comfortable">/.test(page));
   ok("live: Floating-Actions (outside the auto layout) is AppShell's floatingAction; the icon button without a layer name is named by its icon", page.includes('floatingAction={<IconButton level="accent" icon="icon-zen" aria-label="Zen" />}') && notesWith('aria-label "Zen" comes from its icon') === 1);
   ok("live: Figma's soft line break is a space; a centred text is align=\"center\"", page.includes('<Text align="center">ZEN DESIGN SYSTEM</Text>'));
   ok("live: text alignment: the tagline centred, a right-aligned text at the end", page.includes('<Text textStyle="Display/3" align="center">') && page.includes('<Text textStyle="All-Caps/M-BOLD" align="end" width="fill">2026</Text>'));

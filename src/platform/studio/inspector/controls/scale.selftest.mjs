@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Self-test of the ScaleField model (./scale.ts, imported directly: Node strips the types).
 // Run: node src/platform/studio/inspector/controls/scale.selftest.mjs
-import { scaleOfType, scaleStep, stepKey } from "./scale.ts";
+import { isMarginKey, scaleOfType, scaleStep, stepKey } from "./scale.ts";
 
 const failures = [];
 let passed = 0;
@@ -24,6 +24,11 @@ const ladder = ["none", "xs", "sm", "md", "lg"];
 check("step up / down", [stepKey(ladder, "md", 1), stepKey(ladder, "md", -2)], ["lg", "xs"]);
 check("clamped at the ends", [stepKey(ladder, "lg", 3), stepKey(ladder, "none", -1)], ["lg", "none"]);
 check("from nothing", [stepKey(ladder, undefined, 1), stepKey(ladder, "huge", -1), stepKey([], "md", 1)], ["none", "lg", undefined]);
+
+// The page margins a padding takes (ZenMargin, user 2026-10-17): still the padding scale, named as Figma names them.
+check("padding with the page margins", scaleOfType('"none" | ZenScaleInput | "4xl" | ZenMargin'), "padding");
+check("a margin reads by its Figma name, with its px", scaleStep("margin-comfortable", 24), { label: "Margin-Comfortable", meta: "24px" });
+check("margins are not steps", [isMarginKey("margin-compact"), isMarginKey("xl"), isMarginKey("none")], [true, false, false]);
 
 if (failures.length) {
   console.error(`ScaleField selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

@@ -34,6 +34,11 @@
 .studio-builder-screen__header { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
 .studio-builder-screen__top { position: sticky; z-index: 1; top: 0; }
 .studio-builder-screen__bottom { position: sticky; z-index: 1; bottom: 0; }
+/* On the canvas a Screen is drawn whole, as Figma draws a frame: its bars sit at its top and at its foot. They stick only
+   where the page scrolls (Play, Present, the exported page). A frame clips but does not scroll, so on the canvas a sticky
+   bar stuck to the Studio window instead, and a Screen lower than the window drew its bottom navigation at its top (user,
+   2026-10-17). Under .studio-world, so the exported page keeps its sticky bars (htmlExport drops rules naming the world). */
+.studio-world :is(.studio-builder-screen__top, .studio-builder-screen__bottom) { position: relative; }
 /* Present and Play: the system bars ride 0-high sticky boxes at the window's top and bottom edges (runtime.tsx). */
 .studio-builder-screen__pin { position: sticky; z-index: 20; height: 0; }
 .studio-builder-screen__pin[data-edge="top"] { top: 0; }

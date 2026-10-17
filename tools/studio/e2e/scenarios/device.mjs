@@ -52,4 +52,29 @@ export const rows = [
       return "no bars on desktop";
     },
   },
+  {
+    id: "DV-03", feature: "A phone Screen's Top and Bottom Navigation sit at its top and its foot on the canvas whatever the window's height (user 2026-10-17: the bottom bar jumped to the top)", wp: "device bars 2026-10-17",
+    async run(ctx) {
+      const { page } = await newPage(ctx, { device: "phone" });
+      const size = page.viewportSize();
+      // A window shorter than the Screen: a sticky bar used to stick to it and climb the Screen.
+      await page.setViewportSize({ width: size.width, height: 560 });
+      try {
+        const bars = () => page.evaluate((selector) => {
+          const screen = document.querySelector(selector);
+          if (!screen) return null;
+          const box = screen.getBoundingClientRect();
+          const scale = box.height / screen.offsetHeight;
+          const edge = (part) => { const el = screen.querySelector(`.studio-builder-screen__${part}`); if (!el) return null; const rect = el.getBoundingClientRect(); return { top: Math.round((rect.top - box.top) / scale), bottom: Math.round((rect.bottom - box.top) / scale) }; };
+          return { height: screen.offsetHeight, top: edge("top"), bottom: edge("bottom") };
+        }, SCREEN);
+        const read = await until(async () => { const value = await bars(); return value?.top && value?.bottom ? value : null; }, { message: "the phone Screen's bars" });
+        if (read.top.top !== 0) throw new Error(`the Top Navigation starts ${read.top.top}px from the Screen's top`);
+        if (Math.abs(read.bottom.bottom - read.height) > 1) throw new Error(`the Bottom Navigation ends at ${read.bottom.bottom}px of a ${read.height}px Screen (a 560px window)`);
+        return `560px window: top bar 0–${read.top.bottom}px, bottom bar ${read.bottom.top}–${read.bottom.bottom}px of ${read.height}px`;
+      } finally {
+        await page.setViewportSize(size);
+      }
+    },
+  },
 ];

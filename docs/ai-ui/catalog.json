@@ -2227,7 +2227,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -2259,7 +2261,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -2291,7 +2295,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -2323,7 +2329,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -2463,7 +2471,9 @@
             "xlarge",
             "2xlarge",
             "3xlarge",
-            "4xl"
+            "4xl",
+            "margin-comfortable",
+            "margin-compact"
           ]
         },
         "paddingX": {
@@ -2487,7 +2497,9 @@
             "xlarge",
             "2xlarge",
             "3xlarge",
-            "4xl"
+            "4xl",
+            "margin-comfortable",
+            "margin-compact"
           ]
         },
         "paddingY": {
@@ -2511,7 +2523,9 @@
             "xlarge",
             "2xlarge",
             "3xlarge",
-            "4xl"
+            "4xl",
+            "margin-comfortable",
+            "margin-compact"
           ]
         },
         "surface": {
@@ -7219,7 +7233,9 @@
             "xlarge",
             "2xlarge",
             "3xlarge",
-            "4xl"
+            "4xl",
+            "margin-comfortable",
+            "margin-compact"
           ],
           "description": "Sticky only: side padding of the bar, e.g."
         },
@@ -7765,7 +7781,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -7797,7 +7815,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -7829,7 +7849,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -7861,7 +7883,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -8020,7 +8044,9 @@
             "xlarge",
             "2xlarge",
             "3xlarge",
-            "4xl"
+            "4xl",
+            "margin-comfortable",
+            "margin-compact"
           ]
         },
         "as": {
@@ -13067,7 +13093,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -13099,7 +13127,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -13131,7 +13161,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -13163,7 +13195,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -14585,7 +14619,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -14617,7 +14653,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -14649,7 +14687,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -14681,7 +14721,9 @@
                 "xlarge",
                 "2xlarge",
                 "3xlarge",
-                "4xl"
+                "4xl",
+                "margin-comfortable",
+                "margin-compact"
               ]
             },
             {
@@ -14789,9 +14831,11 @@
             "xlarge",
             "2xlarge",
             "3xlarge",
-            "4xl"
+            "4xl",
+            "margin-comfortable",
+            "margin-compact"
           ],
-          "description": "Space inside the stack (Figma Spacing/Padding)."
+          "description": "Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone)."
         },
         "paddingX": {
           "enum": [
@@ -14814,7 +14858,9 @@
             "xlarge",
             "2xlarge",
             "3xlarge",
-            "4xl"
+            "4xl",
+            "margin-comfortable",
+            "margin-compact"
           ],
           "description": "Horizontal padding (overrides `padding` on the sides)."
         },
@@ -14839,7 +14885,9 @@
             "xlarge",
             "2xlarge",
             "3xlarge",
-            "4xl"
+            "4xl",
+            "margin-comfortable",
+            "margin-compact"
           ],
           "description": "Vertical padding (overrides `padding` top and bottom), e.g."
         },

@@ -14,7 +14,7 @@
 // draws it (a frame of Data-Rows, header and content cells) and pictures (`images`, filled by the caller: the plugin has
 // no network).
 import { docFromText } from "./doc.mjs";
-import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
+import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
@@ -501,12 +501,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     };
   }
 
+  /** A page margin's px on this Screen's device (Margin-Comfortable 24, 20 on a phone), or undefined for a ladder step. */
+  const marginPx = (step) => (typeof step === "string" && MARGIN_PX[step] ? MARGIN_PX[step][device] ?? MARGIN_PX[step].desktop : undefined);
+
   /** position="absolute": Figma's constraints and the insets to the pinned edges, in px (figma-pull positioned, the other way). */
   function absoluteOf(code) {
     const cx = { left: "MIN", right: "MAX", center: "CENTER", "left-right": "STRETCH" }[code.constraintX ?? "left"] ?? "MIN";
     const cy = { top: "MIN", bottom: "MAX", center: "CENTER", "top-bottom": "STRETCH" }[code.constraintY ?? "top"] ?? "MIN";
     // A token step, or px (Figma's X / Y in a free frame).
-    const inset = (step) => (typeof step === "number" ? step : pxOf(step ?? "none", PADDING_PX) ?? 0);
+    const inset = (step) => (typeof step === "number" ? step : marginPx(step) ?? pxOf(step ?? "none", PADDING_PX) ?? 0);
     return { cx, cy, left: inset(code.insetLeft), right: inset(code.insetRight), top: inset(code.insetTop), bottom: inset(code.insetBottom) };
   }
 
@@ -1104,7 +1107,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // A Box lays its layers out as blocks, without a gap (layout.css); Stack and Grid take md unless told.
     const gap = code.gap ?? (element.name === "Box" ? "none" : "md");
     const gapPx = pxOf(gap, GAP_PX) ?? 0;
-    const pad = (step) => pxOf(step ?? "none", PADDING_PX) ?? 0;
+    const pad = (step) => marginPx(step) ?? pxOf(step ?? "none", PADDING_PX) ?? 0;
     const x = pad(code.paddingX ?? code.padding);
     const y = pad(code.paddingY ?? code.padding);
     // The width inside it, where the push knows it (a page's frames fill the Screen; an instance's slot is unknown).
@@ -1132,7 +1135,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       if (short(rowGap) !== "none" && STEP_NAMES[short(rowGap)]) layout.rowGapVar = `Spacing/Gap/${STEP_NAMES[short(rowGap)]}`;
     }
     layout.padding = [y, x, y, x];
-    if (code.padding && !code.paddingX && !code.paddingY && short(code.padding) !== "none") layout.paddingVar = `Spacing/Padding/${STEP_NAMES[short(code.padding)]}`;
+    if (code.padding && !code.paddingX && !code.paddingY && MARGIN_VARIABLE[code.padding]) layout.paddingVar = MARGIN_VARIABLE[code.padding];
+    else if (code.padding && !code.paddingX && !code.paddingY && short(code.padding) !== "none") layout.paddingVar = `Spacing/Padding/${STEP_NAMES[short(code.padding)]}`;
     const align = code.align ?? (row ? "center" : "stretch");
     if (!grid) {
       layout.counter = { start: "MIN", center: "CENTER", end: "MAX", baseline: "BASELINE" }[align] ?? "MIN";

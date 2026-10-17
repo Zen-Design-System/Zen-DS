@@ -38,5 +38,6 @@ export {
   type StackProps,
   type ZenCornerRadius,
   type ZenGap,
+  type ZenMargin,
   type ZenPadding,
 } from "./Layout";
