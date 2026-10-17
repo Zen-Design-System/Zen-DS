@@ -129,6 +129,37 @@ figma luôn check các rule khi dùng component nhé và QA lại trước khi d
   Accent leads the colour) and a §3 QA checklist (audit, component rules, colour, screenshot, report) that gates "done".
 - `npm run ai-kit:check` ✓ (127 checks).
 
+## Studio → Figma direct paste (tier L, session "Figma và Studio import chính xác"; user: "Biểu đồ trước, rồi dán thẳng", then "đồng ý, làm tiếp đi")
+- Proven by automatic pastes in the Zen file (osascript Edit › Paste after opening the QA node; the user enabled
+  Accessibility): skeleton variants, deflate, variables and styles by node id, variant-level property ids, slot contents.
+- Built: `tools/studio/figma-kiwi.mjs` (+ selftest 19), `tools/studio/native-pack.mjs` + `docs/figma-contracts/native-pack.json`
+  (captured from 12 Figma desktop copies of a temporary probe: 4,344 variants, 1,597 icons, 561 slot contents; probe
+  removed), `tools/studio/figma-native.mjs` (+ selftest 29 with `tools/studio/fixtures/figma-expenses.json`), Studio ⌘C
+  writes Figma's html ahead of the plugin's span (`builder/export/figmaClipboard.ts`; messages in frameKeys/clipboard).
+- Expenses pasted directly = the plugin import (474 frames, 613 instances, 151 slots, 277 texts, 190 vectors, 245/245
+  texts); Chromium's copy event keeps the html (checked through Playwright → system clipboard → Figma).
+- Stray test pastes landed on "◇ Master-Layout · Variants" twice (Figma desktop showed that page): removed or moved to QA,
+  session "Master layout variations" told. Test frames on the QA page: Clip I1…K26, Style probe, Expenses (native 5).
+- Open (BACKLOG): other files (publish + full definitions), pictures, the frame menu's async Copy for Figma.
+- Follow-up (user: "spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn là 32px. Compact là
+  24px. tạo token để áp dụng luôn", and "Tuỳ vào domain mà tôi sẽ chọn mode component size và typography").
+  - New Component Size variable `Layout-Mobile/Section-Gap`: Figma 16053:134453, aliases Gap/Large and Gap/XLarge.
+    Its repo source is in `component-size.json` (Studio 24), and `tokens:build` gives `--zen-layout-mobile-section-gap`.
+  - The rule is in §13, screen-rules §2 and the SKILL checklist. The audit adds `spacing/section-gap` (a phone
+    Body's gap not bound to it).
+  - The audit's `scrollsPast` exempts content past the far end of a frame set to scroll (overflowDirection).
+  - The user had set every screen to Comfortable + Typography Mobile, which made F1–F8 and E1–E3 overflow. In
+    Figma:
+    - 20 Bodies are bound to the token.
+    - The screens scroll vertically, with the bars fixed (numberOfFixedChildren).
+    - 6 Chip rows scroll horizontally, with 2px block padding.
+    - Text that grew is fixed: F1 "6.2" + "kWh today"; E1 name above price; E2 wallet icon above text; E5 names
+      truncate.
+    - E3 cart FAB is an auto layout with a pinned counter; F9 D-pad keeps its margins.
+- Gate: `npm run qa -- --isolated --files=…` (edits went through Bash, so the hook saw none) ✓ PASS: usage guard needed
+  `zen-allow-focus-ring-token` on both rings; 69 browser tests, audit 1512/390/320, dark audit, behaviour 0/0. Light and
+  dark shots of both "On a colour band" cards are identical on the band. Not committed (user did not ask).
+
 ## Touch targets + control-row spacing rule (session "Master layout variations") — tier S
 User (screenshots of E6 and E2 chip rows): "Khoảng cách giữa chip và các phần dưới gần quá. Nên làm rule spacing cho
 các phần này, Đang làm cho mobile nên có rule về vùng chạm tối thiểu để làm spacing cho an toàn".
