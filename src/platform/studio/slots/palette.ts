@@ -343,7 +343,7 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "card", label: "Card", group: "Data display", caption: "Nested surface", root: "Card", components: ["Card", "Stack", "Heading", "Text"], interactive: false, input: false,
     build: (ctx) => lines(
-      `<Card theme="${ctx.overlay ? "on-container" : "border"}" spacing="sm">`,
+      `<Card theme="${ctx.overlay ? "on-container" : "border"}">`, // one card on its own: Spacing=Medium (card/spacing-by-count)
       `  <Stack gap="xs">`,
       `    <Heading level={${level(ctx)}} textStyle="Heading/Subheading">Milestone 2</Heading>`,
       `    <Text textStyle="Body/Small/Regular" tone="base">Rewards screens and the points ledger</Text>`,

@@ -334,3 +334,32 @@ chỉnh sửa … học thêm cho skill".
   base-colors-project.json + sync note; `npm run tokens:build`.
 - Contrast: white on Zen/9 #F755C9 2.96:1, on Light Zen/10 #DC39B2 3.98:1 (black 86%: 6.22 / 4.76). Told the user
   before syncing; they chose Figma.
+
+## Harness card/spacing-by-count (S)
+
+- User rule: "nếu từ 3 card trở nên thì dùng card/box variant spacing Small. Còn mặc định là dùng Medium". The "box" in
+  the screenshots is a Card (Content · Active · Sub-Action) holding a list; Figma List-Box has no Spacing variant, and
+  MetricCard / ChartCard expose no `spacing` (ChartCard pins Medium), so the rule judges `<Card>` only.
+- `tools/usage-guard/check-usage.mjs`: `card/spacing-by-count` (warn, allow `card-spacing`). One pass per file rebuilds
+  the JSX tree (comments blanked, code samples skipped by backtick parity, `<K extends …>` generics skipped) and counts
+  Card siblings; a mapped Card counts its literal array (inline or a `const x = […]` of the file; NaN otherwise); a
+  component whose returned root is a Card is judged at its `<Name />` use sites. ≥ 3 shown → Small; < 3, all counts
+  known and no repeating ancestor → Medium.
+- Fixtures: catalogue cards in bad/good.tsx sit in their own `<div>` (side by side they read as one group); new cases
+  for a row, a mapped row, a lone Small card and a component-root card.
+- Fixed in the repo (22 findings + code samples): Small for the Card KPI row, Dock Icon project types, Text
+  milestones; Medium for lone/paired cards on slider-field, curve-preview, accordion, divider, color-picker, card
+  (order type), typography hierarchy; description-list code sample said small while the live card is md. Studio
+  palette "Card" snippet → Medium. Kept Small with `zen-allow-card-spacing`: ai-ui Framed (chat column) and the two
+  Rating survey cards (NPS pattern) — their comments already gave the reason.
+- Gate run 1 failed on voice@390/320 density: the Voice frame pads itself (Spacing/Padding/XLarge) inside the Card,
+  so Medium pushed the three actions out of the row (+4px at 320, new at 390 and at Compact). The rule now leaves a
+  card around VoiceRecorder / AiVoiceConversation alone (Small); voice, voice playground and ai-chat reverted.
+  The 320 Comfortable overflow (12px) stays in the quality baseline as before.
+- Gate: `npm run qa -- --isolated --files=<harness, fixtures, guideline source, 16 platform/Studio files>` ✓ PASS
+  (13 pages, audit 331 s · 0 errors, dark, behaviour, Studio E2E 297 works · 0 broken); usage + mcp selftests ✓.
+  Contact sheets checked: Card KPI row and Dock Icon types at Small, Slider Field card at Medium. Done.
+- User follow-up: the three `zen-allow` cards go Medium too (ai-ui Framed + its composer cards, Rating survey ×2;
+  allow comments and the "spacing small" notes removed, code samples matched); gate (ai-ui, rating) ✓ PASS.
+- MetricCard: Figma's Metric-Card is an exposed Card, so its Spacing is the Card's (user: "card thì có spacing
+  small"); code MetricCard does not pass `spacing` to its Card yet — asked the user before adding the prop.

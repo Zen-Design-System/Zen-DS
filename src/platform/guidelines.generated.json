@@ -4011,7 +4011,7 @@
       [
         "Spacing",
         "spacing",
-        "medium (Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large)"
+        "medium (default: Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large): small once three or more cards sit side by side, medium for one or two (harness card/spacing-by-count)"
       ],
       [
         "Active",
@@ -4040,6 +4040,7 @@
       ]
     ],
     "do": [
+      "Count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge).",
       "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
       "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
       "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
@@ -4049,13 +4050,15 @@
       "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
       "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"border\" surface=\"flat\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
       "Put colour on a box with theme=\"pale\" and a color (any of the nine hues, content stays neutral), e.g. a card per project or client on a white Canvas/Alt page.",
-      "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) suits one time-sensitive figure.",
-      "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read Content/Inverse/* by themselves; pick Button appearance=\"overlay\" level=\"inverse\" and Badge theme=\"on-color\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
+      "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
+      "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
+      "On Brand, Cyan, Orange and Accent the white On-Colors text measures about 3:1: keep what you write there short and large (the number, a title), and put long or small text on another card.",
       "Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
     ],
     "dont": [
       "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
       "Don't nest cards inside cards.",
+      "Don't leave a row of three or more cards at Medium, or shrink a card on its own to Small.",
       "Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).",
       "Don't use Active as decoration; it means selected.",
       "Don't make a whole row Solid: one widget stands out, the rest share the row's theme.",
@@ -4112,6 +4115,12 @@
         "severity": "error",
         "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
         "allow": "card-color"
+      },
+      {
+        "id": "card/spacing-by-count",
+        "severity": "warn",
+        "summary": "Three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two cards keep Spacing=Medium, the default (user rule 2026-10-17); a card around a Voice frame, which pads itself, stays Small.",
+        "allow": "card-spacing"
       },
       {
         "id": "api/deprecated-prop",

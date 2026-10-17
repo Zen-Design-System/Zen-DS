@@ -64,7 +64,7 @@ function PropertyPanelExample() {
   const [border, setBorder] = useState("#FFFFFF");
   return (
     <div className="px-color-picker-panel">
-      <Card theme="flat" spacing="sm">
+      <Card theme="flat">
         {/* Each group is its own stack and the panel stacks them with no gap, so every rule has 16 above and below. */}
         <Stack gap="none">
           <Stack gap="xs" paddingY="md">
@@ -172,7 +172,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Property panel",
     description: "Inline fields (layout=\"inline\") in a dense panel: the label inside the field, the value at the end, a colour as its swatch. Each group is its own stack and the panel stacks them with no gap, so every rule has the same space above and below; the Accordion sets the title → rows gap itself.",
     render: () => <PropertyPanelExample />,
-    code: `<Card theme="flat" spacing="sm">
+    code: `<Card theme="flat">
   <Stack gap="none">
     <Stack gap="xs" paddingY="md"><Heading level={3} textStyle="Heading/4">Photo Stack</Heading></Stack>
     <Divider />

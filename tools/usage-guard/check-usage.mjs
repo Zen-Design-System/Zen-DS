@@ -231,6 +231,140 @@ const onContainerFinding = (attrs, src, start, end, fallback) => {
   const host = nearestBox(src, start);
   return OVERLAYS.includes(host) && `sits in a ${host} with theme "${theme ?? fallback}" — use theme="on-container" (Surface/Flat on the ${host}'s Container fill, usage rules §16).`;
 };
+/** Index of the `>` that ends the opening tag whose attributes start at `from` (braces and quotes balanced), or -1. */
+const tagClose = (text, from) => {
+  for (let i = from, depth = 0, quote = null; i < text.length; i++) {
+    const c = text[i];
+    if (c === "\\") { i++; continue; }
+    if (quote) { if (c === quote) quote = null; } else if (c === '"' || c === "'" || c === "`") quote = c;
+    else if (c === "{") depth++; else if (c === "}") depth--;
+    else if (c === ">" && depth === 0 && text[i - 1] !== "=") return i;
+  }
+  return -1;
+};
+/** Elements of the array literal opening at `text[open]` ("["): a number, or NaN when a spread may add more. */
+const arrayLength = (text, open) => {
+  let depth = 0, quote = null, commas = 0, last = "";
+  for (let i = open; i < text.length; i++) {
+    const c = text[i];
+    if (c === "\\") { i++; continue; }
+    if (quote) { if (c === quote) quote = null; continue; }
+    if (c === '"' || c === "'" || c === "`") { quote = c; last = c; continue; }
+    if ("([{".includes(c)) depth++;
+    else if (")]}".includes(c) && --depth === 0) return last === "[" ? 0 : commas + (last === "," ? 0 : 1);
+    else if (depth === 1 && c === "," ) commas++;
+    else if (depth === 1 && text.startsWith("...", i)) return NaN;
+    if (!/\s/.test(c)) last = c;
+  }
+  return NaN;
+};
+/** The repetition an element sits in between `from` and `to`: an unclosed `.map(` / `.flatMap(` / `Array.from(` call.
+ *  null when there is none, else { count }: the length of the literal array it maps (inline, or a `const name = […]` of
+ *  the file), NaN when the source can't tell. */
+const openRepeat = (text, from, to) => {
+  const open = [];
+  for (let i = from; i < to; i++) { if (text[i] === "(") open.push(i); else if (text[i] === ")") open.pop(); }
+  for (const at of open.reverse()) {
+    const head = text.slice(Math.max(0, at - 200), at);
+    if (/Array\.from\s*$/.test(head)) return { count: Number(text.slice(at, at + 40).match(/^\(\s*\{\s*length\s*:\s*(\d+)\s*\}/)?.[1] ?? NaN) };
+    const receiver = head.match(/(\]|[A-Za-z_$][\w$]*)\s*\.\s*(?:flatMap|map)\s*$/);
+    if (!receiver) continue;
+    if (receiver[1] !== "]") {
+      const decl = new RegExp(`(?:const|let|var)\\s+${receiver[1]}\\b(?:\\s*:[^=;]+)?\\s*=\\s*\\[`).exec(text);
+      return { count: decl ? arrayLength(text, decl.index + decl[0].length - 1) : NaN };
+    }
+    // An inline literal: walk back from its "]" to the matching "[".
+    let depth = 0, i = at - head.length + receiver.index;
+    for (; i >= 0; i--) { if ("])}".includes(text[i])) depth++; else if ("[({".includes(text[i]) && --depth === 0) break; }
+    return { count: i >= 0 && text[i] === "[" ? arrayLength(text, i) : NaN };
+  }
+  return null;
+};
+/** Index of the bracket that closes the one at `text[open]` (any of ( [ {, counted together; quotes ignored), or -1. */
+const matchClose = (text, open) => { for (let i = open, depth = 0; i < text.length; i++) { if ("([{".includes(text[i])) depth++; else if (")]}".includes(text[i]) && --depth === 0) return i; } return -1; };
+/** Function declarations: `function X(`, `const x = (…) =>`, `const x = async v =>`, `const x = function`. */
+const DECL_RE = /\bfunction\s+([A-Za-z_$][\w$]*)\s*[<(]|\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*(?::[^=;]+)?=\s*(?:async\s+)?(function\b|(?:\((?:[^()]|\([^()]*\))*\)|[A-Za-z_$][\w$]*)\s*(?::[^=;{]+)?=>)/g;
+/** Name of the innermost declared function whose body holds index `at` (an arrow whose body is the element at `at` too). */
+const enclosingFunction = (text, decls, at) => {
+  for (let k = decls.length - 1; k >= 0; k--) {
+    const d = decls[k];
+    if (d.index >= at) continue;
+    let i = d.end;
+    if (d.braced) { i = matchClose(text, text.indexOf("(", d.index)); i = i < 0 ? -1 : text.indexOf("{", i); }
+    else { while (/\s/.test(text[i] ?? "")) i++; if (i === at) return d.name; if (text[i] !== "{" && text[i] !== "(") continue; }
+    const end = i < 0 ? -1 : matchClose(text, i);
+    if (at > i && at < end) return d.name;
+  }
+  return null;
+};
+/** The JSX elements of a file (code samples in template strings left out), from one pass that rebuilds the element
+ *  tree: { name, start, parent (id, -1 at the root of a function or prop), count (1, or what a mapped element renders:
+ *  NaN when unknown), inRepeat (an ancestor repeats, so its siblings don't tell how many show), owner (for a root
+ *  element, the function it is the root of) }. `cardNames`: Card, and the components whose root is a Card. */
+let cardTreeCache = { src: null, tree: null };
+const cardTree = (src) => {
+  if (cardTreeCache.src === src) return cardTreeCache.tree;
+  // Comments can quote tags (`// a <Card …>`) that never close: blank them (strings first, so "https://…" stays).
+  const text = src.replace(/("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, (m, str) => str ?? m.replace(/[^\n]/g, " "));
+  // Code samples by backtick parity on the raw source, as inCodeSample: a `// …` line inside a sample is no comment.
+  const ticks = [...src.matchAll(/(?<!\\)`/g)].map((t) => t.index);
+  const decls = [...text.matchAll(DECL_RE)].map((d) => ({ index: d.index, end: d.index + d[0].length, name: d[1] ?? d[2], braced: Boolean(d[1]) || d[3] === "function" }));
+  const nodes = [], stack = [], cardNames = new Set(["Card"]);
+  let tick = 0;
+  const re = /<(\/?)([A-Za-z][\w.-]*|(?=>))/g;
+  for (let m; (m = re.exec(text));) {
+    while (tick < ticks.length && ticks[tick] < m.index) tick++;
+    if (tick % 2 === 1) continue; // inside a template string: a code sample
+    const name = m[2] || "Fragment";
+    if (m[1]) { const at = stack.findLastIndex((f) => f.name === name); if (at >= 0) stack.length = at; continue; }
+    if (/[\w$)\]]/.test(text[m.index - 1] ?? "")) continue; // a type argument (Array<Card>), not a tag
+    const close = tagClose(text, m.index + m[0].length);
+    if (close < 0) break;
+    if (/^\s*(,|extends\b)/.test(text.slice(m.index + m[0].length, close))) continue; // a type parameter list (<K extends …>(…) =>)
+    const parent = stack.at(-1);
+    const repeat = openRepeat(text, parent ? parent.body : Math.max(0, m.index - 3000), m.index);
+    const node = { name: name.replace(/^\w+\.(?=Card$)/, ""), start: m.index, id: nodes.length, body: close + 1, parent: parent ? parent.id : -1,
+      count: repeat ? repeat.count : 1, inRepeat: Boolean(parent?.repeats), repeats: Boolean(parent?.repeats || repeat), owner: null };
+    // A root card that the function returns (`return <Card …>`, `=> cond ? <Card …>`), not one kept in a variable.
+    if (!parent && node.name === "Card" && /(?:\breturn|=>)[^;{}]*$/.test(text.slice(Math.max(0, m.index - 400), m.index))) {
+      node.owner = enclosingFunction(text, decls, m.index);
+      if (/^[A-Z]/.test(node.owner ?? "")) cardNames.add(node.owner);
+    }
+    nodes.push(node);
+    if (text[close - 1] !== "/") stack.push(node);
+  }
+  const tree = { nodes, cardNames };
+  cardTreeCache = { src, tree };
+  return tree;
+};
+/** Cards shown in the group of `node` (its siblings that are cards): { shown, exact } — exact when every count is known
+ *  and no ancestor repeats. An element at a root shows alone. */
+const cardsBeside = ({ nodes, cardNames }, node) => {
+  const group = node.parent < 0 ? [node] : nodes.filter((n) => n.parent === node.parent && cardNames.has(n.name));
+  const known = group.filter((n) => Number.isFinite(n.count));
+  return { shown: known.reduce((sum, n) => sum + n.count, 0), exact: known.length === group.length && !node.inRepeat };
+};
+/** card/spacing-by-count: three or more cards side by side take Spacing=Small, fewer keep Medium (user rule 2026-10-17).
+ *  A component's root card is judged where the component is used (`<StatCard />` ×3 in a Grid); one used nowhere in
+ *  the file, or only called as a function (`boardCard(task)`), is not judged. */
+const cardSpacingFinding = (attrs, src, start, children) => {
+  const own = topLevel(attrs);
+  if (opaque(attrs) || (has(own, "spacing") && literal(own, "spacing") === undefined)) return false;
+  const tree = cardTree(src);
+  const me = tree.nodes.find((n) => n.start === start);
+  if (!me) return false;
+  const uses = me.parent < 0 && me.count === 1 ? tree.nodes.filter((n) => n.name === me.owner && /^[A-Z]/.test(n.name)) : [me];
+  const sites = uses.map((n) => cardsBeside(tree, n));
+  if (!sites.length) return false;
+  const spacing = step(literal(own, "spacing") ?? "md");
+  const fewest = Math.min(...sites.map((s) => s.shown)), most = Math.max(...sites.map((s) => s.shown));
+  const where = uses[0] === me ? "" : ` (where <${me.owner}> is used)`;
+  if (fewest >= 3) return spacing !== "sm" && `is one of ${fewest} cards in its group${where} at Spacing=Medium — three or more cards take spacing="small" (Card-padding-small, Corner-Radius/Large).`;
+  // A Voice frame pads itself (Spacing/Padding/XLarge, Figma 15081:1294): the card around it stays Small, so the
+  // three actions keep their row on a phone.
+  if (/<(VoiceRecorder|AiVoiceConversation)\b/.test(children)) return false;
+  return spacing === "sm" && most < 3 && sites.every((s) => s.exact) && `is ${most === 1 ? "a card on its own" : `one of ${most} cards`}${where} at Spacing=Small — Small is for groups of three or more cards; fewer keep Medium (the default).`;
+};
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
 /* Layout position, Box effects and per-corner radius (Studio Phase 2 spec 2026-10-03 §3.6; position.ts, effects.ts,
@@ -1056,6 +1190,9 @@ export const rules = [
       const color = literal(own, "color");
       return literal(own, "theme") === "solid" && ["violet", "green", "blue", "purple"].includes(color) && `is theme="solid" color="${color}": Figma has no Solid ${color} and it renders as Solid Neutral — use theme="pale" color="${color}", or a Solid colour Figma draws (neutral, brand, cyan, yellow, orange).`;
     } },
+  { id: "card/spacing-by-count", components: ["Card"], severity: "warn", allow: "card-spacing", guideline: "docs/guidelines/card.md",
+    summary: "Three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two cards keep Spacing=Medium, the default (user rule 2026-10-17); a card around a Voice frame, which pads itself, stays Small.",
+    check: ({ attrs, src, start, children }) => cardSpacingFinding(attrs, src, start, children) },
   { id: "listbox/on-container-in-overlay", components: ["ListBox"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/list-item.md",
     summary: "A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
     check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "flat") },
