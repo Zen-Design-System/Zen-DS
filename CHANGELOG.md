@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- A phone's built-in search is Rounded by default (2026-10-17, user: "mặc định nhưng cho sửa"): a Search in a
+  TopNavigation control bar or a BottomSheet (so also the Input family's phone sheet) takes `shape="rounded"` unless it
+  sets its own `shape`; elsewhere Search keeps the default shape. Zen Studio pushes a control-bar Search as
+  Shape=Rounded and pulls it back without the prop.
 - Search `shape` (2026-10-17, Figma Search/Default `Shape` = Default · Rounded): `shape="rounded"` is a pill
   (Corner-Radius/Rounded on the field, its focus ring and the filter affordance). Recommended, not required, for
   searches on phone screens; the platform's phone examples use it.

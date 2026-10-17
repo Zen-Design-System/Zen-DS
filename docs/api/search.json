@@ -30,8 +30,8 @@
           "name": "shape",
           "type": "\"default\" | \"rounded\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset\nshadow and focus ring follow, and on the filter affordance; `default` keeps Corner-Radius/Input of the size.\nPrefer `rounded` for searches on phone screens (recommended, not required). Ignored with `variant=\"popover\"`.",
+          "default": null,
+          "description": "Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset\nshadow and focus ring follow, and on the filter affordance; `default` keeps Corner-Radius/Input of the size.\nPrefer `rounded` for searches on phone screens. Default `default`, but `rounded` inside a TopNavigation control bar\nor a BottomSheet (a phone's built-in search); pass `shape=\"default\"` there to keep the square field. Ignored with\n`variant=\"popover\"`.",
           "deprecated": null
         },
         {

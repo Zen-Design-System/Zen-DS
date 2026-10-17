@@ -468,3 +468,10 @@ code + Studio in full; bright solids = follow the tokens and add On-Bright (whit
 - Open (BACKLOG P2): mobile library components' default shape (question for the user); native-pack re-capture.
 - Gate: `npm run qa` (search, top-navigation, bottom-sheet) PASS, report .qa/reports/2026-10-17T11-18-10-c9cbf549.md
   (a first run's bottom-sheet@390 crash did not reproduce: audit 390/320 clean). Not committed (commits come from one place).
+
+## Search Rounded by default on phones (session "Giám sát", tier S; user: "mặc định nhưng cho sửa")
+- `_shared/search-shape.ts` SearchShapeContext; Search resolves `shape ?? context ?? "default"`; TopNavigation wraps its
+  control bar (three placements) and BottomSheet its search in `rounded`, so the Input phone sheet follows.
+- Studio: figma-push writes Shape=Rounded for the control bar's Searches that set no shape (by element id); figma-pull
+  leaves Rounded unsaid there and writes `shape="default"` for a Default one. figma-push selftest +3 checks (277).
+- Test: tests/interaction/search-shape-on-phones.test.tsx (3). Figma library default left to the designer (BACKLOG).

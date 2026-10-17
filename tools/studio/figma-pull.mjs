@@ -1700,6 +1700,17 @@ function topNavigationElement(node, ctx) {
   if (shown["Control-Bar"] === true) {
     // The push pads the control in a "Control" frame (the code's control bar padding): its layer is the control.
     const layers = (read.control ?? []).flatMap((child) => (child.type === "FRAME" && child.name === "Control" && child.children?.length === 1 ? child.children : [child])).map((child) => convert(child, ctx)).filter(Boolean);
+    // A Search in the control bar is Rounded unless it says otherwise (SearchShapeContext, user 2026-10-17): Figma's
+    // Rounded needs no prop there, its Default is written out.
+    const settleSearch = (el) => {
+      if (el?.kind !== "element") return;
+      if (el.name === "Search" && el.props?.variant?.value !== "popover") {
+        if (el.props.shape?.kind === "literal" && el.props.shape.value === "rounded") delete el.props.shape;
+        else if (el.props.shape === undefined) el.props.shape = literal("default");
+      }
+      for (const child of el.children ?? []) settleSearch(child);
+    };
+    layers.forEach(settleSearch);
     if (layers.length) props.controlBar = { kind: "element", node: layers.length === 1 ? layers[0] : { kind: "element", name: "Stack", props: {}, children: layers } };
   }
   return { kind: "element", name: "TopNavigation", props, children: [] };

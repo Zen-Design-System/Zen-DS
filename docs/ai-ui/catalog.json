@@ -12248,7 +12248,6 @@
             "default",
             "rounded"
           ],
-          "default": "default",
           "description": "Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset shadow and focus ring follow, and on the filter affordance; `default"
         },
         "label": {
@@ -16656,7 +16655,7 @@
       "file": "docs/guidelines/search.md",
       "do": [
         "Describe the scope in the placeholder (\"Search components\").",
-        "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded): recommended, not required; desktop toolbars keep the default shape.",
+        "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded); a Search in a TopNavigation control bar or a BottomSheet is rounded by default (set shape=\"default\" to keep the square field). Desktop toolbars keep the default shape.",
         "Filter live and show an empty state that echoes the query.",
         "Let Enter open the first result; the clear button resets to recent items.",
         "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",

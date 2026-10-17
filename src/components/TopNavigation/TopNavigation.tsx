@@ -4,6 +4,7 @@ import { usePresence } from "../Motion";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import { NotificationDot } from "../_shared/notification-dot";
+import { SearchShapeContext } from "../_shared/search-shape";
 import { useLiquidGlass } from "../_shared/liquid-glass";
 import { ProgressiveBlur } from "../_shared/progressive-blur";
 import { useZenLabels } from "../_shared/zen-context";
@@ -374,11 +375,11 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
                   {barFolds ? <ActionsRoom items={trailingItems(lead, trailing, pairs, trailingGroup, MAX_ACTIONS)} variant={variant} /> : expandTrailing}
                 </div>
               ) : null}
-              {foldsSearch ? <div className="zen-top-nav__control" inert={scroll.folded || undefined}>{controlBar}</div> : null}
+              {foldsSearch ? <div className="zen-top-nav__control" inert={scroll.folded || undefined}><SearchShapeContext.Provider value="rounded">{controlBar}</SearchShapeContext.Provider></div> : null}
             </div>
           ) : null}
           {/* A Segmented or Tabs Control-Bar stays pinned under the bar; it moves up with the fold. So does a banner. */}
-          {controlBar && !foldsSearch ? <div className="zen-top-nav__control zen-top-nav__control--pinned">{controlBar}</div> : null}
+          {controlBar && !foldsSearch ? <div className="zen-top-nav__control zen-top-nav__control--pinned"><SearchShapeContext.Provider value="rounded">{controlBar}</SearchShapeContext.Provider></div> : null}
           {banner ? <div className="zen-top-nav__banner zen-top-nav__banner--pinned">{banner}</div> : null}
         </>
       ) : (
@@ -389,7 +390,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
               {barFolds ? <ActionsRoom items={trailingItems(lead, trailing, pairs, trailingGroup, MAX_ACTIONS)} variant={variant} /> : expandTrailing}
             </div>
           ) : null}
-          {controlBar && !(foldsSearch && collapsed) ? <div className="zen-top-nav__control">{controlBar}</div> : null}
+          {controlBar && !(foldsSearch && collapsed) ? <div className="zen-top-nav__control"><SearchShapeContext.Provider value="rounded">{controlBar}</SearchShapeContext.Provider></div> : null}
           {banner ? <div className="zen-top-nav__banner">{banner}</div> : null}
         </>
       )}
