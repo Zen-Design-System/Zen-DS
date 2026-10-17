@@ -280,7 +280,8 @@
   "types": {
     "ShapeFill": "type ShapeFill = (typeof shapeFills)[number]",
     "ShapeStroke": "type ShapeStroke = (typeof shapeStrokes)[number]",
-    "ZenPadding": "type ZenPadding = \"none\" | ZenScaleInput | \"4xl\"",
+    "ZenMargin": "type ZenMargin = \"margin-comfortable\" | \"margin-compact\"",
+    "ZenPadding": "type ZenPadding = \"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
     "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
     "ZenScaleInput": "type ZenScaleInput = ZenScale | ZenScaleLong",
     "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\""

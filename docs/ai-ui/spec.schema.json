@@ -5380,7 +5380,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -5419,7 +5421,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -5458,7 +5462,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -5497,7 +5503,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -5686,7 +5694,9 @@
                       "xlarge",
                       "2xlarge",
                       "3xlarge",
-                      "4xl"
+                      "4xl",
+                      "margin-comfortable",
+                      "margin-compact"
                     ]
                   },
                   {
@@ -5717,7 +5727,9 @@
                       "xlarge",
                       "2xlarge",
                       "3xlarge",
-                      "4xl"
+                      "4xl",
+                      "margin-comfortable",
+                      "margin-compact"
                     ]
                   },
                   {
@@ -5748,7 +5760,9 @@
                       "xlarge",
                       "2xlarge",
                       "3xlarge",
-                      "4xl"
+                      "4xl",
+                      "margin-comfortable",
+                      "margin-compact"
                     ]
                   },
                   {
@@ -15155,7 +15169,9 @@
                       "xlarge",
                       "2xlarge",
                       "3xlarge",
-                      "4xl"
+                      "4xl",
+                      "margin-comfortable",
+                      "margin-compact"
                     ]
                   },
                   {
@@ -16232,7 +16248,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -16271,7 +16289,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -16310,7 +16330,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -16349,7 +16371,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -16562,7 +16586,9 @@
                       "xlarge",
                       "2xlarge",
                       "3xlarge",
-                      "4xl"
+                      "4xl",
+                      "margin-comfortable",
+                      "margin-compact"
                     ]
                   },
                   {
@@ -26951,7 +26977,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -26990,7 +27018,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -27029,7 +27059,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -27068,7 +27100,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -29908,7 +29942,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -29947,7 +29983,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -29986,7 +30024,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -30025,7 +30065,9 @@
                           "xlarge",
                           "2xlarge",
                           "3xlarge",
-                          "4xl"
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
                         ]
                       },
                       {
@@ -30191,14 +30233,16 @@
                       "xlarge",
                       "2xlarge",
                       "3xlarge",
-                      "4xl"
+                      "4xl",
+                      "margin-comfortable",
+                      "margin-compact"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Space inside the stack (Figma Spacing/Padding)."
+                "description": "Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone)."
               },
               "paddingX": {
                 "anyOf": [
@@ -30223,7 +30267,9 @@
                       "xlarge",
                       "2xlarge",
                       "3xlarge",
-                      "4xl"
+                      "4xl",
+                      "margin-comfortable",
+                      "margin-compact"
                     ]
                   },
                   {
@@ -30255,7 +30301,9 @@
                       "xlarge",
                       "2xlarge",
                       "3xlarge",
-                      "4xl"
+                      "4xl",
+                      "margin-comfortable",
+                      "margin-compact"
                     ]
                   },
                   {

@@ -79,7 +79,8 @@ Object shapes the props above refer to.
 ```ts
 type ShapeFill = (typeof shapeFills)[number]
 type ShapeStroke = (typeof shapeStrokes)[number]
-type ZenPadding = "none" | ZenScaleInput | "4xl"
+type ZenMargin = "margin-comfortable" | "margin-compact"
+type ZenPadding = "none" | ZenScaleInput | "4xl" | ZenMargin
 type ZenScale = "3xs" | "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
 type ZenScaleInput = ZenScale | ZenScaleLong
 type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "large" | "xlarge" | "2xlarge" | "3xlarge"

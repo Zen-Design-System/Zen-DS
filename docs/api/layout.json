@@ -188,15 +188,15 @@
         },
         {
           "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
-          "description": "Space inside the stack (Figma Spacing/Padding).",
+          "description": "Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone).",
           "deprecated": null
         },
         {
           "name": "paddingX",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "Horizontal padding (overrides `padding` on the sides).",
@@ -204,7 +204,7 @@
         },
         {
           "name": "paddingY",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins.",
@@ -413,7 +413,7 @@
         },
         {
           "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "",
@@ -622,7 +622,7 @@
         },
         {
           "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "",
@@ -630,7 +630,7 @@
         },
         {
           "name": "paddingX",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "",
@@ -638,7 +638,7 @@
         },
         {
           "name": "paddingY",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "",
@@ -754,7 +754,8 @@
   ],
   "types": {
     "GridTracks": "type GridTracks = number | string",
-    "ZenPadding": "type ZenPadding = \"none\" | ZenScaleInput | \"4xl\"",
+    "ZenMargin": "type ZenMargin = \"margin-comfortable\" | \"margin-compact\"",
+    "ZenPadding": "type ZenPadding = \"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
     "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
     "ZenScaleInput": "type ZenScaleInput = ZenScale | ZenScaleLong",
     "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\""

@@ -2,7 +2,7 @@ import api from "../../api.generated.json";
 import { zenComponents } from "../builder/engine";
 import { contentTones } from "../../../components/_shared/contentTone";
 import { shapeFills, shapeStrokes } from "../../../components/Shape/paint";
-import { normalizeScale, zenScale, type ZenScaleInput } from "../../../components/_shared/scale";
+import { normalizeScale, zenMargins, zenScale, type ZenScaleInput } from "../../../components/_shared/scale";
 import { iconNames } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { DataSource, SourceAttr } from "../types";
@@ -190,6 +190,8 @@ const stringLiteral = (member: string) => /^"([^"]*)"$/.exec(member)?.[1] ?? /^'
 /** Scale members (`ZenScaleInput`, `Exclude<ZenScaleInput, "3xs" | "3xsmall">`, `ZenScale`) → short spellings. */
 function scaleMembers(member: string): string[] | null {
   if (member === "ZenScaleInput" || member === "ZenScale") return [...scaleShort];
+  // A padding's page margins (ZenPadding's ZenMargin, user 2026-10-17): Margin-Comfortable and Margin-Compact.
+  if (member === "ZenMargin") return [...zenMargins];
   const exclude = /^Exclude<\s*ZenScale(?:Input)?\s*,\s*(.+)>$/.exec(member);
   if (exclude) {
     const removed = new Set(splitUnion(exclude[1]).map((part) => stringLiteral(part)).filter((value): value is string => Boolean(value)).map(longToShort));

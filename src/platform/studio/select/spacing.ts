@@ -3,6 +3,7 @@ import { componentSchema, editorFor, parseDefault, valueOf, type PropValue } fro
 import type { EditOp, SourceAttr } from "../types";
 import { breakpointOf, columnsOp, columnsSource, gridItems, gridLayout, soleColumn, spanOf, withTrackPx, type GridLayout } from "./gridTracks";
 import type { FiberHit } from "./picker";
+import { isMarginKey } from "../inspector/controls/scale";
 
 /*
  * Spacing on the canvas (Figma-like): the selected element's padding and gap areas, measured from the DOM, and for the
@@ -359,7 +360,8 @@ export type SpacingOption = { key: string; px: number | null };
 export function spacingOptions(component: string, prop: string, element: Element, scale: SpacingScale): SpacingOption[] {
   const type = componentSchema(component)?.props.find((candidate) => candidate.name === prop)?.type;
   const editor = type ? editorFor(type) : null;
-  const keys = editor?.kind === "enum" ? editor.options : [];
+  // The ladder only: a page margin (Margin-Comfortable…) is picked in the Inspector, never snapped to from a drag.
+  const keys = editor?.kind === "enum" ? editor.options.filter((key) => !isMarginKey(key)) : [];
   const options = keys.map((key) => ({ key, px: tokenPx(element, scale, key) }));
   // A short list of named sizes (Card: md, sm) reads smallest first.
   return scale === "card" ? options.sort((a, b) => (a.px ?? 0) - (b.px ?? 0)) : options;

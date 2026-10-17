@@ -72,6 +72,25 @@ export const rows = [
     },
   },
   {
+    id: "L-13", feature: "Padding takes the page margins (user 2026-10-17): Horizontal › Margin-Comfortable writes paddingX=\"margin-comfortable\" and measures 24px on desktop; the field reads it by its Figma name; equal axes write one padding", wp: "margin tokens 2026-10-17",
+    async run(ctx) {
+      const page = await selectBox(ctx);
+      await pickOption(page, "paddingX", /^Margin-Comfortable/);
+      await expectSource(ctx, "box", (el) => el.attr("paddingX") === "margin-comfortable", 'paddingX="margin-comfortable"');
+      const px = await until(async () => {
+        const value = await page.evaluate(() => { const el = document.querySelector('.studio-world [data-e2e="box"]'); return el ? getComputedStyle(el).paddingLeft : null; });
+        return value === "24px" ? value : null;
+      }, { message: "the Box padded 24px (Margin-Comfortable on desktop)" });
+      // The field reads the token by its Figma name.
+      const shown = (await inspectorRow(page, "paddingX").innerText()).replace(/\s+/g, " ");
+      if (!/Margin-Comfortable/.test(shown)) throw new Error(`the field reads "${shown}"`);
+      await sleep(300);
+      await pickOption(page, "paddingY", /^Margin-Comfortable/);
+      await expectSource(ctx, "box", (el) => el.attr("padding") === "margin-comfortable" && el.attr("paddingX") === undefined && el.attr("paddingY") === undefined, 'padding="margin-comfortable", the axes removed');
+      return `paddingX margin-comfortable (${px}) → both axes → padding="margin-comfortable"`;
+    },
+  },
+  {
     id: "L-10", feature: "Clip content (Figma, under Padding): the checkbox writes clip, unchecked removes it", wp: "Figma spec 2026-10-09",
     async run(ctx) {
       const page = await selectBox(ctx);

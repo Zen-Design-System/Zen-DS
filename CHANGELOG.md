@@ -22,6 +22,15 @@ removed (four unused colour ramps were, see Removed).
   Pale tint fades; Pale stays for white pages and imagery. New harness rule `card/pale-on-canvas-default` (error: a
   Pale Card, MetricCard or ChartCard right on an AppShell, PlatformPhone or ZenProvider whose canvas is Default), the
   Figma audit's `theme/box-on-canvas` asks for Subtle there, and Studio pushes and pulls the new theme.
+- Padding takes the page margins (2026-10-17, user: "User vẫn chưa chọn được margin token cho padding khi thiết kế"):
+  `padding` / `paddingX` / `paddingY` (and Form `inset`, layout insets) accept `margin-comfortable` (24, 20 on a phone) and
+  `margin-compact` (20, 16 on a phone), Figma's Breakpoint & Grids margins, which follow the breakpoint (`ZenMargin`).
+  Zen Studio lists them after the padding ladder under their Figma names (↑/↓ and the canvas snaps keep the ladder); the
+  Figma push binds a frame's padding to Margin-Comfortable / Margin-Compact and the pull reads them back (the live
+  Overviews body now comes back as `padding="margin-comfortable"`, as designed).
+- Zen Studio: a phone Screen's Top and Bottom Navigation stay at its top and foot on the canvas (2026-10-17, user: "Khi
+  tạo trang mới thì lỗi bottom nhảy lên trên"). They were sticky to the Studio window, so in a window shorter than the
+  Screen the bottom bar climbed up to the Screen's top; Play, Present and the exported page keep them sticky.
 - Card spacing by count is a phone rule (2026-10-17, user: "rule đó chỉ áp dụng cho mobile"): `card/spacing-by-count`
   now judges cards inside a PlatformPhone frame or a BottomSheet only; desktop cards keep Medium whatever their number,
   so the desktop rows #110 had set to Small (Card quarter widgets, Dock Icon project types, Text milestones) are Medium

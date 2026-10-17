@@ -94,7 +94,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | --- | --- | --- | --- |
 | `align` | `"end" \| "start" \| "between"` | `"end"` | Where the buttons sit on wide layouts: `end` (default, right), `start`, or `between` (the first child alone on the left, e.g. "Delete draft", the rest on the right). Write Tertiary (cancel) first and Primary (submit) last in every case. |
 | `sticky` | `boolean` | `false` | Keep the bar pinned to the bottom of the scrolling area (Surface background, Pale top line, safe-area padding). |
-| `inset` | `"none" \| ZenScaleInput \| "4xl"` | — | Sticky only: side padding of the bar, e.g. lg on a full-bleed phone screen so the buttons line up with the fields. |
+| `inset` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — | Sticky only: side padding of the bar, e.g. lg on a full-bleed phone screen so the buttons line up with the fields. |
 | `children` | `ReactNode` | — | The buttons: Tertiary (cancel) first, Primary (`type="submit"`, named for the outcome) last. |
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element. |
 
@@ -104,6 +104,7 @@ Object shapes the props above refer to.
 ```ts
 type FormSubmitEvent = { preventDefault?: () => void; currentTarget?: EventTarget | null }
 interface FormSubmitSource { handleSubmit: (event?: FormSubmitEvent) => Promise<{ ok: boolean; errorCount: number }>; isSubmitting?: boolean; }
+type ZenMargin = "margin-comfortable" | "margin-compact"
 type ZenScale = "3xs" | "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
 type ZenScaleInput = ZenScale | ZenScaleLong
 type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "large" | "xlarge" | "2xlarge" | "3xlarge"
