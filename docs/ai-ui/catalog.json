@@ -10370,6 +10370,15 @@
           ],
           "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat)."
         },
+        "spacing": {
+          "enum": [
+            "md",
+            "sm",
+            "medium",
+            "small"
+          ],
+          "description": "Figma Metric-Card's Card Spacing (it is an exposed Card): Medium (default; Card-padding-medium, Corner-Radius/2XLarge) or Small (Card-padding-small, Corner-Radius/Large)."
+        },
         "type": {
           "enum": [
             "kpi",
@@ -17365,7 +17374,7 @@
       "title": "Card",
       "file": "docs/guidelines/card.md",
       "do": [
-        "Count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge).",
+        "On a phone, count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge). Desktop cards keep Medium whatever their number.",
         "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
         "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
         "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
@@ -17383,7 +17392,7 @@
       "dont": [
         "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
         "Don't nest cards inside cards.",
-        "Don't leave a row of three or more cards at Medium, or shrink a card on its own to Small.",
+        "On a phone, don't leave three or more cards at Medium, or shrink a card on its own to Small.",
         "Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).",
         "Don't use Active as decoration; it means selected.",
         "Don't make a whole row Solid: one widget stands out, the rest share the row's theme.",
@@ -17637,6 +17646,7 @@
       "rules": [
         "card/color-ignored",
         "card/solid-color",
+        "card/spacing-by-count",
         "metric/formatted-value",
         "metric/type-data",
         "metric/category-count",

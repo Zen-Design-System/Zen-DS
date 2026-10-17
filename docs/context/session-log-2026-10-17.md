@@ -468,3 +468,14 @@ code + Studio in full; bright solids = follow the tokens and add On-Bright (whit
 - Open (BACKLOG P2): mobile library components' default shape (question for the user); native-pack re-capture.
 - Gate: `npm run qa` (search, top-navigation, bottom-sheet) PASS, report .qa/reports/2026-10-17T11-18-10-c9cbf549.md
   (a first run's bottom-sheet@390 crash did not reproduce: audit 390/320 clean). Not committed (commits come from one place).
+
+## Card spacing by count on phones only; MetricCard spacing (session "Giám sát", tier S; user: "rule đó chỉ áp dụng cho mobile", "MetricCard có nhận prop spacing không? Có")
+- `card/spacing-by-count` judges a card only when a PlatformPhone or BottomSheet holds it (the frames
+  mobile/full-size-controls reads); Card and MetricCard (type="tile" defaults to Small, so a lone tile is not flagged).
+  Fixtures: the bad and good cases sit in phone frames; desktop rows of Cards and MetricCards at Medium are good.
+- MetricCard `spacing` (CardSpacing) passes to its Card; figma-props.map Metric-Card › Card Spacing → `spacing`.
+- Desktop rows #110 set to Small are Medium again (card.tsx quarter widgets ×2, dock-icon project types ×2, text
+  milestones + rewards sample); the phone "Metric types" stack (and its code sample) takes Small. usage:check: 0
+  card/spacing-by-count findings.
+- Colour balance (docs/research/colour-balance-rule-2026-10-17.md): the user answered the 4 questions (no fixed hue
+  cap, hero counts, one hue per person for avatar initials, warnings everywhere); the rules are not built yet.

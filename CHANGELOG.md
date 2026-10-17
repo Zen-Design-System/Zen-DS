@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Card spacing by count is a phone rule (2026-10-17, user: "rule đó chỉ áp dụng cho mobile"): `card/spacing-by-count`
+  now judges cards inside a PlatformPhone frame or a BottomSheet only; desktop cards keep Medium whatever their number,
+  so the desktop rows #110 had set to Small (Card quarter widgets, Dock Icon project types, Text milestones) are Medium
+  again. MetricCard counts too and takes `spacing` (user: "MetricCard có nhận prop spacing không? Có"): Medium by
+  default, Small for `type="tile"`; Studio reads and writes the Metric-Card's Card Spacing. The phone "Metric types"
+  example stacks its three cards at Small.
 - Search `shape` (2026-10-17, Figma Search/Default `Shape` = Default · Rounded): `shape="rounded"` is a pill
   (Corner-Radius/Rounded on the field, its focus ring and the filter affordance). Recommended, not required, for
   searches on phone screens; the platform's phone examples use it.
