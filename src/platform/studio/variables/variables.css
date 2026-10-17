@@ -1,5 +1,6 @@
 /* The Variables window (VariablesWindow.tsx): Figma's Local variables, floating over the canvas on the Popover surface
    (as Quick insert, builder/library/library.css). Tokens only; a removed outline gets the Studio's inset focus ring. */
+/* zen-allow-popover-layer: the Variables window floats over the canvas (position: fixed, the Popover layer), like Figma's. */
 .studio-vars {
   position: fixed;
   z-index: 36;
@@ -67,7 +68,7 @@
 .studio-vars__swatch[data-alpha] { background: linear-gradient(var(--studio-vars-swatch), var(--studio-vars-swatch)), repeating-conic-gradient(var(--zen-color-background-surface-default) 0 25%, var(--zen-color-border-neutral-subtle-default) 0 50%) 0 0 / 8px 8px; }
 .studio-vars__hex { font-variant-numeric: tabular-nums; }
 .studio-vars__alpha { color: var(--zen-color-content-neutral-base); }
-.studio-vars__alias { display: inline-flex; min-width: 0; max-width: 100%; height: var(--zen-element-size-popular-medium, 24px); box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 1px solid var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-subtle-default, transparent); }
+.studio-vars__alias { display: inline-flex; min-width: 0; max-width: 100%; height: var(--zen-element-size-popular-medium, 24px); box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-subtle-default, transparent); }
 .studio-vars__alias-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 /* Footer: Create variable, the state of the drafts and of Figma, Save / Copy for Figma. */
@@ -75,6 +76,7 @@
 .studio-vars__status { min-width: 0; flex: 1 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
 
 /* The value editor under a cell (Figma's colour picker with its Variables tab). */
+/* zen-allow-popover-layer: it floats under the cell it edits (position: fixed, the Popover layer). */
 .studio-vars__editor { position: fixed; z-index: 37; display: flex; width: 280px; max-height: 420px; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); overflow: hidden; padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); outline: 1px solid var(--zen-color-border-popover-subtle); background: var(--zen-color-background-popover-default); box-shadow: var(--zen-style-effect-popover-shadow-unclipped); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter); }
 .studio-vars__editor-head { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-vars__editor-head > .zen-segmented { flex: 1 1 auto; }
