@@ -56,6 +56,13 @@
 //                                     that is not Content/On-White-Overlay/*: Neutral and Inverse flip with the mode
 //   navigation/back-chevron  error    a left arrow (icon-arrow-left-*, icon-arrow-narrow-left-*) as Back in a Top-Navigation,
 //                                     Nav-Action or Button on a phone or tablet screen: Back is icon-chevron-left-line-medium
+//   button/one-primary       error    two Primary Button/Main or Icon-Main side by side (one parent); warning when a screen
+//                                     has more than one Primary elsewhere (one main CTA per screen, the rest Tertiary)
+//   button/secondary-justified  warning  a Secondary Button/Main or Icon-Main: rare, a pressed toggle that stays on
+//   button/accent-is-promoted   warning  an Accent Button/Main or Icon-Main: only a promoted CTA (onboarding, upsell)
+//   button/small-full-width  error    a Small / XSmall / 2XSmall text button stretched to Fill: small buttons hug
+//   button/overlay-on-imagery   warning  a Button/Main or Icon-Main on a photo: buttons on imagery are Overlay
+//   button/vague-label       warning  a button labelled OK, Yes, Submit or Click here
 
 const ROOT_IDS = [];
 const MAX_PER_RULE = 25;
@@ -453,6 +460,52 @@ async function checkBackChevron(root) {
   }
 }
 
+// Button roles (component-usage-rules §1, guidelines/button.md, code harness button/*; user 2026-10-17: "Dùng button sai
+// rule … Luôn luôn kiểm tra để không bị sai rule dùng button role"). Only buttons you placed are checked: one inside a
+// component (not in its slot) has the level the component gives it.
+const BUTTON_SET = /^Button\/(Main|Icon-Main|Flat|Icon-Flat|Overlay|Icon-Overlay)$/;
+const VAGUE_LABEL = /^(ok|okay|yes|submit|click here)$/i;
+function ownedByComponent(node, screen) {
+  for (let current = node.parent; current && current !== screen; current = current.parent) {
+    if (current.type === "SLOT") return false;
+    if (current.type === "INSTANCE") return true;
+  }
+  return false;
+}
+function onImagery(node, screen) {
+  for (let current = node.parent; current && current !== screen.parent; current = current.parent) {
+    const paints = "fills" in current && !isMixed(current.fills) ? visiblePaints(current.fills) : [];
+    if (paints.some((paint) => paint.type === "IMAGE")) return true;
+    if (paints.length) return false;
+  }
+  return false;
+}
+async function checkButtonRoles(root) {
+  const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
+  for (const screen of screens) {
+    const primaries = [];
+    for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
+      if (!shownIn(node, screen) || ownedByComponent(node, screen)) continue;
+      const main = await node.getMainComponentAsync();
+      const kind = BUTTON_SET.exec(main && main.parent && main.parent.type === "COMPONENT_SET" ? main.parent.name : "")?.[1];
+      if (!kind) continue;
+      const { Level: level, Size: size } = node.variantProperties ?? {};
+      const solid = kind === "Main" || kind === "Icon-Main";
+      if (solid && level === "Primary") primaries.push(node);
+      if (solid && level === "Secondary") report("button/secondary-justified", WARNING, node, "Secondary is a rare highlight: a pressed toggle that stays on (a device's power while it is on). Every other action is Tertiary; say why it stays");
+      if (solid && level === "Accent") report("button/accent-is-promoted", WARNING, node, "Accent is only for a promoted CTA (onboarding, upsell, the floating feedback action); an ordinary main action is Primary");
+      if ((kind === "Main" || kind === "Flat") && /^(Small|XSmall|2XSmall)$/.test(size) && node.layoutSizingHorizontal === "FILL") report("button/small-full-width", ERROR, node, `a ${size} button stretched to Fill: small buttons hug their label; a full-width button is Medium or larger`);
+      if (solid && onImagery(node, screen)) report("button/overlay-on-imagery", WARNING, node, "a Button/Main or Icon-Main on a photo: use Button/Overlay or Icon-Overlay (White, White Overlay, Black Overlay, Inverse)");
+      const label = kind === "Main" || kind === "Flat" || kind === "Overlay" ? node.findOne((child) => child.type === "TEXT") : null;
+      if (label && VAGUE_LABEL.test(label.characters.trim())) report("button/vague-label", WARNING, node, `"${label.characters}": start with a verb and name the outcome ("Save changes", "Select")`);
+    }
+    const byParent = new Map();
+    for (const node of primaries) byParent.set(node.parent, [...(byParent.get(node.parent) ?? []), node]);
+    for (const group of byParent.values()) if (group.length > 1) for (const node of group.slice(1)) report("button/one-primary", ERROR, node, "two Primary buttons side by side: pair Tertiary + Primary, Primary last");
+    if (primaries.length > 1 && byParent.size > 1) for (const node of primaries.slice(1)) if ((byParent.get(node.parent) ?? []).length === 1) report("button/one-primary", WARNING, node, `${primaries.length} Primary buttons on ${screen.name}: one main CTA per screen, every other action Tertiary (one per card is fine in a pricing grid; say so)`);
+  }
+}
+
 const PLACEHOLDER = /lorem|ipsum|dolor sit/i;
 // A List-Box footer action's label (user rule 2026-10-16, code harness listbox/footer-action-tertiary).
 const ACTION_LABEL = /^(open|go to|view|see|show|manage|browse|all)\b/i;
@@ -650,6 +703,7 @@ for (const root of roots) checkShadowClips(root);
 for (const root of roots) await checkThemePairing(root);
 for (const root of roots) await checkModeOverrides(root);
 for (const root of roots) await checkBackChevron(root);
+for (const root of roots) await checkButtonRoles(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {

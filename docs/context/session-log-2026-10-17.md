@@ -114,6 +114,21 @@ của desktop", then "cân chỉnh … toạ độ và size" of the hover/active
   thread rebuilt with Chat/Section/Time + Chat/Section/Conversation), audit 0/0; Chart/Multi-Line-Chart compare
   Tooltip anchored to the active sector (Compare-Grid › Tooltip-Track) so it stays on the hover line at any width.
 
+## Figma skill: component rules + QA before done (session "Master layout variations") — tier S
+User: "Dùng button sai rule … Luôn luôn kiểm tra để không bị sai rule dùng button role", then "bổ sung skill dùng
+figma luôn check các rule khi dùng component nhé và QA lại trước khi done, thêm vào skill".
+- Trigger: E4 on ◇ Master-Layout · Variants had two Secondary sign-in buttons above the Primary. A scan of 90 buttons
+  in D/E/F found more: Surface on canvas, Accent on ordinary CTAs, Secondary as a plain action, Small Run buttons set
+  to Fill, Main buttons on photos, an "OK" label, two Primaries on F9, Overlay buttons used as a view switch (E7), and
+  a Button as an address picker (E1). All fixed in Figma: power-on toggles became Secondary, hearts on photos
+  Icon-Overlay White, E7 a Segmented, the E1 address a Chip, E4 Primary + one Tertiary below.
+- `skills/zen-figma-design/harness/zen-figma-audit.js`: `checkButtonRoles` adds `button/one-primary`,
+  `secondary-justified`, `accent-is-promoted`, `small-full-width`, `overlay-on-imagery` and `vague-label`. It skips
+  buttons owned by a component (outside a slot). `references/audit-rules.md` has the fixes.
+- `SKILL.md`: a §2 hard rule "Every component by its own rules" (the Button role table, Segmented/Chip/Back, Brand/
+  Accent leads the colour) and a §3 QA checklist (audit, component rules, colour, screenshot, report) that gates "done".
+- `npm run ai-kit:check` ✓ (127 checks).
+
 ## Studio → Figma direct paste (tier L, session "Figma và Studio import chính xác"; user: "Biểu đồ trước, rồi dán thẳng", then "đồng ý, làm tiếp đi")
 - Proven by automatic pastes in the Zen file (osascript Edit › Paste after opening the QA node; the user enabled
   Accessibility): skeleton variants, deflate, variables and styles by node id, variant-level property ids, slot contents.

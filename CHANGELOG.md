@@ -17,6 +17,18 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Figma audit `button/*` rules and a QA checklist in the `zen-figma-design` skill (2026-10-17, user: "Luôn luôn kiểm
+  tra để không bị sai rule dùng button role", "bổ sung skill dùng figma luôn check các rule khi dùng component … QA lại
+  trước khi done"). The audit now checks the Figma side of the code harness's Button rules:
+  - `button/one-primary`: two Primaries side by side, or more than one on a screen;
+  - `button/secondary-justified`: Secondary only for a toggle that stays on;
+  - `button/accent-is-promoted`;
+  - `button/small-full-width`;
+  - `button/overlay-on-imagery`;
+  - `button/vague-label`.
+
+  The skill now makes each component's guideline a hard rule (Button roles, Segmented for views, Chip for scope,
+  Brand/Accent as the main colour). A screen is done only after the audit and the QA checklist pass.
 - Tabs `size="lg"` (`large`), the desktop top-navigation tab (2026-10-17, user: "Thêm size tab large giữ nguyên font
   size tăng size lên 64"): 64px items (72 in Comfortable density) with Medium's label and icon, tokens
   `Tab-Item/Size|Spacing/Large/*` (Figma Tab-Item `Size=Large`, 24 variants). The hover/selected fill is 40px high and

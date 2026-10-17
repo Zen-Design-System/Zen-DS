@@ -64,6 +64,30 @@ Files in this skill:
   set `clipsContent = false` on every frame you add (rows, sections, toolbars, wrappers) unless it must hide something;
   a Shadow card's shadow reaches past the card (about 8px below, 4px aside). Check every screen with the audit's
   `bounds/shadow-clipped`; `absoluteRenderBounds` cannot show it (it is already cut by the clip).
+- **Every component by its own rules.** Before you place a component, read its `references/guidelines/<component>.md`
+  ("Use it for", "Use something else for", Do / Don't) and its Figma description. Then pick its level, size and state
+  by those rules, never by how it looks. The ones that go wrong most:
+  - **Button roles** (component-usage-rules §1, audit `button/*`):
+
+    | Level | Use |
+    | --- | --- |
+    | Primary | one per screen, the main CTA |
+    | Tertiary | every other action, the default |
+    | Secondary | only a pressed toggle that stays on, such as a device's power while it is on |
+    | Accent | only a promoted CTA: onboarding, upsell |
+
+  - **Button pairs and sizes:**
+    - A pair is Tertiary + Primary, with Primary last.
+    - On a phone footer, Primary goes on top with at most one Tertiary below; alternative sign-ins never sit as two
+      Secondary buttons.
+    - A full-width button is Medium or larger; Small buttons hug their label.
+  - **Buttons in context:**
+    - Buttons on a photo are `Button/Overlay` or `Button/Icon-Overlay`.
+    - Labels name the outcome: never "OK", "Submit" or "Yes".
+  - **Not a button:** switching views is Segmented or Tabs; choosing a filter, sort or scope (an address, a period) is
+    a Chip; Back is `icon-chevron-left-line-medium`.
+  - **Colour:** Brand / Accent is the screen's main colour: bands, the hero and the selected state. Other hues may
+    support it on smaller parts (category icons, a streak badge, initials), never lead it.
 - **Real states, not look-alikes.** A field that shows a value is `State=Inputted` (Default and Focused are the empty
   placeholder look); a menu's open trigger is `State=Pressed` (Chip/Advanced: `Press`), not Focused; a disabled control
   is `State=Disabled` with a reason in its help text. Pick nested states before calling something a library gap.
@@ -95,9 +119,27 @@ Files in this skill:
 3. **Fill it** with real content and pick every component's variant and state on purpose.
 4. **Add the states** the brief needs as separate frames next to the screen (a copy of the page-pattern instance with
    the state applied: open menu, dialog, empty, error, loading with Skeleton).
-5. **Audit** (§4) until it reports 0 errors, then take one screenshot and review it against the checklist in
-   screen-rules.md. Fix, re-audit, and only then start the next screen. Audit every frame you touched, not only the
-   new one (a sidebar or header change reaches the others).
+5. **QA before done** (§4 and §5): audit until it reports 0 errors, take one screenshot, and walk the QA checklist
+   below. Fix, re-audit, and only then start the next screen. Audit every frame you touched, not only the new one
+   (a sidebar or header change reaches the others).
+
+### QA checklist (every screen, before you call it done)
+
+1. **Audit:** 0 errors. Each warning is fixed, or its reason is written down for the report. The audit includes the
+   `button/*` roles, `navigation/back-chevron`, `theme/*` pairing and `bounds/*`.
+2. **Component rules:** for every component on the screen, its level, size and state match its guideline (the "Every
+   component by its own rules" bullet in §2). Check especially:
+   - count the Primary buttons;
+   - every Secondary is an on toggle;
+   - every Accent is a promoted CTA;
+   - view switches are Segmented or Tabs, filters and scopes are Chips;
+   - buttons on photos are Overlay;
+   - the footer order is right.
+3. **Colour:** Brand / Accent leads; supporting hues stay small; status colours sit only on status elements.
+4. **Screenshot review** (`get_screenshot`, which also renders emoji): hierarchy, alignment, nothing cut or covered by
+   the navigation, real copy, no default component text.
+5. **Report** what is left and why (§5). A screen with an audit error, or a component used against its rule, is not
+   done.
 
 Write in retry-safe batches (a section or a screen per `use_figma` call), return the ids you create, and keep one
 screenshot after composition and one after a fix (figma-use rule 5).
@@ -122,4 +164,4 @@ after setting `ROOT_IDS` to the screens to check (or leave it empty to check the
 
 Tell the user, per screen: the frame name and id, the audit result (errors 0, warnings left and why), the
 components used, anything the library lacked (and what you built locally instead), and open questions for the
-designer. Do not call a screen done while the audit reports errors.
+designer. Do not call a screen done while the audit reports errors or an item of the QA checklist (§3) is open.
