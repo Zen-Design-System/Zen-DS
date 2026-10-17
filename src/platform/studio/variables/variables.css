@@ -1,0 +1,97 @@
+/* The Variables window (VariablesWindow.tsx): Figma's Local variables, floating over the canvas on the Popover surface
+   (as Quick insert, builder/library/library.css). Tokens only; a removed outline gets the Studio's inset focus ring. */
+/* zen-allow-popover-layer: the Variables window floats over the canvas (position: fixed, the Popover layer), like Figma's. */
+.studio-vars {
+  position: fixed;
+  z-index: 36;
+  top: var(--zen-spacing-padding-4-xlarge, 48px);
+  left: 50%;
+  display: flex;
+  width: min(960px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));
+  height: min(600px, calc(100vh - 2 * var(--zen-spacing-padding-4-xlarge, 48px)));
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-color-border-popover-subtle);
+  background: var(--zen-color-background-popover-default);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  color: var(--zen-color-content-neutral-strongest);
+  transform: translateX(-50%);
+}
+.studio-vars:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid, #121212); }
+
+/* Header: the collection, search, type and close on one row; it drags the window. */
+.studio-vars__head { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-subtle-default); cursor: grab; touch-action: none; }
+.studio-vars__head:active { cursor: grabbing; }
+.studio-vars__head-fill { flex: 1 1 auto; }
+.studio-vars__head .zen-search { width: min(240px, 40vw); }
+
+.studio-vars__body { display: flex; min-height: 0; flex: 1 1 auto; }
+.studio-vars__empty { margin: 0; padding: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-base); }
+
+/* Groups: "All variables", then the tree indented by depth. */
+.studio-vars__groups { display: flex; width: 200px; flex: 0 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow: auto; padding: var(--zen-spacing-padding-2-xsmall, 4px); border-right: 1px solid var(--zen-color-border-neutral-subtle-default); }
+.studio-vars__group { display: flex; min-height: 28px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 calc(var(--zen-spacing-padding-xsmall, 8px) + var(--studio-vars-depth, 0) * var(--zen-spacing-padding-small, 12px)); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: none; color: inherit; text-align: left; cursor: pointer; }
+.studio-vars__group:hover { background: var(--zen-color-background-neutral-subtle-hover); }
+.studio-vars__group[aria-current="true"] { background: var(--zen-color-background-active-neutral-subtle); }
+.studio-vars__group:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
+.studio-vars__group-label { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-vars__group > span:first-child { flex: 1 1 auto; }
+.studio-vars__count { flex: 0 0 auto; color: var(--zen-color-content-neutral-light); }
+
+/* The table: Name and a column per mode, a virtual list of 32px rows under a sticky header. */
+.studio-vars__grid { position: relative; min-width: 0; flex: 1 1 auto; overflow: auto; --studio-vars-columns: minmax(200px, 1.2fr) repeat(var(--studio-vars-modes, 1), minmax(168px, 1fr)); }
+.studio-vars__rows { position: relative; min-width: calc(200px + var(--studio-vars-modes, 1) * 168px); }
+.studio-vars__row { position: absolute; top: 0; left: 0; display: grid; width: 100%; min-width: calc(200px + var(--studio-vars-modes, 1) * 168px); height: 32px; box-sizing: border-box; grid-template-columns: var(--studio-vars-columns); border-bottom: 1px solid var(--zen-color-border-neutral-subtle-default); }
+.studio-vars__row--head { position: sticky; z-index: 2; top: 0; background: var(--zen-color-background-surface-default); color: var(--zen-color-content-neutral-base); }
+.studio-vars__row--group { display: block; border-bottom: 0; }
+.studio-vars__cell { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; white-space: nowrap; }
+.studio-vars__cell:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
+.studio-vars__cell--group { height: 32px; padding-top: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
+.studio-vars__cell--name { position: sticky; z-index: 1; left: 0; background: var(--zen-color-background-surface-default); }
+.studio-vars__cell--name > .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-vars__cell--name .zen-input-field { min-width: 0; flex: 1 1 auto; }
+.studio-vars__name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; }
+.studio-vars__row-menu { display: flex; flex: 0 0 auto; opacity: 0; }
+.studio-vars__row:hover .studio-vars__row-menu, .studio-vars__row:focus-within .studio-vars__row-menu { opacity: 1; }
+.studio-vars__cell--value { cursor: pointer; }
+.studio-vars__cell--value:hover { background: var(--zen-color-background-neutral-subtle-hover); }
+.studio-vars__cell--value[data-derived] { color: var(--zen-color-content-neutral-base); cursor: default; }
+.studio-vars__cell--value[aria-readonly="true"]:hover { background: none; }
+
+/* A value: swatch, hex and opacity; an alias as a chip (Figma's variable pill). */
+.studio-vars__value { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-vars__text { overflow: hidden; text-overflow: ellipsis; }
+.studio-vars__swatch { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 auto; box-sizing: border-box; border: 1px solid var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--studio-vars-swatch, transparent); }
+/* A see-through colour sits on a check, as Figma's swatches. */
+.studio-vars__swatch[data-alpha] { background: linear-gradient(var(--studio-vars-swatch), var(--studio-vars-swatch)), repeating-conic-gradient(var(--zen-color-background-surface-default) 0 25%, var(--zen-color-border-neutral-subtle-default) 0 50%) 0 0 / 8px 8px; }
+.studio-vars__hex { font-variant-numeric: tabular-nums; }
+.studio-vars__alpha { color: var(--zen-color-content-neutral-base); }
+.studio-vars__alias { display: inline-flex; min-width: 0; max-width: 100%; height: var(--zen-element-size-popular-medium, 24px); box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-subtle-default, transparent); }
+.studio-vars__alias-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Footer: Create variable, the state of the drafts and of Figma, Save / Copy for Figma. */
+.studio-vars__foot { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); border-top: 1px solid var(--zen-color-border-neutral-subtle-default); }
+.studio-vars__status { min-width: 0; flex: 1 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+
+/* The value editor under a cell (Figma's colour picker with its Variables tab). */
+/* zen-allow-popover-layer: it floats under the cell it edits (position: fixed, the Popover layer). */
+.studio-vars__editor { position: fixed; z-index: 37; display: flex; width: 280px; max-height: 420px; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); overflow: hidden; padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); outline: 1px solid var(--zen-color-border-popover-subtle); background: var(--zen-color-background-popover-default); box-shadow: var(--zen-style-effect-popover-shadow-unclipped); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter); }
+.studio-vars__editor-head { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-vars__editor-head > .zen-segmented { flex: 1 1 auto; }
+.studio-vars__custom { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-vars__custom .zen-color-picker { width: 100%; box-shadow: none; outline: 0; }
+.studio-vars__unit { color: var(--zen-color-content-neutral-base); }
+.studio-vars__aliases { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-vars__alias-list { min-height: 0; flex: 1 1 auto; margin: 0; padding: 0; overflow: auto; list-style: none; }
+.studio-vars__alias-option { display: flex; width: 100%; min-height: 28px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: none; color: inherit; text-align: left; cursor: pointer; }
+.studio-vars__alias-option:hover { background: var(--zen-color-background-neutral-subtle-hover); }
+.studio-vars__alias-option:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
+.studio-vars__alias-option-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-vars__alias-option-meta { flex: 0 0 auto; color: var(--zen-color-content-neutral-light); }
+.studio-vars__hint { margin: 0; color: var(--zen-color-content-neutral-base); }
+
+@media (max-width: 640px) {
+  .studio-vars__groups { display: none; }
+}

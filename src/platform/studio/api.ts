@@ -5,7 +5,8 @@ import { askShared, sharedConfirmed } from "./sharedConfirm";
 import { isLocalFile, localDetachPlan, localEdit, localElement, localSource, localWrite } from "./builder/localApi";
 import { canEdit, flushStudioStore, studioStore, useStudio } from "./store";
 import { STUDIO_API, STUDIO_ROLE_HEADER, STUDIO_TOKEN_HEADER } from "./types";
-import type { DetachPlan, DiscardResult, DraftConflict, DraftInfo, EditRequest, FrameDraft, FrameDraftsResponse, EditResponse, PingResponse, SaveResult, SavedDraft, SourceElement, SourceFile, StudioEditRecord, StudioSnippetSync, StudioWrite, WriteRequest, WriteResponse } from "./types";
+import type { VariableOp, VariableToken, VariablesPackage } from "../../../tools/studio/variables.mjs";
+import type { DetachPlan, DiscardResult, DraftConflict, DraftInfo, EditRequest, FrameDraft, FrameDraftsResponse, EditResponse, PingResponse, SaveResult, SavedDraft, SourceElement, SourceFile, StudioEditRecord, StudioSnippetSync, StudioWrite, TokensBuild, WriteRequest, WriteResponse } from "./types";
 
 /** GET /detach-plan as the client sees it: `unavailable` when no dev server answers it (offline, or one started before detach existed). */
 export type DetachPlanReply = DetachPlan | { ok: false; reason: string; unavailable: true };
@@ -118,7 +119,8 @@ function saveResultOf(body: unknown): SaveResult {
     return entry && isText(entry.file) ? [{ file: entry.file, conflict: true as const, reason: isText(entry.reason) ? entry.reason : "the disk changed the same lines" }] : [];
   });
   const findings = (Array.isArray(value?.harness?.findings) ? value.harness.findings : []).filter(isText);
-  return { ok: true, saved, conflicts, harness: { ok: value?.harness?.ok !== false && !findings.length, findings } };
+  const tokens = (body as { tokens?: TokensBuild } | null)?.tokens;
+  return { ok: true, saved, conflicts, harness: { ok: value?.harness?.ok !== false && !findings.length, findings }, ...(tokens && Array.isArray(tokens.steps) ? { tokens } : {}) };
 }
 
 const NO_SERVER = "The Zen Studio dev server did not answer";
@@ -637,10 +639,20 @@ export type CssEditRequest = { file: string; selector: string; media?: string; p
 
 /** Sends a token edit of a component's CSS: the same draft, undo record and status line as an edit of page code. */
 export function applyCssEdit(request: CssEditRequest, label: string): Promise<EditResponse> {
+  return applyServerEdit("/css-edit", request, request.file, label);
+}
+
+/** A Variables window change (Figma's Local variables): ops on one token collection, a draft with undo as any edit. */
+export function applyVariableEdit(request: { file: string; ops: VariableOp[] }, label: string): Promise<EditResponse> {
+  return applyServerEdit("/variable-edit", request, request.file, label);
+}
+
+/** An edit the dev server makes itself (/css-edit, /variable-edit): the same draft, undo record and status line. */
+function applyServerEdit(path: "/css-edit" | "/variable-edit", request: object, file: string, label: string): Promise<EditResponse> {
   return enqueue(async (): Promise<EditResponse> => {
     const state = studioStore.getState();
     if (!canEdit(state)) return { ok: false, code: "forbidden", error: state.role === "admin" ? "Editing needs the dev server" : "View only — switch to Admin to edit" };
-    const reply = await post<EditResponse>("/css-edit", request);
+    const reply = await post<EditResponse>(path, request);
     let result: EditResponse;
     if (!reply) result = { ok: false, code: "invalid", error: NO_SERVER };
     else if (reply.status === 200 && reply.body?.ok) result = reply.body;
@@ -649,7 +661,7 @@ export function applyCssEdit(request: CssEditRequest, label: string): Promise<Ed
       result = { ok: false, code: code === "stale" || code === "not-found" || code === "forbidden" ? code : "invalid", error };
     }
     if (!result.ok) {
-      setStatus({ kind: "error", message: result.error, file: request.file, at: Date.now() });
+      setStatus({ kind: "error", message: result.error, file, at: Date.now() });
       return result;
     }
     if (result.before === result.after) {
@@ -663,6 +675,34 @@ export function applyCssEdit(request: CssEditRequest, label: string): Promise<Ed
     else setStatus({ kind: server.drafts ? "unchanged" : "saved", message: server.drafts ? `Back to the saved file · ${where}` : `Saved to ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
     return result;
   });
+}
+
+/** One token collection as the Variables window reads it (GET /variables): drafts included. */
+export type VariableCollection = { file: string; name: string; modes: string[]; tokens: VariableToken[]; hash: string; draft: boolean };
+/** What Figma does not have yet: saved variable changes since the last hand-over. */
+export type VariablesFigma = { changes: number; since: string | null };
+export type VariablesReply = { ok: true; collections: VariableCollection[]; figma: VariablesFigma } | { ok: false; error: string };
+
+/** Every token collection (Figma's Local variables). */
+export async function readVariables(): Promise<VariablesReply> {
+  const reply = await authorized<VariablesReply>("/variables");
+  if (!reply) return { ok: false, error: NO_SERVER };
+  if (reply.status !== 200 || !reply.body || reply.body.ok !== true) return { ok: false, error: errorOf(reply.body, "The variables could not be read").error };
+  return reply.body;
+}
+
+/** The Zen plugin's package of the saved changes Figma does not have yet. */
+export async function variablesForFigma(): Promise<{ ok: true; pkg: VariablesPackage; since: string | null } | { ok: false; error: string }> {
+  const reply = await authorized<{ ok: true; pkg: VariablesPackage; since: string | null }>("/variables/package");
+  if (!reply) return { ok: false, error: NO_SERVER };
+  if (reply.status !== 200 || !reply.body || reply.body.ok !== true) return { ok: false, error: errorOf(reply.body, "The package could not be built").error };
+  return reply.body;
+}
+
+/** The person handed the package to Figma: the saved values are Figma's from now on. */
+export async function variablesHandedOver(): Promise<VariablesFigma | null> {
+  const reply = await post<{ ok?: boolean; figma?: VariablesFigma }>("/variables/handed-over", {});
+  return reply?.status === 200 && reply.body?.ok ? reply.body.figma ?? { changes: 0, since: null } : null;
 }
 
 /** Settles the Figma check of a saved component stylesheet (Main component M3): keep the save (a line in

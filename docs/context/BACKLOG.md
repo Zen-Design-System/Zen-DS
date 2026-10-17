@@ -12,9 +12,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
   rule gives Zen black text on step 9. Shown by ai-ui › "Follow-ups edit, not rebuild" (Schedule). Pointer:
   tokens/source/figma/base-colors-project.json Light/On-Brand-Default, Figma Base Colors (Project).
-- **P1 · Studio Variables like Figma — approved (user, 2026-10-17):** Studio is a second source of token values (edit in
-  Studio → tokens/source → push to Figma by the Zen plugin; the Figma sync stays). Next after the components PR. Audit and
-  plan: `docs/research/studio-figma-native-parity-2026-10-17.md` §5b and P5.
+- **P2 · Studio Variables v2 (2026-10-17):** v1 is built (branch zen/feat/studio-variables-20261017: Local variables
+  window, edit / alias / create / rename / duplicate / delete, drafts + live tokens.css, Save builds the tokens, Copy for
+  Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
+  variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
+  frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
 - **P2 · Studio components v2 (2026-10-17):** v1 is built (⌥⌘K, instances, Go to main, Detach, swap, React export,
   push to Figma). Open: instance overrides (text, visibility) + Reset all changes, component properties, variants, pull of
   local components from Figma. Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §9.
@@ -177,6 +179,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   takes it; other files need the published library and full component definitions in the paste (instances by
   `componentKey`, as Figma's own copies carry). Also open: pictures in a direct paste, and the frame menu's Copy for Figma
   (async write: Chromium rewrites the html, only the plugin reads it). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6.
+- **P2 · Direct paste of Studio Shapes and page-local components (user approved 2026-10-17):** Writer.build() branches in
+  tools/studio/figma-native.mjs for RECTANGLE/ELLIPSE arc/LINE arrow/POLYGON/STAR and Component → COMPONENT, Use →
+  INSTANCE, after zen/feat/studio-components-20261017 merges (spec: figma-push.mjs shapeNode; reference: plugin
+  studio-import.js 3ba73f9, ed9bec6).
+- **P3 · Direct paste parity left after native-diff (2026-10-17):** slot contents written at Figma's outer level, grid row
+  minimum heights, kept overrides by resolved variable, and a smaller pack (18.9 MB). Pointer: research doc §8.
 - **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
   studio"):** the Figma side is fixed (`.Chart/Line-Chart/Trend` 6/7-Sectors label layers now run top → bottom like 4/12,
   so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in
