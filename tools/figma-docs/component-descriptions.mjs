@@ -110,8 +110,8 @@ export const componentDescriptions = {
     what: "A surface that groups the content about one object: a project, a plan, a KPI, a widget.",
     use: ["Grids of objects people scan and pick.", "Dashboard widgets (title in Heading/Subheading).", "A selectable option with rich content (Active=Yes marks the choice).", "Non-row content inside overlays (Description List, labelled toggles)."],
     instead: ["Page sections that are only spacing → auto layout, no card.", "Rows of List-Items → Component/List-Box.", "Comparable rows → a Table on the canvas.", "Messages → Inline-Message."],
-    props: [["Theme", "pick by where it sits — Flat on Canvas/Default (the default pairing) · Shadow beside a default (shadowed) Sidebar · Border on a white page, inside another surface or when clickable · On-Container inside a Modal, Side-Panel or Bottom-Sheet · Pale on imagery"], ["Spacing", "Medium (Card-padding-medium, 2XLarge corners) · Small (Card-padding-small, Large corners)"], ["Active", "Yes only for the selected card of a choice; never as decoration"]],
-    rules: ["One theme per grid.", "No card inside a card, and no shadow on a Pale card.", "A clickable card holds no buttons, links or inputs."],
+    props: [["Theme", "pick by where it sits — Flat on Canvas/Default (the default pairing) · Shadow beside a default (shadowed) Sidebar · Border on a white page, inside another surface or when clickable · On-Container inside a Modal, Side-Panel or Bottom-Sheet · colour: Subtle on Canvas/Default (Pale fades into the grey), Pale on a white page or imagery"], ["Spacing", "Medium (Card-padding-medium, 2XLarge corners) · Small (Card-padding-small, Large corners)"], ["Active", "Yes only for the selected card of a choice; never as decoration"]],
+    rules: ["One theme per grid.", "No card inside a card, and no shadow on a Pale or Subtle card.", "A clickable card holds no buttons, links or inputs."],
     code: "`<Card>`",
   }),
 
@@ -818,4 +818,4 @@ export const GENERIC = [/\*\*Overview:\*\*/, /Original Notes/, /^Data visualizat
 // Sets whose Figma description is replaced even when it is specific: the property-panel sets drafted in Figma on
 // 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55; Accordion/Text since Size=Small (2026-10-15);
 // Search/Default since Shape (2026-10-17).
-export const FORCE = new Set(["Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default"]);
+export const FORCE = new Set(["Card", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default"]);

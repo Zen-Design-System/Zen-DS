@@ -982,7 +982,8 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "Pale",
             "Border",
             "On-Container",
-            "Solid"
+            "Solid",
+            "Subtle"
           ],
           "values": [
             "shadow",
@@ -990,7 +991,8 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "pale",
             "border",
             "on-container",
-            "solid"
+            "solid",
+            "subtle"
           ],
           "default": "shadow"
         },
