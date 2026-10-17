@@ -37,6 +37,10 @@ const id = (guid) => (guid ? `${guid.sessionID}:${guid.localID}` : "");
 /** Fields a slot's content frame copies from the slot (its auto layout), and a grid's own track ids. */
 /** What a slot's content frame takes from the slot: everything it shows (layout, corners and their variables, clip, size
  * limits, fills, strokes, effects), not its identity or its links to the component's properties (Figma's own copies). */
+/** A nested instance's own override fields a swap does not carry: its addressing, swaps and visibility (`ovs`), its
+ *  assignments, plugin data and what Figma derives again. `overrideLevel` stays: it marks what Figma kept from a swap
+ *  (the depth of the swapped layer), and a paste that restates the swap must restate those with it. */
+const KEEP_SKIP = new Set(["guidPath", "overriddenSymbolID", "visible", "componentPropAssignments", "pluginData", "overrideKey", "derivedSymbolData", "derivedTextData", "textData", "editInfo", "targetAspectRatio", "proportionsConstrained", "borderTopWeight", "borderBottomWeight", "borderLeftWeight", "borderRightWeight"]);
 const SLOT_SKIP = new Set(["guid", "phase", "parentIndex", "type", "name", "visible", "size", "transform", "componentPropRefs", "pluginData", "overrideKey", "derivedSymbolData", "derivedSymbolDataLayoutVersion", "editInfo", "isSlot"]);
 const slotLayout = (node) => {
   const out = Object.fromEntries(Object.entries(node).filter(([key]) => !SLOT_SKIP.has(key)));
@@ -135,18 +139,51 @@ return icons.length + " icons, the styles and " + at + " variables in " + frames
 export function packFrom(copies, { read }) {
   const nodes = new Map(), blobsOf = new Map();
   for (const copy of copies) for (const node of copy.message.nodeChanges) if (!nodes.has(id(node.guid))) { nodes.set(id(node.guid), node); blobsOf.set(id(node.guid), copy.message.blobs ?? []); }
-  // Library refs by key → node ids (a paste binds styles and variables by id).
+  // A variable or style the file holds twice: its own (guid = publishID) and an older copy subscribed from its published
+  // library (guid ≠ publishID, e.g. 15052:45 for Content/Neutral/Strongest 22:18713). Content bound to the copy pastes
+  // unresolved (white text), so every ref to a copy goes to the file's own node.
+  const isOwn = (node) => !node.publishID || id(node.guid) === id(node.publishID);
+  const ownOf = new Map();
+  for (const node of nodes.values()) {
+    if (!(node.type === "VARIABLE" || node.styleType) || isOwn(node)) continue;
+    const own = nodes.get(id(node.publishID));
+    if (own && isOwn(own) && own.type === node.type) ownOf.set(id(node.guid), own.guid);
+  }
+  // Library refs by key → node ids (a paste binds styles and variables by id), the file's own node first.
   const byKey = new Map();
-  for (const node of nodes.values()) if (node.key && (node.styleType || node.type === "VARIABLE" || node.type === "VARIABLE_SET")) byKey.set(node.key, node.guid);
+  for (const node of nodes.values()) if (node.key && (node.styleType || node.type === "VARIABLE" || node.type === "VARIABLE_SET") && !ownOf.has(id(node.guid))) byKey.set(node.key, node.guid);
   const localRefs = (value) => {
     if (Array.isArray(value)) return value.map(localRefs);
     if (!value || typeof value !== "object") return typeof value === "bigint" ? Number(value) : value;
     const out = {};
     for (const [field, inner] of Object.entries(value)) {
       if (field === "assetRef" && inner?.key && byKey.has(inner.key)) { out.guid = byKey.get(inner.key); continue; }
+      if (field === "guid" && ownOf.has(id(inner))) { out.guid = ownOf.get(id(inner)); continue; }
       out[field] = localRefs(inner);
     }
     return out;
+  };
+  // What Figma carries onto the new component when a nested instance is swapped (a property, an icon, another set or
+  // variant): the instance's own overrides of its component. Figma keeps them in the instance's entry for its own symbol
+  // (`self`: a renamed layer's name, a resize or its size variables, its fill) and in its entries for the component's
+  // layers (`ovs`: an icon's colour on its Vector).
+  const keepOf = (instance) => {
+    const own = id(instance.symbolData?.symbolID);
+    let self = null;
+    const ovs = [];
+    for (const entry of instance.symbolData?.symbolOverrides ?? []) {
+      const path = entry.guidPath?.guids ?? [];
+      if (!path.length) continue;
+      const fields = Object.fromEntries(Object.entries(entry).filter(([field]) => !KEEP_SKIP.has(field)));
+      // A paint's authored colour repeats its colour (Figma derives it again on paste).
+      for (const field of ["fillPaints", "strokePaints"]) if (fields[field]) fields[field] = fields[field].map(({ authoredColor, ...paint }) => paint);
+      if (path.length === 1 && id(path[0]) === own) {
+        if (Object.keys(fields).length) self = localRefs(fields);
+        continue;
+      }
+      if (Object.keys(fields).length) ovs.push([path.map(id), localRefs(fields)]);
+    }
+    return self || ovs.length ? { ...(self ? { self } : {}), ...(ovs.length ? { ovs } : {}) } : null;
   };
   const contentIds = new Set();
   const slotAssignments = (node) => [...(node.componentPropAssignments ?? []), ...(node.symbolData?.symbolOverrides ?? []).flatMap((entry) => entry.componentPropAssignments ?? [])].filter((a) => a.varValue?.dataType === "SLOT_CONTENT_ID");
@@ -166,8 +203,10 @@ export function packFrom(copies, { read }) {
         variants: (children.get(id(node.guid)) ?? []).filter((child) => child.type === "SYMBOL").map((child) => id(child.guid)),
       };
     }
+    if (ownOf.has(id(node.guid))) continue;
     if (node.styleType && node.key && node.styleType !== "NONE") styles[node.name] ??= node.styleType === "TEXT" ? [id(node.guid), node.styleType, textProps(node)] : node.styleType === "FILL" ? [id(node.guid), node.styleType, { fillPaints: localRefs(node.fillPaints ?? []) }] : [id(node.guid), node.styleType];
-    if (node.type === "VARIABLE" && !node.isDeleted) variables[node.name] ??= [id(node.guid), node.variableResolvedType ?? ""];
+    // [id, type, key, version]: a paste binds by id in its own layers; in an instance override Figma writes the key.
+    if (node.type === "VARIABLE" && !node.isDeleted) variables[node.name] ??= [id(node.guid), node.variableResolvedType ?? "", node.key ?? "", node.version ?? ""];
   }
   for (const node of nodes.values()) {
     if (node.type !== "SYMBOL") continue;
@@ -181,6 +220,14 @@ export function packFrom(copies, { read }) {
         // The component's own overrides on this nested instance that change what shows below it: swaps and visibility.
         const ovs = (child.symbolData?.symbolOverrides ?? []).filter((entry) => entry.overriddenSymbolID || typeof entry.visible === "boolean").map((entry) => [entry.guidPath.guids.map(id), { ...(entry.overriddenSymbolID ? { s: id(entry.overriddenSymbolID) } : {}), ...(typeof entry.visible === "boolean" ? { v: entry.visible } : {}) }]);
         if (ovs.length) more = { ...(more || {}), ovs };
+        const keep = child.type === "INSTANCE" ? keepOf(child) : null;
+        if (keep) more = { ...(more || {}), keep };
+        // An instance's size variables and its property links as Figma keeps them (a PROP_REF: Icon-Src drives its swap).
+        // Figma works out what a property swap keeps only for an instance whose definition carries that link.
+        if (child.type === "INSTANCE") {
+          const entries = (child.parameterConsumptionMap?.entries ?? []).filter((entry) => entry.variableData?.value?.alias || entry.variableData?.dataType === "PROP_REF");
+          if (entries.length) more = { ...(more || {}), pcm: localRefs(entries) };
+        }
         if (child.type === "INSTANCE") for (const a of slotAssignments(child)) contentIds.add(id(a.varValue.value.slotContentIdValue.guid));
         const row = [id(child.guid), at, child.type, child.name, child.visible === false ? 0 : 1, round(child.size?.x), round(child.size?.y), round(child.transform?.m02), round(child.transform?.m12), child.symbolData ? id(child.symbolData.symbolID) : "", refs.length ? refs : 0, more];
         while (row.length > 9 && !row[row.length - 1]) row.pop();

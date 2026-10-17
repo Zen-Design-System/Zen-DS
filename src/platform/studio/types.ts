@@ -470,8 +470,11 @@ export type DraftConflict = { file: string; conflict: true; reason: string };
  * POST /__zen-studio/save. `harness` = style-guard + usage-guard on the saved files: `ok` when both are clean,
  * `findings` one line each ("button.tsx:84 spacing/token-only …"); not run (ok, no findings) when nothing was saved.
  */
+/** After a Save of token sources (the Variables window): the token build and its check, and what Figma still needs. */
+export type TokensBuild = { ok: boolean; steps: Array<{ step: string; ok: boolean; output: string }>; figma: { changes: number; since: string | null } };
+
 export type SaveResult =
-  | { ok: true; saved: SavedDraft[]; conflicts: DraftConflict[]; harness: { ok: boolean; findings: string[] } }
+  | { ok: true; saved: SavedDraft[]; conflicts: DraftConflict[]; harness: { ok: boolean; findings: string[] }; tokens?: TokensBuild }
   | { ok: false; code: "forbidden" | "invalid"; error: string };
 
 /** POST /__zen-studio/discard: the files whose drafts were dropped (`partial`, a frame's Discard: files that keep a draft). */
