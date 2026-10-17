@@ -18,6 +18,9 @@ const DEV = import.meta.env.DEV;
 export const DRAFTS = "drafts";
 
 let projects: Project[] = [];
+/** Projects saved while no dev server answered (a build, the server down): only these go up to the folder on the next
+ *  read. A project the folder lacks but that it had confirmed was trashed elsewhere, and stays gone. */
+let pending = new Set<string>();
 let loaded = false;
 let loading: Promise<void> | null = null;
 const listeners = new Set<() => void>();
@@ -68,9 +71,12 @@ export function setDraftStyles(theme: ProjectTheme | null) {
 
 /* ── storage ──────────────────────────────────────────────────────────────────────────────────────────────────── */
 
-type Row = { key: string; value: unknown[] } | undefined;
-const readLocal = () => run<Row>(SETTINGS, "readonly", (store) => store.get(KEY) as IDBRequest<Row>).then((row) => (Array.isArray(row?.value) ? row.value : []));
-const writeLocal = (list: Project[]) => run(SETTINGS, "readwrite", (store) => store.put({ key: KEY, value: list }));
+type Row = { key: string; value: unknown[]; pending?: unknown[] } | undefined;
+const readLocal = () => run<Row>(SETTINGS, "readonly", (store) => store.get(KEY) as IDBRequest<Row>).then((row) => ({
+  list: Array.isArray(row?.value) ? row.value : [],
+  pending: new Set((Array.isArray(row?.pending) ? row.pending : []).filter((id): id is string => typeof id === "string")),
+}));
+const writeLocal = (list: Project[]) => run(SETTINGS, "readwrite", (store) => store.put({ key: KEY, value: list, pending: [...pending] }));
 const valid = (list: unknown[]) => list.flatMap((item) => { const { project } = normalizeProject(item); return project && project.id !== DRAFTS ? [project] : []; });
 
 async function serverList(): Promise<Project[] | null> {
@@ -80,27 +86,33 @@ async function serverList(): Promise<Project[] | null> {
   return valid(reply.body.projects.map((row) => row?.project));
 }
 
-async function serverWrite(action: "write" | "trash", body: unknown): Promise<void> {
-  if (!DEV) return;
+/** Writes to the dev server's folder: true when it took it, false when no server answered (a build, no token: the
+ *  browser's copy is the project until one does); throws when the server refused it. */
+async function serverWrite(action: "write" | "trash", body: unknown): Promise<boolean> {
+  if (!DEV) return false;
   const reply = await authorized<{ ok?: unknown; error?: unknown }>(`/projects/${action}`, body);
-  // No dev server (a build) or no token: the browser's copy is the project.
-  if (!reply) return;
+  if (!reply) return false;
   if (reply.status !== 200 || reply.body?.ok === false) throw new Error(typeof reply.body?.error === "string" ? reply.body.error : `Project ${action} refused`);
+  return true;
 }
+const markSynced = (id: string, synced: boolean) => { if (synced) pending.delete(id); else pending.add(id); };
 
-/** Reads the browser's copy, then the dev server's folder: the folder wins, a project only this browser has is written
- *  to it. */
+/** Reads the browser's copy, then the dev server's folder: the folder wins. A project only this browser has goes up to it
+ *  when it was saved without a server (pending); one the folder had confirmed was trashed elsewhere and is dropped. */
 function load(): Promise<void> {
   if (loaded) return Promise.resolve();
   loading ??= (async () => {
-    const local = valid(await readLocal().catch(() => []));
+    const stored = await readLocal().catch(() => ({ list: [] as unknown[], pending: new Set<string>() }));
+    const local = valid(stored.list);
+    pending = stored.pending;
     projects = byName(local);
     notify();
     const remote = await serverList().catch(() => null);
     if (remote) {
       const known = new Set(remote.map((project) => project.id));
-      const onlyHere = local.filter((project) => !known.has(project.id));
-      for (const project of onlyHere) await serverWrite("write", { project }).catch(() => undefined);
+      const onlyHere = local.filter((project) => !known.has(project.id) && pending.has(project.id));
+      for (const project of onlyHere) markSynced(project.id, await serverWrite("write", { project }).catch(() => false));
+      for (const id of [...pending]) if (known.has(id)) pending.delete(id);
       projects = byName([...remote, ...onlyHere]);
       await writeLocal(projects).catch(() => undefined);
     }
@@ -127,7 +139,7 @@ export async function createProject(name: string, theme: ProjectTheme): Promise<
   const id = projectIdFor(name, new Set([DRAFTS, ...projects.map((project) => project.id)]));
   const { project, errors } = normalizeProject({ id, name, theme, createdAt: now, updatedAt: now });
   if (!project) throw new Error(errors[0] ?? "Not a project");
-  await serverWrite("write", { project });
+  markSynced(project.id, await serverWrite("write", { project }));
   await commit([...projects, project]);
   return project;
 }
@@ -139,7 +151,7 @@ export async function updateProject(id: string, change: { name?: string; theme?:
   if (!current) throw new Error("The project is gone");
   const { project, errors } = normalizeProject({ ...current, ...change, updatedAt: Date.now() });
   if (!project) throw new Error(errors[0] ?? "Not a project");
-  await serverWrite("write", { project });
+  markSynced(id, await serverWrite("write", { project }));
   await commit(projects.map((item) => (item.id === id ? project : item)));
   return project;
 }
@@ -148,6 +160,7 @@ export async function updateProject(id: string, change: { name?: string; theme?:
 export async function trashProject(id: string): Promise<void> {
   await load();
   await serverWrite("trash", { id });
+  pending.delete(id);
   await commit(projects.filter((project) => project.id !== id));
 }
 

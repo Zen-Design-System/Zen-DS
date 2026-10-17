@@ -15,7 +15,7 @@ import {
   type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily,
 } from "../../../../tools/studio/project-theme.mjs";
 import { openProjectHome } from "./activeProject";
-import { DRAFT_BRAND, createProject, setDraftStyles, updateProject, useProject } from "./projectStore";
+import { DRAFT_BRAND, createProject, setDraftStyles, updateProject, useProject, useProjects } from "./projectStore";
 import { ThemePreview, type GalleryId } from "./ThemePreview";
 import "./project.css";
 
@@ -55,7 +55,10 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
   const chromeTheme = useStudio((state) => state.chromeTheme);
   const titleId = useId();
   const layerRef = useRef<HTMLDivElement>(null);
-  const [name, setName] = useState(project?.name ?? "");
+  const projects = useProjects();
+  // A new project is "Untitled project" (then 2, 3…), as Figma names a new file: Create works at once, and the name is
+  // selected so typing replaces it (user, 2026-10-18: "Không bấm tạo project được" with an empty name field).
+  const [name, setName] = useState(() => project?.name ?? untitledName(new Set(projects.map((item) => item.name))));
   const [nameError, setNameError] = useState<string | null>(null);
   const [history, setHistory] = useState<History>(() => ({ past: [], present: project?.theme ?? defaultProjectTheme(), future: [] }));
   const [view, setView] = useState<"light" | "dark" | "both">(chromeTheme);
@@ -133,7 +136,7 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
         <ChromeScope as="aside" className="studio-project-setup__settings" aria-label="Theme settings">
           <InspectorSection title="Project" fieldGrid>
             <InspectorFields labels={["Name"]} fields={[
-              <InputField key="name" size="sm" aria-label="Project name" placeholder="Acme dashboard" value={name} autoFocus={!editing}
+              <InputField key="name" size="sm" aria-label="Project name" placeholder="Untitled project" value={name} autoFocus={!editing} onFocus={(event) => { if (!editing) event.currentTarget.select(); }}
                 error={nameError ?? undefined} onChange={(event) => { setName(event.target.value); if (nameError) setNameError(null); }}
                 onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); void save(); } }} />,
             ]} />
@@ -147,6 +150,13 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
       </div>
     </div>
   );
+}
+
+/** "Untitled project", or "Untitled project 2", 3… while one of that name exists. */
+function untitledName(taken: ReadonlySet<string>): string {
+  let name = "Untitled project";
+  for (let n = 2; taken.has(name); n += 1) name = `Untitled project ${n}`;
+  return name;
 }
 
 /* ── the settings ──────────────────────────────────────────────────────────────────────────────────────────────── */
