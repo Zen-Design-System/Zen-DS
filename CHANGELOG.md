@@ -197,6 +197,10 @@ removed (four unused colour ramps were, see Removed).
   layer for layer like the plugin's import. Other files still paste through the Zen plugin.
   Stack-Bar columns round their corners and clip their segments in both the paste and the plugin's import (the bar is
   its own frame, Corner-Radius/Small; the slot's corners sat on the empty space above the bar, user: "cột vẫn vuông").
+  Icons a page swaps (a table's Dock-Icon, a badge's or button's icon) keep their colour, size and layer name, and list
+  titles are no longer white, and a layer the page appends to a card (Goal-Progress's hint) stays last (user: "Copy
+  paste vẫn lỗi mà", "vẫn sai vị trí của các element trong slot"): the paste writes overrides as Figma's own copy does,
+  checked with `node tools/studio/native-diff.mjs` against Figma's copy of the plugin's import.
 - Studio → Figma import matches the page (2026-10-17, user: "Bản import ở figma và bản studio còn chưa chính xác"): a
   Metric-Card draws the page's sparkline, spark bars, goal and footer instead of Figma's sample; a ProgressBar fills its
   exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its

@@ -263,6 +263,19 @@ User: "Update lại token màu của Zen trong global (chỉ dãy màu Zen)".
   `figma-charts.mjs`: the bar is its own `Stack` frame (radius 8 bound to Corner-Radius/Small, clip, Flex rows per
   series) in the column's second row, as chart.css `.zen-chart__stack`. Fixture rewritten, selftests updated; QA paste
   "Expenses (bar corners)" 16079:284368 shows rounded columns; the user re-pasted from Studio: "cột đã bo góc".
+- Direct paste still wrong (user: "Copy paste vẫn lỗi mà"), then the user approved "theo cách bạn đề xuất": compare
+  with Figma's own copy instead of fixing by eye. New `tools/studio/native-diff.mjs` (paste vs Figma's copy of the
+  plugin's import of the same export): Dashboard 1,807 → 112 differences. Fixed: white titles (pack refs to library
+  copies of variables → own variables), icons swapped through a property (no restated component assignments; carry the
+  old instance's own overrides as level-marked entries; no re-set of the shown icon; variant swap keeps the name), no
+  stroke fields on instances, space-between = SPACE_EVENLY. Icon colours needed nine user pastes: Figma computes what a
+  swap keeps from the clipboard's definitions, so skeleton nested instances now carry their component overrides + the
+  PROP_REF swap link + overrideKey (round 7 bisect: Figma's Icon instance node alone fixed it); componentKey and shape
+  paints left out (not needed). Pasted texts lay out lazily (a right-aligned pagination range read 521 → later 1248).
+  User: Goal-Progress hint drawn on top → an `append` into a copied slot content shared the first child's position;
+  the writer's position counter now starts past copied children (no shared sibling positions on either page). Round 10
+  (16181:111643): hint last, every Dock-Icon coloured. Pack 18.9 MB. Metric pack recapture went into #111.
+
 ## Segmented component size re-sync (session 1d39f7fe) — tier XS
 User: "Update token component size của segmented".
 - Live Figma Component Size (modes Compact, Comfortable), the 14 `Segmented/*` variables vs `component-size.json`: one
