@@ -481,6 +481,12 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "animate": "animate"
     }
   },
+  "MetricTile": {
+    "DockIcon": {
+      "emoji": "iconEmoji",
+      "icon": "icon"
+    }
+  },
   "ModalForm": {
     "ModalActions": {
       "direction": "actionsDirection",

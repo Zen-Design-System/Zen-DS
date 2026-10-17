@@ -52,6 +52,9 @@ Last updated: 2026-10-17.
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
+- **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
+  16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:
+  Figma first, review, then code (tier L each). Ids: session-log-2026-10-17 "Calendar / Schedule / Timeline in Figma".
 - **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
   gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
   Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
@@ -99,7 +102,7 @@ Last updated: 2026-10-17.
   variables sync ignores it.
 - **Figma parity:** `node tools/figma-contract/run-all.mjs` (23 suites + 25 interactions). Captures live in
   `docs/figma-contracts/`: slice them with a script, never `Read` a whole file (0.7–2 MB each).
-- **Harness:** 154 usage rules (`npm run usage:rules`). The style-guard baseline is empty, so every style finding is new.
+- **Harness:** 209 usage rules (`npm run usage:rules`; latest `card/spacing-by-count`, 2026-10-17). The style-guard baseline is empty, so every style finding is new.
 - **Templates:** `src/templates/` holds the page templates shown on `?page=templates`; `src/templates/hr/` is the Figma HR-Platform set (7 pages on one `HrShell`; `HrRouterContext` links them, as App Shell › HR workspace does). Platform examples reuse its data from `src/platform/appLayer/hrDemo.tsx`. The pages were rebuilt from Figma node data on 2026-09-30 (read with `use_figma`, never from screenshots): same components/primitives, Figma copy and data, nothing invented — rebuilt again on 2026-10-01 from Zen components + research with the Figma as a moodboard only (brief docs/research/template-rebuild-brief-2026-09-30.md, shared data src/templates/hr/data.ts); follow-ups in BACKLOG "Template rebuild follow-ups". Screen rules: elevation follows the Sidebar, widget titles Subheading.
 - **Examples (rebuilt 2026-09-30 → 10-02):** the 43 component + mobile pages read their examples from
   `src/platform/examples/pages/<page>.tsx` (one file per page, picked up by `examples/registry.ts`; a page with a file

@@ -230,7 +230,7 @@ function PickOneExample() {
       </BottomSheet>
       {/* A long list takes the full height, with a Search under the header; the list scrolls, the header stays. */}
       <BottomSheet inline size="max" open={openId === "zone"} onOpenChange={(shown) => { if (!shown) close(); }} title="Time zone"
-        search={<Search ref={searchRef} placeholder="Search cities" aria-label="Search cities" value={query} onValueChange={setQuery} />}>
+        search={<Search ref={searchRef} shape="rounded" placeholder="Search cities" aria-label="Search cities" value={query} onValueChange={setQuery} />}>
         {matches.length ? (
           <List aria-label="Time zones">
             {matches.map((item) => (
@@ -530,7 +530,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   </Stack>
 
   <BottomSheet inline size="max" open={openId === "zone"} onOpenChange={(shown) => { if (!shown) close(); }} title="Time zone"
-    search={<Search placeholder="Search cities" aria-label="Search cities" value={query} onValueChange={setQuery} />}>
+    search={<Search shape="rounded" placeholder="Search cities" aria-label="Search cities" value={query} onValueChange={setQuery} />}>
     <List aria-label="Time zones">
       {matches.map((zone) => (
         <ListItem key={zone.id} title={zone.city} caption={\`\${gmt(zone.offset)} · \${timeIn(zone.offset)}\`}

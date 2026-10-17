@@ -19,6 +19,7 @@ Find or filter content by typing.
 | --- | --- | --- |
 | Theme | `theme` | default · filter-icon · filter-dropdown |
 | Size | `size` | small · medium |
+| Shape | `shape` | default (Corner-Radius/Input) · rounded (a pill, recommended on phone screens) |
 | Icon-Search | `iconSearch` | magnifier on/off |
 | Clear | `clearable / onClear` | × appears once there is a value |
 | Filter | `onFilterClick · filterOptions / filterValue / onFilterChange · filterInteractive` | filter-icon / filter-dropdown trailing is clickable by default (Input Leading/Trailing) |
@@ -36,6 +37,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
 | --- | --- | --- | --- |
 | `variant` | `"default" \| "popover"` | `"default"` | `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, no focus ring. Its border is Input/Border/Default (Hover: Input/Border/Hover), visible only in outlined component themes (Neutral S4, S6); Focused/Typing use Input/Border/Popover-Search, visible only in Neutral S7. `size` is ignored. |
 | `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `shape` | `"default" \| "rounded"` | `"default"` | Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset shadow and focus ring follow, and on the filter affordance; `default` keeps Corner-Radius/Input of the size. Prefer `rounded` for searches on phone screens (recommended, not required). Ignored with `variant="popover"`. |
 | `label` | `ReactNode` | — | Optional Input label above the field; when set it also names the input. |
 | `theme` | `"default" \| "filter-icon" \| "filter-dropdown"` | `"default"` |  |
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted"` | — |  |
@@ -76,6 +78,7 @@ type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: R
 
 ## ✅ Do
 - Describe the scope in the placeholder ("Search components").
+- On phone screens prefer shape="rounded" (a pill, Figma Shape=Rounded): recommended, not required; desktop toolbars keep the default shape.
 - Filter live and show an empty state that echoes the query.
 - Let Enter open the first result; the clear button resets to recent items.
 - Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} with the chips in the second cell.

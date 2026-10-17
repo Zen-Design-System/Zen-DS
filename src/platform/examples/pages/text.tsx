@@ -70,7 +70,7 @@ function ProjectPage() {
           <Heading level={2} id={`${baseId}-milestones`} textStyle="Heading/4">Milestones</Heading>
           <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
             {milestones.map((milestone) => (
-              <Card key={milestone.id} as="section" theme="flat" aria-labelledby={`${baseId}-${milestone.id}`}>
+              <Card key={milestone.id} as="section" theme="flat" spacing="small" aria-labelledby={`${baseId}-${milestone.id}`}>
                 {/* Card titles sit one level below the section (h3) and are always Heading/Subheading; the lines under
                     them step down in tone, not in size. */}
                 <Stack gap="xs">
@@ -387,7 +387,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 <Stack as="section" gap="md" aria-labelledby="milestones">
   <Heading level={2} id="milestones" textStyle="Heading/4">Milestones</Heading>
   <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-    <Card as="section" theme="flat" aria-labelledby="rewards">
+    <Card as="section" theme="flat" spacing="small" aria-labelledby="rewards">
       <Stack gap="xs">
         <Heading level={3} id="rewards" textStyle="Heading/Subheading">Points and rewards</Heading>
         <Text textStyle="Body/Small/Regular" tone="base">{\`6 of \${plural(9, "task")} done\`}</Text>

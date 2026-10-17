@@ -3,7 +3,7 @@ import { Button, IconButton, type ButtonAppearance, type ButtonLevel, type Butto
 import { Chip, type ChipLevel, type ChipSize, type ChipState, type ChipTheme, type ChipVariant } from "../components/Chip";
 import { Icon, type IconName } from "../components/Icon";
 import { AutocompleteField, ColorField, ControlBarSelectItem, DateField, HeadingField, headingInputSizes, type HeadingInputSize, InputConditionItem, InputConditions, InputContent, InputField, InputHelpText, InputLabel, InputLeadingTrailing, NumberField, type InputHelpTheme, RichTextEditorBar, RichTextField, SelectField, TextAreaField, type InputSize, type InputState } from "../components/Input";
-import { Search, type SearchSize, type SearchTheme, type SearchVariant } from "../components/Search";
+import { Search, type SearchShape, type SearchSize, type SearchTheme, type SearchVariant } from "../components/Search";
 import { Sidebar, SidebarSubMenu, type SidebarBackground, type SidebarSection, type SidebarVariant } from "../components/Sidebar";
 import { Segmented, type SegmentedLevel, type SegmentedSize } from "../components/Segmented";
 import { Avatar, AvatarStack, avatarThemes, type AvatarBackground, type AvatarShape, type AvatarSize, type AvatarTheme } from "../components/Avatar";
@@ -223,6 +223,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [inputTrailingValue, setInputTrailingValue] = useState("vn");
   const [searchTheme, setSearchTheme] = useState<string | undefined>("default");
   const [searchSize, setSearchSize] = useState<string | undefined>("medium");
+  const [searchShape, setSearchShape] = useState<string | undefined>("default");
   const [searchVariant, setSearchVariant] = useState<string | undefined>("default");
   const [searchIcon, setSearchIcon] = useState<string | undefined>("yes");
   const [searchValue, setSearchValue] = useState("");
@@ -926,6 +927,7 @@ const rules = [
   if (page === "search") {
     const resolvedSearchTheme = (searchTheme ?? "default") as SearchTheme;
     const resolvedSearchSize = (searchSize ?? "medium") as SearchSize;
+    const resolvedSearchShape = (searchShape ?? "default") as SearchShape;
     const resolvedSearchIcon = searchIcon !== "no";
     const resolvedSearchVariant = (searchVariant ?? "default") as SearchVariant;
     const isPopoverSearch = resolvedSearchVariant === "popover";
@@ -939,12 +941,13 @@ const rules = [
             <PlaygroundFilterChip label="Variant" value={searchVariant} onChange={(value) => setSearchVariant(String(value) || undefined)} options={["default", "popover"].map((id) => ({ id, label: id }))} />
             <PlaygroundFilterChip label="Theme" value={searchTheme} onChange={(value) => setSearchTheme(String(value) || undefined)} options={["default", "filter-icon", "filter-dropdown"].map((id) => ({ id, label: id }))} />
             {isPopoverSearch ? null : <PlaygroundFilterChip label="Size" value={searchSize} onChange={(value) => setSearchSize(String(value) || undefined)} options={["small", "medium"].map((id) => ({ id, label: id }))} />}
+            {isPopoverSearch ? null : <PlaygroundFilterChip label="Shape" value={searchShape} onChange={(value) => setSearchShape(String(value) || undefined)} options={["default", "rounded"].map((id) => ({ id, label: id }))} />}
             <PlaygroundToggle label="Icon Search" selected={searchIcon !== "no"} onChange={(selected) => setSearchIcon(selected ? "yes" : "no")} />
             {hasSearchFilter ? <PlaygroundToggle label="Filter Clickable" selected={searchFilterClickable} onChange={setSearchFilterClickable} /> : null}
             <PlaygroundToggle label="Disabled" selected={searchDisabled} onChange={setSearchDisabled} />
           </PlaygroundControls>
           <div data-typography={previewTypography} className="platform-example-row platform-search-row">
-            <Search variant={resolvedSearchVariant} theme={resolvedSearchTheme} size={resolvedSearchSize} iconSearch={resolvedSearchIcon} disabled={searchDisabled} placeholder="Search components" value={searchValue} onChange={(event) => setSearchValue(event.target.value)}
+            <Search variant={resolvedSearchVariant} theme={resolvedSearchTheme} size={resolvedSearchSize} shape={resolvedSearchShape} iconSearch={resolvedSearchIcon} disabled={searchDisabled} placeholder="Search components" value={searchValue} onChange={(event) => setSearchValue(event.target.value)}
               filterLabel="All" filterInteractive={searchFilterClickable} filterOptions={resolvedSearchTheme === "filter-dropdown" ? searchFilterOptions : undefined} filterValue={searchFilter} onFilterChange={setSearchFilter} />
           </div>
           <PlatformCode code={`import { Search } from "@zen-ds/react";
@@ -952,7 +955,8 @@ const rules = [
 <Search${isPopoverSearch ? `
   variant="popover"` : ""}
   theme="${resolvedSearchTheme}"${isPopoverSearch ? "" : `
-  size="${resolvedSearchSize}"`}${resolvedSearchIcon ? "" : `
+  size="${resolvedSearchSize}"`}${isPopoverSearch || resolvedSearchShape === "default" ? "" : `
+  shape="rounded"`}${resolvedSearchIcon ? "" : `
   iconSearch={false}`}${hasSearchFilter && !searchFilterClickable ? `
   filterInteractive={false}` : ""}${resolvedSearchTheme === "filter-dropdown" ? (searchFilterClickable ? `
   filterOptions={scopes}

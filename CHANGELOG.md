@@ -42,6 +42,45 @@ removed (four unused colour ramps were, see Removed).
     follow it, ⌥⌘B detaches one; the Inspector names the component (rename, Create instance, Select instances, Swap,
     Go to main); violet outline and ◇ in Layers; Export writes one React function per component; Figma push makes a
     COMPONENT and its INSTANCEs.
+- Search `shape` (2026-10-17, Figma Search/Default `Shape` = Default · Rounded): `shape="rounded"` is a pill
+  (Corner-Radius/Rounded on the field, its focus ring and the filter affordance). Recommended, not required, for
+  searches on phone screens; the platform's phone examples use it.
+- Content follows its Solid fill (2026-10-17, user: "Inverse là nằm trên nền neutral solid, content phải dùng inverse
+  tokens"):
+  - A Solid Card's text reads the fill's own family: Content/Inverse on Neutral, Content/On-Colors (white) on Brand,
+    Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. Hue solids used to keep neutral text.
+    White measures about 3:1 on Brand, Cyan, Orange and Accent; the user accepted that.
+  - Card `color="accent"` is new (Background/Accent/Solid, Solid only). A Pale accent renders as Pale Neutral, and the
+    harness `card/solid-color` flags it.
+  - `MetricTrend content` (default · inverse · on-color) mirrors Figma's new Metric-Trend Content. Inside a Solid card
+    it follows the card, so the Hero on Solid Neutral now shows an Inverse badge.
+- MetricCard `type="tile"` (Figma Metric-Card Type=Tile, Metric-Tile 16104:4826) is a phone stat tile: the title,
+  number and trend over the Dock-Icon, in a Small card.
+  - Sizes: medium (two-up, Display/3) and small (three-up, Heading/3).
+  - On a Solid card its Dock-Icon and trend turn Inverse (Neutral) or On-Color (Accent and the hues).
+  - Zen Studio has it as the "Stat tile" widget, and pushes and pulls it as Figma's Metric-Card Tile.
+- Figma: Metric-Tile Content is now Default · Inverse · On-Accent · On-Color · On-Bright. Inverse tiles use Inverse
+  Dock-Icon and Badge chips. Metric-Trend got a Content axis and hugs its badge (it was fixed at 126 under a 131 badge).
+  Audit `theme/on-solid-content` checks content against its Solid fill.
+- Text on Zen brand solids follows the live Figma again (2026-10-17, user: "Đồng bộ On-Brand theo Figma"): Base
+  Colors On-Brand-Default and On-Brand-Hover are white (were black 86% since 2026-10-13), so
+  `--zen-color-content-on-accent-*` on Zen pink is white. White on Zen/9 `#F755C9` is 2.96:1 (black 86% was 6.22:1).
+- Metric Title-Highlight follows the live Figma set (7523:507049, 2026-10-17). `hint` now also shows at Small/XSmall
+  (12px, after the Caption label) and in Studio's Properties at every size. The XLarge–Medium title row no longer draws
+  the Metric-Color dot, which Figma doesn't have there. Label-Icon sits 8px (Spacing/Gap/XSmall) from the title. The
+  dot is 2XSmall except on Icon-Highlight XLarge/Large.
+- Zen Figma skill, control gap (2026-10-17, user on Schedule/Day-Planner: "chữ và button sát quá"): a button sits at
+  least `Spacing/Gap/XSmall` (8) from the heading, label or button beside it; `Gap/2XSmall` joins only one inline item.
+  The audit adds `spacing/control-gap` (error).
+- Zen Figma skill, card actions (2026-10-17, user on Schedule/Event-Card: "các dạng action này trong card nên dùng
+  flat"): an icon action inside a card is `Button/Icon-Flat` (the ⋮ menu = Card Sub-Action: Small, Secondary) in a 20px
+  Wrapper bound to `Element-Size/Popular/Base`. The audit adds `button/in-card-flat` (error) and
+  `button/in-card-wrapper` (warning).
+- Zen Figma skill, grids of rows (2026-10-17, user on Schedule/Resource-Grid: "Cẩn thận các lỗi này"): the audit adds
+  `layout/row-drift` (side-by-side columns of equal rows that end a row at different heights). customize-without-detach
+  §5 now says a row header column and its track rows share one row height, grid rules sit outside the layout
+  (`strokesIncludedInLayout = false`), and a bar on a time scale keeps its real dates instead of being squeezed to the
+  visible range.
 - Zen Figma skill: every slip the user catches becomes a rule. Prompted on 2026-10-17 by "Dùng icon không đồng bộ",
   "từ đây về sau bổ sung nguyên tắc. Luôn làm đúng không lại sai" and "Bạn cần học cách tôi làm".
   - The audit adds `navigation/icon-style`: in a Bottom-Navigation the selected item is solid, the others line.
@@ -49,6 +88,15 @@ removed (four unused colour ramps were, see Removed).
     Typography change.
   - screen-rules §4 gets "Learned from the designer's own edits": section = one frame, overlays in padded wrappers,
     Medium cards, Toggle-Button power, Small steppers, a White-Overlay Segmented on colour, Solid shortcut rows.
+- AppShellAction's unread count follows Figma Primitives/Notification-Dot Style=Number (2026-10-17, user: "Update lại
+  luôn dot notification cho Studio từ Figma … cập nhật từ component Primitives/Notification-Dot"): a 16px badge
+  (Badge/Size/XSmall, was 12) in Caption/Regular (was Label/Small/Medium) at Figma's (26, −2) on a Tertiary action and
+  (10, −6) on a Flat one. Dot and Number are now one shared primitive (`_shared/notification-dot`, `value` = Number);
+  Studio shows it through the code components.
+- Harness `card/spacing-by-count` (warn, 2026-10-17, user: "nếu từ 3 card trở nên thì dùng card/box variant spacing
+  Small. Còn mặc định là dùng Medium"): three or more cards side by side take `spacing="small"`, one or two keep Medium,
+  the default; a card around a Voice frame (which pads itself) stays Small. It counts mapped literal arrays and
+  components whose root is a Card. Platform examples follow it.
 - Toggle and ToggleButton take `size="xl"` (`xlarge`, 2026-10-17, user: "thêm 1 bảng toggle size XLarge cao 48px …
   có thêm icon bên trong toggle dot"): a 48px switch (dot 44, `Toggle/Item/Size/XLarge`; Comfortable 52) with `icon`
   in its dot, Light while off and Strongest while on (new Component Theme tokens `Toggle/Dot/Content/Unselected` and

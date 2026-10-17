@@ -605,7 +605,7 @@
       "name": "Search",
       "status": "verified",
       "purpose": "Find or filter content by typing.",
-      "props": "variant? size? label? theme? iconSearch? leading? trailing? clearable? onValueChange? placeholder? filterLabel? filterInteractive? onFilterClick? filterHasPopup? filterExpanded? filterOptions? filterValue? onFilterChange? filterActionLabel? disabled? shortcut? onClear? aria-label? aria-labelledby? aria-describedby? readOnly? required? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
+      "props": "variant? size? shape? label? theme? iconSearch? leading? trailing? clearable? onValueChange? placeholder? filterLabel? filterInteractive? onFilterClick? filterHasPopup? filterExpanded? filterOptions? filterValue? onFilterChange? filterActionLabel? disabled? shortcut? onClear? aria-label? aria-labelledby? aria-describedby? readOnly? required? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
     },
     {
       "name": "Segmented",

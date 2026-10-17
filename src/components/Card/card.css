@@ -30,8 +30,9 @@
 .zen-card[data-surface="flat"] { --zen-card-surface: var(--zen-color-background-surface-flat, #fff); }
 /* Color (Figma Card Color, Pale and Solid only; Card.tsx sets data-color on those themes, so a card never inherits
    another card's fill). Pale: Support/<Color>/Pale (6643:51022, 15480:87358–87418, 15530:526, 15530:550). Solid: Neutral
-   Background/Neutral/Solid/Default (15480:87472), a hue Support/<Color>/Solid (15480:87478–87496); Figma has no Solid
-   Violet, Green, Blue or Purple (they would fail contrast) and Card.tsx renders those as Solid Neutral. */
+   Background/Neutral/Solid/Default (15480:87472), a hue Support/<Color>/Solid (15480:87478–87496), Accent
+   Background/Accent/Solid/Default (Solid only, 16109:23445/23454); Figma has no Solid Violet, Green, Blue or Purple and
+   no Pale Accent, and Card.tsx renders those as Neutral. */
 .zen-card[data-color="neutral"] { --zen-card-pale: var(--zen-color-background-support-neutral-pale); --zen-card-solid: var(--zen-color-background-neutral-solid-default); }
 .zen-card[data-color="brand"] { --zen-card-pale: var(--zen-color-background-support-brand-pale); --zen-card-solid: var(--zen-color-background-support-brand-solid); }
 .zen-card[data-color="cyan"] { --zen-card-pale: var(--zen-color-background-support-cyan-pale); --zen-card-solid: var(--zen-color-background-support-cyan-solid); }
@@ -41,6 +42,7 @@
 .zen-card[data-color="orange"] { --zen-card-pale: var(--zen-color-background-support-orange-pale); --zen-card-solid: var(--zen-color-background-support-orange-solid); }
 .zen-card[data-color="blue"] { --zen-card-pale: var(--zen-color-background-support-blue-pale); }
 .zen-card[data-color="purple"] { --zen-card-pale: var(--zen-color-background-support-purple-pale); }
+.zen-card[data-color="accent"] { --zen-card-solid: var(--zen-color-background-accent-solid-default); }
 /* Pale: Support/<Color>/Pale + Effect/Overlay (background blur 100). */
 .zen-card[data-tone="pale"] { background: var(--zen-card-pale, var(--zen-color-background-support-neutral-pale)); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 /* Solid: the one widget of a row that stands out (user rule 2026-10-14). No shadow, blur or stroke. */
@@ -53,9 +55,12 @@
    the neutral alpha fills, hairlines and tracks → the Background/Inverse/* step of the same alpha (Figma has no
    Border/Inverse/Pale|Subtle). Measured on Neutral/Solid (Strongest / Base / Light): light mode 18.4 / 12.8 / 7.1:1,
    dark mode (a near-white fill) 18.4 / 8.1 / 3.8:1, as Content/Neutral reads on Surface (Light ≥ 3:1, icons and meta).
-   A hue Solid is a bright fill in both modes: Figma keeps neutral content there, which dark mode turns light (≤ 2.9:1),
-   so dark mode takes the same Inverse re-point (dark content); and Light measures 2.9:1 on Cyan/Orange, so on a hue
-   Light reads Base (≥ 4.6:1). Controls that paint their own fill keep it: Button, Segmented and Badge levels read their
+   A colour Solid reads its fill's own content token in both modes (user, 2026-10-17: content follows the fill, as the
+   token descriptions say): Content/On-Colors (white) on Brand, Cyan and Orange, Content/On-Brights on Yellow,
+   Content/On-Accent on Accent; that token has one step, so Strongest, Base and Light all read it. White measures about
+   3:1 on Cyan, Orange and Brand: large numbers pass AA-large, small text does not (accepted by the user). Dark mode still
+   takes the Inverse re-point for borders, tracks and alpha fills on a hue (they stay dark on the bright fill).
+   Controls that paint their own fill keep it: Button, Segmented and Badge levels read their
    component tokens (set on the page), so the author picks Button appearance="overlay" level="inverse" and an on-colour
    Badge as Figma does; the few whose label reads Content/Neutral on an Inverse, White or Surface fill get the page's
    neutral content back (--zen-card-page-*). Fields and other Surface controls stay off Solid cards. Selected (Active)
@@ -98,12 +103,21 @@
    ink there, as Sector/Secondary does. */
 .zen-card[data-tone="solid"][data-color="neutral"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart),
 :where([data-theme="dark"]) .zen-card[data-tone="solid"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart) { --zen-color-background-support-brand-deep: var(--zen-color-background-inverse-solid-default); }
-/* (In dark mode Base is already re-pointed to Inverse/Base above, so Light follows it.) */
-.zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) > :is(.zen-card__content, .zen-card__sub-action) { --zen-color-content-neutral-light: var(--zen-color-content-neutral-base); }
+/* A colour Solid: its content family (--zen-card-on), and the dark ink its marks keep for the second series (the page's
+   Neutral/Base, Inverse/Base in dark mode: what the series read before content followed the fill). */
+.zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) { --zen-card-on: var(--zen-color-content-on-colors); --zen-card-mark-ink: var(--zen-color-content-neutral-base); color: var(--zen-card-on); }
+:where([data-theme="dark"]) .zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) { --zen-card-mark-ink: var(--zen-color-content-inverse-base); }
+.zen-card[data-tone="solid"][data-color="yellow"]:not([data-active="true"]) { --zen-card-on: var(--zen-color-content-on-brights); }
+.zen-card[data-tone="solid"][data-color="accent"]:not([data-active="true"]) { --zen-card-on: var(--zen-color-content-on-accent-default); }
+.zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) > :is(.zen-card__content, .zen-card__sub-action) {
+  --zen-color-content-neutral-strongest: var(--zen-card-on);
+  --zen-color-content-neutral-base: var(--zen-card-on);
+  --zen-color-content-neutral-light: var(--zen-card-on);
+}
 /* Chart and metric marks on a hue Solid take Figma's Color Chart Sector/On-Color styles, three neutral steps that stay
    apart on any hue: the primary series (Sector/Primary and the Accent line, dots and fade of the line charts)
-   On-Color/Primary = Content/On-Colors; the near-black series On-Color/Secondary = Content/Neutral/Light (read as Base
-   here); and on Brand the heatmap's Brand ramp steps to the Neutral one. The palette series in the card's own hue (Cyan,
+   On-Color/Primary = Content/On-Colors; the near-black series On-Color/Secondary, the card's dark mark ink
+   (--zen-card-mark-ink); and on Brand and Accent (the brand's own fill) the heatmap's Brand ramp steps to the Neutral one. The palette series in the card's own hue (Cyan,
    Yellow, Orange) takes the Brand hue the white primary leaves free, Solid → Subtle as its fade: Figma's On-Color/
    Tertiary (Border/Neutral/Subtle/Pressed) reads as a line (ΔE 12) but its area washes into the fill (ΔE 3.5 at the
    fade's 30%). Scoped to the marks (charts, metric marks, progress bars and rings: the Accent progress fill is the
@@ -114,9 +128,9 @@
   --zen-color-background-accent-solid-default: var(--zen-color-content-on-colors);
   --zen-color-border-active-accent-solid: var(--zen-color-content-on-colors);
   --zen-color-background-active-accent-solid: var(--zen-color-content-on-colors);
-  --zen-chart-sector-secondary: var(--zen-color-content-neutral-light);
+  --zen-chart-sector-secondary: var(--zen-card-mark-ink);
 }
-.zen-card[data-tone="solid"][data-color="brand"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart, .zen-metric-spark, .zen-metric-bars, .zen-metric-categories, .zen-progress-bar, .zen-progress-circle) {
+.zen-card[data-tone="solid"]:is([data-color="brand"], [data-color="accent"]):not([data-active="true"]) :is(.zen-chart-block, .zen-chart, .zen-metric-spark, .zen-metric-bars, .zen-metric-categories, .zen-progress-bar, .zen-progress-circle) {
   --zen-color-background-support-brand-pale: var(--zen-color-background-support-neutral-pale);
   --zen-color-background-support-brand-soft: var(--zen-color-background-support-neutral-soft);
   --zen-color-background-support-brand-solid: var(--zen-color-background-support-neutral-solid);

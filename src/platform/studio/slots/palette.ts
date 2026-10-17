@@ -343,7 +343,7 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "card", label: "Card", group: "Data display", caption: "Nested surface", root: "Card", components: ["Card", "Stack", "Heading", "Text"], interactive: false, input: false,
     build: (ctx) => lines(
-      `<Card theme="${ctx.overlay ? "on-container" : "border"}" spacing="sm">`,
+      `<Card theme="${ctx.overlay ? "on-container" : "border"}">`, // one card on its own: Spacing=Medium (card/spacing-by-count)
       `  <Stack gap="xs">`,
       `    <Heading level={${level(ctx)}} textStyle="Heading/Subheading">Milestone 2</Heading>`,
       `    <Text textStyle="Body/Small/Regular" tone="base">Rewards screens and the points ledger</Text>`,
@@ -628,6 +628,14 @@ export const PALETTE: readonly PaletteItem[] = [
       `  trend={{ direction: "positive", label: "+12% vs. 2025" }}`,
       `  series={[74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]}`,
       `  footer={<Button size="sm" appearance="overlay" level="inverse" onClick={${act('{ title: "Revenue report opened" }')}}>View report</Button>} />`,
+    ),
+  }),
+  widget({
+    // Figma Metric-Card Type=Tile: a phone stat tile whose content follows the card's fill (Solid Neutral: Inverse).
+    id: "widget-metric-tile", label: "Stat tile", caption: "Number, trend and icon", root: "MetricCard", components: ["MetricCard"],
+    code: () => lines(
+      `<MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%"`,
+      `  trend={{ direction: "positive", label: "+24% vs. last year" }} />`,
     ),
   }),
   /* Widgets: trends */

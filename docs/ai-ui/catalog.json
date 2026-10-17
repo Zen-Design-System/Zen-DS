@@ -3051,10 +3051,11 @@
             "yellow",
             "orange",
             "blue",
-            "purple"
+            "purple",
+            "accent"
           ],
           "default": "neutral",
-          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, all nine: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan · yell"
+          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan ·"
         },
         "spacing": {
           "enum": [
@@ -3253,7 +3254,8 @@
             "yellow",
             "orange",
             "blue",
-            "purple"
+            "purple",
+            "accent"
           ],
           "description": "Figma nested Card Color, for theme=\"pale\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card)."
         },
@@ -10115,7 +10117,8 @@
         "A number toward its goal → MetricCard type=\"goal-progress\".",
         "Two to four related numbers under one title (invoiced, collected, overdue) → MetricCard type=\"comparison\".",
         "A total and its 2–7 parts → MetricCard type=\"category-bar\".",
-        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button."
+        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button.",
+        "Phone stat tiles two-up (size medium) or three-up (size small) → MetricCard type=\"tile\": the title, number and trend over the Dock-Icon; on a Solid card its content follows the fill."
       ],
       "avoid": [
         "A series people read point by point (axes, a value per period) → LineChart or BarChart in a ChartCard; a sparkline only shows the shape.",
@@ -10266,7 +10269,7 @@
             }
           ],
           "default": false,
-          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series."
+          "description": "Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight XLarge/Large, …/2XSmall below) that ties the metric to a chart seri"
         },
         "counter": {
           "x-kind": "node",
@@ -10275,11 +10278,11 @@
         "labelIcon": {
           "x-kind": "node",
           "x-icon": true,
-          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title."
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title, Spacing/Gap/XSmall from it."
         },
         "hint": {
           "x-kind": "node",
-          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is"
+          "description": "Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px after the Caption label at Small/XSmall, that shows this text in"
         }
       },
       "requiredActions": [],
@@ -10305,7 +10308,8 @@
         "A number toward its goal → MetricCard type=\"goal-progress\".",
         "Two to four related numbers under one title (invoiced, collected, overdue) → MetricCard type=\"comparison\".",
         "A total and its 2–7 parts → MetricCard type=\"category-bar\".",
-        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button."
+        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button.",
+        "Phone stat tiles two-up (size medium) or three-up (size small) → MetricCard type=\"tile\": the title, number and trend over the Dock-Icon; on a Solid card its content follows the fill."
       ],
       "avoid": [
         "A series people read point by point (axes, a value per period) → LineChart or BarChart in a ChartCard; a sparkline only shows the shape.",
@@ -10350,7 +10354,8 @@
             "yellow",
             "orange",
             "blue",
-            "purple"
+            "purple",
+            "accent"
           ],
           "description": "Card Color (Figma Card Color, for theme=\"pale\" or \"solid\"): the Card's hue."
         },
@@ -10373,7 +10378,8 @@
             "goal-progress",
             "comparison",
             "category-bar",
-            "hero"
+            "hero",
+            "tile"
           ],
           "default": "kpi",
           "description": "Figma Metric-Card Type (6643:64008)."
@@ -10535,7 +10541,7 @@
               "type": "string"
             }
           ],
-          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series."
+          "description": "Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight XLarge/Large, …/2XSmall below) that ties the metric to a chart seri"
         },
         "counter": {
           "x-kind": "node",
@@ -10544,11 +10550,11 @@
         "labelIcon": {
           "x-kind": "node",
           "x-icon": true,
-          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title."
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title, Spacing/Gap/XSmall from it."
         },
         "hint": {
           "x-kind": "node",
-          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is"
+          "description": "Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px after the Caption label at Small/XSmall, that shows this text in"
         }
       },
       "requiredActions": [],
@@ -12236,6 +12242,14 @@
           ],
           "default": "md",
           "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+        },
+        "shape": {
+          "enum": [
+            "default",
+            "rounded"
+          ],
+          "default": "default",
+          "description": "Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset shadow and focus ring follow, and on the filter affordance; `default"
         },
         "label": {
           "x-kind": "node",
@@ -16642,6 +16656,7 @@
       "file": "docs/guidelines/search.md",
       "do": [
         "Describe the scope in the placeholder (\"Search components\").",
+        "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded): recommended, not required; desktop toolbars keep the default shape.",
         "Filter live and show an empty state that echoes the query.",
         "Let Enter open the first result; the clear button resets to recent items.",
         "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",
@@ -17350,6 +17365,7 @@
       "title": "Card",
       "file": "docs/guidelines/card.md",
       "do": [
+        "Count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge).",
         "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
         "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
         "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
@@ -17359,13 +17375,15 @@
         "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
         "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"border\" surface=\"flat\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
         "Put colour on a box with theme=\"pale\" and a color (any of the nine hues, content stays neutral), e.g. a card per project or client on a white Canvas/Alt page.",
-        "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) suits one time-sensitive figure.",
-        "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read Content/Inverse/* by themselves; pick Button appearance=\"overlay\" level=\"inverse\" and Badge theme=\"on-color\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
+        "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
+        "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
+        "On Brand, Cyan, Orange and Accent the white On-Colors text measures about 3:1: keep what you write there short and large (the number, a title), and put long or small text on another card.",
         "Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
       ],
       "dont": [
         "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
         "Don't nest cards inside cards.",
+        "Don't leave a row of three or more cards at Medium, or shrink a card on its own to Small.",
         "Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).",
         "Don't use Active as decoration; it means selected.",
         "Don't make a whole row Solid: one widget stands out, the rest share the row's theme.",
@@ -17378,6 +17396,7 @@
         "card/color-ignored",
         "card/surface-ignored",
         "card/solid-color",
+        "card/spacing-by-count",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",

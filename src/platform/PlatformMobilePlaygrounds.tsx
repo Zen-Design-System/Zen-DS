@@ -240,7 +240,7 @@ export function BottomSheetPlayground() {
 <BottomSheet
   open={open}
   onOpenChange={setOpen}${t === "action" ? `\n  type="action"` : ""}${size === "max" ? `\n  size="max"` : ""}
-  title="${t === "action" ? "Sort by" : "New project"}"${search ? `\n  search={<Search placeholder="Search" />}` : ""}${t === "action" ? `
+  title="${t === "action" ? "Sort by" : "New project"}"${search ? `\n  search={<Search shape="rounded" placeholder="Search" />}` : ""}${t === "action" ? `
   items={[
     { id: "recent", label: "Most recent", icon: "icon-clock-line" },
     { id: "name", label: "Name", icon: "icon-type-01-line" },
@@ -258,7 +258,7 @@ export function BottomSheetPlayground() {
         <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><Button appearance="main" level="primary" size="lg" onClick={() => setOpen(true)}>{t === "action" ? "Sort projects" : "New project"}</Button></div>
         <ScreenList sort={sort} />
         <BottomSheet inline open={open} onOpenChange={openChange} type={t} size={(size ?? "flex") as BottomSheetSize} title={t === "action" ? "Sort by" : "New project"}
-          search={search ? <Search placeholder="Search" value={query} onValueChange={setQuery} /> : undefined} actionsDirection={vertical ? "vertical" : "horizontal"}
+          search={search ? <Search shape="rounded" placeholder="Search" value={query} onValueChange={setQuery} /> : undefined} actionsDirection={vertical ? "vertical" : "horizontal"}
           items={sortItems.filter((item) => String(item.label).toLowerCase().includes(query.trim().toLowerCase()))}
           selectedId={sort} onSelect={(item) => setSort(item.id as ProjectSort)}
           primaryAction={{ label: "Create", onClick: () => openChange(false) }} secondaryAction={{ label: "Cancel" }}>

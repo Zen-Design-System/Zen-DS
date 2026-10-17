@@ -74,8 +74,8 @@ function hasControls(spec: UiSpec, catalog: Catalog): boolean {
   return found;
 }
 function Framed({ spec, catalog, children }: { spec: UiSpec; catalog: Catalog; children: ReactNode }) {
-  // Flat on the canvas (usage rules §16), the small spacing inside a chat column.
-  return hasControls(spec, catalog) ? <Card theme="flat" spacing="sm" width="fill">{children}</Card> : <>{children}</>;
+  // Flat on the canvas (usage rules §16); one card on its own, so Spacing=Medium (card/spacing-by-count).
+  return hasControls(spec, catalog) ? <Card theme="flat" width="fill">{children}</Card> : <>{children}</>;
 }
 
 /* ───────────── What the composer answers with (specs from the studio's data) ───────────── */
@@ -576,7 +576,7 @@ function LiveTypingExample({ initial = "", placement = "below", fieldStyle = "de
   );
   const listening = !preview && text.trim().length > 0;
   const card = listening ? (
-    <Card theme="flat" spacing="sm" width="fill" className="px-ai-ui-composer">
+    <Card theme="flat" width="fill" className="px-ai-ui-composer">
       <Stack direction="row" gap="xs" align="center">
         <Orb label="Listening" size="sm" beat={beat} />
         <Text textStyle="Body/Small/Medium">Zen AI</Text>
@@ -584,7 +584,7 @@ function LiveTypingExample({ initial = "", placement = "below", fieldStyle = "de
       </Stack>
     </Card>
   ) : preview && meta ? (
-          <Card theme="flat" spacing="sm" width="fill" className="px-ai-ui-composer">
+          <Card theme="flat" width="fill" className="px-ai-ui-composer">
             <Stack gap="md">
               <div className="px-ai-ui-composer__guess" key={intent ?? "none"}>
                 <Stack gap="sm">
@@ -799,7 +799,7 @@ const renderCode = `const check = validateSpec(spec, catalog);            // the
   <Stack gap="md">
     <span>{answer.text}</span>
     {check.ok
-      ? <Card theme="flat" spacing="sm" width="fill"><AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} /></Card>   // a form reads as one object on a Card; the host frames it
+      ? <Card theme="flat" width="fill"><AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} /></Card>   // a form reads as one object on a Card; the host frames it
       : <InlineMessage theme="negative" title="This answer's UI did not pass the catalog check">{check.errors[0].message}</InlineMessage>}
   </Stack>
 </AiChatBubble>`;
@@ -840,7 +840,7 @@ setShared((state) => writePath(state, "review.slot", "16:00"));                 
 });
 const sure = live.pinned || Boolean(live.spec);                                 // Tab, or the composer's answer; a guess looks like a guess until then
 const action = primaryActionOf(live.spec ?? live.skeleton);                       // Enter and the footer button run it
-<Card theme="flat" spacing="sm" width="fill">                                     {/* one object: field · guess · footer */}
+<Card theme="flat" width="fill">                                     {/* one object: field · guess · footer */}
   <AiChatField fieldStyle="surface" value={text} onValueChange={(next) => { setText(next); live.input(next); }}
     onAccept={live.intent && !live.pinned ? () => live.accept() : undefined}       // Tab keeps the guess, then moves into the card
     onClear={text ? () => live.reset() : undefined}                                // Escape clears
@@ -858,7 +858,7 @@ const action = primaryActionOf(live.spec ?? live.skeleton);                     
     code: `<PlatformPhone label="Zen AI" header={<TopNavigation type="compact-alt" title="Zen AI" />}>
   <AiChatBlock greeting="What do you need, Alex?">…</AiChatBlock>
   <Stack gap="xs">                                                    {/* docked: the card, then the field */}
-    <Card theme="flat" spacing="sm" width="fill">…the guess…</Card>
+    <Card theme="flat" width="fill">…the guess…</Card>
     <AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" value={text} onValueChange={…} onAccept={…} onClear={…} onSubmit={…} />
   </Stack>
 </PlatformPhone>`,

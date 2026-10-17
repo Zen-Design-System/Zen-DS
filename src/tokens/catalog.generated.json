@@ -17686,7 +17686,7 @@
       "name": "Light/On-Brand-Default",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#000000DB"
+        "Zen": "#FFFFFF"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -17698,7 +17698,7 @@
       "name": "Dark/On-Brand-Default",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#000000DB"
+        "Zen": "#FFFFFF"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -17758,7 +17758,7 @@
       "name": "Light/On-Brand-Hover",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#000000DB"
+        "Zen": "#FFFFFF"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -17770,7 +17770,7 @@
       "name": "Dark/On-Brand-Hover",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#000000DB"
+        "Zen": "#FFFFFF"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",

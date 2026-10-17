@@ -185,7 +185,7 @@ describe("AppShell top-bar parts", () => {
     const screen = await render(<ZenProvider><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={120} onClick={() => undefined} /><AppShellAction icon="icon-mail-01-line" aria-label="Inbox" dot onClick={() => undefined} /></ZenProvider>);
     await expect.element(screen.getByRole("button", { name: "Notifications, 120 new" })).toBeVisible();
     await expect.element(screen.getByRole("button", { name: "Inbox, new" })).toBeVisible();
-    expect(document.querySelector(".zen-app-shell-action__notification[data-style='number']")?.textContent).toBe("99+");
+    expect(document.querySelector(".zen-app-shell-action__number[data-style='number']")?.textContent).toBe("99+");
   });
 
   it("names the count in Vietnamese with locale vi", async () => {

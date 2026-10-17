@@ -62,7 +62,7 @@ function ChooseProjectType() {
         <FormFieldset legend="Project type" error={missing ? "Choose a project type to continue" : undefined}>
           <Grid minColumnWidth={280} gap="md">
             {projectTypes.map((t) => (
-              <Card key={t.id} theme="border" selected={t.id === typeId} aria-pressed={t.id === typeId} onClick={() => pick(t.id)}>
+              <Card key={t.id} theme="border" spacing="small" selected={t.id === typeId} aria-pressed={t.id === typeId} onClick={() => pick(t.id)}>
                 <Stack gap="md">
                   {/* Decorative: the name is right under it. */}
                   <DockIcon icon={t.icon} theme={t.theme} size="xl" />
@@ -296,7 +296,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   <FormFieldset legend="Project type" error={missing ? "Choose a project type to continue" : undefined}>
     <Grid minColumnWidth={280} gap="md">
       {projectTypes.map((type) => (
-        <Card key={type.id} theme="border" selected={type.id === typeId} aria-pressed={type.id === typeId} onClick={() => setTypeId(type.id)}>
+        <Card key={type.id} theme="border" spacing="small" selected={type.id === typeId} aria-pressed={type.id === typeId} onClick={() => setTypeId(type.id)}>
           <Stack gap="md">
             <DockIcon icon={type.icon} theme={type.theme} size="xl" />
             <Stack gap="xs">

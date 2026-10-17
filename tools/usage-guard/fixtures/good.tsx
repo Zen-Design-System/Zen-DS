@@ -94,14 +94,21 @@ export const Good = () => <>
   <Slider aria-label="Volume" value={v} onChange={setV} icon="icon-volume-max-solid" />
   <Slider aria-labelledby="brightness-label" theme="white" size="large" />
   <RichTextField label="Announcement" onValueChange={(html) => setHtml(html)} />
-  <Card onClick={open} aria-label="Zen website"><Text>Zen website</Text></Card>
-  <Card theme="pale" color="violet"><Text>Design hours</Text></Card>
-  <Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card>
-  <Card theme="border" surface="flat"><Text>Hours this week</Text></Card>
-  <Card theme="shadow" surface="alt"><Text>Outstanding</Text></Card>
+  {/* Catalogue cards sit in their own <div>: side by side they would read as one group (card/spacing-by-count). */}
+  <Grid columns={3} gap="md"><Card spacing="small">Inside</Card><Card spacing="small">Humidity</Card><Card spacing="sm">kWh today</Card></Grid>
+  <Grid columns={3} gap="md">{["Inside", "Humidity", "kWh today"].map((label) => <Card key={label} spacing="small">{label}</Card>)}</Grid>
+  <Grid columns={3} gap="md">{rooms.map((room) => <Card key={room} spacing="small">{room}</Card>)}</Grid>
+  <Stack gap="md"><Card>Devices</Card></Stack>
+  <Stack gap="md"><Card theme="flat" spacing="small"><VoiceRecorder state="ready" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} /></Card></Stack>
+  <div><Card onClick={open} aria-label="Zen website"><Text>Zen website</Text></Card></div>
+  <div><Card theme="pale" color="violet"><Text>Design hours</Text></Card></div>
+  <div><Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card></div>
+  <div><Card theme="border" surface="flat"><Text>Hours this week</Text></Card></div>
+  <div><Card theme="shadow" surface="alt"><Text>Outstanding</Text></Card></div>
   <MetricCard theme="solid" color="yellow" label="Next payout" value="$12,400" />
+  <MetricCard theme="solid" color="accent" type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "+24%" }} />
   <ChartCard title="Revenue" theme="pale" color="cyan"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
-  <Card theme="border" subAction={{ label: "More actions", onClick: openMenu }}><Text>Q4 review</Text></Card>
+  <div><Card theme="border" subAction={{ label: "More actions", onClick: openMenu }}><Text>Q4 review</Text></Card></div>
   <ListItem title="Ava Chen" onClick={open} trailing={<Text>9:41</Text>} />
   <ListItem title="Ava Chen" trailing={<IconButton onClick={act} size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
   <ListItem title="Ava Chen" onClick={open} trailing={<IconButton onClick={act} appearance="flat" size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
@@ -131,10 +138,10 @@ export const Good = () => <>
   <div style={{ display: "flex", gap: 8 }}><Button level="tertiary" size="sm" onClick={cancel}>Cancel</Button></div>
   {/* A table that is its own section: an h2 Heading/4 above it, and the Table points to it. */}
   {/* A table inside a widget Card: the widget title is Heading/Subheading. */}
-  <Card>
+  <div><Card>
     <Heading level={2} textStyle="Heading/Subheading" id="claims-title">Recent claims</Heading>
     <Table aria-labelledby="claims-title" columns={[]} rows={[]} getRowId={(r) => r.id} />
-  </Card>
+  </Card></div>
   <Heading level={2} textStyle="Heading/4" id="invoices-title">Invoices</Heading>
   <Table aria-labelledby="invoices-title" columns={[]} rows={[]} getRowId={(r) => r.id} />
   {/* The Heading default for level 2 is Heading/4 (decision 7); a description paragraph above a table is not a title. */}
@@ -230,7 +237,7 @@ export const Good = () => <>
   <Heading level={2} textStyle="Body/Small/Bold" tone="light">Pinned</Heading>
   <DescriptionList items={[{ term: "Subtotal", description: "$311.90" }, { term: "Total", description: "$321.90", emphasis: true }]} />
   <EmptyState title="No members match" size="sm" secondaryAction={{ label: "Clear filters", onClick: reset }} />
-  <Card theme="border"><EmptyState size="sm" title="No invoices yet" headingLevel={4} primaryAction={{ label: "Create invoice", onClick: create }} /></Card>
+  <div><Card theme="border"><EmptyState size="sm" title="No invoices yet" headingLevel={4} primaryAction={{ label: "Create invoice", onClick: create }} /></Card></div>
   <ChartCard title="Revenue"><EmptyState title="No revenue yet" primaryAction={{ label: "Connect billing", onClick: create }} /></ChartCard>
   <TableActions><IconButton onClick={act} appearance="flat" level="primary" aria-label="Actions for Ava" icon={<Icon name="icon-dots-horizontal-line" />} /></TableActions>
   <Menu trigger={<IconButton appearance="flat" level="primary" aria-label="Actions for Ava" icon="icon-dots-horizontal-line" />} align="end" items={[{ id: "edit", label: "Edit", onSelect: act }]} />
@@ -268,7 +275,7 @@ export const Good = () => <>
     <Stack position="absolute" constraintX="left-right" constraintY="bottom" insetLeft="sm" insetRight="sm" insetBottom="sm" height={48}>Caption</Stack>
     <Box padding="md">Content after the media</Box>
   </Box>
-  <Card theme="border"><Box position="absolute" constraintX="center" constraintY="center" width={200}>Centred</Box></Card>
+  <div><Card theme="border"><Box position="absolute" constraintX="center" constraintY="center" width={200}>Centred</Box></Card></div>
   <Grid columns={2}><Box position={layerPosition} constraintX="right" insetRight="sm">Toggled by state</Box></Grid>
   <Box surface="surface" effectStyle="Shadow/Bottom/Level-1" padding="lg">Elevated panel</Box>
   <Box surface="pale" effectStyle="Effect/Overlay" padding="md">Frosted bar</Box>
@@ -284,5 +291,11 @@ export const Good = () => <>
   <Text textStyle="Body/Small/Regular" tone="negative-light">Enter an email address like name@company.com.</Text>
   <Icon name="icon-check-circle-line" tone="accent-light" />
   {/* A card's ⋮ is set through its own props; `overrides` is Zen Studio's (fixtures/studio-page.zen.tsx). */}
-  <Card subAction={{ label: "More", icon: "icon-dots-horizontal-line", onClick: act }}>Team</Card>
+  <div><Card subAction={{ label: "More", icon: "icon-dots-horizontal-line", onClick: act }}>Team</Card></div>
 </>;
+
+// A component's root card is judged where the component is used: three side by side take Small, one keeps Medium.
+function DeviceCard({ label }: { label: string }) { return <Card theme="flat" spacing="small">{label}</Card>; }
+export const Devices = () => <Grid columns={3} gap="md"><DeviceCard label="HomePod mini" /><DeviceCard label="Ceiling light" /><DeviceCard label="Blinds" /></Grid>;
+function RoomsCard() { return <Card theme="flat">Rooms</Card>; }
+export const Home = () => <Stack gap="md"><RoomsCard /></Stack>;

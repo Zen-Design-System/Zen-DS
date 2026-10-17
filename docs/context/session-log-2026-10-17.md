@@ -129,37 +129,6 @@ figma luôn check các rule khi dùng component nhé và QA lại trước khi d
   Accent leads the colour) and a §3 QA checklist (audit, component rules, colour, screenshot, report) that gates "done".
 - `npm run ai-kit:check` ✓ (127 checks).
 
-## Studio → Figma direct paste (tier L, session "Figma và Studio import chính xác"; user: "Biểu đồ trước, rồi dán thẳng", then "đồng ý, làm tiếp đi")
-- Proven by automatic pastes in the Zen file (osascript Edit › Paste after opening the QA node; the user enabled
-  Accessibility): skeleton variants, deflate, variables and styles by node id, variant-level property ids, slot contents.
-- Built: `tools/studio/figma-kiwi.mjs` (+ selftest 19), `tools/studio/native-pack.mjs` + `docs/figma-contracts/native-pack.json`
-  (captured from 12 Figma desktop copies of a temporary probe: 4,344 variants, 1,597 icons, 561 slot contents; probe
-  removed), `tools/studio/figma-native.mjs` (+ selftest 29 with `tools/studio/fixtures/figma-expenses.json`), Studio ⌘C
-  writes Figma's html ahead of the plugin's span (`builder/export/figmaClipboard.ts`; messages in frameKeys/clipboard).
-- Expenses pasted directly = the plugin import (474 frames, 613 instances, 151 slots, 277 texts, 190 vectors, 245/245
-  texts); Chromium's copy event keeps the html (checked through Playwright → system clipboard → Figma).
-- Stray test pastes landed on "◇ Master-Layout · Variants" twice (Figma desktop showed that page): removed or moved to QA,
-  session "Master layout variations" told. Test frames on the QA page: Clip I1…K26, Style probe, Expenses (native 5).
-- Open (BACKLOG): other files (publish + full definitions), pictures, the frame menu's async Copy for Figma.
-- Follow-up (user: "spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn là 32px. Compact là
-  24px. tạo token để áp dụng luôn", and "Tuỳ vào domain mà tôi sẽ chọn mode component size và typography").
-  - New Component Size variable `Layout-Mobile/Section-Gap`: Figma 16053:134453, aliases Gap/Large and Gap/XLarge.
-    Its repo source is in `component-size.json` (Studio 24), and `tokens:build` gives `--zen-layout-mobile-section-gap`.
-  - The rule is in §13, screen-rules §2 and the SKILL checklist. The audit adds `spacing/section-gap` (a phone
-    Body's gap not bound to it).
-  - The audit's `scrollsPast` exempts content past the far end of a frame set to scroll (overflowDirection).
-  - The user had set every screen to Comfortable + Typography Mobile, which made F1–F8 and E1–E3 overflow. In
-    Figma:
-    - 20 Bodies are bound to the token.
-    - The screens scroll vertically, with the bars fixed (numberOfFixedChildren).
-    - 6 Chip rows scroll horizontally, with 2px block padding.
-    - Text that grew is fixed: F1 "6.2" + "kWh today"; E1 name above price; E2 wallet icon above text; E5 names
-      truncate.
-    - E3 cart FAB is an auto layout with a pinned counter; F9 D-pad keeps its margins.
-- Gate: `npm run qa -- --isolated --files=…` (edits went through Bash, so the hook saw none) ✓ PASS: usage guard needed
-  `zen-allow-focus-ring-token` on both rings; 69 browser tests, audit 1512/390/320, dark audit, behaviour 0/0. Light and
-  dark shots of both "On a colour band" cards are identical on the band. Not committed (user did not ask).
-
 ## Touch targets + control-row spacing rule (session "Master layout variations") — tier S
 User (screenshots of E6 and E2 chip rows): "Khoảng cách giữa chip và các phần dưới gần quá. Nên làm rule spacing cho
 các phần này, Đang làm cho mobile nên có rule về vùng chạm tối thiểu để làm spacing cho an toàn".
@@ -172,14 +141,6 @@ các phần này, Đang làm cho mobile nên có rule về vùng chạm tối th
   or with Top-Navigation/Mobile|Tablet, and `spacing/controls-to-content` (warning) for a Chip/Segmented/Tabs/Search
   row closer than 16 to the next block.
 - E2 Popular and E6 AI-Discoveries gaps → Gap/Medium.
-
-## Donut corners: Figma ↔ code (tier S, session "Figma và Studio import chính xác"; user: "pie chart Figma không có bo góc")
-- Library: Chart/Donut-Chart 15324:80365, all 32 variants: 160 Slice vectors cornerRadius 0 → 4 (DonutChart.tsx
-  CORNER_PX = 4; the 4px gaps were already drawn). Undo: back to 0.
-- Plugin (local 275faae, dist 11:38): setting vectorPaths resets every vertex to mitre joins, so imported slices lost the
-  round joins of their 8px same-colour stroke; the join is set again after the path (test mock now resets joins too).
-- Direct paste: frames with a radius came out square (`rectangleCornerRadiiIndependent` false → Figma reads the unset
-  `cornerRadius`); fixed in PR #103 by session "Giám sát".
 
 ## Chip + Segmented overlay (session 1d39f7fe) — tier M
 User (screenshot: a Segmented "Nutrition / Activity" on a pink band): "Bổ sung Chip, Segmented cho case overlay. Case
@@ -224,22 +185,44 @@ chưa đáp ứng là hình đính kèm. đảm bảo work trên dark và light 
   1344/1344 checks match in light/neutral-s1 and dark/brand-s1. `part-props-build`: Segmented passes `levelProp` to
   its items (a resolved local hid the pass-through from the Studio inspector).
 
-## Chart parity Figma ↔ code (tier M, session "Figma và Studio import chính xác"; user: "so tiếp các biểu đồ còn lại")
-- 13 sets audited by 5 read-only agents; findings in `docs/research/chart-parity-audit-2026-10-17.md`.
-- Fixed in Figma: Bar-Chart vertical Average rule caps ROUND (8 variants; dots were invisible), Bullet Goal + Rows
-  frames no longer clip (target tick showed 20 of 24px), Bar-List fills proportional to the leader (user 2026-10-14;
-  BACKLOG item replaced). Fixed in code: the ring box beside a start/end legend starts at the ring's size (chart.css), so
-  Radial/Donut no longer leave a 90px gap and wrap the legend.
-- Direct paste follow-ups: pack reads PROP_REF-only property links (Title-Highlight Custom-Slot), lists 2,019 variables
-  (variables probe), slot content frames carry the slot's corners/clip/limits (Stack-Bar columns were square); writer:
-  fill along a hugging parent's main axis hugs (Dashboard's Export button was cut to "Expor"; the plugin collapses it to
-  1px, not fixed there yet). Dashboard direct paste = its plugin import (346 frames, 405 instances, 174 texts).
-- Stack-Bar still square after the slot fix (user: "đã dán, cột vẫn vuông"): the column is a grid with the empty top
-  row first, so the slot's 8px corners only clipped empty space, in the paste and the plugin import alike. Owner fix in
-  `figma-charts.mjs`: the bar is its own `Stack` frame (radius 8 bound to Corner-Radius/Small, clip, Flex rows per
-  series) in the column's second row, as chart.css `.zen-chart__stack`. Fixture rewritten, selftests updated; QA paste
-  "Expenses (bar corners)" 16079:284368 shows rounded columns; the user re-pasted from Studio: "cột đã bo góc".
+## Studio → Figma direct paste (tier L, session "Figma và Studio import chính xác"; user: "Biểu đồ trước, rồi dán thẳng", then "đồng ý, làm tiếp đi")
+- Proven by automatic pastes in the Zen file (osascript Edit › Paste after opening the QA node; the user enabled
+  Accessibility): skeleton variants, deflate, variables and styles by node id, variant-level property ids, slot contents.
+- Built: `tools/studio/figma-kiwi.mjs` (+ selftest 19), `tools/studio/native-pack.mjs` + `docs/figma-contracts/native-pack.json`
+  (captured from 12 Figma desktop copies of a temporary probe: 4,344 variants, 1,597 icons, 561 slot contents; probe
+  removed), `tools/studio/figma-native.mjs` (+ selftest 29 with `tools/studio/fixtures/figma-expenses.json`), Studio ⌘C
+  writes Figma's html ahead of the plugin's span (`builder/export/figmaClipboard.ts`; messages in frameKeys/clipboard).
+- Expenses pasted directly = the plugin import (474 frames, 613 instances, 151 slots, 277 texts, 190 vectors, 245/245
+  texts); Chromium's copy event keeps the html (checked through Playwright → system clipboard → Figma).
+- Stray test pastes landed on "◇ Master-Layout · Variants" twice (Figma desktop showed that page): removed or moved to QA,
+  session "Master layout variations" told. Test frames on the QA page: Clip I1…K26, Style probe, Expenses (native 5).
+- Open (BACKLOG): other files (publish + full definitions), pictures, the frame menu's async Copy for Figma.
+- Follow-up (user: "spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn là 32px. Compact là
+  24px. tạo token để áp dụng luôn", and "Tuỳ vào domain mà tôi sẽ chọn mode component size và typography").
+  - New Component Size variable `Layout-Mobile/Section-Gap`: Figma 16053:134453, aliases Gap/Large and Gap/XLarge.
+    Its repo source is in `component-size.json` (Studio 24), and `tokens:build` gives `--zen-layout-mobile-section-gap`.
+  - The rule is in §13, screen-rules §2 and the SKILL checklist. The audit adds `spacing/section-gap` (a phone
+    Body's gap not bound to it).
+  - The audit's `scrollsPast` exempts content past the far end of a frame set to scroll (overflowDirection).
+  - The user had set every screen to Comfortable + Typography Mobile, which made F1–F8 and E1–E3 overflow. In
+    Figma:
+    - 20 Bodies are bound to the token.
+    - The screens scroll vertically, with the bars fixed (numberOfFixedChildren).
+    - 6 Chip rows scroll horizontally, with 2px block padding.
+    - Text that grew is fixed: F1 "6.2" + "kWh today"; E1 name above price; E2 wallet icon above text; E5 names
+      truncate.
+    - E3 cart FAB is an auto layout with a pinned counter; F9 D-pad keeps its margins.
+- Gate: `npm run qa -- --isolated --files=…` (edits went through Bash, so the hook saw none) ✓ PASS: usage guard needed
+  `zen-allow-focus-ring-token` on both rings; 69 browser tests, audit 1512/390/320, dark audit, behaviour 0/0. Light and
+  dark shots of both "On a colour band" cards are identical on the band. Not committed (user did not ask).
 
+## Donut corners: Figma ↔ code (tier S, session "Figma và Studio import chính xác"; user: "pie chart Figma không có bo góc")
+- Library: Chart/Donut-Chart 15324:80365, all 32 variants: 160 Slice vectors cornerRadius 0 → 4 (DonutChart.tsx
+  CORNER_PX = 4; the 4px gaps were already drawn). Undo: back to 0.
+- Plugin (local 275faae, dist 11:38): setting vectorPaths resets every vertex to mitre joins, so imported slices lost the
+  round joins of their 8px same-colour stroke; the join is set again after the path (test mock now resets joins too).
+- Direct paste: frames with a radius came out square (`rectangleCornerRadiiIndependent` false → Figma reads the unset
+  `cornerRadius`); fixed in PR #103 by session "Giám sát".
 ## Zen colour ramp re-sync (session 1d39f7fe) — tier XS
 User: "Update lại token màu của Zen trong global (chỉ dãy màu Zen)".
 - Read Global Colors from the live file (use_figma, modes Zen / Zen-High-Contrast): Light/Dark Zen and Zen-Alpha 1–12,
@@ -265,6 +248,21 @@ User: "Update lại token màu của Zen trong global (chỉ dãy màu Zen)".
   the overlay Level options). Rebuilt; both checks ✓, `npm run studio:selftest` exit 0. Rule: any edit to
   docs/figma-contracts/component-properties.json is followed by those two builds.
 
+## Chart parity Figma ↔ code (tier M, session "Figma và Studio import chính xác"; user: "so tiếp các biểu đồ còn lại")
+- 13 sets audited by 5 read-only agents; findings in `docs/research/chart-parity-audit-2026-10-17.md`.
+- Fixed in Figma: Bar-Chart vertical Average rule caps ROUND (8 variants; dots were invisible), Bullet Goal + Rows
+  frames no longer clip (target tick showed 20 of 24px), Bar-List fills proportional to the leader (user 2026-10-14;
+  BACKLOG item replaced). Fixed in code: the ring box beside a start/end legend starts at the ring's size (chart.css), so
+  Radial/Donut no longer leave a 90px gap and wrap the legend.
+- Direct paste follow-ups: pack reads PROP_REF-only property links (Title-Highlight Custom-Slot), lists 2,019 variables
+  (variables probe), slot content frames carry the slot's corners/clip/limits (Stack-Bar columns were square); writer:
+  fill along a hugging parent's main axis hugs (Dashboard's Export button was cut to "Expor"; the plugin collapses it to
+  1px, not fixed there yet). Dashboard direct paste = its plugin import (346 frames, 405 instances, 174 texts).
+- Stack-Bar still square after the slot fix (user: "đã dán, cột vẫn vuông"): the column is a grid with the empty top
+  row first, so the slot's 8px corners only clipped empty space, in the paste and the plugin import alike. Owner fix in
+  `figma-charts.mjs`: the bar is its own `Stack` frame (radius 8 bound to Corner-Radius/Small, clip, Flex rows per
+  series) in the column's second row, as chart.css `.zen-chart__stack`. Fixture rewritten, selftests updated; QA paste
+  "Expenses (bar corners)" 16079:284368 shows rounded columns; the user re-pasted from Studio: "cột đã bo góc".
 ## Segmented component size re-sync (session 1d39f7fe) — tier XS
 User: "Update token component size của segmented".
 - Live Figma Component Size (modes Compact, Comfortable), the 14 `Segmented/*` variables vs `component-size.json`: one
@@ -305,6 +303,47 @@ trong toggle dot", then (AskUserQuestion → icon by state, refined in chat) "t�
   --pages=toggle,list-item` ✓ PASS (token sources left out of scope: additions only, `tokens:check` ✓). Studio:
   `studio:selftest` exit 0; `studio:e2e --only=inspector,handoff` 30 works · 0 broken. Figma description of Toggle
   updated (figma-docs, backup frame).
+
+## Harness card/spacing-by-count (S)
+
+- User rule: "nếu từ 3 card trở nên thì dùng card/box variant spacing Small. Còn mặc định là dùng Medium". The "box" in
+  the screenshots is a Card (Content · Active · Sub-Action) holding a list; Figma List-Box has no Spacing variant, and
+  MetricCard / ChartCard expose no `spacing` (ChartCard pins Medium), so the rule judges `<Card>` only.
+- `tools/usage-guard/check-usage.mjs`: `card/spacing-by-count` (warn, allow `card-spacing`). One pass per file rebuilds
+  the JSX tree (comments blanked, code samples skipped by backtick parity, `<K extends …>` generics skipped) and counts
+  Card siblings; a mapped Card counts its literal array (inline or a `const x = […]` of the file; NaN otherwise); a
+  component whose returned root is a Card is judged at its `<Name />` use sites. ≥ 3 shown → Small; < 3, all counts
+  known and no repeating ancestor → Medium.
+- Fixtures: catalogue cards in bad/good.tsx sit in their own `<div>` (side by side they read as one group); new cases
+  for a row, a mapped row, a lone Small card and a component-root card.
+- Fixed in the repo (22 findings + code samples): Small for the Card KPI row, Dock Icon project types, Text
+  milestones; Medium for lone/paired cards on slider-field, curve-preview, accordion, divider, color-picker, card
+  (order type), typography hierarchy; description-list code sample said small while the live card is md. Studio
+  palette "Card" snippet → Medium. Kept Small with `zen-allow-card-spacing`: ai-ui Framed (chat column) and the two
+  Rating survey cards (NPS pattern) — their comments already gave the reason.
+- Gate run 1 failed on voice@390/320 density: the Voice frame pads itself (Spacing/Padding/XLarge) inside the Card,
+  so Medium pushed the three actions out of the row (+4px at 320, new at 390 and at Compact). The rule now leaves a
+  card around VoiceRecorder / AiVoiceConversation alone (Small); voice, voice playground and ai-chat reverted.
+  The 320 Comfortable overflow (12px) stays in the quality baseline as before.
+- Gate: `npm run qa -- --isolated --files=<harness, fixtures, guideline source, 16 platform/Studio files>` ✓ PASS
+  (13 pages, audit 331 s · 0 errors, dark, behaviour, Studio E2E 297 works · 0 broken); usage + mcp selftests ✓.
+  Contact sheets checked: Card KPI row and Dock Icon types at Small, Slider Field card at Medium. Done.
+- User follow-up: the three `zen-allow` cards go Medium too (ai-ui Framed + its composer cards, Rating survey ×2;
+  allow comments and the "spacing small" notes removed, code samples matched); gate (ai-ui, rating) ✓ PASS.
+- MetricCard: Figma's Metric-Card is an exposed Card, so its Spacing is the Card's (user: "card thì có spacing
+  small"); code MetricCard does not pass `spacing` to its Card yet — asked the user before adding the prop.
+
+## Notification-Dot Number from Figma (session 1d39f7fe) — tier S
+User: "Update lại luôn dot notification cho Studio từ Figma", then "Bạn phải cập nhật từ component chứ?
+Primitives/Notification-Dot. Kiểm tra component này".
+- Figma Primitives/Notification-Dot 4116:21789 (now on ◇ Master-Layout): Style=Dot (8×8, Negative/Positive/Accent,
+  2px Border/Inverse outside) matched code; Style=Number did not: Badge 16 (Badge/Size/XSmall, min width the same,
+  Badge/Spacing/Small vertical padding + Text-Wrapper padding 4), Caption/Regular, On-Colors (On-Accent/Default on
+  Accent). Code drew 12px (Badge/Size/2XSmall) in Label/Small/Medium. Action-Item 12280:19532 places it at (26, −2)
+  on Tertiary (40) and (10, −6) on Flat (20); the dot at (30, 2) / (14, −2).
+- Fix at the owner: `_shared/notification-dot` draws both styles (`value` → Number); AppShellAction uses it
+  (`zen-app-shell-action__number`, right/top −2 and −6, growing left as before); app-shell.test selector updated.
+- Measured on app-shell and dashboard-header: number 16×16 at (26, −2), 11/16 Regular, 2px ring; dot 8×8 at (30, 2).
 
 ## Figma skill: rules from the user's catches and edits (session "Master layout variations") — tier S
 User: "Dùng icon không đồng bộ" (F12 nav), "Làm Master layout nên QA lại kỹ trước khi done", "từ đây về sau bổ
@@ -354,3 +393,104 @@ khu vực giống trong ảnh" (the Zen Studio menu). Worktree `../Zen-DS-shapes
   builder + `strokeWith` + rotation about the centre (plugin commit 3ba73f9, its tests pass).
 - Walk (private server :5199, Playwright): draw frame / ellipse / rectangle / line, arc sweep 47.2 %, ratio 24 %,
   start 270°, move 107→160 px, nudge, Layers "Ellipse", Inspector sections — screenshots looked at.
+## Metric-Inline/Title-Highlight: Figma → code/Studio check (tier S)
+
+- Read live 7523:507049 (5 sizes): props unchanged from the 2026-10-05 contract; auto layout, gaps, text styles,
+  Dock-Icon (absolute in Contents, MAX/MAX, Large 48 at XL/L, Medium 40 below) and Custom-Slot all match code.
+- Fixed in MetricWidget + Studio map: Hint is also at Small/XSmall (12px, Element-Size/Popular/XSmall, after the
+  Caption label; figma-props.map Hint lost its XL–M `when`); no Metric-Color dot in the XL–M title row (Figma has no
+  Color layer there; the boolean stays in Properties as Figma shows it); Label-Icon → title gap 8 (Figma Wrapper,
+  Spacing/Gap/XSmall); dot 2XSmall except Icon-Highlight XL/L (XSmall; 16 vs 12 in Comfortable).
+- Figma-side, for the designer: Custom-Slot padding 10 raw (Card/Metric-Card slots are 0; code 0); Header gap 12
+  unbound; Medium Metric-Number paragraphSpacing bound to Font-Size/Heading-3.
+- Test: tests/interaction/metric-inline-props.test.tsx (3 pass).
+- Figma write (user: "sửa luôn padding Custom-Slot trong Figma về 0"): Custom-Slot padding 10 → 0 on all 5 variants
+  (15048:20966, :21172, :21180, :21194, :21202); no instance on ❖ Metric Widget has Custom on. Needs a library publish.
+
+## Calendar / Schedule / Timeline in Figma (draft, tier L, Figma first)
+
+- User scope: Calendar (Month, Week/Day time grid, Agenda, week strip), Schedule (resource rows, itinerary, booking
+  slots, day planner from the user's reference), Timeline (activity feed, Gantt, milestones); desktop + mobile; the
+  user reviews Figma before any code.
+- File 9nZv4uW2LT21yuHabMTCh1, new pages filed like the others (Primitives section + one 1512 doc frame per set):
+  - ❖ Calendar 16121:3: Toolbar 16125:399, Week-Strip 16125:520 (Style Dot|Tile), Month 16126:1093, Time-Grid
+    16127:1172, Agenda 16128:1036; primitives Event, Event-Block, Slot, Date, Now-Line, Day-Cell, Agenda-Item, Day-Tile.
+  - ❖ Schedule 16121:6: Resource-Grid 16135:145822, Itinerary 16135:13820, Slot-Picker 16135:14046, Day-Planner
+    16143:1439; primitives Resource, Slot, Itinerary-Item, Hour-Label, Event-Card.
+  - ❖ Timeline 16121:9: Item 16131:1090, Activity 16131:1311, Gantt 16136:859, Milestones 16132:777; primitives
+    Marker, Gantt-Bar, Gantt-Label, Milestone.
+- Only existing tokens (Support hues for event colours, Brand → Content/Accent text; Date-Picker-Item tokens for
+  slots); reuses Date-Picker days, Segmented, Button, Avatar, Dock-Icon, Badge, Divider.
+- User caught on Resource-Grid: header column 10px tall (rule stopped short), rows 57 vs 56 (stroke in layout), a
+  leave bar squeezed to the visible range. Fixed on every grid; rule in customize-without-detach §5, audit
+  `layout/row-drift` (verified on a broken copy), CHANGELOG.
+- QA: Zen audit on all six sections: 0 errors, 0 warnings outside doc/set chrome; dark mode checked; ai-kit:check ✓.
+- Day-Planner from the user's reference (16143:1439): Week-Strip Style=Tile (Day-Tile), Hour-Label, Event-Card; cards
+  and the selected tile are Border boxes (Canvas/Alt is white). User: the card's ⋯ must be flat → Icon-Flat Small
+  Secondary ⋮ in a 20px Element-Size/Popular/Base Wrapper (the Card Sub-Action); skill §2 + audit
+  `button/in-card-flat` / `button/in-card-wrapper` (0 on the new pages and on Zen's Card, caught on a test copy).
+- User: heading and selector too close → Day-Planner header 2XSmall → XSmall; same slip on Calendar/Toolbar arrows and
+  Today + arrows; Itinerary title + Now badge → 2XSmall. Skill §2 + audit `spacing/control-gap` (0 on the new pages,
+  caught on a test copy); ai-kit:check ✓.
+
+## On-Brand follows the live Figma (session "Giám sát", tier XS; user: "Đồng bộ On-Brand theo Figma")
+- Live Base Colors (Project), mode Zen: Light/Dark On-Brand-Default and On-Brand-Hover are #FFFFFF; the repo had
+  #000000DB (the 2026-10-13 contrast fix). Pressed unchanged (Light white, Dark black 86%). 4 values in
+  base-colors-project.json + sync note; `npm run tokens:build`.
+- Contrast: white on Zen/9 #F755C9 2.96:1, on Light Zen/10 #DC39B2 3.98:1 (black 86%: 6.22 / 4.76). Told the user
+  before syncing; they chose Figma.
+
+## Content follows its Solid fill: Metric-Tile Inverse / On-Color / On-Bright, code + Studio (session "Metric-Tile inverse và on-color", tier M)
+User: "Primitives/Metric/Metric-Tile → Inverse là nằm trên nền neutral solid, content phải dùng inverse tokens. Cần thêm
+variant on-color…", then "Nhớ đọc hiểu cách dùng tokens màu", "update Figma xong nhớ update lại Studio". Asked: scope =
+code + Studio in full; bright solids = follow the tokens and add On-Bright (white ~3:1 on Cyan/Orange/Brand accepted).
+- Figma (9nZv4uW2LT21yuHabMTCh1):
+  - Metric-Tile 16104:4826: Inverse tiles now take Dock-Icon and Badge Theme=Inverse (they were On-Color, which turns
+    white-on-white in Dark mode). New Content=On-Color (16132:144526/144547; On-Colors text) and On-Bright
+    (16140:1278/1293; On-Brights text).
+  - Metric-Trend 595:55134 has a Content axis (Default|Inverse|On-Color). A nested Badge Theme override was lost on
+    every Trend switch. Variants hug the badge (they were fixed 126 under a 131 badge); 0 overflow on 6 pages.
+  - Hero · Solid Neutral 15487:89034 has an Inverse trend. Performance .Template-Component/Calendar/Date Today text
+    is now On-Accent (it was On-Colors on Accent). Review board 16135:144805 shows Light and Dark.
+- Skill: screen-rules §1 and SKILL §2 carry the rule. New audit `theme/on-solid-content` (text, icons, Dock-Icon,
+  Badge, Metric-Tile, Metric-Trend against the fill); verified 0 findings on the board and 3 on a broken copy.
+  ai-kit:check ✓.
+- Code:
+  - Card: `color="accent"` (Solid only). A Solid hue re-points neutral content to On-Colors / On-Brights / On-Accent,
+    and a CardContentContext tells Metric parts the family.
+  - MetricTrend `content`. MetricCard `type="tile"` (internal MetricTile, Card Spacing=Small, nest
+    Metric-Tile/Trend/Metric-Icon).
+  - Chart second series keeps its dark ink (--zen-card-mark-ink). Accent takes Brand's heatmap ramp → Neutral.
+  - Harness card/solid-color flags a Pale accent.
+- Studio: Metric-Card Type=Tile push/pull + reader (figma-metric.mjs; 3 round-trip checks). Palette "Stat tile".
+  Contracts: component-properties (Metric-Card Tile, Metric-Tile set, Card Accent), nested-layers Metric-Card,
+  library key of Metric-Tile.
+- Tests: card-color axe now skips the white solids (documented); new tile + hero-on-solid checks; npm test 1066 ✓,
+  studio:selftest ✓, usage:selftest ✓, guidelines:check ✓, tsc ✓.
+- Gate fixes (same session):
+  - Widgets page has the "Stat tile" pattern and example (palette selftest). The Widgets rhythm baseline goes from 8
+    to 9 styles (the catalogue gains Display/3).
+  - Rebuilt nestedLayers / variantSets / partProps. native-pack recaptured by "Figma và Studio import chính xác" (their
+    file, they commit it).
+  - Metric examples: four colours in the picker (five overflowed at 390). The phone highlight is Solid Neutral (Accent
+    measured 2.96:1). The tile label class is `__label` (it is a Neutral/Base label, not a title). The Card hue example
+    text now says On-Brights.
+
+## Search Shape = Default · Rounded (tier M; user: "thêm props variant cho search là shape … Khuyên dùng cho các search của mobile, ưu tiên dùng chứ không force")
+- Figma Search/Default (846:37624): the 60 variants renamed `Shape=Default` (instances untouched), 60 clones
+  `Shape=Rounded` in grid rows 12–23; Rounded binds the 4 radii of the Field-Only instance and its Container to
+  Corner-Radius/Rounded (only difference, checked by tree signature on all 60 pairs). Section 6849:4835 grown to 3752.
+  Description via tools/figma-docs (`Search/Default` in FORCE). Search/Popover unchanged (no Shape).
+- Code: `Search shape` (`searchShapes`, `SearchShape`) → `.zen-search--rounded`: field and interactive filter
+  affordance on --zen-corner-radius-rounded; stroke, inset shadow and focus ring follow. Ignored with variant popover.
+  Story `Shapes`; playground Shape chip; phone examples (search, top-navigation, bottom-sheet, Bottom-Sheet playground)
+  use `shape="rounded"`. Guideline api row + Do line; Figma skill table row. No harness rule (recommendation only).
+- Contracts: component-properties (Shape), Studio figmaProps/variantSets regenerated (map `Shape: "shape"`);
+  input-search.json Search/Default re-captured whole (mcp-capture, 120 variants; the old capture was already stale,
+  Corner-Radius/Input r 8 → 12): figma-kit hashes match live (set f96b04d2); `lock` rebuilt (it also refreshed 7
+  stale Chip/Segmented/Toggle entries already in HEAD's contracts).
+- Checks: tsc ✓, style:check ✓, usage:selftest ✓, guidelines:check ✓, studio:selftest ✓, figma-props/variant-sets
+  --check ✓; Playwright on :5173: rounded field 1000px radius, focus ring + filter hover pill, code shows the prop.
+- Open (BACKLOG P2): mobile library components' default shape (question for the user); native-pack re-capture.
+- Gate: `npm run qa` (search, top-navigation, bottom-sheet) PASS, report .qa/reports/2026-10-17T11-18-10-c9cbf549.md
+  (a first run's bottom-sheet@390 crash did not reproduce: audit 390/320 clean). Not committed (commits come from one place).

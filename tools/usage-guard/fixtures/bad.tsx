@@ -158,8 +158,9 @@ export const Bad = () => <>
   <EmptyState title="No members match" size="sm" primaryAction={{ label: "Clear filters", onClick: reset }} />
   {/* expect: empty-state/keep-illustration */}
   <EmptyState title="No files yet" illustration={false} primaryAction={{ label: "Upload file", onClick: upload }} />
+  {/* Catalogue cards sit in their own <div>: side by side they would read as one group (card/spacing-by-count). */}
   {/* expect: empty-state/small-in-box */}
-  <Card theme="border"><EmptyState title="No invoices yet" headingLevel={4} primaryAction={{ label: "Create invoice", onClick: create }} /></Card>
+  <div><Card theme="border"><EmptyState title="No invoices yet" headingLevel={4} primaryAction={{ label: "Create invoice", onClick: create }} /></Card></div>
   {/* expect: stepper/needs-label */}
   <Stepper steps={steps} current={1} />
   {/* expect: stepper/step-count */}
@@ -173,19 +174,27 @@ export const Bad = () => <>
   {/* expect: richtext/value-not-onchange */}
   <RichTextField label="Announcement" onChange={handle} />
   {/* expect: card/clickable-no-nested-controls */}
-  <Card onClick={open}><Button level="tertiary" onClick={edit}>Edit</Button></Card>
+  <div><Card onClick={open}><Button level="tertiary" onClick={edit}>Edit</Button></Card></div>
   {/* expect: card/on-container-in-overlay */}
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="border">Brief</Card></SidePanel>
   {/* expect: card/color-ignored */}
-  <Card theme="flat" color="brand">Revenue</Card>
+  <div><Card theme="flat" color="brand">Revenue</Card></div>
   {/* expect: card/color-ignored */}
   <MetricCard color="cyan" label="Invoiced" value="$48,200" />
   {/* expect: card/solid-color */}
-  <Card theme="solid" color="green">Collected</Card>
+  <div><Card theme="solid" color="green">Collected</Card></div>
+  {/* expect: card/solid-color */}
+  <div><Card theme="pale" color="accent">Payout</Card></div>
   {/* expect: card/surface-ignored */}
-  <Card theme="flat" surface="flat">Hours</Card>
+  <div><Card theme="flat" surface="flat">Hours</Card></div>
   {/* expect: card/surface-ignored */}
   <ChartCard title="Revenue" theme="pale" surface="alt"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
+  {/* expect: card/spacing-by-count */}
+  <Grid columns={3} gap="md"><Card>Inside</Card><Card spacing="small">Humidity</Card><Card spacing="small">kWh today</Card></Grid>
+  {/* expect: card/spacing-by-count */}
+  <Grid columns={3} gap="md">{["Inside", "Humidity", "kWh today"].map((label) => <Card key={label}>{label}</Card>)}</Grid>
+  {/* expect: card/spacing-by-count */}
+  <Stack gap="md"><Card spacing="small">Devices</Card></Stack>
   {/* expect: listbox/on-container-in-overlay */}
   <Dialog open={open} onOpenChange={setOpen} title="Members"><ListBox><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></Dialog>
   {/* expect: listbox/footer-action-tertiary */}
@@ -261,11 +270,11 @@ export const Bad = () => <>
   <Heading level={2} textStyle="Heading/Subheading">Invoices</Heading>
   <Table aria-label="Invoices" columns={[]} rows={[]} getRowId={(r) => r.id} />
   {/* A widget Card titles its table with the widget title: Heading/Subheading, not the page-section Heading/4. */}
-  <Card>
+  <div><Card>
     {/* expect: table/title-heading-4 */}
     <Heading level={2} textStyle="Heading/4">Recent claims</Heading>
     <Table aria-label="Recent claims" columns={[]} rows={[]} getRowId={(r) => r.id} />
-  </Card>
+  </Card></div>
   {/* expect: top-navigation/max-three-trailing */}
   <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
   {/* expect: top-navigation/max-three-trailing */}
@@ -445,7 +454,7 @@ export const Bad = () => <>
   {/* expect: interaction/action-without-handler */}
   <EmptyState title="No files yet" primaryAction={{ label: "Upload file", onClick: upload }} secondaryAction={{ label: "Import from Figma" }} />
   {/* expect: interaction/action-without-handler */}
-  <Card theme="border"><Button appearance="flat" level="primary" size="sm">Duplicate</Button></Card>
+  <div><Card theme="border"><Button appearance="flat" level="primary" size="sm">Duplicate</Button></Card></div>
   {/* expect: interaction/action-without-handler */}
   <Sidebar sections={sections} onItemClick={go} footer={<button type="button"><Icon name="icon-trash-line" /><span>Trash</span></button>} />
   {/* expect: interaction/action-without-handler */}
@@ -490,5 +499,10 @@ export const Bad = () => <>
   {/* expect: content/lights-no-light-text */}
   <Heading level={3} tone={"support-yellow-light"}>Pending</Heading>
   {/* expect: api/overrides-studio-only */}
-  <Card subAction={{ label: "More", onClick: act }} overrides={{ "Sub-Action": { level: "danger" } }}>Team</Card>
+  <div><Card subAction={{ label: "More", onClick: act }} overrides={{ "Sub-Action": { level: "danger" } }}>Team</Card></div>
 </>;
+
+// A component's root card is judged where the component is used: three side by side take Small.
+// expect: card/spacing-by-count
+function StatCard({ label }: { label: string }) { return <Card theme="flat">{label}</Card>; }
+export const Stats = () => <Grid columns={3} gap="md"><StatCard label="Inside" /><StatCard label="Humidity" /><StatCard label="kWh today" /></Grid>;

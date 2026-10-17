@@ -113,9 +113,9 @@
     "voice@320|density|Microphone blocked: zen-voice__actions ← zen-voice-action outgrows its box by 12px at Comfortable (0px at Compact)": 1,
     "voice@320|density|Talk a day through with Zen AI: zen-voice__actions ← zen-voice-action outgrows its box by 12px at Comfortable (0px at Compact)": 1,
     "voice@320|density|The one-minute limit on a narrow card: zen-voice__actions ← zen-voice-action outgrows its box by 12px at Comfortable (0px at Compact)": 1,
-    "widgets@1512|rhythm|Widgets: 8 text styles in one example (heading-subheading, heading-1, body-base-bold, body-base-regular, caption-regular, body-small-medium, body-small-regular, display-4) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
-    "widgets@390|rhythm|Widgets: 8 text styles in one example (heading-subheading, heading-1, body-base-bold, body-base-regular, caption-regular, body-small-medium, body-small-regular, display-4) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
-    "widgets@320|rhythm|Widgets: 8 text styles in one example (heading-subheading, heading-1, body-base-bold, body-base-regular, caption-regular, body-small-medium, body-small-regular, display-4) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
-    "widgets@1512-dark|rhythm|Widgets: 8 text styles in one example (heading-subheading, heading-1, body-base-bold, body-base-regular, caption-regular, body-small-medium, body-small-regular, display-4) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1
+    "widgets@1512|rhythm|Widgets: 9 text styles in one example (heading-subheading, heading-1, body-base-bold, body-base-regular, caption-regular, body-small-medium, body-small-regular, display-4, display-3) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "widgets@390|rhythm|Widgets: 9 text styles in one example (heading-subheading, heading-1, body-base-bold, body-base-regular, caption-regular, body-small-medium, body-small-regular, display-4, display-3) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "widgets@320|rhythm|Widgets: 9 text styles in one example (heading-subheading, heading-1, body-base-bold, body-base-regular, caption-regular, body-small-medium, body-small-regular, display-4, display-3) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "widgets@1512-dark|rhythm|Widgets: 9 text styles in one example (heading-subheading, heading-1, body-base-bold, body-base-regular, caption-regular, body-small-medium, body-small-regular, display-4, display-3) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1
   }
 }
