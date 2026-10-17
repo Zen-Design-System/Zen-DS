@@ -57,8 +57,18 @@ export const scaleTokenSuffix: Record<ZenScale, string> = {
  * giant 64 · xgiant 88 · 2xgiant 144 (px at compact density; comfortable scales them).
  */
 export type ZenGap = "none" | ZenScaleInput | "giant" | "xgiant" | "2xgiant";
-/** Space inside a box (Figma Spacing/Padding): 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48. */
-export type ZenPadding = "none" | ZenScaleInput | "4xl";
+/**
+ * The page margins (Figma Breakpoint & Grids › Margin-Comfortable, Margin-Compact): padding that follows the breakpoint —
+ * Margin-Comfortable 24 on desktop and tablet, 20 on a phone; Margin-Compact 20, 16 on a phone. A page's or a screen's
+ * body takes Margin-Comfortable (user, 2026-10-17: the margin tokens as padding, as Figma binds them).
+ */
+export const zenMargins = ["margin-comfortable", "margin-compact"] as const;
+export type ZenMargin = (typeof zenMargins)[number];
+/**
+ * Space inside a box (Figma Spacing/Padding): 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48;
+ * or a page margin that follows the breakpoint (`margin-comfortable`, `margin-compact`: ZenMargin).
+ */
+export type ZenPadding = "none" | ZenScaleInput | "4xl" | ZenMargin;
 /** Corner radius (Figma Corner-Radius, follows the radius mode): 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full. */
 export type ZenCornerRadius = "none" | Exclude<ZenScaleInput, "3xs" | "3xsmall"> | "full";
 
@@ -73,6 +83,8 @@ export function gapValue(gap: ZenGap | undefined): string | undefined {
 export function paddingValue(padding: ZenPadding | undefined): string | undefined {
   if (padding === undefined) return undefined;
   if (padding === "none") return "0";
+  // The page margins: their own variables (Breakpoint & Grids), which change with data-breakpoint.
+  if (padding === "margin-comfortable" || padding === "margin-compact") return `var(--zen-${padding})`;
   const step = normalizeScale(padding);
   return `var(--zen-spacing-padding-${step === "4xl" ? "4-xlarge" : scaleTokenSuffix[step as ZenScale]})`;
 }

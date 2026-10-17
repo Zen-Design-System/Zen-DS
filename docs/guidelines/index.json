@@ -4253,9 +4253,9 @@
           "clip?: boolean = false",
           "scroll?: x|y",
           "fillChildren?: boolean = false",
-          "padding?: none|ZenScaleInput|4xl",
-          "paddingX?: none|ZenScaleInput|4xl",
-          "paddingY?: none|ZenScaleInput|4xl",
+          "padding?: none|ZenScaleInput|4xl|ZenMargin",
+          "paddingX?: none|ZenScaleInput|4xl|ZenMargin",
+          "paddingY?: none|ZenScaleInput|4xl|ZenMargin",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
           "children?: ReactNode",
           "ref?: Ref<HTMLElement>"
@@ -4282,7 +4282,7 @@
           "columnGap?: none|ZenScaleInput|giant|xgiant|2xgiant",
           "align?: start|center|end|stretch",
           "stackBelow?: number",
-          "padding?: none|ZenScaleInput|4xl",
+          "padding?: none|ZenScaleInput|4xl|ZenMargin",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
           "children?: ReactNode",
           "clip?: boolean = false",
@@ -4309,9 +4309,9 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
-          "padding?: none|ZenScaleInput|4xl",
-          "paddingX?: none|ZenScaleInput|4xl",
-          "paddingY?: none|ZenScaleInput|4xl",
+          "padding?: none|ZenScaleInput|4xl|ZenMargin",
+          "paddingX?: none|ZenScaleInput|4xl|ZenMargin",
+          "paddingY?: none|ZenScaleInput|4xl|ZenMargin",
           "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
           "scroll?: x|y",
           "border?: none|pale|subtle = none",
@@ -4741,7 +4741,7 @@
         "FormActions": [
           "align?: end|start|between = end",
           "sticky?: boolean = false",
-          "inset?: none|ZenScaleInput|4xl",
+          "inset?: none|ZenScaleInput|4xl|ZenMargin",
           "children?: ReactNode",
           "ref?: Ref<HTMLDivElement>"
         ]

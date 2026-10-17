@@ -15633,15 +15633,15 @@
         },
         {
           "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
-          "description": "Space inside the stack (Figma Spacing/Padding).",
+          "description": "Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone).",
           "deprecated": null
         },
         {
           "name": "paddingX",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "Horizontal padding (overrides `padding` on the sides).",
@@ -15649,7 +15649,7 @@
         },
         {
           "name": "paddingY",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins.",
@@ -15855,7 +15855,7 @@
         },
         {
           "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "",
@@ -16061,7 +16061,7 @@
         },
         {
           "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "",
@@ -16069,7 +16069,7 @@
         },
         {
           "name": "paddingX",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "",
@@ -16077,7 +16077,7 @@
         },
         {
           "name": "paddingY",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "",
@@ -17625,7 +17625,7 @@
         },
         {
           "name": "inset",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
           "default": null,
           "description": "Sticky only: side padding of the bar, e.g. lg on a full-bleed phone screen so the buttons line up with the fields.",

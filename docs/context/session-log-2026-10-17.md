@@ -520,3 +520,16 @@ User: "tại sao shape lại là component? Shape chỉ nên được vẽ ra l�
 - Gate on the components branch (`--all`): 0 errors; new ⚠ contrast on ai-ui (Schedule 2.96:1, white on Zen/9) comes
   from #109 (On-Brand → white, the user's choice), not this branch → BACKLOG P1 question for the designer.
 
+## Phone bars on the canvas; padding on the page margins (session "Figma-like freeform editing", tier M)
+User: "1. Khi tạo trang mới thì lỗi bottom nhảy lên trên. 2. User vẫn chưa chọn được margin token cho padding khi thiết kế."
+- Bars: `.studio-builder-screen__top / __bottom` are sticky; `.studio-frame` clips (overflow: clip) but is no scroll
+  container, so they stuck to `.studio-viewport` (the window): a 600px window put a phone Screen's bottom bar at
+  516–600 of 844, and a Screen lower on the board drew it at its top. Fix: relative under `.studio-world` (canvas);
+  Play / Present / export keep sticky. E2E DV-03 (560px window; failed without the fix), PT-11…13 still pass.
+- Margins: `ZenPadding` += `ZenMargin` (`margin-comfortable`, `margin-compact` → `var(--zen-margin-*)`, Breakpoint &
+  Grids); Studio ScaleField lists them after the ladder by their Figma names (↑/↓, renderedKey and canvas snaps skip
+  them; propSchema expands ZenMargin); figma-steps MARGIN_PX / MARGIN_VARIABLE (selftest checks them against the
+  tokens); push binds paddingVar Margin-*, pull reads it back (the live Overviews fixture's Body: xl → margin-comfortable).
+- Checks: studio:selftest ✓ (figma-push 284, figma-pull 76, ScaleField 11), E2E L-13 + layout/inspector/appearance 37/37,
+  device + prototype 16/16, tsc, guidelines + ai-ui rebuilt. BACKLOG P2 classNames line: item (1) now per-side padding only.
+

@@ -23,7 +23,7 @@ Token-based layout primitives: Stack (one direction), Grid (columns), Box (paddi
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Gap (Spacing/Gap) | `gap · rowGap · columnGap` | none · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 (default) · lg 24 · xl 32 · 2xl 40 · 3xl 48 · giant 64 · xgiant 88 · 2xgiant 144 (long names like small also work) |
-| Padding (Spacing/Padding) | `padding · paddingX · paddingY` | 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48 |
+| Padding (Spacing/Padding) | `padding · paddingX · paddingY` | 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; or a page margin that follows the breakpoint (Figma Breakpoint & Grids): margin-comfortable 24 (20 on a phone) for a page or screen body, margin-compact 20 (16 on a phone) |
 | Direction / alignment | `direction · align · justify · wrap` | column (default) or row; start · center · end · stretch · baseline; between · around |
 | Columns | `columns · minColumnWidth · stackBelow` | a number, a track list for unequal columns ("2fr 1fr"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default); stackBelow={640}: one column while the Grid itself is narrower than 640px (a side column in a narrow card or window), whatever the breakpoint |
 | Background layer | `surface (Box)` | surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card) |
@@ -71,9 +71,9 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
 | `scroll` | `"x" \| "y"` | — | Figma "Overflow scrolling": `"y"` scrolls the content vertically, `"x"` sideways, inside the stack's own box (it needs a height or a maxHeight for `"y"`, a width for `"x"`); the scroll stays inside (overscroll-behavior: contain). |
 | `fillChildren` | `boolean` | `false` | Every child takes an equal share along the direction (Figma: all children Fill container), for children that have no sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width="hug">`). A child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button never shrinks below its label). A column shares equally only when its height is Fixed or Fill (Buttons get taller); with only a maxHeight the children keep their content height and shrink once it caps; without a height they keep their content height. |
-| `padding` | `"none" \| ZenScaleInput \| "4xl"` | — | Space inside the stack (Figma Spacing/Padding). |
-| `paddingX` | `"none" \| ZenScaleInput \| "4xl"` | — | Horizontal padding (overrides `padding` on the sides). |
-| `paddingY` | `"none" \| ZenScaleInput \| "4xl"` | — | Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins. |
+| `padding` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — | Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone). |
+| `paddingX` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — | Horizontal padding (overrides `padding` on the sides). |
+| `paddingY` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — | Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
 | `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
@@ -106,7 +106,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `columnGap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | — |  |
 | `align` | `"start" \| "center" \| "end" \| "stretch"` | — | Vertical alignment of cells. Default stretch (equal-height cards). |
 | `stackBelow` | `number` | — | One column whenever the Grid itself is narrower than this many px — its own width, not the page's breakpoint: a two-column card that stacks in a narrow panel, a side panel or a phone-sized column. `columns` applies above it. |
-| `padding` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
+| `padding` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
 | `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
@@ -139,9 +139,9 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `radiusTopRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`. |
 | `radiusBottomRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`. |
 | `radiusBottomLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`. |
-| `padding` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
-| `paddingX` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
-| `paddingY` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
+| `padding` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
+| `paddingX` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
+| `paddingY` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
 | `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). |
 | `scroll` | `"x" \| "y"` | — | Figma "Overflow scrolling": `"y"` scrolls vertically, `"x"` sideways, inside the box (the scroll stays inside). |
 | `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md). |
@@ -168,7 +168,8 @@ Object shapes the props above refer to.
 
 ```ts
 type GridTracks = number | string
-type ZenPadding = "none" | ZenScaleInput | "4xl"
+type ZenMargin = "margin-comfortable" | "margin-compact"
+type ZenPadding = "none" | ZenScaleInput | "4xl" | ZenMargin
 type ZenScale = "3xs" | "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
 type ZenScaleInput = ZenScale | ZenScaleLong
 type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "large" | "xlarge" | "2xlarge" | "3xlarge"

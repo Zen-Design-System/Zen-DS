@@ -6,6 +6,14 @@ export const GAP_PX = [[0, "none"], [2, "3xs"], [4, "2xs"], [8, "xs"], [12, "sm"
 export const PADDING_PX = [[0, "none"], [2, "3xs"], [4, "2xs"], [8, "xs"], [12, "sm"], [16, "md"], [20, "lg"], [24, "xl"], [32, "2xl"], [40, "3xl"], [48, "4xl"]];
 export const LONG_TO_SHORT = { "3-xsmall": "3xs", "3xsmall": "3xs", "2-xsmall": "2xs", "2xsmall": "2xs", xsmall: "xs", small: "sm", medium: "md", large: "lg", xlarge: "xl", "2-xlarge": "2xl", "2xlarge": "2xl", "3-xlarge": "3xl", "3xlarge": "3xl", "4-xlarge": "4xl", "4xlarge": "4xl" };
 
+/**
+ * The page margins a padding may take (ZenPadding's ZenMargin; Figma Breakpoint & Grids, user 2026-10-17): the variable,
+ * and its px by the Screen's device (Desktop and Tablet modes, Mobile on a phone). figma-push.selftest checks these against
+ * tokens/source/figma/breakpoint-grids.json.
+ */
+export const MARGIN_VARIABLE = { "margin-comfortable": "Margin-Comfortable", "margin-compact": "Margin-Compact" };
+export const MARGIN_PX = { "margin-comfortable": { desktop: 24, tablet: 24, phone: 20 }, "margin-compact": { desktop: 20, tablet: 20, phone: 16 } };
+
 /** "medium" and "md" are one step; other values compare as they are. */
 export const sameValue = (a, b) => a === b || (typeof a === "string" && typeof b === "string" && (LONG_TO_SHORT[a] ?? a) === (LONG_TO_SHORT[b] ?? b));
 

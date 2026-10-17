@@ -9,7 +9,7 @@ import { spacingHover } from "../../select/spacingHover";
 import { matchOption } from "../propSchema";
 import { useInlineLabel } from "../Section";
 import { InspectorHostContext, InspectorSrcContext } from "./hostContext";
-import { pxText, scaleStep, stepKey, type TokenScale } from "./scale";
+import { isMarginKey, pxText, scaleStep, stepKey, type TokenScale } from "./scale";
 import "./controls.css";
 
 /*
@@ -102,13 +102,17 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   const extra = extras.find((item) => item.key === value);
   const matched = value === undefined ? undefined : extra ? extra.key : matchOption(value, options);
   const ladder = matched !== undefined && !extra && !options.includes(matched) ? [...options, matched] : options;
+  // The steps ↑/↓ walk and a measured px reads as; the page margins (Margin-Comfortable…) list after them, as Figma's
+  // variable list shows another collection's variables after the group's (user, 2026-10-17).
+  const steps = ladder.filter((key) => !isMarginKey(key));
+  const margins = ladder.filter(isMarginKey);
   const step = (key: string): { label: string; meta?: string } => {
     const extraItem = extras.find((item) => item.key === key);
     return extraItem ? { label: extraItem.label } : scaleStep(key, measure(host, scale, key));
   };
   const text = (key: string) => step(key).label;
   const documented = fallback !== undefined ? matchOption(fallback, ladder) : undefined;
-  const effective = (matched === undefined ? renderedKey(host, prop, scale, ladder, documented) : null) ?? documented ?? (ladder.includes("none") ? "none" : undefined);
+  const effective = (matched === undefined ? renderedKey(host, prop, scale, steps, documented) : null) ?? documented ?? (ladder.includes("none") ? "none" : undefined);
 
   // The canvas hover: the row under the pointer (or focused) in the open list, else the step the field shows.
   const shownKey = pending ?? matched ?? effective ?? null;
@@ -158,7 +162,7 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
       event.preventDefault();
       event.stopPropagation();
       const from = pending ?? (extra ? undefined : matched) ?? effective;
-      const next = stepKey(ladder, from, event.key === "ArrowUp" ? 1 : -1);
+      const next = stepKey(steps, from !== undefined && isMarginKey(from) ? undefined : from, event.key === "ArrowUp" ? 1 : -1);
       if (next !== undefined) setPending(next);
     } else if ((event.key === "Backspace" || event.key === "Delete") && matched !== undefined && onReset) {
       event.preventDefault();
@@ -201,7 +205,7 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
           if (action) action.run();
           else if (next !== matched) onSet(next);
         }}
-        options={[...actions.map((item) => ({ value: item.key, label: item.label })), ...extras.map((item) => ({ value: item.key, label: item.label })), ...ladder.map((key) => ({ value: key, ...step(key) }))]}
+        options={[...actions.map((item) => ({ value: item.key, label: item.label })), ...extras.map((item) => ({ value: item.key, label: item.label })), ...[...steps, ...margins].map((key) => ({ value: key, ...step(key) }))]}
       />
     </div>
   );
