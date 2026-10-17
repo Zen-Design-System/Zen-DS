@@ -107,6 +107,9 @@ export const Good = () => <>
   <PlatformPhone label="Voice"><Stack gap="md"><Card theme="flat" spacing="small"><VoiceRecorder state="ready" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} /></Card></Stack></PlatformPhone>
   <div><Card onClick={open} aria-label="Zen website"><Text>Zen website</Text></Card></div>
   <div><Card theme="pale" color="violet"><Text>Design hours</Text></Card></div>
+  <AppShell sidebar={null}><Card theme="subtle" color="cyan"><Text>Invoiced</Text></Card></AppShell>
+  <AppShell sidebar={null} canvas="alt"><Card theme="pale" color="cyan"><Text>Invoiced</Text></Card></AppShell>
+  <PlatformPhone label="Budget" canvas="alt"><MetricCard theme="pale" color="green" label="Saved" value="$1,240" /></PlatformPhone>
   <div><Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card></div>
   <div><Card theme="border" surface="flat"><Text>Hours this week</Text></Card></div>
   <div><Card theme="shadow" surface="alt"><Text>Outstanding</Text></Card></div>

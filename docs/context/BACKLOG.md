@@ -24,6 +24,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,
   Enter = all children, Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles,
   frame presets. Pointer: same doc §8.
+- **P2 · List-Box Subtle? (2026-10-17, for the user):** Card now has Theme=Subtle, the colour box on Canvas/Default
+  (session log "Card Theme=Subtle"). Component/List-Box still has only Pale. Should it get Subtle too, with the same
+  rule?
 - **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) for the user: should the
   searches built into mobile library components (Top-Navigation Mobile control bar, Bottom-Sheet search, the Input
   family's phone sheet) default to Rounded? Left at Default, since the rule is "recommend, don't force". (b) native

@@ -548,3 +548,25 @@ User: "tại sao shape lại là component? Shape chỉ nên được vẽ ra l�
 - Follow-up (user: "Chưa bỏ segmented dời chỗ đổi document và studio vào menu hả?"): main already had it from
   another session (the brand menu's Switch to Document / Switch to Studio), so the merge took main's version and
   dropped this session's parallel one (Open Document / Open Studio).
+## Card Theme=Subtle (tier M, session "Studio project theme customization"; user: "nên thêm rule nếu nền canvas là default thì Card không dùng pale mà dùng subtle", then chose "Thêm Theme=Subtle")
+- Figma (9nZv4uW2LT21yuHabMTCh1, Card 6643:51021):
+  - 20 variants Theme=Subtle (16195:138554 … 138668), cloned from Pale: the slot and the Sub-Action refs were restored,
+    and the tree signature matches its source.
+  - Fills bind Color/Background/Support/<Color>/Subtle. Active=Yes keeps Surface/Default.
+  - Neutral sits in column 4 beside Pale; the hues sit in new rows 13–14.
+  - The set's description now names Subtle (tools/figma-docs; Card added to FORCE). The old text is in "Description
+    backup 2026-10-17" on 🔒 ARCHIVED.
+- Code and tools:
+  - `cardThemes` gains `subtle`: `--zen-card-subtle` per hue plus the Effect/Overlay blur. A Subtle Accent draws Neutral,
+    as Pale does.
+  - Story `SubtleColors`; example "Colour on the grey canvas" (card page).
+  - Guideline source updated; the component-properties contract has Card Theme `Subtle`. Studio figmaProps and
+    variantSets were regenerated; figma-push and figma-metric map Subtle.
+- Harness `card/pale-on-canvas-default` (error, 210 rules). The canvas comes from the nearest AppShell or PlatformPhone
+  `canvas` (Default unless set), or from a painting ZenProvider; a box in between skips the check. Fixtures are
+  bad ×2 + good ×3, and the repo has 0 findings today.
+- Figma audit `theme/box-on-canvas`: Subtle is the colour family of Canvas/Default, and Pale there is told to use
+  Subtle. Also updated: screen-rules §1 and audit-rules.md (AI kit ✓).
+- Checks: tsc ✓, usage:selftest ✓, ai-kit:check ✓; tests/interaction/card-color 9/9 (Subtle fills and axe, Light and
+  Dark).
+- Open (BACKLOG P2, a question for the user): List-Box has Pale but no Subtle theme.
