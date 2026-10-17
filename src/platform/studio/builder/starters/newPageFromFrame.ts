@@ -4,6 +4,8 @@ import { loadEngine, zenComponents } from "../engine";
 import { freeId, putPage } from "../store/pageStore";
 import { snapshotFrame, type Snapshot } from "./snapshot";
 import { starterPage, starterTitle, type SnapNode } from "./toDialect";
+import { withHeaderProject } from "../store/pageModel";
+import { activeProjectId } from "../../project/activeProject";
 
 /*
  * "New page from this frame" (Studio builder GĐ3b M1, the canvas menu of an example or template frame): a builder page,
@@ -49,7 +51,9 @@ export async function pageFromSnapshot(shot: Snapshot, { title, from }: { title:
     return null;
   }
   const id = await freeId(title);
-  await putPage(id, text, { title });
+  // In a Studio project (the one open), the page is the project's from its first write (header `project`): set after
+  // it opened, the page's document, built from the first text, wrote it back without the project (2026-10-18).
+  await putPage(id, withHeaderProject(text, activeProjectId()), { title });
   openLocalPage(id);
   const notes = shot.notes.length > LISTED ? [...shot.notes.slice(0, LISTED), `${shot.notes.length - LISTED} more`] : shot.notes;
   const overlays = shot.overlays.length ? `${shot.overlays.length === 1 ? "1 overlay" : `${shot.overlays.length} overlays`} as Overlay frames (link their triggers in Prototype)` : null;

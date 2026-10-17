@@ -1425,7 +1425,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
@@ -1436,7 +1436,7 @@
           "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\" | \"accent\"",
           "required": false,
           "default": null,
-          "description": "Figma nested Card Color, for theme=\"pale\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card).",
+          "description": "Figma nested Card Color, for theme=\"pale\", \"subtle\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card).",
           "deprecated": null
         },
         {

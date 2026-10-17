@@ -37,15 +37,17 @@ export interface ChartSlice { id: string; label: string; value: number; color?: 
 export type ChartLegendPosition = "top" | "bottom" | "start" | "end";
 
 /** The Figma colour styles "Color Chart Sector/Primary … Septenary", in order: Chart/Sector/Primary, Chart/Sector/Secondary,
- *  Support Cyan, Violet, Yellow and Orange Solid, Support Red Soft. Figma paints chart marks with those styles. */
+ *  Support Cyan, Violet, Yellow and Orange Solid, Support Green Soft. Figma paints chart marks with those styles.
+ *  Sectors 3–7 read `--zen-chart-sector-tertiary … -septenary` first (a Zen Studio project's theme sets them; nothing in
+ *  tokens.css does), so an app without them gets exactly these colours. */
 export const chartPalette = [
   "var(--zen-chart-sector-primary, #ff66d4)",
   "var(--zen-chart-sector-secondary, #111)",
-  "var(--zen-color-background-support-cyan-solid, #21b8d8)",
-  "var(--zen-color-background-support-violet-solid, #7a5af8)",
-  "var(--zen-color-background-support-yellow-solid, #f5b800)",
-  "var(--zen-color-background-support-orange-solid, #f5832a)",
-  "var(--zen-color-background-support-red-soft, #ffc0af)",
+  "var(--zen-chart-sector-tertiary, var(--zen-color-background-support-cyan-solid, #21b8d8))",
+  "var(--zen-chart-sector-quaternary, var(--zen-color-background-support-violet-solid, #7a5af8))",
+  "var(--zen-chart-sector-quinary, var(--zen-color-background-support-yellow-solid, #f5b800))",
+  "var(--zen-chart-sector-senary, var(--zen-color-background-support-orange-solid, #f5832a))",
+  "var(--zen-chart-sector-septenary, var(--zen-color-background-support-green-soft, #acdaae))",
 ] as const;
 
 /** The colour of the series (or slice) at `index`: its own colour, else the palette in order. */
@@ -54,15 +56,16 @@ export const colourAt = (item: { color?: string } | undefined, index: number) =>
 /** The fade under an area, per palette slot (Figma Chart/Line-Chart's Trend and Chart/Area-Chart, 2026-10-14): a
  *  vertical gradient from a Solid colour at the area's highest point to its Subtle at the baseline, the whole area at 30%
  *  (chart.css). Figma binds Background/Accent, Background/Neutral and Background/Support/Cyan Solid → Subtle for the first
- *  three bands; the later slots fade their palette hue the same way (Red Soft → Red Subtle). */
+ *  three bands; the later slots fade their palette hue the same way (Green Soft → Green Subtle; a project's sector to its
+ *  `-subtle`). */
 export const chartFades = [
   ["var(--zen-color-background-accent-solid-default, #ff66d4)", "var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 12%))"],
   ["var(--zen-color-background-neutral-solid-default, #111)", "var(--zen-color-background-neutral-subtle-default, rgb(2 2 2 / 7%))"],
-  ["var(--zen-color-background-support-cyan-solid, #21b8d8)", "var(--zen-color-background-support-cyan-subtle, rgb(0 168 236 / 16%))"],
-  ["var(--zen-color-background-support-violet-solid, #7a5af8)", "var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%))"],
-  ["var(--zen-color-background-support-yellow-solid, #f5b800)", "var(--zen-color-background-support-yellow-subtle, rgb(245 184 0 / 16%))"],
-  ["var(--zen-color-background-support-orange-solid, #f5832a)", "var(--zen-color-background-support-orange-subtle, rgb(245 131 42 / 16%))"],
-  ["var(--zen-color-background-support-red-soft, #ffc0af)", "var(--zen-color-background-support-red-subtle, rgb(255 192 175 / 16%))"],
+  [chartPalette[2], "var(--zen-chart-sector-tertiary-subtle, var(--zen-color-background-support-cyan-subtle, rgb(0 168 236 / 16%)))"],
+  [chartPalette[3], "var(--zen-chart-sector-quaternary-subtle, var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%)))"],
+  [chartPalette[4], "var(--zen-chart-sector-quinary-subtle, var(--zen-color-background-support-yellow-subtle, rgb(245 184 0 / 16%)))"],
+  [chartPalette[5], "var(--zen-chart-sector-senary-subtle, var(--zen-color-background-support-orange-subtle, rgb(245 131 42 / 16%)))"],
+  [chartPalette[6], "var(--zen-chart-sector-septenary-subtle, var(--zen-color-background-support-green-subtle, rgb(172 218 174 / 16%)))"],
 ] as const;
 
 /** The fade of the series at `index`: the palette slot's Solid → Subtle, or a series' own `color` fading to 16% of itself

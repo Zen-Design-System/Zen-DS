@@ -58,10 +58,11 @@ export function toggleStudioTheme() {
   setStudioTheme(studioStore.getState().chromeTheme === "dark" ? "light" : "dark");
 }
 
-/** The data-* attributes that put a subtree in the preview modes (the world, the overlay portal, Present). */
-export function previewAttributes(preview: StudioPreviewSettings) {
+/** The data-* attributes that put a subtree in the preview modes (the world, the overlay portal, Present). `brand`: a
+ *  Studio project's Base Colors mode ("p-<id>", project/activeProject.ts), else Zen's. */
+export function previewAttributes(preview: StudioPreviewSettings, brand = "zen") {
   return {
-    "data-brand": "zen",
+    "data-brand": brand,
     "data-theme": preview.theme,
     "data-component-theme": preview.componentTheme,
     "data-density": preview.density,

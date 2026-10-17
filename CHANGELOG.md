@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Card `theme="subtle"` (2026-10-17, Figma Card Theme=Subtle, user: "nếu nền canvas là default thì Card không dùng
+  pale mà dùng subtle"): Support/<Color>/Subtle in the nine hues, the colour box on the grey Canvas/Default where a
+  Pale tint fades; Pale stays for white pages and imagery. New harness rule `card/pale-on-canvas-default` (error: a
+  Pale Card, MetricCard or ChartCard right on an AppShell, PlatformPhone or ZenProvider whose canvas is Default), the
+  Figma audit's `theme/box-on-canvas` asks for Subtle there, and Studio pushes and pulls the new theme.
 - Zen Studio drag and drop as in Figma (2026-10-17, user: "test hết mọi case kéo thả, kéo component vào mà không có
   box(frame) hoặc stack. Kéo top navigation vào rồi đặt lên top…", "kéo thả có smart guide"): a component dropped on a
   Screen with no Stack lands in it (the drop did nothing), and on a new page's Screen it goes into the page body; a Top or
@@ -96,6 +101,15 @@ removed (four unused colour ramps were, see Removed).
     follow it, ⌥⌘B detaches one; the Inspector names the component (rename, Create instance, Select instances, Swap,
     Go to main); violet outline and ◇ in Layers; Export writes one React function per component; Figma push makes a
     COMPONENT and its INSTANCEs.
+- Zen Studio projects (2026-10-17, user: "tạo dự án như Figma … set theme cho Dự án"): the Studio home is a projects
+  grid (Drafts + projects); New project and Project settings open a theme page — Primary and Neutral (a Zen ramp or any
+  colour, ramps made by the Zen Figma plugin's own generator), status colours, chart sectors 3–7, corner radius,
+  component theme, size, typography, emphasis — with a live gallery (Cards, Charts, Dashboard, Website, Components) in
+  Light, Dark or both. A project's theme is one extra Base Colors (Project) mode, `data-brand="p-<id>"`, kept in
+  `.zen-studio/projects/<id>/`; tokens/source and tokens.css do not change. Its pages (header `project`) draw in it.
+- Chart sectors 3–7 read `--zen-chart-sector-tertiary … -septenary` (and `-subtle` for fades) before today's colours,
+  so a Studio project can recolour them; without them nothing changes. The 7th sector is Support/Green/Soft again (it
+  had gone back to Red Soft; the Figma style "Color Chart Sector/Septenary" is Green Soft).
 - Search `shape` (2026-10-17, Figma Search/Default `Shape` = Default · Rounded): `shape="rounded"` is a pill
   (Corner-Radius/Rounded on the field, its focus ring and the filter affordance). Recommended, not required, for
   searches on phone screens; the platform's phone examples use it.

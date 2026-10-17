@@ -13,6 +13,7 @@ import { attachCanvas, canvasApi, compensateInset, FIRST_VISIT_MIN_ZOOM, notifyC
 import { CANVAS_STATUS_ID } from "./CanvasStatus";
 import { useKeepSelectionInView } from "./keepInView";
 import "./canvas.css";
+import { useCanvasPreview } from "../project/activeProject";
 
 /** Keys and controls that keep Space for themselves (a focused button presses on Space). */
 const SPACE_OWNERS = "input, textarea, select, [contenteditable]:not([contenteditable='false']), button, a[href], [role='button'], [role='tab'], [role='menuitem'], [role='option'], [role='switch'], [role='checkbox'], [role='radio'], [role='slider'], [role='spinbutton']";
@@ -70,7 +71,7 @@ function canScroll(element: Element, dx: number, dy: number) {
  */
 export function StudioCanvas({ label, viewKey, children }: { label: string; viewKey: string; children: ReactNode }) {
   const tool = useStudio((state) => state.tool);
-  const preview = useStudio((state) => state.preview);
+  const { preview, brand } = useCanvasPreview();
   const [viewport, setViewportElement] = useState<HTMLDivElement | null>(null);
   const [world, setWorld] = useState<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -312,7 +313,7 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
   return (
     <div ref={setViewportElement} className="studio-viewport" role="application" aria-roledescription="canvas" aria-label={label} aria-describedby={CANVAS_STATUS_ID} tabIndex={0} data-tool={tool}>
       <div ref={gridRef} className="studio-grid" aria-hidden="true" />
-      <div ref={setWorld} className="studio-world" {...previewAttributes(preview)}>
+      <div ref={setWorld} className="studio-world" {...previewAttributes(preview, brand)}>
         <PlatformTypographyContext value={preview.typography}>{children}</PlatformTypographyContext>
       </div>
       <SelectionLayer viewport={viewport} world={world} />

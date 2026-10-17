@@ -41,16 +41,17 @@
 //   list-box/footer-action-hug   error  a List-Box footer Button that hugs its label on a desktop or tablet screen
 //                                     (wider than 600px): it fills the box there and hugs only on mobile
 //   theme/box-on-canvas      error    a box (Card, List-Box) whose fill does not belong to the
-//                                     page's Canvas: Default → Surface/Default (Flat, Shadow, Border); Alt → Pale,
+//                                     page's Canvas: Default → Surface/Default (Flat, Shadow, Border) or, for colour,
+//                                     Subtle (a Pale box fades into the grey: user rule 2026-10-17); Alt → Pale,
 //                                     Surface/Default with a Pale border, Surface/Alt; Flat → Pale, Surface/Flat with a
 //                                     Pale border. No gradient box (Semi-Pale, Gradient): one box per row stands out
-//                                     with Solid or a Support/<Hue>/Subtle fill
+//                                     with Solid (or Subtle on a white page)
 //   theme/navigation-surface error    a header, Sidebar or top/bottom bar that does not match the Canvas (no fill, or
 //                                     the Surface of the Canvas's colour); only on Canvas/Default may the Sidebar or the
 //                                     Bottom-Navigation be a Surface/Default panel
 //   theme/mixed-elevation    error    a shadow on a Canvas/Alt or Canvas/Flat screen, or on Canvas/Default some of the
 //                                     Sidebar, bars and boxes cast one and others do not
-//   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale)
+//   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale, Subtle)
 //   theme/mode-override      error    a layer inside the screen (a component, card or frame) sets its own Light/Dark
 //                                     colour mode: only the screen frame does; a dark widget is Card Solid/Neutral
 //   theme/on-white-solid     error    text or an icon on a Background/White-Solid fill (white in Light and Dark mode)
@@ -414,19 +415,21 @@ async function checkThemePairing(root) {
     (shadow ? elevated : flat).push(box);
     // No gradient box (user, 2026-10-14: "Giữ solid, xoá gradient"): colour is Pale, a stand-out box Solid or Subtle.
     if (kind === "Gradient" || kind === "Semi-Pale") {
-      report("theme/box-on-canvas", ERROR, box, `${kind} box: no gradients, colour boxes are Pale; to stand out use Solid or a Support/<Hue>/Subtle fill`);
+      report("theme/box-on-canvas", ERROR, box, `${kind} box: no gradients, colour boxes are Pale (Subtle on Canvas/Default); to stand out use Solid`);
       continue;
     }
-    if (kind === "Subtle" || kind === "Solid" || kind === "Solid Neutral") continue; // a highlight widget, one per row (Card rules)
-    const family = kind === "Pale" ? kind : border ? "Border" : "Flat";
+    if (kind === "Solid" || kind === "Solid Neutral") continue; // a highlight widget, one per row (Card rules)
+    // Subtle is the colour box of Canvas/Default (user rule 2026-10-17); on a white page it is a stand-out widget.
+    if (kind === "Subtle" && canvas !== "Default") continue;
+    const family = kind === "Pale" || kind === "Subtle" ? kind : border ? "Border" : "Flat";
     families.add(family);
     const allowed = {
-      Default: kind === "Surface/Default",
+      Default: kind === "Surface/Default" || kind === "Subtle",
       Alt: kind === "Pale" || kind === "Surface/Alt" || (kind === "Surface/Default" && border),
       Flat: kind === "Pale" || (kind === "Surface/Flat" && border),
     }[canvas];
     if (!allowed) {
-      const fix = { Default: "Surface/Default (Theme Flat, Shadow or Border)", Alt: "Pale, Surface=Alt, or Theme=Border on Surface/Default", Flat: "Pale or Theme=Border with Surface=Flat" }[canvas];
+      const fix = { Default: kind === "Pale" ? "Theme=Subtle (Support/<Hue>/Subtle): a Pale box fades into the grey canvas" : "Surface/Default (Theme Flat, Shadow or Border), or Theme=Subtle for colour", Alt: "Pale, Surface=Alt, or Theme=Border on Surface/Default", Flat: "Pale or Theme=Border with Surface=Flat" }[canvas];
       report("theme/box-on-canvas", ERROR, box, `${kind}${border ? " with a border" : ""} on Canvas/${canvas}: use ${fix}`);
     }
   }

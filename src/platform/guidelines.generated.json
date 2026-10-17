@@ -4100,7 +4100,7 @@
       "KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).",
       "A selectable option with rich content (Active marks the choice).",
       "Framing a List or a group of settings (Border).",
-      "A dashboard widget in colour: Pale in any of the nine hues, or the one widget of a row that stands out (Solid)."
+      "A dashboard widget in colour: Subtle on the grey Canvas/Default, Pale on a white page, in any of the nine hues; or the one widget of a row that stands out (Solid)."
     ],
     "avoid": [
       "Page sections that are just spacing → layout, not a card.",
@@ -4113,17 +4113,17 @@
       [
         "Theme",
         "theme",
-        "shadow (default) · flat · border · pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet) · solid (the one widget of a row that stands out); semi-pale is deprecated and renders as pale"
+        "shadow (default) · flat · border · pale (colour on a white page: Canvas/Alt, Canvas/Flat) · subtle (colour on the grey Canvas/Default, Support/<Color>/Subtle; harness card/pale-on-canvas-default) · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet) · solid (the one widget of a row that stands out); semi-pale is deprecated and renders as pale"
       ],
       [
         "Color",
         "color",
-        "neutral (default) · brand · cyan · violet · green · yellow · orange · blue · purple · accent, for pale (Support/<Color>/Pale, the nine hues; Pale accent renders as Pale Neutral) and solid (neutral: Background/Neutral/Solid with Content/Inverse/* content; brand · cyan · orange: Support/<Color>/Solid with Content/On-Colors; yellow: with Content/On-Brights; accent: Background/Accent/Solid with Content/On-Accent; violet, green, blue and purple render as Solid Neutral, harness card/solid-color). Shadow, Flat, Border and On-Container ignore it (harness card/color-ignored). MetricCard and ChartCard pass it to their Card"
+        "neutral (default) · brand · cyan · violet · green · yellow · orange · blue · purple · accent, for pale and subtle (Support/<Color>/Pale or /Subtle, the nine hues; a Pale or Subtle accent renders as Neutral) and solid (neutral: Background/Neutral/Solid with Content/Inverse/* content; brand · cyan · orange: Support/<Color>/Solid with Content/On-Colors; yellow: with Content/On-Brights; accent: Background/Accent/Solid with Content/On-Accent; violet, green, blue and purple render as Solid Neutral, harness card/solid-color). Shadow, Flat, Border and On-Container ignore it (harness card/color-ignored). MetricCard and ChartCard pass it to their Card"
       ],
       [
         "Surface",
         "surface",
-        "default · alt · flat — Figma Surface per theme: alt on Flat and Border (Shadow on alt draws as Flat on Surface/Alt), flat on Border only (a Border card on a Canvas/Flat page); Pale, On-Container and Solid keep their own fill (harness card/surface-ignored). On a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default. ChartCard passes it to its Card"
+        "default · alt · flat — Figma Surface per theme: alt on Flat and Border (Shadow on alt draws as Flat on Surface/Alt), flat on Border only (a Border card on a Canvas/Flat page); Pale, Subtle, On-Container and Solid keep their own fill (harness card/surface-ignored). On a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default. ChartCard passes it to its Card"
       ],
       [
         "Spacing",
@@ -4166,7 +4166,7 @@
       "Put secondary card actions in the Sub-Action menu.",
       "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
       "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"border\" surface=\"flat\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
-      "Put colour on a box with theme=\"pale\" and a color (any of the nine hues, content stays neutral), e.g. a card per project or client on a white Canvas/Alt page.",
+      "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
       "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
       "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
       "On Brand, Cyan, Orange and Accent the white On-Colors text measures about 3:1: keep what you write there short and large (the number, a title), and put long or small text on another card.",
@@ -4177,6 +4177,7 @@
       "Don't nest cards inside cards.",
       "On a phone, don't leave three or more cards at Medium, or shrink a card on its own to Small.",
       "Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).",
+      "Don't put a Pale card on the grey Canvas/Default: it fades into the page; use theme=\"subtle\" (harness card/pale-on-canvas-default).",
       "Don't use Active as decoration; it means selected.",
       "Don't make a whole row Solid: one widget stands out, the rest share the row's theme.",
       "Don't set data-theme or a dark mode on one card to darken it: one page is one mode, and theme=\"solid\" color=\"neutral\" re-points only its content tokens.",
@@ -4185,7 +4186,7 @@
     "a11y": [
       "Clickable cards are one focusable role=button with a visible focus ring; static cards are plain containers.",
       "Keep reading order: title first, then meta.",
-      "Solid and Pale colours keep AA text contrast in light and dark: Strongest and Base text measure at least 4.5:1 on every Solid fill (a hue Solid reads Light as Base), and Pale tints keep Content/Neutral."
+      "Solid and Pale colours keep AA text contrast in light and dark: Strongest and Base text measure at least 4.5:1 on every Solid fill (a hue Solid reads Light as Base), and Pale and Subtle tints keep Content/Neutral."
     ],
     "content": [
       "Title first, then one line of meta.",
@@ -4218,7 +4219,7 @@
       {
         "id": "card/color-ignored",
         "severity": "warn",
-        "summary": "Card color is the Figma Color of theme=\"pale\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
         "allow": "card-color"
       },
       {
@@ -4232,6 +4233,12 @@
         "severity": "error",
         "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
         "allow": "card-color"
+      },
+      {
+        "id": "card/pale-on-canvas-default",
+        "severity": "error",
+        "summary": "On a Canvas/Default page (the grey canvas: AppShell and PlatformPhone unless their canvas says otherwise, a painting ZenProvider) a colour box is theme=\"subtle\" (Support/<Color>/Subtle): Pale fades into the grey. Pale is for white pages (Canvas/Alt, Canvas/Flat, a Surface screen) and imagery (user rule 2026-10-17).",
+        "allow": "card-pale-canvas"
       },
       {
         "id": "card/spacing-by-count",
@@ -5404,7 +5411,7 @@
       {
         "id": "card/color-ignored",
         "severity": "warn",
-        "summary": "Card color is the Figma Color of theme=\"pale\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
         "allow": "card-color"
       },
       {
@@ -5412,6 +5419,12 @@
         "severity": "error",
         "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
         "allow": "card-color"
+      },
+      {
+        "id": "card/pale-on-canvas-default",
+        "severity": "error",
+        "summary": "On a Canvas/Default page (the grey canvas: AppShell and PlatformPhone unless their canvas says otherwise, a painting ZenProvider) a colour box is theme=\"subtle\" (Support/<Color>/Subtle): Pale fades into the grey. Pale is for white pages (Canvas/Alt, Canvas/Flat, a Surface screen) and imagery (user rule 2026-10-17).",
+        "allow": "card-pale-canvas"
       },
       {
         "id": "card/spacing-by-count",
@@ -7146,7 +7159,7 @@
       [
         "Stack bar",
         "StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition",
-        "Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Red Soft); the column cut to Corner-Radius/Small"
+        "Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Green Soft); the column cut to Corner-Radius/Small"
       ],
       [
         "Donut",
@@ -7281,7 +7294,7 @@
       {
         "id": "card/color-ignored",
         "severity": "warn",
-        "summary": "Card color is the Figma Color of theme=\"pale\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
         "allow": "card-color"
       },
       {
@@ -7295,6 +7308,12 @@
         "severity": "error",
         "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
         "allow": "card-color"
+      },
+      {
+        "id": "card/pale-on-canvas-default",
+        "severity": "error",
+        "summary": "On a Canvas/Default page (the grey canvas: AppShell and PlatformPhone unless their canvas says otherwise, a painting ZenProvider) a colour box is theme=\"subtle\" (Support/<Color>/Subtle): Pale fades into the grey. Pale is for white pages (Canvas/Alt, Canvas/Flat, a Surface screen) and imagery (user rule 2026-10-17).",
+        "allow": "card-pale-canvas"
       },
       {
         "id": "chart/stack-needs-legend",
