@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, figmaOptions, groupsFromFigma, holds, isSetValue, placedProps, propGroupsOf } from "./propGroups.ts";
+import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, figmaOptions, groupsFromFigma, holds, isCodeProp, isSetValue, placedProps, propGroupsOf } from "./propGroups.ts";
 import { FIGMA_PROPS } from "./figmaProps.generated.ts";
 import { normalizeScale } from "../../../components/_shared/scale.ts";
 import { inheritedProps } from "./inheritedProps.ts";
@@ -89,14 +89,19 @@ for (const [name, entry] of Object.entries(FIGMA_PROPS)) {
   // Option names (GĐ4 M1): Figma's options first, in Figma's order and by Figma's names; the code value is what gets written.
   const match = (value, options) => (options.includes(value) ? value : options.find((option) => normalizeScale(option) === normalizeScale(value)) ?? value);
   const size = button.own.find((entry) => entryProp(entry) === "size");
-  check("Button size: Figma order and names, code-only last", figmaOptions(["2xs", "xs", "sm", "md", "lg", "xl"], entryOptions(size), match), {
-    options: ["xl", "lg", "md", "sm", "xs", "2xs"],
+  check("Button size: Figma's values only, in Figma order and names", figmaOptions(["2xs", "xs", "sm", "md", "lg", "xl"], entryOptions(size), match), {
+    options: ["xl", "lg", "md", "sm", "xs"],
     labels: { xl: "XLarge", lg: "Large", md: "Medium (Base)", sm: "Small", xs: "XSmall" },
   });
+  check("Button size: a code-only value shows while the layer holds it", figmaOptions(["2xs", "xs", "sm", "md", "lg", "xl"], entryOptions(size), match, "2xs").options, ["xl", "lg", "md", "sm", "xs", "2xs"]);
   check("Button set: named by the set's last part", entryOptions(button.own[0]), { main: "Main", flat: "Flat", overlay: "Overlay" });
   check("a Yes/No variant held as a boolean has no option names", entryOptions(groupsFromFigma(FIGMA_PROPS.Accordion).own.find((entry) => entryProp(entry) === "expanded")), undefined);
   check("SkeletonShape size keeps Figma's px names", entryOptions(groupsFromFigma(FIGMA_PROPS.SkeletonShape).own.find((entry) => entryProp(entry) === "size")).large, "Large - 48px");
   check("no option names: the options as they are", figmaOptions(["a", "b"], {}, match), { options: ["a", "b"], labels: {} });
+
+  // Code properties hold what only code reads; content and state stay with Figma's rows (user, 2026-10-17).
+  check("code props: HTML element, type, links, ids, aria, handlers", ["as", "type", "href", "id", "aria-label", "data-e2e", "onClick"].map(isCodeProp), [true, true, true, true, true, true, true]);
+  check("content and state are not code", ["title", "value", "label", "src", "disabled", "open", "name", "items", "online"].map(isCodeProp), [false, false, false, false, false, false, false, false, false]);
 
   // Nested layers (GĐ4 M1): an Input's Label and Help-Text groups, each while its text is set.
   const input = groupsFromFigma(FIGMA_PROPS.InputField);

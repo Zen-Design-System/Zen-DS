@@ -8,6 +8,7 @@ import { findBySrc } from "../select/picker";
 import { expectRender, renderedNow } from "../select/remap";
 import { familyKeyForPx, tokenPx } from "../select/spacing";
 import { canStructurallyEdit } from "../slots/actions";
+import { wrapSelection } from "../select/wrapSelection";
 import { flushStudioStore, studioStore } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 
@@ -155,3 +156,31 @@ export async function removeAutoLayout(selection: Extract<StudioSelection, { kin
   if (done) say("Auto layout removed: each layer keeps its place (X / Y)");
   return done;
 }
+
+const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
+/** "⌥⇧A" on Apple platforms, "Alt+Shift+A" elsewhere (Figma's Remove auto layout). */
+export const removeAutoLayoutShortcut = isMac ? "⌥⇧A" : "Alt+Shift+A";
+
+/** One frame without auto layout (a Box) on a page you made: Add auto layout turns it into auto layout itself. */
+export const isFrameWithoutAutoLayout = (selection: StudioSelection | null): selection is Extract<StudioSelection, { kind: "node" }> =>
+  selection?.kind === "node" && !selection.part && selection.name === "Box" && !multiSelection.get().length && Boolean(studioStore.getState().localPage);
+
+/** One auto layout frame (a Stack) on a page you made: Remove auto layout applies. */
+export const isAutoLayoutFrame = (selection: StudioSelection | null): selection is Extract<StudioSelection, { kind: "node" }> =>
+  selection?.kind === "node" && !selection.part && selection.name === "Stack" && !multiSelection.get().length && Boolean(studioStore.getState().localPage);
+
+/**
+ * Figma's Add auto layout (⇧A, the canvas menu, the Inspector's Auto layout +): a frame without auto layout takes it
+ * itself; any other layer, or several, go into a new auto layout frame laid out as they render.
+ */
+export function addAutoLayoutToSelection(): Promise<unknown> {
+  const selection = studioStore.getState().selection;
+  return isFrameWithoutAutoLayout(selection) ? addAutoLayout(selection) : wrapSelection("stack");
+}
+
+/** Figma's Remove auto layout (⌥⇧A, the canvas menu, the Inspector's Auto layout −) on the selected auto layout frame. */
+export function removeAutoLayoutFromSelection(): Promise<unknown> {
+  const selection = studioStore.getState().selection;
+  return isAutoLayoutFrame(selection) ? removeAutoLayout(selection) : Promise.resolve(false);
+}
+

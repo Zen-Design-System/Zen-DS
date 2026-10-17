@@ -564,3 +564,17 @@ User: "1. Khi tạo trang mới thì lỗi bottom nhảy lên trên. 2. User v�
 - Checks: studio:selftest ✓ (figma-push 284, figma-pull 76, ScaleField 11), E2E L-13 + layout/inspector/appearance 37/37,
   device + prototype 16/16, tsc, guidelines + ai-ui rebuilt. BACKLOG P2 classNames line: item (1) now per-side padding only.
 
+
+## Studio in Figma's words; Frame → auto layout (session "Figma-like freeform editing", tier M)
+User (pasted feedback): "props, component, cách thao tác, frame, autolayout y hệt figma … Còn dùng ngôn ngữ dev nhiều quá
+… Convert được Box(Frame) to Stack(auto layout)". Branch zen/feat/studio-figma-language-20261017 (worktree Zen-DS-figlang).
+- Frame → auto layout: edit/autoLayout.ts `addAutoLayoutToSelection` (a lone Box turns into a Stack in place, else wrap
+  in one as before) / `removeAutoLayoutFromSelection`; ⇧A / ⌥⇧A, canvas menu, Quick actions, SelectionActions and a
+  header-only "Auto layout +" section (LayoutSection) on a Box, "−" on a Stack's section.
+- Words: kindLabel(kind, name) → Frame / Auto layout / Text / Instance / Shape / Local component / Layer; spacing and
+  radius steps by their Figma names (controls/scale.ts tokenName; md is Base on radius, full Rounded) in ScaleField, the
+  canvas spacing pill and its menu ("Gap · None"); spacingWords (Horizontal padding…); figmaOptions keeps only the
+  values Figma's component has (a code-only value shows only while it is current).
+- Code properties: a closed `<details>` (inspector/CodeProperties.tsx, open state remembered) for the props Figma has
+  no property for: frames, text, shapes (DesignPanel) and a component's leftover props (GroupedProperties); Text `as`
+  moved there. E2E helper `openCodeProperties` (I-02, K-02); `scaleStep(key, scale)` reads the Figma name.

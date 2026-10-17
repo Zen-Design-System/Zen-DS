@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createComponent, createInstance, deleteMain, detachInstance, mainOfSelection } from "./edit/localComponents";
-import { addAutoLayout, removeAutoLayout } from "./edit/autoLayout";
+import { addAutoLayoutToSelection, removeAutoLayoutFromSelection } from "./edit/autoLayout";
 import { ZenPortalProvider } from "../../components/Portal";
 import { TabPanel, Tabs } from "../../components/Tabs";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
@@ -436,7 +436,7 @@ export function StudioApp() {
       // ⌥⇧A: Figma's Remove auto layout on a Stack (edit/autoLayout.ts): a Box, each layer where it shows.
       if (event.altKey && event.shiftKey && !mod && event.code === "KeyA" && !event.repeat && !inExample && state.tool === "select" && state.selection?.kind === "node" && !state.selection.part) {
         event.preventDefault();
-        if (state.selection.name === "Stack" && !multiSelection.get().length && state.localPage) void removeAutoLayout(state.selection);
+        void removeAutoLayoutFromSelection();
         return;
       }
       if (event.altKey || inExample) return;
@@ -500,8 +500,7 @@ export function StudioApp() {
         // on other layers it wraps them in a Stack laid out as they render (Figma's Add auto layout).
         if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && !state.selection.part) {
           event.preventDefault();
-          if (state.selection.name === "Box" && !multiSelection.get().length && state.localPage) void addAutoLayout(state.selection);
-          else void wrapSelection("stack");
+          void addAutoLayoutToSelection();
           return;
         }
         // …and on items of a list (one or several, Shift/⌘+click): a Sidebar's or Menu's go in a section of their own, a

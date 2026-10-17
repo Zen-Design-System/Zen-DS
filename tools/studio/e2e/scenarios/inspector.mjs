@@ -1,6 +1,6 @@
 // Inspector rows: every kind of property control writes the source it says, one undo step at a time.
 import { element, locOf } from "../lib/source.mjs";
-import { clickLoc, focusFrame, inspectorRow, rectOf, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickLoc, focusFrame, inspectorRow, openCodeProperties, rectOf, sleep, statusText, until } from "../lib/studio.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
@@ -49,8 +49,9 @@ export async function waitSeed(page, seed) {
 }
 
 /** Opens the select in an Inspector row and picks `label`: the option's whole name, or a RegExp (scaleStep). */
-/** A ScaleField step by its token: the row reads the token, then the pixels it measures ("md … 16px"). */
-export const scaleStep = (key) => new RegExp(`^${key}\\s*\\d+(\\.\\d)?px$`);
+/** A ScaleField step by its token, under its Figma name: the row reads the name, then the pixels it measures ("Medium … 16px"). */
+const STEP_NAMES = { none: "None", "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge" };
+export const scaleStep = (key, scale = "gap") => new RegExp(`^${(scale === "radius" && key === "md" ? "Base" : STEP_NAMES[key]) ?? key}\\s*\\d+(\\.\\d)?px$`);
 
 export async function pickOption(page, prop, label) {
   const row = inspectorRow(page, prop);
@@ -115,7 +116,12 @@ export const rows = [
       await sleep(300);
       await inspectorRow(page, "disabled").getByRole("switch").click();
       await expectSource(ctx, "btn-a", (el) => el.attr("disabled") === undefined, "disabled removed again");
-      return "on → disabled written, off → removed";
+      // What only code reads (the HTML button type) waits in Code properties, closed (user, 2026-10-17: Figma's panel).
+      const code = page.locator('#studio-right [data-e2e="code-properties"]').first();
+      if (await code.evaluate((el) => el.open)) throw new Error("Code properties open by default");
+      await openCodeProperties(page);
+      await inspectorRow(page, "type").waitFor({ state: "visible", timeout: 5000 });
+      return "on → disabled written, off → removed; Type in Code properties";
     },
   },
   {
@@ -183,10 +189,11 @@ export const rows = [
       await page.keyboard.press("Escape");
       await until(async () => (await inspectorRow(page, "gap").count()) > 0, { message: "the Stack's gap row" });
       const trigger = inspectorRow(page, "gap").locator("button").first();
-      // The field reads the token, its pixels beside the chevron (user, 2026-10-09: "token name + value", one line).
+      // The field reads the token under its Figma name, its pixels beside the chevron (user, 2026-10-09: "token name +
+      // value", one line; 2026-10-17: Figma's words).
       const smText = (await trigger.innerText()).trim();
       const px = (await inspectorRow(page, "gap").locator(".studio-scale__px").innerText()).trim();
-      if (smText !== "sm" || !/^\d+(\.\d)?$/.test(px)) throw new Error(`gap reads "${smText}" "${px}", not "sm <px>"`);
+      if (smText !== "Small" || !/^\d+(\.\d)?$/.test(px)) throw new Error(`gap reads "${smText}" "${px}", not "Small <px>" (Figma's name for sm)`);
       // Held: two key-downs (the second repeats), one release → sm → md → lg in one write.
       await trigger.focus();
       await page.keyboard.down("ArrowUp");

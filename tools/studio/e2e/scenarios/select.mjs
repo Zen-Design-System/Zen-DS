@@ -512,11 +512,11 @@ export const rows = [
       await page.mouse.move(a.x + a.width, a.y + a.height / 2);
       const pill = await until(async () => {
         const text = (await page.locator(".studio-selection__spacing-label").allInnerTexts()).join(" | ");
-        return /gap · none/.test(text) ? text : null;
-      }, { message: 'the "gap · none" pill on the seam' });
+        return /Gap · None/.test(text) ? text : null;
+      }, { message: 'the "Gap · None" pill on the seam' });
       await page.mouse.down();
       await page.mouse.up();
-      await page.getByRole("option", { name: /^xs\b/ }).click();
+      await page.getByRole("option", { name: /^XSmall\b/ }).click();
       await expectSource(ctx, "zero", (el) => el.attr("gap") === "xs", 'gap="xs"');
       return `seam "${pill}" → xs`;
     },

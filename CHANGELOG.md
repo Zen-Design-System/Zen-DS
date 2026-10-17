@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio speaks Figma (2026-10-17, user: "Còn dùng ngôn ngữ dev nhiều quá", "Convert được Box(Frame) to Stack(auto
+  layout)"): a Frame's Inspector has Figma's Auto layout "+" (⇧A adds auto layout to the Frame in place, ⌥⇧A or "−"
+  removes it), the canvas menu and Quick actions say Add auto layout / Remove auto layout / Frame selection; a layer reads
+  Frame, Auto layout, Text, Instance or Shape; property selects offer only the values Figma's component has, and spacing
+  and radius steps read Figma's names (Medium, XLarge, Base, Margin-Comfortable). Props Figma has no property for (HTML
+  element, Scroll, Html for…) wait in a closed "Code properties" section.
 - Padding takes the page margins (2026-10-17, user: "User vẫn chưa chọn được margin token cho padding khi thiết kế"):
   `padding` / `paddingX` / `paddingY` (and Form `inset`, layout insets) accept `margin-comfortable` (24, 20 on a phone) and
   `margin-compact` (20, 16 on a phone), Figma's Breakpoint & Grids margins, which follow the breakpoint (`ZenMargin`).

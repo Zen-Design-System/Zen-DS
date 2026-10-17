@@ -26,6 +26,16 @@ export function scaleOfType(type: string): TokenScale | null {
 export const MARGIN_TOKENS: Readonly<Record<string, string>> = { "margin-comfortable": "Margin-Comfortable", "margin-compact": "Margin-Compact" };
 export const isMarginKey = (key: string) => key in MARGIN_TOKENS;
 
+/**
+ * A step under the name its Figma variable has (user, 2026-10-17: Figma's words, not the code's): Spacing/Gap and
+ * Spacing/Padding Medium, XLarge…; Corner-Radius Base for md, Rounded for full. The code still writes the short key.
+ */
+const SPACING_NAMES: Readonly<Record<string, string>> = { none: "None", "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge", giant: "Giant", xgiant: "XGiant", "2xgiant": "2XGiant" };
+const RADIUS_NAMES: Readonly<Record<string, string>> = { ...SPACING_NAMES, md: "Base", full: "Rounded" };
+export function tokenName(key: string, scale: TokenScale | "card" = "gap"): string {
+  return MARGIN_TOKENS[key] ?? (scale === "radius" ? RADIUS_NAMES : SPACING_NAMES)[key] ?? key;
+}
+
 /** A px value as the canvas pills write it: whole pixels, else one decimal. */
 export const pxText = (px: number) => (Number.isInteger(px) ? String(px) : px.toFixed(1));
 
@@ -34,8 +44,8 @@ export const pxText = (px: number) => (Number.isInteger(px) ? String(px) : px.to
  * token on the left ("md"), the pixels it measures where the layer renders on the right ("16px"). The field shows the
  * token with its pixels beside it. A key with no measure ("full", or no element yet) has no value.
  */
-export function scaleStep(key: string, px: number | null): { label: string; meta?: string } {
-  const label = MARGIN_TOKENS[key] ?? key;
+export function scaleStep(key: string, px: number | null, scale: TokenScale = "gap"): { label: string; meta?: string } {
+  const label = tokenName(key, scale);
   if (key === "full" || px === null) return { label };
   return { label, meta: `${pxText(px)}px` };
 }
