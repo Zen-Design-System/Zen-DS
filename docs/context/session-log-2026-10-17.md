@@ -576,6 +576,11 @@ thành icon palette".
   - tsc ✓; studio selftests ✓ (project-theme 1664, projects-folder 13, pageModel 45); usage + style guard clean.
   - Playwright on a private :5191: create → home → page has `data-brand="p-…"`; settings round-trip; 390px stacks with
     no overflow.
+- Follow-up (user, 2026-10-18: "Không bấm tạo project được"):
+  - A new project now starts as "Untitled project" (2, 3…), with the name selected. Before, an empty name only showed
+    a small error under the field.
+  - Sync fix: a project only this browser has goes back up to the dev folder only if it was saved while no server
+    answered (pending). Before, a project trashed in another browser came back.
 - Follow-up (user: "Chưa bỏ segmented dời chỗ đổi document và studio vào menu hả?"): main already had it from
   another session (the brand menu's Switch to Document / Switch to Studio), so the merge took main's version and
   dropped this session's parallel one (Open Document / Open Studio).
