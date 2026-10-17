@@ -1640,6 +1640,29 @@ export default function Page() {
   ok("charts with data drawn say nothing about Figma's sample", !notes.some((note) => /StackBarChart|DonutChart/.test(note) && /sample data/.test(note)));
 }
 
+// The page margins as padding (ZenMargin, user 2026-10-17): a frame bound to Margin-Comfortable comes down as
+// padding="margin-comfortable" and goes up bound to it again, at the px of the Screen's device (24 desktop, 20 phone).
+{
+  const marginFrame = (width, px, variable) => ({ type: "FRAME", name: "Body", width, height: 600, layout: { mode: "VERTICAL", gap: 16, gapVar: "Spacing/Gap/Medium", padding: [px, px, px, px], paddingVar: variable, primary: "MIN", counter: "MIN", wrap: false }, children: [{ type: "TEXT", name: "Title", characters: "Body", textStyle: "Heading/3" }] });
+  for (const [width, device, comfortable, compact] of [[1440, "desktop", 24, 20], [390, "phone", 20, 16]]) {
+    for (const [key, variable, px] of [["margin-comfortable", "Margin-Comfortable", comfortable], ["margin-compact", "Margin-Compact", compact]]) {
+      const page = pageFromFigma(marginFrame(width, px, variable), { mapping }).text;
+      ok(`margin: ${variable} comes down as padding="${key}" (${device})`, page.includes(`padding="${key}"`));
+      const { frame } = push(page);
+      check(`margin: padding="${key}" goes up bound to ${variable} at ${px}px (${device})`, { paddingVar: frame.layout.paddingVar, padding: frame.layout.padding }, { paddingVar: variable, padding: [px, px, px, px] });
+    }
+  }
+  // The px table against the tokens: Breakpoint & Grids → Spacing/Padding → Global Dimensions.
+  const source = (file) => Object.values(JSON.parse(fs.readFileSync(new URL(`../../tokens/source/figma/${file}`, import.meta.url), "utf8")))[0].tokens;
+  const all = new Map([...source("breakpoint-grids.json"), ...source("spacing.json"), ...source("global-dimensions.json")].map((token) => [token.name, token]));
+  const resolve = (value, mode) => { const alias = /^\{(.+)\}$/.exec(String(value))?.[1]; if (!alias) return value; const token = all.get(alias); return resolve(token.valuesByMode[mode] ?? Object.values(token.valuesByMode)[0], mode); };
+  const { MARGIN_PX, MARGIN_VARIABLE } = await import("./figma-steps.mjs");
+  for (const [key, name] of Object.entries(MARGIN_VARIABLE)) {
+    const token = all.get(name);
+    check(`margin: ${name} px by device match the tokens`, MARGIN_PX[key], { desktop: resolve(token.valuesByMode.Desktop, "Desktop"), tablet: resolve(token.valuesByMode.Tablet, "Tablet"), phone: resolve(token.valuesByMode.Mobile, "Mobile") });
+  }
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

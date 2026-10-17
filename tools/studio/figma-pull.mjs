@@ -16,7 +16,7 @@
 //   node tools/studio/figma-pull.mjs page <part files…> [--title=…] [--file=<key>] [--out=<file.zen.tsx>] [--no-ids]
 //                                                              use_figma's answers → the page to import
 import { printPage } from "./doc.mjs";
-import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
+import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_VARIABLE, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
@@ -430,6 +430,11 @@ const TEXT_PROPS = /^(Label|Text|Title|Content)$/;
 
 /** A spacing step: from its variable's name ("Spacing/Gap/Medium" → md) or the nearest step to the px value. */
 function spacingStep(variable, px, table) {
+  // A padding bound to a page margin (Breakpoint & Grids › Margin-Comfortable…) stays that margin (ZenMargin).
+  if (variable && table === PADDING_PX) {
+    const margin = Object.keys(MARGIN_VARIABLE).find((key) => MARGIN_VARIABLE[key] === variable.split("/").pop().trim());
+    if (margin) return margin;
+  }
   if (variable) {
     const last = variable.split("/").pop().trim().toLowerCase().replace(/\s+/g, "-");
     const step = LONG_TO_SHORT[last] ?? last;

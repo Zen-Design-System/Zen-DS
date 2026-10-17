@@ -19,6 +19,13 @@ export function scaleOfType(type: string): TokenScale | null {
   return null;
 }
 
+/**
+ * The page margins a padding may take besides its ladder (ZenPadding's ZenMargin; Figma Breakpoint & Grids), under the
+ * names Figma's variable list gives them. They are not steps: ↑/↓ skip them and a px never reads as one.
+ */
+export const MARGIN_TOKENS: Readonly<Record<string, string>> = { "margin-comfortable": "Margin-Comfortable", "margin-compact": "Margin-Compact" };
+export const isMarginKey = (key: string) => key in MARGIN_TOKENS;
+
 /** A px value as the canvas pills write it: whole pixels, else one decimal. */
 export const pxText = (px: number) => (Number.isInteger(px) ? String(px) : px.toFixed(1));
 
@@ -28,8 +35,9 @@ export const pxText = (px: number) => (Number.isInteger(px) ? String(px) : px.to
  * token with its pixels beside it. A key with no measure ("full", or no element yet) has no value.
  */
 export function scaleStep(key: string, px: number | null): { label: string; meta?: string } {
-  if (key === "full" || px === null) return { label: key };
-  return { label: key, meta: `${pxText(px)}px` };
+  const label = MARGIN_TOKENS[key] ?? key;
+  if (key === "full" || px === null) return { label };
+  return { label, meta: `${pxText(px)}px` };
 }
 
 /** The key `steps` ladder steps from `from` (clamped to the ends); from an unknown key, the ladder's first or last. */

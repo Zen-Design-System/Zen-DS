@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
-import { gapValue, paddingValue, type ZenCornerRadius, type ZenGap, type ZenPadding } from "../_shared/scale";
+import { gapValue, paddingValue, type ZenCornerRadius, type ZenGap, type ZenMargin, type ZenPadding } from "../_shared/scale";
 import "./layout.css";
 import { layoutSizing, type LayoutSizingProps } from "./sizing";
 import { layoutPosition, type LayoutPositionProps } from "./position";
@@ -7,7 +7,7 @@ import { boxEffects, type BoxEffectProps } from "./effects";
 import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
 import { useMergedRefs } from "../_shared/merge-refs";
 
-export type { ZenCornerRadius, ZenGap, ZenPadding };
+export type { ZenCornerRadius, ZenGap, ZenMargin, ZenPadding };
 export { layoutAlignSelfValues, type LayoutAlignSelf, type LayoutSizing, type LayoutSizingProps, type LayoutWidthProps } from "./sizing";
 export { layoutConstraintsX, layoutConstraintsY, layoutPositions, positionPropNames, type LayoutConstraintX, type LayoutConstraintY, type LayoutPosition, type LayoutPositionProps } from "./position";
 export { boxEffectStyles, effectPropNames, type BoxEffectProps, type BoxEffectStyle } from "./effects";
@@ -62,7 +62,7 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
    * they keep their content height.
    */
   fillChildren?: boolean;
-  /** Space inside the stack (Figma Spacing/Padding). */
+  /** Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone). */
   padding?: ZenPadding;
   /** Horizontal padding (overrides `padding` on the sides). */
   paddingX?: ZenPadding;
