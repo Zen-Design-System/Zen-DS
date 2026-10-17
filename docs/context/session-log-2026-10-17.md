@@ -234,6 +234,11 @@ chưa đáp ứng là hình đính kèm. đảm bảo work trên dark và light 
   (variables probe), slot content frames carry the slot's corners/clip/limits (Stack-Bar columns were square); writer:
   fill along a hugging parent's main axis hugs (Dashboard's Export button was cut to "Expor"; the plugin collapses it to
   1px, not fixed there yet). Dashboard direct paste = its plugin import (346 frames, 405 instances, 174 texts).
+- Stack-Bar still square after the slot fix (user: "đã dán, cột vẫn vuông"): the column is a grid with the empty top
+  row first, so the slot's 8px corners only clipped empty space, in the paste and the plugin import alike. Owner fix in
+  `figma-charts.mjs`: the bar is its own `Stack` frame (radius 8 bound to Corner-Radius/Small, clip, Flex rows per
+  series) in the column's second row, as chart.css `.zen-chart__stack`. Fixture rewritten, selftests updated; QA paste
+  "Expenses (bar corners)" 16079:284368 shows rounded columns; the user re-pasted from Studio: "cột đã bo góc".
 
 ## Zen colour ramp re-sync (session 1d39f7fe) — tier XS
 User: "Update lại token màu của Zen trong global (chỉ dãy màu Zen)".

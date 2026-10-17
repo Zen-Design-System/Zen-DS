@@ -105,6 +105,8 @@ removed (four unused colour ramps were, see Removed).
   variables and styles (`tools/studio/figma-native.mjs`, Figma's own clipboard format; component skeletons in
   `docs/figma-contracts/native-pack.json`, rebuilt with `node tools/studio/native-pack.mjs`). The Expenses page pastes
   layer for layer like the plugin's import. Other files still paste through the Zen plugin.
+  Stack-Bar columns round their corners and clip their segments in both the paste and the plugin's import (the bar is
+  its own frame, Corner-Radius/Small; the slot's corners sat on the empty space above the bar, user: "cột vẫn vuông").
 - Studio → Figma import matches the page (2026-10-17, user: "Bản import ở figma và bản studio còn chưa chính xác"): a
   Metric-Card draws the page's sparkline, spark bars, goal and footer instead of Figma's sample; a ProgressBar fills its
   exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its

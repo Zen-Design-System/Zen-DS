@@ -16,6 +16,7 @@ sửa trong phiên này. Ảnh chụp ở scratchpad của phiên (`chart-audit/
 | Radial, Donut (code) | legend start/end: hộp vòng lấy bề rộng SVG (300px), legend bị ép, chữ xuống dòng | `chart.css`: hộp vòng bắt đầu ở cỡ vòng (`flex: 0 1 var(--zen-chart-size)`) |
 | Plugin import | lát cắt Donut mất nối tròn (vectorPaths đặt lại mitre) | plugin 275faae |
 | Dán thẳng | khung có bo góc ra vuông; cột Stack-Bar vuông (nội dung slot thiếu bo góc, clip của slot) | `figma-native.mjs`, `native-pack.mjs` |
+| Xuất Stack-Bar (dán thẳng và plugin) | cột vẫn vuông: góc bo của slot nằm trên hàng trống phía trên cột | `figma-charts.mjs`: cột là khung `Stack` riêng, bo Corner-Radius/Small, cắt nội dung |
 
 ## 2. Cần designer / user quyết
 
