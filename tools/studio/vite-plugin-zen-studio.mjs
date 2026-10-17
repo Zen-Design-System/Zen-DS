@@ -41,6 +41,8 @@ import { PAGES_DIR, PagesError, pagesFolder } from "./pages-folder.mjs";
 import { PROMOTE_DIR, planPromotion, typecheck, writePromotion } from "./promote.mjs";
 import { attachRelay, createRelay } from "./mcp/relay.mjs";
 import { MCP_PATH, studioMcp } from "./mcp/server.mjs";
+import { TOKENS_CSS, isTokenSource, variablesHost } from "./variables-host.mjs";
+import { VariableEditError } from "./variables.mjs";
 
 const PREFIX = "/__zen-studio";
 const ROLE_HEADER = "x-zen-studio-role";
@@ -74,6 +76,8 @@ export function zenStudio() {
 
   /* Admin drafts: repo-relative real path → { base, baseHash, content, updatedAt } (drafts.mjs). */
   const drafts = new Map();
+  /** The Variables window's side (variables-host.mjs): token sources drafted like any Studio file. */
+  const variables = variablesHost({ realRoot: () => realRoot, drafts });
   /** changedLines per draft object (a draft is replaced on every change, so the object is the cache key). */
   const lineCounts = new WeakMap();
   /** Per draft object: its content's AST and its line changes (frame-scope.mjs), for /frame-drafts. */
@@ -106,7 +110,13 @@ export function zenStudio() {
       if (process.env.VITEST || id.includes("?") || id.startsWith("\0")) return null;
       ensureRestored();
       if (!drafts.size) return null;
-      const draft = drafts.get(toPosix(path.relative(realRoot, id)));
+      const rel = toPosix(path.relative(realRoot, id));
+      // A token source with a draft: tokens.css as the build would write it, so the canvas shows the value at once.
+      if (rel === TOKENS_CSS) {
+        const css = variables.draftCss();
+        return css === null ? null : { code: css, map: null };
+      }
+      const draft = drafts.get(rel);
       return draft ? { code: draft.content, map: null } : null;
     },
     transform: {
@@ -229,13 +239,29 @@ export function zenStudio() {
         };
         return send(res, 200, detachPlan(content, url.searchParams.get("loc") ?? "", name, { file: target.rel, instances: count("instances"), lists: count("lists") }));
       }
-      if (route === "POST /edit" || route === "POST /write" || route === "POST /css-edit") {
+      if (route === "POST /edit" || route === "POST /write" || route === "POST /css-edit" || route === "POST /variable-edit") {
         checkWriteHeaders(req);
         // The body is read before the queue: a slow or abandoned upload never holds up other writes.
         const body = await readJson(req);
         const gone = watchClient(req, res);
-        const result = await exclusive(() => (route === "POST /edit" ? edit(body) : route === "POST /css-edit" ? cssEdit(body) : write(body)), gone);
+        const result = await exclusive(() => (route === "POST /edit" ? edit(body) : route === "POST /css-edit" ? cssEdit(body) : route === "POST /variable-edit" ? variableEdit(body) : write(body)), gone);
         return send(res, 200, result);
+      }
+      // The Variables window (variables-host.mjs): every collection with its drafts, and what Figma does not have yet.
+      if (route === "GET /variables") {
+        checkToken(req);
+        return send(res, 200, { ok: true, collections: variables.collections(sha1), figma: figmaSummary() });
+      }
+      if (route === "GET /variables/package") {
+        checkToken(req);
+        const { pkg, since } = variables.pending();
+        return send(res, 200, { ok: true, pkg, since });
+      }
+      if (route === "POST /variables/handed-over") {
+        checkWriteHeaders(req);
+        await readJson(req);
+        variables.handedOver();
+        return send(res, 200, { ok: true, figma: figmaSummary() });
       }
       if (route === "GET /drafts") {
         // Any role may list the drafts (a Viewer says that drafts are shown); the token keeps other pages out.
@@ -260,13 +286,20 @@ export function zenStudio() {
         // A library component's stylesheet: its disk text before the save, so the Figma check's "undo the save" can put it back.
         const { saved, conflicts, prior } = await exclusive(async () => {
           const before = frame ? new Map() : await priorStylesheets(files);
-          return { ...(await (frame ? saveFrame(frame) : save(files))), prior: before };
+          // Token sources: the disk text before this save, the base of what Figma still needs (variables-host.mjs).
+          const tokenPrior = new Map();
+          for (const file of frame ? [] : files ?? [...drafts.keys()]) if (isTokenSource(file) && drafts.has(file)) tokenPrior.set(file, await readDisk(file));
+          const result = await (frame ? saveFrame(frame) : save(files));
+          variables.keepBase(new Map([...tokenPrior].filter(([file, text]) => text !== null && result.saved.some((entry) => entry.file === file))));
+          return { ...result, prior: before };
         }, gone);
+        // Saved token sources: the token build and its check (tokens.css, generated.ts, the catalog, native packages).
+        const tokens = saved.some((entry) => isTokenSource(entry.file)) ? { ...(await variables.build()), figma: figmaSummary() } : null;
         // The harness runs outside the write queue: edits can go on while it checks the saved files.
-        const harness = await runHarness(saved.map((entry) => entry.file));
+        const harness = await runHarness(saved.map((entry) => entry.file).filter((file) => !isTokenSource(file)));
         // Then the Figma check of each saved component stylesheet runs in the background (Main component M3).
         const parity = startParity(saved, prior);
-        return send(res, 200, { ok: true, saved, conflicts, harness, parity });
+        return send(res, 200, { ok: true, saved, conflicts, harness, parity, ...(tokens ? { tokens } : {}) });
       }
       // Figma changed a binding → the CSS proposals (core rebuild Q5(1), tools/studio/binding-diff.mjs): read only, as
       // GET /source (writes go through POST /css-edit, which checks the token).
@@ -527,6 +560,43 @@ export function zenStudio() {
     }
     const draft = result.css !== before ? await setDraft(target, disk, result.css) : drafts.has(target.realRel);
     return { ok: true, file: target.rel, hash: sha1(result.css), hashBefore: sha1(before), before, after: result.css, changed: { from: result.line, to: result.line }, draft };
+  }
+
+  /**
+   * A Variables window change (variables-host.mjs, Figma's Local variables): ops on one collection of tokens/source/figma,
+   * into the file's draft, answered as /css-edit answers so the Studio's undo, history and status line take it.
+   */
+  async function variableEdit(body) {
+    const { file, ops, expectHash } = body ?? {};
+    if (!isTokenSource(file)) throw new HttpError("forbidden", `${file} is not a token source`);
+    const target = await resolveFile(file, true);
+    const disk = await readText(target.abs);
+    const before = drafts.get(target.realRel)?.content ?? disk;
+    if (typeof expectHash === "string" && sha1(before) !== expectHash) throw new HttpError("stale", `${target.rel} changed since it was read; not changed`);
+    let result;
+    try {
+      result = variables.edit(target.realRel, before, ops);
+    } catch (error) {
+      if (error instanceof VariableEditError) throw new HttpError(error.code === "conflict" ? "invalid" : error.code, error.message);
+      throw error;
+    }
+    const draft = result.text !== before ? await setDraft(target, disk, result.text) : drafts.has(target.realRel);
+    // The first line that differs: where the status line and the history record point.
+    const a = before.split("\n");
+    const b = result.text.split("\n");
+    let line = 0;
+    while (line < a.length && line < b.length && a[line] === b[line]) line += 1;
+    return { ok: true, file: target.rel, hash: sha1(result.text), hashBefore: sha1(before), before, after: result.text, changed: { from: line + 1, to: line + 1 }, draft, label: result.label, names: result.changed };
+  }
+
+  /** What Figma does not have yet, in short: how many changes, since when. */
+  function figmaSummary() {
+    try {
+      const { pkg, since } = variables.pending();
+      return { changes: pkg.changes.length, since };
+    } catch (error) {
+      return { changes: 0, since: null, error: String(error?.message ?? error) };
+    }
   }
 
   /* ── Figma check after a component stylesheet is saved (Main component M3, tools/studio/parity.mjs) ─────────── */
@@ -901,7 +971,8 @@ export function zenStudio() {
    */
   function reloadFile(rel) {
     if (!devServer) return;
-    const file = toPosix(path.join(realRoot, rel));
+    // A token source has no module of its own: the page reads it through tokens.css (built from the drafts by `load`).
+    const file = toPosix(path.join(realRoot, isTokenSource(rel) ? TOKENS_CSS : rel));
     try {
       const env = devServer.environments?.client;
       const graph = env?.moduleGraph ?? devServer.moduleGraph;
@@ -929,7 +1000,7 @@ export function zenStudio() {
   }
 
   /** A draft key from a persisted file: a normalised repo-relative path of an annotated file. */
-  const draftable = (file) => typeof file === "string" && !file.includes("\\") && !file.includes("\0") && path.posix.normalize(file) === file && !path.posix.isAbsolute(file) && file.startsWith("src/") && (isAnnotatedFile(file) || isDataFile(file) || isComponentCss(file));
+  const draftable = (file) => typeof file === "string" && !file.includes("\\") && !file.includes("\0") && path.posix.normalize(file) === file && !path.posix.isAbsolute(file) && ((file.startsWith("src/") && (isAnnotatedFile(file) || isDataFile(file) || isComponentCss(file))) || isTokenSource(file));
 
   /** Loads this server's persisted drafts (once). A missing file means no drafts; an unreadable one is moved aside. */
   function ensureRestored() {
@@ -1075,11 +1146,14 @@ export function zenStudio() {
   async function resolveFile(rel, forEdit) {
     if (typeof rel !== "string" || !rel || rel.includes("\0") || rel.includes("\\")) throw new HttpError("invalid", "Missing or malformed `file`");
     if (path.posix.normalize(rel) !== rel || path.posix.isAbsolute(rel)) throw new HttpError("forbidden", `${rel} is not a normalised repo-relative path`);
-    if (!rel.startsWith("src/")) throw new HttpError("forbidden", `${rel} is outside src/`);
+    // The token sources (tokens/source/figma/*.json) are the one place outside src/: the Variables window edits them
+    // (POST /variable-edit, then undo through /write; variables-host.mjs).
+    const tokenSource = isTokenSource(rel);
+    if (!rel.startsWith("src/") && !tokenSource) throw new HttpError("forbidden", `${rel} is outside src/`);
     // Data files (examples/data.ts, a template's data) take the edits a value's source gets (op setDataField, then undo).
     // A library component's stylesheet takes token edits only (POST /css-edit, then undo through /write).
-    if (forEdit && !isAnnotatedFile(rel) && !isDataFile(rel) && !isComponentCss(rel)) throw new HttpError("forbidden", `${rel} is not an editable example source`);
-    const srcDir = path.join(root, "src");
+    if (forEdit && !isAnnotatedFile(rel) && !isDataFile(rel) && !isComponentCss(rel) && !tokenSource) throw new HttpError("forbidden", `${rel} is not an editable example source`);
+    const srcDir = path.join(root, tokenSource ? "tokens/source/figma" : "src");
     const abs = path.resolve(root, rel);
     if (!abs.startsWith(srcDir + path.sep)) throw new HttpError("forbidden", `${rel} is outside src/`);
     let real;
@@ -1091,10 +1165,10 @@ export function zenStudio() {
       throw new HttpError("not-found", `${rel} does not exist`);
     }
     const realRel = toPosix(path.relative(realRoot, real));
-    if (!realRel.startsWith("src/") || realRel.startsWith("../") || path.isAbsolute(realRel)) throw new HttpError("forbidden", `${rel} resolves outside src/`);
+    if (!(realRel.startsWith("src/") || (tokenSource && realRel === rel)) || realRel.startsWith("../") || path.isAbsolute(realRel)) throw new HttpError("forbidden", `${rel} resolves outside src/`);
     if (forEdit) {
       if (realRel !== rel) throw new HttpError("forbidden", `${rel} is a link or a differently-cased path (the file is ${realRel})`);
-      if (!isAnnotatedFile(realRel) && !isDataFile(realRel) && !isComponentCss(realRel)) throw new HttpError("forbidden", `${realRel} is not an editable example source`);
+      if (!isAnnotatedFile(realRel) && !isDataFile(realRel) && !isComponentCss(realRel) && !tokenSource) throw new HttpError("forbidden", `${realRel} is not an editable example source`);
     }
     // realRel keys the drafts (a read may name the file by another spelling).
     return { rel, realRel, abs: real };

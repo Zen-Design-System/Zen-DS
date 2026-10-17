@@ -79,3 +79,9 @@
 /* ── Columns (Grid): mode, then the field; a track list gets a proportional preview ── */
 .studio-columns__tracks { display: flex; min-width: 0; height: var(--zen-spacing-gap-xsmall, 8px); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-columns__track { min-width: 0; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-background-neutral-subtle-default); }
+
+/* ── Figma's number field (ScrubNumberField): the leading mark scrubs the value ── */
+.studio-scrub-field { display: flex; min-width: 0; }
+.studio-scrub-field > .zen-input-field { width: 100%; min-width: 0; }
+.studio-scrub-field__label { display: inline-flex; min-width: var(--zen-element-size-popular-small, 16px); justify-content: center; color: var(--zen-color-content-neutral-base); cursor: ew-resize; touch-action: none; user-select: none; }
+.studio-scrub-field__label[data-disabled] { cursor: default; }

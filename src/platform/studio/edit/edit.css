@@ -46,6 +46,8 @@
 .studio-drag__line { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; }
 .studio-drag__into { box-shadow: inset 0 0 0 1px var(--zen-color-border-info-solid-default); }
 .studio-drag__line { border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
+/* A free move's smart guides: Figma's red lines where an edge or centre meets another's. */
+.studio-drag__guide { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; background: var(--zen-color-border-negative-solid-default); }
 .studio-drag__label {
   position: absolute;
   top: 0;

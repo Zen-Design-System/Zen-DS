@@ -1,0 +1,32 @@
+/* Figma's arc handles on a selected ellipse (ArcHandles.tsx), in the selection layer's px: small white dots ringed in
+   the selection blue, above the resize handles; the value pill follows the pointer while one is dragged. */
+.studio-arc__handle {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  width: var(--zen-spacing-gap-xsmall, 8px);
+  height: var(--zen-spacing-gap-xsmall, 8px);
+  margin: calc(var(--zen-spacing-gap-xsmall, 8px) / -2) 0 0 calc(var(--zen-spacing-gap-xsmall, 8px) / -2);
+  border: 1px solid var(--zen-color-border-info-solid-default);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-color-background-white-solid-default);
+  cursor: crosshair;
+  pointer-events: auto;
+  touch-action: none;
+}
+.studio-arc__handle:hover, .studio-arc__handle[data-active] { background: var(--zen-color-background-info-solid-default); }
+.studio-arc__pill {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-default);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+  translate: var(--zen-spacing-gap-small, 12px) var(--zen-spacing-gap-small, 12px);
+}

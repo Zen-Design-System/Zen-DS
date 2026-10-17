@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Self-test of the builder page dialect (tools/studio/dialect.mjs). Run: node tools/studio/dialect.selftest.mjs
-import { jsxText, newPageText, pageHeader, parsePage, validateDialect } from "./dialect.mjs";
+import { jsxText, localComponents, newPageText, pageHeader, parsePage, validateDialect } from "./dialect.mjs";
 
 const failures = [];
 let passed = 0;
@@ -90,6 +90,34 @@ check("a hook in the page", /only returns its <Board>/.test(messages(page.replac
 check("no header", /page header/.test(messages(page.replace(/^.*\n/, "")).join("|")), true);
 check("screen id", /needs an id/.test(messages(broken("<Text>a</Text>").replace('id="s"', 'id="Bad Id"')).join("|")), true);
 check("jsxText", [jsxText("\n   a  \n  b\n"), jsxText("  lead"), jsxText("a\tb")], ["a b", "  lead", "a b"]);
+
+// Page-local components (Figma's main components and instances, 2026-10-17).
+const withComponents = (body) => `// @zen-page {"format":1,"title":"x"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { Button, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="x">
+        <Stack>
+          ${body}
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+const good = withComponents('<Component id="cta" name="Call to action"><Button>Buy</Button></Component>\n          <Use of="cta" />');
+check("components: a main and its instance", messages(good), []);
+check("components: localComponents", localComponents(parsePage(good, { components })).map((main) => [main.id, main.name, main.root?.name]), [["cta", "Call to action", "Button"]]);
+check("components: an unknown instance", /names no component/.test(first(withComponents('<Use of="nope" />'))), true);
+check("components: two layers in a main", /exactly one layer/.test(first(withComponents('<Component id="a" name="A"><Text>a</Text><Text>b</Text></Component>'))), true);
+check("components: a repeated id", /share the id/.test(first(withComponents('<Component id="a" name="A"><Text>a</Text></Component><Component id="a" name="B"><Text>b</Text></Component>'))), true);
+check("components: an instance inside its main", /inside its own component/.test(first(withComponents('<Component id="a" name="A"><Stack><Use of="a" /></Stack></Component>'))), true);
+check("components: a bad id", /needs an id/.test(first(withComponents('<Component id="A b" name="A"><Text>a</Text></Component>'))), true);
 
 if (failures.length) {
   console.error(`dialect selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

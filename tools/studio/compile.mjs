@@ -15,7 +15,7 @@
 //   key)` names each); `media` lists them.
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
-import { SCREEN_CHROME, parsePage, screenLayout } from "./dialect.mjs";
+import { SCREEN_CHROME, eachElement, localComponents, parsePage, screenLayout } from "./dialect.mjs";
 import { literalProp, objectFields, opensItself, requiredFunctions, standInKind } from "./standins.mjs";
 import { pruneHidden } from "./visibility.mjs";
 
@@ -251,6 +251,15 @@ function knownFieldsOnly(node) {
 
 /** An element; `extra`: [name, code] props written first (a list row's key, an overlay's open state). */
 function elementCode(node, ctx, indent, extra = []) {
+  // A page-local component (Figma's main, <Component>) and its instances (<Use>) are calls of its function (compileReact
+  // writes one per main, named from its name).
+  if (node.name === "Component" || node.name === "Use") {
+    const id = String(literalOf(node, node.name === "Component" ? "id" : "of") ?? "");
+    const local = ctx.locals?.get(id);
+    if (!local) return "{null}";
+    ctx.localUsed.add(id);
+    return `<${local.fn} />`;
+  }
   ctx.components.add(node.name.split(".")[0]);
   const inner = indent + UNIT;
   for (const [name, value] of Object.entries(node.props)) {
@@ -333,6 +342,20 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   const overlays = frames.filter((node) => node.name === "Overlay");
   if (!screens.length) return { error: "The page has no Screen" };
   const ctx = createContext(mediaFile, page.mock ?? {});
+  // Page-local components: one function each, named from the component's name (a name a layer of the page already uses
+  // takes "Block"; a repeat takes a number).
+  const taken = new Set([name]);
+  eachElement(page.board, (node) => taken.add(node.name.split(".")[0]));
+  ctx.locals = new Map();
+  ctx.localUsed = new Set();
+  for (const main of localComponents(page)) {
+    if (!main.id || !main.root) continue;
+    let fn = componentName(main.name);
+    if (taken.has(fn)) fn = `${fn}Block`;
+    for (let n = 2; taken.has(fn); n += 1) fn = `${componentName(main.name)}${n}`;
+    taken.add(fn);
+    ctx.locals.set(main.id, { fn, root: main.root, name: main.name });
+  }
   const ids = [...new Set(screens.map((node) => String(literalOf(node, "id"))))];
   const states = [...new Set(screens.map((node) => literalOf(node, "state")).filter((state) => typeof state === "string"))];
   const hasMock = page.mock && Object.keys(page.mock).length > 0;
@@ -409,6 +432,20 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     return [comment, `${body}{screen === ${json(branch.id)} && (\n${inner}${branchCode(branch, inner)}\n${body})}`];
   });
 
+  // Each main component the page draws, as a function (its layers once; every instance calls it). A main can hold
+  // instances of another: until no new one shows up.
+  const localLines = [];
+  const written = new Set();
+  for (let pending = [...ctx.localUsed]; pending.length; pending = [...ctx.localUsed].filter((id) => !written.has(id))) {
+    for (const id of pending) {
+      written.add(id);
+      const local = ctx.locals.get(id);
+      if (!local) continue;
+      ctx.frame = `component:${id}`;
+      localLines.push(`/** ${local.name.replace(/\*\//g, "* /")} (a component of the design: its instances call it). */`, `function ${local.fn}() {`, "  return (", `    ${elementCode(local.root, ctx, "    ")}`, "  );", "}", "");
+    }
+  }
+
   const usesState = many || overlays.length > 0 || ctx.uses.has("overlay") || ctx.uses.has("navigate") || ctx.uses.has("back");
   const screenType = `${name}Screen`;
   const overlayType = `${name}Overlay`;
@@ -442,6 +479,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   if (hasMock) propLines.push("  /** The page's data (default: the design's sample data). */", `  data?: ${mockType};`);
   lines.push(propLines.length ? `export type ${propsType} = {\n${propLines.join("\n")}\n};` : `export type ${propsType} = Record<string, never>;`);
   lines.push("");
+  lines.push(...localLines);
   if (ctx.handlers.length) {
     lines.push("/*");
     lines.push(" * TODO(dev): the design's interactions, to wire to the app:");

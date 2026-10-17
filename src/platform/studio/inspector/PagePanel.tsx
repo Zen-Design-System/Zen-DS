@@ -11,6 +11,7 @@ import { focusFrame, frameIcon, useFrames } from "./frames";
 import { InspectorFields, InspectorItem, InspectorSection } from "./Section";
 
 import { openExport } from "../builder/export/exportState";
+import { openVariables } from "../variables/variablesState";
 import { pagesPersist, renamePage, setPageOs, usePage, useStorage } from "../builder/store/pageStore";
 import { headerOs } from "../builder/store/pageModel";
 import { Segmented } from "../../../components/Segmented";
@@ -97,6 +98,12 @@ export function PagePanel() {
           <InspectorFields name="os" labels={["Mobile OS"]} fields={[<PageOs key="os" id={localPage} text={builderPage.text} />]} />
         </InspectorSection>
       ) : null}
+      {/* Figma's right panel with nothing selected: Local variables opens the Variables window (the Zen tokens). */}
+      <InspectorSection title="Variables">
+        <div className="studio-inspector__actions">
+          <Button level="tertiary" size="sm" startIcon="icon-hexagon-01-line" onClick={openVariables}>Local variables</Button>
+        </div>
+      </InspectorSection>
       {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here. */}
       <InspectorSection title="Preview modes">
         <p className={`studio-inspector__summary ${typographyStyles["Body/Small/Regular"]}`}>{summary}</p>

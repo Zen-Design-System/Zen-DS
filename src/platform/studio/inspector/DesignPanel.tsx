@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
+import { ComponentSection } from "./ComponentSection";
+import { layerName, objectIcon } from "../select/layerNames";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
@@ -33,6 +35,7 @@ import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from 
 import { componentGroupsOf } from "./componentGroups";
 import { hasIdleNotes, idleNotes } from "./computedDefaults";
 import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection } from "../appearance/AppearanceSection";
+import { ShapeSections, shapePropNames } from "../appearance/ShapeSections";
 import { NestedProperties } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
@@ -634,13 +637,15 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const sizing = hasSizing(name);
   const sizingSpecs = sizing ? specs.filter((spec) => sizingPropNames.has(spec.name)) : [];
   // position, constraintX/Y and inset* of Stack, Grid and Box go to the Position section (ActionBar keeps its own position).
-  const positioned = ["Stack", "Grid", "Box"].includes(name);
+  const positioned = ["Stack", "Grid", "Box", "Shape"].includes(name);
   const positionSpecs = positioned ? specs.filter((spec) => (positionProps as readonly string[]).includes(spec.name)) : [];
   const layoutSpecs = isLayout ? specs.filter((spec) => isLayoutProp(name, spec.name) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec)) : [];
   const textSpecs = isText ? specs.filter((spec) => textProps.has(spec.name)) : [];
   // Box fill, border, corners and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.
   const appearanceSpecs = specs.filter((spec) => (appearancePropNames[name] ?? []).includes(spec.name));
-  const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec));
+  // A shape's Arc, Count, Appearance, Fill and Stroke (Figma UI3's shape panel); its rotation is in Position.
+  const shapeSpecs = name === "Shape" ? specs.filter((spec) => shapePropNames.includes(spec.name) || spec.name === "rotation") : [];
+  const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec) && !shapeSpecs.includes(spec));
   // Object and array literals written in place (leading={{ … }}, trailing={[{ … }]}): edited field by field below the rows.
   const shapedProps: ShapedProp[] = propertySpecs.flatMap((spec) => {
     const attr = element?.attributes.filter((attribute) => attribute.kind === "expression" && attribute.name === spec.name).at(-1);
@@ -650,7 +655,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // A component whose JSX children are a content slot lists them in the Slots section, not again under Content.
   const childrenInSlots = Boolean(slotOf(name, "children"));
   const documented = new Set(specs.map((spec) => spec.name));
-  const otherAttributes = (element?.attributes ?? []).filter((attr): attr is SourceAttr => attr.kind !== "spread" && !documented.has(attr.name) && !isSkippedProp(attr.name));
+  // An instance's `of` is its component (ComponentSection), not a loose attribute.
+  const otherAttributes = (element?.attributes ?? []).filter((attr): attr is SourceAttr => attr.kind !== "spread" && !documented.has(attr.name) && !isSkippedProp(attr.name) && !(name === "Use" && (attr.name === "of" || attr.name === "overrides")));
   const spreads = (element?.attributes ?? []).filter((attr) => attr.kind === "spread");
   const texts = (element?.children ?? []).flatMap((child) => (child.kind === "text" && child.value.trim() ? [child] : []));
   const expressions = (element?.children ?? []).flatMap((child) => (child.kind === "expression" ? [child] : []));
@@ -728,6 +734,11 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
 
   // Header (option B): title row, then labelled rows (Type, Docs, Used in, Repeats) and, for a detachable type, Detach.
   const kind = nodeKind(name);
+  // Its icon as the Layers row's (a shape's own, a frame's #, text's T); the component colour only for a component: a
+  // Zen instance or one the person made (⌥⌘K), never a drawn object (user, 2026-10-17).
+  const headProps: Record<string, unknown> = { ...selectedHit(selection)?.props, type: element?.attributes.find((attr) => attr.kind === "string" && attr.name === "type")?.value };
+  const headComponent = kind === "zen" || kind === "local" || Boolean(headProps["data-zen-main"] || headProps["data-zen-instance"]);
+  const headIcon = objectIcon(name, headProps) ?? (headComponent ? "icon-cube-line" : "icon-code-02-line");
   const slug = kind === "zen" || kind === "primitive" ? componentSlug(name) : null;
   const docsPage = slug && slug in pageLabels && slug !== currentPage ? (slug as PlatformPage) : null;
   // The link names no file: "Show code" (the Code tab has the line; plan criterion 7). A Studio page's own file is no
@@ -804,9 +815,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
           layer the panel reads (file:line:col), for tools; the screen says "Show code". */}
       <header className="studio-inspector__head-block" data-inspector-src={selection.src}>
         <div className="studio-inspector__title-row">
-          <span className="studio-inspector__kind-icon" data-component={isComponent || undefined} aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
+          <span className="studio-inspector__kind-icon" data-component={headComponent || undefined} aria-hidden="true"><Icon name={headIcon} size={16} /></span>
           {/* Cut to one line: its full name on hover. */}
-          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{name}</Heading>
+          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{layerName(name, headProps)}</Heading>
           {repeats ? (
             <span className={`studio-inspector__count ${typographyStyles["Body/Small/Medium"]}`} title={repeats}>
               <span aria-hidden="true">{`×${instances}`}</span>
@@ -897,6 +908,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         </p>
       ) : null}
 
+      {/* A page's own component (Figma UI3 puts it first): the main's name and actions, or the instance's component. */}
+      {element && /^local:/.test(element.file) ? <ComponentSection selection={selection} disabled={api.disabled} /> : null}
       {/* Figma UI3 order: Position (Ignore auto layout, constraints), then Layout, then Properties. */}
       {element ? <PositionSection selection={selection} element={element} api={api} component={name} /> : null}
 
@@ -904,6 +917,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {layoutSection}
 
       {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} /> : null}
+      {element && shapeSpecs.length ? <ShapeSections api={api} specs={shapeSpecs} host={sourceHost(selection)} /> : null}
       {element && name === "Box" ? <EffectsSection api={api} src={selection.src} /> : null}
       {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}
 

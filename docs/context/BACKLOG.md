@@ -7,6 +7,25 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
+  (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
+  (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
+  rule gives Zen black text on step 9. Shown by ai-ui › "Follow-ups edit, not rebuild" (Schedule). Pointer:
+  tokens/source/figma/base-colors-project.json Light/On-Brand-Default, Figma Base Colors (Project).
+- **P2 · Studio Variables v2 (2026-10-17):** v1 is built (branch zen/feat/studio-variables-20261017: Local variables
+  window, edit / alias / create / rename / duplicate / delete, drafts + live tokens.css, Save builds the tokens, Copy for
+  Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
+  variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
+  frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
+- **P2 · Studio components v2 (2026-10-17):** v1 is built (⌥⌘K, instances, Go to main, Detach, swap, React export,
+  push to Figma). Open: instance overrides (text, visibility) + Reset all changes, component properties, variants, pull of
+  local components from Figma. Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §9.
+- **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 5 examples; not covered yet: states,
+  edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
+  `src/platform/examples/pages/shape.tsx`.
+- **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,
+  Enter = all children, Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles,
+  frame presets. Pointer: same doc §8.
 - **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) for the user: should the
   searches built into mobile library components (Top-Navigation Mobile control bar, Bottom-Sheet search, the Input
   family's phone sheet) default to Rounded? Left at Default, since the rule is "recommend, don't force". (b) native

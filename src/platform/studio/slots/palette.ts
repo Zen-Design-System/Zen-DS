@@ -107,7 +107,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   Tag: "Tag", DockIcon: "DockIcon", List: "ListItem", ListItem: "ListItem", ListBox: "ListItem", DescriptionList: "DescriptionList",
   Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", InlineMessage: "InlineMessage",
   EmptyState: "EmptyState", InputField: "Input", TextAreaField: "Input", SelectField: "Input", Checkbox: "Checkbox",
-  Toggle: "Toggle", ChipGroup: "ChipGroup", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider",
+  Toggle: "Toggle", ChipGroup: "ChipGroup", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider", Shape: "Shape",
   Accordion: "Accordion", useToast: "Toast",
   Tabs: "Tabs", TabPanel: "Tabs", Segmented: "Segmented", Breadcrumbs: "Breadcrumbs", Pagination: "Pagination",
   Stepper: "Stepper", Menu: "Menu", Tooltip: "Tooltip", Icon: "Icon", FileIcon: "FileIcon", Flag: "Flag",
