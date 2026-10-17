@@ -121,8 +121,8 @@ function legendMarks(labels, notes, where, setName, { instances }) {
 
 /**
  * Chart.tsx StackBarChart in Figma's Stack-Bar of `sectors` columns: each column's segments in its Value slot (a grid
- * of Flex rows, the empty top then the series top to bottom, so a segment is its value's share of the axis and scales
- * with the chart), the period labels and the active period's tooltip on the Sector instances, the six axis labels and
+ * of Flex rows, the empty top then the bar, so the bar is its total's share of the axis and scales with the chart; the
+ * bar rounds and clips its series, Flex rows top to bottom), the period labels and the active period's tooltip on the Sector instances, the six axis labels and
  * the legend. Columns past the data stay empty.
  */
 function stackBarMarks(values, sectors, notes, where, setName) {
@@ -140,14 +140,23 @@ function stackBarMarks(values, sectors, notes, where, setName) {
   for (let k = 0; k < sectors; k++) {
     const item = data[k];
     const segments = item ? series.map((s, si) => ({ s, si, value: Math.max(0, Number(item.values?.[s.id]) || 0) })).filter((segment) => segment.value > 0).reverse() : [];
-    const rest = Math.max(0, top - (item ? totals[k] : 0));
+    const total = item ? totals[k] : 0;
+    const rest = Math.max(0, top - total);
+    const rows = [rest, total].filter((value) => value > 0);
+    // The bar's own frame rounds and clips (chart.css .zen-chart__stack): the slot's corners sit on the empty top row.
+    const stack = segments.length ? [{
+      type: "FRAME", name: "Stack", radius: 8, radiusVar: "Corner-Radius/Small", clip: true,
+      layout: { mode: "GRID", gap: 0, rowGap: 0, padding: [0, 0, 0, 0], grid: { columns: 1, rows: segments.length, rowSizes: segments.map((segment) => ({ type: "FLEX", value: (segment.value / total) * 100 })) } },
+      children: segments.map((segment, row) => ({ type: "FRAME", name: segment.s.label ?? segment.s.id, fillStyle: SECTOR_STYLES[segment.si % SECTOR_STYLES.length], cell: { col: 0, row, span: 1 }, fillW: true, fillH: true })),
+      cell: { col: 0, row: rows.length - 1, span: 1 }, fillW: true, fillH: true,
+    }] : [];
     slots.push({
       name: "Value",
       within: [`.Primitives/Chart/Column/Stack-Bar/Single[${k}]`],
       children: [{
         type: "FRAME", name: "Segments",
-        layout: { mode: "GRID", gap: 0, rowGap: 0, padding: [0, 0, 0, 0], grid: { columns: 1, rows: segments.length + 1, rowSizes: [rest, ...segments.map((segment) => segment.value)].map((value) => ({ type: "FLEX", value: (value / top) * 100 })) } },
-        children: segments.map((segment, row) => ({ type: "FRAME", name: segment.s.label ?? segment.s.id, fillStyle: SECTOR_STYLES[segment.si % SECTOR_STYLES.length], cell: { col: 0, row: row + 1, span: 1 }, fillW: true, fillH: true })),
+        layout: { mode: "GRID", gap: 0, rowGap: 0, padding: [0, 0, 0, 0], grid: { columns: 1, rows: Math.max(1, rows.length), rowSizes: (rows.length ? rows : [top]).map((value) => ({ type: "FLEX", value: (value / top) * 100 })) } },
+        children: stack,
         fillW: true, fillH: true,
       }],
     });
