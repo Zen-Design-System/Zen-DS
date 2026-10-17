@@ -320,4 +320,37 @@ export const rows = [
       return names.join(", ");
     },
   },
+  {
+    id: "DR-15", feature: "A drawn shape is an object, never a component (user, 2026-10-17): the Inspector calls it a Shape (no Zen component, docs link, component colour, Swap or Reset), its menu has no Swap / Detach instance, Assets offers no Rectangle / Ellipse", wp: "P1 objects",
+    async run(ctx) {
+      const { page, text } = await seededPage(ctx, freePage(), /width=\{800\}/);
+      await focusScreen(page);
+      const box = await screenBox(page);
+      await tool(page, "r");
+      await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
+      await until(async () => shapes(await text()).length === 1, { message: "a Shape in the page" });
+      const head = page.locator("#studio-right .studio-inspector__head-block").first();
+      await until(async () => (await head.locator("h2").innerText()).trim() === "Rectangle", { message: "the Rectangle selected" });
+      const meta = (await head.locator(".studio-inspector__meta-row").innerText()).replace(/\s+/g, " ").trim();
+      if (meta !== "Shape") throw new Error(`the Inspector says "${meta}"`);
+      if (await head.locator(".studio-inspector__kind-icon[data-component]").count()) throw new Error("the header icon has the component colour");
+      if (await head.getByRole("button", { name: /Swap instance|Reset all overrides/ }).count()) throw new Error("the header offers Swap instance / Reset all overrides");
+      const shape = await page.locator('[data-studio-frame="screen:screen-1"] .zen-shape').first().boundingBox();
+      await page.mouse.click(shape.x + shape.width / 2, shape.y + shape.height / 2, { button: "right" });
+      const menu = page.getByRole("menu").last();
+      await menu.waitFor({ state: "visible", timeout: 5000 });
+      const items = (await menu.getByRole("menuitem").allInnerTexts()).map((item) => item.replace(/\s+/g, " ").trim());
+      await page.keyboard.press("Escape");
+      const offered = items.filter((item) => /Swap instance|Detach instance/.test(item));
+      if (offered.length) throw new Error(`the menu offers ${offered.join(", ")}`);
+      await page.locator("#studio-left").getByRole("tab", { name: "Assets" }).click();
+      const search = page.locator("#studio-left").getByRole("searchbox").first();
+      await search.fill("rectangle");
+      await sleep(400);
+      const tiles = await page.locator("#studio-left").getByText(/^(Rectangle|Ellipse)$/).filter({ visible: true }).count();
+      await search.fill("");
+      if (tiles) throw new Error("Assets lists Rectangle / Ellipse among the components");
+      return `Inspector: ${meta} · menu: ${items.length} items, no Swap / Detach · Assets: no shapes`;
+    },
+  },
 ];

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, startTransition } from "react";
-import { layerName as shownName } from "./layerNames";
+import { objectIcon, layerName as shownName } from "./layerNames";
 import { useIconTooltip } from "../../../components/Tooltip";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
@@ -681,8 +681,6 @@ function selectNode(node: LayerNode) {
 /** Frames, playground panels, slots and first-level elements with child elements open by default; parts never (computed on demand). */
 const defaultOpen = (node: LayerNode) => node.kind === "frame" || node.kind === "panel" || node.kind === "slot" || (node.kind === "node" && node.depth <= 1 && node.children.length > 0);
 
-const SHAPE_ICONS: Record<string, IconName> = { rectangle: "icon-square-line", ellipse: "icon-circle-line", line: "icon-minus-line", arrow: "icon-arrow-up-right-line", polygon: "icon-triangle-line", star: "icon-star-01-line" };
-const shapeTypeOf = (node: LayerNode) => (node.kind === "node" && node.name === "Shape" ? String((node.fiber?.memoizedProps as { type?: unknown } | null)?.type ?? "rectangle") : null);
 /** The name a row shows: a Shape's Figma type name (select/layerNames.ts), else the layer's name. */
 const rowLabel = (node: LayerNode) => (node.kind === "node" ? shownName(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : node.name);
 
@@ -694,13 +692,10 @@ const componentOfRow = (node: LayerNode) => {
 
 function rowIcon(node: LayerNode): IconName {
   if (node.kind === "frame") return "icon-layout-alt-01-line";
-  // Figma's layer icons: a component's ◇ (its main and its instances), a shape's own, a frame's # (Box), auto layout
-  // by its direction (Stack).
-  if (componentOfRow(node)) return "icon-diamond-line";
-  const shape = shapeTypeOf(node);
-  if (shape) return SHAPE_ICONS[shape] ?? "icon-square-line";
-  if (node.kind === "node" && node.name === "Box") return "icon-hash-01-line";
-  if (node.kind === "node" && node.name === "Stack") return (node.fiber?.memoizedProps as { direction?: unknown } | null)?.direction === "row" ? "icon-columns-01-line" : "icon-rows-01-line";
+  // Figma's layer icons (select/layerNames.ts): a component's ◇ (its main and its instances), a shape's own, a frame's
+  // # (Box), auto layout by its direction (Stack), text's T.
+  const own = node.kind === "node" ? objectIcon(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : null;
+  if (own) return own;
   if (node.kind === "panel") return node.frameId === MAIN_FRAME ? (node.isComponent ? "icon-cube-line" : "icon-grid-01-line") : "icon-sliders-04-line";
   if (node.kind === "variant") return node.isComponent ? "icon-cube-line" : "icon-layers-three-01-line";
   if (node.kind === "parts") return "icon-layers-three-01-line";
