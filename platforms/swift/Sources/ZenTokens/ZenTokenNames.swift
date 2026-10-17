@@ -2066,6 +2066,7 @@ public enum ZenToken {
     public static let tabItemSizeSmallHeight = "Tab-Item/Size/Small/Height"
     public static let tabItemSizeMediumHeight = "Tab-Item/Size/Medium/Height"
     public static let tabItemSizeLargeHeight = "Tab-Item/Size/Large/Height"
+    public static let layoutMobileSectionGap = "Layout-Mobile/Section-Gap"
     public static let tagSpacingMediumMinimumPadding = "Tag/Spacing/Medium/Minimum-Padding"
     public static let tagSpacingSmallMinimumPadding = "Tag/Spacing/Small/Minimum-Padding"
     public static let badgeSpacingMediumCustomize = "Badge/Spacing/Medium/Customize"

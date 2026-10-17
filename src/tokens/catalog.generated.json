@@ -52,7 +52,7 @@
         "Comfortable",
         "Studio"
       ],
-      "variableCount": 195
+      "variableCount": 196
     },
     "spacing": {
       "name": "Spacing",
@@ -30227,6 +30227,22 @@
         "Compact": "{dm-64}",
         "Comfortable": "{dm-72}",
         "Studio": "{dm-64}"
+      },
+      "collectionSlug": "component-size",
+      "collectionName": "Component Size",
+      "modes": [
+        "Compact",
+        "Comfortable",
+        "Studio"
+      ]
+    },
+    {
+      "name": "Layout-Mobile/Section-Gap",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Compact": "{Spacing/Gap/Large}",
+        "Comfortable": "{Spacing/Gap/XLarge}",
+        "Studio": "{Spacing/Gap/Large}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",

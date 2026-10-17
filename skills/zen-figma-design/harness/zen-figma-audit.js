@@ -63,6 +63,14 @@
 //   button/small-full-width  error    a Small / XSmall / 2XSmall text button stretched to Fill: small buttons hug
 //   button/overlay-on-imagery   warning  a Button/Main or Icon-Main on a photo: buttons on imagery are Overlay
 //   button/vague-label       warning  a button labelled OK, Yes, Submit or Click here
+//   touch/target-spacing     error    on a phone or tablet, two controls closer than their 44px hit areas allow: the
+//                                     gap is at least what each control lacks of 44 on that side (two 32px Chips → 12)
+//   spacing/controls-to-content  warning  a control row (Chips, Segmented, Tabs, Search) closer than Gap/Medium (16)
+//                                     to the content it controls: they are blocks, not a label pair
+//   spacing/section-gap      error    a phone screen's Body (the frame that stacks its sections) not spaced by
+//                                     Component Size Layout-Mobile/Section-Gap (Compact 24, Comfortable 32)
+// Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
+// is scroll content, not bounds/clipped.
 
 const ROOT_IDS = [];
 const MAX_PER_RULE = 25;
@@ -209,6 +217,25 @@ function isBleed(node, own, frame) {
   return spill.every((value) => value > TOLERANCE && Math.abs(value - spill[0]) <= TOLERANCE);
 }
 
+/**
+ * Scroll content: a clipping frame set to scroll (Figma prototype overflow) shows the rest of its content when the
+ * user scrolls, so a layer that runs on only past its far end (bottom for Vertical, right for Horizontal) is not cut.
+ * A phone screen whose Body is longer than 844, or a Chip row wider than the screen, scrolls this way.
+ */
+function scrollsPast(node, own, frame, tolerance) {
+  return runsOnInScroll(node.parent, own, frame, tolerance);
+}
+function runsOnInScroll(clipper, own, frame, tolerance = TOLERANCE) {
+  const direction = clipper.overflowDirection;
+  if (!clipper.clipsContent || !direction || direction === "NONE") return false;
+  if (own.x < frame.x - tolerance || own.y < frame.y - tolerance) return false;
+  const right = own.x + own.width > frame.x + frame.width + tolerance;
+  const bottom = own.y + own.height > frame.y + frame.height + tolerance;
+  if (right && !(direction === "HORIZONTAL" || direction === "BOTH")) return false;
+  if (bottom && !(direction === "VERTICAL" || direction === "BOTH")) return false;
+  return true;
+}
+
 /** A layer that sticks out of its frame-like parent; `clipped` when the parent clips it. */
 function checkBounds(node) {
   const parent = node.parent;
@@ -220,7 +247,7 @@ function checkBounds(node) {
   const frame = box(parent);
   if (!own || !frame) return;
   if (sticksOut(own, frame, tolerance)) {
-    if (isBleed(node, own, frame)) return;
+    if (isBleed(node, own, frame) || scrollsPast(node, own, frame, tolerance)) return;
     report(parent.clipsContent ? "bounds/clipped" : "bounds/overflow", ERROR, node, `${side(own, frame, tolerance)} past ${parent.name}`);
     return;
   }
@@ -292,6 +319,7 @@ function checkShadowClips(root) {
       for (const clipper of clippers) {
         const frame = box(clipper);
         if (!frame || !sticksOut(shadow, frame)) continue;
+        if (runsOnInScroll(clipper, shadow, frame)) break; // scroll content: the rest shows when the frame scrolls
         const cut = `shadow cut on the ${side(shadow, frame)} by ${clipper.name}`;
         if (authored(clipper)) report("bounds/shadow-clipped", ERROR, node, `${cut} (turn its Clip content off or give the shadow room)`);
         else report("bounds/shadow-clipped-in-component", WARNING, node, cut);
@@ -506,6 +534,79 @@ async function checkButtonRoles(root) {
   }
 }
 
+// Touch targets and control rows (component-usage-rules §13; user 2026-10-17: "Khoảng cách giữa chip và các phần dưới gần
+// quá … Đang làm cho mobile nên có rule về vùng chạm tối thiểu để làm spacing cho an toàn"). A control smaller than the
+// 44px hit area (Apple HIG 44pt, Zen's Nav-Action; WCAG 2.5.5) keeps the rest as free space around it.
+const TOUCH = 44;
+const INTERACTIVE = /^(Button\/|Chip\/|Toggle|Checkbox\/|Radio-Button\/|Segmented$|Tab-Bar$|Search\/|Input\/|Slider\/|Pagination$)/;
+const CONTROL_ROW_SET = /^(Segmented|Tab-Bar|Search\/.*)$/;
+const lacks = (size) => Math.max(0, TOUCH - size) / 2;
+function isTouchScreen(screen, instances) {
+  return screen.width <= 1024 || instances.some((node) => /^Top-Navigation\/(Mobile|Tablet)/.test(node.name));
+}
+async function setNameOf(node) {
+  const main = await node.getMainComponentAsync();
+  return main ? (main.parent && main.parent.type === "COMPONENT_SET" ? main.parent.name : main.name) : "";
+}
+async function isControlRow(node) {
+  if (node.type === "INSTANCE") return CONTROL_ROW_SET.test(await setNameOf(node));
+  if (node.type !== "FRAME" || !node.children.length) return false;
+  for (const child of node.children) if (child.visible !== false && !(child.type === "INSTANCE" && /^Chip\//.test(await setNameOf(child)))) return false;
+  return true;
+}
+async function checkTouchSpacing(root) {
+  const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
+  for (const screen of screens) {
+    const instances = screen.findAll((node) => node.type === "INSTANCE");
+    if (!isTouchScreen(screen, instances)) continue;
+    const controls = [];
+    for (const node of instances) {
+      if (!shownIn(node, screen) || ownedByComponent(node, screen)) continue;
+      if (INTERACTIVE.test(await setNameOf(node))) controls.push({ node, b: box(node) });
+    }
+    const sb = box(screen);
+    const inView = controls.filter(({ b }) => b && b.y >= sb.y && b.y + b.height <= sb.y + sb.height);
+    for (let i = 0; i < inView.length; i++) for (let j = i + 1; j < inView.length; j++) {
+      const [a, c] = [inView[i], inView[j]];
+      const overlapX = Math.min(a.b.x + a.b.width, c.b.x + c.b.width) - Math.max(a.b.x, c.b.x);
+      const overlapY = Math.min(a.b.y + a.b.height, c.b.y + c.b.height) - Math.max(a.b.y, c.b.y);
+      if (overlapX > 0 && overlapY > 0) continue; // one sits on the other (a badge, a button on a card): not neighbours
+      let gap, need;
+      if (overlapX > 0) { gap = Math.max(a.b.y, c.b.y) - Math.min(a.b.y + a.b.height, c.b.y + c.b.height); need = lacks(a.b.height) + lacks(c.b.height); }
+      else if (overlapY > 0) { gap = Math.max(a.b.x, c.b.x) - Math.min(a.b.x + a.b.width, c.b.x + c.b.width); need = lacks(a.b.width) + lacks(c.b.width); }
+      else continue;
+      if (gap + TOLERANCE < need) report("touch/target-spacing", ERROR, c.node, `${Math.round(gap)}px from ${a.node.name}: on a touch screen each control keeps a 44px hit area, so these two need ${Math.ceil(need)}px (use the ladder step at or above it)`);
+    }
+    for (const frame of screen.findAll((node) => node.type === "FRAME" && node.layoutMode === "VERTICAL" && node.children.length > 1)) {
+      if (!shownIn(frame, screen) || ownedByComponent(frame, screen) || frame.primaryAxisAlignItems === "SPACE_BETWEEN") continue;
+      const kids = frame.children.filter((child) => child.visible !== false);
+      for (let k = 0; k < kids.length - 1; k++) {
+        if (!(await isControlRow(kids[k])) || (await isControlRow(kids[k + 1]))) continue;
+        if (frame.itemSpacing < 16 - TOLERANCE) report("spacing/controls-to-content", WARNING, kids[k + 1], `${frame.itemSpacing}px below ${kids[k].name}: a control row and the content it controls are blocks, Spacing/Gap/Medium (16) or more`);
+      }
+    }
+  }
+}
+
+// Phone sections (user 2026-10-17: "thêm rule spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn
+// là 32px. Compact là 24px. tạo token để áp dụng"): the Body that stacks a phone screen's sections binds its gap to
+// Component Size's Layout-Mobile/Section-Gap (Compact 24, Comfortable 32), so it follows the mode the domain picks.
+const SECTION_BODY = /^(Body|Content|Sections)$/i;
+async function checkSectionGap(root) {
+  const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
+  for (const screen of screens) {
+    const phone = screen.width < 744 || screen.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(node.name)).length > 0;
+    if (!phone) continue;
+    for (const body of screen.children) {
+      if (body.type !== "FRAME" || !SECTION_BODY.test(body.name) || body.layoutMode !== "VERTICAL" || body.visible === false) continue;
+      if (body.children.filter((child) => child.visible !== false).length < 2) continue;
+      const id = body.boundVariables?.itemSpacing?.id;
+      const name = id ? await variableName(id) : null;
+      if (name !== "Layout-Mobile/Section-Gap") report("spacing/section-gap", ERROR, body, `gap ${body.itemSpacing}${name ? ` (${name})` : ""}: a phone screen's sections are spaced by Layout-Mobile/Section-Gap (Component Size: Compact 24, Comfortable 32), never less`);
+    }
+  }
+}
+
 const PLACEHOLDER = /lorem|ipsum|dolor sit/i;
 // A List-Box footer action's label (user rule 2026-10-16, code harness listbox/footer-action-tertiary).
 const ACTION_LABEL = /^(open|go to|view|see|show|manage|browse|all)\b/i;
@@ -704,6 +805,8 @@ for (const root of roots) await checkThemePairing(root);
 for (const root of roots) await checkModeOverrides(root);
 for (const root of roots) await checkBackChevron(root);
 for (const root of roots) await checkButtonRoles(root);
+for (const root of roots) await checkTouchSpacing(root);
+for (const root of roots) await checkSectionGap(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {

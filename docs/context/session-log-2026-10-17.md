@@ -128,3 +128,16 @@ figma luôn check các rule khi dùng component nhé và QA lại trước khi d
 - `SKILL.md`: a §2 hard rule "Every component by its own rules" (the Button role table, Segmented/Chip/Back, Brand/
   Accent leads the colour) and a §3 QA checklist (audit, component rules, colour, screenshot, report) that gates "done".
 - `npm run ai-kit:check` ✓ (127 checks).
+
+## Touch targets + control-row spacing rule (session "Master layout variations") — tier S
+User (screenshots of E6 and E2 chip rows): "Khoảng cách giữa chip và các phần dưới gần quá. Nên làm rule spacing cho
+các phần này, Đang làm cho mobile nên có rule về vùng chạm tối thiểu để làm spacing cho an toàn".
+- The ladder already said "toolbar → table = md"; E2/E6 had their chip rows 12 above the content. Made it explicit:
+  the ladder's md row now names "a control row (Chips, Segmented, Tabs, Search) → the content it controls".
+- New §13 subsection "Touch targets on phones and tablets": 44 × 44 hit areas (Apple 44pt, Zen Nav-Action, WCAG
+  2.5.5). The gap between two neighbours is at least what each lacks of 44, and on touch screens the larger of that
+  and the ladder step wins. Mirrored in the skill's screen-rules §2, the SKILL QA checklist and audit-rules.
+- Figma audit: `checkTouchSpacing` adds `touch/target-spacing` (error) for authored controls on screens ≤ 1024 wide
+  or with Top-Navigation/Mobile|Tablet, and `spacing/controls-to-content` (warning) for a Chip/Segmented/Tabs/Search
+  row closer than 16 to the next block.
+- E2 Popular and E6 AI-Discoveries gaps → Gap/Medium.
