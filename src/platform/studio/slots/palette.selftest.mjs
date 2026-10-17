@@ -228,8 +228,11 @@ const ctxFor = (host, prop = "children", extra = {}) => {
 check("palette ids are unique", new Set(PALETTE.map((item) => item.id)).size, PALETTE.length);
 check("palette groups", [...new Set(PALETTE.map((item) => item.group))], [...PALETTE_GROUPS]);
 check("Image reads platformMedia (requires media)", PALETTE.filter((item) => item.components.includes("Image")).map((item) => [item.id, item.requires]), [["image", ["media"]]]);
-check("every library component folder is offered (but infrastructure and Toast)", fs.readdirSync(components).filter((folder) => !folder.startsWith("_") && fs.existsSync(path.join(components, folder, "index.ts")))
-  .filter((folder) => !["Motion", "Portal", "Provider", "VisuallyHidden", "Toast"].includes(folder) && !PALETTE.some((item) => item.components.some((name) => COMPONENT_FOLDERS[name] === folder))), []);
+// Shape is drawn with the canvas tools (R, O, L, ⇧L, Polygon, Star) as Figma's objects, never offered as a component
+// (user, 2026-10-17: "Shape chỉ nên được vẽ ra là 1 object thôi").
+check("every library component folder is offered (but infrastructure, Toast and the drawn Shape)", fs.readdirSync(components).filter((folder) => !folder.startsWith("_") && fs.existsSync(path.join(components, folder, "index.ts")))
+  .filter((folder) => !["Motion", "Portal", "Provider", "VisuallyHidden", "Toast", "Shape"].includes(folder) && !PALETTE.some((item) => item.components.some((name) => COMPONENT_FOLDERS[name] === folder))), []);
+check("no Shape in the palette: shapes are drawn, not inserted as components", PALETTE.filter((item) => item.components.includes("Shape")).map((item) => item.id), []);
 const setterOf = (name) => `set${name[0].toUpperCase()}${name.slice(1)}`;
 const anyCtx = ctxFor("Card");
 for (const item of PALETTE) {

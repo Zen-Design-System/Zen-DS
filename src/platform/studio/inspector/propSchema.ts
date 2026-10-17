@@ -1,6 +1,7 @@
 import api from "../../api.generated.json";
 import { zenComponents } from "../builder/engine";
 import { contentTones } from "../../../components/_shared/contentTone";
+import { shapeFills, shapeStrokes } from "../../../components/Shape/paint";
 import { normalizeScale, zenScale, type ZenScaleInput } from "../../../components/_shared/scale";
 import { iconNames } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -76,18 +77,19 @@ export function componentSlug(name: string): string | null {
 /** The layout primitives (and a detach's output): Box, Stack, Grid, Container, Text, Heading. */
 export const layoutPrimitives = new Set(["Box", "Stack", "Grid", "Container", "Text", "Heading"]);
 
-/** What a selected JSX element is: a Zen component, a layout primitive, a local (capitalised, not in the API) component
- * or a host element. */
-export type NodeKind = "zen" | "primitive" | "local" | "element";
+/** What a selected JSX element is: a Zen component, a layout primitive, a drawn shape (Figma's RECTANGLE, ELLIPSE…: an
+ * object, not a component — user, 2026-10-17), a local (capitalised, not in the API) component or a host element. */
+export type NodeKind = "zen" | "primitive" | "shape" | "local" | "element";
 
 export function nodeKind(name: string): NodeKind {
   if (!/^[A-Z]/.test(name)) return "element";
   if (layoutPrimitives.has(name)) return "primitive";
+  if (name === "Shape") return "shape";
   // A library export without an API page (ZenPortal: react-docgen does not read it) is still the library's.
   return componentSchema(name) || zenComponents.has(name) ? "zen" : "local";
 }
 
-export const kindLabel = (kind: NodeKind) => ({ zen: "Zen component", primitive: "Layout primitive", local: "Local component", element: "HTML element" })[kind];
+export const kindLabel = (kind: NodeKind) => ({ zen: "Zen component", primitive: "Layout primitive", shape: "Shape", local: "Local component", element: "HTML element" })[kind];
 
 /** Sentence-case labels for props whose camelCase name reads badly; anything else falls back to propLabel's split. */
 const propLabels: Record<string, string> = {
@@ -203,6 +205,9 @@ export function editorFor(type: string): PropEditor {
   if (members.includes("IconName")) return members.some((member) => member === "boolean" || member === "false" || member === "true") ? { kind: "icon-toggle" } : { kind: "icon" };
   // The long Color/Content tone list (Text, Heading, Icon) is named in the API docs instead of spelled out.
   if (members.includes("ContentTone") || members.includes("(typeof contentTones)[number]")) return { kind: "enum", options: [...contentTones] };
+  // A Shape's fill and stroke: the Color/Background and Color/Border token lists (Shape/paint.ts), also named in the docs.
+  if (members.includes("ShapeFill") || members.includes("(typeof shapeFills)[number]")) return { kind: "enum", options: [...shapeFills] };
+  if (members.includes("ShapeStroke") || members.includes("(typeof shapeStrokes)[number]")) return { kind: "enum", options: [...shapeStrokes] };
   if (members.includes("(typeof headingLevels)[number]") || members.includes("HeadingLevel")) return { kind: "number-enum", options: [1, 2, 3, 4, 5, 6] };
   const literals: string[] = [];
   let allLiteral = true;

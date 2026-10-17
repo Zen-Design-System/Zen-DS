@@ -4,7 +4,7 @@ import { announceEditStatus, applyEdit, currentEditStatus, parseSrc, studioApi, 
 import { canvasApi } from "../canvas/viewport";
 import { copyFrameForFigma, frameFigmaClip, writeFrameClip } from "../builder/export/figmaClipboard";
 import { openQuickInsert } from "../builder/library/quickInsertState";
-import { propSpecs } from "../inspector/propSchema";
+import { nodeKind, propSpecs } from "../inspector/propSchema";
 import { findBySrc, isTypingTarget, parentHit, type FiberHit } from "../select/picker";
 import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
@@ -307,6 +307,8 @@ export const insertCode = (selection: NodeSelection, code: string, state?: reado
 
 /** The canvas names a `Layout.Stack` layer "Stack". */
 const selectedName = (name: string) => name.slice(name.lastIndexOf(".") + 1);
+/** Whether Swap instance applies: a component's layer, not a layout primitive or a Shape. */
+const swappable = (name: string) => /^[A-Z]/.test(name) && nodeKind(name) !== "primitive" && nodeKind(name) !== "shape";
 
 /* ── properties ──────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -461,8 +463,9 @@ export function clipboardMenuItems(selection: StudioSelection | null): MenuEntry
     { id: "clip-cut", label: "Cut", icon: "icon-scissors-line", shortcut: clipboardShortcuts.cut, disabled: !editable.ok, caption: reason, onSelect: () => { void copyLayer(node, null, true).then((copied) => { if (copied) void removeSelection(node); }); } },
     { id: "clip-paste", label: "Paste", icon: "icon-clipboard-line", shortcut: clipboardShortcuts.paste, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, false); } },
     { id: "clip-replace", label: "Paste to replace", icon: "icon-switch-horizontal-01-line", shortcut: clipboardShortcuts.replace, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, true); } },
-    // Figma's Swap instance (GĐ4 M2): Quick insert in its Swap mode, for a component layer.
-    ...(/^[A-Z]/.test(selectedName(node.name)) ? [{ id: "swap-instance", label: "Swap instance…", icon: "icon-switch-horizontal-01-line" as const, disabled: !editable.ok, caption: reason, onSelect: () => openQuickInsert("swap") }] : []),
+    // Figma's Swap instance (GĐ4 M2): Quick insert in its Swap mode, for a component layer — never a drawn object (a
+    // shape, a frame, text: user, 2026-10-17), as Figma offers it on instances only.
+    ...(swappable(selectedName(node.name)) ? [{ id: "swap-instance", label: "Swap instance…", icon: "icon-switch-horizontal-01-line" as const, disabled: !editable.ok, caption: reason, onSelect: () => openQuickInsert("swap") }] : []),
     { id: "clip-copy-props", label: "Copy properties", icon: "icon-brush-01-line", shortcut: clipboardShortcuts.copyProps, onSelect: () => { void copyProperties(node); } },
     { id: "clip-paste-props", label: "Paste properties", icon: "icon-brush-02-line", shortcut: clipboardShortcuts.pasteProps, disabled: !propsClip || !canEdit(), caption: propsClip ? `From ${propsClip.name}` : undefined, onSelect: () => { void pasteProperties(node); } },
   ];

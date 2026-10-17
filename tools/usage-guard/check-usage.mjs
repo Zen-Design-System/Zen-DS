@@ -1136,6 +1136,26 @@ export const rules = [
   { id: "divider/no-double", components: ["Divider"], severity: "warn", allow: "double-divider", guideline: "docs/guidelines/divider.md",
     summary: "One divider between two groups — never two Dividers in a row.",
     check: ({ src, end }) => nextSibling(src, end)?.tag === "Divider" && "is followed by another Divider — keep one line between groups." },
+  // Shape (Figma's own shapes, 2026-10-17): colours are tokens, px offsets belong to free frames, a line has no height.
+  { id: "shape/token-paint", components: ["Shape"], severity: "error", allow: "raw-shape-colour", guideline: "docs/guidelines/shape.md",
+    summary: "A Shape's fill and stroke are Zen token paths (fill: Color/Background, stroke: Color/Border, or \"none\"), never hex, rgb or a var().",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs);
+      const raw = ["fill", "stroke"].map((prop) => [prop, fixedProp(own, prop)]).find(([, v]) => typeof v === "string" && (/^(#|rgba?\(|hsla?\(|oklch\(|var\()/i.test(v) || /^(red|blue|green|black|white|gray|grey|yellow|orange|purple|pink|transparent)$/i.test(v)));
+      return raw && `${raw[0]}="${raw[1]}" is a raw colour — use a token path (fill: neutral-subtle, accent-solid, support-blue-soft…; stroke: neutral-solid, accent-subtle…).`;
+    } },
+  { id: "shape/px-offset-in-auto-layout", components: ["Shape", "Stack", "Grid", "Box"], severity: "warn", allow: "px-offset", guideline: "docs/guidelines/shape.md",
+    summary: "px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps.",
+    check: ({ attrs, parent }) => {
+      const own = topAttrs(attrs);
+      if (!isAbsolute(own)) return null;
+      const px = INSET_PROPS.find((prop) => /^-?\d+(\.\d+)?$/.test(String(fixedProp(own, prop) ?? "")));
+      const tag = parent()?.tag;
+      return Boolean(px) && (tag === "Stack" || tag === "Grid") && `${px} is px inside auto layout (<${tag}>) — use a Spacing/Padding step there, or place the layer in a Box (a free frame) to keep Figma's X / Y.`;
+    } },
+  { id: "shape/line-no-height", components: ["Shape"], severity: "warn", allow: "line-height", guideline: "docs/guidelines/shape.md",
+    summary: "A line or arrow has no height (Figma's LINE): its length is width, its angle rotation, its weight strokeWeight.",
+    check: ({ attrs }) => { const own = topAttrs(attrs); const type = fixedProp(own, "type"); return (type === "line" || type === "arrow") && own.has("height") && `a ${type} has no height — set its length with width, its angle with rotation and its weight with strokeWeight.`; } },
   { id: "inline-message/needs-content", components: ["InlineMessage"], severity: "error", allow: "empty-message", guideline: "docs/guidelines/inline-message.md",
     summary: "An Inline Message says something: a title, a caption, or both.",
     check: ({ attrs, children }) => !present(attrs, "title") && !text(children) && !opaque(attrs) && "has neither title nor caption." },

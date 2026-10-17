@@ -21,12 +21,22 @@ import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFi
 import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
+import { arcData, normalizeArc, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
+import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
 import { zenLabels } from "../../src/components/_shared/labels.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
 import { libraryKeysFor } from "./library-keys.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 
 /** A spacing step's Figma variable name: md → Medium ("Spacing/Gap/Medium"). */
+
+/** Shape type → Figma node type and layer name (Shape.tsx; Figma names a drawn layer by its tool). */
+const SHAPE_NODE = { rectangle: "RECTANGLE", ellipse: "ELLIPSE", line: "LINE", arrow: "LINE", polygon: "POLYGON", star: "STAR" };
+const SHAPE_LABEL = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star" };
+const SHAPE_DEFAULT_SIZE = 100;
+/** A rectangle's Corner-Radius token → its Figma variable and px (Corner Radius, Rounded mode). */
+const SHAPE_RADIUS = { none: ["", 0], "2xs": ["Corner-Radius/2XSmall", 2], xs: ["Corner-Radius/XSmall", 4], sm: ["Corner-Radius/Small", 8], md: ["Corner-Radius/Base", 12], lg: ["Corner-Radius/Large", 16], xl: ["Corner-Radius/XLarge", 20], "2xl": ["Corner-Radius/2XLarge", 24], "3xl": ["Corner-Radius/3XLarge", 28], full: ["Corner-Radius/Rounded", 1000] };
+
 const STEP_NAMES = { "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge", giant: "Giant", xgiant: "XGiant", "2xgiant": "2XGiant" };
 /** Whether a pushed layer is wrapping text, or a plain column frame (no fill) around some: it needs a width to wrap in. */
 const wrapsText = (node) => (node?.type === "TEXT" && !node.autoWidth) || (node?.type === "FRAME" && !node.fill && node.layout?.mode === "VERTICAL" && (node.children ?? []).some((child) => !child.absolute && wrapsText(child)));
@@ -359,6 +369,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
 
   // Each node carries its element's document id (`key`): the plugin keeps it on the layer, so importing the page again
   // updates the same layers (Zen plugin src/plugin/studio-import.js).
+  /** The page's own components by id → name (their instances are named after them, as Figma names an instance). */
+  const localNames = new Map();
+  const collect = (node) => {
+    if (!node || node.kind !== "element") return;
+    if (node.name === "Component" && node.props.id?.kind === "literal") localNames.set(String(node.props.id.value), String(node.props.name?.value ?? node.props.id.value));
+    for (const value of Object.values(node.props)) if (value?.kind === "element") collect(value.node);
+    for (const child of node.children ?? []) collect(child.kind === "map" ? child.node : child);
+  };
+  collect(doc.board);
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
@@ -391,6 +410,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const code = codeProps(element);
     let node;
     if (element.name === "Stack" || element.name === "Grid" || element.name === "Box") node = frameNode(element, code, id, parent);
+    // Figma's own shapes (Shape): RECTANGLE, ELLIPSE with its arcData, LINE (an arrow's end cap), POLYGON, STAR.
+    else if (element.name === "Shape") node = shapeNode(code, id);
+    // A page's own component: its main as Figma's COMPONENT around its layer, each instance an INSTANCE of it (the
+    // importer makes the main first, then the instances; `local` is the page's component id).
+    else if (element.name === "Component") {
+      const root = element.children.find((child) => child.kind === "element");
+      const inner = root ? convert(root, parent) : null;
+      // The main hugs its layer (Figma's component frame around one layer); the layer keeps its own sizing inside.
+      node = { type: "COMPONENT", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component"), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
+    } else if (element.name === "Use") node = { type: "INSTANCE", local: String(code.of ?? ""), name: localNames.get(String(code.of ?? "")) ?? "Instance", ...(id ? { id } : {}), hugW: true, hugH: true };
     else if (element.name === "Text" || element.name === "Heading") {
       const align = { center: "CENTER", end: "RIGHT", justify: "JUSTIFIED" }[code.align];
       // Text.tsx's defaults: Body/Base/Regular in Neutral Strongest; a tone paints with its Color/Content variable.
@@ -438,11 +467,46 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return node;
   };
 
+  /**
+   * A Shape as Figma's own node (src/components/Shape): its type's node, sized in px (a line: its length, no height),
+   * filled and stroked with its Color/Background and Color/Border variables, a rectangle's corners on Corner-Radius,
+   * an ellipse's arc as arcData, a star's ratio as innerRadius, an arrow as a LINE with Figma's "Line arrow" end cap;
+   * rotation (degrees, counter-clockwise, about the centre) and opacity as Figma's. `shape: true` tells the importer
+   * from a chart mark's ELLIPSE.
+   */
+  function shapeNode(code, id) {
+    const kind = SHAPE_NODE[code.type] ? code.type : "rectangle";
+    const line = kind === "line" || kind === "arrow";
+    const fill = code.fill ?? (line ? "none" : DEFAULT_SHAPE_FILL);
+    const stroke = code.stroke ?? (line ? DEFAULT_LINE_STROKE : "none");
+    const width = typeof code.width === "number" ? code.width : SHAPE_DEFAULT_SIZE;
+    const height = line ? 0 : typeof code.height === "number" ? code.height : SHAPE_DEFAULT_SIZE;
+    const arc = kind === "ellipse" ? normalizeArc({ start: code.arcStart, sweep: code.arcSweep, ratio: code.arcRatio }) : null;
+    const data = arc && !(arc.sweep >= 100 && arc.ratio <= 0) ? arcData(arc) : null;
+    const radius = kind === "rectangle" && typeof code.radius === "string" ? SHAPE_RADIUS[LONG_TO_SHORT[code.radius] ?? code.radius] : null;
+    const weight = typeof code.strokeWeight === "number" ? code.strokeWeight : 1;
+    return {
+      type: SHAPE_NODE[kind], shape: true, ...(id ? { id } : {}), name: SHAPE_LABEL[kind],
+      ...(fill !== "none" && shapeFillTokens[fill] ? { fill: shapeFillTokens[fill] } : {}),
+      ...(stroke !== "none" && shapeStrokeTokens[stroke] ? { stroke: shapeStrokeTokens[stroke], strokeWeight: weight, strokeAlign: line ? "CENTER" : { center: "CENTER", outside: "OUTSIDE" }[code.strokeAlign] ?? "INSIDE" } : {}),
+      ...(kind === "arrow" ? { endCap: "ARROW_LINES" } : {}),
+      ...(data ? { arc: { start: data.startingAngle, end: data.endingAngle, inner: data.innerRadius } } : {}),
+      ...(kind === "polygon" || kind === "star" ? { pointCount: typeof code.pointCount === "number" ? code.pointCount : kind === "star" ? 5 : 3 } : {}),
+      ...(kind === "star" ? { innerRadius: (typeof code.starRatio === "number" ? code.starRatio : STAR_RATIO) / 100 } : {}),
+      ...(radius && radius[1] ? { radius: radius[1], radiusVar: radius[0] } : {}),
+      ...(typeof code.rotation === "number" && code.rotation % 360 ? { rotation: code.rotation } : {}),
+      ...(typeof code.opacity === "number" && code.opacity < 100 ? { opacity: Math.max(0, code.opacity) / 100 } : {}),
+      ...(code.width === "fill" ? { fillW: true } : { fixedWidth: width }),
+      ...(code.height === "fill" && !line ? { fillH: true } : { fixedHeight: height }),
+    };
+  }
+
   /** position="absolute": Figma's constraints and the insets to the pinned edges, in px (figma-pull positioned, the other way). */
   function absoluteOf(code) {
     const cx = { left: "MIN", right: "MAX", center: "CENTER", "left-right": "STRETCH" }[code.constraintX ?? "left"] ?? "MIN";
     const cy = { top: "MIN", bottom: "MAX", center: "CENTER", "top-bottom": "STRETCH" }[code.constraintY ?? "top"] ?? "MIN";
-    const inset = (step) => pxOf(step ?? "none", PADDING_PX) ?? 0;
+    // A token step, or px (Figma's X / Y in a free frame).
+    const inset = (step) => (typeof step === "number" ? step : pxOf(step ?? "none", PADDING_PX) ?? 0);
     return { cx, cy, left: inset(code.insetLeft), right: inset(code.insetRight), top: inset(code.insetTop), bottom: inset(code.insetBottom) };
   }
 

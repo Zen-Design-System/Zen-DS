@@ -52,6 +52,11 @@ export type RenderContext = {
   /** The layout of the frame being drawn (a Screen's device and `layout`): a layer `hidden="mobile"` is left out on a
    *  mobile Screen only (tools/studio/visibility.mjs). Overlays have none: only `hidden` alone hides there. */
   layout?: "mobile" | "desktop";
+  /** The page's main components by id: each one's root layer and name (`<Component>`), for its instances (`<Use>`). */
+  components?: ReadonlyMap<string, { root: PageNode; name: string }>;
+  /** Drawing an instance's layers: they carry no mark of their own (the instance is one layer, its root carries the
+   *  `<Use>`'s), so a click anywhere on it selects the instance, as Figma's first click does. */
+  instance?: boolean;
 };
 
 type Scope = Record<string, unknown>;
@@ -115,6 +120,7 @@ function childrenSignature(children: PageChild[], ids: ReadonlyMap<string, strin
 
 /** The element's mark: `<file>:@<id>` when its document gives it one (stable through edits), else `<file>:<line>:<col>`. */
 const srcOfNode = (node: PageNode, ctx: RenderContext) => {
+  if (ctx.instance) return undefined;
   const id = ctx.ids?.get(node.loc);
   return id ? `${ctx.file}:@${id}` : `${ctx.file}:${node.loc}`;
 };
@@ -202,7 +208,7 @@ function initialStateOf(props: Record<string, unknown>): string {
 /** One element of the page (`key`: its place among its siblings, or its row in a list). */
 export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
   // In the page's own scope (not a list row's) and without extra props, an unchanged node gives its last element.
-  const cache = ctx.cache && scope.mock === ctx.mock && Object.keys(scope).length === 1 && !extra ? ctx.cache : null;
+  const cache = ctx.cache && scope.mock === ctx.mock && Object.keys(scope).length === 1 && !extra && !ctx.instance ? ctx.cache : null;
   const cacheKey = cache ? `${key ?? ""}|${ctx.layout ?? ""}|${signatureOf(node, ctx.ids)}` : "";
   if (cache) {
     const reused = cache.current.get(cacheKey) ?? cache.previous.get(cacheKey);
@@ -216,7 +222,52 @@ export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key
   return element;
 }
 
+/** The page's main components (`<Component id name>` around one layer) by id, for renderFrame's context. */
+export function componentsOf(board: PageNode | null): Map<string, { root: PageNode; name: string }> {
+  const out = new Map<string, { root: PageNode; name: string }>();
+  const visit = (node: PageNode) => {
+    if (node.name === "Component") {
+      const id = node.props.id?.kind === "literal" ? String(node.props.id.value) : "";
+      const name = node.props.name?.kind === "literal" ? String(node.props.name.value) : id;
+      const root = node.children.find((child): child is PageNode => child.kind === "element");
+      if (id && root) out.set(id, { root, name });
+    }
+    for (const value of Object.values(node.props)) if (value.kind === "element") visit(value.node);
+    for (const child of node.children) {
+      if (child.kind === "element") visit(child);
+      else if (child.kind === "map") visit(child.node);
+    }
+  };
+  if (board) visit(board);
+  return out;
+}
+
+/** What the page's main components say, as one short string: a render cache's env takes it, so an edit of a main draws
+ *  its instances again (they are drawn from the main, which their own nodes do not show). */
+export function componentsKey(components: ReadonlyMap<string, { root: PageNode; name: string }>, ids?: ReadonlyMap<string, string>): string {
+  return [...components].map(([id, main]) => `${id}:${main.name}:${signatureOf(main.root, ids)}`).join("|");
+}
+
+/**
+ * Figma's main component (`<Component>`) is its layer: no element of its own, its root layer is marked as the main
+ * (◇ in Layers, the purple outline); an instance (`<Use of>`) draws its main's layers again, marked as the instance
+ * (one layer: its root carries the `<Use>`'s mark and name). An edit of the main shows in every instance at once.
+ */
+function renderComponentNode(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
+  if (node.name === "Component") {
+    const root = node.children.find((child): child is PageNode => child.kind === "element");
+    const id = node.props.id?.kind === "literal" ? String(node.props.id.value) : "";
+    const name = node.props.name?.kind === "literal" ? String(node.props.name.value) : id;
+    return root ? renderNode(root, scope, ctx, key, { ...extra, "data-zen-main": id, "data-zen-main-name": name }) : null;
+  }
+  const of = node.props.of?.kind === "literal" ? String(node.props.of.value) : "";
+  const main = ctx.components?.get(of);
+  if (!main || ctx.instance) return null;
+  return renderNode(main.root, scope, { ...ctx, instance: true }, key, { ...extra, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": of, "data-zen-instance-name": main.name });
+}
+
 function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
+  if (node.name === "Component" || node.name === "Use") return renderComponentNode(node, scope, ctx, key, extra);
   const component = componentOf(node.name);
   if (!component) return null;
   // A hidden layer (Figma's eye; on one layout only with "mobile" / "desktop") is not drawn: the page keeps it and Layers
@@ -224,7 +275,7 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   if (hiddenOn(node.props[HIDDEN_PROP], ctx.layout)) return null;
   // Slots switched off (Figma's slot boolean): the component draws without them; their layers stay in the page.
   const slotsOff = new Set(hiddenSlotsOf(node.props[HIDDEN_SLOTS_PROP]));
-  const props: Record<string, unknown> = { key, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": node.name, ...extra };
+  const props: Record<string, unknown> = { key, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": ctx.instance ? undefined : node.name, ...extra };
   // A builder page's photo is `zen-media:<key>` (builder/library/media.ts): this build's URL, in a prop's data too (a
   // Table row's picture).
   for (const [name, value] of Object.entries(node.props)) {

@@ -33,6 +33,7 @@ export * from "./components/Dialog";
 export * from "./components/Accordion";
 export * from "./components/AlertBanner";
 export * from "./components/Pagination";
+export * from "./components/Shape";
 export * from "./components/Skeleton";
 export * from "./components/Toast";
 export * from "./components/Divider";

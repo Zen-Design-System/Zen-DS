@@ -79,6 +79,9 @@
   margin-inline: auto;
 }
 /* The toolbar's groups (Figma UI3): a Pale rule between them. */
+/* Figma UI3's split tool button: the last shape tool and a narrow chevron for the list (CanvasTools ShapeTools). */
+.studio-canvas-tools__split { display: inline-flex; align-items: center; }
+.studio-canvas-tools__split > .studio-canvas-tools__more { min-inline-size: 0; inline-size: var(--zen-spacing-gap-medium, 16px); }
 .studio-canvas-tools__divider { width: 1px; height: var(--zen-spacing-gap-medium, 16px); margin-inline: var(--zen-spacing-gap-2-xsmall, 4px); background: var(--zen-color-border-neutral-pale-default); }
 /* A placement tool (Screen, Stack, Text, Image): the crosshair over the canvas, as Figma's. */
 .studio-viewport[data-studio-placing],

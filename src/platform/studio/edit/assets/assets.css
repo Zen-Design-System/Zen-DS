@@ -100,3 +100,6 @@ body[data-studio-asset-drag] * { cursor: grabbing !important; }
 .studio-assets__label { min-width: 0; flex: 1 1 auto; margin: 0; padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-base); }
 .studio-assets__hint { margin: 0; padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); }
 .studio-assets__scroll[data-dropping="true"] { border-radius: var(--zen-corner-radius-large, 16px); box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+
+/* Local components (a page's own, Figma's): their ◇ in the component colour. */
+.studio-assets__library-icon[data-component] { color: var(--zen-color-content-support-violet-base); }

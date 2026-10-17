@@ -32,7 +32,8 @@ import { applyEdits, applyOps, findElement, jsxName, parseLoc, parseSource } fro
 import { indentAt, pathTo, piece } from "./source-helpers.mjs";
 
 /** Self-closing elements a layer can be dropped into (they open: `<Stack />` → `<Stack>…</Stack>`). */
-const OPENABLE = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions"]);
+// A builder page's Screen opens too (Figma: an empty frame takes the layers drawn or dropped into it).
+const OPENABLE = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions", "Screen"]);
 /** Host tags that never hold children. */
 const VOID_TAGS = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]);
 /** Parents whose text content a block element would break (a <div> inside a <p>, a <button>, a link…). */
@@ -327,11 +328,15 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   for (const element of elements) landing(h, jsxName(element.openingElement.name), parent, parentName);
   const { entries, at, replaced } = positionIn(ctx, h, parent, parentName, op);
   const needed = [];
+  const runtime = [];
   let toast = false;
   let media = false;
+  const builderPage = h.LOCAL_PAGE.test(ctx.file ?? "");
   const names = new Set(elements.flatMap((element) => [...freeNames(element, h.patternNames, h.FUNCTION_TYPES)]));
   for (const used of names) {
     if (state.names.has(used) || h.bindingOf(nodePath, used)) continue;
+    // A builder page's own runtime (an instance <Use>, a main <Component>, proto.*): the builder import gains it.
+    if (builderPage && h.BUILDER_RUNTIME.includes(used)) { runtime.push(used); continue; }
     if (used === "toast") { toast = true; continue; }
     if (used === "platformMedia") { media = true; continue; }
     if (/^[A-Z]/.test(used) && ctx.folders.has(used)) { needed.push(used); continue; }
@@ -348,6 +353,7 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   if (hooks.useToast) needed.push("useToast");
   if (media) edits.push(...h.mediaImportEdits(ctx));
   edits.push(...tidyImports(ctx, h, edits, needed));
+  if (runtime.length) edits.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, runtime));
   return {
     edits,
     focus: { edit, within, name },
@@ -388,10 +394,14 @@ export function replacePlan(ctx, nodePath, op, h) {
   const needed = [];
   let toast = false;
   let media = false;
+  const runtime = [];
+  const builderPage = h.LOCAL_PAGE.test(ctx.file ?? "");
   for (const used of freeNames(node, h.patternNames, h.FUNCTION_TYPES)) {
     if (state.names.has(used) || h.bindingOf(nodePath, used)) continue;
     if (used === "toast") { toast = true; continue; }
     if (used === "platformMedia") { media = true; continue; }
+    // A builder page's own runtime (an instance <Use>, a main <Component>, proto.*): the builder import gains it.
+    if (builderPage && h.BUILDER_RUNTIME.includes(used)) { runtime.push(used); continue; }
     if (/^[A-Z]/.test(used) && ctx.folders.has(used)) { needed.push(used); continue; }
     if (GLOBALS.has(used)) continue;
     h.refuse(/^[A-Z]/.test(used) ? `<${used}> is not a Zen component this file can import` : `The new layer uses \`${used}\`, which does not exist here`);
@@ -414,6 +424,7 @@ export function replacePlan(ctx, nodePath, op, h) {
   if (hooks.useToast) needed.push("useToast");
   if (media) edits.push(...h.mediaImportEdits(ctx));
   edits.push(...tidyImports(ctx, h, edits, needed));
+  if (runtime.length) edits.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, runtime));
   return {
     edits,
     focus: { edit, within: 0, name },

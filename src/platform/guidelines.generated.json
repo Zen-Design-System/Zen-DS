@@ -3291,6 +3291,117 @@
       }
     ]
   },
+  "shape": {
+    "title": "Shape",
+    "purpose": "Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon and Star — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only.",
+    "use": [
+      "A decorative mark or illustration a designer drew in Zen Studio with R, O, L, ⇧L, Polygon or Star.",
+      "A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.",
+      "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets."
+    ],
+    "avoid": [
+      "Data charts → Chart components (DonutChart, RadialChart, ProgressBar…): they carry labels, legends and accessible values.",
+      "A divider line → Divider.",
+      "A surface or card background → Box surface or Card.",
+      "A status dot or badge on a component → that component's own prop (Avatar status, notification dot)."
+    ],
+    "api": [
+      [
+        "Type",
+        "type",
+        "rectangle (default) · ellipse · line · arrow · polygon · star"
+      ],
+      [
+        "Fill",
+        "fill",
+        "a Color/Background token by path (neutral-subtle · accent-solid · surface · support-blue-soft …) or none; default Background/Support/Neutral/Soft (Figma's #D9D9D9)"
+      ],
+      [
+        "Stroke",
+        "stroke / strokeWeight / strokeAlign",
+        "a Color/Border token by path or none · px · inside (default) · center · outside"
+      ],
+      [
+        "Arc",
+        "arcStart / arcSweep / arcRatio",
+        "ellipse: Start in degrees (clockwise from 3 o'clock) · Sweep % · Ratio % (the hole), Figma's arcData"
+      ],
+      [
+        "Count / Ratio",
+        "pointCount / starRatio",
+        "polygon corners (3) · star tips (5) · star inner radius % (38.2)"
+      ],
+      [
+        "Corner radius",
+        "radius / radiusTopLeft …",
+        "rectangle: Corner-Radius tokens"
+      ],
+      [
+        "Transform",
+        "rotation / opacity",
+        "degrees, counter-clockwise positive (Figma's field) · layer opacity %"
+      ],
+      [
+        "Size and place",
+        "width / height / position / insetLeft / insetTop",
+        "px or fill; a line has only its length; in a free frame insets are px (Figma X / Y)"
+      ]
+    ],
+    "keyboard": [],
+    "do": [
+      "Colour shapes with tokens only: fill from Color/Background, stroke from Color/Border (no hex).",
+      "Give a shape that carries meaning a label (role=img); leave decoration unlabelled (hidden from assistive tech).",
+      "Use px insets only inside a free frame (a Box or Screen without auto layout); inside auto layout let the frame place it.",
+      "Keep a line's angle in rotation and its length in width, as Figma stores a LINE."
+    ],
+    "dont": [
+      "Don't draw charts, progress or ratings from shapes: use the components that carry values and labels.",
+      "Don't use a Shape as a card or section background: use Box surface or Card.",
+      "Don't pass hex or rgb colours: fill and stroke take Zen token paths only."
+    ],
+    "a11y": [
+      "Decorative by default (aria-hidden); with label it is role=img named by the label.",
+      "Colour alone must not carry meaning: pair a coloured mark with text."
+    ],
+    "content": [],
+    "refs": [
+      [
+        "Figma Plugin API — EllipseNode.arcData",
+        "https://www.figma.com/plugin-docs/api/ArcData/"
+      ],
+      [
+        "Figma — Shape tools",
+        "https://help.figma.com/hc/en-us/articles/360040450133-Basic-shape-tools"
+      ]
+    ],
+    "file": "docs/guidelines/shape.md",
+    "rules": [
+      {
+        "id": "shape/token-paint",
+        "severity": "error",
+        "summary": "A Shape's fill and stroke are Zen token paths (fill: Color/Background, stroke: Color/Border, or \"none\"), never hex, rgb or a var().",
+        "allow": "raw-shape-colour"
+      },
+      {
+        "id": "shape/px-offset-in-auto-layout",
+        "severity": "warn",
+        "summary": "px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps.",
+        "allow": "px-offset"
+      },
+      {
+        "id": "shape/line-no-height",
+        "severity": "warn",
+        "summary": "A line or arrow has no height (Figma's LINE): its length is width, its angle rotation, its weight strokeWeight.",
+        "allow": "line-height"
+      },
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      }
+    ]
+  },
   "inline-message": {
     "title": "Inline Message",
     "purpose": "A Subtle-surface message placed inside the content it describes — contextual, persistent until resolved or dismissed.",
@@ -7526,6 +7637,12 @@
         "severity": "warn",
         "summary": "radius=\"full\" takes no finite corner (radiusTopLeft/TopRight/BottomRight/BottomLeft other than full or none): use one token for all corners, or a finite radius with corner overrides.",
         "allow": "full-mixed"
+      },
+      {
+        "id": "shape/px-offset-in-auto-layout",
+        "severity": "warn",
+        "summary": "px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps.",
+        "allow": "px-offset"
       },
       {
         "id": "layout/use-stack",
