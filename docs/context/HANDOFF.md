@@ -124,8 +124,11 @@ Last updated: 2026-10-17.
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures
   (`studio/draw/`), arc handles, shape Inspector, ⇧A / ⌥⇧A, Figma keys (`edit/figmaKeys.ts`), push / pull / plugin
-  import of shapes; Document / Studio moved into the Zen Studio menu. E2E group `draw`. Open: P2–P3 rest, P4 spec, P5
-  question (BACKLOG).
+  import of shapes; Document / Studio moved into the Zen Studio menu. E2E group `draw`. Components on a page you made
+  (P4 v1: ⌥⌘K `<Component>`, `<Use of>` instances, ⌥⌘B, Assets › Local, export + push). Rule (user): a drawn shape,
+  frame or text is an object, never shown as a component (`select/layerNames.ts objectIcon`, `nodeKind` "shape", E2E
+  DR-15). Shipped together as one PR (branch zen/feat/studio-components-20261017). Next: P5 Variables v1 on
+  zen/feat/studio-variables-20261017 (PR after this one); open: P2–P3 rest, P4 v2 (BACKLOG).
 - **Zen Studio Screen = master layout (2026-10-15, user):** a builder Screen's desktop frame is one root `<AppShell>`
   (`tools/studio/screen-frame.mjs`, op `screenFrame`; parts in `screen-chrome.mjs` FRAME_PARTS); the Screen's own
   `sidebar`/`header` props are legacy, moved into it when a page opens (`localApi.ts` moveScreenFrame). The mobile layout
