@@ -10728,6 +10728,14 @@
           "deprecated": null
         },
         {
+          "name": "spacing",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Card's Card Spacing (it is an exposed Card): Medium (default; Card-padding-medium, Corner-Radius/2XLarge)\n or Small (Card-padding-small, Corner-Radius/Large). `type=\"tile\"` defaults to Small. On a phone, three or more\n cards side by side take Small (harness card/spacing-by-count; desktop cards keep Medium). Short (sm, md) or Figma\n (small, medium) spelling.",
+          "deprecated": null
+        },
+        {
           "name": "ref",
           "type": "Ref<HTMLDivElement>",
           "required": false,

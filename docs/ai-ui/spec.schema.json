@@ -21026,6 +21026,22 @@
                 ],
                 "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat)."
               },
+              "spacing": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "md",
+                      "sm",
+                      "medium",
+                      "small"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Metric-Card's Card Spacing (it is an exposed Card): Medium (default; Card-padding-medium, Corner-Radius/2XLarge) or Small (Card-padding-small, Corner-Radius/Large)."
+              },
               "type": {
                 "anyOf": [
                   {
