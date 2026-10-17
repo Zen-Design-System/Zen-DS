@@ -3,6 +3,7 @@ import { announceEditStatus } from "../api";
 import { notifyFramesMoved } from "../board/frames";
 import { canvasApi, getSafeBox, getViewport, getViewportBox, notifyCanvas, panBy } from "../canvas/viewport";
 import { canEdit, studioStore } from "../store";
+import { startDraw } from "../draw/drawTool";
 import { addFrame } from "./proto/addFrame";
 import { copyFrame, moveFrames } from "./frameEdit";
 import { snapBox, SNAP_PX, type FrameBox, type FramePlace, type SnapGuide } from "./render/framePlace";
@@ -345,6 +346,8 @@ export function armFrameDraw(localPage: string): boolean {
     if (!container) return;
     event.preventDefault();
     event.stopPropagation();
+    // Inside a Screen the Frame tool draws a frame there (Figma's nested frame: draw/drawTool.ts); on the canvas, a Screen.
+    if (startDraw("frame", event)) return;
     draw(event, container);
   };
   window.addEventListener("pointerdown", onDown, true);

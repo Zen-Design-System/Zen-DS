@@ -79,7 +79,7 @@ const BOM = "\uFEFF";
 const PACKAGE = "@zen-ds/react";
 const BUILDER_PACKAGE = "@zen-ds/react/builder";
 /** What a builder page's code may use from its runtime besides Zen components (Board is the page's root). */
-const BUILDER_RUNTIME = ["Screen", "Overlay", "proto"];
+const BUILDER_RUNTIME = ["Screen", "Overlay", "proto", "Component", "Use"];
 const PLUGINS = ["jsx", "typescript"];
 const LINE_SEPARATOR = /[\u2028\u2029]/;
 const FUNCTION_TYPES = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression", "ObjectMethod", "ClassMethod", "ClassPrivateMethod"]);
@@ -97,7 +97,7 @@ const WHERE = { ConditionalExpression: "a condition (? :)", LogicalExpression: "
 /** Names a component can take from src/components when the caller passes no componentModules (the common ones). */
 const FALLBACK_FOLDERS = {
   Accordion: "Accordion", Avatar: "Avatar", AvatarStack: "Avatar", Badge: "Badge", Button: "Button", IconButton: "Button", Card: "Card",
-  Checkbox: "Checkbox", DescriptionList: "DescriptionList", Divider: "Divider", DockIcon: "DockIcon", EmptyState: "EmptyState",
+  Checkbox: "Checkbox", DescriptionList: "DescriptionList", Divider: "Divider", Shape: "Shape", DockIcon: "DockIcon", EmptyState: "EmptyState",
   FormFieldset: "Form", Icon: "Icon", Image: "Image", InlineMessage: "InlineMessage", InputField: "Input", NumberField: "Input",
   SelectField: "Input", TextAreaField: "Input", Box: "Layout", Container: "Layout", Grid: "Layout", Stack: "Layout", Link: "Link",
   List: "ListItem", ListItem: "ListItem", Metric: "MetricWidget", MetricCard: "MetricWidget", ProgressBar: "Progress",
@@ -481,7 +481,8 @@ function importChanges(ast, text, eol, file, needed, remove, folders) {
   const body = ast.program.body;
   const imports = body.filter((statement) => statement.type === "ImportDeclaration");
   const valueImports = imports.filter((statement) => statement.importKind !== "type");
-  const packageStyle = valueImports.some((statement) => statement.source.value === PACKAGE) || (/^src\/templates\//.test(file ?? "") && !valueImports.some((statement) => /(^|\/)components\//.test(statement.source.value)));
+  // A builder page always imports from the package, also its first component on a page that has none yet (an empty frame).
+  const packageStyle = valueImports.some((statement) => statement.source.value === PACKAGE) || LOCAL_PAGE.test(file ?? "") || (/^src\/templates\//.test(file ?? "") && !valueImports.some((statement) => /(^|\/)components\//.test(statement.source.value)));
   const moduleFor = (name) => (packageStyle ? PACKAGE : relModule(file, folders.get(name)));
   const sourceFits = (source, name) => source === PACKAGE || new RegExp(`(^|/)components/${folders.get(name)}(/index(\\.tsx?)?)?$`).test(source);
   const bindings = new Map();
@@ -536,7 +537,7 @@ function importChanges(ast, text, eol, file, needed, remove, folders) {
 }
 
 /** A builder page's runtime import (@zen-ds/react/builder) gains `names` it does not import yet. */
-function builderImportEdits(ast, text, eol, names) {
+export function builderImportEdits(ast, text, eol, names) {
   const imports = ast.program.body.filter((statement) => statement.type === "ImportDeclaration");
   const statement = imports.find((candidate) => candidate.source.value === BUILDER_PACKAGE && candidate.importKind !== "type");
   const missing = names.filter((name) => !statement?.specifiers.some((specifier) => specifier.local.name === name));
@@ -2881,7 +2882,7 @@ const asFolders = (modules) => {
  * `snippet` when the file has example snippets; or { error, code: "stale" | "not-found" | "invalid" | "forbidden" }.
  */
 /** What arrange.mjs (op moveTo: drag to reorder, reparent or copy) reuses from here. */
-const ARRANGE_HELPERS = { childUnitAt, constChildUse, refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, reindent, isComment, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
+const ARRANGE_HELPERS = { builderImportEdits, BUILDER_RUNTIME, LOCAL_PAGE, childUnitAt, constChildUse, refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, reindent, isComment, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
 /** What items.mjs (data-slot items: insertItem, removeItem, duplicateItem, moveItem) borrows from this module. */
 const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, builderImportEdits, LOCAL_PAGE, FUNCTION_TYPES, JS_GLOBALS };
 

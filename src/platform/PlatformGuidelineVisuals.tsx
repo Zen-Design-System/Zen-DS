@@ -15,7 +15,8 @@ import { Icon } from "../components/Icon";
 import { ColorField, InputField } from "../components/Input";
 import { SliderField } from "../components/SliderField";
 import { CurvePreview } from "../components/CurvePreview";
-import { Stack as LayoutStack } from "../components/Layout";
+import { Box, Stack as LayoutStack } from "../components/Layout";
+import { Shape } from "../components/Shape";
 import { Popover, PopoverItem, PopoverManualAddNew } from "../components/Popover";
 import { Link } from "../components/Link";
 import { Heading, Text } from "../components/Text";
@@ -253,6 +254,10 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   divider: [
     { do: { preview: <div className="pgv-field"><Stack><span className="pgv-note">Profile</span><Divider /><span className="pgv-note">Security</span></Stack></div>, caption: "Default (Pale) between groups — quiet, everyday." },
       dont: { preview: <div className="pgv-field"><Stack><span className="pgv-note">Profile</span><Divider color="high" /><Divider color="high" /><span className="pgv-note">Security</span></Stack></div>, caption: "Stacked, High-contrast lines shout for no reason." } },
+  ],
+  shape: [
+    { do: { preview: <div className="pgv-field"><Box width={160} height={96}><Shape type="ellipse" position="absolute" insetLeft={8} insetTop={8} width={80} height={80} arcRatio={60} fill="accent-solid" /><Shape type="star" position="absolute" insetLeft={96} insetTop={40} width={48} height={48} fill="support-yellow-solid" /></Box></div>, caption: "Decoration in a free frame, coloured with tokens." },
+      dont: { preview: <div className="pgv-field"><Box width={160} height={96}><Shape type="ellipse" position="absolute" insetLeft={8} insetTop={8} width={80} height={80} arcSweep={64} arcRatio={70} fill="positive-solid" /><Box position="absolute" insetLeft={100} insetTop={36}><span className="pgv-note">64%</span></Box></Box></div>, caption: "A ring that shows a value is a chart: use Progress or RadialChart." } },
   ],
   "inline-message": [
     { do: { preview: <div className="pgv-wide"><Stack><InlineMessage theme="warning" title="You're editing production">Changes publish to 12 live sites on save.</InlineMessage><InputField label="Site title" size="small" defaultValue="Zen Studio" /></Stack></div>, caption: "Right above the content it describes." },

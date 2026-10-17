@@ -136,6 +136,14 @@ export const Bad = () => <>
   {/* expect: divider/no-double */}
   <Divider />
   <Divider color="medium" />
+  {/* expect: shape/token-paint */}
+  <Shape type="ellipse" width={80} height={80} fill="#FF6B00" />
+  <Stack>
+    {/* expect: shape/px-offset-in-auto-layout */}
+    <Shape position="absolute" insetLeft={24} insetTop={12} width={40} height={40} />
+  </Stack>
+  {/* expect: shape/line-no-height */}
+  <Shape type="line" width={120} height={2} />
   {/* expect: inline-message/needs-content */}
   <InlineMessage theme="info" />
   {/* expect: inline-message/custom-needs-visual */}

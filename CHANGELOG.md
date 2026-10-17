@@ -27,6 +27,33 @@ removed (four unused colour ramps were, see Removed).
   again. MetricCard counts too and takes `spacing` (user: "MetricCard có nhận prop spacing không? Có"): Medium by
   default, Small for `type="tile"`; Studio reads and writes the Metric-Card's Card Spacing. The phone "Metric types"
   example stacks its three cards at Small.
+- Zen Studio toward native Figma (2026-10-17, user: "Đưa về sát native với Figma nhất … vì chúng ta cần convert
+  người dùng từ Figma"). Research and plan: `docs/research/studio-figma-native-parity-2026-10-17.md` (five audits,
+  ~80 Figma behaviours graded). First phase:
+  - New `Shape` primitive (src/components/Shape), the code of a drawn object as Box is a frame's — never a component in
+    Studio: no component icon or colour, Swap / Detach instance or Assets entry; a component is made only by the person
+    (⌥⌘K). Figma's Rectangle, Ellipse with its arc (`arcStart` °, `arcSweep` %,
+    `arcRatio` %), Line, Arrow, Polygon and Star; `fill` from Color/Background and `stroke` from Color/Border (token
+    paths only), `strokeWeight`, `strokeAlign`, `radius`, `pointCount`, `starRatio`, `rotation`, `opacity`. Harness:
+    `shape/token-paint`, `shape/px-offset-in-auto-layout`, `shape/line-no-height`.
+  - Layout position insets take px (`insetLeft={40}`): Figma's X / Y for a layer in a free frame (a Box or a Screen
+    without auto layout). Gap, padding and radius stay tokens.
+  - Studio draws as Figma does: Rectangle R, Ellipse O, Line L, Arrow ⇧L, Polygon and Star (toolbar shape menu), A = Frame;
+    a click places 100 × 100, a drag draws with ⇧ (equal sides, 45° lines), ⌥ (from the centre), Space (moves it),
+    smart guides and a live size; the layer goes into the frame under the pointer (free frame: at X / Y; auto layout:
+    into the flow). Frame (F) inside a Screen draws a nested frame. An empty Screen now takes layers.
+  - Ellipse arc handles on the canvas (Sweep, Start, Ratio, with live values); Inspector shape panel (Arc, Count,
+    Opacity, Fill, Stroke with token swatches, X / Y in px, Rotation); number fields scrub, step ±1 / ⇧ ±10 and take
+    math ("+8", "100/3"); a free frame's layers move by px with red smart guides and nudge 1 / ⇧ 10 px; ⇧ on a corner
+    keeps the ratio; Layers name shapes Ellipse / Line… with Figma's icons.
+  - Figma export and import: shapes become RECTANGLE / ELLIPSE (arcData) / LINE (arrow cap) / POLYGON / STAR with
+    colour and corner variables, and come back as `<Shape>` (the Zen plugin's Import from Studio draws them).
+  - Zen Studio menu holds Switch to Studio / Document; the floating Document | Studio Segmented is gone (user).
+  - Components like Figma on a page you made: ⌥⌘K makes the selected layer a main component where it is
+    (`<Component id name>`), ⌘D / ⌥-drag of a main and Assets › Local components add instances (`<Use of>`) that
+    follow it, ⌥⌘B detaches one; the Inspector names the component (rename, Create instance, Select instances, Swap,
+    Go to main); violet outline and ◇ in Layers; Export writes one React function per component; Figma push makes a
+    COMPONENT and its INSTANCEs.
 - Search `shape` (2026-10-17, Figma Search/Default `Shape` = Default · Rounded): `shape="rounded"` is a pill
   (Corner-Radius/Rounded on the field, its focus ring and the filter affordance). Recommended, not required, for
   searches on phone screens; the platform's phone examples use it.

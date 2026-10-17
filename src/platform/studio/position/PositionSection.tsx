@@ -3,6 +3,9 @@ import { Button, IconButton } from "../../../components/Button";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { InputField, SelectField, type SelectFieldOption } from "../../../components/Input";
 import { ScaleTrail } from "../inspector/controls/ScaleField";
+import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
+import { Icon } from "../../../components/Icon";
+import { propSpecs } from "../inspector/propSchema";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc } from "../api";
@@ -53,9 +56,11 @@ export type Geometry = {
   pinnedTo: string | null;
   /** Every layer of the parent floats, so the parent hugs nothing on that axis. */
   parentEmpty: boolean;
+  /** The parent has a size of its own (a Screen, a Fixed width and height): floating layers leave it as it is. */
+  parentSized: boolean;
 };
 
-const noGeometry: Geometry = { measured: null, floating: false, parent: "none", floatBox: null, pinnedTo: null, parentEmpty: false };
+const noGeometry: Geometry = { measured: null, floating: false, parent: "none", floatBox: null, pinnedTo: null, parentEmpty: false, parentSized: false };
 
 /** The nearest ancestor that renders a box (display: contents wrappers are skipped). */
 function layoutParent(element: Element): HTMLElement | null {
@@ -128,7 +133,8 @@ export function readGeometry(selection: NodeSelection): Geometry {
   const pinnedTo = block && parentHost && !parentHost.contains(block) ? findName(block) : null;
   const siblings = Array.from(domParent.children).filter((node) => node instanceof HTMLElement && getComputedStyle(node).display !== "none");
   const parentEmpty = floating && siblings.length > 0 && siblings.every((node) => node instanceof HTMLElement && getComputedStyle(node).position === "absolute");
-  return { measured, floating, parent, floatBox, pinnedTo, parentEmpty };
+  const parentSized = domParent.matches(".studio-builder-screen, .studio-builder-screen__content") || (domParent.getAttribute("data-w") === "fixed" && domParent.getAttribute("data-h") === "fixed");
+  return { measured, floating, parent, floatBox, pinnedTo, parentEmpty, parentSized };
 }
 
 /** A readable name for an annotated element (its component, else its tag). */
@@ -261,10 +267,28 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
     });
   };
 
-  const insetRows = floating ? (["x", "y"] as const).flatMap((axis) => readInsets(axis, pins[axis])) : [];
+  const insetRows = floating ? (["x", "y"] as const).flatMap((axis) => readInsets(axis, pins[axis])).filter((prop) => !((prop === "insetLeft" && pins.x === "start") || (prop === "insetTop" && pins.y === "start"))) : [];
   const ladder = floating ? ladderOf(selection) : [];
-  const x = geometry.measured ? Math.round(geometry.measured.x.start) : null;
-  const y = geometry.measured ? Math.round(geometry.measured.y.start) : null;
+  // Figma's X / Y: the written px offset when there is one (a rotated layer measures its turned bounds), else measured.
+  const writtenPx = (prop: string) => { const value = literal(values[prop]); return typeof value === "number" ? value : null; };
+  const x = writtenPx("insetLeft") ?? (geometry.measured ? Math.round(geometry.measured.x.start) : null);
+  const y = writtenPx("insetTop") ?? (geometry.measured ? Math.round(geometry.measured.y.start) : null);
+  // A floating layer pinned to the left / top edge takes X / Y as typed, in px (Figma's free X / Y; a token step it had
+  // becomes its px value). Other constraints keep their edge offsets below.
+  const freeAxis = (axis: PositionAxis) => floating && pins[axis] === "start" && values[axis === "x" ? "insetLeft" : "insetTop"].state !== "bound" && values[axis === "x" ? "insetLeft" : "insetTop"].state !== "spread";
+  const moveTo = (axis: PositionAxis, value: number) => {
+    const prop = axis === "x" ? "insetLeft" : "insetTop";
+    void api.apply([{ op: "setProp", name: prop, value: { kind: "number", value: Math.round(value) } }], `${name} ${axis.toUpperCase()} → ${Math.round(value)}`);
+  };
+  const rotatable = propSpecs(component).some((spec) => spec.name === "rotation");
+  const rotationValue = api.valueFor("rotation");
+  const rotation = rotationValue.state === "literal" && typeof rotationValue.value === "number" ? rotationValue.value : 0;
+  const rotate = (value: number) => {
+    // Figma keeps a rotation between −180° and 180° (270 → −90).
+    const turned = Math.round((((value + 180) % 360 + 360) % 360 - 180) * 100) / 100;
+    const shown = turned === -180 ? 180 : turned;
+    void api.apply(shown ? [{ op: "setProp", name: "rotation", value: { kind: "number", value: shown } }] : [{ op: "removeProp", name: "rotation" }], `${name} rotation → ${shown}°`);
+  };
   const flowHint = geometry.parent === "auto" ? "Placed by the parent's auto layout" : "Placed by the page flow";
 
   const notes: { text: string; tone: "warning" | "neutral"; action?: { label: string; run: () => void } }[] = [];
@@ -283,7 +307,8 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
     }
     if (sizes.alignSelf.state === "literal") notes.push({ text: "Align in parent does nothing on a floating layer.", tone: "warning", action: disabled ? undefined : { label: "Remove", run: () => api.removeProp("alignSelf") } });
     if (geometry.pinnedTo) notes.push({ text: `Pinned to ${geometry.pinnedTo}, the nearest positioned layer.`, tone: "neutral" });
-    if (geometry.parentEmpty) notes.push({ text: "Every layer of the parent floats, so it hugs nothing. Give it a size.", tone: "neutral" });
+    // A free frame (a Screen, a Box with a size) keeps its size whatever its layers do: no note there.
+    if (geometry.parentEmpty && !geometry.parentSized) notes.push({ text: "Every layer of the parent floats, so it hugs nothing. Give it a size.", tone: "neutral" });
   }
 
   return (
@@ -306,8 +331,8 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
       </InspectorRow>
 
       <div className="studio-position__pair" data-prop="position">
-        <ReadOnlyNumber axis="X" value={x} />
-        <ReadOnlyNumber axis="Y" value={y} />
+        {freeAxis("x") ? <ScrubNumberField label="X" name="X" value={x} disabled={disabled} onCommit={(value) => moveTo("x", value)} /> : <ReadOnlyNumber axis="X" value={x} />}
+        {freeAxis("y") ? <ScrubNumberField label="Y" name="Y" value={y} disabled={disabled} onCommit={(value) => moveTo("y", value)} /> : <ReadOnlyNumber axis="Y" value={y} />}
         <span className="studio-position__slot">
           {/* zen-allow-secondary: pressed state of a toggle (Ignore auto layout on), as the Code view's Wrap lines. */}
           <IconButton
@@ -321,6 +346,12 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
           />
         </span>
       </div>
+      {rotatable ? (
+        <div className="studio-position__pair" data-prop="rotation">
+          <ScrubNumberField label={<Icon name="icon-refresh-ccw-01-line" size="sm" decorative />} name="Rotation" suffix="°" round={2} value={rotation}
+            disabled={disabled || rotationValue.state === "bound" || rotationValue.state === "spread"} onCommit={rotate} />
+        </div>
+      ) : null}
       {viaBox ? (
         <div className="studio-position__via">
           <p className={`studio-position__caption ${typographyStyles["Body/Small/Regular"]}`}>Floats in a Box around it: its constraints are on the Box.</p>

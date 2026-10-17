@@ -13,6 +13,7 @@ import { pinOfConstraint, snap, snapText, type Ladder, type Pin, type Snap } fro
 import type { EditOp } from "../types";
 import { textEditSession } from "./textEdit";
 import { srcAttr } from "../select/srcIds";
+import { snapBox, SNAP_PX, type FrameBox, type SnapGuide } from "../builder/render/framePlace";
 
 /*
  * Drag a layer in auto layout, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 2).
@@ -38,6 +39,8 @@ export type DragView = {
   pointer: { x: number; y: number };
   label: string | null;
   tone: "info" | "negative";
+  /** Red smart guides of a free move (client px). */
+  guides?: Array<{ x: number; y: number; w: number; h: number }>;
 } | null;
 
 let view: DragView = null;
@@ -73,6 +76,8 @@ type Session = {
   start: { x: number; y: number };
   startWorld: { x: number; y: number };
   pointer: { x: number; y: number };
+  /** ⇧ (one axis) and ⌘ / Ctrl (no snapping) as last seen: a free move reads them. */
+  keys: { shift: boolean; mod: boolean };
   dragging: boolean;
   copy: boolean;
   refusal: string | null;
@@ -286,11 +291,22 @@ function follow(current: Session) {
  * snapped to the Spacing/Padding ladder (positionModel snap; a centred axis has no offset and stays). `target`: the
  * element that carries the position props; `host`: its DOM node; offsets in CSS px at the press.
  */
-type FloatMove = { target: NodeSelection; host: HTMLElement; scale: number; pins: { x: Pin; y: Pin }; start: { x: number; y: number }; end: { x: number; y: number }; ladder: Ladder; insets: Array<{ prop: string; snap: Snap; was: Snap }> };
+type FloatMove = {
+  target: NodeSelection; host: HTMLElement; scale: number; pins: { x: Pin; y: Pin }; start: { x: number; y: number }; end: { x: number; y: number }; ladder: Ladder; insets: Array<{ prop: string; snap: Snap; was: Snap }>;
+  /**
+   * In a free frame (a Screen or a Box without auto layout: Figma's frame whose layers sit at X / Y), the layer moves by
+   * the px, snapping to the frame's and its other layers' edges and centres with red guides (⌘ held: no snapping; ⇧ one
+   * axis), and writes px offsets. Inside auto layout it keeps the token ladder.
+   */
+  free: { others: FrameBox[]; size: { width: number; height: number }; guides: SnapGuide[] } | null;
+};
+
+/** A free frame's DOM node: a builder Screen (or its content box) or a Box that is not a layer's float wrapper. */
+const FREE_FRAME = ".studio-builder-screen, .studio-builder-screen__content, .zen-box";
 
 /** The floating layer a press on `host` moves (itself, or the floating Box that holds only it), or null. */
 function floatOf(host: HTMLElement, layer: NodeSelection): FloatMove | null {
-  const own = host.dataset.position === "absolute" && host.matches(".zen-stack, .zen-grid, .zen-box");
+  const own = host.dataset.position === "absolute" && host.matches(".zen-stack, .zen-grid, .zen-box, .zen-shape");
   const box = !own && host.parentElement?.matches('.zen-box[data-position="absolute"]') && host.parentElement.children.length === 1 ? host.parentElement : null;
   const floating = own ? host : box;
   const src = own ? layer.src : srcAttr(box);
@@ -302,16 +318,76 @@ function floatOf(host: HTMLElement, layer: NodeSelection): FloatMove | null {
   const left = (rect.left - outer.left) / scale - block.clientLeft;
   const top = (rect.top - outer.top) / scale - block.clientTop;
   const target: NodeSelection = own ? layer : { ...layer, src, name: "Box" };
+  const parent = floating.parentElement;
+  const freeFrame = parent?.matches(FREE_FRAME) && !(parent.matches('.zen-box[data-position="absolute"]') && parent.children.length === 1);
+  // The other layers of a free frame and the frame itself, in its px: what the moved layer snaps to.
+  const others: FrameBox[] = freeFrame && parent ? [
+    { x: 0, y: 0, width: block.clientWidth, height: block.clientHeight },
+    ...Array.from(parent.children).filter((child): child is HTMLElement => child instanceof HTMLElement && child !== floating).map((child) => {
+      const box = child.getBoundingClientRect();
+      return { x: (box.left - outer.left) / scale - block.clientLeft, y: (box.top - outer.top) / scale - block.clientTop, width: box.width / scale, height: box.height / scale };
+    }).filter((box) => box.width > 0 || box.height > 0),
+  ] : [];
   return {
     target, host: floating, scale,
     pins: { x: pinOfConstraint("x", floating.dataset.constraintX), y: pinOfConstraint("y", floating.dataset.constraintY) },
     start: { x: left, y: top },
     end: { x: block.clientWidth - left - rect.width / scale, y: block.clientHeight - top - rect.height / scale },
     ladder: ladderOf(target), insets: [],
+    free: freeFrame ? { others, size: { width: rect.width / scale, height: rect.height / scale }, guides: [] } : null,
   };
 }
 
+/** A free frame's layer follows the pointer by the px (Figma's move): smart guides, ⇧ one axis, ⌘ no snapping. */
+function followFree(current: Session, float: FloatMove, free: NonNullable<FloatMove["free"]>, keys: { shift: boolean; mod: boolean }) {
+  let dx = (current.pointer.x - current.start.x) / float.scale;
+  let dy = (current.pointer.y - current.start.y) / float.scale;
+  if (keys.shift) { if (Math.abs(dx) >= Math.abs(dy)) dy = 0; else dx = 0; }
+  const moved = { x: float.start.x + dx, y: float.start.y + dy, width: free.size.width, height: free.size.height };
+  free.guides = [];
+  if (!keys.mod) {
+    const snapped = snapBox(moved, free.others, SNAP_PX / (getViewport().zoom || 1));
+    moved.x += snapped.dx;
+    moved.y += snapped.dy;
+    free.guides = snapped.guides;
+  }
+  const x = Math.round(moved.x);
+  const y = Math.round(moved.y);
+  const px = (value: number): Snap => ({ key: String(value), px: value, clamped: false, from: value });
+  float.insets = [];
+  const shift = { x: 0, y: 0 };
+  for (const axis of ["x", "y"] as const) {
+    const pin = float.pins[axis];
+    if (pin === "center") continue;
+    const at = axis === "x" ? x : y;
+    const size = axis === "x" ? free.size.width : free.size.height;
+    const inner = (axis === "x" ? float.start.x + float.end.x : float.start.y + float.end.y) + size;
+    const [startProp, endProp] = axis === "x" ? ["insetLeft", "insetRight"] : ["insetTop", "insetBottom"];
+    const was = float.start[axis];
+    if (pin === "start" || pin === "stretch") float.insets.push({ prop: startProp, snap: px(at), was: px(Math.round(was)) });
+    if (pin === "end" || pin === "stretch") float.insets.push({ prop: endProp, snap: px(Math.round(inner - at - size)), was: px(Math.round(float.end[axis])) });
+    shift[axis] = at - was;
+  }
+  if (!current.refusal) float.host.style.setProperty("translate", `${shift.x}px ${shift.y}px`);
+  current.target = null;
+  publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? null, tone: current.refusal ? "negative" : "info", guides: freeGuides(float, free) });
+}
+
+/** The guides of a free move in screen px (the canvas's red smart guides). */
+function freeGuides(float: FloatMove, free: NonNullable<FloatMove["free"]>) {
+  const block = float.host.offsetParent;
+  if (!(block instanceof HTMLElement) || !free.guides.length) return undefined;
+  const outer = block.getBoundingClientRect();
+  const at = (x: number, y: number) => ({ x: outer.left + (x + block.clientLeft) * float.scale, y: outer.top + (y + block.clientTop) * float.scale });
+  return free.guides.map((guide) => {
+    const from = guide.axis === "x" ? at(guide.at, guide.from) : at(guide.from, guide.at);
+    const length = (guide.to - guide.from) * float.scale;
+    return guide.axis === "x" ? { x: from.x, y: from.y, w: 1, h: length } : { x: from.x, y: from.y, w: length, h: 1 };
+  });
+}
+
 function followFloat(current: Session, float: FloatMove) {
+  if (float.free) { followFree(current, float, float.free, current.keys); return; }
   const dx = (current.pointer.x - current.start.x) / float.scale;
   const dy = (current.pointer.y - current.start.y) / float.scale;
   float.insets = [];
@@ -344,8 +420,12 @@ async function dropFloat(float: FloatMove) {
   if (!changed.length || !at) return;
   const element = await studioApi.element(at.file, at.loc);
   if (!element) { announceEditStatus({ kind: "error", message: `${float.target.name} is no longer there — select it again`, at: Date.now() }); return; }
-  const ops: EditOp[] = changed.map((inset) => (inset.snap.key === "none" ? { op: "removeProp", name: inset.prop } : { op: "setProp", name: inset.prop, value: { kind: "string", value: inset.snap.key } }));
-  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops, hash: element.hash }, `Move ${float.target.name} · ${changed.map(snapText).join(", ")}`);
+  // A free frame's layer writes px (Figma's X / Y); one inside auto layout its token steps.
+  const ops: EditOp[] = changed.map((inset) => (float.free
+    ? { op: "setProp", name: inset.prop, value: { kind: "number", value: inset.snap.px } }
+    : inset.snap.key === "none" ? { op: "removeProp", name: inset.prop } : { op: "setProp", name: inset.prop, value: { kind: "string", value: inset.snap.key } }));
+  const label = float.free ? changed.map((inset) => `${inset.prop === "insetLeft" ? "X" : inset.prop === "insetTop" ? "Y" : inset.prop} ${inset.snap.px}`).join(", ") : changed.map(snapText).join(", ");
+  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops, hash: element.hash }, `Move ${float.target.name} · ${label}`);
 }
 
 /** Pans the canvas while the pointer stays near its edges. */
@@ -401,6 +481,7 @@ function onMove(event: PointerEvent) {
   const current = session;
   if (!current) return;
   current.pointer = { x: event.clientX, y: event.clientY };
+  current.keys = { shift: event.shiftKey, mod: event.metaKey || event.ctrlKey };
   if (!current.dragging) {
     if (Math.hypot(event.clientX - current.start.x, event.clientY - current.start.y) < THRESHOLD) return;
     current.dragging = true;
@@ -454,6 +535,11 @@ function onKey(event: KeyboardEvent) {
   }
   if (event.key === "Alt" && current.dragging) {
     current.copy = event.type === "keydown";
+    follow(current);
+  }
+  // ⇧ and ⌘ change a free move mid-drag (one axis, no snapping), as Figma's.
+  if (["Shift", "Meta", "Control"].includes(event.key) && current.dragging && current.float?.free) {
+    current.keys = { shift: event.shiftKey, mod: event.metaKey || event.ctrlKey };
     follow(current);
   }
 }
@@ -545,6 +631,7 @@ function begin(event: PointerEvent, from: Pick<Session, "layer" | "layers" | "hi
     start,
     startWorld: toWorld(start),
     pointer: start,
+    keys: { shift: event.shiftKey, mod: event.metaKey || event.ctrlKey },
     dragging: false,
     copy: false,
     refusal: null,

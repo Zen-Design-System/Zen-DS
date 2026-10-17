@@ -351,3 +351,7 @@
 @media (prefers-reduced-motion: reduce) {
   .studio-inspector__row-control { transition: none; }
 }
+
+/* A page's own component (ComponentSection): its name or the component an instance shows, then two quiet actions. */
+.studio-component-section__actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-component-section .zen-input-field__leading, .studio-component-section .zen-select__leading { color: var(--zen-color-content-support-violet-base); }

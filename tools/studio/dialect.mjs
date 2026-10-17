@@ -26,7 +26,9 @@ export const SCREEN_CANVASES = ["default", "alt", "flat"];
 export const FRAME_SIZE = { min: 120, max: 4096 };
 /** A frame's place on the board (props `x`, `y`, world px from the board's origin): far enough for any canvas. */
 const FRAME_PLACE = 100000;
-const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "proto"]);
+const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "proto", "Component", "Use"]);
+/** A page-local main component's id (Figma's main component, Zen Studio 2026-10-17): lowercase letters, digits, dashes. */
+const COMPONENT_ID = /^[a-z][a-z0-9-]*$/;
 const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link"]);
 const PACKAGE = "@zen-ds/react";
 const BUILDER_PACKAGE = "@zen-ds/react/builder";
@@ -264,7 +266,7 @@ export function parsePage(text, { components } = {}) {
       for (const specifier of statement.specifiers) {
         if (specifier.type !== "ImportSpecifier") { fail(specifier, "Use named imports ({ Button })"); continue; }
         const name = specifier.local.name;
-        if (from === BUILDER_PACKAGE && !BUILDER_NAMES.has(name)) fail(specifier, `${BUILDER_PACKAGE} exports Board, Screen, Overlay and proto, not ${name}`);
+        if (from === BUILDER_PACKAGE && !BUILDER_NAMES.has(name)) fail(specifier, `${BUILDER_PACKAGE} exports Board, Screen, Overlay, Component, Use and proto, not ${name}`);
         else if (from === PACKAGE && components && !components.has(name)) fail(specifier, `${name} is not a Zen component`);
         imported.add(name);
       }
@@ -430,7 +432,70 @@ export function parsePage(text, { components } = {}) {
       }
     }
   }
+  if (board && board.name === "Board") checkComponents(board, errors);
   return { header, mock, board: board && board.name === "Board" ? board : null, errors };
+}
+
+/* ── page-local components (Figma's main components and instances, 2026-10-17) ─────────────────────────────────── */
+
+/** Every element node of `node`'s subtree (itself first), through children, element props, fragments and .map rows. */
+export function eachElement(node, visit, parents = []) {
+  if (!node || node.kind !== "element") return;
+  visit(node, parents);
+  const inner = [...parents, node];
+  const value = (entry) => {
+    if (!entry) return;
+    if (entry.kind === "element") eachElement(entry.node, visit, inner);
+    else if (entry.kind === "fragment") entry.children.forEach(child);
+    else if (entry.kind === "array") entry.items.forEach(value);
+    else if (entry.kind === "object") Object.values(entry.fields).forEach(value);
+  };
+  const child = (entry) => {
+    if (entry.kind === "element") eachElement(entry, visit, inner);
+    else if (entry.kind === "map") eachElement(entry.node, visit, inner);
+  };
+  Object.values(node.props).forEach(value);
+  node.children.forEach(child);
+}
+
+/**
+ * The page's main components: [{ id, name, loc, node, root }] in document order. `<Component id name>` holds exactly
+ * one layer (`root`), the layer ⌥⌘K made a component, where it was (Figma keeps a main component in place).
+ */
+export function localComponents(tree) {
+  const out = [];
+  eachElement(tree?.board ?? tree, (node) => {
+    if (node.name !== "Component") return;
+    const id = node.props.id?.kind === "literal" ? node.props.id.value : null;
+    const name = node.props.name?.kind === "literal" ? node.props.name.value : id;
+    const root = node.children.find((child) => child.kind === "element") ?? null;
+    out.push({ id, name, loc: node.loc, node, root });
+  });
+  return out;
+}
+
+/** The ids a page's components and instances must follow; errors go to `errors` (parsePage's). */
+function checkComponents(board, errors) {
+  const at = (node, message) => errors.push({ line: Number(node.loc.split(":")[0]), column: Number(node.loc.split(":")[1]), message });
+  const mains = new Map();
+  for (const { id, name, node } of localComponents(board)) {
+    if (typeof id !== "string" || !COMPONENT_ID.test(id)) { at(node, "<Component> needs an id of lowercase letters, digits and dashes"); continue; }
+    if (mains.has(id)) at(node, `Two components share the id ${id}`);
+    mains.set(id, node);
+    if (typeof name !== "string" || !name.trim()) at(node, "<Component> needs a name");
+    const layers = node.children.filter((child) => child.kind !== "text" || child.value.trim());
+    if (layers.length !== 1 || layers[0].kind !== "element") at(node, "<Component> holds exactly one layer (the one it makes a component)");
+    for (const prop of Object.keys(node.props)) if (prop !== "id" && prop !== "name") at(node, `<Component> takes id and name only, not ${prop}`);
+  }
+  eachElement(board, (node, parents) => {
+    if (node.name !== "Use") return;
+    const of = node.props.of?.kind === "literal" ? node.props.of.value : null;
+    if (typeof of !== "string" || !mains.has(of)) { at(node, `<Use of="${of ?? ""}"> names no component of this page`); return; }
+    if (node.children.some((child) => child.kind !== "text" || child.value.trim())) at(node, "<Use> holds nothing: it shows its component");
+    // An instance inside its own main would draw itself forever.
+    if (parents.some((parent) => parent.name === "Component" && parent.props.id?.value === of)) at(node, `<Use of="${of}"> sits inside its own component`);
+    for (const prop of Object.keys(node.props)) if (prop !== "of" && prop !== "overrides") at(node, `<Use> takes of and overrides only, not ${prop}`);
+  });
 }
 
 /** The dialect errors of a page text (empty: the text is a valid page). */

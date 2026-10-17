@@ -2205,104 +2205,132 @@
           "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom` (Top & bottom: stretches between the two offsets, `height` is ignored) ·"
         },
         "insetTop": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
           "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladde"
         },
         "insetRight": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's right edge on Spacing/Padding."
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame."
         },
         "insetBottom": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's bottom edge on Spacing/Padding."
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame."
         },
         "insetLeft": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder)."
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
         },
         "effectStyle": {
           "enum": [
@@ -7713,104 +7741,132 @@
           "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom` (Top & bottom: stretches between the two offsets, `height` is ignored) ·"
         },
         "insetTop": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
           "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladde"
         },
         "insetRight": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's right edge on Spacing/Padding."
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame."
         },
         "insetBottom": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's bottom edge on Spacing/Padding."
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame."
         },
         "insetLeft": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder)."
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
         },
         "columns": {
           "anyOf": [
@@ -12887,6 +12943,641 @@
         "ref (not for a generated UI)"
       ]
     },
+    "Shape": {
+      "name": "Shape",
+      "slug": "shape",
+      "folder": "Shape",
+      "status": "stable",
+      "import": "import { Shape } from \"@zen-ds/react\";",
+      "purpose": "Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon and Star — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only.",
+      "use": [
+        "A decorative mark or illustration a designer drew in Zen Studio with R, O, L, ⇧L, Polygon or Star.",
+        "A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.",
+        "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets."
+      ],
+      "avoid": [
+        "Data charts → Chart components (DonutChart, RadialChart, ProgressBar…): they carry labels, legends and accessible values.",
+        "A divider line → Divider.",
+        "A surface or card background → Box surface or Card.",
+        "A status dot or badge on a component → that component's own prop (Avatar status, notification dot)."
+      ],
+      "description": "Zen Shape: Figma's native shapes (Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star) for illustrations, marks and decoration drawn in Zen Studio.",
+      "props": {
+        "width": {
+          "anyOf": [
+            {
+              "enum": [
+                "hug",
+                "fill"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Horizontal resizing, as in Figma auto layout."
+        },
+        "minWidth": {
+          "type": "number",
+          "description": "Minimum width in px (Figma min width)."
+        },
+        "maxWidth": {
+          "type": "number",
+          "description": "Maximum width in px (Figma max width), e.g."
+        },
+        "alignSelf": {
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ],
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell."
+        },
+        "height": {
+          "anyOf": [
+            {
+              "enum": [
+                "hug",
+                "fill"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Vertical resizing, as in Figma auto layout."
+        },
+        "minHeight": {
+          "type": "number",
+          "description": "Minimum height in px (Figma min height)."
+        },
+        "maxHeight": {
+          "type": "number",
+          "description": "Maximum height in px (Figma max height)."
+        },
+        "position": {
+          "enum": [
+            "static",
+            "absolute"
+          ],
+          "description": "Figma \"Ignore auto layout\" (layoutPositioning ABSOLUTE)."
+        },
+        "constraintX": {
+          "enum": [
+            "left",
+            "right",
+            "left-right",
+            "center"
+          ],
+          "description": "Figma horizontal constraint, read only with `position=\"absolute\"`: `left` (default, Figma Left) · `right` (Right) · `left-right` (Left & right: stretches between the two offsets, `"
+        },
+        "constraintY": {
+          "enum": [
+            "top",
+            "bottom",
+            "top-bottom",
+            "center"
+          ],
+          "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom` (Top & bottom: stretches between the two offsets, `height` is ignored) ·"
+        },
+        "insetTop": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladde"
+        },
+        "insetRight": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame."
+        },
+        "insetBottom": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame."
+        },
+        "insetLeft": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+        },
+        "radiusTopLeft": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full), following the radius mode."
+        },
+        "radiusTopRight": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius)."
+        },
+        "radiusBottomRight": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius)."
+        },
+        "radiusBottomLeft": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+        },
+        "type": {
+          "enum": [
+            "rectangle",
+            "ellipse",
+            "line",
+            "arrow",
+            "polygon",
+            "star"
+          ],
+          "default": "rectangle",
+          "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc), `line` (LINE: `width` is its length, `rotation` its angle, no h"
+        },
+        "fill": {
+          "enum": [
+            "none",
+            "neutral-solid",
+            "neutral-subtle",
+            "neutral-pale",
+            "neutral-flat",
+            "accent-solid",
+            "accent-subtle",
+            "accent-flat",
+            "info-solid",
+            "info-subtle",
+            "info-flat",
+            "positive-solid",
+            "positive-subtle",
+            "positive-flat",
+            "negative-solid",
+            "negative-subtle",
+            "negative-flat",
+            "warning-solid",
+            "warning-subtle",
+            "warning-flat",
+            "inverse-solid",
+            "inverse-subtle",
+            "inverse-flat",
+            "surface",
+            "surface-alt",
+            "canvas",
+            "canvas-alt",
+            "white",
+            "white-overlay",
+            "black",
+            "black-overlay",
+            "support-brand-solid",
+            "support-brand-rich",
+            "support-brand-deep",
+            "support-brand-soft",
+            "support-brand-subtle",
+            "support-brand-pale",
+            "support-neutral-solid",
+            "support-neutral-rich",
+            "support-neutral-deep",
+            "support-neutral-soft",
+            "support-neutral-subtle",
+            "support-neutral-pale",
+            "support-blue-solid",
+            "support-blue-rich",
+            "support-blue-deep",
+            "support-blue-soft",
+            "support-blue-subtle",
+            "support-blue-pale",
+            "support-bronze-solid",
+            "support-bronze-rich",
+            "support-bronze-deep",
+            "support-bronze-soft",
+            "support-bronze-subtle",
+            "support-bronze-pale",
+            "support-brown-solid",
+            "support-brown-rich",
+            "support-brown-deep",
+            "support-brown-soft",
+            "support-brown-subtle",
+            "support-brown-pale",
+            "support-crimson-solid",
+            "support-crimson-rich",
+            "support-crimson-deep",
+            "support-crimson-soft",
+            "support-crimson-subtle",
+            "support-crimson-pale",
+            "support-cyan-solid",
+            "support-cyan-rich",
+            "support-cyan-deep",
+            "support-cyan-soft",
+            "support-cyan-subtle",
+            "support-cyan-pale",
+            "support-golden-solid",
+            "support-golden-rich",
+            "support-golden-deep",
+            "support-golden-soft",
+            "support-golden-subtle",
+            "support-golden-pale",
+            "support-green-solid",
+            "support-green-rich",
+            "support-green-deep",
+            "support-green-soft",
+            "support-green-subtle",
+            "support-green-pale",
+            "support-indigo-solid",
+            "support-indigo-rich",
+            "support-indigo-deep",
+            "support-indigo-soft",
+            "support-indigo-subtle",
+            "support-indigo-pale",
+            "support-mint-solid",
+            "support-mint-rich",
+            "support-mint-deep",
+            "support-mint-soft",
+            "support-mint-subtle",
+            "support-mint-pale",
+            "support-orange-solid",
+            "support-orange-rich",
+            "support-orange-deep",
+            "support-orange-soft",
+            "support-orange-subtle",
+            "support-orange-pale",
+            "support-pink-solid",
+            "support-pink-rich",
+            "support-pink-deep",
+            "support-pink-soft",
+            "support-pink-subtle",
+            "support-pink-pale",
+            "support-plum-solid",
+            "support-plum-rich",
+            "support-plum-deep",
+            "support-plum-soft",
+            "support-plum-subtle",
+            "support-plum-pale",
+            "support-purple-solid",
+            "support-purple-rich",
+            "support-purple-deep",
+            "support-purple-soft",
+            "support-purple-subtle",
+            "support-purple-pale",
+            "support-red-solid",
+            "support-red-rich",
+            "support-red-deep",
+            "support-red-soft",
+            "support-red-subtle",
+            "support-red-pale",
+            "support-sky-solid",
+            "support-sky-rich",
+            "support-sky-deep",
+            "support-sky-soft",
+            "support-sky-subtle",
+            "support-sky-pale",
+            "support-teal-solid",
+            "support-teal-rich",
+            "support-teal-deep",
+            "support-teal-soft",
+            "support-teal-subtle",
+            "support-teal-pale",
+            "support-violet-solid",
+            "support-violet-rich",
+            "support-violet-deep",
+            "support-violet-soft",
+            "support-violet-subtle",
+            "support-violet-pale",
+            "support-yellow-solid",
+            "support-yellow-rich",
+            "support-yellow-deep",
+            "support-yellow-soft",
+            "support-yellow-subtle",
+            "support-yellow-pale"
+          ],
+          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in `shapeFills`), or \"none\"."
+        },
+        "stroke": {
+          "enum": [
+            "none",
+            "neutral-solid",
+            "neutral-subtle",
+            "neutral-pale",
+            "accent-solid",
+            "accent-subtle",
+            "info-solid",
+            "info-subtle",
+            "positive-solid",
+            "positive-subtle",
+            "negative-solid",
+            "negative-subtle",
+            "warning-solid",
+            "warning-subtle",
+            "inverse",
+            "container-solid",
+            "container-subtle",
+            "support-brand-solid",
+            "support-brand-subtle",
+            "support-neutral-solid",
+            "support-neutral-subtle",
+            "support-blue-solid",
+            "support-blue-subtle",
+            "support-bronze-solid",
+            "support-bronze-subtle",
+            "support-brown-solid",
+            "support-brown-subtle",
+            "support-crimson-solid",
+            "support-crimson-subtle",
+            "support-cyan-solid",
+            "support-cyan-subtle",
+            "support-golden-solid",
+            "support-golden-subtle",
+            "support-green-solid",
+            "support-green-subtle",
+            "support-indigo-solid",
+            "support-indigo-subtle",
+            "support-mint-solid",
+            "support-mint-subtle",
+            "support-orange-solid",
+            "support-orange-subtle",
+            "support-pink-solid",
+            "support-pink-subtle",
+            "support-plum-solid",
+            "support-plum-subtle",
+            "support-purple-solid",
+            "support-purple-subtle",
+            "support-red-solid",
+            "support-red-subtle",
+            "support-sky-solid",
+            "support-sky-subtle",
+            "support-teal-solid",
+            "support-teal-subtle",
+            "support-violet-solid",
+            "support-violet-subtle",
+            "support-yellow-solid",
+            "support-yellow-subtle"
+          ],
+          "description": "Stroke: a Color/Border token by its path (\"neutral-solid\", \"accent-subtle\", \"support-teal-solid\"; `shapeStrokes`), or \"none\" (default; a line or arrow takes Border/Neutral/Solid)."
+        },
+        "strokeWeight": {
+          "type": "number",
+          "default": 1,
+          "description": "Stroke weight in px (Figma strokeWeight)."
+        },
+        "strokeAlign": {
+          "enum": [
+            "inside",
+            "center",
+            "outside"
+          ],
+          "description": "Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's) or `outside`."
+        },
+        "radius": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Rectangle corner radius on the Corner-Radius tokens (Figma cornerRadius); `radiusTopLeft` … override single corners."
+        },
+        "arcStart": {
+          "type": "number",
+          "description": "Ellipse arc Start in degrees, clockwise from 3 o'clock (Figma's Arc › Start; arcData.startingAngle)."
+        },
+        "arcSweep": {
+          "type": "number",
+          "description": "Ellipse arc Sweep in percent of a full turn (Figma's Arc › Sweep): 100 (default) the whole ellipse, 25 a quarter pie."
+        },
+        "arcRatio": {
+          "type": "number",
+          "description": "Ellipse arc Ratio in percent (Figma's Arc › Ratio; arcData.innerRadius): the hole of a ring or donut."
+        },
+        "pointCount": {
+          "type": "number",
+          "description": "Polygon corners or star tips (Figma Count, 3 … 60)."
+        },
+        "starRatio": {
+          "type": "number",
+          "description": "Star inner radius in percent of the outer one (Figma Ratio)."
+        },
+        "rotation": {
+          "type": "number",
+          "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
+        },
+        "opacity": {
+          "type": "number",
+          "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100)."
+        },
+        "label": {
+          "type": "string",
+          "description": "Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
     "Sidebar": {
       "name": "Sidebar",
       "slug": "sidebar",
@@ -13869,104 +14560,132 @@
           "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom` (Top & bottom: stretches between the two offsets, `height` is ignored) ·"
         },
         "insetTop": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
           "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladde"
         },
         "insetRight": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's right edge on Spacing/Padding."
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame."
         },
         "insetBottom": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's bottom edge on Spacing/Padding."
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame."
         },
         "insetLeft": {
-          "enum": [
-            "none",
-            "3xs",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "3xsmall",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "4xl"
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "3xs",
+                "2xs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl",
+                "3xl",
+                "3xsmall",
+                "2xsmall",
+                "xsmall",
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "2xlarge",
+                "3xlarge",
+                "4xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
           ],
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder)."
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
         },
         "direction": {
           "enum": [
@@ -17230,6 +17949,27 @@
         "interaction/no-noop-handler"
       ]
     },
+    "shape": {
+      "title": "Shape",
+      "file": "docs/guidelines/shape.md",
+      "do": [
+        "Colour shapes with tokens only: fill from Color/Background, stroke from Color/Border (no hex).",
+        "Give a shape that carries meaning a label (role=img); leave decoration unlabelled (hidden from assistive tech).",
+        "Use px insets only inside a free frame (a Box or Screen without auto layout); inside auto layout let the frame place it.",
+        "Keep a line's angle in rotation and its length in width, as Figma stores a LINE."
+      ],
+      "dont": [
+        "Don't draw charts, progress or ratings from shapes: use the components that carry values and labels.",
+        "Don't use a Shape as a card or section background: use Box surface or Card.",
+        "Don't pass hex or rgb colours: fill and stroke take Zen token paths only."
+      ],
+      "rules": [
+        "shape/token-paint",
+        "shape/px-offset-in-auto-layout",
+        "shape/line-no-height",
+        "interaction/no-noop-handler"
+      ]
+    },
     "inline-message": {
       "title": "Inline Message",
       "file": "docs/guidelines/inline-message.md",
@@ -18018,6 +18758,7 @@
         "box/shadow-no-border",
         "radius/redundant-corners",
         "radius/full-mixed",
+        "shape/px-offset-in-auto-layout",
         "layout/use-stack",
         "interaction/no-noop-handler"
       ]

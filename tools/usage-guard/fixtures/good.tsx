@@ -83,6 +83,10 @@ export const Good = () => <>
   <InputField label="Email" placeholder="name@company.com" />
   <Sidebar sections={sections} subMenu={<SidebarSubMenu items={subItems} />} subMenuLabel="Projects" onSubMenuClose={close} />
   <Divider />
+  <Box width={160} height={120}>
+    <Shape type="ellipse" position="absolute" insetLeft={24} insetTop={8} width={96} height={96} arcRatio={60} fill="accent-solid" />
+    <Shape type="line" position="absolute" insetLeft={8} insetTop={110} width={140} rotation={10} stroke="neutral-subtle" />
+  </Box>
   <InlineMessage theme="info" title="Invites expire after 7 days">Resend the invite from Members.</InlineMessage>
   <InlineMessage theme="custom" icon={<Avatar size="small" alt="">AC</Avatar>} title="Ava shared a file" />
   <EmptyState title="No projects yet" primaryAction={{ label: "Create project", onClick: create }}>Projects you create show up here.</EmptyState>

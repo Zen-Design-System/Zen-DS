@@ -109,7 +109,11 @@ type Drag = {
   insets: FloatInset[];
 };
 
-type FloatAxes = { pins: { x: Pin; y: Pin }; start: { x: number; y: number }; end: { x: number; y: number }; ladder: Ladder };
+/** `free`: in a free frame (a Screen or a Box without auto layout) the edges move by the px and write px offsets. */
+type FloatAxes = { pins: { x: Pin; y: Pin }; start: { x: number; y: number }; end: { x: number; y: number }; ladder: Ladder; free: boolean };
+/** A free frame's DOM node: a builder Screen (or its content box) or a Box (edit/drag.ts FREE_FRAME). */
+const FREE_FRAME = ".studio-builder-screen, .studio-builder-screen__content, .zen-box";
+const pxSnap = (value: number): Snap => { const px = Math.round(value); return { key: String(px), px, clamped: false, from: px }; };
 type FloatInset = { prop: string; css: "left" | "right" | "top" | "bottom"; snap: Snap };
 const INSET_CSS = { insetLeft: "left", insetRight: "right", insetTop: "top", insetBottom: "bottom" } as const;
 
@@ -127,6 +131,7 @@ function floatAxes(host: HTMLElement, selection: NodeSelection): FloatAxes | nul
     start: { x: left, y: top },
     end: { x: block.clientWidth - left - rect.width / scale, y: block.clientHeight - top - rect.height / scale },
     ladder: ladderOf(selection),
+    free: Boolean(host.parentElement?.matches(FREE_FRAME) && !(host.parentElement.matches('.zen-box[data-position="absolute"]') && host.parentElement.children.length === 1)),
   };
 }
 
@@ -143,7 +148,8 @@ function floatAxis(float: FloatAxes, axis: PositionAxis, side: -1 | 1, delta: nu
   if (pin === "center") return { size: snapSize(size0 + 2 * side * delta, false, floor) };
   const moves = pin === "stretch" || (pin === "start" && side < 0) || (pin === "end" && side > 0);
   if (!moves) return { size: snapSize(size0 + side * delta, false, floor) };
-  const snapped = snap(Math.min(offset, (side < 0 ? float.start[axis] : float.end[axis]) + size0 - floor), float.ladder);
+  const reach = Math.min(offset, (side < 0 ? float.start[axis] : float.end[axis]) + size0 - floor);
+  const snapped = float.free ? pxSnap(reach) : snap(reach, float.ladder);
   const inset = { prop, css: INSET_CSS[prop], snap: snapped };
   if (pin === "stretch") return { inset };
   const was = side < 0 ? float.start[axis] : float.end[axis];
@@ -856,9 +862,20 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     drag.insets = [];
     const xOn = Boolean(drag.handle.sx && drag.target.width && (!corner || Math.abs(x - drag.start.x) >= DRAG_START));
     const yOn = Boolean(drag.handle.sy && drag.target.height && (!corner || Math.abs(y - drag.start.y) >= DRAG_START));
+    // ⇧ on a corner keeps the ratio (Figma): both sides take the larger of the two changes.
+    const ratioLocked = shift && corner && xOn && yOn && drag.w0 > 0 && drag.h0 > 0;
+    const keepRatio = (w: number, h: number) => {
+      const scale = Math.max(Math.abs(w / drag.w0), Math.abs(h / drag.h0));
+      return { width: drag.w0 * scale, height: drag.h0 * scale };
+    };
     if (drag.float) {
       // A floating layout: the dragged edge follows the pointer (its inset moves where its constraint pins it).
-      for (const [axis, on, side, delta, size0, floor, key] of [["x", xOn, drag.handle.sx, dx, drag.w0, drag.min.width, "width"], ["y", yOn, drag.handle.sy, dy, drag.h0, drag.min.height, "height"]] as const) {
+      let deltas = { x: dx, y: dy };
+      if (ratioLocked) {
+        const sized = keepRatio(drag.w0 + drag.handle.sx * dx, drag.h0 + drag.handle.sy * dy);
+        deltas = { x: drag.handle.sx * (sized.width - drag.w0), y: drag.handle.sy * (sized.height - drag.h0) };
+      }
+      for (const [axis, on, side, delta, size0, floor, key] of [["x", xOn, drag.handle.sx, deltas.x, drag.w0, drag.min.width, "width"], ["y", yOn, drag.handle.sy, deltas.y, drag.h0, drag.min.height, "height"]] as const) {
         if (!on || !side) continue;
         const moved = floatAxis(drag.float, axis, side, delta, size0, Math.max(MIN_SIZE, floor));
         if (moved.size !== undefined) values[key] = moved.size;
@@ -866,7 +883,14 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       }
       return values;
     }
-    // Never below what the element renders at its smallest (the pill shows the clamped value).
+    // Never below what the element renders at its smallest (the pill shows the clamped value). ⇧ on a corner keeps the
+    // ratio (Figma); ⇧ on an edge snaps it to 8 px.
+    if (ratioLocked) {
+      const sized = keepRatio(drag.w0 + drag.handle.sx * dx, drag.h0 + drag.handle.sy * dy);
+      values.width = snapSize(sized.width, false, drag.min.width);
+      values.height = snapSize(sized.height, false, drag.min.height);
+      return values;
+    }
     if (xOn) values.width = snapSize(drag.w0 + drag.handle.sx * dx, shift, drag.min.width);
     if (yOn) values.height = snapSize(drag.h0 + drag.handle.sy * dy, shift, drag.min.height);
     return values;
@@ -970,13 +994,16 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const insets = drag.insets.filter((inset) => {
       const float = drag.float!;
       const was = inset.prop === "insetLeft" ? float.start.x : inset.prop === "insetRight" ? float.end.x : inset.prop === "insetTop" ? float.start.y : float.end.y;
-      return Math.abs(snap(was, float.ladder).px - inset.snap.px) >= 0.5;
+      return Math.abs((float.free ? pxSnap(was) : snap(was, float.ladder)).px - inset.snap.px) >= 0.5;
     });
     if (!insets.length && (["width", "height"] as const).every((axis) => drag.values[axis] === undefined || drag.values[axis] === start[axis])) { finish(false); return; }
     const corner = drag.handle.sx !== 0 && drag.handle.sy !== 0;
     const sized = planResize(drag.hit.name, drag.target, drag.values, drag.parentWidth, { cross: drag.cross, count: drag.count, corner });
-    const insetOps: EditOp[] = insets.map((inset) => (inset.snap.key === "none" ? { op: "removeProp", name: inset.prop } : { op: "setProp", name: inset.prop, value: { kind: "string", value: inset.snap.key } }));
-    const moved = insets.map((inset) => snapText(inset)).join(", ");
+    // A free frame's layer writes px offsets (Figma's X / Y); one in auto layout its token steps.
+    const free = drag.float?.free ?? false;
+    const insetOps: EditOp[] = insets.map((inset) => (free ? { op: "setProp", name: inset.prop, value: { kind: "number", value: inset.snap.px } }
+      : inset.snap.key === "none" ? { op: "removeProp", name: inset.prop } : { op: "setProp", name: inset.prop, value: { kind: "string", value: inset.snap.key } }));
+    const moved = insets.map((inset) => (free ? `${inset.prop.replace("inset", "").toLowerCase()} ${inset.snap.px}` : snapText(inset))).join(", ");
     // The inset ops go with the size to the floating layout itself (its own size props, never a wrap).
     const plan: ResizePlan | null = !insetOps.length ? sized
       : sized && !sized.wrap && !sized.wrapper && !sized.grid ? { ...sized, ops: [...sized.ops, ...insetOps], label: `${sized.label} · ${moved}`, announce: `${sized.announce} · ${moved}` }

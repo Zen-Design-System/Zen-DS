@@ -19,7 +19,7 @@ export type Pin = "start" | "end" | "stretch" | "center";
 /** The props the Position section owns (DesignPanel leaves them out of Layout and Properties). */
 export const positionProps = ["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft"] as const;
 /** Components whose own props float them (src/components/Layout/position.ts); any other layer floats in a Box. */
-export const floatingComponents: ReadonlySet<string> = new Set(["Stack", "Grid", "Box"]);
+export const floatingComponents: ReadonlySet<string> = new Set(["Stack", "Grid", "Box", "Shape"]);
 
 export const constraintProp = { x: "constraintX", y: "constraintY" } as const;
 const insetProp = { x: { start: "insetLeft", end: "insetRight" }, y: { start: "insetTop", end: "insetBottom" } } as const;

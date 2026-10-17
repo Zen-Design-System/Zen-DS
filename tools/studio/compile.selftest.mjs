@@ -213,6 +213,39 @@ if (!process.argv.includes("--no-tsc")) {
   check("tsc: the outputs type-check (noUnusedLocals on)", own, []);
 }
 
+// A page's own components export as functions; every instance calls its main's (2026-10-17).
+{
+  const page = `// @zen-page {"format":1,"title":"Plans"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { Card, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Plans">
+        <Stack>
+          <Component id="price-card" name="Price card">
+            <Card theme="flat">
+              <Text>Starter</Text>
+            </Card>
+          </Component>
+          <Use of="price-card" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const out = compileReact(page, { file: "plans.zen.tsx" });
+  ok("components: no error", !out.error);
+  ok("components: one function", (out.code.match(/function PriceCard\(\)/g) ?? []).length === 1);
+  ok("components: two calls", (out.code.match(/<PriceCard \/>/g) ?? []).length === 2);
+  ok("components: its layers' imports", /import \{ Card, Stack, Text \} from "@zen-ds\/react";/.test(out.code));
+  ok("components: no builder names", !/<(Component|Use)\b/.test(out.code));
+}
+
 if (failures.length) {
   console.error(`✗ compile selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
