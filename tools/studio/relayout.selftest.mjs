@@ -77,4 +77,11 @@ const mapped = "<Box>{items.map((item) => <Text>{item}</Text>)}</Box>";
 test("a .map among the layers is refused", () => assert.throws(() => relayoutCode(mapped, whole(mapped), { tag: "Stack" }), /list or code/));
 test("loose words are refused", () => assert.throws(() => relayoutCode("<Box>Hello</Box>", whole("<Box>Hello</Box>"), { tag: "Stack" }), /text of its own/));
 
+// An empty painted frame still takes auto layout: its Box keeps the fill and holds an empty Stack (autolayout matrix,
+// 2026-10-17: it stayed a Box with nothing inside).
+const painted = '<Box surface="surface" width={200} height={100} />';
+test("an empty painted frame gets its auto layout Stack", () => assert.equal(relayoutCode(painted, whole(painted), { tag: "Box", remove: ["width", "height"], children: [], order: [], wrap: { tag: "Stack", set: { direction: "row" } } }), `<Box surface="surface">
+  <Stack direction="row" />
+</Box>`));
+
 console.log(`relayout selftest: ${count} passed`);

@@ -39,6 +39,7 @@ import { ShapeSections, shapePropNames } from "../appearance/ShapeSections";
 import { NestedProperties } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
+import { CodeProperties } from "./CodeProperties";
 import { PositionSection, positionProps } from "../position";
 import { useFocusContentToken } from "./focusContent";
 import { ValueCell } from "./PartPanel";
@@ -864,7 +865,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
           />
         ) : null}
         <p className={`studio-inspector__meta-row ${typographyStyles["Body/Small/Regular"]}`}>
-          <span>{kindLabel(kind)}</span>
+          <span>{kindLabel(kind, name)}</span>
           {docsPage ? (
             <>
               <span aria-hidden="true">·</span>
@@ -923,6 +924,13 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
 
       {element && propertySpecs.length && groups ? (
         <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
+      ) : element && propertySpecs.length && (kind === "primitive" || kind === "shape") ? (
+        // A frame, text or shape has no Figma properties: what the code adds (HTML element, Scroll, Html for…) waits in
+        // Code properties, closed (user, 2026-10-17: less developer language).
+        <CodeProperties count={propertySpecs.length}>
+          {propertySpecs.filter((spec) => !shapedNames.has(spec.name)).map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={propLabel(spec.name, name)} />)}
+          {shapedProps.map((entry) => <ObjectProperties key={entry.spec.name} component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />)}
+        </CodeProperties>
       ) : element && propertySpecs.length ? (
         // Properties in titled groups with a divider between them (autoGroups.ts), then one section per object or array
         // prop (Trend, items), titled with its name; an object's fields need no header of their own there.

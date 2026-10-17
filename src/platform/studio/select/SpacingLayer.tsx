@@ -10,8 +10,9 @@ import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, SourceElement } from "../types";
 import { onSourceUpdate } from "./picker";
 import { liveSrc, noteEditTarget } from "./remap";
-import { areaLabel, areaState, fitColumn, freeLabel, kebab, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { areaLabel, areaState, fitColumn, freeLabel, kebab, spacingWords, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
 import { useSpacingHover } from "./spacingHover";
+import { tokenName } from "../inspector/controls/scale";
 
 /*
  * The selected layout's padding and gap areas on the canvas (Figma-like). Each area is tinted; above the capture layer
@@ -115,6 +116,7 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
     const area = liveArea ?? areas.find((candidate) => candidate.kind === open.kind && candidate.side === open.side) ?? null;
     return area ? areaState(area, owner, attributes, open.alt) : null;
   }, [open, owner, liveArea, areas, attributes]);
+  const openScale = (liveArea ?? (open ? areas.find((candidate) => candidate.kind === open.kind && candidate.side === open.side) : undefined))?.scale ?? "gap";
 
   const writeOps = useCallback(async (ops: EditOp[], label: string) => {
     const parsed = owner ? parseSrc(owner.src) : null;
@@ -217,7 +219,7 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
       id: option.key,
       label: (
         <span className="studio-spacing__option">
-          <span>{option.key}</span>
+          <span>{tokenName(option.key, openScale)}</span>
           <span className={`studio-spacing__px ${typographyStyles["Body/Small/Regular"]}`}>{option.px === null ? "" : ` ${formatPx(option.px)}px`}</span>
         </span>
       ),
@@ -306,7 +308,7 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
 function fieldLabel(area: SpacingArea, owner: SpacingOwner, prop: string, key: string | null, state: AreaState | null): string | null {
   if (!key) return state ? areaLabel(area, state) : null;
   const px = tokenPx(owner.host, area.scale, key);
-  return [kebab(prop), key, px === null ? null : formatPx(px)].filter(Boolean).join(" · ");
+  return [spacingWords(prop), tokenName(key, area.scale), px === null ? null : formatPx(px)].filter(Boolean).join(" · ");
 }
 
 /** A bound value: what the source passes, instead of the picker. Escape or a press elsewhere closes it. */

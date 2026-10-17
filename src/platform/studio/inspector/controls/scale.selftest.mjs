@@ -18,7 +18,9 @@ check("padding + insets", scaleOfType('"none" | ZenScaleInput | "4xl"'), "paddin
 check("corner radius", scaleOfType('"none" | Exclude<ZenScaleInput, "3xs" | "3xsmall"> | "full"'), "radius");
 check("not a scale", [scaleOfType('"md" | "sm" | "medium" | "small"'), scaleOfType("ZenScaleInput"), scaleOfType("boolean")], [null, null, null]);
 
-check("steps read as token + value", [scaleStep("md", 16), scaleStep("none", 0), scaleStep("full", 999), scaleStep("xs", 7.5), scaleStep("lg", null)], [{ label: "md", meta: "16px" }, { label: "none", meta: "0px" }, { label: "full" }, { label: "xs", meta: "7.5px" }, { label: "lg" }]);
+// Steps read under their Figma variable's name (user 2026-10-17: Figma's words, not the code's), then the value.
+check("steps read as token + value", [scaleStep("md", 16), scaleStep("none", 0), scaleStep("full", 999, "radius"), scaleStep("xs", 7.5), scaleStep("lg", null)], [{ label: "Medium", meta: "16px" }, { label: "None", meta: "0px" }, { label: "Rounded" }, { label: "XSmall", meta: "7.5px" }, { label: "Large" }]);
+check("radius names", [scaleStep("md", 12, "radius"), scaleStep("margin-comfortable", 24, "padding")], [{ label: "Base", meta: "12px" }, { label: "Margin-Comfortable", meta: "24px" }]);
 
 const ladder = ["none", "xs", "sm", "md", "lg"];
 check("step up / down", [stepKey(ladder, "md", 1), stepKey(ladder, "md", -2)], ["lg", "xs"]);

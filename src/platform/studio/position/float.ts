@@ -12,10 +12,13 @@ import { positionProps } from "./positionModel";
  * applyUnwrap), so the code is exactly what it was. One request and one undo step each.
  */
 
-/** A Box that only floats one layer: no props but position props (and a key), no spread, one element inside. */
+/**
+ * A Box that only floats one layer: no props but position props (and a key; a width / height Remove auto layout keeps
+ * from the flow, edit/autoLayoutPlan.ts removePlan), no spread, one element inside.
+ */
 export function isFloatWrapper(element: SourceElement | null): boolean {
   if (!element || element.name !== "Box") return false;
-  const own = new Set<string>(positionProps);
+  const own = new Set<string>([...positionProps, "width", "height"]);
   if (element.attributes.some((attr) => attr.kind === "spread" || (attr.name !== "key" && !own.has(attr.name)))) return false;
   const kids = element.children.filter((child) => child.kind !== "text" || child.value.trim());
   return kids.length === 1 && kids[0].kind === "element";

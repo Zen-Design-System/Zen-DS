@@ -11,10 +11,10 @@ export const rows = [
       const page = await selectBox(ctx);
       await page.locator("#studio-right").getByRole("button", { name: "Independent corners" }).click();
       await until(async () => (await inspectorRow(page, "radiusBottomRight").count()) > 0, { message: "the four corner rows" });
-      await pickOption(page, "radiusBottomRight", scaleStep("xs"));
+      await pickOption(page, "radiusBottomRight", scaleStep("xs", "radius"));
       await expectSource(ctx, "box", (el) => el.attr("radiusBottomRight") === "xs" && el.attr("radius") === "md", 'radius="md" radiusBottomRight="xs"');
       await sleep(300);
-      await pickOption(page, "radiusBottomRight", scaleStep("md"));
+      await pickOption(page, "radiusBottomRight", scaleStep("md", "radius"));
       await expectSource(ctx, "box", (el) => el.attr("radiusBottomRight") === undefined && el.attr("radius") === "md", "the corner removed again (equals radius)");
       return 'chat tail radius="md" radiusBottomRight="xs", then back to radius only';
     },

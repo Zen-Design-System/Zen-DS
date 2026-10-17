@@ -73,18 +73,18 @@ export function relayoutCode(text, range, plan) {
     const rest = self ? "" : source.slice(layer.openingElement.end, layer.end);
     const code = dedent(source, layer.start, open + rest);
     if (!own.float) return code;
-    const floatAttrs = Object.entries(own.float.set ?? {}).map(([prop, value]) => attrText(prop, value));
+    const floatAttrs = Object.entries(own.float.set ?? {}).filter(([, value]) => value !== undefined && value !== null && value !== false).map(([prop, value]) => attrText(prop, value));
     return `<Box${floatAttrs.length ? ` ${floatAttrs.join(" ")}` : ""}>\n${indentBy(code, "  ")}\n</Box>`;
   });
   const order = plan.order ?? written.map((_, index) => index);
   if (order.length !== written.length || new Set(order).size !== order.length) throw new Error("relayout: the order must name every layer once");
   const ordered = order.map((index) => written[index]);
   const tag = plan.tag ?? nameOf(root.openingElement.name);
-  if (!ordered.length) return openingText(source, root.openingElement, 0, tag, plan, true);
+  const wrapAttrs = plan.wrap ? Object.entries(plan.wrap.set ?? {}).filter(([, value]) => value !== undefined && value !== null && value !== false).map(([prop, value]) => attrText(prop, value)) : [];
+  const wrapOpen = plan.wrap ? `<${plan.wrap.tag}${wrapAttrs.length ? ` ${wrapAttrs.join(" ")}` : ""}` : "";
+  // An empty frame: itself, or with its empty container (a painted frame keeps its Box and still takes auto layout).
+  if (!ordered.length) return plan.wrap ? `${openingText(source, root.openingElement, 0, tag, plan)}\n  ${wrapOpen} />\n</${tag}>` : openingText(source, root.openingElement, 0, tag, plan, true);
   let body = ordered.map((code) => indentBy(code, "  ")).join("\n");
-  if (plan.wrap) {
-    const wrapAttrs = Object.entries(plan.wrap.set ?? {}).filter(([, value]) => value !== undefined && value !== null && value !== false).map(([prop, value]) => attrText(prop, value));
-    body = `  <${plan.wrap.tag}${wrapAttrs.length ? ` ${wrapAttrs.join(" ")}` : ""}>\n${indentBy(body, "  ")}\n  </${plan.wrap.tag}>`;
-  }
+  if (plan.wrap) body = `  ${wrapOpen}>\n${indentBy(body, "  ")}\n  </${plan.wrap.tag}>`;
   return `${openingText(source, root.openingElement, 0, tag, plan)}\n${body}\n</${tag}>`;
 }

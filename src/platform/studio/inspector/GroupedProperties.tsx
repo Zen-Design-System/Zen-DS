@@ -11,7 +11,7 @@ import { NestedInstanceGroup } from "./NestedProperties";
 import type { NestedInstances } from "./nestedInstances";
 import { computedDefault, idleNotes } from "./computedDefaults";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
-import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
+import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isCodeProp, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
 import { savedSetProp } from "./writePlan";
@@ -19,6 +19,7 @@ import { InspectorSection } from "./Section";
 import "./nested.css";
 import { canHideSrc, slotSwitchOp, slotsOffValue } from "../edit/visibility";
 import { HIDDEN_SLOTS_PROP } from "../../../../tools/studio/visibility.mjs";
+import { CodeProperties } from "./CodeProperties";
 
 /*
  * The Properties section of a component with Figma groups (propGroups.ts): its own properties and booleans, then one
@@ -170,7 +171,12 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   // Props no group lists stay in the component's own group, after the code-only ones. A boolean's own value (Counter's
   // "3") shows while its boolean is on, and only where its layer exists (as the boolean row itself).
   const toggleOf = new Map(groups.toggles.map((toggle) => [toggle.prop, toggle]));
-  const after: PropEntry[] = [...groups.after, ...specs.map((spec) => spec.name).filter((name) => !placed.has(name)).map((name): PropEntry => {
+  const leftover = specs.map((spec) => spec.name).filter((name) => !placed.has(name));
+  // What only code reads (the HTML element, ids, links, accessibility names) goes to Code properties, closed, so the
+  // panel reads as Figma's instance panel (user, 2026-10-17: "chưa giống 100% component trên figma"); content and state
+  // stay here, a boolean's own value while its boolean is on.
+  const codeOnly: PropEntry[] = leftover.filter((name) => !toggleOf.has(name) && isCodeProp(name));
+  const after: PropEntry[] = [...groups.after, ...leftover.filter((name) => !codeOnly.includes(name)).map((name): PropEntry => {
     const toggle = toggleOf.get(name);
     return toggle ? { prop: name, when: [...(toggle.when ?? []), { prop: name, set: true }] } : name;
   })];
@@ -240,6 +246,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
         <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
       ))}
       {rows(after, "after")}
+      <CodeProperties count={codeOnly.filter((entry) => entryShown(entry, props)).length}>{rows(codeOnly, "code")}</CodeProperties>
       {groups.nested.filter((group) => holds(group.when, props)).map((group) => (
         <div key={group.name} role="group" aria-label={group.name} className="studio-group">
           <div className="studio-group__header">

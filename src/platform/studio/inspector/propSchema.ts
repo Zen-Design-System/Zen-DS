@@ -89,7 +89,12 @@ export function nodeKind(name: string): NodeKind {
   return componentSchema(name) || zenComponents.has(name) ? "zen" : "local";
 }
 
-export const kindLabel = (kind: NodeKind) => ({ zen: "Zen component", primitive: "Layout primitive", shape: "Shape", local: "Local component", element: "HTML element" })[kind];
+/** What a layer is, in Figma's words (user, 2026-10-17: less developer language): a frame, an auto layout frame, text, a
+ *  shape, an instance of a Zen component or of one the page defines. */
+export function kindLabel(kind: NodeKind, name = ""): string {
+  if (kind === "primitive") return name === "Text" || name === "Heading" ? "Text" : name === "Box" || name === "Container" ? "Frame" : "Auto layout";
+  return ({ zen: "Instance", shape: "Shape", local: "Local component", element: "Layer" } as const)[kind];
+}
 
 /** Sentence-case labels for props whose camelCase name reads badly; anything else falls back to propLabel's split. */
 const propLabels: Record<string, string> = {
@@ -409,7 +414,8 @@ export function isLayoutProp(component: string, name: string) {
 }
 /** Text and Heading props shown in the Text block. */
 export const textComponents = new Set(["Text", "Heading"]);
-export const textProps = new Set(["textStyle", "tone", "align", "verticalAlign", "as", "level", "truncate"]);
+// `as` (the HTML element) is code, not Figma: it goes to Code properties (user, 2026-10-17).
+export const textProps = new Set(["textStyle", "tone", "align", "verticalAlign", "level", "truncate"]);
 
 /** "Body/Small/Medium" → "Body"; used to group text styles. */
 export const typographyFamily = (key: string) => key.split("/")[0];

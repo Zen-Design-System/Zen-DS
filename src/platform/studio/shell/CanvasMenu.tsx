@@ -6,6 +6,7 @@ import { parseSrc, studioApi, type DetachPlanReply } from "../api";
 import { detachSelection, detachShortcut, offersDetach, renderCount, withRowCheck } from "../inspector/detach";
 import { useExtraSelection } from "../select/multiSelection";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../select/wrapSelection";
+import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts } from "../edit/clipboard";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
@@ -27,7 +28,8 @@ import "./shell.css";
 /*
  * The canvas context menu (right-click, Select tool), like Figma's, for what is under the pointer:
  * - a layer: Copy, Cut, Paste, Paste to replace, Copy / Paste properties (edit/clipboard.ts), Add to {Slot}…, Duplicate,
- *   Move up / down (slots/menu.ts), Wrap in Stack ⇧A / Wrap in Box ⌥⌘G (select/wrapSelection.ts), Detach instance, then
+ *   Move up / down (slots/menu.ts), Add auto layout ⇧A / Remove auto layout ⌥⇧A / Frame selection ⌥⌘G (edit/autoLayout.ts,
+ *   select/wrapSelection.ts), Detach instance, then
  *   Remove (destructive, last);
  * - several selected layers: Copy, Cut, Duplicate, Move up / down, Remove for all of them (edit/multi.ts), then the wrap items;
  * - a frame: Zoom to frame, Present, Zoom to fit;
@@ -111,9 +113,14 @@ export function CanvasMenu() {
   // Wrap in a new container (Figma's Add auto layout / Frame selection): the selection, one layer or several.
   const several = useExtraSelection().length > 0;
   const wrap = menu && selection && !selection.part ? wrapCheck() : null;
+  const frameAlone = isFrameWithoutAutoLayout(selection);
+  const autoLayoutAlone = isAutoLayoutFrame(selection);
   const wrapItems: MenuItemData[] = wrap && (wrap.ok || !wrap.hidden) ? [
-    { id: "wrap-stack", label: "Wrap in Stack", icon: "icon-rows-01-line", shortcut: autoLayoutShortcut, caption: wrap.ok ? undefined : wrap.reason, disabled: !wrap.ok, onSelect: () => { void wrapSelection("stack"); } },
-    { id: "wrap-box", label: "Wrap in Box", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
+    // Figma's words (user, 2026-10-17: less developer language): Add auto layout turns a frame without it into auto
+    // layout, and wraps anything else in an auto layout frame; Frame selection wraps in a frame.
+    { id: "wrap-stack", label: "Add auto layout", icon: "icon-rows-01-line", shortcut: autoLayoutShortcut, caption: wrap.ok || frameAlone ? undefined : wrap.reason, disabled: !wrap.ok && !frameAlone, onSelect: () => { void addAutoLayoutToSelection(); } },
+    ...(autoLayoutAlone ? [{ id: "remove-auto-layout", label: "Remove auto layout", icon: "icon-square-line" as const, shortcut: removeAutoLayoutShortcut, onSelect: () => { void removeAutoLayoutFromSelection(); } }] : []),
+    { id: "wrap-box", label: "Frame selection", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
   ] : [];
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
   const visibility: MenuEntry[] = menu?.target.kind === "node" ? visibilityMenuItems(selection) : [];

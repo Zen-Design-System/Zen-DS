@@ -355,3 +355,16 @@
 /* A page's own component (ComponentSection): its name or the component an instance shows, then two quiet actions. */
 .studio-component-section__actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-component-section .zen-input-field__leading, .studio-component-section .zen-select__leading { color: var(--zen-color-content-support-violet-base); }
+/* A section that is only its header (Figma's "Auto layout +" on a frame without auto layout). */
+.studio-inspector__section--head-only .studio-inspector__section-body { display: none; }
+/* Code properties (CodeProperties.tsx): a closed disclosure at the end of the Design tab, a Figma-like section header. */
+.studio-inspector__code { border-top: 1px solid var(--zen-color-border-neutral-subtle-default); }
+.studio-inspector__code-summary { display: flex; min-height: 40px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-base); cursor: pointer; list-style: none; }
+.studio-inspector__code-summary::-webkit-details-marker { display: none; }
+.studio-inspector__code-summary > .zen-icon { transition: transform var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
+@media (prefers-reduced-motion: reduce) { .studio-inspector__code-summary > .zen-icon { transition: none; } }
+.studio-inspector__code[open] > .studio-inspector__code-summary > .zen-icon { transform: rotate(90deg); }
+.studio-inspector__code-summary:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
+.studio-inspector__code-count { margin-left: auto; color: var(--zen-color-content-neutral-light); }
+.studio-inspector__code-body { padding: 0 0 var(--zen-spacing-padding-small, 12px); }
+

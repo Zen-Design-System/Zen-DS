@@ -1,11 +1,11 @@
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { canvasApi } from "../canvas/viewport";
-import { findBySrc, frameOf, panelOf, parentHit, selectHit, type FiberHit } from "../select/picker";
+import { annotatedAt, findBySrc, frameOf, panelOf, parentHit, selectHit, type FiberHit } from "../select/picker";
 import { isLayerSelected, layerOfHit, multiSelection, selectedLayers, type ExtraLayer } from "../select/multiSelection";
 import { canStructurallyEdit, structuralBlock } from "../slots/actions";
 import { canEdit, studioStore } from "../store";
 import { moveLayer, type DropTarget, type NodeSelection } from "./arrange";
-import { isDropContainer } from "./drag";
+import { isDropContainer, sameDropScope } from "./drag";
 import { moveLayersTo } from "./multi";
 
 /*
@@ -52,14 +52,39 @@ function targetFor(hit: FiberHit, parent: FiberHit, mode: Place["mode"], current
   return target;
 }
 
+/** A frame's row in Layers (a Screen, an Overlay of a page you made, an example). */
+const FRAME_ROW = "[role='treeitem'][data-kind='frame']";
+
+/**
+ * The Screen (or empty Overlay) a page-you-made frame row stands for, as the layer a drop goes into (Figma: a layer
+ * dropped on a frame's row in Layers goes into the frame; dnd campaign 2026-10-17). Null for an example's frame.
+ */
+function frameRowHit(row: Element): FiberHit | null {
+  const frameId = row.getAttribute("data-layer-id")?.replace(/^frame:/, "") ?? "";
+  if (!/^(screen|overlay):/.test(frameId)) return null;
+  const frame = document.querySelector(`[data-studio-frame="${CSS.escape(frameId)}"]`);
+  const root = frame?.querySelector(".studio-builder-screen, .studio-builder-overlay") ?? null;
+  const hit = root ? annotatedAt(root) : null;
+  return hit?.src && isDropContainer(hit) ? hit : null;
+}
+
 /** The place under the pointer, or a reason; null when nothing is there. */
 function placeAt(current: Session): Place | string | null {
-  const element = document.elementFromPoint(current.pointer.x, current.pointer.y)?.closest(ROW) ?? null;
+  const under = document.elementFromPoint(current.pointer.x, current.pointer.y);
+  const frameRow = under?.closest(FRAME_ROW) ?? null;
+  if (frameRow && current.tree.contains(frameRow)) {
+    const screen = frameRowHit(frameRow);
+    if (!screen) return null;
+    const frame = screen.hosts[0]?.closest("[data-studio-frame]") ?? null;
+    if (!sameDropScope(current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null, frame)) return "Layers move within their own example";
+    return { target: { parentSrc: screen.src, parentName: screen.name, frameId: frameOf(screen.hosts[0]), panelId: panelOf(screen.hosts[0]), reparent: !sameHost(parentHit(current.hit, frame), screen) }, row: frameRow, mode: "into" };
+  }
+  const element = under?.closest(ROW) ?? null;
   if (!element || !current.tree.contains(element)) return null;
   const hit = current.resolve(element);
   if (!hit || !hit.src) return null;
   const frame = hit.hosts[0]?.closest("[data-studio-frame]") ?? null;
-  if (frame !== (current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null)) return "Layers move within their own example";
+  if (!sameDropScope(current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null, frame)) return "Layers move within their own example";
   if (inside(current.hit, hit)) return sameHost(current.hit, hit) ? null : "A layer cannot go inside itself";
   for (const other of current.layers?.hits ?? []) if (inside(other, hit)) return sameHost(other, hit) ? null : "A layer cannot go inside itself";
   const rect = element.getBoundingClientRect();
