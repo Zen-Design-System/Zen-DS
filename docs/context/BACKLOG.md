@@ -7,6 +7,17 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P1 · Studio Variables like Figma — question for the user (2026-10-17):** may Studio become a second source of token
+  values (edit in Studio → tokens/source → push to Figma by the Zen plugin), or must every value edit go to Figma first and
+  come back by the sync? Audit and plan: `docs/research/studio-figma-native-parity-2026-10-17.md` §5b and P5.
+- **P1 · Studio components like Figma (⌥⌘K), spec first (2026-10-17):** a page-local main component (Board-level frame,
+  purple ◇), instances from Assets › Local, overrides, Go to main, Detach, React export. Pointer: same doc, P4.
+- **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 5 examples; not covered yet: states,
+  edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
+  `src/platform/examples/pages/shape.tsx`.
+- **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,
+  Enter = all children, Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles,
+  frame presets. Pointer: same doc §8.
 - **P3 · White-Overlay label contrast (2026-10-17, for the designer):** Chip/Segmented `white-overlay` (user's choice:
   light text on a White-Overlay fill, as Button/Overlay White-Overlay) reads 1.8:1 on Brand/Accent #FF6BD5 (white on
   the bare band is already 2.5:1); it suits darker solid colours. Decide whether to keep it for light brand colours or

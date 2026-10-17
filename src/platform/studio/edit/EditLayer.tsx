@@ -1,4 +1,5 @@
 import { useArrangeKeys } from "./arrange";
+import { useFigmaKeys } from "./figmaKeys";
 import { useClipboard } from "./clipboard";
 import { DragLayer } from "./DragLayer";
 import { useMeasure } from "./measure";
@@ -18,6 +19,7 @@ export function EditLayer({ viewport }: { viewport: HTMLElement | null; world: H
   useArrangeKeys();
   useClipboard();
   useNavigateKeys();
+  useFigmaKeys();
   useMeasure();
   return (
     <div className="studio-edit">

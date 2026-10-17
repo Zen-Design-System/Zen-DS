@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, startTransition } from "react";
+import { layerName as shownName } from "./layerNames";
 import { useIconTooltip } from "../../../components/Tooltip";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
@@ -680,8 +681,18 @@ function selectNode(node: LayerNode) {
 /** Frames, playground panels, slots and first-level elements with child elements open by default; parts never (computed on demand). */
 const defaultOpen = (node: LayerNode) => node.kind === "frame" || node.kind === "panel" || node.kind === "slot" || (node.kind === "node" && node.depth <= 1 && node.children.length > 0);
 
+const SHAPE_ICONS: Record<string, IconName> = { rectangle: "icon-square-line", ellipse: "icon-circle-line", line: "icon-minus-line", arrow: "icon-arrow-up-right-line", polygon: "icon-triangle-line", star: "icon-star-01-line" };
+const shapeTypeOf = (node: LayerNode) => (node.kind === "node" && node.name === "Shape" ? String((node.fiber?.memoizedProps as { type?: unknown } | null)?.type ?? "rectangle") : null);
+/** The name a row shows: a Shape's Figma type name (select/layerNames.ts), else the layer's name. */
+const rowLabel = (node: LayerNode) => (node.kind === "node" ? shownName(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : node.name);
+
 function rowIcon(node: LayerNode): IconName {
   if (node.kind === "frame") return "icon-layout-alt-01-line";
+  // Figma's layer icons: a shape's own, a frame's # (Box), auto layout by its direction (Stack).
+  const shape = shapeTypeOf(node);
+  if (shape) return SHAPE_ICONS[shape] ?? "icon-square-line";
+  if (node.kind === "node" && node.name === "Box") return "icon-hash-01-line";
+  if (node.kind === "node" && node.name === "Stack") return (node.fiber?.memoizedProps as { direction?: unknown } | null)?.direction === "row" ? "icon-columns-01-line" : "icon-rows-01-line";
   if (node.kind === "panel") return node.frameId === MAIN_FRAME ? (node.isComponent ? "icon-cube-line" : "icon-grid-01-line") : "icon-sliders-04-line";
   if (node.kind === "variant") return node.isComponent ? "icon-cube-line" : "icon-layers-three-01-line";
   if (node.kind === "parts") return "icon-layers-three-01-line";
@@ -1041,7 +1052,7 @@ export function LayersPanel() {
               <span className="studio-layers__icon" aria-hidden="true">
                 <Icon name={rowIcon(node)} size={16} />
               </span>
-              <span className="studio-layers__name">{node.name}</span>
+              <span className="studio-layers__name">{rowLabel(node)}</span>
               {node.meta ? <span className={`studio-layers__hint ${typographyStyles["Caption/Regular"]}`}>{node.meta}</span> : null}
               {node.count > 1 ? <span className={`studio-layers__count ${typographyStyles["Caption/Regular"]}`} aria-label={`${node.count} instances`}>×{node.count}</span> : null}
               {node.kind === "node" && node.src && canHideSrc(node.src) ? (

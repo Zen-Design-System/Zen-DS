@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { addAutoLayout, removeAutoLayout } from "./edit/autoLayout";
 import { ZenPortalProvider } from "../../components/Portal";
 import { TabPanel, Tabs } from "../../components/Tabs";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
@@ -49,7 +50,7 @@ import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
 import { PanelResizer } from "./shell/PanelResizer";
 import { ShortcutsDialog } from "./shell/ShortcutsDialog";
 import { openShortcuts } from "./shell/shortcutsOpen";
-import { CollapsedLeftBar, CollapsedRightBar, DrawerClose, LeftHeader, RightHeader, SpaceBar } from "./shell/PanelHeaders";
+import { CollapsedLeftBar, CollapsedRightBar, DrawerClose, LeftHeader, RightHeader } from "./shell/PanelHeaders";
 import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";
 import type { StudioLeftTab } from "./types";
@@ -414,6 +415,12 @@ export function StudioApp() {
         if (key === "y" && event.ctrlKey && !inExample) { event.preventDefault(); if (canEdit(state)) void redoEdit(); return; }
         return;
       }
+      // ⌥⇧A: Figma's Remove auto layout on a Stack (edit/autoLayout.ts): a Box, each layer where it shows.
+      if (event.altKey && event.shiftKey && !mod && event.code === "KeyA" && !event.repeat && !inExample && state.tool === "select" && state.selection?.kind === "node" && !state.selection.part) {
+        event.preventDefault();
+        if (state.selection.name === "Stack" && !multiSelection.get().length && state.localPage) void removeAutoLayout(state.selection);
+        return;
+      }
       if (event.altKey || inExample) return;
       // Delete / Backspace removes the selected layer (Figma) when the canvas itself has focus, the selected layer's row in
       // Layers has it, nothing does, or a property control in the Inspector does (a switch or segment just used: Figma
@@ -469,8 +476,14 @@ export function StudioApp() {
         return;
       }
       if (event.shiftKey) {
-        // ⇧A wraps the selected layers in a Stack laid out as they render (Figma's Add auto layout).
-        if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && !state.selection.part) { event.preventDefault(); void wrapSelection("stack"); return; }
+        // ⇧A on a frame without auto layout (one Box): auto layout on the frame itself, read from where its layers sit;
+        // on other layers it wraps them in a Stack laid out as they render (Figma's Add auto layout).
+        if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && !state.selection.part) {
+          event.preventDefault();
+          if (state.selection.name === "Box" && !multiSelection.get().length && state.localPage) void addAutoLayout(state.selection);
+          else void wrapSelection("stack");
+          return;
+        }
         // …and on items of a list (one or several, Shift/⌘+click): a Sidebar's or Menu's go in a section of their own, a
         // TopNavigation's actions share one pill; a list without groups says so.
         if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && state.selection.part && !inExample) {
@@ -483,6 +496,8 @@ export function StudioApp() {
             return;
           }
         }
+        // ⇧L: Figma's Arrow tool (a page you made).
+        if (event.code === "KeyL" && !event.repeat && state.localPage) { event.preventDefault(); studioStore.setState({ tool: "arrow" }); return; }
         // ⇧I opens Quick insert (Figma's): search the library, Enter adds the item (builder/library/QuickInsert.tsx).
         if (event.code === "KeyI" && !event.repeat && !inExample) { event.preventDefault(); openQuickInsert(); return; }
         if (event.code === "Digit0") { event.preventDefault(); canvasApi.setZoom(1); return; }
@@ -494,9 +509,11 @@ export function StudioApp() {
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
       else if (key === "i") studioStore.setState({ tool: "interact" });
-      // The toolbar's placement tools (Figma's A for a frame, T for text): point, then click to place.
-      else if (key === "a") studioStore.setState({ tool: "stack" });
+      // Figma's A is the Frame tool too (on a page you made; elsewhere the Stack placement tool); T places text.
+      else if (key === "a") studioStore.setState({ tool: state.localPage ? "frame" : "stack" });
       else if (key === "t") studioStore.setState({ tool: "text" });
+      // Figma's shape tools, on a page you made (draw/drawTool.ts): R rectangle, O ellipse, L line (⇧L arrow, above).
+      else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
       else if (key === "p" && state.localPage) {
         // Play the builder page from the selected Screen (else its first).
         event.preventDefault();
@@ -542,6 +559,8 @@ export function StudioApp() {
         data-right={rightDocked ? "docked" : "drawer"}
         data-drawer={drawer ?? undefined}
         data-doc={docPage ? "true" : undefined}
+        // Document or Studio (the Zen Studio menu switches them): for tools and tests, there is no visible switch to read.
+        data-space={localPage ? "studio" : space}
         style={{ "--studio-left-width": `${panels.left}px`, "--studio-right-width": `${rightWidth}px` } as CSSProperties}
       >
         <ChromeScope as="aside" id="studio-left" className="studio-left" aria-label="Pages and layers" data-open={leftOpen ? "true" : "false"} inert={inert ?? (leftOpen ? undefined : true)}>
@@ -591,7 +610,6 @@ export function StudioApp() {
           </ChromeScope>
         )}
         {leftDocked || presenting ? null : <ChromeScope className="studio-bar-scope" inert={inert}><CollapsedLeftBar layout={layout} /></ChromeScope>}
-        {layout.phone || presenting ? null : <ChromeScope className="studio-space-bar" inert={inert}><SpaceBar /></ChromeScope>}
         {rightDocked || presenting || docPage ? null : <ChromeScope className="studio-bar-scope" inert={inert}><CollapsedRightBar layout={layout} /></ChromeScope>}
 
         {leftDocked && !presenting ? <PanelResizer side="left" width={panels.left} label="Resize Pages and layers panel" controls="studio-left" /> : null}

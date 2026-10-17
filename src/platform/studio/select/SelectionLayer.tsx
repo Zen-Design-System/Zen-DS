@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { ArcHandles } from "./ArcHandles";
+import { layerName } from "./layerNames";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
@@ -176,7 +178,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
       const group = owner ? dataGroupOfPart(hit as PartHit) : null;
       if (group) return { ...box, name: group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section", src: hit.src, meta: `in ${group.slot.name}` };
-      return { ...box, name: hit.name, src: hit.src, meta: owner ? `in ${owner.name}` : "" };
+      return { ...box, name: layerName(hit.name, hit.props), src: hit.src, meta: owner ? `in ${owner.name}` : "" };
     };
     const part = partRef.current;
     const selected = part ?? selectedRef.current;
@@ -1023,6 +1025,13 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         onPassPointerMove={trackPointer}
         onPassDoubleClick={onDoubleClick}
         onPassContextMenu={onContextMenu}
+      />
+      {/* Figma's arc handles on a selected ellipse (Sweep, Start, Ratio), above the resize handles. */}
+      <ArcHandles
+        box={overlay.selected}
+        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
+        interactive={tool === "select" && !presenting}
+        viewport={viewport}
       />
       <ResizeLayer
         box={overlay.selected}

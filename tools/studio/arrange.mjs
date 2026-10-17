@@ -32,7 +32,8 @@ import { applyEdits, applyOps, findElement, jsxName, parseLoc, parseSource } fro
 import { indentAt, pathTo, piece } from "./source-helpers.mjs";
 
 /** Self-closing elements a layer can be dropped into (they open: `<Stack />` → `<Stack>…</Stack>`). */
-const OPENABLE = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions"]);
+// A builder page's Screen opens too (Figma: an empty frame takes the layers drawn or dropped into it).
+const OPENABLE = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions", "Screen"]);
 /** Host tags that never hold children. */
 const VOID_TAGS = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]);
 /** Parents whose text content a block element would break (a <div> inside a <p>, a <button>, a link…). */

@@ -92,34 +92,34 @@
         },
         {
           "name": "insetTop",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children. A number is px: Figma's Y in a free frame (a Box or Screen without auto\nlayout, where Zen Studio draws shapes and frames); it may be negative (the layer starts above the frame and clips).",
           "deprecated": null
         },
         {
           "name": "insetRight",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetBottom",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetLeft",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
           "deprecated": null
         },
         {
@@ -325,34 +325,34 @@
         },
         {
           "name": "insetTop",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children. A number is px: Figma's Y in a free frame (a Box or Screen without auto\nlayout, where Zen Studio draws shapes and frames); it may be negative (the layer starts above the frame and clips).",
           "deprecated": null
         },
         {
           "name": "insetRight",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetBottom",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetLeft",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
           "deprecated": null
         },
         {
@@ -542,34 +542,34 @@
         },
         {
           "name": "insetTop",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children. A number is px: Figma's Y in a free frame (a Box or Screen without auto\nlayout, where Zen Studio draws shapes and frames); it may be negative (the layer starts above the frame and clips).",
           "deprecated": null
         },
         {
           "name": "insetRight",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetBottom",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetLeft",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
           "deprecated": null
         },
         {
@@ -754,6 +754,7 @@
   ],
   "types": {
     "GridTracks": "type GridTracks = number | string",
+    "ZenPadding": "type ZenPadding = \"none\" | ZenScaleInput | \"4xl\"",
     "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
     "ZenScaleInput": "type ZenScaleInput = ZenScale | ZenScaleLong",
     "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\""

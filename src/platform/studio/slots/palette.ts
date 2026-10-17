@@ -107,7 +107,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   Tag: "Tag", DockIcon: "DockIcon", List: "ListItem", ListItem: "ListItem", ListBox: "ListItem", DescriptionList: "DescriptionList",
   Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", InlineMessage: "InlineMessage",
   EmptyState: "EmptyState", InputField: "Input", TextAreaField: "Input", SelectField: "Input", Checkbox: "Checkbox",
-  Toggle: "Toggle", ChipGroup: "ChipGroup", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider",
+  Toggle: "Toggle", ChipGroup: "ChipGroup", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider", Shape: "Shape",
   Accordion: "Accordion", useToast: "Toast",
   Tabs: "Tabs", TabPanel: "Tabs", Segmented: "Segmented", Breadcrumbs: "Breadcrumbs", Pagination: "Pagination",
   Stepper: "Stepper", Menu: "Menu", Tooltip: "Tooltip", Icon: "Icon", FileIcon: "FileIcon", Flag: "Flag",
@@ -1061,6 +1061,15 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "divider", label: "Divider", group: "Layout", root: "Divider", components: ["Divider"], interactive: false, input: false,
     build: () => `<Divider />`,
+  },
+  // Figma's shapes (Shape, 2026-10-17): placed in the flow at Figma's click size; the toolbar's R / O / L draw them.
+  {
+    id: "rectangle", label: "Rectangle", group: "Layout", caption: "Shape (R)", root: "Shape", components: ["Shape"], interactive: false, input: false,
+    build: () => `<Shape type="rectangle" width={100} height={100} />`,
+  },
+  {
+    id: "ellipse", label: "Ellipse", group: "Layout", caption: "Shape (O), arc", root: "Shape", components: ["Shape"], interactive: false, input: false,
+    build: () => `<Shape type="ellipse" width={100} height={100} />`,
   },
   {
     id: "accordion", label: "Accordion", group: "Layout", caption: "Collapsible section", root: "Accordion", components: ["Accordion"], interactive: true, input: false,

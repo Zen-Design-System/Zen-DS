@@ -22,6 +22,7 @@ import { ProgressBar, ProgressCircle, progressBarLayouts, progressCircleThemes, 
 import { Dialog, ModalForm, dialogThemes, modalActionDirections, modalFormLayouts, type DialogTheme, type ModalActionDirection, type ModalFormLayout } from "../components/Dialog";
 import { Accordion, type AccordionContentWidth, type AccordionSize, type AccordionTheme } from "../components/Accordion";
 import { Divider, dividerColors, type DividerColor } from "../components/Divider";
+import { Shape, shapeTypes, type ShapeType } from "../components/Shape";
 import { InlineMessage, inlineMessageThemes, type InlineMessageTheme } from "../components/InlineMessage";
 import { EmptyState } from "../components/EmptyState";
 import { Stepper, type StepperOrientation } from "../components/Stepper";
@@ -70,7 +71,7 @@ import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from 
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
-export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "slider-field" | "curve-preview" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
+export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "shape" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "slider-field" | "curve-preview" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
 
 /**
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
@@ -378,6 +379,8 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [toastClose, setToastClose] = useState(true);
   const [toastDismissed, setToastDismissed] = useState(false);
   const [dividerColor, setDividerColor] = useState<string | undefined>("default");
+  const [shapeType, setShapeType] = useState<string | undefined>("ellipse");
+  const [shapeArc, setShapeArc] = useState<string | undefined>("pie");
   const [dividerOrientation, setDividerOrientation] = useState<string | undefined>("horizontal");
   const [dividerDashed, setDividerDashed] = useState(false);
   const [inlineTheme, setInlineTheme] = useState<string | undefined>("info");
@@ -2212,6 +2215,30 @@ ${code}`} />
         <PlatformCode code={`import { Divider } from "@zen-ds/react";
 
 <Divider${color !== "default" ? ` color="${color}"` : ""}${orientation === "vertical" ? ` orientation="vertical"` : ""}${dividerDashed ? " dashed" : ""} />`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "shape") {
+    const type = (shapeTypes as readonly string[]).includes(shapeType ?? "") ? (shapeType as ShapeType) : "ellipse";
+    // Figma's arc presets for an ellipse: the whole ellipse, a pie (Sweep), a ring (Ratio), a ring segment (all three).
+    const arcs: Record<string, { arcStart?: number; arcSweep?: number; arcRatio?: number }> = { full: {}, pie: { arcSweep: 75 }, ring: { arcRatio: 60 }, segment: { arcStart: 180, arcSweep: 50, arcRatio: 60 } };
+    const arc = type === "ellipse" ? arcs[shapeArc ?? "pie"] ?? {} : {};
+    const line = type === "line" || type === "arrow";
+    const attrs = [`type="${type}"`, ...Object.entries(arc).map(([name, value]) => `${name}={${value}}`), line ? "width={160}" : "width={120} height={120}", line ? "rotation={20}" : `fill="accent-solid"`];
+    return <ExamplePage page="shape" eyebrow="Components / Shape" title="Shape" description="Figma's own shapes in code — Rectangle, Ellipse with its arc, Line, Arrow, Polygon and Star — for decoration and marks drawn in Zen Studio, coloured with tokens only.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Shape</h2>
+        <PlaygroundControls aria-label="Shape playground controls">
+          <PlaygroundFilterChip label="Type" value={shapeType} onChange={(value) => setShapeType(String(value) || undefined)} options={shapeTypes.map((id) => ({ id, label: id }))} />
+          {type === "ellipse" ? <PlaygroundFilterChip label="Arc" value={shapeArc} onChange={(value) => setShapeArc(String(value) || undefined)} options={["full", "pie", "ring", "segment"].map((id) => ({ id, label: id }))} /> : null}
+        </PlaygroundControls>
+        <div data-typography={previewTypography} className="platform-example-row platform-shape-preview">
+          {line ? <Shape type={type} width={160} rotation={20} /> : <Shape type={type} width={120} height={120} fill="accent-solid" {...arc} />}
+        </div>
+        <PlatformCode code={`import { Shape } from "@zen-ds/react";
+
+<Shape ${attrs.join(" ")} />`} />
       </ComponentPreview>
     </ExamplePage>;
   }

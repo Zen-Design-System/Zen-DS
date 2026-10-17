@@ -327,3 +327,30 @@ chỉnh sửa … học thêm cho skill".
   E2/F7 overlay wrappers, Medium cards on E1/E6/D1, wider E5 tree cards, and the E3 fill and E6 chip row.
 - SKILL §5: a slip the user catches → fix it everywhere + rule + audit check in the same turn. figma-gotchas gets
   "Modes" (emoji Dock-Icons at ~82% of the tile, text wrap/truncate, scroll instead of trimming).
+
+## Zen Studio → native Figma, phase 1: shapes, arc, free frames (session "Figma-like freeform editing", tier L)
+
+User: "Tiếp tục improve tính năng để có thể chỉnh sửa tự do như Figma … vẽ hình ellipse và cho chỉnh arc … y hệt Figma",
+then "Nghiên cứu lại tất cả hành vi của Studio. Đưa về sát native với Figma nhất … vì chúng ta cần convert người dùng từ
+Figma", "Cần nhắc cho cả tính năng quản lý variables", and "Chế độ studio và doc không dùng segmented nữa … đổi bên trong
+khu vực giống trong ảnh" (the Zen Studio menu). Worktree `../Zen-DS-shapes`, branch `zen/feat/studio-shapes-20261017`.
+
+- Research: five code audits (canvas/selection, drawing/transform, frames/auto layout, components/inspector, variables),
+  ~80 Figma behaviours graded, decisions and the P1–P5 plan in `docs/research/studio-figma-native-parity-2026-10-17.md`.
+- `Shape` component (Rectangle, Ellipse + arc, Line, Arrow, Polygon, Star; tokens only) with geometry shared by the
+  canvas, the arc handles and the Figma export (`Shape/geometry.ts`); exact Figma variable names in `Shape/paint.ts`.
+  Guideline, API docs, stories, platform page (5 examples, playground, Do/Don't), 3 harness rules (211 total).
+- `position.ts`: insets take px (Figma X / Y in a free frame). Screen is `position: relative` (builder.css).
+- Fixed on the way (gate-free bugs): an empty Screen refused every drop ("has no children to drop into", arrange.mjs
+  OPENABLE), and the first component on a page with no `@zen-ds/react` import was imported from `./src/components/…`
+  (slots.mjs importChanges: builder pages always use the package).
+- Draw engine `src/platform/studio/draw/` (drawModel.ts pure + selftest 24; drawTool.ts on the canvas), toolbar shape
+  menu, keys R O L ⇧L, A = Frame; Frame inside a Screen hands the press to drawTool (nested Box).
+- Arc handles `select/ArcHandles.tsx` (live path, raw end angle as Figma, re-read on repaint via MutationObserver);
+  Inspector `appearance/ShapeSections.tsx`, `inspector/palettes.ts` + PropField SwatchControl (tone, fill, stroke),
+  `controls/ScrubNumberField.tsx` + `numberMath.ts` (selftest 24), PositionSection X / Y px + Rotation, drag.ts free
+  moves with smart guides, arrange.ts nudges, ResizeLayer px edges + ⇧ ratio on corners, layer names (`layerNames.ts`).
+- Figma: figma-push `shapeNode`, figma-pull `shapeElement` (selftest +7, 76), Zen plugin `studio-import.js` shape
+  builder + `strokeWith` + rotation about the centre (plugin commit 3ba73f9, its tests pass).
+- Walk (private server :5199, Playwright): draw frame / ellipse / rectangle / line, arc sweep 47.2 %, ratio 24 %,
+  start 270°, move 107→160 px, nudge, Layers "Ellipse", Inspector sections — screenshots looked at.

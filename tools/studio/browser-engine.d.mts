@@ -43,3 +43,13 @@ export function migrateScreenFrame(text: string, options?: { file?: string }): {
 export type LocMap = Record<string, string | null>;
 export function locMap(before: PageDoc, beforeText: string, after: PageDoc, afterText: string, options?: { components?: Set<string> }): LocMap | null;
 export function editDoc(doc: PageDoc, text: string, request: { file: string; loc: string; name: string; ops: unknown[] }, deps: { components?: Set<string>; applyOps: typeof applyOps; dataFieldEdit: typeof dataFieldEdit; sha1?: typeof sha1; options?: Record<string, unknown> }): { doc: PageDoc; text: string; answer: Record<string, unknown>; ids: boolean; locs: LocMap | null } | { error: string; code: string };
+
+/** Figma's Add / Remove auto layout as one element's new code (relayout.mjs). */
+export function relayoutCode(text: string, range: { start: number; end: number }, plan: {
+  tag?: string;
+  set?: Record<string, string | number | true | { code: string } | undefined>;
+  remove?: string[];
+  children?: Array<{ set?: Record<string, string | number | true | { code: string } | undefined>; remove?: string[]; float?: { set?: Record<string, string | number | true | { code: string }> }; unwrap?: boolean }>;
+  order?: number[];
+  wrap?: { tag: string; set?: Record<string, string | number | true | { code: string } | undefined> };
+}): string;

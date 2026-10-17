@@ -7,8 +7,10 @@ import type { PlatformShellSettings } from "../PlatformTemplate";
  */
 
 /** Canvas tools: Select (V) picks layers, Hand (H) pans, Interact (I) uses the examples like a real app. */
-/** Canvas tools: Move (select), Hand, Interact, and the placement tools (toolbar, 2026-10-09: Screen, Stack, Text, Image). */
-export type StudioTool = "select" | "hand" | "interact" | "frame" | "stack" | "text" | "image";
+/** Canvas tools: Move (select), Hand, Interact, and the placement tools (toolbar, 2026-10-09: Screen, Stack, Text, Image);
+ *  Figma's shape tools since 2026-10-17 (draw/drawTool.ts: Rectangle R, Ellipse O, Line L, Arrow ⇧L, Polygon, Star). */
+export type StudioTool = "select" | "hand" | "interact" | "frame" | "stack" | "text" | "image" | StudioShapeTool;
+export type StudioShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "polygon" | "star";
 
 /** Admin edits source through the dev server; Viewer inspects read-only. Default admin. */
 export type StudioRole = "admin" | "viewer";

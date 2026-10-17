@@ -7838,6 +7838,278 @@
       ]
     }
   ],
+  "shape": [
+    {
+      "name": "Shape",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps",
+      "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "position",
+          "type": "\"static\" | \"absolute\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Ignore auto layout\" (layoutPositioning ABSOLUTE). `\"absolute\"` takes the element out of its parent's flow\nand pins it to the parent Stack, Grid, Box or Card with `constraintX` / `constraintY`; siblings, `gap`, `justify`\nand the parent's Hug size ignore it, as in Figma. Siblings written after it paint above it (Figma auto layout\n\"Last on top\"), so put background media first. Default `\"static\"` (in flow). Only Stack, Grid and Box take it:\nwrap a Text or a component in a Box. Badges, status dots and a Card sub-action are component props, never insets.",
+          "deprecated": null
+        },
+        {
+          "name": "constraintX",
+          "type": "\"left\" | \"right\" | \"left-right\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma horizontal constraint, read only with `position=\"absolute\"`: `left` (default, Figma Left) · `right` (Right)\n· `left-right` (Left & right: stretches between the two offsets, `width` is ignored) · `center` (Center: exact\ncentre, the X offsets are ignored). Figma Scale is not offered (it needs percentages, which are not tokens).",
+          "deprecated": null
+        },
+        {
+          "name": "constraintY",
+          "type": "\"top\" | \"bottom\" | \"top-bottom\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom`\n(Top & bottom: stretches between the two offsets, `height` is ignored) · `center` (exact centre).",
+          "deprecated": null
+        },
+        {
+          "name": "insetTop",
+          "type": "ZenPadding | number",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children. A number is px: Figma's Y in a free frame (a Box or Screen without auto\nlayout, where Zen Studio draws shapes and frames); it may be negative (the layer starts above the frame and clips).",
+          "deprecated": null
+        },
+        {
+          "name": "insetRight",
+          "type": "ZenPadding | number",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetBottom",
+          "type": "ZenPadding | number",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetLeft",
+          "type": "ZenPadding | number",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 ·\nxl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins\nover `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius=\"full\"\nradiusBottomRight=\"xs\"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit\nthe box and the small one renders square. Use a finite radius (a chat tail: `radius=\"xl\" radiusBottomRight=\"xs\"`);\n`full` mixes only with `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"rectangle\" | \"ellipse\" | \"line\" | \"arrow\" | \"polygon\" | \"star\"",
+          "required": false,
+          "default": "\"rectangle\"",
+          "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),\n`line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's \"Line arrow\" end\ncap), `polygon` (REGULAR_POLYGON, `pointCount` corners) and `star` (STAR, `pointCount` tips, `starRatio`).",
+          "deprecated": null
+        },
+        {
+          "name": "fill",
+          "type": "ShapeFill",
+          "required": false,
+          "default": null,
+          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none.",
+          "deprecated": null
+        },
+        {
+          "name": "stroke",
+          "type": "ShapeStroke",
+          "required": false,
+          "default": null,
+          "description": "Stroke: a Color/Border token by its path (\"neutral-solid\", \"accent-subtle\", \"support-teal-solid\"; `shapeStrokes`), or \"none\" (default; a line or arrow takes Border/Neutral/Solid).",
+          "deprecated": null
+        },
+        {
+          "name": "strokeWeight",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Stroke weight in px (Figma strokeWeight). Default 1.",
+          "deprecated": null
+        },
+        {
+          "name": "strokeAlign",
+          "type": "\"inside\" | \"center\" | \"outside\"",
+          "required": false,
+          "default": null,
+          "description": "Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's) or `outside`.",
+          "deprecated": null
+        },
+        {
+          "name": "radius",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Rectangle corner radius on the Corner-Radius tokens (Figma cornerRadius); `radiusTopLeft` … override single corners.",
+          "deprecated": null
+        },
+        {
+          "name": "arcStart",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Ellipse arc Start in degrees, clockwise from 3 o'clock (Figma's Arc › Start; arcData.startingAngle). Default 0.",
+          "deprecated": null
+        },
+        {
+          "name": "arcSweep",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Ellipse arc Sweep in percent of a full turn (Figma's Arc › Sweep): 100 (default) the whole ellipse, 25 a quarter pie.",
+          "deprecated": null
+        },
+        {
+          "name": "arcRatio",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Ellipse arc Ratio in percent (Figma's Arc › Ratio; arcData.innerRadius): the hole of a ring or donut. Default 0.",
+          "deprecated": null
+        },
+        {
+          "name": "pointCount",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Polygon corners or star tips (Figma Count, 3 … 60). Default 3 for a polygon, 5 for a star.",
+          "deprecated": null
+        },
+        {
+          "name": "starRatio",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Star inner radius in percent of the outer one (Figma Ratio). Default 38.2.",
+          "deprecated": null
+        },
+        {
+          "name": "rotation",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the shape about its centre.",
+          "deprecated": null
+        },
+        {
+          "name": "opacity",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100). Default 100.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the shape's root element.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
   "inline-message": [
     {
       "name": "InlineMessage",
@@ -15249,34 +15521,34 @@
         },
         {
           "name": "insetTop",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children. A number is px: Figma's Y in a free frame (a Box or Screen without auto\nlayout, where Zen Studio draws shapes and frames); it may be negative (the layer starts above the frame and clips).",
           "deprecated": null
         },
         {
           "name": "insetRight",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetBottom",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetLeft",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
           "deprecated": null
         },
         {
@@ -15479,34 +15751,34 @@
         },
         {
           "name": "insetTop",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children. A number is px: Figma's Y in a free frame (a Box or Screen without auto\nlayout, where Zen Studio draws shapes and frames); it may be negative (the layer starts above the frame and clips).",
           "deprecated": null
         },
         {
           "name": "insetRight",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetBottom",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetLeft",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
           "deprecated": null
         },
         {
@@ -15693,34 +15965,34 @@
         },
         {
           "name": "insetTop",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children. A number is px: Figma's Y in a free frame (a Box or Screen without auto\nlayout, where Zen Studio draws shapes and frames); it may be negative (the layer starts above the frame and clips).",
           "deprecated": null
         },
         {
           "name": "insetRight",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "description": "Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetBottom",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "description": "Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
           "deprecated": null
         },
         {
           "name": "insetLeft",
-          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "type": "ZenPadding | number",
           "required": false,
           "default": null,
-          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
           "deprecated": null
         },
         {

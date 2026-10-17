@@ -1,6 +1,7 @@
 import api from "../../api.generated.json";
 import { zenComponents } from "../builder/engine";
 import { contentTones } from "../../../components/_shared/contentTone";
+import { shapeFills, shapeStrokes } from "../../../components/Shape/paint";
 import { normalizeScale, zenScale, type ZenScaleInput } from "../../../components/_shared/scale";
 import { iconNames } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -203,6 +204,9 @@ export function editorFor(type: string): PropEditor {
   if (members.includes("IconName")) return members.some((member) => member === "boolean" || member === "false" || member === "true") ? { kind: "icon-toggle" } : { kind: "icon" };
   // The long Color/Content tone list (Text, Heading, Icon) is named in the API docs instead of spelled out.
   if (members.includes("ContentTone") || members.includes("(typeof contentTones)[number]")) return { kind: "enum", options: [...contentTones] };
+  // A Shape's fill and stroke: the Color/Background and Color/Border token lists (Shape/paint.ts), also named in the docs.
+  if (members.includes("ShapeFill") || members.includes("(typeof shapeFills)[number]")) return { kind: "enum", options: [...shapeFills] };
+  if (members.includes("ShapeStroke") || members.includes("(typeof shapeStrokes)[number]")) return { kind: "enum", options: [...shapeStrokes] };
   if (members.includes("(typeof headingLevels)[number]") || members.includes("HeadingLevel")) return { kind: "number-enum", options: [1, 2, 3, 4, 5, 6] };
   const literals: string[] = [];
   let allLiteral = true;

@@ -97,7 +97,7 @@ const WHERE = { ConditionalExpression: "a condition (? :)", LogicalExpression: "
 /** Names a component can take from src/components when the caller passes no componentModules (the common ones). */
 const FALLBACK_FOLDERS = {
   Accordion: "Accordion", Avatar: "Avatar", AvatarStack: "Avatar", Badge: "Badge", Button: "Button", IconButton: "Button", Card: "Card",
-  Checkbox: "Checkbox", DescriptionList: "DescriptionList", Divider: "Divider", DockIcon: "DockIcon", EmptyState: "EmptyState",
+  Checkbox: "Checkbox", DescriptionList: "DescriptionList", Divider: "Divider", Shape: "Shape", DockIcon: "DockIcon", EmptyState: "EmptyState",
   FormFieldset: "Form", Icon: "Icon", Image: "Image", InlineMessage: "InlineMessage", InputField: "Input", NumberField: "Input",
   SelectField: "Input", TextAreaField: "Input", Box: "Layout", Container: "Layout", Grid: "Layout", Stack: "Layout", Link: "Link",
   List: "ListItem", ListItem: "ListItem", Metric: "MetricWidget", MetricCard: "MetricWidget", ProgressBar: "Progress",
@@ -481,7 +481,8 @@ function importChanges(ast, text, eol, file, needed, remove, folders) {
   const body = ast.program.body;
   const imports = body.filter((statement) => statement.type === "ImportDeclaration");
   const valueImports = imports.filter((statement) => statement.importKind !== "type");
-  const packageStyle = valueImports.some((statement) => statement.source.value === PACKAGE) || (/^src\/templates\//.test(file ?? "") && !valueImports.some((statement) => /(^|\/)components\//.test(statement.source.value)));
+  // A builder page always imports from the package, also its first component on a page that has none yet (an empty frame).
+  const packageStyle = valueImports.some((statement) => statement.source.value === PACKAGE) || LOCAL_PAGE.test(file ?? "") || (/^src\/templates\//.test(file ?? "") && !valueImports.some((statement) => /(^|\/)components\//.test(statement.source.value)));
   const moduleFor = (name) => (packageStyle ? PACKAGE : relModule(file, folders.get(name)));
   const sourceFits = (source, name) => source === PACKAGE || new RegExp(`(^|/)components/${folders.get(name)}(/index(\\.tsx?)?)?$`).test(source);
   const bindings = new Map();
