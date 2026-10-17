@@ -14,9 +14,9 @@
 //   node tools/studio/native-pack.mjs check                 sets the push writes that the pack lacks
 //
 // Pack (docs/figma-contracts/native-pack.json): `sets` {id: {name, props: [[name, type, id, initial]]}}, `symbols`
-// {id: {set?, name, w, h, mode?, defs: {setLevelPropId: ownPropId}, props? (a lone component's), nodes: [[id, parent, type, name, visible, w, h, x, y,
+// {id: {set?, name, w, h, mode?, bound? (its size fields bound to variables), defs: {setLevelPropId: ownPropId}, props? (a lone component's), nodes: [[id, parent, type, name, visible, w, h, x, y,
 // main, refs, more]]}} (parent: a row index, -1 for the symbol; refs: [[ownPropId, field]]; more: a slot's layout
-// fields, a grid's track ids, a nested instance's own assignments and the overrides its component sets below it), `styles` {name: [id, type]}, `variables` {name: [id,
+// fields, a grid's track ids, a frame's auto layout `mode`, a nested instance's own assignments and the overrides its component sets below it), `styles` {name: [id, type]}, `variables` {name: [id,
 // type]}; a set lists its `variants` in layer order (the first is Figma's default). `contents` {id: [node…]} are the slot
 // contents a component sets on its nested instances, in full (a paste that edits one carries its own copy, as Figma
 // does); their style and variable refs are node ids, their vector data inline (`{blob: base64}`). The schema Figma wrote
@@ -217,6 +217,8 @@ export function packFrom(copies, { read }) {
         const refs = refsOf(child);
         let more = isSlot(child) ? { slot: localRefs(slotLayout(child)) } : child.stackMode === "GRID" ? { cols: (child.gridColumns?.entries ?? []).map((entry) => id(entry.id)), rows: (child.gridRows?.entries ?? []).map((entry) => id(entry.id)) } : 0;
         if (child.type === "INSTANCE" && child.componentPropAssignments?.length) more = { ...(more || {}), assigns: localRefs(child.componentPropAssignments) };
+        // A frame's auto layout direction: a paste that sizes it (hug or fill) writes the field of the axis it lays out along.
+        if (child.type !== "INSTANCE" && child.stackMode && child.stackMode !== "NONE") more = { ...(more || {}), mode: child.stackMode };
         // The component's own overrides on this nested instance that change what shows below it: swaps and visibility.
         const ovs = (child.symbolData?.symbolOverrides ?? []).filter((entry) => entry.overriddenSymbolID || typeof entry.visible === "boolean").map((entry) => [entry.guidPath.guids.map(id), { ...(entry.overriddenSymbolID ? { s: id(entry.overriddenSymbolID) } : {}), ...(typeof entry.visible === "boolean" ? { v: entry.visible } : {}) }]);
         if (ovs.length) more = { ...(more || {}), ovs };
@@ -236,11 +238,15 @@ export function packFrom(copies, { read }) {
       }
     };
     walk(node, -1);
+    // Its own size bound to variables (the master layout's Viewport-Width and -Height): an instance that fills that
+    // axis lets the binding go, as Figma does, or Figma sizes it back to the variable later.
+    const bound = ["WIDTH", "HEIGHT"].filter((field) => [...(node.parameterConsumptionMap?.entries ?? []), ...(node.variableConsumptionMap?.entries ?? [])].some((entry) => entry.variableField === field && entry.variableData?.value?.alias));
     symbols[id(node.guid)] = {
       ...(parent?.isStateGroup ? { set: id(parent.guid) } : {}),
       name: node.name,
       w: round(node.size?.x), h: round(node.size?.y),
       ...(node.stackMode && node.stackMode !== "NONE" ? { mode: node.stackMode } : {}),
+      ...(bound.length ? { bound } : {}),
       defs: Object.fromEntries((node.componentPropDefs ?? []).filter((def) => def.parentPropDefId && !def.isDeleted).map((def) => [id(def.parentPropDefId), id(def.id)])),
       ...(parent?.isStateGroup ? {} : propsOf(node)),
       nodes: rows,

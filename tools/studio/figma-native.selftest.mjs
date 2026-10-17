@@ -150,6 +150,48 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(!copies, "no ref to a library copy of a variable (15052:…)");
 }
 
+// --- AppShell as the master layout (Figma's own copy of a master that grows with its page, 2026-10-17) -------------
+{
+  const inner = ["Patterns/Sidebar/Density-Medium", "Patterns/Density/Comfortable/Sidebar/Yes"];
+  const pads = ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/XSmall", "Margin-Comfortable"];
+  const shell = {
+    type: "INSTANCE", name: "AppShell", set: { id: "4122:41886", name: "Patterns/Pages/Density-Medium" }, props: { Level: "Master", Sidebar: true, "Side-Panel": false, "Floating-Actions": false }, fillW: true, minH: 982,
+    nested: [{ path: "Patterns", props: { Expand: "Yes" } }],
+    slots: [
+      { name: "Sections", within: ["Header/Dashboard"], children: [{ type: "INSTANCE", name: "Top bar", set: { id: "4122:33402", name: "Primitives/Dashboard/Header" }, props: { Type: "Navigation" }, fillW: true, padding: [24, 24, 8, 24], paddingVars: pads }] },
+      { name: "Content", within: ["Body"], hugH: true, children: [{ type: "FRAME", name: "Page", layout: { mode: "VERTICAL", gap: 0 }, children: [{ type: "TEXT", characters: "Members" }] }] },
+    ],
+    edits: [{ layer: inner, fillH: true }, { layer: ["Main-Container"], hugH: true }, { layer: ["Body"], padding: [0, 0, 0, 0], hugH: true }],
+  };
+  const { message, notes } = run([shell]);
+  check(notes.length === 0, `master layout: no notes (${notes.join("; ")})`);
+  const [node] = instances(message);
+  check(id(node?.symbolData.symbolID) === "4122:41885" && node.minSize?.value.y === 982, "master layout: the Level=Master variant, at least the viewport's 982 tall");
+  const names = new Map(Object.values(pack.symbols).flatMap((symbol) => symbol.nodes.map((row) => [row[0], row[3]])));
+  const at = (path) => overrides(node).find((o) => o.guidPath.guids.map((g) => names.get(id(g))).join(" › ") === path) ?? {};
+  const pick = (o, fields) => fields.map((field) => o[field]);
+  check(JSON.stringify(pick(at("Main-Container"), ["stackPrimarySizing", "stackChildAlignSelf"])) === JSON.stringify(["RESIZE_TO_FIT_WITH_IMPLICIT_SIZE", "AUTO"]), "master layout: Main-Container hugs its column (its own height, no stretch in the row), as Figma's copy");
+  const body = at("Body");
+  check(JSON.stringify(pick(body, ["stackPrimarySizing", "stackChildPrimaryGrow", "stackVerticalPadding", "stackPaddingRight", "stackPaddingBottom", "stackHorizontalPadding"])) === JSON.stringify(["RESIZE_TO_FIT_WITH_IMPLICIT_SIZE", 0, 0, 0, 0, 0]), "master layout: Body hugs (no grow) and is unpadded");
+  const unbound = (map) => (map?.entries ?? []).filter((entry) => /^STACK_PADDING_/.test(entry.variableField) && !entry.variableData).length;
+  check(unbound(body.parameterConsumptionMap) === 4 && unbound(body.variableConsumptionMap) === 4, "master layout: Body's four padding bindings let go (entries without variableData in both maps, as Figma's copy)");
+  check(JSON.stringify(pick(at("Content"), ["stackPrimarySizing", "stackChildPrimaryGrow"])) === JSON.stringify(["RESIZE_TO_FIT_WITH_IMPLICIT_SIZE", 0]), "master layout: the Content slot hugs (its own override, as the plugin's SLOT sizing)");
+  const content = message.nodeChanges.find((n) => n.isSlotContent && n.name === "Content");
+  check(content?.stackPrimarySizing === "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE", "master layout: the Content slot's content frame hugs with it");
+  check(at(inner.join(" › ")).stackChildAlignSelf === "STRETCH", "master layout: the Side-Bar stretches across its pattern (as tall as the master)");
+  // The row's own padding is its self override (guidPath: its own component), as Figma's copy of the master's rows: on
+  // the node alone, the pasted row came out unpadded (2026-10-17).
+  const bar = message.nodeChanges.find((n) => n.type === "INSTANCE" && n.name === "Top bar");
+  const barSelf = overrides(bar ?? {}).find((o) => o.guidPath.guids.length === 1 && id(o.guidPath.guids[0]) === id(bar.symbolData.symbolID)) ?? {};
+  const barVars = ["STACK_PADDING_TOP", "STACK_PADDING_RIGHT", "STACK_PADDING_BOTTOM", "STACK_PADDING_LEFT"].map((field) => id(barSelf.parameterConsumptionMap?.entries.find((entry) => entry.variableField === field)?.variableData?.value?.alias?.guid));
+  check(JSON.stringify(pick(barSelf, ["stackVerticalPadding", "stackPaddingRight", "stackPaddingBottom", "stackHorizontalPadding"])) === JSON.stringify([24, 24, 8, 24]) && JSON.stringify(barVars) === JSON.stringify(pads.map((name) => pack.variables[name][0])), `master layout: the top bar's own padding in its self override, each side bound (Figma's copy of the master's rows) (${barVars})`);
+  // Filling the frame's width lets the master's Viewport-Width binding go (Figma's own Fill): kept, Figma sized the
+  // pasted master back to 1512 (2026-10-17). Its height stays bound: the master hugs its page with it.
+  const self = overrides(node).find((o) => o.guidPath.guids.length === 1 && id(o.guidPath.guids[0]) === "4122:41885") ?? {};
+  const loose = (map) => (map?.entries ?? []).filter((entry) => !entry.variableData).map((entry) => entry.variableField);
+  check(JSON.stringify([loose(self.parameterConsumptionMap), loose(self.variableConsumptionMap)]) === JSON.stringify([["WIDTH"], ["WIDTH"]]), `master layout: its width binding let go in both maps, its height kept (${JSON.stringify([loose(self.parameterConsumptionMap), loose(self.variableConsumptionMap)])})`);
+}
+
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------
 {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, "tools/studio/fixtures/figma-expenses.json"), "utf8"));

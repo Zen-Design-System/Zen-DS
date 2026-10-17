@@ -1040,7 +1040,12 @@ function appShellElement(node, ctx) {
   let children = [];
   const pageNode = after.find((part) => !part.absolute && part.type !== "INSTANCE" && part.type !== "TEXT");
   if (pageNode) {
-    const inside = (pageNode.children ?? []).filter((child) => (child.absolute ? (pinned.push(child), false) : true));
+    // The master layout's Body: the page is its Content slot's layers, Floating-Actions › Floating-Item the floating action.
+    const bodyLayers = (pageNode.children ?? []).flatMap((child) => {
+      if (child.name === "Floating-Actions") { pinned.push(child); return []; }
+      return child.type === "SLOT" && child.name === "Content" ? child.children ?? [] : [child];
+    });
+    const inside = bodyLayers.filter((child) => (child.absolute ? (pinned.push(child), false) : true));
     const elements = inside.map((child) => convert(child, ctx)).filter(Boolean);
     const padding = pageNode.layout?.padding ?? [];
     children = padding.some(Boolean) ? [frameElement({ ...pageNode, children: inside }, elements, ctx)] : elements;
@@ -1055,6 +1060,60 @@ function appShellElement(node, ctx) {
   }
   if (asideNode) props.aside = { kind: "element", node: convert(asideNode, ctx) };
   return { kind: "element", name: "AppShell", props, children };
+}
+
+/** Figma's ◇ Master-Layout page pattern and the Sidebar pattern in it (figma-push.mjs MASTER_LAYOUT_SET). */
+const MASTER_LAYOUT = "Patterns/Pages/Density-Medium";
+const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar/Density-Medium";
+/**
+ * Figma's ◇ Master-Layout as the push writes it (figma-push.mjs masterLayoutNode: an instance of Patterns/Pages/
+ * Density-Medium with nested writes and slots) in the shape appShellElement reads, the one a placed master gives the
+ * read (Patterns/… is a composition): the Side-Bar its Sidebar pattern holds, a column of Header/Dashboard's rows and
+ * Body (the Content slot's layers; Floating-Item's action pinned), the Side-Panel. Null for another instance.
+ */
+function masterLayoutFrame(node) {
+  if (node.type !== "INSTANCE" || node.set?.name !== MASTER_LAYOUT) return null;
+  const props = node.props ?? {};
+  const nested = node.nested ?? [];
+  const slots = node.slots ?? [];
+  const firstOf = (slot) => (Array.isArray(slot.within) ? slot.within[0] : slot.within);
+  const slotNamed = (name) => slots.find((slot) => slot.name === name && firstOf(slot) !== MASTER_SIDEBAR_PATTERN);
+  /** An instance's own writes the push placed under `path` (`within` starting with `layers`), at its own root again. */
+  const partAt = (path, layers, fallbackSet) => {
+    const own = nested.find((entry) => entry.path === path) ?? {};
+    const prefix = `${path}/`;
+    return {
+      type: "INSTANCE", name: own.name ?? path, set: own.set ?? fallbackSet, props: own.props ?? {},
+      ...(own.text !== undefined ? { text: own.text } : {}), ...(own.texts ? { texts: own.texts } : {}),
+      nested: nested.filter((entry) => entry.path.startsWith(prefix)).map((entry) => ({ ...entry, path: entry.path.slice(prefix.length) })),
+      slots: slots.filter((slot) => Array.isArray(slot.within) && layers.every((name, i) => slot.within[i] === name)).map((slot) => {
+        const rest = slot.within.slice(layers.length);
+        const { within, ...bare } = slot;
+        return rest.length ? { ...bare, within: rest.length === 1 ? rest[0] : rest } : bare;
+      }),
+    };
+  };
+  const layers = [];
+  if (props.Sidebar !== false) {
+    const sidebarSlot = slots.find((slot) => firstOf(slot) === MASTER_SIDEBAR_PATTERN);
+    const inner = sidebarSlot ? sidebarSlot.within.slice(0, 2) : [MASTER_SIDEBAR_PATTERN, "Patterns/Density/Comfortable/Sidebar/Yes"];
+    // The Side-Bar's hidden layers: the master's edits inside it.
+    const hide = (node.edits ?? []).filter((edit) => edit.visible === false && Array.isArray(edit.layer) && edit.layer.length === inner.length + 1 && inner.every((name, i) => edit.layer[i] === name)).map((edit) => edit.layer[inner.length]);
+    layers.push({ ...partAt("Patterns/Patterns", inner, { name: "Side-Bar/Master/Basic" }), ...(hide.length ? { hide } : {}) });
+  }
+  // The rows as the read gives them: Dashboard header instances (their padding is the master's own).
+  const rows = (slotNamed("Sections")?.children ?? []).map(({ padding, paddingVars, ...row }) => row);
+  const floating = slotNamed("Floating-Item")?.children?.[0];
+  layers.push({
+    type: "FRAME", name: "Main-Container", layout: { mode: "VERTICAL" },
+    children: [
+      { type: "FRAME", name: "Header/Dashboard", layout: { mode: "VERTICAL" }, children: rows },
+      { type: "FRAME", name: "Body", layout: { mode: "VERTICAL", padding: [0, 0, 0, 0] }, children: slotNamed("Content")?.children ?? [] },
+      ...(floating ? [{ ...floating, absolute: { cx: "MAX", cy: "MAX" } }] : []),
+    ],
+  });
+  if (props["Side-Panel"]) layers.push(partAt("Side-Panel", ["Side-Panel"], { name: "Side-Panel" }));
+  return { type: "FRAME", id: node.id, key: node.key, name: node.name, layout: { mode: "HORIZONTAL" }, children: layers };
 }
 
 /** Each element's Figma layer: its parent reads its Fill container from it. */
@@ -1173,6 +1232,9 @@ function chartCardElement(chart, header, cardProps, where, ctx) {
 function convertNode(node, ctx) {
   const { mapping, notes } = ctx;
   if (!node) return null;
+  // Figma's ◇ Master-Layout written by the push: AppShell (the read of a placed one comes as frames, below).
+  const master = masterLayoutFrame(node);
+  if (master) { const shell = appShellElement(master, ctx); if (shell) return shell; }
   if (DRAWINGS.has(node.type)) { ctx.drawings.push(node.name); return null; }
   if (node.type === "TABLE") return tableElement(node, ctx);
   if (node.type === "TEXT") {
