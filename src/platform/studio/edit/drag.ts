@@ -50,8 +50,12 @@ const publish = (next: DragView) => { view = next; listeners.forEach((listener) 
 export const publishDragView = publish;
 export const useDragView = () => useSyncExternalStore((listener) => { listeners.add(listener); return () => { listeners.delete(listener); }; }, () => view, () => null);
 
-/** Components and host tags a layer can be dropped into (they take element children). */
-const DROP_COMPONENTS = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions"]);
+/**
+ * Components and host tags a layer can be dropped into (they take element children). A builder page's Screen is a frame
+ * (Figma: anything drops into a frame, user 2026-10-17 "kéo component vào mà không có box(frame) hoặc stack"), and an
+ * AppShell takes the page content of a desktop Screen.
+ */
+const DROP_COMPONENTS = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions", "Screen", "AppShell"]);
 const DROP_TAGS = new Set(["div", "section", "article", "aside", "header", "footer", "main", "nav", "ul", "ol", "li", "form", "fieldset", "figure", "td"]);
 const THRESHOLD = 4;
 const EDGE = 32;
@@ -106,6 +110,8 @@ type Axis = "row" | "column" | "grid";
 function axisOf(hit: FiberHit): Axis {
   const host = hit.hosts[0];
   if (!(host instanceof HTMLElement)) return "column";
+  // A Screen's (and an AppShell's) content flows down the page, whatever box its bars make.
+  if (nameOfHit(hit) === "Screen" || nameOfHit(hit) === "AppShell") return "column";
   const style = getComputedStyle(host);
   if (style.display.includes("flex")) return style.flexDirection.startsWith("row") ? "row" : "column";
   if (style.display.includes("grid")) return style.gridTemplateColumns.trim().split(/\s+/).length > 1 ? "grid" : "column";
@@ -137,10 +143,31 @@ type Unit = { first: string; last: string; rect: DOMRect; dragged: boolean };
  */
 export type DropContext = { hosts: Element[]; frame: Element | null | undefined; parentHost: Element | null; origin: DOMRect | null; layerSrc: string | null; copy: boolean; origins?: Map<Element, DOMRect>; /** How many layers are dragged (several selected: more than 1). */ layers?: number };
 
+/**
+ * Whether a layer of frame `from` may land in frame `to`: its own frame, or any Screen or Overlay of a page you made
+ * (one file, as Figma's frames are one page: a layer drags from one Screen to another; dnd campaign 2026-10-17). An
+ * example's frame is its own code.
+ */
+export function sameDropScope(from: Element | null, to: Element | null): boolean {
+  if (from === to) return true;
+  const builder = (frame: Element | null) => /^(screen|overlay):/.test(frame?.getAttribute("data-studio-frame") ?? "");
+  return builder(from) && builder(to);
+}
+
+/** Where a Screen and an AppShell draw their bars and side parts (props, not children). */
+const BAR_PARTS = ".studio-builder-screen__top, .studio-builder-screen__bottom, .studio-builder-screen__side, .studio-builder-screen__header, .zen-app-shell__sidebar, .zen-app-shell__sections, .zen-app-shell__header, .zen-app-shell__top-nav, .zen-app-shell__bottom, .zen-app-shell__banner, .zen-app-shell__aside";
+/** A container's child layers: a Screen's and an AppShell's leave out what their bars draw (a Top Navigation, a Sidebar). */
+export function kidsOf(container: FiberHit): FiberHit[] {
+  const kids = childHits(container);
+  const name = nameOfHit(container);
+  if (name !== "Screen" && name !== "AppShell") return kids;
+  return kids.filter((kid) => !kid.hosts[0]?.closest(BAR_PARTS));
+}
+
 /** The container's child layers in order; consecutive renders of one JSX element (a .map) form one unit. */
 function unitsOf(container: FiberHit, ctx: DropContext): Unit[] {
   const units: Unit[] = [];
-  for (const kid of childHits(container)) {
+  for (const kid of kidsOf(container)) {
     const dragged = Boolean(ctx.layerSrc && kid.hosts[0] && ctx.hosts.includes(kid.hosts[0]));
     const rect = dragged ? ctx.origins?.get(kid.hosts[0]) ?? ctx.origin : rectOf(kid.hosts);
     if (!rect || (!rect.width && !rect.height)) continue;
@@ -215,7 +242,7 @@ export function dropTargetAt(x: number, y: number, ctx: DropContext): DropAt {
   }
   if (!hit) return { target: null, reason: null };
   const frame = hit.hosts[0]?.closest("[data-studio-frame]") ?? null;
-  if (current.frame !== undefined && frame !== current.frame) return { target: null, reason: "Layers move within their own example" };
+  if (current.frame !== undefined && !sameDropScope(current.frame, frame)) return { target: null, reason: "Layers move within their own example" };
   const chain: FiberHit[] = [];
   for (let step: FiberHit | null = hit; step && chain.length < 40; step = parentHit(step, frame)) chain.push(step);
   for (let k = 0; k < chain.length; k += 1) {
@@ -232,9 +259,22 @@ export function dropTargetAt(x: number, y: number, ctx: DropContext): DropAt {
       const outerRect = rectOf(outer.hosts);
       if (side && !(outerRect && sharedEdge(rect, outerRect, side, axis))) continue;
     }
-    return { target: insertion(candidate, x, y, ctx), reason: null };
+    return { target: insertion(bodyOf(candidate, ctx) ?? candidate, x, y, ctx), reason: null };
   }
   return { target: null, reason: null };
+}
+
+/**
+ * A Screen whose content is one layout (the body Stack a new page starts with): a drop on the Screen's empty space goes
+ * into that body, where the page's padding is, not flush beside it (Figma's frame-in-frame reads the same way to a
+ * person: the body is the page). Null for anything else.
+ */
+function bodyOf(container: FiberHit, ctx: DropContext): FiberHit | null {
+  if (nameOfHit(container) !== "Screen") return null;
+  const kids = kidsOf(container).filter((kid) => kid.hosts.length);
+  const [only] = kids;
+  if (kids.length !== 1 || !isDropContainer(only) || only.hosts.some((host) => ctx.hosts.some((lifted) => lifted === host || lifted.contains(host)))) return null;
+  return only;
 }
 
 /* ── the gesture ─────────────────────────────────────────────────────────────────────────────────────────────────── */

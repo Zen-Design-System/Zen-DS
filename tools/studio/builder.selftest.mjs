@@ -52,6 +52,20 @@ const data = dataFieldEdit(listPage, FILE, row.loc, "ListItem", { op: "setDataFi
 check("setDataField on a mock row", [data.error ?? null, data.file, data.source], [null, FILE, "mock.items[1].name"]);
 check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(data.code ?? ""), /title=\{item\.name\}/.test(data.code ?? "")], [true, true]);
 
+// insertChild (a click, the MCP) refuses what a drag refuses (dnd-matrix, 2026-10-17): no children into a component
+// that draws none (the API documents no `children`), no block into text.
+{
+  const bars = newPageText({ title: "Bars", device: "phone", chrome: true });
+  const screen = parsePage(bars).board.children[0];
+  const top = screen.props.topNavigation.node;
+  const childless = new Set(["TopNavigation", "Shape", "MetricCard"]);
+  const into = (text, at, name, code) => applyOps(text, at, name, [{ op: "insertChild", code }], { ...options(text), childless });
+  check("insertChild into a Top Navigation is refused", into(bars, top.loc, "TopNavigation", "<Badge>Title</Badge>").error ?? null, "<TopNavigation> has no children to drop into; drop beside it instead.");
+  const text = screen.children[0].children[0];
+  check("insertChild of a Stack into Text is refused", into(bars, text.loc, "Text", '<Stack gap="sm" />').error ?? null, "<Text> holds text; <Stack> would put a block inside it. Drop it beside <Text> instead.");
+  check("insertChild of a Badge into Text still works", into(bars, text.loc, "Text", "<Badge>New</Badge>").error ?? null, null);
+}
+
 // An action on a builder page is a proto handler: the page's runtime import gains proto; a hook is refused.
 {
   let fresh = newPageText({ title: "Actions", chrome: false });

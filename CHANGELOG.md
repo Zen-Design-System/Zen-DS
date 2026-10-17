@@ -17,6 +17,17 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio drag and drop as in Figma (2026-10-17, user: "test hết mọi case kéo thả, kéo component vào mà không có
+  box(frame) hoặc stack. Kéo top navigation vào rồi đặt lên top…", "kéo thả có smart guide"): a component dropped on a
+  Screen with no Stack lands in it (the drop did nothing), and on a new page's Screen it goes into the page body; a Top or
+  Bottom Navigation dropped or clicked onto a phone Screen becomes its top or bottom bar (replacing the one there); a
+  layer drags from one Screen to another; a drop into a Frame without auto layout lands where it is dropped, snapped with
+  red smart guides (⌘ drops without snapping); outside every frame the drag says "Drop it into a frame"; a drop against
+  the host's rules says "Not recommended" as a click does; an App shell goes only on an empty Screen (the drag says so);
+  a Layers row dropped on a Screen's row goes into that Screen. A click and the MCP now refuse what a drag refuses:
+  children in a component that has none (Top Navigation, Shape, charts), a block in text, an App shell inside a layer or
+  beside content, a Top / Bottom Navigation in a Screen's content. Checked by `npm run studio:dnd` (19,286 engine cases)
+  and the opt-in E2E group `dnd` (real drags of every Assets item, `npm run studio:e2e -- --only=dnd`).
 - Zen Studio speaks Figma (2026-10-17, user: "Còn dùng ngôn ngữ dev nhiều quá", "Convert được Box(Frame) to Stack(auto
   layout)"): a Frame's Inspector has Figma's Auto layout "+" (⇧A adds auto layout to the Frame in place, ⌥⇧A or "−"
   removes it), the canvas menu and Quick actions say Add auto layout / Remove auto layout / Frame selection; a layer reads

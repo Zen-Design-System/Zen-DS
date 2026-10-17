@@ -1757,13 +1757,13 @@ const fail = (code, error) => ({ error, code });
  * snippets alone. `typographyKeys` (a Set or array of typographyStyles keys) validates setTextStyle (required for a
  * non-null value) and setTypography; `file` (the repo-relative path) is where a new typographyStyles import points from.
  */
-export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys: knownKeys, file, componentCss, componentModules, requiredChildren, requiredProps, hash, base, shared = false } = {}) {
+export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys: knownKeys, file, componentCss, componentModules, requiredChildren, requiredProps, childless, hash, base, shared = false } = {}) {
   editFile = file ?? null;
   // Slot ops (slots.mjs) restructure an instance's slot content; each is alone in its request (one undo record).
   const slotOp = Array.isArray(ops) ? ops.find((op) => SLOT_OPS.has(op?.op)) : undefined;
   if (slotOp) {
     if (ops.length !== 1) return fail("invalid", `${slotOp.op} cannot be combined with other ops`);
-    return applySlotOp(code, loc, name, slotOp, { snippets, file, componentModules, requiredChildren, requiredProps, hash, base, shared });
+    return applySlotOp(code, loc, name, slotOp, { snippets, file, componentModules, requiredChildren, requiredProps, childless, hash, base, shared });
   }
   // Wrapping and unwrapping restructure too: in shared code they wait for the person's confirmation (plan WP-B2).
   if (Array.isArray(ops) && ops.some((op) => op?.op === "wrap" || op?.op === "unwrap") && isSharedFile(file) && !shared) return sharedRefusal(file);

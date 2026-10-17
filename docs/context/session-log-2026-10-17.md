@@ -578,3 +578,32 @@ User (pasted feedback): "props, component, cách thao tác, frame, autolayout y 
 - Code properties: a closed `<details>` (inspector/CodeProperties.tsx, open state remembered) for the props Figma has
   no property for: frames, text, shapes (DesignPanel) and a component's leftover props (GroupedProperties); Text `as`
   moved there. E2E helper `openCodeProperties` (I-02, K-02); `scaleStep(key, scale)` reads the Figma name.
+
+## Drag and drop campaign (session "Figma-like freeform editing", tier M)
+User: "test hết mọi case kéo thả, kéo component vào mà không có box(frame) hoặc stack. Kéo top navigation vào rồi đặt lên
+top test list box, content dài quá trang mobile… scroll thử… test hơn 10,000 case"; plus "kéo thả có smart guide".
+- Tools: `tools/studio/dnd-matrix.mjs` (`npm run studio:dnd`; engine as localEdit runs it, shared helpers
+  `tools/studio/dnd-engine.mjs`): 115 Assets items × every place of 5 seed pages (pasteCode = drag, insertChild = click
+  / MCP), every layer moved / ⌥-copied to every place, Screen bars; oracles: valid page, nothing lost, drag = click,
+  refusals in words, bars never content. Opt-in E2E group `dnd` (`npm run studio:e2e -- --only=dnd`, run.mjs OPT_IN):
+  DND-01…03 real drags of every Assets item to 6 places (empty Screen, before a Card, the Top navigation bar, into a
+  Card, a free Box, the board) with ⌘Z each and an across-the-phone check; DND-04 canvas moves; DND-06 Layers drags;
+  DND-05 the user's story (empty phone → Top navigation on top → List box → 8 blocks → canvas whole → Play scroll).
+- Found and fixed: (1) an empty Screen (no Stack) took no drop, silently: Screen and AppShell are drop containers, a
+  Screen with one layout child sends drops into it (bodyOf), bar parts are not drop units (kidsOf). (2) A Top / Bottom
+  Navigation dropped into content: it goes to the Screen's bar (assets.ts barAt / dropBar: insertChild `prop` or
+  replaceElement), clicks too; the engine refuses bars in a builder Screen's content and an AppShell inside a layer
+  (arrange.mjs childRefusal / inScreenContent). (3) insertChild accepted children in components without any (Top
+  Navigation, Shape, MetricCard, charts) and blocks in Text: `childless` from the API (requiredFromApi) and childRefusal
+  in insertPlan. (4) A layer could not be dragged from one Screen to another ("Layers move within their own example"):
+  sameDropScope for a page's Screens / Overlays, canvas and Layers; Layers frame rows take drops. (5) A drag skipped the
+  host rules' "Not recommended" status: dropAsset adds it. (6) Off-frame drops were silent: "Drop it into a frame".
+- Smart guides on drop: a Box whose layers all float (Figma's frame) places the drop at the pointer (position absolute,
+  px insets; a non-layout root in a floating Box), point-snapped to the frame and its layers with red guides, ⌘ no snap.
+- (7) An App shell dragged into a layer showed an accepting label, then the engine refused it: it goes only on an empty
+  Screen (assets.ts shellAt; engine childRefusal parentHasChildren), the drag says why.
+- Results: matrix 19,286 cases, 0 findings (first run: 2,195 findings, 1,802 drag≠click, 393 bars in content). Counted,
+  allowed (BACKLOG P3 questions): Sidebar in a Screen's content (111), another component in a Screen bar (1,140).
+  Browser, first full run (before fixes 4–7 and the free-frame drops): DND-02 205/205, DND-01 204/205 and DND-03 189/195
+  (harness: same-name order, a frame drawing again after ⌘Z; app-shell = fix 7), DND-05 story ✓ (Screen 1330px,
+  Play scroll to the end, bar at 0px).

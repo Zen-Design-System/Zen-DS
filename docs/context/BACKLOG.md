@@ -7,6 +7,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P3 · Studio drop rules: questions for the user (2026-10-17, dnd campaign, tools/studio/dnd-matrix.mjs):** (a) a
+  Sidebar dropped into a Screen's content is allowed with no warning (the matrix counts 107 places): should a Sidebar go
+  only in an AppShell's sidebar? (b) a Screen's top / bottom bar takes any component (Swap instance, MCP insert with
+  `prop`), e.g. a custom header: keep it free, or only Top / Bottom Navigation there?
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast

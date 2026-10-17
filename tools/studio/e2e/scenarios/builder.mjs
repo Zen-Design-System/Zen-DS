@@ -154,7 +154,7 @@ async function pageAction(page, name, action) {
 }
 
 /** Chooses one of the Studio options (the folders' ⋯). */
-async function mineOption(page, action) {
+export async function mineOption(page, action) {
   await showLeftTab(page, "pages");
   await openStudioSpace(page);
     await page.getByRole("button", { name: "Studio options" }).click();
