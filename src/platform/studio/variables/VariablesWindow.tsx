@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
+import { Chip } from "../../../components/Chip";
 import { ColorPicker } from "../../../components/ColorPicker";
 import { Icon } from "../../../components/Icon";
 import { InputField } from "../../../components/Input";
@@ -523,12 +524,19 @@ function VariablesPanel() {
         />
         <span className="studio-vars__head-fill" />
         <Search size="sm" placeholder="Search" aria-label="Search variables" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} />
-        <Menu
-          aria-label="Type"
-          align="end"
-          items={[{ id: "any", label: "All types", onSelect: () => setType(null) }, ...(["COLOR", "FLOAT", "STRING", "BOOLEAN"] as const).map((each) => ({ id: each, label: TYPE_LABEL[each], icon: TYPE_ICON[each], onSelect: () => setType(each) }))]}
-          trigger={<IconButton icon="icon-filter-lines-line" appearance="flat" size="sm" aria-label={type ? `Type: ${TYPE_LABEL[type]}` : "Type: all"} tooltip={type ? `Only ${TYPE_LABEL[type].toLowerCase()} variables` : "Filter by type"} />}
-        />
+        {/* A filter is a Chip (harness button/filter-is-chip): the type it keeps, Selected while it filters. */}
+        <Chip
+          variant="advanced"
+          size="sm"
+          dropdown
+          selected={type !== null}
+          popoverLabel="Type"
+          popoverItems={(["COLOR", "FLOAT", "STRING", "BOOLEAN"] as const).map((each) => ({ id: each, label: TYPE_LABEL[each], leading: TYPE_ICON[each], selected: type === each }))}
+          onPopoverSelect={(item) => setType(type === item.id ? null : (item.id as VariableType))}
+          onClearSelection={() => setType(null)}
+        >
+          {type ? TYPE_LABEL[type] : "Type"}
+        </Chip>
         <IconButton icon="icon-x-line" appearance="flat" size="sm" aria-label="Close variables" tooltip="Close · Esc" onClick={closeVariables} />
       </header>
       {body}
@@ -542,8 +550,8 @@ function VariablesPanel() {
         {drafted.length ? <Button level="primary" size="sm" disabled={!editable} onClick={() => { void saveDrafts(drafted.map((each) => each.file)).then(() => load()); }}>Save · build tokens</Button> : null}
         {!drafted.length && figma.changes ? (
           copied
-            ? <Button level="secondary" size="sm" startIcon="icon-check-line" onClick={() => { void markInFigma(); }}>It is in Figma</Button>
-            : <Button level="secondary" size="sm" startIcon="icon-copy-line" onClick={() => { void copyForFigma(); }}>Copy for Figma</Button>
+            ? <Button level="tertiary" size="sm" startIcon="icon-check-line" onClick={() => { void markInFigma(); }}>It is in Figma</Button>
+            : <Button level="primary" size="sm" startIcon="icon-copy-line" onClick={() => { void copyForFigma(); }}>Copy for Figma</Button>
         ) : null}
       </footer>
     </section>

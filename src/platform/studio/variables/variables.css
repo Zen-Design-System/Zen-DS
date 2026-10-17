@@ -62,12 +62,12 @@
 /* A value: swatch, hex and opacity; an alias as a chip (Figma's variable pill). */
 .studio-vars__value { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-vars__text { overflow: hidden; text-overflow: ellipsis; }
-.studio-vars__swatch { width: 16px; height: 16px; flex: 0 0 auto; box-sizing: border-box; border: 1px solid var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--studio-vars-swatch, transparent); }
+.studio-vars__swatch { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 auto; box-sizing: border-box; border: 1px solid var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--studio-vars-swatch, transparent); }
 /* A see-through colour sits on a check, as Figma's swatches. */
 .studio-vars__swatch[data-alpha] { background: linear-gradient(var(--studio-vars-swatch), var(--studio-vars-swatch)), repeating-conic-gradient(var(--zen-color-background-surface-default) 0 25%, var(--zen-color-border-neutral-subtle-default) 0 50%) 0 0 / 8px 8px; }
 .studio-vars__hex { font-variant-numeric: tabular-nums; }
 .studio-vars__alpha { color: var(--zen-color-content-neutral-base); }
-.studio-vars__alias { display: inline-flex; min-width: 0; max-width: 100%; height: 24px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 1px solid var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-subtle-default, transparent); }
+.studio-vars__alias { display: inline-flex; min-width: 0; max-width: 100%; height: var(--zen-element-size-popular-medium, 24px); box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 1px solid var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-subtle-default, transparent); }
 .studio-vars__alias-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 /* Footer: Create variable, the state of the drafts and of Figma, Save / Copy for Figma. */
