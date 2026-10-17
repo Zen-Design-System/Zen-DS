@@ -327,3 +327,10 @@ chỉnh sửa … học thêm cho skill".
   E2/F7 overlay wrappers, Medium cards on E1/E6/D1, wider E5 tree cards, and the E3 fill and E6 chip row.
 - SKILL §5: a slip the user catches → fix it everywhere + rule + audit check in the same turn. figma-gotchas gets
   "Modes" (emoji Dock-Icons at ~82% of the tile, text wrap/truncate, scroll instead of trimming).
+
+## On-Brand follows the live Figma (session "Giám sát", tier XS; user: "Đồng bộ On-Brand theo Figma")
+- Live Base Colors (Project), mode Zen: Light/Dark On-Brand-Default and On-Brand-Hover are #FFFFFF; the repo had
+  #000000DB (the 2026-10-13 contrast fix). Pressed unchanged (Light white, Dark black 86%). 4 values in
+  base-colors-project.json + sync note; `npm run tokens:build`.
+- Contrast: white on Zen/9 #F755C9 2.96:1, on Light Zen/10 #DC39B2 3.98:1 (black 86%: 6.22 / 4.76). Told the user
+  before syncing; they chose Figma.
