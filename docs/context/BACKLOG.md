@@ -142,6 +142,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Older chart sets bake their card (designer, 2026-10-13):** Bar, Donut, Radial, Heatmap (and Multi-Line) draw
   their own Surface/Default card, so they cannot take Card Theme/Color; the new charts are card-less content that sits
   in a Card. Align the old ones the same way? (a component property cannot reach slot content of a nested Card).
+- **P2 · Direct paste (⌘V on the canvas) outside the Zen file (2026-10-17):** it binds by node id, so only the Zen file
+  takes it; other files need the published library and full component definitions in the paste (instances by
+  `componentKey`, as Figma's own copies carry). Also open: pictures in a direct paste, and the frame menu's Copy for Figma
+  (async write: Chromium rewrites the html, only the plugin reads it). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6.
 - **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
   studio"):** the Figma side is fixed (`.Chart/Line-Chart/Trend` 6/7-Sectors label layers now run top → bottom like 4/12,
   so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in

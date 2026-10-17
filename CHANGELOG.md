@@ -56,6 +56,11 @@ removed (four unused colour ramps were, see Removed).
   cho các button Overlay"): Figma Button/Overlay and Button/Icon-Overlay get `Level=Inverse Subtle` (55 variants), a
   translucent Background/Inverse/Subtle fill with Content/Inverse/Strongest and the Overlay blur. Studio's Properties
   panel and Main component frame list it.
+- Studio → Figma direct paste (2026-10-17, user: "paste trực tiếp vào figma không qua plugin"): ⌘C on a frame of a
+  page you made, ⌘V on the Zen file's canvas places real layers without the plugin, bound to the file's components,
+  variables and styles (`tools/studio/figma-native.mjs`, Figma's own clipboard format; component skeletons in
+  `docs/figma-contracts/native-pack.json`, rebuilt with `node tools/studio/native-pack.mjs`). The Expenses page pastes
+  layer for layer like the plugin's import. Other files still paste through the Zen plugin.
 - Studio → Figma import matches the page (2026-10-17, user: "Bản import ở figma và bản studio còn chưa chính xác"): a
   Metric-Card draws the page's sparkline, spark bars, goal and footer instead of Figma's sample; a ProgressBar fills its
   exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its

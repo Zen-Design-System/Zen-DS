@@ -149,14 +149,14 @@ async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cu
   const at = parseSrc(selection.src)!;
   clip = { file: at.file, loc: read.loc, name: read.element.name, tag: read.tag, code: read.code, cut, wrapped: read.wrapped, state: read.state };
   if (cut) return true;
-  // A Screen of a page you made goes to Figma as well: ⌘V in the Zen plugin places it.
+  // A Screen of a page you made goes to Figma as well: ⌘V on the Zen file's canvas or in the Zen plugin places it.
   const screen = screenOf(selection);
   if (!screen) { done(`Copied ${read.element.name} · ${clipboardShortcuts.paste} to paste`); return true; }
-  const copied = `Copied ${read.element.name} · ${clipboardShortcuts.paste} pastes it here or in the Zen plugin in Figma`;
+  const copied = `Copied ${read.element.name} · ${clipboardShortcuts.paste} pastes it here, on the Zen file's canvas or in the Zen plugin`;
   if (cached && data && figmaReady?.src === selection.src) { data.setData("text/html", figmaReady.html); done(copied); return true; }
   const html = frameFigmaClip(screen.localPage, screen.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
   done(`Copied ${read.element.name} — preparing it for Figma…`);
-  void writeFrameClip(read.code, html).then(() => done(copied), (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }));
+  void writeFrameClip(read.code, html).then(() => done(`Copied ${read.element.name} · ${clipboardShortcuts.paste} in the Zen plugin places it; copy again for the Zen file's canvas`), (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }));
   return true;
 }
 
