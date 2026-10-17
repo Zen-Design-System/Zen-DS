@@ -34,8 +34,9 @@ import type { ProjectModes } from "../../../../tools/studio/project-theme.mjs";
  * The theme page's preview (user, 2026-10-17: "Trang này sẽ có các component tương ứng để user thấy được các thay đổi
  * như thế nào", then "Nên làm giao diện sinh động như trang tailwind color app" and "chart nên chia nhiều sector để dễ
  * thấy customize chart sector"): a gallery like uicolors.app's — Cards, Dashboard, Charts, Website, Components — of real
- * Zen components in the project's draft mode. The Primary shows in its tints (Pale cards, Solid cards with their
- * On-Accent content, marks in Support/Brand steps); the charts split into all seven sectors, so a sector's colour shows
+ * Zen components in the project's draft mode. The Primary shows in its tints (Subtle cards, the colour box on the
+ * gallery's Canvas/Default; Solid cards with their On-Accent content; marks in Support/Brand steps); the charts split
+ * into all seven sectors, so a sector's colour shows
  * the moment it changes. Rendered once per colour mode (Light, Dark, or both side by side).
  */
 
@@ -100,7 +101,7 @@ function CardsGallery() {
   const press = usePress();
   return (
     <Grid columns={useColumns(3, 2)} gap="md">
-      <Card theme="pale" color="brand" spacing="sm">
+      <Card theme="subtle" color="brand" spacing="sm">
         <Stack gap="lg">
           <Image src={photoSantorini} alt="White houses above the sea in Santorini" ratio={4 / 3} radius="lg" />
           <Heading level={3} textStyle="Display/4" tone="accent-strongest">Track your trips</Heading>
@@ -142,7 +143,7 @@ function CardsGallery() {
           ))}
         </Stack>
       </Card>
-      <Card theme="pale" color="brand" spacing="sm">
+      <Card theme="subtle" color="brand" spacing="sm">
         <Stack gap="md" align="start">
           <DockIcon icon="icon-star-01-solid" theme="accent" size="lg" />
           <Heading level={3} textStyle="Heading/3" tone="accent-strongest">Go Pro and plan together</Heading>
@@ -272,7 +273,7 @@ function WebsiteGallery() {
   const two = useColumns(2, 1);
   return (
     <Stack gap="lg">
-      <Card theme="pale" color="brand">
+      <Card theme="subtle" color="brand">
         <Grid columns={two} gap="lg">
           <Stack gap="md" align="start" justify="center">
             <Badge theme="accent" size="sm">New · Shared trips</Badge>
