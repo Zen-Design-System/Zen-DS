@@ -22,6 +22,7 @@ const cases: Record<string, ReactNode> = {
   comparison: <MetricCard type="comparison" label="Cash flow · September" comparison={[{ id: "in", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } }, { id: "out", label: "Collected", value: "$88,300" }, { id: "due", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1 invoice" } }]} />,
   "category-bar": <MetricCard type="category-bar" label="Invoices by status" value="$184,200" format={usd} categories={categories} />,
   hero: <MetricCard type="hero" label="Invoiced this year" value="$798,300" trend={{ direction: "positive", label: "+12% vs. 2025" }} series={revenue} />,
+  tile: <MetricCard type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "+24% vs. last year" }} />,
 };
 
 describe("MetricCard type", () => {
@@ -94,8 +95,47 @@ describe("MetricCard type", () => {
     expect(document.querySelector(".zen-metric-spark__dot")).toBeNull();
     const badge = document.querySelector(".zen-metric__content .zen-badge")!;
     expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background")]).toEqual(["on-color", "solid"]);
-    await screen.rerender(wrap(<MetricCard type="hero" theme="solid" label="Invoiced this year" value="$798,300" series={revenue} />));
+    await screen.rerender(wrap(<MetricCard type="hero" theme="solid" label="Invoiced this year" value="$798,300" trend={{ direction: "positive", label: "+12% vs. 2025" }} series={revenue} />));
     expect([card.getAttribute("data-tone"), card.getAttribute("data-color")]).toEqual(["solid", "neutral"]);
+    // On Solid Neutral the trend follows the fill (Figma Hero · Solid Neutral 15487:89034: Metric-Trend Content=Inverse).
+    const solidBadge = document.querySelector(".zen-metric__content .zen-badge")!;
+    expect([solidBadge.getAttribute("data-tone"), solidBadge.getAttribute("data-background")]).toEqual(["inverse", "solid"]);
+  });
+
+  it("tile: Figma Metric-Tile in a Card Spacing=Small; the title, number and trend over the Dock-Icon, Medium or Small", async () => {
+    const screen = await render(wrap(cases.tile, 169));
+    const card = document.querySelector(".zen-metric-card")!;
+    expect([card.getAttribute("data-type"), card.getAttribute("data-tone"), card.getAttribute("data-spacing")]).toEqual(["tile", "shadow", "small"]);
+    const tile = card.querySelector(".zen-metric-tile")!;
+    expect([...tile.querySelectorAll(".zen-metric-tile__label, .zen-metric-tile__number")].map((node) => node.textContent)).toEqual(["Success rate", "56%"]);
+    const badge = tile.querySelector(".zen-badge")!;
+    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background")]).toEqual(["green", "subtle"]);
+    const dock = tile.querySelector(".zen-dock-icon")!;
+    expect([dock.getAttribute("data-tone"), dock.getAttribute("data-size")]).toEqual(["neutral", "medium"]);
+    // Value over the Dock-Icon, Spacing/Gap/Small (12) apart; the title and number Gap/2XSmall (4).
+    const value = tile.querySelector(".zen-metric-tile__value")!.getBoundingClientRect();
+    expect(Math.round(dock.getBoundingClientRect().top - value.bottom)).toBe(12);
+    await screen.rerender(wrap(<MetricCard type="tile" size="sm" label="Protein" value="92 g" />, 109));
+    expect([document.querySelector(".zen-metric-tile")!.getAttribute("data-size"), document.querySelector(".zen-metric-tile .zen-dock-icon")!.getAttribute("data-size")]).toEqual(["small", "small"]);
+  });
+
+  it("tile: its content follows the card's fill (Figma Content Inverse · On-Accent · On-Color · On-Bright)", async () => {
+    // [colour, the badge and Dock-Icon family, the number's colour, the title's colour]: Inverse has a Base step, the On-*
+    // families one colour.
+    const fills = [["neutral", "inverse", "--zen-color-content-inverse-strongest", "--zen-color-content-inverse-base"], ["accent", "on-color", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default"], ["cyan", "on-color", "--zen-color-content-on-colors", "--zen-color-content-on-colors"], ["yellow", "on-color", "--zen-color-content-on-brights", "--zen-color-content-on-brights"]] as const;
+    await render(
+      <ZenProvider theme="light">
+        {fills.map(([color]) => <MetricCard key={color} theme="solid" color={color} type="tile" label="Success rate" value="56%" trend={{ direction: "negative", label: "-3%" }} />)}
+      </ZenProvider>,
+    );
+    const page = document.querySelector("[data-theme]")!;
+    const resolve = (name: string) => { const probe = document.createElement("span"); probe.style.color = `var(${name})`; page.appendChild(probe); const value = getComputedStyle(probe).color; probe.remove(); return value; };
+    for (const [color, chips, number, title] of fills) {
+      const tile = [...document.querySelectorAll(".zen-metric-card")].find((card) => card.getAttribute("data-color") === color)!.querySelector(".zen-metric-tile")!;
+      expect(getComputedStyle(tile.querySelector(".zen-metric-tile__number")!).color, color).toBe(resolve(number));
+      expect(getComputedStyle(tile.querySelector(".zen-metric-tile__label")!).color, color).toBe(resolve(title));
+      expect([tile.querySelector(".zen-badge")!.getAttribute("data-tone"), tile.querySelector(".zen-dock-icon")!.getAttribute("data-tone")], color).toEqual([chips, chips]);
+    }
   });
 
   it("no data: an empty frame named No data, nothing drawn", async () => {

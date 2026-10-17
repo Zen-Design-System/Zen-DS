@@ -320,7 +320,8 @@ function PhoneFilesExample() {
       <TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} controlBar={
         // The filter icon opens a Bottom Sheet: on a phone a sheet replaces the Popover. The icon says so to screen
         // readers (aria-haspopup="dialog", aria-expanded while the sheet is open).
-        <Search ref={searchRef} theme="filter-icon" placeholder="Search files" value={query} onValueChange={setQuery}
+        // On a phone the Search is a pill (shape="rounded"): recommended for mobile, not required.
+        <Search ref={searchRef} shape="rounded" theme="filter-icon" placeholder="Search files" value={query} onValueChange={setQuery}
           filterActionLabel="Filter by type" filterHasPopup="dialog" filterExpanded={sheet} onFilterClick={() => setSheet(true)} />
       } searchAction={{ label: "Search files", onClick: openSearch }} />
     }>
@@ -564,14 +565,14 @@ const rows = people.filter((p) => matches(query, p.name, p.role, p.team, p.locat
   },
   {
     title: "Search on a phone",
-    description: "On a phone Search sits in the Top Navigation control bar at full size and folds away with the large title; folded, it waits as a top-right action that scrolls back up and focuses the field. The Filter-Icon theme opens a Bottom Sheet with the file types as a pick-one list.",
+    description: "On a phone Search is a pill (shape=\"rounded\", recommended on mobile) in the Top Navigation control bar at full size and folds away with the large title; folded, it waits as a top-right action that scrolls back up and focuses the field. The Filter-Icon theme opens a Bottom Sheet with the file types as a pick-one list.",
     render: () => <PhoneFilesExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 const searchRef = useRef<HTMLInputElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
   <TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} controlBar={
-    <Search ref={searchRef} theme="filter-icon" placeholder="Search files" value={query} onValueChange={setQuery}
+    <Search ref={searchRef} shape="rounded" theme="filter-icon" placeholder="Search files" value={query} onValueChange={setQuery}
       filterActionLabel="Filter by type" filterHasPopup="dialog" filterExpanded={sheet} onFilterClick={() => setSheet(true)} />
   } searchAction={{ label: "Search files", onClick: scrollUpAndFocusSearch }} />
 }>

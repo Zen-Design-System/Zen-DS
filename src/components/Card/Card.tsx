@@ -4,16 +4,19 @@ import type { IconName } from "../Icon";
 import { scaleKey } from "../_shared/scale";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/sizing";
+import { CardContentContext, cardContentOf } from "./card-content";
 import "./card.css";
 import "../Icon/core";
 
 export const cardThemes = ["shadow", "flat", "pale", "border", "on-container", "solid"] as const;
 export const cardSpacings = ["medium", "small"] as const;
 /** Figma Card Color (6643:51021): the hue of a Pale or Solid card. */
-export const cardColors = ["neutral", "brand", "cyan", "violet", "green", "yellow", "orange", "blue", "purple"] as const;
-/** The colours Figma draws at Theme=Solid (15480:87472…87496); the others render as Solid Neutral (harness card/solid-color). */
-export const cardSolidColors = ["neutral", "brand", "cyan", "yellow", "orange"] as const;
-/** A Figma Card Color. Only Pale (all nine) and Solid (cardSolidColors) take it; the other themes ignore it. */
+export const cardColors = ["neutral", "brand", "cyan", "violet", "green", "yellow", "orange", "blue", "purple", "accent"] as const;
+/** The colours Figma draws at Theme=Solid (15480:87472…87496; Accent 16109:23445/23454); the others render as Solid
+ *  Neutral (harness card/solid-color). */
+export const cardSolidColors = ["neutral", "brand", "cyan", "yellow", "orange", "accent"] as const;
+/** A Figma Card Color. Pale takes the first nine (Figma has no Pale Accent: it renders as Pale Neutral) and Solid takes
+ *  cardSolidColors; the other themes ignore it. */
 export type CardColor = (typeof cardColors)[number];
 /** A Figma Card theme. `semi-pale` still type-checks but is deprecated: Figma dropped its gradient themes
  * (2026-10-14) and the card renders it as `pale`. */
@@ -54,11 +57,14 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
    *  Background/Neutral/Solid/Default and its content reads Content/Inverse/*, a hue fills Support/<Color>/Solid).
    *  `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale. */
   theme?: CardTheme;
-  /** Figma Color, for theme="pale" (Support/<Color>/Pale, all nine: 15480:87358…, 15530:526, 15530:550) and theme="solid"
-   *  (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid; Figma has no Solid
-   *  violet, green, blue or purple, which render as Solid Neutral — harness card/solid-color). Shadow, Flat, Border and
-   *  On-Container ignore it (harness card/color-ignored). A Solid card re-points the content, border and track tokens
-   *  its children read (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*); the page keeps its mode. */
+  /** Figma Color, for theme="pale" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550) and
+   *  theme="solid" (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid;
+   *  accent: Background/Accent/Solid/Default, Solid only; Figma has no Solid violet, green, blue or purple and no Pale
+   *  accent, which render as Solid / Pale Neutral — harness card/solid-color). Shadow, Flat, Border and On-Container
+   *  ignore it (harness card/color-ignored). A Solid card re-points the neutral tokens its children read to the fill's
+   *  own family (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*; Accent → Content/On-Accent; Yellow →
+   *  Content/On-Brights; the other hues → Content/On-Colors) and tells its Metric parts which family to draw; the page
+   *  keeps its mode. */
   color?: CardColor;
   /** Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling. */
   spacing?: CardSpacing;
@@ -102,8 +108,9 @@ export function Card({ ref, children, theme = "shadow", color = "neutral", spaci
   const interactive = Boolean(onClick);
   // Deprecated semi-pale (Figma has no gradient theme since 2026-10-14) draws as Pale.
   const tone = theme === "semi-pale" ? "pale" : theme;
-  // Color applies to Pale and Solid only; a Solid hue Figma does not draw falls back to Solid Neutral.
-  const hue = tone === "pale" ? color : tone === "solid" ? ((cardSolidColors as readonly string[]).includes(color) ? color : "neutral") : undefined;
+  // Color applies to Pale and Solid only; a colour Figma does not draw on that theme falls back to Neutral.
+  const hue = tone === "pale" ? (color === "accent" ? "neutral" : color) : tone === "solid" ? ((cardSolidColors as readonly string[]).includes(color) ? color : "neutral") : undefined;
+  const content = cardContentOf(tone, hue, active);
   // zen-allow-secondary: Figma Card Sub-Action (6664:21688) = Button/Icon-Flat Small Secondary.
   const sub: ReactNode = isSubActionConfig(subAction)
     ? nest("Sub-Action", <IconButton appearance="flat" level="secondary" size="sm" aria-label={subAction.label} onClick={subAction.onClick} icon={subAction.icon ?? "icon-dots-vertical-line"} />)
@@ -129,7 +136,7 @@ export function Card({ ref, children, theme = "shadow", color = "neutral", spaci
       onClick={onClick}
       onKeyDown={interactive ? (event: KeyboardEvent<HTMLElement>) => { onKeyDown?.(event); if (event.defaultPrevented) return; if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onClick?.(event); } } : onKeyDown}
     >
-      <div className="zen-card__content">{nest.slot(children)}</div>
+      <div className="zen-card__content"><CardContentContext.Provider value={content}>{nest.slot(children)}</CardContentContext.Provider></div>
       {sub ? <div className="zen-card__sub-action">{sub}</div> : null}
     </Tag>
   );

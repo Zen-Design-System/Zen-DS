@@ -632,6 +632,49 @@ function PhoneMetricTypes() {
   );
 }
 
+type TileColor = "neutral" | "accent" | "yellow";
+const tileColors: { id: TileColor; label: string }[] = [{ id: "neutral", label: "Neutral" }, { id: "accent", label: "Accent" }, { id: "yellow", label: "Yellow" }];
+
+/** Stat tiles: one Solid stand-out among Flat tiles; its content follows the fill (Inverse, On-Accent, On-Color, On-Bright). */
+function StandOutTiles() {
+  const [color, setColor] = useState<TileColor>("neutral");
+  return (
+    <Stack gap="md">
+      <Segmented aria-label="Stand-out colour" value={color} onValueChange={(id) => setColor(id as TileColor)} options={tileColors} />
+      <Grid columns="repeat(auto-fit, minmax(min(100%, 160px), 1fr))" gap="md">
+        <MetricCard type="tile" theme="solid" color={color} label="Overdue" value="$12,880" icon="icon-alarm-clock-line"
+          trend={{ direction: "negative", label: "+1 invoice" }} />
+        <MetricCard type="tile" theme="flat" label="Collected" value="$88,300" icon="icon-wallet-02-line"
+          trend={{ direction: "negative", label: "−8% vs. August" }} />
+        <MetricCard type="tile" theme="flat" label="Hours logged" value="1,284 h" icon="icon-clock-line"
+          trend={{ direction: "positive", label: "+13% vs. August" }} />
+      </Grid>
+    </Stack>
+  );
+}
+
+/** The phone app's week: two Medium tiles (the dark one stands out), then three Small tiles. */
+function PhoneTiles() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  return (
+    <PlatformPhone label="This week" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
+      <Stack gap="md" padding="lg">
+        <Grid columns="repeat(2, minmax(0, 1fr))" gap="sm">
+          <MetricCard type="tile" theme="solid" color="neutral" label="Billable" value="82%" icon="icon-pie-chart-01-line"
+            trend={{ direction: "positive", label: "+4%" }} />
+          <MetricCard type="tile" theme="flat" label="Hours logged" value="164 h" icon="icon-clock-line"
+            trend={{ direction: "positive", label: "+12 h" }} />
+        </Grid>
+        <Grid columns="repeat(3, minmax(0, 1fr))" gap="sm">
+          <MetricCard type="tile" size="sm" theme="flat" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
+          <MetricCard type="tile" size="sm" theme="flat" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
+          <MetricCard type="tile" size="sm" theme="flat" label="Days off left" value="9" icon="icon-plane-line" />
+        </Grid>
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
 /** A new client's first weeks: no revenue yet, one week of hours, a goal already passed. */
 function FirstWeeksMetrics() {
   return (
@@ -904,6 +947,41 @@ const dark = look === "dark";
   value="$798,300" trend={{ direction: "positive", label: "+12% vs. 2025" }} format={formatCompactMoney}
   series={[74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]} // a month each
   footer={<Button size="sm" appearance={dark ? "overlay" : "main"} level={dark ? "inverse" : "primary"} onClick={openReport}>View report</Button>} />`,
+  },
+  {
+    title: "Stat tiles with one stand-out",
+    description: "type=\"tile\" is the compact stat: the title, number and trend over the Dock-Icon, in a Small card. One tile of the row stands out with theme=\"solid\"; pick its colour and its content follows the fill: Inverse on Neutral, On-Accent on Accent, dark On-Brights on Yellow (white On-Colors on Brand, Cyan and Orange), and the trend and Dock-Icon turn into chips of that family. White on Accent, Brand, Cyan and Orange is about 3:1, so keep the words there short and large.",
+    render: () => <StandOutTiles />,
+    code: `const [color, setColor] = useState<"neutral" | "accent" | "yellow">("neutral");
+
+<Segmented aria-label="Stand-out colour" value={color} onValueChange={setColor} options={tileColors} />
+<Grid columns="repeat(auto-fit, minmax(min(100%, 160px), 1fr))" gap="md">
+  <MetricCard type="tile" theme="solid" color={color} label="Overdue" value="$12,880" icon="icon-alarm-clock-line"
+    trend={{ direction: "negative", label: "+1 invoice" }} />
+  <MetricCard type="tile" theme="flat" label="Collected" value="$88,300" icon="icon-wallet-02-line"
+    trend={{ direction: "negative", label: "−8% vs. August" }} />
+  <MetricCard type="tile" theme="flat" label="Hours logged" value="1,284 h" icon="icon-clock-line"
+    trend={{ direction: "positive", label: "+13% vs. August" }} />
+</Grid>`,
+  },
+  {
+    title: "Stat tiles on a phone",
+    description: "Two Medium tiles share the screen's width (Display/3 numbers), three Small ones a row (Heading/3). The dark Solid Neutral tile is the week's one highlight, its content Inverse. A tile without a trend is shorter inside; the row's cards still share one height.",
+    render: () => <PhoneTiles />,
+    code: `<PlatformPhone header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
+  <Stack gap="md" padding="lg">
+    <Grid columns="repeat(2, minmax(0, 1fr))" gap="sm">
+      <MetricCard type="tile" theme="solid" color="neutral" label="Billable" value="82%" icon="icon-pie-chart-01-line"
+        trend={{ direction: "positive", label: "+4%" }} />
+      <MetricCard type="tile" theme="flat" label="Hours logged" value="164 h" icon="icon-clock-line" trend={{ direction: "positive", label: "+12 h" }} />
+    </Grid>
+    <Grid columns="repeat(3, minmax(0, 1fr))" gap="sm">
+      <MetricCard type="tile" size="sm" theme="flat" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
+      <MetricCard type="tile" size="sm" theme="flat" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
+      <MetricCard type="tile" size="sm" theme="flat" label="Days off left" value="9" icon="icon-plane-line" />
+    </Grid>
+  </Stack>
+</PlatformPhone>`,
   },
   {
     title: "Metric types on a phone",

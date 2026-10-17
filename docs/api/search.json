@@ -27,6 +27,14 @@
           "deprecated": null
         },
         {
+          "name": "shape",
+          "type": "\"default\" | \"rounded\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset\nshadow and focus ring follow, and on the filter affordance; `default` keeps Corner-Radius/Input of the size.\nPrefer `rounded` for searches on phone screens (recommended, not required). Ignored with `variant=\"popover\"`.",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "ReactNode",
           "required": false,

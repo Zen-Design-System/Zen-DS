@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Icon } from "../Icon";
-import { Search, searchSizes, searchStates, searchThemes, searchVariants } from "./Search";
+import { Search, searchShapes, searchSizes, searchStates, searchThemes, searchVariants } from "./Search";
 
 const meta = {
   title: "Components/Search",
@@ -14,10 +14,11 @@ const meta = {
       },
     },
   },
-  args: { placeholder: "Search components", variant: "default", size: "medium", theme: "default", state: "default", iconSearch: true },
+  args: { placeholder: "Search components", variant: "default", size: "medium", shape: "default", theme: "default", state: "default", iconSearch: true },
   argTypes: {
     variant: { control: "inline-radio", options: searchVariants },
     size: { control: "inline-radio", options: searchSizes },
+    shape: { control: "inline-radio", options: searchShapes },
     theme: { control: "inline-radio", options: searchThemes },
     state: { control: "select", options: searchStates },
     iconSearch: { control: "boolean" },
@@ -55,6 +56,19 @@ export const States: Story = {
   parameters: {
     docs: {
       description: { story: "State matrix verifies Search against Input's default, hover, focus, typing and inputted contracts." },
+    },
+  },
+};
+
+export const Shapes: Story = {
+  render: () => (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(180px, 1fr))", gap: 16, maxWidth: 560 }}>
+      {searchShapes.flatMap((shape) => searchThemes.map((theme) => <Search key={`${shape}-${theme}`} shape={shape} theme={theme} placeholder={`${shape} · ${theme}`} />))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: { story: "Figma Search/Default Shape: Default keeps Corner-Radius/Input of the size; Rounded is a pill (Corner-Radius/Rounded) for the field, its focus ring and the filter affordance. Prefer Rounded for searches on phone screens." },
     },
   },
 };

@@ -1,7 +1,7 @@
 // Zen MetricCard `type` ↔ the Zen Figma file's Metric-Card set (6643:64008, page ❖ Metric Widget 595:54968; read live
 // 2026-10-14, docs/research/widget-patterns-spec-2026-10-14.md "As built (metric-types)"). Type = KPI · Sparkline ·
-// Spark-Bars · Goal-Progress · Comparison · Category-Bar · Hero: each variant a Card whose Content slot holds a
-// Title-Highlight Metric-Inline and the type's own drawing. The push (figma-push.mjs) writes a typed MetricCard as that
+// Spark-Bars · Goal-Progress · Comparison · Category-Bar · Hero · Tile: each variant a Card whose Content slot holds a
+// Title-Highlight Metric-Inline and the type's own drawing (Tile: a Primitives/Metric/Metric-Tile, 16104:4826). The push (figma-push.mjs) writes a typed MetricCard as that
 // set: its Type, the title and number (Label, Metric-Number), the trend badge, the Card's Theme / Color / Sub-Action and,
 // for Comparison, each column's title, number and trend. The drawing is slot content, the instance's own, so the push
 // draws the page's data in it as MetricMarks.tsx does (the plugin's `edits`; 2026-10-16, the Expenses import showed
@@ -17,7 +17,7 @@ import { paletteItem } from "../../src/platform/studio/slots/palette.ts";
 /** The set; the plugin finds it by id, then by name. */
 export const METRIC_CARD_SET = { id: "6643:64008", name: "Metric-Card" };
 /** MetricCard type → Figma Type (KPI is not pushed as this set: MetricCard without a type draws Card + Metric-Inline). */
-export const METRIC_CARD_TYPE = { kpi: "KPI", sparkline: "Sparkline", "spark-bars": "Spark-Bars", "goal-progress": "Goal-Progress", comparison: "Comparison", "category-bar": "Category-Bar", hero: "Hero" };
+export const METRIC_CARD_TYPE = { kpi: "KPI", sparkline: "Sparkline", "spark-bars": "Spark-Bars", "goal-progress": "Goal-Progress", comparison: "Comparison", "category-bar": "Category-Bar", hero: "Hero", tile: "Tile" };
 const TYPE_OF = Object.fromEntries(Object.entries(METRIC_CARD_TYPE).map(([code, figma]) => [figma, code]));
 /** What each type draws that Figma keeps as its sample, and the palette widget whose data the pull takes. */
 const SAMPLE = { sparkline: "widget-kpi-sparkline", "spark-bars": "widget-kpi-spark-bars", "goal-progress": "widget-goal-progress", "category-bar": "widget-category-split", hero: "widget-hero" };
@@ -29,6 +29,12 @@ export const COMPARISON_TITLE = "Cash flow · September";
 const COLUMNS = 3;
 /** The Metric-Inline inside a Metric-Card (its layerKey) and its trend badge. */
 const METRIC = "Title-Highlight";
+/** Type=Tile: the Metric-Tile in the Card's slot (its layerKey), its Trend and its Dock-Icon. */
+const TILE = "Metric-Tile";
+/** Metric-Tile Content for a Solid card's colour (card-content.ts cardContentOf: content follows the fill). */
+const TILE_CONTENT = { neutral: "Inverse", accent: "On-Accent", yellow: "On-Bright", brand: "On-Color", cyan: "On-Color", orange: "On-Color" };
+const tileContentOf = (theme, color) => (theme === "solid" ? TILE_CONTENT[color] ?? "Inverse" : "Default");
+const TILE_ICON = "icon-activity-line";
 const TREND_OPTION = { positive: "Positive", negative: "Negative", normal: "Normal" };
 const TREND_DIRECTION = { Positive: "positive", Negative: "negative", Normal: "normal" };
 /** Card Theme / Color (Figma Card 6643:51021) ↔ code; Figma's Hero card is Solid Brand with its fill overridden to
@@ -119,6 +125,21 @@ export function metricCardFigma(values, { notes, where, footerText = null, foote
     if (!trend || typeof trend !== "object") return [{ path: path.replace(/\/Trend$/, ""), props: { Trend: false } }];
     return [{ path: path.replace(/\/Trend$/, ""), props: { Trend: true } }, { path, props: { Trend: TREND_OPTION[trend.direction] ?? "Positive" }, ...(words(trend.label) ? { textList: [words(trend.label)] } : {}) }];
   };
+  if (type === "tile") {
+    // The Metric-Tile: its texts are its own TEXT properties, its Content follows the card's fill, Small below Medium.
+    const trend = values.trend && typeof values.trend === "object" ? values.trend : null;
+    const tile = { Trend: Boolean(trend), "Dock-Icon": values.icon !== false };
+    if (words(values.label)) tile["Metric-Title"] = words(values.label);
+    if (words(values.value)) tile["Metric-Number"] = words(values.value);
+    if (["sm", "small", "xs", "xsmall"].includes(values.size)) tile.Size = "Small";
+    const content = tileContentOf(theme, color);
+    if (content !== "Default") tile.Content = content;
+    nested.push({ path: TILE, props: tile });
+    if (trend) nested.push({ path: `${TILE}/Trend`, props: { Trend: TREND_OPTION[trend.direction] ?? "Positive" }, ...(words(trend.label) ? { textList: [words(trend.label)] } : {}) });
+    if (typeof values.icon === "string" && values.icon !== TILE_ICON) nested.push({ path: `${TILE}/Metric-Icon`, props: { "Icon-Src": values.icon } });
+    if (values.footer) notes.push(`${where}: a tile has no footer in Figma's Metric-Tile`);
+    return { set: METRIC_CARD_SET, props: { Type: METRIC_CARD_TYPE[type] }, nested };
+  }
   if (type === "comparison") {
     if (words(values.label)) texts[COMPARISON_TITLE] = words(values.label);
     const columns = Array.isArray(values.comparison) ? values.comparison : [];
@@ -231,6 +252,21 @@ export function metricCardFromFigma(node, { notes, where }) {
     props.comparison = { kind: "array", items: columns };
     return { name: "MetricCard", props };
   }
+  if (type === "tile") {
+    // Its texts, Size, trend and icon; the Content follows the card's fill in code (a Figma Content that does not is a note).
+    const tile = nestedAt(node, TILE)?.props ?? {};
+    if (typeof tile["Metric-Title"] === "string") props.label = literal(tile["Metric-Title"]);
+    if (typeof tile["Metric-Number"] === "string") props.value = literal(tile["Metric-Number"]);
+    const tileTrend = trendAt(node, `${TILE}/Trend`);
+    if (tileTrend) props.trend = tileTrend;
+    if (tile.Size === "Small") props.size = literal("sm");
+    const icon = nestedAt(node, `${TILE}/Metric-Icon`)?.props?.["Icon-Src"];
+    if (tile["Dock-Icon"] === false) props.icon = literal(false);
+    else if (typeof icon === "string" && icon.startsWith("icon-") && icon !== TILE_ICON) props.icon = literal(icon);
+    const content = tileContentOf(theme ?? "shadow", color ?? "neutral");
+    if (typeof tile.Content === "string" && tile.Content !== content) notes.push(`${where}: Figma's Metric-Tile is Content=${tile.Content}; the code follows the card's fill (${content})`);
+    return { name: "MetricCard", props };
+  }
   if (texts.Label) props.label = literal(texts.Label);
   if (texts["Metric-Number"]) props.value = literal(texts["Metric-Number"]);
   const trend = trendAt(node, `${METRIC}/Trend`);
@@ -253,12 +289,23 @@ export function metricCardFromFigma(node, { notes, where }) {
 /**
  * The Figma-side reader (figma-pull's use_figma script calls it for a Metric-Card instance): the same shape the push
  * writes — Type; Label and Metric-Number (Comparison: its title and each column's); each Metric-Inline's Trend toggle
- * and badge; the Card's Theme / Color / Sub-Action; the Hero button's words. Uses the reader's propsOf and firstText.
+ * and badge; Tile's Metric-Tile (its properties, Trend and Metric-Icon); the Card's Theme / Color / Sub-Action; the Hero
+ * button's words. Uses the reader's propsOf and firstText.
  */
 export const READ_METRIC_CARD = `const readMetricCard = async (instance, set) => {
   const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), texts: {}, nested: [] };
   const card = instance.findOne((n) => n.type === "INSTANCE" && n.name === "Card");
   if (card) out.nested.push({ path: "Card", props: await propsOf(card) });
+  if (out.props.Type === "Tile") {
+    const tile = instance.findOne((n) => n.type === "INSTANCE" && /Metric-Tile$/.test(n.name));
+    if (!tile) return out;
+    out.nested.push({ path: "Metric-Tile", props: await propsOf(tile) });
+    const trend = tile.findOne((n) => n.type === "INSTANCE" && n.visible && n.name === "Trend");
+    if (trend) out.nested.push({ path: "Metric-Tile/Trend", props: await propsOf(trend), textList: [firstText(trend)].filter(Boolean) });
+    const dock = tile.findOne((n) => n.type === "INSTANCE" && n.name === "Metric-Icon");
+    if (dock) out.nested.push({ path: "Metric-Tile/Metric-Icon", props: await propsOf(dock) });
+    return out;
+  }
   const metrics = instance.findAll((n) => n.type === "INSTANCE" && n.visible && /^Primitives\\/Metric\\/Metric-Inline\\//.test(n.name));
   const textIn = (node, name) => { const t = node.findOne((n) => n.type === "TEXT" && n.visible && n.name === name); return t ? t.characters : null; };
   const comparison = out.props.Type === "Comparison";

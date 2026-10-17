@@ -6745,14 +6745,15 @@
                       "yellow",
                       "orange",
                       "blue",
-                      "purple"
+                      "purple",
+                      "accent"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, all nine: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan · yell"
+                "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan ·"
               },
               "spacing": {
                 "anyOf": [
@@ -7165,7 +7166,8 @@
                       "yellow",
                       "orange",
                       "blue",
-                      "purple"
+                      "purple",
+                      "accent"
                     ]
                   },
                   {
@@ -20776,7 +20778,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series."
+                "description": "Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight XLarge/Large, …/2XSmall below) that ties the metric to a chart seri"
               },
               "counter": {
                 "anyOf": [
@@ -20836,7 +20838,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title."
+                "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title, Spacing/Gap/XSmall from it."
               },
               "hint": {
                 "anyOf": [
@@ -20866,7 +20868,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is"
+                "description": "Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px after the Caption label at Small/XSmall, that shows this text in"
               }
             },
             "required": [
@@ -20977,7 +20979,8 @@
                       "yellow",
                       "orange",
                       "blue",
-                      "purple"
+                      "purple",
+                      "accent"
                     ]
                   },
                   {
@@ -21033,7 +21036,8 @@
                       "goal-progress",
                       "comparison",
                       "category-bar",
-                      "hero"
+                      "hero",
+                      "tile"
                     ]
                   },
                   {
@@ -21440,7 +21444,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series."
+                "description": "Figma Metric-Color: a dot before the label (Corner-Radius/Rounded; Element-Size/Popular/XSmall on Icon-Highlight XLarge/Large, …/2XSmall below) that ties the metric to a chart seri"
               },
               "counter": {
                 "anyOf": [
@@ -21500,7 +21504,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title."
+                "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title, Spacing/Gap/XSmall from it."
               },
               "hint": {
                 "anyOf": [
@@ -21530,7 +21534,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is"
+                "description": "Title-Highlight: Figma Hint — an info icon (Content/Neutral/Light) after the title, 20px at XLarge–Medium and 12px after the Caption label at Small/XSmall, that shows this text in"
               }
             },
             "required": [
@@ -25223,6 +25227,20 @@
                   }
                 ],
                 "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+              },
+              "shape": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "rounded"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset shadow and focus ring follow, and on the filter affordance; `default"
               },
               "label": {
                 "anyOf": [

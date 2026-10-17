@@ -16,6 +16,8 @@ export const searchThemes = ["default", "filter-icon", "filter-dropdown"] as con
 export const searchStates = ["default", "hover", "focused", "typing", "inputted"] as const;
 /** Figma component sets: Search/Default and Search/Popover. */
 export const searchVariants = ["default", "popover"] as const;
+/** Figma Search/Default `Shape` (2026-10-17): Default (Corner-Radius/Input of the size) or Rounded (a pill). */
+export const searchShapes = ["default", "rounded"] as const;
 
 /** CSS / Figma key (the `data-size` value). */
 type SearchSizeKey = (typeof searchSizes)[number];
@@ -24,6 +26,7 @@ export type SearchSize = "sm" | "md" | "small" | "medium";
 export type SearchTheme = (typeof searchThemes)[number];
 export type SearchState = (typeof searchStates)[number];
 export type SearchVariant = (typeof searchVariants)[number];
+export type SearchShape = (typeof searchShapes)[number];
 
 export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
   /** `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, no focus ring. Its border is
@@ -32,6 +35,10 @@ export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   variant?: SearchVariant;
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: SearchSize;
+  /** Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset
+   * shadow and focus ring follow, and on the filter affordance; `default` keeps Corner-Radius/Input of the size.
+   * Prefer `rounded` for searches on phone screens (recommended, not required). Ignored with `variant="popover"`. */
+  shape?: SearchShape;
   /** Optional Input label above the field; when set it also names the input. */
   label?: ReactNode;
   theme?: SearchTheme;
@@ -85,6 +92,7 @@ export function Search(
   {
     variant = "default",
     size: requestedSize = "md",
+    shape = "default",
     label,
     theme = "default",
     state,
@@ -188,7 +196,7 @@ export function Search(
       type="search"
       disabled={disabled}
       aria-keyshortcuts={shortcut && !disabled ? `Meta+${shortcut.toUpperCase()} Control+${shortcut.toUpperCase()}` : inputProps["aria-keyshortcuts"]}
-      className={["zen-search", variant === "popover" ? "zen-search--popover" : "", className].filter(Boolean).join(" ")}
+      className={["zen-search", variant === "popover" ? "zen-search--popover" : shape === "rounded" ? "zen-search--rounded" : "", className].filter(Boolean).join(" ")}
       size={size}
       state={resolvedState}
       leading={leadingContent}

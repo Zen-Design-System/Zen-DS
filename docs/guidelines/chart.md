@@ -314,7 +314,7 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 | `onRangeChange` | `(id: string) => void` | — |  |
 | `rangesFullWidth` | `boolean` | `true` | The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG). |
 | `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "solid" \| "semi-pale"` | `"flat"` | Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard). |
-| `color` | `"neutral" \| "brand" \| "cyan" \| "violet" \| "green" \| "yellow" \| "orange" \| "blue" \| "purple"` | — | Figma nested Card Color, for theme="pale" or "solid": the Card's hue (Solid Neutral is the dark widget; see Card). |
+| `color` | `"neutral" \| "brand" \| "cyan" \| "violet" \| "green" \| "yellow" \| "orange" \| "blue" \| "purple" \| "accent"` | — | Figma nested Card Color, for theme="pale" or "solid": the Card's hue (Solid Neutral is the dark widget; see Card). |
 | `surface` | `"default" \| "alt" \| "flat"` | — | Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card. |
 | `children` (required) | `ReactNode` | — | The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). |
 | `className` | `string` | — |  |
@@ -381,7 +381,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 | --- | --- | --- | --- |
 | `card/color-ignored` | warn | Card color is the Figma Color of theme="pale" (nine hues) and theme="solid"; Shadow, Flat, Border and On-Container have no Color and ignore it. | `zen-allow-card-color: <reason>` |
 | `card/surface-ignored` | warn | Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill. | `zen-allow-card-surface: <reason>` |
-| `card/solid-color` | error | Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast). | `zen-allow-card-color: <reason>` |
+| `card/solid-color` | error | Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral. | `zen-allow-card-color: <reason>` |
 | `chart/stack-needs-legend` | error | Stack-bar charts keep their legend so colour is never the only key. | `zen-allow-chart-legend: <reason>` |
 | `chart/needs-name` | error | Every chart is named by an aria-label that says what it shows and over which range. | `zen-allow-chart-name: <reason>` |
 | `chart/shares-need-legend` | error | Donut slices, radial rings and a line chart's comparison keep their legend so colour is never the only key. | `zen-allow-chart-legend: <reason>` |

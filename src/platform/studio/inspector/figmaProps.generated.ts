@@ -653,7 +653,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Yellow": "yellow",
           "Orange": "orange",
           "Blue": "blue",
-          "Purple": "purple"
+          "Purple": "purple",
+          "Accent": "accent"
         }
       },
       {
@@ -1768,6 +1769,15 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       },
       {
+        "prop": "shape",
+        "label": "Shape",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Rounded": "rounded"
+        }
+      },
+      {
         "prop": "theme",
         "label": "Theme",
         "type": "VARIANT",
@@ -2631,18 +2641,6 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
               "title-highlight"
             ],
             "default": "icon-highlight"
-          },
-          {
-            "prop": "size",
-            "oneOf": [
-              "xl",
-              "xlarge",
-              "lg",
-              "large",
-              "md",
-              "medium"
-            ],
-            "default": "xl"
           }
         ]
       },
@@ -2702,7 +2700,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Goal-Progress": "goal-progress",
           "Comparison": "comparison",
           "Category-Bar": "category-bar",
-          "Hero": "hero"
+          "Hero": "hero",
+          "Tile": "tile"
         }
       }
     ],

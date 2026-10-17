@@ -175,7 +175,7 @@ function CollapseOnScrollExample() {
     <PlatformPhone label="People" headerOverlay screenRef={screenRef} header={
       <TopNavigation type="alt" title="People" largeTitle="People" scrollRef={screenRef}
         trailing={[{ icon: "icon-user-plus-line", label: "Invite people", onClick: openInvite }]}
-        controlBar={<Search ref={searchRef} placeholder="Search people" aria-label="Search people" value={query} onValueChange={setQuery} />}
+        controlBar={<Search ref={searchRef} shape="rounded" placeholder="Search people" aria-label="Search people" value={query} onValueChange={setQuery} />}
         searchAction={{ label: "Search people", onClick: openSearch }} />
     }>
       {shown.length || pending.length ? (
@@ -694,7 +694,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 <PlatformPhone headerOverlay screenRef={screenRef} header={
   <TopNavigation type="alt" title="People" largeTitle="People" scrollRef={screenRef}
     trailing={[{ icon: "icon-user-plus-line", label: "Invite people", onClick: () => setInviting(true) }]}
-    controlBar={<Search ref={searchRef} placeholder="Search people" value={query} onValueChange={setQuery} />}
+    controlBar={<Search ref={searchRef} shape="rounded" placeholder="Search people" value={query} onValueChange={setQuery} />}
     searchAction={{ label: "Search people", onClick: scrollUpAndFocusSearch }} />
 }>
   <Box padding="lg">

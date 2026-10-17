@@ -67,6 +67,14 @@ exception, not a fix to make.
   that fills it shows a hairline gap at each corner. Put the fill on the stroked layer itself, or draw the border as a
   top `Border` layer with the same radius (audit: `bounds/stroke-clip-gap`).
 - A component's inner track or wrapper is Fill, never a fixed width: a fixed inner width caps every instance.
+- Grids of rows (user 2026-10-17, Schedule/Resource-Grid): a row header column and its track rows share one fixed
+  row height, and every frame that draws a grid rule sets `strokesIncludedInLayout = false` (`createAutoLayout`
+  counts strokes in the layout, so a 1px rule makes a hug cell 1px taller and the lines drift down the grid; audit
+  `layout/row-drift`). A column of rows hugs them: after `resize(w, h)` set `primaryAxisSizingMode = "AUTO"` again, or
+  the column keeps the placeholder height and its rule stops short (audit `bounds/overflow`).
+- Bars on a time scale keep their real dates: never squeeze one to the visible range (it shows a false start or end).
+  Pick a range that holds it, or let it run past the far end of a scrolling track (`overflowDirection`); place
+  absolute bars only after their column has its final width.
 
 ## 6. Check it
 

@@ -1415,6 +1415,44 @@ export default function Page() {
   ok("metric type pull: Figma's ⋮ on is a note (subAction needs its handler)", freshNotes.some((note) => /Sub-Action shows in Figma; set subAction/.test(note)));
 }
 
+// MetricCard type="tile" (2026-10-17): Figma Metric-Card Type=Tile, its Metric-Tile's own TEXT properties, Size, Trend and
+// icon, and a Content that follows the card's fill (Inverse on Solid Neutral, On-Bright on Yellow, Default on Shadow).
+{
+  const TILES = `// @zen-page {"format":1,"title":"Tiles"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { MetricCard, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Tiles" device="mobile">
+        <Stack gap="md">
+          <MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "+24% vs. last year" }} />
+          <MetricCard theme="solid" color="yellow" type="tile" label="Protein" value="92 g" size="sm" icon={false} />
+          <MetricCard type="tile" label="Clients" value="1,284" icon="icon-clock-line" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(TILES);
+  const found = [];
+  const walk = (node) => { if (node.set?.name === "Metric-Card") found.push(node); else [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(walk); };
+  walk(frame);
+  check("metric tile: Type=Tile, the Metric-Tile's texts, Size, toggles and the card's Content, its trend and icon", found.map((node) => [node.props.Type, node.nested]), [
+    ["Tile", [{ path: "Card", props: { "Sub-Action": false, Theme: "Solid", Color: "Neutral" } }, { path: "Metric-Tile", props: { Trend: true, "Dock-Icon": true, "Metric-Title": "Success rate", "Metric-Number": "56%", Content: "Inverse" } }, { path: "Metric-Tile/Trend", props: { Trend: "Positive" }, textList: ["+24% vs. last year"] }]],
+    ["Tile", [{ path: "Card", props: { "Sub-Action": false, Theme: "Solid", Color: "Yellow" } }, { path: "Metric-Tile", props: { Trend: false, "Dock-Icon": false, "Metric-Title": "Protein", "Metric-Number": "92 g", Size: "Small", Content: "On-Bright" } }]],
+    ["Tile", [{ path: "Card", props: { "Sub-Action": false } }, { path: "Metric-Tile", props: { Trend: false, "Dock-Icon": true, "Metric-Title": "Clients", "Metric-Number": "1,284" } }, { path: "Metric-Tile/Metric-Icon", props: { "Icon-Src": "icon-clock-line" } }]],
+  ]);
+  const { text: back } = pageFromFigma(frame, { mapping });
+  ok("metric tile round trip: the Solid Neutral tile, its texts and trend", /<MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%" trend=\{\{ direction: "positive", label: "\+24% vs\. last year" \}\} \/>/.test(back));
+  ok("metric tile round trip: the Small Yellow tile without its icon", /<MetricCard theme="solid" color="yellow" type="tile" label="Protein" value="92 g" size="sm" icon=\{false\} \/>/.test(back));
+  ok("metric tile round trip: the Shadow tile and its icon", /<MetricCard type="tile" label="Clients" value="1,284" icon="icon-clock-line" \/>/.test(back));
+}
+
 // The Expenses import (2026-10-16): a sidebar row's counter, the top bar's Search at the bar's width (400 at most), a
 // stacked ProgressBar's value text and Pagination's range and page size, where Figma kept its own.
 {

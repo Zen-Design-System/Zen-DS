@@ -630,6 +630,14 @@ export const PALETTE: readonly PaletteItem[] = [
       `  footer={<Button size="sm" appearance="overlay" level="inverse" onClick={${act('{ title: "Revenue report opened" }')}}>View report</Button>} />`,
     ),
   }),
+  widget({
+    // Figma Metric-Card Type=Tile: a phone stat tile whose content follows the card's fill (Solid Neutral: Inverse).
+    id: "widget-metric-tile", label: "Stat tile", caption: "Number, trend and icon", root: "MetricCard", components: ["MetricCard"],
+    code: () => lines(
+      `<MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%"`,
+      `  trend={{ direction: "positive", label: "+24% vs. last year" }} />`,
+    ),
+  }),
   /* Widgets: trends */
   widget({
     id: "widget-revenue-trend", label: "Revenue trend", caption: "Area chart, 12 months", root: "ChartCard", components: ["ChartCard", "AreaChart"],
