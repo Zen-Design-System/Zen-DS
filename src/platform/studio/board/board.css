@@ -390,6 +390,15 @@
   background: var(--zen-popover-background, #fff);
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
 }
+/* A Section's name (Figma's section title, builder pages, F4): inside its top-left corner, the section tab's pill. */
+.studio-frame-label[data-kind="section"] {
+  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  color: var(--zen-color-content-neutral-strongest, #111);
+}
 .studio-frame-label__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* A frame's name edited in place (double-click its name on a page you made, edit/rename.ts): the label's size. */
 .studio-frame-label__rename { width: 20ch; min-width: 8ch; height: 20px; box-sizing: border-box; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 1px solid var(--zen-color-border-info-solid-default); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: none; background: var(--zen-color-background-surface-default); color: var(--zen-color-content-neutral-strongest); }

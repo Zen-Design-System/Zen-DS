@@ -4,7 +4,7 @@
  * smallest other Section its middle lies in; moving a Section moves everything whose middle lies in it (frameMove.ts),
  * deleting it deletes them (Figma's Delete; ⌘⌫ keeps them). Boxes are the board's frame px (offsets in
  * `.studio-builder-board__frames`), so they hold at every zoom. Layers (select/LayersPanel.tsx) nests rows with
- * sectionOf; ⌘A takes the top-level ones (sectionOf null).
+ * sectionOf; ⌘A takes the top-level ones (sectionOf null). No imports: `node sections.selftest.mjs` runs it as is.
  */
 
 const FRAMES = ".studio-builder-board__frames";
@@ -73,4 +73,17 @@ export function boxAround(boxes: readonly Omit<BoardBox, "id">[], padding: numbe
   const right = Math.max(...boxes.map((box) => box.x + box.width));
   const bottom = Math.max(...boxes.map((box) => box.y + box.height));
   return { x: Math.round(left - padding), y: Math.round(top - padding), width: Math.round(right - left + padding * 2), height: Math.round(bottom - top + padding * 2) };
+}
+
+/** Frames in reading order: rows by their tops (a frame starting above the middle of the row's shortest frame joins it). */
+export function readingOrder(boxes: readonly BoardBox[]): BoardBox[] {
+  const sorted = [...boxes].sort((a, b) => a.y - b.y || a.x - b.x);
+  const rows: BoardBox[][] = [];
+  for (const box of sorted) {
+    const row = rows.at(-1);
+    const reach = row ? Math.min(...row.map((item) => item.y + item.height / 2)) : -Infinity;
+    if (row && box.y < reach) row.push(box);
+    else rows.push([box]);
+  }
+  return rows.flatMap((row) => row.sort((a, b) => a.x - b.x));
 }

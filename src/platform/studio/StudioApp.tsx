@@ -40,6 +40,7 @@ import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { VariablesWindow } from "./variables/VariablesWindow";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
 import { removeFrame } from "./builder/proto/addFrame";
+import { stepFrame } from "./board/frameOrder";
 import { startPageMirror } from "./builder/store/mirrors";
 import { cachedPage } from "./builder/store/pageStore";
 import { ChromePortalContext, ChromeScope, useChromeAttributes } from "./shell/ChromeScope";
@@ -545,6 +546,10 @@ export function StudioApp() {
             return;
           }
         }
+        // ⇧N: Figma's Zoom to previous frame (a page you made; board/frameOrder.ts).
+        if (event.code === "KeyN" && state.localPage) { event.preventDefault(); stepFrame(-1); return; }
+        // ⇧S: Figma's Section tool (a page you made; builder/frameMove.ts).
+        if (event.code === "KeyS" && !event.repeat && state.localPage) { event.preventDefault(); studioStore.setState({ tool: "section" }); return; }
         // ⇧L: Figma's Arrow tool (a page you made).
         if (event.code === "KeyL" && !event.repeat && state.localPage) { event.preventDefault(); studioStore.setState({ tool: "arrow" }); return; }
         // ⇧I opens Quick insert (Figma's): search the library, Enter adds the item (builder/library/QuickInsert.tsx).
@@ -561,6 +566,8 @@ export function StudioApp() {
       // Figma's A is the Frame tool too (on a page you made; elsewhere the Stack placement tool); T places text.
       else if (key === "a") studioStore.setState({ tool: state.localPage ? "frame" : "stack" });
       else if (key === "t") studioStore.setState({ tool: "text" });
+      // Figma's Zoom to next frame (a page you made; board/frameOrder.ts).
+      else if (key === "n" && state.localPage) stepFrame(1);
       // Figma's shape tools, on a page you made (draw/drawTool.ts): R rectangle, O ellipse, L line (⇧L arrow, above).
       else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
       else if (key === "f") {

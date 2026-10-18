@@ -277,3 +277,7 @@
 /* Hover and selection as a frame's (board.css .studio-frame): Info outline, 1px hovered, 2px selected. */
 .studio-builder-board__frames > .studio-board-section[data-hovered="true"] { outline: calc(1px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
 .studio-builder-board__frames > .studio-board-section[data-selected="true"] { outline: calc(2px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
+
+/* A frame's X / Y and W / H on a page you made (FrameGeometry.tsx): two of Figma's number fields side by side, as the
+   Position section's pair (position.css), with the same trailing room. */
+.studio-frame-geometry__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }

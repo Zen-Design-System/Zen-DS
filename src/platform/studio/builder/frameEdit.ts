@@ -50,6 +50,40 @@ export async function moveFrames(localPage: string, moves: ReadonlyMap<string, F
   return Boolean(response.ok);
 }
 
+/** A frame's or Section's new box on the board (Figma's X / Y / W / H, a resize handle): only the fields given change. */
+export type FrameBoxChange = Partial<{ x: number; y: number; width: number; height: number }>;
+
+/**
+ * Sets the place and size of frames and Sections in one edit (one ⌘Z): x / y on any of them, width / height on a Screen
+ * (its height is the least it takes: content past it grows the frame) or a Section. An Overlay takes its content's
+ * size. Frames still in the row are pinned where they show, as a move does.
+ */
+export async function setFrameBoxes(localPage: string, changes: ReadonlyMap<string, FrameBoxChange>, label: string): Promise<boolean> {
+  const board = await readBoard(localPage);
+  if (!board) return false;
+  const opsByLoc: Record<string, EditOp[]> = {};
+  board.frames.forEach((frame, index) => {
+    const change = changes.get(frame.id);
+    const ops: EditOp[] = [];
+    const place = frame.place ?? board.places[index];
+    const to = { x: change?.x ?? place.x, y: change?.y ?? place.y };
+    if (!same(frame.place, to)) ops.push(...placeOps(to));
+    if (change && frame.kind !== "overlay") {
+      const limits = frame.kind === "section" ? { min: 100, max: 40000 } : { min: 100, max: 4096 };
+      for (const name of ["width", "height"] as const) {
+        const value = change[name];
+        if (value !== undefined) ops.push(number(name, Math.min(limits.max, Math.max(limits.min, value))));
+      }
+    }
+    if (ops.length) opsByLoc[frame.loc] = ops;
+  });
+  const locs = Object.keys(opsByLoc);
+  if (!locs.length) return true;
+  const first = board.nodes[board.frames.findIndex((frame) => frame.loc === locs[0])];
+  const response = await applyEdit({ file: board.file, loc: first.loc, name: first.name, ops: [{ op: "many", action: "setProps", locs, opsByLoc }], hash: board.hash }, label);
+  return Boolean(response.ok);
+}
+
 /** A free spot for a copy of frame `index`: beside it to the right (Figma's Duplicate), past any frame in the way. */
 function besidePlace(board: Board, index: number, heights: ReadonlyMap<string, number>): FramePlace {
   const boxes = board.frames.map((frame, at) => ({ ...board.places[at], width: frame.width, height: heights.get(frame.id) ?? 900 }));

@@ -11,7 +11,8 @@ import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useStudioServer } from "../api";
 import { canvasApi, getSafeBox, getViewport, getViewportBox } from "../canvas/viewport";
-import { frameIcon } from "../inspector/frames";
+import { frameIcon, isBuilderFrame } from "../inspector/frames";
+import { FrameHandles } from "./FrameHandles";
 import { ChromeScope } from "../shell/ChromeScope";
 import { confirmFrameDiscard, requestFrameSave, useFrameDrafts, useStudioDrafts } from "../sourceDrafts";
 import { canEdit, pageKey, setFrameOverride, studioStore, useStudio } from "../store";
@@ -36,6 +37,8 @@ const LABEL_GAP = 4;
 const TOOLBAR_GAP = 8;
 /** The selected frame's label and toolbar keep this far inside the canvas's visible edges. */
 const EDGE = 8;
+/** A Section's name sits this far inside its top-left corner (Figma's section title). */
+const SECTION_INSET = 8;
 
 type Rect = { x: number; y: number; width: number; height: number };
 type Size = { width: number; height: number };
@@ -106,7 +109,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       const world = frameRects.current.get(frame.id);
       return world ? [{ frame, rect: screen(world) }] : [];
     });
-    const hitsFrame = (box: Rect, except?: string) => placed.some(({ frame, rect }) => frame.id !== except && overlaps(box, rect));
+    // A Section is the board under its frames: a name or toolbar over one is not hidden by it.
+    const hitsFrame = (box: Rect, except?: string) => placed.some(({ frame, rect }) => frame.id !== except && frame.kind !== "section" && overlaps(box, rect));
     const onCanvas = (box: Rect) => box.x >= minX && box.y >= minY && box.x + box.width <= maxX && box.y + box.height <= maxY;
     const visible = (rect: Rect) => rect.x < maxX && rect.x + rect.width > minX && rect.y < maxY && rect.y + rect.height > minY;
     // 1. Frame labels.
@@ -115,6 +119,15 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
     const labelInside = new Map<string, boolean>();
     for (const { frame, rect } of placed) {
       const size = sizeOf(`label:${frame.id}`, { width: 0, height: 16 });
+      if (frame.kind === "section") {
+        // A Section's name: inside its top-left corner at every zoom, while the Section has room for it.
+        const box = { x: rect.x + SECTION_INSET, y: rect.y + SECTION_INSET, width: Math.min(size.width, rect.width - SECTION_INSET * 2), height: size.height };
+        const hidden = rect.width < 48 || rect.height < size.height + SECTION_INSET * 2 || !visible(rect);
+        labelHidden.set(frame.id, hidden);
+        labelInside.set(frame.id, true);
+        if (!hidden) labelBoxes.set(frame.id, box);
+        continue;
+      }
       const box = { x: rect.x, y: rect.y - LABEL_GAP - size.height, width: Math.min(size.width, rect.width), height: size.height };
       const selected = elements.current.get(`label:${frame.id}`)?.dataset.selected === "true";
       let hidden = rect.width < 32 || (!selected && hitsFrame(box, frame.id));
@@ -191,7 +204,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       if (label) {
         const box = labelBox ?? { x: rect.x, y: rect.y - LABEL_GAP - sizeOf(`label:${frame.id}`, { width: 0, height: 16 }).height, width: 0, height: 0 };
         label.style.transform = `translate(${Math.round(box.x)}px, ${Math.round(box.y)}px)`;
-        label.style.maxWidth = `${Math.max(0, Math.round(labelRight - box.x))}px`;
+        label.style.maxWidth = `${Math.max(0, Math.round((frame.kind === "section" ? rect.x + rect.width - SECTION_INSET : labelRight) - box.x))}px`;
         label.dataset.hidden = labelHidden.get(frame.id) ? "true" : "false";
         label.dataset.place = labelInside.get(frame.id) ? "inside" : "above";
       }
@@ -371,7 +384,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       ))}
       {frames.map((frame) => (renamingFrame === frame.id ? (
         // Figma's rename on the canvas: double-click a frame's name (a page you made; edit/rename.ts).
-        <div key={frame.id} ref={track(`label:${frame.id}`)} className={`studio-frame-label ${typographyStyles["Caption/Medium"]}`} data-chrome-key={`label:${frame.id}`} data-selected="true">
+        <div key={frame.id} ref={track(`label:${frame.id}`)} className={`studio-frame-label ${typographyStyles[frame.kind === "section" ? "Body/Small/Bold" : "Caption/Medium"]}`} data-chrome-key={`label:${frame.id}`} data-kind={frame.kind === "section" ? "section" : undefined} data-selected="true">
           <Icon name={frameIcon(frame.id)} size="xs" decorative />
           <RenameField className="studio-frame-label__rename" value={frame.label} label="Frame name" onCommit={(name) => renameFrame(frame.id, name)} onDone={() => setRenamingFrame(null)} />
         </div>
@@ -380,8 +393,9 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           key={frame.id}
           ref={track(`label:${frame.id}`)}
           type="button"
-          className={`studio-frame-label ${typographyStyles["Caption/Medium"]}`}
+          className={`studio-frame-label ${typographyStyles[frame.kind === "section" ? "Body/Small/Bold" : "Caption/Medium"]}`}
           data-chrome-key={`label:${frame.id}`}
+          data-kind={frame.kind === "section" ? "section" : undefined}
           data-selected={selectedFrame === frame.id ? "true" : undefined}
           aria-pressed={frameSelected && selectedFrame === frame.id}
           title={frame.label}
@@ -390,15 +404,19 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           onPointerDown={(event) => { pressFrame(event.nativeEvent, frame.id); }}
           onFocus={(event) => revealLabel(event.currentTarget)}
           // Double-click: rename a frame of a page you made (Figma's), else zoom to it.
-          onDoubleClick={() => { if (localPage && editable && /^(screen|overlay):/.test(frame.id)) setRenamingFrame(frame.id); else zoomToFrame(frame.element); }}
+          onDoubleClick={() => { if (localPage && editable && /^(screen|overlay|section):/.test(frame.id)) setRenamingFrame(frame.id); else zoomToFrame(frame.element); }}
         >
           <Icon name={frameIcon(frame.id)} size="xs" decorative />
           <span className="studio-frame-label__text">{frame.label}</span>
           {draftOf(frame.id) ? <span className="studio-frame-label__dot" role="img" aria-label="Unsaved changes" /> : null}
         </button>
       )))}
-      {frames.filter((frame) => frameSelected && selectedFrame === frame.id).map((frame) => <FrameEdge key={frame.id} frame={frame} setRef={trackEdge(frame.id)} />)}
-      {frames.filter((frame) => toolbarFor.has(frame.id) || draftedFrames.includes(frame)).map((frame) => (
+      {/* A frame or Section of a page you made resizes in the page (Figma's handles, F4); an example frame's right edge sets
+          its view width. */}
+      {frames.filter((frame) => !isBuilderFrame(frame.id) && frameSelected && selectedFrame === frame.id).map((frame) => <FrameEdge key={frame.id} frame={frame} setRef={trackEdge(frame.id)} />)}
+      {localPage && editable && frameSelected && selectedFrame && /^(screen|section):/.test(selectedFrame) ? <FrameHandles key={selectedFrame} frameId={selectedFrame} localPage={localPage} /> : null}
+      {/* A Section has its name only (Figma's): no toolbar. */}
+      {frames.filter((frame) => frame.kind !== "section" && (toolbarFor.has(frame.id) || draftedFrames.includes(frame))).map((frame) => (
         <FrameToolbar
           key={frame.id}
           frame={frame}
@@ -494,13 +512,16 @@ function FrameToolbar({ frame, selected, menuOpen, tools, draft, setRef, setTool
     <div ref={setRef} className="studio-frame-toolbar" role="toolbar" aria-label={`${frame.label} frame`} data-chrome-key={`toolbar:${frame.id}`} data-selected={selected ? "true" : undefined} data-menu={menuOpen ? "true" : undefined} data-drafted={draft ? "true" : undefined} data-tools={tools ? "true" : undefined}>
       {tools ? (
         <div ref={setToolsRef} className="studio-frame-toolbar__tools" data-chrome-key={`tools:${frame.id}`}>
-          <Menu
-            aria-label="Frame width"
-            align="end"
-            onOpenChange={onMenuOpenChange}
-            items={widthItems}
-            trigger={<Button appearance="flat" level="primary" size="sm" endIcon={<Icon name="icon-chevron-down-line" decorative />} aria-label={`Frame width ${width}`}>{String(width)}</Button>}
-          />
+          {/* A view width for example frames; a frame of a page you made has its own (handles, Layout › W). */}
+          {isBuilderFrame(frame.id) ? null : (
+            <Menu
+              aria-label="Frame width"
+              align="end"
+              onOpenChange={onMenuOpenChange}
+              items={widthItems}
+              trigger={<Button appearance="flat" level="primary" size="sm" endIcon={<Icon name="icon-chevron-down-line" decorative />} aria-label={`Frame width ${width}`}>{String(width)}</Button>}
+            />
+          )}
           <IconButton
             appearance="flat"
             level="primary"
