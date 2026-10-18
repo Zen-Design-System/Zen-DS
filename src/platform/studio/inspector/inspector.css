@@ -368,3 +368,9 @@
 .studio-inspector__code-count { margin-left: auto; color: var(--zen-color-content-neutral-light); }
 .studio-inspector__code-body { padding: 0 0 var(--zen-spacing-padding-small, 12px); }
 
+
+/* Export (ExportSection.tsx): a setting's scale and format side by side, its − at the end. */
+.studio-export__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Figma's style details of a text style (TextStyleDetails.tsx): read-only fields, two to a row, and where to edit them. */
+.studio-text-details { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-text-details__note { margin: 0; color: var(--zen-color-content-neutral-light); }

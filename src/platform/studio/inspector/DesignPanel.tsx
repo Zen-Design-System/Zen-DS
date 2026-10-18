@@ -1,5 +1,5 @@
 import { valueWords } from "./controls/scale";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
 import { ComponentSection } from "./ComponentSection";
 import { layerIcon, layerName } from "../select/layerNames";
 import { Button, IconButton } from "../../../components/Button";
@@ -27,6 +27,8 @@ import { pictureCode, pictureExpression, resolveMedia } from "../builder/library
 import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
 import { writeAtUse } from "./callSite";
 import { DetachAction } from "./DetachAction";
+import { ExportSection } from "./ExportSection";
+import { TextStyleDetails, textStyleDefinition } from "./TextStyleDetails";
 import type { FieldApi } from "./fieldApi";
 import { copyText } from "./frames";
 import { GroupedProperties, ToggleRow } from "./GroupedProperties";
@@ -178,7 +180,18 @@ function textSpec(spec: PropSpec, rendered: RenderedText, element: SourceElement
 /** The named style a text renders with (the best match), or its size / line height · weight. */
 const renderedStyle = (rendered: RenderedText) => rendered.styles[0] ?? rendered.metrics;
 
-function TextSection({ kind, name, element, specs, api, rendered, send, relevant, onFocusProp }: {
+/** Figma's style details button in the Typography header (the style's font, size… read-only), with its block. */
+function useStyleDetails(style: string | null | undefined, host: HTMLElement | null) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  if (!textStyleDefinition(style)) return { action: undefined, block: null };
+  return {
+    action: <IconButton icon="icon-sliders-02-line" aria-label="Style details" aria-expanded={open} aria-controls={id} appearance="flat" level="primary" size="xs" onClick={() => setOpen((value) => !value)} />,
+    block: open ? <TextStyleDetails id={id} style={style!} host={host} /> : null,
+  };
+}
+
+function TextSection({ kind, name, element, specs, api, rendered, send, relevant, onFocusProp, host }: {
   kind: TextKind;
   name: string;
   element: SourceElement;
@@ -189,8 +202,13 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
   /** kind "prop": the prop that sets the text style, the value it renders with and where that comes from. */
   relevant: { name: string; value: string; note?: string } | null;
   onFocusProp: (prop: string) => void;
+  host: HTMLElement | null;
 }) {
   const keys = element.typography;
+  // The style the text renders with: the written one, else what the canvas measures.
+  const written = api.valueFor("textStyle");
+  const style = kind === "text" && written.state === "literal" && typeof written.value === "string" ? written.value : keys[0] ?? renderedStyle(rendered);
+  const details = useStyleDetails(style, host);
   const remove = () => send([{ op: "setTextStyle", value: null }], `${name} text style removed`);
   const classRows = keys.length ? keys.map((key, index) => (
     <InspectorRow
@@ -211,8 +229,9 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
 
   if (kind === "text") {
     return (
-      <InspectorSection title="Typography">
-        {[...specs].sort((a, b) => textRank(a.name) - textRank(b.name)).map((spec) => (
+      <InspectorSection title="Typography" actions={details.action}>
+        {/* The text's colour is its Fill (Figma), a section of its own (DesignPanel). */}
+        {[...specs].filter((spec) => spec.name !== "tone").sort((a, b) => textRank(a.name) - textRank(b.name)).map((spec) => (
           <Field
             key={spec.name}
             spec={textSpec(spec, rendered, element)}
@@ -223,13 +242,14 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
           />
         ))}
         {classRows}
+        {details.block}
       </InspectorSection>
     );
   }
 
   if (kind === "class") {
     return (
-      <InspectorSection title="Typography">
+      <InspectorSection title="Typography" actions={details.action}>
         {classRows ?? (
           <InspectorRow name="textStyle" label="Style" isDefault hint={renderedStyle(rendered) ? `Inherited: ${renderedStyle(rendered)}` : undefined}>
             <TypographyControl
@@ -243,6 +263,7 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
           </InspectorRow>
         )}
         {/^[a-z]/.test(name) ? <HostTextAlignment name={name} element={element} rendered={rendered} disabled={api.disabled} send={send} /> : null}
+        {details.block}
       </InspectorSection>
     );
   }
@@ -251,7 +272,7 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
   const from = relevant ? `Text style comes from ${name}'s ${propLabel(relevant.name, name)}`
     : rendered.inherits ? `${name} sets no text style: its text takes the one around it` : `Text style comes from ${name}`;
   return (
-    <InspectorSection title="Typography">
+    <InspectorSection title="Typography" actions={details.action}>
       <InspectorRow label={rendered.styles.length > 1 ? "Styles" : "Style"}><ValueCell value={(rendered.styles.length ? rendered.styles.join(", ") : rendered.metrics) || "—"} /></InspectorRow>
       <div className="studio-text-source">
         <p className={`studio-text-source__text ${typographyStyles["Body/Small/Regular"]}`}>{from}</p>
@@ -262,6 +283,7 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
           </Button>
         ) : null}
       </div>
+      {details.block}
     </InspectorSection>
   );
 }
@@ -710,7 +732,15 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       send={(ops, label) => send(ops, label, {})}
       relevant={relevant}
       onFocusProp={focusProp}
+      host={sourceHost(selection)}
     />
+  ) : null;
+  // A text layer's colour is its Fill (Figma UI3): the tone, a section after Typography.
+  const toneSpec = textKind === "text" ? textSpecs.find((spec) => spec.name === "tone") : undefined;
+  const textFill = element && toneSpec ? (
+    <InspectorSection title="Fill">
+      <Field spec={toneSpec} api={api} component={name} label="Fill" />
+    </InspectorSection>
   ) : null;
   // A host text element (often inline in a Text) shows its Text section first, above a playground's controls.
   const textFirst = textKind === "class" && !isComponent;
@@ -949,6 +979,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       </header>
 
       {textFirst ? textSection : null}
+      {textFirst ? textFill : null}
 
       {selection.panelId ? (
         <div hidden={!controlsFilled}>
@@ -977,6 +1008,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} layer={{ src: selection.src, name: element.name }} /> : null}
       {element && shapeSpecs.length ? <ShapeSections api={api} specs={shapeSpecs} host={sourceHost(selection)} /> : null}
       {textFirst ? null : textSection}
+      {textFirst ? null : textFill}
       {element && isFrameLook(name) ? <FillSection api={api} specs={appearanceSpecs} /> : null}
       {element && isFrameLook(name) ? <StrokeSection api={api} specs={appearanceSpecs} /> : null}
       {element && isFrameLook(name) ? <EffectsSection api={api} src={selection.src} /> : null}
@@ -1023,6 +1055,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
           {otherAttributes.map((attr) => <Field key={attr.name} spec={attributeSpec(attr)} api={api} label={attr.name} />)}
         </InspectorSection>
       ) : null}
+
+      {/* Figma UI3 ends the Design tab with Export: the layer as PNG, JPG or SVG at a scale. */}
+      {element ? <ExportSection src={selection.src} layer={layerName(name, headProps)} host={sourceHost(selection)} /> : null}
     </div>
     </InspectorSrcContext>
     </InspectorFileContext>
