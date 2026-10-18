@@ -42,6 +42,10 @@ removed (four unused colour ramps were, see Removed).
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Segmented follows the live Figma (2026-10-18, user: "Update tokens Component Size của segmented … từ Figma lên Studio"):
+  Medium segments pad 8 in Compact (was 10; Comfortable stays 10) and Small ones 8 in Comfortable (was 6; Compact stays
+  6). `level="primary"` now sits on the same Neutral/Subtle track as Secondary, without the 2px ring, as Figma's Primary
+  track does; its selected segment stays Inverse/Solid.
 - Zen Studio component pages (2026-10-18, user: "Sắp xếp layout của các trang component trên canvas lại cho gọn gàng và
   chuyên nghiệp hơn"): the board stacks Title → **Component** (Playground beside the Main component) → **Examples** →
   **Docs** (Docs, Guidelines and one Props frame per component in 880 columns), one left edge and width, 128 apart; the
