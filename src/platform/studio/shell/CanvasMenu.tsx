@@ -10,6 +10,7 @@ import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } 
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
+import { copyAsCode, copyAsCss } from "../edit/copyAs";
 import { ungroupSelection } from "../edit/groupLayers";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
@@ -49,7 +50,7 @@ type MenuTarget = { kind: "node"; selection: NodeSelection } | { kind: "frame"; 
 /** A layer under the pointer that "Select layer" offers (Figma's submenu): its name and how to select it. */
 export type LayerUnderPointer = { name: string; icon: IconName; selected: boolean; select: () => void };
 /** `listing`: the menu shows only the layers under the pointer ("Select layer ›" chosen). */
-type MenuState = { x: number; y: number; target: MenuTarget; at: number; layers?: readonly LayerUnderPointer[]; listing?: boolean };
+type MenuState = { x: number; y: number; target: MenuTarget; at: number; layers?: readonly LayerUnderPointer[]; listing?: boolean; copyAs?: boolean };
 /** What Menu's placement keeps between the anchor and the window edge: its 8px margin, its 4px gap and the 1px anchor
  * (.studio-canvas-menu__anchor). Leaving out the gap and the anchor made Menu find 5px too little room below the moved
  * anchor and open the menu above it, cut off by the window's top (2026-10-09). */
@@ -140,6 +141,14 @@ export function CanvasMenu() {
   const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), ...lockMenuItems(selection), ...(studioStore.getState().localPage && selection && !selection.part ? [renameItem("Rename")] : [])] : [];
   // Copy / Cut / Paste / Paste to replace / properties first, as in Figma's layer menu (edit/clipboard.ts).
   const clipboard = clipboardMenuItems(selection, menu ? { x: menu.x, y: menu.y } : null);
+  // Figma's Copy/Paste as ›: one item opens the list in place (the Menu has no submenus), as Select layer does (F3).
+  const copyAsEntry: MenuEntry[] = menu && selection && !selection.part && clipboard.length ? [
+    { id: "copy-as", label: "Copy as", icon: "icon-copy-line", shortcut: "›", onSelect: () => { const current = menu; window.setTimeout(() => set({ ...current, copyAs: true, at: Date.now() }), 0); } },
+  ] : [];
+  const copyAsItems: MenuEntry[] = selection ? [{ type: "group", id: "copy-as-list", label: "Copy as", items: [
+    { id: "copy-as-code", label: "Copy as code", icon: "icon-code-02-line", onSelect: () => { void copyAsCode(selection); } },
+    { id: "copy-as-css", label: "Copy as CSS", icon: "icon-code-02-line", onSelect: () => { void copyAsCss(selection); } },
+  ] }] : [];
   const editOff = canEdit() ? undefined : studioStore.getState().role === "admin" ? "Can't edit right now" : "View only";
   // Several layers: the edits that work on all of them at once (Figma's multi-selection menu), then the wrap items.
   const severalItems: MenuEntry[] = selection ? [
@@ -206,10 +215,11 @@ export function CanvasMenu() {
   ] : [];
   const layerItems: MenuEntry[] = [{ type: "group", id: "select-layer-list", label: "Select layer", items: under.map((layer, index) => ({ id: `select-layer-${index}`, label: layer.name, icon: layer.icon, caption: layer.selected ? "Selected" : undefined, onSelect: layer.select })) }];
   const entries: MenuEntry[] = menu?.listing ? layerItems
+    : menu?.copyAs ? copyAsItems
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
+        : [...selectLayer, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 

@@ -83,7 +83,7 @@ async function undoTo(page, id, text, tries = 3) {
 /* ── F3 (structure and clipboard) ───────────────────────────────────────────────────────────────────────────────── */
 
 /** A phone page with a free frame: a filled, stroked Rectangle and a plain Ellipse. */
-const clipText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={220}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} fill="support-teal-solid" stroke="accent-solid" strokeWeight={2} opacity={0.8} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n</Box>');
+const clipText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={220}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} fill="support-teal-solid" stroke="accent-solid" strokeWeight={2} opacity={80} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n</Box>');
 let clipMade = null;
 async function clipPage(ctx) {
   const { page } = await ctx.studio();
@@ -958,6 +958,32 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
       return `${names.join(" · ")} · both selected · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-112", feature: "Copy as › Copy as CSS / Copy as code (the layer menu): its declarations by Zen variable, its JSX", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const copyAs = async (item) => {
+        await selectShape(page, id, 0);
+        const box = await clipShape(page, id, 0).boundingBox();
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+        const menu = page.getByRole("menu").last();
+        await menu.waitFor({ state: "visible", timeout: 5000 });
+        await menu.getByRole("menuitem", { name: /^Copy as\b/ }).first().click();
+        const list = page.getByRole("menu").last();
+        await list.getByRole("menuitem", { name: item }).waitFor({ state: "visible", timeout: 5000 });
+        await list.getByRole("menuitem", { name: item }).click();
+        await sleep(400);
+        return page.evaluate(() => navigator.clipboard.readText());
+      };
+      const css = await copyAs("Copy as CSS");
+      const missing = [/^\/\* Rectangle/, /width: 80px;/, /height: 60px;/, /opacity: 0\.8;/].filter((pattern) => !pattern.test(css) && !new RegExp(pattern.source, "m").test(css));
+      if (missing.length) throw new Error(`CSS without ${missing.join(", ")}: ${css.slice(0, 300)}`);
+      const code = await copyAs("Copy as code");
+      if (!/<Shape type="rectangle"/.test(code)) throw new Error(`code: ${code.slice(0, 160)}`);
+      const tokens = (css.match(/var\(--zen-[\w-]+\)/g) ?? []).length;
+      return `CSS ${css.split("\n").length - 2} declarations (${tokens} by variable: ${css.split("\n").slice(1).join(" ").slice(0, 400)}) · code <Shape …>`;
     },
   },
 ];
