@@ -87,6 +87,8 @@
 //                                     sits on a band of its own): swap the bar's Status-bar to the device's and show it
 //   empty-state/size-by-container  error/warning  an Empty State whose Size does not fit where it sits: Medium (240)
 //                                     fills an empty page, Small (200) a region (card, table, pane, panel, sheet, dialog)
+//   navigation/collapse-beside-master-crumb  error  the header's sidebar toggle beside a Breadcrumbs Master item (two
+//                                     icons in a row): a Sub first crumb, or the toggle in the sidebar (Collapse=Sidebar)
 //   spacing/section-gap      error    a phone screen's Body (the frame that stacks its sections) not spaced by
 //                                     Component Size Layout-Mobile/Section-Gap (Compact 24, Comfortable 32)
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
@@ -783,6 +785,21 @@ async function checkEmptyStateSize(root) {
   }
 }
 
+// One icon at the start of the top bar (user 2026-10-18): the header's sidebar toggle beside a Breadcrumbs Master item
+// (its home icon) reads as two icons in a row. With the toggle in the header the trail starts with a Sub item; to keep
+// the Master item, the toggle goes to the sidebar's own header (Pattern/AppShell/Desktop Collapse=Sidebar).
+async function checkCollapseBesideMasterCrumb(root) {
+  for (const header of root.findAll ? root.findAll((n) => n.type === "INSTANCE" && setOf(n) === "Header/AppShell") : []) {
+    if (header.visible === false) continue;
+    const props = header.componentProperties;
+    const on = (prefix) => { const key = Object.keys(props).find((k) => k.split("#")[0] === prefix); return key ? props[key].value !== false : true; };
+    if (!on("Collapse Button") || !on("Top-Header")) continue;
+    const top = header.findOne((n) => n.type === "SLOT" && n.name === "Top-Elements");
+    const first = top && top.findAll((n) => n.type === "INSTANCE" && setOf(n) === ".Primitives/Breadcrumbs/Item").find((n) => { for (let p = n; p && p.id !== top.id; p = p.parent) if (p.visible === false) return false; return true; });
+    if (first && /Level=Master/.test(first.mainComponent ? first.mainComponent.name : "")) report("navigation/collapse-beside-master-crumb", ERROR, first, "the sidebar toggle in the header sits beside a Master crumb (two icons in a row): start the trail with a Sub item, or keep the Master crumb and move the toggle to the sidebar (Collapse=Sidebar)");
+  }
+}
+
 async function checkStatusInBar(root) {
   for (const nav of root.findAll ? root.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(setOf(node))) : []) {
     if (nav.visible === false) continue;
@@ -1112,6 +1129,7 @@ for (const root of roots) await checkNavIcons(root);
 for (const root of roots) await checkFloatingBarFit(root);
 for (const root of roots) await checkStatusInBar(root);
 for (const root of roots) await checkEmptyStateSize(root);
+for (const root of roots) await checkCollapseBesideMasterCrumb(root);
 for (const root of roots) checkRowDrift(root);
 for (const root of roots) await checkControlGap(root);
 

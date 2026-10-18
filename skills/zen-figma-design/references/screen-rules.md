@@ -192,6 +192,10 @@ The user rebuilt parts of the generated screens by hand. These are their choices
   64 to 88 wide. The capsule (`Container`) and its `Nav-Item` slot Fill while the tabs share the room at 88 or less;
   once they would pass 88 (two or three tabs on a phone, every tablet, the Duo) both Hug and each tab is Fixed 88,
   centred, or at the start with the action at the end (Items row Space between). Audit `navigation/floating-fit`.
+- **One icon at the start of the top bar** (user 2026-10-18): the header's sidebar toggle never sits beside a Breadcrumbs
+  Master item (its home icon). With the toggle in the header the trail starts with a Sub item; to keep the Master item,
+  turn the header's toggle off and the sidebar's on (Pattern/AppShell/Desktop Collapse=Sidebar). Audit
+  `navigation/collapse-beside-master-crumb`.
 - **Empty State size from where it sits** (user 2026-10-18): Size=Medium (240 illustration) fills an empty page's
   main content; Size=Small (200) fills one region of a page that still shows other content (a card, table or list, a
   pane, side panel, sheet, popover or dialog, a block under summary cards). Audit `empty-state/size-by-container`.
