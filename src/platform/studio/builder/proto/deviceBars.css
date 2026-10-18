@@ -52,7 +52,9 @@
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
+  /* zen-allow-raw-spacing: the OS status cluster (time and ring 8 apart), not app layout. */
   gap: 8px;
+  /* zen-allow-raw-spacing: Placement=Side starts 32 from the top of the open display. */
   padding-top: 32px;
   color: var(--zen-color-content-neutral-strongest, #111);
   pointer-events: none;
