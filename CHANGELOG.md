@@ -27,6 +27,34 @@ removed (four unused colour ramps were, see Removed).
   Pale tint fades; Pale stays for white pages and imagery. New harness rule `card/pale-on-canvas-default` (error: a
   Pale Card, MetricCard or ChartCard right on an AppShell, PlatformPhone or ZenProvider whose canvas is Default), the
   Figma audit's `theme/box-on-canvas` asks for Subtle there, and Studio pushes and pulls the new theme.
+- Zen Studio drag and drop as in Figma (2026-10-17, user: "test hết mọi case kéo thả, kéo component vào mà không có
+  box(frame) hoặc stack. Kéo top navigation vào rồi đặt lên top…", "kéo thả có smart guide"): a component dropped on a
+  Screen with no Stack lands in it (the drop did nothing), and on a new page's Screen it goes into the page body; a Top or
+  Bottom Navigation dropped or clicked onto a phone Screen becomes its top or bottom bar (replacing the one there); a
+  layer drags from one Screen to another; a drop into a Frame without auto layout lands where it is dropped, snapped with
+  red smart guides (⌘ drops without snapping); outside every frame the drag says "Drop it into a frame"; a drop against
+  the host's rules says "Not recommended" as a click does; an App shell goes only on an empty Screen (the drag says so);
+  a Layers row dropped on a Screen's row goes into that Screen. A click and the MCP now refuse what a drag refuses:
+  children in a component that has none (Top Navigation, Shape, charts), a block in text, an App shell inside a layer or
+  beside content, a Top / Bottom Navigation in a Screen's content. Checked by `npm run studio:dnd` (19,286 engine cases)
+  and the opt-in E2E group `dnd` (real drags of every Assets item, `npm run studio:e2e -- --only=dnd`).
+- Zen Studio Variables (2026-10-17, user: "Cách sắp xếp nên theo nhóm chứ?", "Các chip chứa variable padding hơi kì"):
+  the table lists group by group as the groups tree reads, one header per group (a file that interleaves Brand/1,
+  Brand-Alpha/1, Brand/2 showed "Light / Brand" twice); an alias chip's swatch sits as far from its top, bottom and left
+  (4px), whatever the density.
+- Zen Studio Add / Remove auto layout (2026-10-17, user: "test luôn phần add auto layout và detach auto layout"):
+  an Action bar keeps its own `position` (static / sticky / fixed) when its Frame takes auto layout (it was removed as if
+  it were an X / Y); a painted Frame with nothing in it now gets its auto layout (a Stack inside, it stayed a plain
+  Box); the alignment read from the layers is the line they share best (start, centre or end), whatever their order in
+  the code; Remove auto layout works on a Stack holding an Icon, Flag or File icon (it said "holds a list or code"), and a
+  layer the auto layout stretched keeps its size once it floats (it shrank and moved). Checked by `npm run studio:dnd`
+  (12,564 more cases) and the `dnd` E2E rows DND-07 / DND-08.
+- Zen Studio speaks Figma (2026-10-17, user: "Còn dùng ngôn ngữ dev nhiều quá", "Convert được Box(Frame) to Stack(auto
+  layout)"): a Frame's Inspector has Figma's Auto layout "+" (⇧A adds auto layout to the Frame in place, ⌥⇧A or "−"
+  removes it), the canvas menu and Quick actions say Add auto layout / Remove auto layout / Frame selection; a layer reads
+  Frame, Auto layout, Text, Instance or Shape; property selects offer only the values Figma's component has, and spacing
+  and radius steps read Figma's names (Medium, XLarge, Base, Margin-Comfortable). Props Figma has no property for (HTML
+  element, Scroll, Html for…) wait in a closed "Code properties" section.
 - Padding takes the page margins (2026-10-17, user: "User vẫn chưa chọn được margin token cho padding khi thiết kế"):
   `padding` / `paddingX` / `paddingY` (and Form `inset`, layout insets) accept `margin-comfortable` (24, 20 on a phone) and
   `margin-compact` (20, 16 on a phone), Figma's Breakpoint & Grids margins, which follow the breakpoint (`ZenMargin`).
@@ -36,6 +64,10 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio: a phone Screen's Top and Bottom Navigation stay at its top and foot on the canvas (2026-10-17, user: "Khi
   tạo trang mới thì lỗi bottom nhảy lên trên"). They were sticky to the Studio window, so in a window shorter than the
   Screen the bottom bar climbed up to the Screen's top; Play, Present and the exported page keep them sticky.
+- A phone's built-in search is Rounded by default (2026-10-17, user: "mặc định nhưng cho sửa"): a Search in a
+  TopNavigation control bar or a BottomSheet (so also the Input family's phone sheet) takes `shape="rounded"` unless it
+  sets its own `shape`; elsewhere Search keeps the default shape. Zen Studio pushes a control-bar Search as
+  Shape=Rounded and pulls it back without the prop.
 - Card spacing by count is a phone rule (2026-10-17, user: "rule đó chỉ áp dụng cho mobile"): `card/spacing-by-count`
   now judges cards inside a PlatformPhone frame or a BottomSheet only; desktop cards keep Medium whatever their number,
   so the desktop rows #110 had set to Small (Card quarter widgets, Dock Icon project types, Text milestones) are Medium
@@ -229,6 +261,20 @@ removed (four unused colour ramps were, see Removed).
   titles are no longer white, and a layer the page appends to a card (Goal-Progress's hint) stays last (user: "Copy
   paste vẫn lỗi mà", "vẫn sai vị trí của các element trong slot"): the paste writes overrides as Figma's own copy does,
   checked with `node tools/studio/native-diff.mjs` against Figma's copy of the plugin's import.
+- Studio → Figma checked on 438 pages (2026-10-18, user: "phần copy paste trực tiếp và import cần test kiểm tra nhiều
+  hơn"): every example frame and template went through the push and the direct paste, and a 78-frame board was
+  compared with Figma's copy of the plugin's import. Both paths now give the Screen frame its Canvas fill and its
+  900 / 844 minimum height. PageHeader eyebrows, chat time stamps and plain texts get the code's text styles. A
+  workspace Sidebar keeps its menu, the Hero MetricCard keeps its button words, and a Tile keeps its content when its
+  Card changes theme. A frame of a set width keeps it in the plugin. The direct-paste definitions were recaptured,
+  adding the Chip and Segmented Overlay levels and Toggle XLarge.
+- AppShell goes to Figma as the Zen file's Master-Layout (2026-10-18, user: "app shell và master layout không khớp với
+  nhau thành component master layout trong figma"): the plugin's import and the direct paste place one
+  Patterns/Pages/Density-Medium (Level=Master) instance instead of frames. The Sidebar sits in its Sidebar pattern
+  (Expand by the collapsed state). The top bar and sections go in Header/Dashboard's Sections, padded like the master's
+  own rows. The page goes in Body's Content, the floating action in Floating-Item and the aside in Side-Panel. The page
+  grows the master (982 is its minimum), and the Sidebar is as tall. A MetricCard writes its action and custom content
+  only where Figma's set has them (Icon-Highlight has neither).
 - Studio → Figma import matches the page (2026-10-17, user: "Bản import ở figma và bản studio còn chưa chính xác"): a
   Metric-Card draws the page's sparkline, spark bars, goal and footer instead of Figma's sample; a ProgressBar fills its
   exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its

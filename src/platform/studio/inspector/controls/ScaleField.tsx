@@ -108,7 +108,7 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   const margins = ladder.filter(isMarginKey);
   const step = (key: string): { label: string; meta?: string } => {
     const extraItem = extras.find((item) => item.key === key);
-    return extraItem ? { label: extraItem.label } : scaleStep(key, measure(host, scale, key));
+    return extraItem ? { label: extraItem.label } : scaleStep(key, measure(host, scale, key), scale);
   };
   const text = (key: string) => step(key).label;
   const documented = fallback !== undefined ? matchOption(fallback, ladder) : undefined;

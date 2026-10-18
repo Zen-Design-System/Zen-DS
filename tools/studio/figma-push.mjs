@@ -132,6 +132,9 @@ const SLOT_OF_PROP = {
  * content its own Stack and gap.
  */
 const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]), MetricCard: new Set(["custom"]), Metric: new Set(["custom"]) };
+/** The property that shows a node prop's slot, where only some of a component's sets have it (Metric-Inline's
+ *  Title-Highlight has Custom, Icon-Highlight no Custom-Slot at all). */
+const SLOT_SHOWN_BY = { MetricCard: { custom: "Custom" }, Metric: { custom: "Custom" } };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
 const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), Metric: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
 /** What the page holds but does not show: screen-reader text. */
@@ -178,6 +181,8 @@ function cardVariant(props, notes, where) {
   } else if (props.Active === "Yes" && "Color" in props) props.Color = "Neutral";
   return props;
 }
+/** Side-Bar/Master/Workspace names its panel's slots Child-… (Master-… are its workspace column's): figma-pull maps them back. */
+export const WORKSPACE_SLOTS = { "Header-Content": "Child-Header-Content", "Body-Content": "Child-Body-Content", "Footer-Content": "Child-Footer-Content" };
 /** The slot a component's children go in, where it is not the set's first. */
 const CHILD_SLOT = { DashboardHeader: "Custome-Elements", Sidebar: "Body-Content" };
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
@@ -206,6 +211,15 @@ const PAGE_HEADER_PROPS = { title: "title", childTitle: "childTitle", descriptio
 const SHELL_ROW_PADDING = [12, 24, 12, 24];
 /** AppShell's top bar, as Figma's Navigation row: Margin-Comfortable above and on the sides, Padding/XSmall below. */
 const TOP_BAR_PADDING = [24, 24, 8, 24];
+/** The variables the master layout's own Dashboard header rows bind those paddings to (Header/Dashboard, read 2026-10-17). */
+const TOP_BAR_PADDING_VARS = ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/XSmall", "Margin-Comfortable"];
+const SHELL_ROW_PADDING_VARS = ["Spacing/Padding/Small", "Margin-Comfortable", "Spacing/Padding/Small", "Margin-Comfortable"];
+/** Figma's ◇ Master-Layout (page 1128:29541): the page pattern, its Sidebar pattern and the Side-Bar that pattern holds. */
+const MASTER_LAYOUT_SET = { id: "4122:41886", name: "Patterns/Pages/Density-Medium" };
+/** The master layout's own height (its Viewport-Height): a shorter page keeps it, a longer one grows it. */
+const MASTER_LAYOUT_HEIGHT = 982;
+const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar/Density-Medium";
+const MASTER_SIDEBAR = "Side-Bar/Master/Basic";
 /** The top bar's Search at its widest (app-shell.css). */
 const HEADER_SEARCH_MAX = 400;
 /** Container's content width by maxWidth (layout.css .zen-container[data-width]). */
@@ -556,7 +570,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const label = textOf(element).trim();
     if (!layers.length && label) {
       countFramed(element.name);
-      return { type: "TEXT", ...(id ? { id } : {}), characters: label };
+      // In Text.tsx's defaults (Body/Base/Regular, Neutral Strongest), as the page inherits them: a bare text imported
+      // at Figma's 12px and pasted at 14px in black (board test, 2026-10-18).
+      return { type: "TEXT", ...(id ? { id } : {}), characters: label, textStyle: "Body/Base/Regular", fill: contentToneToken("strongest") };
     }
     const shape = WRAPPER_LAYOUT[element.name] ?? {};
     const gutter = element.name === "Container" && code.gutter !== false ? { paddingX: "xl" } : {};
@@ -620,22 +636,97 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const stretch = { direction: "column", stretch: true, width: columnWidth };
     const sections = filling(layersOf(element, "sections"), columnWidth === null ? null : columnWidth - SHELL_ROW_PADDING[1] - SHELL_ROW_PADDING[3]);
     const floating = layerOf(element, "floatingAction") ? convert(layerOf(element, "floatingAction"), stretch) : null;
+    const page = filling(element.children.filter((child) => child.kind === "element"));
+    const footer = filling(layersOf(element, "footer"));
+    // A Sidebar the AppShell collapses (defaultSidebarCollapsed) is drawn as the rail too.
+    const shellSidebar = sidebar?.name === "Sidebar" && collapsed && literalOf(sidebar.props.collapsed) === undefined ? { ...sidebar, props: { ...sidebar.props, collapsed: literal(true) } } : sidebar;
+    const sidebarNode = shellSidebar ? convert(shellSidebar, { direction: "row", stretch: true }) : null;
+    const banner = layersOf(element, "banner");
+    // The page is Canvas (app-shell.css; canvas="alt" | "flat" the other two).
+    const canvas = { fill: `Background/Canvas/${{ alt: "Alt", flat: "Flat" }[code.canvas] ?? "Default"}` };
+    // Figma's ◇ Master-Layout, when every part has its place in it.
+    const master = masterLayoutNode({ sidebar: sidebarNode, collapsed, topBar, sections, page, footer, floating, aside, canvas: code.canvas });
+    if (master && !banner.length) return { ...master, ...(id ? { id } : {}) };
+    if (master) return shellFrame("AppShell", "VERTICAL", [...filling(banner), { ...master, fillW: true }], { ...(id ? { id } : {}), ...canvas });
     const column = shellFrame("Column", "VERTICAL", [
       topBar && shellFrame("Header", "VERTICAL", [{ ...topBar, fillW: true }], { layout: { mode: "VERTICAL", gap: 0, padding: TOP_BAR_PADDING, counter: "MIN", primary: "MIN" }, fillW: true }),
       // Each section row pads Padding/Small above and below: Gap/Large between rows.
       sections.length && shellFrame("Sections", "VERTICAL", sections, { layout: { mode: "VERTICAL", gap: 24, gapVar: "Spacing/Gap/Large", padding: SHELL_ROW_PADDING, counter: "MIN", primary: "MIN" }, fillW: true }),
-      shellFrame("Main", "VERTICAL", filling(element.children.filter((child) => child.kind === "element")), { fillW: true }),
-      ...filling(layersOf(element, "footer")),
+      shellFrame("Main", "VERTICAL", page, { fillW: true }),
+      ...footer,
       floating && { ...floating, absolute: { cx: "MAX", cy: "MAX", left: 0, right: MARGIN_COMFORTABLE, top: 0, bottom: MARGIN_COMFORTABLE } },
     ], { fillW: true });
-    // A Sidebar the AppShell collapses (defaultSidebarCollapsed) is drawn as the rail too.
-    const shellSidebar = sidebar?.name === "Sidebar" && collapsed && literalOf(sidebar.props.collapsed) === undefined ? { ...sidebar, props: { ...sidebar.props, collapsed: literal(true) } } : sidebar;
-    const row = [shellSidebar ? convert(shellSidebar, { direction: "row", stretch: true }) : null, column, aside].filter(Boolean).map((node) => (node === column ? node : { ...node, fillH: true }));
-    const banner = layersOf(element, "banner");
-    // The page is Canvas (app-shell.css; canvas="alt" | "flat" the other two).
-    const canvas = { fill: `Background/Canvas/${{ alt: "Alt", flat: "Flat" }[code.canvas] ?? "Default"}` };
+    const row = [sidebarNode, column, aside].filter(Boolean).map((node) => (node === column ? node : { ...node, fillH: true }));
     if (!banner.length) return shellFrame("AppShell", "HORIZONTAL", row, { ...(id ? { id } : {}), ...canvas });
     return shellFrame("AppShell", "VERTICAL", [...filling(banner), shellFrame("Frame", "HORIZONTAL", row, { fillW: true })], { ...(id ? { id } : {}), ...canvas });
+  }
+
+  /**
+   * AppShell as Figma's ◇ Master-Layout (Patterns/Pages/Density-Medium Level=Master, read 2026-10-17; user: "app shell và
+   * master layout không khớp với nhau thành component master layout"): the Sidebar pattern (Expand by the collapsed state)
+   * around the Side-Bar the Sidebar converts to; Header/Dashboard's Sections slot with the top bar and the section rows,
+   * Dashboard header rows padded as the master's own rows are (the top bar Margin-Comfortable · Padding/XSmall below, a
+   * section Padding/Small · Margin-Comfortable); Body's Content slot with the page and the footer, Body unpadded since
+   * AppShell's main is (the page's Container gives the margin, as in the browser); Floating-Item; the Side-Panel. Null when
+   * a part has no place in it (an aside that is no SidePanel, a sidebar that is no instance): the frames then.
+   */
+  function masterLayoutNode({ sidebar, collapsed, topBar, sections, page, footer, floating, aside, canvas }) {
+    if (sidebar && sidebar.type !== "INSTANCE") return null;
+    if (aside && !(aside.type === "INSTANCE" && aside.set?.name === "Side-Panel")) return null;
+    const list = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+    const nested = [], slots = [], edits = [];
+    /** One part's own instance writes, at its place in the master: nested paths, slots and edit layers re-rooted, its
+     *  hidden layers as edits inside it (a name alone would hide the master's first layer of that name). */
+    const inside = (spec, path, layers) => {
+      const own = Object.fromEntries(["set", "text", "texts", "textList", "swapIcon"].filter((field) => spec[field] !== undefined).map((field) => [field, spec[field]]));
+      nested.push({ path, props: spec.props ?? {}, ...own });
+      for (const entry of spec.nested ?? []) nested.push({ ...entry, path: `${path}/${entry.path}` });
+      for (const slot of spec.slots ?? []) slots.push({ ...slot, within: [...layers, ...list(slot.within)] });
+      for (const edit of spec.edits ?? []) edits.push({ ...edit, layer: [...layers, ...list(edit.layer)] });
+      for (const name of spec.hide ?? []) edits.push({ layer: [...layers, name], visible: false });
+    };
+    if (sidebar) {
+      const expand = collapsed ? "No" : "Yes";
+      nested.push({ path: "Patterns", props: { Expand: expand } });
+      // The pattern's Side-Bar (Patterns/Density/Comfortable/Sidebar/Yes|No): a nested path matches it by its first part.
+      const { set, ...rest } = sidebar;
+      const layers = [MASTER_SIDEBAR_PATTERN, `Patterns/Density/Comfortable/Sidebar/${expand}`];
+      inside(set?.name === MASTER_SIDEBAR ? rest : sidebar, "Patterns/Patterns", layers);
+      // As tall as the page (the component's is the viewport's 982).
+      edits.push({ layer: layers, fillH: true });
+    }
+    /** A Dashboard header row as the master pads it: on the instance, or the frame's own padding when it has none. */
+    const padded = (node, padding, paddingVars) => {
+      if (node.type === "INSTANCE") return { ...node, fillW: true, padding, paddingVars };
+      if (node.type === "FRAME" && !(node.layout?.padding ?? []).some(Boolean)) return { ...node, fillW: true, layout: { mode: "VERTICAL", gap: 0, counter: "MIN", primary: "MIN", ...node.layout, padding, paddingVars } };
+      return shellFrame("Section", "VERTICAL", [node], { layout: { mode: "VERTICAL", gap: 0, padding, paddingVars, counter: "MIN", primary: "MIN" }, fillW: true });
+    };
+    const rows = [
+      ...(topBar ? [padded(topBar, TOP_BAR_PADDING, TOP_BAR_PADDING_VARS)] : []),
+      ...sections.map((section) => padded(section, SHELL_ROW_PADDING, SHELL_ROW_PADDING_VARS)),
+    ];
+    if (rows.length) slots.push({ name: "Sections", within: ["Header/Dashboard"], children: rows });
+    else edits.push({ layer: ["Header/Dashboard"], visible: false });
+    // The page grows the master as the Studio's Screen grows (Figma's master is one viewport tall, its Content filling
+    // it): Main-Container, Body and the Content slot hug their content; the viewport's height stays the minimum.
+    const content = [...page, ...footer];
+    if (content.length) slots.push({ name: "Content", within: ["Body"], hugH: true, children: content });
+    edits.push({ layer: ["Main-Container"], hugH: true }, { layer: ["Body"], padding: [0, 0, 0, 0], hugH: true });
+    if (floating) {
+      const { absolute, ...action } = floating;
+      slots.push({ name: "Floating-Item", within: ["Floating-Actions"], children: [action] });
+    }
+    if (aside) {
+      inside(aside, "Side-Panel", ["Side-Panel"]);
+      edits.push({ layer: ["Side-Panel"], fillH: true });
+    }
+    // The master's own fill is Canvas/Default; canvas="alt" | "flat" overrides it.
+    const fill = { alt: "Background/Canvas/Alt", flat: "Background/Canvas/Flat" }[canvas];
+    return {
+      type: "INSTANCE", name: "AppShell", set: MASTER_LAYOUT_SET,
+      props: { Level: "Master", Sidebar: Boolean(sidebar), "Side-Panel": Boolean(aside), "Floating-Actions": Boolean(floating) },
+      ...(nested.length ? { nested } : {}), slots, edits, ...(fill ? { fill } : {}), fillW: true, minH: MASTER_LAYOUT_HEIGHT,
+    };
   }
 
   /* ── charts (figma-charts.mjs: sets, variants, header properties) ── */
@@ -781,7 +872,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const around = (prop) => {
       const value = element.props[prop];
       if (value?.kind === "element") return convert(value.node, { direction: "column", stretch: false });
-      if (value?.kind === "literal" && typeof value.value === "string") return { type: "TEXT", characters: value.value };
+      // A text eyebrow is PageHeader.tsx's Text (Body/Small/Medium, tone base): bare, it pasted 14px and imported 12px.
+      if (value?.kind === "literal" && typeof value.value === "string") {
+        return prop === "eyebrow"
+          ? convert(elementOf("Text", { textStyle: literal("Body/Small/Medium"), tone: literal("base") }, [{ kind: "text", value: value.value }]), { direction: "column", stretch: false })
+          : { type: "TEXT", characters: value.value, textStyle: "Body/Base/Regular", fill: contentToneToken("strongest") };
+      }
       return null;
     };
     const before = ["breadcrumbs", "eyebrow"].map(around).filter(Boolean);
@@ -831,8 +927,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (nested.length) node.nested = [...(node.nested ?? []), ...nested];
     const seenBy = people(plain(element.props.seenBy));
     if (!seenBy.length) return node;
-    const readList = { type: "INSTANCE", name: "Seen by", set: SETS.readList, props: { "Seen by": seenBy.length > 5 ? "5+" : String(seenBy.length) },
-      nested: [...(seenBy.length > 5 ? [{ path: "Badge", props: {}, text: `+${seenBy.length - 5}` }] : []), ...seenBy.slice(0, 5).map((person, index) => avatar(person, `Avatar[${index}]`))] };
+    // Figma's Seen by=5+ holds the "+N" Badge and four Avatars (the code draws five after it): the fifth has no layer.
+    const many = seenBy.length > 5;
+    if (many) notes.push(`ChatMessage${id ? ` (${id})` : ""}: Figma's Seen by=5+ shows four readers after "+${seenBy.length - 5}" (the code five)`);
+    const readList = { type: "INSTANCE", name: "Seen by", set: SETS.readList, props: { "Seen by": many ? "5+" : String(seenBy.length) },
+      nested: [...(many ? [{ path: "Badge", props: {}, text: `+${seenBy.length - 5}` }] : []), ...seenBy.slice(0, many ? 4 : 5).map((person, index) => avatar(person, `Avatar[${index}]`))] };
     const { id: _own, fillW: _fill, ...message } = node;
     return { type: "FRAME", ...(id ? { id } : {}), name: "ChatMessage", layout: { mode: "VERTICAL", gap: 4, gapVar: "Spacing/Gap/2XSmall", padding: [0, 0, 0, 0], counter: side === "you" ? "MAX" : "MIN", primary: "MIN" }, children: [message, readList] };
   }
@@ -846,6 +945,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const layers = [];
     let run = null;
     for (const child of element.children.filter((item) => item.kind === "element")) {
+      // ChatDateDivider (Chat.tsx, Figma Chat/Section Time): a centred Caption/Regular time in Neutral Light, Padding/XSmall
+      // above and below (chat.css .zen-chat-date); drawn as a bare text it came out 14px black.
+      if (child.name === "ChatDateDivider") {
+        run = null;
+        layers.push({ type: "FRAME", name: "ChatDateDivider", layout: { mode: "VERTICAL", gap: 0, padding: [8, 0, 8, 0], paddingVars: ["Spacing/Padding/XSmall", null, "Spacing/Padding/XSmall", null], counter: "CENTER", primary: "MIN" }, fillW: true,
+          children: [{ type: "TEXT", characters: deepText(child), textStyle: "Caption/Regular", fill: contentToneToken("light"), align: "CENTER" }] });
+        continue;
+      }
       if (child.name !== "ChatMessage") {
         run = null;
         const layer = convert(child, { direction: "column", stretch: true });
@@ -1003,6 +1110,21 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // top-navigation.css .zen-top-nav__control: Padding/2XSmall above, Padding/XSmall below, the bar's side margin
       // (Padding/Large, Medium when compact) on the sides; Figma's Control-Bar has none of its own.
       const control = convert(element.props.controlBar.node, { direction: "column", stretch: true });
+      // A Search in the control bar is a pill unless the page sets its shape (SearchShapeContext, user 2026-10-17): the
+      // Searches with no `shape` in the page (by element id, the layer's key) draw Shape=Rounded.
+      const unshaped = new Set();
+      const collect = (el) => {
+        if (el?.kind !== "element") return;
+        if (el.name === "Search" && el.props?.shape === undefined && el.id) unshaped.add(el.id);
+        for (const child of el.children ?? []) collect(child);
+      };
+      collect(element.props.controlBar.node);
+      const roundSearches = (layer) => {
+        if (!layer) return;
+        if (layer.type === "INSTANCE" && layer.set?.name === "Search/Default" && unshaped.has(layer.key) && layer.props) layer.props.Shape = "Rounded";
+        for (const child of [...(layer.children ?? []), ...(layer.slots ?? []).flatMap((slot) => slot.children ?? [])]) roundSearches(child);
+      };
+      roundSearches(control);
       const side = code.margin === "compact" ? 16 : 20;
       if (control) slots.push({ name: "Control-Slot", children: [{ type: "FRAME", name: "Control", layout: { mode: "VERTICAL", gap: 0, padding: [4, side, 8, side], counter: "MIN", primary: "MIN" }, children: [{ ...control, fillW: true }], fillW: true }] });
     }
@@ -1446,8 +1568,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     }
     const actionIcon = action?.name === "IconButton" ? literalOf(action.props.icon) : undefined;
     const button = typeof actionIcon === "string" ? entryFor("IconButton", { appearance: "main" }, byCode, mapping) : null;
-    // The action is the Metric's "Button/Icon-Main" instance (layerKey "Button").
-    if (button) nested.push({ path: "Button", props: figmaProps(button, { icon: actionIcon }, mapping, notes, `${where} › Button`, new Set(["icon"])) });
+    // The action is the Metric's "Button/Icon-Main" instance (layerKey "Button"), in the sets with an Action (not Icon-Highlight).
+    const actionable = "Action" in onlyOwn(node.set, { Action: true });
+    if (button && actionable) nested.push({ path: "Button", props: figmaProps(button, { icon: actionIcon }, mapping, notes, `${where} › Button`, new Set(["icon"])) });
+    else if (action && !actionable) notes.push(`${where}: action has no place in Figma's ${node.set.name} (no Action): not written`);
     else if (action) notes.push(`${where}: action ${action.name} has no place in Figma's Metric (its Icon-Main)`);
     if (nested.length) node.nested = [...(node.nested ?? []), ...nested];
   }
@@ -1470,6 +1594,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       Text: shown !== undefined ? String(shown) : typeof code.placeholder === "string" ? code.placeholder : "",
       ...(help ? { Message: help } : {}),
     };
+    // Figma's Autocomplete-Field draws no typed text (its Label, a button and the help): no Text to write.
+    if (/Autocomplete-Field$/.test(node.set?.name ?? "")) delete texts.Text;
     if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
     if (shown !== undefined && (node.props.State ?? "Default") === "Default") Object.assign(node.props, onlyOwn(node.set, { State: "Inputted" }));
   }
@@ -1523,6 +1649,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
         continue;
       }
       if (slotProps[name] && value.kind === "element") {
+        const shownBy = SLOT_SHOWN_BY[element.name]?.[name];
+        if (shownBy && !(shownBy in onlyOwn(node.set, { [shownBy]: true }))) {
+          notes.push(`${where}: ${name} has no place in Figma's ${node.set.name} (no ${slotProps[name]}): not written`);
+          continue;
+        }
         const framed = FRAMED_SLOT_PROPS[element.name]?.has(name) ? [convert(value.node, { direction: "column", stretch: true, surface })].filter(Boolean).map((layer) => ({ ...layer, fillW: true })) : null;
         slots.push({ name: slotProps[name], children: framed ?? slotLayers(value, surface) });
         continue;
@@ -1613,7 +1744,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       node.swapIcon = code.leading;
     }
     // A Sidebar without a footer: Figma's sample footer rows go, and the footer's divider and padding with them.
-    const noFooter = element.name === "Sidebar" && !element.props.footer && entry.slots?.includes("Footer-Content");
+    const noFooter = element.name === "Sidebar" && !element.props.footer && (entry.slots?.includes("Footer-Content") || entry.slots?.includes("Child-Footer-Content"));
     if (noFooter) node.hide = [...(node.hide ?? []), "Divider", "Footer-Container"];
     if (PICTURED.has(element.name) && typeof code.src === "string" && code.src) {
       node.image = code.src;
@@ -1646,6 +1777,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (element.name === "Sidebar" && literalOf(element.props.collapsed) !== true && (code.variant ?? "basic") !== "workspace") sidebarHeader(element, slots, surface);
     if (element.name === "Sidebar" && literalOf(element.props.collapsed) === true && (code.variant ?? "basic") !== "workspace") sidebarRail(element, node, slots);
     if (element.name === "ListBox") for (const slot of slots) if (slot.name === "Body-Slot") slot.hugH = true;
+    // A workspace Sidebar's sections went to a Body-Content its set does not have (no menu in Figma; corpus test 2026-10-18).
+    if (element.name === "Sidebar" && node.set?.name === "Side-Bar/Master/Workspace") for (const slot of slots) slot.name = WORKSPACE_SLOTS[slot.name] ?? slot.name;
     if (slots.length) node.slots = slots;
     const overrides = element.props.overrides;
     if (overrides?.kind === "object") {
@@ -1699,12 +1832,21 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     body = [part("topNavigation", { direction: "column", stretch: true }), column("Content", page, { fillW: true }), part("bottomNavigation", { direction: "column", stretch: true })].filter(Boolean).map(filled);
   }
   const root = rootStack ? frameNode(layers[0], codeProps(layers[0]), figmaIdOf(layers[0].id), { direction: "column", stretch: true, width: frameWidth }) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: body };
-  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
+  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", "canvas", "height", ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
   // The frame is keyed by the Stack it draws, else by the Screen (its layers keep their own keys).
   if (rootStack && layers[0].id) root.key = layers[0].id;
   else if (screen.id) root.key = screen.id;
   for (const [name, count] of framed) notes.push(`${name}${count > 1 ? ` ×${count}` : ""}: no Figma component, drawn as a frame of its layers (or as its text)`);
-  const frame = { ...root, name: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop, ...(doc.header?.figma?.file ? { file: doc.header.figma.file } : {}) };
+  // The Screen's canvas and height (builder.css .studio-builder-screen: Canvas/Default, Alt or Flat; at least 900px, a
+  // phone 844, or the height it is drawn at): the plugin's frame was Figma's default white, the paste's had no fill.
+  const canvas = { alt: "Alt", flat: "Flat" }[literalOf(screen.props.canvas)] ?? "Default";
+  const screenHeight = literalOf(screen.props.height);
+  const frame = {
+    ...root, name: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop,
+    ...(root.fill || root.fillStyle ? {} : { fill: `Background/Canvas/${canvas}` }),
+    minH: typeof screenHeight === "number" ? screenHeight : device === "phone" ? 844 : 900,
+    ...(doc.header?.figma?.file ? { file: doc.header.figma.file } : {}),
+  };
   if (doc.header?.figma?.node) frame.id = doc.header.figma.node;
   // Layers the push draws itself (a Table's rows and cells, a data slot's items, a section) take their parent's key and
   // their place, so importing the page again finds them too.

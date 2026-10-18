@@ -551,6 +551,38 @@ thành icon palette".
   ("Bỏ các thay đổi UI cũ trong plugin đi"). Backup: Zen-DS `backups/plugin-ui-paste-box-wip-2026-10-17.patch`; the plugin
   repo is clean, rebuilt, `npm test` green.
 
+## AppShell → Figma Master-Layout (session 6b8336f6, 2026-10-17 → 18, tier M)
+User: "app shell và master layout không khớp với nhau thành component master layout trong figma"; chose "Làm ngay".
+- Built (branch zen/feat/appshell-master-layout-20261017, worktree ../Zen-DS-wt-mastershell): AppShell → instance
+  Patterns/Pages/Density-Medium Level=Master in figma-push (masterLayoutNode) and back in figma-pull
+  (masterLayoutFrame); plugin studio-import.js e0d10a9 (instance padding, minH, hug/fill + padding edits).
+- Measured on Figma's own copies: the master is a viewport tall with Content FILL (page cut) → hug chain + Side-Bar
+  stretch + minSize 982; an instance's own padding lives in its self override; Fill on a bound width must unbind it
+  (the paste went 1440 → 1512); Body's unbound padding as entries without variableData. Pack: +3 sets, rows keep a
+  frame's `mode`, symbols their `bound` size fields (20.4 MB).
+- Found and fixed on the way: Metric action/custom only where the set has them (Icon-Highlight); a nested hug kept
+  filling its parent (chart Segmented stretched in the paste, hugged in the plugin).
+- Checked in the Zen file: direct paste of Dashboard and HR · Expense overview, plugin import of Dashboard (identical
+  sizes 1440×1516, padding bound, Sidebar full height); the user confirmed on screen (server reads lag, §7b).
+- Selftests: push 275, pull 76, native 57 (+10), plugin `npm test`; BACKLOG P2 nested Grid row stretch (pre-existing).
+
+## Studio → Figma test run (same session, 2026-10-18, tier M)
+User: "phần copy paste trực tiếp và import cần test kiểm tra nhiều hơn", then "xử lý".
+- Corpus: starters-coverage's "New page from this frame" on every example frame + the 15 templates → 438 pages
+  (scratchpad tools make-corpus / check-corpus: push → native message → invariants: guids, sibling positions, slot
+  contents, symbols, variables, kiwi encode). 0 structural problems; writer notes 26 → 11 pages (left: Shapes P2,
+  library gaps in BACKLOG).
+- Board of 78 frames imported by the plugin, copied, `native-diff` against the paste: 3,304 differences of 74 kinds,
+  most representation; the visual ones fixed (see CHANGELOG). Findings fixed at their owners: Screen frame canvas +
+  min height (push, pull, writer, plugin), eyebrow / ChatDateDivider / bare text styles, workspace Sidebar slots,
+  Hero Button/Main (nested paths match full slashed names first, writer + plugin), swapped owner's slot content,
+  hug layer axis, grid cell fill axes, plugin fixedWidth after hug, Autocomplete Text, Seen by=5+, example icon.
+- Pack recaptured in full (11 probe frames; Chip/Segmented Overlay, Toggle XLarge, Metric-Card Tile were stale).
+- The user stopped the last board import (too slow): no rendered side-by-side yet; the 2nd plugin import showed the
+  board's own frame-width mistake (fixed) and the plugin's fixedWidth bug (fixed).
+- E2E: HO-10 updated for the Master-Layout export.
+
+
 ## Studio projects + project theme, phase 1 (tier L, session "Studio project theme customization"; user: "tạo dự án như Figma … set theme cho Dự án … không đè vào codebase hiện tại mà chỉ sinh thêm 1 mode riêng", then "sinh động như trang tailwind color app", "chart nên chia nhiều sector")
 - Decisions: Drafts for pages with no project, the four radius modes, build phase 1. Spec and next phases:
   `docs/research/studio-projects-theme-2026-10-17.md`. Branch `zen/feat/studio-projects-theme-20261017`, worktree
@@ -635,3 +667,81 @@ User: "1. Khi tạo trang mới thì lỗi bottom nhảy lên trên. 2. User v�
 - Checks: studio:selftest ✓ (figma-push 284, figma-pull 76, ScaleField 11), E2E L-13 + layout/inspector/appearance 37/37,
   device + prototype 16/16, tsc, guidelines + ai-ui rebuilt. BACKLOG P2 classNames line: item (1) now per-side padding only.
 
+
+## Studio in Figma's words; Frame → auto layout (session "Figma-like freeform editing", tier M)
+User (pasted feedback): "props, component, cách thao tác, frame, autolayout y hệt figma … Còn dùng ngôn ngữ dev nhiều quá
+… Convert được Box(Frame) to Stack(auto layout)". Branch zen/feat/studio-figma-language-20261017 (worktree Zen-DS-figlang).
+- Frame → auto layout: edit/autoLayout.ts `addAutoLayoutToSelection` (a lone Box turns into a Stack in place, else wrap
+  in one as before) / `removeAutoLayoutFromSelection`; ⇧A / ⌥⇧A, canvas menu, Quick actions, SelectionActions and a
+  header-only "Auto layout +" section (LayoutSection) on a Box, "−" on a Stack's section.
+- Words: kindLabel(kind, name) → Frame / Auto layout / Text / Instance / Shape / Local component / Layer; spacing and
+  radius steps by their Figma names (controls/scale.ts tokenName; md is Base on radius, full Rounded) in ScaleField, the
+  canvas spacing pill and its menu ("Gap · None"); spacingWords (Horizontal padding…); figmaOptions keeps only the
+  values Figma's component has (a code-only value shows only while it is current).
+- Code properties: a closed `<details>` (inspector/CodeProperties.tsx, open state remembered) for the props Figma has
+  no property for: frames, text, shapes (DesignPanel) and a component's leftover props (GroupedProperties); Text `as`
+  moved there. E2E helper `openCodeProperties` (I-02, K-02); `scaleStep(key, scale)` reads the Figma name.
+
+## Drag and drop campaign (session "Figma-like freeform editing", tier M)
+User: "test hết mọi case kéo thả, kéo component vào mà không có box(frame) hoặc stack. Kéo top navigation vào rồi đặt lên
+top test list box, content dài quá trang mobile… scroll thử… test hơn 10,000 case"; plus "kéo thả có smart guide".
+- Tools: `tools/studio/dnd-matrix.mjs` (`npm run studio:dnd`; engine as localEdit runs it, shared helpers
+  `tools/studio/dnd-engine.mjs`): 115 Assets items × every place of 5 seed pages (pasteCode = drag, insertChild = click
+  / MCP), every layer moved / ⌥-copied to every place, Screen bars; oracles: valid page, nothing lost, drag = click,
+  refusals in words, bars never content. Opt-in E2E group `dnd` (`npm run studio:e2e -- --only=dnd`, run.mjs OPT_IN):
+  DND-01…03 real drags of every Assets item to 6 places (empty Screen, before a Card, the Top navigation bar, into a
+  Card, a free Box, the board) with ⌘Z each and an across-the-phone check; DND-04 canvas moves; DND-06 Layers drags;
+  DND-05 the user's story (empty phone → Top navigation on top → List box → 8 blocks → canvas whole → Play scroll).
+- Found and fixed: (1) an empty Screen (no Stack) took no drop, silently: Screen and AppShell are drop containers, a
+  Screen with one layout child sends drops into it (bodyOf), bar parts are not drop units (kidsOf). (2) A Top / Bottom
+  Navigation dropped into content: it goes to the Screen's bar (assets.ts barAt / dropBar: insertChild `prop` or
+  replaceElement), clicks too; the engine refuses bars in a builder Screen's content and an AppShell inside a layer
+  (arrange.mjs childRefusal / inScreenContent). (3) insertChild accepted children in components without any (Top
+  Navigation, Shape, MetricCard, charts) and blocks in Text: `childless` from the API (requiredFromApi) and childRefusal
+  in insertPlan. (4) A layer could not be dragged from one Screen to another ("Layers move within their own example"):
+  sameDropScope for a page's Screens / Overlays, canvas and Layers; Layers frame rows take drops. (5) A drag skipped the
+  host rules' "Not recommended" status: dropAsset adds it. (6) Off-frame drops were silent: "Drop it into a frame".
+- Smart guides on drop: a Box whose layers all float (Figma's frame) places the drop at the pointer (position absolute,
+  px insets; a non-layout root in a floating Box), point-snapped to the frame and its layers with red guides, ⌘ no snap.
+- (7) An App shell dragged into a layer showed an accepting label, then the engine refused it: it goes only on an empty
+  Screen (assets.ts shellAt; engine childRefusal parentHasChildren), the drag says why.
+- Results: matrix 19,286 cases, 0 findings (first run: 2,195 findings, 1,802 drag≠click, 393 bars in content). Counted,
+  allowed by the user's answers (2026-10-17: "1. có 2. Cả 2"): a Sidebar may drop into a Screen's content (111), and a
+  Screen's bar holds a Top / Bottom Navigation or a custom header (any component: Swap instance on the bar, MCP insert
+  with `prop`; 1,140). Browser, second full run with every fix: DND-01 205/205, DND-02 205/205, DND-03 195/195, DND-04
+  8/8 moves, DND-06 3/3 Layers drags, DND-05 story ✓ — 626 real cases; with the matrix about 19,900 cases.
+  Browser, first full run (before fixes 4–7 and the free-frame drops): DND-02 205/205, DND-01 204/205 and DND-03 189/195
+  (harness: same-name order, a frame drawing again after ⌘Z; app-shell = fix 7), DND-05 story ✓ (Screen 1330px,
+  Play scroll to the end, bar at 0px).
+
+## Add / Remove auto layout campaign (session "Figma-like freeform editing", tier S)
+User: "test luôn phần add auto layout và detach auto layout"; also answered the drop questions ("1. có 2. Cả 2": Sidebar
+in content allowed, a Screen bar holds a navigation or a custom header; BACKLOG line removed).
+- The plans moved out of edit/autoLayout.ts into pure `edit/autoLayoutPlan.ts` (addPlan, removePlan, floatingCode) so
+  `tools/studio/autolayout-matrix.mjs` runs them: 11,987 generated arrangements (rows / columns, start / centre / end,
+  every gap and padding step, shuffled source order) judged by how they were made, and every Assets item in a Frame
+  (floating, in flow, painted) and in a Stack (Remove, then Add back to the same Stack): 12,564 cases, 0 findings.
+- Found and fixed: (1) Add auto layout removed a component's own `position` (ActionBar static / sticky / fixed) as if
+  it were X / Y: only Stack / Grid / Box / Shape lose position props. (2) A painted empty Frame stayed a Box with no
+  auto layout (relayout.mjs returned it self-closing, without its Stack). (3) The cross-axis alignment depended on
+  which layer came first in the code (within 2px of the first): now the best-shared line, order-independent.
+- E2E (opt-in group dnd): DND-07 every Assets item dropped into an empty Frame → ⇧A → ⌥⇧A (no layer moves > 1.5px) →
+  three ⌘Z; DND-08 three Shapes out of order (Inspector + → row, left to right, centred; −), painted empty Frame via
+  the canvas menu, Action bar position kept, row ⌥⇧A then ⇧A returns row / sm / md, ⇧A wraps one Text.
+- Variables window (user, with screenshots): rows go group by group in the groups tree's order (variablesModel rowsOf,
+  stable within a group; selftest "group by group"); the alias chip is the swatch plus the 2XSmall inset on each side
+  (it was a fixed Medium height, 20px in the Studio's density, with a 1px border on the left only: 2 / 2 / 4px), its
+  outline an inner ring. Measured in the browser: 4 / 4 / 4px, 24px.
+- DND-07 full run (224 cases, final code before these fixes): 219 right; found (4) Remove auto layout refused a Stack
+  holding an Icon / File icon / Flag ("holds a list or code": their nodes are SVG, readFrame took HTML only) — layers
+  now measure as any Element, and a layer that is not drawn says so; (5) a layer the flow stretched (NpsScale) shrank
+  and moved 3px once floating — Remove auto layout keeps a flow-given size (written fill, or stretched across the
+  content box) on the layer or its floating Box, and isFloatWrapper accepts that width / height so ⇧A gives the layer
+  back. The metric ⌘Z miss and the 4 others pass alone (ZEN_DND_ONLY=metric,icon,file-icon,flag,nps-scale: 10/10).
+
+## Search Rounded by default on phones (session "Giám sát", tier S; user: "mặc định nhưng cho sửa")
+- `_shared/search-shape.ts` SearchShapeContext; Search resolves `shape ?? context ?? "default"`; TopNavigation wraps its
+  control bar (three placements) and BottomSheet its search in `rounded`, so the Input phone sheet follows.
+- Studio: figma-push writes Shape=Rounded for the control bar's Searches that set no shape (by element id); figma-pull
+  leaves Rounded unsaid there and writes `shape="default"` for a Default one. figma-push selftest +3 checks (277).
+- Test: tests/interaction/search-shape-on-phones.test.tsx (3). Figma library default left to the designer (BACKLOG).

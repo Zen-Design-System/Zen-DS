@@ -67,16 +67,23 @@ const fold = (text: string) => text.toLowerCase().normalize("NFD").replace(/[̀-
 
 /**
  * The table's rows: the variables in `group` ("" = all) and below it, whose name holds every word of `query`, of
- * `type` (null = any); a header row before each run of one group (Figma's sections).
+ * `type` (null = any), group by group as the groups tree reads (Figma's sections: one header per group, all its
+ * variables under it, in their own order), whatever order the source file writes them in (user, 2026-10-17: Brand/1,
+ * Brand-Alpha/1, Brand/2… showed "Light / Brand" twice).
  */
 export function rowsOf(collection: Collection, { group = "", query = "", type = null }: { group?: string; query?: string; type?: VariableType | null } = {}): Row[] {
   const words = fold(query).split(/\s+/).filter(Boolean);
+  const rank = new Map(groupsOf(collection).map((node, index) => [node.path, index]));
+  const shown = collection.tokens.filter((variable) => {
+    if (group && variable.name !== group && !variable.name.startsWith(`${group}/`)) return false;
+    if (type && variable.type !== type) return false;
+    return !words.length || words.every((word) => fold(variable.name).includes(word));
+  });
+  // A stable sort: the variables of one group keep the order they are written in.
+  const ordered = shown.map((variable, index) => ({ variable, index, at: rank.get(groupOf(variable.name)) ?? -1 })).sort((a, b) => a.at - b.at || a.index - b.index);
   const rows: Row[] = [];
   let last: string | null = null;
-  for (const variable of collection.tokens) {
-    if (group && variable.name !== group && !variable.name.startsWith(`${group}/`)) continue;
-    if (type && variable.type !== type) continue;
-    if (words.length && !words.every((word) => fold(variable.name).includes(word))) continue;
+  for (const { variable } of ordered) {
     const path = groupOf(variable.name);
     if (path !== last) { rows.push({ kind: "group", path }); last = path; }
     rows.push({ kind: "variable", variable });

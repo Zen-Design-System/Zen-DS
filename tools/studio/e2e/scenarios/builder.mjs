@@ -154,7 +154,7 @@ async function pageAction(page, name, action) {
 }
 
 /** Chooses one of the Studio options (the folders' ⋯). */
-async function mineOption(page, action) {
+export async function mineOption(page, action) {
   await showLeftTab(page, "pages");
   await openStudioSpace(page);
     await page.getByRole("button", { name: "Studio options" }).click();
@@ -749,7 +749,7 @@ export const rows = [
       await menu.waitFor({ state: "visible", timeout: 2500 }).catch(() => { throw new Error("no menu on the Stack's padding"); });
       const items = await menu.getByRole("menuitem").allInnerTexts();
       await page.keyboard.press("Escape");
-      if (!items.some((item) => /Wrap in Stack/.test(item))) throw new Error(`not the layer menu (${items.slice(0, 4).join(", ")})`);
+      if (!items.some((item) => /Add auto layout/.test(item))) throw new Error(`not the layer menu (${items.slice(0, 4).join(", ")})`);
       if ((await selectedName(page)) !== "Stack") throw new Error(`the selection moved to ${await selectedName(page)}`);
       return `${items.length} items, the Stack still selected`;
     },

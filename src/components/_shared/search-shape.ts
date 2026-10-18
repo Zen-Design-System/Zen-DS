@@ -1,0 +1,8 @@
+import { createContext } from "react";
+
+/**
+ * The shape a container gives the Searches inside it that set none (user 2026-10-17: a phone's built-in search is
+ * Rounded by default, and a Search can still say `shape="default"`). TopNavigation's control bar and BottomSheet's
+ * search provide `rounded`; everywhere else a Search keeps `default`.
+ */
+export const SearchShapeContext = createContext<"default" | "rounded" | undefined>(undefined);

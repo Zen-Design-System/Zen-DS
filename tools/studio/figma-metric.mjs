@@ -166,7 +166,8 @@ export function metricCardFigma(values, { notes, where, footerText = null, foote
   // The Hero's button: its words on Figma's Button/Main. Any other type's footer goes under its drawing (the code's
   // .zen-metric-card__footer, the Metric-Body's last layer); none drops the one an earlier import added.
   if (type === "hero") {
-    if (footerText) nested.push({ path: "Button", textList: [footerText] });
+    // By its full name: "Button" alone found the hidden Button/Icon-Main first (corpus test 2026-10-18).
+    if (footerText) nested.push({ path: "Button/Main", textList: [footerText] });
     else if (values.footer) notes.push(`${where}: its footer is not a Button with words (Figma's Hero keeps its "View report" button)`);
   } else edits.push({ layer: BODY, append: footerLayers });
   return { set: METRIC_CARD_SET, props: { Type: METRIC_CARD_TYPE[type] }, ...(Object.keys(texts).length ? { texts } : {}), nested, ...(edits.length ? { edits } : {}) };
@@ -276,7 +277,8 @@ export function metricCardFromFigma(node, { notes, where }) {
   if (!sample) { notes.push(`${where}: no Studio sample for Metric-Card ${node.props?.Type} (its ${DATA[type].join(" and ")} left out)`); return { name: "MetricCard", props }; }
   for (const name of DATA[type]) if (sample.props[name]) props[name] = sample.props[name];
   // The Hero's button words: Figma's own, on the sample's Button.
-  const button = nestedAt(node, "Button");
+  // The push names it by its full name (Button/Main), the reader by its first part.
+  const button = nestedAt(node, "Button/Main") ?? nestedAt(node, "Button");
   const footer = props.footer;
   const words_ = button?.textList?.[0] ?? button?.text;
   if (footer?.kind === "element" && words_ && footer.node.children?.length === 1 && footer.node.children[0].kind === "text" && footer.node.children[0].value !== words_) {

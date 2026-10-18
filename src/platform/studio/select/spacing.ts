@@ -4,6 +4,7 @@ import type { EditOp, SourceAttr } from "../types";
 import { breakpointOf, columnsOp, columnsSource, gridItems, gridLayout, soleColumn, spanOf, withTrackPx, type GridLayout } from "./gridTracks";
 import type { FiberHit } from "./picker";
 import { isMarginKey } from "../inspector/controls/scale";
+import { tokenName } from "../inspector/controls/scale";
 
 /*
  * Spacing on the canvas (Figma-like): the selected element's padding and gap areas, measured from the DOM, and for the
@@ -439,11 +440,17 @@ export function areaState(area: SpacingArea, owner: SpacingOwner, attributes: So
   return { prop, value, key, px, bound, boundBy, mixed, clears: sides.map((side) => side.name), options };
 }
 
-/** "gap · md · 16", "padding-x · bound · 20", "padding · 10". */
+/** "Gap · Medium · 16", "Horizontal padding · From code · 20", "Padding · 10" (Figma's words and variable names). */
+/** A spacing prop as Figma's auto layout names it ("paddingX" → "Horizontal padding"). */
+export function spacingWords(prop: string): string {
+  const words: Record<string, string> = { gap: "Gap", rowGap: "Row gap", columnGap: "Column gap", padding: "Padding", paddingX: "Horizontal padding", paddingY: "Vertical padding", spacing: "Padding", inset: "Inset" };
+  return words[prop] ?? kebab(prop).replace(/-/g, " ").replace(/^./, (letter) => letter.toUpperCase());
+}
+
 export function areaLabel(area: SpacingArea, state: AreaState): string {
-  const name = state.prop ? kebab(state.prop) : area.kind;
+  const name = state.prop ? spacingWords(state.prop) : area.kind === "free" ? "Space" : spacingWords(area.kind);
   const px = Number.isInteger(state.px) ? String(state.px) : state.px.toFixed(1);
-  const middle = state.bound ? "bound" : state.mixed ? "mixed" : state.key;
+  const middle = state.bound ? "From code" : state.mixed ? "Mixed" : state.key ? tokenName(state.key, area.scale) : state.key;
   return [name, middle, state.mixed ? null : px].filter(Boolean).join(" · ");
 }
 

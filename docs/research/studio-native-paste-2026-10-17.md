@@ -118,6 +118,24 @@ override, nhóm theo loại. Dashboard: 1.807 → 112 khác biệt (còn lại c
 - Dán tự động (osascript) vào canvas ngừng nhận clipboard do script ghi; clipboard Figma tự ghi thì vẫn dán được. Kiểm
   bằng native-diff trước, nhờ user dán một lần cho nhiều trường hợp.
 
+## 7b. AppShell = Master-Layout (2026-10-18, user: "app shell và master layout không khớp với nhau…")
+
+AppShell xuất thành instance `Patterns/Pages/Density-Medium` Level=Master (4122:41886) cho cả plugin và dán thẳng
+(`figma-push.mjs` masterLayoutNode, `figma-pull.mjs` masterLayoutFrame đọc ngược lại). Gói có thêm 3 bộ (master,
+Header/Dashboard, Patterns/Sidebar). Đo từ bản Figma tự copy của một master đã chỉnh tay:
+
+- Master gắn cao/rộng vào Viewport (982/1512), Content FILL: trang dài bị cắt. Trang làm master giãn: Main-Container,
+  Body, Content ôm nội dung (override `stackPrimarySizing` RESIZE + bỏ grow/stretch theo hướng của cha), Side-Bar
+  `stackChildAlignSelf` STRETCH, `minSize` 982 trên instance. Hàng gói lưu `mode` của frame để biết trục.
+- Padding riêng của instance (hàng Dashboard header) nằm ở override `self` (guidPath = symbol của nó) với giá trị +
+  pcm alias; ghi lên node thì Figma bỏ qua (top bar không padding).
+- Fill một trục mà component gắn biến (Viewport-Width): bỏ gắn trong `self` (mục WIDTH không variableData ở vcm + pcm),
+  như Fill của Figma; giữ lại thì Figma kéo master về 1512 sau khi đã dàn 1440. Symbol trong gói lưu `bound`.
+- Bỏ gắn padding của Body: override có giá trị 0 và mục STACK_PADDING_* không variableData ở cả hai map.
+- Instance lồng "ôm" (Segmented của chart) phải bỏ cả stretch ở cha, không chỉ đổi sizing của nó.
+- Đọc ngay sau khi dán (use_figma, ảnh chụp server) có thể còn vị trí cũ (hàng thứ hai ở y 0, Container chưa lùi 24px)
+  trong khi màn hình của user đã đúng; chụp lại sau.
+
 ## 8. Còn mở
 
 Cách ghi slot ở cấp ngoài như Figma (nội dung "Contents" của List-Item, "Header-Text" của Header: bản dán ghi override vào

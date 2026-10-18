@@ -32,9 +32,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,
   Enter = all children, Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles,
   frame presets. Pointer: same doc §8.
-- **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) for the user: should the
-  searches built into mobile library components (Top-Navigation Mobile control bar, Bottom-Sheet search, the Input
-  family's phone sheet) default to Rounded? Left at Default, since the rule is "recommend, don't force". (b) native
+- **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) settled 2026-10-17 (user:
+  "mặc định nhưng cho sửa"): TopNavigation control bars and BottomSheets give their Search `rounded` in code and
+  Studio; for the designer: set Shape=Rounded on the Search instance in Figma Top-Navigation/Mobile's Control-Bar and
+  Bottom-Sheet's search so the library matches. (b) native
   paste: `docs/figma-contracts/native-pack.json` has no Search/Default Shape yet, so a direct ⌘V of `shape="rounded"`
   lands as Default with a note (the plugin import is right); re-capture the Search/Default probe (`native-pack.mjs
   probe-code` + `capture`, Figma desktop).
@@ -188,6 +189,17 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   tools/studio/figma-native.mjs for RECTANGLE/ELLIPSE arc/LINE arrow/POLYGON/STAR and Component → COMPONENT, Use →
   INSTANCE, after zen/feat/studio-components-20261017 merges (spec: figma-push.mjs shapeNode; reference: plugin
   studio-import.js 3ba73f9, ed9bec6).
+- **P2 · Figma library gaps the 438-page Studio → Figma test found (2026-10-18, questions for the designer):** (a)
+  Accordion/Text has no content slot, so an open Accordion's content cannot be drawn (the push notes it); (b) Dock-Icon
+  has Theme=Emoji only at Medium and Large (the HR templates use XSmall in table cells: the default variant shows);
+  (c) Chat/Section/Read-List Seen by=5+ holds four Avatars after "+N" where Chat.tsx draws five (the push writes four).
+  Pointer: session log 2026-10-17 "Studio → Figma test run", figma-push.mjs chatMessageNode.
+- **P2 · A Grid stretched in its parent's row keeps its own row at content height (2026-10-18, AppShell paste):** the
+  Dashboard's two metric Grids sit side by side in an outer Grid; in Figma the second Grid is stretched to 228 but its
+  Hug row stays 198, so Utilization and Active projects are shorter than Revenue and Profit margin (CSS stretches the
+  row). Both the plugin's import and the direct paste; existed before the master layout. Likely: such a Grid's rows
+  Flex (needs a Figma check: use_figma does not lay out new grids). Pointer: figma-push.mjs Grid rows, plugin
+  settleGridRows.
 - **P3 · Direct paste parity left after native-diff (2026-10-17):** slot contents written at Figma's outer level, grid row
   minimum heights, kept overrides by resolved variable, and a smaller pack (18.9 MB). Pointer: research doc §8.
 - **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn

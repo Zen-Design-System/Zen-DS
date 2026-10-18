@@ -33,8 +33,10 @@ const flag = (name) => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(n
 const has = (name) => args.includes(`--${name}`);
 
 const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "prototype", "library", "instance", "starters", "handoff", "keyboard", "structural", "data", "overlays", "drafts", "gate", "main", "device", "nested", "mcp", "draw", "variables", "agent"];
+/** Groups that run only when named (--only=dnd): the drag-and-drop campaign takes about half an hour. */
+const OPT_IN = ["dnd"];
 const only = flag("only")?.split(",").map((g) => g.trim()).filter(Boolean) ?? GROUPS;
-const unknown = only.filter((g) => !GROUPS.includes(g));
+const unknown = only.filter((g) => !GROUPS.includes(g) && !OPT_IN.includes(g));
 if (unknown.length) {
   console.error(`Unknown group(s): ${unknown.join(", ")} (have: ${GROUPS.join(", ")})`);
   process.exit(2);

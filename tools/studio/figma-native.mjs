@@ -29,6 +29,16 @@ const at = (x, y) => ({ ...IDENTITY, m02: x || 0, m12: y || 0 });
 const lines = (characters) => String(characters).split("\n").map(() => ({ lineType: "PLAIN", styleId: 0, indentationLevel: 0, sourceDirectionality: "AUTO", listStartOffset: 0, isFirstLineOfList: false }));
 const textData = (characters) => ({ characters: String(characters), lines: lines(characters) });
 const aliasOf = (id, resolved) => ({ value: { alias: { guid: guid(id) } }, dataType: "ALIAS", resolvedDataType: resolved });
+/** Auto layout padding's variable fields, in the importer's order (top, right, bottom, left). */
+const PADDING_FIELDS = ["STACK_PADDING_TOP", "STACK_PADDING_RIGHT", "STACK_PADDING_BOTTOM", "STACK_PADDING_LEFT"];
+/** Padding (top, right, bottom, left) as Figma's fields. */
+const paddingFields = ([top, right, bottom, left]) => ({ stackVerticalPadding: top, stackPaddingRight: right, stackPaddingBottom: bottom, stackHorizontalPadding: left });
+/** Sets a node's or an override's consumption-map entries by field (each replacing the field's earlier one); `drop`'s fields lose theirs. */
+function consume(target, map, entries, drop = []) {
+  const fields = new Set([...entries.map((entry) => entry.variableField), ...drop]);
+  const all = [...(target[map]?.entries ?? []).filter((entry) => !fields.has(entry.variableField)), ...entries];
+  if (all.length) target[map] = { entries: all }; else delete target[map];
+}
 
 /** A path (absolute M, L, C, Z, as the push writes them) as subpaths, scaled by sx, sy. */
 export function parsePath(d, sx = 1, sy = 1) {
@@ -281,15 +291,19 @@ class Writer {
       if (along) out.stackChildPrimaryGrow = 1;
       if (across) out.stackChildAlignSelf = "STRETCH";
     } else if (parentMode === "GRID") {
-      if (fill.w || fill.h) { out.stackChildPrimaryGrow = 1; out.stackChildAlignSelf = "STRETCH"; }
+      // A grid cell fills its track's width by growing and its height by stretching (Figma's copy of the plugin's
+      // grid cells): one axis no longer fills both (a hugging Segmented grew, cells stretched to the row).
+      if (fill.w) out.stackChildPrimaryGrow = 1;
+      if (fill.h) out.stackChildAlignSelf = "STRETCH";
       if (spec.cell && parentInfo.tracks) {
         const row = parentInfo.tracks.rows[spec.cell.row], col = parentInfo.tracks.cols[spec.cell.col];
         if (row && col) { out.gridRowAnchor = row; out.gridColumnAnchor = col; }
         if (spec.cell.span > 1) out.gridColumnSpan = spec.cell.span;
       }
     }
-    if (spec.minW || spec.maxW || spec.maxH) {
-      if (spec.minW) out.minSize = { value: { x: spec.minW, y: UNSET } };
+    if (spec.minW || spec.minH || spec.maxW || spec.maxH) {
+      // Figma writes 0 for the axis without a minimum (its copy of the plugin's import).
+      if (spec.minW || spec.minH) out.minSize = { value: { x: spec.minW ?? 0, y: spec.minH ?? 0 } };
       if (spec.maxW || spec.maxH) out.maxSize = { value: { x: spec.maxW ?? UNSET, y: spec.maxH ?? UNSET } };
     }
     if (spec.absolute && parentMode !== "GRID" && parentMode !== "NONE") {
@@ -356,7 +370,7 @@ class Writer {
     if (padding[3]) fields.stackHorizontalPadding = padding[3];
     const vars = [];
     const pads = Array.isArray(layout.paddingVars) ? layout.paddingVars : layout.paddingVar ? [layout.paddingVar, layout.paddingVar, layout.paddingVar, layout.paddingVar] : [];
-    ["STACK_PADDING_TOP", "STACK_PADDING_RIGHT", "STACK_PADDING_BOTTOM", "STACK_PADDING_LEFT"].forEach((field, i) => vars.push([field, pads[i]]));
+    PADDING_FIELDS.forEach((field, i) => vars.push([field, pads[i]]));
     const rowGap = layout.rowGap == null ? layout.gap || 0 : layout.rowGap;
     let tracks = null;
     if (grid) {
@@ -411,6 +425,8 @@ class Writer {
       frameMaskDisabled: spec.clip !== true,
       ...fields,
       ...(root ? {} : this.childFields(spec, parentInfo)),
+      // The page frame's own minimum (the Screen's height): no parent to place it in, but its size limits apply.
+      ...(root && spec.minH ? { minSize: { value: { x: 0, y: spec.minH } } } : {}),
     };
     if (spec.fillStyle) { const style = this.style(spec.fillStyle, spec.name); if (style) node.styleIdForFill = { guid: guid(style[0]) }; }
     if (typeof spec.radius === "number") {
@@ -560,7 +576,22 @@ class Writer {
     if (node.minSize) rootOverride.minSize = node.minSize;
     if (node.maxSize) rootOverride.maxSize = node.maxSize;
     if (spec.fill) rootOverride.fillPaints = this.paint(spec.fill, where);
-    if (spec.sizeVar) Object.assign(rootOverride, this.bindings([["WIDTH", spec.sizeVar], ["HEIGHT", spec.sizeVar]]));
+    if (spec.sizeVar) consume(rootOverride, "parameterConsumptionMap", this.bindings([["WIDTH", spec.sizeVar], ["HEIGHT", spec.sizeVar]]).parameterConsumptionMap?.entries ?? []);
+    // An instance's own padding (a Dashboard header row as the master layout pads it): its self override, values and
+    // variables, as Figma's copy of the master's rows keeps them (the node's fields only show the values; a paste of
+    // them alone left the row unpadded, 2026-10-17).
+    if (Array.isArray(spec.padding)) {
+      Object.assign(node, paddingFields(spec.padding));
+      Object.assign(rootOverride, paddingFields(spec.padding));
+      consume(rootOverride, "parameterConsumptionMap", this.bindings(PADDING_FIELDS.map((field, i) => [field, spec.paddingVars?.[i]])).parameterConsumptionMap?.entries ?? []);
+    }
+    // Filling an axis its component binds to a variable (the master layout's Viewport-Width) lets the binding go, as
+    // Figma's own Fill does: kept, Figma sized the pasted master back to 1512 after laying it out at 1440 (2026-10-17).
+    {
+      const fill = this.fills(spec, parentInfo);
+      const loose = [fill.w && "WIDTH", fill.h && "HEIGHT"].filter((field) => field && tree.bound?.includes(field)).map((variableField) => ({ variableField }));
+      if (loose.length) { consume(rootOverride, "parameterConsumptionMap", loose); consume(rootOverride, "variableConsumptionMap", loose); }
+    }
     if (typeof spec.strokeBottom === "number") Object.assign(rootOverride, { borderBottomWeight: spec.strokeBottom, borderTopWeight: 0, borderLeftWeight: 0, borderRightWeight: 0, borderStrokeWeightsIndependent: true });
     // Hug or fill along the instance's own axes (the importer's layoutSizing on an instance).
     if (tree.mode && tree.mode !== "NONE") {
@@ -592,7 +623,7 @@ class Writer {
   slotContent(slotRow, slotSpec, parentInfo) {
     const id = this.fresh();
     const layout = { ...(slotRow.more.slot ?? {}) };
-    delete layout.stackChildAlignSelf; delete layout.stackChildPrimaryGrow; delete layout.stackPositioning;
+    delete layout.stackChildAlignSelf; delete layout.stackChildPrimaryGrow; delete layout.stackPositioning; delete layout.detachedSymbolId;
     const frame = {
       guid: id, phase: "CREATED", parentIndex: { guid: INTERNAL, position: this.place(INTERNAL) }, type: "FRAME", name: slotRow.name, isSlotContent: true, visible: true, opacity: 1,
       size: { x: slotRow.w, y: slotRow.h }, transform: at(slotRow.x, slotRow.y), ...FRAME_FIELDS, frameMaskDisabled: true, ...layout,
@@ -802,7 +833,12 @@ class InstanceBuild {
     const copy = this.copies.get(k);
     if (copy) return copy.content;
     // A component's slot assignment without a `value` is a leftover Figma does not show (the slot keeps its own layers).
-    const a = (this.rowAt(ownerPath)?.more.assigns ?? []).find((x) => isSlotAssignment(x) && key(x.defID) === slotDef && "value" in x);
+    // The owner's assignment names the slot of the variant its component placed; a page that swaps that variant (a
+    // Metric-Card Tile's Card made Solid) still shows it: both ids stand for one set-level property.
+    const row = this.rowAt(ownerPath);
+    const setLevelOf = (symbol, own) => { const tree = this.w.index.tree(symbol); return Object.entries(tree?.defs ?? {}).find(([, id]) => id === own)?.[0] ?? own; };
+    const wanted = setLevelOf(this.symbolAt(ownerPath), slotDef);
+    const a = (row?.more.assigns ?? []).find((x) => isSlotAssignment(x) && "value" in x && (key(x.defID) === slotDef || setLevelOf(row.main, key(x.defID)) === wanted));
     if (!a) return null;
     const template = key(a.varValue.value.slotContentIdValue.guid);
     return this.w.index.pack.contents[template] ? { key: k, template, owner: ownerPath, slotDef } : null;
@@ -1066,7 +1102,18 @@ class InstanceBuild {
   /** A nested instance by the importer's path ("Name[i]/Inner"). */
   nestedAt(pathText) {
     let current = null;
-    for (const segment of String(pathText).split("/")) {
+    const segments = String(pathText).split("/");
+    for (let i = 0; i < segments.length; i++) {
+      // A layer named with slashes ("Button/Main", the Hero's button beside a hidden Button/Icon-Main): its full name
+      // first, longest first; else the segment (a name or its first part, layerKey).
+      let whole = null;
+      for (let j = segments.length; j > i + 1 && !whole; j--) {
+        const full = segments.slice(i, j).join("/");
+        whole = this.descendants(current).find((ref) => ref.type === "INSTANCE" && ref.name === full) ?? null;
+        if (whole) i = j - 1;
+      }
+      if (whole) { current = whole; continue; }
+      const segment = segments[i];
       const match = /^(.*?)(?:\[(\d+)\])?$/.exec(segment);
       const name = match[1], index = match[2] ? Number(match[2]) : 0;
       const instances = this.descendants(current).filter((ref) => ref.type === "INSTANCE");
@@ -1094,11 +1141,9 @@ class InstanceBuild {
     if (typeof nested.text === "string") scope.build.label(scope.path, nested.text, at);
     scope.build.texts(scope.path, nested, at);
     if (nested.swapIcon) scope.build.swapIcon(scope.path, nested.swapIcon, at);
-    if (nested.hugW) {
-      const shown = this.w.index.tree(this.shownSymbolOf(ref));
-      const horizontalPrimary = shown?.mode === "HORIZONTAL" || shown?.mode === "GRID";
-      this.target(ref)[horizontalPrimary ? "stackPrimarySizing" : "stackCounterSizing"] = "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE";
-    }
+    // As wide as its content (a chart's Segmented that is not full width): its own sizing, and no longer filling its
+    // parent (only the sizing left the pasted Segmented stretched across the chart, where the plugin's import hugs).
+    if (nested.hugW) this.sizeLayer(ref, { hugW: true }, at);
   }
   /** The importer's layerIn: names or keys, ">" for a direct child, [i] for the i-th match. */
   layerIn(pathSpec) {
@@ -1127,6 +1172,8 @@ class InstanceBuild {
     const replaced = slot.build.copies.get(copyKey);
     if (replaced) { slot.build.copies.delete(copyKey); this.w.materialized = this.w.materialized.filter((record) => record !== replaced); }
     const content = this.w.slotContent(slot.row, slotSpec, parentInfo);
+    // The slot layer hugs or fills as its content frame does (the plugin sets the SLOT's sizing: Figma keeps an override).
+    if (slotSpec.hugW || slotSpec.hugH || slotSpec.fillW) this.sizeLayer(slot, { hugW: slotSpec.hugW, hugH: slotSpec.hugH, fillW: slotSpec.fillW }, slotSpec.name);
     const assignment = { defID: guid(slotDef), value: {}, varValue: { value: { slotContentIdValue: { guid: content } }, dataType: "SLOT_CONTENT_ID", resolvedDataType: "SLOT_CONTENT_ID" } };
     const list = slot.build.assignmentsAt(slot.path.slice(0, -1));
     const at = list.findIndex((a) => key(a.defID) === slotDef);
@@ -1138,6 +1185,22 @@ class InstanceBuild {
     if (!ref) { this.w.note(`${at}: no such layer`); return; }
     if (typeof edit.visible === "boolean") this.setVisible(ref, edit.visible);
     if (typeof edit.characters === "string" && ref.type === "TEXT") this.setText(ref, edit.characters);
+    if (edit.hugW || edit.hugH || edit.fillW || edit.fillH) this.sizeLayer(ref, edit, at);
+    if (Array.isArray(edit.padding)) {
+      // A component layer's padding: the override names the sides it binds and, without variableData, the sides it
+      // unbinds (Figma's own copy of an unbound Body padding, 2026-10-17); a copied layer simply loses its bindings.
+      const entry = this.target(ref);
+      const bound = this.w.bindings(PADDING_FIELDS.map((field, i) => [field, edit.paddingVars?.[i]])).parameterConsumptionMap?.entries ?? [];
+      Object.assign(entry, paddingFields(edit.padding));
+      if (ref.kind === "row") {
+        const open = PADDING_FIELDS.filter((field) => !bound.some((b) => b.variableField === field)).map((variableField) => ({ variableField }));
+        consume(entry, "parameterConsumptionMap", [...bound, ...open]);
+        consume(entry, "variableConsumptionMap", open);
+      } else {
+        consume(entry, "parameterConsumptionMap", bound, PADDING_FIELDS);
+        consume(entry, "variableConsumptionMap", [], PADDING_FIELDS);
+      }
+    }
     if (Array.isArray(edit.columns)) {
       const cols = ref.kind === "row" ? ref.row.more.cols?.map(guid) : ref.tmpl.gridColumns?.entries.map((entry) => entry.id);
       if (cols) this.target(ref).gridColumnsSizing = { entries: cols.map((col, i) => { const value = Math.max(0.01, Number(edit.columns[i]) || 0); return { id: col, trackSize: { minSizing: { type: "FLEX", value }, maxSizing: { type: "FLEX", value } } }; }) };
@@ -1156,12 +1219,45 @@ class InstanceBuild {
       else this.w.note(`${at}: layers can only be added inside a slot`);
     }
   }
+  /**
+   * A layer's size along an axis as Figma's override writes it (Figma's copy of a master layout that grows with its page,
+   * 2026-10-17): hugging (`hugW`/`hugH`) sets its own sizing on that axis to its content and stops it growing or
+   * stretching in its parent; filling (`fillW`/`fillH`) grows it along its parent's direction or stretches it across.
+   */
+  sizeLayer(ref, sizing, at) {
+    const modes = this.modesOf(ref);
+    if (!modes.parent) { this.w.note(`${at}: no auto layout around it to size it in`); return; }
+    const entry = this.target(ref);
+    for (const axis of ["W", "H"]) {
+      const hug = sizing[`hug${axis}`], fill = sizing[`fill${axis}`];
+      if (!hug && !fill) continue;
+      const horizontal = axis === "W";
+      const along = (modes.parent === "HORIZONTAL" || modes.parent === "GRID") === horizontal;
+      if (hug) {
+        if (modes.own !== "NONE") entry[(modes.own === "HORIZONTAL" || modes.own === "GRID") === horizontal ? "stackPrimarySizing" : "stackCounterSizing"] = "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE";
+        if (along) entry.stackChildPrimaryGrow = 0; else entry.stackChildAlignSelf = "AUTO";
+      } else if (along) entry.stackChildPrimaryGrow = 1;
+      else entry.stackChildAlignSelf = "STRETCH";
+    }
+  }
+  /** A layer's own auto layout direction and its parent's: a component layer's from the pack (a frame's `mode`, a slot's
+   *  layout, a nested instance's component), a copied layer's from its node (null: a parent this paste cannot see). */
+  modesOf(ref) {
+    if (ref.kind === "row") {
+      const modeOf = (row, path) => (row.type === "INSTANCE" ? this.w.index.tree(ref.build.symbolAt(path))?.mode : row.more.mode ?? row.more.slot?.stackMode) ?? "NONE";
+      const owner = this.w.index.tree(ref.symbol);
+      return { own: modeOf(ref.row, ref.path), parent: ref.row.parent < 0 ? owner?.mode ?? "NONE" : modeOf(owner.rows[ref.row.parent], null) };
+    }
+    const list = this.w.index.pack.contents[ref.content.template];
+    const own = ref.type === "INSTANCE" ? this.w.index.tree(key(ref.tmpl.symbolData.symbolID))?.mode ?? "NONE" : ref.tmpl.stackMode ?? "NONE";
+    return { own, parent: ref.tmpl.p >= 0 ? list[ref.tmpl.p].stackMode ?? "NONE" : null };
+  }
   hugLayer(hug, where) {
     const ref = this.layers([]).find((item) => item.name === hug.name);
     if (!ref) { this.w.note(`${where}: no layer ${hug.name} to hug`); return; }
-    const entry = this.target(ref);
-    if (hug.w) entry.stackPrimarySizing = "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE";
-    if (hug.h) entry.stackCounterSizing = "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE";
+    // By the layer's own direction, and no longer growing in its parent (a List-Box's Container-Slot is a column: its
+    // height was written on the wrong axis, Figma's copy of the plugin's import hugs it as below).
+    this.sizeLayer(ref, { hugW: hug.w, hugH: hug.h }, `${where} › ${hug.name}`);
   }
   hide(name, where) {
     const ref = this.layers([]).find((item) => item.name === name);

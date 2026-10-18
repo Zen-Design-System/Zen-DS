@@ -18,6 +18,7 @@ import { duplicateLayers, removeLayers, stepLayers } from "../multi";
 import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
 import { multiSelection } from "../../select/multiSelection";
 import { startTextEditOnSelection } from "../textEdit";
+import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
 /*
  * Every Studio action for Quick actions (⌘/, Figma's), with its shortcut and, when it cannot run now, why. Actions
@@ -57,8 +58,9 @@ export function commands(): Command[] {
     { id: "remove", group: "Edit", label: "Remove", shortcut: removeShortcut, keywords: "delete", disabled: editOff, run: () => { if (multiSelection.get().length) void removeLayers(); else if (node) void removeSelection(node); } },
     { id: "move-up", group: "Edit", label: "Move earlier", shortcut: "↑ ←", keywords: "reorder up left", disabled: editOff, run: () => { if (multiSelection.get().length) void stepLayers("prev"); else if (node) void stepLayer(node, "prev"); } },
     { id: "move-down", group: "Edit", label: "Move later", shortcut: "↓ →", keywords: "reorder down right", disabled: editOff, run: () => { if (multiSelection.get().length) void stepLayers("next"); else if (node) void stepLayer(node, "next"); } },
-    { id: "wrap-stack", group: "Edit", label: "Wrap in Stack (auto layout)", shortcut: autoLayoutShortcut, keywords: "group container", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("stack"); } },
-    { id: "wrap-box", group: "Edit", label: "Wrap in Box (frame)", shortcut: frameSelectionShortcut, keywords: "group container", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("box"); } },
+    { id: "wrap-stack", group: "Edit", label: "Add auto layout", shortcut: autoLayoutShortcut, keywords: "stack group container wrap", disabled: editOff ?? (wrap && !wrap.ok && !isFrameWithoutAutoLayout(selection ?? null) ? wrap.reason : undefined), run: () => { void addAutoLayoutToSelection(); } },
+    { id: "remove-auto-layout", group: "Edit", label: "Remove auto layout", shortcut: removeAutoLayoutShortcut, keywords: "stack box frame", disabled: editOff ?? (isAutoLayoutFrame(selection ?? null) ? undefined : "Select an auto layout frame on a page you made"), run: () => { void removeAutoLayoutFromSelection(); } },
+    { id: "wrap-box", group: "Edit", label: "Frame selection", shortcut: frameSelectionShortcut, keywords: "box group container wrap", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("box"); } },
     // The Design tab's Position toggle, for one layer or several (edit/ignoreAutoLayout.ts): floating on, or back in the flow.
     { id: "ignore-auto-layout", group: "Edit", label: "Ignore auto layout (float) / back in auto layout", keywords: "absolute position float constraints", disabled: editOff, run: () => { void toggleIgnoreAutoLayout(); } },
     { id: "detach", group: "Edit", label: "Detach instance", shortcut: detachShortcut, disabled: editOff ?? (node && !offersDetach(node.name) ? `${node.name} is not a component instance` : undefined), run: () => { if (node) void detachSelection(node); } },

@@ -799,7 +799,7 @@ function LiteralValue({ value }: { value: Literal }) {
 }
 
 /** A select's options in Figma's order with Figma's names when the row has them (generated groups, propGroups.ts). */
-const namedOptions = (options: string[], names: Readonly<Record<string, string>> | undefined) => (names ? figmaOptions(options, names, matchOption) : { options, labels: undefined });
+const namedOptions = (options: string[], names: Readonly<Record<string, string>> | undefined, current?: string) => (names ? figmaOptions(options, names, matchOption, current) : { options, labels: undefined });
 
 /** The editor for a value edited at its data (text, number, a choice), showing what it renders now; null: no editor. */
 function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void, optionLabels?: Readonly<Record<string, string>>, component?: string): ReactNode {
@@ -810,7 +810,7 @@ function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boo
       // A picture from data (a row's photo): Figma's image picker; the pick is written in that row's data.
       return <PhotoControl label={label} disabled={disabled} value={typeof live === "string" ? live : undefined} onSet={(next) => onSet(next)} people={component !== "Image"} />;
     case "enum":
-      return <EnumControl {...common} {...namedOptions(editor.options, optionLabels)} value={typeof live === "string" ? live : undefined} onSet={onSet} />;
+      return <EnumControl {...common} {...namedOptions(editor.options, optionLabels, typeof live === "string" ? live : undefined)} value={typeof live === "string" ? live : undefined} onSet={onSet} />;
     case "number-enum":
       return <NumberEnumControl {...common} options={editor.options} value={typeof live === "number" ? live : undefined} onSet={onSet} />;
     case "number": {
@@ -848,7 +848,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
         ? <SwatchControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} component={extra.component} palette={palette} />
         : scale
           ? <ScaleField {...common} prop={spec.name} scale={scale} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />
-          : <EnumControl {...common} {...namedOptions(editor.options, extra.optionLabels)} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />;
+          : <EnumControl {...common} {...namedOptions(editor.options, extra.optionLabels, enumValue)} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />;
     }
     case "number-enum":
       return <NumberEnumControl {...common} options={editor.options} value={typeof literal === "number" ? literal : undefined} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />;

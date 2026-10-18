@@ -16,7 +16,8 @@ import { undoShortcut } from "./status";
 
 /*
  * The Design tab while several layers are selected (Figma's multi-selection): how many, which ones (a row selects that
- * layer alone), and "Wrap in container": a Stack laid out as they render now (auto layout, ⇧A) or a plain Box (⌥⌘G).
+ * layer alone), and Figma's Frame actions: Add auto layout (a Stack laid out as they render now, ⇧A) or Frame selection
+ * (a plain Box, ⌥⌘G).
  * Layers of one component also show their shared properties (Mixed where they differ; edit/MixedProperties.tsx).
  */
 
@@ -49,17 +50,17 @@ export function SelectionActions() {
       </header>
 
       {check.ok || !check.hidden ? (
-        <InspectorSection title="Wrap in container" note="Stack is auto layout: the layers keep how they sit now (direction, gap, align). Box is a plain container: its children flow as blocks.">
+        <InspectorSection title="Frame" note="Add auto layout keeps how the layers sit now (direction, gap, alignment); Frame selection puts them in a frame.">
           <div className="studio-inspector__actions">
-            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`Wrap in Stack (${autoLayoutShortcut})`} disabled={blocked !== null} onClick={() => { void wrapSelection("stack"); }}>
-              Stack
+            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`Add auto layout (${autoLayoutShortcut})`} disabled={blocked !== null} onClick={() => { void wrapSelection("stack"); }}>
+              Add auto layout
             </Button>
-            <Button level="tertiary" size="sm" startIcon="icon-square-line" aria-keyshortcuts={frameSelectionKeys} title={`Wrap in Box (${frameSelectionShortcut})`} disabled={blocked !== null} onClick={() => { void wrapSelection("box"); }}>
-              Box
+            <Button level="tertiary" size="sm" startIcon="icon-square-line" aria-keyshortcuts={frameSelectionKeys} title={`Frame selection (${frameSelectionShortcut})`} disabled={blocked !== null} onClick={() => { void wrapSelection("box"); }}>
+              Frame selection
             </Button>
           </div>
           <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`} role={blocked && !running ? "status" : undefined}>
-            {blocked ? say(blocked) : `Stack ${autoLayoutShortcut} · Box ${frameSelectionShortcut} · ${undoShortcut} to undo`}
+            {blocked ? say(blocked) : `Add auto layout ${autoLayoutShortcut} · Frame selection ${frameSelectionShortcut} · ${undoShortcut} to undo`}
           </p>
         </InspectorSection>
       ) : (
