@@ -55,7 +55,7 @@ export function commands(): Command[] {
     { id: "edit-text", group: "Edit", label: "Edit text", shortcut: "Enter", keywords: "type content copy", disabled: editOff, run: () => { if (!startTextEditOnSelection()) press({ key: "Enter", code: "Enter" }); } },
     { id: "copy", group: "Edit", label: "Copy", shortcut: clipboardShortcuts.copy, disabled: layerOff, run: () => { if (node) void clipboardActions.copy(node); } },
     { id: "cut", group: "Edit", label: "Cut", shortcut: clipboardShortcuts.cut, disabled: editOff, run: () => { if (node) void clipboardActions.cut(node); } },
-    { id: "paste", group: "Edit", label: "Paste", shortcut: clipboardShortcuts.paste, disabled: editOff, run: () => { if (node) void clipboardActions.paste(node); } },
+    { id: "paste", group: "Edit", label: "Paste", shortcut: clipboardShortcuts.paste, disabled: editOff, run: () => { void clipboardActions.paste(node ?? null); } },
     { id: "paste-replace", group: "Edit", label: "Paste to replace", shortcut: clipboardShortcuts.replace, disabled: editOff, run: () => { if (node) void clipboardActions.replace(node); } },
     { id: "copy-props", group: "Edit", label: "Copy properties", shortcut: clipboardShortcuts.copyProps, keywords: "style", disabled: layerOff, run: () => { if (node) void clipboardActions.copyProperties(node); } },
     { id: "paste-props", group: "Edit", label: "Paste properties", shortcut: clipboardShortcuts.pasteProps, keywords: "style", disabled: editOff ?? (clipboardActions.hasProperties() ? undefined : "Copy properties first"), run: () => { if (node) void clipboardActions.pasteProperties(node); } },

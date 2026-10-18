@@ -9,7 +9,8 @@
 //                                              loc of a layer in the slot it follows; `paste`: ⌘V into a slot, so the
 //                                              code may read names bound where it lands (pasteCode's rule)
 //        op "removeElement" {}                 `removed` = true
-//        op "duplicateElement" {}              `inserted` = { loc } of the copy
+//        op "duplicateElement" { offset? }     `inserted` = { loc } of the copy; offset { dx, dy }: its px insets moved
+//                                              by that much (⌘D after moving a copy repeats the move, Figma)
 //        op "moveElement" { to: "prev"|"next" } `moved` = { loc } of the element at its new place
 //        op "moveTo" { parent, before?, after?, copy? }  drag to reorder / reparent / ⌥-copy in the same file
 //                                              (arrange.mjs); `moved` = { loc }, or `inserted` = { loc } for a copy;
@@ -72,7 +73,7 @@ import { parseExpression } from "@babel/parser";
 import { CHROME_MARK, EditError, applyEdits, changedRange, chromeFunctions, collapseJsxText, describeAttr, describeAttrsIn, findElement, formatAttr, insideAny, isAnnotatedFile, jsxName, parseLoc, parseSource, sha1, snippetLiterals, staticString, walk } from "./jsx-source.mjs";
 import { isPlaygroundFile } from "./shared-code.mjs";
 import { UNIT, pathTo, piece } from "./source-helpers.mjs";
-import { childRefusal, holdsElements, inScreenContent, manyPlan, moveToPlan, pasteCodePlan, replacePlan } from "./arrange.mjs";
+import { childRefusal, holdsElements, inScreenContent, manyPlan, moveToPlan, pasteCodePlan, pxOf, replacePlan } from "./arrange.mjs";
 import { ITEM_OPS, itemPlan } from "./items.mjs";
 
 const BOM = "\uFEFF";
@@ -1700,16 +1701,35 @@ function removePlan(ctx, nodePath) {
 
 /* ── duplicateElement ─────────────────────────────────────────────────────────────────────────────────────────────── */
 
-function duplicatePlan(ctx, nodePath) {
+/**
+ * The element's code with its px insets moved by `offset` (⌘D after a copy was moved repeats that move, Figma):
+ * insetLeft / insetTop gain dx / dy, insetRight / insetBottom lose them; an inset that is not a px number stays.
+ */
+function shiftedSource(text, element, offset) {
+  const src = text.slice(element.start, element.end);
+  if (!offset || (!offset.dx && !offset.dy)) return src;
+  const edits = [];
+  for (const attr of element.openingElement.attributes) {
+    const name = attrName(attr);
+    const delta = name === "insetLeft" ? offset.dx : name === "insetRight" ? -offset.dx : name === "insetTop" ? offset.dy : name === "insetBottom" ? -offset.dy : 0;
+    const px = delta ? pxOf(attr) : null;
+    if (px === null) continue;
+    edits.push({ start: attr.value.start - element.start, end: attr.value.end - element.start, text: `{${Math.round(px + delta)}}` });
+  }
+  return applyEdits(src, edits);
+}
+
+function duplicatePlan(ctx, nodePath, offset = null) {
   const { text, element, eol, unit } = ctx;
   const name = jsxName(element.openingElement.name);
   const what = `<${name}>`;
   const key = element.openingElement.attributes.find((attr) => attrName(attr) === "key");
   if (key) refuse(`${what} has a key (${short(text.slice(key.start, key.end))}); a copy would repeat it. Edit it in the code.`);
+  if (offset !== null && !(Number.isFinite(offset?.dx) && Number.isFinite(offset?.dy))) refuse("`offset` must be { dx, dy } in px");
   let i = nodePath.length - 1;
   while (i > 0 && TS_WRAPPERS.has(nodePath[i - 1].type)) i -= 1;
   const parent = nodePath[i - 1];
-  const src = text.slice(element.start, element.end);
+  const src = shiftedSource(text, element, offset);
   const asChild = parent.type === "JSXElement" || parent.type === "JSXFragment" || (parent.type === "JSXExpressionContainer" && ["JSXElement", "JSXFragment"].includes(nodePath[i - 2]?.type));
   let plan;
   let kind;
@@ -1729,7 +1749,8 @@ function duplicatePlan(ctx, nodePath) {
     kind = "fragment";
     const holder = parent.type === "JSXAttribute" ? parent : parent.type === "VariableDeclarator" ? nodePath[i - 2] : nodePath.slice(0, i).findLast((node) => node.type === "JSXAttribute") ?? element;
     const part = piece(text, element);
-    if (!/[\r\n]/.test(src)) plan = placed({ start: element.start, end: element.end, text: `<>${src}${src}</>` }, 2 + src.length);
+    const original = text.slice(element.start, element.end);
+    if (!/[\r\n]/.test(src)) plan = placed({ start: element.start, end: element.end, text: `<>${original}${src}</>` }, 2 + original.length);
     else {
       const base = startsLine(text, element.start) ? indentAt(text, element.start) : indentAt(text, holder.start);
       const inner = base + unit;
@@ -2939,7 +2960,7 @@ export function applySlotOp(code, loc, name, op, options = {}) {
     guard(ctx, nodePath, op.op);
     if (op.op === "insertChild") plan = insertPlan(ctx, nodePath, op);
     else if (op.op === "removeElement") plan = removePlan(ctx, nodePath);
-    else if (op.op === "duplicateElement") plan = duplicatePlan(ctx, nodePath);
+    else if (op.op === "duplicateElement") plan = duplicatePlan(ctx, nodePath, op.offset ?? null);
     else if (op.op === "clearSlot") plan = clearPlan(ctx, op);
     else if (op.op === "resetSlot") plan = resetPlan(ctx, nodePath, op, base);
     else if (op.op === "moveTo") plan = moveToPlan(ctx, nodePath, op, ARRANGE_HELPERS);

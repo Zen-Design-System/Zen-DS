@@ -9,7 +9,7 @@ import { useExtraSelection } from "../select/multiSelection";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../select/wrapSelection";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
 import { useSlotMenuItems } from "../slots/menu";
-import { clipboardActions, clipboardMenuItems, clipboardShortcuts } from "../edit/clipboard";
+import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { visibilityMenuItems } from "../edit/visibility";
@@ -136,7 +136,7 @@ export function CanvasMenu() {
   const renameItem = (label: string): MenuItemData => ({ id: "rename", label, icon: "icon-text-input-line", shortcut: renameShortcut, disabled: Boolean(canEdit() ? undefined : "View only"), onSelect: () => { requestAnimationFrame(startRename); } });
   const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), ...lockMenuItems(selection), ...(studioStore.getState().localPage && selection && !selection.part ? [renameItem("Rename")] : [])] : [];
   // Copy / Cut / Paste / Paste to replace / properties first, as in Figma's layer menu (edit/clipboard.ts).
-  const clipboard = clipboardMenuItems(selection);
+  const clipboard = clipboardMenuItems(selection, menu ? { x: menu.x, y: menu.y } : null);
   const editOff = canEdit() ? undefined : studioStore.getState().role === "admin" ? "Can't edit right now" : "View only";
   // Several layers: the edits that work on all of them at once (Figma's multi-selection menu), then the wrap items.
   const severalItems: MenuEntry[] = selection ? [
@@ -162,6 +162,8 @@ export function CanvasMenu() {
   const frame = menu?.target.kind === "frame" ? findFrame(menu.target.frameId) : null;
   const localPage = studioStore.getState().localPage;
   const frameItems: MenuEntry[] = frame ? [
+    // Figma's Paste here: the clipboard at the pointer, in the layout or frame under it (edit/clipboard.ts, F3).
+    ...(menu ? [pasteHereItem({ x: menu.x, y: menu.y }), { type: "separator" as const, id: "frame-paste-separator" }] : []),
     { id: "frame-zoom", label: "Zoom to selection", icon: "icon-zoom-in-line", shortcut: "⇧2", onSelect: () => zoomToFrame(frame.element) },
     // Present plays a page you made from this Screen (Figma's Present runs the prototype); an example frame is presented.
     ...(localPage || frame.id.startsWith("example:") ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),

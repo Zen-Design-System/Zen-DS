@@ -11,9 +11,10 @@
 //     replace with copy: the copy takes the place of the child at that loc, which goes (⇧⌘R, paste to replace)
 //
 //   op "replaceElement" { code, state? }   on the element it replaces (Swap instance: a prop's or slot's component, a layer)
-//   op "pasteCode" { code, before?, after?, replace? }   on the element the code goes into (⌘V from another file or
+//   op "pasteCode" { code, before?, after?, replace?, at? }   on the element the code goes into (⌘V from another file or
 //     after a cut): `code` is one JSX element; names it reads must exist there, or be Zen components (imported) or
-//     `toast`; `inserted` = { loc }
+//     `toast`; `inserted` = { loc }. `at` { x, y }: px in the frame without auto layout it lands in (Figma's Paste
+//     here, ⌘V at its place): the layers float there (floatAt)
 //
 // Rules:
 // - Only a child of an element or fragment moves (`<X />` or `{<X />}` among children); an element in a prop, a
@@ -325,6 +326,60 @@ function tidyImports(ctx, h, edits, needed) {
   return needed.length || unused.length ? h.importChanges(ctx.ast, ctx.text, ctx.eol, ctx.file, needed, unused, ctx.folders) : [];
 }
 
+/** The props that place a floating layer: a paste at a point writes its own. */
+const POSITION_PROPS = new Set(["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft"]);
+/** Layers that float themselves; any other floats in a Box of its own (edit/autoLayoutPlan.ts floatingCode). */
+const FLOATS = new Set(["Stack", "Grid", "Box", "Shape"]);
+
+/** The px an attribute is written as (`insetLeft={40}`, `{-4}`, `"40"`), else null (a token step, a binding). */
+export function pxOf(attribute) {
+  const value = attribute?.value;
+  if (value?.type === "StringLiteral") return /^-?\d+(\.\d+)?$/.test(value.value) ? Number(value.value) : null;
+  const expression = value?.type === "JSXExpressionContainer" ? value.expression : null;
+  if (expression?.type === "NumericLiteral") return expression.value;
+  if (expression?.type === "UnaryExpression" && expression.operator === "-" && expression.argument.type === "NumericLiteral") return -expression.argument.value;
+  return null;
+}
+
+/**
+ * Pasted layers placed at `at` px in a frame without auto layout (Figma's Paste here; ⌘V with nothing selected at its
+ * place): the corner of the box around them goes there and each keeps its offset from the others (its own insetLeft /
+ * insetTop; none: 0). Their constraints and other insets go (pinned left / top, as a move writes them). A layer that
+ * cannot float itself (not a Stack / Grid / Box / Shape) floats in a Box of its own. `raw`: the pasted elements' code.
+ */
+export function floatAt(raw, at) {
+  const wrapped = `<>\n${raw}\n</>`;
+  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"] });
+  const elements = fragment.children.filter((child) => child.type === "JSXElement");
+  const own = elements.map((element) => {
+    const attributes = element.openingElement.attributes.filter((attribute) => attribute.type === "JSXAttribute");
+    const named = (name) => attributes.find((attribute) => jsxName(attribute.name) === name);
+    return { element, attributes, x: pxOf(named("insetLeft")) ?? 0, y: pxOf(named("insetTop")) ?? 0 };
+  });
+  const left = Math.min(...own.map((entry) => entry.x));
+  const top = Math.min(...own.map((entry) => entry.y));
+  const edits = [];
+  for (const { element, attributes, x, y } of own) {
+    const place = `position="absolute" insetLeft={${Math.round(at.x + x - left)}} insetTop={${Math.round(at.y + y - top)}}`;
+    const name = jsxName(element.openingElement.name);
+    if (FLOATS.has(name.slice(name.lastIndexOf(".") + 1))) {
+      for (const attribute of attributes) {
+        if (!POSITION_PROPS.has(jsxName(attribute.name))) continue;
+        let start = attribute.start;
+        while (start > 0 && /\s/.test(wrapped[start - 1])) start -= 1;
+        edits.push({ start, end: attribute.end, text: "" });
+      }
+      edits.push({ start: element.openingElement.name.end, end: element.openingElement.name.end, text: ` ${place}` });
+      continue;
+    }
+    const lineStart = wrapped.lastIndexOf("\n", element.start - 1) + 1;
+    const indent = /^[ \t]*/.exec(wrapped.slice(lineStart))[0];
+    const body = wrapped.slice(element.start, element.end).split("\n").map((line, index) => (index === 0 ? `${indent}  ${line}` : `  ${line}`)).join("\n");
+    edits.push({ start: element.start, end: element.end, text: `<Box ${place}>\n${body}\n${indent}</Box>` });
+  }
+  return applyEdits(wrapped, edits).slice(3, -4);
+}
+
 /** Names pasted code may read without a binding where it lands. */
 const GLOBALS = new Set(["undefined", "NaN", "Infinity", "Math", "Date", "Number", "String", "Boolean", "Array", "Object", "JSON", "Intl", "console", "window", "document"]);
 
@@ -341,8 +396,17 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   if (typeof raw !== "string" || !raw.trim()) h.refuse("pasteCode needs `code`: one JSX element");
   if (raw.length > 65536) h.refuse("The code is too long (64 KB at most)");
   if (/[\u2028\u2029]/.test(raw)) h.refuse("The code holds a line separator (U+2028/U+2029)");
+  if (op.at !== undefined && !(op.at && Number.isFinite(op.at.x) && Number.isFinite(op.at.y))) h.refuse("`at` must be { x, y } in px");
+  let code = raw.replace(/\r\n|\r/g, "\n").replace(/^(?:[ \t]*\n)+/, "").replace(/\s+$/, "");
+  if (op.at) {
+    try {
+      code = floatAt(code, op.at);
+    } catch (error) {
+      h.refuse(`The clipboard is not JSX elements: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")}`);
+    }
+  }
   // An Assets item with state (op.state, as insertChild takes it): its names are renamed fresh before anything reads them.
-  const state = h.stateFor(ctx, raw.replace(/\r\n|\r/g, "\n").replace(/^(?:[ \t]*\n)+/, "").replace(/\s+$/, ""), op.state);
+  const state = h.stateFor(ctx, code, op.state);
   const src = state.src;
   // One JSX element, or several side by side (several layers copied together), each one its own line(s).
   const wrapped = `<>\n${src}\n</>`;
@@ -517,7 +581,7 @@ export function manyPlan(ctx, nodePath, op, h) {
     const local = { ...ctx, element };
     h.guard(local, path, action === "remove" ? "removeElement" : "duplicateElement");
     if (action === "remove") return { edits: h.removal(local, path, path.length - 1, `<${jsxName(element.openingElement.name)}>`).edits, focus: null };
-    return h.duplicatePlan(local, path);
+    return h.duplicatePlan(local, path, op.offset ?? null);
   });
   const edits = plans.flatMap((plan) => plan.edits);
   const sorted = [...edits].sort((a, b) => a.start - b.start);

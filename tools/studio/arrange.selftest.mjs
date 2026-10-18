@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { applySlotOp } from "./slots.mjs";
 import { parseSource, sha1 } from "./jsx-source.mjs";
+import { floatAt } from "./arrange.mjs";
 
 const FILE = "src/platform/examples/pages/arrange-demo.tsx";
 const SOURCE = `import { useState } from "react";
@@ -323,6 +324,21 @@ test("pasteCode: several layers paste in order, at one place", () => {
   assert.ok(!result.error, result.error);
   assert.match(result.code, /<Badge>Three<\/Badge>\n {8}<Text>First<\/Text>\n {8}<Badge>Second<\/Badge>\n {6}<\/Stack>/);
   assert.equal(result.inserted.loc, locOf(result.code, "<Text>First"));
+});
+
+test("floatAt (F3 Paste here): the group's corner at the point, offsets kept, constraints gone, others in a Box", () => {
+  assert.equal(floatAt('<Shape type="rectangle" position="absolute" constraintX="right" insetLeft={40} insetRight={8} insetTop={30} />', { x: 100, y: 50 }),
+    '<Shape position="absolute" insetLeft={100} insetTop={50} type="rectangle" />');
+  assert.equal(floatAt('<Box position="absolute" insetLeft={10} insetTop={20}>\n  <Text>A</Text>\n</Box>\n<Shape\n  position="absolute"\n  insetLeft={30}\n  insetTop={5}\n/>', { x: 0, y: 0 }),
+    '<Box position="absolute" insetLeft={0} insetTop={15}>\n  <Text>A</Text>\n</Box>\n<Shape position="absolute" insetLeft={20} insetTop={0}\n/>');
+  assert.equal(floatAt("<Button>Go</Button>", { x: 12.4, y: 7 }), '<Box position="absolute" insetLeft={12} insetTop={7}>\n  <Button>Go</Button>\n</Box>');
+});
+
+test("pasteCode at: the layers land floating at the point", () => {
+  const result = paste(inner, { code: '<Shape type="ellipse" position="absolute" insetLeft={300} insetTop={200} />', at: { x: 16, y: 24 } });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Shape position="absolute" insetLeft=\{16\} insetTop=\{24\} type="ellipse" \/>/);
+  assert.match(paste(inner, { code: "<Text>x</Text>", at: { x: "a" } }).error, /`at`/);
 });
 
 const many = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "many", ...op }, { file: FILE, hash: sha1(code) });

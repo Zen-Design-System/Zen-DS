@@ -88,14 +88,13 @@ function selectAt(sent: Sent, items: Moving[], locs: Record<string, string> | un
   return true;
 }
 
-/** Delete / Backspace with several layers selected (a wrapped component goes with its wrap Stack). */
+/** Delete / Backspace with several layers selected (a wrapped component goes with its wrap Stack); nothing is selected after it, as in Figma. */
 export async function removeLayers(layers: ExtraLayer[] = selectedLayers()) {
   const items = await withWraps(layers);
   const done = await send(items.map((item) => item.moving), "remove", `Remove ${layers.length} layers`);
   if (!done) return false;
   multiSelection.clear();
-  const frameId = layers[0]?.frameId ?? null;
-  studioStore.setState({ selection: frameId ? { kind: "frame", frameId } : null });
+  studioStore.setState({ selection: null });
   return true;
 }
 
