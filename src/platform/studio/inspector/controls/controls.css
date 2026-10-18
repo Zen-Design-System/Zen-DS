@@ -5,7 +5,7 @@
    2026-10-15, the paler Neutral/Pale read off next to them) — Figma's alignment control ── */
 .studio-align-box { display: grid; flex: 0 0 auto; grid-template-columns: repeat(3, 24px); grid-template-rows: repeat(3, 20px); padding: var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-input-background-default); }
 .studio-align-box__target { position: relative; display: grid; min-width: 0; min-height: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px); place-items: center; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-light); cursor: pointer; }
-.studio-align-box__target:hover:not(:disabled) { background: var(--zen-color-background-surface-hover); }
+.studio-align-box__target:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover); }
 .studio-align-box__target:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--zen-color-focus-neutral-solid); }
 .studio-align-box__target:disabled { cursor: default; }
 .studio-align-box__dot { width: 4px; height: 4px; grid-area: 1 / 1; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; }

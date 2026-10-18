@@ -100,6 +100,8 @@ export const rules = [
     summary: "Text colour comes from Color/Content/*, fills from Color/Background/*, strokes from Color/Border/*: a background or border token is never text colour." },
   { id: "color/role-fill", severity: "warn", allow: "colour-role", scope: ["css", "inline"], guideline: "docs/guidelines/background-layers.md",
     summary: "Backgrounds use Color/Background/* and borders Color/Border/*; a content (text/icon) token as a fill or border needs a reason (icon masks are fine)." },
+  { id: "color/flat-state", severity: "error", allow: "flat-state", scope: ["css"], guideline: "docs/guidelines/background-layers.md",
+    summary: "A Flat element (no fill at rest: background none, transparent or *-flat-default) hovers and presses with the Flat ramp (--zen-color-background-*-flat-hover / -flat-pressed), never Subtle/Surface/Solid state fills: Subtle/Hover is darker than Selected, so a hovered row reads as selected. A selected row (it has a fill) may move to Subtle/Hover." },
   { id: "shadow/token", severity: "error", allow: "raw-shadow", scope: ["css", "inline"], guideline: "docs/guidelines/background-layers.md",
     summary: "Elevation uses --zen-style-*-shadow tokens; hand-written shadows ignore theme and mode. Rings (0 0 0 Npx token) and inset hairlines are fine." },
   { id: "size/slot-token", severity: "warn", allow: "slot-size", scope: ["css"], guideline: "docs/qa/build-qa-process.md#density",
@@ -232,12 +234,48 @@ function checkDecl(prop, value, ctx) {
 const allowedAt = (lines, lineNo, allow) => { for (let i = Math.max(0, lineNo - 5); i < lineNo; i++) if (lines[i]?.includes(`zen-allow-${allow}`)) return true; return false; };
 const lineOf = (src, index) => src.slice(0, index).split("\n").length;
 
+/* ── color/flat-state: a Flat element hovers and presses on the Flat ramp ───────────────────────────────────────── */
+// Flat = no fill at rest (Figma's Flat variant). Neutral/Flat/Hover is alpha 2, Active/Neutral/Subtle (selected) alpha 3
+// and Neutral/Subtle/Hover alpha 4: a Flat row hovered with Subtle/Hover looks darker than the selected one. Selected
+// rows are exempt (they have a fill; Sidebar's Selected + Hover moves to Subtle/Hover).
+const FLAT_REST = /^(none|transparent|var\(--zen-color-background-[a-z-]+-flat-default\b.*\))$/;
+const STATE_MARK = /:(hover|active)\b|\[data-state="(hover|pressed)"\]/;
+const SELECTED_MARK = /\[(aria-current|aria-selected="true"|aria-pressed="true"|aria-checked="true"|aria-expanded="true"|data-selected|data-active|data-state="(selected|active|checked)")|\.is-(selected|active|current)\b/;
+const PAREN = "(?:[^()]|\\([^()]*\\))*";
+const FLAT_STATE_TOKENS = new Set(fs.readFileSync(path.join(root, "src/styles/tokens.css"), "utf8").match(/--zen-color-background-[a-z-]+-flat-(hover|pressed)/g));
+/** The selector without its hover/pressed/:not() parts, so `.row:hover:not(:disabled)` meets its rest rule `.row`. */
+const baseOf = (sel) => sel
+  .replace(new RegExp(`:is\\((${PAREN})\\)`, "g"), (all, inner) => STATE_MARK.test(inner) ? "" : all)
+  .replace(new RegExp(`:not\\(${PAREN}\\)`, "g"), "")
+  .replace(new RegExp(STATE_MARK.source, "g"), "")
+  .replace(/\s+/g, " ").trim();
+function flatSelectors(code) {
+  const out = new Set(); const re = /([^{}]+)\{([^{}]*)\}/g; let m;
+  while ((m = re.exec(code))) {
+    const bg = [...m[2].matchAll(/(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/g)].map((d) => d[1].trim()).pop();
+    if (!bg || !FLAT_REST.test(bg)) continue;
+    for (const s of m[1].replace(/^[\s\S]*[;}]/, "").split(",")) if (!STATE_MARK.test(s) && !SELECTED_MARK.test(s)) out.add(baseOf(s));
+  }
+  return out;
+}
+function flatStateMessage(selector, prop, value, flat) {
+  if (!/^background(-color)?$/.test(prop) || !STATE_MARK.test(selector)) return null;
+  const bad = [...value.matchAll(/--zen-color-background-([a-z0-9-]+?)-(hover|pressed)\b/g)].find((t) => !t[1].endsWith("-flat"));
+  if (!bad) return null;
+  const part = selector.split(",").find((s) => STATE_MARK.test(s) && !SELECTED_MARK.test(s) && flat.has(baseOf(s)));
+  if (!part) return null;
+  const role = bad[1].split("-")[0];
+  const want = [`--zen-color-background-${role}-flat-${bad[2]}`, `--zen-color-background-neutral-flat-${bad[2]}`].find((t) => FLAT_STATE_TOKENS.has(t));
+  return `${baseOf(part)} has no fill at rest (Flat), so its ${bad[2]} fill is ${want} — ${bad[0]} is a filled-variant state (Subtle/Hover is darker than Selected, so the row reads as selected)`;
+}
+
 /* ── CSS ────────────────────────────────────────────────────────────────────────────────────────────────────────── */
 function checkCss(file, src) {
   const findings = [];
   // Blank comments but keep their newlines, so line numbers stay true.
   const code = src.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " "));
   const lines = src.split("\n");
+  const flat = flatSelectors(code);
   const re = /([^{}]+)\{([^{}]*)\}/g; let m;
   while ((m = re.exec(code))) {
     const selector = m[1].replace(/^[\s\S]*[;}]/, "").trim();
@@ -254,6 +292,8 @@ function checkCss(file, src) {
         if (allowedAt(lines, lineNo, RULE[f.rule].allow)) continue;
         findings.push({ file, line: lineNo, ...f, context: `${selector.replace(/\s+/g, " ").slice(0, 80)} { ${prop}: ${value.replace(/\s+/g, " ")} }` });
       }
+      const flatState = flatStateMessage(selector, prop, value, flat);
+      if (flatState && !allowedAt(lines, lineNo, RULE["color/flat-state"].allow)) findings.push({ file, line: lineNo, rule: "color/flat-state", message: flatState, context: `${selector.replace(/\s+/g, " ").slice(0, 80)} { ${prop}: ${value.replace(/\s+/g, " ")} }` });
     }
     // Mixed text styles across the declarations of one rule.
     const styles = new Map(); const pairs = new Set();
