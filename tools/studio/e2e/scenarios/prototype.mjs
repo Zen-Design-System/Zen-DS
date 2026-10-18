@@ -479,11 +479,8 @@ export const rows = [
     async run(ctx) {
       const { page } = await newPage(ctx);
       await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame", exact: true }).click();
-      const box = await page.locator(".studio-viewport").boundingBox();
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height - 160);
-      await page.mouse.down();
-      await page.mouse.up();
-      await page.getByRole("menu", { name: "New frame" }).getByRole("menuitem", { name: /^iPhone\b/ }).first().click();
+      // Figma's frame presets (F4): the right panel while the Frame tool is on.
+      await page.locator("#studio-right").getByRole("list", { name: "Phone" }).getByRole("button", { name: /^iPhone\s*390 × 844$/ }).click();
       await page.locator('[data-studio-frame="screen:screen-2"]').waitFor({ state: "visible", timeout: 5000 });
       // The new Screen is selected: its Present button (Inspector › Frame).
       await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();

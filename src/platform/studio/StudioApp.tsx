@@ -461,6 +461,12 @@ export function StudioApp() {
           return;
         }
         if (key === "y" && event.ctrlKey && !inExample) { event.preventDefault(); if (canEdit(state)) void redoEdit(); return; }
+        // ⌘⌫ on a selected Section of a page you made: Figma's delete section, keep its frames (F4).
+        if ((event.key === "Backspace" || event.key === "Delete") && !doc && !event.repeat && !event.shiftKey && state.localPage && state.tool === "select"
+          && state.selection?.kind === "frame" && state.selection.frameId.startsWith("section:") && canEdit(state)) {
+          event.preventDefault();
+          void removeFrame(state.localPage, state.selection.frameId, { keepContents: true });
+        }
         return;
       }
       // ⌥⇧A: Figma's Remove auto layout on a Stack (edit/autoLayout.ts): a Box, each layer where it shows.
@@ -490,8 +496,8 @@ export function StudioApp() {
         if (!doc && !event.repeat && !event.shiftKey && onFrame && state.tool === "select" && selection?.kind === "frame" && state.localPage
           && /^(screen|overlay|section):/.test(selection.frameId) && canEdit(state)) {
           event.preventDefault();
-          // A Section goes with its frames; ⌘⌫ keeps them (Figma's Delete section, keep contents).
-          void removeFrame(state.localPage, selection.frameId, { keepContents: event.metaKey || event.ctrlKey });
+          // A Section goes with its frames (⌘⌫ keeps them: the ⌘ keys above).
+          void removeFrame(state.localPage, selection.frameId);
           return;
         }
         if (doc || event.repeat || event.shiftKey || !here || state.tool !== "select" || selection?.kind !== "node") return;

@@ -13,6 +13,7 @@ import { useStudioServer } from "../api";
 import { canvasApi, getSafeBox, getViewport, getViewportBox } from "../canvas/viewport";
 import { frameIcon, isBuilderFrame } from "../inspector/frames";
 import { FrameHandles } from "./FrameHandles";
+import { openFrameMenu } from "../shell/CanvasMenu";
 import { ChromeScope } from "../shell/ChromeScope";
 import { confirmFrameDiscard, requestFrameSave, useFrameDrafts, useStudioDrafts } from "../sourceDrafts";
 import { canEdit, pageKey, setFrameOverride, studioStore, useStudio } from "../store";
@@ -117,14 +118,22 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
     const labelBoxes = new Map<string, Rect>();
     const labelHidden = new Map<string, boolean>();
     const labelInside = new Map<string, boolean>();
-    for (const { frame, rect } of placed) {
+    // Frames first, then the Sections' names, which make room for the frames' (below).
+    for (const { frame, rect } of [...placed.filter((entry) => entry.frame.kind !== "section"), ...placed.filter((entry) => entry.frame.kind === "section")]) {
       const size = sizeOf(`label:${frame.id}`, { width: 0, height: 16 });
       if (frame.kind === "section") {
-        // A Section's name: inside its top-left corner at every zoom, while the Section has room for it.
-        const box = { x: rect.x + SECTION_INSET, y: rect.y + SECTION_INSET, width: Math.min(size.width, rect.width - SECTION_INSET * 2), height: size.height };
+        // A Section's name: inside its top-left corner at every zoom, while the Section has room for it; above its corner
+        // (where a frame's name sits) when a frame's name is there already (a Section drawn close around a frame).
+        const width = Math.min(size.width, rect.width - SECTION_INSET * 2);
+        let box = { x: rect.x + SECTION_INSET, y: rect.y + SECTION_INSET, width, height: size.height };
+        let inside = true;
+        if ([...labelBoxes.values()].some((label) => overlaps(box, label))) {
+          box = { x: rect.x, y: rect.y - LABEL_GAP - size.height, width, height: size.height };
+          inside = false;
+        }
         const hidden = rect.width < 48 || rect.height < size.height + SECTION_INSET * 2 || !visible(rect);
         labelHidden.set(frame.id, hidden);
-        labelInside.set(frame.id, true);
+        labelInside.set(frame.id, inside);
         if (!hidden) labelBoxes.set(frame.id, box);
         continue;
       }
@@ -400,6 +409,12 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           aria-pressed={frameSelected && selectedFrame === frame.id}
           title={frame.label}
           onClick={() => studioStore.setState({ selection: { kind: "frame", frameId: frame.id } })}
+          // Right-click a frame's name: it is selected and its menu opens (Figma's), as on its empty area.
+          onContextMenu={(event) => {
+            event.preventDefault();
+            studioStore.setState({ selection: { kind: "frame", frameId: frame.id } });
+            openFrameMenu(event.clientX, event.clientY, frame.id);
+          }}
           // A frame on a page you made moves by its name (⌥ drops a copy; builder/frameMove.ts); a click still selects.
           onPointerDown={(event) => { pressFrame(event.nativeEvent, frame.id); }}
           onFocus={(event) => revealLabel(event.currentTarget)}
