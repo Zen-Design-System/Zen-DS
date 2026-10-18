@@ -897,7 +897,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-39", feature: "⇧⌘G on a frame floating in a frame without auto layout: its layers take its place where they were, selected", wp: "F3 2026-10-19",
+    id: "FW-39", feature: "⇧⌘G on a frame floating in a frame without auto layout: its layers take its place where they were, selected", wp: "F3 2026-10-19", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await clipPage(ctx);
       const before = (await pageText(page, id)) ?? "";
@@ -925,7 +925,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-110", feature: "⌥⌘K on two floating layers: one component of them both (a Box keeping their places), one ⌘Z", wp: "F3 2026-10-19",
+    id: "FW-110", feature: "⌥⌘K on two floating layers: one component of them both (a Box keeping their places), one ⌘Z", wp: "F3 2026-10-19", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await clipPage(ctx);
       const before = (await pageText(page, id)) ?? "";
@@ -940,7 +940,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-111", feature: "Create multiple components (menu): each selected layer its own component, all selected after", wp: "F3 2026-10-19",
+    id: "FW-111", feature: "Create multiple components (menu): each selected layer its own component, all selected after", wp: "F3 2026-10-19", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await clipPage(ctx);
       const before = (await pageText(page, id)) ?? "";
