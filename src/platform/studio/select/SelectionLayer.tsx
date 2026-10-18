@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { ArcHandles } from "./ArcHandles";
-import { layerName, objectIcon } from "./layerNames";
+import { layerIcon, layerName } from "./layerNames";
+import { displayName } from "./layerMeta";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
@@ -9,6 +10,17 @@ import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, type FiberHit } from "./picker";
 import { chainHas, deepLayerAt, ownsText, parentLayerOf, deepPartAt, drillNested, drillPart, outerNestedAt, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { clickTarget, layerInside, layersAt, sameElement } from "./clickTarget";
+import { isLockedFrame, isLockedSrc } from "./layerMeta";
+import { pageFile } from "../builder/store/pageStore";
+
+/** Whether the element under the pointer belongs to a locked layer (its own annotated layer is locked). */
+const insideLocked = (element: Element | null | undefined) => Boolean(element && isLockedSrc(annotatedAt(element)?.src));
+
+/** The layer itself, or the nearest one around it the canvas may pick (Figma skips locked layers); null when none is. */
+function unlockedHit(hit: FiberHit | null, frame: Element | null): FiberHit | null {
+  for (let at = hit, guard = 0; at && guard < 400; at = parentHit(at, frame), guard++) if (!isLockedSrc(at.src)) return at;
+  return null;
+}
 import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
 import { dataGroupOfPart, dataItemOfPart, dataItemRootOf, groupPartAt, groupTitlePartOf, itemParts, rowPartAtPoint, sectionPartAtPoint } from "../slots/dataItems";
 import { itemSelection } from "../slots/itemSelection";
@@ -180,7 +192,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
       const group = owner ? dataGroupOfPart(hit as PartHit) : null;
       if (group) return { ...box, name: group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section", src: hit.src, meta: `in ${group.slot.name}` };
-      return { ...box, name: layerName(hit.name, hit.props), src: hit.src, meta: owner ? `in ${owner.name}` : "", component: owner ? undefined : componentKind(hit.props) };
+      return { ...box, name: owner ? layerName(hit.name, hit.props) : displayName(hit.name, hit.props, hit.src), src: hit.src, meta: owner ? `in ${owner.name}` : "", component: owner ? undefined : componentKind(hit.props) };
     };
     const part = partRef.current;
     const selected = part ?? selectedRef.current;
@@ -500,8 +512,15 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const frame = element.closest("[data-studio-frame]");
       if (!frame) return { kind: "empty" };
       if (frame.getAttribute("data-studio-frame") === MAIN_FRAME) return { kind: "variant", frame, element };
+      // Figma's lock (edit/lock.ts): a locked frame is not picked at all; a locked layer gives the press to the nearest
+      // layer around it that is not locked.
+      const local = studioStore.getState().localPage;
+      if (local && isLockedFrame(pageFile(local), frame.getAttribute("data-studio-frame"))) return { kind: "empty" };
       const hit = annotatedAt(element);
-      if (hit && hit.hosts.length && frame.contains(hit.hosts[0])) return { kind: "node", hit, frame, element };
+      if (hit && hit.hosts.length && frame.contains(hit.hosts[0])) {
+        const open = isLockedSrc(hit.src) ? unlockedHit(hit, frame) : hit;
+        if (open?.hosts.length) return { kind: "node", hit: open, frame, element: open === hit ? element : open.hosts[0] };
+      }
       return { kind: "frame", frame };
     }
     return { kind: "empty" };
@@ -514,7 +533,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
    */
   const keepSelected = useCallback((picked: Pick, x: number, y: number): Pick => {
     const selected = selectedRef.current;
-    if (picked.kind !== "node" || !selected || partRef.current || selected.src === picked.hit.src) return picked;
+    // A locked selection (picked in Layers) is not the canvas's to press: the press goes to the layer around it.
+    if (picked.kind !== "node" || !selected || partRef.current || selected.src === picked.hit.src || isLockedSrc(selected.src)) return picked;
     const target = deepestAt(picked.element, x, y);
     const onSelected = selected.hosts.some((host) => host.contains(target));
     const coveredBy = picked.hit.hosts.some((outer) => selected.hosts.some((inner) => outer !== inner && outer.contains(inner)));
@@ -544,6 +564,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
   /** The part a click at `picked` selects: the selected part when the cursor is on it, else the nearest internal component. */
   const partAt = useCallback((picked: Pick & { kind: "node" }, x: number, y: number) => {
     const target = deepestAt(picked.element, x, y);
+    // A locked layer's parts (its text, its svg) are not the canvas's to pick (Figma's lock).
+    if (insideLocked(target)) return null;
     const current = partRef.current;
     if (current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
     // A section selected: a click on another section selects that one (the same level, as Figma's siblings).
@@ -569,8 +591,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     // A Table's row or cell selected: the row or cell under the pointer (the level a click keeps, Figma).
     const under = picked.kind === "node" ? deepestAt(picked.element, point.x, point.y) : null;
     const level = picked.kind === "node" ? (deepRef.current ? tableDeep(picked.hit, under) : tablePress(partRef.current, under)) : null;
-    const deepTarget = picked.kind === "node" && deepRef.current ? nestedHitAt(picked.hit, under) ?? picked.hit : null;
-    const deepLayer = deepTarget ? deepLayerAt(deepTarget, under) : null;
+    const nestedUnder = picked.kind === "node" && deepRef.current ? nestedHitAt(picked.hit, under) : null;
+    const deepTarget = picked.kind === "node" && deepRef.current ? (nestedUnder && !isLockedSrc(nestedUnder.src) ? nestedUnder : picked.hit) : null;
+    const deepLayer = deepTarget && !insideLocked(under) ? deepLayerAt(deepTarget, under) : null;
     const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : deepTarget ? (deepLayer ? dataItemOfPart(deepLayer)?.part ?? groupTitlePartOf(deepLayer) ?? deepLayer : deepTarget) : targetOf(picked, false)) : null);
     setHoverFrame(picked.kind === "node" || picked.kind === "frame" || picked.kind === "variant" ? picked.frame : null);
     variantHover.set(picked.kind === "variant" ? pickVariant(picked.element, studioStore.getState().selection, deepRef.current ? "deep" : "click") : null);
@@ -703,9 +726,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       // is the innermost written layer under the pointer, even one a row's data passes in (an Avatar built for a
       // ListItem's leading, whose row covers it on the canvas: nestedHitAt), not only the row itself (2026-10-10).
       const pointed = deepestAt(picked.element, event.clientX, event.clientY);
-      const target = deep ? nestedHitAt(picked.hit, pointed) ?? picked.hit : targetOf(picked, false);
+      const nested = deep ? nestedHitAt(picked.hit, pointed) : null;
+      const target = deep ? (nested && !isLockedSrc(nested.src) ? nested : picked.hit) : targetOf(picked, false);
       // ⌘ goes on into the instance, as Figma's deep select: its text or nested instance under the pointer (2026-10-13).
-      const layer = deep && !event.shiftKey ? deepLayerAt(target, pointed) : null;
+      // Nothing inside a locked layer is picked as a part either (its text, its svg).
+      const layer = deep && !event.shiftKey && !insideLocked(pointed) ? deepLayerAt(target, pointed) : null;
       if (layer) {
         // A row of a data slot (a Sidebar's Menu-Item) or a section's title is the layer, as a ⌘-click on its owner gives.
         choosePart(dataItemOfPart(layer)?.part ?? groupTitlePartOf(layer) ?? layer);
@@ -785,9 +810,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const path = layersAt(picked.hit, picked.frame);
     const selected = selectedRef.current;
     const layers = (path ? path.path.slice(path.root + 1) : [picked.hit]).reverse().slice(0, 12).map((hit) => ({
-      // As Layers shows it: "Rectangle" with its shape icon, a frame's #, a component's cube (select/layerNames.ts).
-      name: layerName(hit.name, hit.props),
-      icon: objectIcon(hit.name, hit.props) ?? (hit.isComponent ? "icon-cube-line" as const : "icon-code-02-line" as const),
+      // As Layers shows it: its name (select/layerMeta.ts), a shape's icon, a frame's #, an instance's ◇ (layerNames.ts).
+      name: displayName(hit.name, hit.props, hit.src),
+      icon: layerIcon(hit.name, hit.props, hit.isComponent),
       selected: Boolean(selected && sameElement(hit, selected)),
       select: () => choose(hit, false),
     }));

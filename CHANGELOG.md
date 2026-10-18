@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio Layers like Figma (F1 of the same plan): on a page you made the front-most layer is on top, layers are
+  named as Figma names them (Frame 1, Rectangle 2, a text by its words, an instance by its component) with Figma's
+  icons, and the Screen is the frame's own row. Rename by double-click, ⌘R (Tab goes to the next name), ⌘R on several
+  layers (Rename layers: $&, $n / $N, Match), or a frame's name on the canvas; names are `data-name` in the page, kept
+  in exported code and in Figma push / pull (frames, shapes, text). Lock with ⇧⌘L, the row's padlock or the menu
+  (`data-locked`, never exported): the canvas skips locked layers (click, hover, marquee, ⌘-click, handles, arrows).
+  Right-click a row for the canvas menu, ⌥-click a chevron for everything inside, ⌥L (Actions › Collapse layers).
 - Stack and Grid take Box's look, so a Figma auto layout frame with a fill is one element (2026-10-19, plan decision 2):
   `surface`, `border`, `radius` and the per-corner radii, `effectStyle`. Box, Stack and Grid also take Figma's
   `opacity` (percent), `rotation`, `flip`, and stroke `borderWeight`, `borderSides` (one side) and `borderStyle="dashed"`

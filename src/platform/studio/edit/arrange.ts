@@ -1,3 +1,6 @@
+import { inspectorStatus } from "../inspector/status";
+import { isLockedSrc } from "../select/layerMeta";
+import { lockShortcut } from "./lock";
 import { useEffect } from "react";
 import { mainOfSelection, type MainRef } from "./localComponents";
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
@@ -185,6 +188,12 @@ export function useArrangeKeys() {
       const state = studioStore.getState();
       const selection = state.selection;
       if (state.tool !== "select" || state.presenting || !canEdit(state) || selection?.kind !== "node" || selection.part) return;
+      // Figma's lock: a locked layer (or one in a locked frame) keeps its place.
+      if (isLockedSrc(selection.src) || multiSelection.get().some((layer) => isLockedSrc(layer.src))) {
+        event.preventDefault();
+        if (!event.repeat) inspectorStatus.set("neutral", `Locked: ${lockShortcut} unlocks it`);
+        return;
+      }
       const floating = multiSelection.get().length ? null : floatingHost(selection);
       if (floating) {
         event.preventDefault();

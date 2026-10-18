@@ -90,7 +90,10 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
 /** Zooms the canvas to the page's first Screen (its Layers row, then ⇧2), as focusFrame does for an example. */
 export async function focusScreen(page) {
   await showLeftTab(page, "layers");
-  const row = page.locator('[data-layer-id^="frame:screen:"]').first();
+  // The page's first Screen: screen-1 by its id (Layers lists the front-most frame on top, as Figma: F1 2026-10-18),
+  // else the lowest frame row.
+  const first = page.locator('[data-layer-id="frame:screen:screen-1"]');
+  const row = (await first.count()) ? first.first() : page.locator('[data-layer-id^="frame:screen:"]').last();
   await row.waitFor({ state: "attached", timeout: 5000 }).catch(async () => { throw new Error(`no Screen row in Layers (rows: ${(await page.locator("[data-layer-id]").evaluateAll((els) => els.slice(0, 4).map((el) => el.getAttribute("data-layer-id")))).join(", ")})`); });
   await row.scrollIntoViewIfNeeded();
   await row.click();

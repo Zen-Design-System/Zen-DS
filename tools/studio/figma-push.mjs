@@ -17,6 +17,7 @@ import { docFromText } from "./doc.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
+import { FIGMA_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
@@ -400,6 +401,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
+    // The name the person gave a frame, shape or text (data-name, layer-meta.mjs) is its Figma name.
+    const given = element.kind === "element" && FIGMA_NAMED.has(element.name) ? givenNameOf(element) : null;
+    if (node && given) node.name = given;
     // A component sized like a layout layer (Card, ListBox: width / minWidth / maxWidth): the instance's min and max width.
     if (node?.type === "INSTANCE" && element.kind === "element") {
       const own = codeProps(element);

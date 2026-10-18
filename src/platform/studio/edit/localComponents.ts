@@ -2,7 +2,7 @@ import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { loadEngine, zenComponents } from "../builder/engine";
 import { canvasApi } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
-import { layerName } from "../select/layerNames";
+import { displayName } from "../select/layerMeta";
 import { multiSelection, selectLayers } from "../select/multiSelection";
 import { findBySrc, selectHit } from "../select/picker";
 import { expectRender, renderedNow } from "../select/remap";
@@ -82,7 +82,7 @@ export async function createComponent(selection: NodeSelection): Promise<boolean
   if (!element) return fail(`${selection.name} is no longer there — select it again`);
   const world = canvasApi.getWorldElement();
   const hit = world ? findBySrc(world, selection.src)[selection.instance] : undefined;
-  const base = layerName(selection.name, hit?.props);
+  const base = displayName(selection.name, hit?.props, selection.src);
   const names = new Set(mains.map((main) => main.name));
   const ids = new Set(mains.map((main) => main.id));
   let name = base;

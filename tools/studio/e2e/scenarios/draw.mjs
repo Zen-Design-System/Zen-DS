@@ -257,14 +257,15 @@ export const rows = [
       await until(async () => (await page.locator("#studio-right h2").first().innerText()).trim() === "Star", { message: "the Star selected" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+Alt+KeyK");
-      await until(async () => /<Component id="star" name="Star">\s*<Shape type="star"/.test(await text()), { message: "the star as a main component" });
+      // Named after the layer, as Figma names a new component ("Star 1": F1's automatic name).
+      await until(async () => /<Component id="star(?:-1)?" name="Star(?: 1)?">\s*<Shape type="star"/.test(await text()), { message: "the star as a main component" });
       await until(async () => (await page.locator(".studio-selection__outline[data-kind='selected'][data-component='main']").count()) === 1, { message: "the main's violet outline" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyD");
-      await until(async () => /<\/Component>\s*<Use of="star" \/>/.test(await text()), { message: "an instance after the main" });
+      await until(async () => /<\/Component>\s*<Use of="star(?:-1)?" \/>/.test(await text()), { message: "an instance after the main" });
       await until(async () => (await page.locator("#studio-right").getByRole("button", { name: "Go to main component" }).count()) === 1, { message: "the instance selected (Instance section)" });
       const names = (await page.locator("#studio-left .studio-layers__name").allInnerTexts()).map((name) => name.trim());
-      if (names.filter((name) => name === "Star").length < 2) throw new Error(`Layers: ${names.join(", ")}`);
+      if (names.filter((name) => /^Star(?: 1)?$/.test(name)).length < 2) throw new Error(`Layers: ${names.join(", ")}`);
       return names.join(", ");
     },
   },
@@ -311,12 +312,12 @@ export const rows = [
     },
   },
   {
-    id: "DR-08", feature: "Layers names a Shape as Figma's tool does (Ellipse, Line) with its icon", wp: "P1 layers",
+    id: "DR-08", feature: "Layers names a Shape as Figma's tool does (Ellipse 1, Line 1) with its icon", wp: "P1 layers · F1",
     async run(ctx) {
       const { page } = await seededPage(ctx, freePage('<Shape type="ellipse" position="absolute" insetLeft={40} insetTop={40} width={80} height={80} />\n        <Shape type="line" position="absolute" insetLeft={40} insetTop={200} width={120} />'), /type="line"/);
       await focusScreen(page);
       const names = (await page.locator("#studio-left .studio-layers__name").allInnerTexts()).map((name) => name.trim());
-      if (!names.includes("Ellipse") || !names.includes("Line")) throw new Error(`Layers: ${names.join(", ")}`);
+      if (!names.some((name) => /^Ellipse \d+$/.test(name)) || !names.some((name) => /^Line \d+$/.test(name))) throw new Error(`Layers: ${names.join(", ")}`);
       return names.join(", ");
     },
   },

@@ -1,6 +1,7 @@
 import { tip } from "../shell/ShortcutTip";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, startTransition } from "react";
-import { objectIcon, layerName as shownName } from "./layerNames";
+import { layerIcon, objectIcon } from "./layerNames";
+import { COLLAPSE_LAYERS_EVENT, displayName, isLockedFrame, isOwnLock, useLayerMeta } from "./layerMeta";
 import { useIconTooltip } from "../../../components/Tooltip";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
@@ -18,9 +19,9 @@ import { layerSlotsOf } from "../slots/layers";
 import { dataItemRootOf, itemParts, renderedItemTitle } from "../slots/dataItems";
 import { itemSelection, useItemSelection } from "../slots/itemSelection";
 import { dataSlotsOf } from "../slots/dataSlots";
-import { studioStore, useStudio } from "../store";
+import { canEdit, studioStore, useStudio } from "../store";
 import { componentSchema } from "../inspector/propSchema";
-import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
+import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, isTypingTarget, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
 import { classHint, elementAt, isComponentFiber, nestedPathOf, ownsText, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
 import { bodyRows, rowCells, TABLE_PARTS } from "../table/tableCells";
 import { isTableHit } from "../table/tableSelect";
@@ -28,6 +29,12 @@ import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type Ext
 import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
 import { pressLayersRow } from "../edit/layersDrag";
+import { canLockSrc, lockShortcut, setFrameLocked, setLayerLocked } from "../edit/lock";
+import { doneRenameRequest, renameFrame, renameLayer, useRenameRequest } from "../edit/rename";
+import { RenameField } from "../builder/RenameField";
+import { pageFile } from "../builder/store/pageStore";
+import { openCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
+
 import { allHiddenLayers, canHideSrc, hideShortcut, toggleLayerHidden } from "../edit/visibility";
 import { hiddenLabel, type HiddenValue } from "../../../../tools/studio/visibility.mjs";
 import { layerName, MAIN_FRAME, variantKey, variantRoot } from "../mainComponent/model";
@@ -107,9 +114,10 @@ type LayerNode = {
 /** `aliases`: a folded wrapper's id → the panel row that stands for it (selecting the wrapper highlights the panel). */
 /** `figma`: Layers as Figma lists them (no Parts folders, no empty slots, an instance's own layers named); false with
  *  "Show all layers". */
-type Tree = { groups: LayerNode[]; byId: Map<string, LayerNode>; total: number; aliases: Map<string, string>; figma: boolean };
+/** `front`: a page you made lists its layers as Figma does, the front-most (the last written) at the top of each group. */
+type Tree = { groups: LayerNode[]; byId: Map<string, LayerNode>; total: number; aliases: Map<string, string>; figma: boolean; front: boolean };
 
-const emptyTree: Tree = { groups: [], byId: new Map(), total: 0, aliases: new Map(), figma: true };
+const emptyTree: Tree = { groups: [], byId: new Map(), total: 0, aliases: new Map(), figma: true, front: false };
 
 /** A playground panel's title ("Button / Main"): its own h2, else the first heading inside. */
 function panelTitle(element: Element) {
@@ -117,7 +125,7 @@ function panelTitle(element: Element) {
   return heading?.textContent?.trim() || "Playground panel";
 }
 
-function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
+function buildTree(world: Element, page: PlatformPage, showAll: boolean, local = false): Tree {
   const root = elementFiber(world);
   if (!root) return emptyTree;
   const groups: LayerNode[] = [];
@@ -189,13 +197,21 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
   if (!showAll) pageGroups.forEach(collapseWrappers);
   for (const group of groups) {
     if (group.frameId !== MAIN_FRAME) {
+      // A page you made: its Screen or Overlay element is the frame's own row (Figma has one frame layer).
+      const element = local && group.children.length === 1 ? group.children[0] : null;
+      if (element?.kind === "node" && (element.name === "Screen" || element.name === "Overlay")) {
+        aliases.set(element.id, group.id);
+        group.children = element.children;
+      }
+      // Layers lists what a click on the canvas selects (user, 2026-10-13: "Panel Layers vẫn hiện các lớp mà click đã
+      // bỏ qua"): the wrappers a click passes over fold away.
       if (!showAll) group.children = simplify(group.children, aliases);
       attachSlots(group.children, byId, !showAll);
       addHiddenRows(group, byId);
     }
     group.children.forEach((child) => relink(child, group));
   }
-  return { groups, byId, total, aliases, figma: !showAll };
+  return { groups, byId, total, aliases, figma: !showAll, front: local };
 }
 
 /** Figma's eye on a layer row: on hover, and always while the layer is hidden; ⇧⌘H does the same from the keyboard. Its
@@ -212,6 +228,26 @@ function LayerEye({ src, name, hidden }: { src: string; name: string; hidden: bo
         {...bind({ onPointerDown: (event: ReactPointerEvent) => event.stopPropagation(), onClick: (event: MouseEvent) => { event.stopPropagation(); void toggleLayerHidden(src, name); } })}
       >
         <Icon name={hidden ? "icon-eye-off-line" : "icon-eye-line"} size={16} />
+      </button>
+      {tooltip}
+    </>
+  );
+}
+
+/** Figma's padlock on a row: on hover, and always while the layer or frame is locked; ⇧⌘L does the same from the keys. */
+function LayerLock({ name, locked, onToggle }: { name: string; locked: boolean; onToggle: () => void }) {
+  const { bind, tooltip } = useIconTooltip(tip(locked ? "Unlock" : "Lock", lockShortcut));
+  return (
+    <>
+      <button
+        type="button"
+        tabIndex={-1}
+        className="studio-layers__lock"
+        aria-label={locked ? `Unlock ${name}` : `Lock ${name}`}
+        aria-pressed={locked}
+        {...bind({ onPointerDown: (event: ReactPointerEvent) => event.stopPropagation(), onClick: (event: MouseEvent) => { event.stopPropagation(); onToggle(); } })}
+      >
+        <Icon name={locked ? "icon-lock-01-line" : "icon-lock-unlocked-01-line"} size={16} />
       </button>
       {tooltip}
     </>
@@ -615,7 +651,7 @@ function flatten(tree: Tree, isOpen: (node: LayerNode) => boolean, query: string
     // A match shows with its ancestors, expanded.
     for (const node of tree.byId.values()) {
       // Parts carry their owner's src: they match by name only. Slot rows show when a layer in them matches.
-      if (node.kind === "frame" || node.kind === "parts" || node.kind === "slot" || !(node.name.toLowerCase().includes(needle) || (node.kind !== "part" && shortSrc(node.src ?? "").toLowerCase().includes(needle)))) continue;
+      if (node.kind === "frame" || node.kind === "parts" || node.kind === "slot" || !(rowLabel(node).toLowerCase().includes(needle) || node.name.toLowerCase().includes(needle) || (node.kind !== "part" && shortSrc(node.src ?? "").toLowerCase().includes(needle)))) continue;
       for (let current: LayerNode | null = node; current && !matches.has(current); current = current.parent) matches.add(current);
     }
   }
@@ -623,11 +659,13 @@ function flatten(tree: Tree, isOpen: (node: LayerNode) => boolean, query: string
   // canvas redraws after an item edit) shows once — React needs the rows' keys unique.
   const emitted = new Set<string>();
   const walk = (nodes: LayerNode[]) => {
-    for (const node of nodes) {
+    // Figma's order on a page you made: the front-most layer (the last written) on top.
+    for (const node of tree.front ? [...nodes].reverse() : nodes) {
       if (needle && !matches.has(node)) continue;
       if (emitted.has(node.id)) continue;
       emitted.add(node.id);
-      if (rows.length >= MAX_ROWS) { hidden += 1; continue; }
+      // Every layer is listed, as in Figma; "Show all layers" (every part and wrapper) stops at MAX_ROWS.
+      if (!tree.figma && rows.length >= MAX_ROWS) { hidden += 1; continue; }
       // A part row looks one level ahead (its own parts) to know whether it opens.
       const children = node.kind === "part" || isOpen(node) || needle ? childrenOf(node, tree.byId, tree.figma) : node.kind === "node" && node.hasParts ? (tree.figma ? childrenOf(node, tree.byId, true) : [partsFolderOf(node)]) : node.children;
       const hasChildren = children.length > 0 || (node.kind === "parts" && Boolean(node.lazy));
@@ -681,8 +719,8 @@ function selectNode(node: LayerNode) {
 /** Frames, playground panels, slots and first-level elements with child elements open by default; parts never (computed on demand). */
 const defaultOpen = (node: LayerNode) => node.kind === "frame" || node.kind === "panel" || node.kind === "slot" || (node.kind === "node" && node.depth <= 1 && node.children.length > 0);
 
-/** The name a row shows: a Shape's Figma type name (select/layerNames.ts), else the layer's name. */
-const rowLabel = (node: LayerNode) => (node.kind === "node" ? shownName(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : node.name);
+/** The name a row shows: the one the person gave the layer, else its automatic or component name (select/layerMeta.ts). */
+const rowLabel = (node: LayerNode) => (node.kind === "node" ? displayName(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null, node.src) : node.name);
 
 /** "main" for a main component's root layer, "instance" for an instance (renderPage's marks), else undefined. */
 const componentOfRow = (node: LayerNode) => {
@@ -690,8 +728,9 @@ const componentOfRow = (node: LayerNode) => {
   return props?.["data-zen-main"] ? "main" : props?.["data-zen-instance"] ? "instance" : undefined;
 };
 
-function rowIcon(node: LayerNode): IconName {
-  if (node.kind === "frame") return "icon-layout-alt-01-line";
+function rowIcon(node: LayerNode, front: boolean): IconName {
+  // A page you made: a frame is Figma's frame (#); a code page's frames are its sections.
+  if (node.kind === "frame") return front ? "icon-hash-01-line" : "icon-layout-alt-01-line";
   // Figma's layer icons (select/layerNames.ts): a component's ◇ (its main and its instances), a shape's own, a frame's
   // # (Box), auto layout by its direction (Stack), text's T.
   const own = node.kind === "node" ? objectIcon(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : null;
@@ -701,7 +740,7 @@ function rowIcon(node: LayerNode): IconName {
   if (node.kind === "parts") return "icon-layers-three-01-line";
   if (node.kind === "slot") return "icon-grid-dots-blank-line";
   if (node.text) return "icon-type-01-line";
-  return node.isComponent ? "icon-cube-line" : "icon-code-02-line";
+  return node.kind === "node" ? layerIcon(node.name, null, node.isComponent) : node.isComponent ? "icon-cube-line" : "icon-code-02-line";
 }
 
 function rowTitle(node: LayerNode) {
@@ -739,6 +778,11 @@ export function LayersPanel() {
   const [openState, setOpenState] = useState<Map<string, boolean>>(() => new Map());
   const [focusId, setFocusId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(readShowAll);
+  const localPage = useStudio((state) => state.localPage);
+  // A name changed or a layer (un)locked: rows read their names and padlocks again (select/layerMeta.ts).
+  const metaVersion = useLayerMeta();
+  /** The row whose name is being edited (Figma's rename: double-click, ⌘R). */
+  const [renaming, setRenaming] = useState<string | null>(null);
   const server = useStudioServer();
   const treeRef = useRef<HTMLDivElement>(null);
   // A source update rebuilds the tree after the canvas has shown the edit (a transition: never on an edit's way there).
@@ -750,18 +794,25 @@ export function LayersPanel() {
     let timer = 0;
     const build = () => {
       const world = canvasApi.getWorldElement();
-      const next = world ? buildTree(world, page, showAll) : emptyTree;
+      const next = world ? buildTree(world, page, showAll, Boolean(localPage)) : emptyTree;
       setTree(next);
       if (next.groups.length || tries++ > 20) setReady(true);
       else timer = window.setTimeout(build, 300);
     };
     build();
     return () => window.clearTimeout(timer);
-  }, [page, collection, version, showAll]);
+  }, [page, collection, version, showAll, localPage]);
 
   useEffect(() => onSourceUpdate(refresh), [refresh]);
   // A write moves the layers below the change: keep their open/closed state with them.
   useEffect(() => onStudioWrite((write) => {
+    // The name field stays on its layer when the write moved it (a rename adds the layer's data-name).
+    setRenaming((current) => {
+      const match = current ? /^(.*)#(\d+)$/.exec(current) : null;
+      if (!match || current!.startsWith("frame:")) return current;
+      const moved = mapSrc(match[1], write);
+      return moved && moved !== match[1] ? `${moved}#${match[2]}` : current;
+    });
     setOpenState((current) => {
       let next: Map<string, boolean> | null = null;
       for (const [id, open] of current) {
@@ -863,7 +914,7 @@ export function LayersPanel() {
   }, [selectedId, tree]); // eslint-disable-line react-hooks/exhaustive-deps -- selection and part are read with selectedId
 
   const isOpen = useCallback((node: LayerNode) => openState.get(node.id) ?? defaultOpen(node), [openState]);
-  const { rows, hidden } = useMemo(() => flatten(tree, isOpen, query), [tree, isOpen, query]);
+  const { rows, hidden } = useMemo(() => flatten(tree, isOpen, query), [tree, isOpen, query, metaVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- metaVersion: names are read by rowLabel
 
   // Centre the selected row once per selection (not again on every rebuild, which would fight the person's scrolling).
   const revealed = useRef<string | null>(null);
@@ -877,6 +928,71 @@ export function LayersPanel() {
   }, [selectedId, rows, shown]);
 
   const toggle = (node: LayerNode, open?: boolean) => setOpenState((current) => new Map(current).set(node.id, open ?? !isOpen(node)));
+  /** ⌥-click a chevron: the layer and every layer in it open or close together (Figma's). */
+  const toggleDeep = (node: LayerNode) => {
+    const open = !isOpen(node);
+    setOpenState((current) => {
+      const next = new Map(current);
+      const visit = (each: LayerNode) => { if (each.children.length || each.hasParts) next.set(each.id, open); each.children.forEach(visit); };
+      visit(node);
+      return next;
+    });
+  };
+  // ⌥L and Actions › Collapse layers: every group and layer closes but the way to the selection (Figma's).
+  useEffect(() => {
+    const collapse = () => {
+      const keep = new Set<string>();
+      for (let parent = selectedId ? tree.byId.get(selectedId)?.parent : null; parent; parent = parent.parent) keep.add(parent.id);
+      const next = new Map<string, boolean>();
+      for (const node of [...tree.groups, ...tree.byId.values()]) if (node.children.length || node.hasParts) next.set(node.id, keep.has(node.id));
+      setOpenState(next);
+    };
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (!event.altKey || event.metaKey || event.ctrlKey || event.shiftKey || event.code !== "KeyL" || event.isComposing) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (isTypingTarget(target) || target?.closest("input, textarea, [contenteditable]:not([contenteditable='false']), [role='dialog']") || studioStore.getState().presenting) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      collapse();
+    };
+    window.addEventListener("keydown", onKeyDown, true);
+    window.addEventListener(COLLAPSE_LAYERS_EVENT, collapse);
+    return () => { window.removeEventListener("keydown", onKeyDown, true); window.removeEventListener(COLLAPSE_LAYERS_EVENT, collapse); };
+  }, [tree, selectedId]);
+
+  // Rename (Figma's): a layer of a page you made, or one of its frames, by double-click, Tab from the name before, ⌘R.
+  const canRenameRow = (node: LayerNode) => Boolean(localPage) && ((node.kind === "node" && canLockSrc(node.src)) || (node.kind === "frame" && /^(screen|overlay):/.test(node.frameId)));
+  const commitRename = (node: LayerNode, name: string) => (node.kind === "frame" ? renameFrame(node.frameId, name) : renameLayer(node.src!, node.name, name, node.fiber?.memoizedProps as Record<string, unknown> | null));
+  const renameNext = (node: LayerNode, backward: boolean) => {
+    const index = rows.findIndex((row) => row.node.id === node.id);
+    for (let at = index + (backward ? -1 : 1); at >= 0 && at < rows.length; at += backward ? -1 : 1) {
+      if (!canRenameRow(rows[at].node)) continue;
+      selectNode(rows[at].node);
+      setRenaming(rows[at].node.id);
+      return;
+    }
+  };
+  const renameRequest = useRenameRequest();
+  useEffect(() => {
+    if (!renameRequest) return;
+    let id = renameRequest.id;
+    for (let guard = 0; tree.aliases.has(id) && guard < 20; guard++) id = tree.aliases.get(id) ?? id;
+    if (!tree.byId.has(id)) return;
+    setRenaming(id);
+    doneRenameRequest();
+  }, [renameRequest, tree]);
+  // Right-click a row: the canvas menu of that layer or frame (Figma's Layers), selecting it first.
+  const openRowMenu = (node: LayerNode, event: MouseEvent) => {
+    event.preventDefault();
+    if (node.kind !== "node" && node.kind !== "frame") return;
+    if (node.id !== selectedId && !extraIds.has(node.id)) activate(node);
+    const { clientX: x, clientY: y } = event;
+    requestAnimationFrame(() => {
+      const current = studioStore.getState().selection;
+      if (node.kind === "frame") openFrameMenu(x, y, node.frameId);
+      else if (current?.kind === "node") openCanvasMenu(x, y, current);
+    });
+  };
   /** The row a Shift+click range starts from: the last row clicked (or ⌘-clicked), else the selected one. */
   const anchorRef = useRef<string | null>(null);
   const layerOf = (node: LayerNode): ExtraLayer | null => {
@@ -970,7 +1086,8 @@ export function LayersPanel() {
   };
 
   const nothing = ready && tree.groups.length === 0;
-  const noAnnotations = ready && tree.groups.length > 0 && tree.total === 0;
+  // A page you made lists its frames even when they hold nothing yet (an empty Screen is a frame row, as in Figma).
+  const noAnnotations = ready && tree.groups.length > 0 && tree.total === 0 && !tree.front;
   const tabbable = focusId && rows.some((row) => row.node.id === focusId) ? focusId : rows[0]?.node.id;
 
   return (
@@ -1014,6 +1131,7 @@ export function LayersPanel() {
           role="tree"
           aria-label="Layers"
           aria-multiselectable="true"
+          data-order={tree.front ? "front" : undefined}
           onKeyDown={onKeyDown}
           // Drag a row to move the layer (edit/layersDrag.ts); a click still selects.
           onPointerDown={(event) => pressLayersRow(event.nativeEvent, event.currentTarget, (row) => {
@@ -1022,7 +1140,10 @@ export function LayersPanel() {
           })}
           onPointerLeave={() => layerHover.set(null)}
         >
-          {rows.map(({ node, open, hasChildren }) => (
+          {rows.map(({ node, open, hasChildren }) => {
+            const lockable = Boolean(localPage) && ((node.kind === "node" && canLockSrc(node.src)) || (node.kind === "frame" && /^(screen|overlay):/.test(node.frameId)));
+            const locked = lockable && (node.kind === "frame" ? isLockedFrame(pageFile(localPage!), node.frameId) : isOwnLock(node.src));
+            return (
             <div
               key={node.id}
               role="treeitem"
@@ -1036,33 +1157,53 @@ export function LayersPanel() {
               data-component={node.isComponent || undefined}
               data-wrapped={node.wrap ? "true" : undefined}
               data-hidden={node.hiddenLayer === undefined ? undefined : String(node.hiddenLayer)}
+              data-locked={locked || undefined}
               className={`studio-layers__row ${typographyStyles[node.kind === "frame" ? "Body/Small/Bold" : node.kind === "panel" ? "Body/Small/Medium" : "Body/Small/Regular"]}`}
               style={{ ["--studio-depth" as string]: node.depth }}
               onPointerEnter={() => layerHover.set(hitForNode(node))}
               onFocus={() => setFocusId(node.id)}
               onClick={(event) => activate(node, event)}
-              title={rowTitle(node)}
+              onDoubleClick={(event) => { if (canRenameRow(node) && canEdit()) { event.preventDefault(); setRenaming(node.id); } }}
+              onContextMenu={(event) => openRowMenu(node, event)}
+              title={renaming === node.id ? undefined : rowTitle(node)}
             >
               <span
                 className="studio-layers__chevron"
                 data-open={open || undefined}
                 data-leaf={!hasChildren || undefined}
-                onClick={(event) => { event.stopPropagation(); toggle(node); }}
+                onClick={(event) => { event.stopPropagation(); if (event.altKey) toggleDeep(node); else toggle(node); }}
                 aria-hidden="true"
               >
                 <Icon name="icon-chevron-right-line-small" size={16} />
               </span>
               <span className="studio-layers__icon" data-component={componentOfRow(node)} aria-hidden="true">
-                <Icon name={rowIcon(node)} size={16} />
+                <Icon name={rowIcon(node, tree.front)} size={16} />
               </span>
-              <span className="studio-layers__name">{rowLabel(node)}</span>
+              {renaming === node.id ? (
+                <RenameField
+                  className="studio-layers__rename"
+                  value={rowLabel(node)}
+                  label="Layer name"
+                  onCommit={(name) => commitRename(node, name)}
+                  onDone={() => setRenaming((current) => (current === node.id ? null : current))}
+                  onTab={(backward) => renameNext(node, backward)}
+                />
+              ) : <span className="studio-layers__name">{rowLabel(node)}</span>}
               {node.meta ? <span className={`studio-layers__hint ${typographyStyles["Caption/Regular"]}`}>{node.meta}</span> : null}
               {node.count > 1 ? <span className={`studio-layers__count ${typographyStyles["Caption/Regular"]}`} aria-label={`${node.count} instances`}>×{node.count}</span> : null}
+              {lockable ? (
+                <LayerLock
+                  name={rowLabel(node)}
+                  locked={locked}
+                  onToggle={() => { void (node.kind === "frame" ? setFrameLocked(node.frameId, !locked, rowLabel(node)) : setLayerLocked(node.src!, node.name, !locked)); }}
+                />
+              ) : null}
               {node.kind === "node" && node.src && canHideSrc(node.src) ? (
                 <LayerEye src={node.src} name={node.name} hidden={node.hiddenLayer === true} />
               ) : null}
             </div>
-          ))}
+            );
+          })}
           {hidden ? <p className={`studio-layers__more ${typographyStyles["Caption/Regular"]}`}>{plural(hidden, "more layer")}: collapse a group or find by name.</p> : null}
         </div>
       )}
