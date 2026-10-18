@@ -59,6 +59,7 @@ import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";
 import type { StudioLeftTab } from "./types";
 import { ensurePageDoc } from "./builder/localApi";
+import { AgentPanel } from "./agent/AgentPanel";
 import { AiChip } from "./mcp/AiChip";
 import { startMcpRuntime } from "./mcp/runtime";
 import "./studio.css";
@@ -623,6 +624,8 @@ export function StudioApp() {
           {/* Zoom, tools and tip float above that layer: an overlay left open never covers them (canvas/CanvasChrome). */}
           {docPage ? null : <CanvasChrome />}
           {docPage ? null : <AiChip />}
+          {/* Zen Agent (plan docs/research/studio-vibe-agent-2026-10-18.md): the chat panel beside Pages | Layers, ⌘J. */}
+          {docPage ? null : <AgentPanel />}
         </main>
 
         {/* A document page has no Inspector: the right panel is its header alone, a small bar in the corner. */}

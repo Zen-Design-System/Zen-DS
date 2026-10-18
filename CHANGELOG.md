@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio: **Zen Agent** (2026-10-18, V0 of `docs/research/studio-vibe-agent-2026-10-18.md`): a chat panel beside
+  Pages | Layers (⌘J, or the stars button in the bottom toolbar) that designs on the open page live, through the Studio
+  MCP's tools in the tab (one ⌘Z step per change, the AI chip's Stop), reads the zen-ds rules, and runs the Zen usage
+  harness after each turn that changed the page, fixing what it caused. Needs `ANTHROPIC_API_KEY` or `ant auth login` on
+  the dev server; Claude Opus 5.5 by default; each turn shows its cost. Checks: `agent.selftest`, Studio E2E AG-01…06.
 - Card `theme="subtle"` (2026-10-17, Figma Card Theme=Subtle, user: "nếu nền canvas là default thì Card không dùng
   pale mà dùng subtle"): Support/<Color>/Subtle in the nine hues, the colour box on the grey Canvas/Default where a
   Pale tint fades; Pale stays for white pages and imagery. New harness rule `card/pale-on-canvas-default` (error: a

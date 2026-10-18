@@ -54,8 +54,8 @@ export function setAiStopped(stopped: boolean) {
   setActivity({ stopped });
 }
 
-/** This tab's id: the same across reloads of the tab, another in a new tab. */
-function tabId(): string {
+/** This tab's id: the same across reloads of the tab, another in a new tab (the relay's and Zen Agent's key). */
+export function studioTabId(): string {
   const kept = readSession(TAB_KEY);
   if (kept) return kept;
   const id = `tab-${Math.random().toString(36).slice(2, 10)}`;
@@ -69,7 +69,7 @@ type Call = { id: number; tool: string; args?: Record<string, unknown>; client?:
 export function startMcpRuntime(): () => void {
   const hot = import.meta.hot;
   if (!hot) return () => {};
-  const tab = tabId();
+  const tab = studioTabId();
   const snapshot = () => {
     const state = studioStore.getState();
     return {

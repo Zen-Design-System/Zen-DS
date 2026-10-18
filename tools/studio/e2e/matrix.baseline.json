@@ -1,6 +1,12 @@
 {
   "note": "Zen Studio E2E baseline: row id → works | broken. Update with `npm run studio:e2e -- --update-baseline` after a fix; rows in `flaky` stay broken until their race is fixed.",
   "rows": {
+    "AG-01": "works",
+    "AG-02": "works",
+    "AG-03": "works",
+    "AG-04": "works",
+    "AG-05": "works",
+    "AG-06": "works",
     "AI-01": "works",
     "AI-02": "works",
     "AI-03": "works",

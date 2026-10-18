@@ -56,6 +56,12 @@ Last updated: 2026-10-17.
   `../Zen-DS-projects`). Projects like Figma files; each theme is one extra Base Colors (Project) mode
   `data-brand="p-<id>"` in `.zen-studio/projects/<id>/` (never tokens/source). Spec, gotchas and phases 2–3:
   `docs/research/studio-projects-theme-2026-10-17.md`.
+- **Zen Agent in Studio, vibe design (2026-10-18):** plan `docs/research/studio-vibe-agent-2026-10-18.md` (user
+  decisions §1, V-1 baseline §7). **V0 built** on branch `zen/feat/studio-agent-v0-20261018` (worktree
+  `../Zen-DS-agent`, not merged): panel beside Pages | Layers (⌘J), Tool Runner in the dev server over the Studio MCP
+  tools through the relay, zen-ds knowledge, the usage harness after each changing turn (`tools/studio/README.md` §6).
+  Checks offline (`agent.selftest`, E2E AG-01…06 with `ZEN_AGENT_SCRIPT`); the first live run needs the user's key.
+  V1 waits for the user's go.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:
   Figma first, review, then code (tier L each). Ids: session-log-2026-10-17 "Calendar / Schedule / Timeline in Figma".
@@ -145,7 +151,7 @@ Last updated: 2026-10-17.
   through `/__zen-studio/mcp` (relayed to the tab over Vite's HMR socket, one ⌘Z per change, AI chip Stop/Resume).
   Merged in #72 (baafbf8). Tools: get_studio_state, get_tree, update, get_screenshot, on pages made in the Studio;
   `npm run studio:mcp` prints the `claude mcp add` command. Not yet tried from the user's own Claude Code. Next, each
-  waiting for the user's go: M1 full write set, then the embedded Zen Agent, M2 code pages; spec
+  waiting for the user's go: M1 full write set, then the embedded Zen Agent (V0 built 2026-10-18), M2 code pages; spec
   `docs/research/studio-mcp-canvas-2026-10-15.md`.
 - **Zen Studio free frames (2026-10-15, user):** on a page you made, Screens / Overlays sit at `x` / `y` from the page
   (frames without them keep the old row, `builder/render/framePlace.ts`); drag by name or a selected frame, ⌥ copies,

@@ -7,6 +7,7 @@
 //      the file's admin DRAFT, list, save (write to disk, then style-guard + usage-guard) and discard drafts (admin role
 //      header, per-server token, same Origin only, annotated files only, atomic writes).
 //   3. /__zen-studio/mcp (2026-10-15): the Studio MCP for AI clients, relayed to an open Studio tab (mcp/server.mjs).
+//   4. /__zen-studio/agent/* (2026-10-18): Zen Agent, the Studio's own chat agent on the same tools (agent/routes.mjs).
 // Admin drafts (2026-10-03): edits never touch the disk until POST /save. A draft = { base (disk text when it
 // started), baseHash, content, updatedAt } per repo-relative file, kept in memory and in
 // node_modules/.cache/zen-studio/drafts-<port>.json (one file per dev server, restored when it starts). Every reader
@@ -44,6 +45,7 @@ import { PROJECTS_DIR, ProjectsError, projectsFolder } from "./projects-folder.m
 import { PROMOTE_DIR, planPromotion, typecheck, writePromotion } from "./promote.mjs";
 import { attachRelay, createRelay } from "./mcp/relay.mjs";
 import { MCP_PATH, studioMcp } from "./mcp/server.mjs";
+import { AGENT_ROUTES, zenAgent } from "./agent/routes.mjs";
 import { TOKENS_CSS, isTokenSource, variablesHost } from "./variables-host.mjs";
 import { VariableEditError } from "./variables.mjs";
 
@@ -78,6 +80,8 @@ export function zenStudio() {
   let realRoot = root;
   /** Per server start: /ping hands it to the Studio page, /edit and /write require it (another origin cannot read /ping). */
   const token = randomBytes(18).toString("base64url");
+  /** Zen Agent (agent/routes.mjs): the dev server only, made with the Studio MCP's relay. */
+  let agent = null;
 
   /* Admin drafts: repo-relative real path → { base, baseHash, content, updatedAt } (drafts.mjs). */
   const drafts = new Map();
@@ -172,7 +176,12 @@ export function zenStudio() {
       // The Studio MCP (mcp/server.mjs): AI clients call /__zen-studio/mcp, the open Studio tab runs each call.
       const relay = createRelay();
       attachRelay(server.ws, relay);
-      const mcp = studioMcp({ root, relay, version: packageVersion(root), port: () => { const address = server.httpServer?.address(); return address && typeof address === "object" ? address.port : null; } });
+      const serverPort = () => { const address = server.httpServer?.address(); return address && typeof address === "object" ? address.port : null; };
+      const mcp = studioMcp({ root, relay, version: packageVersion(root), port: serverPort });
+      // Zen Agent (plan docs/research/studio-vibe-agent-2026-10-18.md): the chat panel's turns call the same tools in the
+      // same tabs, through this relay; /agent/* below.
+      agent = zenAgent({ root, relay, port: serverPort });
+      server.httpServer?.once("close", () => { void agent?.close(); });
       server.middlewares.use((req, res, next) => {
         if (req.url?.split("?")[0] !== MCP_PATH) return next();
         mcp(req, res).catch((error) => { if (!res.headersSent) send(res, 500, { ok: false, code: "invalid", error: String(error?.message ?? error) }); });
@@ -369,6 +378,15 @@ export function zenStudio() {
         checkWriteHeaders(req);
         const body = await readJson(req);
         return send(res, 200, await promote(body));
+      }
+      // Zen Agent (agent/routes.mjs): GET with the token, POST as an edit (admin role, token, JSON).
+      if (AGENT_ROUTES.has(url.pathname.slice(PREFIX.length))) {
+        if (!agent) throw new HttpError("not-found", "Zen Agent runs on the Studio dev server only");
+        if (req.method === "GET") checkToken(req);
+        else if (req.method === "POST") checkWriteHeaders(req);
+        else throw new HttpError("invalid", `${req.method} is not allowed here`, 405);
+        const answer = await agent.handle(route, req.method === "POST" ? await readJson(req) : null, url);
+        return send(res, answer.status, answer.body);
       }
       if (ROUTES.has(url.pathname.slice(PREFIX.length)) || PROJECT_ROUTES.has(url.pathname.slice(PREFIX.length))) throw new HttpError("invalid", `${req.method} is not allowed here`, 405);
       throw new HttpError("not-found", `Unknown endpoint ${url.pathname}`);

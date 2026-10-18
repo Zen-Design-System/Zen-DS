@@ -450,11 +450,46 @@ The pages folder is watched (`fs.watch`, also under node_modules for the E2E ser
 Guards: a loopback Host, no `Origin` header (any browser page is refused, this server's own included) and
 `Authorization: Bearer <token>`; 403 otherwise, with the reason.
 
+## 6. Zen Agent (`agent/`, V0 2026-10-18)
+
+The Studio's own chat agent (plan `docs/research/studio-vibe-agent-2026-10-18.md`): a floating panel beside Pages | Layers
+(⌘J, or the stars button at the end of the bottom toolbar) where the person writes what to design or change. The dev
+server runs each turn with the Anthropic SDK's Tool Runner over the same tools as the Studio MCP (§5), executed in the
+person's tab through the same relay, so every change is one ⌘Z step and the AI chip's Stop refuses them; plus the zen-ds
+knowledge tools (`mcp/server.mjs` as a child process over stdio) and `check_page`. After a turn that changed the page,
+the Zen usage harness (`tools/usage-guard`) runs on it and the findings that turn caused go back to the model, up to two
+rounds; prototype wiring (a button with no action yet) is listed, not forced. Credentials stay in the dev server:
+`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` or an `ant auth login` profile (never a claude.ai login). Default model
+`claude-opus-5-5` (effort medium, server-side refusal fallback); the route takes Sonnet 5.5 / Haiku 5.5 already, the
+picker is V1. Each turn ends with its cost and time; one line per turn in `node_modules/.cache/zen-studio/agent-<port>.log`.
+
+| Route | What |
+| --- | --- |
+| `GET /agent/session?tab=` | Credentials found (or the reason and the fix), the models, the tab's transcript (a reloaded tab gets it back) |
+| `POST /agent/send { tab, text, useSelection?, model? }` | Starts a turn (202); its events go to the tab over HMR (`zen-agent:event`) |
+| `POST /agent/stop { tab }` · `POST /agent/reset { tab }` | Stop the running turn · a new chat |
+
+GET with the token, POST as an edit (admin role, token, JSON), as `/edit`.
+
+| File | What |
+| --- | --- |
+| `agent/session.mjs` | Conversations per tab, the turn (Tool Runner, canvas tools through the relay, the harness rounds, Stop, open tool calls closed) |
+| `agent/harness.mjs` | The usage harness on the page's code; the findings a turn caused; wiring rules apart |
+| `agent/knowledge.mjs` | The zen-ds MCP over stdio: list_components, get_component, search_icons, get_tokens |
+| `agent/prompt.mjs` · `agent/models.mjs` | The Design system prompt (frozen, cached) · models, prices, a turn's cost |
+| `agent/transcript.mjs` | The panel's transcript from the events, the same reducer on the server and in the tab |
+| `agent/credentials.mjs` · `agent/script.mjs` | Which credential the SDK will use · the scripted model (`ZEN_AGENT_SCRIPT=<file.json>`, SSE like the API) for checks |
+| `agent/routes.mjs` | The routes above |
+
+Tab: `src/platform/studio/agent/` (`AgentPanel.tsx`, `agentStore.ts`, `agent.css`).
+
 ## Checks
 
 ```sh
 node tools/studio/mcp/mcp.selftest.mjs   # relay, token, endpoint guards, the SDK client through the endpoint to a fake tab, the tab's layer outline
 npm run studio:e2e -- --only=mcp         # AI-01…06: the SDK client on a real tab (read, update + ⌘Z, insert, batch, folder edit live, Stop)
+node tools/studio/agent/agent.selftest.mjs   # Zen Agent offline: transcript, harness diff, whole turns through the real Tool Runner (scripted fetch) on a fake tab, Stop, routes, zen-ds over stdio
+npm run studio:e2e -- --only=agent       # AG-01…06: the panel on a real tab with the scripted model (change + ⌘Z, selection, picture, Stop, harness fix, no key)
 node tools/studio/selftest.mjs     # pure functions + detach (style-guard/usage-guard on its outputs) + wrap + drafts (rebase fuzz) + history + frame-scope + slots
 node tools/studio/slots.selftest.mjs   # slot ops alone (tsc, style-guard and usage-guard on realistic outputs through src/platform/examples/drafts)
 curl -s http://127.0.0.1:5180/__zen-studio/ping

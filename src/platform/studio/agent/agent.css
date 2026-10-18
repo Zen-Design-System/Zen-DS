@@ -1,0 +1,84 @@
+/* Zen Agent's panel (agent/AgentPanel.tsx): a floating panel on the canvas beside Pages | Layers, the same surface, edge
+   and shadow as the side panels (studio.css), at the panels' layer (22). It stops above the AI chip at the canvas's
+   bottom-left (mcp.css), which keeps its Stop. */
+.studio-agent {
+  /* zen-allow-slot-size: the panel's width, as the side panels' own (--studio-left-width), not component spacing. */
+  --studio-agent-width: 360px;
+  position: absolute;
+  z-index: 22;
+  top: var(--studio-edge);
+  bottom: calc(2 * var(--zen-spacing-padding-medium, 16px) + var(--zen-element-size-popular-xlarge, 36px));
+  left: calc(var(--studio-inset-left, 0px) + var(--studio-edge));
+  display: flex;
+  width: min(var(--studio-agent-width), calc(100% - var(--studio-inset-left, 0px) - var(--studio-inset-right, 0px) - 2 * var(--studio-edge)));
+  min-height: 0;
+  box-sizing: border-box;
+  flex-direction: column;
+  overflow: clip;
+  border-radius: var(--zen-corner-radius-xlarge, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-color-background-surface-default, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+}
+.studio-canvas-area[data-world-fullscreen="true"] > .studio-agent { visibility: hidden; }
+/* Below 1280px Pages | Layers is a drawer and its bar floats at the top-left (shell.css): the panel starts under it. */
+.studio-app[data-left="drawer"] .studio-agent { top: calc(var(--zen-spacing-padding-4-xlarge, 48px) + 2 * var(--studio-edge)); }
+
+.studio-agent__header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px);
+  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default);
+}
+.studio-agent__title { flex: 1 1 auto; min-width: 0; margin: 0; }
+
+.studio-agent__body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-medium, 16px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  overflow: auto;
+}
+.studio-agent__body p { margin: 0; }
+.studio-agent__empty { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-agent__suggestions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* The conversation fills the panel's width (the thread's own max is 800). */
+.studio-agent__thread { gap: var(--zen-spacing-gap-medium, 16px); }
+.studio-agent__text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.studio-agent__reply { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+.studio-agent__steps { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
+.studio-agent__step,
+.studio-agent__check { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); min-width: 0; }
+.studio-agent__step > .zen-text,
+.studio-agent__check > .zen-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A running step's icon turns (rotation moves nothing on the page; reduced motion keeps it still). */
+.studio-agent__step[data-state="running"] > .zen-icon,
+.studio-agent__check:is([data-state="running"], [data-state="fixing"]) > .zen-icon { animation: studio-agent-turn var(--zen-motion-duration-slow, 400ms) linear infinite; }
+@keyframes studio-agent-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .studio-agent__step[data-state="running"] > .zen-icon,
+  .studio-agent__check:is([data-state="running"], [data-state="fixing"]) > .zen-icon { animation: none; }
+}
+.studio-agent__note { margin: 0; }
+
+.studio-agent__footer {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-top: 1px solid var(--zen-color-border-neutral-pale-default);
+}
+.studio-agent__footer p { margin: 0; }
+.studio-agent__context { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* A phone-width window: the panel spans the canvas. */
+@media (max-width: 767px) {
+  .studio-agent { right: var(--studio-edge); width: auto; }
+}

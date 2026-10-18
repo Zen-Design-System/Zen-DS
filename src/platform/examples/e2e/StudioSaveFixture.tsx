@@ -12,7 +12,7 @@ export function StudioSaveFixture() {
       <Text data-e2e="save-text">Saved text</Text>
       <Stack direction="row" gap="sm">
         {/* zen-allow-action-handler: E2E fixture, never shown on the platform; the harness only edits these props. */}
-        <Button data-e2e="save-a" level="primary">One</Button>
+        <Button data-e2e="save-a" level="tertiary">One</Button>
         {/* zen-allow-action-handler: E2E fixture, never shown on the platform; the harness only edits these props. */}
         <Button data-e2e="save-b" level="tertiary">Two</Button>
       </Stack>
