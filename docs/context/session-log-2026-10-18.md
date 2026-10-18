@@ -231,3 +231,20 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
   pinned at the foot and the message bubbles' overlay stays on top; the instance has no fill so the frames' doodle
   background shows. Checked against the archive: all texts and nav variants match. The Chats list runs under the tab
   bar as in the originals (a scrolling list).
+- Performance calendar on the ❖ Calendar components (user: "nên dùng component từ page Calendar gốc", then "bỏ các
+  component tạo trong page Performance"): Month, Event details and New event now hold `Calendar/Month` (Desktop; days
+  of Sept 2024 Mon-first, Outside / Today 22, 30 events as `.Primitives/Calendar/Event` in the Day-Cells' Events slots;
+  Team → Blue, Design → Violet, Sales → Teal, Company → Orange, the same Support Subtle / Strongest tokens). Calendar/Time-Grid
+  has no slots (its day columns and sample blocks are fixed), so the Week screen keeps its grid with every part swapped
+  to the library primitives (Slot 140, Date 7, Event-Block 7, Event 1; same 64 px/hour from 08:00, sizes unchanged).
+  `.Template-Component/Performance/Sidebar-List` (no library twin: the screens' own menu) was detached on the 21 screens;
+  the archive's 392 local instances were detached; the five local components and the `.Template` section are deleted
+  (0 instances left on any page, 0 instances without a main). Scripts: `getInstancesAsync` still returns removed nodes
+  (reading their parent throws), and nodes inside instances or slots are new wrappers on each read (find by id).
+- Rule: the header's sidebar toggle never sits beside a Master crumb (user: "Nếu bật button bật tắt sidebar ở đây thì
+  không dùng item breadcrumb master ở đầu. do bị conflict icon", "Nếu muốn dùng thì tắt icon sidebar và bật ở header
+  sidebar"). Harness `navigation/collapse-beside-master-crumb` (error: a visible Header/AppShell with Collapse Button and
+  Top-Header on whose first visible `.Primitives/Breadcrumbs/Item` in Top-Elements is Level=Master), audit-rules row,
+  screen-rules bullet; ai-kit:check 155 ✓. Performance's 21 screens set to Collapse=Sidebar (texts unchanged); HR (22),
+  the patterns and the Header/AppShell default start with Level=Sub. Tried in Figma: Performance 0, HR 0, patterns 0, a
+  temporary Collapse=Header instance with a Master crumb 1 (removed).
