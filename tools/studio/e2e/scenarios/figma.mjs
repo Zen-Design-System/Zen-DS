@@ -45,11 +45,39 @@ async function selectBody(page, id) {
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
-  ["ControlOrMeta+KeyR", "Rename"], ["ControlOrMeta+KeyG", "Group selection"], ["ControlOrMeta+Shift+KeyG", "Ungroup"],
-  ["ControlOrMeta+Shift+KeyL", "Lock"], ["ControlOrMeta+KeyE", "Flatten"], ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
+  ["ControlOrMeta+KeyG", "Group selection"], ["ControlOrMeta+Shift+KeyG", "Ungroup"],
+  ["ControlOrMeta+KeyE", "Flatten"], ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
   ["Shift+KeyR", "Rulers"], ["Shift+KeyS", "Section"], ["KeyP", "Pen"], ["KeyK", "Scale"], ["KeyC", "Comment"],
   ["KeyI", "Pick color"], ["KeyN", "Next frame"], ["KeyS", "Slice"],
 ];
+
+
+/* ── F1 (Layers like Figma) helpers ─────────────────────────────────────────────────────────────────────────────── */
+
+/** Every Layers row as shown: its id, name, level and whether it is locked. */
+const layerRows = (page) => page.locator(".studio-layers__tree [role='treeitem']").evaluateAll((rows) => rows.map((row) => ({
+  id: row.getAttribute("data-layer-id"), name: row.querySelector(".studio-layers__name")?.textContent ?? "", level: Number(row.getAttribute("aria-level")),
+  locked: row.hasAttribute("data-locked"), expanded: row.getAttribute("aria-expanded"),
+})));
+/** The Layers row named `name` (a string: exactly; a RegExp: matching). */
+const rowNamed = (page, name) => page.locator(".studio-layers__tree [role='treeitem']").filter({ has: page.locator(".studio-layers__name", { hasText: name instanceof RegExp ? name : new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) }) }).first();
+/** ⌘-clicks the n-th Shape of the walk page (Figma's deep select), then waits for Layers to show its row. */
+async function selectShape(page, id, index) {
+  const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index).boundingBox();
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("ControlOrMeta");
+  await sleep(300);
+}
+/** The walk page's text without the edit just made: ⌘Z until it is `text` again. */
+async function undoTo(page, id, text, tries = 3) {
+  for (let k = 0; k < tries && (await pageText(page, id)) !== text; k++) {
+    await page.locator(".studio-viewport").focus();
+    await page.keyboard.press("ControlOrMeta+KeyZ");
+    await until(async () => (await pageText(page, id)) === text, { timeout: 4000, message: "⌘Z" }).catch(() => undefined);
+  }
+  if ((await pageText(page, id)) !== text) throw new Error("⌘Z did not bring the page back");
+}
 
 export const rows = [
   {
@@ -149,7 +177,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-08", feature: "The layer menu reads Figma's items: Bring forward / Send backward, Group / Frame selection, Hide, Lock, Delete", wp: "F0 2026-10-18",
+    id: "FW-08", feature: "The layer menu reads Figma's items: Bring forward / Send backward, Group / Frame selection, Hide, Lock, Rename, Delete", wp: "F0 2026-10-18 · F1",
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
       await clickNamed(page, id, "Button");
@@ -159,14 +187,16 @@ export const rows = [
       await menu.waitFor({ state: "visible", timeout: 5000 });
       const items = (await menu.getByRole("menuitem").allInnerTexts()).map((item) => item.replace(/\s+/g, " ").trim());
       const lock = await menu.getByRole("menuitem", { name: /^Lock/ }).isDisabled().catch(() => null);
+      const group = await menu.getByRole("menuitem", { name: /^Group selection/ }).isDisabled().catch(() => null);
       await page.keyboard.press("Escape");
-      const want = [/^Copy\b/, /^Duplicate\b/, /^Bring to front\b/, /^Bring forward\b/, /^Send backward\b/, /^Send to back\b/, /^Add auto layout\b/, /^Group selection\b/, /^Frame selection\b/, /^Hide\b/, /^Lock\b/, /^Delete\b/];
+      const want = [/^Copy\b/, /^Duplicate\b/, /^Bring to front\b/, /^Bring forward\b/, /^Send backward\b/, /^Send to back\b/, /^Add auto layout\b/, /^Group selection\b/, /^Frame selection\b/, /^Hide\b/, /^Lock\b/, /^Rename\b/, /^Delete\b/];
       const missing = want.filter((pattern) => !items.some((item) => pattern.test(item))).map(String);
       if (missing.length) throw new Error(`missing ${missing.join(", ")} (menu: ${items.join(" | ")})`);
       const retired = items.filter((item) => /^(?:Remove\b(?! auto layout)|Move (?:up|down|earlier|later)\b|Hide layer\b|Select first child\b)/.test(item));
       if (retired.length) throw new Error(`retired words: ${retired.join(", ")}`);
-      if (lock !== true) throw new Error("Lock is on (Zen Studio has no Lock yet)");
-      return `${items.length} items in Figma's words; Lock off ("Not in Zen Studio yet")`;
+      if (lock !== false) throw new Error("Lock is off (F1 builds it)");
+      if (group !== true) throw new Error("Group selection is on (Zen Studio has no groups yet)");
+      return `${items.length} items in Figma's words; Lock on, Group selection off ("Not in Zen Studio yet")`;
     },
   },
   {
@@ -202,6 +232,195 @@ export const rows = [
       // The undo line names the edit as Figma does: "Undid “Stack Gap → XLarge”", never the code's "gap → xl".
       await until(async () => new RegExp(`Undid “[^”]*Gap → ${name}”`).test(await statusText(page)), { timeout: 5000, message: `the undo line says "Gap → ${name}"` }).catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 200)})`); });
       return `sections: ${headings.join(", ")} · Gap → ${name} (${took} ms) · ⌘Z: "${(await statusText(page)).split(" | ")[0]}"`;
+    },
+  },
+  {
+    id: "FW-11", feature: "Layers as Figma lists them: the front-most layer on top, frames and shapes named Frame N / Rectangle N / Ellipse N, text by its words, frames with #", wp: "F1 2026-10-18",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await showLeftTab(page, "layers");
+      await selectShape(page, id, 1);
+      await until(async () => (await layerRows(page)).some((row) => /^Ellipse \d+$/.test(row.name)), { message: "the Ellipse's row" });
+      const rows = await layerRows(page);
+      const index = (pattern) => rows.findIndex((row) => pattern.test(row.name));
+      const [rectangle, ellipse, button, text, frame] = [/^Rectangle \d+$/, /^Ellipse \d+$/, /^Button$/, /^Start building here/, /^Frame \d+$/].map(index);
+      if ([rectangle, ellipse, button, text, frame].some((at) => at < 0)) throw new Error(`names: ${rows.map((row) => row.name).join(" | ")}`);
+      // Front on top: in the frame the Ellipse (drawn last) is above the Rectangle; in the page the frame holding them
+      // (written after the Button and the text) is above both.
+      if (!(ellipse < rectangle)) throw new Error(`Ellipse below Rectangle: ${rows.map((row) => row.name).join(" | ")}`);
+      const holder = rows.slice(0, rectangle).reverse().find((row) => /^Frame \d+$/.test(row.name) && row.level < rows[rectangle].level);
+      const holderAt = rows.indexOf(holder);
+      if (!(holderAt < button && button < text)) throw new Error(`order: ${rows.map((row) => row.name).join(" | ")}`);
+      const icon = await page.locator(".studio-layers__tree [role='treeitem'][data-kind='frame'] .studio-layers__icon svg").first().getAttribute("data-icon");
+      if (icon !== "icon-hash-01-line") throw new Error(`the frame row's icon is ${icon}`);
+      return rows.filter((row) => row.level >= 2).map((row) => row.name).slice(0, 8).join(" › ");
+    },
+  },
+  {
+    id: "FW-12", feature: "Double-click a layer's name in Layers renames it (data-name), Escape keeps it, an empty name brings the automatic one back; one ⌘Z", wp: "F1 2026-10-18",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await showLeftTab(page, "layers");
+      const before = (await pageText(page, id)) ?? "";
+      const row = rowNamed(page, "Button");
+      await row.waitFor({ state: "visible", timeout: 5000 });
+      await row.locator(".studio-layers__name").dblclick();
+      const field = page.locator(".studio-layers__tree input[aria-label='Layer name']");
+      await field.waitFor({ state: "visible", timeout: 3000 });
+      await field.press("Escape");
+      await field.waitFor({ state: "hidden", timeout: 3000 });
+      if ((await pageText(page, id)) !== before) throw new Error("Escape wrote a name");
+      await row.locator(".studio-layers__name").dblclick();
+      await field.fill("Buy now");
+      await field.press("Enter");
+      await until(async () => /<Button[^>]*data-name="Buy now"/.test((await pageText(page, id)) ?? ""), { message: 'data-name="Buy now" on the Button' });
+      await rowNamed(page, "Buy now").waitFor({ state: "visible", timeout: 5000 });
+      await undoTo(page, id, before);
+      await rowNamed(page, "Button").waitFor({ state: "visible", timeout: 5000 });
+      return "Escape keeps it · Buy now written and shown · ⌘Z back to Button";
+    },
+  },
+  {
+    id: "FW-13", feature: "⌘R renames the selected layer in Layers; Tab saves and goes on to the next layer's name; the tab never reloads", wp: "F1 2026-10-18",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await showLeftTab(page, "pages");
+      await page.evaluate(() => { window.__figmaRename = true; });
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyR");
+      const field = page.locator(".studio-layers__tree input[aria-label='Layer name']");
+      await field.waitFor({ state: "visible", timeout: 5000 });
+      const first = await field.inputValue();
+      if (first !== "Button") throw new Error(`the field reads "${first}"`);
+      await field.press("Tab");
+      await until(async () => (await field.count()) === 1 && (await field.inputValue()) !== "Button", { message: "the next layer's name field" });
+      const next = await field.inputValue();
+      await field.press("Escape");
+      if (!(await page.evaluate(() => window.__figmaRename === true))) throw new Error("⌘R reloaded the tab");
+      return `⌘R → "Button" → Tab → "${next}"`;
+    },
+  },
+  {
+    id: "FW-14", feature: "⌘R with several layers opens Rename layers ($& / $n, preview); Rename writes every name in one ⌘Z", wp: "F1 2026-10-18",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(1).boundingBox();
+      await page.keyboard.down("Shift"); await page.keyboard.down("ControlOrMeta");
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.keyboard.up("ControlOrMeta"); await page.keyboard.up("Shift");
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two shapes selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyR");
+      const dialog = page.getByRole("dialog", { name: "Rename 2 layers" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await dialog.getByLabel("Rename to").fill("Dot $n");
+      const preview = await dialog.getByRole("list", { name: "Preview" }).innerText();
+      if (!/Dot 1/.test(preview) || !/Dot 2/.test(preview)) throw new Error(`preview: ${preview}`);
+      await dialog.getByRole("button", { name: "Rename", exact: true }).click();
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; return text.includes('data-name="Dot 1"') && text.includes('data-name="Dot 2"'); }, { message: "Dot 1 and Dot 2 written" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z takes both names back" });
+      return "Rename layers: Dot $n → Dot 1, Dot 2 · one ⌘Z";
+    },
+  },
+  {
+    id: "FW-15", feature: "⇧⌘L locks a layer: a click on it selects the layer around it, no handles, arrows keep it; Layers shows the padlock, which unlocks", wp: "F1 2026-10-18",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await showLeftTab(page, "layers");
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 1);
+      const ellipse = await selectedName(page);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Shift+KeyL");
+      await until(async () => /<Shape type="ellipse"[^>]*data-locked/.test((await pageText(page, id)) ?? ""), { message: "data-locked on the Ellipse" });
+      const locked = (await pageText(page, id)) ?? "";
+      // Arrows keep a locked layer in place.
+      await page.keyboard.press("ArrowRight");
+      await sleep(400);
+      if ((await pageText(page, id)) !== locked) throw new Error("an arrow moved the locked layer");
+      // A ⌘-click on it now selects the frame around it.
+      await page.keyboard.press("Escape");
+      await selectShape(page, id, 1);
+      const picked = await selectedName(page);
+      if (picked === ellipse || /part of/.test(picked)) throw new Error(`the locked Ellipse was picked on the canvas (${picked})`);
+      // Layers: its row carries the padlock; the padlock unlocks it.
+      // Its row by its Layers name (the Inspector header names its kind: "Ellipse"; Layers "Ellipse 1").
+      const row = rowNamed(page, /^Ellipse \d+$/);
+      await row.waitFor({ state: "visible", timeout: 5000 }).catch(async () => { await selectShape(page, id, 0); await row.waitFor({ state: "visible", timeout: 5000 }); });
+      if (!(await row.getAttribute("data-locked"))) throw new Error("no padlock on the locked row");
+      await row.hover();
+      await row.getByRole("button", { name: /^Unlock Ellipse \d+$/ }).click();
+      await until(async () => (await pageText(page, id)) === before, { message: "the padlock unlocks it" });
+      return `⇧⌘L on ${ellipse} · arrow kept it · ⌘-click → ${picked} · padlock unlocked`;
+    },
+  },
+  {
+    id: "FW-16", feature: "Right-click a Layers row opens that layer's canvas menu (Rename, Lock, Delete); on a frame's row, the frame's", wp: "F1 2026-10-18",
+    async run(ctx) {
+      const { page } = await walkPage(ctx);
+      await showLeftTab(page, "layers");
+      const row = rowNamed(page, "Button");
+      await row.waitFor({ state: "visible", timeout: 5000 });
+      await row.click({ button: "right" });
+      const menu = page.getByRole("menu").last();
+      await menu.waitFor({ state: "visible", timeout: 5000 });
+      const items = (await menu.getByRole("menuitem").allInnerTexts()).map((item) => item.replace(/\s+/g, " ").trim());
+      await page.keyboard.press("Escape");
+      const missing = [/^Rename\b/, /^Lock\b/, /^Delete\b/].filter((pattern) => !items.some((item) => pattern.test(item))).map(String);
+      if (missing.length) throw new Error(`missing ${missing.join(", ")} (menu: ${items.join(" | ")})`);
+      if ((await selectedName(page)) !== "Button") throw new Error(`the row's layer is not selected (${await selectedName(page)})`);
+      await page.locator(".studio-layers__tree [role='treeitem'][data-kind='frame']").first().click({ button: "right" });
+      const frameMenu = page.getByRole("menu").last();
+      await frameMenu.waitFor({ state: "visible", timeout: 5000 });
+      const frameItems = (await frameMenu.getByRole("menuitem").allInnerTexts()).map((item) => item.replace(/\s+/g, " ").trim());
+      await page.keyboard.press("Escape");
+      if (!frameItems.some((item) => /^Zoom to selection/.test(item)) || !frameItems.some((item) => /^Rename/.test(item))) throw new Error(`frame menu: ${frameItems.join(" | ")}`);
+      return `${items.length} layer items · frame: ${frameItems.slice(0, 3).join(", ")}…`;
+    },
+  },
+  {
+    id: "FW-17", feature: "⌥-click a chevron opens or closes a layer and everything in it; ⌥L collapses every layer", wp: "F1 2026-10-18",
+    async run(ctx) {
+      const { page } = await walkPage(ctx);
+      await showLeftTab(page, "layers");
+      const frameRow = page.locator(".studio-layers__tree [role='treeitem'][data-kind='frame']").first();
+      await frameRow.locator(".studio-layers__chevron").click({ modifiers: ["Alt"] });
+      await sleep(300);
+      // The frame was open: ⌥-click closes it and everything in it; again opens all (the shapes inside the frame show).
+      if ((await frameRow.getAttribute("aria-expanded")) !== "false") throw new Error("⌥-click did not close the frame");
+      await frameRow.locator(".studio-layers__chevron").click({ modifiers: ["Alt"] });
+      await until(async () => (await layerRows(page)).some((row) => /^Ellipse \d+$/.test(row.name)), { message: "every layer open (the Ellipse's row)" });
+      const open = (await layerRows(page)).length;
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Alt+KeyL");
+      await until(async () => (await frameRow.getAttribute("aria-expanded")) === "false", { message: "⌥L collapses the frame" });
+      return `⌥-click: ${open} rows open · ⌥L: ${(await layerRows(page)).length} row(s)`;
+    },
+  },
+  {
+    id: "FW-18", feature: "Double-click a frame's name on the canvas renames the frame (its Screen's title); ⌘Z", wp: "F1 2026-10-18",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const label = page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]');
+      await label.waitFor({ state: "visible", timeout: 5000 });
+      await label.dblclick();
+      const field = page.locator("input[aria-label='Frame name']");
+      await field.waitFor({ state: "visible", timeout: 3000 });
+      await field.fill("Checkout");
+      await field.press("Enter");
+      await until(async () => /<Screen id="screen-1" title="Checkout"/.test((await pageText(page, id)) ?? ""), { message: 'title="Checkout"' });
+      await label.waitFor({ state: "visible", timeout: 5000 });
+      if (!/Checkout/.test(await label.innerText())) throw new Error("the label still shows the old name");
+      await undoTo(page, id, before);
+      return "frame name → Checkout → ⌘Z";
     },
   },
 ];

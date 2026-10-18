@@ -487,8 +487,9 @@ export const rows = [
         for (let index = selected - 1, level = rows[selected].level; index >= 0 && level > 1; index--) if (rows[index].level < level) { chain.unshift(rows[index].name.replace(/Empty$/, "")); level = rows[index].level; }
         const joined = chain.join(" › ");
         if (/Container|(^| › )List( › |$)/.test(joined)) throw new Error(`Layers still lists a passed-through layer: ${joined}`);
-        if (!/AppShell › Stack › Stack › Grid › Grid$/.test(joined)) throw new Error(`ancestors: ${joined}`);
-        const partsUnderLayout = rows.some((row, index) => /^Parts/.test(row.name) && index > 0 && /^(Stack|Grid)\b/.test(rows.slice(0, index).reverse().find((other) => other.level === row.level - 1)?.name ?? ""));
+        // Stack › Stack › Grid › Grid, by Figma's names (F1 2026-10-18: every frame is "Frame N" in Layers).
+        if (!/AppShell › Frame \d+ › Frame \d+ › Frame \d+ › Frame \d+$/.test(joined)) throw new Error(`ancestors: ${joined}`);
+        const partsUnderLayout = rows.some((row, index) => /^Parts/.test(row.name) && index > 0 && /^(Stack|Grid|Frame \d+)\b/.test(rows.slice(0, index).reverse().find((other) => other.level === row.level - 1)?.name ?? ""));
         if (partsUnderLayout) throw new Error("a Parts row under a Stack or Grid");
         return `${joined} › MetricCard`;
       } finally {

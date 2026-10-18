@@ -46,8 +46,12 @@ const inside = (outer: FiberHit, inner: FiberHit) => outer.hosts.some((host) => 
 
 function targetFor(hit: FiberHit, parent: FiberHit, mode: Place["mode"], current: Session): DropTarget {
   const target: DropTarget = { parentSrc: parent.src, parentName: parent.name, frameId: frameOf(parent.hosts[0]), panelId: panelOf(parent.hosts[0]) };
-  if (mode === "before") target.before = hit.src;
-  else if (mode === "after") target.after = hit.src;
+  // `mode` is where the marker shows (above / below the row). Layers of a page you made list the front-most layer on top
+  // (Figma's order: data-order="front"), so above a row is after it in the code.
+  const front = current.tree.getAttribute("data-order") === "front";
+  const place = front ? (mode === "before" ? "after" : mode === "after" ? "before" : mode) : mode;
+  if (place === "before") target.before = hit.src;
+  else if (place === "after") target.after = hit.src;
   target.reparent = !sameHost(parentHit(current.hit, current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null), parent);
   return target;
 }

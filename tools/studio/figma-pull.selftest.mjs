@@ -49,7 +49,11 @@ const FRAME = {
 };
 
 const mapping = await repoMapping();
-const { text, notes } = pageFromFigma(FRAME, { mapping });
+/** The page without the layers' own names (data-name, F1 2026-10-18): the checks below read the rest of the code. */
+const unnamed = (code) => code.replace(/ data-name="[^"]*"/g, "");
+const { text: named, notes } = pageFromFigma(FRAME, { mapping });
+const text = unnamed(named);
+ok("a frame's and a text's own Figma names come back as their data-name (layer-meta.mjs)", named.includes('<Text textStyle="Heading/3" data-name="Title">Team</Text>') && named.includes('<Stack direction="row" gap="xs" data-name="Statuses">'));
 check("the page is valid dialect", validateDialect(text), []);
 ok("a desktop Screen named after the frame", /<Screen id="screen-1" title="Team" device="desktop">/.test(text));
 ok("the frame's auto layout: gap md (Spacing/Gap/Medium, Stack's default: unwritten), padding 2xl (Spacing/Padding/2-XLarge)", /<Stack padding="2xl">/.test(text));
@@ -81,7 +85,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
 {
   const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-overviews.json", import.meta.url), "utf8"));
   const pulled = pageFromFigma(live.frame, { mapping });
-  const page = pulled.text;
+  const page = unnamed(pulled.text);
   const notesWith = (part) => pulled.notes.filter((note) => note.includes(part)).length;
   check("live: the page is valid dialect", validateDialect(page), []);
   ok("live: Body-Content's frames are Sidebar sections, the Section-Title text their label",
@@ -117,7 +121,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
 {
   const table = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-table.json", import.meta.url), "utf8"));
   const pulled = pageFromFigma(table.frame, { mapping });
-  const page = pulled.text;
+  const page = unnamed(pulled.text);
   check("table: the page is valid dialect", validateDialect(page), []);
   ok("table: Figma's Data-Rows are one Table, a column per header cell (content, Sort, a fixed width or Fill, Bold)",
     page.includes('columns={[{ id: "type", header: "Type", content: "dock-icon", bold: true }, { id: "submit-on", header: "Submit On", sortable: true, width: "140px" }, { id: "from-to", header: "From - to", width: "234px" }, { id: "total", header: "Total", width: "104px", bold: true }, { id: "status", header: "Status", sortable: true, width: "198px", content: "badge" }, { id: "actions", header: "", align: "right", width: "72px", content: "actions", actions: [{ id: "open", icon: "icon-chevron-right-line-small", label: "Open", size: "small" }] }]} rows={[{ id: "row-1", type: "Annual Leave", "submit-on": "Mar 2, 2026", "from-to": "Mar 12 - Mar 13, 2026", total: "2 days", status: "Pending" }, '));
@@ -141,8 +145,10 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
 // screen's) is not read (figmaReadCode leaves it off the root).
 {
   const frame = { type: "FRAME", name: "Clip", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] }, children: [{ type: "FRAME", name: "Strip", clip: true, layout: { mode: "HORIZONTAL", gap: 8, padding: [0, 0, 0, 0] }, children: [{ type: "TEXT", name: "A", characters: "A" }, { type: "TEXT", name: "B", characters: "B" }] }] };
-  const page = pageFromFigma(frame, { mapping }).text;
+  const pulledClip = pageFromFigma(frame, { mapping }).text;
+  const page = unnamed(pulledClip);
   ok("Clip content: a clipping frame is a Stack with clip, the page's Stack has none", /<Stack direction="row" gap="xs" align="start" clip>/.test(page) && /<Screen[^>]*>\s*<Stack>/.test(page));
+  ok("a frame's own name comes back, a text named by its words does not (layer-meta.mjs)", pulledClip.includes('data-name="Strip"') && !/data-name="[AB]"/.test(pulledClip));
   ok("Clip content: figmaReadCode reads clipsContent, never on the page frame", /if \(!root && node\.clipsContent === true\) out\.clip = true;/.test(figmaReadCode("1:2")));
 }
 {

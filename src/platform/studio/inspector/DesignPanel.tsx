@@ -1,7 +1,7 @@
 import { valueWords } from "./controls/scale";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
 import { ComponentSection } from "./ComponentSection";
-import { layerName, objectIcon } from "../select/layerNames";
+import { layerIcon, layerName } from "../select/layerNames";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
@@ -740,7 +740,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // Zen instance or one the person made (⌥⌘K), never a drawn object (user, 2026-10-17).
   const headProps: Record<string, unknown> = { ...selectedHit(selection)?.props, type: element?.attributes.find((attr) => attr.kind === "string" && attr.name === "type")?.value };
   const headComponent = kind === "zen" || kind === "local" || Boolean(headProps["data-zen-main"] || headProps["data-zen-instance"]);
-  const headIcon = objectIcon(name, headProps) ?? (headComponent ? "icon-cube-line" : "icon-code-02-line");
+  const headIcon = layerIcon(name, headProps, headComponent);
   const slug = kind === "zen" || kind === "primitive" ? componentSlug(name) : null;
   const docsPage = slug && slug in pageLabels && slug !== currentPage ? (slug as PlatformPage) : null;
   // The link names no file: "Show code" (the Code tab has the line; plan criterion 7). A Studio page's own file is no

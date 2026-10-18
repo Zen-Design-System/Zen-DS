@@ -1,0 +1,12 @@
+export const NAME_PROP: "data-name";
+export const LOCKED_PROP: "data-locked";
+export function givenNameOf(node: { props?: Record<string, unknown> } | null | undefined): string | null;
+export function isLockedValue(value: unknown): boolean;
+export const FRAME_COMPONENTS: Set<string>;
+export const FIGMA_NAMED: Set<string>;
+export const SHAPE_NAMES: Record<string, string>;
+export function textWordsOf(node: { children?: ReadonlyArray<{ kind: string; value?: string }> } | null | undefined, max?: number): string | null;
+export function autoNameBase(node: { name: string; props?: Record<string, unknown> }): string | null;
+export function autoLayerNames(board: unknown): Map<string, string>;
+export function isAutomaticName(name: unknown, node: unknown): boolean;
+export function batchNames(currents: readonly string[], pattern: string, options?: { match?: string; start?: number }): string[];

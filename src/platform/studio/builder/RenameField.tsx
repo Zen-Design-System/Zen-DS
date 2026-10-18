@@ -4,9 +4,10 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 /**
  * A page's or folder's name edited in place in the Pages list, as Figma renames a layer (user, 2026-10-10: "cho phép
  * double click sửa tên folder, project trực tiếp trên list"): it opens selected; Enter or leaving it saves, Escape keeps
- * the name. An empty or unchanged name saves nothing.
+ * the name. An empty or unchanged name saves nothing. `onTab`: Tab / ⇧Tab save and move to the next / previous name
+ * (Figma's Layers); `className`: the field's look where it sits (a Layers row).
  */
-export function RenameField({ value, label, onCommit, onDone }: { value: string; label: string; onCommit: (name: string) => Promise<void>; onDone: () => void }) {
+export function RenameField({ value, label, onCommit, onDone, onTab, className = "studio-pages__rename" }: { value: string; label: string; onCommit: (name: string) => Promise<unknown>; onDone: () => void; onTab?: (backward: boolean) => void; className?: string }) {
   const [text, setText] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const finished = useRef(false);
@@ -24,14 +25,16 @@ export function RenameField({ value, label, onCommit, onDone }: { value: string;
   return (
     <input
       ref={inputRef}
-      className={`studio-pages__rename ${typographyStyles["Body/Small/Medium"]}`}
+      className={`${className} ${typographyStyles["Body/Small/Medium"]}`}
       aria-label={label}
       value={text}
       spellCheck={false}
       onChange={(event) => setText(event.target.value)}
       onKeyDown={(event) => {
+        event.stopPropagation();
         if (event.key === "Enter") { event.preventDefault(); finish(true); }
-        else if (event.key === "Escape") { event.preventDefault(); finish(false); }
+        else if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); finish(false); }
+        else if (event.key === "Tab" && onTab) { event.preventDefault(); finish(true); onTab(event.shiftKey); }
       }}
       onBlur={() => finish(true)}
     />

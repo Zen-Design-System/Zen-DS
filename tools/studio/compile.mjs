@@ -16,6 +16,7 @@
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
 import { SCREEN_CHROME, eachElement, localComponents, parsePage, screenLayout } from "./dialect.mjs";
+import { LOCKED_PROP } from "./layer-meta.mjs";
 import { literalProp, objectFields, opensItself, requiredFunctions, standInKind } from "./standins.mjs";
 import { pruneHidden } from "./visibility.mjs";
 
@@ -279,7 +280,8 @@ function elementCode(node, ctx, indent, extra = []) {
   }
   const props = [
     ...[...extra, ...hovering].map(([name, code]) => `${name}={${code}}`),
-    ...Object.entries(withStandIns(knownFieldsOnly(node), ctx)).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
+    // A layer's lock is the Studio's (layer-meta.mjs); its data-name goes with the code.
+    ...Object.entries(withStandIns(knownFieldsOnly(node), ctx)).filter(([name]) => name !== LOCKED_PROP).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
   ];
   const oneLine = props.every((prop) => !prop.includes("\n")) && indent.length + node.name.length + 2 + props.join(" ").length <= WIDTH;
   const open = !props.length ? `<${node.name}` : oneLine ? `<${node.name} ${props.join(" ")}` : `<${node.name}\n${props.map((prop) => `${inner}${prop}`).join("\n")}\n${indent}`;

@@ -1,3 +1,4 @@
+import { isLockedSrc } from "../select/layerMeta";
 import { useSyncExternalStore } from "react";
 import { canvasApi } from "../canvas/viewport";
 import { childHits, elementFiber, hitOf, rectOf, walkAnnotated, type FiberHit } from "../select/picker";
@@ -48,8 +49,12 @@ function rootLayers(frame: Element): FiberHit[] {
   return out;
 }
 
-/** The layers the rectangle selects (see the header). */
+/** The layers the rectangle selects (see the header); never a locked one (Figma's lock, edit/lock.ts). */
 function layersIn(box: DOMRect, deep: boolean): FiberHit[] {
+  return pickableIn(box, deep).filter((hit) => !isLockedSrc(hit.src));
+}
+
+function pickableIn(box: DOMRect, deep: boolean): FiberHit[] {
   const frame = frameUnder(box);
   if (!frame) return [];
   if (deep) {
