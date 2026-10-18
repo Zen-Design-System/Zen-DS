@@ -3559,7 +3559,7 @@
       [
         "Size",
         "size",
-        "md: 240 illustration, the Empty State fills a page (default) · sm: 120, it fills a widget, card or section (default inside a ChartCard)"
+        "md: 240 illustration, the Empty State fills a page (default) · sm: 200, it fills a widget, card or section (default inside a ChartCard)"
       ],
       [
         "Illustration",
@@ -3576,7 +3576,7 @@
     "do": [
       "Say what is empty in the title (\"No projects yet\", \"No results for “tokns”\").",
       "Give the next step as a verb in primaryAction (Primary); a way out such as Clear filters or Clear search goes alone in secondaryAction (Tertiary) (harness: empty-state/way-out-tertiary).",
-      "Pick the size from where it sits: Medium (240) when the Empty State fills the page's main content — first run, a page with no results, no access; Small (120) when it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a sidebar, side panel, sheet, popover or dialog (harness: empty-state/small-in-box; ChartCard sets Small for you).",
+      "Pick the size from where it sits: Medium (240) when the Empty State fills the page's main content — first run, a page with no results, no access; Small (200) when it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a sidebar, side panel, sheet, popover or dialog (harness: empty-state/small-in-box; ChartCard sets Small for you).",
       "Keep the illustration and swap its icon to match what is missing (icon=\"icon-folder-line\").",
       "Keep the caption to one sentence."
     ],
@@ -3628,7 +3628,7 @@
       {
         "id": "empty-state/keep-illustration",
         "severity": "warn",
-        "summary": "Keep the illustration: where space is short use size=\"sm\" (the 120 illustration), never illustration={false}.",
+        "summary": "Keep the illustration: where space is short use size=\"sm\" (the 200 illustration), never illustration={false}.",
         "allow": "no-illustration"
       },
       {

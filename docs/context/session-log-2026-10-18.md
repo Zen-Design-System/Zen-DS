@@ -231,3 +231,20 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
   pinned at the foot and the message bubbles' overlay stays on top; the instance has no fill so the frames' doodle
   background shows. Checked against the archive: all texts and nav variants match. The Chats list runs under the tab
   bar as in the originals (a scrolling list).
+- Code, checked against Figma (user: "làm tiếp phần code. Nhưng phải check lại từ figma"), branch
+  zen/feat/appshell-frames-20261018 on main 0993a6b8:
+  - EmptyState `sm` = Figma Empty-State Size=Small (16339:82; set 16339:135, illustration set 16339:69): 200 art, 36 icon
+    (Popular/XLarge, Figma dm-36), the same 1px / 2px lines. Read from the nodes, two older drifts fixed with it: the ring,
+    well and icon sit on (149, 130) of 240 (code had 146, 120) and the icon is Content/Placeholder (code had
+    Content/Neutral/Light). Guideline source, harness message, Figma description source (Empty-State now in FORCE: its
+    hand-written set description had stacked HTML escapes; the Medium variant's stale lone-component text cleared, backup
+    on 🔒 ARCHIVED "Description backup 2026-10-18"), docs regenerated.
+  - Studio ↔ Figma: component-properties (❖ Empty State re-read: Size on both sets), figma-props map `Size: "size"`,
+    library-keys (the two sets; 6085:25796 / 6085:25816 are now their Medium variants, keys unchanged), native-pack
+    merged from one probe frame (16364:4, removed) instead of a full re-capture: only the two Empty-State symbols changed
+    and the two Small variants were added (Button/Main identical). The user's clipboard was saved and put back.
+  - BottomNavigation floating / floating-glass tabs 64–88 (Fill while they fit, Hug at 88), phone and tablet.
+  - Studio phase 1 (Frame picker, Size presets, device simulator in Present and Play): E2E B-45 (Frame › Frame 100 × 100),
+    B-46 (Size iPhone → iPad, portrait, one ⌘Z), PT-15 (Present on the iPhone, iPad portrait, Device frame, Duo open).
+  - QA: `npm run qa -- --isolated` on empty-state, bottom-navigation and the 13 pages that render a Small Empty State: PASS
+    (0 errors; 12 sheets reviewed). Studio, guidelines, usage selftests ✓, tsc ✓.

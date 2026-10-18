@@ -162,7 +162,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
   };
   return (
     <InspectorSection title="Screen" fieldGrid>
-      <InspectorRow label="Size">
+      <InspectorRow label="Size" name="screen-size">
         <RowSelectField
           aria-label="Screen size"
           size="sm"

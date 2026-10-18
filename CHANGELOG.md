@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
+  "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
+  the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.
 - Zen Studio: inside a project, Local variables shows only that project's mode of Base Colors (Project) — no Zen
   column and no other project; Drafts shows Zen. The collection's rows are fixed there: Project settings changes them.
 - Dark ramps lifted (2026-10-18, the Zen plugin's "Dark lift", user: "chốt +0,020"): in all 20 Global Colors ramps,

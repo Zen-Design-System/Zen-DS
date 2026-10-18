@@ -512,7 +512,7 @@ export const FIGMA_PROPS = {
     sets: { "AI/Chat-Bubble": null },
     props: { "Chat-Content": skip("the bubble's content"), Items: skip("the actions list"), Side: "side", State: HOVER },
   },
-  EmptyState: { sets: { "Empty-State": null }, props: { CTA: { toggle: "primaryAction", on: ACTION } } },
+  EmptyState: { sets: { "Empty-State": null }, props: { CTA: { toggle: "primaryAction", on: ACTION }, Size: "size" } },
   InputConditionItem: { sets: { "Primitives/Input/Input-Conditions/Condition-Item": null }, props: { State: "state" } },
   // The list around them: its Item-List slot holds the Condition-Items (the element's children).
   InputConditions: { sets: { "Input-Conditions": null }, props: { "Item-List": skip("content slot (Slots section)"), State: "state" } },

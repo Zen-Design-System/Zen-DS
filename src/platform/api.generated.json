@@ -8264,7 +8264,7 @@
           "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
           "required": false,
           "default": null,
-          "description": "Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main\ncontent (first run, a page with no results, no access). `sm` (120): it fills one region of a page that still shows\nother content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside\na ChartCard (set for you).",
+          "description": "Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main\ncontent (first run, a page with no results, no access). `sm` (200): it fills one region of a page that still shows\nother content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside\na ChartCard (set for you).",
           "deprecated": null
         },
         {
@@ -8334,7 +8334,7 @@
           "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
           "required": false,
           "default": "\"md\"",
-          "description": "`md` 240 (default) · `sm` 120.",
+          "description": "`md` 240 (default) · `sm` 200.",
           "deprecated": null
         },
         {

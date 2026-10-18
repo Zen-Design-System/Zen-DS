@@ -7,9 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P1 · Code EmptyState `sm` = 200 (2026-10-18, user in Figma: "120 thì bé quá … 200"):** Figma Empty-State Small is a 200
-  illustration with a Popular/XLarge icon; code `size="sm"` still draws 120 with Popular/Medium (CSS, JSDoc, guidelines
-  source, usage-harness messages). Pointer: session-log-2026-10-18.
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
@@ -56,12 +53,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   raw CSS, so the prop needs its own name), stacked/single area fill to the Neutral pair; Studio figma-charts push/pull
   of `Color`; Gauge/Funnel/Bullet are sets now (ids in `CHART_SETS` are their Primary variants, keys unchanged);
   re-capture library-keys + component-properties; figma-docs text for the property.
-- **P2 · Figma Empty-State Size=Small (2026-10-16, for the user/designer):** code has `EmptyState size="sm"` (120
-  illustration, Popular/Medium icon, 1px / 2px lines) for widgets, cards and sections; Figma `Empty-State` (6085:25796)
-  and `Empty-State/Illustration/Placeholder` (6085:25816) are single components (Medium only), and the file is
-  read-only to sessions. Add a Size variant (Medium, Small) to both, then re-capture the contract and run
-  `tools/figma-docs` (its Empty-State rules already name Small). The widget mock-ups (Members › Invite / No results,
-  Leads by salesperson, Time worked) hide the illustration today.
 - **P2 · Templates take the phone chrome (2026-10-16, follow-up of the responsive header P3, waits for the user):**
   AdminList, Detail, Dashboard, SettingsForm and HrShell keep their PageHeader in the content and have no
   `topNavigation` / `bottomNavigation`, so on a phone they show the drawer and the desktop header rows. Each needs its
