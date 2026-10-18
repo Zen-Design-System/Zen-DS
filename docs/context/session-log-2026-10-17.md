@@ -745,3 +745,21 @@ in content allowed, a Screen bar holds a navigation or a custom header; BACKLOG 
 - Studio: figma-push writes Shape=Rounded for the control bar's Searches that set no shape (by element id); figma-pull
   leaves Rounded unsaid there and writes `shape="default"` for a Default one. figma-push selftest +3 checks (277).
 - Test: tests/interaction/search-shape-on-phones.test.tsx (3). Figma library default left to the designer (BACKLOG).
+
+## Chart Tooltip on its line, Present Sidebar scroll (tier S, session "Bug"; user: a Stack-Bar screenshot "Các tooltip vẫn bị lệch với line của chart", "Sidebar vẫn bị lỗi scroll trong present")
+
+- Tooltip: `anchorStyle` slid it by the period's place along the plot ((i + .5) / n of its width), so only the middle
+  period sat on its rule. Now `placeTip` (chartCore, a React 19 ref with cleanup) centres it and shifts it by
+  `--zen-chart-shift` only past the `.zen-chart` edge (screen px ÷ the chart's scale, ResizeObserver on chart + tip).
+  PlotFrame (Line, Bar, Stack, Grouped, Combo) and the Heatmap cell tip; AreaChart keeps its beside-the-dot Tooltip.
+  Tests in `chart-family.test.tsx` (centred on every middle period, inside at the edges, heatmap shifts at Sun) 22/22.
+- Present: `.studio-builder-screen` sidebars are `height: auto` (a drawing of the whole page); the Play rule
+  (2026-10-16) was scoped to `.studio-player`, so Present still scrolled them away. builder.css: the rule takes
+  `.studio-present` too, and a fixed Present viewport is the shell's size container, as Play's device. E2E PT-14 (new,
+  shared `checkSidebarSticks` with PT-11): Auto -400px → 0px / 223 of 223, a 400px viewport 0px / 400 of 400; baseline
+  recorded. Probe of the platform AppShell / Sidebar examples in Present (10 frames): already sticking, unchanged.
+- Gate `npm run qa -- --isolated --files=<6 files>` PASS (.qa/reports/2026-10-17T15-07-52-4b8a1241.md): Vitest 70/70,
+  chart audit 1512/390/320 + dark 0, behaviour 0, Studio E2E 313 works · 0 broken. Contact sheets: the Stack-Bar and
+  Bar Tooltips sit on the Sep rule; Combo's two-value Tooltip shifts in at the last month. Not committed (the supervisor
+  gathers).
+- Gathered by "Giám sát" on 2026-10-18 (the session closed; PR zen/fix/chart-tooltip-present-sidebar-20261018).

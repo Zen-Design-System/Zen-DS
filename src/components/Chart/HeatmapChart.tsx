@@ -3,7 +3,7 @@ import { TooltipSurface } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartSummary, anchorStyle, defaultFormat, signatureOf, staggerStyle, useChartId } from "./chartCore";
+import { ChartBlock, ChartSummary, defaultFormat, placeTip, signatureOf, staggerStyle, useChartId } from "./chartCore";
 
 export interface HeatmapChartProps {
   /** Row labels, top to bottom ("1 pm", "2 pm"…). */
@@ -79,7 +79,7 @@ export function HeatmapChart({ rows, columns, values, format = defaultFormat, ma
                   return (
                     <span key={column + c} className="zen-chart__cell" data-level={levelOf(valueAt(r, c), max)} data-active={on ? "true" : undefined} aria-hidden="true"
                       style={staggerStyle(r + c)} onPointerEnter={() => setActive([r, c])}>
-                      {on ? <span className="zen-chart__cell-tip" style={anchorStyle(c, columns.length)}><TooltipSurface color="default" size="medium">{`${column} ${row} · ${format(valueAt(r, c))}`}</TooltipSurface></span> : null}
+                      {on ? <span className="zen-chart__cell-tip" ref={placeTip}><TooltipSurface color="default" size="medium">{`${column} ${row} · ${format(valueAt(r, c))}`}</TooltipSurface></span> : null}
                     </span>
                   );
                 })}

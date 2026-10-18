@@ -13,6 +13,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   a structural change; the disclosure stays at the Design tab's end meanwhile), Rename / Lock / Group selection are
   menu items that say "Not in Zen Studio yet" until F1–F3 build them; Present (⌥⌘↵) from a selected Overlay frame, as
   Figma presents any frame (needs `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form).
+- **P1 · Code EmptyState `sm` = 200 (2026-10-18, user in Figma: "120 thì bé quá … 200"):** Figma Empty-State Small is a 200
+  illustration with a Popular/XLarge icon; code `size="sm"` still draws 120 with Popular/Medium (CSS, JSDoc, guidelines
+  source, usage-harness messages). Pointer: session-log-2026-10-18.
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
