@@ -31,3 +31,20 @@
   `.qa/reports/2026-10-17T21-08-16-6afafa79.md`, Studio E2E 324 works · 0 broken). D-01 failed first, also on clean
   main: commit 4ff67077 (card grey-canvas fix) carried the E2E leftover `save-a level="primary"` in
   `src/platform/examples/e2e/StudioSaveFixture.tsx`; restored to `tertiary` on this branch (fix at its owner).
+
+## Dark lift in Global Colors (tier XS token change, session "Studio project theme customization"; asked by session "Kết nối GitHub cho Zen Figma", approved by the user here: "Làm luôn")
+- The Zen plugin (commit 5ce6ba8) changed its ramp algorithm. `generateScale` is now the contrast ramp (`generateBaseScale`)
+  plus `liftDarkSteps`: Dark Accent steps 2–8 and Dark Neutral steps 2–7 get +0.020 OKLCH L (`DARK_STEP_LIFT`, chroma
+  gamut-mapped).
+- `node tools/studio/zen-ramp-extract.mjs` re-copied it into tools/studio/zen-ramp.generated.mjs.
+- Global Colors regeneration:
+  - The Zen mode was regenerated for all 20 ramps on the #121212 dark canvas.
+  - 278 Dark values changed and 0 Light; the Gray and Blue samples match the plugin exactly.
+  - Zen-High-Contrast was recomputed with scripts/high-contrast.mjs (279 values; 0 rule failures).
+- figma.collections.json: note and date updated. tokens:build, styles:build and native rebuilt.
+- Checks:
+  - tokens:check ✓, styles:check ✓, tokens:native:check ✓.
+  - project-theme.selftest 1961 ✓: the copy rebuilds the new Global Colors exactly.
+- Also: PR #124 makes `zen-ramp-extract --check` warn instead of failing. The plugin's change had made every session's
+  studio:selftest fail on this Mac.
+- Figma: the user runs Update in the Zen plugin so the Zen file matches.

@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Dark ramps lifted (2026-10-18, the Zen plugin's "Dark lift", user: "chốt +0,020"): in all 20 Global Colors ramps,
+  Dark Accent steps 2–8 and Dark Neutral steps 2–7 sit +0.020 OKLCH L above the contrast ramp, and Dark alpha follows
+  (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
+  and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
+  (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
 - Zen Studio: **Zen Agent** (2026-10-18, V0 of `docs/research/studio-vibe-agent-2026-10-18.md`): a chat panel beside
   Pages | Layers (⌘J, or the stars button in the bottom toolbar) that designs on the open page live, through the Studio
   MCP's tools in the tab (one ⌘Z step per change, the AI chip's Stop), reads the zen-ds rules, and runs the Zen usage
