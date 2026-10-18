@@ -23,6 +23,7 @@ import { RenameField } from "./RenameField";
 import { importPulled, pulledPageOf, readPulled } from "./figmaUpdate";
 import { UpdateFromFigmaDialog, type FigmaUpdate } from "./UpdateFromFigmaDialog";
 import { useFolders } from "./store/folderStore";
+import { addDivider } from "./store/pageOrderStore";
 import { deleteForever, duplicatePage, getPage, importPage, listRevisions, movePage, renamePage, restorePage, restoreRevision, setPageProject, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
 
 /*
@@ -197,15 +198,16 @@ function StorageLine() {
   );
 }
 
-type MyPageRowProps = { item: PageMeta; current: boolean; tabIndex: number; nested?: boolean };
+/** `scope`: the list the row is in (store/pageOrderStore.ts): it can be dragged in it and a divider added after it. */
+type MyPageRowProps = { item: PageMeta; current: boolean; tabIndex: number; nested?: boolean; scope?: string };
 
 /** Same row as before: its props, the page's meta field by field (the list is read anew on every page write). */
-const sameRow = (a: MyPageRowProps, b: MyPageRowProps) => a.current === b.current && a.tabIndex === b.tabIndex && a.nested === b.nested
+const sameRow = (a: MyPageRowProps, b: MyPageRowProps) => a.current === b.current && a.tabIndex === b.tabIndex && a.nested === b.nested && a.scope === b.scope
   && Object.keys(a.item).length === Object.keys(b.item).length && (Object.keys(a.item) as Array<keyof PageMeta>).every((key) => a.item[key] === b.item[key]);
 
 /** One page in the Studio space: the row (opens it) and its actions. `nested`: inside a folder (indented). Memoised: a
  *  page write redraws its own row only, not every row on the way to the canvas (2026-10-13 edit latency). */
-export const MyPageRow = memo(function MyPageRow({ item, current, tabIndex, nested = false }: MyPageRowProps) {
+export const MyPageRow = memo(function MyPageRow({ item, current, tabIndex, nested = false, scope: list }: MyPageRowProps) {
   const admin = useStudio((state) => state.role === "admin");
   // Move to: the folders of the page's own project (Drafts: the folders of no project).
   const known = new Set(useProjects().map((project) => project.id));
@@ -220,6 +222,8 @@ export const MyPageRow = memo(function MyPageRow({ item, current, tabIndex, nest
     { id: "export-code", label: "Export…", icon: "icon-code-02-line", caption: "React code or the design file", onSelect: () => openExport(item.id) },
     { id: "export", label: "Export file", icon: "icon-download-01-line", caption: `${item.id}.zen.tsx`, onSelect: () => void exportPage(item.id).catch(fail) },
     { id: "history", label: "Version history…", icon: "icon-clock-rewind-line", onSelect: () => setDialog("history") },
+    // Figma's divider between groups of pages (F4), after this one.
+    ...(list ? [{ id: "divider", label: "Add divider", icon: "icon-minus-line" as const, disabled: !admin, onSelect: () => void addDivider(list, item.id).catch(fail) }] : []),
     ...(folders.length ? [
       { type: "separator" as const, id: "move-separator" },
       { type: "group" as const, label: "Move to", items: [
@@ -231,7 +235,8 @@ export const MyPageRow = memo(function MyPageRow({ item, current, tabIndex, nest
     { id: "trash", label: "Move to Trash", icon: "icon-trash-line", danger: true, disabled: !admin, onSelect: () => { leaveIfOpen(item.id); void trashPage(item.id).catch(fail); } },
   ];
   return (
-    <li className="studio-pages__item">
+    // A page drags into another place of its list (Figma's pages list; StudioFolders.tsx PageList takes the drop).
+    <li className="studio-pages__item" data-entry={list ? item.id : undefined} draggable={Boolean(list && admin && !renaming)}>
       {renaming ? (
         <div className="studio-pages__row" data-child={nested ? "true" : undefined} data-renaming="true">
           <Icon name="icon-file-code-line" size="sm" decorative />
