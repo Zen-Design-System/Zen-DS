@@ -1,3 +1,4 @@
+import { givenNameOf } from "../../../../../tools/studio/layer-meta.mjs";
 import { overlayTitleOf } from "../proto/protoModel";
 import { DEVICE_WIDTH, type PageDevice } from "../proto/runtime";
 import type { PageNode } from "./renderPage";
@@ -23,8 +24,9 @@ export function frameOf(node: PageNode): PageFrame {
   const x = numberOf(node, "x");
   const y = numberOf(node, "y");
   const place = x !== undefined && y !== undefined ? { x, y } : null;
-  // Named by what it shows (its Dialog's title, a Card's first text), as the Prototype tab lists it; else by its id.
-  if (node.name === "Overlay") return { id: `overlay:${id}`, label: overlayTitleOf(node) ?? `Overlay · ${id}`, width: DEVICE_WIDTH.desktop / 2, kind: "overlay", device: "desktop", place, loc: node.loc };
+  // Named by the person (data-name), else by what it shows (its Dialog's title, a Card's first text), as the Prototype tab
+  // lists it; else by its id.
+  if (node.name === "Overlay") return { id: `overlay:${id}`, label: givenNameOf(node) ?? overlayTitleOf(node) ?? `Overlay · ${id}`, width: DEVICE_WIDTH.desktop / 2, kind: "overlay", device: "desktop", place, loc: node.loc };
   const state = literalOf(node, "state");
   const device = (literalOf(node, "device") as PageDevice | undefined) ?? "desktop";
   const title = String(literalOf(node, "title") ?? id);

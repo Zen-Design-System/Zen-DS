@@ -2,6 +2,7 @@ import { createElement, Fragment, isValidElement, type ReactNode } from "react";
 import { screenLayout } from "../../../../../tools/studio/screen-chrome.mjs";
 import { requiredFunctions, standInKind } from "../../../../../tools/studio/standins.mjs";
 import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, STUDIO_ONLY_PROPS, hiddenOn, hiddenSlotsOf } from "../../../../../tools/studio/visibility.mjs";
+import { LOCKED_PROP, NAME_PROP } from "../../../../../tools/studio/layer-meta.mjs";
 import * as Zen from "../../../../index";
 import { resolveMediaDeep } from "../library/media";
 import { Board, Overlay, protoHandler, Screen, type ProtoActions } from "../proto/runtime";
@@ -263,7 +264,10 @@ function renderComponentNode(node: PageNode, scope: Scope, ctx: RenderContext, k
   const of = node.props.of?.kind === "literal" ? String(node.props.of.value) : "";
   const main = ctx.components?.get(of);
   if (!main || ctx.instance) return null;
-  return renderNode(main.root, scope, { ...ctx, instance: true }, key, { ...extra, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": of, "data-zen-instance-name": main.name });
+  // The instance's own layer name and lock (layer-meta.mjs) stand for its root, not the main root's.
+  const own: Record<string, unknown> = {};
+  for (const prop of [NAME_PROP, LOCKED_PROP]) if (node.props[prop]?.kind === "literal") own[prop] = (node.props[prop] as { value: unknown }).value;
+  return renderNode(main.root, scope, { ...ctx, instance: true }, key, { ...extra, ...own, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": of, "data-zen-instance-name": main.name });
 }
 
 function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
@@ -280,6 +284,8 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   // Table row's picture).
   for (const [name, value] of Object.entries(node.props)) {
     if (STUDIO_ONLY_PROPS.has(name) || slotsOff.has(name)) continue;
+    // An instance's root takes the instance's name and lock (renderComponentNode), not its main's.
+    if (extra?.["data-zen-instance"] && (name === NAME_PROP || name === LOCKED_PROP)) continue;
     props[name] = resolveMediaDeep(valueOf(value, scope, ctx));
   }
   prototypeProps(node, props, ctx);

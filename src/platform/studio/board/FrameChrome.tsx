@@ -1,3 +1,5 @@
+import { RenameField } from "../builder/RenameField";
+import { renameFrame } from "../edit/rename";
 import { tip } from "../shell/ShortcutTip";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Button, IconButton } from "../../../components/Button";
@@ -66,6 +68,9 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
   const sections = useStudioSections();
   const selectedFrame = useStudio((state) => (state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.kind === "node" ? state.selection.frameId : null));
   const frameSelected = useStudio((state) => state.selection?.kind === "frame");
+  const localPage = useStudio((state) => state.localPage);
+  const editable = useStudio((state) => canEdit(state));
+  const [renamingFrame, setRenamingFrame] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   // Pointer over a frame's name row: the frame itself is the target (1px outline, like Figma's frame hover).
   const [labelHovered, setLabelHovered] = useState<string | null>(null);
@@ -364,7 +369,13 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           {section.count !== undefined ? <BadgeCounter value={section.count} theme="neutral" background="subtle" /> : null}
         </div>
       ))}
-      {frames.map((frame) => (
+      {frames.map((frame) => (renamingFrame === frame.id ? (
+        // Figma's rename on the canvas: double-click a frame's name (a page you made; edit/rename.ts).
+        <div key={frame.id} ref={track(`label:${frame.id}`)} className={`studio-frame-label ${typographyStyles["Caption/Medium"]}`} data-chrome-key={`label:${frame.id}`} data-selected="true">
+          <Icon name={frameIcon(frame.id)} size="xs" decorative />
+          <RenameField className="studio-frame-label__rename" value={frame.label} label="Frame name" onCommit={(name) => renameFrame(frame.id, name)} onDone={() => setRenamingFrame(null)} />
+        </div>
+      ) : (
         <button
           key={frame.id}
           ref={track(`label:${frame.id}`)}
@@ -378,13 +389,14 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           // A frame on a page you made moves by its name (⌥ drops a copy; builder/frameMove.ts); a click still selects.
           onPointerDown={(event) => { pressFrame(event.nativeEvent, frame.id); }}
           onFocus={(event) => revealLabel(event.currentTarget)}
-          onDoubleClick={() => zoomToFrame(frame.element)}
+          // Double-click: rename a frame of a page you made (Figma's), else zoom to it.
+          onDoubleClick={() => { if (localPage && editable && /^(screen|overlay):/.test(frame.id)) setRenamingFrame(frame.id); else zoomToFrame(frame.element); }}
         >
           <Icon name={frameIcon(frame.id)} size="xs" decorative />
           <span className="studio-frame-label__text">{frame.label}</span>
           {draftOf(frame.id) ? <span className="studio-frame-label__dot" role="img" aria-label="Unsaved changes" /> : null}
         </button>
-      ))}
+      )))}
       {frames.filter((frame) => frameSelected && selectedFrame === frame.id).map((frame) => <FrameEdge key={frame.id} frame={frame} setRef={trackEdge(frame.id)} />)}
       {frames.filter((frame) => toolbarFor.has(frame.id) || draftedFrames.includes(frame)).map((frame) => (
         <FrameToolbar

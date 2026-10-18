@@ -202,5 +202,14 @@
 .studio-canvas-menu__layer { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
 .studio-canvas-menu__layer > * { pointer-events: auto; }
 /* The canvas menu shows every action at once, as Figma's does (Menu's list scrolls past 400px): only the window caps
-   it, and CanvasMenu moves its anchor up so the whole menu stays on screen (E2E ST-03). */
-.studio-canvas-menu__layer .zen-menu__list { max-height: calc(100vh - 16px); }
+   it, and CanvasMenu moves its anchor up so the whole menu stays on screen (E2E ST-03). The cap leaves room for the
+   menu's own padding and Menu's gap and margins, so a menu as tall as the window still opens inside it (E2E HO-12: at
+   100vh − 16px the surface was taller than the room and flipped above the window). */
+.studio-canvas-menu__layer .zen-menu__list { max-height: calc(100vh - 64px); }
+
+/* Rename layers (⌘R on several layers, BatchRenameDialog): the fields, the token buttons in a row, the preview. */
+.studio-rename__fields { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
+.studio-rename__tokens { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-rename__preview { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: var(--zen-spacing-gap-small, 12px) 0 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-strongest); }
+.studio-rename__preview > li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-rename__from { color: var(--zen-color-content-neutral-base); }

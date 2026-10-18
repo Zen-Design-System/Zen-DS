@@ -209,6 +209,9 @@ the Inspector; a lint test fails on code words in UI strings. Status lines name 
 forward / Send backward / Send to back, Show / Hide, Lock / Unlock, Group selection, Frame selection, Ungroup, Create
 component, Rename, Paste here, Copy as ›), and a frame's and the empty canvas's menus.
 
+**Status (2026-10-18):** F0 shipped (PR #135); F1 built on `zen/feat/studio-f1-layers-20261018` — the Figma walk
+(`npm run studio:e2e -- --only=figma`) reads 18 / 18 for the F0 and F1 rows (FW-01…18). Left from both: BACKLOG P1.
+
 **F1 · Layers like Figma (M).** Names (decision 4) with Figma's auto names and icons (Frame #, auto layout icons,
 Group, Component ◇ purple, Instance ◇, Text T, Image, Section); top of the list = front; rename (double-click,
 ⌘R, batch); Lock ⇧⌘L (canvas skips locked layers, Layers padlock on hover); row right-click = the canvas menu;

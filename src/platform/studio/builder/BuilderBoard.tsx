@@ -20,6 +20,7 @@ import { cacheGeneration, componentsKey, componentsOf, renderCache, renderFrame,
 import { engineNow, zenComponents } from "./engine";
 import { setPlaces } from "../select/srcIds";
 import { setHiddenLayers } from "../edit/visibility";
+import { setLayerMeta } from "../select/layerMeta";
 
 /** A stable number per prototype-actions object (the canvas's inert set, Interact's live one) for the render cache. */
 const protoKeys = new WeakMap<object, number>();
@@ -114,6 +115,8 @@ export function BuilderBoard({ id }: { id: string }) {
   if (places) setPlaces(file, places.locOf);
   // Hidden layers are not drawn: Layers lists them from the page's tree (edit/visibility.ts).
   if (tree) setHiddenLayers(file, tree);
+  // Layer names and locks (Figma's): the automatic names and the locked layers, from the same tree (select/layerMeta.ts).
+  if (tree) setLayerMeta(file, tree);
   const framesRef = useRef<HTMLDivElement>(null);
   useFrameKeys(id, text);
   const frames = useMemo(() => {
