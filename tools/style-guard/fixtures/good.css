@@ -17,3 +17,11 @@
 .pe-good-scope { --zen-typography-font-size-heading-1: 32px; --zen-spacing-gap-small: 12px; }
 .pe-good-media { position: absolute; inset: 0; }
 .pe-good-pin { position: absolute; right: var(--zen-spacing-padding-small); bottom: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); top: auto; }
+/* A Flat row: Flat hover and pressed; the selected row has a fill, so its hover may move to Subtle/Hover. */
+.pe-good-row { background: none; }
+.pe-good-row:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.pe-good-row:active { background: var(--zen-color-background-neutral-flat-pressed); }
+.pe-good-row[aria-current="true"] { background: var(--zen-color-background-active-neutral-subtle); }
+.pe-good-row[aria-current="true"]:hover { background: var(--zen-color-background-neutral-subtle-hover); }
+.pe-good-filled { background: var(--zen-color-background-neutral-subtle-default); }
+.pe-good-filled:hover { background: var(--zen-color-background-neutral-subtle-hover); }
