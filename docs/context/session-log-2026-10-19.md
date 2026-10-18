@@ -51,3 +51,22 @@ Branch `zen/feat/studio-f5b-typed-values-20261019` (worktree `../Zen-DS-f5b`, st
   rendered colours read through a 1-px canvas) and Create variable… (opens Local variables).
 - Selftests: sizingModel 105, scale 18, colorMatch 8 (new, in studio:selftest). E2E FW-57…59, FW-90 (F5 also takes
   FW-90…99, told A and C).
+
+## Session B · Studio parity F5c: Export, typography details, several frames, selection colors, local styles
+
+Branch `zen/feat/studio-f5c-panel-export-20261019` (worktree `../Zen-DS-f5c`, stacked on F5b).
+
+- **Export** (`inspector/ExportSection.tsx`, Figma UI3's last section on layers and frames): settings scale × format per
+  layer (session), "Export <layer>" downloads `<layer>[@Nx].png|jpg|svg`. Drawn by `htmlExport.ts layerPicture`: the
+  layer's export copy alone at its layout size inside its ZenProvider's attributes, fonts and photos as data URLs,
+  through `screenshot.ts` (now `pictureSvg` + `drawPng` with JPG on white). SVG = the HTML in a foreignObject (opens in
+  browsers, not vector paths); PDF listed as not yet.
+- **Text**: `tone` leaves Typography for a Fill section (Figma: a text's colour is its fill); Typography's Style details
+  (`TextStyleDetails.tsx`): font, size and line height as rendered, letter and paragraph spacing, case, decoration, all
+  read-only ("Edit text styles in Figma").
+- **Several frames** (`MultiFrameLook.tsx`): Appearance (opacity), Fill, Stroke, Effects with Mixed, one edit for all
+  (edit/multi setPropsOnLayers); MixedProperties leaves those props to it. **Selection colors** (`SelectionColors.tsx`):
+  the colours a frame / selection and its layers paint with (partInfo coloursOf), by variable, with counts; read-only.
+- **Nothing selected**: Local styles (`LocalStyles.tsx`): text, color, effect styles from the style manifest, folded.
+- Moved to F10 (Session C, agreed): Layout guide and the page background.
+- E2E FW-91…94.

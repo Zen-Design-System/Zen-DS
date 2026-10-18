@@ -36,6 +36,10 @@ removed (four unused colour ramps were, see Removed).
   variable, which the field shows as Figma's variable pill; W / H take Figma's arithmetic ("120+24", "*2") and a
   Constrain proportions lock; in a frame without auto layout an offset has Detach variable (px) and Apply variable; a
   hex typed into a colour list offers the nearest colour variables and Create variable… (Local variables).
+- Zen Studio right panel, the rest of F5 (F5c): Export on every layer and frame (scale × format: PNG, JPG, SVG; files
+  named as Figma names them), a text's colour as its Fill and its text style's details read-only, several frames'
+  Appearance / Fill / Stroke / Effects at once, Selection colors, and Local styles (text, color, effect) with nothing
+  selected.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

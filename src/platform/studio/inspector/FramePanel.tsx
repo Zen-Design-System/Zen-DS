@@ -1,4 +1,5 @@
 import { Badge } from "../../../components/Badge";
+import { ExportSection } from "./ExportSection";
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Segmented } from "../../../components/Segmented";
@@ -350,6 +351,9 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
           </InspectorSection>
         </div>
       ) : null}
+
+      {/* Figma UI3 ends a frame's panel with Export too: the frame's body as PNG, JPG or SVG. */}
+      {frame ? <ExportSection src={`frame:${key}:${frameId}`} layer={label} host={frame.element} /> : null}
     </div>
   );
 }
