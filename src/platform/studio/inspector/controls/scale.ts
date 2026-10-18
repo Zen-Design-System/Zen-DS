@@ -82,3 +82,17 @@ export function stepKey(ladder: readonly string[], from: string | undefined, ste
   if (at < 0) return steps > 0 ? ladder[0] : ladder[ladder.length - 1];
   return ladder[Math.max(0, Math.min(ladder.length - 1, at + steps))];
 }
+
+/**
+ * A typed px value snapped to the nearest step (decision 1 of docs/research/studio-figma-design-parity-2026-10-18.md: Zen
+ * writes variables, so 13 in a gap field becomes Small · 12). `steps` carry the px each measures where the layer renders
+ * (null: unknown, skipped). A tie takes the smaller step; null when nothing is measured.
+ */
+export function nearestStep(steps: ReadonlyArray<{ key: string; px: number | null }>, px: number): { key: string; px: number } | null {
+  let best: { key: string; px: number } | null = null;
+  for (const step of steps) {
+    if (step.px === null || !Number.isFinite(step.px)) continue;
+    if (!best || Math.abs(step.px - px) < Math.abs(best.px - px) || (Math.abs(step.px - px) === Math.abs(best.px - px) && step.px < best.px)) best = { key: step.key, px: step.px };
+  }
+  return best;
+}

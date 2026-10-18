@@ -24,6 +24,26 @@ import { InspectorRow, NoInlineLabel, useInlineLabel } from "./Section";
 import { numberRange, type NumberRange } from "./numberRanges";
 import { toneWarning } from "./toneRules";
 import { paletteFor, tonePalette, type SwatchPalette } from "./palettes";
+import { hexOf, nearestColors, parseHex, type Rgb } from "./controls/colorMatch";
+import { openVariables } from "../variables/variablesState";
+import { inspectorStatus } from "./status";
+
+/** A colour variable's rendered RGB where `at` sits (its CSS value read through a 1-px canvas; a translucent one over white). */
+let probe: CanvasRenderingContext2D | null | undefined;
+function rgbOf(at: Element | null, variable: string | null): Rgb | null {
+  if (!at || !variable) return null;
+  const value = getComputedStyle(at).getPropertyValue(variable).trim();
+  if (!value) return null;
+  probe ??= typeof document === "undefined" ? null : document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  if (!probe) return null;
+  probe.clearRect(0, 0, 1, 1);
+  probe.fillStyle = "#fff";
+  probe.fillRect(0, 0, 1, 1);
+  probe.fillStyle = value;
+  probe.fillRect(0, 0, 1, 1);
+  const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+  return { r, g, b };
+}
 
 /*
  * One editable prop (spec §6): the editor follows the prop's type; the row shows whether the source sets a literal
@@ -540,7 +560,22 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
     const frame = requestAnimationFrame(() => popoverRef.current?.querySelector(".zen-popover__item.is-selected")?.scrollIntoView({ block: "nearest" }));
     return () => cancelAnimationFrame(frame);
   }, [open]);
+  // A hex typed into the search (Figma: a hex in the fill row): the nearest variables, and Local variables to make one
+  // (decision 1 of the 2026-10-18 parity plan: Zen paints with variables).
+  const typedHex = open ? parseHex(query) : null;
+  const nearest = useMemo(() => {
+    if (!typedHex) return [];
+    const offered = new Set(options);
+    const candidates = palette.groups.flatMap(({ options: members }) => members.filter((option) => offered.has(option)));
+    return nearestColors(candidates.map((option) => ({ option, color: rgbOf(anchorRef.current, palette.colorOf(option)) })), typedHex, 3).map((entry) => entry.option);
+  }, [typedHex?.r, typedHex?.g, typedHex?.b, options, palette]);
   const close = () => { setOpen(false); setQuery(""); };
+  const createVariable = () => {
+    const hex = typedHex ? hexOf(typedHex) : "";
+    close();
+    openVariables();
+    inspectorStatus.set("neutral", `Make a color variable for ${hex} in Local variables`);
+  };
   const pick = (next: string) => {
     close();
     anchorRef.current?.querySelector<HTMLElement>(".zen-select__trigger")?.focus();
@@ -566,6 +601,16 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
       />
       <Popover ref={popoverRef} id={`${listId}-list`} open={open} onOpenChange={(next) => { if (!next) close(); }} anchorRef={anchorRef}
         search searchValue={query} onSearchChange={setQuery} searchPlaceholder="Search colors" aria-label={`${label} options`} autoFocus>
+        {typedHex ? (
+          <div role="group" aria-labelledby={`${listId}-typed`} className="studio-type-control__group">
+            <div id={`${listId}-typed`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{`Nearest to ${hexOf(typedHex)}`}</div>
+            {nearest.map((option) => (
+              <PopoverItem key={`near-${option}`} label={palette.label(option)} caption={palette.caption(option)} leading={<PaletteSwatch palette={palette} option={option} />}
+                selected={option === current} onSelect={() => pick(option)} />
+            ))}
+            <PopoverItem label="Create variable…" caption="Local variables" leading={<Icon name="icon-hexagon-01-line" size="sm" decorative />} onSelect={createVariable} />
+          </div>
+        ) : null}
         {groups.map(({ name, members }) => (
           <div key={name} role="group" aria-labelledby={`${listId}-${name}`} className="studio-type-control__group">
             <div id={`${listId}-${name}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{name}</div>
@@ -575,7 +620,7 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
             ))}
           </div>
         ))}
-        {!groups.length ? <div className={`studio-type-control__empty ${typographyStyles["Body/Small/Regular"]}`}>No color matches</div> : null}
+        {!groups.length && !typedHex ? <div className={`studio-type-control__empty ${typographyStyles["Body/Small/Regular"]}`}>No color matches</div> : null}
       </Popover>
     </div>
   );

@@ -5,8 +5,9 @@
 import {
   alignFromCss, alignSelfOps, alignSelfOptions, axisTooltip, axisView, editLabel, effectiveAlign, fillCaption, fillChildrenOps,
   holdValues, holds, limitOps, limitSuffix, optimisticOf, parseLimit, parseSizingInput, releaseValues, removeLimitsOps, scrubbed, settleValues, sizingOps,
-  sizingPropNames, stepBase, stepped, valueKey,
+  sizingPropNames, stepBase, stepped, valueKey, withRatio,
 } from "./sizingModel.ts";
+import { evaluateNumber } from "./controls/numberMath.ts";
 
 let passed = 0;
 const failures = [];
@@ -150,6 +151,26 @@ check("key: unset / bound / spread", [valueKey(unset), valueKey(bound("w")), val
   check("settle: a remove is caught up when the read is unset", settleValues(both, (name) => (name === "width" ? lit(302) : unset)), {});
   check("release: a refused write lets its values go", releaseValues(two, optimisticOf([set("width", 302)])), {});
   check("release: a later write's value stays", releaseValues(two, optimisticOf([set("width", 301)])) === two, true);
+}
+
+// Figma's arithmetic in W / H (F5b): an expression on the field's value, rounded to px; plain words still parse.
+{
+  const at = (current) => (text) => evaluateNumber(text, current);
+  check("math: 120+24", parseSizingInput("120+24", "width", at(120)), { kind: "fixed", px: 144 });
+  check("math: *2 on the current value", parseSizingInput("*2", "width", at(150)), { kind: "fixed", px: 300 });
+  check("math: /3 rounds", parseSizingInput("100/3", "height", at(100)), { kind: "fixed", px: 33 });
+  check("math: below 1 px refused", parseSizingInput("10-20", "width", at(10)).kind, "invalid");
+  check("math: words still parse", parseSizingInput("fill", "width", at(10)), { kind: "fill" });
+  check("math: no evaluator, a plain number", parseSizingInput("200"), { kind: "fixed", px: 200 });
+}
+// Constrain proportions: a Fixed W also fixes H at the shown ratio (and back); Hug / Fill pass through.
+{
+  const size = { width: 200, height: 100 };
+  const num = (name, value) => ({ op: "setProp", name, value: { kind: "number", value } });
+  check("ratio: W 300 → H 150", withRatio([num("width", 300)], size), [num("width", 300), num("height", 150)]);
+  check("ratio: H 50 → W 100", withRatio([num("height", 50)], size), [num("height", 50), num("width", 100)]);
+  check("ratio: Hug passes", withRatio([{ op: "setProp", name: "width", value: { kind: "string", value: "hug" } }], size).length, 1);
+  check("ratio: unknown size passes", withRatio([num("width", 300)], { width: null, height: 100 }).length, 1);
 }
 
 check("owned props", [...sizingPropNames].sort(), ["alignSelf", "fillChildren", "height", "maxHeight", "maxWidth", "minHeight", "minWidth", "width"]);
