@@ -79,6 +79,46 @@ async function undoTo(page, id, text, tries = 3) {
   if ((await pageText(page, id)) !== text) throw new Error("⌘Z did not bring the page back");
 }
 
+
+/* ── F2 (selection and transform) ───────────────────────────────────────────────────────────────────────────────── */
+
+/** A phone page with a free frame (a Box without auto layout) holding three shapes at known X / Y. */
+const shapesText = (title) => {
+  let text = newPageText({ title, device: "phone", chrome: true });
+  return grow(text, "Stack", '<Box width={358} height={200}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n<Shape type="star" position="absolute" insetLeft={260} insetTop={10} width={40} height={40} />\n</Box>');
+};
+let shapesMade = null;
+async function shapesPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!shapesMade) {
+    const seeded = await seededPage(ctx, shapesText, /type="star"/);
+    shapesMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${shapesMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${shapesMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: shapesMade };
+}
+/** ⌘-clicks the first shape, ⇧⌘-clicks the others: the shapes `indexes` selected together. */
+async function selectShapes(page, id, indexes) {
+  for (const [at, index] of indexes.entries()) {
+    const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index).boundingBox();
+    if (at) await page.keyboard.down("Shift");
+    await page.keyboard.down("ControlOrMeta");
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.keyboard.up("ControlOrMeta");
+    if (at) await page.keyboard.up("Shift");
+    await sleep(250);
+  }
+  await until(async () => (await selectedSrc(page)).length === indexes.length || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === indexes.length - 1, { message: `${indexes.length} shapes selected` });
+}
+/** Each Shape's written X / Y in page order: [{ type, x, y }]. */
+const shapesIn = (text) => [...text.matchAll(/<Shape type="(\w+)"[^>]*?insetLeft=\{(-?\d+)\}[^>]*?insetTop=\{(-?\d+)\}/g)].map((match) => ({ type: match[1], x: Number(match[2]), y: Number(match[3]) }));
+
 export const rows = [
   {
     id: "FW-01", feature: "⌘K opens Actions (Figma's command search), Esc closes it", wp: "F0 2026-10-18",
@@ -421,6 +461,130 @@ export const rows = [
       if (!/Checkout/.test(await label.innerText())) throw new Error("the label still shows the old name");
       await undoTo(page, id, before);
       return "frame name → Checkout → ⌘Z";
+    },
+  },
+  {
+    id: "FW-20", feature: "Several layers selected show one box around them all (and each its own outline)", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      await selectShapes(page, id, [0, 2]);
+      const union = page.locator(".studio-selection__outline[data-kind='union']");
+      await union.waitFor({ state: "visible", timeout: 5000 });
+      const box = await union.boundingBox();
+      const shapes = await Promise.all([0, 2].map((index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index).boundingBox()));
+      const left = Math.min(...shapes.map((shape) => shape.x));
+      const right = Math.max(...shapes.map((shape) => shape.x + shape.width));
+      if (Math.abs(box.x - left) > 2 || Math.abs(box.x + box.width - right) > 2) throw new Error(`union ${JSON.stringify(box)} vs shapes ${left}…${right}`);
+      return `one box ${Math.round(box.width)} × ${Math.round(box.height)} around 2 layers`;
+    },
+  },
+  {
+    id: "FW-21", feature: "⌥A / ⌥S align several floating layers to the box around them (one edit, one ⌘Z)", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1, 2]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+KeyA");
+      await until(async () => new Set(shapesIn((await pageText(page, id)) ?? "").map((shape) => shape.x)).size === 1, { message: "every left at the same X" });
+      const left = shapesIn((await pageText(page, id)) ?? "")[0].x;
+      if (left !== 20) throw new Error(`aligned at X ${left}, not the selection's left 20`);
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z brings every layer back" });
+      return "⌥A → X 20 for all three · ⌘Z";
+    },
+  },
+  {
+    id: "FW-22", feature: "⌃⌥H distributes horizontal spacing: the first and last stay, equal gaps (one ⌘Z)", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1, 2]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Control+Alt+KeyH");
+      // 20 + 80 … 260: span 280, sizes 180 → gaps of 50 → the Ellipse at 150.
+      await until(async () => shapesIn((await pageText(page, id)) ?? "").find((shape) => shape.type === "ellipse")?.x === 150, { message: "the Ellipse at X 150" });
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
+      return "Ellipse 140 → 150 (gaps 50 · 50) · ⌘Z";
+    },
+  },
+  {
+    id: "FW-23", feature: "⌃⌥T tidies up a row: tops lined up, one gap (one ⌘Z)", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1, 2]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Control+Alt+KeyT");
+      await until(async () => new Set(shapesIn((await pageText(page, id)) ?? "").map((shape) => shape.y)).size === 1, { message: "every top at the same Y" });
+      const shapes = shapesIn((await pageText(page, id)) ?? "");
+      if (shapes[0].y !== 10) throw new Error(`tops at ${shapes[0].y}, not the row's top 10`);
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
+      return `Y 10 for all · X ${shapes.map((shape) => shape.x).join(", ")} · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-24", feature: "The arrows nudge several floating layers together: 1 px, ⇧ 10 px (one edit each)", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const start = shapesIn(before);
+      await selectShapes(page, id, [0, 2]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ArrowRight");
+      await until(async () => shapesIn((await pageText(page, id)) ?? "")[0].x === start[0].x + 1, { message: "→ moves 1 px" });
+      await page.keyboard.press("Shift+ArrowDown");
+      await until(async () => { const now = shapesIn((await pageText(page, id)) ?? ""); return now[0].y === start[0].y + 10 && now[2].y === start[2].y + 10 && now[2].x === start[2].x + 1; }, { message: "⇧↓ moves both 10 px" });
+      if (shapesIn((await pageText(page, id)) ?? "")[1].x !== start[1].x) throw new Error("the unselected Ellipse moved");
+      await undoTo(page, id, before);
+      return "→ +1 · ⇧↓ +10 on both, the third stays · ⌘Z ×2";
+    },
+  },
+  {
+    id: "FW-25", feature: "A drag of several floating layers moves them together by the px (one edit, one ⌘Z)", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const start = shapesIn(before);
+      await selectShapes(page, id, [0, 2]);
+      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(0).boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      for (let step = 1; step <= 6; step++) { await page.mouse.move(box.x + box.width / 2 + step * 5, box.y + box.height / 2 + step * 3, { steps: 2 }); await sleep(30); }
+      // ⌘ held at release: no snapping, the exact distance.
+      await page.keyboard.down("ControlOrMeta");
+      await page.mouse.move(box.x + box.width / 2 + 31, box.y + box.height / 2 + 19, { steps: 2 });
+      await page.mouse.up();
+      await page.keyboard.up("ControlOrMeta");
+      await until(async () => { const now = shapesIn((await pageText(page, id)) ?? ""); return now[0].x !== start[0].x; }, { message: "the layers moved" });
+      const now = shapesIn((await pageText(page, id)) ?? "");
+      const dx = [now[0].x - start[0].x, now[2].x - start[2].x];
+      const dy = [now[0].y - start[0].y, now[2].y - start[2].y];
+      if (dx[0] !== dx[1] || dy[0] !== dy[1]) throw new Error(`they moved apart: dx ${dx}, dy ${dy}`);
+      if (now[1].x !== start[1].x) throw new Error("the unselected Ellipse moved");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return `both by X +${dx[0]}, Y +${dy[0]} · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-26", feature: "The multi-selection panel's Alignment row: Align top, Distribute (3 layers or more), Tidy up", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      const bar = page.locator("#studio-right").getByRole("toolbar", { name: "Align and distribute" });
+      await bar.waitFor({ state: "visible", timeout: 5000 });
+      if (!(await bar.getByRole("button", { name: "Distribute horizontal spacing" }).isDisabled())) throw new Error("Distribute is on with 2 layers");
+      await bar.getByRole("button", { name: "Align top" }).click();
+      await until(async () => { const now = shapesIn((await pageText(page, id)) ?? ""); return now[0].y === now[1].y; }, { message: "both tops at one Y" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
+      return "Align top from the panel · Distribute off for 2 · ⌘Z";
     },
   },
 ];

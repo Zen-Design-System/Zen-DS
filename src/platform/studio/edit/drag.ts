@@ -7,6 +7,7 @@ import { canEdit, studioStore } from "../store";
 import { moveLayer, type DropTarget, type NodeSelection } from "./arrange";
 import { startMarquee } from "./marquee";
 import { moveLayersTo } from "./multi";
+import { floatingItems, writeMoves, type FloatingItem } from "./alignLayers";
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { ladderOf } from "../position/PositionSection";
 import { ladderName, pinOfConstraint, snap, snapText, type Ladder, type Pin, type Snap } from "../position/positionModel";
@@ -68,6 +69,8 @@ type Session = {
   layers: ExtraLayer[] | null;
   /** A floating layer: the drag moves its insets instead of reordering it (followFloat). */
   float: FloatMove | null;
+  /** Several floating layers: they move together by the px, each its own offsets (followGroup, F2). */
+  group?: GroupMove | null;
   hit: FiberHit;
   /** Every DOM node that follows the pointer (the layer's, its other .map renders', the other selected layers'). */
   hosts: HTMLElement[];
@@ -305,6 +308,7 @@ function drop(current: Session) {
 }
 
 function follow(current: Session) {
+  if (current.group) { followGroup(current, current.group); return; }
   if (current.float) { followFloat(current, current.float); return; }
   const world = toWorld(current.pointer);
   const dx = world.x - current.startWorld.x;
@@ -340,6 +344,9 @@ type FloatMove = {
    */
   free: { others: FrameBox[]; size: { width: number; height: number }; guides: SnapGuide[] } | null;
 };
+
+/** Several floating layers moved together: their items, their shared block (null: in several frames, no snapping). */
+type GroupMove = { items: FloatingItem[]; block: HTMLElement | null; scale: number; others: FrameBox[] | null; union: FrameBox; shift: { x: number; y: number }; guides: SnapGuide[] };
 
 /** A free frame's DOM node: a builder Screen (or its content box) or a Box that is not a layer's float wrapper. */
 const FREE_FRAME = ".studio-builder-screen, .studio-builder-screen__content, .zen-box";
@@ -507,6 +514,11 @@ function end(commit: boolean) {
     return;
   }
   drop(current);
+  if (current.group) {
+    const { items, shift } = current.group;
+    if (commit && !current.refusal && (shift.x || shift.y)) void writeMoves(items, items.map(() => ({ dx: shift.x, dy: shift.y })), `Move ${items.length} layers · X ${shift.x >= 0 ? "+" : ""}${shift.x}, Y ${shift.y >= 0 ? "+" : ""}${shift.y}`, true);
+    return;
+  }
   if (current.float) {
     if (commit && !current.refusal) void dropFloat(current.float);
     return;
@@ -525,8 +537,9 @@ function onMove(event: PointerEvent) {
   if (!current.dragging) {
     if (Math.hypot(event.clientX - current.start.x, event.clientY - current.start.y) < THRESHOLD) return;
     current.dragging = true;
-    // A floating layer only changes props (its insets): no structural check, no pan (the offsets follow the pointer).
-    if (current.float) {
+    // A floating layer (or several) only changes props (its insets): no structural check, no pan (the offsets follow the
+    // pointer).
+    if (current.float || current.group) {
       lift(current);
       event.stopPropagation();
       event.preventDefault();
@@ -578,7 +591,7 @@ function onKey(event: KeyboardEvent) {
     follow(current);
   }
   // ⇧ and ⌘ change a free move mid-drag (one axis, no snapping), as Figma's.
-  if (["Shift", "Meta", "Control"].includes(event.key) && current.dragging && current.float?.free) {
+  if (["Shift", "Meta", "Control"].includes(event.key) && current.dragging && (current.float?.free || current.group)) {
     current.keys = { shift: event.shiftKey, mod: event.metaKey || event.ctrlKey };
     follow(current);
   }
@@ -613,6 +626,9 @@ export function pressLayer(event: PointerEvent, picked: FiberHit, select: () => 
     const pressed = picked.hosts[0];
     const inside = layers.find((layer) => (findBySrc(world, layer.src)[layer.instance] ?? null)?.hosts.some((host) => host === pressed || host.contains(pressed)));
     if (!inside) return false;
+    // Every selected layer floats: they move together by the px (Figma's move of a selection), not reordered.
+    const items = floatingItems(layers);
+    if (typeof items !== "string" && items.length) return armGroup(event, world, layers, items, select);
     return armMulti(event, world, layers, select);
   }
   if (current?.kind === "node" && !current.part && current.src !== picked.src && !extras.length) {
@@ -661,7 +677,65 @@ function armMulti(event: PointerEvent, world: Element, layers: ExtraLayer[], sel
   return true;
 }
 
-function begin(event: PointerEvent, from: Pick<Session, "layer" | "layers" | "hit" | "hosts" | "frame" | "deferred" | "float">) {
+/**
+ * Arms a move of several floating layers: they follow the pointer by the px, the box around them all snapping to their
+ * free frame's edges and centres and its other layers' (when they share one frame; ⌘: no snapping, ⇧: one axis); the
+ * drop writes each layer's offsets in one edit (edit/alignLayers.ts).
+ */
+function armGroup(event: PointerEvent, world: Element, layers: ExtraLayer[], items: FloatingItem[], select: () => void): boolean {
+  const primary = findBySrc(world, layers[0].src)[layers[0].instance];
+  if (!primary) return false;
+  const block = items.every((item) => item.block === items[0].block) ? items[0].block : null;
+  const outer = items[0].block.getBoundingClientRect();
+  const scale = items[0].block.offsetWidth ? outer.width / items[0].block.offsetWidth || 1 : 1;
+  const free = block && items.every((item) => item.host.parentElement?.matches(FREE_FRAME) && !(item.host.parentElement.matches('.zen-box[data-position="absolute"]') && item.host.parentElement.children.length === 1));
+  const moving = new Set<Element>(items.map((item) => item.host));
+  const others: FrameBox[] | null = free && block ? [
+    { x: 0, y: 0, width: block.clientWidth, height: block.clientHeight },
+    ...Array.from(items[0].host.parentElement?.children ?? []).filter((child): child is HTMLElement => child instanceof HTMLElement && !moving.has(child)).map((child) => {
+      const box = child.getBoundingClientRect();
+      return { x: (box.left - outer.left) / scale - block.clientLeft, y: (box.top - outer.top) / scale - block.clientTop, width: box.width / scale, height: box.height / scale };
+    }).filter((box) => box.width > 0 || box.height > 0),
+  ] : null;
+  const left = Math.min(...items.map((item) => item.offset.left));
+  const top = Math.min(...items.map((item) => item.offset.top));
+  const union = { x: left, y: top, width: Math.max(...items.map((item) => item.offset.left + item.box.width)) - left, height: Math.max(...items.map((item) => item.offset.top + item.box.height)) - top };
+  const group: GroupMove = { items, block, scale, others, union, shift: { x: 0, y: 0 }, guides: [] };
+  begin(event, { layer: { kind: "node", ...layers[0] }, layers, hit: primary, hosts: items.map((item) => item.host), frame: primary.hosts[0]?.closest("[data-studio-frame]") ?? null, deferred: select, float: null, group });
+  return true;
+}
+
+/** Several floating layers following the pointer by the px (Figma's move of a selection). */
+function followGroup(current: Session, group: GroupMove) {
+  let dx = (current.pointer.x - current.start.x) / group.scale;
+  let dy = (current.pointer.y - current.start.y) / group.scale;
+  if (current.keys.shift) { if (Math.abs(dx) >= Math.abs(dy)) dy = 0; else dx = 0; }
+  group.guides = [];
+  if (group.others && !current.keys.mod) {
+    const snapped = snapBox({ ...group.union, x: group.union.x + dx, y: group.union.y + dy }, group.others, SNAP_PX / (getViewport().zoom || 1));
+    dx += snapped.dx;
+    dy += snapped.dy;
+    group.guides = snapped.guides;
+  }
+  group.shift = { x: Math.round(dx), y: Math.round(dy) };
+  if (!current.refusal) for (const item of group.items) item.host.style.setProperty("translate", `${group.shift.x}px ${group.shift.y}px`);
+  current.target = null;
+  const guides = group.block && group.guides.length ? guidesOn(group.block, group.scale, group.guides) : undefined;
+  publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? `X ${group.shift.x >= 0 ? "+" : ""}${group.shift.x}, Y ${group.shift.y >= 0 ? "+" : ""}${group.shift.y}`, tone: current.refusal ? "negative" : "info", guides });
+}
+
+/** Snap guides measured in a block's unscaled px, as screen px (the canvas's red smart guides). */
+function guidesOn(block: HTMLElement, scale: number, guides: SnapGuide[]) {
+  const outer = block.getBoundingClientRect();
+  const at = (x: number, y: number) => ({ x: outer.left + (x + block.clientLeft) * scale, y: outer.top + (y + block.clientTop) * scale });
+  return guides.map((guide) => {
+    const from = guide.axis === "x" ? at(guide.at, guide.from) : at(guide.from, guide.at);
+    const length = (guide.to - guide.from) * scale;
+    return guide.axis === "x" ? { x: from.x, y: from.y, w: 1, h: length } : { x: from.x, y: from.y, w: length, h: 1 };
+  });
+}
+
+function begin(event: PointerEvent, from: Pick<Session, "layer" | "layers" | "hit" | "hosts" | "frame" | "deferred" | "float"> & Partial<Pick<Session, "group">>) {
   const start = { x: event.clientX, y: event.clientY };
   session = {
     ...from,

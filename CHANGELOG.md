@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio, several layers as in Figma (F2a of the same plan): one box around a multi-selection; floating layers
+  (a frame without auto layout) move together by the px when dragged (snapping to their frame and its other layers, ⌘
+  no snapping, ⇧ one axis) and nudge together with the arrows; ⌥A ⌥D ⌥W ⌥S ⌥H ⌥V align several layers to the box
+  around them; ⌃⌥H / ⌃⌥V distribute spacing, ⌃⌥T tidies up; the multi-selection panel has Figma's alignment row. One
+  edit, one ⌘Z each.
 - Zen Studio Layers like Figma (F1 of the same plan): on a page you made the front-most layer is on top, layers are
   named as Figma names them (Frame 1, Rectangle 2, a text by its words, an instance by its component) with Figma's
   icons, and the Screen is the frame's own row. Rename by double-click, ⌘R (Tab goes to the next name), ⌘R on several

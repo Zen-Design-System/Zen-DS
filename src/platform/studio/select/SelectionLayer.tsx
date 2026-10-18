@@ -13,6 +13,13 @@ import { clickTarget, layerInside, layersAt, sameElement } from "./clickTarget";
 import { isLockedFrame, isLockedSrc } from "./layerMeta";
 import { pageFile } from "../builder/store/pageStore";
 
+/** The box around boxes (the multi-selection's union outline). */
+function unionBox(boxes: Array<{ x: number; y: number; w: number; h: number }>) {
+  const x = Math.min(...boxes.map((box) => box.x));
+  const y = Math.min(...boxes.map((box) => box.y));
+  return { x, y, w: Math.max(...boxes.map((box) => box.x + box.w)) - x, h: Math.max(...boxes.map((box) => box.y + box.h)) - y };
+}
+
 /** Whether the element under the pointer belongs to a locked layer (its own annotated layer is locked). */
 const insideLocked = (element: Element | null | undefined) => Boolean(element && isLockedSrc(annotatedAt(element)?.src));
 
@@ -1076,6 +1083,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       />
       {overlay.instances.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="instance" style={style(box)} />)}
       {overlay.extras.map((box, index) => <div key={`e${index}`} className="studio-selection__outline" data-kind="extra" style={style(box)} />)}
+      {/* Several layers: Figma's box around them all (align and distribute work to it, edit/alignLayers.ts). */}
+      {overlay.extras.length && overlay.selected ? <div className="studio-selection__outline" data-kind="union" style={style(unionBox([overlay.selected, ...overlay.extras]))} /> : null}
       {overlay.items.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="extra-item" style={style(box)} />)}
       {overlay.owner ? <div className="studio-selection__outline" data-kind="owner" style={style(overlay.owner)} /> : null}
       {hover ? (

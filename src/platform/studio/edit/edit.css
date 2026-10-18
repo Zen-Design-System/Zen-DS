@@ -108,3 +108,8 @@
   background: var(--zen-color-background-info-subtle-default);
   pointer-events: none;
 }
+
+/* Figma's align bar for several layers (AlignSelection, the multi-selection panel): six aligns, a divider, distribute
+   and tidy up in one row. */
+.studio-align-selection { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-align-selection__divider { width: 1px; height: 16px; margin: 0 var(--zen-spacing-gap-2-xsmall, 4px); background: var(--zen-color-border-neutral-subtle-default); }
