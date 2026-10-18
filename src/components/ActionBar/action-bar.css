@@ -20,6 +20,10 @@
 }
 .zen-action-bar[data-surface="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
 .zen-action-bar[data-surface="none"] { border-top: 0; background: transparent; }
+/* Glass (Figma Action-Bar/Mobile Type=Glass 16326:6489): a linear fade from Inverse/Flat to Surface/Default painted at 20%
+   (Figma paint opacity 0.2), over a progressive background blur (radius 24 ≈ CSS 12px), strongest at the bottom edge. */
+.zen-action-bar[data-surface="glass"] { isolation: isolate; border-top: 0; background: linear-gradient(180deg, var(--zen-color-background-inverse-flat-default, rgb(0 0 0 / 0%)), color-mix(in srgb, var(--zen-color-background-surface-default, #fff) 20%, transparent)); }
+.zen-action-bar__progressive { --zen-progressive-blur: 12px; position: absolute; z-index: -1; inset: 0; }
 .zen-action-bar[data-position="static"] { position: relative; z-index: auto; }
 .zen-action-bar[data-position="fixed"] { position: fixed; right: 0; bottom: 0; left: 0; width: auto; }
 .zen-action-bar-spacer { flex: 0 0 auto; pointer-events: none; }

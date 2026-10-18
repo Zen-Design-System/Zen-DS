@@ -1078,7 +1078,7 @@
 .platform-phone[data-header-overlay="true"] .platform-phone__screen { scroll-padding-top: var(--platform-phone-header-pinned, 0px); }
 /* An AppShell drawing its own phone chrome (layout "phone", AppShell › Desktop and phone): its TopNavigation and
    BottomNavigation pad by the safe areas themselves, so the screen does not; the shell fills the screen. */
-.platform-phone .platform-phone__screen:has(> .zen-app-shell[data-layout="phone"]) { padding-top: 0; padding-bottom: 0; }
+.platform-phone .platform-phone__screen:has(> .zen-app-shell[data-layout="mobile"]) { padding-top: 0; padding-bottom: 0; }
 .platform-phone__screen > .zen-app-shell { --zen-app-shell-height: 100%; }
 .platform-phone[data-canvas="media"] .platform-phone__screen { padding-top: 0; }
 .platform-phone__footer:has(> .zen-bottom-nav:not([data-type="default"])) { position: absolute; right: 0; bottom: 0; left: 0; }
@@ -1180,6 +1180,8 @@
 .zen-app-shell__header ~ .zen-app-shell__main .pf-shell-page { padding-top: var(--zen-spacing-padding-small, 12px); }
 .pf-studio-logo { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
 .pf-studio-logo > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+/* In an AppShellHeader the logo takes the top row's Element-Size/Popular/Medium height, as in the Sidebar header. */
+.zen-app-shell-header .pf-studio-logo { height: var(--zen-element-size-popular-medium, 24px); }
 /* In a phone the scrollbars are overlay ones: a row that scrolls sideways (Stack / Box scroll="x") shows none. */
 .platform-phone :is(.zen-stack, .zen-box)[data-scroll="x"] { scrollbar-width: none; }
 .platform-phone :is(.zen-stack, .zen-box)[data-scroll="x"]::-webkit-scrollbar { display: none; }

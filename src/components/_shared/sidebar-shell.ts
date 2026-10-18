@@ -26,6 +26,8 @@ export interface SidebarShellState {
   collapsed?: boolean;
   expand?: () => void;
   drawer?: boolean;
+  /** AppShell collapse="sidebar": the Sidebar draws the collapse control in its header and it calls this (the shell's rail). */
+  toggleHere?: (collapsed: boolean) => void;
   /** Tells the shell what the Sidebar is; returns the call that takes it back (on unmount or a change). */
   register?: (registration: SidebarRegistration) => () => void;
 }

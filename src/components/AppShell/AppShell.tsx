@@ -1,151 +1,134 @@
-import { cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type FocusEvent, type HTMLAttributes, type MouseEvent as ReactMouseEvent, type ReactNode, type Ref } from "react";
-import { Avatar, type AvatarTheme } from "../Avatar";
+import { cloneElement, isValidElement, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type MouseEvent as ReactMouseEvent, type ReactElement, type ReactNode, type Ref } from "react";
 import { IconButton } from "../Button";
-import { DashboardHeader } from "../DashboardHeader";
 import { useModal } from "../Dialog/Dialog";
-import { Icon, type IconName } from "../Icon";
+import { Icon } from "../Icon";
 import { usePresence } from "../Motion/usePresence";
 import { SidePanel, type SidePanelProps } from "../SidePanel";
 import { Sidebar, type SidebarProps } from "../Sidebar";
-import { useIconTooltip } from "../Tooltip";
+import type { TopNavigationProps } from "../TopNavigation";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { useZen, useZenLabels } from "../_shared/zen-context";
 import "../Motion/motion.css";
 import "./app-shell.css";
 import { SidebarShellContext, type SidebarRegistration, type SidebarShellState } from "../_shared/sidebar-shell";
-import { NotificationDot } from "../_shared/notification-dot";
 import { InlineOverlayContext } from "../_shared/overlay";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
 import { useStableCallback } from "../_shared/use-stable-callback";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { AppShellChromeContext, AppShellContext, type AppShellChrome, type AppShellContextValue, type AppShellLayout } from "./context";
 
-export type AppShellLayout = "sidebar" | "drawer" | "phone";
+export { useAppShell, type AppShellContextValue, type AppShellLayout } from "./context";
 
-export interface AppShellContextValue {
-  /** `sidebar`: the Sidebar sits beside the content (the shell is 1024px or wider) · `drawer`: it opens over the page ·
-   *  `phone`: under 744px with a `topNavigation` / `bottomNavigation`, which replace the top bar (the drawer still opens). */
-  layout: AppShellLayout;
-  /** Whether the Sidebar is collapsed to its icon rail (sidebar layout). */
-  sidebarCollapsed: boolean;
-  /** Collapses the Sidebar to its rail or expands it again (sidebar layout). */
-  setSidebarCollapsed: (collapsed: boolean) => void;
-  /** Collapses an expanded Sidebar, expands a collapsed one. */
-  toggleSidebar: () => void;
-  /** Whether the navigation drawer is open (drawer layout). */
-  navOpen: boolean;
-  /** Opens the navigation drawer (drawer layout). */
-  openNav: () => void;
-  /** Closes the navigation drawer; focus returns to the menu button. */
-  closeNav: () => void;
-}
-
-const AppShellContext = createContext<AppShellContextValue | null>(null);
-const DRAWER_SHELL = { drawer: true };
-
-/**
- * The nearest AppShell's layout and navigation state, or null outside one. For a navigation of your own: read
- * `sidebarCollapsed` to draw its rail, or call `closeNav()` after a route change the drawer did not see.
- */
-export function useAppShell(): AppShellContextValue | null {
-  return useContext(AppShellContext);
-}
+/** Figma Pattern/AppShell/Desktop Layout (16258:1857). */
+export const appShellPatterns = ["sidebar", "list-detail", "top-bar", "workspace", "docs", "focus"] as const;
+export type AppShellPattern = (typeof appShellPatterns)[number];
+/** Figma Pattern/AppShell/Desktop Collapse: where the Sidebar's collapse toggle sits. */
+export const appShellCollapses = ["header", "sidebar", "none"] as const;
+export type AppShellCollapse = (typeof appShellCollapses)[number];
+/** Figma Pattern/AppShell/Mobile Top (16261:136204). */
+export const appShellMobileTops = ["bar", "band", "band-sheet", "media"] as const;
+export type AppShellMobileTop = (typeof appShellMobileTops)[number];
 
 export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   /**
-   * Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or
-   * collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the
-   * shell's rail and drawer by itself, also when it is wrapped in a component of your own.
+   * Figma Layout, the desktop structure (from 1024px: desktops and iPad landscape):
+   * - `sidebar` (default): Sidebar · header + page · docked side panel.
+   * - `list-detail`: the Sidebar's rail · `leadingPane` (a 360 list) · header + the selected item.
+   * - `top-bar`: no Sidebar; the header across, its sections or centre holding the navigation.
+   * - `workspace`: the header across the top · `leadingPane` · page · `trailingPane` (tools, properties).
+   * - `docs`: as workspace, the page a centred 720 column for reading, the panes on the Canvas.
+   * - `focus`: one task: the header across · `progress` · a 680 column with the `trailingPane` (a summary) beside it.
+   */
+  pattern?: AppShellPattern;
+  /**
+   * Figma Collapse: where the Sidebar's collapse toggle sits. `header` (default): at the start of the header's top row ·
+   * `sidebar`: in the Sidebar's own header, for a trail that starts with a Master crumb (two icons in a row clash) ·
+   * `none`: no toggle (the rail follows `sidebarCollapsed` or `useAppShell().setSidebarCollapsed`).
+   */
+  collapse?: AppShellCollapse;
+  /**
+   * Figma Sidebar: the app's navigation, a <Sidebar> (the `sidebar` and `list-detail` patterns). From 1024px it sits
+   * beside the page, expanded or collapsed to its rail; narrower, it opens as a modal drawer from the header's menu
+   * button or `useAppShell().openNav()`. A Sidebar wrapped in a component of your own follows the shell too.
    */
   sidebar?: ReactNode;
-  /** Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search. */
+  /** Figma Header/AppShell: the page's header, an <AppShellHeader> (top row, Main row, Sections). Sticks to the top. */
   header?: ReactNode;
+  /** Figma Leading-Pane: an <AppShellPane> before the page (`list-detail` 360; `workspace`, `docs` Sidebar/Default-Width). */
+  leadingPane?: ReactNode;
+  /** Figma Trailing-Pane: an <AppShellPane> after the page (`workspace`, `docs` Sidebar/Default-Width; `focus` 376). */
+  trailingPane?: ReactNode;
   /**
-   * Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the
-   * leading content and the actions, e.g. a Search.
+   * Figma Side-Panel: a right panel docked beside the page, usually <SidePanel type="standard">. It docks while the page
+   * keeps a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel.
    */
-  headerCenter?: ReactNode;
-  /**
-   * Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main),
-   * a toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding
-   * (Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page.
-   */
-  sections?: ReactNode;
-  /**
-   * Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help),
-   * then the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader.
-   */
-  headerActions?: ReactNode;
-  /** A full-width message strip above the whole shell, usually <AlertBanner> (trial ending, maintenance, offline). It stays in view while the page scrolls. */
+  sidePanel?: ReactNode;
+  /** Figma Progress (`focus`): the task's steps under the header, usually a horizontal <Stepper>, centred. */
+  progress?: ReactNode;
+  /** Figma Floating-Actions: the page's floating buttons in the bottom-right corner, Margin-Comfortable from the edges. */
+  floatingActions?: ReactNode;
+  /** A full-width message strip above the whole shell, usually <AlertBanner> (trial ending, maintenance, offline). */
   banner?: ReactNode;
-  /**
-   * A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type="standard">. It docks while the
-   * page keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other
-   * content stacks under the page.
-   */
-  aside?: ReactNode;
-  /** One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up. */
-  floatingAction?: ReactNode;
-  /** A sticky bar at the bottom of the main column, e.g. an ActionBar. */
-  footer?: ReactNode;
-  /**
-   * Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma
-   * Top-Navigation/Mobile 12014:45167). With it, or `bottomNavigation`, a phone draws neither the top bar nor
-   * `sections`: the bar holds the page's title (its h1), Back on a child screen and at most three actions, mapped from the
-   * desktop header (docs/component-usage-rules.md §17). The Sidebar stays reachable as the drawer
-   * (`useAppShell().openNav()`, e.g. from a BottomNavigation More). Tablets and desktops ignore it.
-   */
-  topNavigation?: ReactNode;
-  /**
-   * Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the
-   * first 4 + More). Pinned to the bottom under the footer; give it on root screens only. Tablets and desktops ignore it.
-   */
-  bottomNavigation?: ReactNode;
   /** Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background="flat"). */
   canvas?: "default" | "alt" | "flat";
+  /**
+   * Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait):
+   * - `bar` (default): the TopNavigation on Surface/Alt over the page.
+   * - `band`: a Support/Brand/Subtle band with the TopNavigation (transparent) and the `hero`, then the page.
+   * - `band-sheet`: the band fills the screen and the page rises over it as a sheet with 3XLarge top corners.
+   * - `media`: a `backdrop` (photo, video, map) behind a liquid-overlay TopNavigation, the page as a sheet over it.
+   */
+  mobileTop?: AppShellMobileTop;
+  /** Mobile: the screen's <TopNavigation> (its h1, Back on a child screen, up to three actions). Its type follows `mobileTop` unless it sets one. */
+  topNavigation?: ReactNode;
+  /** Mobile Figma Hero (`band`, `band-sheet`): what the band shows under the TopNavigation (a balance, a profile, a summary). */
+  hero?: ReactNode;
+  /** Mobile Figma Backdrop (`media`): the photo, video or map behind the top of the screen. */
+  backdrop?: ReactNode;
+  /** Mobile Figma Bottom Tab-Bar | Floating: the root navigation, a <BottomNavigation> (`floating-glass` floats over the page). Root screens only. */
+  bottomNavigation?: ReactNode;
+  /** Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an <ActionBar> (`surface="glass"` over photos). */
+  actionBar?: ReactNode;
   /** Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. */
   sidebarCollapsed?: boolean;
-  /** Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the
-   *  Sidebar's `collapsed` moves the rail too. */
+  /** Rail state to start from, uncontrolled. Default: the Sidebar's own `collapsed`; `list-detail` starts on the rail. */
   defaultSidebarCollapsed?: boolean;
-  /** Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it (e.g. localStorage) to keep the choice between visits. */
+  /** Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it to keep the choice between visits. */
   onSidebarCollapsedChange?: (collapsed: boolean) => void;
-  /**
-   * The collapse toggle at the start of the top bar (Figma HR-Platform: icon-layout-left before the Breadcrumbs).
-   * Default true: shown when the shell has a top bar (`header` or `headerActions`) and a Sidebar that can collapse.
-   * A Sidebar with its own `onCollapsedChange` keeps its header control instead.
-   */
-  sidebarToggle?: boolean;
-  /** Drawer state when controlled (narrow shells). */
+  /** Drawer state when controlled (drawer and mobile layouts). */
   navOpen?: boolean;
   defaultNavOpen?: boolean;
   onNavOpenChange?: (open: boolean) => void;
-  /** Accessible name of the navigation drawer. Default: the locale's “Navigation”. */
+  /** Accessible name of the navigation drawer. Default: the localized "Navigation". */
   navLabel?: string;
-  /** id of <main>, the target of the "Skip to content" link. Default: a generated unique id. */
+  /** Id of the main element, the target of the skip link. */
   mainId?: string;
   /**
-   * Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer, and
-   * narrower than 744px the phone chrome (`topNavigation` / `bottomNavigation`) when the shell has one. Force it only
-   * for previews and tests.
+   * Which structure to draw: `auto` (default) follows the shell's own width (1024px and up desktop; narrower, `mobile`
+   * when a mobile part is given, else `drawer`), or force `desktop`, `drawer` or `mobile` (a design canvas, a preview).
    */
-  layout?: "auto" | "sidebar" | "drawer" | "phone";
-  /** The page. */
+  layout?: "auto" | AppShellLayout;
+  /** Figma Content: the page (the Body pads Margin-Comfortable; Spacing/Gap/XSmall on desktop, Layout-Mobile/Section-Gap on mobile). */
   children?: ReactNode;
-  /** Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio;
-   *  app code keeps the defaults. */
+  /** Figma instance overrides, by layer (`{ Close: { level: "secondary" } }`). Written by Zen Studio; app code sets the props. */
   overrides?: NestedOverrides;
-  /** Ref to the shell's root `<div>`. */
+  /** The root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
 }
 
-/** Below this width the Sidebar leaves the page for a drawer (the Tablet and Mobile breakpoints). */
-const SIDEBAR_MIN_SHELL_WIDTH = 1024;
+/** Below this width the shell leaves the desktop structure (the Tablet and Mobile breakpoints; iPad portrait is 744). */
+const DESKTOP_MIN_WIDTH = 1024;
 /** The Tablet breakpoint: the least room the page keeps beside a docked side panel. */
 const TABLET_MIN_WIDTH = 744;
-/** Figma Side-Panel Size=Default, assumed until the docked panel has been measured once. */
-const SIDE_PANEL_DEFAULT_WIDTH = 440;
+/** Figma Side-Panel Size=Small, assumed until the docked panel has been measured once. */
+const SIDE_PANEL_DEFAULT_WIDTH = 360;
+const DRAWER_SHELL = { drawer: true };
+/** The patterns that keep the Sidebar beside the page; the others put the header across the top. */
+const SIDEBAR_PATTERNS = new Set<AppShellPattern>(["sidebar", "list-detail"]);
+/** Figma's TopNavigation type for each mobile Top, when the screen's own TopNavigation sets none. */
+const TOP_NAV_TYPE: Record<AppShellMobileTop, TopNavigationProps["type"]> = { bar: "alt", band: "transparent", "band-sheet": "transparent", media: "liquid-overlay" };
 
 /**
  * An element's border-box size on one axis in CSS px, kept current by a ResizeObserver: 0 without the element; a hidden
@@ -167,9 +150,9 @@ function useElementSize(element: HTMLElement | null, axis: "width" | "height"): 
 }
 
 /**
- * On phones the floating action hides while the page scrolls down and comes back on a scroll up, so it never covers a
- * row's controls mid-scroll (backlog batch 6, user 2026-10-07). Whatever scrolls the shell (the window or an
- * ancestor) counts; a scroll inside the shell's own parts (a list, a panel) does not.
+ * On phones the floating actions hide while the page scrolls down and come back on a scroll up, so they never cover a
+ * row's controls mid-scroll. Whatever scrolls the shell (the window or an ancestor) counts; a scroll inside the shell's
+ * own parts (a list, a panel) does not.
  */
 function useHideOnScroll(root: HTMLElement | null, enabled: boolean): boolean {
   const [hidden, setHidden] = useState(false);
@@ -200,83 +183,45 @@ function useGuessedDesktop(): boolean {
   return !(typeof window !== "undefined" && window.matchMedia?.("(max-width: 1023.98px)").matches);
 }
 
-/**
- * Whether the top bar's content (Breadcrumbs, a Search) does not fit on one row beside the toggle and the actions.
- * The content is measured at its own one-line width, so the answer does not depend on the current layout. Then the
- * content takes a row of its own.
- */
-function useStackedHeader(header: HTMLElement | null, content: HTMLElement | null, toggle: HTMLElement | null, actions: HTMLElement | null): boolean {
-  const [stacked, setStacked] = useState(false);
-  const measure = useCallback(() => {
-    if (!header || !content) { setStacked(false); return; }
-    const style = getComputedStyle(header);
-    const room = header.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-    if (room <= 0) return;
-    // The content sits in the bar's Leading-Slots (DashboardHeader type="navigation"), which sits in the header.
-    const leading = content.parentElement;
-    const leadingGap = leading ? parseFloat(getComputedStyle(leading).columnGap) || 0 : 0;
-    const barGap = leading?.parentElement ? parseFloat(getComputedStyle(leading.parentElement).columnGap) || 0 : 0;
-    // Rendered widths ÷ the scale the top bar is drawn at (a CSS transform around the shell): CSS px, as `room` is.
-    const scale = header.offsetWidth > 0 ? header.getBoundingClientRect().width / header.offsetWidth || 1 : 1;
-    const toggleWidth = (toggle?.getBoundingClientRect().width ?? 0) / scale;
-    const actionsWidth = (actions?.getBoundingClientRect().width ?? 0) / scale;
-    // The content's one-line width: measured at max-content for a moment (no paint happens in between).
-    const { flex, width } = content.style;
-    content.style.flex = "none"; content.style.width = "max-content";
-    const natural = content.getBoundingClientRect().width / scale;
-    content.style.flex = flex; content.style.width = width;
-    const needed = natural + (toggleWidth ? toggleWidth + leadingGap : 0) + (actionsWidth ? actionsWidth + barGap : 0);
-    setStacked(needed > room + 0.5);
-  }, [header, content, toggle, actions]);
-  // After every render (the Breadcrumbs change with the page) and whenever the top bar resizes.
-  useIsomorphicLayoutEffect(measure);
-  useIsomorphicLayoutEffect(() => {
-    if (!header || typeof ResizeObserver === "undefined") return undefined;
-    const observer = new ResizeObserver(() => measure());
-    observer.observe(header);
-    return () => observer.disconnect();
-  }, [header, measure]);
-  return stacked;
-}
-
 /** A choice in the drawer that navigates: a link, a Sidebar row or a Sidebar footer row (not a group, a menu trigger, a section title or the workspace rail). */
 const NAVIGATION_TARGET = "a[href], button.zen-sidebar__item, .zen-sidebar__footer-content > button";
 
 /**
- * The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform):
- * Sidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a
- * "Skip to content" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar
- * collapses it to its rail; narrower, it opens as a modal drawer. On phones (under 744px) a shell given `topNavigation`
- * and `bottomNavigation` draws those instead of its top bar and `sections` (docs/component-usage-rules.md §17).
+ * The frame of an app, built on Figma's AppShell patterns (◇ Master-Layout 16254:1057): Pattern/AppShell/Desktop
+ * (16258:1857) from 1024px, Pattern/AppShell/Mobile (16261:136204) below it when a mobile part is given, with a
+ * "Skip to content" link, a modal navigation drawer and a docked or modal side panel.
  *
- * Each part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader
- * type="navigation" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots,
- * `headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually
- * DashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar
- * pads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on
- * desktop, as Figma's Navigation row).
+ * Desktop (`pattern`): Sidebar, Header/AppShell (`header`, an AppShellHeader), the Body (`children`, padded
+ * Margin-Comfortable), the panes (`leadingPane`, `trailingPane`, AppShellPane), `progress`, `sidePanel` and
+ * `floatingActions`. Mobile (`mobileTop`): the TopNavigation, the band's `hero` or the `backdrop`, the Body, then the
+ * `bottomNavigation` or the `actionBar`. The Sidebar, the header, the panes and the bars stay in view while the page
+ * scrolls (the window or the frame around the shell).
  *
- *   <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}>
- *     <Container><PageHeader title="Team members" /> …</Container>
+ *   <AppShell sidebar={<Sidebar … />} header={<AppShellHeader leading={<Breadcrumbs … />} actions={…} main={<PageHeader … />} />}>
+ *     …the page…
  *   </AppShell>
  */
 export function AppShell({
+  pattern = "sidebar",
+  collapse = "header",
   sidebar,
   header,
-  headerCenter,
-  sections,
-  headerActions,
+  leadingPane,
+  trailingPane,
+  sidePanel,
+  progress,
+  floatingActions,
   banner,
-  aside,
-  floatingAction,
-  footer,
-  topNavigation,
-  bottomNavigation,
   canvas = "default",
+  mobileTop = "bar",
+  topNavigation,
+  hero,
+  backdrop,
+  bottomNavigation,
+  actionBar,
   sidebarCollapsed: collapsedProp,
   defaultSidebarCollapsed,
   onSidebarCollapsedChange,
-  sidebarToggle = true,
   navOpen: navOpenProp,
   defaultNavOpen = false,
   onNavOpenChange,
@@ -298,39 +243,34 @@ export function AppShell({
   const sidebarId = `zen-sidebar-${uid}`;
   const mainRef = useRef<HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
-  // Measured parts (state refs, so a part that mounts later is measured too).
   const [rootEl, setRootEl] = useState<HTMLDivElement | null>(null);
   const rootRef = useMergedRefs(ref, setRootEl);
   const [bannerEl, setBannerEl] = useState<HTMLDivElement | null>(null);
-  const [sidebarEl, setSidebarEl] = useState<HTMLDivElement | null>(null);
-  const [asideEl, setAsideEl] = useState<HTMLDivElement | null>(null);
-  const [floatingEl, setFloatingEl] = useState<HTMLDivElement | null>(null);
   const [headerEl, setHeaderEl] = useState<HTMLElement | null>(null);
-  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
-  const [toggleEl, setToggleEl] = useState<HTMLSpanElement | null>(null);
-  const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
+  const [sidebarEl, setSidebarEl] = useState<HTMLDivElement | null>(null);
+  const [sidePanelEl, setSidePanelEl] = useState<HTMLDivElement | null>(null);
   const shellWidth = useElementSize(rootEl, "width");
   const guessedDesktop = useGuessedDesktop();
   const zenBreakpoint = useZen()?.breakpoint;
-  // `auto` follows the shell's own width: narrower than 1024px uses the drawer, narrower than 744px (before it is
-  // measured: the provider's Mobile breakpoint) the phone chrome when there is one (component-usage-rules §17).
-  const phoneChrome = Boolean(topNavigation || bottomNavigation);
-  const autoLayout: AppShellLayout = (shellWidth ? shellWidth >= SIDEBAR_MIN_SHELL_WIDTH : guessedDesktop) ? "sidebar"
-    : phoneChrome && (shellWidth ? shellWidth < TABLET_MIN_WIDTH : zenBreakpoint === "mobile") ? "phone" : "drawer";
-  const layout: AppShellLayout = layoutProp === "auto" ? autoLayout : layoutProp === "phone" && !phoneChrome ? "drawer" : layoutProp;
-  // The drawer and the phone chrome are both narrow: the Sidebar opens as a modal drawer (openNav) in either.
-  const compact = layout !== "sidebar";
-  const phoneLayout = layout === "phone";
+
+  // Layout: from 1024px the pattern's desktop structure; narrower, Pattern/AppShell/Mobile when the screen has a mobile
+  // part (phones and iPad portrait, the user's call 2026-10-18), else the header with the Sidebar in a drawer.
+  const mobileParts = Boolean(topNavigation || bottomNavigation || actionBar || hero || backdrop);
+  const wide = shellWidth ? shellWidth >= DESKTOP_MIN_WIDTH : guessedDesktop;
+  const autoLayout: AppShellLayout = wide ? "desktop" : mobileParts ? "mobile" : "drawer";
+  const layout: AppShellLayout = layoutProp === "auto" ? autoLayout : layoutProp === "mobile" && !mobileParts ? "drawer" : layoutProp;
+  const desktop = layout === "desktop";
+  const mobile = layout === "mobile";
+  const sidebarBeside = desktop && Boolean(sidebar) && SIDEBAR_PATTERNS.has(pattern);
   const bannerHeight = useElementSize(banner ? bannerEl : null, "height");
-  const floatingHeight = useElementSize(floatingAction ? floatingEl : null, "height");
+  const headerHeight = useElementSize(header && !mobile ? headerEl : null, "height");
   const phone = zenBreakpoint === "mobile" || rootEl?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") === "mobile";
-  const floatingHidden = useHideOnScroll(rootEl, Boolean(floatingAction) && phone);
-  const sidebarWidth = useElementSize(sidebar && !compact ? sidebarEl : null, "width");
+  const floatingHidden = useHideOnScroll(rootEl, Boolean(floatingActions) && phone);
+  const sidebarWidth = useElementSize(sidebarBeside ? sidebarEl : null, "width");
 
   // Sidebar rail. A Zen Sidebar gets `collapsed` from the shell; one with its own onCollapsedChange keeps its header
   // control and the shell's requests go to it. A Sidebar passed straight in is read from its props; one deeper (wrapped
-  // in an app component, a Stack, a Studio component) tells the shell the same through SidebarShellContext `register`,
-  // before the first paint.
+  // in an app component, a Stack, a Studio component) tells the shell the same through SidebarShellContext `register`.
   const [registered, setRegistered] = useState<SidebarRegistration | null>(null);
   const register = useCallback((entry: SidebarRegistration) => {
     setRegistered(entry);
@@ -344,23 +284,19 @@ export function AppShell({
     request: (next) => sidebarElement.props.onCollapsedChange?.(next),
   } : registered;
   const ownCollapse = Boolean(rail?.owns);
-  const canCollapse = rail
-    ? rail.canCollapse
-    : Boolean(sidebar) && (collapsedProp !== undefined || defaultSidebarCollapsed !== undefined || onSidebarCollapsedChange !== undefined);
-  const [innerCollapsed, setInnerCollapsed] = useState(() => defaultSidebarCollapsed ?? Boolean(rail?.collapsed));
+  const canCollapse = rail ? rail.canCollapse : Boolean(sidebar);
+  // List-Detail starts on the rail (Figma Sidebar Expand=No) unless told otherwise.
+  const startCollapsed = defaultSidebarCollapsed ?? (pattern === "list-detail" ? true : Boolean(rail?.collapsed));
+  const [innerCollapsed, setInnerCollapsed] = useState(startCollapsed);
   // The Sidebar's own `collapsed` is where an uncontrolled shell starts, and a change to it (the code edited, Zen
-  // Studio's Collapsed toggle) moves the rail too; the toggle and setSidebarCollapsed still change it in between. A
-  // wrapped Sidebar is first heard of after the first render: what it says then is where the rail starts, unless the
-  // shell has its own `defaultSidebarCollapsed`.
+  // Studio's Collapsed toggle) moves the rail too; the toggle and setSidebarCollapsed still change it in between.
   const declaredCollapsed = rail?.collapsed;
   const [seenCollapsed, setSeenCollapsed] = useState(() => ({ known: Boolean(rail), collapsed: declaredCollapsed }));
   if (rail && (!seenCollapsed.known || declaredCollapsed !== seenCollapsed.collapsed)) {
     setSeenCollapsed({ known: true, collapsed: declaredCollapsed });
-    if (collapsedProp === undefined && (seenCollapsed.known || defaultSidebarCollapsed === undefined)) setInnerCollapsed(Boolean(declaredCollapsed));
+    if (collapsedProp === undefined && seenCollapsed.known && declaredCollapsed !== undefined) setInnerCollapsed(Boolean(declaredCollapsed));
   }
   const sidebarCollapsed = ownCollapse ? Boolean(declaredCollapsed) : Boolean(collapsedProp ?? innerCollapsed);
-  // Not useControllableState: a Sidebar with its own onCollapsedChange owns the rail, the Sidebar's `collapsed` re-seeds
-  // the uncontrolled value, and onSidebarCollapsedChange fires on every request (also one that changes nothing).
   const setSidebarCollapsed = useStableCallback((next: boolean) => {
     if (ownCollapse) { rail?.request(next); return; }
     if (collapsedProp === undefined) setInnerCollapsed(next);
@@ -369,23 +305,21 @@ export function AppShell({
 
   // Drawer. One stable setter: the shared focus trap re-runs whenever its handler changes identity.
   const [innerOpen, setInnerOpen] = useState(defaultNavOpen);
-  const open = compact && Boolean(sidebar) && Boolean(navOpenProp ?? innerOpen);
-  // Not useControllableState: onNavOpenChange fires on every request, also closeNav() on a closed drawer.
+  const open = !desktop && Boolean(sidebar) && Boolean(navOpenProp ?? innerOpen);
   const setNavOpen = useStableCallback((next: boolean) => {
     if (navOpenProp === undefined) setInnerOpen(next);
     onNavOpenChange?.(next);
   });
   const closeFromModal = useCallback((next: boolean) => { if (!next) setNavOpen(false); }, [setNavOpen]);
   const presence = usePresence(open, 200);
-  // Modal: focus the current page's row (else the drawer), trap Tab, Escape closes, the page stops scrolling, and
-  // focus returns to the menu button.
+  // Modal: focus the current page's row (else the drawer), trap Tab, Escape closes, the page stops scrolling, and focus
+  // returns to the button that opened it.
   useModal(open, drawerRef, true, closeFromModal, '[aria-current="page"]');
   // Choosing a page closes the drawer and moves focus to the new content, not back to the menu button.
   const focusMainAfterClose = useRef(false);
   useEffect(() => {
     if (open || !focusMainAfterClose.current) return;
     focusMainAfterClose.current = false;
-    // Runs after the focus trap's cleanup (which returns focus to the menu button) in the same commit, so it wins.
     mainRef.current?.focus({ preventScroll: true });
   }, [open]);
   const onDrawerClick = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -406,184 +340,144 @@ export function AppShell({
     closeNav: () => setNavOpen(false),
   }), [layout, sidebarCollapsed, setSidebarCollapsed, open, setNavOpen]);
 
-  // A phone with its TopNavigation draws no top bar.
-  const hasTopBar = !phoneLayout && Boolean(header || headerCenter || headerActions);
-  const stackedHeader = useStackedHeader(headerEl, header ? contentEl : null, toggleEl, headerActions ? actionsEl : null);
-  const showCollapseToggle = !compact && hasTopBar && sidebarToggle && canCollapse && !ownCollapse;
-  const showMenuButton = compact && !phoneLayout && Boolean(sidebar);
+  // The header's top row starts with the collapse toggle (desktop, collapse="header") or the drawer's menu button.
+  const shellToggles = sidebarBeside && canCollapse && !ownCollapse;
+  const toggle: AppShellChrome["toggle"] = shellToggles && collapse === "header" ? "collapse" : layout === "drawer" && sidebar ? "menu" : null;
+  const chrome = useMemo<AppShellChrome>(() => ({
+    toggle,
+    sidebarCollapsed,
+    toggleSidebar: () => setSidebarCollapsed(!sidebarCollapsed),
+    sidebarId,
+    navOpen: open,
+    openNav: () => setNavOpen(true),
+    registerHeader: setHeaderEl,
+  }), [toggle, sidebarCollapsed, setSidebarCollapsed, sidebarId, open, setNavOpen]);
   // Sidebar reads these through SidebarShellContext, so a Sidebar wrapped in an app component follows the rail too. The
   // drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
-  const inlineShell = useMemo<SidebarShellState>(() => ({ collapsed: canCollapse && !ownCollapse ? sidebarCollapsed : undefined, expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined, register }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed, register]);
-  const inlineSidebar = <SidebarShellContext value={inlineShell}>{sidebar}</SidebarShellContext>;
-  const drawerSidebar = <SidebarShellContext value={DRAWER_SHELL}>{sidebar}</SidebarShellContext>;
-  // The aside docks beside the page (Figma Side-Panel Type=Standard) only while the page keeps a Tablet width next to
-  // it; otherwise a SidePanel opens as the modal panel (Type=Modal) and anything else stacks under the page.
-  const asideElement = isValidElement<SidePanelProps>(aside) && aside.type === SidePanel ? aside : null;
-  const measuredAside = useElementSize(aside ? asideEl : null, "width");
-  // The last width it had while docked (state from an earlier render, set during render as React documents).
-  const [lastAsideWidth, setLastAsideWidth] = useState(0);
-  if (measuredAside > 0 && measuredAside !== lastAsideWidth) setLastAsideWidth(measuredAside);
-  const asideWidth = measuredAside > 0 ? measuredAside : lastAsideWidth;
-  const asideDocked = !compact && (!shellWidth || shellWidth - sidebarWidth - (asideWidth || SIDE_PANEL_DEFAULT_WIDTH) >= TABLET_MIN_WIDTH);
+  const inlineShell = useMemo<SidebarShellState>(() => ({
+    collapsed: canCollapse && !ownCollapse ? sidebarCollapsed : undefined,
+    expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined,
+    toggleHere: shellToggles && collapse === "sidebar" ? setSidebarCollapsed : undefined,
+    register,
+  }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed, shellToggles, collapse, register]);
 
-  const toggle = showCollapseToggle || showMenuButton ? (
-    <span ref={setToggleEl} className="zen-app-shell__toggle">
-      {showMenuButton ? (
-        // zen-allow-filter-button: this button opens the navigation drawer (a dialog), not a choice list.
-        nest("Menu", <IconButton appearance="flat" level="primary" size="md" icon={<Icon name="icon-menu-01-line" />} aria-label={t.openNavigation} aria-haspopup="dialog" aria-expanded={open} onClick={() => setNavOpen(true)} />)
-      ) : (
-        nest("Collapse", <IconButton appearance="flat" level="primary" size="md" icon={<Icon name={sidebarCollapsed ? "icon-layout-right-line" : "icon-layout-left-line"} />} aria-label={sidebarCollapsed ? t.expandSidebar : t.collapseSidebar} aria-expanded={!sidebarCollapsed} aria-controls={sidebarId} onClick={() => setSidebarCollapsed(!sidebarCollapsed)} />)
-      )}
-    </span>
-  ) : null;
+  // The side panel docks beside the page (Figma Side-Panel Type=Standard) only while the page keeps a Tablet width next
+  // to it; otherwise a SidePanel opens as the modal panel (Type=Modal) and anything else stacks under the page.
+  const sidePanelElement = isValidElement<SidePanelProps>(sidePanel) && sidePanel.type === SidePanel ? sidePanel : null;
+  const measuredSidePanel = useElementSize(sidePanel ? sidePanelEl : null, "width");
+  const [lastSidePanelWidth, setLastSidePanelWidth] = useState(0);
+  if (measuredSidePanel > 0 && measuredSidePanel !== lastSidePanelWidth) setLastSidePanelWidth(measuredSidePanel);
+  const sidePanelWidth = measuredSidePanel > 0 ? measuredSidePanel : lastSidePanelWidth;
+  const sidePanelDocked = desktop && (!shellWidth || shellWidth - sidebarWidth - (sidePanelWidth || SIDE_PANEL_DEFAULT_WIDTH) >= TABLET_MIN_WIDTH);
 
-  // The banner's height offsets the sticky parts under it; the floating action's height is kept free at the end of the page.
-  const shellStyle = banner || floatingAction ? ({ ...style, ...(banner ? { "--zen-app-shell-banner-height": `${bannerHeight}px` } : {}), ...(floatingAction ? { "--zen-app-shell-floating-height": `${floatingHeight}px` } : {}) } as CSSProperties) : style;
+  // The banner's height offsets the sticky parts under it; on the patterns with the header across the top, the panes
+  // stick under the header too.
+  const shellStyle = { ...style, "--zen-app-shell-banner-height": `${bannerHeight}px`, "--zen-app-shell-header-height": `${headerHeight}px` } as CSSProperties;
+  const skip = <VisuallyHidden as="a" href={`#${mainId}`} focusable onClick={(event) => { event.preventDefault(); mainRef.current?.focus(); }}>{t.skipToContent}</VisuallyHidden>;
+  const bannerPart = banner ? <div ref={setBannerEl} className="zen-app-shell__banner">{banner}</div> : null;
+  const sidePanelPart = sidePanel && sidePanelDocked ? <div ref={setSidePanelEl} className="zen-app-shell__side-panel">{sidePanel}</div> : null;
+  const floatingPart = floatingActions ? <div className="zen-app-shell__floating" data-hidden={floatingHidden ? "true" : undefined}><div className="zen-app-shell__floating-items">{nest.slot(floatingActions)}</div></div> : null;
+  const pane = (part: ReactNode, side: "leading" | "trailing") => (part ? <div className="zen-app-shell__pane" data-side={side}>{nest.slot(part)}</div> : null);
+
+  let frame: ReactNode;
+  if (mobile) {
+    // Pattern/AppShell/Mobile: Top (Bar · Band · Band-Sheet · Media) over the Body, then the Bottom (Tab-Bar · Floating ·
+    // Actions); the TopNavigation takes Figma's type for the Top unless it sets its own.
+    const topNav = isValidElement<TopNavigationProps>(topNavigation) && topNavigation.props.type === undefined
+      ? cloneElement(topNavigation as ReactElement<TopNavigationProps>, { type: TOP_NAV_TYPE[mobileTop] })
+      : topNavigation;
+    const top = topNav ? <div className="zen-app-shell__top-nav">{nest.slot(topNav)}</div> : null;
+    const body = <main ref={mainRef} id={mainId} className="zen-app-shell__body" tabIndex={-1}>{nest.slot(children)}</main>;
+    const bottom = floatingPart || actionBar || bottomNavigation ? (
+      <div className="zen-app-shell__bottom">
+        {floatingPart}
+        {actionBar ? nest.slot(actionBar) : bottomNavigation ? <div className="zen-app-shell__bottom-nav">{nest.slot(bottomNavigation)}</div> : null}
+      </div>
+    ) : null;
+    frame = mobileTop === "band" ? (
+      <>
+        <div className="zen-app-shell__band">{top}{hero ? <div className="zen-app-shell__hero">{nest.slot(hero)}</div> : null}</div>
+        {body}{bottom}
+      </>
+    ) : mobileTop === "band-sheet" || mobileTop === "media" ? (
+      <div className="zen-app-shell__stage" data-top={mobileTop}>
+        {mobileTop === "media" && backdrop ? <div className="zen-app-shell__backdrop">{nest.slot(backdrop)}</div> : null}
+        {top}
+        {mobileTop === "band-sheet" && hero ? <div className="zen-app-shell__hero">{nest.slot(hero)}</div> : null}
+        {mobileTop === "media" ? <div className="zen-app-shell__spacer" aria-hidden="true" /> : null}
+        {body}{bottom}
+      </div>
+    ) : <>{top}{body}{bottom}</>;
+  } else {
+    const headerPart = header ? nest.slot(header) : null;
+    const body = (
+      <main ref={mainRef} id={mainId} className="zen-app-shell__body" tabIndex={-1}>
+        {pattern === "docs" || pattern === "focus" ? <div className="zen-app-shell__column">{nest.slot(children)}</div> : nest.slot(children)}
+        {/* Focus: the summary pane sits beside the column, inside the Body (Figma Body: Column + Trailing-Pane). */}
+        {pattern === "focus" && desktop ? pane(trailingPane, "trailing") : null}
+      </main>
+    );
+    // Narrow (drawer): the panes stack around the page, in reading order.
+    const stackedPanes = !desktop;
+    frame = desktop && SIDEBAR_PATTERNS.has(pattern) ? (
+      <div className="zen-app-shell__frame">
+        {sidebarBeside ? <div ref={setSidebarEl} id={sidebarId} className="zen-app-shell__sidebar"><SidebarShellContext value={inlineShell}>{sidebar}</SidebarShellContext></div> : null}
+        {pattern === "list-detail" ? pane(leadingPane, "leading") : null}
+        <div className="zen-app-shell__main">{headerPart}{body}{floatingPart}</div>
+        {sidePanelPart}
+      </div>
+    ) : (
+      <div className="zen-app-shell__frame" data-across="true">
+        <div className="zen-app-shell__main">
+          {headerPart}
+          {pattern === "focus" && progress ? <div className="zen-app-shell__progress">{nest.slot(progress)}</div> : null}
+          <div className="zen-app-shell__work">
+            {desktop && (pattern === "workspace" || pattern === "docs") ? pane(leadingPane, "leading") : null}
+            <div className="zen-app-shell__work-main">
+              {stackedPanes ? pane(leadingPane, "leading") : null}
+              {body}
+              {stackedPanes ? pane(trailingPane, "trailing") : null}
+            </div>
+            {desktop && (pattern === "workspace" || pattern === "docs") ? pane(trailingPane, "trailing") : null}
+            {sidePanelPart}
+          </div>
+          {floatingPart}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AppShellContext value={context}>
-      <div {...rest} ref={rootRef} className={["zen-app-shell", className].filter(Boolean).join(" ")} style={shellStyle} data-canvas={canvas} data-layout={layout} data-floating={floatingAction ? "true" : undefined} inert={open || undefined}>
-        {/* Moves focus without touching the URL, so hash routers and history are left alone; href stays for no-JS. */}
-        <VisuallyHidden as="a" href={`#${mainId}`} focusable onClick={(event) => { event.preventDefault(); mainRef.current?.focus(); }}>{t.skipToContent}</VisuallyHidden>
-        {banner ? <div ref={setBannerEl} className="zen-app-shell__banner">{banner}</div> : null}
-        <div className="zen-app-shell__frame">
-          {sidebar && !compact ? <div ref={setSidebarEl} id={sidebarId} className="zen-app-shell__sidebar">{inlineSidebar}</div> : null}
-          <div className="zen-app-shell__column">
-            {phoneLayout && topNavigation ? <div className="zen-app-shell__top-nav">{nest.slot(topNavigation)}</div> : null}
-            {hasTopBar || showMenuButton ? (
-              <header ref={setHeaderEl} className="zen-app-shell__header" data-stacked={stackedHeader || undefined}>
-                {/* The bar is Figma's Primitives/Dashboard/Header Type=Navigation (4122:33400): the toggle and the
-                    content in Leading-Slots, the centre block in Center-Slots, the actions in Trailing-Slots. */}
-                <DashboardHeader
-                  type="navigation"
-                  className="zen-app-shell__bar"
-                  leading={<>{toggle}{header ? <div ref={setContentEl} className="zen-app-shell__header-content">{nest.slot(header)}</div> : null}</>}
-                  center={headerCenter ? nest.slot(headerCenter) : undefined}
-                  trailing={headerActions ? <div ref={setActionsEl} className="zen-app-shell__header-actions">{nest.slot(headerActions)}</div> : undefined}
-                />
-              </header>
-            ) : null}
-            <main ref={mainRef} id={mainId} className="zen-app-shell__main" tabIndex={-1}>
-              {/* On a phone the TopNavigation holds the page title (its h1): the header rows move into it (§17). */}
-              {sections && !phoneLayout ? <div className="zen-app-shell__sections">{nest.slot(sections)}</div> : null}
-              {nest.slot(children)}
-            </main>
-            {aside && !asideDocked && !asideElement ? <div className="zen-app-shell__aside" data-stacked="true">{aside}</div> : null}
-            {floatingAction || footer || (phoneLayout && bottomNavigation) ? (
-              <div className="zen-app-shell__bottom">
-                {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating" data-hidden={floatingHidden ? "true" : undefined}>{floatingAction}</div> : null}
-                {footer ? <div className="zen-app-shell__footer">{nest.slot(footer)}</div> : null}
-                {phoneLayout && bottomNavigation ? <div className="zen-app-shell__bottom-nav">{nest.slot(bottomNavigation)}</div> : null}
-              </div>
-            ) : null}
-          </div>
-          {aside && asideDocked ? <div ref={setAsideEl} className="zen-app-shell__aside">{aside}</div> : null}
+      <AppShellChromeContext value={chrome}>
+        <div {...rest} ref={rootRef} className={["zen-app-shell", className].filter(Boolean).join(" ")} style={shellStyle}
+          data-canvas={canvas} data-layout={layout} data-pattern={mobile ? undefined : pattern} data-top={mobile ? mobileTop : undefined}
+          data-bottom={mobile ? (actionBar ? "actions" : bottomNavigation ? "navigation" : "none") : undefined} inert={open || undefined}>
+          {skip}
+          {bannerPart}
+          {frame}
+          {/* A side panel that is not a SidePanel (no modal of its own) stacks under the page when it cannot dock. */}
+          {sidePanel && !sidePanelDocked && !sidePanelElement ? <div className="zen-app-shell__side-panel" data-stacked="true">{sidePanel}</div> : null}
         </div>
-      </div>
-      {/* The modal panel renders next to the shell, as the drawer does (InlineOverlayContext), so a preview frame holds it. */}
-      {asideElement && !asideDocked ? <InlineOverlayContext value>{cloneElement(asideElement, { type: "modal" })}</InlineOverlayContext> : null}
-      {/* The drawer sits next to the shell, outside its inert subtree and inside the provider (so it keeps the token
-          modes). Fixed to the viewport in an app; a preview frame that contains layout (container-type) holds it. */}
-      {sidebar && presence.mounted ? (
-        <div className="zen-app-shell__overlay" data-state={presence.phase}>
-          <div className="zen-app-shell__scrim" aria-hidden="true" onPointerDown={() => setNavOpen(false)} />
-          <div ref={drawerRef} className="zen-app-shell__drawer" role="dialog" aria-modal="true" aria-label={navLabel} tabIndex={-1} data-state={presence.phase} inert={presence.phase === "closing" || undefined} onClick={onDrawerClick}>
-            <div className="zen-app-shell__drawer-panel">{drawerSidebar}</div>
-            <div className="zen-app-shell__drawer-close">
-              {nest("Close", <IconButton level="tertiary" size="md" icon={<Icon name="icon-x-medium-line" />} aria-label={t.closeNavigation} onClick={() => setNavOpen(false)} />)}
+        {/* The modal panel renders next to the shell, as the drawer does (InlineOverlayContext), so a preview frame holds it. */}
+        {sidePanelElement && !sidePanelDocked ? <InlineOverlayContext value>{cloneElement(sidePanelElement, { type: "modal" })}</InlineOverlayContext> : null}
+        {/* The drawer sits next to the shell, outside its inert subtree and inside the provider (so it keeps the token
+            modes). Fixed to the viewport in an app; a preview frame that contains layout (container-type) holds it. */}
+        {sidebar && presence.mounted ? (
+          <div className="zen-app-shell__overlay" data-state={presence.phase}>
+            <div className="zen-app-shell__scrim" aria-hidden="true" onPointerDown={() => setNavOpen(false)} />
+            <div ref={drawerRef} className="zen-app-shell__drawer" role="dialog" aria-modal="true" aria-label={navLabel} tabIndex={-1} data-state={presence.phase} inert={presence.phase === "closing" || undefined} onClick={onDrawerClick}>
+              <div className="zen-app-shell__drawer-panel"><SidebarShellContext value={DRAWER_SHELL}>{sidebar}</SidebarShellContext></div>
+              <div className="zen-app-shell__drawer-close">
+                {nest("Close", <IconButton level="tertiary" size="md" icon={<Icon name="icon-x-medium-line" />} aria-label={t.closeNavigation} onClick={() => setNavOpen(false)} />)}
+              </div>
             </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </AppShellChromeContext>
     </AppShellContext>
   );
 }
 
-/* ───────────── Top bar parts ───────────── */
-
-export type AppShellActionTone = "default" | "active" | "accent";
-
-export interface AppShellActionProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
-  /** Figma Leading-Icon: an icon name (`"icon-bell-01-line"`) or a node. */
-  icon: IconName | ReactNode;
-  /** The action's name (“Notifications”): its accessible name, with the unread count added, and its 1s tooltip. */
-  "aria-label": string;
-  /** Figma Noti-type=Number: the unread count on a badge. 0 hides it; above 99 it reads "99+" (the accessible name keeps the exact number). */
-  count?: number;
-  /** Figma Noti-type=Dot: something new without a count. Hidden while a count shows. */
-  dot?: boolean;
-  /** Figma Notification-Dot Theme: `default` Negative (needs attention) · `active` Positive · `accent`. */
-  tone?: AppShellActionTone;
-  /** Figma Theme: `tertiary` (Button/Icon-Main Medium Tertiary, 40px) · `flat` (Button/Icon-Flat Medium Primary: a 20px glyph with a 40px hit area). */
-  appearance?: "tertiary" | "flat";
-  /** Tooltip text. Default: `aria-label` (without the count). */
-  tooltip?: ReactNode | false;
-  /** Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: "secondary" } }`). Written by Zen Studio;
-   *  app code sets icon / appearance. */
-  overrides?: NestedOverrides;
-  /** Ref to the icon button element, so the action can be a `<Menu trigger>`. */
-  ref?: Ref<HTMLButtonElement>;
-}
-
-/**
- * Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a top-bar icon action with an optional
- * Primitives/Notification-Dot (4116:21789). Dot 8px, Number Badge/Size/2XSmall high with Label/Small/Medium text, both on
- * Color/Background/{Negative|Positive|Accent}/Solid with a 2px Color/Border/Inverse ring, at the button's top-right.
- * It forwards its ref and props to the button, so it can be a <Menu trigger>.
- */
-export function AppShellAction({ icon, count, dot = false, tone = "default", appearance = "tertiary", tooltip, className, "aria-label": label, overrides, ref, ...buttonProps }: AppShellActionProps) {
-  const t = useZenLabels();
-  const nest = useNested(overrides);
-  const unread = typeof count === "number" && count > 0 ? Math.floor(count) : 0;
-  const name = unread ? t.withUnread(label, unread) : dot ? t.withUnread(label) : label;
-  return (
-    <span className={["zen-app-shell-action", className].filter(Boolean).join(" ")} data-appearance={appearance}>
-      {nest("Button", <IconButton {...buttonProps} ref={ref} appearance={appearance === "flat" ? "flat" : "main"} level={appearance === "flat" ? "primary" : "tertiary"} size="md" icon={icon} aria-label={name} tooltip={tooltip ?? label} />)}
-      {unread ? <NotificationDot className="zen-app-shell-action__number" tone={tone} value={unread > 99 ? "99+" : unread} />
-        : dot ? <NotificationDot className="zen-app-shell-action__dot" tone={tone} /> : null}
-    </span>
-  );
-}
-
-export interface AppShellAccountProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
-  /** The signed-in person's name: the accessible name (“Account: Ava Chen”), the tooltip and the initials without a photo. */
-  name: string;
-  /** Photo URL (Figma Avatar/Single Theme=Photo). */
-  src?: string;
-  /** Initials colour without a photo. Default neutral. */
-  theme?: Exclude<AvatarTheme, "photo">;
-  /** Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: "square" } }`). Written by Zen Studio;
-   *  app code sets src / theme. */
-  overrides?: NestedOverrides;
-  /** Ref to the account button element, so it can be a `<Menu trigger>`. */
-  ref?: Ref<HTMLButtonElement>;
-}
-
-/**
- * The account button at the end of the top bar: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a button. Put
- * it in a Menu for the account actions: `<Menu align="end" trigger={<AppShellAccount name="Ava Chen" src={photo} />} items={…} />`.
- * Keyboard focus shows the Avatar's own focus ring.
- */
-export function AppShellAccount({ name, src, theme = "neutral", className, type = "button", onFocus, onBlur, "aria-label": ariaLabel, overrides, ref, ...buttonProps }: AppShellAccountProps) {
-  const t = useZenLabels();
-  const nest = useNested(overrides);
-  const accessibleName = ariaLabel ?? t.accountOf(name);
-  const [ring, setRing] = useState(false);
-  // Name tooltip after 1s of hover, at once on keyboard focus, never on touch (house rule for icon-only controls).
-  const tip = useIconTooltip(name, { placement: "bottom" });
-  // bind() chains the tooltip's pointer and focus handlers after the caller's own (a Menu trigger passes some).
-  const bound = tip.bind({
-    ...buttonProps,
-    onFocus: (event: FocusEvent<HTMLButtonElement>) => { setRing(event.currentTarget.matches(":focus-visible")); onFocus?.(event); },
-    onBlur: (event: FocusEvent<HTMLButtonElement>) => { setRing(false); onBlur?.(event); },
-  });
-  return (
-    <>
-      <button {...bound} ref={ref} type={type} className={["zen-app-shell-account", className].filter(Boolean).join(" ")} aria-label={accessibleName}>
-        {/* Without a photo, alt only generates the initials ("Ava Chen" → AC); the button's aria-label names it. */}
-        {nest("Avatar", <Avatar size="md" theme={src ? "photo" : theme} background="subtle" src={src} alt={src ? "" : name} focus={ring} />)}
-      </button>
-      {tip.tooltip}
-    </>
-  );
-}
+export { AppShellHeader, AppShellAction, AppShellAccount, type AppShellHeaderProps, type AppShellActionProps, type AppShellAccountProps, type AppShellActionTone } from "./AppShellHeader";
+export { AppShellPane, appShellPaneThemes, appShellPaneSurfaces, type AppShellPaneProps, type AppShellPaneTheme, type AppShellPaneSurface } from "./AppShellPane";

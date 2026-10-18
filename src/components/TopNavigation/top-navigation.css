@@ -35,6 +35,10 @@
   --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)) 80%, transparent) 0%, transparent 100%);
 }
 .zen-top-nav[data-type="compact-overlay"] { --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)) 80%, transparent) 0%, transparent 100%); }
+/* Transparent (Figma 12014:45167 Type=Transparent / Transparent-On-Color): no fill, for a bar that sits on a band of the page
+   (AppShell mobileTop="band" | "band-sheet") or over a colour or photo; On-Color takes white content. */
+.zen-top-nav:is([data-type="transparent"], [data-type="transparent-on-color"]) { --zen-top-nav-fill: transparent; }
+.zen-top-nav[data-type="transparent-on-color"] { --zen-top-nav-content: var(--zen-color-content-on-black-overlay-strongest, #fff); }
 
 /* Scroll-linked collapse (scrollRef). The fold (Expand-Heading, plus a Search Control-Bar that folds into searchAction)
    slides up by --zen-top-nav-fold with the content, 1:1, and is cut where it passes under the bar; a pinned Control-Bar

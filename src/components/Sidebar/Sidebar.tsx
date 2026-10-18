@@ -595,7 +595,8 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   // onCollapsedChange; its drawer always shows the whole navigation with no collapse control.
   const shell = useSidebarShell();
   const collapsed = shell?.drawer ? false : onCollapsedChangeProp ? collapsedProp : (shell?.collapsed ?? collapsedProp);
-  const onCollapsedChange = shell?.drawer ? undefined : onCollapsedChangeProp;
+  // AppShell collapse="sidebar" (Figma Collapse=Sidebar): the header control is the shell's toggle, drawn here.
+  const onCollapsedChange = shell?.drawer ? undefined : onCollapsedChangeProp ?? shell?.toggleHere;
   const expandRail = onCollapsedChange ? () => onCollapsedChange(false) : shell?.expand;
   const subMenuLabel = subMenuLabelProp ?? t.subMenu;
   const rootRef = useRef<HTMLElement>(null);

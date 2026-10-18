@@ -20,12 +20,14 @@ import { useMergedRefs } from "../_shared/merge-refs";
  * - liquid-glass: Alt blurring + Nav-Action/Liquid-Glass actions.
  * - default-overlay · liquid-overlay: a Black-Overlay gradient over media + Liquid-Glass Black-Overlay actions, white content.
  * - compact · compact-alt · compact-overlay: the same backgrounds with Nav-Action/Flat (icon-only) actions.
+ * - transparent: no fill (the bar sits on a band of the page, AppShell mobileTop="band"), Tertiary actions.
+ * - transparent-on-color: no fill over a colour or a photo, Content/On-Black-Overlay content + Liquid-Glass actions.
  */
 /** Figma Type=*-Bluring / Liquid Glass / *-Overlay: BACKGROUND_BLUR blurType=PROGRESSIVE, start radius at the top edge
  *  (Default-Bluring 10, the rest 20) → 0 at the bottom edge, under the gradient fill. */
 const PROGRESSIVE_TYPES = new Set<string>(["default-blurring", "alt-blurring", "liquid-glass", "default-overlay", "liquid-overlay", "compact-overlay"]);
 
-export const topNavigationTypes = ["default", "alt", "default-blurring", "alt-blurring", "liquid-glass", "default-overlay", "liquid-overlay", "compact", "compact-alt", "compact-overlay"] as const;
+export const topNavigationTypes = ["default", "alt", "default-blurring", "alt-blurring", "liquid-glass", "default-overlay", "liquid-overlay", "compact", "compact-alt", "compact-overlay", "transparent", "transparent-on-color"] as const;
 export type TopNavigationType = (typeof topNavigationTypes)[number];
 /** Figma Margin: Comfortable (20px sides) · Compact (16px sides). */
 export type TopNavigationMargin = "comfortable" | "compact";
@@ -147,7 +149,7 @@ const isAction = (value: unknown): value is TopNavigationAction => typeof value 
 /** Figma Trailing-Slot maxChildren (Top-Trailing and Header-Trailing, `.Primitives/Mobile/Top-Navigation/Trailling` 12013:39571). */
 const MAX_ACTIONS = 3;
 const actionStyleFor = (type: TopNavigationType) =>
-  type.startsWith("compact") ? "flat" : type === "liquid-glass" ? "glass" : type === "default-overlay" || type === "liquid-overlay" ? "glass-dark" : "default";
+  type.startsWith("compact") ? "flat" : type === "liquid-glass" || type === "transparent-on-color" ? "glass" : type === "default-overlay" || type === "liquid-overlay" ? "glass-dark" : "default";
 
 /**
  * The trailing slot in Figma Trailing-Slot terms (up to `slots` items): one action per item, or a run of actions next to
