@@ -266,7 +266,6 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
   - QA: `npm run qa -- --isolated` on empty-state, bottom-navigation and the 13 pages that render a Small Empty State: PASS
     (0 errors; 12 sheets reviewed). Studio, guidelines, usage selftests ✓, tsc ✓.
 
-
 ## Studio Flat hover (user: "UI của Studio dùng màu hover cho các nền flat chưa đúng (Định nghĩa flat là không có nền...)") — tier S
 - Cause: Studio items with no fill at rest hovered with Neutral/Subtle/Hover (alpha 4) or Surface/Hover; the selected
   fill is Active/Neutral/Subtle (alpha 3), so the hovered Variables group looked darker than the selected one.
@@ -312,6 +311,19 @@ approved). F0 applies its glossary (§3a) and keys.
 - style:check on main after #134 (Giám sát): `.studio-device-duo` gap 8 / padding-top 32 had their zen-allow-raw-spacing
   in the block comment above the selector; style-guard wants it right above each declaration. Fixed (tier XS).
 
+## Segmented Component Size + Primary track from Figma (tier S, session "Bug"; user: "Update tokens Component Size của segmented … từ Figma lên Studio")
+
+- Live read (Component Size, 14 Segmented/* variables): Medium/Horizontal-Padding Compact {dm-8} (repo 10) · Small/Horizontal-Padding
+  Comfortable {dm-8} (repo 6); the rest equal; repo-only Studio mode kept. component-size.json + sync note, tokens:build,
+  segmented.css Medium fallback 8px.
+- Contract hashes found two more drifts: Focus/Accent/Subtle resolved colour (#ff019e2f → #ff01982f, the Zen ramp sync)
+  in the 4 Focused items, and Segmented Level=Primary's track now filled Neutral/Subtle with no 2px stroke (CENTER/MIN),
+  plus the set description's overlay line. Code follows (Primary ring removed, JSDoc, guidelines rebuilt); contract
+  patched and both sets hash equal to the live file.
+  - Chat bubble avatar shadow (user removed it from Chat/Conversation/Bubble, "Kiểm tra Studio nếu có thì remove luôn"):
+    the two B2 avatars still carried it as an instance override → cleared. Code/Studio have none (chat.css avatar column
+    has no shadow, avatar.css only its 1px ring; Studio fixtures, chat-bubbles contract and native-pack carry no avatar
+    drop shadow); ◆ Social and ❖ Chat: 0 left.
 ## Studio Layers like Figma — F1 (user: "ok làm F1 tiếp đi") — tier M/L, worktree `../Zen-DS-figlang`, branch `zen/feat/studio-f1-layers-20261018`
 
 Spec card (plan §5 F1, decision 4; Figma help checked: Lock and unlock layers, Rename layers; Layers top = front).

@@ -12580,7 +12580,7 @@
         "More than 5 options or long labels → Tabs or SelectField.",
         "Form answers → RadioButton group."
       ],
-      "description": "Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill track (Spacing/Padding/3XSmall) of toggle segments (Segmented/Size/Small or Medium), Secondary (defau",
+      "description": "Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill track (Spacing/Padding/3XSmall) of toggle segments (Segmented/Size/Small or Medium) on a Neutral/Subt",
       "props": {
         "options": {
           "type": "array",
@@ -12614,7 +12614,7 @@
             "overlay"
           ],
           "default": "secondary",
-          "description": "Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis."
+          "description": "Secondary (default) is the common case; Primary (the same filled track, an Inverse solid selected segment) adds emphasis."
         },
         "size": {
           "enum": [

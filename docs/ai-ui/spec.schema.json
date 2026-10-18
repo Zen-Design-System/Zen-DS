@@ -25960,7 +25960,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis."
+                "description": "Secondary (default) is the common case; Primary (the same filled track, an Inverse solid selected segment) adds emphasis."
               },
               "size": {
                 "anyOf": [
