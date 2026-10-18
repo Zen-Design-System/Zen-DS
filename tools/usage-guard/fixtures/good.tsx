@@ -294,6 +294,13 @@ export const Good = () => <>
   <Image src={photo} alt="Harbour at dusk" radius="full" />
   <Box surface="surface" radius="full" radiusBottomLeft="none">Pill with a square corner</Box>
   <Box surface="surface" radius="lg" radiusTopLeft="xs" radiusBottomRight="xs">Finite radius with corners</Box>
+  <Stack surface="surface" radius="lg" effectStyle="Shadow/Bottom/Level-1" padding="lg" gap="md">One auto layout frame with a fill</Stack>
+  <Stack border="pale" radius="md" padding="md" direction="row">Static bordered row</Stack>
+  <Grid columns={2} surface="pale" effectStyle="Effect/Overlay" radius="xl" radiusBottomRight="xs" padding="md">Frosted grid</Grid>
+  <Stack border="subtle" borderStyle="dashed" radius="lg" padding="lg" role="button" onClick={open}>Drop files here</Stack>
+  <Stack border="pale" borderSides="bottom" borderWeight={2} paddingY="sm">Bar with a bottom rule</Stack>
+  <Stack opacity={40} rotation={15} flip="horizontal">Faded, turned and mirrored</Stack>
+  <Shape type="ellipse" opacity={60} width={24} height={24} />
   <Text tone="support-blue-strongest">Your files sync across every device you sign in on.</Text>
   <Text textStyle="Body/Small/Bold" tone="positive-light">Saved</Text>
   <Text textStyle="Body/Small/Regular" tone="negative-light">Enter an email address like name@company.com.</Text>

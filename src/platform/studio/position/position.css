@@ -7,6 +7,8 @@
 
 /* [X][Y][toggle]: two equal read-only fields and the slot column, as Size's [W][H][menu]. */
 .studio-position__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Figma UI3's Rotate 90° and Flip buttons beside the rotation field (a frame: Box, Stack, Grid). */
+.studio-position__turns { display: flex; min-width: 0; grid-column: 2 / -1; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-position__slot { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); min-width: var(--zen-button-size-xsmall, 24px); align-items: center; justify-content: center; }
 .studio-position__field { display: flex; min-width: 0; }
 .studio-position__field > .zen-input-field { width: 100%; min-width: 0; }

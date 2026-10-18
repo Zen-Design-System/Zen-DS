@@ -212,3 +212,36 @@ export function floatSummary(name: string, snaps: { prop: string; snap: Snap }[]
   const clamped = snaps.some((entry) => entry.snap.clamped) ? ` · offsets stop at ${ladderName("4xl")}` : "";
   return `${name} ignores auto layout${parts.length ? ` · ${parts.join(", ")}` : ""}${clamped}`;
 }
+
+/* ── rotation and flip (Box, Stack, Grid: Layout appearance.ts; Figma's rotation field, Flip horizontal ⇧H / vertical ⇧V) ── */
+
+export type Flip = "horizontal" | "vertical" | "both";
+/** A rotation as Figma keeps it: −180° … 180° (270 → −90), two decimals. */
+export function normalizeTurn(value: number): number {
+  const turned = Math.round((((value + 180) % 360 + 360) % 360 - 180) * 100) / 100;
+  return turned === -180 ? 180 : turned === 0 ? 0 : turned;
+}
+
+/**
+ * Figma's Flip horizontal / vertical on a layer turned by `rotation` and maybe flipped already. The layer draws R(θ)·S
+ * (CSS rotate after scale); the mirror in the parent's axes is F·R(θ)·S = R(−θ)·F·S, so the rotation changes sign and
+ * the flip toggles on that axis. Two flips are a half turn: no flip, rotation + 180°.
+ */
+export function flipTurn(rotation: number, flip: string | undefined, axis: "horizontal" | "vertical"): { rotation: number; flip?: Flip } {
+  let h = flip === "horizontal" || flip === "both";
+  let v = flip === "vertical" || flip === "both";
+  if (axis === "horizontal") h = !h;
+  else v = !v;
+  let turn = -rotation;
+  if (h && v) { h = false; v = false; turn += 180; }
+  const next = normalizeTurn(turn);
+  return h ? { rotation: next, flip: "horizontal" } : v ? { rotation: next, flip: "vertical" } : { rotation: next };
+}
+
+/** The writes for a rotation and flip: each prop set, or removed at Figma's default (0°, no flip). */
+export function turnOps(next: { rotation: number; flip?: Flip }): EditOp[] {
+  return [
+    next.rotation ? { op: "setProp", name: "rotation", value: { kind: "number", value: next.rotation } } : { op: "removeProp", name: "rotation" },
+    next.flip ? { op: "setProp", name: "flip", value: { kind: "string", value: next.flip } } : { op: "removeProp", name: "flip" },
+  ];
+}

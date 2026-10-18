@@ -1083,9 +1083,48 @@ export default function Page() {
   const [list, well] = canvas.children;
   check("Box: its surface's variable, no gap; a scrolling Stack clips at its max height", [canvas.fill, canvas.layout.gap, well.fill, list.scroll, list.clip, list.maxH], ["Background/Canvas/Default", 0, "Background/Neutral/Subtle/Default", "VERTICAL", true, 120]);
   check("round trip: Box surfaces and a scrolling Stack come back", shape(pageFromFigma(frame, { mapping }).text), shape(page));
-  // A Box framing a Stack's gap pulls back as a Box around the Stack.
+  // An auto layout frame with a fill and a gap is one Stack carrying the fill (decision 2, plan 2026-10-18).
   const framed = pageFromFigma({ ...frame, children: [{ ...well, layout: { ...well.layout, gap: 12, gapVar: "Spacing/Gap/Small" }, children: [well.children[0], well.children[0]] }] }, { mapping }).text;
-  ok("pull: a surface frame with a gap is a Box around a Stack", /<Box surface="subtle" padding="md">\s*<Stack gap="sm">/.test(framed));
+  ok("pull: a surface frame with a gap is one Stack with the surface", /<Stack gap="sm" padding="md" surface="subtle">/.test(framed) && !/<Box surface/.test(framed));
+  // Frame appearance (Layout appearance.ts, decision 2): Box, Stack and Grid push their fill, stroke, corners, effect,
+  // opacity, rotation and flip as one Figma frame, and pull back the same.
+  const looks = `// @zen-page {"format":1,"title":"Looks"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Grid, Stack, Text } from "@zen-ds/react";
+
+export default function Looks() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Looks" device="desktop">
+        <Stack gap="lg" padding="xl">
+          <Stack gap="sm" padding="lg" surface="surface" radius="xl" effectStyle="Shadow/Bottom/Level-1" opacity={80}>
+            <Text>One</Text>
+            <Text>Two</Text>
+          </Stack>
+          <Grid columns={2} gap="sm" surface="pale" border="pale" borderWeight={2} radius="lg" radiusBottomRight="xs">
+            <Text>A</Text>
+            <Text>B</Text>
+          </Grid>
+          <Stack direction="row" gap="xs" border="subtle" borderSides="bottom" borderStyle="dashed" rotation={15} flip="horizontal">
+            <Text>Rule</Text>
+            <Text>Below</Text>
+          </Stack>
+          <Box surface="subtle" padding="md" radius="md">
+            <Text>Well</Text>
+          </Box>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  // The page frame takes the body Stack's layout: the four frames are its children.
+  const [card, tiles, rule, box] = push(looks).frame.children;
+  check("frame look: fill, corners, effect, opacity", [card.fill, card.radius, card.radiusVar, card.effectStyle, card.opacity], ["Background/Surface/Default", 20, "Corner-Radius/XLarge", "Shadow/Bottom/Level-1", 0.8]);
+  check("frame look: stroke weight, per-corner radii", [tiles.stroke, tiles.strokeWeight, tiles.strokeAlign, tiles.radii, tiles.radiiVars], ["Border/Neutral/Pale/Default", 2, "INSIDE", [16, 16, 4, 16], ["Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/XSmall", "Corner-Radius/Large"]]);
+  check("frame look: one side, dash, rotation, flip", [rule.stroke, rule.strokeSides, rule.dash, rule.rotation, rule.flip], ["Border/Neutral/Subtle/Default", "bottom", [2, 2], 15, "horizontal"]);
+  check("frame look: a Box keeps its look", [box.fill, box.radius], ["Background/Neutral/Subtle/Default", 12]);
+  check("round trip: frame looks come back on the same elements", shape(pageFromFigma(push(looks).frame, { mapping }).text), shape(looks));
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
 import { Board, Screen } from "@zen-ds/react/builder";
 import { Grid, Stack, Text } from "@zen-ds/react";

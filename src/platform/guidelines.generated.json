@@ -3377,6 +3377,12 @@
     "file": "docs/guidelines/shape.md",
     "rules": [
       {
+        "id": "layout/opacity-percent",
+        "severity": "error",
+        "summary": "opacity is a percentage, as Figma's layer opacity (0 … 100): write opacity={50}, not CSS's 0.5.",
+        "allow": "opacity-fraction"
+      },
+      {
         "id": "shape/token-paint",
         "severity": "error",
         "summary": "A Shape's fill and stroke are Zen token paths (fill: Color/Background, stroke: Color/Border, or \"none\"), never hex, rgb or a var().",
@@ -7423,12 +7429,13 @@
   },
   "layout": {
     "title": "Layout (Stack, Grid, Box, Container)",
-    "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+    "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
     "use": [
       "Stacking sections, fields or cards (Stack, gap md–lg).",
       "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
       "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
       "Wells and plain panels (Box surface + padding).",
+      "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
       "Page content width with the breakpoint margin (Container)."
     ],
     "avoid": [
@@ -7459,8 +7466,8 @@
         "a number, a track list for unequal columns (\"2fr 1fr\"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default); stackBelow={640}: one column while the Grid itself is narrower than 640px (a side column in a narrow card or window), whatever the breakpoint"
       ],
       [
-        "Background layer",
-        "surface (Box)",
+        "Background layer (Figma Fill)",
+        "surface (Box, Stack, Grid)",
         "surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card)"
       ],
       [
@@ -7469,13 +7476,13 @@
         "\"y\" scrolls vertically, \"x\" sideways, inside the frame (Figma Overflow scrolling; it clips, and the scroll stays inside): give a \"y\" frame a height (\"fill\" in a set-height column) or a maxHeight"
       ],
       [
-        "Border",
-        "border (Box)",
-        "pale (static) · subtle (actionable)"
+        "Border (Figma Stroke)",
+        "border · borderWeight · borderSides · borderStyle (Box, Stack, Grid)",
+        "pale (static) · subtle (actionable), inside the frame; borderWeight in px (default 1); borderSides all (default) · top · right · bottom · left; borderStyle dashed only with border subtle (harness: box/dashed-is-subtle)"
       ],
       [
         "Corner-Radius",
-        "radius (Box)",
+        "radius (Box, Stack, Grid)",
         "2xs · xs · sm · md · lg · xl · 2xl · 3xl · full (follows the radius mode)"
       ],
       [
@@ -7504,18 +7511,28 @@
         "none (default, flush) · 3xs 2 … 4xl 48, each read only on an edge its constraint pins; no negative insets (overhangs belong to components)"
       ],
       [
-        "Effect style (Box)",
+        "Effect style (Box, Stack, Grid)",
         "effectStyle",
         "the Figma effect style, one per box: Shadow/Bottom/Level-1…4 · Shadow/Top/Level-1…4 (drop shadows, only on surface=\"surface\", no border; Level-1 = the Card and Sidebar elevation; Top casts upward for bottom-pinned bars) · Effect/Overlay (background blur, only on surface subtle or pale)"
       ],
       [
-        "Clip content (Box)",
+        "Clip content (Box, Stack, Grid)",
         "clip",
-        "true clips children to the box and its corners (Figma Clip content), e.g. full-bleed absolute media in a radiused Box"
+        "true clips children to the frame and its corners (Figma Clip content), e.g. full-bleed absolute media in a radiused Box"
+      ],
+      [
+        "Opacity",
+        "opacity (Box, Stack, Grid)",
+        "0 … 100, a percentage as Figma's layer opacity (default 100), never CSS's 0–1 (harness: layout/opacity-percent)"
+      ],
+      [
+        "Rotation and flip",
+        "rotation · flip (Box, Stack, Grid)",
+        "rotation in degrees, counter-clockwise as Figma's field; flip horizontal · vertical · both (Figma ⇧H / ⇧V). Visual only: the frame keeps its place in the layout"
       ],
       [
         "Corner-Radius per corner",
-        "radiusTopLeft · radiusTopRight · radiusBottomRight · radiusBottomLeft (Box, Image)",
+        "radiusTopLeft · radiusTopRight · radiusBottomRight · radiusBottomLeft (Box, Stack, Grid, Image)",
         "the radius scale per corner, following the radius mode; a set corner wins over radius; write radius plus only the corners that differ (Image's radius defaults to md)"
       ]
     ],
@@ -7527,7 +7544,8 @@
       "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
       "Put a main column next to an aside with Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} align=\"start\"; on phones the aside moves under the main column.",
       "Put page content in a Container so its margin follows the breakpoint.",
-      "Give a Box a surface only when it really is a separate layer; a Surface box on a white (Alt) canvas needs border=\"pale\".",
+      "Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border=\"pale\".",
+      "Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface=\"surface\" padding=\"lg\" gap=\"md\" radius=\"lg\">, not a Box around a Stack.",
       "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons goes in a Box width=\"fill\", since Search has no sizing props), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
       "Pin a media overlay with position=\"absolute\" and a constraint on token insets: a corner action on a photo is constraintX=\"right\" insetRight=\"sm\" constraintY=\"top\" insetTop=\"sm\"; a caption bar is constraintX=\"left-right\" constraintY=\"bottom\".",
       "Put background media first and the content after it: the media is absolute (left-right × top-bottom), and the later in-flow content paints above it (Figma auto layout \"Last on top\").",
@@ -7571,7 +7589,7 @@
       {
         "id": "box/border-matches-action",
         "severity": "warn",
-        "summary": "A Box border follows the border rule: subtle only when the box is actionable (onClick, href, role=button), pale when it is static.",
+        "summary": "A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static.",
         "allow": "box-border"
       },
       {
@@ -7625,8 +7643,20 @@
       {
         "id": "box/shadow-no-border",
         "severity": "warn",
-        "summary": "Elevation follows the Sidebar: a Box with a drop-shadow effect style takes no border (a bordered box takes no shadow).",
+        "summary": "Elevation follows the Sidebar: a frame (Box, Stack, Grid) with a drop-shadow effect style takes no border (a bordered frame takes no shadow).",
         "allow": "elevation"
+      },
+      {
+        "id": "box/dashed-is-subtle",
+        "severity": "warn",
+        "summary": "borderStyle=\"dashed\" draws only with border=\"subtle\": dashed borders are always Subtle (a drop zone, an empty slot).",
+        "allow": "dashed-border"
+      },
+      {
+        "id": "layout/opacity-percent",
+        "severity": "error",
+        "summary": "opacity is a percentage, as Figma's layer opacity (0 … 100): write opacity={50}, not CSS's 0.5.",
+        "allow": "opacity-fraction"
       },
       {
         "id": "radius/redundant-corners",

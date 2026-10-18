@@ -37,6 +37,11 @@ const SHAPE_DEFAULT_SIZE = 100;
 /** A rectangle's Corner-Radius token → its Figma variable and px (Corner Radius, Rounded mode). */
 const SHAPE_RADIUS = { none: ["", 0], "2xs": ["Corner-Radius/2XSmall", 2], xs: ["Corner-Radius/XSmall", 4], sm: ["Corner-Radius/Small", 8], md: ["Corner-Radius/Base", 12], lg: ["Corner-Radius/Large", 16], xl: ["Corner-Radius/XLarge", 20], "2xl": ["Corner-Radius/2XLarge", 24], "3xl": ["Corner-Radius/3XLarge", 28], full: ["Corner-Radius/Rounded", 1000] };
 
+/** A frame's border (Layout appearance.ts) → its Border variable (Figma's stroke). */
+const FRAME_STROKE = { pale: "Border/Neutral/Pale/Default", subtle: "Border/Neutral/Subtle/Default" };
+/** The effect styles a frame takes (Layout effects.ts boxEffectStyles). */
+const FRAME_EFFECTS = new Set(["Shadow/Bottom/Level-1", "Shadow/Bottom/Level-2", "Shadow/Bottom/Level-3", "Shadow/Bottom/Level-4", "Shadow/Top/Level-1", "Shadow/Top/Level-2", "Shadow/Top/Level-3", "Shadow/Top/Level-4", "Effect/Overlay"]);
+
 const STEP_NAMES = { "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge", giant: "Giant", xgiant: "XGiant", "2xgiant": "2XGiant" };
 /** Whether a pushed layer is wrapping text, or a plain column frame (no fill) around some: it needs a width to wrap in. */
 const wrapsText = (node) => (node?.type === "TEXT" && !node.autoWidth) || (node?.type === "FRAME" && !node.fill && node.layout?.mode === "VERTICAL" && (node.children ?? []).some((child) => !child.absolute && wrapsText(child)));
@@ -1208,6 +1213,39 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return { count: Math.max(1, list.length), sizes: list.map(trackSize) };
   }
 
+  /**
+   * A frame's appearance (Box, Stack and Grid alike; src/components/Layout/appearance.ts) as Figma's frame: `fill` its
+   * Color/Background variable, `stroke` Border/Neutral/Pale|Subtle inside at `strokeWeight` (one side: `strokeSides`;
+   * dashed: Zen's Figma dash 2 / 2, the Input's), the corners on Corner-Radius (`radius` + `radiusVar`, or `radii` +
+   * `radiiVars` TL TR BR BL when they differ), the effect style by name, opacity 0–1, rotation (degrees,
+   * counter-clockwise) and flip. Only what the code writes; Figma's defaults are left out.
+   */
+  function frameLook(code) {
+    const look = {};
+    const fill = BOX_SURFACE[code.surface];
+    if (fill) look.fill = fill;
+    const stroke = FRAME_STROKE[code.border];
+    if (stroke) {
+      look.stroke = stroke;
+      look.strokeWeight = typeof code.borderWeight === "number" && code.borderWeight >= 0 ? code.borderWeight : 1;
+      look.strokeAlign = "INSIDE";
+      if (["top", "right", "bottom", "left"].includes(code.borderSides)) look.strokeSides = code.borderSides;
+      if (code.borderStyle === "dashed" && code.border === "subtle") look.dash = [2, 2];
+    }
+    const step = (value) => (typeof value === "string" ? SHAPE_RADIUS[LONG_TO_SHORT[value] ?? value] ?? null : null);
+    const corners = ["radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft"].map((name) => step(code[name]) ?? step(code.radius));
+    if (corners.some(Boolean)) {
+      const steps = corners.map((corner) => corner ?? SHAPE_RADIUS.none);
+      if (steps.every((corner) => corner === steps[0])) Object.assign(look, { radius: steps[0][1], ...(steps[0][0] ? { radiusVar: steps[0][0] } : {}) });
+      else Object.assign(look, { radii: steps.map((corner) => corner[1]), radiiVars: steps.map((corner) => corner[0] || null) });
+    }
+    if (typeof code.effectStyle === "string" && FRAME_EFFECTS.has(code.effectStyle)) look.effectStyle = code.effectStyle;
+    if (typeof code.opacity === "number" && code.opacity < 100) look.opacity = Math.max(0, code.opacity) / 100;
+    if (typeof code.rotation === "number" && code.rotation % 360 !== 0) look.rotation = code.rotation;
+    if (["horizontal", "vertical", "both"].includes(code.flip)) look.flip = code.flip;
+    return look;
+  }
+
   function frameNode(element, code, id, parent = null) {
     const grid = element.name === "Grid";
     const row = code.direction === "row";
@@ -1256,7 +1294,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     } else if (fit) Object.assign(layout, { counter: "MIN", primary: "MIN", wrap: true });
     // What a child fills: a column's width inside the padding, a grid cell its column's share; a row's is unknown.
     // Inside a surface (passed down, or this Box paints one or a border): a Table in it drops its last row's rule.
-    const surface = Boolean(parent?.surface) || (element.name === "Box" && [code.surface, code.border].some((value) => value && value !== "none"));
+    const surface = Boolean(parent?.surface) || [code.surface, code.border].some((value) => value && value !== "none");
     const context = { direction: row ? "row" : "column", stretch: !grid && align === "stretch", width: grid || row ? null : inner, surface };
     const cellWidths = grid && !fit ? trackWidths(columns, inner, gapPx) : null;
     let cellIndex = 0;
@@ -1292,12 +1330,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const maxW = Number.parseFloat(String(code.maxWidth ?? "")) || null;
     // maxHeight in px: Figma's Max height (a scrolling list stops there).
     const maxH = /^\d+(px)?$/.test(String(code.maxHeight ?? "")) ? Number.parseFloat(String(code.maxHeight)) : null;
-    // A Box's background layer: its Color/Background variable. `scroll` is Figma's Overflow scrolling (it clips, as CSS
-    // overflow does).
-    const fill = element.name === "Box" ? BOX_SURFACE[code.surface] : null;
+    // `scroll` is Figma's Overflow scrolling (it clips, as CSS overflow does).
     const scroll = { x: "HORIZONTAL", y: "VERTICAL" }[code.scroll];
-    // Only a frame with `clip` (Box, Stack or Grid) cuts what overflows it: the importer clips that frame alone.
-    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children, ...(fill ? { fill } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
+    // Only a frame with `clip` (Box, Stack or Grid) cuts what overflows it: the importer clips that frame alone. Its
+    // fill, stroke, corners, effect, opacity, rotation and flip: one Figma frame (frameLook).
+    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children, ...frameLook(code), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */

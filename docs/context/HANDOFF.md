@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-17.
+Last updated: 2026-10-19.
 
 ## Read order
 
@@ -147,7 +147,12 @@ Last updated: 2026-10-17.
   user: "Đồng ý theo đề xuất, làm F0 trước"):** the plan's glossary (§3a) on menus, tooltips (one shape: `tip(name,
   keys)` in `shell/ShortcutTip.tsx`), Inspector, Layers and the status line; Figma keys Zen lacks say so
   (`edit/figmaNotYet.ts`; a phase that builds one takes it off that list); P is Pen, Present is ⌥⌘↵. Guard:
-  `words.selftest` part 3 fails on a retired term (its `RETIRED` list) or code words in a JSX label. Next: F1.
+  `words.selftest` part 3 fails on a retired term (its `RETIRED` list) or code words in a JSX label. Since 2026-10-19
+  three sessions build F1–F10 (A: F1–F3, F9; B: F5, F7; C: F4, F6, F8, F10; memory "figma-parity-three-sessions").
+  **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides / dash, corners, effect, opacity,
+  rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame with a fill is one Stack in code,
+  push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed values, variable pills, W / H math,
+  ratio lock) and F5c next: spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures

@@ -17,8 +17,8 @@ export type PlanLayer = {
 
 export const POSITION = ["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft"];
 export const FLOW = ["direction", "gap", "align", "justify", "wrap", "padding", "paddingX", "paddingY", "fillChildren"];
-/** A Box prop that paints: such a frame keeps its Box and takes the auto layout inside. */
-export const PAINTS = ["surface", "border", "radius", "radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft", "effectStyle", "clip", "scroll"];
+/** A frame prop that paints (Layout appearance.ts): a Stack takes every one, so a painted frame stays one element. */
+export const PAINTS = ["surface", "border", "borderWeight", "borderSides", "borderStyle", "radius", "radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft", "effectStyle", "clip", "scroll", "opacity", "rotation", "flip"];
 /** Layers that float themselves (position absolute); any other floats in a Box around it. */
 export const FLOATS = new Set(["Stack", "Grid", "Box", "Shape"]);
 
@@ -39,10 +39,11 @@ export type AddPlan = {
 /**
  * Add auto layout: side by side when the layers' centres spread more across than down (Figma reads their places the
  * same way), in that order; the gap the mean of the spaces between them, the padding the space before the first,
- * both snapped to the spacing steps; across the flow the edge or centre they share. A painted frame keeps its Box and
- * takes a Stack inside (also when it is empty, so it still gets auto layout).
+ * both snapped to the spacing steps; across the flow the edge or centre they share. A painted frame becomes one Stack
+ * that keeps its fill, stroke, corners and effect (Figma's auto layout frame with a fill is one layer: decision 2 of
+ * docs/research/studio-figma-design-parity-2026-10-18.md); `painted` is kept for callers that still pass it.
  */
-export function addPlan(layers: readonly PlanLayer[], keyOf: KeyOf, painted: boolean): AddPlan {
+export function addPlan(layers: readonly PlanLayer[], keyOf: KeyOf, painted = false): AddPlan {
   const spread = (values: number[]) => (values.length ? Math.max(...values) - Math.min(...values) : 0);
   const row = layers.length > 1 && spread(layers.map((layer) => layer.box.x + layer.box.w / 2)) > spread(layers.map((layer) => layer.box.y + layer.box.h / 2));
   const order = layers.map((_, index) => index).sort((a, b) => (row ? layers[a].box.x - layers[b].box.x : layers[a].box.y - layers[b].box.y) || a - b);
@@ -69,9 +70,9 @@ export function addPlan(layers: readonly PlanLayer[], keyOf: KeyOf, painted: boo
   // Only a layer that floats itself loses its X / Y: another component's own `position` (an ActionBar's sticky / fixed /
   // static) is its behaviour, never a place (autolayout matrix, 2026-10-17).
   const children = layers.map((layer) => (layer.floatWrapper ? { unwrap: true } : FLOATS.has(layer.name) ? { remove: POSITION } : {}));
-  const plan = painted
-    ? { tag: "Box", set: padding, remove: ["width", "height", "padding", "paddingX", "paddingY"], children, order, wrap: { tag: "Stack", set: flow } }
-    : { tag: "Stack", set: { ...flow, ...padding }, remove: ["width", "height", "padding", "paddingX", "paddingY", ...PAINTS], children, order };
+  void painted;
+  // The frame's own paint props stay on it (PAINTS): the Stack is the same Figma frame, now with auto layout.
+  const plan = { tag: "Stack", set: { ...flow, ...padding }, remove: ["width", "height", "padding", "paddingX", "paddingY"], children, order };
   return { row, order, gap, padding, align, plan };
 }
 

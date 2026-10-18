@@ -9,7 +9,7 @@ import { expectRender, renderedNow } from "../select/remap";
 import { familyKeyForPx, tokenPx } from "../select/spacing";
 import { canStructurallyEdit } from "../slots/actions";
 import { wrapSelection } from "../select/wrapSelection";
-import { addPlan, PAINTS, removePlan } from "./autoLayoutPlan";
+import { addPlan, removePlan } from "./autoLayoutPlan";
 import { flushStudioStore, studioStore } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 
@@ -19,8 +19,8 @@ import type { SourceElement, StudioSelection } from "../types";
  * - ⇧A on a Box (Figma's frame without auto layout): the frame itself takes auto layout, read from where its layers
  *   sit: side by side → horizontal, else vertical; the layers in that order; gap, padding and alignment snapped to the
  *   Spacing tokens (Zen's ladder: the nearest step). The layers leave their X / Y (a float wrapper gives its layer back)
- *   and the frame hugs them, as Figma's does. A Box with a fill, border, radius or effect keeps them and gets the
- *   auto layout as a Stack inside (Zen's frame with a fill: Box > Stack).
+ *   and the frame hugs them, as Figma's does. A Box with a fill, border, radius or effect keeps them on the Stack it
+ *   becomes (one Figma frame is one element, decision 2 of the 2026-10-18 parity plan).
  * - ⌥⇧A on a Stack: a Box of the size it has now, each layer at the X / Y it shows (px; a layer that cannot float
  *   itself in a Box around it), nothing moves on the screen.
  */
@@ -56,7 +56,6 @@ async function readFrame(selection: Extract<StudioSelection, { kind: "node" }>) 
   return { at, element, host, layers, why: "" };
 }
 
-const written = (element: SourceElement, prop: string) => element.attributes.some((attr) => attr.kind !== "spread" && attr.name === prop);
 const nearestKey = (host: Element, scale: "gap" | "padding", px: number, keys: string[]) => {
   if (px < 0.5) return "none";
   return familyKeyForPx(host, scale, px) ?? keys.map((key) => ({ key, px: tokenPx(host, scale, key) })).filter((option): option is { key: string; px: number } => option.px !== null).sort((a, b) => Math.abs(a.px - px) - Math.abs(b.px - px))[0]?.key ?? "none";
@@ -87,8 +86,7 @@ export async function addAutoLayout(selection: Extract<StudioSelection, { kind: 
   if (!layers) return fail(frame.why);
   const engine = await loadEngine();
   const source = await studioApi.source(at.file);
-  const painted = PAINTS.some((prop) => written(element, prop));
-  const { row, gap: stackGap, padding, plan } = addPlan(layers.map((layer) => ({ box: layer.box, name: layer.element.name, floatWrapper: isFloatWrapper(layer.element) })), nearestKeyOf(host), painted);
+  const { row, gap: stackGap, padding, plan } = addPlan(layers.map((layer) => ({ box: layer.box, name: layer.element.name, floatWrapper: isFloatWrapper(layer.element) })), nearestKeyOf(host));
   const pads = Object.values(padding).filter(Boolean);
   let code: string;
   try {
@@ -96,7 +94,7 @@ export async function addAutoLayout(selection: Extract<StudioSelection, { kind: 
   } catch (error) {
     return fail(error instanceof Error ? error.message : String(error));
   }
-  const done = await replaceWith(selection, at, element, code, "Add auto layout", painted ? "Box" : "Stack");
+  const done = await replaceWith(selection, at, element, code, "Add auto layout", "Stack");
   if (done) say(`Auto layout: ${row ? "horizontal" : "vertical"}, gap ${stackGap}${pads.length ? `, padding ${pads.join(" × ")}` : ""}`);
   return done;
 }

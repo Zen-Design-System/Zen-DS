@@ -22,12 +22,13 @@ import { frameElement } from "../slots/dom";
 import type { EditValue, SourceElement, StudioNodeRef } from "../types";
 import { isFloatWrapper, unwrapFloat } from "./float";
 import {
-  constraintLabels, constraintOps, constraintOptions, edgeLabels, floatingComponents, floatOps, floatPlan, floatSummary,
-  paddingLadderKeys, pinOfConstraint, positionProps, readInsets, snapText, unfloatOps,
+  constraintLabels, constraintOps, constraintOptions, edgeLabels, flipTurn, floatingComponents, floatOps, floatPlan, floatSummary,
+  normalizeTurn, paddingLadderKeys, pinOfConstraint, positionProps, readInsets, snapText, turnOps, unfloatOps,
   type AxisMeasure, type Ladder, type Measured, type Pin, type PositionAxis,
 } from "./positionModel";
 import "./position.css";
 import { srcAttr } from "../select/srcIds";
+import { tip } from "../shell/ShortcutTip";
 
 /*
  * The Design tab's Position section (Figma UI3 "Position": Align, X / Y, Ignore auto layout, Constraints; spec
@@ -285,9 +286,16 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
   const rotation = rotationValue.state === "literal" && typeof rotationValue.value === "number" ? rotationValue.value : 0;
   const rotate = (value: number) => {
     // Figma keeps a rotation between −180° and 180° (270 → −90).
-    const turned = Math.round((((value + 180) % 360 + 360) % 360 - 180) * 100) / 100;
-    const shown = turned === -180 ? 180 : turned;
+    const shown = normalizeTurn(value);
     void api.apply(shown ? [{ op: "setProp", name: "rotation", value: { kind: "number", value: shown } }] : [{ op: "removeProp", name: "rotation" }], `${name} rotation → ${shown}°`);
+  };
+  // A frame (Box, Stack, Grid) also flips: Figma UI3's Rotate 90° and Flip buttons beside the rotation field.
+  const flipValue = api.valueFor("flip");
+  const flippable = propSpecs(component).some((spec) => spec.name === "flip");
+  const flipShown = flipValue.state === "literal" && typeof flipValue.value === "string" ? flipValue.value : undefined;
+  const turnLocked = disabled || [rotationValue, flipValue].some((value) => value.state === "bound" || value.state === "spread");
+  const flip = (axis: "horizontal" | "vertical") => {
+    void api.apply(turnOps(flipTurn(rotation, flipShown, axis)), axis === "horizontal" ? "Flip horizontal" : "Flip vertical");
   };
   const flowHint = geometry.parent === "auto" ? "Placed by the parent's auto layout" : "Placed by the page flow";
 
@@ -350,6 +358,13 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
         <div className="studio-position__pair" data-prop="rotation">
           <ScrubNumberField label={<Icon name="icon-refresh-ccw-01-line" size="sm" decorative />} name="Rotation" suffix="°" round={2} value={rotation}
             disabled={disabled || rotationValue.state === "bound" || rotationValue.state === "spread"} onCommit={rotate} />
+          {flippable ? (
+            <span className="studio-position__turns" role="group" aria-label="Rotate and flip">
+              <IconButton icon="icon-refresh-cw-01-line" aria-label="Rotate 90° right" tooltip="Rotate 90° right" appearance="flat" level="primary" size="xs" disabled={turnLocked} onClick={() => rotate(rotation - 90)} />
+              <IconButton icon="icon-flip-horizontal-line" aria-label="Flip horizontal" tooltip={tip("Flip horizontal", "⇧H")} appearance="flat" level="primary" size="xs" disabled={turnLocked} onClick={() => flip("horizontal")} />
+              <IconButton icon="icon-flip-vertical-line" aria-label="Flip vertical" tooltip={tip("Flip vertical", "⇧V")} appearance="flat" level="primary" size="xs" disabled={turnLocked} onClick={() => flip("vertical")} />
+            </span>
+          ) : null}
         </div>
       ) : null}
       {viaBox ? (
