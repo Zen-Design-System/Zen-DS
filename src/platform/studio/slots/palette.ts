@@ -105,7 +105,7 @@ export type PaletteResult = { items: PaletteItem[]; warnings: Readonly<Record<st
 export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   Heading: "Text", Text: "Text", Button: "Button", IconButton: "Button", Link: "Link", Avatar: "Avatar", Badge: "Badge",
   Tag: "Tag", DockIcon: "DockIcon", List: "ListItem", ListItem: "ListItem", ListBox: "ListItem", DescriptionList: "DescriptionList",
-  Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", InlineMessage: "InlineMessage",
+  Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", ProgressCircle: "Progress", InlineMessage: "InlineMessage",
   EmptyState: "EmptyState", InputField: "Input", TextAreaField: "Input", SelectField: "Input", Checkbox: "Checkbox",
   Toggle: "Toggle", ChipGroup: "ChipGroup", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider", Shape: "Shape",
   Accordion: "Accordion", useToast: "Toast",
@@ -359,6 +359,12 @@ export const PALETTE: readonly PaletteItem[] = [
       `  <ProgressBar value={60} label aria-label="Profile completion" />`,
       `</Stack>`,
     ),
+  },
+  {
+    // Figma Progress-Circle (1531:13954): a 20px ring that fills from 12 o'clock, its label beside it; 100 turns it into
+    // the done check. The Studio's Main component frame draws its Theme × Done grid from this item.
+    id: "progress-circle", label: "Progress circle", group: "Data display", caption: "Step status", root: "ProgressCircle", components: ["ProgressCircle"], interactive: false, input: false,
+    build: () => lines(`<ProgressCircle value={60} theme="accent" label aria-label="Setup progress" />`),
   },
   {
     id: "avatar-stack", label: "Avatar group", group: "Data display", caption: "Team", root: "AvatarStack", components: ["AvatarStack"], interactive: false, input: false,

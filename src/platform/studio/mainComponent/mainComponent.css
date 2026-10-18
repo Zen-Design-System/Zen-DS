@@ -30,6 +30,9 @@
 .studio-mc__cell { position: relative; display: grid; justify-items: start; }
 /* What a variant renders stays its own size; anything it portals (a tooltip) stays in the frame's portal. */
 .studio-mc__stage { display: flex; align-items: center; }
+/* A variant that fills its container (Divider, a Dashboard header row) gets its set's Figma width (MainComponentFrame). */
+.studio-mc__stage[data-fill] { width: var(--studio-mc-fill, 360px); }
+.studio-mc__stage[data-fill] > * { flex: 1 1 auto; min-width: 0; }
 .studio-mc__portal { position: relative; width: 0; height: 0; overflow: visible; }
 
 /* Inspector: where a style comes from (file · variant scope, then the custom properties it reads), one per line. */

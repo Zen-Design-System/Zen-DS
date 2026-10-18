@@ -21,6 +21,8 @@ export function frameLabel(frameId: string, page: PlatformPage) {
   if (frameId === "playground") return "Playground";
   if (frameId === "main-component") return "Main component";
   if (frameId === "docs") return "Docs";
+  if (frameId === "guidelines") return "Guidelines";
+  if (frameId.startsWith("props:")) return `Props · ${frameId.slice(6)}`;
   if (frameId === "document") return pageLabels[page] ?? "Document";
   const example = /^example:(\d+)$/.exec(frameId);
   if (example) return `Example: ${getPageExamples(page)[Number(example[1])]?.title ?? `#${Number(example[1]) + 1}`}`;
@@ -28,11 +30,14 @@ export function frameLabel(frameId: string, page: PlatformPage) {
   return frameId;
 }
 
+/** A frame of the board's Docs section: Docs (Keyboard, API), Guidelines, one "props:<Component>" per component. */
+export const isReadingFrame = (id: string | null | undefined) => id === "docs" || id === "guidelines" || (typeof id === "string" && id.startsWith("props:"));
+
 /** A builder page's frame (a Screen or an Overlay of a page kept in this browser). */
 export const isBuilderFrame = (id: string | null | undefined) => typeof id === "string" && /^(screen|overlay):/.test(id);
 
-export const frameKind = (id: string) => (id === "playground" ? "Playground" : id === "main-component" ? "Component set" : id === "docs" ? "Docs" : id === "document" ? "Document" : id.startsWith("example:") ? "Example" : id.startsWith("screen:") ? "Screen" : id.startsWith("overlay:") ? "Overlay" : "Frame");
-export const frameIcon = (id: string): IconName => (id === "playground" ? "icon-sliders-04-line" : id === "main-component" ? "icon-grid-01-line" : id === "docs" ? "icon-book-closed-line" : id.startsWith("example:") || isBuilderFrame(id) ? "icon-layout-alt-01-line" : "icon-file-code-line");
+export const frameKind = (id: string) => (id === "playground" ? "Playground" : id === "main-component" ? "Component set" : isReadingFrame(id) ? "Docs" : id === "document" ? "Document" : id.startsWith("example:") ? "Example" : id.startsWith("screen:") ? "Screen" : id.startsWith("overlay:") ? "Overlay" : "Frame");
+export const frameIcon = (id: string): IconName => (id === "playground" ? "icon-sliders-04-line" : id === "main-component" ? "icon-grid-01-line" : isReadingFrame(id) ? "icon-book-closed-line" : id.startsWith("example:") || isBuilderFrame(id) ? "icon-layout-alt-01-line" : "icon-file-code-line");
 
 /** The example a frame id ("example:<n>") shows on this page, if any. */
 export function exampleOf(page: PlatformPage, frameId: string | null) {

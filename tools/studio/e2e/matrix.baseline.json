@@ -325,7 +325,9 @@
     "ST-24": "works",
     "ST-25": "works",
     "ST-26": "works",
-    "ST-27": "works"
+    "ST-27": "works",
+    "BL-01": "works",
+    "BL-02": "works"
   },
   "flaky": {}
 }

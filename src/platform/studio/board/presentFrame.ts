@@ -62,7 +62,7 @@ export function zoomToFrame(element: HTMLElement, padding = 48) {
   const rect = element.getBoundingClientRect();
   const viewport = canvasApi.getViewportElement();
   if (!viewport || !rect.width || !rect.height) return;
-  const reading = ["docs", "document"].includes(element.dataset.studioFrame ?? "");
+  const reading = (["docs", "guidelines", "document"].includes(element.dataset.studioFrame ?? "") || (element.dataset.studioFrame ?? "").startsWith("props:"));
   const byHeight = (viewport.clientHeight - padding * 2) / rect.height;
   const byWidth = (viewport.clientWidth - padding * 2) / rect.width;
   if (reading || byHeight < byWidth * 0.75) canvasApi.zoomToWidth(rect, { margin: padding, maxZoom: 1 });

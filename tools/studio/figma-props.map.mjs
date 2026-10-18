@@ -18,6 +18,9 @@
 //                                           only on the sets that have the boolean (generated), and while every
 //                                           `when: [{ prop, oneOf, default? }]` holds (the layer exists only at those values)
 //     { skip: "why" }                       Figma-only (a preview state, a device frame, content written elsewhere)
+//     { skip: "why", main: { prop, values } } a variant the Properties panel leaves out (the value is a number) that the
+//                                           Main component frame still draws: each Figma option → that number
+//                                           (Progress=Low → value 20, read from the Figma variant)
 //   nested: Figma nested layer name → { when, set?, props?, code? }: a group shown while code prop `when` is set, with
 //           the nested set's properties mapped as above, then `code` rows ({ prop, label }) for code props that set has
 //           no property for.
@@ -277,14 +280,17 @@ export const FIGMA_PROPS = {
   },
   ProgressBar: {
     sets: { "Progress-Bar": null },
-    props: { Text: skip("the label text (the Label row)"), Label: { toggle: "label", on: "Label" }, Theme: "theme", Progress: skip("progress is the numeric value"), Layout: "layout" },
+    // Figma's Progress fills (live file 2026-10-18): None 0, Low 20, Medium 40, Good 80, Done 100.
+    props: { Text: skip("the label text (the Label row)"), Label: { toggle: "label", on: "Label" }, Theme: "theme", Progress: { ...skip("progress is the numeric value"), main: { prop: "value", values: { None: 0, Low: 20, Medium: 40, Good: 80, Done: 100 } } }, Layout: "layout" },
   },
   ProgressCircle: {
-    sets: { "Progress-Circle": null },
-    props: { Label: { toggle: "label", on: "Label" }, Text: skip("the label text (the Label row)"), Size: skip("one size") },
+    // Progress-Circle (label, one size) holds Progress-Circle/Icon, where the colour and the done check live (Done=No
+    // draws an 80% pie in Figma).
+    sets: { "Progress-Circle": null, "Progress-Circle/Icon": null },
+    props: { Label: { toggle: "label", on: "Label" }, Text: skip("the label text (the Label row)"), Size: skip("one size"), Theme: "theme", Done: { ...skip("done is value 100"), main: { prop: "value", values: { No: 80, Yes: 100 } } } },
   },
   Pagination: { sets: { Pagination: null }, props: { Theme: "theme" } },
-  Rating: { sets: { "Rating/Star": null }, props: { Rating: skip("the rating is the numeric value"), Size: "size", Theme: "theme" } },
+  Rating: { sets: { "Rating/Star": null }, props: { Rating: { ...skip("the rating is the numeric value"), main: { prop: "value", values: { None: 0, "1.0": 1, "2.0": 2, "3.0": 3, "4.0": 4, "5.0": 5 } } }, Size: "size", Theme: "theme" } },
   RatingDisplay: { sets: { "Rating-Display": null }, props: { Size: "size", Theme: "theme" } },
   OpinionScale: { sets: { "Rating/Opinion-Scale": null }, props: { Scale: "scale", Type: skip("one type (emoji)") } },
   NpsScale: { sets: { "Rating/NPS-Scale": null }, props: { "Top criteria": "highLabel", "Bottom criteria": "lowLabel", Scale: "scale" } },
@@ -347,7 +353,7 @@ export const FIGMA_PROPS = {
       "Master-Background": "background",
     },
   },
-  SkeletonText: { sets: { "Skeleton/Body-Text": null }, props: { "No. of line": skip("lines is a number") } },
+  SkeletonText: { sets: { "Skeleton/Body-Text": null }, props: { "No. of line": { ...skip("lines is a number"), main: { prop: "lines", values: { 1: 1, 2: 2, 3: 3, 5: 5 } } } } },
   SkeletonHeading: { sets: { "Skeleton/Heading-Text": null }, props: { Size: "size" } },
   SkeletonShape: {
     sets: { "Skeleton/Shapes": null },

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { Heading, Text } from "../../../components/Text";
 import api from "../../api.generated.json";
 import { platformMedia } from "../../PlatformMedia";
@@ -43,7 +43,8 @@ export function mainComponents(page: PlatformPage): string[] {
 
 const overlaySet = (set: VariantSet) => /overlay/i.test(set.name) || Object.values(set.fixed).includes("overlay");
 const literal = (value: unknown): PageValue => ({ kind: "literal", value });
-const codeValue = (value: string, values: readonly string[]) => (values.every((item) => item === "true" || item === "false") ? value === "true" : value);
+/** A cell's prop value: a Yes / No axis is a boolean, a numeric one (Progress=Low → 20) a number, else the text. */
+const codeValue = (value: string, values: readonly string[]) => (values.every((item) => item === "true" || item === "false") ? value === "true" : values.every((item) => /^-?\d+(\.\d+)?$/.test(item)) ? Number(value) : value);
 
 /** The cell's node: the Assets node with this variant's props (and the set's toggles as filtered). */
 function cellNode(base: PageNode, set: VariantSet, variant: Readonly<Record<string, string>>, filters: Readonly<Record<string, string>>): PageNode {
@@ -55,6 +56,36 @@ function cellNode(base: PageNode, set: VariantSet, variant: Readonly<Record<stri
     else delete props[toggle.prop];
   }
   return { ...base, props };
+}
+
+/** Figma's width of a set that fills its row (its variants are FIXED there; the code fills its container). */
+const FILL_WIDTHS: Readonly<Record<string, number | ((variant: Readonly<Record<string, string>>) => number)>> = {
+  Divider: 356,
+  "Rating/NPS-Scale": (variant) => (variant.scale === "5" ? 212 : 392),
+  "Primitives/Dashboard/Header": 1232,
+};
+/** A component that fills its container would collapse in the cell (it sizes to its content, as in Figma): it takes
+ *  its set's Figma width, else 360, so no variant ever draws as an empty cell. */
+const FILL_FALLBACK = 360;
+
+function Stage({ set, variant, children }: { set: string; variant: Readonly<Record<string, string>>; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [fill, setFill] = useState(false);
+  useLayoutEffect(() => {
+    const stage = ref.current;
+    if (!stage || fill) return undefined;
+    const check = () => {
+      const child = stage.firstElementChild as HTMLElement | null;
+      if (child && child.offsetWidth < 2) setFill(true);
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [fill, children]);
+  const width = FILL_WIDTHS[set];
+  const style = fill ? ({ "--studio-mc-fill": `${typeof width === "function" ? width(variant) : width ?? FILL_FALLBACK}px` } as CSSProperties) : undefined;
+  return <div ref={ref} className="studio-mc__stage" data-fill={fill || undefined} style={style}>{children}</div>;
 }
 
 export function MainComponentFrame({ page }: { page: PlatformPage }) {
@@ -141,9 +172,9 @@ function RowCells({ component, set, base, portal, rowLabel, rowValue, fixedRest,
         const name = variantLabel(variant, set.axes);
         return (
           <div key={key} className="studio-mc__cell" data-mc-cell={key} data-mc-component={component} data-mc-set={set.name} data-mc-variant={JSON.stringify(variant)} data-mc-name={name} data-selected={selectedCell === key || undefined} aria-label={name}>
-            <div className="studio-mc__stage">
+            <Stage set={set.name} variant={variant}>
               {base && portal ? renderInert(cellNode(base, set, variant, filters), portal) : base === null ? <Text as="span" textStyle="Caption/Regular" tone="light">—</Text> : null}
-            </div>
+            </Stage>
           </div>
         );
       })}
