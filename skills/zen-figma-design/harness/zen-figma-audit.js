@@ -18,6 +18,8 @@
 //   text/no-style            error    text with no Zen text style (or a mixed one)
 //   spacing/unbound          error    an auto-layout gap or padding with no Spacing/Gap or Spacing/Padding variable
 //   radius/unbound           error    a corner radius with no Corner-Radius variable
+//   radius/concentric        warning  a filled layer in a rounded box's corner whose radius is not the outer radius
+//                                     minus the padding (a pill item in a vertical capsule must be square)
 //   effect/no-style          error    a shadow or blur with no Zen effect style
 //   layout/absolute          warning  a frame with 2+ children and no auto layout
 //   layout/row-drift         warning  side-by-side columns of equal rows end a row at different heights (grid lines drift)
@@ -79,6 +81,10 @@
 //                                     to the content it controls: they are blocks, not a label pair
 //   navigation/icon-style    error    a Bottom-Navigation item whose icon style does not match its selection: the
 //                                     selected item shows the solid icon, every other item the line icon
+//   navigation/floating-fit  error    a Floating or Floating-Glass Bottom-Navigation whose tabs leave the 64–88 range:
+//                                     the capsule fills while tabs fit at 88 or less, then hugs with Fixed 88 tabs
+//   navigation/status-in-bar error    a status bar placed above a Top-Navigation whose own Status-bar is hidden (it
+//                                     sits on a band of its own): swap the bar's Status-bar to the device's and show it
 //   spacing/section-gap      error    a phone screen's Body (the frame that stacks its sections) not spaced by
 //                                     Component Size Layout-Mobile/Section-Gap (Compact 24, Comfortable 32)
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
@@ -181,6 +187,70 @@ function checkRadius(node) {
   const corners = ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"];
   const raw = corners.filter((corner) => typeof node[corner] === "number" && node[corner] > 0 && !bound[corner]);
   if (raw.length) report("radius/unbound", ERROR, node, `${node[raw[0]]}px${raw.length < 4 ? ` (${raw.join(", ")})` : ""}`);
+}
+
+// A rounded box and the filled layer in its corner must share one centre: the inner radius is the outer radius minus
+// the padding between them. A pill (radius ≥ half the side) counts as half its short side, so a wide item in a narrow
+// vertical capsule shows an oval in a circle (user 2026-10-18, iPhone Duo tab strip: "Bug bo góc trong ngoài").
+function effectiveRadius(node, corner) {
+  const radius = typeof node[corner] === "number" ? node[corner] : (isMixed(node.cornerRadius) ? 0 : node.cornerRadius ?? 0);
+  return Math.min(radius, node.width / 2, node.height / 2);
+}
+/** A layer that paints a box of its own: a frame, shape or instance with a fill or a stroke (not a glyph or text). */
+function drawsBox(node) {
+  if (node.type === "TEXT" || node.type === "VECTOR" || node.type === "BOOLEAN_OPERATION" || node.type === "LINE") return false;
+  const fill = "fills" in node && !isMixed(node.fills) && visiblePaints(node.fills).length > 0;
+  const stroke = "strokes" in node && visiblePaints(node.strokes).length > 0 && typeof node.strokeWeight === "number" && node.strokeWeight > 0;
+  return fill || stroke;
+}
+function cornerLayers(frame) {
+  const out = [];
+  const visit = (node) => {
+    for (const child of node.children ?? []) {
+      if (!child.visible || child.layoutPositioning === "ABSOLUTE") continue;
+      const filled = drawsBox(child);
+      const padded = "paddingTop" in child && (child.paddingTop || child.paddingRight || child.paddingBottom || child.paddingLeft);
+      // An instance counts when it draws a box (its own fill or a filled frame inside, as a pill item): an icon does not.
+      const boxed = child.type === "INSTANCE" && (filled || (child.children ?? []).some((inner) => (inner.type === "FRAME" || inner.type === "RECTANGLE") && inner.visible && drawsBox(inner)));
+      if (filled || boxed) out.push(child);
+      else if ((child.type === "FRAME" || child.type === "SLOT") && !padded) visit(child);
+    }
+  };
+  visit(frame);
+  return out;
+}
+// A section of screens or a component set of screen variants (an AppShell pattern): each child is a screen, checked on
+// its own, and its edge is the device's (a shadow cut there is cut by the window, not by a frame).
+const isScreenGroup = (node) => node.type === "SECTION" || node.type === "COMPONENT_SET";
+const screensOf = (root) => (isScreenGroup(root) ? root.children.filter((child) => "findAll" in child) : [root]);
+function checkConcentric(node) {
+  if (node.type === "COMPONENT_SET" || !("cornerRadius" in node) || !("children" in node) || node.layoutMode === "NONE") return;
+  if (!visiblePaints(node.fills).length && !visiblePaints(node.strokes).length) return;
+  const frame = box(node);
+  if (!frame) return;
+  const corners = [
+    ["topLeftRadius", "paddingTop", "paddingLeft", (b) => [b.x, b.y], (f, p) => [f.x + p.l, f.y + p.t]],
+    ["topRightRadius", "paddingTop", "paddingRight", (b) => [b.x + b.width, b.y], (f, p) => [f.x + f.width - p.r, f.y + p.t]],
+    ["bottomLeftRadius", "paddingBottom", "paddingLeft", (b) => [b.x, b.y + b.height], (f, p) => [f.x + p.l, f.y + f.height - p.b]],
+    ["bottomRightRadius", "paddingBottom", "paddingRight", (b) => [b.x + b.width, b.y + b.height], (f, p) => [f.x + f.width - p.r, f.y + f.height - p.b]],
+  ];
+  const pads = { t: node.paddingTop, r: node.paddingRight, b: node.paddingBottom, l: node.paddingLeft };
+  for (const layer of cornerLayers(node)) {
+    const own = box(layer);
+    if (!own) continue;
+    for (const [corner, padA, padB, at, inner] of corners) {
+      const outer = effectiveRadius(node, corner);
+      const gapToEdge = Math.min(node[padA], node[padB]);
+      if (outer <= 0 || node[padA] !== node[padB]) continue;
+      const [lx, ly] = at(own), [ix, iy] = inner(frame, pads);
+      if (Math.abs(lx - ix) > TOLERANCE || Math.abs(ly - iy) > TOLERANCE) continue;
+      const expected = Math.max(0, outer - gapToEdge), actual = effectiveRadius(layer, corner);
+      if (Math.abs(actual - expected) > TOLERANCE) {
+        report("radius/concentric", WARNING, layer, `corner ${Math.round(actual)} inside ${node.name}'s ${Math.round(outer)} with ${gapToEdge} padding: make it ${Math.round(expected)} (outer radius minus padding; a pill item in a vertical capsule must be square)`);
+        return;
+      }
+    }
+  }
 }
 
 function checkEffects(node) {
@@ -339,7 +409,8 @@ function checkShadowClips(root) {
       }
     }
     if (!("children" in node)) continue;
-    const next = node !== root && "clipsContent" in node && node.clipsContent ? [node, ...clippers] : clippers;
+    const screenEdge = node === root || (isScreenGroup(root) && node.parent === root);
+    const next = !screenEdge && "clipsContent" in node && node.clipsContent ? [node, ...clippers] : clippers;
     for (const child of node.children) stack.push([child, next]);
   }
 }
@@ -391,6 +462,9 @@ async function canvasOf(root) {
   return null;
 }
 async function checkThemePairing(root) {
+  for (const screen of isScreenGroup(root) ? screensOf(root) : [root]) await checkThemePairingOf(screen);
+}
+async function checkThemePairingOf(root) {
   const canvas = await canvasOf(root);
   if (!canvas) return;
   const boxes = []; const bars = []; const families = new Set();
@@ -458,7 +532,7 @@ async function colourModeSet(collectionId) {
 }
 async function checkModeOverrides(root) {
   // A section holds screens: each frame in it may pick its mode, the layers inside it may not.
-  const screens = root.type === "SECTION" ? root.children : [root];
+  const screens = isScreenGroup(root) ? root.children : [root];
   const stack = screens.flatMap((screen) => ("children" in screen ? [...screen.children] : []));
   while (stack.length) {
     const node = stack.pop();
@@ -483,7 +557,7 @@ function shownIn(node, screen) {
   return true;
 }
 async function checkBackChevron(root) {
-  const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
+  const screens = screensOf(root);
   for (const screen of screens) {
     const instances = screen.findAll((node) => node.type === "INSTANCE");
     const device = instances.some((node) => /^Top-Navigation\/(Mobile|Tablet)/.test(node.name));
@@ -559,7 +633,7 @@ async function checkControlGap(root) {
   }
 }
 async function checkButtonRoles(root) {
-  const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
+  const screens = screensOf(root);
   for (const screen of screens) {
     const primaries = [];
     for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
@@ -607,7 +681,7 @@ async function isControlRow(node) {
   return true;
 }
 async function checkTouchSpacing(root) {
-  const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
+  const screens = screensOf(root);
   for (const screen of screens) {
     const instances = screen.findAll((node) => node.type === "INSTANCE");
     if (!isTouchScreen(screen, instances)) continue;
@@ -645,7 +719,7 @@ async function checkTouchSpacing(root) {
 // Component Size's Layout-Mobile/Section-Gap (Compact 24, Comfortable 32), so it follows the mode the domain picks.
 const SECTION_BODY = /^(Body|Content|Sections)$/i;
 async function checkSectionGap(root) {
-  const screens = root.type === "SECTION" ? root.children.filter((child) => "findAll" in child) : [root];
+  const screens = screensOf(root);
   for (const screen of screens) {
     const phone = screen.width < 744 || screen.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(node.name)).length > 0;
     if (!phone) continue;
@@ -675,6 +749,50 @@ async function checkNavIcons(root) {
       if (selected && !/-solid$/.test(name)) report("navigation/icon-style", ERROR, item, `the selected item shows ${name || "a line icon"}: use its -solid version (pick an icon that has one)`);
       if (!selected && /-solid$/.test(name)) report("navigation/icon-style", ERROR, item, `an unselected item shows ${name}: use its -line version; solid marks only the current tab`);
     }
+  }
+}
+
+// The status bar rides the top bar (user 2026-10-18: "lỗi tách status bar khỏi top nav của ipad"): a Top-Navigation
+// draws its own Status-bar, so its background (a gradient, a colour band) runs under the clock. A separate status bar
+// above a Top-Navigation whose own one is hidden sits on a band of its own: swap the bar's Status-bar to the device's
+// (Status-bar/IOS/Tablet on an iPad) and remove the separate one.
+async function checkStatusInBar(root) {
+  for (const nav of root.findAll ? root.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(setOf(node))) : []) {
+    if (nav.visible === false) continue;
+    const own = nav.findOne((node) => node.type === "INSTANCE" && /^Status-bar\//.test(setOf(node)));
+    if (!own || own.visible !== false) continue;
+    let screen = nav;
+    while (screen.parent && screen.parent.type !== "PAGE" && screen.parent.type !== "SECTION" && screen.parent.type !== "COMPONENT_SET") screen = screen.parent;
+    const navBox = box(nav);
+    const separate = screen.findAll((node) => node.type === "INSTANCE" && node.visible !== false && /^Status-bar\//.test(setOf(node)) && !nav.findOne((inner) => inner.id === node.id))
+      .find((bar) => { const b = box(bar); return b && navBox && b.y + b.height <= navBox.y + 1 && b.y >= navBox.y - 60; });
+    if (separate) report("navigation/status-in-bar", ERROR, separate, `a status bar above ${nav.name}, whose own is hidden: swap the bar's Status-bar to ${setOf(separate)}, show it and remove this one, so the bar's background runs under the clock`);
+  }
+}
+
+// Floating bottom bar fit (user 2026-10-18, phone and tablet alike): a Floating or Floating-Glass Bottom-Navigation's
+// tabs are 64 to 88 wide. The capsule (Container) and its Nav-Item slot fill the bar while the tabs share the room at
+// 88 or less; once they would pass 88 (fewer tabs, a tablet, the Duo) both hug and every tab is Fixed 88, the capsule
+// centred (Items row Center) or at the start with the action at the end (Space between).
+const TAB_MIN = 64;
+const TAB_MAX = 88;
+const FLOATING_BAR = /^Bottom-Navigation\/Mobile\/Floating(-Glass)?$/;
+async function checkFloatingBarFit(root) {
+  for (const nav of root.findAll ? root.findAll((node) => node.type === "INSTANCE") : []) {
+    if (nav.visible === false || !FLOATING_BAR.test(setOf(nav))) continue;
+    const items = nav.findOne((node) => node.name === "Items");
+    const capsule = items && items.findOne((node) => node.name === "Container");
+    const slot = capsule && capsule.findOne((node) => node.type === "SLOT");
+    if (!slot) continue;
+    const tabs = slot.children.filter((tab) => tab.visible !== false);
+    if (!tabs.length) continue;
+    const action = items.children.find((node) => node.name === "Action" && node.visible !== false);
+    const room = Math.min(items.width - items.paddingLeft - items.paddingRight - (action ? action.width + items.itemSpacing : 0), capsule.maxWidth || Infinity) - capsule.paddingLeft - capsule.paddingRight;
+    const share = room / tabs.length;
+    const fills = capsule.layoutSizingHorizontal === "FILL" || slot.layoutSizingHorizontal === "FILL";
+    if (share < TAB_MIN - 1) report("navigation/floating-fit", ERROR, nav, `${tabs.length} tabs in ${Math.round(room)}px leave ${Math.round(share)} each, under ${TAB_MIN}: a floating bar holds 5 tabs on a phone, 4 beside its action (more go in More, or use Bottom-Navigation/Mobile/Default)`);
+    else if (fills && share > TAB_MAX + 1) report("navigation/floating-fit", ERROR, nav, `the tabs stretch to ${Math.round(share)}, past ${TAB_MAX}: set Container and Nav-Item to Hug and each tab Fixed ${TAB_MAX} (Items row Center, or Space between with the action)`);
+    else if (!fills && share <= TAB_MAX + 1) report("navigation/floating-fit", ERROR, nav, `the capsule hugs while its tabs need ${Math.round(share)} each, ${TAB_MAX} or less: set Container and Nav-Item to Fill and the tabs to Fill`);
   }
 }
 
@@ -927,12 +1045,14 @@ async function walk(node, instanceRoot, isRoot) {
     if (!inInstance && /^ic(on)?-/i.test(node.name)) { await checkOnWhiteSolid(node); await checkOnSolid(node); }
     if (!inInstance) await checkSolidPairing(node);
     if (!inInstance && footerActionHugs(node)) report("list-box/footer-action-hug", ERROR, node, "the footer Button hugs on a desktop or tablet screen: set its width to Fill (Hug only on mobile)");
-  } else if (!inInstance) {
+  } else if (!inInstance && node.type !== "COMPONENT_SET") {
+    // A component set's own frame (its dashed stroke, padding and corner) is Figma's documentation chrome, not design.
     checkPaints(node);
     checkSpacing(node);
     checkRadius(node);
     checkEffects(node);
     checkStrokeClip(node);
+    checkConcentric(node);
     if (!isRoot) checkAuthoredShape(node);
   }
   if (!("children" in node)) return;
@@ -962,6 +1082,8 @@ for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkSectionGap(root);
 for (const root of roots) await checkNavIcons(root);
+for (const root of roots) await checkFloatingBarFit(root);
+for (const root of roots) await checkStatusInBar(root);
 for (const root of roots) checkRowDrift(root);
 for (const root of roots) await checkControlGap(root);
 

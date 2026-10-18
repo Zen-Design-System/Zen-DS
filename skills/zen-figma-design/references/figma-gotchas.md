@@ -44,6 +44,21 @@ skill covers the general API rules (fonts, pages, auto-layout sizing); these are
   Badge-Counter became inaccessible and its text was renamed). Rebuild small content (titles, counters) fresh instead
   of moving it, and afterwards scan for layers whose `name` or `visible` throws.
 - **Accordion content survives `Expanded` No → Yes**: fill every item's content, even the collapsed ones.
+- **Re-binding a fill to the variable it already has renders black.** On a clone (a new variant made with `clone()`)
+  or an instance, `setBoundVariableForPaint` with the same variable keeps the paint's black fallback, and the layer
+  draws black (a Pane Border variant cloned from Shadow, 2026-10-18). Copy the fills of a node that draws right
+  (`node.fills = source.fills`), and look at a screenshot of every variant after building a theme set.
+- **Glass actions come from the library.** On Liquid-Glass screens (iPhone Duo strip, Liquid Glass bars) every action is
+  `Nav-Action/Liquid-Glass` (icon set 12015:46174, text set 12015:46049; Secondary, the main action Primary) and the
+  bars use their Liquid Glass type; never fake glass with a frame filled Liquid-Glass (user 2026-10-18: "có variant
+  glass sẵn").
+- **Nested rounded corners share one centre.** Inner radius = outer radius − the padding between them; a pill's
+  radius is half its short side, so a 64 × 56 item in a 72-wide vertical capsule draws an oval in a circle. Make such
+  items square on the instances that need it (`maxHeight`/`minHeight` then `resize`), not in the shared library item
+  (audit `radius/concentric`; user 2026-10-18).
+- **Cloned variants lose their slots and property links.** `variant.clone()` turns every SLOT into a FRAME and drops
+  `componentPropertyReferences`. Walk the source and the clone together: put a `clone()` of the source SLOT in place
+  of the frame (it stays a SLOT) and copy each layer's references and `isExposedInstance`.
 
 ## Reading large frames
 

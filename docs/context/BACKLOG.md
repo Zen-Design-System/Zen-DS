@@ -7,6 +7,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P1 · AppShell template rebuild — question for the user (2026-10-18, Figma):** Social's three Chats screens use a
+  hand-made bottom bar (.Social/Chat/Bot-Nav): the library Bottom-Navigation (Tab-Bar, Floating-Glass on the Liquid Glass
+  copy) or keep it; the 14 conversation screens keep the composer at the foot (Bottom=None). Pointer: session-log-2026-10-18.
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast

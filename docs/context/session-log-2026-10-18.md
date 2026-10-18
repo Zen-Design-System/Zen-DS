@@ -122,3 +122,80 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
 - Gathered by "Giám sát" after the session closed (PR zen/fix/appshell-wrapped-sidebar-20261018), with the "Bug"
   session's Studio E2E SP-08 update (`tools/studio/e2e/scenarios/starters.mjs`: `appsButton` → `appsItem`), which must
   land together with the HrShell footer change.
+
+## AppShell patterns in Figma (user: "Tái cấu trúc và xây dựng lại AppShell giống như vầy … Dựng trước bên Figma rồi duyệt xong sẽ qua Studio") — Figma only, waiting for review
+- Source: the user's draft section "Innovatte AppShell" (16243:290639: Pattern/AppShell 16243:290638, Header/AppShell
+  16243:290461) and ◇ Master-Layout · Variants B1–B6 / C1–F12, read node by node (user: "Đọc Figma chứ không chụp assume").
+- Built on ◇ Master-Layout, section "AppShell · Patterns (proposal for review)" 16254:1057: Read me 16266:3283,
+  `.Primitives/AppShell/Placeholder` 16254:1058 (Side-Panel's dashed "Replace Component Here" look), `.Primitives/AppShell/Pane`
+  16254:1099 (Theme Shadow · Flat · Canvas), `Pattern/AppShell/Desktop` 16258:1857 (Layout Sidebar · Top-Bar · List-Detail ·
+  Workspace · Docs · Focus; booleans Sidebar, Side-Panel, Floating-Actions, Leading-Pane, Trailing-Pane, Progress; slot
+  Content), `Pattern/AppShell/Mobile` 16261:136204 (Top Bar · Band · Media × Bottom Tab-Bar · Floating · Actions · None;
+  slots Content, Hero, Backdrop; booleans Top-Navigation, Floating-Actions).
+- Header/AppShell (the user's) gained booleans Top-Header and Main (defaults on, draft unchanged).
+- Audit (harness, 21 roots): 6 errors left, all library-owned (Floating-Glass gradient ×2, Liquid-Overlay status bar
+  Dark ×4); warnings explained (brand chevron colour copied from the draft Sidebar, placeholder "Title", Accent FAB =
+  the floating assistant). Instance test: Layout / Top / Bottom swaps keep Content, nested Pane slots editable.
+- Open: the Read me's Q1–Q6; Studio part (Frame tool → Screen / Frame, device picker, AppShell optional) after approval.
+- Review 1 answers applied (user: Q1 one collapse at a time, Q2 Pane themes like Card without accents, Q3 Band-Sheet yes,
+  Q4 tablet status bar + research iPhone Duo, then "tablet nên chia 2 loại xoay ngang và dọc": portrait = mobile
+  AppShell, landscape = desktop adaptive; Q5/Q6 OK):
+  - Desktop 16258:1857: `Collapse` Header | Sidebar | None (one button shown: header's or the Sidebar's own
+    `Collapse Button#16243:0`); `Status-Bar` boolean (Status-bar/IOS/Tablet) for iPad landscape at 1133 × 744; roots
+    with a Sidebar wrap their row in `Shell`; Docs/Focus columns FILL with maxWidth 720/680. Usage row 16283:9982.
+  - Mobile 16261:136204: `Device` Phone | Tablet (iPad portrait 744 × 1133, Breakpoint Tablet, Status-bar/IOS/Tablet on
+    top, Top-Navigation's own status bar off) × Top Bar | Band | Band-Sheet | Media × Bottom = 32 variants, manual grid.
+  - Pane 16254:1099: Card's Neutral Theme × Surface (Shadow, Flat ×2, Border ×3, Pale, Subtle, On-Container) + Canvas.
+    Solid removed (the user flagged it with a Border variant that rendered black: re-binding a cloned fill to the same
+    variable keeps the black fallback; fixed by copying Flat's fills; rule in skills/zen-figma-design/references/figma-gotchas.md).
+  - Library fix: Status-bar/IOS/Tablet inner Wrapper + Status Bar FILL (the battery was cut off below 1208 wide).
+  - Draft Pattern/AppShell 16243:290638 and its section deleted (0 instances); Header/AppShell moved into 16254:1057.
+    The desktop-style tablet set built earlier the same day was removed (superseded by the orientation split).
+  - Audit (50 variants): 12 errors, all library-owned (Floating-Glass gradient ×4, Liquid-Overlay status bar Dark ×8).
+  - iPhone Duo research (Apple, 9 Sep 2026): inner 1878 × 2670 px, outer 1398 × 2034 px, status cluster in a corner,
+    navigation along the right edge, vertical tab bars under iOS 27.1 SDK — Read me 16280:5328 §5, Q7 (needs new parts).
+- Review 2 (user: Q7 yes, Q8 ok): iPhone Duo built in the AppShell section — Status-bar/IOS/Duo 16287:5822 (Side ·
+  Side-Island · Corner; the clock beside the combined round icon .Primitives/Status-bar/Duo-Status 16294:6171 — battery
+  ring, Wi-Fi, five signal dots; user: "status bar của Duo chưa đúng" → redone from Apple's "circular, flexible system
+  that nestles into the corner"), Side-Strip/Duo 16287:5823 (84pt right strip; tab items made square 64 on the Duo
+  instances only — user: "Bug bo góc trong ngoài … chỉ làm cho Duo"), Pattern/AppShell/Duo 16288:7247 (Inner 951 × 669,
+  Outer 466 × 678, Inner-Portrait 669 × 951; Leading-Pane, Fold). Audit: 0 errors after binding the battery radii.
+  Studio work starts in worktree ../Zen-DS-appshell (branch zen/feat/appshell-frames-20261018).
+- Duo checked against Apple's newsroom video and app images (user: "Vẫn chưa giống lắm", "Kiểm tra lại coi có đúng không?"):
+  status = camera (outer) above the clock above one round icon (arc over the top = battery, dots along the bottom =
+  cellular, Wi-Fi inside); strip = status, Back (off on root screens), grouped actions in one Liquid-Glass capsule,
+  Primary, then tabs capsule + Search at the bottom; inner portrait keeps horizontal bars 16 below the edge with the
+  corner status in the bar's row (no Apple image of that posture; simulator measure). New audit rule
+  `radius/concentric` (harness + audit-rules.md + figma-gotchas.md, ai-kit:check 147 ✓).
+- Figma Top-Navigation/Mobile (user: "action icon của mobile có thể mở thêm 2-3 action. Hiện tại chỉ cho mở 1 trailing"):
+  `.Primitives/Mobile/Top-Navigation/Trailling` 12013:39571 gained booleans Action 2 / Action 3 (off; clones of the slot's
+  action left of the slot, root gap = the slot's Action-Button-Gap / Action-Icon-Gap — a boolean cannot reach slot
+  sublayers); in all 24 Top-Navigation/Mobile variants Top-Trailing is exposed, hugs its actions, and its wrapper lost
+  maxWidth 88 (it pushed actions 2–3 past the edge). Checked at 390: 1/2/3 actions fit, the title shrinks (238 → 134).
+  Duo title row: Main-Container padding-top Spacing/Padding/Small, inner status padding-top 2XLarge (user: "Heading hơi sát trên").
+- Review 3 (Figma, user corrections the same afternoon):
+  - "Trailing bên trong action button, bạn nhầm trailing slot": Action 2 / Action 3 removed from Trailling 12013:39571
+    (Top-Trailing stays exposed and hugging). Nav-Action/Icon-Main 6085:33688 and Liquid-Glass 12015:46174 gained
+    Trailing-Icon-2 (+ -Src): one capsule of up to three icons (§17's three trailing places); Liquid-Glass gained
+    Direction=Horizontal · Vertical (20 new variants, "dọc dành cho Duo"); the Duo strip's two actions are one vertical
+    capsule (Trailing-Icon on).
+  - Duo status overlay cases: Status-bar/IOS/Duo × Style=Default · Black Overlay · White Overlay (Content/On-Black- and
+    On-White-Overlay), Duo-Status is a set 16313:6362 with the same axis.
+  - iPad status bar detached from the top bar: on all 16 tablet variants the separate Status-Bar is gone, Top-Navigation's
+    own Status-bar swapped to Status-bar/IOS/Tablet (Fill). Its battery border/cap were raw black (stayed black in Dark):
+    bound to Content/Neutral/Strongest. New audit rule `navigation/status-in-bar`.
+  - Floating bottom bar fit (cases 16260:305754, "dành chung mobile và tablet"; values "min 64 max 88" for every tab):
+    item sets 9017:25813 / 9018:43881 and both navs at 64/88; patterns: phone Fill, tablet + Duo Hug with Fixed 88 tabs
+    (Space between with the action). New audit rule `navigation/floating-fit`; code BottomNavigation CSS follows it
+    (worktree branch). The user's case "3 tabs + action" was built at the old selected max 100 and now reads Hug.
+  - "Kích thước 2 pane hai bên không đều": Workspace (264 / 300) and Docs (264 / 220) panes bound to Sidebar/Default-Width.
+  - Action-Bar/Mobile 16326:6489 (Type Default | Glass with the Floating-Glass fade + progressive blur; Home-Indicator
+    boolean; Actions exposed) replaces the hand-built bar in the 8 Bottom=Actions variants.
+  - QA: harness fixed where it misread (icons counted in radius/concentric; a component set read as one screen; set
+    chrome audited); Top-Navigation/Mobile set re-gridded (its third column was cut off by the docs frame). Final run over
+    17 sets: every remaining finding is library-owned by design (Focus-Ring 6px outside, overlay status Dark, Liquid /
+    Floating gradients, blur and glass effects without a style, iOS status bars without text styles). ai-kit:check 151 ✓.
+  - Next (user): rebuild every ◆ template page except Logistic on the new AppShell, Figma first. Inventory: HR-Platform
+    22 desktop (one old Patterns/Pages/Density-Medium instance each), Performance 21 desktop (same), Ecommerce 19 desktop
+    storefront pages (own marketing header, up to 8604 high), Social 17 phone (Top-Navigation only), Finance 10 phone
+    (Top-Navigation + Tab-Bar / Floating-Glass).
