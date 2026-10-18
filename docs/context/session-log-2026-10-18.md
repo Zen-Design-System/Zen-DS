@@ -199,3 +199,35 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
     22 desktop (one old Patterns/Pages/Density-Medium instance each), Performance 21 desktop (same), Ecommerce 19 desktop
     storefront pages (own marketing header, up to 8604 high), Social 17 phone (Top-Navigation only), Finance 10 phone
     (Top-Navigation + Tab-Bar / Floating-Glass).
+- Template rebuild on the new AppShell (user: archive the old screens, edit Performance, leave Ecommerce and Logistic):
+  each original frame stays in place (prototype links and overlays kept) and now holds a Pattern/AppShell instance; a
+  clone of the original sits in the page's "Archive · before AppShell (2026-10-18)" section.
+  - HR-Platform 22 (Layout=Sidebar, Collapse=Header; HR sidebar swapped in with its slots, one collapse button),
+    Performance 21 (same; popovers, modals and the side panel stay over it), Finance 10 (Mobile Phone Bar × Tab-Bar /
+    Floating; Top/Bottom-Navigation swapped to the originals' variants, image fills copied, Body side/top padding 0 and
+    Content gap 0 because those blocks carry their own margins). Checked against the archive: texts of header, sidebar,
+    content and overlays, nav variants, heights — all clean.
+  - Header/AppShell gained a Sections slot (empty = 0 high) for the old header's extra rows (Tasks tabs + filters,
+    Performance Control-Bar), as code AppShell sections; "cho phép tắt hàng main của header": its Main boolean (128 → 72)
+    is on every desktop layout's exposed Header.
+  - clone() traps met: a FILL card in a HUG row collapses to 1px (pin it to the original height); overrides deep inside
+    a nested instance in a slot (a badge count) and image fills of swapped bars are not carried (copy them).
+  - Pre-existing: HR Tasks content runs 46px below its 982 screen (54px in the original).
+  - Social waits on the user (its Chats screens' hand-made bottom bar).
+- Empty State (user: "vẫn chưa dùng rule các empty state … chưa update size của illustration trong Figma", then
+  "120 thì bé quá … 200"): Figma Empty-State 16339:135 and its illustration 16339:69 have Size=Medium (240, icon
+  Popular/2XLarge) | Small (200, icon Popular/XLarge; 1px / 2px strokes kept). Small applied where it fills a region: the
+  16 mobile Band-Sheet / Media sheets, HR's leave list under its summary cards, Performance's tables and chart cards.
+  The Performance "Search, no results" table hid the illustration (code rule keep-illustration); with it back the screen
+  is 1556 high. New audit rule `empty-state/size-by-container` (follow-up to PR #131). Code EmptyState `sm` is still 120:
+  change it to 200 with a Popular/XLarge icon.
+- Status bars: Status-bar/IOS/Mobile 16327:6750 and Tablet 16327:7921 have Style Default · Black Overlay · White Overlay
+  (user Q9 yes); the overlay Top-Navigations and the tablet Media patterns use Black Overlay instead of a Dark mode.
+- Social rebuilt (user: (a) "Làm lại" the Chats bottom bar, (b) conversations OK): 17 screens on Pattern/AppShell/Mobile in
+  place, clones in the page's Archive. The three Chats screens' hand-made `.Social/.Business/Chat/Bot-Nav` (a wrapper
+  around Bottom-Navigation/Mobile/Default) became the library bar: Tab-Bar with the same five items (icons, the Profile
+  avatar, the selected tab), Floating-Glass with four tabs and no action on the Liquid Glass copy (88 each, Fill). The 14
+  conversations use Bottom=None with the pattern's home indicator off: the composer (Chat-Control, its own indicator) stays
+  pinned at the foot and the message bubbles' overlay stays on top; the instance has no fill so the frames' doodle
+  background shows. Checked against the archive: all texts and nav variants match. The Chats list runs under the tab
+  bar as in the originals (a scrolling list).

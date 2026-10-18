@@ -85,6 +85,8 @@
 //                                     the capsule fills while tabs fit at 88 or less, then hugs with Fixed 88 tabs
 //   navigation/status-in-bar error    a status bar placed above a Top-Navigation whose own Status-bar is hidden (it
 //                                     sits on a band of its own): swap the bar's Status-bar to the device's and show it
+//   empty-state/size-by-container  error/warning  an Empty State whose Size does not fit where it sits: Medium (240)
+//                                     fills an empty page, Small (200) a region (card, table, pane, panel, sheet, dialog)
 //   spacing/section-gap      error    a phone screen's Body (the frame that stacks its sections) not spaced by
 //                                     Component Size Layout-Mobile/Section-Gap (Compact 24, Comfortable 32)
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
@@ -756,6 +758,31 @@ async function checkNavIcons(root) {
 // draws its own Status-bar, so its background (a gradient, a colour band) runs under the clock. A separate status bar
 // above a Top-Navigation whose own one is hidden sits on a band of its own: swap the bar's Status-bar to the device's
 // (Status-bar/IOS/Tablet on an iPad) and remove the separate one.
+// Empty State size from where it sits (user 2026-10-18: "vẫn chưa dùng rule các empty state"; code EmptyState size):
+// Medium (240 illustration) fills the page's main content; Small (200) fills one region of a page that still shows
+// other content: a Card or widget, a table or list, a pane, a side panel, sheet, popover or dialog, or a block beside
+// other blocks. Nodes inside instances are new wrappers on each read: compare ids, never objects.
+const EMPTY_REGION = /Card|Table|List-Box|Pane|Panel|Sheet|Dialog|Modal|Popover|Sidebar|Side-Bar|Widget|Tab-?Panel|Plot/i;
+async function checkEmptyStateSize(root) {
+  for (const screen of screensOf(root)) {
+    for (const node of screen.findAll ? screen.findAll((n) => n.type === "INSTANCE" && setOf(n) === "Empty-State") : []) {
+      if (!shownIn(node, screen)) continue;
+      const size = node.componentProperties.Size && node.componentProperties.Size.value;
+      if (!size) continue;
+      const chain = [];
+      for (let p = node.parent; p && p.id !== screen.id; p = p.parent) chain.push(p);
+      const content = chain.find((p) => p.name === "Content" || p.name === "Body");
+      const below = content ? chain.slice(0, chain.indexOf(content)) : chain;
+      const region = below.some((p) => EMPTY_REGION.test(p.name) || (p.type === "INSTANCE" && EMPTY_REGION.test(setOf(p)))) || chain.some((p) => p.name === "Sheet");
+      const block = below[below.length - 1] ?? node;
+      const shared = Boolean(content) && content.children.some((c) => c.id !== block.id && c.visible !== false);
+      if (size === "Medium" && region) report("empty-state/size-by-container", ERROR, node, `a Medium Empty State inside ${below.find((p) => EMPTY_REGION.test(p.name))?.name ?? "a sheet"}: a region of the page takes Size=Small (200)`);
+      else if (size === "Medium" && shared) report("empty-state/size-by-container", WARNING, node, `a Medium Empty State beside other content in ${content.name}: it fills one region, so Size=Small (200); Medium is for an empty page`);
+      else if (size === "Small" && !region && !shared && content) report("empty-state/size-by-container", WARNING, node, `a Small Empty State fills ${content.name} alone: an empty page takes Size=Medium (240)`);
+    }
+  }
+}
+
 async function checkStatusInBar(root) {
   for (const nav of root.findAll ? root.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(setOf(node))) : []) {
     if (nav.visible === false) continue;
@@ -1084,6 +1111,7 @@ for (const root of roots) await checkSectionGap(root);
 for (const root of roots) await checkNavIcons(root);
 for (const root of roots) await checkFloatingBarFit(root);
 for (const root of roots) await checkStatusInBar(root);
+for (const root of roots) await checkEmptyStateSize(root);
 for (const root of roots) checkRowDrift(root);
 for (const root of roots) await checkControlGap(root);
 
