@@ -10,6 +10,9 @@
 //     copy    true: a copy goes there and the element stays (⌥-drag, ⌘V in the same file); `inserted`, else `moved`
 //     replace with copy: the copy takes the place of the child at that loc, which goes (⇧⌘R, paste to replace)
 //
+//   op "group" { with?, props?, box, kids }   on one of the layers: they go into one floating Box where the frontmost
+//     was, each keeping its place on the canvas (Frame selection and ⌘G on layers of a frame without auto layout)
+//
 //   op "replaceElement" { code, state? }   on the element it replaces (Swap instance: a prop's or slot's component, a layer)
 //   op "pasteCode" { code, before?, after?, replace?, at? }   on the element the code goes into (⌘V from another file or
 //     after a cut): `code` is one JSX element; names it reads must exist there, or be Zen components (imported) or
@@ -30,7 +33,7 @@
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
 import { parseExpression } from "@babel/parser";
 import { applyEdits, applyOps, findElement, jsxName, parseLoc, parseSource } from "./jsx-source.mjs";
-import { indentAt, pathTo, piece } from "./source-helpers.mjs";
+import { UNIT, indentAt, pathTo, piece } from "./source-helpers.mjs";
 
 /** Self-closing elements a layer can be dropped into (they open: `<Stack />` → `<Stack>…</Stack>`). */
 // A builder page's Screen opens too (Figma: an empty frame takes the layers drawn or dropped into it).
@@ -689,6 +692,63 @@ function manyMoveToPlan(ctx, outer, op, h) {
 }
 
 const countLines = (value) => (value.match(/\r\n|\n|\r/g) ?? []).length;
+
+/** An EditValue ({ kind, value }) as a JSX attribute. */
+function attributeOf(name, value) {
+  if (value?.kind === "boolean") return value.value ? name : `${name}={false}`;
+  if (value?.kind === "number" && Number.isFinite(value.value)) return `${name}={${value.value}}`;
+  if (value?.kind === "string") return /["\\{}<>]/.test(value.value) ? `${name}={${JSON.stringify(value.value)}}` : `${name}="${value.value}"`;
+  return null;
+}
+
+/**
+ * The plan for op group { with?, tag?, props?, box, kids } on one of the layers (Figma's Frame selection and ⌘G on
+ * layers floating in a frame without auto layout; plan F3, decision 3): the element and the `with` elements, children
+ * of one JSX element, go into one `<Box position="absolute" …box>` (`props` written on it) where the frontmost of them
+ * was, and keep their place on the canvas: each one's insets become `kids[loc]` (px in the new Box; pinned left / top,
+ * as a move writes them). Their code and ids go along as written. Answer: inserted { loc } (the Box).
+ */
+export function groupPlan(ctx, nodePath, op, h) {
+  const { ast, text, eol } = ctx;
+  const tag = op.tag ?? "Box";
+  if (tag !== "Box") h.refuse("group puts the layers in a Box");
+  const box = op.box;
+  if (!box || !["x", "y", "width", "height"].every((key) => Number.isFinite(box[key]))) h.refuse("group needs `box`: { x, y, width, height } in px");
+  if (!op.kids || typeof op.kids !== "object") h.refuse("group needs `kids`: each layer's { x, y } in the new Box, by its loc");
+  const locs = [locOfElement(ctx.element), ...(Array.isArray(op.with) ? op.with : [])];
+  const elements = [...new Set(locs)].map((loc) => {
+    const element = typeof loc === "string" && parseLoc(loc) ? findElement(ast, parseLoc(loc)) : null;
+    if (!element) h.refuse(`No element starts at ${loc}; select the layers again`, "stale");
+    const kid = op.kids[loc];
+    if (!kid || !Number.isFinite(kid.x) || !Number.isFinite(kid.y)) h.refuse(`group has no place for the layer at ${loc}`);
+    return { element, kid };
+  }).sort((a, b) => a.element.start - b.element.start);
+  const parentPath = nodePath.slice(0, -1);
+  const parent = parentPath.at(-1);
+  if (parent?.type !== "JSXElement") h.refuse("Only layers of a frame are grouped (this one sits in a prop, a condition or a list)");
+  if (elements.some(({ element }) => !parent.children.includes(element))) h.refuse("The layers must sit side by side in one frame to be grouped");
+  // The Box takes the frontmost layer's place (the last in the code); each layer's code goes in, its own indentation
+  // taken off and its insets the ones it keeps its place by.
+  const last = elements.at(-1).element;
+  const base = indentAt(text, last.start);
+  const blocks = elements.map(({ element, kid }) => floatAt(h.reindent(piece(text, element), "", eol), kid).split("\n").map((line) => (line.trim() ? `${base}${UNIT}${line}` : "")).join(eol));
+  const extra = Object.entries(op.props ?? {}).map(([name, value]) => attributeOf(name, value)).filter(Boolean);
+  const attrs = [`position="absolute"`, `insetLeft={${Math.round(box.x)}}`, `insetTop={${Math.round(box.y)}}`, `width={${Math.round(box.width)}}`, `height={${Math.round(box.height)}}`, ...extra].join(" ");
+  const edit = { start: last.start, end: last.end, text: `<${tag} ${attrs}>${eol}${blocks.join(eol)}${eol}${base}</${tag}>` };
+  const removed = elements.slice(0, -1).flatMap(({ element }) => {
+    const path = pathTo(ast.program, element);
+    return h.removal({ ...ctx, element }, path, path.length - 1, `<${jsxName(element.openingElement.name)}>`).edits;
+  });
+  for (const gone of removed) {
+    if (gone.end > edit.start) h.refuse("The layers cannot be grouped there");
+  }
+  return {
+    edits: [...removed, edit],
+    focus: { edit, within: 0, name: tag },
+    answer: "inserted",
+    snippet: () => ({ reason: "grouping layers is not copied into the example snippet; update it by hand" }),
+  };
+}
 
 /**
  * Arrow keys on several layers of one parent (Figma's reorder in auto layout): each selected child takes one place

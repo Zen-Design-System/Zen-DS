@@ -341,6 +341,30 @@ test("pasteCode at: the layers land floating at the point", () => {
   assert.match(paste(inner, { code: "<Text>x</Text>", at: { x: "a" } }).error, /`at`/);
 });
 
+test("group (F3 Frame selection / ⌘G): floating layers into one floating Box, each keeping its place", () => {
+  const code = ['import { Box, Shape } from "../../../components/Layout";', "export function Demo() {", "  return (", "    <Box width={358} height={220}>", '      <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />', '      <Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />', '      <Shape type="star" position="absolute" constraintX="right" insetRight={10} insetTop={10} width={40} height={40} />', "    </Box>", "  );", "}", ""].join("\n");
+  const rect = locOf(code, '<Shape type="rectangle"');
+  const ellipse = locOf(code, '<Shape type="ellipse"');
+  const result = applySlotOp(code, rect, "Shape", { op: "group", with: [ellipse], box: { x: 20, y: 20, width: 180, height: 80 }, kids: { [rect]: { x: 0, y: 0 }, [ellipse]: { x: 120, y: 20 } }, props: { name: { kind: "string", value: "Group 1" } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!result.error, result.error);
+  assert.equal(result.code.split("\n").slice(3, 9).join("\n"), [
+    "    <Box width={358} height={220}>",
+    '      <Box position="absolute" insetLeft={20} insetTop={20} width={180} height={80} name="Group 1">',
+    '        <Shape position="absolute" insetLeft={0} insetTop={0} type="rectangle" width={80} height={60} />',
+    '        <Shape position="absolute" insetLeft={120} insetTop={20} type="ellipse" width={60} height={60} />',
+    "      </Box>",
+    '      <Shape type="star" position="absolute" constraintX="right" insetRight={10} insetTop={10} width={40} height={40} />',
+  ].join("\n"), "where the frontmost of them was: the unselected Star stays in front");
+  assert.equal(result.inserted.loc, locOf(result.code, '<Box position="absolute"'));
+  // The last layers of their frame (nothing after them): the Box stands where the Star was.
+  const star = locOf(code, '<Shape type="star"');
+  const tail = applySlotOp(code, ellipse, "Shape", { op: "group", with: [star], box: { x: 140, y: 10, width: 208, height: 90 }, kids: { [ellipse]: { x: 0, y: 30 }, [star]: { x: 168, y: 0 } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!tail.error, tail.error);
+  assert.match(tail.code, /insetTop=\{20\} width=\{80\} height=\{60\} \/>\n {6}<Box position="absolute" insetLeft=\{140\} insetTop=\{10\} width=\{208\} height=\{90\}>\n {8}<Shape position="absolute" insetLeft=\{0\} insetTop=\{30\} type="ellipse"[^\n]*\n {8}<Shape position="absolute" insetLeft=\{168\} insetTop=\{0\} type="star" width=\{40\} height=\{40\} \/>\n {6}<\/Box>\n {4}<\/Box>/);
+  const missing = applySlotOp(code, rect, "Shape", { op: "group", with: [ellipse], box: { x: 0, y: 0, width: 1, height: 1 }, kids: { [rect]: { x: 0, y: 0 } } }, { file: FILE, hash: sha1(code) });
+  assert.match(missing.error, /no place/);
+});
+
 const many = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "many", ...op }, { file: FILE, hash: sha1(code) });
 
 test("many remove: several layers in one edit, a nested one goes with its parent", () => {

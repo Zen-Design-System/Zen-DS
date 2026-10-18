@@ -254,6 +254,7 @@ function translateOp(op, map) {
   const one = (loc) => (typeof loc === "string" ? map(loc) ?? loc : loc);
   switch (op?.op) {
     case "wrap": return op.with ? { ...op, with: op.with.map(one) } : op;
+    case "group": return { ...op, ...(op.with ? { with: op.with.map(one) } : {}), ...(op.kids ? { kids: Object.fromEntries(Object.entries(op.kids).map(([loc, kid]) => [one(loc), kid])) } : {}) };
     case "moveTo":
     case "pasteCode":
       return { ...op, ...(op.parent ? { parent: one(op.parent) } : {}), ...(op.before ? { before: one(op.before) } : {}), ...(op.after ? { after: one(op.after) } : {}), ...(op.replace ? { replace: one(op.replace) } : {}) };
