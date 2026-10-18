@@ -27,8 +27,11 @@ export function floatingGroup(layers: ExtraLayer[]): FloatingItem[] | null {
   return items.every((item) => item.block === items[0].block) ? items : null;
 }
 
-/** Puts floating `items` in one floating Box with `props` (one edit) and selects it; `label` names the undo step. */
-export async function boxFloating(items: FloatingItem[], props: Record<string, EditValue>, label: string, done: string): Promise<boolean> {
+/**
+ * Puts floating `items` in one floating Box with `props` (one edit) and selects it; `label` names the undo step.
+ * `component`: the Box is a new main component's layer (Create component on several layers, a page you made).
+ */
+export async function boxFloating(items: FloatingItem[], props: Record<string, EditValue>, label: string, done: string, component?: { id: string; name: string }): Promise<boolean> {
   const ordered = [...items].sort((a, b) => sourceOrder(a.target, b.target));
   const left = Math.min(...ordered.map((item) => item.offset.left));
   const top = Math.min(...ordered.map((item) => item.offset.top));
@@ -50,6 +53,7 @@ export async function boxFloating(items: FloatingItem[], props: Record<string, E
     props,
     box: { x: Math.round(left), y: Math.round(top), width: Math.round(right - left), height: Math.round(bottom - top) },
     kids,
+    ...(component ? { component } : {}),
   } as unknown as EditOp;
   const before = renderedNow(canvasApi.getWorldElement());
   const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [op], hash: element.hash }, label);

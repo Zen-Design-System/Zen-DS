@@ -10,8 +10,9 @@
 //     copy    true: a copy goes there and the element stays (⌥-drag, ⌘V in the same file); `inserted`, else `moved`
 //     replace with copy: the copy takes the place of the child at that loc, which goes (⇧⌘R, paste to replace)
 //
-//   op "group" { with?, props?, box, kids }   on one of the layers: they go into one floating Box where the frontmost
-//     was, each keeping its place on the canvas (Frame selection and ⌘G on layers of a frame without auto layout)
+//   op "group" { with?, props?, box, kids, component? }   on one of the layers: they go into one floating Box where the
+//     frontmost was, each keeping its place on the canvas (Frame selection and ⌘G on layers of a frame without auto
+//     layout); `component` { id, name }: that Box is a new main component's layer (Create component, a page you made)
 //
 //   op "ungroup" { kids? }   on a Box / Stack / Grid: its layers take its place, keeping theirs (⇧⌘G)
 //
@@ -553,7 +554,7 @@ export function replacePlan(ctx, nodePath, op, h) {
 export function manyPlan(ctx, nodePath, op, h) {
   const { ast, text } = ctx;
   const action = op.action;
-  if (!["remove", "duplicate", "setProps", "move", "moveTo"].includes(action)) h.refuse('many needs `action`: "remove", "duplicate", "setProps", "move" or "moveTo"');
+  if (!["remove", "duplicate", "setProps", "move", "moveTo", "components"].includes(action)) h.refuse('many needs `action`: "remove", "duplicate", "setProps", "move", "moveTo" or "components"');
   if (!Array.isArray(op.locs) || !op.locs.length || op.locs.length > 200 || op.locs.some((loc) => typeof loc !== "string" || !parseLoc(loc))) h.refuse("many needs `locs`: the \"<line>:<column>\" of each layer (200 at most)");
   const elements = [...new Set(op.locs)].map((loc) => {
     const element = findElement(ast, parseLoc(loc));
@@ -578,6 +579,7 @@ export function manyPlan(ctx, nodePath, op, h) {
     }
     return { edits: [{ start: 0, end: text.length, text: next }], focus: null, answer: "updated", snippet: () => ({ reason: "a change on several layers is not copied into the example snippet; update it by hand" }) };
   }
+  if (action === "components") return manyComponentsPlan(ctx, elements, op, h);
   if (action === "move") return manyMovePlan(ctx, outer, op.to, h);
   if (action === "moveTo") return manyMoveToPlan(ctx, outer, op, h);
   const plans = outer.map((element) => {
@@ -601,6 +603,34 @@ export function manyPlan(ctx, nodePath, op, h) {
 
 /** "<line>:<column>" of an element's opening tag. */
 const locOfElement = (element) => `${element.openingElement.loc.start.line}:${element.openingElement.loc.start.column}`;
+
+/**
+ * Figma's Create multiple components (a page you made; plan F3): each element at `locs` becomes a main component where
+ * it is, `<Component id name>` around it (`names[loc]` = { id, name }), in one edit. The import comes first, then the
+ * wraps bottom-up, so each element's place is known when it is wrapped. Answer: updated.
+ */
+function manyComponentsPlan(ctx, elements, op, h) {
+  const { ast, text, eol } = ctx;
+  if (!h.LOCAL_PAGE.test(ctx.file ?? "")) h.refuse("Components are made on a page you made");
+  const names = op.names && typeof op.names === "object" ? op.names : null;
+  const named = elements.map((element) => {
+    const entry = names?.[op.locs.find((loc) => findElement(ast, parseLoc(loc)) === element)];
+    if (typeof entry?.id !== "string" || typeof entry?.name !== "string") h.refuse("components needs `names`: each layer's { id, name } by its loc");
+    return { element, entry };
+  });
+  if (named.some(({ element }) => named.some((other) => other.element !== element && other.element.start <= element.start && element.end <= other.element.end))) h.refuse("One of the layers is inside another: make them components one at a time");
+  const imported = applyEdits(text, h.builderImportEdits(ast, text, eol, ["Component"]));
+  const shift = countLines(imported) - countLines(text);
+  let next = imported;
+  for (const { element, entry } of [...named].sort((a, b) => b.element.start - a.element.start)) {
+    const loc = `${element.openingElement.loc.start.line + shift}:${element.openingElement.loc.start.column}`;
+    const props = { id: { kind: "string", value: entry.id }, name: { kind: "string", value: entry.name } };
+    const result = applyOps(next, loc, jsxName(element.openingElement.name), [{ op: "wrap", tag: "Component", props }], { snippets: false, file: ctx.file });
+    if (result.error) h.refuse(`<${jsxName(element.openingElement.name)}> at ${loc}: ${result.error}`);
+    next = result.code;
+  }
+  return { edits: [{ start: 0, end: text.length, text: next }], focus: null, answer: "updated", snippet: () => ({ reason: "making several components is not copied into the example snippet; update it by hand" }) };
+}
 
 /**
  * op many moveTo { parent, before?, after?, copy? } (a drag of several layers, Figma: they land together): the same rules
@@ -734,6 +764,7 @@ export function ungroupPlan(ctx, nodePath, op, h) {
     return { kid, name: /^<([\w.]+)/.exec(code)[1], code: code.split("\n").map((line, index) => (!line.trim() ? "" : index === 0 ? line : `${base}${line}`)).join(eol) };
   });
   const edit = { start: element.start, end: element.end, text: blocks.map((block) => block.code).join(`${eol}${base}`) };
+  const needed = blocks.some((block) => block.name === "Box") ? ["Box"] : [];
   let within = 0;
   const focuses = blocks.map((block) => {
     const focus = { edit, within, name: block.name, from: locOfElement(block.kid) };
@@ -741,7 +772,7 @@ export function ungroupPlan(ctx, nodePath, op, h) {
     return focus;
   });
   return {
-    edits: [edit],
+    edits: [edit, ...tidyImports(ctx, h, [edit], needed)],
     focus: focuses[0],
     focuses,
     answer: "moved",
@@ -790,7 +821,17 @@ export function groupPlan(ctx, nodePath, op, h) {
   const blocks = elements.map(({ element, kid }) => floatAt(h.reindent(piece(text, element), "", eol), kid).split("\n").map((line) => (line.trim() ? `${base}${UNIT}${line}` : "")).join(eol));
   const extra = Object.entries(op.props ?? {}).map(([name, value]) => attributeOf(name, value)).filter(Boolean);
   const attrs = [`position="absolute"`, `insetLeft={${Math.round(box.x)}}`, `insetTop={${Math.round(box.y)}}`, `width={${Math.round(box.width)}}`, `height={${Math.round(box.height)}}`, ...extra].join(" ");
-  const edit = { start: last.start, end: last.end, text: `<${tag} ${attrs}>${eol}${blocks.join(eol)}${eol}${base}</${tag}>` };
+  let boxText = `<${tag} ${attrs}>${eol}${blocks.join(eol)}${eol}${base}</${tag}>`;
+  // Create component on several layers (a page you made): the Box is the main component's one layer.
+  const component = op.component;
+  if (component !== undefined && !(h.LOCAL_PAGE.test(ctx.file ?? "") && typeof component?.id === "string" && typeof component?.name === "string")) h.refuse("group `component` needs { id, name }, on a page you made");
+  let within = 0;
+  if (component) {
+    const open = `<Component ${attributeOf("id", { kind: "string", value: component.id })} ${attributeOf("name", { kind: "string", value: component.name })}>`;
+    boxText = `${open}${eol}${base}${UNIT}${boxText.split(eol).map((line, index) => (index === 0 || !line.trim() ? line : `${UNIT}${line}`)).join(eol)}${eol}${base}</Component>`;
+    within = open.length + eol.length + base.length + UNIT.length;
+  }
+  const edit = { start: last.start, end: last.end, text: boxText };
   const removed = elements.slice(0, -1).flatMap(({ element }) => {
     const path = pathTo(ast.program, element);
     return h.removal({ ...ctx, element }, path, path.length - 1, `<${jsxName(element.openingElement.name)}>`).edits;
@@ -798,9 +839,12 @@ export function groupPlan(ctx, nodePath, op, h) {
   for (const gone of removed) {
     if (gone.end > edit.start) h.refuse("The layers cannot be grouped there");
   }
+  const edits = [...removed, edit];
+  edits.push(...tidyImports(ctx, h, edits, [tag]));
+  if (component) edits.push(...h.builderImportEdits(ctx.ast, ctx.text, eol, ["Component"]));
   return {
-    edits: [...removed, edit],
-    focus: { edit, within: 0, name: tag },
+    edits,
+    focus: { edit, within, name: tag },
     answer: "inserted",
     snippet: () => ({ reason: "grouping layers is not copied into the example snippet; update it by hand" }),
   };

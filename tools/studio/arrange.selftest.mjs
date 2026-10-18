@@ -385,6 +385,23 @@ test("ungroup (F3 ⇧⌘G): the layers take the group's place, floating where th
   assert.match(applySlotOp(code, group, "Box", { op: "ungroup", kids: { [rect]: { x: 1, y: 1 } } }, { file: FILE, hash: sha1(code) }).error, /every layer/);
 });
 
+test("components (F3, a page you made): Create component of several floating layers, Create multiple components", () => {
+  const PAGE = "local:demo.zen.tsx";
+  const code = ['import { Board, Screen } from "@zen-ds/react/builder";', 'import { Box, Shape } from "@zen-ds/react";', "", "export default function Page() {", "  return (", "    <Board>", '      <Screen id="screen-1" title="One" device="phone">', "        <Box width={358} height={220}>", '          <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />', '          <Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />', "        </Box>", "      </Screen>", "    </Board>", "  );", "}", ""].join("\n");
+  const rect = locOf(code, '<Shape type="rectangle"');
+  const ellipse = locOf(code, '<Shape type="ellipse"');
+  const one = applySlotOp(code, rect, "Shape", { op: "group", with: [ellipse], box: { x: 20, y: 20, width: 180, height: 80 }, kids: { [rect]: { x: 0, y: 0 }, [ellipse]: { x: 120, y: 20 } }, component: { id: "shapes", name: "Shapes" } }, { file: PAGE, hash: sha1(code) });
+  assert.ok(!one.error, one.error);
+  assert.match(one.code, /^import \{ Board, Component, Screen \} from "@zen-ds\/react\/builder";/);
+  assert.match(one.code, /<Box width=\{358\} height=\{220\}>\n {10}<Component id="shapes" name="Shapes">\n {12}<Box position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{180\} height=\{80\}>\n {14}<Shape position="absolute" insetLeft=\{0\}[^\n]*\n {14}<Shape[^\n]*\n {12}<\/Box>\n {10}<\/Component>\n {8}<\/Box>/);
+  assert.equal(one.inserted.loc, locOf(one.code, '<Box position="absolute"'));
+  const each = applySlotOp(code, rect, "Shape", { op: "many", action: "components", locs: [rect, ellipse], names: { [rect]: { id: "rectangle", name: "Rectangle" }, [ellipse]: { id: "ellipse", name: "Ellipse" } } }, { file: PAGE, hash: sha1(code) });
+  assert.ok(!each.error, each.error);
+  assert.match(each.code, /<Component id="rectangle" name="Rectangle">\n {12}<Shape type="rectangle"[^\n]*\n {10}<\/Component>\n {10}<Component id="ellipse" name="Ellipse">\n {12}<Shape type="ellipse"[^\n]*\n {10}<\/Component>/);
+  assert.equal(each.code.split('"@zen-ds/react/builder"').length, 2, "one builder import");
+  assert.match(applySlotOp(code, rect, "Shape", { op: "many", action: "components", locs: [rect, ellipse], names: { [rect]: { id: "r", name: "R" } } }, { file: PAGE, hash: sha1(code) }).error, /names/);
+});
+
 const many = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "many", ...op }, { file: FILE, hash: sha1(code) });
 
 test("many remove: several layers in one edit, a nested one goes with its parent", () => {

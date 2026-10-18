@@ -3,12 +3,14 @@ import { loadEngine, zenComponents } from "../builder/engine";
 import { canvasApi } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { displayName } from "../select/layerMeta";
-import { multiSelection, selectLayers } from "../select/multiSelection";
+import { multiSelection, selectedLayers, selectLayers, type ExtraLayer } from "../select/multiSelection";
+import { wrapSelection } from "../select/wrapSelection";
 import { findBySrc, selectHit } from "../select/picker";
 import { expectRender, renderedNow } from "../select/remap";
 import { canStructurallyEdit } from "../slots/actions";
 import { flushStudioStore, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
+import { boxFloating, floatingGroup } from "./groupLayers";
 
 /*
  * Figma's components on a page you made (research docs/research/studio-figma-native-parity-2026-10-17.md §9):
@@ -69,6 +71,28 @@ function selectAt(file: string, loc: string, from: NodeSelection, name: string) 
 
 const slug = (text: string) => text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "component";
 
+/** The layer's name as Layers shows it (a Text by its words, an instance by its component…). */
+function layerName(layer: { name: string; src: string; instance: number }) {
+  const world = canvasApi.getWorldElement();
+  const hit = world ? findBySrc(world, layer.src)[layer.instance] : undefined;
+  return displayName(layer.name, hit?.props, layer.src);
+}
+
+/** A component name and id for each base name: Figma's, numbered when the page (or one before it) has it. */
+function freshNames(mains: MainRef[], bases: string[]): Array<{ name: string; id: string }> {
+  const names = new Set(mains.map((main) => main.name));
+  const ids = new Set(mains.map((main) => main.id));
+  return bases.map((base) => {
+    let name = base;
+    for (let n = 2; names.has(name); n += 1) name = `${base} ${n}`;
+    let id = slug(name);
+    for (let n = 2; ids.has(id); n += 1) id = `${slug(name)}-${n}`;
+    names.add(name);
+    ids.add(id);
+    return { name, id };
+  });
+}
+
 /** ⌥⌘K: the selected layer becomes a main component where it is (Figma: named after the layer, numbered when taken). */
 export async function createComponent(selection: NodeSelection): Promise<boolean> {
   const check = canStructurallyEdit(selection);
@@ -81,14 +105,7 @@ export async function createComponent(selection: NodeSelection): Promise<boolean
   const element = await studioApi.element(at.file, at.loc);
   if (!element) return fail(`${selection.name} is no longer there — select it again`);
   const world = canvasApi.getWorldElement();
-  const hit = world ? findBySrc(world, selection.src)[selection.instance] : undefined;
-  const base = displayName(selection.name, hit?.props, selection.src);
-  const names = new Set(mains.map((main) => main.name));
-  const ids = new Set(mains.map((main) => main.id));
-  let name = base;
-  for (let n = 2; names.has(name); n += 1) name = `${base} ${n}`;
-  let id = slug(name);
-  for (let n = 2; ids.has(id); n += 1) id = `${slug(name)}-${n}`;
+  const { name, id } = freshNames(mains, [layerName(selection)])[0];
   const before = renderedNow(world);
   const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "wrap", tag: "Component", props: { id: { kind: "string", value: id }, name: { kind: "string", value: name } } } as EditOp], hash: element.hash }, `Create component ${name}`);
   if (!response.ok || !response.wrapped) return false;
@@ -102,6 +119,64 @@ export async function createComponent(selection: NodeSelection): Promise<boolean
     flushStudioStore();
   }
   inspectorStatus.set("positive", `${name} is a component: ⌘D or ⌥-drag it for an instance`);
+  return true;
+}
+
+/**
+ * ⌥⌘K with several layers (Figma: one component of them all). Layers floating in a frame without auto layout go into
+ * one Box, each keeping its place, and that Box is the component's layer (one edit); layers in auto layout go into an
+ * auto layout frame first (Add auto layout, as Figma's component of a row), which then becomes the component.
+ */
+export async function createComponentOfLayers(layers: ExtraLayer[] = selectedLayers()): Promise<boolean> {
+  if (layers.length < 2) return layers[0] ? createComponent({ kind: "node", ...layers[0] }) : false;
+  for (const layer of layers) {
+    const check = canStructurallyEdit({ kind: "node", ...layer });
+    if (!check.ok) return fail(check.reason);
+  }
+  const at = parseSrc(layers[0].src);
+  if (!at) return false;
+  const mains = await mainsOf(at.file);
+  const taken = new Set(mains.map((main) => main.name));
+  let n = 1;
+  while (taken.has(`Component ${n}`)) n += 1;
+  const { name, id } = freshNames(mains, [`Component ${n}`])[0];
+  const floating = floatingGroup(layers);
+  if (floating) return boxFloating(floating, {}, `Create component ${name}`, `${name} is a component: ⌘D or ⌥-drag it for an instance`, { id, name });
+  if (!(await wrapSelection("stack"))) return false;
+  const wrapper = studioStore.getState().selection;
+  return wrapper?.kind === "node" ? createComponent(wrapper) : false;
+}
+
+/** Figma's Create multiple components: each selected layer becomes a main component where it is (one edit), all selected. */
+export async function createComponents(layers: ExtraLayer[] = selectedLayers()): Promise<boolean> {
+  if (!layers.length) return false;
+  for (const layer of layers) {
+    const check = canStructurallyEdit({ kind: "node", ...layer });
+    if (!check.ok) return fail(check.reason);
+    if (layer.name === "Use") return fail("An instance is in the selection: detach it first (⌥⌘B) to make a component of its layers");
+  }
+  const at = parseSrc(layers[0].src);
+  if (!at || layers.some((layer) => parseSrc(layer.src)?.file !== at.file)) return fail("Select layers of one page");
+  const mains = await mainsOf(at.file);
+  if (layers.some((layer) => mains.some((main) => main.rootLoc === parseSrc(layer.src)?.loc))) return fail("One of the layers is a main component already");
+  const element = await studioApi.element(at.file, at.loc);
+  if (!element) return fail(`${layers[0].name} is no longer there — select it again`);
+  const named = freshNames(mains, layers.map(layerName));
+  const locs = layers.map((layer) => parseSrc(layer.src)!.loc);
+  const names = Object.fromEntries(locs.map((loc, index) => [loc, named[index]]));
+  const before = renderedNow(canvasApi.getWorldElement());
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "many", action: "components", locs, names } as unknown as EditOp], hash: element.hash }, `Create ${layers.length} components`);
+  if (!response.ok) return false;
+  // Each layer is its component's layer now, at its new place: select them all again.
+  const after = await mainsOf(response.file);
+  const roots = named.flatMap((entry, index) => {
+    const main = after.find((candidate) => candidate.id === entry.id);
+    return main ? [{ ...layers[index], src: `${response.file}:${main.rootLoc}`, instance: 0 }] : [];
+  });
+  multiSelection.clear();
+  if (roots.length) selectLayers(roots[0], roots.slice(1), before);
+  flushStudioStore();
+  inspectorStatus.set("positive", `${layers.length} components: ⌘D or ⌥-drag one for an instance`);
   return true;
 }
 

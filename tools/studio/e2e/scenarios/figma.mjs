@@ -924,4 +924,40 @@ export const rows = [
       return "⌥⌘G → ⇧⌘G: back at 20, 20 · 140, 40, nothing moved, both selected · ⌘Z ×2";
     },
   },
+  {
+    id: "FW-110", feature: "⌥⌘K on two floating layers: one component of them both (a Box keeping their places), one ⌘Z", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyK");
+      await until(async () => /<Component id="component-1" name="Component 1">\s*<Box position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{180\} height=\{80\}>/.test((await pageText(page, id)) ?? ""), { message: "Component 1 around a Box at 20, 20" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return "Component 1 › Box 20, 20, 180 × 80 › 2 shapes · one ⌘Z";
+    },
+  },
+  {
+    id: "FW-111", feature: "Create multiple components (menu): each selected layer its own component, all selected after", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      const box = await clipShape(page, id, 1).boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+      const menu = page.getByRole("menu").last();
+      await menu.waitFor({ state: "visible", timeout: 5000 });
+      await menu.getByRole("menuitem", { name: /^Create multiple components/ }).click();
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Component id=/g)?.length === 2, { message: "two components" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const names = [...text.matchAll(/<Component id="([^"]+)" name="([^"]+)">/g)].map((match) => match[2]);
+      await until(async () => (await selectedSrc(page)).length === 2, { timeout: 4000, message: "both selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return `${names.join(" · ")} · both selected · one ⌘Z`;
+    },
+  },
 ];

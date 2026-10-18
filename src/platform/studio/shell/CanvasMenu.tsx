@@ -24,7 +24,7 @@ import { canvasApi } from "../canvas/viewport";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
 import { modKey, presentShortcut } from "./modKey";
-import { createComponent } from "../edit/localComponents";
+import { createComponent, createComponentOfLayers, createComponents } from "../edit/localComponents";
 import { removeFrame } from "../builder/proto/addFrame";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
@@ -155,6 +155,11 @@ export function CanvasMenu() {
     { id: "multi-float", label: "Ignore auto layout", icon: "icon-transform-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void toggleIgnoreAutoLayout(); } },
     ...lockMenuItems(selection),
     ...(studioStore.getState().localPage ? [renameItem("Rename…")] : []),
+    // Figma's Create component (one of them all) and Create multiple components, on a page you made (edit/localComponents.ts).
+    ...(studioStore.getState().localPage ? [
+      { id: "multi-create-component", label: "Create component", icon: "icon-diamond-line" as const, shortcut: `⌥${modKey}K`, disabled: Boolean(editOff), onSelect: () => { void createComponentOfLayers(); } },
+      { id: "multi-create-components", label: "Create multiple components", icon: "icon-diamond-line" as const, disabled: Boolean(editOff), onSelect: () => { void createComponents(); } },
+    ] : []),
     { type: "separator", id: "multi-remove-separator" },
     { id: "multi-remove", label: "Delete", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void removeLayers(); } },
   ] : [];
