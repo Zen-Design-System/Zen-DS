@@ -90,30 +90,19 @@
 }
 
 /* ── Board layout (world coordinates) ──
-   Two columns: the Playground with the Examples section right under it, and the Docs reading column beside both, so the
-   examples sit one short pan below the playground instead of under a 7000px Docs frame. Docs spans both rows; the
-   flexible last row keeps the playground row exactly as tall as the playground. */
+   One column, top to bottom like a Figma documentation page (user 2026-10-18, "Xếp dọc theo khu"): the title, then the
+   Component section (Playground beside the Main component), the Examples section and the Docs section (Docs, Guidelines
+   and one Props frame per component in 880 columns). The sections share the left edge and stretch to the widest one,
+   128 apart; inside a section its frames sit where boardLayout.ts puts them. E2E BL-01 checks it on every component page. */
 .studio-board {
   display: grid;
   align-items: start;
-  justify-items: start;
-  /* zen-allow-raw-spacing: canvas coordinates — 128 between the title, the columns and the rows (room for frame labels when zoomed out). */
+  justify-items: stretch;
+  /* zen-allow-raw-spacing: canvas coordinates — 128 between the title and the sections (room for their name tabs when zoomed out). */
   gap: 128px;
-  grid-template-columns: max-content max-content;
-  grid-template-rows: auto auto 1fr;
-  grid-template-areas: "title title" "playground docs" "examples docs";
+  grid-template-columns: max-content;
 }
-.studio-board > .studio-board__title { grid-area: title; }
-.studio-board > [data-studio-frame="playground"] { grid-area: playground; }
-.studio-board > [data-studio-frame="docs"] { grid-area: docs; }
-/* A page with a Main component frame (studio-main-component-spec-2026-10-09): it sits beside the Playground and spans
-   both rows, as Docs does. */
-.studio-board:has(> [data-studio-frame="main-component"]) {
-  grid-template-columns: max-content max-content max-content;
-  grid-template-areas: "title title title" "playground main docs" "examples main docs";
-}
-.studio-board > [data-studio-frame="main-component"] { grid-area: main; }
-.studio-board > .studio-section { grid-area: examples; }
+.studio-board > .studio-board__title { justify-self: start; }
 .studio-board--document { display: flex; }
 .studio-board__title { display: grid; max-width: 720px; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest, #111); }
 .studio-board__title > * { margin: 0; }
@@ -471,3 +460,5 @@
   color: var(--zen-color-content-neutral-strongest, #111);
   translate: 0 calc(-100% - var(--zen-spacing-gap-xsmall, 8px));
 }
+/* A tab without a frame count (Component, Docs): the label alone, as far from both ends (the counter's 4 is for its pill). */
+.studio-section-tab:has(> :only-child) { padding-inline-end: var(--zen-spacing-padding-small, 12px); }

@@ -24,6 +24,16 @@ removed (four unused colour ramps were, see Removed).
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Zen Studio component pages (2026-10-18, user: "Sắp xếp layout của các trang component trên canvas lại cho gọn gàng và
+  chuyên nghiệp hơn"): the board stacks Title → **Component** (Playground beside the Main component) → **Examples** →
+  **Docs** (Docs, Guidelines and one Props frame per component in 880 columns), one left edge and width, 128 apart; the
+  Docs column no longer runs 8–27 000px tall. A section tab without a count pads both ends alike. E2E group `board`
+  (BL-01 layout, BL-02 Main component cells) checks every component page.
+- Zen Studio Main component (2026-10-18, user: "Update lại Progress component từ Figma lên Studio", "Kiểm tra lại hết các
+  main component"): Progress-Bar draws its Progress steps (None 0 · Low 20 · Medium 40 · Good 80 · Done 100, Figma's
+  fills), ProgressCircle its Progress-Circle/Icon grid (Theme × Done) and a Theme property; Rating its stars, Skeleton
+  text its line counts. A variant that fills its container (Divider, NPS scale, a Dashboard header row) takes its Figma
+  width instead of an empty cell. Assets gains "Progress circle".
 - Zen Studio: **Zen Agent V1a** (2026-10-18, plan §9): pick the model (Opus 5.5 · Sonnet 5.5 · Haiku 5.5) in the panel;
   "Undo turn" takes back all of the agent's last turn; the agent asks with 2–4 answers when a request is ambiguous or
   breaks a Zen rule; paste or attach reference pictures; the reply shows text, steps (what each change did) and the

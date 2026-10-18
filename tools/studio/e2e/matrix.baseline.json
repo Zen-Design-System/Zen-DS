@@ -118,6 +118,7 @@
     "HO-08": "works",
     "HO-09": "works",
     "HO-10": "works",
+    "HO-11": "works",
     "HO-12": "works",
     "I-01": "works",
     "I-02": "works",
@@ -325,7 +326,9 @@
     "ST-24": "works",
     "ST-25": "works",
     "ST-26": "works",
-    "ST-27": "works"
+    "ST-27": "works",
+    "BL-01": "works",
+    "BL-02": "works"
   },
   "flaky": {}
 }

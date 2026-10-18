@@ -32,7 +32,7 @@ const args = process.argv.slice(2);
 const flag = (name) => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const has = (name) => args.includes(`--${name}`);
 
-const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "prototype", "library", "instance", "starters", "handoff", "keyboard", "structural", "data", "overlays", "drafts", "gate", "main", "device", "nested", "mcp", "draw", "variables", "agent"];
+const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "prototype", "library", "instance", "starters", "handoff", "keyboard", "structural", "data", "overlays", "drafts", "gate", "main", "device", "nested", "mcp", "draw", "variables", "agent", "board"];
 /** Groups that run only when named (--only=dnd): the drag-and-drop campaign takes about half an hour. */
 const OPT_IN = ["dnd"];
 const only = flag("only")?.split(",").map((g) => g.trim()).filter(Boolean) ?? GROUPS;

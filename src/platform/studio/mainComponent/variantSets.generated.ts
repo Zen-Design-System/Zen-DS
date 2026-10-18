@@ -2015,6 +2015,25 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "neutral"
         },
         {
+          "prop": "value",
+          "label": "Progress",
+          "names": [
+            "None",
+            "Low",
+            "Medium",
+            "Good",
+            "Done"
+          ],
+          "values": [
+            "0",
+            "20",
+            "40",
+            "80",
+            "100"
+          ],
+          "default": "100"
+        },
+        {
           "prop": "layout",
           "label": "Layout",
           "names": [
@@ -2036,6 +2055,66 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": true
         }
       ]
+    }
+  ],
+  "ProgressCircle": [
+    {
+      "name": "Progress-Circle",
+      "figma": "1531:13954",
+      "fixed": {},
+      "axes": [],
+      "toggles": [
+        {
+          "prop": "label",
+          "label": "Label",
+          "on": "Label",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Progress-Circle/Icon",
+      "figma": "6915:62964",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "value",
+          "label": "Done",
+          "names": [
+            "No",
+            "Yes"
+          ],
+          "values": [
+            "80",
+            "100"
+          ],
+          "default": "80"
+        },
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Neutral",
+            "Accent",
+            "Red",
+            "Orange",
+            "Yellow",
+            "Green",
+            "Blue"
+          ],
+          "values": [
+            "neutral",
+            "accent",
+            "red",
+            "orange",
+            "yellow",
+            "green",
+            "blue"
+          ],
+          "default": "red"
+        }
+      ],
+      "toggles": []
     }
   ],
   "Pagination": [
@@ -2071,6 +2150,27 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "figma": "1536:26008",
       "fixed": {},
       "axes": [
+        {
+          "prop": "value",
+          "label": "Rating",
+          "names": [
+            "None",
+            "1.0",
+            "2.0",
+            "3.0",
+            "4.0",
+            "5.0"
+          ],
+          "values": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "default": "0"
+        },
         {
           "prop": "size",
           "label": "Size",
@@ -2541,6 +2641,33 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
         "variant": "small-density"
       },
       "axes": [],
+      "toggles": []
+    }
+  ],
+  "SkeletonText": [
+    {
+      "name": "Skeleton/Body-Text",
+      "figma": "1556:17566",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "lines",
+          "label": "No. of line",
+          "names": [
+            "1",
+            "2",
+            "3",
+            "5"
+          ],
+          "values": [
+            "1",
+            "2",
+            "3",
+            "5"
+          ],
+          "default": "1"
+        }
+      ],
       "toggles": []
     }
   ],

@@ -74,6 +74,26 @@ branch `zen/fix/project-variables-20261018`
 - Checked on a private server (:5197, Playwright): project Demo → headers Name | Demo, Create variable disabled, Enter
   makes no rename field, Delete removes no row, a value opens Project settings; Drafts → Name | Zen, Create enabled.
 
+## Studio component boards + Main component coverage (tier L, session "Bug")
+
+User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra lại hết các main component của Studio đã hiển thị
+đủ chưa" · "Sắp xếp layout của các trang component trên canvas lại cho gọn gàng và chuyên nghiệp hơn. Mỗi lần bổ sung
+để kiểm tra lại layout" (layout picked: "Xếp dọc theo khu") · "Bug UI của section badge".
+- Progress from the live file: Progress-Bar fills None 0 / Low 20 / Medium 40 / Good 80 / Done 100 (grid weights);
+  Progress-Circle/Icon Done=No is an 80% pie. Map: `main: { prop, values }` on a skipped VARIANT (figma-props.map.mjs)
+  → variant-sets-build draws it; MainComponentFrame turns numeric axes into numbers. Same for Rating and SkeletonText.
+  ProgressCircle maps Progress-Circle + Progress-Circle/Icon (Theme row in Properties) + an Assets item.
+- Probe of all 40 Main component pages (scratch Playwright): zero-width cells Divider / NPS / Dashboard header rows →
+  a collapsed variant takes its set's Figma width (356 / 212·392 / 1232, else 360).
+- Board: StudioBoard sections Component (row) · Examples (wrap) · Docs (masonry, boardLayout.ts `masonry` + selftest);
+  frames "guidelines" and "props:<Component>" (ComponentProps `only`, unique ids); zoom-to-fit takes every section.
+- E2E group `board`: BL-01 (stack, edges, gaps, frames inside sections, Docs columns, tab padding) and BL-02 (no empty
+  Main component cell) over the 49 component pages, 156 s; both works, in the baseline.
+- Still open (BACKLOG): Main component not drawn for components without an Assets item (ToggleButton, BadgeCounter,
+  HeadingField, SkeletonShape, OpinionScale, UploaderFileItem, ControlBarSelectItem, InputConditionItem, Chat parts),
+  the five overlays (deferred by design), 13 components with no variant set mapped, Dashboard header Navigation/Custom
+  rows drawn without their content.
+
 ## AppShell collapses a customised Sidebar (user: "lỗi sidebar lúc expand và collapse khi dùng template … nếu user gọi sidebar ra rồi custom") — tier M
 - Cause 1: AppShell read the rail from `sidebar.type === Sidebar` + its props. Measured (scratch vitest, 1440px): a
   Sidebar wrapped in an app component got no control at all (240px, no toggle); wrapped with `collapsed` it stayed an

@@ -5,8 +5,8 @@ import { ExampleCard } from "../../PlatformShowcases";
 import { getPageExamples } from "../../examples/registry";
 import { isWideExample } from "../../examples/types";
 import { useHotDataVersion } from "../../hotData";
-import { ComponentApi, ComponentKeyboard, ComponentProps } from "../../PlatformReference";
-import { ComponentGuidelines } from "../../PlatformGuidelines";
+import { ComponentApi, ComponentKeyboard, ComponentProps, hasComponentReference, propsComponentNames } from "../../PlatformReference";
+import { ComponentGuidelines, hasComponentGuidelines } from "../../PlatformGuidelines";
 import type { StudioPageParts } from "../bridge";
 import { notifyCanvas } from "../canvas/viewport";
 import { pageKey, useStudio } from "../store";
@@ -23,8 +23,9 @@ function useCanvasNoteModes() {
   return { "data-theme": chromeTheme, "data-typography": "dashboard" } as const;
 }
 
-/** A frame of a section: its id (data-studio-frame) and its RULE width (exampleWidth), which fixes its column. */
-type SectionFrame = { id: string; width: number };
+/** A frame of a section: its id (data-studio-frame) and its RULE width (exampleWidth), which fixes its column; "measure"
+ *  for a frame as wide as its content (the Main component, always last in its row). */
+type SectionFrame = { id: string; width: number | "measure" };
 
 type SectionLayoutState = {
   observer: ResizeObserver | null;
@@ -113,7 +114,11 @@ function frameElements(container: HTMLElement) {
  * first press or key press the opening rows follow the heights (fonts and late content settle as the flex-wrap row
  * did), so the board opens exactly as before.
  */
-function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames: readonly SectionFrame[]) {
+/** How a section packs its frames: rows of two 1440 screens (Examples), one row (Component), or 880 reading columns
+ *  (Docs, masonry). */
+type SectionFlow = "wrap" | "row" | "masonry";
+
+function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames: readonly SectionFrame[], flow: SectionFlow) {
   const framesRef = useRef(frames);
   framesRef.current = frames;
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
@@ -135,7 +140,8 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
     if (!state || !container) return;
     const elements = frameElements(container);
     const list = framesRef.current.filter((frame) => elements.has(frame.id));
-    const items = list.map(({ id, width }) => {
+    const items = list.map(({ id, width: rule }) => {
+      const width = rule === "measure" ? (state.widths.get(id) ?? elements.get(id)!.offsetWidth) : rule;
       const height = state.heights.get(id) ?? frameHeight(elements.get(id)!);
       if (!state.settled || !state.base.has(id)) {
         if (state.base.get(id) !== height) saveOpenings();
@@ -143,7 +149,9 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
       }
       return { width, height, base: state.base.get(id) ?? height };
     });
-    const layout = layoutBoard(items, { rowWidth: SECTION_WIDTH, gap: FRAME_GAP });
+    // Examples wrap rows of two 1440 screens; the Component row keeps its frames side by side; Docs fill 880 columns.
+    const rowWidth = flow === "row" ? items.reduce((sum, item, index) => sum + item.width + (index ? FRAME_GAP : 0), 0) : SECTION_WIDTH;
+    const layout = layoutBoard(items, { rowWidth, gap: FRAME_GAP, masonry: flow === "masonry" });
     let moved = false;
     list.forEach(({ id }, index) => {
       const element = elements.get(id)!;
@@ -176,7 +184,7 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
     }
     // Outlines and labels over moved frames follow at once (the selection layer would wait for its mutation throttle).
     if (moved) notifyCanvas();
-  }, [containerRef]);
+  }, [containerRef, flow]);
 
   useLayoutEffect(() => {
     const state = stateRef.current!;
@@ -251,8 +259,9 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
   });
 }
 
-/** A FigJam-like section: a tinted region behind a group of frames; its name tab is drawn by the frame chrome. */
-function StudioSection({ id, label, count, frames, children }: { id: string; label: string; count: number; frames: readonly SectionFrame[]; children: ReactNode }) {
+/** A FigJam-like section: a tinted region behind a group of frames; its name tab is drawn by the frame chrome (with the
+ *  frame count when `count` is given); `flow` packs its frames (SectionFlow). */
+function StudioSection({ id, label, count, frames, flow, children }: { id: string; label: string; count?: number; frames: readonly SectionFrame[]; flow: SectionFlow; children: ReactNode }) {
   const ref = useRef<HTMLElement>(null);
   const framesRef = useRef<HTMLDivElement>(null);
   const noteModes = useCanvasNoteModes();
@@ -260,7 +269,7 @@ function StudioSection({ id, label, count, frames, children }: { id: string; lab
     const element = ref.current;
     return element ? registerSection({ id, label, count, element }) : undefined;
   }, [id, label, count]);
-  useSectionLayout(framesRef, frames);
+  useSectionLayout(framesRef, frames, flow);
   return (
     <section ref={ref} className="studio-section" aria-label={label} data-studio-section={id}>
       {/* The tinted region belongs to the canvas: the Studio's colour mode, whatever the frames preview. */}
@@ -270,7 +279,23 @@ function StudioSection({ id, label, count, frames, children }: { id: string; lab
   );
 }
 
-/** A component page laid out as canvas frames: title; the Playground with one frame per example under it; Docs beside them. */
+/** The Component section's frames: the Playground, then the Main component when the page has one (it measures itself). */
+const componentFrames = (page: StudioPageParts["page"]): SectionFrame[] => [{ id: "playground", width: playgroundWidth(page) }, { id: "main-component", width: "measure" }];
+/** The Docs section's reading frames: Docs (Keyboard, API), Guidelines, then one "Props · <Component>" per component. */
+const docsFrames = (page: StudioPageParts["page"]): SectionFrame[] => [
+  ...(hasComponentReference(page) ? [{ id: "docs", width: DOCS_WIDTH }] : []),
+  ...(hasComponentGuidelines(page) ? [{ id: "guidelines", width: DOCS_WIDTH }] : []),
+  ...propsComponentNames(page).map((name) => ({ id: `props:${name}`, width: DOCS_WIDTH })),
+];
+
+/**
+ * A component page laid out as canvas frames, top to bottom like a Figma documentation page (user 2026-10-18: "Sắp xếp
+ * layout của các trang component trên canvas lại cho gọn gàng và chuyên nghiệp hơn", layout "Xếp dọc theo khu"):
+ * the title; the Component section (Playground beside the Main component); the Examples section; the Docs section
+ * (Docs, Guidelines and one Props frame per component in 880 columns). The sections share the left edge and the widest
+ * one's width, 128 apart.
+ * E2E BL-01 checks this on every component page.
+ */
 export function StudioBoard({ parts }: { parts: StudioPageParts }) {
   const { page } = parts;
   // An example edit updates the records in place (hotData.ts), so the frames keep their state: render again for the
@@ -278,6 +303,8 @@ export function StudioBoard({ parts }: { parts: StudioPageParts }) {
   useHotDataVersion();
   const examples = useMemo(() => getPageExamples(page), [page]);
   const exampleFrames = useMemo(() => examples.map((example, index) => ({ id: `example:${index}`, width: exampleWidth(example) })), [examples]);
+  const mainFrames = useMemo(() => componentFrames(page), [page]);
+  const readingFrames = useMemo(() => docsFrames(page), [page]);
   const noteModes = useCanvasNoteModes();
   return (
     <div className="studio-board" data-page={page}>
@@ -286,26 +313,32 @@ export function StudioBoard({ parts }: { parts: StudioPageParts }) {
         <Heading level={1} textStyle="Heading/1">{parts.title}</Heading>
         <Text textStyle="Body/Base/Regular" tone="base">{parts.description}</Text>
       </header>
-      {/* Grid areas (board.css): Playground with the Examples under it, the Main component (its Figma variant sets) and
-          Docs beside both. DOM order stays Playground, Main component, Docs, Examples (the frames list and Tab order). */}
-      <StudioFrame id="playground" kind="playground" label="Playground" width={playgroundWidth(page)}>
-        <div className="studio-frame__page">{parts.playground}</div>
-      </StudioFrame>
-      <MainComponentFrame page={page} />
-      <StudioFrame id="docs" kind="docs" label="Docs" width={DOCS_WIDTH}>
-        <div className="studio-frame__page studio-frame__docs">
-          <ComponentKeyboard page={page} />
-          <ComponentApi page={page} />
-          <ComponentProps page={page} />
-          <ComponentGuidelines page={page} />
-        </div>
-      </StudioFrame>
+      {/* DOM order is the board order (the Frames list, Tab order): Playground, Main component, Examples, Docs, Guidelines. */}
+      <StudioSection id="component" label="Component" frames={mainFrames} flow="row">
+        <StudioFrame id="playground" kind="playground" label="Playground" width={playgroundWidth(page)}>
+          <div className="studio-frame__page">{parts.playground}</div>
+        </StudioFrame>
+        <MainComponentFrame page={page} />
+      </StudioSection>
       {examples.length ? (
-        <StudioSection id="examples" label="Examples" count={examples.length} frames={exampleFrames}>
+        <StudioSection id="examples" label="Examples" count={examples.length} frames={exampleFrames} flow="wrap">
           {/* Keyed by place, not title: renaming an example keeps its frame (and the state of what it shows). */}
           {examples.map((example, index) => (
             <StudioFrame key={`example:${index}`} id={`example:${index}`} kind="example" label={example.title} width={exampleWidth(example)} example={example}>
               <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen}>{example.render()}</ExampleCard>
+            </StudioFrame>
+          ))}
+        </StudioSection>
+      ) : null}
+      {readingFrames.length ? (
+        <StudioSection id="docs" label="Docs" frames={readingFrames} flow="masonry">
+          {readingFrames.map(({ id }) => (
+            <StudioFrame key={id} id={id} kind="docs" label={id === "docs" ? "Docs" : id === "guidelines" ? "Guidelines" : `Props · ${id.slice(6)}`} width={DOCS_WIDTH}>
+              <div className="studio-frame__page studio-frame__docs">
+                {id === "docs" ? <><ComponentKeyboard page={page} /><ComponentApi page={page} /></>
+                  : id === "guidelines" ? <ComponentGuidelines page={page} />
+                  : <ComponentProps page={page} only={id.slice(6)} />}
+              </div>
             </StudioFrame>
           ))}
         </StudioSection>
