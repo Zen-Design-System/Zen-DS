@@ -22,6 +22,10 @@ removed (four unused colour ramps were, see Removed).
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Zen Studio: **Zen Agent V1a** (2026-10-18, plan §9): pick the model (Opus 5.5 · Sonnet 5.5 · Haiku 5.5) in the panel;
+  "Undo turn" takes back all of the agent's last turn; the agent asks with 2–4 answers when a request is ambiguous or
+  breaks a Zen rule; paste or attach reference pictures; the reply shows text, steps (what each change did) and the
+  harness in order. The layers any AI client changes now flash on the canvas (Claude Code included).
 - Zen Studio: **Zen Agent** (2026-10-18, V0 of `docs/research/studio-vibe-agent-2026-10-18.md`): a chat panel beside
   Pages | Layers (⌘J, or the stars button in the bottom toolbar) that designs on the open page live, through the Studio
   MCP's tools in the tab (one ⌘Z step per change, the AI chip's Stop), reads the zen-ds rules, and runs the Zen usage

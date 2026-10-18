@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { cachedPage } from "../builder/store/pageStore";
 import { studioStore } from "../store";
+import { changedIds, flashLayers } from "./highlight";
 import { runTool } from "./tools";
 
 /*
@@ -106,6 +107,8 @@ export function startMcpRuntime(): () => void {
     try {
       const answer = await runTool(call.tool, call.args ?? {}, { tab });
       hot.send("zen-mcp:result", { id: call.id, ...answer });
+      // The layers a write changed flash on the canvas (AiHighlights), whichever AI made it.
+      if (answer.ok) flashLayers(changedIds(call.tool, answer.content));
     } catch (error) {
       hot.send("zen-mcp:result", { id: call.id, ok: false, code: "error", error: `The Studio failed on this call: ${error instanceof Error ? error.message : String(error)}` });
     } finally {

@@ -57,11 +57,11 @@ Last updated: 2026-10-17.
   `data-brand="p-<id>"` in `.zen-studio/projects/<id>/` (never tokens/source). Spec, gotchas and phases 2–3:
   `docs/research/studio-projects-theme-2026-10-17.md`.
 - **Zen Agent in Studio, vibe design (2026-10-18):** plan `docs/research/studio-vibe-agent-2026-10-18.md` (user
-  decisions §1, V-1 baseline §7). **V0 built** on branch `zen/feat/studio-agent-v0-20261018` (worktree
-  `../Zen-DS-agent`, not merged): panel beside Pages | Layers (⌘J), Tool Runner in the dev server over the Studio MCP
-  tools through the relay, zen-ds knowledge, the usage harness after each changing turn (`tools/studio/README.md` §6).
-  Checks offline (`agent.selftest`, E2E AG-01…06 with `ZEN_AGENT_SCRIPT`); the first live run needs the user's key.
-  V1 waits for the user's go.
+  decisions §1, V-1 baseline §7, V1 plan §9). **V0 merged** (#122): panel beside Pages | Layers (⌘J), Tool Runner in
+  the dev server over the Studio MCP tools through the relay, zen-ds knowledge, the usage harness after each changing
+  turn (`tools/studio/README.md` §6). **V1a built** on `zen/feat/studio-agent-v1-20261018` (worktree `../Zen-DS-agent-v1`):
+  model picker, Undo turn, `ask_person`, pictures, ordered reply parts, canvas flash for any MCP client. Checks offline
+  (`agent.selftest`, E2E AG-01…12 with `ZEN_AGENT_SCRIPT`); the first live run needs the user's key. V1b waits.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:
   Figma first, review, then code (tier L each). Ids: session-log-2026-10-17 "Calendar / Schedule / Timeline in Figma".
