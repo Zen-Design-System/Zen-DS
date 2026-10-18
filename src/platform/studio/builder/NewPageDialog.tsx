@@ -2,6 +2,8 @@ import { useEffect, useId, useState, type ReactNode } from "react";
 import { Card } from "../../../components/Card";
 import { Dialog } from "../../../components/Dialog";
 import { Icon } from "../../../components/Icon";
+import { SelectField } from "../../../components/Input";
+import type { IconName } from "../../../icons/generated/names";
 import { Text } from "../../../components/Text";
 import { openLocalPage } from "../shell/navigation";
 import { loadEngine } from "./engine";
@@ -11,6 +13,7 @@ import { TemplateThumb } from "./starters/TemplateThumb";
 import { freeId, listPages, movePage, putPage } from "./store/pageStore";
 import { withHeaderProject } from "./store/pageModel";
 import { activeProjectId } from "../project/activeProject";
+import { FRAME_DEVICES, deviceSize, screenDevice } from "../../../../tools/studio/screen-devices.mjs";
 
 /*
  * New page (Studio builder GĐ2; spec §5 M1): a blank page on a device, or (GĐ3b M3) one of the platform's page templates
@@ -46,7 +49,9 @@ function ChoiceCard({ name, value, checked, onPick, children, className }: { nam
 }
 
 export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boolean; onOpenChange: (open: boolean) => void; folder?: string | null }) {
-  const [start, setStart] = useState("blank");
+  // Empty by default (user, 2026-10-18: the AppShell is a choice, "không mặc định khi bấm tạo trang"), on Desktop.
+  const [start, setStart] = useState("empty");
+  const [deviceId, setDeviceId] = useState("desktop");
   const [choices, setChoices] = useState<TemplateChoice[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +59,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
   // The templates load with the dialog (their own chunk), not with the Studio.
   useEffect(() => { if (open && !choices) void templateChoices().then(setChoices, () => setChoices([])); }, [open, choices]);
   const template = choices?.find((choice) => choice.id === start) ?? null;
-  const reset = () => { setStart("blank"); setError(null); };
+  const reset = () => { setStart("empty"); setDeviceId("desktop"); setError(null); };
   const pickStart = (next: string) => { setStart(next); if (error) setError(null); };
   // No title or device to fill in first (user, 2026-10-09): a template keeps its own; a blank page is "Untitled page" on a
   // desktop Screen. Both change as you work: the page's Name with nothing selected, a Screen's Device in its frame panel.
@@ -77,8 +82,10 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
     }
     const name = await untitledName();
     const [engine, page] = await Promise.all([loadEngine(), freeId(name)]);
-    // "empty": one desktop Screen with nothing in it, as Figma's new frame (user, 2026-10-16).
-    await putPage(page, withHeaderProject(engine.newPageText({ title: name, device: "desktop", empty: start === "empty" }), project), { title: name, folder });
+    // "empty": one Screen with nothing in it, as Figma's new frame (user, 2026-10-16); "blank": with the app frame. Either
+    // on the device picked, at its size (tools/studio/screen-devices.mjs).
+    const entry = screenDevice(deviceId) ?? FRAME_DEVICES[0];
+    await putPage(page, withHeaderProject(engine.newPageText({ title: name, device: entry.device, layout: entry.layout, width: entry.width, height: entry.height, empty: start === "empty" }), project), { title: name, folder });
     reset();
     onOpenChange(false);
     openLocalPage(page);
@@ -90,25 +97,25 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
       className="studio-new-page"
       onOpenChange={(next) => { if (!next) setError(null); onOpenChange(next); }}
       title="New page"
-      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : start === "empty" ? "One desktop Screen with nothing in it, saved in this browser. Add the app frame from the Screen section, or build from scratch." : "A desktop page with its app frame (sidebar and page header; on a phone, top and bottom navigation), saved in this browser. Switch each part off, rename the page and change its device as you work."}
+      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : start === "empty" ? "One empty Screen on the device you pick, saved in this browser. Add an AppShell from the Screen section or Assets when you want one." : "A Screen with an AppShell (sidebar and page header; on a phone, top and bottom navigation), saved in this browser. Switch each part off, rename the page and change its device as you work."}
       primaryAction={{ label: busy ? "Creating…" : "Create page", disabled: busy, onClick: () => void create() }}
       secondaryAction={{ label: "Cancel" }}
     >
       <fieldset className="studio-new-page__group">
         <legend className="studio-new-page__legend"><Text as="span" textStyle="Body/Base/Bold">Start from</Text></legend>
         <div className="studio-new-page__templates">
-          <ChoiceCard name={`${id}-start`} value="blank" checked={start === "blank"} onPick={pickStart} className="studio-choice--template">
+          <ChoiceCard name={`${id}-start`} value="empty" checked={start === "empty"} onPick={pickStart} className="studio-choice--template">
             <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-plus-line" size="base" decorative /></span>
             <span className="studio-choice__text">
-              <Text as="span" textStyle="Body/Small/Bold">Blank page</Text>
-              <Text as="span" textStyle="Caption/Regular" tone="base">One desktop Screen with its app frame</Text>
+              <Text as="span" textStyle="Body/Small/Bold">Empty page</Text>
+              <Text as="span" textStyle="Caption/Regular" tone="base">One empty Screen, no AppShell</Text>
             </span>
           </ChoiceCard>
-          <ChoiceCard name={`${id}-start`} value="empty" checked={start === "empty"} onPick={pickStart} className="studio-choice--template">
-            <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-square-line" size="base" decorative /></span>
+          <ChoiceCard name={`${id}-start`} value="blank" checked={start === "blank"} onPick={pickStart} className="studio-choice--template">
+            <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-layout-left-line" size="base" decorative /></span>
             <span className="studio-choice__text">
-              <Text as="span" textStyle="Body/Small/Bold">Empty page</Text>
-              <Text as="span" textStyle="Caption/Regular" tone="base">One empty Screen, no app frame</Text>
+              <Text as="span" textStyle="Body/Small/Bold">Page with AppShell</Text>
+              <Text as="span" textStyle="Caption/Regular" tone="base">A Screen with sidebar and page header</Text>
             </span>
           </ChoiceCard>
           {(choices ?? []).map((choice) => (
@@ -122,6 +129,15 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
           ))}
         </div>
       </fieldset>
+      {template ? null : (
+        <SelectField
+          label="Screen"
+          size="sm"
+          value={deviceId}
+          onValueChange={(next) => setDeviceId(next)}
+          options={FRAME_DEVICES.map((entry) => ({ value: entry.id, label: entry.label, meta: deviceSize(entry), leading: entry.icon as IconName }))}
+        />
+      )}
       {error ? <Text as="p" textStyle="Body/Small/Regular" tone="negative-base" role="alert">{error}</Text> : null}
     </Dialog>
   );

@@ -304,6 +304,22 @@
   background: var(--zen-color-background-canvas-default, #f7f7f7);
   box-shadow: 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-bottom-level-1-shadow);
 }
+/* Device frame (presentViewport.tsx DeviceFrame): the box takes the device's screen corners and the bezel under it
+   carries the shadow; the bezel is concentric with the screen (its radius is the screen's plus its width) and black in
+   both themes (hardware: it sits in Light). The iPhone Duo's hinge is a soft band over the screen where
+   Pattern/AppShell/Duo puts Fold. */
+.studio-present__fit[data-frame] > :is(.studio-present__viewport, .studio-player__device) { border-radius: var(--studio-device-screen-radius); box-shadow: none; }
+.studio-device-frame {
+  position: absolute;
+  inset: calc(-1 * var(--studio-device-bezel));
+  border-radius: var(--studio-device-radius);
+  background: var(--zen-color-background-neutral-solid-default, #111);
+  box-shadow: var(--zen-style-shadow-bottom-level-1-shadow);
+  pointer-events: none;
+}
+.studio-device-fold { position: absolute; pointer-events: none; }
+.studio-device-fold[data-axis="x"] { top: 0; bottom: 0; left: var(--studio-fold-at); width: var(--studio-fold-size); background: linear-gradient(to right, transparent, var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%)) 50%, transparent); }
+.studio-device-fold[data-axis="y"] { top: var(--studio-fold-at); right: 0; left: 0; height: var(--studio-fold-size); background: linear-gradient(to bottom, transparent, var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%)) 50%, transparent); }
 /* An example card in a fixed viewport takes its width, inset as on its canvas frame. */
 .studio-present__viewport[data-viewport="fixed"] > .pe-card:not([data-screen="true"]) { width: 100%; }
 .studio-present__viewport[data-viewport="fixed"] > .pe-card:not([data-screen="true"]) > .pe-card__stage { padding: var(--zen-spacing-padding-xlarge, 24px); }
@@ -347,6 +363,8 @@
 }
 /* The Viewport panel's W and H fields, side by side. */
 .studio-viewport-size { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Rotate and Fold / Unfold, side by side under W and H. */
+.studio-viewport-device { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* The presented example's overlays stack above its full-screen card (25), like the classic portal (z ≥ 30), inside the page. */
 .studio-present .studio-portal-root { position: relative; z-index: 30; }
 /* A presented desktop screen stays full screen while focus is inside it. platform.css raises a focused card

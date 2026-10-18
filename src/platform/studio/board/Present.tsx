@@ -12,7 +12,9 @@ import type { StudioPreviewSettings } from "../types";
 import { useStudioFrames, type StudioExample, type StudioFrameEntry } from "./frames";
 import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
-import { presentEscapeOwners, useViewportFit, VIEWPORT_PRESETS, ViewportHandles, type PresentViewport } from "./presentViewport";
+import { screenDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { SimulatedDeviceContext } from "../builder/proto/runtime";
+import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportFit, viewportDevice, ViewportHandles, type PresentViewport } from "./presentViewport";
 import "./board.css";
 import { useCanvasPreview } from "../project/activeProject";
 
@@ -31,15 +33,16 @@ export function Present() {
   const [own, setOwn] = useState<PresentModes>({});
   // The viewport holds while ‹ › step, like the modes, and is forgotten when Present ends.
   const [viewport, setViewport] = useState<PresentViewport>(null);
+  const [framed, setFramed] = useState(true);
   useEffect(() => {
-    if (!presenting) { setOwn({}); setViewport(null); }
+    if (!presenting) { setOwn({}); setViewport(null); setFramed(true); }
   }, [presenting]);
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((modes) => ({ ...modes, [key]: value })), []);
   const frame = presenting ? frames.find((entry) => entry.id === presenting) : undefined;
-  return frame?.example ? <PresentLayer key={frame.id} frame={frame} example={frame.example} own={own} onModeChange={setMode} viewport={viewport} onViewportChange={setViewport} /> : null;
+  return frame?.example ? <PresentLayer key={frame.id} frame={frame} example={frame.example} own={own} onModeChange={setMode} viewport={viewport} onViewportChange={setViewport} framed={framed} onFramedChange={setFramed} /> : null;
 }
 
-function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportChange }: { frame: StudioFrameEntry; example: StudioExample; own: PresentModes; onModeChange: (key: ModeKey, value: string) => void; viewport: PresentViewport; onViewportChange: (viewport: PresentViewport) => void }) {
+function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportChange, framed, onFramedChange }: { frame: StudioFrameEntry; example: StudioExample; own: PresentModes; onModeChange: (key: ModeKey, value: string) => void; viewport: PresentViewport; onViewportChange: (viewport: PresentViewport) => void; framed: boolean; onFramedChange: (framed: boolean) => void }) {
   const { preview: canvasModes, brand } = useCanvasPreview();
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[frame.id]);
@@ -53,9 +56,10 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   // win over both.
   const [phone, setPhone] = useState(false);
   // A phone or tablet Screen shows at its device's size (the user 2026-10-16: "Mobile khi bấm present nên fix size",
-  // "tương tự ipad"): Auto takes its device's viewport (Phone 390 × 844, Tablet); a viewport picked in the bar wins.
-  const [device, setDevice] = useState<string | null>(null);
-  useLayoutEffect(() => setDevice(stageRef.current?.querySelector(".studio-builder-screen")?.getAttribute("data-device") ?? null), []);
+  // "tương tự ipad"): Auto takes the device it is drawn for (runtime Screen's data-hardware: the device of its size,
+  // else its type's iPhone or iPad); a viewport picked in the bar wins.
+  const [hardware, setHardware] = useState<string | null>(null);
+  useLayoutEffect(() => setHardware(stageRef.current?.querySelector(".studio-builder-screen")?.getAttribute("data-hardware") ?? null), []);
   useLayoutEffect(() => setPhone(Boolean(stageRef.current?.querySelector(".platform-phone"))), []);
   const theme = own.theme ?? override?.theme ?? canvasModes.theme;
   const preview: StudioPreviewSettings = { ...canvasModes, ...(phone ? PHONE_MODES : null), ...own, theme };
@@ -107,12 +111,13 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   }, [exit, frame.id]);
 
   const width = resolveFrameWidth(frame.baseWidth, override?.width);
-  const devicePreset = device === "phone" || device === "tablet" ? VIEWPORT_PRESETS.find((entry) => entry.id === device) : undefined;
-  const shown: PresentViewport = viewport ?? (devicePreset ? { width: devicePreset.width, height: devicePreset.height } : null);
-  const fit = useViewportFit(shown, stageRef);
+  const shown: PresentViewport = viewport ?? deviceViewport(screenDevice(hardware));
+  // The device simulator: a builder Screen takes the shown device's type, layout and bars; Device frame draws it.
+  const device = viewportDevice(shown);
+  const fit = useViewportFit(shown, stageRef, bezelOf(device, framed), device?.radius);
   return (
     <div ref={layerRef} className="studio-present" role="dialog" aria-label={`${example.title}, full screen`} tabIndex={-1} data-screen={example.screen ? "true" : undefined} {...modes}>
-      <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} viewport={shown} onViewportChange={onViewportChange} viewportScale={fit.scale} autoWidth={width} />
+      <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} viewport={shown} onViewportChange={onViewportChange} viewportScale={fit.scale} autoWidth={width} framed={framed} onFramedChange={onFramedChange} />
       {/* The page under the bar, as a browser's: a full-screen card and the example's overlays fill it, never the bar. */}
       <div className="studio-present__page">
         <ZenPortalProvider container={portalRoot}>
@@ -121,10 +126,14 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
               <div className="studio-present__scroll">
                 <div ref={stageRef} className="studio-present__stage" style={{ "--studio-frame-width": `${width}px` } as CSSProperties}>
                   {/* The same two wrappers in Auto (they take no box) and in a fixed viewport, so a change keeps the example's state. */}
-                  <div className="studio-present__fit" data-viewport={fit.mode} style={fit.fitStyle}>
+                  <div className="studio-present__fit" data-viewport={fit.mode} data-frame={fit.bezel ? "" : undefined} style={fit.fitStyle}>
+                    <DeviceFrame device={device} fit={fit} part="body" />
                     <div className="studio-present__viewport" data-viewport={fit.mode} style={fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
-                      <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+                      <SimulatedDeviceContext value={device ?? null}>
+                        <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+                      </SimulatedDeviceContext>
                     </div>
+                    <DeviceFrame device={device} fit={fit} part="fold" />
                     <ViewportHandles viewport={shown} fit={fit} onChange={onViewportChange} />
                   </div>
                 </div>

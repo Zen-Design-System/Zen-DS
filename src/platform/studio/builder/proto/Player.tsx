@@ -3,7 +3,8 @@ import { IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
 import { ToastProvider, useToast, type ToastOptions } from "../../../../components/Toast";
 import { PresentBar } from "../../board/PresentBar";
-import { presentEscapeOwners, useViewportFit, ViewportHandles, type PresentViewport } from "../../board/presentViewport";
+import { deviceOfScreen } from "../../../../../tools/studio/screen-devices.mjs";
+import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportFit, viewportDevice, ViewportHandles, type PresentViewport } from "../../board/presentViewport";
 import { canvasApi } from "../../canvas/viewport";
 import { previewAttributes, type ModeKey } from "../../shell/modes";
 import { studioStore, useStudio } from "../../store";
@@ -12,12 +13,12 @@ import { componentsOf, renderNode, type PageNode, type PageTree } from "../rende
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { useUploadsVersion } from "../assets/uploads";
-import { SAFE_AREAS } from "./DeviceBars";
+import { duoStatusOf, safeAreasOf } from "./DeviceBars";
 import { frameMotion, motionProps } from "./playMotion";
 import { CLICKABLE, itemElement, layerElements } from "./protoDom";
 import { DEFAULT_DELAY, optionsOf, protoSourcesOf, type ProtoOptions } from "./protoModel";
 import { placesItself } from "./protoTriggers";
-import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, protoHandler, type PageDevice, type ProtoActions } from "./runtime";
+import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, protoHandler, SimulatedDeviceContext, type PageDevice, type ProtoActions } from "./runtime";
 import { useCanvasPreview } from "../../project/activeProject";
 
 /*
@@ -97,10 +98,11 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const [own, setOwn] = useState<Partial<StudioPreviewSettings>>({});
   const modes: StudioPreviewSettings = { ...canvasModes, ...own };
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((current) => ({ ...current, [key]: value })), []);
-  // Auto plays each Screen at its device's width; a device or a typed W × H holds for the whole Play (Restart keeps it).
+  // Auto plays each Screen on the device it is drawn for (a desktop one at its device's width); a device or a typed
+  // W × H holds for the whole Play (Restart keeps it), and so does Device frame.
   const [viewport, setViewport] = useState<PresentViewport>(null);
+  const [framed, setFramed] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);
-  const fit = useViewportFit(viewport, stageRef);
   // Figma's hotspot hints: a press on nothing clickable flashes what has an action on this screen (and its overlay).
   const deviceRef = useRef<HTMLDivElement>(null);
   const sources = useMemo(() => protoSourcesOf(tree), [tree]);
@@ -217,6 +219,16 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const device = (screen ? (literal(screen, "device") as PageDevice | undefined) : undefined) ?? "desktop";
   const leavingNode = leaving ? screenOf(leaving.screen) : undefined;
   const os = pageOsOf(tree?.header);
+  // The device simulator (presentViewport.tsx): the Screen plays on the shown device, which takes its type, layout and
+  // bars (SimulatedDeviceContext); a typed size keeps the Screen's own.
+  const drawnOn = screen ? deviceOfScreen(device, literal(screen, "layout") as string | undefined, literal(screen, "width"), literal(screen, "height")) : undefined;
+  const shown = viewport ?? deviceViewport(drawnOn);
+  const shownDevice = viewportDevice(shown);
+  const fit = useViewportFit(shown, stageRef, bezelOf(shownDevice, framed), shownDevice?.radius);
+  // An overlay layer pads by the bars of the device it plays on.
+  const barsDevice = shownDevice?.device ?? device;
+  const duo = duoStatusOf((shownDevice ?? drawnOn)?.bars);
+  const overlaySafe = barsDevice === "desktop" ? null : safeAreasOf(duo ? "ios" : os, barsDevice, duo);
 
   // After delay (a Screen's): once the screen shows, its action runs when the delay is over (again on each visit).
   const delayed = screen?.props.onDelay;
@@ -234,7 +246,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   return (
     <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes, brand)}>
       <PresentBar title={screenTitle && screenTitle !== title ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
-        viewport={viewport} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}
+        viewport={shown} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop} framed={framed} onFramedChange={setFramed}
         leading={<>
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && !overlay} onClick={() => actions.back()} />
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />
@@ -245,8 +257,10 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       <PageOsContext value={os}>
       <div className="studio-present__scroll">
         <div ref={stageRef} className="studio-player__stage">
-          <div className="studio-present__fit" data-viewport={fit.mode} style={fit.fitStyle}>
+          <div className="studio-present__fit" data-viewport={fit.mode} data-frame={fit.bezel ? "" : undefined} style={fit.fitStyle}>
+            <DeviceFrame device={shownDevice} fit={fit} part="body" />
             <div ref={deviceRef} onPointerDownCapture={showHotspots} className="studio-player__device" style={fit.boxStyle ?? { width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
+              <SimulatedDeviceContext value={shownDevice ?? null}>
               <div className="studio-player__screens">
                 {screen ? (
                   <div key={currentKey} className="studio-player__screen" {...motionProps(entering ? frameMotion(entering.options, "enter", entering.reverse) : null)}>
@@ -278,7 +292,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
                     data-position={String(literal(overlayNode, "position") ?? "center")}
                     data-background={literal(overlayNode, "background") === true || undefined}
                     data-hover={overlay.hover || undefined}
-                    style={device === "desktop" ? undefined : { "--zen-safe-area-top": `${SAFE_AREAS[os][device].top}px`, "--zen-safe-area-bottom": `${SAFE_AREAS[os][device].bottom}px` } as CSSProperties}
+                    style={overlaySafe ? { "--zen-safe-area-top": `${overlaySafe.top}px`, "--zen-safe-area-bottom": `${overlaySafe.bottom}px` } as CSSProperties : undefined}
                     onPointerDown={(event) => { if (event.target === event.currentTarget && literal(overlayNode, "closeOnOutside") !== false) setOverlay(null); }}
                   >
                     <div key={overlay.id} className="studio-player__overlay-content" {...motionProps(overlay.hover ? null : frameMotion(overlay.options, "enter"))}>
@@ -291,8 +305,10 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
                   {hints.boxes.map((hint, index) => <span key={index} className="studio-player__hotspot" style={{ transform: `translate(${hint.x}px, ${hint.y}px)`, width: hint.width, height: hint.height, borderRadius: hint.radius }} />)}
                 </div>
               ) : null}
+              </SimulatedDeviceContext>
             </div>
-            <ViewportHandles viewport={viewport} fit={fit} onChange={setViewport} />
+            <DeviceFrame device={shownDevice} fit={fit} part="fold" />
+            <ViewportHandles viewport={shown} fit={fit} onChange={setViewport} />
           </div>
         </div>
       </div>

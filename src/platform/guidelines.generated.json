@@ -6461,7 +6461,7 @@
       [
         "Items",
         "items[] {id, label, icon, selectedIcon, dot} · value · onValueChange",
-        "56px items, 24px icons; cells cap at 120px and centre (floating cells ≥ 64px)"
+        "56px items, 24px icons; cells cap at 120px and centre. Floating and floating-glass tabs are 64–88px on a phone and a tablet alike: the capsule fills the bar while they fit at 88 or less and hugs them at 88 past that, the action at the end"
       ],
       [
         "Labels",

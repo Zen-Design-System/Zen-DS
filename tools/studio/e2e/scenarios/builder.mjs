@@ -62,7 +62,8 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
     await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "New page" });
   await dialog.waitFor({ state: "visible", timeout: 5000 });
-  // Nothing to fill in (2026-10-09): a blank page is an "Untitled page" on a desktop Screen…
+  // A page with its AppShell (2026-10-18: Empty page is the default, the AppShell a choice) on a desktop Screen…
+  await dialog.getByText("Page with AppShell", { exact: true }).click();
   await dialog.getByRole("button", { name: "Create page" }).click();
   await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the new page on the canvas" });
   const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
@@ -652,7 +653,7 @@ export const rows = [
     },
   },
   {
-    id: "B-20", feature: "Toolbar › Frame on a page you made: a click on the canvas adds a Screen on the page's device, placed at the click", wp: "toolbar 2026-10-09, free frames 2026-10-15",
+    id: "B-20", feature: "Toolbar › Frame on a page you made: a click on the canvas asks Screen (which device) or Frame; Screen › iPhone adds an empty 390 × 844 phone Screen placed at the click (user 2026-10-18)", wp: "toolbar 2026-10-09, free frames 2026-10-15, frame picker 2026-10-18",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame", exact: true }).click();
@@ -660,14 +661,18 @@ export const rows = [
       await page.mouse.move(box.x + box.width / 2, box.y + box.height - 160);
       await page.mouse.down();
       await page.mouse.up();
+      const picker = page.getByRole("menu", { name: "New frame" });
+      await picker.waitFor({ state: "visible", timeout: 5000 });
+      await picker.getByRole("menuitem", { name: /^iPhone\b/ }).first().click();
       await until(async () => (((await pageText(page, id)) ?? "").match(/<Screen\b/g) ?? []).length === 2, { message: "a second Screen" });
       const text = (await pageText(page, id)) ?? "";
-      if ((text.match(/<Screen [^>]*device="phone"/g) ?? []).length !== 2) throw new Error("the new Screen is not on the page's device (phone)");
+      if ((text.match(/<Screen [^>]*device="phone"/g) ?? []).length !== 2) throw new Error("the new Screen is not a phone");
+      if (!/<Screen id="screen-2"[^>]*width=\{390\} height=\{844\}/.test(text)) throw new Error("the new Screen is not 390 × 844");
       if (!/<Screen id="screen-2"[^>]* x=\{-?\d+\} y=\{-?\d+\}/.test(text)) throw new Error("the new Screen has no place (x, y)");
       // Placed at the click: its top-left is where the pointer was.
       const frame = await page.locator('[data-studio-frame="screen:screen-2"]').boundingBox();
       if (!frame || Math.abs(frame.x - (box.x + box.width / 2)) > 3 || Math.abs(frame.y - (box.y + box.height - 160)) > 3) throw new Error(`the Screen is not at the click (${frame ? `${Math.round(frame.x)},${Math.round(frame.y)}` : "none"})`);
-      return "Frame tool click → a second phone Screen at the click";
+      return "Frame tool click → New frame › iPhone → an empty 390 × 844 phone Screen at the click";
     },
   },
   {
@@ -1130,12 +1135,14 @@ export const rows = [
       await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
       const dialog = page.getByRole("dialog", { name: "New page" });
       await dialog.waitFor({ state: "visible", timeout: 5000 });
+      // Empty page is the default (user 2026-10-18: the AppShell is not made by default).
+      if (!(await dialog.getByRole("radio", { name: /Empty page/ }).isChecked())) throw new Error("Empty page is not the default start");
       await dialog.getByText("Empty page", { exact: true }).click();
       await dialog.getByRole("button", { name: "Create page" }).click();
       await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the new page on the canvas" });
       const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
       const text = (await pageText(page, id)) ?? "";
-      if (!/<Screen [^>]*device="desktop" \/>/.test(text)) throw new Error(`the Screen is not empty: ${text.slice(text.indexOf("<Board>"), text.indexOf("</Board>")).replace(/\s+/g, " ")}`);
+      if (!/<Screen [^>]*device="desktop" width=\{1512\} height=\{982\} \/>/.test(text)) throw new Error(`the Screen is not empty: ${text.slice(text.indexOf("<Board>"), text.indexOf("</Board>")).replace(/\s+/g, " ")}`);
       if (/<AppShell|<Stack|<Text|topNavigation|bottomNavigation/.test(text)) throw new Error("the empty page came with an app frame or content");
       const frame = page.locator('[data-studio-frame^="screen:"]').first();
       if (await frame.locator('[data-zen-name]:not([data-zen-name="Screen"])').count()) throw new Error("the empty Screen draws layers");

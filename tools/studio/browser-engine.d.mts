@@ -20,12 +20,12 @@ export function phoneChromeCode(screen: unknown, options?: { mock?: Record<strin
 export function phoneLinkedOf(screen: unknown): Array<"topNavigation" | "bottomNavigation">;
 /** The Screen edits that keep linked phone parts on the desktop header after an edit (`before` null: the page as it opens). */
 export function planPhoneSync(before: string | null, after: string, options?: { components?: Set<string> }): Array<{ loc: string; name: "Screen"; ops: Array<{ op: "setProp"; name: string; value: { kind: "expression"; code: string } } | { op: "removeProp"; name: string } | { op: "insertChild"; prop: string; code: string }>; notes: string[] }>;
-export function newPageText(options?: { title?: string; device?: string; chrome?: boolean; empty?: boolean }): string;
+export function newPageText(options?: { title?: string; device?: string; layout?: string; width?: number; height?: number; chrome?: boolean; empty?: boolean }): string;
 export function pageHeader(text: string): Record<string, unknown> | null;
 export type BoardFrame = { kind: "screen" | "overlay"; id: string; state?: string; title: string; device?: string; x?: number; y?: number; loc: string };
 export function boardFrames(tree: unknown): BoardFrame[];
 export function freeFrameId(base: string, taken: Iterable<string>): string;
-export function frameCode(options: { kind: "screen" | "overlay"; id: string; title?: string; device?: string; chrome?: boolean; empty?: boolean; x?: number; y?: number; width?: number; height?: number; holds?: "dialog" | "sheet" | "panel" | "card" }): string;
+export function frameCode(options: { kind: "screen" | "overlay"; id: string; title?: string; device?: string; layout?: string; chrome?: boolean; empty?: boolean; x?: number; y?: number; width?: number; height?: number; holds?: "dialog" | "sheet" | "panel" | "card" }): string;
 export function protoCode(action: string, arg?: string): string;
 /** The builder page as a JSON document (doc.mjs): the dialect's neutral tree with a stable id on every element. */
 export type PageDoc = { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: unknown };

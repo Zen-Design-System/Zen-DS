@@ -21,7 +21,7 @@ Root-level navigation on mobile: switch between three to five top destinations w
 | Type | `type` | default (bar with a 1px top hairline) · floating (Surface/Glass pill over a Surface fade) · floating-glass (Liquid Glass pill over the same fade) |
 | Theme | `theme` | neutral · accent |
 | Selection | `selection` | floating only: subtle · surface · solid — default surface on Floating, subtle on Floating-Glass (Figma) |
-| Items | `items[] {id, label, icon, selectedIcon, dot} · value · onValueChange` | 56px items, 24px icons; cells cap at 120px and centre (floating cells ≥ 64px) |
+| Items | `items[] {id, label, icon, selectedIcon, dot} · value · onValueChange` | 56px items, 24px icons; cells cap at 120px and centre. Floating and floating-glass tabs are 64–88px on a phone and a tablet alike: the capsule fills the bar while they fit at 88 or less and hugs them at 88 past that, the action at the end |
 | Labels | `showLabels` | Label/Small/Medium (Bold when selected on floating) |
 | Action | `action {icon, label, onClick, theme}` | Default: 48px Primary/Accent item · Floating: 64px floating button |
 | Backdrop | `backdrop` | floating types: surface (Figma fade to Surface/Default) · none (progressive blur only, for photos / video) |

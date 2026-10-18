@@ -1,7 +1,8 @@
 import { Children, cloneElement, createContext, isValidElement, useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactElement, type ReactNode, type RefObject } from "react";
 import { AppShell } from "../../../../components/AppShell";
 import { ZenPortalProvider } from "../../../../components/Portal";
-import { DeviceBars, SAFE_AREAS, type DeviceOs } from "./DeviceBars";
+import { deviceOfScreen, type ScreenDevice } from "../../../../../tools/studio/screen-devices.mjs";
+import { DeviceBars, duoStatusOf, safeAreasOf, type DeviceOs } from "./DeviceBars";
 
 /*
  * The builder page runtime (spec docs/research/studio-builder-pages-spec-2026-10-06.md §2, §3 2d): what
@@ -39,6 +40,10 @@ export const ProtoContext = createContext<ProtoActions>(inert);
  *  phone and tablet Screens simulate, and the safe areas they publish. iOS by default. */
 export const PageOsContext = createContext<DeviceOs>("ios");
 export const pageOsOf = (header: Record<string, unknown> | null | undefined): DeviceOs => (header?.os === "android" ? "android" : "ios");
+
+/** The device Present and Play preview a Screen on (user, 2026-10-18: a device simulator): the Screen takes its device
+ *  type and layout, its bars and safe areas, and its height. `null` (the canvas, a typed size): the Screen's own. */
+export const SimulatedDeviceContext = createContext<ScreenDevice | null>(null);
 
 /** The item a choice control hands its handler, as the key of a per-item action: the value itself, or the item's id. */
 const itemKey = (choice: unknown): string => {
@@ -114,16 +119,25 @@ function withScrollLink(topNavigation: ReactNode, scrollRef: RefObject<HTMLEleme
   return cloneElement(topNavigation as ReactElement<{ scrollRef?: RefObject<HTMLElement | null> }>, { scrollRef });
 }
 
-export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width: _width, height, ...rest }: ScreenProps) {
+export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, ...rest }: ScreenProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const presentScroll = usePresentScroller(rootRef);
+  // The hardware: the device Present or Play simulates, else the one the Screen is drawn for (its size, its type's own).
+  const simulated = useContext(SimulatedDeviceContext);
+  const own = deviceOfScreen(drawnDevice, layout, width, height);
+  const hardware = simulated ?? own;
+  const device: PageDevice = simulated?.device ?? drawnDevice;
   const phone = device === "phone";
-  // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone).
+  // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone). An
+  // iPhone Duo is iOS whatever the page's OS.
+  const duo = duoStatusOf(hardware?.bars);
   const os = useContext(PageOsContext);
-  const bars = device === "desktop" ? null : SAFE_AREAS[os][device];
+  const barsOs: DeviceOs = duo ? "ios" : os;
+  const bars = device === "desktop" ? null : safeAreasOf(barsOs, device, duo);
   const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
-  const drawn = typeof height === "number" ? ({ "--studio-screen-height": `${height}px` } as CSSProperties) : null;
-  const active = screenLayoutOf(device, layout);
+  const tall = simulated ? simulated.height : height;
+  const drawn = typeof tall === "number" ? ({ "--studio-screen-height": `${tall}px` } as CSSProperties) : null;
+  const active = screenLayoutOf(device, simulated ? simulated.layout : layout);
   // The sides the content keeps clear itself: a Top / Bottom Navigation (the mobile layout's) pads by the safe area.
   const inset = bars ? [!(active === "mobile" && topNavigation) && "top", !(active === "mobile" && bottomNavigation) && "bottom"].filter(Boolean).join(" ") : "";
   const desktop = active === "desktop";
@@ -140,13 +154,14 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
       data-screen={id}
       data-screen-state={state}
       data-device={device}
+      data-hardware={own?.id}
       data-layout={active}
       data-chrome={chrome ? "" : undefined}
       data-canvas={canvas === "default" ? undefined : canvas}
       data-breakpoint={device === "desktop" ? undefined : device === "phone" ? "mobile" : "tablet"}
       data-density={phone ? "comfortable" : undefined}
       data-typography={phone ? "mobile" : undefined}
-      data-os={bars ? os : undefined}
+      data-os={bars ? barsOs : undefined}
       data-inset={inset || undefined}
       style={safe || drawn ? { ...safe, ...drawn, ...style } : style}
       aria-label={title}
@@ -161,15 +176,15 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
         </>
       ) : (
         <div className="studio-builder-screen__main">
-          {pinBars ? <div className="studio-builder-screen__pin" data-edge="top"><DeviceBars os={os} device={device as "phone" | "tablet"} part="status" /></div> : null}
+          {pinBars ? <div className="studio-builder-screen__pin" data-edge="top"><DeviceBars os={barsOs} device={device as "phone" | "tablet"} duo={duo} part="status" /></div> : null}
           {topNavigation ? <div className="studio-builder-screen__top">{withScrollLink(topNavigation, presentScroll)}</div> : null}
           <div className="studio-builder-screen__content">{content}</div>
           {bottomNavigation ? <div className="studio-builder-screen__bottom">{bottomNavigation}</div> : null}
-          {pinBars ? <div className="studio-builder-screen__pin" data-edge="bottom"><DeviceBars os={os} device={device as "phone" | "tablet"} part="home" /></div> : null}
+          {pinBars ? <div className="studio-builder-screen__pin" data-edge="bottom"><DeviceBars os={barsOs} device={device as "phone" | "tablet"} duo={duo} part="home" /></div> : null}
         </div>
       )}
       {/* Last, beside the app (never inside __main, where the Screen's slots are found; Present and Play pin them there). */}
-      {bars && device !== "desktop" && !pinBars ? <DeviceBars os={os} device={device} /> : null}
+      {bars && device !== "desktop" && !pinBars ? <DeviceBars os={barsOs} device={device} duo={duo} /> : null}
     </div>
   );
 }
