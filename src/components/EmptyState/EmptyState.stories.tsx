@@ -8,7 +8,7 @@ const meta = {
   title: "Components/EmptyState",
   component: EmptyState,
   tags: ["autodocs"],
-  parameters: { layout: "centered", docs: { description: { component: "Figma Empty-State (6085:25796): placeholder illustration, Heading/4 title, caption and full-width Primary + Tertiary CTAs. Size Medium (240 illustration) when it fills a page, Small (120) in a widget, card or section. Inside a ChartCard the title steps one level below the card title in Body/Extra/Bold and the size is Small." } } },
+  parameters: { layout: "centered", docs: { description: { component: "Figma Empty-State (16339:135): placeholder illustration, Heading/4 title, caption and full-width Primary + Tertiary CTAs. Size Medium (240 illustration) when it fills a page, Small (200) in a widget, card or section. Inside a ChartCard the title steps one level below the card title in Body/Extra/Bold and the size is Small." } } },
   args: { title: "Empty State Title", children: "Dummy caption for empty state here.", primaryAction: { label: "Call to Action" }, secondaryAction: { label: "Call to Action" } },
   argTypes: { headingLevel: { control: "inline-radio", options: [2, 3, 4, 5, 6] }, size: { control: "inline-radio", options: ["md", "sm"] } },
 } satisfies Meta<typeof EmptyState>;
@@ -16,7 +16,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
-/** Small: the 120 illustration for an Empty State in a widget, card, table, tab panel or side panel. */
+/** Small: the 200 illustration for an Empty State in a widget, card, table, tab panel or side panel. */
 export const Small: Story = { args: { size: "sm", secondaryAction: undefined } };
 
 /** Inside a ChartCard: Small by default, h4 under the h3 card title, Body/Extra/Bold so it is not larger than the Heading/Subheading card title. */

@@ -37,6 +37,9 @@ type PresentBarProps = {
   onViewportChange?: (viewport: PresentViewport) => void;
   /** How far a fixed viewport is scaled down to fit the window (1 = 100%). */
   viewportScale?: number;
+  /** Device frame: the hardware drawn round a device's screen (presentViewport.tsx DeviceFrame), and its setter. */
+  framed?: boolean;
+  onFramedChange?: (framed: boolean) => void;
   /** The width Auto shows (the frame's, or the Play screen's device): the W field's placeholder, and W when only H is typed. */
   autoWidth?: number;
 };
@@ -45,11 +48,11 @@ type PresentBarProps = {
  * Present's and Play's controls, a browser's toolbar across the top of the window (user, 2026-10-16: the page loads in
  * the frame below it, so the bar never covers the screen): navigation at the start (Play's Back and Restart, ‹ 3 / 7 ›
  * between the page's example frames), the screen's name in an address pill in the middle, then light/dark, the viewport
- * (Auto, Desktop, Tablet, Phone or a typed W × H), the other preview modes and Exit + Esc at the end. Viewport and Modes
+ * (Auto, a device of screen-devices.mjs or a typed W × H), the other preview modes and Exit + Esc at the end. Viewport and Modes
  * open a panel below their button (the presented screen's own: the canvas keeps its modes and frame widths). The bar is
  * in the Studio chrome's modes; the caller lays the page out under it (.studio-present__page).
  */
-export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, onExit, index = 0, count = 0, onStep, leading, modesScope = "this presentation only", viewport = null, onViewportChange, viewportScale = 1, autoWidth = 0 }: PresentBarProps) {
+export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, onExit, index = 0, count = 0, onStep, leading, modesScope = "this presentation only", viewport = null, onViewportChange, viewportScale = 1, autoWidth = 0, framed, onFramedChange }: PresentBarProps) {
   const { phone } = usePanelLayout();
   const [panelOpen, setPanelOpen] = useState<"modes" | "viewport" | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -123,7 +126,7 @@ export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, o
     </div>
   ) : panelOpen === "viewport" && onViewportChange ? (
     <div ref={panelRef} id={`${id}-panel`} className="studio-present-bar__panel" style={panelStyle} role="dialog" aria-labelledby={`${id}-viewport-title`}>
-      <ViewportFields idPrefix={`${id}-viewport`} viewport={viewport} onChange={onViewportChange} scale={viewportScale} autoWidth={autoWidth} />
+      <ViewportFields idPrefix={`${id}-viewport`} viewport={viewport} onChange={onViewportChange} scale={viewportScale} autoWidth={autoWidth} framed={framed} onFramedChange={onFramedChange} />
     </div>
   ) : null;
 

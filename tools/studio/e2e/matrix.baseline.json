@@ -68,6 +68,10 @@
     "B-42": "works",
     "B-43": "works",
     "B-44": "works",
+    "B-45": "works",
+    "B-46": "works",
+    "BL-01": "works",
+    "BL-02": "works",
     "D-01": "works",
     "D-02": "works",
     "D-03": "works",
@@ -98,10 +102,6 @@
     "DR-13": "works",
     "DR-14": "works",
     "DR-15": "works",
-    "VA-01": "works",
-    "VA-02": "works",
-    "VA-03": "works",
-    "VA-04": "works",
     "DV-01": "works",
     "DV-02": "works",
     "DV-03": "works",
@@ -250,6 +250,7 @@
     "PT-12": "works",
     "PT-13": "works",
     "PT-14": "works",
+    "PT-15": "works",
     "S-01": "works",
     "S-02": "works",
     "S-03": "works",
@@ -328,8 +329,10 @@
     "ST-25": "works",
     "ST-26": "works",
     "ST-27": "works",
-    "BL-01": "works",
-    "BL-02": "works"
+    "VA-01": "works",
+    "VA-02": "works",
+    "VA-03": "works",
+    "VA-04": "works"
   },
   "flaky": {}
 }

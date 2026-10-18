@@ -1,12 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
+import { Button } from "../../../components/Button";
+import { Icon } from "../../../components/Icon";
 import { NumberField } from "../../../components/Input";
-import { Segmented } from "../../../components/Segmented";
 import { Text } from "../../../components/Text";
+import { Toggle } from "../../../components/Toggle";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { fullScreenEscapeOwners } from "../../PlatformFullScreen";
-import { DEVICE_WIDTH, type PageDevice } from "../builder/proto/runtime";
+import { deviceOfSize, deviceSize, SCREEN_DEVICES, screenDevice, type ScreenDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { InspectorRow } from "../inspector/Section";
+import { RowSelectField } from "../inspector/rowFields";
 import { ChromeScope } from "../shell/ChromeScope";
 import { FRAME_MAX_WIDTH, FRAME_MIN_WIDTH } from "./frameLayout";
 
@@ -16,41 +20,45 @@ import { FRAME_MAX_WIDTH, FRAME_MIN_WIDTH } from "./frameLayout";
  * in a box of that many CSS px. The box is the screen's overlay root (Dialog, SidePanel and Menu open inside it, at its
  * width) and holds its fixed layers; it scales down as a whole when the window is smaller, never up. Its right edge,
  * bottom edge and corner drag to a free size (ViewportHandles).
+ *
+ * The device simulator (user, 2026-10-18): the devices are tools/studio/screen-devices.mjs's, the ones a Screen is made
+ * for. A builder Screen previewed on one takes its device type, layout, system bars and safe areas
+ * (SimulatedDeviceContext); Rotate turns it, Fold / Unfold switches the iPhone Duo's display, and Device frame draws the
+ * hardware around the screen: a bezel concentric with the screen's corners and the Duo's hinge.
  */
 
 /** A fixed viewport in CSS px (`height: null` fills the window's height), or `null` for Auto. */
 export type PresentViewport = { width: number; height: number | null } | null;
-export type ViewportPresetId = "auto" | PageDevice | "custom";
 
-/** The device presets: Play's device widths (DEVICE_WIDTH) at a common screen height. */
-export const VIEWPORT_PRESETS: ReadonlyArray<{ id: PageDevice; label: string; icon: IconName; width: number; height: number }> = [
-  { id: "desktop", label: "Desktop", icon: "icon-monitor-01-line", width: DEVICE_WIDTH.desktop, height: 900 },
-  { id: "tablet", label: "Tablet", icon: "icon-tablet-line", width: DEVICE_WIDTH.tablet, height: 1024 },
-  { id: "phone", label: "Phone", icon: "icon-mobile-line", width: DEVICE_WIDTH.phone, height: 844 },
-];
-
-export function viewportPreset(viewport: PresentViewport): ViewportPresetId {
-  if (!viewport) return "auto";
-  return VIEWPORT_PRESETS.find((preset) => preset.width === viewport.width && preset.height === viewport.height)?.id ?? "custom";
-}
+/** The device of a viewport's size, or undefined (Auto, a typed size, a Fill height). */
+export const viewportDevice = (viewport: PresentViewport): ScreenDevice | undefined => (viewport && viewport.height !== null ? deviceOfSize(viewport.width, viewport.height) : undefined);
+/** A device's viewport. */
+export const deviceViewport = (device: ScreenDevice | undefined): PresentViewport => (device ? { width: device.width, height: device.height } : null);
 
 /** The bar's label and icon: "Viewport" for Auto, the device's name, or the typed size ("1200 × 800", "1200 × Fill"). */
 export function viewportButton(viewport: PresentViewport): { label: string; icon: IconName } {
-  const preset = VIEWPORT_PRESETS.find((entry) => entry.id === viewportPreset(viewport));
-  if (preset) return { label: preset.label, icon: preset.icon };
+  const device = viewportDevice(viewport);
+  if (device) return { label: device.label, icon: device.icon as IconName };
   if (!viewport) return { label: "Viewport", icon: "icon-maximize-01-line" };
   return { label: `${viewport.width} × ${viewport.height ?? "Fill"}`, icon: "icon-scale-01-line" };
 }
 
-/** `width` and `height` are the fixed box's CSS px (a Fill height is the window's room at this scale). */
-type ViewportFit = { mode: "auto" | "fixed"; scale: number; width?: number; height?: number; fitStyle?: CSSProperties; boxStyle?: CSSProperties };
+/** The bezel Device frame draws round a device's screen, in its CSS px. */
+export const DEVICE_BEZEL = 12;
+/** The bezel a viewport shows: a device with rounded corners (not Desktop, not a typed size) while Device frame is on. */
+export const bezelOf = (device: ScreenDevice | undefined, framed: boolean) => (framed && device && device.radius > 0 ? DEVICE_BEZEL : 0);
+
+/** `width` and `height` are the fixed box's CSS px (a Fill height is the window's room at this scale); `bezel` the
+ *  device frame's, which takes room round the box. */
+type ViewportFit = { mode: "auto" | "fixed"; scale: number; width?: number; height?: number; bezel: number; fitStyle?: CSSProperties; boxStyle?: CSSProperties };
 
 /**
  * Lays a fixed viewport out in the stage: `fitStyle` sizes the wrapper that takes the scaled box's room in the stage's
  * flow, `boxStyle` the box itself (its CSS px, scaled from its top-left corner). The room is the page under the bar (the
- * stage's parent, .studio-present__scroll) less the stage's padding.
+ * stage's parent, .studio-present__scroll) less the stage's padding. A device frame (`bezel`, CSS px of the box) scales
+ * with it and keeps its room on every side; the box then takes the screen's corner `radius`.
  */
-export function useViewportFit(viewport: PresentViewport, stageRef: RefObject<HTMLElement | null>): ViewportFit {
+export function useViewportFit(viewport: PresentViewport, stageRef: RefObject<HTMLElement | null>, bezel = 0, radius = 0): ViewportFit {
   const fixed = Boolean(viewport);
   const [room, setRoom] = useState<{ width: number; height: number } | null>(null);
   useLayoutEffect(() => {
@@ -69,15 +77,16 @@ export function useViewportFit(viewport: PresentViewport, stageRef: RefObject<HT
     observer.observe(layer);
     return () => observer.disconnect();
   }, [fixed, stageRef]);
-  if (!viewport || !room) return { mode: "auto", scale: 1 };
-  const scale = Math.min(1, room.width / viewport.width, viewport.height ? room.height / viewport.height : 1);
+  if (!viewport || !room) return { mode: "auto", scale: 1, bezel: 0 };
+  const scale = Math.min(1, room.width / (viewport.width + 2 * bezel), viewport.height ? room.height / (viewport.height + 2 * bezel) : 1);
   const height = viewport.height ?? room.height / scale;
   return {
     mode: "fixed",
     scale,
     width: viewport.width,
     height,
-    fitStyle: { width: Math.floor(viewport.width * scale), height: Math.floor(height * scale) },
+    bezel,
+    fitStyle: { width: Math.floor(viewport.width * scale), height: Math.floor(height * scale), ...(bezel ? { margin: bezel * scale, "--studio-device-screen-radius": `${radius}px` } : null) } as CSSProperties,
     boxStyle: { width: viewport.width, height, transform: scale < 1 ? `scale(${scale})` : undefined },
   };
 }
@@ -86,29 +95,33 @@ const clampSize = (value: number) => Math.min(FRAME_MAX_WIDTH, Math.max(FRAME_MI
 const sizeOf = (value: number | null) => (value !== null && value >= FRAME_MIN_WIDTH && value <= FRAME_MAX_WIDTH ? value : null);
 
 /**
- * The Viewport panel of the Present bar: Auto · Desktop · Tablet · Phone, then W and H in CSS px (a size no preset has
- * is a custom one; an empty H fills the window's height). A typed number applies once it is in range; Enter or leaving the
- * field clamps it.
+ * The Viewport panel of the Present bar: Device (Auto or one of screen-devices.mjs), W and H in CSS px (a size no device
+ * has is a custom one; an empty H fills the window's height), then Rotate, Fold / Unfold (an iPhone Duo) and Device
+ * frame. A typed number applies once it is in range; Enter or leaving the field clamps it.
  */
-export function ViewportFields({ idPrefix, viewport, onChange, scale, autoWidth }: { idPrefix: string; viewport: PresentViewport; onChange: (viewport: PresentViewport) => void; scale: number; autoWidth: number }) {
-  const preset = viewportPreset(viewport);
+export function ViewportFields({ idPrefix, viewport, onChange, scale, autoWidth, framed, onFramedChange }: { idPrefix: string; viewport: PresentViewport; onChange: (viewport: PresentViewport) => void; scale: number; autoWidth: number; framed?: boolean; onFramedChange?: (framed: boolean) => void }) {
+  const device = viewportDevice(viewport);
+  const turned = screenDevice(device?.turn);
+  const folded = screenDevice(device?.fold);
   return (
     <>
       <div className="studio-modes__head">
         <Text as="p" id={`${idPrefix}-title`} textStyle="Body/Small/Bold">Viewport</Text>
         {viewport ? <Text as="p" textStyle="Caption/Regular" tone="light">{viewport.width} × {viewport.height ?? "Fill"} at {Math.round(scale * 100)}%</Text> : null}
       </div>
-      <Segmented
-        aria-label="Device"
-        size="sm"
-        fullWidth
-        value={preset}
-        onValueChange={(next) => {
-          const device = VIEWPORT_PRESETS.find((entry) => entry.id === next);
-          onChange(device ? { width: device.width, height: device.height } : null);
-        }}
-        options={[{ id: "auto", label: "Auto" }, ...VIEWPORT_PRESETS.map((entry) => ({ id: entry.id, label: entry.label }))]}
-      />
+      <InspectorRow label="Device" name="device">
+        <RowSelectField
+          id={`${idPrefix}-device`}
+          size="small"
+          value={device?.id ?? (viewport ? "custom" : "auto")}
+          onValueChange={(next) => onChange(deviceViewport(screenDevice(next)))}
+          options={[
+            { value: "auto", label: "Auto" },
+            ...SCREEN_DEVICES.map((entry) => ({ value: entry.id, label: entry.label, meta: deviceSize(entry) })),
+            ...(viewport && !device ? [{ value: "custom", label: "Custom", meta: `${viewport.width} × ${viewport.height ?? "Fill"}`, disabled: true }] : []),
+          ]}
+        />
+      </InspectorRow>
       <div className="studio-viewport-size">
         <NumberField
           aria-label="Viewport width"
@@ -137,8 +150,30 @@ export function ViewportFields({ idPrefix, viewport, onChange, scale, autoWidth 
           }}
         />
       </div>
+      {turned || folded ? (
+        <div className="studio-viewport-device">
+          {turned ? <Button appearance="flat" level="primary" size="sm" startIcon={<Icon name="icon-refresh-cw-01-line" decorative />} onClick={() => onChange(deviceViewport(turned))}>Rotate</Button> : null}
+          {folded ? <Button appearance="flat" level="primary" size="sm" startIcon={<Icon name={device?.foldAt ? "icon-book-closed-line" : "icon-book-open-line"} decorative />} onClick={() => onChange(deviceViewport(folded))}>{device?.foldAt ? "Fold" : "Unfold"}</Button> : null}
+        </div>
+      ) : null}
+      {onFramedChange ? <Toggle label="Device frame" checked={Boolean(framed)} disabled={!device || device.radius === 0} onCheckedChange={onFramedChange} /> : null}
     </>
   );
+}
+
+/**
+ * The hardware round a device's screen while Device frame is on (`part` body: the bezel under the box; fold: the
+ * iPhone Duo's hinge over it). In the fit wrapper, in window px: the bezel is concentric with the screen's corners
+ * (its radius is the screen's plus its width), the hinge a soft band where Pattern/AppShell/Duo puts Fold.
+ */
+export function DeviceFrame({ device, fit, part }: { device: ScreenDevice | undefined; fit: ViewportFit; part: "body" | "fold" }) {
+  if (!device || !fit.bezel || fit.mode !== "fixed") return null;
+  const px = (value: number) => `${value * fit.scale}px`;
+  if (part === "body") return <span className="studio-device-frame" data-theme="light" aria-hidden="true" style={{ "--studio-device-bezel": px(fit.bezel), "--studio-device-radius": px(device.radius + fit.bezel) } as CSSProperties} />;
+  const hinge = device.foldAt;
+  if (!hinge) return null;
+  const at = { "--studio-fold-at": px(hinge.at), "--studio-fold-size": px(hinge.size) } as CSSProperties;
+  return <span className="studio-device-fold" data-axis={hinge.axis} aria-hidden="true" style={at} />;
 }
 
 /** What owns Escape in Present and Play besides the full-screen owners: the bar's Viewport or Modes panel (Escape closes

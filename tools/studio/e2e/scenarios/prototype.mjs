@@ -474,4 +474,47 @@ export const rows = [
       }
     },
   },
+  {
+    id: "PT-15", feature: "Device simulator (user 2026-10-18: \"làm simulator cho thiết bị khi preview trong Studio\"): Present on an iPhone Screen shows it on the iPhone in its device frame; Viewport › Device › iPad, portrait lays the same Screen out as a tablet with the iPad bars; Device frame off drops the hardware; iPhone Duo, open shows the Duo's side status and the fold", wp: "simulator 2026-10-18",
+    async run(ctx) {
+      const { page } = await newPage(ctx);
+      await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame", exact: true }).click();
+      const box = await page.locator(".studio-viewport").boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height - 160);
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.getByRole("menu", { name: "New frame" }).getByRole("menuitem", { name: /^iPhone\b/ }).first().click();
+      await page.locator('[data-studio-frame="screen:screen-2"]').waitFor({ state: "visible", timeout: 5000 });
+      // The new Screen is selected: its Present button (Inspector › Frame).
+      await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      const present = page.locator(".studio-present");
+      await present.waitFor({ state: "visible", timeout: 5000 });
+      const screen = present.locator(".studio-builder-screen").first();
+      await until(async () => (await screen.getAttribute("data-device")) === "phone" && (await screen.getAttribute("data-hardware")) === "iphone", { message: "Present shows the iPhone Screen as a phone" });
+      await present.locator(".studio-device-frame").waitFor({ state: "visible", timeout: 5000 });
+      await present.locator('.studio-device-status[data-device="phone"]').waitFor({ state: "attached", timeout: 5000 });
+      const pick = async (label) => {
+        const trigger = present.locator('[id$="-viewport-device-trigger"]');
+        await trigger.waitFor({ state: "visible", timeout: 5000 });
+        await trigger.click();
+        await page.getByRole("option", { name: new RegExp(`^${label}`) }).first().click();
+      };
+      await present.getByRole("button", { name: /^Viewport:/ }).click();
+      await pick("iPad, portrait");
+      await until(async () => (await screen.getAttribute("data-device")) === "tablet" && (await screen.getAttribute("data-layout")) === "mobile", { message: "iPad, portrait lays the Screen out as a portrait tablet" });
+      await present.locator('.studio-device-status[data-device="tablet"]').waitFor({ state: "attached", timeout: 5000 });
+      const fit = await present.locator(".studio-present__viewport").boundingBox();
+      if (!fit || Math.abs(fit.width / fit.height - 744 / 1133) > 0.01) throw new Error(`the iPad viewport is not 744 × 1133 (${fit ? `${Math.round(fit.width)} × ${Math.round(fit.height)}` : "none"})`);
+      await present.getByRole("switch", { name: "Device frame" }).click();
+      await until(async () => (await present.locator(".studio-device-frame").count()) === 0, { message: "Device frame off drops the hardware" });
+      await present.getByRole("switch", { name: "Device frame" }).click();
+      await pick("iPhone Duo, open");
+      await present.locator('.studio-device-duo[data-status="side"]').waitFor({ state: "attached", timeout: 5000 });
+      await present.locator(".studio-device-fold").waitFor({ state: "attached", timeout: 5000 });
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await present.waitFor({ state: "detached", timeout: 5000 });
+      return "Present: iPhone in its frame → iPad, portrait (tablet, mobile layout, 744 × 1133) → frame off/on → Duo open (side status, fold)";
+    },
+  },
 ];

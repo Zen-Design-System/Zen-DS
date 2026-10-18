@@ -1172,7 +1172,7 @@ export const rules = [
     summary: "A way out of an empty result (Clear filters, Clear search, Reset) is secondaryAction (Tertiary); primaryAction is the next step (\"Create project\").",
     check: ({ attrs }) => { const label = value(attrs, "primaryAction")?.match(/label:\s*["'`]([^"'`]*)["'`]/)?.[1]; return Boolean(label) && /^(clear|reset|show all)\b/i.test(label) && `puts "${label}" in primaryAction — a way out of an empty result is secondaryAction (Tertiary); keep primaryAction for the next step.`; } },
   { id: "empty-state/keep-illustration", components: ["EmptyState"], severity: "warn", allow: "no-illustration", guideline: "docs/guidelines/empty-state.md",
-    summary: "Keep the illustration: where space is short use size=\"sm\" (the 120 illustration), never illustration={false}.",
+    summary: "Keep the illustration: where space is short use size=\"sm\" (the 200 illustration), never illustration={false}.",
     check: ({ attrs }) => /(^|\s)illustration=\{\s*false\s*\}/.test(attrs) && 'hides the illustration (illustration={false}) — keep it; in a widget, card or section use size="sm".' },
   { id: "empty-state/small-in-box", components: ["EmptyState"], severity: "warn", allow: "medium-in-box", guideline: "docs/guidelines/empty-state.md",
     summary: "Size Medium (240) is for an Empty State that fills a page; in a Card, ChartCard, MetricCard, ListBox, Sidebar, Popover, Dialog, Modal Form, Side Panel or Bottom Sheet use size=\"sm\" (ChartCard sets it for you).",

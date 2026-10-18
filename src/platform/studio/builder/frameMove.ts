@@ -5,6 +5,7 @@ import { canvasApi, getSafeBox, getViewport, getViewportBox, notifyCanvas, panBy
 import { canEdit, studioStore } from "../store";
 import { startDraw } from "../draw/drawTool";
 import { addFrame } from "./proto/addFrame";
+import { openFramePicker } from "./FramePicker";
 import { copyFrame, moveFrames } from "./frameEdit";
 import { snapBox, SNAP_PX, type FrameBox, type FramePlace, type SnapGuide } from "./render/framePlace";
 
@@ -318,7 +319,7 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
 
 /** A drawn Screen's device: the narrowest whose layout its width reads as (a phone up to 600, a tablet up to 1024). */
 const deviceFor = (width: number) => (width < 600 ? "phone" : width < 1024 ? "tablet" : "desktop");
-const FRAME_MIN = 120;
+const FRAME_MIN = 100;
 const FRAME_MAX = 4096;
 /** The chrome over the canvas (toolbar, side panels, their menus and tooltips) keeps its own presses (edit/place.ts). */
 const CHROME = ".studio-chrome, .studio-chrome-portal";
@@ -429,8 +430,8 @@ export function armFrameDraw(localPage: string): boolean {
         swallowClick();
         studioStore.setState({ tool: "select" });
         if (!dragged) {
-          // A click: a Screen on the page's device, its top-left at the point (Figma's click with the Frame tool).
-          void addFrame(localPage, "screen", { place: { x: Math.round(start.x), y: Math.round(start.y) } });
+          // A click: pick what it makes at the point (FramePicker.tsx): a Screen for a device, or a plain Frame.
+          openFramePicker(up.clientX, up.clientY, localPage, { x: Math.round(start.x), y: Math.round(start.y) });
           return;
         }
         const width = Math.min(FRAME_MAX, Math.max(FRAME_MIN, box.width));

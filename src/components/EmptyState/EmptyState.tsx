@@ -42,7 +42,7 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   children?: ReactNode;
   /**
    * Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main
-   * content (first run, a page with no results, no access). `sm` (120): it fills one region of a page that still shows
+   * content (first run, a page with no results, no access). `sm` (200): it fills one region of a page that still shows
    * other content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside
    * a ChartCard (set for you).
    */
@@ -65,13 +65,13 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
 }
 
 /**
- * Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon.
- * Medium 240 with a Popular/2XLarge icon; Small 120, the same art at half scale with a Popular/Medium icon and the
- * same 1px grid and 2px rings.
+ * Figma Empty-State/Illustration/Placeholder (16339:69): a faded grid, a dashed and a solid circle, and an icon.
+ * Size=Medium (6085:25816) 240 with a 44 icon (Popular/2XLarge); Size=Small (16339:53) 200, the same art at 5/6 scale
+ * with a 36 icon (Popular/XLarge) and the same 1px grid and 2px rings. Icon Content/Placeholder.
  */
 export function EmptyStateIllustration({ icon = "icon-user-circle-line", size: sizeProp = "md", ref }: {
   icon?: IconName | ReactElement;
-  /** `md` 240 (default) · `sm` 120. */
+  /** `md` 240 (default) · `sm` 200. */
   size?: EmptyStateSize;
   /** The root `<span>` element. */
   ref?: Ref<HTMLSpanElement>;
@@ -86,8 +86,8 @@ export function EmptyStateIllustration({ icon = "icon-user-circle-line", size: s
           {[60, 100, 140, 180].map((y) => <line key={`h${y}`} x1={20} x2={220} y1={y} y2={y} />)}
         </g>
         <circle className="zen-empty-state__ghost" cx={90} cy={110} r={49} />
-        <circle className="zen-empty-state__ring" cx={146} cy={120} r={49} />
-        <circle className="zen-empty-state__well" cx={146} cy={120} r={40} />
+        <circle className="zen-empty-state__ring" cx={149} cy={130} r={49} />
+        <circle className="zen-empty-state__well" cx={149} cy={130} r={40} />
       </svg>
       <span className="zen-empty-state__icon">{nest("Icon", renderIcon(icon))}</span>
     </span>
@@ -103,7 +103,7 @@ type EmptyStateHeadingLevel = NonNullable<EmptyStateProps["headingLevel"]>;
 export const EmptyStateCardContext = createContext<EmptyStateHeadingLevel | undefined>(undefined);
 
 /**
- * Figma Empty-State (6085:25796): 320px centred column — illustration (240, or 120 at `size="sm"`), gap XSmall, then the content wrapper
+ * Figma Empty-State (16339:135; Size=Medium 6085:25796): 320px centred column — illustration (240, or 200 at `size="sm"`), gap XSmall, then the content wrapper
  * (gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.
  * Inside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or
  * outsizes the card title (see `headingLevel`).

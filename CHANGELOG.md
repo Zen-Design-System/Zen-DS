@@ -17,6 +17,18 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
+  "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
+  the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.
+- BottomNavigation `floating` and `floating-glass` (phone and tablet, user 2026-10-18: "min 64 max 88"): every tab,
+  the selected one too, is 64–88 wide. The capsule fills the bar while its tabs fit at 88 or less, then hugs them at 88.
+- Zen Studio, Figma's frame workflow (user 2026-10-18):
+  - A click with the Frame tool asks for a Screen (iPhone, iPad portrait or landscape, iPhone Duo, Desktop: an empty
+    Screen of that size) or a plain Frame (100 × 100).
+  - Screen › Size switches between the same presets in one edit.
+  - New page starts as an empty page.
+  - Present and Play simulate the device a Screen is drawn for: Viewport › Device takes the Screen's type, layout and
+    system bars, with Rotate, Fold / Unfold on the Duo and a Device frame toggle.
 - Zen Studio speaks Figma (F0 of docs/research/studio-figma-design-parity-2026-10-18.md): ⌘K opens Actions, ⌘F finds
   a layer, ⇧⌘K is Place image/video, Enter selects all children, P is no longer Play (Present is ⌥⌘↵ and the Present
   button), and Figma keys Studio lacks (⌘R, ⌘G, ⇧⌘L, ⌘E, ⌘Y, ⇧⌘C, K, S, P, C, I, N…) say "isn't in Zen Studio yet"

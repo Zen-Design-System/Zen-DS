@@ -2878,8 +2878,18 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     "toggles": []
   },
   "EmptyState": {
-    "figma": "6085:25796",
-    "own": [],
+    "figma": "16339:135",
+    "own": [
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
+      }
+    ],
     "toggles": [
       {
         "label": "CTA",

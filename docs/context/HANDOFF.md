@@ -67,7 +67,7 @@ Last updated: 2026-10-17.
   Tablet portrait × Top × Bottom), `Pattern/AppShell/Duo`, Pane, `Action-Bar/Mobile`; Header/AppShell gained a Sections
   slot (rows under the main row, code AppShell sections); status bars have Style Default · Black Overlay · White Overlay.
   Templates rebuilt on it (user: archive the old screens, leave Ecommerce and Logistic): HR-Platform 22, Performance 21,
-  Finance 10 and Social 17 done (originals in each page's "Archive · before AppShell" section). Empty-State has Size Medium (240) | Small (200) in Figma; code EmptyState sm is still 120. Studio phase 1 + device simulator in worktree ../Zen-DS-appshell (code, not yet QA'd). Detail
+  Finance 10 and Social 17 done (originals in each page's "Archive · before AppShell" section). Empty-State has Size Medium (240) | Small (200) in Figma and code (EmptyState sm, Studio Size, push/pull). Studio phase 1 + device simulator and the floating bottom-nav fit: branch zen/feat/appshell-frames-20261018 (QA PASS, PR next). Detail
   in session-log-2026-10-18.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:

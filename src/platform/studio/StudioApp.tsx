@@ -50,6 +50,7 @@ import { openQuickActions } from "./edit/quick/state";
 import { useFigmaNotYet } from "./edit/figmaNotYet";
 import { PAGE_SEARCH_ID, PagesPanel } from "./shell/PagesPanel";
 import { CanvasMenu } from "./shell/CanvasMenu";
+import { FramePicker } from "./builder/FramePicker";
 import { DraftsDialog } from "./shell/DraftsControls";
 import { ParityDialog } from "./mainComponent/ParityDialog";
 import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
@@ -679,6 +680,7 @@ export function StudioApp() {
           <ParityDialog />
           <BindingDiffDialog />
           <CanvasMenu />
+          <FramePicker />
         </ChromeScope>
         {/* Popovers, menus, tooltips and dialogs of the chrome: above the canvas and its overlays. */}
         <div ref={setChromePortal} className="studio-chrome-portal" {...chromeAttributes} />
