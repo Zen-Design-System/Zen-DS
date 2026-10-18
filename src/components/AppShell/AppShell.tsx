@@ -12,7 +12,7 @@ import { VisuallyHidden } from "../VisuallyHidden";
 import { useZen, useZenLabels } from "../_shared/zen-context";
 import "../Motion/motion.css";
 import "./app-shell.css";
-import { SidebarShellContext } from "../_shared/sidebar-shell";
+import { SidebarShellContext, type SidebarRegistration, type SidebarShellState } from "../_shared/sidebar-shell";
 import { NotificationDot } from "../_shared/notification-dot";
 import { InlineOverlayContext } from "../_shared/overlay";
 import "../Icon/core";
@@ -327,26 +327,42 @@ export function AppShell({
   const floatingHidden = useHideOnScroll(rootEl, Boolean(floatingAction) && phone);
   const sidebarWidth = useElementSize(sidebar && !compact ? sidebarEl : null, "width");
 
-  // Sidebar rail. A Zen Sidebar gets `collapsed` from the shell; one with its own onCollapsedChange keeps its header control.
+  // Sidebar rail. A Zen Sidebar gets `collapsed` from the shell; one with its own onCollapsedChange keeps its header
+  // control and the shell's requests go to it. A Sidebar passed straight in is read from its props; one deeper (wrapped
+  // in an app component, a Stack, a Studio component) tells the shell the same through SidebarShellContext `register`,
+  // before the first paint.
+  const [registered, setRegistered] = useState<SidebarRegistration | null>(null);
+  const register = useCallback((entry: SidebarRegistration) => {
+    setRegistered(entry);
+    return () => setRegistered((current) => (current === entry ? null : current));
+  }, []);
   const sidebarElement = isValidElement<SidebarProps>(sidebar) && sidebar.type === Sidebar ? sidebar : null;
-  const ownCollapse = sidebarElement?.props.onCollapsedChange;
-  const canCollapse = sidebarElement
-    ? sidebarElement.props.variant !== "workspace"
+  const rail: SidebarRegistration | null = sidebarElement ? {
+    canCollapse: sidebarElement.props.variant !== "workspace",
+    collapsed: sidebarElement.props.collapsed,
+    owns: Boolean(sidebarElement.props.onCollapsedChange),
+    request: (next) => sidebarElement.props.onCollapsedChange?.(next),
+  } : registered;
+  const ownCollapse = Boolean(rail?.owns);
+  const canCollapse = rail
+    ? rail.canCollapse
     : Boolean(sidebar) && (collapsedProp !== undefined || defaultSidebarCollapsed !== undefined || onSidebarCollapsedChange !== undefined);
-  const [innerCollapsed, setInnerCollapsed] = useState(() => defaultSidebarCollapsed ?? Boolean(sidebarElement?.props.collapsed));
+  const [innerCollapsed, setInnerCollapsed] = useState(() => defaultSidebarCollapsed ?? Boolean(rail?.collapsed));
   // The Sidebar's own `collapsed` is where an uncontrolled shell starts, and a change to it (the code edited, Zen
-  // Studio's Collapsed toggle) moves the rail too; the toggle and setSidebarCollapsed still change it in between.
-  const declaredCollapsed = sidebarElement?.props.collapsed;
-  const [seenCollapsed, setSeenCollapsed] = useState(declaredCollapsed);
-  if (declaredCollapsed !== seenCollapsed) {
-    setSeenCollapsed(declaredCollapsed);
-    if (collapsedProp === undefined) setInnerCollapsed(Boolean(declaredCollapsed));
+  // Studio's Collapsed toggle) moves the rail too; the toggle and setSidebarCollapsed still change it in between. A
+  // wrapped Sidebar is first heard of after the first render: what it says then is where the rail starts, unless the
+  // shell has its own `defaultSidebarCollapsed`.
+  const declaredCollapsed = rail?.collapsed;
+  const [seenCollapsed, setSeenCollapsed] = useState(() => ({ known: Boolean(rail), collapsed: declaredCollapsed }));
+  if (rail && (!seenCollapsed.known || declaredCollapsed !== seenCollapsed.collapsed)) {
+    setSeenCollapsed({ known: true, collapsed: declaredCollapsed });
+    if (collapsedProp === undefined && (seenCollapsed.known || defaultSidebarCollapsed === undefined)) setInnerCollapsed(Boolean(declaredCollapsed));
   }
-  const sidebarCollapsed = ownCollapse ? Boolean(sidebarElement?.props.collapsed) : Boolean(collapsedProp ?? innerCollapsed);
+  const sidebarCollapsed = ownCollapse ? Boolean(declaredCollapsed) : Boolean(collapsedProp ?? innerCollapsed);
   // Not useControllableState: a Sidebar with its own onCollapsedChange owns the rail, the Sidebar's `collapsed` re-seeds
   // the uncontrolled value, and onSidebarCollapsedChange fires on every request (also one that changes nothing).
   const setSidebarCollapsed = useStableCallback((next: boolean) => {
-    if (ownCollapse) { ownCollapse(next); return; }
+    if (ownCollapse) { rail?.request(next); return; }
     if (collapsedProp === undefined) setInnerCollapsed(next);
     onSidebarCollapsedChange?.(next);
   });
@@ -397,7 +413,7 @@ export function AppShell({
   const showMenuButton = compact && !phoneLayout && Boolean(sidebar);
   // Sidebar reads these through SidebarShellContext, so a Sidebar wrapped in an app component follows the rail too. The
   // drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
-  const inlineShell = useMemo(() => ({ collapsed: canCollapse && !ownCollapse ? sidebarCollapsed : undefined, expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed]);
+  const inlineShell = useMemo<SidebarShellState>(() => ({ collapsed: canCollapse && !ownCollapse ? sidebarCollapsed : undefined, expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined, register }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed, register]);
   const inlineSidebar = <SidebarShellContext value={inlineShell}>{sidebar}</SidebarShellContext>;
   const drawerSidebar = <SidebarShellContext value={DRAWER_SHELL}>{sidebar}</SidebarShellContext>;
   // The aside docks beside the page (Figma Side-Panel Type=Standard) only while the page keeps a Tablet width next to

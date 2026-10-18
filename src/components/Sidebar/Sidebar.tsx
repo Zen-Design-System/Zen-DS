@@ -18,6 +18,7 @@ import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effe
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useDismissableLayer } from "../_shared/layers";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { useStableCallback } from "../_shared/use-stable-callback";
 
 export type SidebarVariant = "basic" | "workspace" | "small-density";
 /** Layer 2 (Surface) of the page it sits on: default = Surface/Default (on a Canvas/Default page), alt = Surface/Alt
@@ -76,6 +77,9 @@ export interface SidebarProps {
   variant?: SidebarVariant;
   /** Compatibility alias for the earlier component API. */
   density?: "medium" | "small";
+  /** The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it
+   *  from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps
+   *  it (controlled). */
   collapsed?: boolean;
   /** Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is
    * not rendered. Ignored by `variant="workspace"`, which has no collapsed state. */
@@ -598,6 +602,13 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   const navRef = useMergedRefs(ref, rootRef);
   const flyout = subMenu ? <SidebarFlyout label={subMenuLabel} onClose={onSubMenuClose} rootRef={rootRef}>{subMenu}</SidebarFlyout> : null;
   const variant = requestedVariant ?? (requestedDensity === "small" ? "small-density" : "basic");
+  // Tells the AppShell beside it what it is (wherever it sits under the shell's `sidebar`): the shell shows its toggle,
+  // starts the rail from `collapsed` and, when this Sidebar owns the rail, sends its toggle here. Before paint, so the
+  // shell's first frame already has the toggle.
+  const register = shell?.register;
+  const ownsRail = Boolean(onCollapsedChangeProp);
+  const requestCollapse = useStableCallback(onCollapsedChangeProp);
+  useIsomorphicLayoutEffect(() => register?.({ canCollapse: variant !== "workspace", collapsed: collapsedProp, owns: ownsRail, request: requestCollapse }), [register, variant, collapsedProp, ownsRail, requestCollapse]);
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const rootClassName = ["zen-sidebar", className].filter(Boolean).join(" ");
   const nav = { selectedId, linkAs };

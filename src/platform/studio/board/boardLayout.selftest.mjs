@@ -112,6 +112,22 @@ check("no frames", layoutBoard([], OPTIONS), { positions: [], width: 2944, heigh
   check("the screen itself grows: only the frame under it moves", shift([300, 300, 300, 300, 640, 400, 100]), [0, 0, 0, 0, 0, 0, 240]);
 }
 
+// 4b. Masonry (the Docs section's 880 reading frames): three columns in 2944, each frame under the column that ends
+//     highest at the opening; a height change moves only the frames below it in its column.
+{
+  const M = { ...OPTIONS, masonry: true };
+  const widths = [880, 880, 880, 880, 880, 880];
+  const base = [1000, 4000, 1500, 600, 2000, 300];
+  const opening = layoutBoard(items(widths, base), M);
+  check("masonry columns: the first three across, then the column that ends highest", opening.positions, [
+    { x: 0, y: 0 }, { x: 944, y: 0 }, { x: 1888, y: 0 }, { x: 0, y: 1064 }, { x: 1888, y: 1564 }, { x: 0, y: 1728 },
+  ]);
+  check("masonry size", { width: opening.width, height: opening.height }, { width: 2944, height: 4000 });
+  const grown = layoutBoard(items(widths, [1500, 4000, 1500, 600, 2000, 300], base), M).positions;
+  check("masonry: frame 0 +500 moves only its column below (frames 3 and 5)", grown.map((p, i) => p.y - opening.positions[i].y), [0, 0, 0, 500, 0, 500]);
+  check("masonry: one frame is one column", layoutBoard(items([880], [700]), M).positions, [{ x: 0, y: 0 }]);
+}
+
 // 5. Fuzz: random boards and random height changes.
 const rand = random(SEED);
 const pick = (list) => list[Math.floor(rand() * list.length)];

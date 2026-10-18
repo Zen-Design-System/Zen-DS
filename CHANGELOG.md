@@ -17,6 +17,23 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio: inside a project, Local variables shows only that project's mode of Base Colors (Project) — no Zen
+  column and no other project; Drafts shows Zen. The collection's rows are fixed there: Project settings changes them.
+- Dark ramps lifted (2026-10-18, the Zen plugin's "Dark lift", user: "chốt +0,020"): in all 20 Global Colors ramps,
+  Dark Accent steps 2–8 and Dark Neutral steps 2–7 sit +0.020 OKLCH L above the contrast ramp, and Dark alpha follows
+  (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
+  and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
+  (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Zen Studio component pages (2026-10-18, user: "Sắp xếp layout của các trang component trên canvas lại cho gọn gàng và
+  chuyên nghiệp hơn"): the board stacks Title → **Component** (Playground beside the Main component) → **Examples** →
+  **Docs** (Docs, Guidelines and one Props frame per component in 880 columns), one left edge and width, 128 apart; the
+  Docs column no longer runs 8–27 000px tall. A section tab without a count pads both ends alike. E2E group `board`
+  (BL-01 layout, BL-02 Main component cells) checks every component page.
+- Zen Studio Main component (2026-10-18, user: "Update lại Progress component từ Figma lên Studio", "Kiểm tra lại hết các
+  main component"): Progress-Bar draws its Progress steps (None 0 · Low 20 · Medium 40 · Good 80 · Done 100, Figma's
+  fills), ProgressCircle its Progress-Circle/Icon grid (Theme × Done) and a Theme property; Rating its stars, Skeleton
+  text its line counts. A variant that fills its container (Divider, NPS scale, a Dashboard header row) takes its Figma
+  width instead of an empty cell. Assets gains "Progress circle".
 - Zen Studio: **Zen Agent V1a** (2026-10-18, plan §9): pick the model (Opus 5.5 · Sonnet 5.5 · Haiku 5.5) in the panel;
   "Undo turn" takes back all of the agent's last turn; the agent asks with 2–4 answers when a request is ambiguous or
   breaks a Zen rule; paste or attach reference pictures; the reply shows text, steps (what each change did) and the
@@ -72,6 +89,11 @@ removed (four unused colour ramps were, see Removed).
   TopNavigation control bar or a BottomSheet (so also the Input family's phone sheet) takes `shape="rounded"` unless it
   sets its own `shape`; elsewhere Search keeps the default shape. Zen Studio pushes a control-bar Search as
   Shape=Rounded and pulls it back without the prop.
+- AppShell collapses a customised Sidebar (2026-10-18, user: "lỗi sidebar lúc expand và collapse khi dùng template"):
+  the Sidebar now tells the shell what it is wherever it sits, so one wrapped in an app component, a Stack or a Studio
+  component gets the top-bar toggle, starts from its own `collapsed`, and a Sidebar with its own `onCollapsedChange`
+  keeps one control that `useAppShell().toggleSidebar()` also drives. The HR templates' footer Apps is a
+  `SidebarMenuItem`, so the rail (and Studio's copy of a template) shows its icon alone.
 - Card spacing by count is a phone rule (2026-10-17, user: "rule đó chỉ áp dụng cho mobile"): `card/spacing-by-count`
   now judges cards inside a PlatformPhone frame or a BottomSheet only; desktop cards keep Medium whatever their number,
   so the desktop rows #110 had set to Small (Card quarter widgets, Dock Icon project types, Text milestones) are Medium
@@ -655,6 +677,13 @@ removed (four unused colour ramps were, see Removed).
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Charts (2026-10-17, user: the Tooltip sat off the hover line in Zen Studio): the Tooltip of LineChart, BarChart,
+  StackBarChart, GroupedBarChart and ComboChart is centred on the active period's rule, as in Figma, and the
+  HeatmapChart cell Tooltip on its cell; it moves only by what it would cross the chart's edge (it used to slide by the
+  period's place along the plot, so every period but the middle one sat off its line).
+- Zen Studio Present (2026-10-17, user: "Sidebar vẫn bị lỗi scroll trong present"): a page made in the Studio runs as in
+  Play, the AppShell Sidebar and docked aside sticking to the top at the window's height (or a typed viewport's) with
+  their rows scrolling inside; they scrolled away with the page. Studio E2E PT-14.
 - Zen Studio Present and Play (2026-10-16, user: "Có"): a phone Screen's Top Navigation with a large title folds under
   its bar as the page scrolls, as on iOS (TopNavigation `scrollRef`, unless the page sets `scrollRef` or `collapsed`),
   and the status bar and home indicator stay at the window's edges instead of scrolling away. The canvas is unchanged.

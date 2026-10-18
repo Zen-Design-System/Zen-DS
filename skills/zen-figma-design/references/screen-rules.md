@@ -188,6 +188,16 @@ The user rebuilt parts of the generated screens by hand. These are their choices
   260 on a detail screen).
 - **The floating Bottom-Navigation's action** is the main create action ("+") unless the screen's job says
   otherwise.
+- **A floating bar fits its tabs** (user 2026-10-18, phone and tablet alike): `Floating` and `Floating-Glass` tabs are
+  64 to 88 wide. The capsule (`Container`) and its `Nav-Item` slot Fill while the tabs share the room at 88 or less;
+  once they would pass 88 (two or three tabs on a phone, every tablet, the Duo) both Hug and each tab is Fixed 88,
+  centred, or at the start with the action at the end (Items row Space between). Audit `navigation/floating-fit`.
+- **Empty State size from where it sits** (user 2026-10-18): Size=Medium (240 illustration) fills an empty page's
+  main content; Size=Small (200) fills one region of a page that still shows other content (a card, table or list, a
+  pane, side panel, sheet, popover or dialog, a block under summary cards). Audit `empty-state/size-by-container`.
+- **The status bar lives in the top bar** (user 2026-10-18): on an iPad portrait screen the Top-Navigation's own
+  Status-bar is swapped to `Status-bar/IOS/Tablet` (Fill width) rather than a separate bar placed above it, so a
+  gradient, a colour band or a photo runs under the clock. Audit `navigation/status-in-bar`.
 
 ## 5. Checklist after the audit passes (look at the screenshot)
 

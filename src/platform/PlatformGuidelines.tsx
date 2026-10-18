@@ -55,6 +55,9 @@ function Alternative({ text }: { text: string }) {
     : <RichText text={text} />;
 }
 
+/** Does the page have usage guidelines (the Studio board draws its Guidelines frame only then)? */
+export const hasComponentGuidelines = (page: PlatformPage) => Boolean(guidelines[slugFor[page] ?? page]);
+
 export function ComponentGuidelines({ page, title = "Usage guidelines", slug: slugOverride }: { page: PlatformPage; title?: string; slug?: string }) {
   const slug = slugOverride ?? slugFor[page] ?? page;
   const guideline = guidelines[slug];

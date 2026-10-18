@@ -731,7 +731,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         const frameId = picked.frame.getAttribute("data-studio-frame");
         if (frameId) studioStore.setState({ selection: { kind: "frame", frameId } });
         // The Docs frame reads at 100%: a click on it below that opens it at 100%, top-aligned (user, 2026-10-07).
-        if (frameId === "docs" && getViewport().zoom < 1 - 1e-3) canvasApi.zoomToRead(picked.frame.getBoundingClientRect());
+        if ((frameId === "docs" || frameId === "guidelines" || frameId?.startsWith("props:")) && getViewport().zoom < 1 - 1e-3) canvasApi.zoomToRead(picked.frame.getBoundingClientRect());
       };
       // A drag on a frame's background draws a marquee (Figma; edit/marquee.ts); a click selects the frame.
       if (startMarquee(event.nativeEvent, selectFrame)) return;

@@ -48,13 +48,14 @@
 .studio-builder-screen:has(> .zen-app-shell) { display: flex; flex-direction: column; }
 .studio-builder-screen > .zen-app-shell { flex: 1 0 auto; min-height: 0; }
 .studio-builder-screen .zen-app-shell__sidebar, .studio-builder-screen .zen-app-shell__aside:not([data-stacked="true"]) { height: auto; }
-/* Play and Present run the page as an app (Figma's prototype, the user 2026-10-16): the Sidebar and docked aside stick
-   to the scroll box at its height again and their items scroll inside when they outgrow it. Auto viewport: the device
-   clips (no scroll box of its own), so they stick to the window's scroll at AppShell's 100dvh; a fixed W × H viewport is
-   the scroll box, and its height is the shell's. */
-.studio-player .studio-builder-screen :is(.zen-app-shell__sidebar, .zen-app-shell__aside:not([data-stacked="true"])) { height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); }
-.studio-present__fit[data-viewport="fixed"] > .studio-player__device { container-type: size; }
-.studio-present__fit[data-viewport="fixed"] > .studio-player__device .studio-builder-screen > .zen-app-shell { --zen-app-shell-height: 100cqh; }
+/* Play and Present run the page as an app (Figma's prototype, the user 2026-10-16; Present 2026-10-17: it still drew the
+   whole page there, so the Sidebar scrolled away): the Sidebar and docked aside stick to the scroll box at its height
+   again and their items scroll inside when they outgrow it. Auto viewport: Play's device clips (no scroll box of its
+   own), so they stick to the window's scroll at AppShell's 100dvh; Present's full-screen card scrolls its stage, the
+   page under the bar (board.css, 100cqh). A fixed W × H viewport is the scroll box, and its height is the shell's. */
+:is(.studio-player, .studio-present) .studio-builder-screen :is(.zen-app-shell__sidebar, .zen-app-shell__aside:not([data-stacked="true"])) { height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); }
+.studio-present__fit[data-viewport="fixed"] > :is(.studio-player__device, .studio-present__viewport) { container-type: size; }
+.studio-present__fit[data-viewport="fixed"] > :is(.studio-player__device, .studio-present__viewport) .studio-builder-screen > .zen-app-shell { --zen-app-shell-height: 100cqh; }
 /* Screen › Canvas (as AppShell's canvas): Canvas/Alt, a white page; Canvas/Flat. */
 .studio-builder-screen[data-canvas="alt"] { background: var(--zen-color-background-canvas-alt); }
 .studio-builder-screen[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat); }

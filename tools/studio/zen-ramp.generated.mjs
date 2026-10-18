@@ -267,6 +267,29 @@ function matchPaletteContrast(targetCR, backgroundL, backgroundLuminance, chroma
 var state = { darkBg: '#141414' };
 
 function generateScale(hue, sat, light, mode, neutral, darkBgOverride) {
+  var scale = generateBaseScale(hue, sat, light, mode, neutral, darkBgOverride);
+  return mode === 'dark' ? liftDarkSteps(scale, neutral) : scale;
+}
+
+var DARK_STEP_LIFT = 0.02;
+
+var DARK_STEP_LIFT_LAST_ACCENT = 8;
+
+var DARK_STEP_LIFT_LAST_NEUTRAL = 7;
+
+function liftDarkSteps(scale, neutral) {
+  if (!DARK_STEP_LIFT) return scale;
+  var last = neutral ? DARK_STEP_LIFT_LAST_NEUTRAL : DARK_STEP_LIFT_LAST_ACCENT;
+  return scale.map(function (hex, index) {
+    var step = index + 1;
+    if (step < 2 || step > last) return hex;
+    var o = hexToOklch(hex);
+    var mapped = gamutMapOklch(Math.min(1, o.L + DARK_STEP_LIFT), o.C, isFinite(o.H) ? o.H : 0);
+    return oklchToHex(mapped.L, mapped.C, mapped.H);
+  });
+}
+
+function generateBaseScale(hue, sat, light, mode, neutral, darkBgOverride) {
   var inputHex = hslToHex(hue, sat, light);
   var o = hexToOklch(inputHex);
   var L9 = o.L, C9 = o.C, H9 = (o.H % 360 + 360) % 360;

@@ -1591,7 +1591,22 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
   },
   "ProgressCircle": {
     "figma": "1531:13954",
-    "own": [],
+    "own": [
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Neutral": "neutral",
+          "Accent": "accent",
+          "Red": "red",
+          "Orange": "orange",
+          "Yellow": "yellow",
+          "Green": "green",
+          "Blue": "blue"
+        }
+      }
+    ],
     "toggles": [
       {
         "label": "Label",

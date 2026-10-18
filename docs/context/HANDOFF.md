@@ -62,6 +62,13 @@ Last updated: 2026-10-17.
   turn (`tools/studio/README.md` §6). **V1a built** on `zen/feat/studio-agent-v1-20261018` (worktree `../Zen-DS-agent-v1`):
   model picker, Undo turn, `ask_person`, pictures, ordered reply parts, canvas flash for any MCP client. Checks offline
   (`agent.selftest`, E2E AG-01…12 with `ZEN_AGENT_SCRIPT`); the first live run needs the user's key. V1b waits.
+- **AppShell patterns (2026-10-18, Figma; reviews 1–3 answered):** ◇ Master-Layout section 16254:1057 —
+  `Pattern/AppShell/Desktop` (Layout × Collapse, Status-Bar for iPad landscape), `Pattern/AppShell/Mobile` (Device Phone |
+  Tablet portrait × Top × Bottom), `Pattern/AppShell/Duo`, Pane, `Action-Bar/Mobile`; Header/AppShell gained a Sections
+  slot (rows under the main row, code AppShell sections); status bars have Style Default · Black Overlay · White Overlay.
+  Templates rebuilt on it (user: archive the old screens, leave Ecommerce and Logistic): HR-Platform 22, Performance 21,
+  Finance 10 and Social 17 done (originals in each page's "Archive · before AppShell" section). Empty-State has Size Medium (240) | Small (200) in Figma; code EmptyState sm is still 120. Studio phase 1 + device simulator in worktree ../Zen-DS-appshell (code, not yet QA'd). Detail
+  in session-log-2026-10-18.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:
   Figma first, review, then code (tier L each). Ids: session-log-2026-10-17 "Calendar / Schedule / Timeline in Figma".
@@ -91,6 +98,8 @@ Last updated: 2026-10-17.
   A new Component Size spacing value aliases a Spacing step. Segmented Medium Compact padding 8 (was 6).
   2026-10-17 (live Figma read): Segmented/Spacing/Medium/Horizontal-Padding 10 (Compact, Comfortable; raw, no Spacing
   step; Studio 6). Global Colors Zen ramp re-synced (Zen/9 #F755C9, 45 of 48 values; only the Zen ramp).
+  2026-10-18 (Zen plugin 5ce6ba8 "Dark lift", user-approved): every ramp's Dark steps 2–8 (Neutral 2–7) +0.020 OKLCH L,
+  regenerated with tools/studio/zen-ramp.generated.mjs (278 Dark values, Zen-High-Contrast recomputed).
   2026-10-13 (user, repo + Figma): Component Theme `Chart/Sector/Primary` = Support/Brand/Solid and `Secondary` =
   Support/Neutral/Deep in every mode (as Brand - S1).
   2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
