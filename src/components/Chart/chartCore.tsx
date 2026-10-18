@@ -203,10 +203,28 @@ export function ChartSummary({ id, children }: { id: string; children: ReactNode
 
 export const useChartId = () => useId().replace(/:/g, "");
 
-/** `--zen-chart-anchor`: where a floating Tooltip hangs from its item, 0 (its left edge) … 1 (its right edge), the item's
- *  place along the plot. The first item's Tooltip starts at its left, the last ends at its right, so it never leaves the
- *  plot while it is narrower than the plot. */
-export const anchorStyle = (index: number, count: number) => ({ "--zen-chart-anchor": (index + 0.5) / Math.max(1, count) } as CSSProperties);
+/** Ref for a floating Tooltip centred on its item (Figma: the Tooltip CENTER on the active sector's rule, the active
+ *  cell). It moves off that centre only by what it would cross the chart's edge, as `--zen-chart-shift` in CSS px (the
+ *  screen overflow divided by the chart's scale, so a zoomed Studio frame shifts it right too); it measures again when the
+ *  chart or the Tooltip resizes. */
+export const placeTip = (tip: HTMLElement | null) => {
+  const box = tip?.closest<HTMLElement>(".zen-chart");
+  if (!tip || !box) return;
+  const place = () => {
+    tip.style.setProperty("--zen-chart-shift", "0px");
+    const t = tip.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    const scale = tip.offsetWidth ? t.width / tip.offsetWidth : 1;
+    const shift = t.width >= b.width ? b.left - t.left : t.left < b.left ? b.left - t.left : t.right > b.right ? b.right - t.right : 0;
+    tip.style.setProperty("--zen-chart-shift", `${shift / (scale || 1)}px`);
+  };
+  place();
+  if (typeof ResizeObserver === "undefined") return;
+  const observer = new ResizeObserver(place);
+  observer.observe(box);
+  observer.observe(tip);
+  return () => observer.disconnect();
+};
 
 /** `--zen-chart-i`: the stagger index of a mark (its delay is a multiple of a motion token, see chart.css). */
 export const staggerStyle = (index: number, extra?: CSSProperties) => ({ "--zen-chart-i": index, ...extra } as CSSProperties);
@@ -247,7 +265,7 @@ export function PlotFrame({ labels, ticks, top, format, active, setActive, onKey
           {labels.map((label, index) => (
             <button key={label + index} type="button" tabIndex={-1} className="zen-chart__sector" data-active={index === active ? activeLine : undefined} onPointerEnter={() => setActive(index)} onFocus={() => setActive(index)} onClick={() => setActive(index)} aria-hidden="true">
               <span className={`zen-chart__x ${typographyStyles["Label/Small/Medium"]}`}>{label}</span>
-              {index === active && tooltip ? <span className="zen-chart__tooltip" style={anchorStyle(index, labels.length)}><TooltipSurface color="default" size="medium">{tooltip}</TooltipSurface></span> : null}
+              {index === active && tooltip ? <span className="zen-chart__tooltip" ref={placeTip}><TooltipSurface color="default" size="medium">{tooltip}</TooltipSurface></span> : null}
             </button>
           ))}
         </div>
