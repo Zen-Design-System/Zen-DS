@@ -249,7 +249,6 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
   the patterns and the Header/AppShell default start with Level=Sub. Tried in Figma: Performance 0, HR 0, patterns 0, a
   temporary Collapse=Header instance with a Master crumb 1 (removed).
 
-
 ## Studio Flat hover (user: "UI của Studio dùng màu hover cho các nền flat chưa đúng (Định nghĩa flat là không có nền...)") — tier S
 - Cause: Studio items with no fill at rest hovered with Neutral/Subtle/Hover (alpha 4) or Surface/Hover; the selected
   fill is Active/Neutral/Subtle (alpha 3), so the hovered Variables group looked darker than the selected one.
