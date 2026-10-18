@@ -14,6 +14,8 @@ import { canvasApi, getSafeBox, getViewport, getViewportBox } from "../canvas/vi
 import { frameIcon, isBuilderFrame } from "../inspector/frames";
 import { FrameHandles } from "./FrameHandles";
 import { openFrameMenu } from "../shell/CanvasMenu";
+import { isLockedFrame, useLayerMeta } from "../select/layerMeta";
+import { pageFile } from "../builder/store/pageStore";
 import { ChromeScope } from "../shell/ChromeScope";
 import { confirmFrameDiscard, requestFrameSave, useFrameDrafts, useStudioDrafts } from "../sourceDrafts";
 import { canEdit, pageKey, setFrameOverride, studioStore, useStudio } from "../store";
@@ -75,6 +77,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
   const localPage = useStudio((state) => state.localPage);
   const editable = useStudio((state) => canEdit(state));
   const [renamingFrame, setRenamingFrame] = useState<string | null>(null);
+  // A frame locked or unlocked (edit/lock.ts) shows or hides its handles at once.
+  useLayerMeta();
   const [hovered, setHovered] = useState<string | null>(null);
   // Pointer over a frame's name row: the frame itself is the target (1px outline, like Figma's frame hover).
   const [labelHovered, setLabelHovered] = useState<string | null>(null);
@@ -429,7 +433,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       {/* A frame or Section of a page you made resizes in the page (Figma's handles, F4); an example frame's right edge sets
           its view width. */}
       {frames.filter((frame) => !isBuilderFrame(frame.id) && frameSelected && selectedFrame === frame.id).map((frame) => <FrameEdge key={frame.id} frame={frame} setRef={trackEdge(frame.id)} />)}
-      {localPage && editable && frameSelected && selectedFrame && /^(screen|section):/.test(selectedFrame) ? <FrameHandles key={selectedFrame} frameId={selectedFrame} localPage={localPage} /> : null}
+      {/* A locked frame (edit/lock.ts) shows no handles: it changes in the right panel only, as in Figma. */}
+      {localPage && editable && frameSelected && selectedFrame && /^(screen|section):/.test(selectedFrame) && !isLockedFrame(pageFile(localPage), selectedFrame) ? <FrameHandles key={selectedFrame} frameId={selectedFrame} localPage={localPage} /> : null}
       {/* A Section has its name only (Figma's): no toolbar. */}
       {frames.filter((frame) => frame.kind !== "section" && (toolbarFor.has(frame.id) || draftedFrames.includes(frame))).map((frame) => (
         <FrameToolbar

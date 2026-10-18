@@ -6,6 +6,8 @@ import { canEdit, studioStore } from "../store";
 import { startDraw } from "../draw/drawTool";
 import { addFrame, addSection } from "./proto/addFrame";
 import { boardBoxes, isSectionId, sectionContents } from "../board/sections";
+import { isLockedFrame } from "../select/layerMeta";
+import { pageFile } from "./store/pageStore";
 import { zoomToFrame } from "../board/presentFrame";
 import { copyFrame, moveFrames } from "./frameEdit";
 import { FRAME_GAP, snapBox, SNAP_PX, type FrameBox, type FramePlace, type SnapGuide } from "./render/framePlace";
@@ -181,10 +183,12 @@ function listen(handlers: { move: (event: PointerEvent) => void; up: (event: Poi
   };
 }
 
-/** The builder frame `frameId` and its board, when it can move: a page you made, the Select tool, an admin. */
+/** The builder frame `frameId` and its board, when it can move: a page you made, the Select tool, an admin, not locked
+ *  (Figma's lock, edit/lock.ts: a locked frame stays where it is). */
 function movable(frameId: string) {
   const state = studioStore.getState();
   if (!state.localPage || state.tool !== "select" || state.presenting || !canEdit(state)) return null;
+  if (isLockedFrame(pageFile(state.localPage), frameId)) return null;
   const element = document.querySelector<HTMLElement>(`${FRAMES} > [data-studio-frame="${CSS.escape(frameId)}"]`);
   const container = element?.parentElement;
   return element && container ? { localPage: state.localPage, element, container } : null;
