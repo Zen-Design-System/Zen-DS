@@ -180,7 +180,7 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   const errors = (text) => validateDialect(text, { components }).map((error) => error.message);
   check("x alone is refused", errors(free.replace(' x={-120} y={480}', ' x={-120}')), ["<Screen> takes x and y together"]);
   check("a place is a number", errors(free.replace("x={-120}", 'x="left"')), ["x is a number from -100000 to 100000"]);
-  check("a size has limits", errors(free.replace("width={800}", "width={40}")), ["width is a number from 120 to 4096"]);
+  check("a size has limits", errors(free.replace("width={800}", "width={40}")), ["width is a number from 100 to 4096"]);
   check("an Overlay has no size", errors((overlay.code ?? "").replace('<Overlay id="confirm" x={10} y={20}>', '<Overlay id="confirm" width={400}>')), ["An Overlay takes its dialog's size (no width or height)"]);
 }
 

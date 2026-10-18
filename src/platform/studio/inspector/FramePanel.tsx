@@ -25,6 +25,7 @@ import { SlotHost, useSlotFilled } from "./SlotHost";
 import { presentKeys } from "../shell/modKey";
 import { setLayerHidden, slotSwitchOp } from "../edit/visibility";
 import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, hiddenSlotsOf, hiddenValueOf } from "../../../../tools/studio/visibility.mjs";
+import { FRAME_DEVICES, deviceOfScreen, deviceOfSize, deviceSize, screenDevice } from "../../../../tools/studio/screen-devices.mjs";
 
 /*
  * Inspector for a selected frame (spec §6): width, theme, Present (examples) or Zoom to frame (page-sized frames), and
@@ -73,14 +74,37 @@ function ScreenSection({ frameId }: { frameId: string }) {
   if (!localPage || !node) return null;
   const device = (literal(node, "device") as PageDevice | undefined) ?? "desktop";
   const canvas = (literal(node, "canvas") as ScreenCanvas | undefined) ?? "default";
+  // Size (Figma's frame presets, user 2026-10-18): a device's size, device and layout in one edit; a drawn or typed size
+  // that no device has reads Custom.
+  const width = literal(node, "width") as number | undefined;
+  const heightPx = literal(node, "height") as number | undefined;
+  const sized = deviceOfSize(width, heightPx);
   const write = (next: PageDevice) => {
     if (next === device) return;
-    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [{ op: "setProp", name: "device", value: { kind: "string", value: next } }] }, `Screen device → ${next}`);
+    // A Screen at a device's size takes the new device's (its type's iPhone, iPad or Desktop), as a Figma frame preset
+    // does; a drawn or typed size stays.
+    const resized = sized ? (next === "desktop" ? screenDevice("desktop") : deviceOfScreen(next, literal(node, "layout") as string | undefined, undefined, undefined)) : undefined;
+    const size = resized ? [
+      { op: "setProp" as const, name: "width", value: { kind: "number" as const, value: resized.width } },
+      { op: "setProp" as const, name: "height", value: { kind: "number" as const, value: resized.height } },
+    ] : [];
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [{ op: "setProp", name: "device", value: { kind: "string", value: next } }, ...size] }, `Screen device → ${next}`);
   };
   // The app frame (user, 2026-10-09): the parts of the layout the Screen shows, each switched on (its component
   // written into the prop, imported) or off (the prop taken away). A tablet is laid out as a phone (mobile) or a desktop.
   const layout = screenLayout(device, literal(node, "layout") as string | undefined);
   const title = String(literal(node, "title") ?? page?.title ?? "Untitled");
+  const writeSize = (id: string) => {
+    const entry = screenDevice(id);
+    if (!entry || entry === sized) return;
+    const ops = [
+      { op: "setProp" as const, name: "device", value: { kind: "string" as const, value: entry.device } },
+      entry.device === "tablet" && entry.layout === "desktop" ? { op: "setProp" as const, name: "layout", value: { kind: "string" as const, value: "desktop" } } : { op: "removeProp" as const, name: "layout" },
+      { op: "setProp" as const, name: "width", value: { kind: "number" as const, value: entry.width } },
+      { op: "setProp" as const, name: "height", value: { kind: "number" as const, value: entry.height } },
+    ];
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops }, `Screen size → ${entry.label}`);
+  };
   const writeLayout = (next: ScreenChromeLayout) => {
     if (next === layout) return;
     const op = next === "mobile" ? { op: "removeProp" as const, name: "layout" } : { op: "setProp" as const, name: "layout", value: { kind: "string" as const, value: next } };
@@ -138,6 +162,19 @@ function ScreenSection({ frameId }: { frameId: string }) {
   };
   return (
     <InspectorSection title="Screen" fieldGrid>
+      <InspectorRow label="Size" name="screen-size">
+        <RowSelectField
+          aria-label="Screen size"
+          size="sm"
+          disabled={!admin}
+          value={sized?.id ?? "custom"}
+          onValueChange={(value) => writeSize(value)}
+          options={[
+            ...FRAME_DEVICES.map((entry) => ({ value: entry.id, label: entry.label, meta: deviceSize(entry) })),
+            ...(sized ? [] : [{ value: "custom", label: "Custom", meta: width && heightPx ? `${width} × ${heightPx}` : undefined, disabled: true }]),
+          ]}
+        />
+      </InspectorRow>
       <InspectorFields
         name="device"
         labels={["Device"]}

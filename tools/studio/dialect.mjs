@@ -23,7 +23,7 @@ export const PAGE_DEVICES = ["phone", "tablet", "desktop"];
 export const SCREEN_STATES = ["empty", "loading", "error"];
 export const SCREEN_CANVASES = ["default", "alt", "flat"];
 /** A Screen's drawn size (props `width`, `height`, world px); the max is the frame width's (board/frameLayout.ts). */
-export const FRAME_SIZE = { min: 120, max: 4096 };
+export const FRAME_SIZE = { min: 100, max: 4096 };
 /** A frame's place on the board (props `x`, `y`, world px from the board's origin): far enough for any canvas. */
 const FRAME_PLACE = 100000;
 const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "proto", "Component", "Use"]);
@@ -60,12 +60,12 @@ const NEW_FRAME = ["sidebar", "sections"];
  * starts without the AppShell: the Screen section adds it when the layout turns desktop. Returns the lines at `indent`
  * and the components they use.
  */
-function screenLines({ open, title, heading, device, chrome, empty = false, indent }) {
+function screenLines({ open, title, heading, device, layout, chrome, empty = false, indent }) {
   // Completely empty (user, 2026-10-16: "cho phép tạo trang frame trống hoàn toàn"): no app frame and no content, as
   // Figma's new frame; the person adds everything.
   if (empty) return { lines: [`${indent}${open} />`], components: [] };
   const inner = (depth) => indent + "  ".repeat(depth);
-  const framed = chrome && screenLayout(device) === "desktop";
+  const framed = chrome && screenLayout(device, layout) === "desktop";
   const depth = framed ? 2 : 1;
   const stack = [
     `${inner(depth)}<Stack gap="md" padding="${device === "phone" ? "lg" : "xl"}">`,
@@ -93,10 +93,11 @@ function screenLines({ open, title, heading, device, chrome, empty = false, inde
  * title is in the header, so the Stack starts with a line of body text); without it, the Stack starts with the title as
  * a heading. `empty`: the Screen holds nothing at all (no app frame, no Stack), as Figma's new frame.
  */
-export function newPageText({ title = "Untitled", device = "desktop", chrome = true, empty = false } = {}) {
+export function newPageText({ title = "Untitled", device = "desktop", layout, width, height, chrome = true, empty = false } = {}) {
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
-  const open = `<Screen id="screen-1" title=${quote(title)} device="${screenDevice}"`;
-  const screen = screenLines({ open, title, heading: title.replace(/[{}<>]/g, ""), device: screenDevice, chrome: chrome && !empty, empty, indent: "      " });
+  // A size and a tablet's layout from the device picked (tools/studio/screen-devices.mjs); none: the device's default.
+  const open = `<Screen id="screen-1" title=${quote(title)} device="${screenDevice}"${layoutAttr(screenDevice, layout)}${placeAttrs({ width, height })}`;
+  const screen = screenLines({ open, title, heading: title.replace(/[{}<>]/g, ""), device: screenDevice, layout, chrome: chrome && !empty, empty, indent: "      " });
   const names = [...new Set(screen.components)].sort((a, b) => a.localeCompare(b));
   return [
     `// @zen-page ${JSON.stringify({ format: 1, title })}`,
@@ -138,6 +139,9 @@ export function freeFrameId(base, taken) {
   for (let n = 1; ; n += 1) if (!used.has(`${base}-${n}`)) return `${base}-${n}`;
 }
 
+/** ` layout="…"` for a tablet laid out as `layout` (a phone is always mobile, a desktop always desktop). */
+const layoutAttr = (device, layout) => (device === "tablet" && SCREEN_LAYOUTS.includes(layout) ? ` layout="${layout}"` : "");
+
 /** ` x={…} y={…}` (and ` width={…} height={…}`) for a new frame's opening tag: whole px, only what was given. */
 const placeAttrs = (values) => Object.entries(values).filter(([, value]) => Number.isFinite(value)).map(([name, value]) => ` ${name}={${Math.round(value)}}`).join("");
 
@@ -159,14 +163,14 @@ const overlayContent = (holds, name) => {
   return [`  <Dialog title=${quote(name)} description="Say what happens next." primaryAction={{ label: "Continue", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />`];
 };
 
-export function frameCode({ kind, id, title, device = "desktop", chrome = true, empty = false, x, y, width, height, holds = "dialog" }) {
+export function frameCode({ kind, id, title, device = "desktop", layout, chrome = true, empty = false, x, y, width, height, holds = "dialog" }) {
   const name = String(title ?? (kind === "overlay" ? OVERLAY_TITLES[holds] ?? OVERLAY_TITLES.dialog : id)).replace(/[{}<>]/g, "");
   const place = placeAttrs({ x, y });
   if (kind === "overlay") return [`<Overlay id=${quote(id)}${place}>`, ...overlayContent(OVERLAY_HOLDS.includes(holds) ? holds : "dialog", name), "</Overlay>"].join("\n");
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
   // A new Screen comes with the app frame as a new page does (its title in the header).
-  const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"${place}${placeAttrs({ width, height })}`;
-  return screenLines({ open, title: name, heading: name, device: screenDevice, chrome: chrome && !empty, empty, indent: "" }).lines.join("\n");
+  const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"${layoutAttr(screenDevice, layout)}${place}${placeAttrs({ width, height })}`;
+  return screenLines({ open, title: name, heading: name, device: screenDevice, layout, chrome: chrome && !empty, empty, indent: "" }).lines.join("\n");
 }
 
 /** A prop's proto action as code: navigate / open take a frame id, toast a title, link a URL; close and back nothing. */

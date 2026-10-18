@@ -14,7 +14,12 @@
 /* Items share the bar up to 120px each and centre (Figma Nav-Items alignment Center, item maxW 120). */
 .zen-bottom-nav__items { display: flex; justify-content: center; margin: 0; padding: 0; list-style: none; }
 .zen-bottom-nav__cell { display: flex; min-width: 0; max-width: 120px; flex: 1; align-items: center; justify-content: center; }
-.zen-bottom-nav:not([data-type="default"]) .zen-bottom-nav__cell { min-width: 64px; }
+/* Floating and Floating-Glass tabs are 64 to 88 wide, on a phone and a tablet alike (user 2026-10-18; Figma item
+   min 64, max 88): each asks for 88 and gives way down to 64, so the capsule fills the bar while its tabs share the
+   room at 88 or less and hugs them at 88 past that (fewer tabs, a tablet), as Figma's Container and Nav-Item switch
+   from Fill to Hug.
+   zen-allow-slot-size: the tab widths are Figma's item min/max, which have no token. */
+.zen-bottom-nav:not([data-type="default"]) .zen-bottom-nav__cell { width: 88px; min-width: 64px; max-width: 88px; flex: 0 1 88px; }
 
 /* Item (.Primitives/Bottom-Navigation/Items, 9017:26130): 56px cell, Padding/2XSmall, Corner-Radius/Rounded; its 48px
    container stacks the Navigation-Mobile/Bottom/Icon-Size icon and the label Gap/3XSmall apart. */
@@ -82,7 +87,10 @@
 .zen-bottom-nav { --zen-bottom-nav-blur: 12px; }
 .zen-bottom-nav__progressive { --zen-progressive-blur: var(--zen-bottom-nav-blur); position: absolute; z-index: -1; inset: 0; }
 .zen-bottom-nav__row { display: flex; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-small, 12px); }
-.zen-bottom-nav__pill { position: relative; min-width: 0; flex: 1; padding: var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-glass, rgb(255 255 255 / 60%)); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); }
+/* With the action, the capsule keeps the start and the action the end (Figma Items row Space between once the capsule
+   hugs); without it the capsule is centred. */
+.zen-bottom-nav__row > .zen-bottom-nav__fab { margin-inline-start: auto; }
+.zen-bottom-nav__pill { position: relative; min-width: 0; flex: 0 1 auto; padding: var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-glass, rgb(255 255 255 / 60%)); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); }
 /* Figma 0.5px gradient glass border, drawn as a masked ring. */
 .zen-bottom-nav__pill::before, .zen-bottom-nav__fab::before { position: absolute; inset: 0; padding: 0.5px; border-radius: inherit; background: var(--zen-style-gradients-border-glass-white-overlay-fill, linear-gradient(180deg, rgb(255 255 255 / 16%), rgb(255 255 255 / 4%), rgb(255 255 255 / 16%))); content: ""; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 /* Floating-Glass (9017:42257): Liquid-Glass/Normal fill + Glass-Floating shadows + a GLASS effect, no stroke. GLASS frost 8

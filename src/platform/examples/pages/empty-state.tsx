@@ -413,7 +413,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Filtered to nothing",
-    description: "When filters leave nothing, the title says no tasks match and the only action is the way out: Clear filters as the Tertiary. It fills one ListBox, not the page, so it is Small (size=\"sm\", 120 illustration). Focus moves to the first filter once it is gone.",
+    description: "When filters leave nothing, the title says no tasks match and the only action is the way out: Clear filters as the Tertiary. It fills one ListBox, not the page, so it is Small (size=\"sm\", 200 illustration). Focus moves to the first filter once it is gone.",
     code: `const clear = () => { setOn([]); focusFirstFilter(); };
 
 {/* The Empty State takes the list's place in the ListBox's Body-Slot. */}

@@ -22,7 +22,7 @@ Explains why a screen or region has nothing to show and what the user can do nex
 | Title / Caption | `title / children` | Heading/4 stand-alone (Body/Extra/Bold inside a titled card or at level 4 and deeper) · Body/Base/Regular (Content/Neutral/Light) |
 | Level | `headingLevel` | one level below the nearest heading above; default 3, or one below the card title inside a ChartCard (set for you) |
 | Compact title | `compactTitle` | Body/Extra/Bold title for a Card you title yourself, as ChartCard does for you |
-| Size | `size` | md: 240 illustration, the Empty State fills a page (default) · sm: 120, it fills a widget, card or section (default inside a ChartCard) |
+| Size | `size` | md: 240 illustration, the Empty State fills a page (default) · sm: 200, it fills a widget, card or section (default inside a ChartCard) |
 | Illustration | `illustration · icon` | placeholder with a centre icon (swap it to match what is missing); a node replaces it; false hides it — avoid |
 | CTAs | `primaryAction / secondaryAction` | full-width Button/Main Medium Primary + Tertiary |
 
@@ -30,7 +30,7 @@ Explains why a screen or region has nothing to show and what the user can do nex
 Generated from the TypeScript source; full JSON in `docs/api/empty-state.json`.
 
 ### EmptyState
-Figma Empty-State (6085:25796): 320px centred column — illustration (240, or 120 at `size="sm"`), gap XSmall, then the content wrapper (gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge. Inside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or outsizes the card title (see `headingLevel`).
+Figma Empty-State (16339:135; Size=Medium 6085:25796): 320px centred column — illustration (240, or 200 at `size="sm"`), gap XSmall, then the content wrapper (gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge. Inside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or outsizes the card title (see `headingLevel`).
 
 Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 
@@ -41,7 +41,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `headingLevel` | `2 \| 3 \| 4 \| 5 \| 6` | — | Heading level of the title, from where the Empty State sits: one level below the nearest heading above. Default 3, or one below the card title inside a ChartCard (set for you). Stand-alone at level 2 or 3 the title keeps the Figma Heading/4. At level 4 and deeper, and always inside a ChartCard, it uses Body/Extra/Bold so it is never larger than the card title (Heading/Subheading) it sits under. In a Card you title yourself, pass the level below your title (4 under the usual h3 card title) and `compactTitle`. |
 | `compactTitle` | `boolean` | `false` | For a Card you title yourself: the title uses Body/Extra/Bold, as inside a ChartCard, so it never outsizes the card title above it — also when that title is an h2 in Subheading and this one an h3. Default false. |
 | `children` | `ReactNode` | — | Figma Caption (Body/Base/Regular, Content/Neutral/Light). |
-| `size` | `"sm" \| "md" \| "small" \| "medium"` | — | Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main content (first run, a page with no results, no access). `sm` (120): it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside a ChartCard (set for you). |
+| `size` | `"sm" \| "md" \| "small" \| "medium"` | — | Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main content (first run, a page with no results, no access). `sm` (200): it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside a ChartCard (set for you). |
 | `illustration` | `boolean \| ReactNode` | `true` | Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art. `false` hides it — avoid it: where space is short use `size="sm"` (harness: empty-state/keep-illustration). |
 | `icon` | `IconName \| ReactElement` | — | Icon at the centre of the placeholder illustration: an icon name or an icon element. |
 | `primaryAction` | `EmptyStateAction` | — | Figma CTA Primary: Button/Main Medium Primary, full width. |
@@ -50,12 +50,12 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ Primary: { level: "accent" }, "Illustration/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets icon / primaryAction / secondaryAction. |
 
 ### EmptyStateIllustration
-Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon. Medium 240 with a Popular/2XLarge icon; Small 120, the same art at half scale with a Popular/Medium icon and the same 1px grid and 2px rings.
+Figma Empty-State/Illustration/Placeholder (16339:69): a faded grid, a dashed and a solid circle, and an icon. Size=Medium (6085:25816) 240 with a 44 icon (Popular/2XLarge); Size=Small (16339:53) 200, the same art at 5/6 scale with a 36 icon (Popular/XLarge) and the same 1px grid and 2px rings. Icon Content/Placeholder.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `icon` | `IconName \| ReactElement` | `"icon-user-circle-line"` |  |
-| `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | `md` 240 (default) · `sm` 120. |
+| `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | `md` 240 (default) · `sm` 200. |
 | `ref` | `Ref<HTMLSpanElement>` | — | The root `<span>` element. |
 
 ### Types
@@ -69,7 +69,7 @@ interface EmptyStateAction { label: ReactNode; onClick?: () => void; level?: But
 ## ✅ Do
 - Say what is empty in the title ("No projects yet", "No results for “tokns”").
 - Give the next step as a verb in primaryAction (Primary); a way out such as Clear filters or Clear search goes alone in secondaryAction (Tertiary) (harness: empty-state/way-out-tertiary).
-- Pick the size from where it sits: Medium (240) when the Empty State fills the page's main content — first run, a page with no results, no access; Small (120) when it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a sidebar, side panel, sheet, popover or dialog (harness: empty-state/small-in-box; ChartCard sets Small for you).
+- Pick the size from where it sits: Medium (240) when the Empty State fills the page's main content — first run, a page with no results, no access; Small (200) when it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a sidebar, side panel, sheet, popover or dialog (harness: empty-state/small-in-box; ChartCard sets Small for you).
 - Keep the illustration and swap its icon to match what is missing (icon="icon-folder-line").
 - Keep the caption to one sentence.
 
@@ -94,7 +94,7 @@ interface EmptyStateAction { label: ReactNode; onClick?: () => void; level?: But
 | `empty-state/needs-title` | error | Every Empty State has a title that says what is empty. | `zen-allow-empty-title: <reason>` |
 | `empty-state/action-label` | warn | Empty State actions name the next step ("Create project"), never "OK" or "Click here". | `zen-allow-vague-label: <reason>` |
 | `empty-state/way-out-tertiary` | warn | A way out of an empty result (Clear filters, Clear search, Reset) is secondaryAction (Tertiary); primaryAction is the next step ("Create project"). | `zen-allow-way-out-primary: <reason>` |
-| `empty-state/keep-illustration` | warn | Keep the illustration: where space is short use size="sm" (the 120 illustration), never illustration={false}. | `zen-allow-no-illustration: <reason>` |
+| `empty-state/keep-illustration` | warn | Keep the illustration: where space is short use size="sm" (the 200 illustration), never illustration={false}. | `zen-allow-no-illustration: <reason>` |
 | `empty-state/small-in-box` | warn | Size Medium (240) is for an Empty State that fills a page; in a Card, ChartCard, MetricCard, ListBox, Sidebar, Popover, Dialog, Modal Form, Side Panel or Bottom Sheet use size="sm" (ChartCard sets it for you). | `zen-allow-medium-in-box: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |

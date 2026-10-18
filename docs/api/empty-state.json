@@ -6,7 +6,7 @@
     {
       "name": "EmptyState",
       "file": "src/components/EmptyState/EmptyState.tsx",
-      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240, or 120 at `size=\"sm\"`), gap XSmall, then the content wrapper\n(gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.\nInside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or\noutsizes the card title (see `headingLevel`).",
+      "description": "Figma Empty-State (16339:135; Size=Medium 6085:25796): 320px centred column — illustration (240, or 200 at `size=\"sm\"`), gap XSmall, then the content wrapper\n(gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.\nInside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or\noutsizes the card title (see `headingLevel`).",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
       "props": [
@@ -55,7 +55,7 @@
           "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
           "required": false,
           "default": null,
-          "description": "Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main\ncontent (first run, a page with no results, no access). `sm` (120): it fills one region of a page that still shows\nother content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside\na ChartCard (set for you).",
+          "description": "Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main\ncontent (first run, a page with no results, no access). `sm` (200): it fills one region of a page that still shows\nother content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside\na ChartCard (set for you).",
           "deprecated": null
         },
         {
@@ -111,7 +111,7 @@
     {
       "name": "EmptyStateIllustration",
       "file": "src/components/EmptyState/EmptyState.tsx",
-      "description": "Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon.\nMedium 240 with a Popular/2XLarge icon; Small 120, the same art at half scale with a Popular/Medium icon and the\nsame 1px grid and 2px rings.",
+      "description": "Figma Empty-State/Illustration/Placeholder (16339:69): a faded grid, a dashed and a solid circle, and an icon.\nSize=Medium (6085:25816) 240 with a 44 icon (Popular/2XLarge); Size=Small (16339:53) 200, the same art at 5/6 scale\nwith a 36 icon (Popular/XLarge) and the same 1px grid and 2px rings. Icon Content/Placeholder.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -128,7 +128,7 @@
           "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
           "required": false,
           "default": "\"md\"",
-          "description": "`md` 240 (default) · `sm` 120.",
+          "description": "`md` 240 (default) · `sm` 200.",
           "deprecated": null
         },
         {

@@ -38,6 +38,36 @@
 .studio-device-status__battery { width: 24px; height: 12px; border-radius: var(--zen-corner-radius-xsmall, 4px); }
 /* zen-allow-slot-size: Android's upright battery (dummy). */
 .studio-device-status[data-os="android"] .studio-device-status__battery { width: 8px; height: 14px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); }
+/* The iPhone Duo's status cluster at the top right (DeviceBars `duo`; Figma Status-bar/IOS/Duo 16287:5822): Side, an
+   84-wide column 32 from the top (the open display's strip); Island, the same under the outer display's 27px camera, 24
+   from the top; Corner, a 64-high row 16 from the top. Time and ring 8 apart.
+   zen-allow-slot-size zen-allow-raw-spacing: the OS's geometry, not app layout. */
+.studio-device-duo {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  display: flex;
+  width: 84px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  /* zen-allow-raw-spacing: the OS status cluster (time and ring 8 apart), not app layout. */
+  gap: 8px;
+  /* zen-allow-raw-spacing: Placement=Side starts 32 from the top of the open display. */
+  padding-top: 32px;
+  color: var(--zen-color-content-neutral-strongest, #111);
+  pointer-events: none;
+}
+/* zen-allow-raw-spacing: the outer display's status starts under its camera (Side-Island). */
+.studio-device-duo[data-status="island"] { padding-top: 24px; }
+/* zen-allow-slot-size zen-allow-raw-spacing: Placement=Corner (64 high, 12 · 20 side padding, 16 from the top). */
+.studio-device-duo[data-status="corner"] { top: 16px; width: auto; height: 64px; flex-direction: row; padding: 0 20px 0 12px; }
+.studio-device-duo__time { font-variant-numeric: tabular-nums; }
+/* zen-allow-slot-size: the outer display's camera (27) and the status ring (30). */
+.studio-device-duo__camera { display: block; width: 27px; height: 27px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-solid-default, #111); }
+/* zen-allow-slot-size: see above. */
+.studio-device-duo__ring { display: block; width: 30px; height: 30px; flex: 0 0 auto; }
 /* iOS home indicator / Android gesture handle.
    zen-allow-slot-size zen-allow-raw-spacing: the OS's sizes and offsets (iOS 134 × 5 at 8, iPad 320; Android SystemUI
    navigation_home_handle_width 108, radius 2, navigation_handle_bottom 10), not app layout. */
@@ -55,6 +85,8 @@
 }
 /* zen-allow-slot-size: the iPad's home indicator width. */
 .studio-device-home[data-os="ios"][data-device="tablet"] { width: 320px; }
+/* zen-allow-slot-size: the iPhone Duo's (Figma Pattern/AppShell/Duo › Home-Indicator: 144). */
+.studio-device-home[data-device="duo"] { width: 144px; }
 /* zen-allow-slot-size zen-allow-raw-spacing: Android's gesture handle (see above). */
 .studio-device-home[data-os="android"] { bottom: 10px; width: 108px; height: 4px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); }
 /* The Screen that shows them: the bars sit on it; content with no Top / Bottom Navigation starts below the status bar

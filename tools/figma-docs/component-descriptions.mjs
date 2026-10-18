@@ -208,7 +208,7 @@ export const componentDescriptions = {
     what: "Explains why a screen or region has nothing to show and what to do next.",
     use: ["First run: one Primary action that creates the first item.", "No results: echo the query and offer to clear the filters.", "No permission: explain and offer to request access."],
     instead: ["Loading → Skeleton.", "An error that needs a retry → Inline-Message (Negative) with an action.", "A single empty cell → a short line of text."],
-    rules: ["One clear action at most; the title says what is missing, the text says why or what next.", "Size Medium (240 illustration) when it fills a page; Small (120) in a widget, card, table, panel or dialog.", "Keep the illustration; where space is short use Small, never hide it."],
+    rules: ["One clear action at most; the title says what is missing, the text says why or what next.", "Size Medium (240 illustration) when it fills a page; Small (200) in a widget, card, table, panel or dialog.", "Keep the illustration; where space is short use Small, never hide it."],
     code: "`<EmptyState>`",
   }),
   "Empty-State/Illustration/Placeholder": part("The icon illustration at the top of an Empty-State (swap the icon to match the missing content).", "Empty-State"),
@@ -818,4 +818,4 @@ export const GENERIC = [/\*\*Overview:\*\*/, /Original Notes/, /^Data visualizat
 // Sets whose Figma description is replaced even when it is specific: the property-panel sets drafted in Figma on
 // 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55; Accordion/Text since Size=Small (2026-10-15);
 // Search/Default since Shape (2026-10-17).
-export const FORCE = new Set(["Card", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default"]);
+export const FORCE = new Set(["Card", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default", "Empty-State"]);

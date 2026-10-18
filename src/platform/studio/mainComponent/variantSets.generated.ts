@@ -3714,6 +3714,29 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "EmptyState": [
+    {
+      "name": "Empty-State",
+      "figma": "16339:135",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "InputConditionItem": [
     {
       "name": "Primitives/Input/Input-Conditions/Condition-Item",
