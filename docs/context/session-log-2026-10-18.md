@@ -358,3 +358,10 @@ approved). F0 applies its glossary (§3a) and keys.
   - After the Breakpoint = Desktop switch, table and summary-row texts in A1–A4 / B6 kept a stale line layout (wrapped,
     cut) though their boxes read right; toggling the mode Mobile → Desktop again re-laid them out (checked live with
     node.screenshot; get_screenshot lagged on A4).
+  - Captions (user, 2026-10-19: "Cập nhật caption các màn theo AppShell mới"): every caption got a "Shell" row (a Subtle
+    Badge read from the placed instance, e.g. "AppShell/Mobile · Phone · Top=Band · Bottom=Tab-Bar"); descriptions of
+    B1–B6 and C4–C6 rewritten for the AppShell parts (B4/B5 as the user edited them). B2's list pane set to Flat so the
+    screen matches its "Tiles … never shadowed" caption. Sections re-fitted and re-stacked (240 gaps), 0 overlaps.
+  - Read me (user OK): head text, Structure axis card, the B/C/D tables (AppShell layout per row, equal 240 side
+    panes, Border panes in B4) and the mobile rule rewritten for the AppShell; review questions 1–2 marked Done /
+    Approved 2026-10-18 (Inset, B4 density, template compositions and the nav-surface audit question stay open).
