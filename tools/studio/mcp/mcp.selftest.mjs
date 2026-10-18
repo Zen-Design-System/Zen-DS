@@ -14,6 +14,7 @@ import { MCP_PATH, studioMcp } from "./server.mjs";
 import { bearerMatches, mcpToken, rotateToken, TOKEN_FILE } from "./token.mjs";
 import { TOOLS } from "./tools.mjs";
 import { findLayer, frameOf, layerLine, outline, valueText } from "../../../src/platform/studio/mcp/tree.ts";
+import { changedIds } from "../../../src/platform/studio/mcp/highlight.ts";
 
 let failed = 0;
 let passed = 0;
@@ -230,6 +231,18 @@ await check("tree: find a layer, its frame, value summaries", async () => {
   assert.equal(valueText({ kind: "object", fields: { icon: lit("x"), label: lit("y") } }), "{icon, label}");
   assert.equal(valueText({ kind: "proto", action: "go", args: ["screen-2"] }), "proto.go(\"screen-2\")");
   assert.equal(valueText(lit("x".repeat(200))).length, 82);
+});
+
+await check("highlight: a write flashes the layer it changed, not its parent or children", async () => {
+  const ids = (tool, text) => changedIds(tool, [{ type: "text", text }]);
+  assert.deepEqual(ids("update", 'Changed:\nButton #nb1 level="x"\n  Icon #ni1'), ["nb1"]);
+  assert.deepEqual(ids("insert", "Added to #ns1:\nGrid #ng1 columns=4\n  MetricCard #nm1"), ["ng1"]);
+  assert.deepEqual(ids("move", "Moved into #ns2 at 0:\nCard #nc1"), ["nc1"]);
+  assert.deepEqual(ids("duplicate", "Copied #nc1:\nCard #nc2"), ["nc2"]);
+  assert.deepEqual(ids("delete", "Deleted Card #nc1 (the person can bring it back with ⌘Z)."), []);
+  assert.deepEqual(ids("batch", "Done: 2 op(s), one undo step for the person.\n1. delete: Deleted Text #nt1 (x).\n2. insert ($k = #ng2): Added to #ns1: Grid #ng2 columns=4"), ["ng2"]);
+  assert.deepEqual(ids("get_tree", "Button #nb1"), []);
+  assert.deepEqual(ids("create_page", "Made and opened the page \"X\" (x).\nBoard #nb0"), []);
 });
 
 console.log(failed ? `\n${failed} failed, ${passed} passed` : `Studio MCP selftest: ${passed} passed`);

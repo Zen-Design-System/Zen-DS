@@ -16,7 +16,7 @@ import { addUsage, costOf, emptyUsage } from "./models.mjs";
 import { zenAgent } from "./routes.mjs";
 import { idsOf, positionOf, scriptedFetch } from "./script.mjs";
 import { AGENT_CLIENT, createAgent } from "./session.mjs";
-import { transcriptOf } from "./transcript.mjs";
+import { checkOf, stepsOf, transcriptOf, waitingAskOf } from "./transcript.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 
@@ -99,10 +99,11 @@ await check("transcript: prompt, streamed text, a tool call, the harness, the en
     { type: "end", turn: 1, state: "done", cost: 0.012, ms: 900, model: "claude-opus-5-5" },
   ]);
   assert.equal(items.length, 2);
-  assert.deepEqual(items[0], { kind: "user", turn: 1, text: "Make it secondary" });
+  assert.deepEqual(items[0], { kind: "user", turn: 1, text: "Make it secondary", thumbs: [] });
   assert.equal(items[1].text, "Đã đổi.");
-  assert.deepEqual(items[1].steps, [{ call: "a", name: "update", summary: "Changing a layer", state: "ok", detail: "Changed: Button" }]);
-  assert.equal(items[1].check.state, "ok");
+  assert.deepEqual(stepsOf(items[1]), [{ kind: "step", call: "a", name: "update", summary: "Changing a layer", state: "ok", detail: "Changed: Button" }]);
+  assert.equal(checkOf(items[1]).state, "ok");
+  assert.deepEqual(items[1].parts.map((part) => part.kind), ["step", "text", "check"], "the parts keep their order: the step, then the text around it, then the harness");
   assert.equal(items[1].state, "done");
   assert.equal(items[1].cost, 0.012);
 });
@@ -118,6 +119,14 @@ await check("harness: only the findings a turn caused count", async () => {
   assert.equal(designFindings(clean).length, 0, "…which a design page leaves to the Prototype tab");
   assert.equal(codeOf({ ok: true, content: [{ type: "text", text: CLEAN }] }), CLEAN);
   assert.equal(codeOf({ ok: true, content: [{ type: "text", text: "No page made in the Studio is open." }] }), null);
+});
+
+await check("steps: an answer that heads its outline with a colon reads as one line", async () => {
+  const relay = fakeRelay({ update: (args) => ({ ok: true, content: [{ type: "text", text: `Changed:\nButton #${args.id} level="tertiary" — "Save"\n  Icon #n2` }] }) });
+  const agent = scriptedAgent({ turns: [[{ tools: [{ name: "update", input: { id: "n1", props: { level: "tertiary" } } }] }, { text: "Done." }]] }, relay);
+  agent.send("t1", "go");
+  await agent.settled("t1");
+  assert.equal(stepsOf(agent.session("t1").items[1])[0].detail, 'Changed: Button #n1 level="tertiary" — "Save"');
 });
 
 await check("models: usage adds up and costs Opus 5.5's rates", async () => {
@@ -154,7 +163,7 @@ await check("turn: the prompt carries the canvas, a tool runs in the tab, the re
   assert.deepEqual(first.cache_control, { type: "ephemeral" });
   assert.equal(first.fallbacks, "default");
   assert.match(first.system, /You are Zen Agent/);
-  assert.deepEqual(first.tools.map((tool) => tool.name), [...TOOLS.map((tool) => tool.name), "search_icons", "check_page"]);
+  assert.deepEqual(first.tools.map((tool) => tool.name), [...TOOLS.map((tool) => tool.name), "search_icons", "check_page", "ask_person"]);
   assert.ok(first.tools.every((tool) => tool.run === undefined && tool.input_schema?.type === "object"), "only definitions go to the API");
   const prompt = first.messages[0].content;
   assert.match(prompt[0].text, /^<studio-context>[\s\S]*"selection"[\s\S]*Button #n1/);
@@ -168,9 +177,10 @@ await check("turn: the prompt carries the canvas, a tool runs in the tab, the re
   const [user, reply] = agent.session("t1").items;
   assert.equal(user.text, "đổi nút sang secondary và thêm icon check");
   assert.equal(reply.text, "Đổi nút.\n\nĐã đổi nút Save sang secondary, thêm icon check.", "each request is its own paragraph");
-  assert.deepEqual(reply.steps.map((step) => [step.name, step.state]), [["search_icons", "ok"], ["update", "ok"]]);
-  assert.match(reply.steps[1].detail, /^Changed: Button #n1 level="secondary"/);
-  assert.equal(reply.check?.state, "ok");
+  assert.deepEqual(stepsOf(reply).map((step) => [step.name, step.state]), [["search_icons", "ok"], ["update", "ok"]]);
+  assert.match(stepsOf(reply)[1].detail, /^Changed: Button #n1 level="secondary"/);
+  assert.equal(checkOf(reply)?.state, "ok");
+  assert.deepEqual(reply.parts.map((part) => part.kind), ["text", "step", "step", "text", "check"]);
   assert.equal(reply.state, "done");
   assert.ok(reply.cost > 0 && reply.ms >= 0 && reply.model === "claude-opus-5-5");
   assert.deepEqual(relay.tab.events.at(-1).type, "end");
@@ -186,7 +196,7 @@ await check("turn: a screenshot goes back to the model as an image block", async
   const [result] = requests[1].messages[2].content;
   assert.deepEqual(result.content.map((block) => block.type), ["image", "text"]);
   assert.deepEqual(result.content[0].source, { type: "base64", media_type: "image/png", data: "iVBORw0KGgo=" });
-  assert.equal(agent.session("t1").items[1].check, null, "a turn that changed nothing runs no harness");
+  assert.equal(checkOf(agent.session("t1").items[1]), null, "a turn that changed nothing runs no harness");
 });
 
 await check("turn: findings the turn caused go back to the model, which fixes them", async () => {
@@ -210,7 +220,7 @@ await check("turn: findings the turn caused go back to the model, which fixes th
   assert.equal(harness.role, "user");
   assert.match(harness.content[0].text, /^<zen-harness>[\s\S]*\[bottom-navigation\/destinations\]/);
   const reply = agent.session("t1").items[1];
-  assert.equal(reply.check.state, "ok");
+  assert.equal(checkOf(reply).state, "ok");
   const checks = relay.tab.events.filter((event) => event.type === "check").map((event) => event.state);
   assert.deepEqual(checks, ["running", "fixing", "running", "ok"]);
 });
@@ -223,7 +233,7 @@ await check("turn: findings that were there before the turn are left alone", asy
   agent.send("t1", "more space");
   await agent.settled("t1");
   assert.equal(requests.length, 2, "no harness round");
-  assert.equal(agent.session("t1").items[1].check.state, "ok");
+  assert.equal(checkOf(agent.session("t1").items[1]).state, "ok");
 });
 
 await check("turn: harness findings it cannot fix are handed to the person after two rounds", async () => {
@@ -233,8 +243,8 @@ await check("turn: harness findings it cannot fix are handed to the person after
   agent.send("t1", "go");
   await agent.settled("t1");
   const reply = agent.session("t1").items[1];
-  assert.equal(reply.check.state, "left");
-  assert.ok(reply.check.findings.some((line) => line.includes("bottom-navigation/destinations")));
+  assert.equal(checkOf(reply).state, "left");
+  assert.ok(checkOf(reply).findings.some((line) => line.includes("bottom-navigation/destinations")));
   assert.equal(reply.state, "done");
 });
 
@@ -244,7 +254,7 @@ await check("turn: findings the agent does not touch again are handed to the per
   agent.send("t1", "go");
   await agent.settled("t1");
   const reply = agent.session("t1").items[1];
-  assert.equal(reply.check.state, "left");
+  assert.equal(checkOf(reply).state, "left");
   assert.match(reply.text, /needed/);
 });
 
@@ -272,7 +282,7 @@ await check("stop: the AI chip's Stop refuses the call and ends the turn", async
   await agent.settled("t1");
   const reply = agent.session("t1").items[1];
   assert.equal(reply.state, "stopped");
-  assert.equal(reply.steps[0].state, "error");
+  assert.equal(stepsOf(reply)[0].state, "error");
   assert.ok(!reply.text.includes("Should not run"));
   const history = agent.messages("t1");
   const last = history.at(-1);
@@ -298,6 +308,58 @@ await check("api errors: a refused key reads as a key problem", async () => {
   const reply = agent.session("t1").items[1];
   assert.equal(reply.state, "error");
   assert.match(reply.error, /API key was refused/);
+});
+
+await check("ask_person: the turn waits for the person's answer, which goes back to the model", async () => {
+  const relay = fakeRelay();
+  const requests = [];
+  const agent = scriptedAgent({ turns: [[
+    { tools: [{ name: "ask_person", input: { question: "Zen keeps Secondary for a stated reason: use Tertiary, or keep Secondary?", options: ["Tertiary", "Keep Secondary"] } }] },
+    { text: "OK, Tertiary." },
+  ]] }, relay, requests);
+  agent.send("t1", "make it secondary");
+  for (let i = 0; i < 100 && !agent.session("t1").waiting; i += 1) await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(agent.session("t1").waiting, true);
+  const ask = waitingAskOf(agent.session("t1").items[1]);
+  assert.deepEqual(ask.options, ["Tertiary", "Keep Secondary"]);
+  assert.equal(agent.answer("t1", "wrong-call", "x"), false);
+  assert.equal(agent.answer("t1", ask.call, "Tertiary"), true);
+  await agent.settled("t1");
+  const result = requests[1].messages[2].content[0];
+  assert.equal(result.type, "tool_result");
+  assert.match(JSON.stringify(result.content), /The person answered: Tertiary/);
+  const part = agent.session("t1").items[1].parts.find((p) => p.kind === "ask");
+  assert.equal(part.state, "answered");
+  assert.equal(part.answer, "Tertiary");
+  assert.equal(agent.session("t1").items[1].text, "OK, Tertiary.");
+});
+
+await check("ask_person: Stop while it waits cancels the question and ends the turn", async () => {
+  const relay = fakeRelay();
+  const agent = scriptedAgent({ turns: [[{ tools: [{ name: "ask_person", input: { question: "Which one?", options: ["A", "B"] } }] }, { text: "Should not run." }]] }, relay);
+  agent.send("t1", "go");
+  for (let i = 0; i < 100 && !agent.session("t1").waiting; i += 1) await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(agent.stop("t1"), true);
+  await agent.settled("t1");
+  const reply = agent.session("t1").items[1];
+  assert.equal(reply.state, "stopped");
+  assert.equal(reply.parts.find((p) => p.kind === "ask").state, "cancelled");
+  assert.equal(agent.session("t1").waiting, false);
+  assert.ok(agent.messages("t1").at(-1).content.every((block) => block.type === "tool_result"));
+});
+
+await check("pictures and notes go with the prompt: notes in the context, pictures as image blocks before the text", async () => {
+  const relay = fakeRelay();
+  const requests = [];
+  const agent = scriptedAgent({ turns: [[{ text: "Seen." }]] }, relay, requests);
+  agent.send("t1", "build this", { images: [{ mediaType: "image/png", data: "iVBORw0KGgo=" }], thumbs: ["data:image/jpeg;base64,AAAA"], notes: ["The person undid your turn 1 (3 changes)."] });
+  await agent.settled("t1");
+  const content = requests[0].messages[0].content;
+  assert.deepEqual(content.map((block) => block.type), ["text", "image", "text"]);
+  assert.match(content[0].text, /Since your last turn:\n- The person undid your turn 1/);
+  assert.deepEqual(content[1].source, { type: "base64", media_type: "image/png", data: "iVBORw0KGgo=" });
+  assert.equal(content[2].text, "build this");
+  assert.deepEqual(agent.session("t1").items[0].thumbs, ["data:image/jpeg;base64,AAAA"]);
 });
 
 /* ── routes ───────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -347,6 +409,9 @@ await check("routes: ZEN_AGENT_SCRIPT runs a turn end to end", async () => {
     for (let i = 0; i < 100 && relay.tab.events.at(-1)?.type !== "end"; i += 1) await new Promise((resolve) => setTimeout(resolve, 20));
     const session = await routes.handle("GET /agent/session", null, url);
     assert.equal(session.body.items[1].text, "Xin chào.");
+    assert.equal((await routes.handle("POST /agent/answer", { tab: "t1", text: "A" }, url)).status, 409, "nothing waits for an answer");
+    assert.equal((await routes.handle("POST /agent/send", { tab: "t1", text: "x", images: Array.from({ length: 5 }, () => ({ mediaType: "image/png", data: "AAAA" })) }, url)).status, 400);
+    assert.equal((await routes.handle("POST /agent/send", { tab: "t1", text: "x", images: [{ mediaType: "image/svg+xml", data: "AAAA" }] }, url)).status, 400);
     assert.equal((await routes.handle("POST /agent/reset", { tab: "t1" }, url)).status, 200);
     assert.deepEqual((await routes.handle("GET /agent/session", null, url)).body.items, []);
     await routes.close();

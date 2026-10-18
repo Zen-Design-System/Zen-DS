@@ -66,6 +66,23 @@
   .studio-agent__check:is([data-state="running"], [data-state="fixing"]) > .zen-icon { animation: none; }
 }
 .studio-agent__note { margin: 0; }
+/* A reply's last line: the model, cost and time, and "Undo turn" (V1a). */
+.studio-agent__meta { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); min-height: var(--zen-element-size-popular-large, 28px); }
+/* The agent's question (ask_person): the question, then its answers as chips. */
+.studio-agent__ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 12px);
+  background: var(--zen-color-background-neutral-subtle-default, #f2f2f2);
+}
+.studio-agent__ask p { margin: 0; }
+.studio-agent__options { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Pictures: those for the next message above the prompt, those of a sent message above its bubble. */
+.studio-agent__thumbs { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-agent__thumbs[data-side="you"] { justify-content: flex-end; }
+.studio-agent__picture { display: flex; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 
 .studio-agent__footer {
   display: flex;
@@ -76,7 +93,7 @@
   border-top: 1px solid var(--zen-color-border-neutral-pale-default);
 }
 .studio-agent__footer p { margin: 0; }
-.studio-agent__context { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-agent__context { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
 
 /* A phone-width window: the panel spans the canvas. */
 @media (max-width: 767px) {

@@ -1,6 +1,6 @@
 # Zen Agent trong Studio: vibe design bằng chat nhúng (plan, 2026-10-18)
 
-**Trạng thái: V-1 xong (§7); V0 đã làm 2026-10-18 (user: "làm V0 đi", §8), nhánh `zen/feat/studio-agent-v0-20261018`; V1 trở đi chưa làm.** Mỗi mốc V0–V4 cần user duyệt riêng
+**Trạng thái: V-1 xong (§7); V0 xong 2026-10-18 (§8, PR #122); V1 đã lên plan (§9), V1a đang làm trên nhánh `zen/feat/studio-agent-v1-20261018`.** Mỗi mốc V0–V4 cần user duyệt riêng
 (Scope lock, `AGENTS.md`). Plan này thay phần kiến trúc của `studio-agent-spec-2026-10-05.md` (Agent SDK) và là bước
 "Zen Agent nhúng" của `studio-mcp-canvas-2026-10-15.md` §8, §11.5.
 
@@ -143,7 +143,31 @@ Hệ quả cho V0/V1 (làm trong mốc tương ứng, không phải backlog):
 - **Chưa thử với key thật:** cần user đặt `ANTHROPIC_API_KEY` (hoặc `ant auth login`) rồi chạy server worktree; lần đầu đo
   chi phí và thời gian thật, `cache_read_input_tokens` > 0 từ request thứ hai.
 
-## 9. Rủi ro
+## 9. Plan V1 (2026-10-18, user: "plan V1 trước đi", rồi "OK")
+
+Quyết định (user "OK" cho các đề xuất): **chat theo trang**; yêu cầu đụng luật Zen → **agent hỏi lại bằng lựa chọn**;
+eval ~$5–10 mỗi lần trên key của user, **so cả Sonnet 5.5 và Haiku 5.5**; thứ tự **V1a → V1b → V1c**, mỗi đợt duyệt riêng.
+
+- **Bước 0 · chạy thật lần đầu** (cần key của user): chi phí / thời gian thật, `cache_read_input_tokens` > 0 từ request
+  thứ hai, `fallbacks` + `effort` được nhận, kiểm lịch sử chỉ-nối-thêm (`prefix_mismatch_behavior: "drop_block"` + log
+  `input_transformations`).
+- **V1a · cảm giác dùng:** (1) chọn model trong ô nhập; (2) hoàn tác cả lượt (lượt cuối, khi các bản ghi undo của lượt
+  còn trên cùng và đều của AI; người sửa xen giữa → tắt, tooltip nói lý do; lượt sau agent được báo đã hoàn tác);
+  (3) nháy layer AI vừa đổi — cho mọi client MCP, không riêng Zen Agent; (4) chat theo đúng thứ tự (chữ, bước, harness
+  xen nhau), bước ghi rõ thay đổi; (5) tool `ask_person` (câu hỏi + 2–4 lựa chọn + "Khác", lượt chờ, Stop huỷ);
+  (6) dán / đính ảnh tham khảo (thu nhỏ trong trình duyệt, ≤ 4 ảnh). E2E AG-07…
+  **V1a đã làm (2026-10-18):** (1)–(6) như trên. Transcript theo phần (`parts`), bước ghi của tool ghi chính dòng trả lời
+  ("Changed: Button level=…"); `ask_person` + `POST /agent/answer`; ảnh qua `pictures.ts` (≤ 1568 px, ≤ 4); "Undo turn"
+  = ⌘Z từng bản ghi của lượt khi chúng còn trên cùng ngăn undo, lượt sau nhận ghi chú "The person undid your turn N";
+  nháy layer cho mọi client MCP (`mcp/highlight.ts`: chỉ layer đổi, không cha / con). Kiểm: `agent.selftest` 21/21,
+  `mcp.selftest` 14/14, E2E AG-01…12 12/12 ×3. Gặp trên đường: ô nháy ôm cả Stack cha (câu "Added to #…") → bỏ id ở đầu
+  câu; helper E2E đọc nhầm reply cũ "Stopped" → chờ reply mới.
+- **V1b · chính xác và rẻ:** catalog gọn trong system (≈ 20K token, cache); `update` nhận object / list (Studio MCP);
+  project trong ngữ cảnh + lỗi "trang đã đổi" (Studio MCP); dọn ảnh cũ bằng context editing phía server (không tính là
+  sửa lịch sử); chat theo trang, lưu qua khởi động lại.
+- **V1c · đo:** eval 15 prompt + contact sheet; so Opus / Sonnet / Haiku cho sửa nhỏ.
+
+## 10. Rủi ro
 
 - **Prompt injection** từ nội dung trang hay ảnh: Design mode không có Bash/Web/file; mọi ghi qua op có kiểm tra.
 - **Agent và người cùng sửa:** chung hàng đợi `enqueue` của `api.ts`; "Hoàn tác cả lượt" phải biết bản ghi nào của AI.

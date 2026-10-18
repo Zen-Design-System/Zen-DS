@@ -56,6 +56,7 @@ const SUMMARY = {
   search_icons: (args) => `Finding icons: ${args?.query ?? ""}`.trim(),
   get_tokens: "Reading tokens",
   check_page: "Checking the Zen rules",
+  ask_person: "Asking you",
 };
 const summaryOf = (name, args) => {
   const entry = SUMMARY[name];
@@ -65,7 +66,9 @@ const summaryOf = (name, args) => {
 /** A tool answer in one short line for the panel's step tooltip (an outline's first line, a JSON answer's start). */
 const firstLine = (text, max = 160) => {
   const value = String(text ?? "").trim();
-  const line = value.startsWith("{") || value.startsWith("[") ? value.replace(/\s+/g, " ") : value.split("\n").find((part) => part.trim()) ?? "";
+  const lines = value.split("\n").map((part) => part.trim()).filter(Boolean);
+  // "Changed:" / "Added to #n…:" heads the layer's outline on the next line: keep both.
+  const line = value.startsWith("{") || value.startsWith("[") ? value.replace(/\s+/g, " ") : lines[0]?.endsWith(":") && lines[1] ? `${lines[0]} ${lines[1]}` : lines[0] ?? "";
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
 };
 
@@ -85,7 +88,7 @@ function blocksOf(content) {
 const textOf = (content) => (Array.isArray(content) ? content : []).filter((item) => item?.type === "text").map((item) => item.text).join("\n");
 
 /** The <studio-context> block of a prompt, from the tab's get_studio_state answer. */
-function contextBlock(answer, { useSelection = true } = {}) {
+function contextBlock(answer, { useSelection = true, notes = [] } = {}) {
   let state = answer?.ok ? textOf(answer.content) : null;
   if (state && !useSelection) {
     try {
@@ -94,7 +97,8 @@ function contextBlock(answer, { useSelection = true } = {}) {
       // Not JSON: send it as it is.
     }
   }
-  return `<studio-context>\n${state ?? `The canvas could not be read${answer?.error ? `: ${answer.error}` : ""}.`}\n</studio-context>`;
+  const since = notes.length ? `\nSince your last turn:\n${notes.map((note) => `- ${note}`).join("\n")}` : "";
+  return `<studio-context>\n${state ?? `The canvas could not be read${answer?.error ? `: ${answer.error}` : ""}.`}${since}\n</studio-context>`;
 }
 
 const harnessMessage = (findings) => [
@@ -253,7 +257,42 @@ export function createAgent({ relay, knowledge, client, log = () => {}, now = ()
       },
     });
 
-    return [...canvas, ...docs, check];
+    // V1 (plan §9): the agent asks instead of guessing — an ambiguous request, or one a Zen rule says no to. The turn
+    // waits here for the person's answer (POST /agent/answer); Stop or a new chat cancels it.
+    const ask = betaTool({
+      name: "ask_person",
+      description: "Asks the person one short question with 2–4 answers to pick from (they may also write their own), and waits for the answer. Use it when the request is ambiguous, or when doing it as asked would break a Zen rule — a guideline or the harness says no, e.g. \"Zen keeps Secondary buttons for a stated reason: use Tertiary, or keep Secondary?\". Not for what the canvas, the guidelines or the context already settle.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          question: { type: "string", description: "One short sentence in the person's language." },
+          options: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 4, description: "2–4 short answers, the one you recommend first." },
+        },
+        required: ["question", "options"],
+        additionalProperties: false,
+      },
+      run: async (args, context) => {
+        refuseIfStopped();
+        const call = context?.toolUse?.id ?? `ask_person-${turn}-${++calls}`;
+        const question = String(args?.question ?? "").trim().slice(0, 300);
+        const options = (Array.isArray(args?.options) ? args.options : []).map((option) => String(option).trim().slice(0, 80)).filter(Boolean).slice(0, 4);
+        if (!question || options.length < 2) throw new ToolError("Give one question and 2–4 options.");
+        emit(session, { type: "ask", turn, call, question, options, state: "waiting" });
+        let answer;
+        try {
+          answer = await new Promise((resolve, reject) => { session.asking = { call, resolve, reject }; });
+        } catch {
+          emit(session, { type: "ask", turn, call, question, options, state: "cancelled" });
+          throw new ToolError("The person stopped the turn instead of answering.");
+        } finally {
+          session.asking = null;
+        }
+        emit(session, { type: "ask", turn, call, question, options, state: "answered", answer });
+        return `The person answered: ${answer}`;
+      },
+    });
+
+    return [...canvas, ...docs, check, ask];
   }
 
   function paramsFor(modelId, tools, messages) {
@@ -287,13 +326,14 @@ export function createAgent({ relay, knowledge, client, log = () => {}, now = ()
     let steps = 0;
     /** The findings the last harness round sent the model. */
     let pending = [];
-    emit(session, { type: "user", turn, text });
+    emit(session, { type: "user", turn, text, ...(options.thumbs?.length ? { thumbs: options.thumbs } : {}) });
     try {
       const sdk = await client();
       const tools = await toolsFor(session, turn, controller, track);
       const context = await relayCall(session.tab, "get_studio_state", {}).catch((reason) => ({ ok: false, error: reason?.message }));
       const before = await findingsNow(session.tab).then((found) => (found === null ? null : designFindings(found)));
-      session.messages.push({ role: "user", content: [{ type: "text", text: contextBlock(context, options) }, { type: "text", text }] });
+      const pictures = (options.images ?? []).map((image) => ({ type: "image", source: { type: "base64", media_type: image.mediaType, data: image.data } }));
+      session.messages.push({ role: "user", content: [{ type: "text", text: contextBlock(context, options) }, ...pictures, { type: "text", text }] });
       for (let round = 0; ; round += 1) {
         runner = sdk.beta.messages.toolRunner(paramsFor(modelId, tools, session.messages), { signal: controller.signal });
         for await (const stream of runner) {
@@ -359,10 +399,10 @@ export function createAgent({ relay, knowledge, client, log = () => {}, now = ()
     /** The transcript and state of `tab`'s conversation. */
     session(tab) {
       const session = sessions.get(tab);
-      return { items: session?.items ?? [], busy: Boolean(session?.running), model: session?.model ?? DEFAULT_MODEL, turn: session?.turn ?? 0 };
+      return { items: session?.items ?? [], busy: Boolean(session?.running), waiting: Boolean(session?.asking), model: session?.model ?? DEFAULT_MODEL, turn: session?.turn ?? 0 };
     },
     /** Starts a turn (answers at once; the turn reports through events). */
-    send(tab, text, { useSelection = true, model } = {}) {
+    send(tab, text, { useSelection = true, model, images = [], thumbs = [], notes = [] } = {}) {
       const session = sessionOf(tab);
       if (session.running) return { ok: false, code: "busy", error: "Zen Agent is still working on the last message: wait, or press Stop." };
       if (model !== undefined) {
@@ -370,14 +410,22 @@ export function createAgent({ relay, knowledge, client, log = () => {}, now = ()
         session.model = model;
       }
       const turn = session.turn + 1;
-      session.done = runTurn(session, text, { useSelection });
+      session.done = runTurn(session, text, { useSelection, images, thumbs, notes });
       return { ok: true, turn };
     },
     /** Stops `tab`'s running turn; true when one was running. */
     stop(tab) {
-      const running = sessions.get(tab)?.running;
-      if (!running) return false;
-      running.controller.abort();
+      const session = sessions.get(tab);
+      if (!session?.running) return false;
+      session.running.controller.abort();
+      session.asking?.reject(new Error("stopped"));
+      return true;
+    },
+    /** The person's answer to the question the turn waits on (`call`, when given, must be that question's). */
+    answer(tab, call, text) {
+      const asking = sessions.get(tab)?.asking;
+      if (!asking || (call && call !== asking.call)) return false;
+      asking.resolve(text);
       return true;
     },
     /** A new conversation for `tab` (stops the running turn first). */
@@ -385,6 +433,7 @@ export function createAgent({ relay, knowledge, client, log = () => {}, now = ()
       const session = sessions.get(tab);
       if (!session) return;
       session.running?.controller.abort();
+      session.asking?.reject(new Error("reset"));
       await session.done?.catch(() => {});
       sessions.delete(tab);
     },
