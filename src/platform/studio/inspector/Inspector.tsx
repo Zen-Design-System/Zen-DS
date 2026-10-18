@@ -36,7 +36,7 @@ const builderTabs = [...tabs, { id: "prototype", label: "Prototype" }];
 
 /**
  * Footer line: the last edit / save / undo / redo / error, else what editing does here. Edits on a drafts server read
- * "Draft · button.tsx:84 · ⌘S to save"; a Save lists its harness findings and conflicts under the line.
+ * "Unsaved · button.tsx:84 · ⌘S to save"; a Save lists its harness findings and conflicts under the line.
  */
 function StatusLine() {
   const edit = useStudioEditStatus();
@@ -56,9 +56,9 @@ function StatusLine() {
   if (edit && (!local || edit.at > local.at)) {
     tone = edit.kind === "error" ? "negative" : edit.kind === "warning" ? "warning" : edit.kind === "saved" ? "positive" : "neutral";
     const where = edit.file ? `${fileName(edit.file)}:${edit.line ?? ""}` : "";
-    text = edit.kind === "draft" && edit.file ? `Draft · ${where} · ${saveShortcut} to save`
+    text = edit.kind === "draft" && edit.file ? `Unsaved · ${where} · ${saveShortcut} to save`
       : edit.kind === "saved" && edit.file && edit.line ? `Saved · ${where} · ${undoShortcut} to undo`
-        : edit.draft ? `${edit.message} · Draft · ${saveShortcut} to save`
+        : edit.draft ? `${edit.message} · Unsaved · ${saveShortcut} to save`
           : edit.message;
     // Any edit that missed the example's snippet says so (prop, text and style edits too; detach, wrap and slot ops
     // word it in their own line), so the Code tab's copy is not trusted silently.
@@ -68,10 +68,10 @@ function StatusLine() {
     tone = local.tone;
     text = local.text;
   } else {
-    const shown = drafts.drafts.length ? " · unsaved admin drafts are shown" : "";
+    const shown = drafts.drafts.length ? " · others' unsaved changes are shown" : "";
     // Not editable: the gate's reason (gate.ts; the toolbar's Read-only chip explains it and offers the fix).
     const gate = editGate({ role, localPage }, server, { dev: import.meta.env.DEV, hostname: window.location.hostname });
-    text = editable ? (localPage ? "Changes save at once" : drafting ? `Edits stay drafts until you save (${saveShortcut})` : "Changes save to the source file at once")
+    text = editable ? (localPage ? "Changes save at once" : drafting ? `Changes stay unsaved: ${saveShortcut} to save` : "Changes save to the source file at once")
       : gate.ok ? "Connecting to the Studio dev server…" : `${gate.short}${role === "viewer" ? shown : ""}`;
   }
   text = say(text);

@@ -932,15 +932,15 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<SliderField label="Opacity" defaultValue={0.6} min={0} max={1} step={0.01} />`,
   },
   {
-    id: "color-field", label: "Colour field", group: "Inputs", caption: "Hex with a swatch, opens the picker", root: "ColorField", components: ["ColorField"], interactive: true, input: true,
+    id: "color-field", label: "Color field", group: "Inputs", caption: "Hex with a swatch, opens the picker", root: "ColorField", components: ["ColorField"], interactive: true, input: true,
     build: () => `<ColorField label="Brand colour" defaultValue="#1F6FEB" savedColors={["#1F6FEB", "#0E9F8E", "#E07B12", "#E5533D"]} />`,
   },
   {
-    id: "color-picker", label: "Colour picker", group: "Inputs", caption: "Inline picker", root: "ColorPicker", components: ["ColorPicker"], interactive: true, input: true,
+    id: "color-picker", label: "Color picker", group: "Inputs", caption: "Inline picker", root: "ColorPicker", components: ["ColorPicker"], interactive: true, input: true,
     build: () => `<ColorPicker aria-label="Highlight colour" defaultValue="#E07B12" />`,
   },
   {
-    id: "color-swatch", label: "Colour swatch", group: "Data display", caption: "Shows a colour value", root: "ColorSwatch", components: ["ColorSwatch"], interactive: false, input: false,
+    id: "color-swatch", label: "Color swatch", group: "Data display", caption: "Shows a color value", root: "ColorSwatch", components: ["ColorSwatch"], interactive: false, input: false,
     build: () => `<ColorSwatch color="#1F6FEB" aria-label="Brand colour, #1F6FEB" />`,
   },
   {
@@ -952,7 +952,7 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<InputField layout="inline" label="Title" defaultValue="Japan" />`,
   },
   {
-    id: "color-selector", label: "Colour selector", group: "Inputs", root: "ColorSelector", components: ["ColorSelector"], state: [state("color", '"var(--zen-color-background-support-blue-solid)"')], interactive: true, input: true,
+    id: "color-selector", label: "Color selector", group: "Inputs", root: "ColorSelector", components: ["ColorSelector"], state: [state("color", '"var(--zen-color-background-support-blue-solid)"')], interactive: true, input: true,
     build: () => lines(
       `<ColorSelector aria-label="Project colour" value={color} onValueChange={setColor} colors={[`,
       `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
@@ -1238,7 +1238,7 @@ export const paletteItem = (id: string) => byId.get(id) ?? null;
 /** Where the platform's Widgets page writes a widget: on an example stage, under the card's h3 (ChartCard's default). */
 export const WIDGET_PAGE_CONTEXT: PaletteContext = {
   host: "Stack", headingLevel: 3, mobile: false, uid: "widgets",
-  slot: { component: "Stack", prop: "children", name: "Children", kind: "layout", container: null, mountsWhenEmpty: true, flow: "column", gap: "own" },
+  slot: { component: "Stack", prop: "children", name: "Layers", kind: "layout", container: null, mountsWhenEmpty: true, flow: "column", gap: "own" },
 };
 
 /** A Widgets entry's code as the platform's Widgets page shows it: its import line, then the JSX the Studio inserts. */

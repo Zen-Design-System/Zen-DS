@@ -25,7 +25,7 @@ export function inlineMedia(code: string): string {
 /** The item's code as Assets would insert it into a layout (a Stack's children): its static version when it has one (a
  *  Sidebar's selected item fixed), so no prop is lost to a state value the page cannot hold. */
 export function itemCode(item: PaletteItem): string {
-  const slot = { component: "Stack", prop: "children", name: "Children", kind: "layout" } as unknown as ContentSlot;
+  const slot = { component: "Stack", prop: "children", name: "Layers", kind: "layout" } as unknown as ContentSlot;
   const context: PaletteContext = { host: "Stack", slot, headingLevel: 4, mobile: false, uid: "preview" };
   const code = item.builder?.(context) ?? item.build(context);
   return inlineMedia(builderCode(code) ?? code);

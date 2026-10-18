@@ -99,7 +99,7 @@ export function SourcePanel({ file, highlight = null, maxHeight, className, expa
           background="subtle"
           title={stale ? "Unsaved admin draft; the file changed on disk since it started" : "Unsaved admin draft: marks show its changes against the file on disk"}
         >
-          {stale ? "Draft · disk changed" : "Draft"}
+          {stale ? "Unsaved · file changed on disk" : "Unsaved"}
         </Badge>
       ) : null}
       {range ? <span className={`studio-source__range ${typographyStyles["Caption/Regular"]}`}>{range}</span> : null}

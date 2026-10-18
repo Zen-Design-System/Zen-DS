@@ -331,7 +331,7 @@ check("clickable Card: warnings", reasons(cardClickable), [
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
   WIDGETS_IN_A_CARD,
-  "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Slider field, Colour field, Colour picker, Inline field, Colour selector, File upload)",
+  "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Slider field, Color field, Color picker, Inline field, Color selector, File upload)",
   "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Popover, Tooltip)",
   "Layout: The card is one click target, so it holds no controls or fields (Accordion)",
   "Page: The card is one click target, so it holds no controls or fields (Page header, Dashboard header, Top navigation, Bottom navigation, Sidebar, App shell, Action bar)",

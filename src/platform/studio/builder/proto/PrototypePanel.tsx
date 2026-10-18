@@ -1,3 +1,4 @@
+import { presentKeys } from "../../shell/modKey";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { Button, IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
@@ -75,7 +76,7 @@ export function PrototypePanel() {
     <div className="studio-prototype" data-e2e="prototype-panel">
       <InspectorSection
         title="Flow"
-        actions={<Button appearance="main" level="primary" size="sm" startIcon={<Icon name="icon-play-line" decorative />} aria-keyshortcuts="P" onClick={() => startPlay(playFrom)}>Play</Button>}
+        actions={<Button appearance="main" level="primary" size="sm" startIcon={<Icon name="icon-play-line" decorative />} aria-keyshortcuts={presentKeys} onClick={() => startPlay(playFrom)}>Present</Button>}
       >
         <ul className="studio-inspector__items studio-prototype__frames" aria-label="Screens and overlays">
           {frames.map((frame) => (

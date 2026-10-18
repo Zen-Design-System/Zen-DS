@@ -1,3 +1,4 @@
+import { saveShortcut } from "../inspector/status";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "../../../components/Badge";
 import { Button } from "../../../components/Button";
@@ -156,7 +157,7 @@ function CssDrafts({ files }: { files: string[] }) {
   if (!pending.length) return null;
   return (
     <div className="studio-mc__drafts">
-      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Draft: {pending.map(fileName).join(", ")} — not saved yet.</p>
+      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Unsaved: {pending.map(fileName).join(", ")}. {saveShortcut} to save.</p>
       <div className="studio-inspector__actions">
         <Button appearance="main" size="sm" level="primary" disabled={Boolean(drafts.busy)} onClick={() => { void requestSave(pending); }}>Save</Button>
         <Button appearance="main" size="sm" level="danger-subtle" disabled={Boolean(drafts.busy)} onClick={() => confirmDiscard(pending)}>Discard</Button>

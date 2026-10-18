@@ -53,7 +53,7 @@ test("colours split into hex and opacity, and back in the file's spelling", () =
 });
 
 test("new names are free in the group", () => {
-  assert.equal(newName("Color/Content", "COLOR", new Set()), "Color/Content/New colour");
+  assert.equal(newName("Color/Content", "COLOR", new Set()), "Color/Content/New color");
   assert.equal(newName("", "FLOAT", new Set(["New number"])), "New number 2");
 });
 

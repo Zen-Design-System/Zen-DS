@@ -287,7 +287,7 @@ export const rows = [
       await until(async () => (await page.locator('.zen-shape[data-type="ellipse"]').evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity))).every((value) => value === "0.4"), { message: "the instance follows (opacity 0.4)" });
       const instance = await page.locator('.zen-shape[data-type="ellipse"]').nth(1).boundingBox();
       await page.mouse.click(instance.x + instance.width / 2, instance.y + instance.height / 2);
-      await until(async () => (await right.getByRole("button", { name: "Detach" }).count()) === 1, { message: "the instance selected" });
+      await until(async () => (await right.getByRole("button", { name: "Detach instance" }).count()) === 1, { message: "the instance selected" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+Alt+KeyB");
       await until(async () => !/<Use\b/.test(await text()) && (((await text()).match(/<Shape type="ellipse"/g) ?? []).length === 2), { message: "the instance detached into its own Shape" });
@@ -334,7 +334,7 @@ export const rows = [
       const meta = (await head.locator(".studio-inspector__meta-row").innerText()).replace(/\s+/g, " ").trim();
       if (meta !== "Shape") throw new Error(`the Inspector says "${meta}"`);
       if (await head.locator(".studio-inspector__kind-icon[data-component]").count()) throw new Error("the header icon has the component colour");
-      if (await head.getByRole("button", { name: /Swap instance|Reset all overrides/ }).count()) throw new Error("the header offers Swap instance / Reset all overrides");
+      if (await head.getByRole("button", { name: /Swap instance|Reset all changes/ }).count()) throw new Error("the header offers Swap instance / Reset all overrides");
       const shape = await page.locator('[data-studio-frame="screen:screen-1"] .zen-shape').first().boundingBox();
       await page.mouse.click(shape.x + shape.width / 2, shape.y + shape.height / 2, { button: "right" });
       const menu = page.getByRole("menu").last();

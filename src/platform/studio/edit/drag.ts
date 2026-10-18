@@ -9,7 +9,7 @@ import { startMarquee } from "./marquee";
 import { moveLayersTo } from "./multi";
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { ladderOf } from "../position/PositionSection";
-import { pinOfConstraint, snap, snapText, type Ladder, type Pin, type Snap } from "../position/positionModel";
+import { ladderName, pinOfConstraint, snap, snapText, type Ladder, type Pin, type Snap } from "../position/positionModel";
 import type { EditOp } from "../types";
 import { textEditSession } from "./textEdit";
 import { srcAttr } from "../select/srcIds";
@@ -450,7 +450,7 @@ function followFloat(current: Session, float: FloatMove) {
   current.target = null;
   const changed = float.insets.filter((inset) => inset.snap.key !== inset.was.key);
   const clamped = float.insets.some((inset) => inset.snap.clamped);
-  publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? (changed.length ? `${changed.map(snapText).join(" · ")}${clamped ? " · offsets stop at 4xl" : ""}` : null), tone: current.refusal ? "negative" : "info" });
+  publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? (changed.length ? `${changed.map(snapText).join(" · ")}${clamped ? ` · offsets stop at ${ladderName("4xl")}` : ""}` : null), tone: current.refusal ? "negative" : "info" });
 }
 
 /** Writes the moved insets of a floating layer (one edit; an inset back at `none` is removed). */

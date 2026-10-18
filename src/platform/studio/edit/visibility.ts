@@ -111,7 +111,8 @@ export function canHide(selection: StudioSelection | null | undefined): selectio
   return selection?.kind === "node" && !selection.part && canHideSrc(selection.src);
 }
 
-const LABEL = { show: "Show layer", hide: "Hide layer", mobile: "Hide on mobile", desktop: "Hide on desktop" } as const;
+// Figma's Show / Hide (⇧⌘H); the two layout items are Zen's own.
+const LABEL = { show: "Show", hide: "Hide", mobile: "Hide on mobile", desktop: "Hide on desktop" } as const;
 
 /** Sets a layer's `hidden` (null shows it on every layout): one edit, one ⌘Z. */
 export async function setLayerHidden(src: string, name: string, value: HiddenValue | null) {
@@ -132,7 +133,7 @@ export function toggleLayerHidden(src: string, name: string) {
 export function visibilityMenuItems(selection: StudioSelection | null | undefined): MenuItemData[] {
   if (!canHide(selection)) return [];
   const current = hiddenValueAt(selection.src);
-  const off = canEdit() ? undefined : "View only — switch to Admin to edit";
+  const off = canEdit() ? undefined : "View only";
   const set = (value: HiddenValue | null) => () => { void setLayerHidden(selection.src, selection.name, value); };
   return [
     { id: "visibility-toggle", label: current === true ? LABEL.show : LABEL.hide, icon: current === true ? "icon-eye-line" : "icon-eye-off-line", shortcut: hideShortcut, disabled: Boolean(off), caption: off, onSelect: set(current === true ? null : true) },

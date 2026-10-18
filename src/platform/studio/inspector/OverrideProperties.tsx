@@ -74,10 +74,10 @@ export function OverrideProperties({ selection, part, path, title = "Properties"
       appearance="flat"
       level="primary"
       size="xs"
-      aria-label="Reset all overrides"
-      tooltip={`Reset all overrides · ${plural(count, "property", "properties")} of this ${part.name} back to ${owner}'s · ${undoShortcut} to undo`}
+      aria-label="Reset all changes"
+      tooltip={`Reset all changes · ${plural(count, "property", "properties")} of this ${part.name} back to ${owner}'s · ${undoShortcut} to undo`}
       disabled={!editable}
-      onClick={() => write(withoutLayer(table, path), `${owner} › ${path}: reset all overrides`)}
+      onClick={() => write(withoutLayer(table, path), `${owner} › ${path}: reset all changes`)}
     />
   ) : null;
   return (

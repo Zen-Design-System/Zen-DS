@@ -6,7 +6,8 @@ import { inspectorStatus, undoShortcut } from "../inspector/status";
 import { selectionInstances } from "../select/picker";
 import { canEdit, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
-import { canStructurallyEdit, isTemplateFile, removeKeys, removeSelection, repeatsOf, useSlotRunning, useSlotServer, useStructuralBlock } from "./actions";
+import { canStructurallyEdit, removeKeys, removeSelection, removeShortcut, repeatsOf, useSlotRunning, useSlotServer, useStructuralBlock } from "./actions";
+import { tip } from "../shell/ShortcutTip";
 import "./slots.css";
 
 /*
@@ -51,11 +52,10 @@ export function RemoveAction({ selection, element, editable, compact = false }: 
   // What the server would refuse, read from the source around the element (again after each change of its file).
   const block = useStructuralBlock(offered && check.ok ? selection : null, "remove", element?.hash);
   if (!offered) return null;
-  const where = isTemplateFile(parseSrc(selection.src)?.file ?? "") ? "this template" : "this example";
-  const usual = count > 1 ? `Removes it from all ${count} ${unit}` : `Removes it from ${where}`;
-  const blocked = connecting ? "Connecting to the dev server…"
+  const usual = count > 1 ? `Deletes it from all ${count} ${unit}` : "Deletes this layer";
+  const blocked = connecting ? "Connecting…"
     : running ? running
-      : element === undefined ? "Reading the source…"
+      : element === undefined ? "Loading…"
         : !check.ok ? check.reason
           : block === undefined ? "Checking…"
             : block;
@@ -67,8 +67,8 @@ export function RemoveAction({ selection, element, editable, compact = false }: 
         appearance="flat"
         level="primary"
         size="xs"
-        aria-label="Remove"
-        tooltip={blocked ? `Remove: ${blocked}` : `Remove · ${usual} · ${undoShortcut} to undo`}
+        aria-label="Delete"
+        tooltip={blocked ? `Can't delete: ${blocked}` : tip("Delete", removeShortcut)}
         aria-keyshortcuts={removeKeys}
         data-blocked={blocked ? "true" : undefined}
         className="studio-inspector__head-action"
@@ -90,7 +90,7 @@ export function RemoveAction({ selection, element, editable, compact = false }: 
         aria-describedby={captionId}
         onClick={() => { void removeSelection(selection); }}
       >
-        Remove
+        Delete
       </Button>
       {/* The usual caption always holds its place (hidden while a reason shows over it); a reason is clamped to two lines. */}
       <div className="studio-slots__remove-caption-box">

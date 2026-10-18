@@ -45,6 +45,16 @@ const cases = [
   ["Changes save at once", "Changes save at once"],
   ["Duplicated · ⌘Z to undo", "Duplicated · ⌘Z to undo"],
   ["Several rows of the data have the key \"alex\"; edit it in the code", "Several rows of the data have the id \"alex\"; edit it in the code"],
+  // F0 (plan docs/research/studio-figma-design-parity-2026-10-18.md): the gate's missing words, a / an, identifiers.
+  ["An expression sets it", "A value sets it"],
+  ["Wrapped Card in a Stack", "Wrapped Card in an auto layout frame"],
+  ["Card floats in a Box around it", "Card floats in a frame around it"],
+  ["The attribute data-zen-src stays", "The property data-zen-src stays"],
+  ["List-Box renders its rows", "List-Box shows its rows"],
+  ["Restart the dev server to detach components", "Restart the Studio server to detach components"],
+  ["The Zen Studio dev server did not answer", "The Studio server did not answer"],
+  ["An element of the HTML markup", "A layer of the code layers"],
+  ["Column A is an object literal", "Column A is a group of values"],
 ];
 for (const [input, expected] of cases) check(`designWords(${JSON.stringify(input)})`, designWords(input), expected);
 check("codeWordsIn: a clean line", codeWordsIn("Saved · ⌘Z to undo").join(), "");
@@ -113,8 +123,78 @@ for (const [text, where] of messages) {
 }
 if (checked < 300) failures.push(`only ${checked} messages found in the source (the scan is broken?)`);
 
+// 3. Figma's words on the UI (plan docs/research/studio-figma-design-parity-2026-10-18.md §3a, F0): every label,
+// tooltip, title, placeholder and JSX text of the Studio's own UI, with the words the glossary retired. A new string
+// that brings one back fails here; the right-hand side is the word to write instead.
+const RETIRED = [
+  [/\bQuick actions\b/i, "Actions"],
+  [/\bQuick insert\b/i, "Assets"],
+  [/\bZoom to frame\b/, "Zoom to selection"],
+  [/\bPresent (?:full screen|the frame)\b/, "Present"],
+  [/\b(?:Hide|Show) side panels\b|\bHide or show UI\b/, "Show/Hide UI"],
+  [/\bSelect first child\b/, "Select children"],
+  [/\bReset all overrides\b/, "Reset all changes"],
+  [/\bMove (?:up|down|earlier|later)\b/, "Bring forward / Send backward"],
+  [/\bReset to auto\b/, "Hug contents"],
+  [/\bChild (?:elements|size)\b|^Children$/, "Layers"],
+  [/\b(?:colour|centre|centred|cancelled|behaviour)/i, "US spelling (color, center, canceled, behavior)"],
+  [/\bunsaved drafts?\b|\bDraft ·|\bDiscard (?:the )?drafts?\b/i, "Unsaved changes"],
+  [/^(?:Admin|Viewer)$/, "Can edit / Can view"],
+];
+const UI_ATTRS = new Set(["label", "aria-label", "tooltip", "title", "placeholder", "description", "caption", "aria-description"]);
+const UI_KEYS = new Set(["label", "title", "tooltip", "caption", "description", "placeholder"]);
+// Labels a person reads as they are (JSX attributes and text) also carry no code words: Figma's own command names and
+// the Code tab / export / setup surfaces (where code is the subject) excepted.
+const FIGMA_TERMS = /\bSelect children\b/g;
+const CODE_SURFACES = /(?:^|\/)(?:code\/|CodePanel|CodeProperties|propSchema|ExportDialog|gate\.ts)/;
+let uiChecked = 0;
+const uiText = (node, code) => {
+  if (!node) return null;
+  if (node.type === "JSXExpressionContainer") return uiText(node.expression, code);
+  if (node.type === "ConditionalExpression") return [uiText(node.consequent, code), uiText(node.alternate, code)].filter(Boolean).join(" | ") || null;
+  // An interpolation reads as a plain value here (textOf's samples would glue into camelCase words).
+  if (node.type === "TemplateLiteral") return node.quasis.map((quasi, index) => quasi.value.cooked + (node.expressions[index] ? " 1 " : "")).join("");
+  return textOf(node, code);
+};
+const lint = (text, where) => {
+  if (!text || !/[A-Za-z]/.test(text)) return;
+  uiChecked += 1;
+  for (const [pattern, word] of RETIRED) {
+    for (const part of text.split(" | ")) {
+      if (pattern.test(part.trim())) failures.push(`${where}: "${part.trim()}" → write ${word}`);
+    }
+  }
+};
+const words = (text, where) => {
+  if (!text || CODE_SURFACES.test(where)) return;
+  const left = codeWordsIn(text.replace(FIGMA_TERMS, ""));
+  if (left.length) failures.push(`${where}: code words (${left.join(", ")}) in "${text}"`);
+};
+for (const file of files.filter((name) => name.includes(`${path.sep}src${path.sep}platform${path.sep}studio${path.sep}`))) {
+  const code = fs.readFileSync(file, "utf8");
+  let ast;
+  try { ast = parse(code, { sourceType: "module", plugins: file.endsWith(".mjs") ? [] : ["typescript", "jsx"], errorRecovery: true }); }
+  catch { continue; }
+  const where = (node) => `${path.relative(root, file)}:${node.loc.start.line}`;
+  const visit = (node) => {
+    if (!node || typeof node.type !== "string") return;
+    if (node.type === "JSXAttribute" && UI_ATTRS.has(node.name.name)) { const text = uiText(node.value, code); lint(text, where(node)); words(text, where(node)); }
+    if (node.type === "JSXText") { lint(node.value.trim(), where(node)); words(node.value.trim(), where(node)); }
+    if (node.type === "ObjectProperty" && !node.computed && UI_KEYS.has(node.key.name ?? node.key.value)) lint(uiText(node.value, code), where(node));
+    if (node.type === "CallExpression" && node.callee.type === "Identifier" && ["tip", "sayNotYet", "say"].includes(node.callee.name)) lint(uiText(node.arguments.at(-1), code), where(node));
+    for (const key of Object.keys(node)) {
+      if (key === "loc" || key === "start" || key === "end") continue;
+      const value = node[key];
+      if (Array.isArray(value)) value.forEach(visit);
+      else if (value && typeof value.type === "string") visit(value);
+    }
+  };
+  visit(ast.program);
+}
+if (uiChecked < 1000) failures.push(`only ${uiChecked} UI strings found in the Studio (the scan is broken?)`);
+
 if (failures.length) {
   console.error(`✗ words: ${failures.length} failure(s), ${passed} passed\n${failures.join("\n")}`);
   process.exit(1);
 }
-console.log(`✓ words: ${passed} checks (${cases.length} rewrites, ${checked} source messages in design words)`);
+console.log(`✓ words: ${passed} checks (${cases.length} rewrites, ${checked} source messages in design words, ${uiChecked} UI strings in Figma's words)`);

@@ -182,10 +182,10 @@ export function ladderOf(selection: NodeSelection): Ladder {
 
 const alignButtons: { axis: PositionAxis; pin: Pin; icon: IconName; label: string }[] = [
   { axis: "x", pin: "start", icon: "icon-align-left-01-line", label: "Align left" },
-  { axis: "x", pin: "center", icon: "icon-align-horizontal-centre-01-line", label: "Align horizontal centres" },
+  { axis: "x", pin: "center", icon: "icon-align-horizontal-centre-01-line", label: "Align horizontal centers" },
   { axis: "x", pin: "end", icon: "icon-align-right-01-line", label: "Align right" },
   { axis: "y", pin: "start", icon: "icon-align-top-01-line", label: "Align top" },
-  { axis: "y", pin: "center", icon: "icon-align-vertical-center-01-line", label: "Align vertical centres" },
+  { axis: "y", pin: "center", icon: "icon-align-vertical-center-01-line", label: "Align vertical centers" },
   { axis: "y", pin: "end", icon: "icon-align-bottom-01-line", label: "Align bottom" },
 ];
 
@@ -260,7 +260,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
       if (!ok) return;
       const notes = [
         pin === "stretch" ? `${axis === "x" ? "Width" : "Height"} now follows the parent` : "",
-        pin === "center" && !flush ? "Centred: Zen has no offset from the centre" : "",
+        pin === "center" && !flush ? "Centered: no offset from the center" : "",
         ...snaps.filter((entry) => entry.snap.clamped || Math.abs(entry.snap.px - entry.snap.from) >= 1).map(snapText),
       ].filter(Boolean);
       if (notes.length) inspectorStatus.set("neutral", notes.join(" · "));
@@ -305,15 +305,15 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
         }
       }
     }
-    if (sizes.alignSelf.state === "literal") notes.push({ text: "Align in parent does nothing on a floating layer.", tone: "warning", action: disabled ? undefined : { label: "Remove", run: () => api.removeProp("alignSelf") } });
-    if (geometry.pinnedTo) notes.push({ text: `Pinned to ${geometry.pinnedTo}, the nearest positioned layer.`, tone: "neutral" });
+    if (sizes.alignSelf.state === "literal") notes.push({ text: "Align in parent does nothing while the layer ignores auto layout", tone: "warning", action: disabled ? undefined : { label: "Remove", run: () => api.removeProp("alignSelf") } });
+    if (geometry.pinnedTo) notes.push({ text: "Pinned to the nearest frame around it", tone: "neutral" });
     // A free frame (a Screen, a Box with a size) keeps its size whatever its layers do: no note there.
-    if (geometry.parentEmpty && !geometry.parentSized) notes.push({ text: "Every layer of the parent floats, so it hugs nothing. Give it a size.", tone: "neutral" });
+    if (geometry.parentEmpty && !geometry.parentSized) notes.push({ text: "Every layer of the frame ignores auto layout, so it hugs nothing: give it a size", tone: "neutral" });
   }
 
   return (
     <InspectorSection title="Position" fieldGrid>
-      <InspectorRow label="Align" labelTitle="Align to the parent (a floating layer)">
+      <InspectorRow label="Alignment" labelTitle="Align to the parent frame">
         <div className="studio-position__align" role="group" aria-label="Align in parent">
           {alignButtons.map((button) => (
             <IconButton
@@ -354,12 +354,12 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
       ) : null}
       {viaBox ? (
         <div className="studio-position__via">
-          <p className={`studio-position__caption ${typographyStyles["Body/Small/Regular"]}`}>Floats in a Box around it: its constraints are on the Box.</p>
+          <p className={`studio-position__caption ${typographyStyles["Body/Small/Regular"]}`}>Floats in a frame around it: its constraints are on that frame</p>
           {/* zen-allow-compact-button: a quiet jump to the parent layer in a dense tool panel, like the element's file link */}
-          <Button appearance="flat" level="primary" size="xs" onClick={() => selectSrc(geometry.floatBox!, selection)}>Select Box</Button>
+          <Button appearance="flat" level="primary" size="xs" onClick={() => selectSrc(geometry.floatBox!, selection)}>Select frame</Button>
         </div>
       ) : !floating ? (
-        <p className={`studio-position__caption ${typographyStyles["Caption/Regular"]}`}>{locked ? `Position is set in the code (${positionValue.state === "bound" ? `{${positionValue.expression}}` : positionValue.via})` : flowHint}</p>
+        <p className={`studio-position__caption ${typographyStyles["Caption/Regular"]}`}>{locked ? "Position is set in code" : flowHint}</p>
       ) : null}
 
       {floating ? (
@@ -376,7 +376,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
                   disabled={constraintLocked}
                   value={constraintValue(axis, pins[axis])}
                   onValueChange={(next) => setPin(axis, pinOfConstraint(axis, next))}
-                  options={[...constraintOptions[axis].map((value) => ({ value, label: constraintLabels[value] })), { value: "scale", label: "Scale (needs %)", disabled: true }]}
+                  options={[...constraintOptions[axis].map((value) => ({ value, label: constraintLabels[value] })), { value: "scale", label: "Scale", disabled: true }]}
                 />
               ))}
             </div>

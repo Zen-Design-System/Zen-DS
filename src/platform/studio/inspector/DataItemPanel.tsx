@@ -1,3 +1,4 @@
+import { tip } from "../shell/ShortcutTip";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -139,7 +140,7 @@ export function DataItemSections({ selection, item, children }: { selection: Par
               <>
                 <IconButton appearance="flat" level="primary" size="xs" icon="icon-arrow-up-line" aria-label={`Move ${name} up`} disabled={!can || index === 0} onClick={() => act("move", index - 1)} />
                 <IconButton appearance="flat" level="primary" size="xs" icon="icon-arrow-down-line" aria-label={`Move ${name} down`} disabled={!can || index >= count - 1} onClick={() => act("move", index + 1)} />
-                <IconButton appearance="flat" level="primary" size="xs" icon="icon-duplicate-line" aria-label={`Duplicate ${name} (${duplicateShortcut})`} disabled={!can} onClick={() => act("duplicate")} />
+                <IconButton appearance="flat" level="primary" size="xs" icon="icon-duplicate-line" aria-label={`Duplicate ${name}`} tooltip={tip("Duplicate", duplicateShortcut)} disabled={!can} onClick={() => act("duplicate")} />
               </>
             ) : null}
             {/* Groups: one pill on the canvas (Figma's Nav-Action with a trailing icon); a group the code computes stays as written. */}
@@ -153,7 +154,7 @@ export function DataItemSections({ selection, item, children }: { selection: Par
                 </>
               )
             ) : null}
-            <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={`Remove ${name} (${removeShortcut})`} disabled={!can} onClick={() => act("remove")} />
+            <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={`Delete ${name}`} tooltip={tip("Delete", removeShortcut)} disabled={!can} onClick={() => act("remove")} />
           </div>
         )}
       </InspectorSection>
@@ -244,15 +245,15 @@ export function DataItemsSections({ selection, item, places }: { selection: Part
             2026-10-10: "Chỗ này user khó thấy"). */}
         <div className="studio-inspector__actions">
           {groups ? (
-            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`${groupLabel} (${autoLayoutShortcut})`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "group"); }}>
+            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`${groupLabel} ${autoLayoutShortcut}`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "group"); }}>
               {groupLabel}
             </Button>
           ) : null}
-          <Button level="danger-subtle" size="sm" startIcon="icon-trash-line" aria-keyshortcuts="Delete" title={`Remove ${plural(places.length, slot.itemName.toLowerCase())} (${removeShortcut})`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "remove"); }}>
-            Remove
+          <Button level="danger-subtle" size="sm" startIcon="icon-trash-line" aria-keyshortcuts="Delete" title={`Delete ${plural(places.length, slot.itemName.toLowerCase())} ${removeShortcut}`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "remove"); }}>
+            Delete
           </Button>
         </div>
-        <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${groups ? `${slot.groups ? "Group" : "Section"} ${autoLayoutShortcut} · ` : ""}Remove ${removeShortcut} · ${undoShortcut} to undo`}</p>
+        <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${groups ? `${slot.groups ? "Group" : "Section"} ${autoLayoutShortcut} · ` : ""}Delete ${removeShortcut} · ${undoShortcut} to undo`}</p>
       </InspectorSection>
       <InspectorSection title="Selected items">
         <ul aria-label="Selected items" className="studio-inspector__items">

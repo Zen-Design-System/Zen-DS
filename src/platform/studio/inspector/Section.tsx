@@ -33,7 +33,7 @@ export function InspectorSection({ title, actions, children, note, className, fi
   return (
     <section className={["studio-inspector__section", className].filter(Boolean).join(" ")} aria-labelledby={id} data-field-grid={fieldGrid || undefined}>
       <div className="studio-inspector__section-head">
-        <Heading id={id} level={3} textStyle="Body/Small/Bold">{title}</Heading>
+        <Heading id={id} level={3} textStyle="Body/Small/Bold">{typeof title === "string" ? say(title) : title}</Heading>
         {actions ? <div className="studio-inspector__section-actions">{actions}</div> : null}
       </div>
       {note ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{typeof note === "string" ? say(note) : note}</p> : null}
@@ -60,7 +60,9 @@ export function InspectorRow({ label, children, action, hint, isDefault, name, l
     : null;
   return (
     <div className="studio-inspector__row" data-default={isDefault || undefined} data-prop={name} data-compact={compact || undefined} data-bound={bound ? "true" : undefined} data-action={action ? "true" : undefined} data-stacked={stacked || undefined}>
-      <span className={`studio-inspector__row-label ${typographyStyles[stacked ? "Caption/Regular" : "Body/Small/Regular"]}`} title={labelTitle && say(labelTitle)}>
+      {/* No tooltip with the prop's name on the Design tab: Figma's labels are its words alone (UX writing audit
+          2026-10-18); the Code tab shows the code. `labelTitle` stays for callers and is not shown. */}
+      <span className={`studio-inspector__row-label ${typographyStyles[stacked ? "Caption/Regular" : "Body/Small/Regular"]}`} data-prop-name={labelTitle || undefined}>
         {label}
         {bound ? <BoundMark binding={bound} /> : null}
       </span>
@@ -77,14 +79,15 @@ export function InspectorRow({ label, children, action, hint, isDefault, name, l
  * 24px icon column. Labels sit above their fields (Caption/Regular): one label over the row, or one per column
  * ("Alignment" · "Gap"); a single field spans both columns. `icon` takes the icon column (Figma's wrap, min/max and
  * advanced-settings toggles); the column stays reserved when empty, so the fields of every section line up. `name` is the
- * prop (data-prop, as InspectorRow); `code` is the labels' tooltip: what Figma's word writes in code.
+ * prop (data-prop, as InspectorRow); `code` (what Figma's word writes in code) stays on the labels as data, not a tooltip:
+ * the Design tab speaks Figma's words only (UX writing audit 2026-10-18).
  */
 export function InspectorFields({ labels = [], fields, icon, name, code }: { labels?: string[]; fields: ReactNode[]; icon?: ReactNode; name?: string; code?: string }) {
   const column = (index: number, count: number) => (count === 1 ? "wide" : String(index + 1));
   return (
     <div className="studio-fields" role="group" aria-label={labels.length ? labels.join(" and ") : undefined} data-prop={name} data-labelled={labels.length ? "true" : undefined}>
       {labels.map((text, index) => (
-        <span key={text} className={`studio-fields__label ${typographyStyles["Caption/Regular"]}`} data-col={column(index, labels.length)} title={code}>{text}</span>
+        <span key={text} className={`studio-fields__label ${typographyStyles["Caption/Regular"]}`} data-col={column(index, labels.length)} data-code={code}>{text}</span>
       ))}
       {fields.map((field, index) => (
         <div key={index} className="studio-fields__cell" data-col={column(index, fields.length)}>{field}</div>

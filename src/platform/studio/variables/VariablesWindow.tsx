@@ -1,3 +1,4 @@
+import { tip } from "../shell/ShortcutTip";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Chip } from "../../../components/Chip";
@@ -37,7 +38,7 @@ const TYPE_ICON: Readonly<Record<VariableType, IconName>> = { COLOR: "icon-palet
 /** Global Colors' high-contrast mode is written from the Zen values (the high-contrast algorithm), never by hand. */
 const DERIVED_MODE = "Zen-High-Contrast";
 /** Inside a project, Base Colors (Project) is its theme: Project settings changes it. */
-const PROJECT_LOCKED = "This project's colours change in Project settings";
+const PROJECT_LOCKED = "This project's colors change in Project settings";
 
 type Editing = { name: string; mode: string; rect: DOMRect; tab: "custom" | "variables" };
 type Focus = { row: number; col: number };
@@ -158,7 +159,7 @@ function ValueEditor({ editing, index, variable, onCommit, onClose }: { editing:
         <AliasList index={index} type={variable.type} self={variable.name} mode={editing.mode} onPick={(name) => { onCommit({ alias: name }); onClose(); }} />
       ) : variable.type === "COLOR" ? (
         <div className="studio-vars__custom">
-          <ColorPicker aria-label={`${variable.name} colour`} value={hex} onValueChange={setHex} />
+          <ColorPicker aria-label={`${variable.name} color`} value={hex} onValueChange={setHex} />
           <InputField size="sm" aria-label="Opacity" inputMode="numeric" value={alpha} onValueChange={setAlpha} trailing={<span className={`studio-vars__unit ${typographyStyles["Body/Small/Medium"]}`}>%</span>} leading={<span className={`studio-vars__unit ${typographyStyles["Body/Small/Medium"]}`}>Opacity</span>} />
         </div>
       ) : variable.type === "BOOLEAN" ? (
@@ -245,7 +246,7 @@ function VariablesPanel() {
   const run = useCallback(async (ops: VariableOp[], label: string) => {
     if (!collection) return false;
     if (projectMode) { say(PROJECT_LOCKED); return false; }
-    if (!editable) { say("View only — switch to Admin to edit"); return false; }
+    if (!editable) { say("View only"); return false; }
     const response = await applyVariableEdit({ file: collection.file, ops }, label);
     if (!response.ok) { say(response.error); return false; }
     // The answer holds the collection's new text: show it now (the read after it confirms).
@@ -292,7 +293,7 @@ function VariablesPanel() {
     if (collection?.name === "Global Colors" && mode === DERIVED_MODE) { say(`${DERIVED_MODE} follows the Zen values (the high-contrast algorithm): change the Zen value`); return; }
     // The project's column is its theme's output: Project settings changes it (Primary, Neutral, status colours).
     if (project && mode === projectMode) { openProjectSetup({ kind: "edit", id: project.id }); return; }
-    if (!editable) { say("View only — switch to Admin to edit"); return; }
+    if (!editable) { say("View only"); return; }
     const cell = gridRef.current?.querySelector<HTMLElement>(`[data-cell="${row}:${col}"]`);
     if (!cell) return;
     setEditing({ name: entry.variable.name, mode, rect: cell.getBoundingClientRect(), tab: aliasOf(entry.variable.valuesByMode[mode]) ? "variables" : tab });
@@ -551,7 +552,7 @@ function VariablesPanel() {
         >
           {type ? TYPE_LABEL[type] : "Type"}
         </Chip>
-        <IconButton icon="icon-x-line" appearance="flat" size="sm" aria-label="Close variables" tooltip="Close · Esc" onClick={closeVariables} />
+        <IconButton icon="icon-x-line" appearance="flat" size="sm" aria-label="Close variables" tooltip={tip("Close", "Esc")} onClick={closeVariables} />
       </header>
       {body}
       <footer className={`studio-vars__foot ${typographyStyles["Body/Small/Regular"]}`}>

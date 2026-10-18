@@ -116,7 +116,7 @@ export const rows = [
     },
   },
   {
-    id: "K-09", feature: "Quick actions (⌘/) runs Duplicate (after a page load)", wp: "GĐ0",
+    id: "K-09", feature: "Actions (⌘/, ⌘K) runs Duplicate (after a page load)", wp: "GĐ0",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a", { reload: true });
       await canvas(page).focus();
@@ -131,7 +131,7 @@ export const rows = [
     },
   },
   {
-    id: "K-10", feature: "Quick actions Duplicate acts on every selected layer", wp: "WP-A",
+    id: "K-10", feature: "Actions › Duplicate acts on every selected layer", wp: "WP-A",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a", { reload: true });
       await clickLoc(page, ctx.file, await at(ctx, "btn-b"), { modifiers: ["Shift"] });

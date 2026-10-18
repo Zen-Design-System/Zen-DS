@@ -116,3 +116,6 @@
   background: var(--zen-color-background-overlay, rgb(0 0 0 / 25%));
   cursor: default;
 }
+
+/* A tooltip's keys (shell/ShortcutTip.tsx): after the name, in the tooltip's lighter content colour, as Figma's. */
+.studio-tip__keys { margin-left: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-inverse-light); }

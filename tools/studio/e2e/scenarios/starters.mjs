@@ -34,6 +34,17 @@ export async function pageFromFrame(ctx, frame, { on } = {}) {
 }
 
 /** New page › a template (the dialog's card, as a person picks it); returns the page id once the canvas shows it. */
+/** Interact on a page you made: Actions (⌘K) › Interact (I is Figma's Pick color there, F0 2026-10-18). */
+async function interactTool(page) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+KeyK");
+  const actions = page.getByRole("dialog", { name: "Actions" });
+  await actions.waitFor({ state: "visible", timeout: 5000 });
+  await actions.getByLabel("Search actions").fill("Interact");
+  await page.keyboard.press("Enter");
+  await until(async () => (await page.locator(".studio-viewport").getAttribute("data-tool")) === "interact", { message: "the Interact tool on" });
+}
+
 export async function pageFromTemplate(ctx, title) {
   const { page } = await ctx.studio({ fresh: true });
   await showLeftTab(page, "pages");
@@ -264,7 +275,7 @@ export const rows = [
         await counter.fill("3");
         await counter.press("Enter");
         await until(async () => /label: "Reports", icon: "[\w-]+", counter: (3|"3") \}/.test(await text()), { message: "the row's counter in the page" });
-        await page.locator("#studio-right").getByRole("button", { name: /^Remove Reports/ }).click();
+        await page.locator("#studio-right").getByRole("button", { name: /^Delete Reports/ }).click();
         await until(async () => !/label: "Reports"/.test(await text()) && /label: "Billing"/.test(await text()), { message: "Reports removed, Billing kept" });
         await until(async () => (await sidebar.locator(".zen-sidebar__item", { hasText: "Reports" }).count()) === 0, { message: "Reports gone from the Screen" });
         // The section title is Figma's Section-Title: ⌘-click selects it, Delete takes it (its rows join the section above).
@@ -626,7 +637,7 @@ export const rows = [
     },
   },
   {
-    id: "SP-23", feature: "A page from the Admin list template works as the template does (user 2026-10-15: \"chip advance, date input… hoạt động như bình thường trong studio\"): its filter Chip keeps no controlled prop that would lock it, and in Interact it picks a value (the label shows it), counts a second one and × clears them", wp: "studio self-managed 2026-10-15",
+    id: "SP-23", feature: "A page from the Admin list template works as the template does (user 2026-10-15: \"chip advance, date input… hoạt động như bình thường trong studio\"): its filter Chip keeps no controlled prop that would lock it, and in Interact (⌘K › Interact) it picks a value (the label shows it), counts a second one and × clears them", wp: "studio self-managed 2026-10-15",
     timeout: 60_000,
     async run(ctx) {
       try {
@@ -637,8 +648,7 @@ export const rows = [
         if (!/popoverItems=/.test(chipText) || /\bselected=|\bpopoverOpen=|onPopoverSelect/.test(chipText)) throw new Error(`expected a filter Chip with its items and no controlled selected / popoverOpen:\n${chipText.slice(0, 500)}`);
         // The page's Screen in view (the new page opens on its overlays), then Interact.
         await focusScreen(page);
-        await page.keyboard.press("KeyI");
-        await until(async () => (await page.locator(".studio-viewport").getAttribute("data-tool")) === "interact", { message: "the Interact tool on" });
+        await interactTool(page);
         const chip = page.locator(`.studio-frame [data-zen-src^="local:${pageId}.zen.tsx:"][data-zen-name="Chip"][aria-haspopup="listbox"]`).first();
         const label = () => chip.locator(".zen-chip__label").innerText();
         const placeholder = await label();
@@ -676,8 +686,7 @@ export const rows = [
         await step("the New project overlay in Layers", () => row.click());
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("Shift+Digit2");
-        await page.keyboard.press("KeyI");
-        await until(async () => (await page.locator(".studio-viewport").getAttribute("data-tool")) === "interact", { message: "the Interact tool on" });
+        await interactTool(page);
         const field = page.locator('.studio-frame input[role="combobox"][aria-haspopup="dialog"]').first();
         await step("click the date field", () => field.click());
         await until(async () => (await field.getAttribute("aria-expanded")) === "true", { message: "the calendar open" });

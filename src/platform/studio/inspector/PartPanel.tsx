@@ -299,7 +299,7 @@ function PartDetails({ part, props: showProps = true }: { part: PartHit; props?:
         <Row label="W × H"><ValueCell value={`${size.width} × ${size.height}`} /></Row>
       </InspectorSection>
 
-      <InspectorSection title="Colours" note={colours.length ? undefined : "Nothing painted on this node"}>
+      <InspectorSection title="Selection colors" note={colours.length ? undefined : "No colors"}>
         {colours.map(({ name, colour }) => <Row key={name} label={name}><ValueCell value={colour.label} tokens={colour.tokens} swatch={colour.value} /></Row>)}
       </InspectorSection>
     </>

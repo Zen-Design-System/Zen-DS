@@ -18,7 +18,7 @@ export function ZoomMenu({ align = "end", size = "sm" }: { align?: "start" | "en
     { id: "selection", label: "Zoom to selection", shortcut: "⇧2", disabled: !hasSelection, onSelect: () => { zoomToSelection(); } },
     { type: "separator" },
     { id: "50", label: "Zoom to 50%", onSelect: () => canvasApi.setZoom(0.5) },
-    { id: "100", label: "Zoom to 100%", shortcut: `${modKey}0`, onSelect: () => canvasApi.setZoom(1) },
+    { id: "100", label: "Zoom to 100%", shortcut: "⇧0", onSelect: () => canvasApi.setZoom(1) },
     { id: "200", label: "Zoom to 200%", onSelect: () => canvasApi.setZoom(2) },
   ];
   return (

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Self-test of the ScaleField model (./scale.ts, imported directly: Node strips the types).
 // Run: node src/platform/studio/inspector/controls/scale.selftest.mjs
-import { isMarginKey, scaleOfType, scaleStep, stepKey } from "./scale.ts";
+import { optionLabel, isMarginKey, scaleOfType, scaleStep, stepKey } from "./scale.ts";
 
 const failures = [];
 let passed = 0;
@@ -31,6 +31,9 @@ check("from nothing", [stepKey(ladder, undefined, 1), stepKey(ladder, "huge", -1
 check("padding with the page margins", scaleOfType('"none" | ZenScaleInput | "4xl" | ZenMargin'), "padding");
 check("a margin reads by its Figma name, with its px", scaleStep("margin-comfortable", 24), { label: "Margin-Comfortable", meta: "24px" });
 check("margins are not steps", [isMarginKey("margin-compact"), isMarginKey("xl"), isMarginKey("none")], [true, false, false]);
+
+// Options without a Figma name read in Figma's style (UX writing audit 2026-10-18).
+check("option labels", ["surface-alt", "2xs", "inside", "danger-secondary", "div", "md", "Primary", "1fr"].map(optionLabel), ["Surface alt", "2XSmall", "Inside", "Danger secondary", "div", "Medium", "Primary", "1fr"]);
 
 if (failures.length) {
   console.error(`ScaleField selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

@@ -3,7 +3,8 @@ import { Button, IconButton } from "../../../components/Button";
 import { Dialog } from "../../../components/Dialog";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { StudioSelection } from "../types";
-import { answerDetachConfirm, detachKeys, detachSelection, shortReason, useDetachConfirm, useDetachRunning, type DetachAvailability } from "./detach";
+import { answerDetachConfirm, detachKeys, detachSelection, detachShortcut, shortReason, useDetachConfirm, useDetachRunning, type DetachAvailability } from "./detach";
+import { tip } from "../shell/ShortcutTip";
 import { inspectorStatus, undoShortcut } from "./status";
 
 /*
@@ -47,7 +48,7 @@ export function DetachAction({ selection, availability, connecting, row, compact
         level="primary"
         size="xs"
         aria-label={label}
-        tooltip={reason ? `${label}: ${reason}` : `${label} · becomes Box/Stack/Text · ${undoShortcut} to undo`}
+        tooltip={reason ? `${label}: ${reason}` : tip(label, detachShortcut)}
         aria-keyshortcuts={detachKeys}
         data-blocked={reason ? "true" : undefined}
         className="studio-inspector__head-action"
@@ -74,7 +75,7 @@ export function DetachAction({ selection, availability, connecting, row, compact
           change height between Checking…, ready and a refusal; a reason is clamped to two lines. */}
       <div className="studio-inspector__detach-caption-box">
         <p aria-hidden={blocked !== null || undefined} data-hidden={blocked !== null || undefined} className={`studio-inspector__detach-caption ${typographyStyles["Body/Small/Regular"]}`} id={blocked === null ? captionId : undefined}>
-          {"Becomes Box/Stack/Text in the source · "}<span className="studio-inspector__nowrap">{`${undoShortcut} to undo`}</span>
+          {"Its layers become editable · "}<span className="studio-inspector__nowrap">{`${undoShortcut} to undo`}</span>
         </p>
         {blocked !== null ? (
           <p id={captionId} className={`studio-inspector__detach-caption studio-inspector__detach-reason ${typographyStyles["Body/Small/Regular"]}`} title={availability.state === "refused" && !connecting && !running ? availability.reason : undefined}>
@@ -97,7 +98,7 @@ export function DetachDialog() {
       open={Boolean(pending)}
       onOpenChange={(open) => { if (!open) answerDetachConfirm(false); }}
       title="Detach only this row?"
-      description={question ? `Row ${question.row + 1} of ${question.count} becomes Box/Stack/Text; the other rows stay ${question.component}.` : undefined}
+      description={question ? `Row ${question.row + 1} of ${question.count} becomes its own layers; the other rows stay instances of ${question.component}.` : undefined}
       icon="icon-link-broken-02-line"
       primaryAction={{ label: "Detach row", onClick: () => answerDetachConfirm(true), autoFocus: true }}
       secondaryAction={{ label: "Cancel", onClick: () => answerDetachConfirm(false) }}

@@ -180,7 +180,7 @@ export const rows = [
         await until(async () => (await heightOf(primary)) > before, { message: "the variant grows" });
         await page.locator("#studio-right .studio-mc__drafts").getByRole("button", { name: "Discard" }).click();
         // The Studio asks first ("Discard the draft of button.css?").
-        const dialog = page.locator('[role="dialog"], [role="alertdialog"]').filter({ hasText: "Discard the draft of button.css" }).first();
+        const dialog = page.locator('[role="dialog"], [role="alertdialog"]').filter({ hasText: "Discard changes to button.css" }).first();
         await dialog.waitFor({ state: "visible", timeout: 5000 });
         await dialog.getByRole("button", { name: "Discard", exact: true }).click();
         await until(async () => (await heightOf(primary)) === before, { message: "the height comes back after Discard" });

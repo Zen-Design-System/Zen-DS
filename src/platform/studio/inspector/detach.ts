@@ -464,7 +464,7 @@ function outcomeOf(component: string, response: Extract<EditResponse, { ok: true
   return [
     `Detached ${component}`,
     // On a drafts server the detach is a draft until Save.
-    response.draft ? `Draft · ${saveShortcut} to save` : `${undoShortcut} to undo`,
+    response.draft ? `Unsaved · ${saveShortcut} to save` : `${undoShortcut} to undo`,
     snippet,
     approximations.length ? `Approximated: ${approximations.join("; ")}` : null,
   ].filter(Boolean).join(" · ");
@@ -479,7 +479,7 @@ export async function detachSelection(selection: NodeSelection): Promise<boolean
   if (running) return false;
   const state = studioStore.getState();
   if (!canEdit(state)) {
-    fail(state.role === "admin" ? "Detaching needs the Studio dev server" : "View only — switch to Admin to edit");
+    fail(state.role === "admin" ? "Detaching needs the Studio dev server" : "View only");
     return false;
   }
   if (selection.part) {

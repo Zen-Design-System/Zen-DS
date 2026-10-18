@@ -47,7 +47,7 @@ export function CodePanel({ selection, codeSlot }: { selection: StudioSelection 
     return (
       <div className="studio-inspector__panel studio-inspector__panel--center">
         <EmptyState title="Select a layer to see its code" compactTitle icon="icon-code-02-line" headingLevel={2}>
-          The playground snippet, the example code and the element&apos;s source file show here.
+          The layer&apos;s code shows here: the example, the playground and the file it is written in.
         </EmptyState>
       </div>
     );
@@ -58,21 +58,21 @@ export function CodePanel({ selection, codeSlot }: { selection: StudioSelection 
     <div className="studio-inspector__panel studio-inspector__panel--code">
       {inPlayground ? (
         <div hidden={!codeFilled}>
-          <InspectorSection title="Snippet">
+          <InspectorSection title="Example code">
             <SlotHost node={codeSlot} className="studio-inspector__slot studio-inspector__slot--code" />
           </InspectorSection>
         </div>
       ) : null}
       {!inPlayground && example ? (
-        <InspectorSection title="Snippet">
+        <InspectorSection title="Example code">
           <CodeView code={example.code} language="tsx" maxHeight={320} />
         </InspectorSection>
       ) : null}
       {selection.kind === "frame" && !inPlayground && !example ? (
-        <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>This frame has no snippet. Select an element inside it to see its source.</p>
+        <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Select a layer to see its code</p>
       ) : null}
       {parsed ? (
-        <InspectorSection title="Source" className="studio-inspector__section--fill">
+        <InspectorSection title="Code" className="studio-inspector__section--fill">
           <SourcePanel file={parsed.file} highlight={highlight} />
         </InspectorSection>
       ) : null}

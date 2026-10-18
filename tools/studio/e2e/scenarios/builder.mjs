@@ -567,7 +567,7 @@ export const rows = [
     },
   },
   {
-    id: "B-16", feature: "Play (P): the Button navigates, Back returns, R restarts, Esc leaves", wp: "GĐ2 M3",
+    id: "B-16", feature: "Play (⌥⌘↵): the Button navigates, Back returns, R restarts, Esc leaves", wp: "GĐ2 M3",
     async run(ctx) {
       const { page, id } = await flowPage(ctx);
       await clickNamed(page, id, "Button");
@@ -575,7 +575,7 @@ export const rows = [
       await setAction(page, "Navigate to", "Screen 2");
       await until(async () => /proto\.navigate\("screen-2"\)/.test((await pageText(page, id)) ?? ""), { message: "the action" });
       await page.locator(".studio-viewport").focus();
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       if ((await playScreen(page)) !== "screen-1") throw new Error(`Play starts on ${await playScreen(page)}`);
       if (!new URL(page.url()).searchParams.has("play")) throw new Error("no ?play= in the address");
@@ -606,7 +606,7 @@ export const rows = [
       await setAction(page, "Open overlay", "Are you sure?"); // an Overlay is listed by its dialog's title
       await until(async () => /onClick=\{proto\.open\("overlay-1"\)\}/.test((await pageText(page, id)) ?? ""), { message: "the open action" });
       await page.locator(".studio-viewport").focus();
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       await playing(page).locator(`[data-zen-name="Button"]`).first().click();
       const dialog = playing(page).getByRole("dialog", { name: "Are you sure?" });
@@ -1243,7 +1243,7 @@ export const rows = [
       await navRow.click();
       await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
       // Its type set on the phone (compact): the person's own bar from now on.
-      await pickOption(page, "type", /^compact$/).catch(async (error) => { throw new Error(`Type › Compact: ${error.message.split("\n")[0]} (row: ${(await inspectorRow(page, "type").innerText().catch(() => "?")).replace(/\s+/g, " ").slice(0, 120)}; options: ${(await page.getByRole("option").allInnerTexts().catch(() => [])).join(" · ").slice(0, 200)})`); });
+      await pickOption(page, "type", /^compact$/i).catch(async (error) => { throw new Error(`Type › Compact: ${error.message.split("\n")[0]} (row: ${(await inspectorRow(page, "type").innerText().catch(() => "?")).replace(/\s+/g, " ").slice(0, 120)}; options: ${(await page.getByRole("option").allInnerTexts().catch(() => [])).join(" · ").slice(0, 200)})`); });
       await until(async () => /type="compact"/.test(await phoneBar()) && /phoneLinked=\{\["bottomNavigation"\]\}/.test(screenCode(await text(), "screen-2")), { message: "the bar is the person's own (off the linked list)" }).catch(async (error) => { throw new Error(`${error.message} (${screenCode(await text(), "screen-2").match(/phoneLinked=\{[^}]*\}/)?.[0]}; bar ${(await phoneBar()).slice(0, 80)})`); });
       // Reset to desktop (Screen section).
       await page.locator('[data-layer-id="frame:screen:screen-2"]').click();

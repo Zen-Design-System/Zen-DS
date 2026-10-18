@@ -711,7 +711,7 @@ export const rows = [
     run: (ctx) => avatarThroughDesign(ctx, on),
   })),
   {
-    id: "NO-07", feature: "Reset all overrides at level 3 (plan criterion 4): the Icon inside Card › Sub-Action takes a tone, stays selected, Reset all overrides takes it away, ⌘Z brings it back", wp: "core rebuild M3 2026-10-11",
+    id: "NO-07", feature: "Reset all changes at level 3 (plan criterion 4): the Icon inside Card › Sub-Action takes a tone, stays selected, Reset all changes takes it away, ⌘Z brings it back", wp: "core rebuild M3 2026-10-11",
     async run(ctx) {
       const { page, id } = await openNestedPage(ctx);
       await deepSelect(page, `${subAction(id)} [data-icon]`, "Icon");
@@ -719,7 +719,7 @@ export const rows = [
       const written = /"Sub-Action\/Leading-Icon": \{ tone: "accent-base" \}/;
       await until(async () => written.test((await pageText(page, id)) ?? ""), { message: "the Icon's tone in the page" });
       await until(async () => /^Icon(\s|·|$)/.test(await heading(page)), { message: "the Icon still selected after the edit" }).catch(async (error) => { throw new Error(`${error.message} (Inspector "${await heading(page)}")`); });
-      await page.locator("#studio-right").getByRole("button", { name: "Reset all overrides" }).first().click();
+      await page.locator("#studio-right").getByRole("button", { name: "Reset all changes" }).first().click();
       await until(async () => !/overrides=/.test((await pageText(page, id)) ?? ""), { message: "no overrides after Reset all" });
       await until(async () => /^Icon(\s|·|$)/.test(await heading(page)), { message: "the Icon still selected after Reset all" });
       await undo(page);

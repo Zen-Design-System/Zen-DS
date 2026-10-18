@@ -164,12 +164,12 @@ export const rows = [
     },
   },
   {
-    id: "ST-11", feature: "Menu Move up moves the layer and keeps it selected", wp: "WP-B",
+    id: "ST-11", feature: "Menu Send backward moves the layer and keeps it selected", wp: "WP-B",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-b");
       const rect = await rectOf(page, ctx.file, await at(ctx, "btn-b"));
       await page.mouse.click(rect.x + rect.width / 2, rect.y + rect.height / 2, { button: "right" });
-      await page.getByRole("menuitem", { name: /^Move up/ }).click();
+      await page.getByRole("menuitem", { name: /^Send backward/ }).click();
       await until(async () => {
         const all = e2eLocs(await ctx.text());
         const line = (id) => Number(all.get(id)?.[0]?.loc.split(":")[0] ?? 0);

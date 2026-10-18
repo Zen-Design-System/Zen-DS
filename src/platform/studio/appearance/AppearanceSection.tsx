@@ -169,7 +169,7 @@ export function EffectsSection({ api, src }: { api: FieldApi; src: string }) {
         <InspectorRow
           label="Effect"
           name="effectStyle"
-          hint={hidden ? "Hidden. Hidden effects aren't saved in code." : undefined}
+          hint={hidden ? "Hidden (not saved)" : undefined}
           action={<IconButton icon="icon-minus-line" aria-label="Remove effect" appearance="flat" level="primary" size="xs" disabled={api.disabled} onClick={() => { hiddenEffects.delete(src); if (effectStyle) api.removeProp("effectStyle"); else rerender((n) => n + 1); }} />}
         >
           <div className="studio-effect" data-hidden={hidden ? "true" : undefined}>
@@ -234,7 +234,7 @@ function EffectSettings({ id, style }: { id: string; style: string }) {
   return (
     <div id={id} className="studio-effect__settings" role="group" aria-label={`${style} settings`}>
       {(layers ?? []).map((layer, index) => <p key={index} className={typographyStyles["Body/Small/Regular"]}>{layer}</p>)}
-      <p className={`studio-effect__settings-note ${typographyStyles["Caption/Regular"]}`}>Effect styles are tokens: edit them in Figma, then run the style sync.</p>
+      <p className={`studio-effect__settings-note ${typographyStyles["Caption/Regular"]}`}>Edit effect styles in Figma</p>
     </div>
   );
 }

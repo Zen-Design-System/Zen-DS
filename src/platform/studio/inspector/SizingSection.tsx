@@ -251,7 +251,7 @@ function useSizingWriter(api: FieldApi, component: string, src: string | null, d
           // Already in the file's draft (a drafts server) or on disk.
           hashRef.current = { src: target, hash: fresh };
           const where = `${fileName(at.file)}:${at.loc.split(":")[0]}`;
-          if (studioDrafts.get().available) inspectorStatus.set("neutral", `Draft · ${where} · ${saveShortcut} to save`);
+          if (studioDrafts.get().available) inspectorStatus.set("neutral", `Unsaved · ${where} · ${saveShortcut} to save`);
           else inspectorStatus.set("positive", `Saved · ${where}`);
           return;
         }
@@ -364,7 +364,7 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
       {names.has("alignSelf") && !parentLaysOut && alignValue.state === "literal" ? (
         // A no-effect warning with its fix: Zen's Inline-Message (Warning), the fix as its Action (one undoable draft edit).
         <InlineMessage theme="warning" className="studio-inspector__warning" action={disabled ? undefined : { label: "Remove", onClick: () => send(alignSelfOps(null, alignValue)) }}>
-          Align in parent needs a Stack or Grid parent.
+          Alignment works only inside auto layout.
         </InlineMessage>
       ) : null}
 
@@ -594,8 +594,6 @@ export function SizeField({ view, measured, parent, limits, disabled, align, onW
         <PopoverItem leading={modeIcons[axis].fill} label="Fill container" title={fillCaption(axis, parent)} selected={view.written && view.mode === "fill"} onSelect={() => pick({ kind: "fill" })} />
         {limitItems.length && onLimit ? <Divider decorative /> : null}
         {onLimit ? limitItems.map((item) => <PopoverItem key={item.id} leading={item.icon} label={item.label} onSelect={() => { setOpen(false); onLimit(item.id); }} />) : null}
-        {view.written ? <Divider decorative /> : null}
-        {view.written ? <PopoverItem leading="icon-reverse-left-line" label="Reset to auto" onSelect={() => pick({ kind: "auto" })} /> : null}
       </Popover>
       {tip.tooltip}
     </div>
@@ -776,22 +774,22 @@ function AlignInParent({ value, info, disabled, onWrite }: { value: PropValue; i
 
 function Children({ value, disabled, onWrite }: { value: PropValue; disabled: boolean; onWrite: (ops: EditOp[] | null) => void }) {
   const on = value.state === "literal" ? value.value === true : value.state === "spread" ? value.live === true : false;
-  const tip = useIconTooltip("Fill equally: every child takes an equal share along the direction; a child's own width or height wins");
-  // "Child size", not "Children": the Slots section of a layout primitive is titled Children.
-  const label = <span {...tip.bind({})}>Child size{tip.tooltip}</span>;
+  const tip = useIconTooltip("Fill equally: every layer takes an equal share along the flow; a layer's own width or height wins");
+  // "Layer size", not "Layers": the Slots section of a layout primitive is titled Layers.
+  const label = <span {...tip.bind({})}>Layer size{tip.tooltip}</span>;
   if (value.state === "bound" || (value.state === "spread" && typeof value.live === "boolean")) {
-    return <InspectorRow name="fillChildren" label={label}><ReadOnlyValue label="Child size" text={on ? "Fill equally" : "Own size"} value={value} /></InspectorRow>;
+    return <InspectorRow name="fillChildren" label={label}><ReadOnlyValue label="Layer size" text={on ? "Fill equally" : "Own size"} value={value} /></InspectorRow>;
   }
   const unset = value.state === "unset" || value.state === "spread";
   return (
     <InspectorFields
       name="fillChildren"
-      labels={["Child size"]}
+      labels={["Layer size"]}
       code="fillChildren · every child takes an equal share along the direction; a child's own width or height wins"
       fields={[(
         <div key="fill" className="studio-sizing__seg" data-default={unset || undefined}>
           <Segmented
-            aria-label="Child size"
+            aria-label="Layer size"
             size="sm"
             fullWidth
             disabled={disabled || value.state === "spread"}

@@ -276,7 +276,7 @@ export function AgentPanel() {
           ) : null}
         </div>
         {agent.error ? <Text as="p" textStyle="Caption/Regular" tone="negative">{agent.error}</Text> : null}
-        {viewer ? <Text as="p" textStyle="Caption/Regular" tone="light">View only — switch to Admin to edit</Text> : null}
+        {viewer ? <Text as="p" textStyle="Caption/Regular" tone="light">View only</Text> : null}
         <AiChatField
           placeholder={asking ? "Or write your answer" : "Describe a change"}
           busy={agent.busy && !asking}

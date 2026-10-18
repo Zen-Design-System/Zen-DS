@@ -281,12 +281,12 @@ try {
     return "inserted and rendered";
   });
 
-  await step("Inspector edit (Figma's option names), Reset all overrides, then ⌘Z", async () => {
+  await step("Inspector edit (Figma's option names), Reset all changes, then ⌘Z", async () => {
     await clickNamed(page, id, "Button");
     // The select lists Figma's names ("Primary"); the file gets the code value (GĐ4 M1).
     await pick(page, "level", "Primary");
     await until(async () => /<Button level="primary"/.test((await storedText(page, id)) ?? ""), { message: 'level="primary"' });
-    await page.locator("#studio-right").getByRole("button", { name: "Reset all overrides" }).click();
+    await page.locator("#studio-right").getByRole("button", { name: "Reset all changes" }).click();
     await until(async () => /<Button onClick/.test((await storedText(page, id)) ?? ""), { message: "Reset all overrides removed level" });
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("ControlOrMeta+KeyZ");
@@ -322,7 +322,7 @@ try {
     return "Button rendered after the reload";
   });
 
-  await step("Prototype: Add screen, Navigate to, Play", async () => {
+  await step("Prototype: Add screen, Navigate to, Present", async () => {
     await inspectorTab(page, "Prototype");
     await page.getByRole("button", { name: "Add screen" }).click();
     await until(async () => /<Screen id="screen-2"/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "screen-2" });
@@ -331,7 +331,7 @@ try {
     await pick(page, "proto:onClick", "Navigate to");
     await until(async () => /onClick=\{proto\.navigate\("screen-2"\)\}/.test((await storedText(page, id)) ?? ""), { message: "the navigate action" });
     await page.locator(".studio-viewport").focus();
-    await page.keyboard.press("p");
+    await page.keyboard.press("ControlOrMeta+Alt+Enter");
     const player = page.locator(".studio-player");
     await player.waitFor({ state: "visible", timeout: 10_000 });
     await player.locator('[data-zen-name="Button"]').first().click();
@@ -342,7 +342,7 @@ try {
     return "navigate in Play, Esc";
   });
 
-  await step("Quick insert (⇧I) with nothing selected adds a Badge into the screen", async () => {
+  await step("Assets (⇧I) with nothing selected adds a Badge into the screen", async () => {
     await page.locator(".studio-viewport").focus();
     for (let i = 0; i < 3; i += 1) await page.keyboard.press("Escape");
     await page.keyboard.press("Shift+KeyI");

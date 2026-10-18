@@ -36,6 +36,31 @@ export function tokenName(key: string, scale: TokenScale | "card" = "gap"): stri
   return MARGIN_TOKENS[key] ?? (scale === "radius" ? RADIUS_NAMES : SPACING_NAMES)[key] ?? key;
 }
 
+/*
+ * How an option reads when no Figma name is known for it (UX writing audit 2026-10-18: raw code values such as
+ * "surface-alt", "2xs", "inside" were shown): a spacing step by its Figma variable name ("2XSmall"), anything else in
+ * sentence case with spaces ("Surface alt", "Danger secondary", "Inside"). HTML element names and values that are not
+ * plain words stay as written. The E2E helpers read options the same way.
+ */
+const TAG_NAMES = new Set(["a", "p", "div", "span", "section", "article", "aside", "header", "footer", "main", "nav", "ul", "ol", "li", "label", "button", "form", "h1", "h2", "h3", "h4", "h5", "h6", "strong", "em", "small", "code", "pre", "figure", "img", "input", "textarea", "select", "table", "td", "th", "tr"]);
+export function optionLabel(value: string): string {
+  if (value in SPACING_NAMES) return SPACING_NAMES[value];
+  if (TAG_NAMES.has(value) || !/^[a-z][a-z0-9-]*$/.test(value)) return value;
+  const words = value.replace(/-/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/**
+ * A written value as a status line names it (plan F0: "Gap 2XLarge", not "gap 2xl"): a key by its Figma name (a radius
+ * step by Corner-Radius's), other text in quotes, cut at 24 characters.
+ */
+export function valueWords(value: unknown, prop = ""): string {
+  if (typeof value !== "string") return String(value);
+  if (/radius/i.test(prop) && value in RADIUS_NAMES) return RADIUS_NAMES[value];
+  if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) && value.length <= 24) return optionLabel(value);
+  return `"${value.length > 24 ? `${value.slice(0, 24)}…` : value}"`;
+}
+
 /** A px value as the canvas pills write it: whole pixels, else one decimal. */
 export const pxText = (px: number) => (Number.isInteger(px) ? String(px) : px.toFixed(1));
 

@@ -64,11 +64,11 @@ export function ReadOnlyChip() {
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? `${id}-panel` : undefined}
-        aria-label={`Read-only: ${gate.title}`}
+        aria-label={`View only: ${gate.title}`}
         startIcon={<Icon name="icon-eye-line" decorative />}
         onClick={() => setOpen((value) => !value)}
       >
-        Read-only
+        View only
       </Button>
       {open ? (
         <div id={`${id}-panel`} className="studio-gate__panel" role="dialog" aria-labelledby={`${id}-title`}>
@@ -78,7 +78,7 @@ export function ReadOnlyChip() {
           </div>
           <div className="studio-gate__actions">
             {gate.reason === "viewer" ? (
-              <Button appearance="main" level="primary" size="sm" onClick={() => { studioStore.setState({ role: "admin" }); setOpen(false); }}>Switch to Admin</Button>
+              <Button appearance="main" level="primary" size="sm" onClick={() => { studioStore.setState({ role: "admin" }); setOpen(false); }}>Switch to Can edit</Button>
             ) : null}
             {gate.reason === "not-loopback" ? (
               <Button appearance="main" level="primary" size="sm" onClick={() => window.location.assign(loopbackUrl(window.location.href))}>Open on 127.0.0.1</Button>
