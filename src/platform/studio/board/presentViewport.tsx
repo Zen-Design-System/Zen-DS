@@ -152,8 +152,8 @@ export function ViewportFields({ idPrefix, viewport, onChange, scale, autoWidth,
       </div>
       {turned || folded ? (
         <div className="studio-viewport-device">
-          {turned ? <Button appearance="flat" level="secondary" size="sm" startIcon={<Icon name="icon-refresh-cw-01-line" decorative />} onClick={() => onChange(deviceViewport(turned))}>Rotate</Button> : null}
-          {folded ? <Button appearance="flat" level="secondary" size="sm" startIcon={<Icon name={device?.foldAt ? "icon-book-closed-line" : "icon-book-open-line"} decorative />} onClick={() => onChange(deviceViewport(folded))}>{device?.foldAt ? "Fold" : "Unfold"}</Button> : null}
+          {turned ? <Button appearance="flat" level="primary" size="sm" startIcon={<Icon name="icon-refresh-cw-01-line" decorative />} onClick={() => onChange(deviceViewport(turned))}>Rotate</Button> : null}
+          {folded ? <Button appearance="flat" level="primary" size="sm" startIcon={<Icon name={device?.foldAt ? "icon-book-closed-line" : "icon-book-open-line"} decorative />} onClick={() => onChange(deviceViewport(folded))}>{device?.foldAt ? "Fold" : "Unfold"}</Button> : null}
         </div>
       ) : null}
       {onFramedChange ? <Toggle label="Device frame" checked={Boolean(framed)} disabled={!device || device.radius === 0} onCheckedChange={onFramedChange} /> : null}

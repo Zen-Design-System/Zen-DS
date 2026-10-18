@@ -6512,7 +6512,7 @@
         "Errors that need a retry → Inline Message (negative) with an action.",
         "Tiny regions with no room for the Small illustration (a table cell, a menu, a select list) → a short line of text."
       ],
-      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240, or 120 at `size=\"sm\"`), gap XSmall, then the content wrapper (gap XLarge) of Title + Caption (gap 4) and t",
+      "description": "Figma Empty-State (16339:135; Size=Medium 6085:25796): 320px centred column — illustration (240, or 200 at `size=\"sm\"`), gap XSmall, then the content wrapper (gap XLarge) of Title",
       "props": {
         "title": {
           "x-kind": "node",
@@ -18054,7 +18054,7 @@
       "do": [
         "Say what is empty in the title (\"No projects yet\", \"No results for “tokns”\").",
         "Give the next step as a verb in primaryAction (Primary); a way out such as Clear filters or Clear search goes alone in secondaryAction (Tertiary) (harness: empty-state/way-out-tertiary).",
-        "Pick the size from where it sits: Medium (240) when the Empty State fills the page's main content — first run, a page with no results, no access; Small (120) when it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a sidebar, side panel, sheet, popover or dialog (harness: empty-state/small-in-box; ChartCard sets Small for you).",
+        "Pick the size from where it sits: Medium (240) when the Empty State fills the page's main content — first run, a page with no results, no access; Small (200) when it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a sidebar, side panel, sheet, popover or dialog (harness: empty-state/small-in-box; ChartCard sets Small for you).",
         "Keep the illustration and swap its icon to match what is missing (icon=\"icon-folder-line\").",
         "Keep the caption to one sentence."
       ],
