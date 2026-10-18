@@ -5872,9 +5872,11 @@
       "Place cards on the page with Surface; match default/alt to the page style.",
       "When nothing picks the pairing (examples, a page with no Sidebar), use Canvas/Default with flat Surface/Default boxes — no border, no shadow (Card and MetricCard theme=\"flat\", ChartCard, ListBox); border or shadow only when a condition asks for it (usage rules §16).",
       "On a canvas-flat page, give top and bottom navigation surface-flat so both modes stay seamless.",
-      "Only raise a box to Container or Popover when it actually floats above the page (modal, sheet, overlay)."
+      "Only raise a box to Container or Popover when it actually floats above the page (modal, sheet, overlay).",
+      "Give an item with no fill at rest (Flat: list and tree rows, menu options, icon targets) the Flat state ramp: Background/<role>/Flat/Hover and Flat/Pressed; Active/Neutral/Subtle when selected, and Subtle/Hover only on a selected row."
     ],
     "dont": [
+      "Don't hover or press a Flat item with Subtle, Surface or Solid state fills: Neutral/Subtle/Hover is darker than the selected fill (Active/Neutral/Subtle), so the hovered row reads as the selected one (style-guard: color/flat-state).",
       "Don't put a surface-default box on a canvas-alt page without a border — they are the same colour, and a shadow alone does not separate them (harness: layer/surface-on-canvas-alt-border).",
       "Don't cast a drop shadow from a Subtle, Pale or Surface-Alt background, even where Figma pairs one with Shadow/Action/* (harness: surface/no-shadow-on-tinted).",
       "Don't paint a card, panel or component with a Canvas token (harness: layer/canvas-is-page).",
