@@ -166,6 +166,47 @@ describe("chart family layout", () => {
     expect(getComputedStyle(bar).animationName).toBe("zen-chart-fade");
   });
 
+  it("the Tooltip is centred on the active rule, and moves only to stay inside the chart at its edges", async () => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"];
+    await render(wrap(<>
+      <StackBarChart aria-label="Tip stack" series={[{ id: "x", label: "X" }, { id: "y", label: "Y" }]} data={months.map((label, i) => ({ label, values: { x: 10 + i, y: 30 } }))} />
+      <LineChart aria-label="Tip line" data={months.map((label, i) => ({ label, value: 1000 + i * 300 }))} />
+    </>, 420));
+    for (const name of ["Tip stack", "Tip line"]) {
+      const plot = await focusChart(name);
+      const chart = plot.closest(".zen-chart")!.getBoundingClientRect();
+      for (const key of ["End", "ArrowLeft", "ArrowLeft", "ArrowLeft", "Home"]) {
+        await press(plot, key);
+        const sector = plot.querySelector(".zen-chart__sector[data-active]")!.getBoundingClientRect();
+        const tip = plot.querySelector(".zen-chart__tooltip")!.getBoundingClientRect();
+        const centre = sector.left + sector.width / 2;
+        expect(tip.left, `${name} ${key}`).toBeGreaterThanOrEqual(chart.left - 0.5);
+        expect(tip.right, `${name} ${key}`).toBeLessThanOrEqual(chart.right + 0.5);
+        // Centred whenever centring keeps it inside (the middle periods always; the edges when the Tooltip is narrow).
+        if (centre - tip.width / 2 >= chart.left && centre + tip.width / 2 <= chart.right) expect(Math.abs(tip.left + tip.width / 2 - centre), `${name} ${key}`).toBeLessThanOrEqual(0.5);
+      }
+      await press(plot, "End", "ArrowLeft", "ArrowLeft", "ArrowLeft");
+      const sector = plot.querySelector(".zen-chart__sector[data-active]")!.getBoundingClientRect();
+      const tip = plot.querySelector(".zen-chart__tooltip")!.getBoundingClientRect();
+      expect(Math.abs(tip.left + tip.width / 2 - (sector.left + sector.width / 2)), `${name} middle`).toBeLessThanOrEqual(0.5);
+    }
+  });
+
+  it("the heatmap's cell Tooltip is centred on its cell and shifts in at the last column", async () => {
+    await render(wrap(<HeatmapChart aria-label="Tip heat" rows={["9 am", "10 am"]} columns={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]} values={[[1, 2, 3, 4, 5, 6, 7], [7, 6, 5, 4, 3, 2, 1]]} />, 320));
+    const plot = await focusChart("Tip heat");
+    const chart = plot.closest(".zen-chart")!.getBoundingClientRect();
+    await press(plot, "End", "ArrowLeft", "ArrowLeft", "ArrowLeft");
+    let cell = plot.querySelector(".zen-chart__cell[data-active]")!.getBoundingClientRect();
+    let tip = plot.querySelector(".zen-chart__cell-tip")!.getBoundingClientRect();
+    expect(Math.abs(tip.left + tip.width / 2 - (cell.left + cell.width / 2))).toBeLessThanOrEqual(0.5);
+    await press(plot, "End");
+    cell = plot.querySelector(".zen-chart__cell[data-active]")!.getBoundingClientRect();
+    tip = plot.querySelector(".zen-chart__cell-tip")!.getBoundingClientRect();
+    expect(cell.left + cell.width / 2 + tip.width / 2).toBeGreaterThan(chart.right);
+    expect(tip.right).toBeLessThanOrEqual(chart.right + 0.5);
+  });
+
   it("horizontal bars, the donut, the rings and the heatmap stay inside a 320px box", async () => {
     await render(wrap(<>
       <BarChart orientation="horizontal" aria-label="H" data={[{ label: "Client Services", value: 510, target: 640 }, { label: "Design", value: 2650, target: 2800 }]} />

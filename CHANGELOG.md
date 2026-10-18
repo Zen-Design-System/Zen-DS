@@ -677,6 +677,13 @@ removed (four unused colour ramps were, see Removed).
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Charts (2026-10-17, user: the Tooltip sat off the hover line in Zen Studio): the Tooltip of LineChart, BarChart,
+  StackBarChart, GroupedBarChart and ComboChart is centred on the active period's rule, as in Figma, and the
+  HeatmapChart cell Tooltip on its cell; it moves only by what it would cross the chart's edge (it used to slide by the
+  period's place along the plot, so every period but the middle one sat off its line).
+- Zen Studio Present (2026-10-17, user: "Sidebar vẫn bị lỗi scroll trong present"): a page made in the Studio runs as in
+  Play, the AppShell Sidebar and docked aside sticking to the top at the window's height (or a typed viewport's) with
+  their rows scrolling inside; they scrolled away with the page. Studio E2E PT-14.
 - Zen Studio Present and Play (2026-10-16, user: "Có"): a phone Screen's Top Navigation with a large title folds under
   its bar as the page scrolls, as on iOS (TopNavigation `scrollRef`, unless the page sets `scrollRef` or `collapsed`),
   and the status bar and home indicator stay at the window's edges instead of scrolling away. The canvas is unchanged.
