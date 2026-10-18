@@ -157,8 +157,8 @@ export function matchOption(value: string, options: readonly string[]): string {
  *  (written by the nested layers' own Properties, inspector/OverrideProperties.tsx). */
 export function isSkippedProp(name: string) {
   // hidden / hiddenSlots: a builder page's layer and slot visibility, set by the eye, ⇧⌘H and the slot switches
-  // (edit/visibility.ts), not typed as attributes.
-  return name === "hidden" || name === "hiddenSlots" || name === "phoneLinked" || name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "overrides" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
+  // (edit/visibility.ts), not typed as attributes. data-name / data-locked: the layer's name and lock (Layers, ⌘R, ⇧⌘L).
+  return name === "hidden" || name === "hiddenSlots" || name === "phoneLinked" || name === "data-name" || name === "data-locked" || name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "overrides" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
 }
 
 export const typographyKeys = Object.keys(typographyStyles);

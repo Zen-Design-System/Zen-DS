@@ -291,3 +291,34 @@ approved). F0 applies its glossary (§3a) and keys.
   XLarge”").
 - **Left (BACKLOG P1 line):** Code properties rows → the Code tab (structural, after F1); Rename / Lock / Group get built
   in F1–F3; Present from an Overlay frame.
+
+## Studio Layers like Figma — F1 (user: "ok làm F1 tiếp đi") — tier M/L, worktree `../Zen-DS-figlang`, branch `zen/feat/studio-f1-layers-20261018`
+
+Spec card (plan §5 F1, decision 4; Figma help checked: Lock and unlock layers, Rename layers; Layers top = front).
+- **Model:** `tools/studio/layer-meta.mjs` — `data-name` (not `name`: form fields take one) and `data-locked` on any
+  layer of a page you made; `<Use>` accepts both (dialect). Automatic names are shown, never written: Frame N / shape N
+  per kind in page order, text by its words, instances by their component. Export keeps `data-name`, drops
+  `data-locked` (compile, HTML export). Figma push writes the name of frames, shapes and text; pull reads it back on the
+  elements left after folding (`givenName` in the final walk), never Figma's own names (Frame 3, Stack, Rectangle, the
+  words, a prop's value). Instance names stay in the page: their Figma names carry content pull reads (FileIcon "pdf
+  file", IconButton labels).
+- **Client:** `select/layerMeta.ts` (from the page tree in BuilderBoard, as hidden layers): automatic names, locks
+  (inherited by everything inside), frame nodes; `displayName` in Layers, the canvas tag, Select layer and Create
+  component. The Inspector header keeps the layer's kind ("Stack", "Button"), as Figma's right panel names the kind (a
+  first try with the layer's name there broke the E2E rows that read it, B-02 / B-03). `edit/rename.ts` (⌘R, rename / renameFrame / batch, never a tab reload) and
+  `shell/BatchRenameDialog.tsx`; `edit/lock.ts` (⇧⌘L, menu items, frame lock).
+- **Layers (page you made):** front-first order (the Layers drag flips before / after: `data-order="front"`), the
+  wrappers a click passes over still fold (user 2026-10-13, E2E SP-16; a first try without folding broke it), the
+  Screen / Overlay element is the frame row (# icon; an empty Screen is still listed: `noAnnotations` skips pages you
+  made); instances ◇, Grid and Image icons; double-click / Tab rename;
+  padlock; right-click = canvas menu; ⌥-click deep toggle; ⌥L and Actions › Collapse layers; the 500 cap only in Show
+  all layers.
+- **Canvas:** `pick` gives a locked layer's press to the nearest unlocked layer, skips a locked frame; ⌘-click, hover,
+  parts, marquee, resize handles and arrows skip or keep locked layers; a frame's canvas name double-click renames.
+- **Tests:** `layer-meta.selftest` (12), figma-push +3 (names round trip, no lock pushed), figma-pull +2 (designer names
+  come back; frame names not on the body). E2E `--only=figma` 18 / 18 (FW-11…18 new). Full Studio E2E 321 / 333, the 12
+  fixed and passing on rerun: focusScreen took the top frame row (now screen-1 by id), draw rows read "Ellipse" /
+  "Star" (now "Ellipse 1", components named after "Star 1"), SP-16 read Stack / Grid (now Frame N).
+- **Bug found and fixed (shell.css):** the canvas menu's list was capped at 100vh − 16px, so a menu as tall as the window
+  (24 items after F0 / F1) had a surface taller than the room and flipped above the window (HO-12, y −974): the cap is
+  100vh − 64px now and the list scrolls.

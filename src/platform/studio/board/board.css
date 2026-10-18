@@ -373,6 +373,8 @@
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
 }
 .studio-frame-label__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* A frame's name edited in place (double-click its name on a page you made, edit/rename.ts): the label's size. */
+.studio-frame-label__rename { width: 20ch; min-width: 8ch; height: 20px; box-sizing: border-box; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 1px solid var(--zen-color-border-info-solid-default); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: none; background: var(--zen-color-background-surface-default); color: var(--zen-color-content-neutral-strongest); }
 /* A frame with unsaved draft changes: a warning dot after its name (shell.css .studio-drafts__dot, same mark). */
 .studio-frame-label__dot { display: inline-block; width: 6px; height: 6px; flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-warning-solid-default); }
 .studio-frame-label:hover { color: var(--zen-color-content-neutral-strongest, #111); }

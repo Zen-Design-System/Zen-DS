@@ -16,7 +16,10 @@ import { stepLayer, type NodeSelection } from "../arrange";
 import { clipboardActions, clipboardShortcuts } from "../clipboard";
 import { duplicateLayers, removeLayers, stepLayers } from "../multi";
 import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
-import { multiSelection } from "../../select/multiSelection";
+import { multiSelection, selectedLayers } from "../../select/multiSelection";
+import { COLLAPSE_LAYERS_EVENT } from "../../select/layerMeta";
+import { isSelectionLocked, lockShortcut, toggleLockSelection } from "../lock";
+import { renameShortcut, startRename } from "../rename";
 import { startTextEditOnSelection } from "../textEdit";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
@@ -65,10 +68,14 @@ export function commands(): Command[] {
     { id: "wrap-box", group: "Edit", label: "Frame selection", shortcut: frameSelectionShortcut, keywords: "box group container wrap", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("box"); } },
     // The Design tab's Position toggle, for one layer or several (edit/ignoreAutoLayout.ts): floating on, or back in the flow.
     { id: "ignore-auto-layout", group: "Edit", label: "Ignore auto layout", keywords: "absolute position float constraints back in auto layout", disabled: editOff, run: () => { void toggleIgnoreAutoLayout(); } },
+    // Figma's Rename (⌘R; several layers: Rename layers) and Lock / Unlock (⇧⌘L), on a page you made (F1).
+    { id: "rename", group: "Edit", label: selectedLayers().length > 1 ? "Rename layers" : "Rename", shortcut: renameShortcut, keywords: "name layer batch", disabled: editOff ?? (state.localPage ? (selection ? undefined : "Select a layer first") : "Works on a page you made"), run: () => startRename() },
+    { id: "lock", group: "Edit", label: isSelectionLocked(selection) ? "Unlock" : "Lock", shortcut: lockShortcut, keywords: "lock unlock freeze", disabled: editOff ?? (state.localPage ? (selection ? undefined : "Select a layer first") : "Works on a page you made"), run: () => { void toggleLockSelection(); } },
     { id: "detach", group: "Edit", label: "Detach instance", shortcut: detachShortcut, disabled: editOff ?? (node && !offersDetach(node.name) ? "Select an instance" : undefined), run: () => { if (node) void detachSelection(node); } },
     { id: "undo", group: "Edit", label: "Undo", shortcut: `${modKey}Z`, disabled: state.undo.length ? undefined : "Nothing to undo", run: () => { void undoEdit(); } },
     { id: "redo", group: "Edit", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: state.redo.length ? undefined : "Nothing to redo", run: () => { void redoEdit(); } },
     { id: "save", group: "Edit", label: "Save", shortcut: `${modKey}S`, keywords: "unsaved changes", disabled: canEdit(state) ? undefined : "Can't save right now", run: () => { void requestSave(); } },
+    { id: "collapse-layers", group: "Panels", label: "Collapse layers", shortcut: "⌥L", keywords: "layers fold close", run: () => { studioStore.setState({ leftTab: "layers" }); window.dispatchEvent(new Event(COLLAPSE_LAYERS_EVENT)); } },
     { id: "select-parent", group: "Selection", label: "Select parent", shortcut: "⇧Enter", disabled: selection?.kind === "node" ? undefined : "Select a layer first", run: () => press({ key: "Enter", code: "Enter", shiftKey: true }) },
     { id: "select-child", group: "Selection", label: "Select children", shortcut: "Enter", disabled: layerOff, run: () => press({ key: "Enter", code: "Enter" }) },
     { id: "select-next", group: "Selection", label: "Select next sibling", shortcut: "Tab", disabled: layerOff, run: () => press({ key: "Tab", code: "Tab" }) },

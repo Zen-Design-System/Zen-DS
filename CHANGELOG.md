@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio Layers like Figma (F1 of the same plan): on a page you made the front-most layer is on top, layers are
+  named as Figma names them (Frame 1, Rectangle 2, a text by its words, an instance by its component) with Figma's
+  icons, and the Screen is the frame's own row. Rename by double-click, ⌘R (Tab goes to the next name), ⌘R on several
+  layers (Rename layers: $&, $n / $N, Match), or a frame's name on the canvas; names are `data-name` in the page, kept
+  in exported code and in Figma push / pull (frames, shapes, text). Lock with ⇧⌘L, the row's padlock or the menu
+  (`data-locked`, never exported): the canvas skips locked layers (click, hover, marquee, ⌘-click, handles, arrows).
+  Right-click a row for the canvas menu, ⌥-click a chevron for everything inside, ⌥L (Actions › Collapse layers).
 - Zen Studio speaks Figma (F0 of docs/research/studio-figma-design-parity-2026-10-18.md): ⌘K opens Actions, ⌘F finds
   a layer, ⇧⌘K is Place image/video, Enter selects all children, P is no longer Play (Present is ⌥⌘↵ and the Present
   button), and Figma keys Studio lacks (⌘R, ⌘G, ⇧⌘L, ⌘E, ⌘Y, ⇧⌘C, K, S, P, C, I, N…) say "isn't in Zen Studio yet"

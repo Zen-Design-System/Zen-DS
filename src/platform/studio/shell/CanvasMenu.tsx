@@ -13,6 +13,8 @@ import { clipboardActions, clipboardMenuItems, clipboardShortcuts } from "../edi
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { visibilityMenuItems } from "../edit/visibility";
+import { lockMenuItems } from "../edit/lock";
+import { renameShortcut, startRename } from "../edit/rename";
 import { findFrame } from "../board/frames";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
 import { copyFrameForFigma } from "../builder/export/figmaClipboard";
@@ -130,7 +132,9 @@ export function CanvasMenu() {
     { id: "wrap-box", label: "Frame selection", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
   ] : [];
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
-  const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), notYet("lock", "Lock", `⇧${modKey}L`, "icon-lock-01-line")] : [];
+  // Show / Hide, Lock / Unlock and Rename, as Figma's layer menu (edit/visibility.ts, edit/lock.ts, edit/rename.ts).
+  const renameItem = (label: string): MenuItemData => ({ id: "rename", label, icon: "icon-text-input-line", shortcut: renameShortcut, disabled: Boolean(canEdit() ? undefined : "View only"), onSelect: () => { requestAnimationFrame(startRename); } });
+  const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), ...lockMenuItems(selection), ...(studioStore.getState().localPage && selection && !selection.part ? [renameItem("Rename")] : [])] : [];
   // Copy / Cut / Paste / Paste to replace / properties first, as in Figma's layer menu (edit/clipboard.ts).
   const clipboard = clipboardMenuItems(selection);
   const editOff = canEdit() ? undefined : studioStore.getState().role === "admin" ? "Can't edit right now" : "View only";
@@ -146,6 +150,8 @@ export function CanvasMenu() {
     ...wrapItems,
     // Floats every selected Stack / Grid / Box at its own offsets (or puts them back in the flow): edit/ignoreAutoLayout.ts.
     { id: "multi-float", label: "Ignore auto layout", icon: "icon-transform-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void toggleIgnoreAutoLayout(); } },
+    ...lockMenuItems(selection),
+    ...(studioStore.getState().localPage ? [renameItem("Rename…")] : []),
     { type: "separator", id: "multi-remove-separator" },
     { id: "multi-remove", label: "Delete", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void removeLayers(); } },
   ] : [];
@@ -167,6 +173,9 @@ export function CanvasMenu() {
     { id: "frame-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
     // A Screen or Overlay of a page you made deletes as one edit (Figma deletes a frame from its menu too).
     ...(localPage && /^(screen|overlay):/.test(frame.id) ? [
+      { type: "separator" as const, id: "frame-name-separator" },
+      ...lockMenuItems({ kind: "frame", frameId: frame.id }),
+      renameItem("Rename"),
       { type: "separator" as const, id: "frame-delete-separator" },
       { id: "frame-delete", label: "Delete", icon: "icon-trash-line" as const, shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), onSelect: () => { void removeFrame(localPage, frame.id); } },
     ] : []),

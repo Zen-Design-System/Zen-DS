@@ -474,6 +474,9 @@ export function localComponents(tree) {
   return out;
 }
 
+/** What `<Use>` takes: its component, its overrides, and the layer data any layer carries (layer-meta.mjs). */
+const USE_PROPS = new Set(["of", "overrides", "data-name", "data-locked"]);
+
 /** The ids a page's components and instances must follow; errors go to `errors` (parsePage's). */
 function checkComponents(board, errors) {
   const at = (node, message) => errors.push({ line: Number(node.loc.split(":")[0]), column: Number(node.loc.split(":")[1]), message });
@@ -494,7 +497,8 @@ function checkComponents(board, errors) {
     if (node.children.some((child) => child.kind !== "text" || child.value.trim())) at(node, "<Use> holds nothing: it shows its component");
     // An instance inside its own main would draw itself forever.
     if (parents.some((parent) => parent.name === "Component" && parent.props.id?.value === of)) at(node, `<Use of="${of}"> sits inside its own component`);
-    for (const prop of Object.keys(node.props)) if (prop !== "of" && prop !== "overrides") at(node, `<Use> takes of and overrides only, not ${prop}`);
+    // An instance may carry its own layer name and lock (tools/studio/layer-meta.mjs), as any layer does.
+    for (const prop of Object.keys(node.props)) if (!USE_PROPS.has(prop)) at(node, `<Use> takes of and overrides only, not ${prop}`);
   });
 }
 

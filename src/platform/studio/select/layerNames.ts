@@ -23,14 +23,24 @@ const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-squar
 
 /**
  * A layer's own icon, as Figma's layers show it: a page-local component's ◇ (its main and its instances), a shape's
- * own (Rectangle, Ellipse…), a frame's # (Box), auto layout by its direction (Stack), text's T. Null for the rest: the
- * caller shows its component or code icon.
+ * own (Rectangle, Ellipse…), a frame's # (Box), auto layout by its direction (Stack) or a grid (Grid), text's T, an
+ * image. Null for the rest: layerIcon shows its component or code icon.
  */
 export function objectIcon(name: string, props: Record<string, unknown> | null | undefined): IconName | null {
   if (props?.["data-zen-main"] || props?.["data-zen-instance"]) return "icon-diamond-line";
   if (name === "Shape") return SHAPE_ICONS[String(props?.type ?? "rectangle")] ?? "icon-square-line";
   if (name === "Box") return "icon-hash-01-line";
   if (name === "Stack") return props?.direction === "row" ? "icon-columns-01-line" : "icon-rows-01-line";
+  if (name === "Grid") return "icon-grid-01-line";
   if (name === "Text" || name === "Heading") return "icon-type-01-line";
+  if (name === "Image") return "icon-image-line";
   return null;
+}
+
+/**
+ * The icon a layer row shows, as Figma's Layers: its own (above), else an instance's ◇ for a component (a Zen component
+ * is an instance of the library's), else code (an HTML element in example code).
+ */
+export function layerIcon(name: string, props: Record<string, unknown> | null | undefined, isComponent: boolean): IconName {
+  return objectIcon(name, props) ?? (isComponent ? "icon-diamond-line" : "icon-code-02-line");
 }
