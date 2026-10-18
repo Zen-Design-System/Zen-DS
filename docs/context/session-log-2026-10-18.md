@@ -309,3 +309,5 @@ approved). F0 applies its glossary (§3a) and keys.
   XLarge”").
 - **Left (BACKLOG P1 line):** Code properties rows → the Code tab (structural, after F1); Rename / Lock / Group get built
   in F1–F3; Present from an Overlay frame.
+- style:check on main after #134 (Giám sát): `.studio-device-duo` gap 8 / padding-top 32 had their zen-allow-raw-spacing
+  in the block comment above the selector; style-guard wants it right above each declaration. Fixed (tier XS).
