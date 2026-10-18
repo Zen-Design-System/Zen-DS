@@ -7589,7 +7589,7 @@
       {
         "id": "box/border-matches-action",
         "severity": "warn",
-        "summary": "A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static.",
+        "summary": "A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static; a dashed border is always subtle (box/dashed-is-subtle).",
         "allow": "box-border"
       },
       {
