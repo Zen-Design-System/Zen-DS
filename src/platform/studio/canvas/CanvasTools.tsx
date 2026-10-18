@@ -7,7 +7,9 @@ import { armFrameDraw, disarmFrameDraw } from "../builder/frameMove";
 import { armDraw, disarmDraw } from "../draw/drawTool";
 import { paletteInsertable, type Insertable } from "../edit/assets/assets";
 import { armPlacement, disarmPlacement } from "../edit/place";
+import { toggleAgent, useAgent } from "../agent/agentStore";
 import { ChromeScope } from "../shell/ChromeScope";
+import { modKey } from "../shell/modKey";
 import { PALETTE } from "../slots/palette";
 import { studioStore, useStudio } from "../store";
 import type { StudioShapeTool, StudioTool } from "../types";
@@ -133,6 +135,18 @@ export function CanvasTools() {
           ) : null}
         </Fragment>
       ))}
+      <ZenAgentButton />
     </ChromeScope>
+  );
+}
+
+/** Zen Agent (agent/AgentPanel.tsx) at the toolbar's end, as Figma UI3 keeps its AI there. */
+function ZenAgentButton() {
+  const open = useAgent().open;
+  return (
+    <>
+      <span className="studio-canvas-tools__divider" aria-hidden="true" />
+      <IconButton appearance={open ? "main" : "flat"} level="primary" size="sm" aria-label="Zen Agent" aria-pressed={open} aria-keyshortcuts="Meta+J" tooltip={`Zen Agent (${modKey}J)`} icon={<Icon name="icon-stars-01-line" />} onClick={toggleAgent} />
+    </>
   );
 }

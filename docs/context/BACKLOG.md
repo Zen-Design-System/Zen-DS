@@ -12,6 +12,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
   rule gives Zen black text on step 9. Shown by ai-ui › "Follow-ups edit, not rebuild" (Schedule). Pointer:
   tokens/source/figma/base-colors-project.json Light/On-Brand-Default, Figma Base Colors (Project).
+- **P2 · Charts in Studio pages show no currency (2026-10-18, V-1 of the vibe agent; new API, user):** `format` on
+  LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
+  not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
+  `docs/research/studio-vibe-agent-2026-10-18.md` §7.
+- **P3 · BarList rows spread out in a stretched ChartCard (2026-10-18, V-1; designer):** next to a taller LineChart card
+  (Grid stretch, equal-height cards) the 5 BarList rows sit ~72px apart. Hug at the top, or fill as now? Pointer: same §7.
 - **P2 · Studio Variables v2 (2026-10-17):** v1 is built (branch zen/feat/studio-variables-20261017: Local variables
   window, edit / alias / create / rename / duplicate / delete, drafts + live tokens.css, Save builds the tokens, Copy for
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a

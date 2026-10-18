@@ -11,7 +11,7 @@ import "./mcp.css";
  * (every call refused until Resume; ⌘Z undoes what the AI did, one step per change).
  */
 
-const CLIENTS: Record<string, string> = { "claude-code": "Claude Code", "claude-ai": "Claude", cursor: "Cursor", "codex-mcp-client": "Codex", "gemini-cli-mcp-client": "Gemini CLI", "Visual Studio Code": "VS Code" };
+const CLIENTS: Record<string, string> = { "zen-agent": "Zen Agent", "claude-code": "Claude Code", "claude-ai": "Claude", cursor: "Cursor", "codex-mcp-client": "Codex", "gemini-cli-mcp-client": "Gemini CLI", "Visual Studio Code": "VS Code" };
 
 export const clientLabel = (name: string) => CLIENTS[name] ?? name;
 
