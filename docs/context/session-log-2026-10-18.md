@@ -324,3 +324,44 @@ approved). F0 applies its glossary (§3a) and keys.
     the two B2 avatars still carried it as an instance override → cleared. Code/Studio have none (chat.css avatar column
     has no shadow, avatar.css only its 1px ring; Studio fixtures, chat-bubbles contract and native-pack carry no avatar
     drop shadow); ◆ Social and ❖ Chat: 0 left.
+
+## ◇ Master-Layout · Variants rebuilt on the AppShell (user: "Dùng appshell mới build lại các example bên ◇ Master-Layout · Variants trong Figma") — Figma only
+- All 41 screens (A1–A4, B1–B6, C1–C7, D1–D5, E1–E7, F1–F12) keep their frame and caption; each frame now holds one
+  `Pattern/AppShell/Desktop` or `Pattern/AppShell/Mobile` instance. A → Sidebar, Collapse=Sidebar (the trail starts with a
+  Master crumb); B1/B3 → Top-Bar, B2 → List-Detail (context column in the Side-Panel, its Actions hidden), B4 → Workspace
+  (Border panes), B5 → Docs, B6 → Focus; mobile → Bar / Band / Band-Sheet (D5, E4, E7) / Media (C4) × Tab-Bar / Floating /
+  Actions (C4–C6) / None (D2, E4, F2–F11). Navs synced from the originals (variant, props, texts, slot content); body
+  content moved into Content / Hero / Backdrop; old header rows mapped to Header/AppShell Top-Elements / Main-Element.
+- Checked against the archive copies: visible texts, image fills and icons identical on all 41 screens.
+- The section "Archive · before AppShell (2026-10-18)" (16369:163148) was later deleted outside this session (not by
+  me); the originals are now only in version history.
+- Desktop frames set to Breakpoint = Desktop (the page is Mobile; AppShell desktop sizes bind to Viewport-Width/Height).
+  A2–A4 KPI cards then hugged their content (fixed 156 overflowed with Desktop padding). C screens now render in the
+  pattern's Comfortable + Mobile typography (they used the Compact / Dashboard defaults before).
+- Fixes from the audit: 16 button-beside-text gaps → Spacing/Gap/XSmall; B2 header ⋮ → Button/Icon-Flat; B3 hero gap
+  bound, shadow clip off, second Primary → Tertiary; B4 zoom chip re-pinned, inspector value truncates; B2 rail footer.
+- Left for the user (audit): 33 `bounds/overflow` = content longer than the 844/982 viewport (overflowDirection cannot be
+  overridden in an instance: needs the AppShell Body as a scroll container + a harness exemption); 10 `button/in-card-flat`
+  that are the designer's own patterns (device power Icon-Main XSmall, steppers, playback, call); library-owned nav
+  gradients (8) and Floating nav without shadow (E5/E6).
+- User answers (same session): Q2 OK, Q3 "Button in card flat chỉ dành cho button ở floating ở góc cho hành động more",
+  Q4 Comfortable OK. Done:
+  - Figma AppShell sets (Desktop 8, Mobile 32, Duo 3): the frame holding the Content slot (Body, or Sheet on
+    Band-Sheet/Media) clips and scrolls vertically (prototype overflow); Focus scrolls on Body (Column no clip, so the
+    form card's shadow keeps its room).
+  - Harness `zen-figma-audit.js`: content running past a non-clipping parent is accepted when the nearest clipping
+    ancestor scrolls that way; `button/in-card-flat` / `in-card-wrapper` fire only for the ⋮/⋯ more menu in a card. SKILL.md
+    §2 and audit-rules.md rewritten to match; ai-kit:check 155 ✓. B2 header ⋮ back to Icon-Main Tertiary.
+  - Audit of the 41 screens: 16 errors → 8 library nav gradients, 5 glyph overflows inside library chart/metric instances
+    (B3), 2 Floating navs without shadow (E5/E6), D2 legal text (fixed after the run: Fill + wrap). Warnings explained:
+    canvas root-fill overrides, B2 chat avatar 28px blur cut 4px by the Body clip (library effect, 8% alpha).
+  - After the Breakpoint = Desktop switch, table and summary-row texts in A1–A4 / B6 kept a stale line layout (wrapped,
+    cut) though their boxes read right; toggling the mode Mobile → Desktop again re-laid them out (checked live with
+    node.screenshot; get_screenshot lagged on A4).
+  - Captions (user, 2026-10-19: "Cập nhật caption các màn theo AppShell mới"): every caption got a "Shell" row (a Subtle
+    Badge read from the placed instance, e.g. "AppShell/Mobile · Phone · Top=Band · Bottom=Tab-Bar"); descriptions of
+    B1–B6 and C4–C6 rewritten for the AppShell parts (B4/B5 as the user edited them). B2's list pane set to Flat so the
+    screen matches its "Tiles … never shadowed" caption. Sections re-fitted and re-stacked (240 gaps), 0 overlaps.
+  - Read me (user OK): head text, Structure axis card, the B/C/D tables (AppShell layout per row, equal 240 side
+    panes, Border panes in B4) and the mobile rule rewritten for the AppShell; review questions 1–2 marked Done /
+    Approved 2026-10-18 (Inset, B4 density, template compositions and the nav-surface audit question stay open).

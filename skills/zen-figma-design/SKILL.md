@@ -86,12 +86,13 @@ Files in this skill:
     - A full-width button is Medium or larger; Small buttons hug their label.
   - **Buttons in context:**
     - Buttons on a photo are `Button/Overlay` or `Button/Icon-Overlay`.
-    - Icon actions inside a card (an event card, a list row, a widget) are `Button/Icon-Flat`, never a bordered
-      Icon-Main: the ⋮ / ⋯ menu is Zen's Card Sub-Action (Small, Secondary, `icon-dots-vertical-line`), a row action
-      (add, edit) is Flat Primary. Put it in a `Wrapper` frame 20×20 with width and height bound to
-      `Element-Size/Popular/Base` (centred, no clip), as the Card does: the 32px button bleeds 6px each side and the
-      row keeps the icon's size. Icon-Main Tertiary stays for toolbars and control rows (audit `button/in-card-flat`,
-      `button/in-card-wrapper`; user 2026-10-17).
+    - The ⋮ / ⋯ more menu floating in a card's corner is `Button/Icon-Flat`, never a bordered Icon-Main: Zen's Card
+      Sub-Action (Small, Secondary, `icon-dots-vertical-line`). Put it in a `Wrapper` frame 20×20 with width and
+      height bound to `Element-Size/Popular/Base` (centred, no clip), as the Card does: the 32px button bleeds 6px each
+      side and the row keeps the icon's size. Only the more menu is flat: other icon actions in a card (a device's
+      power, a stepper, playback, call) keep their `Button/Icon-Main` role, and a ⋮ in a page header or toolbar is
+      Icon-Main Tertiary (audit `button/in-card-flat`, `button/in-card-wrapper`; user 2026-10-17, narrowed 2026-10-18:
+      "Button in card flat chỉ dành cho button ở floating ở góc cho hành động more").
     - A button sits at least `Spacing/Gap/XSmall` (8) from the heading, label or button beside it: "a thing and its
       control" and "controls in one toolbar row" are the XSmall rung. `Gap/2XSmall` (4) only joins one inline item (an
       icon and its text, a Badge beside a title). Audit `spacing/control-gap` (user 2026-10-17: "chữ và button sát quá").
