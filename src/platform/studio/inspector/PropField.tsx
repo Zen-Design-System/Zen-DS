@@ -595,7 +595,7 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
         placeholder="—"
         leading={inlineLabel ? undefined : <PaletteSwatch palette={palette} option={shown} />}
         trailing={inlineLabel ? <InlinePaletteSwatch palette={palette} option={shown} /> : undefined}
-        options={shown ? [{ value: shown, label: shown }] : []}
+        options={shown ? [{ value: shown, label: palette.label(shown) }] : []}
         popoverOpen={false}
         onPopoverOpenChange={(next) => { if (next) setOpen((was) => !was); }}
       />
@@ -615,7 +615,7 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
           <div key={name} role="group" aria-labelledby={`${listId}-${name}`} className="studio-type-control__group">
             <div id={`${listId}-${name}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{name}</div>
             {members.map((option) => (
-              <PopoverItem key={option} label={option} caption={[palette.caption(option), isTone ? toneWarning(palette.resolve(option), component) : null].filter(Boolean).join(" · ")} leading={<PaletteSwatch palette={palette} option={option} />}
+              <PopoverItem key={option} label={palette.label(option)} caption={[palette.caption(option), isTone ? toneWarning(palette.resolve(option), component) : null].filter(Boolean).join(" · ")} leading={<PaletteSwatch palette={palette} option={option} />}
                 selected={option === current} onSelect={() => pick(option)} />
             ))}
           </div>

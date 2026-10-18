@@ -7,12 +7,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved, F0 shipped):**
-  `docs/research/studio-figma-design-parity-2026-10-18.md` — F0 (words and keys) is in; next F1 (Layers like Figma), then
-  F2–F10 in the plan's order. Left from F0's glossary: the Code properties rows move to the Code tab (§3a "Properties",
-  a structural change; the disclosure stays at the Design tab's end meanwhile), Rename / Lock / Group selection are
-  menu items that say "Not in Zen Studio yet" until F1–F3 build them; Present (⌥⌘↵) from a selected Overlay frame, as
-  Figma presents any frame (needs `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form).
+- **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0 and F1 shipped):**
+  `docs/research/studio-figma-design-parity-2026-10-18.md` — next F2 (selection and transform), then F3–F10 in the plan's
+  order. Left: the Code properties rows move to the Code tab (§3a "Properties", structural); Group selection / Ungroup
+  (F3, decision 3) are menu items saying "Not in Zen Studio yet"; Present (⌥⌘↵) from a selected Overlay frame, as Figma
+  presents any frame (needs `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); a locked frame
+  still moves by its canvas name (`builder/frameMove.ts`, the AppShell session's file); an instance's data-name stays in
+  the page (its Figma name is its component's or carries content, which pull reads as such).
 - **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
   the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
   rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4); `tools/studio/figma-native.mjs` /

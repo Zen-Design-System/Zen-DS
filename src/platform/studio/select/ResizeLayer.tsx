@@ -1,3 +1,4 @@
+import { isLockedSrc } from "./layerMeta";
 import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
@@ -700,10 +701,12 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const base = hit && host ? resizeTarget(hit.name, hit.isComponent) : null;
   const dragRef = useRef<Drag | null>(null);
   const inFrame = (node: Element | null) => Boolean(node && canvasApi.getWorldElement()?.contains(node) && node.closest("[data-studio-frame]"));
-  const enabled = Boolean(base && inFrame(host) && interactive && writable);
+  // Figma's lock (edit/lock.ts): a locked layer, or one in a locked frame, shows no handles.
+  const locked = Boolean(hit && isLockedSrc(hit.src));
+  const enabled = Boolean(base && inFrame(host) && interactive && writable && !locked);
   // A library component drawn by one <svg>: no handles, the pill says where its size comes from.
   const svg = host ? null : svgRoot(hit);
-  const svgShown = Boolean(svg && inFrame(svg) && interactive && writable);
+  const svgShown = Boolean(svg && inFrame(svg) && interactive && writable && !locked);
   // A playground specimen: its props come from the playground's state, so it is never wrapped (specimenOnly).
   const specimen = Boolean(hit && selection?.kind === "node" && selection.src === hit.src && selection.panelId);
   const element = useSourceElement(enabled && hit ? hit.src : null, enabled);

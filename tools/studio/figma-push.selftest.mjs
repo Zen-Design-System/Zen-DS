@@ -1222,6 +1222,37 @@ export default function Page() {
   check("push: a Heading's layer named for its level", pushed.children.map((child) => child.name ?? null), ["Heading 2", "Heading 3", null]);
   check("round trip: Headings (level, text style) and a Text's tone come back", shape(pageFromFigma(pushed, { mapping }).text), shape(headings));
 
+  // Layer names and locks (F1, tools/studio/layer-meta.mjs): a frame's, a shape's and a text's data-name is its Figma
+  // name and comes back; a lock and an instance's name stay in the page (not pushed, not pulled).
+  const names = `// @zen-page {"format":1,"title":"Names"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Button, Shape, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Names" device="desktop">
+        <Stack>
+          <Stack direction="row" data-name="Price row" data-locked>
+            <Text data-name="Price">$12</Text>
+            <Shape type="ellipse" width={24} height={24} data-name="Dot" />
+          </Stack>
+          <Button data-name="Main action">Buy</Button>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const pushedNames = push(names).frame;
+  const row = pushedNames.children[0];
+  check("push: a frame's, a text's and a shape's data-name is its Figma name; an instance keeps its own", [row.name, row.children[0].name, row.children[1].name, pushedNames.children[1].name === "Main action"], ["Price row", "Price", "Dot", false]);
+  check("push: a lock is the Studio's (no locked on the layer)", JSON.stringify(pushedNames).includes("locked"), false);
+  const back = pageFromFigma(pushedNames, { mapping }).text;
+  check("round trip: the names come back as data-name, the lock and the instance's name do not", ['data-name="Price row"', 'data-name="Price"', 'data-name="Dot"', 'data-name="Main action"', "data-locked"].map((part) => back.includes(part)), [true, true, true, false, false]);
+
   // A pushed app page read back (fixtures/figma-shell.json): Figma's sample LOGO and Collapse are the Sidebar's own,
   // the crumbs' Sub level is `master` off, a Description List's rows their Term and Value, Type=Main a PageHeader.
   const shell = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-shell.json", import.meta.url), "utf8")).frame, { mapping });

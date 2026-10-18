@@ -16,6 +16,7 @@
 //   node tools/studio/figma-pull.mjs page <part files…> [--title=…] [--file=<key>] [--out=<file.zen.tsx>] [--no-ids]
 //                                                              use_figma's answers → the page to import
 import { printPage } from "./doc.mjs";
+import { FIGMA_NAMED, NAME_PROP, isAutomaticName } from "./layer-meta.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_VARIABLE, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
@@ -1179,6 +1180,23 @@ function masterLayoutFrame(node) {
   return { type: "FRAME", id: node.id, key: node.key, name: node.name, layout: { mode: "HORIZONTAL" }, children: layers };
 }
 
+/**
+ * A frame's, shape's or text's own name back from Figma (layer-meta.mjs data-name): kept when it is not one Figma or the
+ * push gives by itself (Frame 3, Stack, Rectangle, the layer's words, a value it already carries as a prop).
+ */
+function givenName(element, node) {
+  if (element.kind !== "element" || !FIGMA_NAMED.has(element.name) || element.props[NAME_PROP]) return;
+  // A text layer names its Text, not the Stack that places it (an absolute text's wrapper).
+  if (node.type === "TEXT" && element.name !== "Text") return;
+  const name = typeof node.name === "string" ? node.name.trim() : "";
+  if (!name || name === element.name || name === node.set?.name || isAutomaticName(name, element)) return;
+  // A frame the push named by its code (Box, Stack, Grid) may come back as another of them (a filled frame that lays its
+  // layers out is one Stack, decision 2): still its automatic name.
+  if (LAYOUT_FRAMES.has(element.name) && LAYOUT_FRAMES.has(name)) return;
+  if (Object.values(element.props).some((value) => value?.kind === "literal" && value.value === name)) return;
+  element.props[NAME_PROP] = { kind: "literal", value: name };
+}
+
 /** Each element's Figma layer: its parent reads its Fill container from it. */
 const SOURCE = new WeakMap();
 function convert(node, ctx) {
@@ -2067,9 +2085,12 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...screenProps, ...(chrome?.props ?? {}) }, children: content ? [content] : [] };
   const board = { kind: "element", id: own("board") ?? "board", name: "Board", props: {}, children: [screen] };
   // Elements no layer stands for take their place under their parent (deterministic: the same frame, the same ids).
+  // The layers' own names (data-name) on the elements that are left once wrappers fold away; the page frame's name is
+  // the Screen's title.
+  const named = (element) => { const source = SOURCE.get(element); if (source && source !== frame) givenName(element, source); };
   const walk = (node) => {
-    node.children.forEach((child, index) => { if (child.kind === "element") { child.id ??= `${node.id}.${index}`; walk(child); } });
-    for (const [name, value] of Object.entries(node.props)) if (value.kind === "element") { value.node.id ??= `${node.id}.${name}`; walk(value.node); }
+    node.children.forEach((child, index) => { if (child.kind === "element") { child.id ??= `${node.id}.${index}`; named(child); walk(child); } });
+    for (const [name, value] of Object.entries(node.props)) if (value.kind === "element") { value.node.id ??= `${node.id}.${name}`; named(value.node); walk(value.node); }
   };
   walk(board);
   // A frame the Zen plugin placed from a Studio page: that page and the export it holds (figma-diff picks its base by them).

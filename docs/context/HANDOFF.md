@@ -143,16 +143,18 @@ Last updated: 2026-10-19.
   19,286 drop / insert / move cases + 12,564 Add / Remove auto layout cases, must report 0 findings) and the opt-in E2E
   group `dnd` (`npm run studio:e2e -- --only=dnd`, ~30 min, real drags of every Assets item; `ZEN_DND_ONLY=<ids>` /
   `ZEN_DND_LIMIT=<n>`). Run both after any drop, insert or auto layout change. Drop rules: memory "studio-drag-drop-rules".
-- **Zen Studio in Figma's words and keys (2026-10-18, F0 of `docs/research/studio-figma-design-parity-2026-10-18.md`,
-  user: "Đồng ý theo đề xuất, làm F0 trước"):** the plan's glossary (§3a) on menus, tooltips (one shape: `tip(name,
-  keys)` in `shell/ShortcutTip.tsx`), Inspector, Layers and the status line; Figma keys Zen lacks say so
-  (`edit/figmaNotYet.ts`; a phase that builds one takes it off that list); P is Pen, Present is ⌥⌘↵. Guard:
-  `words.selftest` part 3 fails on a retired term (its `RETIRED` list) or code words in a JSX label. Since 2026-10-19
-  three sessions build F1–F10 (A: F1–F3, F9; B: F5, F7; C: F4, F6, F8, F10; memory "figma-parity-three-sessions").
-  **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides / dash, corners, effect, opacity,
-  rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame with a fill is one Stack in code,
-  push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed values, variable pills, W / H math,
-  ratio lock) and F5c next: spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
+- **Zen Studio in Figma's words and keys (2026-10-18, F0 + F1 of `docs/research/studio-figma-design-parity-2026-10-18.md`,
+  user: "Đồng ý theo đề xuất, làm F0 trước", then "ok làm F1 tiếp đi"):** F0: the glossary (§3a) on menus, tooltips
+  (`tip(name, keys)`, `shell/ShortcutTip.tsx`), Inspector, Layers, status line; Figma keys Zen lacks say so
+  (`edit/figmaNotYet.ts`); P is Pen, Present ⌥⌘↵. F1: layer names and locks are `data-name` / `data-locked`
+  (`tools/studio/layer-meta.mjs`, client store `select/layerMeta.ts`, `edit/rename.ts`, `edit/lock.ts`); Layers of a page
+  you made list front-first with automatic names, no folding, the Screen as the frame row. Guards: `words.selftest`
+  part 3, `layer-meta.selftest`, opt-in E2E `--only=figma` (FW-01…18, the plan's scoreboard). Next: F2.
+  Since 2026-10-19 three sessions build F1–F10 (A: F1–F3, F9; B: F5, F7; C: F4, F6, F8, F10; memory
+  "figma-parity-three-sessions"). **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides /
+  dash, corners, effect, opacity, rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame
+  with a fill is one Stack in code, push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed
+  values, variable pills, W / H math, ratio lock) and F5c next: spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures

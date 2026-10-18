@@ -55,7 +55,7 @@ async function settle(host: HTMLElement) {
 // ── Markup ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** Attributes only the Studio reads (selection, Layers, the board), never part of the page. */
-const STUDIO_ATTRIBUTE = /^data-(zen-src|zen-name|studio-.*|screen|screen-state|overlay|export-frame)$/;
+const STUDIO_ATTRIBUTE = /^data-(zen-src|zen-name|studio-.*|screen|screen-state|overlay|export-frame|locked)$/;
 /** The builder runtime's wrappers (proto/runtime.tsx) under the names the exported page's own CSS gives them. */
 const RENAMED_CLASS: Record<string, string> = {
   "studio-builder-screen": "screen", "studio-builder-overlay": "overlay", "studio-builder-overlay__portal": "overlay__portal",
