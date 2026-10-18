@@ -36,6 +36,8 @@ const OVERSCAN = 8;
 const TYPE_ICON: Readonly<Record<VariableType, IconName>> = { COLOR: "icon-palette-line", FLOAT: "icon-hash-01-line", STRING: "icon-type-01-line", BOOLEAN: "icon-toggle-right-line" };
 /** Global Colors' high-contrast mode is written from the Zen values (the high-contrast algorithm), never by hand. */
 const DERIVED_MODE = "Zen-High-Contrast";
+/** Inside a project, Base Colors (Project) is its theme: Project settings changes it. */
+const PROJECT_LOCKED = "This project's colours change in Project settings";
 
 type Editing = { name: string; mode: string; rect: DOMRect; tab: "custom" | "variables" };
 type Focus = { row: number; col: number };
@@ -224,12 +226,14 @@ function VariablesPanel() {
     };
   }, [load]);
 
-  // A Studio project open: Base Colors (Project) shows its mode first (project/projectVariables.ts), read from its theme.
+  // A Studio project open: Base Colors (Project) shows only its mode (project/projectVariables.ts), read from its theme;
+  // its rows stay fixed there (a rename or a new variable would change the Zen source the project never edits).
   const project = useActiveProject();
   const shownCollections = useMemo(() => withProjectMode(collections, project) as VariableCollection[] | null, [collections, project]);
   const index = useMemo(() => indexOf(shownCollections ?? []), [shownCollections]);
   const collection = shownCollections?.find((each) => each.file === file) ?? shownCollections?.find((each) => each.name === "Mode Colors (Semantic)") ?? shownCollections?.[0] ?? null;
   const projectMode = project && collection?.name === PROJECT_COLLECTION ? collection.modes[0] : null;
+  const editableRows = editable && !projectMode;
   const groups = useMemo(() => (collection ? groupsOf(collection) : []), [collection]);
   const rows: Row[] = useMemo(() => (collection ? rowsOf(collection, { group, query, type }) : []), [collection, group, query, type]);
   const modes = collection?.modes ?? [];
@@ -240,6 +244,7 @@ function VariablesPanel() {
 
   const run = useCallback(async (ops: VariableOp[], label: string) => {
     if (!collection) return false;
+    if (projectMode) { say(PROJECT_LOCKED); return false; }
     if (!editable) { say("View only — switch to Admin to edit"); return false; }
     const response = await applyVariableEdit({ file: collection.file, ops }, label);
     if (!response.ok) { say(response.error); return false; }
@@ -251,7 +256,7 @@ function VariablesPanel() {
     } catch { /* the read below brings it */ }
     void load();
     return true;
-  }, [collection, editable, load]);
+  }, [collection, editable, load, projectMode]);
 
   // Rows on screen (virtual list): those in the scrolled window and a few around it.
   const first = Math.max(0, Math.floor(scroll.top / ROW_HEIGHT) - OVERSCAN);
@@ -375,7 +380,7 @@ function VariablesPanel() {
     if (row?.kind !== "variable") return;
     if (event.key === "Enter" || event.key === "F2") {
       event.preventDefault();
-      if (focus.col === 0) setRenaming({ name: row.variable.name, text: shortName(row.variable.name) });
+      if (focus.col === 0) { if (projectMode) say(PROJECT_LOCKED); else setRenaming({ name: row.variable.name, text: shortName(row.variable.name) }); }
       else startEdit(focus.row, focus.col);
     } else if ((event.key === "Delete" || event.key === "Backspace") && focus.col === 0) {
       event.preventDefault();
@@ -386,10 +391,10 @@ function VariablesPanel() {
   const editedVariable = editing ? index.get(editing.name)?.variable ?? null : null;
   const total = collection?.tokens.length ?? 0;
   const rowMenu = (variable: Variable): MenuEntry[] => [
-    { id: "rename", label: "Rename", shortcut: "Enter", disabled: !editable, onSelect: () => setRenaming({ name: variable.name, text: shortName(variable.name) }) },
-    { id: "duplicate", label: "Duplicate", disabled: !editable, onSelect: () => { void run([{ op: "duplicate", name: variable.name }], `Duplicate ${variable.name}`); } },
+    { id: "rename", label: "Rename", shortcut: "Enter", disabled: !editableRows, onSelect: () => setRenaming({ name: variable.name, text: shortName(variable.name) }) },
+    { id: "duplicate", label: "Duplicate", disabled: !editableRows, onSelect: () => { void run([{ op: "duplicate", name: variable.name }], `Duplicate ${variable.name}`); } },
     { type: "separator", id: "row-separator" },
-    { id: "delete", label: "Delete variable", danger: true, disabled: !editable, onSelect: () => { void run([{ op: "delete", name: variable.name }], `Delete variable ${variable.name}`); } },
+    { id: "delete", label: "Delete variable", danger: true, disabled: !editableRows, onSelect: () => { void run([{ op: "delete", name: variable.name }], `Delete variable ${variable.name}`); } },
   ];
 
   let body: ReactNode;
@@ -457,7 +462,7 @@ function VariablesPanel() {
                     tabIndex={focus.row === at && focus.col === 0 ? 0 : -1}
                     data-cell={`${at}:0`}
                     onFocus={() => setFocus({ row: at, col: 0 })}
-                    onDoubleClick={() => editable && setRenaming({ name: variable.name, text: shortName(variable.name) })}
+                    onDoubleClick={() => editableRows && setRenaming({ name: variable.name, text: shortName(variable.name) })}
                     title={variable.name}
                   >
                     <Icon name={TYPE_ICON[variable.type]} size={16} decorative />
@@ -528,7 +533,7 @@ function VariablesPanel() {
       <header className="studio-vars__head" onPointerDown={onHeadDown}>
         <Menu
           aria-label="Collections"
-          items={(collections ?? []).map((each) => ({ id: each.file, label: each.name, caption: `${each.tokens.length} · ${each.modes.length} ${each.modes.length === 1 ? "mode" : "modes"}`, onSelect: () => { setFile(each.file); setGroup(""); setFocus({ row: 0, col: 1 }); if (gridRef.current) gridRef.current.scrollTop = 0; } }))}
+          items={(shownCollections ?? []).map((each) => ({ id: each.file, label: each.name, caption: `${each.tokens.length} · ${each.modes.length} ${each.modes.length === 1 ? "mode" : "modes"}`, onSelect: () => { setFile(each.file); setGroup(""); setFocus({ row: 0, col: 1 }); if (gridRef.current) gridRef.current.scrollTop = 0; } }))}
           trigger={<Button level="primary" appearance="flat" size="sm" endIcon="icon-chevron-down-line">{collection?.name ?? "Variables"}</Button>}
         />
         <span className="studio-vars__head-fill" />
@@ -553,7 +558,7 @@ function VariablesPanel() {
         <Menu
           aria-label="Create variable"
           items={(["COLOR", "FLOAT", "STRING", "BOOLEAN"] as const).map((each) => ({ id: each, label: TYPE_LABEL[each], icon: TYPE_ICON[each], onSelect: () => { void create(each); } }))}
-          trigger={<Button level="primary" appearance="flat" size="sm" startIcon="icon-plus-line" disabled={!editable || !collection}>Create variable</Button>}
+          trigger={<Button level="primary" appearance="flat" size="sm" startIcon="icon-plus-line" disabled={!editableRows || !collection}>Create variable</Button>}
         />
         <span className="studio-vars__status" role="status">{notice ?? (drafted.length ? `${drafted.map((each) => each.name).join(", ")}: not saved` : figma.changes ? `${figma.changes} saved ${figma.changes === 1 ? "change" : "changes"} not in Figma yet` : "")}</span>
         {drafted.length ? <Button level="primary" size="sm" disabled={!editable} onClick={() => { void saveDrafts(drafted.map((each) => each.file)).then(() => load()); }}>Save · build tokens</Button> : null}

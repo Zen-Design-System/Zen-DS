@@ -92,6 +92,9 @@ generated against; then Primary.
   - MCP `list_projects` / `create_project` / `set_project_theme`.
   - ~~The Variables window shows the project's mode as a read-only column of Base Colors (Project).~~ Done
     2026-10-18 (project/projectVariables.ts).
+    The same day (user: "chỉ hiện của project đó, không cho hiện project khác hoặc mặc định (mode Zen)") it became
+    the collection's only mode: no Zen column, no other project. Drafts shows Zen. Inside a project the collection's
+    rows are fixed (rename, new, duplicate and delete would change the Zen source), and a value opens Project settings.
 - Phase 3:
   - **Export to code**: `theme.css` + `<ZenProvider brand="p-<id>" …>`. This needs `brand` to accept project ids in
     the public type.

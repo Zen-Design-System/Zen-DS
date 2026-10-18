@@ -61,3 +61,16 @@
   Machine load (replayd ~90% CPU, load 14) made two E2E repeats time out; reruns at load 6–9 passed.
 - Checks: agent.selftest 21/21, mcp.selftest 14/14, E2E AG-01…12 12/12 ×3 (baseline +6), tsc, style/usage guard on
   the new files; screenshots 1512 / 390 (flash on the Button only, question card, model menu, picture).
+
+## Project variables: only the project's mode (tier S, session "Studio project theme customization"; user: "trong variables
+studio chỉ hiện của project đó, không cho hiện project khác hoặc mặc định (mode Zen)") — worktree `../Zen-DS-project-vars`,
+branch `zen/fix/project-variables-20261018`
+
+- `project/projectVariables.ts`: `withProjectMode` gives Base Colors (Project) one mode, named after the project,
+  instead of putting it before Zen. Drafts keeps Zen.
+- `VariablesWindow.tsx`: inside a project that collection's rows are fixed. Rename, Duplicate, Delete and Create
+  variable are off; Enter / Delete say "This project's colours change in Project settings"; a value opens Project
+  settings, as before. The collections menu counts the shown modes (Base Colors (Project) · 1 mode).
+- Checked on a private server (:5197, Playwright): project Demo → headers Name | Demo, Create variable disabled, Enter
+  makes no rename field, Delete removes no row, a value opens Project settings; Drafts → Name | Zen, Create enabled.
+
