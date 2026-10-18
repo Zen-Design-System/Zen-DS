@@ -2110,12 +2110,13 @@
       "folder": "Layout",
       "status": "stable",
       "import": "import { Stack, Grid, Box, Container } from \"@zen-ds/react\";",
-      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
       "use": [
         "Stacking sections, fields or cards (Stack, gap md–lg).",
         "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
         "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
         "Wells and plain panels (Box surface + padding).",
+        "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
         "Page content width with the breakpoint margin (Container)."
       ],
       "avoid": [
@@ -2124,7 +2125,7 @@
         "A modal or sheet surface → Dialog, SidePanel, BottomSheet.",
         "Separating groups with lines → Divider."
       ],
-      "description": "A plain container with token padding, background layer, border and radius.",
+      "description": "A frame without auto layout (Figma's Frame): token padding, fill (background layer), stroke, corner radius and effect around content that flows as blocks, or layers placed at X / Y",
       "props": {
         "width": {
           "anyOf": [
@@ -2450,6 +2451,87 @@
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
         },
+        "surface": {
+          "enum": [
+            "none",
+            "surface",
+            "surface-alt",
+            "subtle",
+            "pale",
+            "canvas"
+          ],
+          "default": "none",
+          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable."
+        },
+        "border": {
+          "enum": [
+            "none",
+            "pale",
+            "subtle"
+          ],
+          "default": "none",
+          "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md)."
+        },
+        "borderWeight": {
+          "type": "number",
+          "description": "Stroke weight in px (Figma strokeWeight), read with `border`."
+        },
+        "borderSides": {
+          "enum": [
+            "all",
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ],
+          "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g."
+        },
+        "borderStyle": {
+          "enum": [
+            "solid",
+            "dashed"
+          ],
+          "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle)."
+        },
+        "radius": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners."
+        },
+        "opacity": {
+          "type": "number",
+          "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+        },
+        "rotation": {
+          "type": "number",
+          "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
+        },
+        "flip": {
+          "enum": [
+            "horizontal",
+            "vertical",
+            "both"
+          ],
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept."
+        },
         "padding": {
           "enum": [
             "none",
@@ -2528,56 +2610,12 @@
             "margin-compact"
           ]
         },
-        "surface": {
-          "enum": [
-            "none",
-            "surface",
-            "surface-alt",
-            "subtle",
-            "pale",
-            "canvas"
-          ],
-          "default": "none",
-          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells."
-        },
         "scroll": {
           "enum": [
             "x",
             "y"
           ],
           "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside)."
-        },
-        "border": {
-          "enum": [
-            "none",
-            "pale",
-            "subtle"
-          ],
-          "default": "none",
-          "description": "Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md)."
-        },
-        "radius": {
-          "enum": [
-            "none",
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl",
-            "2xsmall",
-            "xsmall",
-            "small",
-            "medium",
-            "large",
-            "xlarge",
-            "2xlarge",
-            "3xlarge",
-            "full"
-          ],
-          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners."
         },
         "as": {
           "enum": [
@@ -4927,12 +4965,13 @@
       "status": "stable",
       "chrome": true,
       "import": "import { Stack, Grid, Box, Container } from \"@zen-ds/react\";",
-      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
       "use": [
         "Stacking sections, fields or cards (Stack, gap md–lg).",
         "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
         "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
         "Wells and plain panels (Box surface + padding).",
+        "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
         "Page content width with the breakpoint margin (Container)."
       ],
       "avoid": [
@@ -7664,12 +7703,13 @@
       "folder": "Layout",
       "status": "stable",
       "import": "import { Stack, Grid, Box, Container } from \"@zen-ds/react\";",
-      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
       "use": [
         "Stacking sections, fields or cards (Stack, gap md–lg).",
         "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
         "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
         "Wells and plain panels (Box surface + padding).",
+        "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
         "Page content width with the breakpoint margin (Container)."
       ],
       "avoid": [
@@ -7893,6 +7933,193 @@
             }
           ],
           "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+        },
+        "radiusTopLeft": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full), following the radius mode."
+        },
+        "radiusTopRight": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius)."
+        },
+        "radiusBottomRight": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius)."
+        },
+        "radiusBottomLeft": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+        },
+        "surface": {
+          "enum": [
+            "none",
+            "surface",
+            "surface-alt",
+            "subtle",
+            "pale",
+            "canvas"
+          ],
+          "default": "none",
+          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable."
+        },
+        "border": {
+          "enum": [
+            "none",
+            "pale",
+            "subtle"
+          ],
+          "default": "none",
+          "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md)."
+        },
+        "borderWeight": {
+          "type": "number",
+          "description": "Stroke weight in px (Figma strokeWeight), read with `border`."
+        },
+        "borderSides": {
+          "enum": [
+            "all",
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ],
+          "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g."
+        },
+        "borderStyle": {
+          "enum": [
+            "solid",
+            "dashed"
+          ],
+          "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle)."
+        },
+        "radius": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners."
+        },
+        "opacity": {
+          "type": "number",
+          "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+        },
+        "rotation": {
+          "type": "number",
+          "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
+        },
+        "flip": {
+          "enum": [
+            "horizontal",
+            "vertical",
+            "both"
+          ],
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept."
+        },
+        "effectStyle": {
+          "enum": [
+            "Shadow/Bottom/Level-1",
+            "Shadow/Bottom/Level-2",
+            "Shadow/Bottom/Level-3",
+            "Shadow/Bottom/Level-4",
+            "Shadow/Top/Level-1",
+            "Shadow/Top/Level-2",
+            "Shadow/Top/Level-3",
+            "Shadow/Top/Level-4",
+            "Effect/Overlay"
+          ],
+          "description": "Figma effect style (the whole style is the token, one per layer as in Figma)."
         },
         "columns": {
           "anyOf": [
@@ -14503,12 +14730,13 @@
       "folder": "Layout",
       "status": "stable",
       "import": "import { Stack, Grid, Box, Container } from \"@zen-ds/react\";",
-      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
       "use": [
         "Stacking sections, fields or cards (Stack, gap md–lg).",
         "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
         "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
         "Wells and plain panels (Box surface + padding).",
+        "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
         "Page content width with the breakpoint margin (Container)."
       ],
       "avoid": [
@@ -14732,6 +14960,193 @@
             }
           ],
           "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+        },
+        "radiusTopLeft": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full), following the radius mode."
+        },
+        "radiusTopRight": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius)."
+        },
+        "radiusBottomRight": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius)."
+        },
+        "radiusBottomLeft": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+        },
+        "surface": {
+          "enum": [
+            "none",
+            "surface",
+            "surface-alt",
+            "subtle",
+            "pale",
+            "canvas"
+          ],
+          "default": "none",
+          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable."
+        },
+        "border": {
+          "enum": [
+            "none",
+            "pale",
+            "subtle"
+          ],
+          "default": "none",
+          "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md)."
+        },
+        "borderWeight": {
+          "type": "number",
+          "description": "Stroke weight in px (Figma strokeWeight), read with `border`."
+        },
+        "borderSides": {
+          "enum": [
+            "all",
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ],
+          "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g."
+        },
+        "borderStyle": {
+          "enum": [
+            "solid",
+            "dashed"
+          ],
+          "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle)."
+        },
+        "radius": {
+          "enum": [
+            "none",
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge",
+            "3xlarge",
+            "full"
+          ],
+          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners."
+        },
+        "opacity": {
+          "type": "number",
+          "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+        },
+        "rotation": {
+          "type": "number",
+          "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
+        },
+        "flip": {
+          "enum": [
+            "horizontal",
+            "vertical",
+            "both"
+          ],
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept."
+        },
+        "effectStyle": {
+          "enum": [
+            "Shadow/Bottom/Level-1",
+            "Shadow/Bottom/Level-2",
+            "Shadow/Bottom/Level-3",
+            "Shadow/Bottom/Level-4",
+            "Shadow/Top/Level-1",
+            "Shadow/Top/Level-2",
+            "Shadow/Top/Level-3",
+            "Shadow/Top/Level-4",
+            "Effect/Overlay"
+          ],
+          "description": "Figma effect style (the whole style is the token, one per layer as in Figma)."
         },
         "direction": {
           "enum": [
@@ -18016,6 +18431,7 @@
         "Don't pass hex or rgb colours: fill and stroke take Zen token paths only."
       ],
       "rules": [
+        "layout/opacity-percent",
         "shape/token-paint",
         "shape/px-offset-in-auto-layout",
         "shape/line-no-height",
@@ -18781,7 +19197,8 @@
         "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
         "Put a main column next to an aside with Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} align=\"start\"; on phones the aside moves under the main column.",
         "Put page content in a Container so its margin follows the breakpoint.",
-        "Give a Box a surface only when it really is a separate layer; a Surface box on a white (Alt) canvas needs border=\"pale\".",
+        "Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border=\"pale\".",
+        "Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface=\"surface\" padding=\"lg\" gap=\"md\" radius=\"lg\">, not a Box around a Stack.",
         "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons goes in a Box width=\"fill\", since Search has no sizing props), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
         "Pin a media overlay with position=\"absolute\" and a constraint on token insets: a corner action on a photo is constraintX=\"right\" insetRight=\"sm\" constraintY=\"top\" insetTop=\"sm\"; a caption bar is constraintX=\"left-right\" constraintY=\"bottom\".",
         "Put background media first and the content after it: the media is absolute (left-right × top-bottom), and the later in-flow content paints above it (Figma auto layout \"Last on top\").",
@@ -18812,6 +19229,8 @@
         "box/effect-needs-surface",
         "box/blur-needs-tint",
         "box/shadow-no-border",
+        "box/dashed-is-subtle",
+        "layout/opacity-percent",
         "radius/redundant-corners",
         "radius/full-mixed",
         "shape/px-offset-in-auto-layout",
