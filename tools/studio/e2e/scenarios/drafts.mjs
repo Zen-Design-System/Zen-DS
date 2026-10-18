@@ -19,13 +19,13 @@ export const rows = [
       const drafts = async () => (await page.locator(".studio-drafts__count").first().getAttribute("aria-label", { timeout: 2000 }).catch(() => "")) ?? "";
       const t0 = Date.now();
       try {
-        await until(async () => /^2 files with unsaved drafts/.test(await drafts()), { timeout: 12_000, message: "2 files with unsaved drafts" });
+        await until(async () => /^2 files with unsaved changes/.test(await drafts()), { timeout: 12_000, message: "2 files with unsaved changes" });
       } catch {
-        throw new Error(`the drafts button reads "${(await drafts()).slice(0, 80)}" after 12 s (want 2 files with unsaved drafts: the fixture page and the save fixture)`);
+        throw new Error(`the drafts button reads "${(await drafts()).slice(0, 80)}" after 12 s (want 2 files with unsaved changes: the fixture page and the save fixture)`);
       }
       const lag = Date.now() - t0;
       if (lag > 2500) throw new Error(`the header counted the new draft only after ${(lag / 1000).toFixed(1)} s (the drafts poll), not at once`);
-      return "draft only; 2 files with unsaved drafts";
+      return "draft only; 2 files with unsaved changes";
     },
   },
   {

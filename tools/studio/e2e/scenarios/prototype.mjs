@@ -190,7 +190,7 @@ export const rows = [
       await until(async () => (await page.locator(".studio-proto-links").getAttribute("data-links").catch(() => null)) === "2", { message: "an arrow from each linked tab" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       await playing(page).locator(".zen-bottom-nav__items li").nth(2).locator("button").first().click();
       await until(async () => (await playScreen(page)) === "screen-3", { message: "People → screen-3 in Play" });
@@ -212,7 +212,7 @@ export const rows = [
       await until(async () => /proto\.navigate\(\{ projects: "screen-2" \}\)/.test(await text(page, id)), { message: "Projects → screen-2" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       const title = (await playing(page).locator(".studio-present-bar__title").innerText()).trim();
       if (/ · /.test(title)) throw new Error(`the bar repeats the name: "${title}"`);
@@ -258,7 +258,7 @@ export const rows = [
       await until(async () => /onItemClick=\{proto\.navigate\(\{ people: "screen-2" \}\)\}/.test(await text(page, id)), { message: "the Sidebar's people → screen-2" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       await playing(page).locator(".zen-sidebar").getByText("People").first().click();
       await until(async () => (await playScreen(page)) === "screen-2", { message: "People → screen-2 in Play" });
@@ -281,7 +281,7 @@ export const rows = [
       await until(async () => /onClick=\{proto\.navigate\("screen-2", \{ animation: "push", direction: "right", duration: "slow" \}\)\}/.test(await text(page, id)), { message: "Push · right · Slow written" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       await playing(page).locator('[data-zen-name="Button"]').first().click();
       const going = playing(page).locator(".studio-player__screen[data-leaving][data-motion]");
@@ -312,7 +312,7 @@ export const rows = [
       await until(async () => /delay: 300/.test(await text(page, id)), { message: "delay 300" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       const t0 = Date.now();
       await until(async () => (await playScreen(page)) === "screen-2", { timeout: 3000, message: "screen-2 after the delay" });
@@ -333,7 +333,7 @@ export const rows = [
       await until(async () => /whileHovering=\{proto\.open\("overlay-1"\)\}/.test(await text(page, id)), { message: "While hovering → overlay-1" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       const box = await playing(page).locator('[data-zen-name="Button"]').first().boundingBox();
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -364,7 +364,7 @@ export const rows = [
       await until(async () => /onClick=\{proto\.open\("overlay-1"\)\}/.test(await text(page, id)), { message: "Open overlay" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       await playing(page).locator('[data-zen-name="Button"]').first().click();
       const shown = playing(page).locator('.studio-player__overlay[data-position="top-right"][data-background="true"]');
@@ -406,7 +406,7 @@ export const rows = [
       try {
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("Escape");
-        await page.keyboard.press("p");
+        await page.keyboard.press("ControlOrMeta+Alt+Enter");
         await playing(page).waitFor({ state: "visible", timeout: 5000 });
         await playing(page).locator(".zen-app-shell__sidebar").waitFor({ state: "visible", timeout: 5000 });
         const result = await checkSidebarSticks(playing(page));
@@ -423,7 +423,7 @@ export const rows = [
       const { page } = await seededPage(ctx, largeTitlePage, /largeTitle="Expenses"/);
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
-      await page.keyboard.press("p");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       const result = await checkFold(playing(page));
       await page.keyboard.press("Escape");

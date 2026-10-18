@@ -1,3 +1,5 @@
+import { optionLabel, tokenName } from "./controls/scale";
+import { tip } from "../shell/ShortcutTip";
 import { useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Checkbox } from "../../../components/Checkbox";
@@ -205,7 +207,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
         name="direction"
         labels={["Flow"]}
         code={wraps ? "Stack direction · wrap" : `${component} direction`}
-        fields={[<Seg key="flow" label="Flow" value={wraps ? flow : flow === "wrap" ? "horizontal" : flow} unset={!anyWritten} disabled={disabled} options={items} onPick={(next) => apply(flowOps(written, next as Flow), next === "wrap" ? "flow → wrap" : `flow → ${next}`)} />]}
+        fields={[<Seg key="flow" label="Flow" value={wraps ? flow : flow === "wrap" ? "horizontal" : flow} unset={!anyWritten} disabled={disabled} options={items} onPick={(next) => apply(flowOps(written, next as Flow), `Flow → ${optionLabel(next)}`)} />]}
       />,
     );
   } else if (component === "Stack" || component === "FormFieldset") {
@@ -220,7 +222,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     handled.add("align");
     handled.add("justify");
     const gapPlain = Boolean(spec("gap")) && plain("gap");
-    const gapField = gapPlain ? scale("gap", "Gap", row ? "icon-spacing-width-01-line" : "icon-spacing-height-01-line", (key) => apply(key === "auto" ? gapAutoOps(written) : gapOps(written, key), key === "auto" ? "gap → Auto (space between)" : `gap → ${key}`), {
+    const gapField = gapPlain ? scale("gap", "Gap", row ? "icon-spacing-width-01-line" : "icon-spacing-height-01-line", (key) => apply(key === "auto" ? gapAutoOps(written) : gapOps(written, key), key === "auto" ? "Gap → Auto" : `Gap → ${tokenName(key)}`), {
       value: view.auto ? "auto" : undefined,
       extras: [{ key: "auto", label: "Auto" }],
       onReset: view.auto ? () => apply([{ op: "removeProp", name: "justify" }], "Auto off") : written.gap !== undefined ? () => api.removeProp("gap") : undefined,
@@ -231,7 +233,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
         name="align justify"
         labels={gapField ? ["Alignment", "Gap"] : ["Alignment"]}
         code="Stack align · justify · gap"
-        icon={<CrossMenu view={view} disabled={disabled} onPick={(mode) => apply(crossOps(written, mode), `cross axis → ${mode}`)} />}
+        icon={<CrossMenu view={view} disabled={disabled} onPick={(mode) => apply(crossOps(written, mode), `Alignment → ${optionLabel(mode)}`)} />}
         fields={[<AlignmentBox key="box" written={written} disabled={disabled} onOps={(ops, label) => apply(ops, label)} />, gapField ?? <span key="gap" />]}
       />,
     );
@@ -265,7 +267,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
                 { id: "end", icon: "icon-flex-align-bottom-line", name: "Bottom" },
                 { id: "stretch", icon: "icon-chevron-selector-vertical-line", name: "Stretch" },
               ]}
-              onPick={(next) => apply(next === "stretch" ? [{ op: "removeProp", name: "align" }] : [{ op: "setProp", name: "align", value: { kind: "string", value: next } }], `align → ${next}`)}
+              onPick={(next) => apply(next === "stretch" ? [{ op: "removeProp", name: "align" }] : [{ op: "setProp", name: "align", value: { kind: "string", value: next } }], `Alignment → ${optionLabel(next)}`)}
             />,
           ]}
         />,
@@ -278,7 +280,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
       // list), not a link icon in the icon column (user, 2026-10-15, with Wrap in Flow).
       const useOne = (key: string | undefined) => {
         setSplitView(false);
-        if (gapsSplit(written) && key) apply(relinkOps(written, key), `gap → ${key} for both`);
+        if (gapsSplit(written) && key) apply(relinkOps(written, key), `Gap → ${tokenName(key)}`);
       };
       const separate = [{ key: "__separate__", label: "Separate row and column gaps", run: () => setSplitView(true) }];
       const joinWith = (own: unknown) => {
@@ -291,9 +293,9 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
           labels={split ? ["Column gap", "Row gap"] : ["Gap"]}
           code={split ? "Grid columnGap · rowGap" : "Grid gap"}
           fields={split ? [
-            scale("columnGap", "Column gap", "icon-spacing-width-01-line", (key) => apply([{ op: "setProp", name: "columnGap", value: { kind: "string", value: key } }], `column gap → ${key}`), { actions: joinWith(written.columnGap) }),
-            scale("rowGap", "Row gap", "icon-spacing-height-01-line", (key) => apply([{ op: "setProp", name: "rowGap", value: { kind: "string", value: key } }], `row gap → ${key}`), { actions: joinWith(written.rowGap) }),
-          ] : [scale("gap", "Gap", "icon-layout-grid-01-line", (key) => apply(gapOps(written, key), `gap → ${key}`), { actions: separate }), <span key="none" />]}
+            scale("columnGap", "Column gap", "icon-spacing-width-01-line", (key) => apply([{ op: "setProp", name: "columnGap", value: { kind: "string", value: key } }], `Column gap → ${tokenName(key)}`), { actions: joinWith(written.columnGap) }),
+            scale("rowGap", "Row gap", "icon-spacing-height-01-line", (key) => apply([{ op: "setProp", name: "rowGap", value: { kind: "string", value: key } }], `Row gap → ${tokenName(key)}`), { actions: joinWith(written.rowGap) }),
+          ] : [scale("gap", "Gap", "icon-layout-grid-01-line", (key) => apply(gapOps(written, key), `Gap → ${tokenName(key)}`), { actions: separate }), <span key="none" />]}
         />,
       );
       handled.add("gap");
@@ -317,7 +319,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     const axisField = (axis: "x" | "y") => {
       const name = axis === "x" ? "paddingX" : "paddingY";
       const shown = axisPadding(written, axis);
-      return scale(name, axis === "x" ? "Horizontal padding" : "Vertical padding", axis === "x" ? "icon-spacing-width-02-line" : "icon-spacing-height-02-line", (key) => apply(axisPaddingOps(written, axis, key), `${axis === "x" ? "horizontal" : "vertical"} padding → ${key}`), {
+      return scale(name, axis === "x" ? "Horizontal padding" : "Vertical padding", axis === "x" ? "icon-spacing-width-02-line" : "icon-spacing-height-02-line", (key) => apply(axisPaddingOps(written, axis, key), `${axis === "x" ? "Horizontal" : "Vertical"} padding → ${tokenName(key, "padding")}`), {
         value: typeof shown === "string" ? shown : undefined,
         // ⌫ removes the axis's own value (it falls back to padding); a value it only inherits stays.
         onReset: written[name] !== undefined ? () => api.removeProp(name) : undefined,
@@ -331,7 +333,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
 
   // Grid's one padding (no per-axis props).
   if (component === "Grid" && spec("padding") && !spec("paddingX") && plain("padding")) {
-    groups.push(<InspectorFields key="grid-padding" labels={["Padding"]} code="Grid padding" fields={[scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply([{ op: "setProp", name: "padding", value: { kind: "string", value: key } }], `padding → ${key}`)), <span key="none" />]} />);
+    groups.push(<InspectorFields key="grid-padding" labels={["Padding"]} code="Grid padding" fields={[scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply([{ op: "setProp", name: "padding", value: { kind: "string", value: key } }], `Padding → ${tokenName(key, "padding")}`)), <span key="none" />]} />);
   }
 
   // ── Clip content (Stack, Grid and Box clip: any frame, as in Figma), under Padding ──
@@ -370,7 +372,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
               { id: "between", icon: "icon-distribute-spacing-horizontal-line", name: "Space between" },
               { id: "end", icon: "icon-flex-align-right-line", name: "End" },
             ]}
-            onPick={(next) => apply(next === "end" ? [{ op: "removeProp", name: "align" }] : [{ op: "setProp", name: "align", value: { kind: "string", value: next } }], `align → ${next}`)}
+            onPick={(next) => apply(next === "end" ? [{ op: "removeProp", name: "align" }] : [{ op: "setProp", name: "align", value: { kind: "string", value: next } }], `Alignment → ${optionLabel(next)}`)}
           />,
         ]}
       />,
@@ -385,14 +387,14 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   // auto layout turns it into one (⇧A), − on an auto layout frame takes it away (⌥⇧A); layers keep where they show.
   const frameAlone = component === "Box" && isFrameWithoutAutoLayout(selection);
   const autoLayoutAlone = component === "Stack" && isAutoLayoutFrame(selection);
-  const removeAction = autoLayoutAlone ? <IconButton icon="icon-minus-line" appearance="flat" size="xs" aria-label="Remove auto layout" tooltip={`Remove auto layout · ${removeAutoLayoutShortcut}`} disabled={disabled} onClick={() => { void removeAutoLayoutFromSelection(); }} /> : undefined;
+  const removeAction = autoLayoutAlone ? <IconButton icon="icon-minus-line" appearance="flat" size="xs" aria-label="Remove auto layout" tooltip={tip("Remove auto layout", removeAutoLayoutShortcut)} disabled={disabled} onClick={() => { void removeAutoLayoutFromSelection(); }} /> : undefined;
   return (
     <>
     {frameAlone ? (
       <InspectorSection
         title="Auto layout"
         className="studio-inspector__section--head-only"
-        actions={<IconButton icon="icon-plus-line" appearance="flat" size="xs" aria-label="Add auto layout" tooltip={`Add auto layout · ${autoLayoutShortcut}`} disabled={disabled} onClick={() => { void addAutoLayoutToSelection(); }} />}
+        actions={<IconButton icon="icon-plus-line" appearance="flat" size="xs" aria-label="Add auto layout" tooltip={tip("Add auto layout", autoLayoutShortcut)} disabled={disabled} onClick={() => { void addAutoLayoutToSelection(); }} />}
       >
         {null}
       </InspectorSection>

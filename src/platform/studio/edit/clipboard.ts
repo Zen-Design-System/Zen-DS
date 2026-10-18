@@ -342,7 +342,7 @@ async function copyProperties(selection: NodeSelection) {
 
 async function pasteProperties(selection: NodeSelection) {
   if (!propsClip) { fail(`Copy properties first (${clipboardShortcuts.copyProps})`); return; }
-  if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
+  if (!canEdit()) { fail("View only"); return; }
   const at = parseSrc(selection.src);
   const element = at ? await studioApi.element(at.file, at.loc) : null;
   if (!element || !at) { fail(`${selection.name} could not be read`); return; }

@@ -29,12 +29,12 @@ export function loopbackUrl(href: string): string {
 
 export function editGate(state: Pick<StudioState, "role"> & Partial<Pick<StudioState, "localPage">>, server: ServerView, env: { dev: boolean; hostname: string }): EditGate {
   // A builder page lives in this browser (Studio builder GĐ2): only the role decides, on any host and in a build.
-  if (state.localPage) return state.role === "viewer" ? { ok: false, reason: "viewer", short: "View only — switch to Admin to edit", title: "You are viewing as Viewer", detail: "Viewers see the page but change nothing. Switch to Admin to edit." } : { ok: true };
-  if (!env.dev) return { ok: false, reason: "production", short: "Read-only — editing needs the Studio dev server", title: "This is a built site", detail: "Editing writes the source files through the Studio dev server. Run `npm run dev` in Zen-DS and open the Studio on localhost." };
-  if (state.role === "viewer") return { ok: false, reason: "viewer", short: "View only — switch to Admin to edit", title: "You are viewing as Viewer", detail: "Viewers see the canvas and the drafts but change nothing. Switch to Admin to edit." };
-  if (!isLoopbackHost(env.hostname)) return { ok: false, reason: "not-loopback", short: "Read-only — open the Studio on localhost or 127.0.0.1 to edit", title: `Opened on ${env.hostname}`, detail: "The Studio writes source files only when it is opened on localhost or 127.0.0.1 (the dev server keeps its write token there)." };
+  if (state.localPage) return state.role === "viewer" ? { ok: false, reason: "viewer", short: "View only", title: "You can view only", detail: "You see the page but can't change it. Switch to Can edit to make changes." } : { ok: true };
+  if (!env.dev) return { ok: false, reason: "production", short: "View only — editing needs the Studio dev server", title: "This is a built site", detail: "Editing writes the source files through the Studio dev server. Run `npm run dev` in Zen-DS and open the Studio on localhost." };
+  if (state.role === "viewer") return { ok: false, reason: "viewer", short: "View only", title: "You can view only", detail: "You see the canvas and its unsaved changes but can't change them. Switch to Can edit to make changes." };
+  if (!isLoopbackHost(env.hostname)) return { ok: false, reason: "not-loopback", short: "View only — open the Studio on localhost or 127.0.0.1 to edit", title: `Opened on ${env.hostname}`, detail: "The Studio writes source files only when it is opened on localhost or 127.0.0.1 (the dev server keeps its write token there)." };
   if (!server.ready) return { ok: false, reason: "connecting", short: "Connecting to the Studio dev server…", title: "Connecting to the Studio dev server…", detail: "" };
-  if (server.root === null) return { ok: false, reason: "no-server", short: "Read-only — no Studio dev server answers", title: "No Studio dev server answers", detail: "Start it with `npm run dev` in Zen-DS (port 5173), then reload." };
-  if (!server.writable) return { ok: false, reason: "fs-readonly", short: "Read-only — the dev server cannot write src/", title: "The dev server cannot write src/", detail: "The files under Zen-DS/src are read-only for the dev server on this machine." };
+  if (server.root === null) return { ok: false, reason: "no-server", short: "View only — no Studio dev server answers", title: "No Studio dev server answers", detail: "Start it with `npm run dev` in Zen-DS (port 5173), then reload." };
+  if (!server.writable) return { ok: false, reason: "fs-readonly", short: "View only — the dev server can't write src/", title: "The dev server cannot write src/", detail: "The files under Zen-DS/src are read-only for the dev server on this machine." };
   return { ok: true };
 }

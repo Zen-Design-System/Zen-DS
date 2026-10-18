@@ -1,3 +1,4 @@
+import { tip } from "./ShortcutTip";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu } from "../../../components/Menu";
@@ -63,7 +64,7 @@ export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; co
         ...(phone ? [
           { id: "undo", label: "Undo", shortcut: `${modKey}Z`, disabled: !writable || !undoCount, onSelect: () => { void undoEdit(); } },
           { id: "redo", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: !writable || !redoCount, onSelect: () => { void redoEdit(); } },
-          { id: "role", label: role === "admin" ? "View as Viewer" : "Edit as Admin", onSelect: () => studioStore.setState({ role: role === "admin" ? "viewer" : "admin" }) },
+          { id: "role", label: role === "admin" ? "Switch to Can view" : "Switch to Can edit", onSelect: () => studioStore.setState({ role: role === "admin" ? "viewer" : "admin" }) },
           { type: "separator" as const, id: "phone-separator" },
         ] : []),
         // Document | Studio, as the theme's toggle: the docs pages or the pages made in the Studio (Studio reopens the page
@@ -71,7 +72,7 @@ export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; co
         { id: "space", label: inStudio ? "Switch to Document" : "Switch to Studio", onSelect: () => setSpace(inStudio ? "document" : "studio", (id) => Boolean(cachedPage(id))) },
         { id: "theme", label: chromeTheme === "dark" ? "Light mode" : "Dark mode", onSelect: toggleStudioTheme },
         { id: "shortcuts", label: "Keyboard shortcuts…", shortcut: "?", onSelect: openShortcuts },
-        { id: "panels", label: ui ? "Hide side panels" : "Show side panels", shortcut: `${modKey}\\`, onSelect: toggleSidePanels },
+        { id: "panels", label: "Show/Hide UI", shortcut: `${modKey}\\`, onSelect: toggleSidePanels },
         { type: "separator" },
         { id: "classic", label: "Open classic docs", onSelect: () => window.location.assign(classicUrl()) },
         ...(user ? [
@@ -130,8 +131,8 @@ export function RightHeader({ layout, drawer }: { layout: PanelLayout; drawer: b
         <>
           <RoleMenu />
           <span className="studio-panel-head__group">
-            <IconButton appearance="flat" level="primary" size="sm" aria-label="Undo" aria-keyshortcuts="Meta+Z Control+Z" tooltip={`Undo (${modKey}Z)`} disabled={!writable || !undoCount} icon={<Icon name="icon-reverse-left-line" />} onClick={() => { void undoEdit(); }} />
-            <IconButton appearance="flat" level="primary" size="sm" aria-label="Redo" aria-keyshortcuts="Shift+Meta+Z Shift+Control+Z" tooltip={`Redo (⇧${modKey}Z)`} disabled={!writable || !redoCount} icon={<Icon name="icon-reverse-right-line" />} onClick={() => { void redoEdit(); }} />
+            <IconButton appearance="flat" level="primary" size="sm" aria-label="Undo" aria-keyshortcuts="Meta+Z Control+Z" tooltip={tip("Undo", `${modKey}Z`)} disabled={!writable || !undoCount} icon={<Icon name="icon-reverse-left-line" />} onClick={() => { void undoEdit(); }} />
+            <IconButton appearance="flat" level="primary" size="sm" aria-label="Redo" aria-keyshortcuts="Shift+Meta+Z Shift+Control+Z" tooltip={tip("Redo", `⇧${modKey}Z`)} disabled={!writable || !redoCount} icon={<Icon name="icon-reverse-right-line" />} onClick={() => { void redoEdit(); }} />
           </span>
         </>
       )}

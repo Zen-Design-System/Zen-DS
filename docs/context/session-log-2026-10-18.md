@@ -277,3 +277,35 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
   Guideline background-layers do/don't added (guidelines.source.mjs → rebuilt).
 - Measured (Playwright, :5180 Variables): rest 0, hover rgba(5,5,5,.03), selected/pressed rgba(2,2,2,.075).
 - Gathered by "Giám sát" on 2026-10-18: the session closed while its gate was running; the gate was run again here (PR zen/fix/studio-flat-hover-20261018).
+## Studio in Figma's words and keys — F0 (user: "Đồng ý theo đề xuất, làm F0 trước") — tier M, worktree `../Zen-DS-figlang`, branch `zen/feat/studio-f0-words-keys-20261018`
+
+Plan `docs/research/studio-figma-design-parity-2026-10-18.md` (audit + plan written this session, every §4 recommendation
+approved). F0 applies its glossary (§3a) and keys.
+- **Keys:** `edit/figmaNotYet.ts` — Figma keys Zen lacks (⌘R, ⌘G, ⇧⌘G, ⇧⌘L, ⌘E, ⌥⌘O, ⌃⌘M, ⌥⌘A, ⌘Y, ⇧⌘C, ⌃⌥T/H/V, ⌃G,
+  ⇧R, ⇧S, ⇧P, ⇧H, ⇧V, ⇧N, K, S, P, C, I, N) say "X isn't in Zen Studio yet" (⌘R / ⌘G / ⌘Y / ⌘E kept from the browser
+  even in a field). ⌘K = Actions (⌘/ stays), ⌘F = Find a layer, ⇧⌘K = Place image/video (the Image tool), Enter = Select
+  children (all of them), ⌥⌘↵ = Present (a page you made plays its prototype; P was Play), ⇧0 = Zoom to 100%, ⇧2 = Zoom to
+  selection. Show/Hide UI no longer persists hidden across a reload.
+- **Words:** one tooltip shape `tip(name, keys)` (`shell/ShortcutTip.tsx`); menus Bring to front / forward, Send backward
+  / to back, Delete, Show/Hide UI, Create component, Group selection and Lock (off, "Not in Zen Studio yet"); Inspector
+  Layers (was Children), Layer size, Alignment, Typography, Reset all changes, "Alignment works only inside auto layout",
+  no "Reset to auto"; status lines name tokens ("Gap → XLarge", "left 4XLarge · 48"), "Unsaved" for drafts (dialogs:
+  "Discard changes to …"), "Deleted"; Layers row titles and empty states without code; US spelling; option labels by
+  Figma names (`controls/scale.ts optionLabel / valueWords`).
+- **`words.ts`:** gate adds attribute, markup, render, source, HTML, dev server, Stack / Box; Stack → auto layout frame,
+  Box → frame; a / an fixed after a swap; identifiers and paths kept (`data-zen-src`, `src/components`, `List-Box`).
+- **Guard:** `words.selftest` part 3 harvests 1,542 UI strings (JSX labels, tooltips, titles, text, menu labels) and fails
+  on a retired glossary term (`RETIRED`) or code words in a JSX label. New opt-in E2E group `figma` (FW-01…10, plan §6:
+  the Figma walk's scoreboard) — `npm run studio:e2e -- --only=figma`.
+- **E2E updated** for the new words: P → ⌥⌘↵ in prototype / builder / dnd / build-check, SE-03 (Enter selects all
+  children), I-31 (Unsaved), AP-02, drafts D-01, MC-07, starters (Delete Reports), instance.
+- **Interact on a page you made:** off the toolbar and off I (Figma's Pick color), but kept in Actions (⌘K › Interact):
+  Play starts only on a Screen, so an Overlay frame's form (the Dashboard template's New project DateField, SP-24, the
+  user's 2026-10-15 "date input… hoạt động như bình thường") had no other way to be tried. Figma's answer (Present from
+  the selected frame, an overlay too) needs Player.tsx (AppShell session's file): later, with them.
+- **Runs:** tsc ✓; `studio:selftest` ✓; `studio:dnd` 19,442 + 12,569 cases, 0 findings; style / usage ✓. Full Studio E2E
+  326 / 332, the 6 regressions were old words in the tests (I-31, AP-02, B-43, NO-07) and Interact on templates (SP-23,
+  SP-24): fixed, all 6 pass on rerun. `--only=figma` 10 / 10 (FW-10: the undo line reads "Undid “auto layout frame Gap →
+  XLarge”").
+- **Left (BACKLOG P1 line):** Code properties rows → the Code tab (structural, after F1); Rename / Lock / Group get built
+  in F1–F3; Present from an Overlay frame.

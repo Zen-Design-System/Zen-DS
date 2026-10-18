@@ -46,6 +46,8 @@ import { ChromePortalContext, ChromeScope, useChromeAttributes } from "./shell/C
 import { previewAttributes } from "./shell/modes";
 import { isComponentPage, navigate, pageTitle, readLocation } from "./shell/navigation";
 import { CODE_EXPANDED_WIDTH, revealLeftPanel, toggleSidePanels, usePanelLayout } from "./shell/layout";
+import { openQuickActions } from "./edit/quick/state";
+import { useFigmaNotYet } from "./edit/figmaNotYet";
 import { PAGE_SEARCH_ID, PagesPanel } from "./shell/PagesPanel";
 import { CanvasMenu } from "./shell/CanvasMenu";
 import { FramePicker } from "./builder/FramePicker";
@@ -173,6 +175,8 @@ const WorldContent = memo(function WorldContent({ page, collection }: { page: Pl
  */
 export function StudioApp() {
   useRouting();
+  // Figma keys with no Zen Studio feature yet say so instead of running the browser's command (edit/figmaNotYet.ts).
+  useFigmaNotYet();
   useRememberPageProject();
   const page = useStudio((state) => state.page);
   const collection = useStudio((state) => state.collection);
@@ -303,11 +307,15 @@ export function StudioApp() {
     return () => document.removeEventListener("keydown", onEscape);
   }, []);
 
-  // ⌘/Ctrl+K opens page search wherever focus is (capture phase: the Search field's own shortcut cannot focus a field
-  // inside a closed, inert drawer). An example in use (Interact) keeps the chord for itself.
+  // ⌘/Ctrl+K opens Actions wherever focus is (Figma's; ⌘/ too), ⌘/Ctrl+F finds a layer (the Layers search: Figma's
+  // Find). Search pages is an action ("zen-studio:search-pages"). Capture phase: a field's own shortcut cannot take them;
+  // an example in use (Interact) keeps the chords for itself.
   useEffect(() => {
     const onSearchKey = (event: KeyboardEvent) => {
-      if (event.isComposing || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== "k") return;
+      const key = event.key.toLowerCase();
+      // ⇧⌘K is Figma's Place image/video: the Image tool.
+      const place = event.shiftKey && event.code === "KeyK";
+      if (event.isComposing || !(event.metaKey || event.ctrlKey) || event.altKey || (event.shiftKey && !place) || (key !== "k" && event.code !== "KeyF")) return;
       const state = studioStore.getState();
       if (state.presenting) return;
       const active = document.activeElement;
@@ -315,10 +323,16 @@ export function StudioApp() {
       if (active?.closest("[aria-modal='true']")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      openPageSearch();
+      if (place) { studioStore.setState({ tool: "image" }); return; }
+      if (key === "k") { openQuickActions(); return; }
+      studioStore.setState({ leftTab: "layers" });
+      revealLeftPanel();
+      requestAnimationFrame(() => document.querySelector<HTMLInputElement>("#studio-left input[aria-label='Find a layer']")?.focus());
     };
+    const onSearchPages = () => openPageSearch();
     window.addEventListener("keydown", onSearchKey, true);
-    return () => window.removeEventListener("keydown", onSearchKey, true);
+    window.addEventListener("zen-studio:search-pages", onSearchPages);
+    return () => { window.removeEventListener("keydown", onSearchKey, true); window.removeEventListener("zen-studio:search-pages", onSearchPages); };
   }, [openPageSearch]);
 
   // ⌘/Ctrl+S saves the admin drafts from anywhere, a field included (its typed value is committed first); the
@@ -389,10 +403,12 @@ export function StudioApp() {
         void createComponent(selection);
         return;
       }
-      // ⌥⌘↵ / Ctrl+Alt+Enter presents the selected frame (Figma's Present; it was F until 2026-10-15).
+      // ⌥⌘↵ / Ctrl+Alt+Enter: Figma's Present. A page you made plays from the selected Screen (else its first: the
+      // prototype, as Figma's Present); an example frame is presented. P is Figma's Pen (edit/figmaNotYet.ts).
       if (mod && event.altKey && !event.shiftKey && event.key === "Enter") {
         if (doc || inExample) return;
         const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
+        if (state.localPage) { event.preventDefault(); startPlay(frameId?.startsWith("screen:") ? frameId.split(":")[1] : null); return; }
         if (frameId) { event.preventDefault(); presentFrame(frameId); }
         return;
       }
@@ -541,12 +557,7 @@ export function StudioApp() {
       else if (key === "t") studioStore.setState({ tool: "text" });
       // Figma's shape tools, on a page you made (draw/drawTool.ts): R rectangle, O ellipse, L line (⇧L arrow, above).
       else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
-      else if (key === "p" && state.localPage) {
-        // Play the builder page from the selected Screen (else its first).
-        event.preventDefault();
-        const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
-        startPlay(frameId?.startsWith("screen:") ? frameId.split(":")[1] : null);
-      } else if (key === "f") {
+      else if (key === "f") {
         // Figma's F: the Frame tool, on a page you made (user, 2026-10-15; Present moved to ⌥⌘↵).
         if (state.localPage) studioStore.setState({ tool: "frame" });
       } else return;

@@ -194,7 +194,7 @@ export function handoffMarkdown(input: HandoffInput): string {
   const list = (label: string, names: string[]) => add(`- **${label}:** ${names.length ? names.map(code).join(", ") : "none"}`);
   list("Text styles", input.names.textStyles);
   list("Spacing", input.names.spacing);
-  list("Colour roles and variants", input.names.colour);
+  list("Color roles and variants", input.names.colour);
   list("Shape", input.names.shape);
   add("");
 

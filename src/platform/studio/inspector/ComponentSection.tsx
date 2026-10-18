@@ -80,7 +80,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
       />
       <div className="studio-component-section__actions">
         <Button size="sm" level="tertiary" onClick={() => void goToMain(selection)}>Go to main component</Button>
-        <Button size="sm" level="tertiary" disabled={disabled} onClick={() => void detachInstance(selection)}>Detach</Button>
+        <Button size="sm" level="tertiary" disabled={disabled} onClick={() => void detachInstance(selection)}>Detach instance</Button>
       </div>
     </InspectorSection>
   );

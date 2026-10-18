@@ -584,7 +584,7 @@ async function postEdit(request: EditRequest): Promise<EditResponse> {
 async function sendEdit(request: EditRequest, label: string): Promise<EditResponse> {
   const state = studioStore.getState();
   if (!canEdit(state)) {
-    const error = state.role === "admin" ? "Editing needs the dev server" : "View only — switch to Admin to edit";
+    const error = state.role === "admin" ? "Editing needs the dev server" : "View only";
     return { ok: false, code: "forbidden", error };
   }
   // Shared code (plan WP-B2): a yes given for this file earlier in the page load goes along at once.
@@ -594,7 +594,7 @@ async function sendEdit(request: EditRequest, label: string): Promise<EditRespon
     const ok = await askShared({ file: request.file, uses: result.uses ?? 0, users: result.users ?? [] });
     if (!ok) {
       setStatus({ kind: "unchanged", message: "Not changed: the shared code stays as it is", file: request.file, at: Date.now() });
-      return { ok: false, code: "forbidden", error: "Cancelled: the shared code was not changed" };
+      return { ok: false, code: "forbidden", error: "Canceled: the shared code is unchanged" };
     }
     request = { ...request, shared: true };
     result = await postEdit(request);
@@ -627,7 +627,7 @@ async function sendEdit(request: EditRequest, label: string): Promise<EditRespon
   // On a drafts server an edit that is not a draft brought the file back to what the disk holds (nothing was written).
   // A builder page saves as it goes (in this browser, no drafts).
   if (isLocalFile(result.file)) setStatus({ kind: "saved", message: `Saved in this browser · ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
-  else if (result.draft) setStatus({ kind: "draft", message: `Draft · ${where}`, file: result.file, line: result.changed.from, snippet: result.snippet, at: Date.now() });
+  else if (result.draft) setStatus({ kind: "draft", message: `Unsaved · ${where}`, file: result.file, line: result.changed.from, snippet: result.snippet, at: Date.now() });
   else if (server.drafts) setStatus({ kind: "unchanged", message: `Back to the saved file · ${where}`, file: result.file, line: result.changed.from, snippet: result.snippet, at: Date.now() });
   else setStatus({ kind: "saved", message: `Saved to ${where}`, file: result.file, line: result.changed.from, snippet: result.snippet, at: Date.now() });
   return result;
@@ -651,7 +651,7 @@ export function applyVariableEdit(request: { file: string; ops: VariableOp[] }, 
 function applyServerEdit(path: "/css-edit" | "/variable-edit", request: object, file: string, label: string): Promise<EditResponse> {
   return enqueue(async (): Promise<EditResponse> => {
     const state = studioStore.getState();
-    if (!canEdit(state)) return { ok: false, code: "forbidden", error: state.role === "admin" ? "Editing needs the dev server" : "View only — switch to Admin to edit" };
+    if (!canEdit(state)) return { ok: false, code: "forbidden", error: state.role === "admin" ? "Editing needs the dev server" : "View only" };
     const reply = await post<EditResponse>(path, request);
     let result: EditResponse;
     if (!reply) result = { ok: false, code: "invalid", error: NO_SERVER };
@@ -671,7 +671,7 @@ function applyServerEdit(path: "/css-edit" | "/variable-edit", request: object, 
     setHistory([...studioStore.getState().undo, { file: result.file, label, hashBefore: result.hashBefore, hashAfter: result.hash, patch: makePatch(result.before, result.after), changed: result.changed, at: Date.now() }], []);
     emitWrite({ file: result.file, before: result.before, after: result.after, kind: "edit" });
     const where = `${fileName(result.file)}:${result.changed.from}`;
-    if (result.draft) setStatus({ kind: "draft", message: `Draft · ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
+    if (result.draft) setStatus({ kind: "draft", message: `Unsaved · ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
     else setStatus({ kind: server.drafts ? "unchanged" : "saved", message: server.drafts ? `Back to the saved file · ${where}` : `Saved to ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
     return result;
   });

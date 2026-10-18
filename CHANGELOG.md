@@ -29,6 +29,12 @@ removed (four unused colour ramps were, see Removed).
   - New page starts as an empty page.
   - Present and Play simulate the device a Screen is drawn for: Viewport › Device takes the Screen's type, layout and
     system bars, with Rotate, Fold / Unfold on the Duo and a Device frame toggle.
+- Zen Studio speaks Figma (F0 of docs/research/studio-figma-design-parity-2026-10-18.md): ⌘K opens Actions, ⌘F finds
+  a layer, ⇧⌘K is Place image/video, Enter selects all children, P is no longer Play (Present is ⌥⌘↵ and the Present
+  button), and Figma keys Studio lacks (⌘R, ⌘G, ⇧⌘L, ⌘E, ⌘Y, ⇧⌘C, K, S, P, C, I, N…) say "isn't in Zen Studio yet"
+  instead of reloading or browsing the tab; on a page you made Interact is in ⌘K › Interact (I is Pick color). Menus, tooltips ("Name ⇧A"), the Inspector (Layers, Alignment, Typography,
+  Reset all changes, Layer size), the status line ("Gap → 2XLarge", "Unsaved", "Deleted") and Layers use Figma's words
+  and US spelling; Show/Hide UI comes back on reload. A lint in `words.selftest` fails on retired terms and code words.
 - Zen Studio: inside a project, Local variables shows only that project's mode of Base Colors (Project) — no Zen
   column and no other project; Drafts shows Zen. The collection's rows are fixed there: Project settings changes them.
 - Dark ramps lifted (2026-10-18, the Zen plugin's "Dark lift", user: "chốt +0,020"): in all 20 Global Colors ramps,

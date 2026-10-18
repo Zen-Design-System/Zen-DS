@@ -314,7 +314,7 @@ export const rows = [
     },
   },
   {
-    id: "SE-03", feature: "Enter selects the first child layer", wp: "GĐ0",
+    id: "SE-03", feature: "Enter selects the layer's children (Figma's Select children)", wp: "GĐ0 · F0 2026-10-18",
     async run(ctx) {
       const { page } = await ctx.studio();
       await focusFrame(page, 0);
@@ -324,7 +324,8 @@ export const rows = [
       await page.keyboard.press("Enter");
       const first = await at(ctx, "btn-a");
       await expectSelected(page, ctx.file, first);
-      return `Stack → first child ${first}`;
+      await until(async () => (await selectedSrc(page)).length === 3, { message: "Alpha, Beta and Gamma selected" });
+      return `Stack → its 3 children (first ${first})`;
     },
   },
   {

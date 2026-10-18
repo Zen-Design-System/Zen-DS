@@ -9,20 +9,21 @@ import "./canvas.css";
 
 export const CANVAS_STATUS_ID = "studio-canvas-status";
 
+/** What the tool does, in Figma's words, short (the details are in Keyboard shortcuts). */
 const hints: Record<StudioTool, string> = {
-  select: "Select · click a layer to inspect · ⌘/Ctrl-click a nested part · drag a frame's name to move it, ⌥ to copy · I to interact",
-  interact: "Interact · use the examples · V to select",
-  hand: "Hand · drag to pan",
-  frame: "Frame (F) · drag in a Screen for a frame there, on the canvas for a Screen · ⇧ square · ⌥ from centre · Esc for Move",
-  rectangle: "Rectangle (R) · drag in a frame, or click for 100 × 100 · ⇧ square · ⌥ from centre · Space moves it",
-  ellipse: "Ellipse (O) · drag in a frame, or click for 100 × 100 · ⇧ circle · ⌥ from centre · Space moves it",
-  line: "Line (L) · drag in a frame · ⇧ 45° steps · ⌥ from centre · Space moves it",
-  arrow: "Arrow (⇧L) · drag in a frame · ⇧ 45° steps · ⌥ from centre · Space moves it",
-  polygon: "Polygon · drag in a frame, or click for 100 × 100 · ⇧ equal sides · ⌥ from centre",
-  star: "Star · drag in a frame, or click for 100 × 100 · ⇧ equal sides · ⌥ from centre",
-  stack: "Stack · point where it goes, click to place · Esc for Move",
-  text: "Text · point where it goes, click to place · Esc for Move",
-  image: "Image · point where it goes, click to place · Esc for Move",
+  select: "Move V · click to select, ⌘-click inside a frame, drag to move, ⌥-drag to duplicate",
+  interact: "Interact · try the components · V for Move",
+  hand: "Hand H · drag to pan",
+  frame: "Frame F · drag to draw a frame, or click · ⇧ square · ⌥ from center",
+  rectangle: "Rectangle R · drag, or click for 100 × 100 · ⇧ square · ⌥ from center · Space to move",
+  ellipse: "Ellipse O · drag, or click for 100 × 100 · ⇧ circle · ⌥ from center · Space to move",
+  line: "Line L · drag · ⇧ 45° steps · ⌥ from center · Space to move",
+  arrow: "Arrow ⇧L · drag · ⇧ 45° steps · ⌥ from center · Space to move",
+  polygon: "Polygon · drag, or click for 100 × 100 · ⇧ equal sides · ⌥ from center",
+  star: "Star · drag, or click for 100 × 100 · ⇧ equal sides · ⌥ from center",
+  stack: "Auto layout frame · click where it goes",
+  text: "Text T · click where it goes",
+  image: "Image · click where it goes",
 };
 
 /**
@@ -35,7 +36,7 @@ export function CanvasStatus() {
   return (
     <ChromeScope className="studio-status" data-tool={tool}>
       <VisuallyHidden id={CANVAS_STATUS_ID}>{hints[tool]}</VisuallyHidden>
-      <IconButton appearance="flat" level="primary" size="sm" aria-label="Tips and keyboard shortcuts" aria-keyshortcuts="Shift+?" tooltip={`${hints[tool]} · ? for shortcuts`} icon={<Icon name="icon-help-circle-line" />} onClick={openShortcuts} />
+      <IconButton appearance="flat" level="primary" size="sm" aria-label="Help and keyboard shortcuts" aria-keyshortcuts="Shift+?" tooltip={hints[tool]} icon={<Icon name="icon-help-circle-line" />} onClick={openShortcuts} />
     </ChromeScope>
   );
 }

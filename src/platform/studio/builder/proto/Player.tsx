@@ -25,8 +25,8 @@ import { useCanvasPreview } from "../../project/activeProject";
  * Play (Studio builder GĐ2 M3, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d): the page runs full
  * screen from its first Screen (or the one named), and its proto actions are live: navigate opens a Screen's default
  * state, open shows an Overlay over the current Screen, close / back undo them, toast shows a Toast, link opens the URL
- * in a new tab. P starts it on a builder page, R restarts, Esc leaves. Play is Present's layer under the name
- * `presenting: "play:<screen>"`, so the Studio behind it is inert and its shortcuts wait, as for Present.
+ * in a new tab. ⌥⌘↵ (Figma's Present) starts it on a builder page, R restarts, Esc leaves. Play is Present's layer
+ * under the name `presenting: "play:<screen>"`, so the Studio behind it is inert and its shortcuts wait, as for Present.
  */
 
 export const PLAY_PREFIX = "play:";

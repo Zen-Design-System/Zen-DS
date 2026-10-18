@@ -1,3 +1,4 @@
+import { tip } from "../shell/ShortcutTip";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, startTransition } from "react";
 import { objectIcon, layerName as shownName } from "./layerNames";
 import { useIconTooltip } from "../../../components/Tooltip";
@@ -200,8 +201,7 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
 /** Figma's eye on a layer row: on hover, and always while the layer is hidden; ⇧⌘H does the same from the keyboard. Its
  *  name shows as Zen's icon tooltip. The tree's keys reach the rows, so the eye takes no Tab stop. */
 function LayerEye({ src, name, hidden }: { src: string; name: string; hidden: boolean }) {
-  const label = `${hidden ? "Show" : "Hide"} ${name} (${hideShortcut})`;
-  const { bind, tooltip } = useIconTooltip(label);
+  const { bind, tooltip } = useIconTooltip(tip(hidden ? "Show" : "Hide", hideShortcut));
   return (
     <>
       <button
@@ -706,14 +706,14 @@ function rowIcon(node: LayerNode): IconName {
 
 function rowTitle(node: LayerNode) {
   // A data-slot item is edited, moved and removed like a layer (⌘/Shift+click adds it to the selection).
-  if (node.kind === "part" && node.item) return `${node.name} · ${node.meta ?? "Item"} in ${node.owner?.name ?? "the element"} (⌘/Shift+click to select several)`;
-  if (node.kind === "part") return `${node.name}${node.meta ? ` .${node.meta}` : ""}: part of ${node.owner?.name ?? "the element"} (read-only)`;
-  if (node.kind === "parts") return `What ${node.owner?.name ?? "this component"} renders inside itself (read-only)`;
+  if (node.kind === "part" && node.item) return `${node.name} · ${node.meta ?? "Item"} in ${node.owner?.name ?? "the layer"} · ⇧-click to select several`;
+  if (node.kind === "part") return `${node.name}: part of ${node.owner?.name ?? "the layer"} · View only`;
+  if (node.kind === "parts") return `Layers inside ${node.owner?.name ?? "this component"} · View only`;
   if (node.kind === "panel") return node.frameId === MAIN_FRAME ? node.name : `Playground panel: ${node.name}`;
-  if (node.kind === "variant") return `${node.variant?.component ?? ""} · ${node.variant?.set ?? ""}${node.meta ? ` · .${node.meta}` : ""}`;
+  if (node.kind === "variant") return `${node.variant?.component ?? ""} · ${node.variant?.set ?? ""}`;
   if (node.kind === "slot") return `${node.name}: a slot of ${node.owner?.name ?? "the component"}${node.children.length ? "" : " (empty)"}`;
   // No file:line (plan criterion 7): the Code tab shows where a layer is written.
-  return node.wrap ? "In a Stack that sets its size" : undefined;
+  return node.wrap ? "In an auto layout frame that sets its size" : undefined;
 }
 
 function readShowAll() {
@@ -995,9 +995,9 @@ export function LayersPanel() {
             icon="icon-layers-three-01-line"
             headingLevel={3}
           >
-            {nothing ? "The canvas is still rendering this page."
-              : server.ready && server.writable ? "This page comes from the platform shell, which the Studio does not annotate. Component pages and examples have layers."
-                : "Elements carry their source location only on the Studio dev server (zen-studio plugin)."}
+            {nothing ? "The page is still loading."
+              : server.ready && server.writable ? "This page has no layers to show. Component pages and examples have layers."
+                : "Layers show while the Studio server runs."}
           </EmptyState>
         </div>
       ) : query.trim() && !rows.length ? (

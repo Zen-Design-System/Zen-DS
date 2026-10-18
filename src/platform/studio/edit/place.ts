@@ -100,7 +100,7 @@ function onKey(event: KeyboardEvent) {
 export function armPlacement(tool: { label: string; item: Insertable } | { label: string; run: () => void }): boolean {
   disarmPlacement();
   if (!canEdit()) {
-    announceEditStatus({ kind: "error", message: "View only — switch to Admin to edit", at: Date.now() });
+    announceEditStatus({ kind: "error", message: "View only", at: Date.now() });
     return false;
   }
   placing = { label: tool.label, item: "item" in tool ? tool.item : null, run: "run" in tool ? tool.run : null, target: null, refusal: null };

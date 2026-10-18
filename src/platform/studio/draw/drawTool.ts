@@ -245,7 +245,7 @@ export function disarmDraw() {
 export function armDraw(kind: Exclude<DrawKind, "frame">): boolean {
   disarmDraw();
   if (!canEdit()) {
-    fail("View only — switch to Admin to edit");
+    fail("View only");
     return false;
   }
   const viewport = canvasApi.getViewportElement();

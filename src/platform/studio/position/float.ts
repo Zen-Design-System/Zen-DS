@@ -50,7 +50,7 @@ export async function unwrapFloat(boxSrc: string, ref: Omit<StudioNodeRef, "src"
     }
     if (response.before === response.after || !response.unwrapped) return false;
     const snippet = response.snippet && !response.snippet.synced ? `Example code not updated${response.snippet.reason ? `: ${response.snippet.reason}` : ""}` : null;
-    inspectorStatus.set("positive", [`${name} is back in auto layout (its Box is gone)`, response.draft ? `Draft · ${saveShortcut} to save` : `${undoShortcut} to undo`, snippet].filter(Boolean).join(" · "));
+    inspectorStatus.set("positive", [`${name} is back in auto layout (its Box is gone)`, response.draft ? `Unsaved · ${saveShortcut} to save` : `${undoShortcut} to undo`, snippet].filter(Boolean).join(" · "));
     // Select the layer where the Box was, synchronously: Vite may reload the page as soon as it sees the write.
     const selection = { kind: "node" as const, ...ref, src: `${response.file}:${response.unwrapped.loc}`, name };
     expectRender(selection, before, () => undefined);

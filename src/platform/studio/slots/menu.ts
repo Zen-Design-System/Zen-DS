@@ -7,6 +7,8 @@ import {
   removeShortcut, resetCaption, resetSlot, slotActionsOf, structuralBlock, useSlotServer, type StructuralVerb,
 } from "./actions";
 import { onlyFrame, slotContentOf } from "./content";
+import { toEnd } from "../edit/figmaKeys";
+import { modKey } from "../shell/modKey";
 import { activeSlotsOf, contentSummaryOf, hostPropsOf, slotsOf } from "./registry";
 
 /*
@@ -23,9 +25,9 @@ import { activeSlotsOf, contentSummaryOf, hostPropsOf, slotsOf } from "./registr
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 
 export type SlotMenuItems = {
-  /** Before Detach: Add to {Slot}…, Reset slot, Duplicate, Move up, Move down. */
-  leading: MenuItemData[];
-  /** After Detach: a separator, Clear slot contents and Remove (empty when Remove is not offered). */
+  /** Before Detach: Add to {Slot}…, Reset slot, Duplicate, then Bring to front / forward, Send backward / to back. */
+  leading: MenuEntry[];
+  /** After Detach: a separator, Clear slot contents and Delete (empty when Delete is not offered). */
   trailing: MenuEntry[];
 };
 
@@ -122,12 +124,16 @@ export function useSlotMenuItems(selection: NodeSelection | null, point: { x: nu
     onSelect: () => { void resetSlot(node, only); },
   }] : [];
 
-  const leading: MenuItemData[] = [
+  const leading: MenuEntry[] = [
     ...add,
     ...reset,
     { id: "slot-duplicate", label: "Duplicate", icon: "icon-duplicate-line", shortcut: duplicateShortcut, disabled: duplicateOff !== null, caption: reasonFor(duplicateOff), onSelect: () => { void duplicateSelection(node); } },
-    { id: "slot-move-up", label: "Move up", icon: "icon-arrow-up-line", disabled: moveOff !== null || !moves.prev, caption: moveOff !== null ? reasonFor(moveOff) : !moves.prev ? "Already the first layer" : undefined, onSelect: () => { void moveSelection(node, "prev"); } },
-    { id: "slot-move-down", label: "Move down", icon: "icon-arrow-down-line", disabled: moveOff !== null || !moves.next, caption: moveOff !== null ? reasonFor(moveOff) : !moves.next ? "Already the last layer" : undefined, onSelect: () => { void moveSelection(node, "next"); } },
+    { type: "separator", id: "slot-order-separator" },
+    // Figma's order items (later layers paint on top, as in Figma): front / forward / backward / back.
+    { id: "slot-to-front", label: "Bring to front", icon: "icon-arrow-up-line", shortcut: `⌥${modKey}]`, disabled: moveOff !== null || !moves.next, caption: moveOff !== null ? reasonFor(moveOff) : undefined, onSelect: () => { void toEnd(node, true); } },
+    { id: "slot-move-down", label: "Bring forward", icon: "icon-arrow-up-line", shortcut: `${modKey}]`, disabled: moveOff !== null || !moves.next, caption: moveOff !== null ? reasonFor(moveOff) : !moves.next ? "Already in front" : undefined, onSelect: () => { void moveSelection(node, "next"); } },
+    { id: "slot-move-up", label: "Send backward", icon: "icon-arrow-down-line", shortcut: `${modKey}[`, disabled: moveOff !== null || !moves.prev, caption: moveOff !== null ? reasonFor(moveOff) : !moves.prev ? "Already at the back" : undefined, onSelect: () => { void moveSelection(node, "prev"); } },
+    { id: "slot-to-back", label: "Send to back", icon: "icon-arrow-down-line", shortcut: `⌥${modKey}[`, disabled: moveOff !== null || !moves.prev, caption: moveOff !== null ? reasonFor(moveOff) : undefined, onSelect: () => { void toEnd(node, false); } },
   ];
   // After the items above it: a shared reason goes to the first item it disables.
   const clear: MenuItemData[] = only ? [{
@@ -143,7 +149,7 @@ export function useSlotMenuItems(selection: NodeSelection | null, point: { x: nu
   const trailing: MenuEntry[] = [
     { type: "separator", id: "slot-separator" },
     ...clear,
-    { id: "slot-remove", label: "Remove", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: removeOff !== null, caption: reasonFor(removeOff), onSelect: () => { void removeSelection(node); } },
+    { id: "slot-remove", label: "Delete", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: removeOff !== null, caption: reasonFor(removeOff), onSelect: () => { void removeSelection(node); } },
   ];
   return { leading, trailing };
 }

@@ -1087,7 +1087,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
         key.preventDefault();
         key.stopPropagation();
         finish(false);
-        if (drag.active) announce("Resize cancelled");
+        if (drag.active) announce("Resize canceled");
       } else if (key.key === "Shift") update(drag.last.x, drag.last.y, key.type === "keydown");
     };
     const onBlur = () => finish(false);

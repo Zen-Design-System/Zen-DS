@@ -302,7 +302,7 @@ async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Reco
   const wrapper: NodeSelection = { kind: "node", src: `${response.file}:${response.wrapped.loc}`, name: tag, frameId: first.frameId, panelId: first.panelId, instance: first.instance };
   remember({ file: response.file, before: fingerprint(response.before), after: fingerprint(response.after), layers, wrapper });
   const snippet = response.snippet && !response.snippet.synced ? `Example code not updated${response.snippet.reason ? `: ${response.snippet.reason}` : ""}` : null;
-  const text = [given?.done ?? `Wrapped ${what} in a ${tag}`, response.draft ? `Draft · ${saveShortcut} to save` : `${undoShortcut} to undo`, snippet].filter(Boolean).join(" · ");
+  const text = [given?.done ?? `Wrapped ${what} in a ${tag}`, response.draft ? `Unsaved · ${saveShortcut} to save` : `${undoShortcut} to undo`, snippet].filter(Boolean).join(" · ");
   inspectorStatus.set("positive", text);
   // Still the selection the wrap started from (it moved with the write, or the write dropped it): select the container,
   // as Figma does; a selection made meanwhile elsewhere stays. Synchronously (no request in between): Vite may reload

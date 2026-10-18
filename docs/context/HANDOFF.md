@@ -143,6 +143,11 @@ Last updated: 2026-10-17.
   19,286 drop / insert / move cases + 12,564 Add / Remove auto layout cases, must report 0 findings) and the opt-in E2E
   group `dnd` (`npm run studio:e2e -- --only=dnd`, ~30 min, real drags of every Assets item; `ZEN_DND_ONLY=<ids>` /
   `ZEN_DND_LIMIT=<n>`). Run both after any drop, insert or auto layout change. Drop rules: memory "studio-drag-drop-rules".
+- **Zen Studio in Figma's words and keys (2026-10-18, F0 of `docs/research/studio-figma-design-parity-2026-10-18.md`,
+  user: "Đồng ý theo đề xuất, làm F0 trước"):** the plan's glossary (§3a) on menus, tooltips (one shape: `tip(name,
+  keys)` in `shell/ShortcutTip.tsx`), Inspector, Layers and the status line; Figma keys Zen lacks say so
+  (`edit/figmaNotYet.ts`; a phase that builds one takes it off that list); P is Pen, Present is ⌥⌘↵. Guard:
+  `words.selftest` part 3 fails on a retired term (its `RETIRED` list) or code words in a JSX label. Next: F1.
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures

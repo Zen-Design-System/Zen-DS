@@ -36,7 +36,7 @@ const fail = (message: string) => announceEditStatus({ kind: "error", message, a
  * state or code a page cannot have.
  */
 export function codeOf(item: PaletteItem, file?: string): string | null {
-  const slot = { component: "Stack", prop: "children", name: "Children", kind: "layout" } as unknown as ContentSlot;
+  const slot = { component: "Stack", prop: "children", name: "Layers", kind: "layout" } as unknown as ContentSlot;
   const context: PaletteContext = { host: "Stack", slot, headingLevel: 4, mobile: false, uid: Date.now().toString(36) };
   const code = item.build(context);
   if (!file?.startsWith("local:")) return code;
@@ -136,7 +136,7 @@ async function swapIcon(selection: NodeSelection, name: string) {
  * layer; with nothing selected, into the frame most in view (Studio builder GĐ3, builder/library/target.ts).
  */
 export function insertItem(item: Insertable) {
-  if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
+  if (!canEdit()) { fail("View only"); return; }
   const icon = item.icon ? selectedIcon() : null;
   if (icon && item.icon) { void swapIcon(icon, item.icon); return; }
   const image = item.photo ? selectedImage() : null;
@@ -169,7 +169,7 @@ export function swapTarget(): NodeSelection | string {
 
 /** Swap instance (Figma, GĐ4 M2): the selected layer becomes `item`, in its place, one undo step (Quick insert's Swap mode). */
 export function swapItem(item: Insertable) {
-  if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
+  if (!canEdit()) { fail("View only"); return; }
   const target = swapTarget();
   if (typeof target === "string") { fail(target); return; }
   const file = parseSrc(target.src)?.file;
@@ -443,7 +443,7 @@ function onKey(event: KeyboardEvent) {
 /** A press on an asset row or tile: a click inserts it at the selection, a drag drops it where the line shows. */
 export function pressAsset(event: PointerEvent, item: Insertable) {
   if (event.button !== 0 || drag) return;
-  if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
+  if (!canEdit()) { fail("View only"); return; }
   event.preventDefault();
   drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null, swap: null, bar: null, free: null };
   window.addEventListener("pointermove", onMove, true);

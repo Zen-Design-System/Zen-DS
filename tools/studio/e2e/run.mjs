@@ -33,8 +33,8 @@ const flag = (name) => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(n
 const has = (name) => args.includes(`--${name}`);
 
 const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "prototype", "library", "instance", "starters", "handoff", "keyboard", "structural", "data", "overlays", "drafts", "gate", "main", "device", "nested", "mcp", "draw", "variables", "agent", "board"];
-/** Groups that run only when named (--only=dnd): the drag-and-drop campaign takes about half an hour. */
-const OPT_IN = ["dnd"];
+/** Groups that run only when named: --only=dnd (the drag-and-drop campaign, about half an hour), --only=figma (the Figma walk, plan §6). */
+const OPT_IN = ["dnd", "figma"];
 const only = flag("only")?.split(",").map((g) => g.trim()).filter(Boolean) ?? GROUPS;
 const unknown = only.filter((g) => !GROUPS.includes(g) && !OPT_IN.includes(g));
 if (unknown.length) {

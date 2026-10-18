@@ -148,7 +148,7 @@ export function PagePanel() {
               />
             ))}
           </ul>
-        ) : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>The board is still rendering.</p>}
+        ) : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>The page is still loading.</p>}
       </InspectorSection>
     </div>
   );

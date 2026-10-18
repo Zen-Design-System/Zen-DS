@@ -10,7 +10,7 @@ export type Variable = { name: string; type: VariableType; valuesByMode: Record<
 export type Collection = { file: string; name: string; modes: string[]; tokens: Variable[]; hash?: string; draft?: boolean };
 export type Entry = { variable: Variable; collection: Collection };
 
-export const TYPE_LABEL: Readonly<Record<VariableType, string>> = { COLOR: "Colour", FLOAT: "Number", STRING: "String", BOOLEAN: "Boolean" };
+export const TYPE_LABEL: Readonly<Record<VariableType, string>> = { COLOR: "Color", FLOAT: "Number", STRING: "String", BOOLEAN: "Boolean" };
 
 export const aliasOf = (value: unknown): string | null => (typeof value === "string" ? /^\{(.+)\}$/.exec(value)?.[1] ?? null : null);
 export const shortName = (name: string) => name.slice(name.lastIndexOf("/") + 1);

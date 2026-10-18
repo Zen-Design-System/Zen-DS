@@ -7,14 +7,14 @@ const chromeText = (page) => page.evaluate(() => [...document.querySelectorAll("
 
 export const rows = [
   {
-    id: "G-01", feature: "Viewer role: the toolbar says Read-only and offers Admin back", wp: "Gate",
+    id: "G-01", feature: "Can view role: the toolbar says View only and offers Can edit back", wp: "Gate",
     async run(ctx) {
       const { page, context } = await openStudio(ctx.browser, { url: ctx.server.url, page: ctx.host, role: "viewer" });
       try {
-        const chip = page.getByRole("button", { name: /Read-only/i });
-        if (!(await chip.count())) throw new Error(`no Read-only explanation (chrome reads: "${(await chromeText(page)).slice(0, 90)}")`);
+        const chip = page.getByRole("button", { name: /View only/i });
+        if (!(await chip.count())) throw new Error(`no View only explanation (chrome reads: "${(await chromeText(page)).slice(0, 90)}")`);
         await chip.first().click();
-        if (!(await page.getByRole("button", { name: /Switch to Admin|Admin/ }).count())) throw new Error("the Read-only chip offers no way back to Admin");
+        if (!(await page.getByRole("button", { name: /Switch to Can edit|Can edit/ }).count())) throw new Error("the View only chip offers no way back to Can edit");
         return "explained, with a way back";
       } finally {
         await context.close();
@@ -40,8 +40,8 @@ export const rows = [
     async run(ctx) {
       const { page, context } = await openStudio(ctx.browser, { url: ctx.server.url, page: ctx.host, role: "viewer" });
       try {
-        const chip = page.getByRole("button", { name: /Read-only/i });
-        if (!(await chip.count())) throw new Error("no Read-only chip to open");
+        const chip = page.getByRole("button", { name: /View only/i });
+        if (!(await chip.count())) throw new Error("no View only chip to open");
         await chip.first().click();
         if (!(await page.getByRole("button", { name: /Reset Studio settings/i }).count())) throw new Error("no Reset Studio settings action");
         return "offered";

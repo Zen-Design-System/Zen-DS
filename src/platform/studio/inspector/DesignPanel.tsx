@@ -1,3 +1,4 @@
+import { valueWords } from "./controls/scale";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
 import { ComponentSection } from "./ComponentSection";
 import { layerName, objectIcon } from "../select/layerNames";
@@ -210,7 +211,7 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
 
   if (kind === "text") {
     return (
-      <InspectorSection title="Text">
+      <InspectorSection title="Typography">
         {[...specs].sort((a, b) => textRank(a.name) - textRank(b.name)).map((spec) => (
           <Field
             key={spec.name}
@@ -228,7 +229,7 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
 
   if (kind === "class") {
     return (
-      <InspectorSection title="Text">
+      <InspectorSection title="Typography">
         {classRows ?? (
           <InspectorRow name="textStyle" label="Style" isDefault hint={renderedStyle(rendered) ? `Inherited: ${renderedStyle(rendered)}` : undefined}>
             <TypographyControl
@@ -247,17 +248,17 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
   }
 
   // No prop, and the text renders with the font around the component: inherited.
-  const from = relevant ? `Text style comes from ${name} · ${relevant.name} ${relevant.value}${relevant.note ? ` (${relevant.note})` : ""}`
-    : rendered.inherits ? `${name} sets no text style: its text inherits the one around it` : `Text style comes from ${name}`;
+  const from = relevant ? `Text style comes from ${name}'s ${propLabel(relevant.name, name)}`
+    : rendered.inherits ? `${name} sets no text style: its text takes the one around it` : `Text style comes from ${name}`;
   return (
-    <InspectorSection title="Text">
+    <InspectorSection title="Typography">
       <InspectorRow label={rendered.styles.length > 1 ? "Styles" : "Style"}><ValueCell value={(rendered.styles.length ? rendered.styles.join(", ") : rendered.metrics) || "—"} /></InspectorRow>
       <div className="studio-text-source">
         <p className={`studio-text-source__text ${typographyStyles["Body/Small/Regular"]}`}>{from}</p>
         {relevant ? (
           // zen-allow-compact-button: a quiet jump to the prop control in a dense tool panel, like the element's file link
           <Button appearance="flat" level="primary" size="xs" className="studio-text-source__action" onClick={() => onFocusProp(relevant.name)}>
-            Edit {relevant.name}
+            Edit {propLabel(relevant.name, name)}
           </Button>
         ) : null}
       </div>
@@ -483,7 +484,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
           written = true;
           // Already in the file's draft (a drafts server) or on disk.
           const where = `${fileName(at.file)}:${at.loc.split(":")[0]}`;
-          if (studioDrafts.get().available) inspectorStatus.set("neutral", `Draft · ${where} · ${saveShortcut} to save`);
+          if (studioDrafts.get().available) inspectorStatus.set("neutral", `Unsaved · ${where} · ${saveShortcut} to save`);
           else inspectorStatus.set("positive", `Saved · ${where}`);
         } else {
           setOverrides({});
@@ -577,7 +578,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       }
       const plan = planPropWrite(element.name, element.attributes, name, value, live);
       const removes = !plan.note && plan.ops.length > 0 && plan.ops.every((op) => op.op === "removeProp");
-      const label = `${element.name} ${name} → ${display(value)}`;
+      const label = `${element.name} ${name} → ${valueWords(value, name)}`;
       const optimistic: Record<string, PropValue> = { [name]: removes ? { state: "unset" } : { state: "literal", value, raw: "" } };
       const replan = (attributes: SourceAttr[]) => planPropWrite(element.name, attributes, name, value, live).ops;
       // Back to what the saved file writes: the saved attribute returns where and as it was, so the draft goes away
@@ -588,7 +589,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     },
     setProps: (values) => send(
       Object.entries(values).map(([name, value]) => ({ op: "setProp", name, value: toEditValue(value) })),
-      `${element?.name ?? selection.name} ${Object.entries(values).map(([name, value]) => `${name} → ${display(value)}`).join(", ")}`,
+      `${element?.name ?? selection.name} ${Object.entries(values).map(([name, value]) => `${name} → ${valueWords(value, name)}`).join(", ")}`,
       Object.fromEntries(Object.entries(values).map(([name, value]) => [name, { state: "literal", value, raw: "" } as PropValue])),
     ),
     removeProp: (name) => {
@@ -832,8 +833,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
                 appearance="flat"
                 level="primary"
                 size="xs"
-                aria-label="Reset all overrides"
-                tooltip={`Reset all overrides · ${plural(resetNames.length + nestedCount, "property", "properties")} back to default${nestedCount ? ` (${nestedCount} in nested instances)` : ""} · ${undoShortcut} to undo`}
+                aria-label="Reset all changes"
+                tooltip={`Reset all changes (${plural(resetNames.length + nestedCount, "property", "properties")}${nestedCount ? `, ${nestedCount} in nested instances` : ""})`}
                 className="studio-inspector__head-action"
                 onClick={resetAll}
               />
@@ -866,7 +867,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         ) : null}
         <p className={`studio-inspector__meta-row ${typographyStyles["Body/Small/Regular"]}`}>
           <span>{kindLabel(kind, name)}</span>
-          {docsPage ? (
+          {/* A Zen instance links its component's page (Figma's documentation link); a frame, text or shape has none. */}
+          {docsPage && kind === "zen" ? (
             <>
               <span aria-hidden="true">·</span>
               <Link href={pageHref(docsPage)} className="studio-inspector__head-link" onClick={openDocs}>{`${pageLabels[docsPage]} docs`}</Link>
@@ -882,12 +884,12 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
               size="xs"
               startIcon="icon-file-code-line"
               className="studio-inspector__src"
-              aria-label="Show in the Code tab"
+              aria-label="Show code"
               onClick={showInCode}
             >
               Show code
             </Button>
-            {studioPage ? null : <IconButton icon="icon-copy-line" aria-label="Copy source location" appearance="flat" level="primary" size="xs" onClick={() => copyText(`${file}:${line}`, "the source location")} />}
+            {studioPage ? null : <IconButton icon="icon-copy-line" aria-label="Copy code location" appearance="flat" level="primary" size="xs" onClick={() => copyText(`${file}:${line}`, "the code location")} />}
           </div>
         ) : null}
       </header>
@@ -902,10 +904,10 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         </div>
       ) : null}
 
-      {element === undefined ? <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Reading the source…</p> : null}
+      {element === undefined ? <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Loading…</p> : null}
       {element === null ? (
         <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>
-          {server.ready && !server.writable ? "The source is available on the Studio dev server only." : "This layer is no longer there — select it again."}
+          {server.ready && !server.writable ? "Can't load this layer here" : "This layer is no longer there — select it again."}
         </p>
       ) : null}
 
@@ -986,7 +988,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
           ))}
           {expressions.map((child, index) => <InspectorRow key={`expression-${index}`} label="Value"><BoundValue expression={child.raw.replace(/^\{|\}$/g, "")} /></InspectorRow>)}
           {childElements.length ? (
-            <ul aria-label="Child elements" className="studio-inspector__items">
+            <ul aria-label="Layers" className="studio-inspector__items">
               {childElements.map((child) => (
                 <InspectorItem
                   key={child.loc}
@@ -1003,7 +1005,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       ) : null}
 
       {element && otherAttributes.length ? (
-        <InspectorSection title={documented.size ? "Other attributes" : "Attributes"}>
+        <InspectorSection title="Code properties">
           {/* HTML and undocumented attributes keep their written names (href, aria-label). */}
           {otherAttributes.map((attr) => <Field key={attr.name} spec={attributeSpec(attr)} api={api} label={attr.name} />)}
         </InspectorSection>
