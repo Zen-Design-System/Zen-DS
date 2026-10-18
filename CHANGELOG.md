@@ -17,6 +17,8 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio: inside a project, Local variables shows only that project's mode of Base Colors (Project) — no Zen
+  column and no other project; Drafts shows Zen. The collection's rows are fixed there: Project settings changes them.
 - Zen Studio: **Zen Agent V1a** (2026-10-18, plan §9): pick the model (Opus 5.5 · Sonnet 5.5 · Haiku 5.5) in the panel;
   "Undo turn" takes back all of the agent's last turn; the agent asks with 2–4 answers when a request is ambiguous or
   breaks a Zen rule; paste or attach reference pictures; the reply shows text, steps (what each change did) and the
