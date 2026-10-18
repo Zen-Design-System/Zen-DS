@@ -53,7 +53,6 @@ import { useRenameKeys } from "./edit/rename";
 import { BatchRenameDialog } from "./shell/BatchRenameDialog";
 import { PAGE_SEARCH_ID, PagesPanel } from "./shell/PagesPanel";
 import { CanvasMenu } from "./shell/CanvasMenu";
-import { FramePicker } from "./builder/FramePicker";
 import { DraftsDialog } from "./shell/DraftsControls";
 import { ParityDialog } from "./mainComponent/ParityDialog";
 import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
@@ -488,9 +487,10 @@ export function StudioApp() {
         const onFrame = here || Boolean(target?.closest(".studio-frame-label[data-selected='true']"))
           || Boolean(row && row === target && row.getAttribute("data-kind") === "frame" && row.getAttribute("aria-selected") === "true");
         if (!doc && !event.repeat && !event.shiftKey && onFrame && state.tool === "select" && selection?.kind === "frame" && state.localPage
-          && /^(screen|overlay):/.test(selection.frameId) && canEdit(state)) {
+          && /^(screen|overlay|section):/.test(selection.frameId) && canEdit(state)) {
           event.preventDefault();
-          void removeFrame(state.localPage, selection.frameId);
+          // A Section goes with its frames; ⌘⌫ keeps them (Figma's Delete section, keep contents).
+          void removeFrame(state.localPage, selection.frameId, { keepContents: event.metaKey || event.ctrlKey });
           return;
         }
         if (doc || event.repeat || event.shiftKey || !here || state.tool !== "select" || selection?.kind !== "node") return;
@@ -687,7 +687,6 @@ export function StudioApp() {
           <ParityDialog />
           <BindingDiffDialog />
           <CanvasMenu />
-          <FramePicker />
         </ChromeScope>
         {/* Popovers, menus, tooltips and dialogs of the chrome: above the canvas and its overlays. */}
         <div ref={setChromePortal} className="studio-chrome-portal" {...chromeAttributes} />

@@ -5,9 +5,9 @@ import { canvasApi, getSafeBox, getViewport, getViewportBox, notifyCanvas, panBy
 import { canEdit, studioStore } from "../store";
 import { startDraw } from "../draw/drawTool";
 import { addFrame } from "./proto/addFrame";
-import { openFramePicker } from "./FramePicker";
+import { zoomToFrame } from "../board/presentFrame";
 import { copyFrame, moveFrames } from "./frameEdit";
-import { snapBox, SNAP_PX, type FrameBox, type FramePlace, type SnapGuide } from "./render/framePlace";
+import { FRAME_GAP, snapBox, SNAP_PX, type FrameBox, type FramePlace, type SnapGuide } from "./render/framePlace";
 
 /*
  * Free frames on a builder page, Figma-like (user, 2026-10-15: "canvas tự do hơn… vẽ frame, kéo frame đi mọi nơi", "cho
@@ -16,8 +16,9 @@ import { snapBox, SNAP_PX, type FrameBox, type FramePlace, type SnapGuide } from
  *   the other frames' edges and centres with red guides (⌘ / Ctrl held: no snapping); ⇧ keeps one axis; Esc puts it back.
  * - ⌥ (Option / Alt) held while dragging leaves the frame where it is and drops a copy there (pressed or released
  *   mid-drag, it switches as in Figma).
- * - Draw: the Frame tool (CanvasTools): drag a box on the canvas for a Screen of that size (⇧ square, ⌥ from the
- *   centre), or click for a Screen on the page's device at that point.
+ * - Draw: the Frame tool (CanvasTools): drag a box on the canvas for a frame of that size (⇧ square, ⌥ from the
+ *   centre), or click for Figma's 100 × 100 frame at that point; the right panel's presets (FramePresets.tsx) make one
+ *   of a preset's size beside the frames (placeInView).
  * One edit per gesture (frameEdit.ts), so one ⌘Z takes it back. The live place shows by left / top on the frame element
  * until the page renders it (BuilderBoard reads livePlace).
  */
@@ -321,6 +322,55 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
 const deviceFor = (width: number) => (width < 600 ? "phone" : width < 1024 ? "tablet" : "desktop");
 const FRAME_MIN = 100;
 const FRAME_MAX = 4096;
+/** Figma's frame made by a click without a preset. */
+const FRAME_CLICK = { width: 100, height: 100 };
+
+/**
+ * Where a frame of `width` × `height` made from a preset goes (board frame px): beside the selected frame, else right
+ * of the frames on the board (top-aligned with the right-most), else in the middle of the visible canvas; past any
+ * frame in the way. Null off a builder board.
+ */
+export function placeInView(width: number, height: number): FramePlace | null {
+  const container = document.querySelector<HTMLElement>(FRAMES);
+  if (!container) return null;
+  const boxes = framesIn(container).map((element) => ({ id: element.dataset.studioFrame ?? "", ...boxOf(element) }));
+  const selection = studioStore.getState().selection;
+  const selected = selection?.kind === "frame" ? boxes.find((box) => box.id === selection.frameId) : undefined;
+  const rightmost = boxes.reduce<(typeof boxes)[number] | null>((best, box) => (!best || box.x + box.width > best.x + best.width ? box : best), null);
+  const anchor = selected ?? rightmost;
+  let place: FramePlace;
+  if (anchor) place = { x: anchor.x + anchor.width + FRAME_GAP, y: anchor.y };
+  else {
+    const safe = getSafeBox();
+    const view = getViewportBox();
+    const origin = originOf(container);
+    const centre = toWorld({ x: view.left + safe.x + safe.width / 2, y: view.top + safe.y + safe.height / 2 });
+    place = { x: centre.x - origin.x - width / 2, y: centre.y - origin.y - height / 2 };
+  }
+  for (let guard = 0; guard < boxes.length; guard += 1) {
+    const hit = boxes.find((box) => box.x < place.x + width + FRAME_GAP && place.x < box.x + box.width + FRAME_GAP && box.y < place.y + height && place.y < box.y + box.height);
+    if (!hit) break;
+    place = { x: hit.x + hit.width + FRAME_GAP, y: place.y };
+  }
+  return { x: Math.round(place.x), y: Math.round(place.y) };
+}
+
+/** Brings the selected frame into view once the board shows it (a frame made from a preset): a pan, or a zoom out
+ *  when it is larger than the visible canvas. */
+export function revealFrame() {
+  const selection = studioStore.getState().selection;
+  if (selection?.kind !== "frame") return;
+  let tries = 0;
+  const look = () => {
+    const element = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(selection.frameId)}"]`);
+    if (!element) { if ((tries += 1) < 60) requestAnimationFrame(look); return; }
+    const rect = element.getBoundingClientRect();
+    const safe = getSafeBox();
+    if (rect.width > safe.width - 64 || rect.height > safe.height - 64) zoomToFrame(element);
+    else canvasApi.ensureVisible(rect);
+  };
+  requestAnimationFrame(look);
+}
 /** The chrome over the canvas (toolbar, side panels, their menus and tooltips) keeps its own presses (edit/place.ts). */
 const CHROME = ".studio-chrome, .studio-chrome-portal";
 
@@ -430,8 +480,8 @@ export function armFrameDraw(localPage: string): boolean {
         swallowClick();
         studioStore.setState({ tool: "select" });
         if (!dragged) {
-          // A click: pick what it makes at the point (FramePicker.tsx): a Screen for a device, or a plain Frame.
-          openFramePicker(up.clientX, up.clientY, localPage, { x: Math.round(start.x), y: Math.round(start.y) });
+          // A click: Figma's 100 × 100 frame there, empty (a preset's size: the right panel, FramePresets.tsx).
+          void addFrame(localPage, "screen", { place: { x: Math.round(start.x), y: Math.round(start.y) }, width: FRAME_CLICK.width, height: FRAME_CLICK.height, device: "desktop", name: "Frame", empty: true });
           return;
         }
         const width = Math.min(FRAME_MAX, Math.max(FRAME_MIN, box.width));

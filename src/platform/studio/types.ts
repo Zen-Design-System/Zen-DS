@@ -23,7 +23,7 @@ export type StudioPreviewSettings = PlatformShellSettings;
 
 /** A frame on the board. Ids are stable per page: "playground", "main-component", "docs", "guidelines", "document",
  *  "example:<n>". */
-export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document";
+export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document" | "section";
 /** "auto" = the rule width; a number = px, a toolbar preset (390…1440) or a free width dragged on the frame's right edge. */
 export type StudioFrameWidth = "auto" | number;
 export type StudioFrameOverride = { width?: StudioFrameWidth; theme?: "light" | "dark" };

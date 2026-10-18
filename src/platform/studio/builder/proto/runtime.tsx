@@ -218,6 +218,12 @@ export function Overlay({ id, children, x: _x, y: _y, position = "center", backg
   );
 }
 
+/** Figma's section (F4): a named area of the board the frames inside it belong to. The Studio's board draws it
+ *  (builder/SectionFrame.tsx); outside the Studio it is nothing (the page's frames are its Screens and Overlays). */
+export function Section(_props: { id?: string; title?: string; x?: number; y?: number; width?: number; height?: number }) {
+  return null;
+}
+
 /** The page root: the board lays its children out; rendered alone it shows them in a column. */
 export function Board({ children }: { children?: ReactNode }) {
   return <>{children}</>;

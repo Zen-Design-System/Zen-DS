@@ -24,7 +24,7 @@ import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
 import { modKey, presentShortcut } from "./modKey";
 import { createComponent } from "../edit/localComponents";
-import { removeFrame } from "../builder/proto/addFrame";
+import { removeFrame, wrapInSection } from "../builder/proto/addFrame";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
 import type { StudioSelection } from "../types";
@@ -161,19 +161,23 @@ export function CanvasMenu() {
   ] : [];
   const frame = menu?.target.kind === "frame" ? findFrame(menu.target.frameId) : null;
   const localPage = studioStore.getState().localPage;
+  // A Section of a page you made (F4) is a board area: no Present, no Copy for Figma of its own.
+  const section = Boolean(frame?.id.startsWith("section:"));
   const frameItems: MenuEntry[] = frame ? [
     { id: "frame-zoom", label: "Zoom to selection", icon: "icon-zoom-in-line", shortcut: "⇧2", onSelect: () => zoomToFrame(frame.element) },
     // Present plays a page you made from this Screen (Figma's Present runs the prototype); an example frame is presented.
-    ...(localPage || frame.id.startsWith("example:") ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),
+    ...(!section && (localPage || frame.id.startsWith("example:")) ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),
     // A frame of a page you made: its code and its Figma export on the clipboard (⌘V in the Zen plugin places it).
-    ...(localPage ? [{ id: "frame-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { void copyFrameForFigma(localPage, frame.id); } }] : []),
+    ...(localPage && !section ? [{ id: "frame-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { void copyFrameForFigma(localPage, frame.id); } }] : []),
     // A builder page that starts as this example or template (GĐ3b): kept in this browser, so it needs no dev server.
     ...(frame.id.startsWith("example:") ? [{ id: "frame-new-page", label: "New page from this frame", icon: "icon-file-plus-line" as const, onSelect: () => { void newPageFromFrame(frame); } }] : []),
     { type: "separator", id: "frame-separator" },
     { id: "frame-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
-    // A Screen or Overlay of a page you made deletes as one edit (Figma deletes a frame from its menu too).
-    ...(localPage && /^(screen|overlay):/.test(frame.id) ? [
+    // A Screen, Overlay or Section of a page you made deletes as one edit (Figma deletes a frame from its menu too); a
+    // frame can be wrapped in a new Section (Figma's Wrap in new section).
+    ...(localPage && /^(screen|overlay|section):/.test(frame.id) ? [
       { type: "separator" as const, id: "frame-name-separator" },
+      ...(!section ? [{ id: "frame-wrap-section", label: "Wrap in new section", icon: "icon-browser-line" as const, disabled: Boolean(editOff), onSelect: () => { void wrapInSection(localPage, [frame.id]); } }] : []),
       ...lockMenuItems({ kind: "frame", frameId: frame.id }),
       renameItem("Rename"),
       { type: "separator" as const, id: "frame-delete-separator" },
