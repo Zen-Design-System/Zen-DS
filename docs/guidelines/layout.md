@@ -247,7 +247,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `box/border-matches-action` | warn | A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static. | `zen-allow-box-border: <reason>` |
+| `box/border-matches-action` | warn | A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static; a dashed border is always subtle (box/dashed-is-subtle). | `zen-allow-box-border: <reason>` |
 | `layout/constraint-needs-absolute` | warn | constraintX, constraintY and insetTop/Right/Bottom/Left are read only with position="absolute" (Figma: constraints apply once a layer ignores auto layout). | `zen-allow-constraint-in-flow: <reason>` |
 | `layout/inset-not-read` | warn | An inset offsets only an edge its constraint pins: insetLeft with left or left-right, insetRight with right or left-right, insetTop with top or top-bottom, insetBottom with bottom or top-bottom (center reads none). | `zen-allow-inset-not-read: <reason>` |
 | `layout/absolute-fill` | error | An absolute layer has no Fill: stretch it by pinning both edges (constraintX="left-right", constraintY="top-bottom"). | `zen-allow-absolute-fill: <reason>` |
