@@ -53,6 +53,11 @@ const PHRASES: Array<[RegExp, string]> = [
   [/\bsource file\b/g, "code"],
   [/\bthe source\b/g, "the code"],
   [/\b(a|the|row's|its|their) keys?\b/g, "$1 id"],
+  [/\bdata source\b/g, "data"],
+  [/\bHTML (?:elements|tags)\b/g, "layers"],
+  [/\bHTML (?:element|tag)\b/g, "layer"],
+  // One name for the server the Studio writes through (the UX audit found three).
+  [/\b(?:Zen )?(?:Studio )?dev server\b/g, "Studio server"],
 ];
 
 const WORDS: Array<[RegExp, string]> = [
@@ -76,6 +81,18 @@ const WORDS: Array<[RegExp, string]> = [
   [/\ba spread\b/g, "a shared set of properties"],
   [/\bspread\b/g, "shared set of properties"],
   [/\bsrc\b/g, "picture"],
+  [/\bmarkup\b/g, "layers"],
+  [/\brenders\b/g, "shows"],
+  [/\brendered\b/g, "shown"],
+  [/\brendering\b/g, "showing"],
+  [/\brender\b/g, "show"],
+  [/\bHTML\b/g, "code"],
+  [/\bsource\b/g, "code"],
+  // Zen's layout primitives by Figma's names: a Stack is an auto layout frame, a Box a frame.
+  [/\bStacks\b/g, "auto layout frames"],
+  [/\bStack\b/g, "auto layout frame"],
+  [/\bBoxes\b/g, "frames"],
+  [/\bBox\b/g, "frame"],
   [/\bcallbacks?\b/g, "list"],
   [/\barrays?\b/g, "list"],
   [/\bhooks?\b/g, "app logic"],
@@ -109,13 +126,38 @@ const CODE_WORDS: Array<[string, RegExp]> = [
   ["<Tag>", /<\/?[A-Za-z][\w.]*(?:\s[^<>]*)?\/?>/],
   ["{expression}", /\{[^{}]*\}/],
   ["`code`", /`/],
-  ["code word", /\b(?:JSX|jsx|props?|children|child|elements?|src|callback|spread|expression|binding|hooks?|snippet|recipe|literal|array|parameters?|arguments?)\b/],
+  // A word, not part of an identifier or a path (data-zen-src, src/components, Re-binding): as `guarded` reads them.
+  ["code word", /(?<![-\w./])(?:JSX|jsx|props?|children|child|elements?|src|callback|spread|expression|binding|hooks?|snippet|recipe|literal|array|parameters?|arguments?|attributes?|markup|render(?:s|ed|ing)?|source|HTML)(?![-\w/]|\.\w)/],
+  ["dev server", /\bdev server\b/],
+  ["Stack / Box", /(?<![-\w./])(?:Stacks?|Box(?:es)?)(?![-\w])/],
   ["line:column", /\bat \d+:\d+(?::\d+)?\b/],
   [".map", /(?<![\w$])\.map\b|\b\w+\.map\b/],
   ["key", /\b(?:has a|the|row's|its) keys?\b/],
   ["camelCase name", /\b(?!(?:iPhone|iPad|iOS|macOS)\b)[a-z]+[A-Z][A-Za-z0-9]*\b/],
   ["call", /\b[\w.]+\((?:…|\.\.\.)?\)/],
 ];
+
+/**
+ * A word rule that leaves identifiers alone: `src` is not a word inside `data-zen-src`, `Box` not inside `List-Box` or
+ * `Zen.Box`, `source` not inside `source/path`.
+ */
+function guarded(pattern: RegExp): RegExp {
+  return new RegExp(pattern.source.replace(/^\\b/, "(?<![-\\w./])").replace(/\\b$/, "(?![-\\w/]|\\.\\w)"), pattern.flags);
+}
+
+/** Words that sound otherwise than they are spelled (a user, an hour). Initialisms keep the article they were given. */
+const SOUNDS_CONSONANT = /^(?:u[bcdfgklmnprstvz][aeiouy]|uni|use|usu|uti|one\b|once\b|eu)/i;
+const SOUNDS_VOWEL = /^(?:hour|honest|honou?r|heir)/i;
+
+/** "a" or "an" by the next word's sound, after the rules swapped the word ("an value" → "a value"). */
+function articles(text: string): string {
+  // "A" only where a sentence starts ("Column A is" keeps its letter).
+  return text.replace(/(^|[.!?:·—]\s+|[\s(])([Aa])n? (?=([A-Za-z][\w-]*))/g, (match, lead: string, a: string, word: string) => {
+    if ((a === "A" && lead.trim() === "" && lead !== "") || /^[A-Z0-9]{2,}\b/.test(word)) return match;
+    const vowel = SOUNDS_VOWEL.test(word) || (/^[aeiou]/i.test(word) && !SOUNDS_CONSONANT.test(word));
+    return `${lead}${a}${vowel ? "n" : ""} `;
+  });
+}
 
 export function codeWordsIn(text: string): string[] {
   return CODE_WORDS.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
@@ -155,7 +197,8 @@ export function designWords(text: string): string {
   out = out.replace(/\b([a-z_$][\w$]*(?:\.[a-z_$][\w$]*)+)\b/g, (match) => (FILE_NAME.test(match) ? match : dataOf(match) ?? match));
   out = out.replace(/\b(?!(?:iPhone|iPad|iOS|macOS)\b)[a-z]+[A-Z][A-Za-z0-9]*\b/g, spaced);
   for (const [pattern, replacement] of PHRASES) out = out.replace(pattern, replacement);
-  for (const [pattern, replacement] of WORDS) out = out.replace(pattern, replacement);
+  for (const [pattern, replacement] of WORDS) out = out.replace(guarded(pattern), replacement);
+  out = articles(out);
   // Tidy what the removals leave: empty separators, a space before punctuation, doubled spaces.
   return out
     .replace(/\(\s*\)/g, "")

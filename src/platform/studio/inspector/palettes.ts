@@ -24,7 +24,7 @@ const toneSet = new Set<string>(contentTones);
 export const tonePalette: SwatchPalette = {
   has: (option) => toneSet.has(option),
   colorOf: (option) => (toneSet.has(option) ? contentToneVar(option as ContentTone) : null),
-  caption: (option) => contentToneToken(option as ContentTone) ?? "Parent's colour",
+  caption: (option) => contentToneToken(option as ContentTone) ?? "Parent's color",
   resolve: (option) => resolveContentTone(option as ContentTone),
   groups: contentToneGroups.map(({ name, tones }) => ({ name, options: tones })),
 };
@@ -41,7 +41,7 @@ function paintPalette(options: readonly string[], variables: Readonly<Record<str
     has: (option) => set.has(option),
     colorOf: (option) => (variables[option] ? cssVarOf(variables[option]) : null),
     // Its Figma variable, as Figma's list names it.
-    caption: (option) => variables[option] ?? "No colour",
+    caption: (option) => variables[option] ?? "No color",
     resolve: (option) => option,
     groups,
   };

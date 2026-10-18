@@ -170,7 +170,7 @@ export const rows = [
     },
   },
   {
-    id: "DA-07", feature: "Menu › Move down on a .map row swaps it with the next row in its data; the moved row stays selected", wp: "slots 2026-10-09",
+    id: "DA-07", feature: "Menu › Bring forward on a .map row swaps it with the next row in its data; the moved row stays selected", wp: "slots 2026-10-09",
     async run(ctx) {
       const page = await freshSelect(ctx, "crew-row", { frame: 1 });
       const src = `${ctx.file}:${locOf(await ctx.text(), "crew-row").loc}`;
@@ -179,10 +179,10 @@ export const rows = [
       // Near the row's left edge, below its slot chips: the selected row's slot "+" buttons sit at its centre.
       await page.mouse.click(rect.x + 24, rect.y + rect.height - 14, { button: "right" });
       await until(async () => (await page.getByRole("menuitem").count()) > 0, { message: "the canvas menu" });
-      const item = page.getByRole("menuitem", { name: /^Move down/ });
+      const item = page.getByRole("menuitem", { name: /^Bring forward/ });
       if (!(await item.count()) || (await item.getAttribute("aria-disabled")) === "true") {
         const items = await page.getByRole("menuitem").evaluateAll((all) => all.map((el) => `${el.textContent.trim().replace(/\s+/g, " ")}${el.getAttribute("aria-disabled") === "true" ? " (off)" : ""}`));
-        throw new Error(`Move down not offered: ${items.join(" · ").slice(0, 400)}`);
+        throw new Error(`Bring forward not offered: ${items.join(" · ").slice(0, 400)}`);
       }
       await item.click();
       await until(async () => /const crew = \[\n {2}\{ id: "bao"[^\n]*\},\n {2}\{ id: "ava"/.test(await ctx.text()), { message: "crew = [bao, ava, chi]" });

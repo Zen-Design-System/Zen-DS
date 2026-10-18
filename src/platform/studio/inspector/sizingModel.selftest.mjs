@@ -55,7 +55,7 @@ check("type fix → fixed at current", parseSizingInput("fix"), { kind: "fixed-c
 check("type fixed → fixed at current", parseSizingInput("Fixed"), { kind: "fixed-current" });
 check("type auto → auto", parseSizingInput("auto"), { kind: "auto" });
 check("type empty → revert", parseSizingInput("  "), { kind: "revert" });
-check("type 100% → explains Fill", parseSizingInput("100%"), { kind: "invalid", message: "Sizes are px numbers: use Fill for 100%" });
+check("type 100% → explains Fill", parseSizingInput("100%"), { kind: "invalid", message: "Type a number, or pick Fill container for 100%" });
 check("type junk → invalid", parseSizingInput("wide", "height"), { kind: "invalid", message: "Height takes a number, Hug or Fill" });
 
 /* ── ops ── */

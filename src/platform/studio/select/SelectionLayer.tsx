@@ -16,7 +16,7 @@ import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/Can
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
 import { ResizeLayer } from "./ResizeLayer";
 import { SpacingLayer } from "./SpacingLayer";
-import { layerOfHit, multiSelection, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
+import { layerOfHit, multiSelection, selectLayers, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
 import { isOffCanvasSelection } from "../slots/actions";
 import { startTextEditOnPart, startTextEditOnSelection, tryStartTextEdit } from "../edit/textEdit";
 import { pressLayer } from "../edit/drag";
@@ -899,7 +899,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     window.dispatchEvent(new CustomEvent("zen-studio:focus-content"));
   };
 
-  // Escape → parent (then the frame, then nothing); Enter → first child. Space is tracked for Space+drag panning.
+  // Escape → parent (then the frame, then nothing); Enter → its child layers (Figma). Space is tracked for Space+drag panning.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === " " && !isTypingTarget(event.target)) spaceRef.current = true;
@@ -976,9 +976,15 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         if (textPart && startTextEditOnPart(textPart.element, textPart.owner.src)) { event.preventDefault(); return; }
         const hit = selectedRef.current;
         const part = partRef.current;
-        // A part → its first part; an element → its first child element, else (a component) its first part.
-        const child = hit && !part ? childHits(hit).find((candidate) => candidate.hosts.length) : null;
-        if (child) {
+        // An element → all its child layers (Figma's Select children); a part → its first part; a component without
+        // child layers → its first part.
+        const kids = hit && !part ? childHits(hit).filter((candidate) => candidate.hosts.length) : [];
+        const child = kids[0] ?? null;
+        if (child && kids.length > 1) {
+          event.preventDefault();
+          const world = canvasApi.getWorldElement();
+          selectLayers(layerOfHit(child, world), kids.slice(1).map((kid) => layerOfHit(kid, world)));
+        } else if (child) {
           event.preventDefault();
           choose(child, false);
         } else if (hit && part?.fiber) {

@@ -19,7 +19,7 @@ import { allIconNames, dataEditable, dataSourceLabel, fixableBinding, inSentence
 import { useObjectStarter } from "./useObjectStarter";
 import { PhotoControl } from "./controls/PhotoControl";
 import { ScaleField } from "./controls/ScaleField";
-import { scaleOfType } from "./controls/scale";
+import { scaleOfType, optionLabel } from "./controls/scale";
 import { InspectorRow, NoInlineLabel, useInlineLabel } from "./Section";
 import { numberRange, type NumberRange } from "./numberRanges";
 import { toneWarning } from "./toneRules";
@@ -245,7 +245,7 @@ export function EnumControl({ label, value, fallback, disabled, onSet, onReset, 
   const listed = matched !== undefined && !options.includes(matched) ? [...options, matched] : options;
   const all = withDefault ? [DEFAULT_CHOICE, ...listed] : listed;
   const current = matched ?? (fallback === undefined ? (withDefault ? DEFAULT_CHOICE : "") : matchOption(fallback, all));
-  const text = (option: string) => (option === DEFAULT_CHOICE ? "Default" : labels?.[option] ?? option);
+  const text = (option: string) => (option === DEFAULT_CHOICE ? "Default" : labels?.[option] ?? optionLabel(option));
   const pick = (next: string) => {
     if (next === DEFAULT_CHOICE) { if (matched !== undefined) onReset?.(); }
     else if (next !== matched) onSet(next);
@@ -565,7 +565,7 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
         onPopoverOpenChange={(next) => { if (next) setOpen((was) => !was); }}
       />
       <Popover ref={popoverRef} id={`${listId}-list`} open={open} onOpenChange={(next) => { if (!next) close(); }} anchorRef={anchorRef}
-        search searchValue={query} onSearchChange={setQuery} searchPlaceholder="Search colours" aria-label={`${label} options`} autoFocus>
+        search searchValue={query} onSearchChange={setQuery} searchPlaceholder="Search colors" aria-label={`${label} options`} autoFocus>
         {groups.map(({ name, members }) => (
           <div key={name} role="group" aria-labelledby={`${listId}-${name}`} className="studio-type-control__group">
             <div id={`${listId}-${name}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{name}</div>
@@ -575,7 +575,7 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
             ))}
           </div>
         ))}
-        {!groups.length ? <div className={`studio-type-control__empty ${typographyStyles["Body/Small/Regular"]}`}>No colour matches</div> : null}
+        {!groups.length ? <div className={`studio-type-control__empty ${typographyStyles["Body/Small/Regular"]}`}>No color matches</div> : null}
       </Popover>
     </div>
   );
@@ -934,7 +934,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   const labelTitle = label.toLowerCase() === spec.name.toLowerCase() ? undefined : `${label} · ${spec.name}`;
   const starter = useObjectStarter(spec.name, spec.type, Boolean(onAddObject) && !disabled && value.state === "unset" && spec.editor.kind === "readonly");
   const restoreAction = restore && !disabled
-    ? <IconButton icon="icon-reverse-left-line" aria-label={`Restore ${inSentence(label)} to {${restore.expression}}`} appearance="flat" level="primary" size="xs" onClick={restore.onRestore} />
+    ? <IconButton icon="icon-reverse-left-line" aria-label={say(`Restore ${inSentence(label)} to {${restore.expression}}`)} appearance="flat" level="primary" size="xs" onClick={restore.onRestore} />
     : null;
   const row = { name: spec.name, label, labelTitle, hint };
   if (value.state === "bound") {
@@ -961,9 +961,9 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
     // An element written in the prop (Menu `trigger={<IconButton … />}`, ActionBar `summary={<Text …/>}`): a layer of its
     // own, edited where it is selected, not code to change (2026-10-10 palette sweep: "bound in code").
     const element = /^\s*<([A-Z][\w.]*)/.exec(value.expression)?.[1];
-    if (element) return <InspectorRow {...row} hint={hint ?? `Select the ${element} on the canvas or in Layers to edit it`}><StaticField text={`<${element}>`} title={`{${value.expression}}`} /></InspectorRow>;
+    if (element) return <InspectorRow {...row} hint={hint ?? `Select the ${element} on the canvas or in Layers to edit it`}><StaticField text={element} title={say(`{${value.expression}}`)} /></InspectorRow>;
     // State-bound (the keep-behaviour rule), or a playground's: read-only, what it renders now in a field's frame.
-    const note = boundHint ?? (value.origin?.kind === "bound-state" ? "It reads state: change it in the code." : "Change it in the code.");
+    const note = boundHint ?? (value.origin?.kind === "bound-state" ? "Set in code: change it there." : "Change it in the code.");
     return (
       <InspectorRow {...row} bound={{ expression: value.expression, note }}>
         {live !== undefined && typeof live !== "boolean" ? <StaticField text={String(live)} title={say(`{${value.expression}}`)} /> : <BoundValue expression={value.expression} hint={boundHint} />}

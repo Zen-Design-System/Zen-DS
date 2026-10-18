@@ -33,7 +33,7 @@ const fileName = (file: string) => file.slice(file.lastIndexOf("/") + 1);
 const FIELD_WORDS: Record<string, string> = {
   itemSpacing: "gap", paddingLeft: "padding left", paddingRight: "padding right", paddingTop: "padding top", paddingBottom: "padding bottom",
   height: "height", width: "width", topLeftRadius: "corner radius", topRightRadius: "corner radius", bottomLeftRadius: "corner radius", bottomRightRadius: "corner radius",
-  fill: "fill", stroke: "stroke", textFill: "text colour", strokeWeight: "stroke weight", opacity: "opacity",
+  fill: "fill", stroke: "stroke", textFill: "text color", strokeWeight: "stroke weight", opacity: "opacity",
 };
 const STATUS_WORDS: Record<BindingProposal["status"], string> = { ready: "", manual: "Change it by hand: the value mixes several tokens", "token-missing": "Sync the tokens first: the new variable has no token yet" };
 

@@ -96,7 +96,7 @@ export function useSlotServer() {
 export function canStructurallyEdit(selection: StudioSelection | null): StructuralCheck {
   if (selection?.kind !== "node") return { ok: false, kind: "scope", reason: "Select a layer first" };
   const state = studioStore.getState();
-  if (state.role !== "admin") return { ok: false, kind: "role", reason: "View only — switch to Admin to edit" };
+  if (state.role !== "admin") return { ok: false, kind: "role", reason: "View only" };
   if (!canEdit(state)) return { ok: false, kind: "server", reason: "Editing needs the Studio dev server" };
   if (serverNow && !serverNow.ready) return { ok: false, kind: "server", reason: "Connecting to the Studio dev server…" };
   if (serverNow && !serverNow.writable) return { ok: false, kind: "server", reason: "Read-only — editing needs the Studio dev server" };
@@ -229,10 +229,10 @@ const fail = (text: string) => {
   return false;
 };
 
-/** "Added Button to Card › Content · Draft · ⌘S to save", then a warning and "Example code not updated: …". */
+/** "Added Button to Card › Content · Unsaved · ⌘S to save", then a warning and "Example code not updated: …". */
 function outcomeOf(text: string, response: SlotEditApplied, warning?: string): string {
   const snippet = response.snippet && !response.snippet.synced ? `Example code not updated${response.snippet.reason ? `: ${response.snippet.reason}` : ""}` : null;
-  return [text, response.draft ? `Draft · ${saveShortcut} to save` : `${undoShortcut} to undo`, warning, snippet].filter(Boolean).join(" · ");
+  return [text, response.draft ? `Unsaved · ${saveShortcut} to save` : `${undoShortcut} to undo`, warning, snippet].filter(Boolean).join(" · ");
 }
 
 function announce(text: string) {

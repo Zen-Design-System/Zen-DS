@@ -47,14 +47,14 @@ function selectAll(selection: NodeSelection) {
   selectLayers(first, others);
 }
 
-/** ⌥⌘] / ⌥⌘[: the layer to the end (front) or the start (back) of its parent's layers. */
-async function toEnd(selection: NodeSelection, front: boolean) {
+/** ⌥⌘] / ⌥⌘[ (Bring to front / Send to back): the layer to the end (front) or the start (back) of its parent's layers. */
+export async function toEnd(selection: NodeSelection, front: boolean) {
   const found = selectedHit(selection);
   const at = parseSrc(selection.src);
   if (!found || !at) return;
   const parent = parentHit(found.hit, found.frame);
   const parentAt = parent ? parseSrc(parent.src) : null;
-  if (!parent || !parentAt || parentAt.file !== at.file) { fail("Its parent is written elsewhere: order it there"); return; }
+  if (!parent || !parentAt || parentAt.file !== at.file) { fail("Can't reorder this layer here"); return; }
   const siblings = childHits(parent).filter((kid) => kid.src !== selection.src);
   const edge = front ? siblings.at(-1) : siblings[0];
   const edgeAt = edge ? parseSrc(edge.src) : null;
@@ -105,7 +105,7 @@ async function align(selection: NodeSelection, edge: "left" | "right" | "top" | 
   if (y !== null) ops.push({ op: "setProp", name: "insetTop", value: { kind: "number", value: Math.round(y) } } as EditOp, { op: "removeProp", name: "constraintY" }, { op: "removeProp", name: "insetBottom" });
   const written = new Set(element.attributes.map((attr) => attr.name));
   const needed = ops.filter((op) => op.op !== "removeProp" || written.has((op as { name: string }).name));
-  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: needed, hash: element.hash }, `Align ${selection.name} ${edge.replace("hcenter", "horizontal centre").replace("vcenter", "vertical centre")}`);
+  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: needed, hash: element.hash }, `Align ${selection.name} ${edge.replace("hcenter", "horizontal center").replace("vcenter", "vertical center")}`);
 }
 
 const ALIGN_KEYS: Record<string, "left" | "right" | "top" | "bottom" | "hcenter" | "vcenter"> = { KeyA: "left", KeyD: "right", KeyW: "top", KeyS: "bottom", KeyH: "hcenter", KeyV: "vcenter" };

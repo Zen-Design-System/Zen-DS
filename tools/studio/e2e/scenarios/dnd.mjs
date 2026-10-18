@@ -413,7 +413,7 @@ async function story(ctx) {
   // Play: scroll to the end; the bar stays at the top, the last block shows whole, nothing scrolls sideways.
   await page.locator(".studio-viewport").focus();
   await page.keyboard.press("Escape");
-  await page.keyboard.press("p");
+  await page.keyboard.press("ControlOrMeta+Alt+Enter");
   const player = page.locator(".studio-player");
   await player.waitFor({ state: "visible", timeout: 5000 });
   await sleep(400);

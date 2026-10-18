@@ -1,3 +1,4 @@
+import { tip } from "../shell/ShortcutTip";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { BadgeCounter } from "../../../components/Badge";
@@ -500,9 +501,9 @@ function FrameToolbar({ frame, selected, menuOpen, tools, draft, setRef, setTool
             appearance="flat"
             level="primary"
             size="sm"
-            aria-label={example ? "Present" : "Zoom to frame"}
-            aria-keyshortcuts={presentKeys}
-            tooltip={example ? `Present full screen (${presentShortcut})` : `Zoom to frame (${presentShortcut})`}
+            aria-label={example ? "Present" : "Zoom to selection"}
+            aria-keyshortcuts={example ? presentKeys : "Shift+2"}
+            tooltip={example ? tip("Present", presentShortcut) : tip("Zoom to selection", "⇧2")}
             icon={<Icon name={example ? "icon-play-line" : "icon-zoom-in-line"} />}
             onClick={() => presentFrame(frame.id)}
           />

@@ -2,7 +2,8 @@
 // Zen Studio Position section selftest: the EditOp[] each gesture writes, from ./positionModel.ts (imported directly:
 // Node strips the types), without a server or a browser.
 //   node src/platform/studio/position/positionModel.selftest.mjs     summary; exit 1 on any failure
-import { constraintOps, floatOps, floatPlan, floatSummary, pinOf, pinOfConstraint, readInsets, snap, unfloatOps } from "./positionModel.ts";
+import { tokenName } from "../inspector/controls/scale.ts";
+import { constraintOps, ladderName, floatOps, floatPlan, floatSummary, pinOf, pinOfConstraint, readInsets, snap, unfloatOps } from "./positionModel.ts";
 
 let passed = 0;
 const failures = [];
@@ -55,7 +56,8 @@ check("float flush top left", floatPlan({ x: axis(0, 300, 0), y: axis(0, 200, 0)
 {
   const plan = floatPlan({ x: axis(90, 400), y: axis(137, 300) }, ladder);
   check("float far: clamped", [plan.props, plan.snaps.map((entry) => entry.snap.clamped)], [{ position: "absolute", insetLeft: "4xl", insetTop: "4xl" }, [true, true]]);
-  check("float summary says so", floatSummary("Card", plan.snaps, plan.pins), "Card ignores auto layout · left 4xl · 48 (was 90), top 4xl · 48 (was 137) · offsets stop at 4xl");
+  check("float summary says so", floatSummary("Card", plan.snaps, plan.pins), "Card ignores auto layout · left 4XLarge · 48 (was 90), top 4XLarge · 48 (was 137) · offsets stop at 4XLarge");
+  for (const key of ["none", "3xs", "2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl"]) check(`ladderName(${key}) is tokenName's`, ladderName(key), tokenName(key, "padding"));
 }
 // Fill and Align in parent stop working: removed; the filled axis stretches.
 {

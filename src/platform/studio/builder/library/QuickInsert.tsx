@@ -124,7 +124,7 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
   const optionId = (id: string) => `studio-qi-option-${id}`;
   const groups = (["component", "icon", "photo"] as const).map((kind) => ({ kind, entries: results.filter((row) => row.kind === kind) })).filter((group) => group.entries.length);
   return (
-    <div ref={panelRef} className="studio-qi" role="dialog" aria-label={mode === "swap" ? "Swap instance" : "Quick insert"} data-e2e="quick-insert" data-mode={mode}>
+    <div ref={panelRef} className="studio-qi" role="dialog" aria-label={mode === "swap" ? "Swap instance" : "Assets"} data-e2e="quick-insert" data-mode={mode}>
       <div className="studio-qi__search">
         <Search
           variant="popover"
@@ -147,7 +147,7 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
       </Text>
       <div className="studio-qi__body">
         {results.length ? (
-          <ul ref={listRef} id="studio-qi-list" className="studio-qi__list" role="listbox" aria-label="Library">
+          <ul ref={listRef} id="studio-qi-list" className="studio-qi__list" role="listbox" aria-label="Assets">
             {groups.map((group) => (
               <li key={group.kind} role="presentation" className="studio-qi__group">
                 {groups.length > 1 ? <span id={`studio-qi-group-${group.kind}`} className={`studio-qi__kicker ${typographyStyles["Caption/Medium"]}`}>{GROUP_LABEL[group.kind]}</span> : null}

@@ -39,7 +39,7 @@ export function NestedInstanceGroup({ item, nested, element, api }: { item: Nest
           onClick={() => selectNested(item)}
         />
       </ul>
-      {shared ? <p className={`studio-nested__where ${typographyStyles["Body/Small/Regular"]}`} title="Edits write where this element is written and change every element it renders">Written in {shared}</p> : null}
+      {shared ? <p className={`studio-nested__where ${typographyStyles["Body/Small/Regular"]}`} title="Changes apply where this layer is written: every instance it draws changes">Written in {shared}</p> : null}
       {item.rows.filter((row) => holds(row.when, item.hit.props)).map((row) => (row.kind === "toggle" ? (
         // A Figma boolean that shows a layer: on writes its starting value (Figma's default icon), off removes the prop.
         <PropField

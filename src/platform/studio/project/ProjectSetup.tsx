@@ -175,8 +175,8 @@ function ThemeSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
         <ColorSelector aria-label="Primary ramp" name="studio-primary" value={theme.primary.ramp ? RAMPS[theme.primary.ramp] : ""}
           colors={PRIMARY_RAMPS.map((ramp) => ({ value: RAMPS[ramp], label: ramp }))}
           onValueChange={(value) => { const ramp = PRIMARY_RAMPS.find((name) => RAMPS[name] === value); if (ramp) set("primary", { ramp }); }} />
-        <InspectorFields labels={["Colour"]} fields={[
-          <ColorField key="primary" size="sm" aria-label="Primary colour" value={primaryHex} colorPicker
+        <InspectorFields labels={["Color"]} fields={[
+          <ColorField key="primary" size="sm" aria-label="Primary color" value={primaryHex} colorPicker
             onValueChange={(value) => { if (/^#[0-9a-f]{6}$/i.test(value) && value.toUpperCase() !== primaryHex.toUpperCase()) set("primary", rampOrHex(value)); }} />,
         ]} />
         <RampStrip palette={palettes.primary.lightSolid} label="Primary, Light" />
@@ -187,25 +187,25 @@ function ThemeSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
           onValueChange={(value) => set("neutral", value === "tint" ? { tint: "primary" } : value === "custom" ? { hex: palettes.neutral.anchor } : { ramp: "Gray" })}
           options={[{ id: "gray", label: "Gray" }, { id: "tint", label: "Tinted" }, { id: "custom", label: "Custom" }]} />
         {neutralKind === "custom" ? (
-          <InspectorFields labels={["Colour"]} fields={[
-            <ColorField key="neutral" size="sm" aria-label="Neutral colour" value={palettes.neutral.anchor} colorPicker
+          <InspectorFields labels={["Color"]} fields={[
+            <ColorField key="neutral" size="sm" aria-label="Neutral color" value={palettes.neutral.anchor} colorPicker
               onValueChange={(value) => { if (/^#[0-9a-f]{6}$/i.test(value)) set("neutral", { hex: value.toUpperCase() }); }} />,
           ]} />
         ) : null}
         <RampStrip palette={palettes.neutral.lightSolid} label="Neutral, Light" />
       </InspectorSection>
 
-      <InspectorSection title="Status colours" fieldGrid>
+      <InspectorSection title="Status colors" fieldGrid>
         {(Object.keys(STATUS_ROLES) as StatusRole[]).map((role) => (
           <InspectorFields key={role} labels={[STATUS_LABEL[role]]} fields={[
-            <SelectField key={role} size="sm" aria-label={`${STATUS_LABEL[role]} colour`} value={theme.status[role]} popoverSearch
+            <SelectField key={role} size="sm" aria-label={`${STATUS_LABEL[role]} color`} value={theme.status[role]} popoverSearch
               onValueChange={(value) => set("status", { ...theme.status, [role]: value as RampName })}
               options={PRIMARY_RAMPS.map((ramp) => ({ value: ramp, label: RAMP_LABEL[ramp], ...(ramp === STATUS_ROLES[role] ? { meta: "Zen" } : {}) }))} />,
           ]} />
         ))}
       </InspectorSection>
 
-      <InspectorSection title="Chart colours" fieldGrid note="Sectors 1 and 2 follow Primary and Neutral">
+      <InspectorSection title="Chart colors" fieldGrid note="Sectors 1 and 2 follow Primary and Neutral">
         <ol className="studio-project-setup__sectors" aria-label="Chart sectors">
           {SECTOR_NAMES.map((sector, index) => (
             <li key={sector} className="studio-project-setup__sector" title={`Sector ${index + 1}`} style={{ background: swatches?.sectors[index] }} />
@@ -213,7 +213,7 @@ function ThemeSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
         </ol>
         {theme.chart.map((slot, index) => (
           <InspectorFields key={index} labels={[`Sector ${index + 3}`, "Tone"]} fields={[
-            <SelectField key="family" size="sm" aria-label={`Sector ${index + 3} colour`} value={slot.family} popoverSearch
+            <SelectField key="family" size="sm" aria-label={`Sector ${index + 3} color`} value={slot.family} popoverSearch
               onValueChange={(value) => set("chart", theme.chart.map((item, at) => (at === index ? { ...item, family: value as SupportFamily } : item)))}
               options={SUPPORT_FAMILIES.map((family) => ({ value: family, label: SUPPORT_LABELS[family] }))} />,
             <Segmented key="tone" aria-label={`Sector ${index + 3} tone`} size="sm" fullWidth value={slot.tone}

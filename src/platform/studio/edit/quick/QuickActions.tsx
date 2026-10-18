@@ -10,7 +10,7 @@ import { isQuickActionsOpen, setQuickActionsOpen, subscribeQuickActions } from "
 import "./quick.css";
 
 /*
- * Quick actions (⌘/ or Ctrl+/, Figma's): search every Studio action by name and run it. ↑ / ↓ move, Enter runs, Esc or a
+ * Actions (⌘K or ⌘/, Ctrl elsewhere: Figma's Actions menu): search every Studio action by name and run it. ↑ / ↓ move, Enter runs, Esc or a
  * click outside closes; an action that cannot run now says why and stays.
  */
 
@@ -59,7 +59,7 @@ function Palette({ onClose }: { onClose: (run?: Command) => void }) {
 
   const optionId = (at: number) => `studio-quick-option-${at}`;
   return (
-    <div className="studio-quick" role="dialog" aria-modal="true" aria-label="Quick actions" onKeyDown={onKeyDown}>
+    <div className="studio-quick" role="dialog" aria-modal="true" aria-label="Actions" onKeyDown={onKeyDown}>
       <div className="studio-quick__search">
         <Search
           size="sm"

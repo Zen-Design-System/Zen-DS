@@ -38,7 +38,7 @@ import "./slots.css";
  * actions for {Slot}" offers Reset slot (back to the saved file) and Clear contents (Figma's "Delete contents"), each
  * disabled with its reason in a visible caption. Content the source computes (a `.map`, a condition, a variable) shows
  * read-only with why. In a playground the slots are the main component's: empty, with the way to the examples
- * (whatever docs code fills them). Layout primitives (Stack, Grid, Box) show the same block titled "Children". Overlay
+ * (whatever docs code fills them). Layout primitives (Stack, Grid, Box) show the same block titled "Layers". Overlay
  * content, which the canvas cannot pick, is reached, removed and reordered from these rows.
  */
 
@@ -159,7 +159,7 @@ type BlockProps = {
   element: SourceElement;
   slot: ContentSlot;
   hostProps: HostProps;
-  /** Show the slot's own name (not for a layout primitive's single "Children" block: the section says it). */
+  /** Show the slot's own name (not for a layout primitive's single "Layers" block: the section says it). */
   titled: boolean;
   /** The rows go on under a data slot of the same Figma name (Sidebar Body-Content after its `sections`): no header of
    *  its own, and nothing while it has no rows. */
@@ -401,7 +401,7 @@ export function SlotsSection({ api, selection, element }: SlotsSectionProps) {
   const note = !api.disabled && !playground && !check.ok && check.kind === "scope" ? check.reason : undefined;
   const focusedProp = request && request.src === selection.src && Date.now() - request.at < 2000 ? request.prop : null;
   return (
-    <InspectorSection title={layout ? "Children" : "Slots"} note={note}>
+    <InspectorSection title={layout ? "Layers" : "Slots"} note={note}>
       <div className="studio-slots__slots">
         {slots.map((slot) => (
           <Fragment key={slot.prop}>

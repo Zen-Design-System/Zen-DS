@@ -191,17 +191,24 @@ export function constraintOps(axis: PositionAxis, pin: Pin, measure: AxisMeasure
   return { ops, snaps };
 }
 
-/** "left sm · 12", "top 4xl · 48 (was 137)". */
+/**
+ * A ladder step by its Figma variable name (Spacing/Padding XLarge…): controls/scale.ts tokenName's names, copied so this
+ * module stays free of imports for its node selftest (which checks the two agree).
+ */
+const LADDER_NAMES: Readonly<Record<string, string>> = { none: "None", "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge" };
+export const ladderName = (key: string) => LADDER_NAMES[key] ?? key;
+
+/** "left Small · 12", "top 4XLarge · 48 (was 137)". */
 export function snapText(entry: { prop: string; snap: Snap }): string {
   const edge = (edgeLabels[entry.prop] ?? entry.prop).toLowerCase();
-  const value = entry.snap.key === "none" ? "0" : `${entry.snap.key} · ${Math.round(entry.snap.px)}`;
+  const value = entry.snap.key === "none" ? "0" : `${ladderName(entry.snap.key)} · ${Math.round(entry.snap.px)}`;
   return `${edge} ${value}${entry.snap.clamped || Math.abs(entry.snap.px - entry.snap.from) >= 1 ? ` (was ${entry.snap.from})` : ""}`;
 }
 
 /** The status line after a float: what it is pinned to, and whether a distance past the ladder was clamped. */
 export function floatSummary(name: string, snaps: { prop: string; snap: Snap }[], pins: { x: Pin; y: Pin }): string {
-  const centred = (["x", "y"] as const).filter((axis) => pins[axis] === "center").map((axis) => (axis === "x" ? "centred horizontally" : "centred vertically"));
+  const centred = (["x", "y"] as const).filter((axis) => pins[axis] === "center").map((axis) => (axis === "x" ? "centered horizontally" : "centered vertically"));
   const parts = [...snaps.map(snapText), ...centred];
-  const clamped = snaps.some((entry) => entry.snap.clamped) ? " · offsets stop at 4xl" : "";
+  const clamped = snaps.some((entry) => entry.snap.clamped) ? ` · offsets stop at ${ladderName("4xl")}` : "";
   return `${name} ignores auto layout${parts.length ? ` · ${parts.join(", ")}` : ""}${clamped}`;
 }

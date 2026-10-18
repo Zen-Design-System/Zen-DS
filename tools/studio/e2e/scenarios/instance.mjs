@@ -6,7 +6,7 @@ import { clickNamed, newPage, pageText, selectStack } from "./builder.mjs";
 import { expectSource, freshSelect, pickOption } from "./inspector.mjs";
 
 const FRAME = 6;
-const resetAll = (page) => page.locator("#studio-right").getByRole("button", { name: "Reset all overrides" });
+const resetAll = (page) => page.locator("#studio-right").getByRole("button", { name: "Reset all changes" });
 /** Waits until a row's switch shows `checked`: a layer switch reads the rendered props, so it follows the canvas's hot
  *  update (a few hundred ms after the source), as a person sees it flip before pressing it again. */
 const switchShows = (page, prop, checked) => until(async () => (await inspectorRow(page, prop).getByRole("switch").getAttribute("aria-checked")) === String(checked), { message: `${prop} switch ${checked ? "on" : "off"}` });
@@ -43,7 +43,7 @@ export const rows = [
     },
   },
   {
-    id: "IN-02", feature: "Reset all overrides: design props back to default, content kept, one ⌘Z brings them back", wp: "GĐ4 M1",
+    id: "IN-02", feature: "Reset all changes: design props back to default, content kept, one ⌘Z brings them back", wp: "GĐ4 M1",
     async run(ctx) {
       const page = await freshSelect(ctx, "inst-button", { frame: FRAME });
       await resetAll(page).click();
@@ -234,10 +234,10 @@ export const rows = [
     },
   },
   {
-    id: "IN-13", feature: "Reset all overrides on an owner resets its nested instance too, in one ⌘Z", wp: "GĐ4 M3",
+    id: "IN-13", feature: "Reset all changes on an owner resets its nested instance too, in one ⌘Z", wp: "GĐ4 M3",
     async run(ctx) {
       const page = await freshSelect(ctx, "inst-row", { frame: FRAME });
-      const reset = page.locator("#studio-right").getByRole("button", { name: "Reset all overrides" });
+      const reset = page.locator("#studio-right").getByRole("button", { name: "Reset all changes" });
       await reset.waitFor({ state: "visible", timeout: 5000 });
       await reset.click();
       await until(async () => /<ListItem data-e2e="inst-row" title="Ava Tran" leading=\{<Avatar alt="Ava Tran" \/>\} \/>/.test(await ctx.text()), { message: "selected and the nested size removed together" });
@@ -349,7 +349,7 @@ export const rows = [
     },
   },
   {
-    id: "IN-06", feature: "Builder page: a Button from Assets shows Figma names; Reset all overrides is one ⌘Z", wp: "GĐ4 M1",
+    id: "IN-06", feature: "Builder page: a Button from Assets shows Figma names; Reset all changes is one ⌘Z", wp: "GĐ4 M1",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
@@ -390,7 +390,7 @@ export const rows = [
       const page = await freshSelect(ctx, "const-views", { frame: 8 });
       const panel = page.locator("#studio-right");
       await until(async () => (await panel.innerText()).includes("Written in const views"), { message: "the const note" });
-      if (await panel.getByRole("button", { name: /^Remove / }).count()) throw new Error("a const's items offer Remove (item ops edit lists written in place only)");
+      if (await panel.getByRole("button", { name: /^(?:Remove|Delete) / }).count()) throw new Error("a const's items offer Remove (item ops edit lists written in place only)");
       const item = panel.getByRole("group", { name: /^Options · 2/ });
       const input = item.locator('[data-prop="label"] input').first();
       await input.fill("Kanban");

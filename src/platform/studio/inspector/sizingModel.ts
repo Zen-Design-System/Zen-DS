@@ -125,7 +125,7 @@ export function parseSizingInput(text: string, axis: SizingAxis = "width"): Sizi
   if (startsWord(value, "fill", "fill container")) return { kind: "fill" };
   if (startsWord(value, "hug", "hug contents")) return { kind: "hug" };
   if (startsWord(value, "auto", "reset")) return { kind: "auto" };
-  if (/^-?\d/.test(value) && /(%|rem|em|vw|vh|ch)$/.test(value)) return { kind: "invalid", message: "Sizes are px numbers: use Fill for 100%" };
+  if (/^-?\d/.test(value) && /(%|rem|em|vw|vh|ch)$/.test(value)) return { kind: "invalid", message: "Type a number, or pick Fill container for 100%" };
   return { kind: "invalid", message: `${axisName[axis]} takes a number, Hug or Fill` };
 }
 

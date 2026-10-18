@@ -17,7 +17,7 @@ export type ContentSlotKind =
   | "content"
   /** A small fixed place (ListItem leading / trailing): only the components in `accepts.only`. */
   | "atom"
-  /** A layout primitive's own children (Stack, Grid, Box): the inspector titles it "Children". */
+  /** A layout primitive's own children (Stack, Grid, Box): the inspector titles it "Layers", as Figma calls them. */
   | "layout";
 
 /**
@@ -54,7 +54,7 @@ export type ContentSlot = {
   component: string;
   /** `children`, or the ReactNode prop the content is written in (`side={<…/>}`). */
   prop: string;
-  /** The Figma slot name ("Content", "Main-Contents"); layout primitives use "Children". */
+  /** The Figma slot name ("Content", "Main-Contents"); layout primitives use "Layers". */
   name: string;
   /** The Figma component property (`Content#6643:0`) and component (set) node. `native`: a SLOT property, not a frame. */
   figma?: { property?: string; node?: string; native: boolean };
@@ -587,7 +587,7 @@ const emptyStateIcon: ContentSlot = {
 };
 
 const layout = (component: string, flow: SlotFlow, gap: SlotGap): ContentSlot => ({
-  component, prop: "children", name: "Children", kind: "layout", container: null, mountsWhenEmpty: true, flow, gap,
+  component, prop: "children", name: "Layers", kind: "layout", container: null, mountsWhenEmpty: true, flow, gap,
 });
 
 /** Every component with content slots, by display name. */
@@ -638,7 +638,7 @@ export function slotOf(component: string, prop: string): ContentSlot | null {
   return slotsOf(component).find((slot) => slot.prop === prop) ?? null;
 }
 
-/** Stack, Grid and Box: free frames whose children are the slot (titled "Children"). Text and Heading are not frames. */
+/** Stack, Grid and Box: free frames whose children are the slot (titled "Layers"). Text and Heading are not frames. */
 export const isLayoutPrimitive = (component: string) => LAYOUT_PRIMITIVES.has(component);
 
 /** Selector of the component's root element, or null when it has no content slots. */

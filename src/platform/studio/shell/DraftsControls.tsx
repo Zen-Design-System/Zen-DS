@@ -41,7 +41,7 @@ function DraftRow({ row, disabled }: { row: DraftInfo; disabled: boolean }) {
         </>
       )}
       leading={<DockIcon icon="icon-file-code-line" size="sm" theme="neutral" background="subtle" />}
-      trailing={<IconButton appearance="flat" level="primary" size="md" icon="icon-x-line" aria-label={`Discard the draft of ${name}`} tooltip="Discard this draft" disabled={disabled} onClick={() => confirmDiscard([row.file])} />}
+      trailing={<IconButton appearance="flat" level="primary" size="md" icon="icon-x-line" aria-label={`Discard changes to ${name}`} tooltip="Discard changes" disabled={disabled} onClick={() => confirmDiscard([row.file])} />}
     />
   );
 }
@@ -107,14 +107,14 @@ export function DraftsControls({ density }: { density: "wide" | "compact" | "pan
   };
 
   const label = density === "narrow" || density === "phone" || density === "panel" ? `${count}` : density === "compact" ? `${count} unsaved` : `Unsaved · ${plural(count, "file")}`;
-  const description = `${plural(count, "file")} with unsaved drafts${staleCount ? `, ${staleCount} changed on disk` : ""}`;
+  const description = `${plural(count, "file")} with unsaved changes${staleCount ? `, ${staleCount} changed on disk` : ""}`;
   const saving = busy === "save" ? "Saving…" : "Save all";
   return (
     <div
       ref={rootRef}
       className="studio-drafts"
       role="group"
-      aria-label="Unsaved drafts"
+      aria-label="Unsaved changes"
       onFocus={() => { focused.current = true; }}
       onBlur={(event) => { focused.current = event.relatedTarget instanceof Node && Boolean(rootRef.current?.contains(event.relatedTarget)); }}
     >
@@ -143,7 +143,7 @@ export function DraftsControls({ density }: { density: "wide" | "compact" | "pan
       {open ? (
         <div ref={panelRef} id={`${id}-panel`} className="studio-drafts__panel" role="dialog" aria-labelledby={`${id}-title`} aria-describedby={`${id}-note`}>
           <div className="studio-drafts__head">
-            <Text as="p" id={`${id}-title`} textStyle="Body/Small/Bold">{`Unsaved drafts · ${plural(count, "file")}`}</Text>
+            <Text as="p" id={`${id}-title`} textStyle="Body/Small/Bold">{`Unsaved changes · ${plural(count, "file")}`}</Text>
             <Text as="p" id={`${id}-note`} textStyle="Caption/Regular" tone="light">
               {`Everyone on this dev server sees them until you save or discard. A frame saves or discards its own changes from its toolbar; Save all writes every file listed here and runs the harness (${modKey}S).`}
             </Text>
@@ -153,7 +153,7 @@ export function DraftsControls({ density }: { density: "wide" | "compact" | "pan
               </Text>
             ) : null}
           </div>
-          <List className="studio-drafts__list" aria-label="Files with drafts" inset="none">
+          <List className="studio-drafts__list" aria-label="Files with unsaved changes" inset="none">
             {drafts.map((row) => <DraftRow key={row.file} row={row} disabled={busy !== null} />)}
           </List>
           <div className="studio-drafts__actions">
@@ -172,7 +172,7 @@ export function DraftsViewerNote({ density }: { density: "wide" | "compact" | "n
   if (!drafts.length) return null;
   return (
     <Badge className="studio-drafts__note" size="sm" theme="yellow" background="subtle" aria-label={`Unsaved admin drafts are shown (${plural(drafts.length, "file")})`}>
-      {density === "wide" ? "Unsaved admin drafts are shown" : "Drafts shown"}
+      {density === "wide" ? "Others' unsaved changes are shown" : "Unsaved changes shown"}
     </Badge>
   );
 }
@@ -195,7 +195,7 @@ export function DraftsDialog() {
         open={Boolean(asked)}
         onOpenChange={(open) => { if (!open) answerDraftsQuestion(false); }}
         title="Save over newer disk changes?"
-        description={`${stale.join(", ")} changed on disk after ${stale.length === 1 ? "its draft" : "their drafts"} started. Save merges ${frame ? `the edits in “${frame.label}”` : "your edits"} into the disk version; a file whose changed lines collide stays a draft.`}
+        description={`${stale.join(", ")} changed on disk after ${stale.length === 1 ? "its changes" : "their changes"} started. Save merges ${frame ? `the edits in “${frame.label}”` : "your edits"} into the disk version; a file whose changed lines collide stays unsaved.`}
         theme="warning"
         icon="icon-alert-triangle-line"
         primaryAction={{ label: "Save", onClick: () => answerDraftsQuestion(true), autoFocus: true }}
@@ -207,7 +207,7 @@ export function DraftsDialog() {
     <Dialog
       open={Boolean(asked)}
       onOpenChange={(open) => { if (!open) answerDraftsQuestion(false); }}
-      title={frame ? `Discard the changes in “${frame.label}”?` : files.length === 1 ? `Discard the draft of ${names[0]}?` : `Discard ${plural(files.length, "draft")}?`}
+      title={frame ? `Discard the changes in “${frame.label}”?` : files.length === 1 ? `Discard changes to ${names[0]}?` : `Discard changes to ${plural(files.length, "file")}?`}
       description={frame
         ? "This frame's unsaved edits go back to what is saved on disk; other frames keep theirs. They cannot be brought back."
         : files.length === 1 ? "The file goes back to what is saved on disk. Its unsaved edits cannot be brought back." : `${list} go back to what is saved on disk. Their unsaved edits cannot be brought back.`}

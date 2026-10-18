@@ -2,6 +2,7 @@
 import { element, locOf } from "../lib/source.mjs";
 import { clickLoc, focusFrame, inspectorRow, openCodeProperties, rectOf, sleep, statusText, until } from "../lib/studio.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
+import { optionLabel } from "../../../../src/platform/studio/inspector/controls/scale.ts";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 const read = async (ctx, id, index = 0, file = ctx.file) => element((await ctx.api.source(file)).content, file, id, index);
@@ -33,7 +34,7 @@ export async function waitInspector(page, file, loc) {
     const panel = document.querySelector("#studio-right");
     const src = panel?.querySelector("[data-inspector-src]")?.getAttribute("data-inspector-src") ?? "";
     const match = /^(.*):(\d+):\d+$/.exec(src);
-    return Boolean(match && match[1] === wantFile && match[2] === wantLine && !/Reading the source/i.test(panel?.textContent ?? ""));
+    return Boolean(match && match[1] === wantFile && match[2] === wantLine && ![...(panel?.querySelectorAll(".studio-inspector__empty") ?? [])].some((el) => /^Loading…$/.test(el.textContent?.trim() ?? "")));
   }, [file, loc.split(":")[0]]), { message: `the Inspector to show ${where}` });
   await sleep(150);
 }
@@ -55,14 +56,16 @@ export const scaleStep = (key, scale = "gap") => new RegExp(`^${(scale === "radi
 
 export async function pickOption(page, prop, label) {
   const row = inspectorRow(page, prop);
+  // A code value ("secondary", "md") reads as its option label ("Secondary", "Medium": inspector/controls/scale.ts optionLabel).
+  const name = typeof label === "string" ? optionLabel(label) : label;
   // EnumControl (PropField.tsx) draws a Segmented when every option fits whole at the panel's width, else a select.
   const segmented = row.locator(".zen-segmented");
   if (await segmented.count()) {
-    await segmented.getByRole("button", { name: label, exact: typeof label === "string" }).click();
+    await segmented.getByRole("button", { name, exact: typeof name === "string" }).click();
     return;
   }
   await row.locator("button").first().click();
-  await page.getByRole("option", { name: label, exact: typeof label === "string" }).click();
+  await page.getByRole("option", { name, exact: typeof name === "string" }).click();
 }
 
 /** Polls the source until `check(element)` holds; returns the element. */
@@ -80,7 +83,7 @@ export const rows = [
       const page = await freshSelect(ctx, "btn-a");
       await pickOption(page, "level", "Secondary");
       await expectSource(ctx, "btn-a", (el) => el.attr("level") === "secondary", "level=secondary in the source");
-      await until(async () => /\b(?:Saved|Draft)\b/.test(await statusText(page)), { message: "the edit's Saved / Draft line" }).catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 160)})`); });
+      await until(async () => /\b(?:Saved|Unsaved)\b/.test(await statusText(page)), { message: "the edit's Saved / Unsaved line" }).catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 160)})`); });
       const seen = await page.evaluate(() => {
         const texts = (selector) => [...document.querySelectorAll(selector)].map((el) => el.textContent ?? "");
         return {

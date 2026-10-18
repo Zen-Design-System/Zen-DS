@@ -1,3 +1,4 @@
+import { startPlay } from "../builder/proto/Player";
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { Menu, type MenuEntry, type MenuItemData } from "../../../components/Menu";
 import { ZenPortalProvider } from "../../../components/Portal";
@@ -19,7 +20,9 @@ import { presentFrame, zoomToFrame } from "../board/presentFrame";
 import { canvasApi } from "../canvas/viewport";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
-import { presentShortcut } from "./modKey";
+import { modKey, presentShortcut } from "./modKey";
+import { createComponent } from "../edit/localComponents";
+import { removeFrame } from "../builder/proto/addFrame";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
 import type { StudioSelection } from "../types";
@@ -72,6 +75,9 @@ export function openEmptyCanvasMenu(x: number, y: number) {
   set({ x, y, target: { kind: "canvas" }, at: Date.now() });
 }
 
+/** A Figma item Zen Studio has no feature for yet: in Figma's place in the menu, off, saying so (edit/figmaNotYet.ts). */
+const notYet = (id: string, label: string, shortcut: string, icon: MenuItemData["icon"]): MenuItemData => ({ id: `not-yet-${id}`, label, icon, shortcut, disabled: true, caption: "Not in Zen Studio yet", onSelect: () => {} });
+
 export function CanvasMenu() {
   const menu = useSyncExternalStore(subscribe, () => state, () => null);
   const [point, setPoint] = useState({ x: 0, y: 0 });
@@ -97,8 +103,8 @@ export function CanvasMenu() {
 
   const reply = plan && menu && plan.at === menu.at ? plan.reply : null;
   const reason = !selection ? null
-    : !canEdit() ? (studioStore.getState().role === "admin" ? "Detaching needs the Studio dev server" : "View only — switch to Admin to edit")
-      : !offered ? `${selection.name} is not a component instance`
+    : !canEdit() ? (studioStore.getState().role === "admin" ? "Can't detach right now" : "View only")
+      : !offered ? "Select an instance"
         : !reply ? "Checking…"
           : reply.ok ? null : reply.reason;
   const detach: MenuItemData = {
@@ -120,45 +126,56 @@ export function CanvasMenu() {
     // layout, and wraps anything else in an auto layout frame; Frame selection wraps in a frame.
     { id: "wrap-stack", label: "Add auto layout", icon: "icon-rows-01-line", shortcut: autoLayoutShortcut, caption: wrap.ok || frameAlone ? undefined : wrap.reason, disabled: !wrap.ok && !frameAlone, onSelect: () => { void addAutoLayoutToSelection(); } },
     ...(autoLayoutAlone ? [{ id: "remove-auto-layout", label: "Remove auto layout", icon: "icon-square-line" as const, shortcut: removeAutoLayoutShortcut, onSelect: () => { void removeAutoLayoutFromSelection(); } }] : []),
+    notYet("group", "Group selection", `${modKey}G`, "icon-layers-three-01-line"),
     { id: "wrap-box", label: "Frame selection", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
   ] : [];
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
-  const visibility: MenuEntry[] = menu?.target.kind === "node" ? visibilityMenuItems(selection) : [];
+  const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), notYet("lock", "Lock", `⇧${modKey}L`, "icon-lock-01-line")] : [];
   // Copy / Cut / Paste / Paste to replace / properties first, as in Figma's layer menu (edit/clipboard.ts).
   const clipboard = clipboardMenuItems(selection);
-  const editOff = canEdit() ? undefined : studioStore.getState().role === "admin" ? "Editing needs the Studio dev server" : "View only — switch to Admin to edit";
+  const editOff = canEdit() ? undefined : studioStore.getState().role === "admin" ? "Can't edit right now" : "View only";
   // Several layers: the edits that work on all of them at once (Figma's multi-selection menu), then the wrap items.
   const severalItems: MenuEntry[] = selection ? [
     { id: "multi-copy", label: "Copy", icon: "icon-copy-line", shortcut: clipboardShortcuts.copy, onSelect: () => { void clipboardActions.copy(selection); } },
     { id: "multi-cut", label: "Cut", icon: "icon-scissors-line", shortcut: clipboardShortcuts.cut, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void clipboardActions.cut(selection); } },
     { id: "multi-duplicate", label: "Duplicate", icon: "icon-duplicate-line", shortcut: duplicateShortcut, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void duplicateLayers(); } },
     // Several layers of one parent step together (op many move), as the arrow keys do.
-    { id: "multi-move-up", label: "Move up", icon: "icon-arrow-up-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void stepLayers("prev"); } },
-    { id: "multi-move-down", label: "Move down", icon: "icon-arrow-down-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void stepLayers("next"); } },
+    { id: "multi-move-down", label: "Bring forward", icon: "icon-arrow-up-line", shortcut: `${modKey}]`, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void stepLayers("next"); } },
+    { id: "multi-move-up", label: "Send backward", icon: "icon-arrow-down-line", shortcut: `${modKey}[`, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void stepLayers("prev"); } },
     { type: "separator", id: "multi-separator" },
     ...wrapItems,
     // Floats every selected Stack / Grid / Box at its own offsets (or puts them back in the flow): edit/ignoreAutoLayout.ts.
     { id: "multi-float", label: "Ignore auto layout", icon: "icon-transform-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void toggleIgnoreAutoLayout(); } },
     { type: "separator", id: "multi-remove-separator" },
-    { id: "multi-remove", label: "Remove", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void removeLayers(); } },
+    { id: "multi-remove", label: "Delete", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void removeLayers(); } },
+  ] : [];
+  // Figma's Create component (⌥⌘K) on one layer of a page you made (edit/localComponents.ts).
+  const componentItems: MenuEntry[] = selection && !selection.part && selection.name !== "Use" && studioStore.getState().localPage ? [
+    { id: "create-component", label: "Create component", icon: "icon-diamond-line" as const, shortcut: `⌥${modKey}K`, disabled: Boolean(editOff), onSelect: () => { void createComponent(selection); } },
   ] : [];
   const frame = menu?.target.kind === "frame" ? findFrame(menu.target.frameId) : null;
   const localPage = studioStore.getState().localPage;
   const frameItems: MenuEntry[] = frame ? [
-    { id: "frame-zoom", label: "Zoom to frame", icon: "icon-zoom-in-line", shortcut: "⇧2", onSelect: () => zoomToFrame(frame.element) },
-    { id: "frame-present", label: "Present", icon: "icon-play-line", shortcut: presentShortcut, onSelect: () => presentFrame(frame.id) },
+    { id: "frame-zoom", label: "Zoom to selection", icon: "icon-zoom-in-line", shortcut: "⇧2", onSelect: () => zoomToFrame(frame.element) },
+    // Present plays a page you made from this Screen (Figma's Present runs the prototype); an example frame is presented.
+    ...(localPage || frame.id.startsWith("example:") ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),
     // A frame of a page you made: its code and its Figma export on the clipboard (⌘V in the Zen plugin places it).
     ...(localPage ? [{ id: "frame-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { void copyFrameForFigma(localPage, frame.id); } }] : []),
     // A builder page that starts as this example or template (GĐ3b): kept in this browser, so it needs no dev server.
     ...(frame.id.startsWith("example:") ? [{ id: "frame-new-page", label: "New page from this frame", icon: "icon-file-plus-line" as const, onSelect: () => { void newPageFromFrame(frame); } }] : []),
     { type: "separator", id: "frame-separator" },
     { id: "frame-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
+    // A Screen or Overlay of a page you made deletes as one edit (Figma deletes a frame from its menu too).
+    ...(localPage && /^(screen|overlay):/.test(frame.id) ? [
+      { type: "separator" as const, id: "frame-delete-separator" },
+      { id: "frame-delete", label: "Delete", icon: "icon-trash-line" as const, shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), onSelect: () => { void removeFrame(localPage, frame.id); } },
+    ] : []),
   ] : [];
   const canvasItems: MenuEntry[] = [
     { id: "canvas-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
     { id: "canvas-100", label: "Zoom to 100%", icon: "icon-zoom-in-line", shortcut: "⇧0", onSelect: () => canvasApi.setZoom(1) },
     { type: "separator", id: "canvas-separator" },
-    { id: "canvas-ui", label: "Hide or show UI", icon: "icon-layout-alt-04-line", shortcut: "⌘\\", onSelect: () => toggleSidePanels() },
+    { id: "canvas-ui", label: "Show/Hide UI", icon: "icon-layout-alt-04-line", shortcut: `${modKey}\\`, onSelect: () => toggleSidePanels() },
   ];
   // Figma's "Select layer ›": every layer under the pointer, deepest first, so any of them is two steps away however
   // deep it sits (user, 2026-10-13: "khó click vào element muốn hơn so với figma"). One item opens the list in place
@@ -173,7 +190,7 @@ export function CanvasMenu() {
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
+        : [...selectLayer, ...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 

@@ -11,8 +11,9 @@ import type { StudioRole } from "../types";
 import "./shell.css";
 
 const roles: Record<StudioRole, { label: string; caption: string }> = {
-  admin: { label: "Admin", caption: "Can edit source" },
-  viewer: { label: "Viewer", caption: "View only" },
+  // Figma's permission words (Can edit / Can view); the role keys stay admin / viewer.
+  admin: { label: "Can edit", caption: "Change pages and save code" },
+  viewer: { label: "Can view", caption: "View only" },
 };
 
 /**

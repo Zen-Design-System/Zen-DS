@@ -10,6 +10,7 @@ import { armPlacement, disarmPlacement } from "../edit/place";
 import { toggleAgent, useAgent } from "../agent/agentStore";
 import { ChromeScope } from "../shell/ChromeScope";
 import { modKey } from "../shell/modKey";
+import { tip } from "../shell/ShortcutTip";
 import { PALETTE } from "../slots/palette";
 import { studioStore, useStudio } from "../store";
 import type { StudioShapeTool, StudioTool } from "../types";
@@ -28,16 +29,21 @@ export const shapeTools: ReadonlyArray<ToolEntry & { id: StudioShapeTool }> = [
 ];
 const isShapeTool = (tool: StudioTool): tool is StudioShapeTool => shapeTools.some((entry) => entry.id === tool);
 
-/** The tools in Figma UI3's order and groups: Move · Hand | Frame | Shapes | Stack · Text · Image | (Assets) | Interact. */
+/**
+ * The tools in Figma UI3's order and groups: Move · Hand | Frame | Shapes | Text · Image | (Assets); example pages also
+ * have Stack (placed in a layout) and Interact (use the examples).
+ */
 export const canvasToolGroups: ReadonlyArray<ReadonlyArray<ToolEntry>> = [
   [{ id: "select", label: "Move", key: "V", icon: "icon-cursor-line" }, { id: "hand", label: "Hand", key: "H", icon: "icon-hand-line" }],
   [{ id: "frame", label: "Frame", key: "F", icon: "icon-layout-alt-01-line" }],
   shapeTools,
-  [{ id: "stack", label: "Stack", icon: "icon-rows-01-line" }, { id: "text", label: "Text", key: "T", icon: "icon-type-01-line" }, { id: "image", label: "Image", icon: "icon-image-line" }],
+  [{ id: "stack", label: "Stack", icon: "icon-rows-01-line" }, { id: "text", label: "Text", key: "T", icon: "icon-type-01-line" }, { id: "image", label: "Place image/video", key: `⇧${modKey}K`, icon: "icon-image-line" }],
   [{ id: "interact", label: "Interact", key: "I", icon: "icon-cursor-click-line" }],
 ];
 export const canvasTools = canvasToolGroups.flat();
 
+/** A tool key as aria-keyshortcuts writes it ("⇧⌘K" → "Shift+Meta+K"). */
+const ariaKeys = (key?: string) => key?.replace("⇧", "Shift+").replace("⌘", "Meta+").replace("⌥", "Alt+");
 const paletteItem = (id: string) => PALETTE.find((item) => item.id === id);
 /** What a placement tool places (Stack and Image are the Assets' items; Text is a plain line to type over). */
 function placed(tool: StudioTool): Insertable | null {
@@ -66,9 +72,9 @@ function ShapeTools({ tool, off }: { tool: StudioTool; off: boolean }) {
         size="sm"
         aria-label={entry.label}
         aria-pressed={tool === entry.id}
-        aria-keyshortcuts={entry.key?.replace("⇧", "Shift+")}
+        aria-keyshortcuts={ariaKeys(entry.key)}
         disabled={off}
-        tooltip={off ? "Shapes · on a page you made" : `${entry.label}${entry.key ? ` (${entry.key})` : ""}`}
+        tooltip={off ? "Shapes work on a page you made" : tip(entry.label, entry.key)}
         icon={<Icon name={entry.icon} />}
         onClick={() => pick(entry.id)}
       />
@@ -109,10 +115,15 @@ export function CanvasTools() {
   }, [tool, localPage]);
   return (
     <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools">
-      {canvasToolGroups.map((group, index) => (
+      {canvasToolGroups.map((group, index) => {
+        // A page you made is a Figma design page: no Stack tool (Frame F, then Add auto layout ⇧A) and no Interact
+        // (the examples' tool); I is Figma's Pick color there (edit/figmaNotYet.ts).
+        const items = localPage ? group.filter((item) => item.id !== "stack" && item.id !== "interact") : group;
+        if (!items.length) return null;
+        return (
         <Fragment key={group[0].id}>
           {index ? <span className="studio-canvas-tools__divider" aria-hidden="true" /> : null}
-          {group === shapeTools ? <ShapeTools tool={tool} off={!localPage} /> : group.map((item) => {
+          {group === shapeTools ? <ShapeTools tool={tool} off={!localPage} /> : items.map((item) => {
             const off = item.id === "frame" && !localPage;
             return (
               <IconButton
@@ -122,19 +133,20 @@ export function CanvasTools() {
                 size="sm"
                 aria-label={item.label}
                 aria-pressed={tool === item.id}
-                aria-keyshortcuts={item.key}
+                aria-keyshortcuts={ariaKeys(item.key)}
                 disabled={off}
-                tooltip={off ? "Frame · on a page you made" : `${item.label}${item.key ? ` (${item.key})` : ""}`}
+                tooltip={off ? "Frame works on a page you made" : tip(item.label, item.key)}
                 icon={<Icon name={item.icon} />}
                 onClick={() => studioStore.setState({ tool: item.id })}
               />
             );
           })}
           {index === 3 ? (
-            <IconButton appearance="flat" level="primary" size="sm" aria-label="Assets" aria-keyshortcuts="Shift+I" tooltip="Assets (⇧I)" icon={<Icon name="icon-cube-line" />} onClick={() => openQuickInsert()} />
+            <IconButton appearance="flat" level="primary" size="sm" aria-label="Assets" aria-keyshortcuts="Shift+I" tooltip={tip("Assets", "⇧I")} icon={<Icon name="icon-cube-line" />} onClick={() => openQuickInsert()} />
           ) : null}
         </Fragment>
-      ))}
+        );
+      })}
       <ZenAgentButton />
     </ChromeScope>
   );
@@ -146,7 +158,7 @@ function ZenAgentButton() {
   return (
     <>
       <span className="studio-canvas-tools__divider" aria-hidden="true" />
-      <IconButton appearance={open ? "main" : "flat"} level="primary" size="sm" aria-label="Zen Agent" aria-pressed={open} aria-keyshortcuts="Meta+J" tooltip={`Zen Agent (${modKey}J)`} icon={<Icon name="icon-stars-01-line" />} onClick={toggleAgent} />
+      <IconButton appearance={open ? "main" : "flat"} level="primary" size="sm" aria-label="Zen Agent" aria-pressed={open} aria-keyshortcuts="Meta+J" tooltip={tip("Zen Agent", `${modKey}J`)} icon={<Icon name="icon-stars-01-line" />} onClick={toggleAgent} />
     </>
   );
 }
