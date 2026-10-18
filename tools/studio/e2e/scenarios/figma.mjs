@@ -136,6 +136,30 @@ async function dragHandle(page, handle, dx, dy, keys = []) {
   for (const key of keys) await page.keyboard.up(key);
 }
 
+
+/** A page with two phone Screens side by side (for several frames). */
+const twoScreensText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Board", '<Screen id="screen-2" title="Second" device="phone" />');
+let twoMade = null;
+async function twoScreensPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!twoMade) {
+    const seeded = await seededPage(ctx, twoScreensText, /id="screen-2"/);
+    twoMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${twoMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${twoMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Shift+Digit1");
+  await sleep(400);
+  return { page, id: twoMade };
+}
+/** The frames shown selected (their outline). */
+const selectedFrameIds = (page) => page.locator('.studio-frame[data-selected="true"]').evaluateAll((frames) => frames.map((frame) => frame.querySelector("[data-studio-frame]")?.getAttribute("data-studio-frame") ?? frame.getAttribute("data-studio-frame")));
+
 export const rows = [
   {
     id: "FW-01", feature: "⌘K opens Actions (Figma's command search), Esc closes it", wp: "F0 2026-10-18",
@@ -662,6 +686,51 @@ export const rows = [
       await page.locator(".studio-viewport").focus();
       await undoTo(page, id, before);
       return `marks ${marks.join(", ")} · Star X 260 → 240 · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-30", feature: "⌘A with no layer selected selects every frame on the board (Figma's Select all)", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page } = await twoScreensPage(ctx);
+      await page.keyboard.press("ControlOrMeta+KeyA");
+      await until(async () => (await page.locator('.studio-frame-label[data-selected="true"]').count()) === 2, { message: "both frame names selected" });
+      await until(async () => (await page.locator('.studio-frame[data-selected="true"]').count()) === 2, { message: "both frames outlined" });
+      await page.keyboard.press("Escape");
+      return "⌘A → 2 frames";
+    },
+  },
+  {
+    id: "FW-31", feature: "A marquee from the empty canvas selects the frames it touches; ⇧-click a frame's name takes it out", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page } = await twoScreensPage(ctx);
+      const frames = await page.locator('[data-studio-frame^="screen:"]').evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
+      const left = Math.min(...frames.map((frame) => frame.x));
+      const top = Math.min(...frames.map((frame) => frame.y));
+      const bottom = Math.max(...frames.map((frame) => frame.y + frame.h));
+      // From above the frames (empty canvas) down across both.
+      const start = { x: left - 10, y: top - 30 };
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      for (let step = 1; step <= 6; step++) { await page.mouse.move(start.x + step * 40, start.y + ((bottom - top) / 2) * (step / 6) + 30); await sleep(30); }
+      const right = Math.max(...frames.map((frame) => frame.x + frame.w));
+      await page.mouse.move(right - 10, top + (bottom - top) / 2, { steps: 4 });
+      await page.mouse.up();
+      await until(async () => (await page.locator('.studio-frame-label[data-selected="true"]').count()) === 2, { message: "the marquee selects both frames" });
+      await page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-2"]').click({ modifiers: ["Shift"] });
+      await until(async () => (await page.locator('.studio-frame-label[data-selected="true"]').count()) === 1, { message: "⇧-click takes Second out" });
+      return "marquee → 2 frames · ⇧-click → 1";
+    },
+  },
+  {
+    id: "FW-32", feature: "Layers shows several selected frames; ⇧-click a frame's row adds it", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page } = await twoScreensPage(ctx);
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id="frame:screen:screen-1"]').click();
+      await page.locator('[data-layer-id="frame:screen:screen-2"]').click({ modifiers: ["Shift"] });
+      await until(async () => (await page.locator('.studio-layers__tree [data-kind="frame"][aria-selected="true"]').count()) === 2, { message: "both frame rows selected" });
+      await until(async () => (await page.locator('.studio-frame[data-selected="true"]').count()) === 2, { message: "both frames outlined" });
+      return "2 frame rows selected";
     },
   },
 ];

@@ -1,3 +1,4 @@
+import { selectFrames } from "../select/frameSelection";
 import { useEffect } from "react";
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { canvasApi, zoomIn, zoomOut } from "../canvas/viewport";
@@ -13,7 +14,8 @@ import { textEditSession } from "./textEdit";
 /*
  * Figma's canvas keys the Studio did not have (research docs/research/studio-figma-native-parity-2026-10-17.md P3; the
  * browser's own meaning of ⌘[ ⌘] and ⌘A no longer gets through on the canvas):
- *   ⌘A            select all layers of the selected layer's parent (Figma: Select all)
+ *   ⌘A            select all layers of the selected layer's parent (Figma: Select all); with no layer selected, every
+ *                 top-level frame (select/frameSelection.ts)
  *   ⌘] / ⌘[       bring forward / send backward one place (Zen: later layers paint on top, as Figma's)
  *   ⌥⌘] / ⌥⌘[     bring to front / send to back
  *   \             select the parent (as ⇧Enter)
@@ -48,6 +50,17 @@ function selectAll(selection: NodeSelection) {
   const [first, ...others] = layers;
   if (!first) return;
   selectLayers(first, others);
+}
+
+/** ⌘A with no layer selected: the board's top-level frames (and sections), in board order. */
+function selectAllFrames() {
+  const ids = [...(canvasApi.getWorldElement()?.querySelectorAll("[data-studio-frame]") ?? [])]
+    .filter((frame) => !frame.parentElement?.closest("[data-studio-frame]"))
+    .map((frame) => frame.getAttribute("data-studio-frame"))
+    .filter((id): id is string => Boolean(id));
+  if (!ids.length) return;
+  multiSelection.clear();
+  selectFrames(ids[0], ids.slice(1));
 }
 
 /** ⌥⌘] / ⌥⌘[ (Bring to front / Send to back): the layer to the end (front) or the start (back) of its parent's layers. */
@@ -130,6 +143,12 @@ export function useFigmaKeys() {
       if (!mod && !event.altKey && (event.key === "+" || event.key === "=" || event.key === "-" || event.key === "_") && !(state.selection?.kind === "node" && state.selection.part)) {
         event.preventDefault();
         if (event.key === "+" || event.key === "=") zoomIn(); else zoomOut();
+        return;
+      }
+      // ⌘A with no layer selected (nothing, or frames): every top-level frame and section (Figma's Select all).
+      if (mod && !event.altKey && !event.shiftKey && event.code === "KeyA" && state.tool === "select" && (!state.selection || state.selection.kind === "frame")) {
+        event.preventDefault();
+        selectAllFrames();
         return;
       }
       const selection = state.selection;

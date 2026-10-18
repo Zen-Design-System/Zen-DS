@@ -771,7 +771,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       return;
     }
     // Empty canvas: a drag draws a marquee (Figma; Space, the Hand tool and scrolling pan), a click clears the selection.
-    if (startMarquee(event.nativeEvent, () => { multiSelection.clear(); studioStore.setState({ selection: null }); })) return;
+    // From the empty canvas the marquee selects frames (Figma's), as ⌘A does with no layer selected.
+    if (startMarquee(event.nativeEvent, () => { multiSelection.clear(); studioStore.setState({ selection: null }); }, "board")) return;
     // Otherwise (never in the Select tool today): drag pans; a click without movement clears the selection.
     const start = { x: event.clientX, y: event.clientY };
     canvasApi.startPan(event.nativeEvent);

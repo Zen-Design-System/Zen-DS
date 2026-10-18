@@ -362,3 +362,8 @@ equal-spacing guides, several frames: ⌘A, marquee) next. W / H arithmetic and 
   moved only the size before — a gap found while testing). `edit/spacingModel.ts` (pure, selftest 6): equal spacing to
   the neighbours' gap or the middle; drag.ts `snapAndSpace` keeps the nearer of the edge snap (red) and the spacing snap
   (pink marks with px, DragLayer). FW-27…29 pass; the `draw` group 15 / 15.
+- F2c (split agreed with Session C: C moves several frames in frameMove.ts and adds `removeFrames` + Sections; A owns the
+  selection): `select/frameSelection.ts` (primary = the store's frame selection, extras here, cleared by any other
+  selection), marquee from the empty canvas selects frames (`startMarquee(…, "board")`), ⌘A with no layer selected
+  selects every top-level frame, ⇧-click on a frame name / row toggles, StudioFrame / FrameChrome labels / Layers rows
+  show the extras selected. Delete still removes the primary frame until C's `removeFrames` lands. FW-30…32 pass.

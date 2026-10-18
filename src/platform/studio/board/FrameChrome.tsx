@@ -1,3 +1,4 @@
+import { selectFrames, toggleFrame, useFrameSelection } from "../select/frameSelection";
 import { RenameField } from "../builder/RenameField";
 import { renameFrame } from "../edit/rename";
 import { tip } from "../shell/ShortcutTip";
@@ -68,6 +69,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
   const sections = useStudioSections();
   const selectedFrame = useStudio((state) => (state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.kind === "node" ? state.selection.frameId : null));
   const frameSelected = useStudio((state) => state.selection?.kind === "frame");
+  const extraFrames = useFrameSelection();
   const localPage = useStudio((state) => state.localPage);
   const editable = useStudio((state) => canEdit(state));
   const [renamingFrame, setRenamingFrame] = useState<string | null>(null);
@@ -382,10 +384,11 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           type="button"
           className={`studio-frame-label ${typographyStyles["Caption/Medium"]}`}
           data-chrome-key={`label:${frame.id}`}
-          data-selected={selectedFrame === frame.id ? "true" : undefined}
-          aria-pressed={frameSelected && selectedFrame === frame.id}
+          data-selected={selectedFrame === frame.id || extraFrames.includes(frame.id) ? "true" : undefined}
+          aria-pressed={frameSelected && (selectedFrame === frame.id || extraFrames.includes(frame.id))}
           title={frame.label}
-          onClick={() => studioStore.setState({ selection: { kind: "frame", frameId: frame.id } })}
+          // ⇧-click adds the frame to the frames selected (Figma's), or takes it out.
+          onClick={(event) => { if (event.shiftKey) toggleFrame(frame.id); else selectFrames(frame.id, []); }}
           // A frame on a page you made moves by its name (⌥ drops a copy; builder/frameMove.ts); a click still selects.
           onPointerDown={(event) => { pressFrame(event.nativeEvent, frame.id); }}
           onFocus={(event) => revealLabel(event.currentTarget)}
