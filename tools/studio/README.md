@@ -461,12 +461,21 @@ the Zen usage harness (`tools/usage-guard`) runs on it and the findings that tur
 rounds; prototype wiring (a button with no action yet) is listed, not forced. Credentials stay in the dev server:
 `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` or an `ant auth login` profile (never a claude.ai login). Default model
 `claude-opus-5-5` (effort medium, server-side refusal fallback); the route takes Sonnet 5.5 / Haiku 5.5 already, the
-picker is V1. Each turn ends with its cost and time; one line per turn in `node_modules/.cache/zen-studio/agent-<port>.log`.
+picker is in the panel (V1a). Each turn ends with its model, cost and time; one line per turn in
+`node_modules/.cache/zen-studio/agent-<port>.log`.
+
+V1a (2026-10-18, plan §9): the reply shows its parts in order (text, steps with what each write changed, the harness,
+questions); `ask_person` lets the agent ask with 2–4 answers (the turn waits for `POST /agent/answer`; Stop cancels);
+pictures pasted or attached with the prompt's + go with the message (scaled down in the tab, `pictures.ts`); "Undo turn"
+takes back the last turn's changes while they are the top of the undo stack and all the AI's (the next message tells
+the agent). Any MCP client's write flashes the layer it changed on the canvas (`src/platform/studio/mcp/highlight.ts`,
+`AiHighlights.tsx`).
 
 | Route | What |
 | --- | --- |
 | `GET /agent/session?tab=` | Credentials found (or the reason and the fix), the models, the tab's transcript (a reloaded tab gets it back) |
-| `POST /agent/send { tab, text, useSelection?, model? }` | Starts a turn (202); its events go to the tab over HMR (`zen-agent:event`) |
+| `POST /agent/send { tab, text, useSelection?, model?, images?, thumbs?, notes? }` | Starts a turn (202); its events go to the tab over HMR (`zen-agent:event`) |
+| `POST /agent/answer { tab, call?, text }` | The answer to the question the turn waits on (`ask_person`) |
 | `POST /agent/stop { tab }` · `POST /agent/reset { tab }` | Stop the running turn · a new chat |
 
 GET with the token, POST as an edit (admin role, token, JSON), as `/edit`.
@@ -489,7 +498,7 @@ Tab: `src/platform/studio/agent/` (`AgentPanel.tsx`, `agentStore.ts`, `agent.css
 node tools/studio/mcp/mcp.selftest.mjs   # relay, token, endpoint guards, the SDK client through the endpoint to a fake tab, the tab's layer outline
 npm run studio:e2e -- --only=mcp         # AI-01…06: the SDK client on a real tab (read, update + ⌘Z, insert, batch, folder edit live, Stop)
 node tools/studio/agent/agent.selftest.mjs   # Zen Agent offline: transcript, harness diff, whole turns through the real Tool Runner (scripted fetch) on a fake tab, Stop, routes, zen-ds over stdio
-npm run studio:e2e -- --only=agent       # AG-01…06: the panel on a real tab with the scripted model (change + ⌘Z, selection, picture, Stop, harness fix, no key)
+npm run studio:e2e -- --only=agent       # AG-01…12: the panel on a real tab with the scripted model (change + ⌘Z, selection, picture, Stop, harness fix, no key; V1a: model picker, undo turn, canvas flash, ask_person, attached picture, parts in order)
 node tools/studio/selftest.mjs     # pure functions + detach (style-guard/usage-guard on its outputs) + wrap + drafts (rebase fuzz) + history + frame-scope + slots
 node tools/studio/slots.selftest.mjs   # slot ops alone (tsc, style-guard and usage-guard on realistic outputs through src/platform/examples/drafts)
 curl -s http://127.0.0.1:5180/__zen-studio/ping

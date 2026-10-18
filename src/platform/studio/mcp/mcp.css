@@ -20,3 +20,21 @@
 .studio-ai[data-state="working"] > .zen-icon { animation: studio-ai-pulse var(--zen-motion-duration-slow, 400ms) var(--zen-motion-ease-standard, ease) infinite alternate; }
 @keyframes studio-ai-pulse { from { opacity: 1; } to { opacity: 0.4; } }
 .studio-canvas-area[data-world-fullscreen="true"] > .studio-ai { visibility: hidden; }
+
+/* The layers an AI just changed (AiHighlights.tsx): an Accent outline over the canvas, above the examples' overlay layer
+   (20) with the canvas pills (21), below the panels (22). It fades (opacity only, kept under reduced motion). */
+.studio-ai-flashes { position: absolute; z-index: 21; inset: 0; overflow: hidden; pointer-events: none; }
+.studio-ai-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border-radius: var(--zen-corner-radius-2-xsmall, 2px);
+  outline: 2px solid var(--zen-color-border-accent-solid-default, #e5007d);
+  outline-offset: 1px;
+  background: var(--zen-color-background-accent-subtle-default, rgb(229 0 125 / 8%));
+  opacity: 1;
+  transition: opacity var(--zen-motion-duration-slow, 400ms) var(--zen-motion-ease-standard, ease);
+}
+.studio-ai-flash[data-leaving="true"] { opacity: 0; }
+.studio-canvas-area[data-world-fullscreen="true"] > .studio-ai-flashes { visibility: hidden; }

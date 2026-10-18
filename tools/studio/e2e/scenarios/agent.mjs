@@ -1,4 +1,4 @@
-// Zen Agent rows (plan docs/research/studio-vibe-agent-2026-10-18.md, V0): the panel on a real Studio tab, with the
+// Zen Agent rows (plan docs/research/studio-vibe-agent-2026-10-18.md, V0 AG-01…06, V1a AG-07…12): the panel on a real Studio tab, with the
 // scripted model (tools/studio/agent/script.mjs; ZEN_AGENT_SCRIPT points at a script each row writes), so the SDK's real
 // Tool Runner, the relay and the tab's tools run end to end with no key and no network. Each row makes its own page and
 // starts a new chat. The layer ids come from the prompt's <studio-context> ("$selection").
@@ -58,11 +58,14 @@ async function pageWithButton(ctx) {
 
 /** Writes a prompt in the panel and waits until its turn ends (its cost line, or Stopped). */
 async function ask(panel, text, { wait = true } = {}) {
+  const replies = panel.locator(".studio-agent__reply");
+  const before = await replies.count();
   const field = panel.locator("textarea");
   await field.fill(text);
   await field.press("Enter");
   if (!wait) return;
-  await until(async () => /\$\d|< \$0\.01|Stopped/.test(await panel.locator(".studio-agent__reply").last().innerText().catch(() => "")), { message: `the answer to "${text}"`, timeout: 15000 });
+  // The new turn's own reply (the last one before it may already read "Stopped"), until its end line shows.
+  await until(async () => (await replies.count()) > before && /\$\d|< \$0\.01|Stopped/.test(await replies.last().innerText().catch(() => "")), { message: `the answer to "${text}"`, timeout: 15000 });
 }
 
 const lastReply = (panel) => panel.locator(".studio-agent__reply").last().innerText();
@@ -82,7 +85,7 @@ export const rows = [
       await ask(panel, "đổi nút chính sang tertiary và thêm icon check");
       await until(async () => /<Button level="tertiary" startIcon="icon-check-line">Save<\/Button>/.test((await pageText(page, id)) ?? ""), { message: "the Button changed on the page" });
       const reply = await lastReply(panel);
-      if (!/Changing a layer/.test(reply) || !/Zen rules pass/.test(reply) || !/Xong/.test(reply)) throw new Error(`the reply: ${JSON.stringify(reply)} · panel: ${JSON.stringify(await panel.innerText())}`);
+      if (!/Changed: Button level="tertiary"/.test(reply) || !/Zen rules pass/.test(reply) || !/Xong/.test(reply)) throw new Error(`the reply: ${JSON.stringify(reply)} · panel: ${JSON.stringify(await panel.innerText())}`);
       const stack = await undoStack(page);
       if (stack.length !== before + 1) throw new Error(`undo ${before} → ${stack.length}`);
       await page.locator(".studio-viewport").focus();
@@ -162,6 +165,95 @@ export const rows = [
       } finally {
         process.env.ZEN_AGENT_SCRIPT = scriptFile;
       }
+    },
+  },
+  {
+    id: "AG-07", feature: "The model picker: the next message runs on the model picked, and its reply says so", wp: "Agent V1a",
+    async run(ctx) {
+      const { page, panel } = await pageWithButton(ctx);
+      script([[{ text: "Small change done." }]]);
+      await panel.getByRole("button", { name: /^Model: / }).click();
+      await page.getByRole("menuitem", { name: /Haiku 5\.5/ }).click();
+      await until(async () => /^Model: Haiku 5\.5/.test((await panel.getByRole("button", { name: /^Model: / }).getAttribute("aria-label")) ?? ""), { message: "Haiku picked" });
+      await ask(panel, "a small change");
+      const meta = await panel.locator(".studio-agent__meta").last().innerText();
+      if (!/^Haiku 5\.5 · /.test(meta)) throw new Error(`the reply's line: ${meta}`);
+      return meta;
+    },
+  },
+  {
+    id: "AG-08", feature: "Undo turn takes back every change of the agent's last turn at once", wp: "Agent V1a",
+    async run(ctx) {
+      const { page, id, panel } = await pageWithButton(ctx);
+      script([[
+        { tools: [{ name: "update", input: { id: "$selection", props: { level: "tertiary" } } }] },
+        { tools: [{ name: "update", input: { id: "$selection", text: "Save draft" } }] },
+        { text: "Two changes." },
+      ]]);
+      await ask(panel, "two changes");
+      await until(async () => /<Button level="tertiary">Save draft<\/Button>/.test((await pageText(page, id)) ?? ""), { message: "both changes on the page" });
+      await panel.getByRole("button", { name: "Undo turn" }).click();
+      await until(async () => /<Button level="primary">Save<\/Button>/.test((await pageText(page, id)) ?? ""), { message: "the page as before the turn" });
+      await until(async () => (await panel.locator(".studio-agent__meta").last().innerText()).includes("Undone"), { message: "the turn marked undone" });
+      return "2 changes taken back with one click; the turn reads Undone";
+    },
+  },
+  {
+    id: "AG-09", feature: "A change an AI makes flashes the changed layer on the canvas", wp: "Agent V1a",
+    async run(ctx) {
+      const { page, panel } = await pageWithButton(ctx);
+      script([[{ tools: [{ name: "update", input: { id: "$selection", props: { level: "tertiary" } } }] }, { text: "Done." }]]);
+      await ask(panel, "tertiary", { wait: false });
+      await until(async () => (await page.locator(".studio-ai-flash").count()) > 0, { message: "the flash on the canvas", interval: 50 });
+      const box = await page.locator(".studio-ai-flash").first().boundingBox();
+      if (!box || box.width < 10 || box.height < 10) throw new Error(`flash box ${JSON.stringify(box)}`);
+      await until(async () => (await page.locator(".studio-ai-flash").count()) === 0, { message: "the flash gone", timeout: 5000 });
+      return `flash ${Math.round(box.width)}×${Math.round(box.height)}, then gone`;
+    },
+  },
+  {
+    id: "AG-10", feature: "The agent asks with options; the person's pick goes back and the turn goes on", wp: "Agent V1a",
+    async run(ctx) {
+      const { page, id, panel } = await pageWithButton(ctx);
+      script([[
+        { tools: [{ name: "ask_person", input: { question: "Zen keeps Secondary for a stated reason: use Tertiary, or keep Secondary?", options: ["Tertiary", "Keep Secondary"] } }] },
+        { tools: [{ name: "update", input: { id: "$selection", props: { level: "tertiary" } } }] },
+        { text: "Tertiary it is." },
+      ]]);
+      await ask(panel, "make it secondary", { wait: false });
+      const card = panel.locator(".studio-agent__ask");
+      await card.waitFor({ state: "visible", timeout: 10000 });
+      await card.getByRole("button", { name: "Tertiary" }).click();
+      await until(async () => /\$\d|< \$0\.01/.test(await panel.locator(".studio-agent__reply").last().innerText()), { message: "the turn going on to its end", timeout: 15000 });
+      if (!(await card.innerText()).includes("You answered: Tertiary")) throw new Error(`the card: ${await card.innerText()}`);
+      await until(async () => /<Button level="tertiary">Save<\/Button>/.test((await pageText(page, id)) ?? ""), { message: "the answer acted on" });
+      return "asked, Tertiary picked, the turn changed the Button";
+    },
+  },
+  {
+    id: "AG-11", feature: "A picture attached with the prompt's + goes with the message (thumbnail in the chat)", wp: "Agent V1a",
+    async run(ctx) {
+      const { page, panel } = await pageWithButton(ctx);
+      script([[{ text: "Nice reference." }]]);
+      const png = await page.screenshot({ clip: { x: 0, y: 0, width: 240, height: 160 } });
+      await panel.locator('input[type="file"]').setInputFiles({ name: "reference.png", mimeType: "image/png", buffer: png });
+      await until(async () => (await panel.locator(".studio-agent__picture").count()) === 1, { message: "the picture waiting in the prompt" });
+      await ask(panel, "make it like this");
+      if ((await panel.locator('.studio-agent__thumbs[data-side="you"] img').count()) !== 1) throw new Error("no thumbnail on the sent message");
+      if (await panel.locator(".studio-agent__picture").count()) throw new Error("the picture stayed in the prompt");
+      return "attached, sent, shown on the message";
+    },
+  },
+  {
+    id: "AG-12", feature: "A reply shows what happened in order: text, the steps, then the text after them", wp: "Agent V1a",
+    async run(ctx) {
+      const { panel } = await pageWithButton(ctx);
+      script([[{ text: "First I read the layer.", tools: [{ name: "get_node", input: { id: "$selection" } }] }, { text: "Then I answered." }]]);
+      await ask(panel, "order");
+      const order = await panel.locator(".studio-agent__reply").last().evaluate((reply) => [...reply.children].map((child) => (child.classList.contains("studio-agent__steps") ? "steps" : child.textContent?.includes("First I read") ? "first" : child.textContent?.includes("Then I answered") ? "then" : child.classList.contains("studio-agent__meta") ? "meta" : "other")));
+      const wanted = ["first", "steps", "then", "meta"];
+      if (JSON.stringify(order.filter((kind) => kind !== "other")) !== JSON.stringify(wanted)) throw new Error(`order ${order.join(" → ")}`);
+      return order.filter((kind) => kind !== "other").join(" → ");
     },
   },
 ];

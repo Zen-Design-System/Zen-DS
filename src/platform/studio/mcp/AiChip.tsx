@@ -2,6 +2,7 @@ import { IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Text } from "../../../components/Text";
 import { ChromeScope } from "../shell/ChromeScope";
+import { AiHighlights } from "./AiHighlights";
 import { setAiStopped, useAiActivity } from "./runtime";
 import "./mcp.css";
 
@@ -17,11 +18,14 @@ export const clientLabel = (name: string) => CLIENTS[name] ?? name;
 
 export function AiChip() {
   const ai = useAiActivity();
-  if (!ai.client && !ai.stopped) return null;
+  // The canvas outline of what an AI just changed rides with the chip (both belong to any MCP client).
+  if (!ai.client && !ai.stopped) return <AiHighlights />;
   const name = ai.client ? clientLabel(ai.client) : "AI";
   const state = ai.stopped ? "stopped" : ai.busy ? "working" : "idle";
   const label = ai.stopped ? `${name} · stopped` : ai.busy ? `${name} · editing` : name;
   return (
+    <>
+    <AiHighlights />
     <ChromeScope className="studio-ai" data-state={state} role="group" aria-label={`AI on this canvas: ${label}`}>
       <Icon name="icon-stars-01-line" size="sm" tone={ai.stopped ? "light" : "accent"} decorative />
       <Text as="span" textStyle="Body/Small/Medium" tone={ai.stopped ? "base" : "strongest"} aria-live="polite">{label}</Text>
@@ -35,5 +39,6 @@ export function AiChip() {
         onClick={() => setAiStopped(!ai.stopped)}
       />
     </ChromeScope>
+    </>
   );
 }

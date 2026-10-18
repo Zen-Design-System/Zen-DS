@@ -31,3 +31,16 @@
   `.qa/reports/2026-10-17T21-08-16-6afafa79.md`, Studio E2E 324 works · 0 broken). D-01 failed first, also on clean
   main: commit 4ff67077 (card grey-canvas fix) carried the E2E leftover `save-a level="primary"` in
   `src/platform/examples/e2e/StudioSaveFixture.tsx`; restored to `tertiary` on this branch (fix at its owner).
+
+## Zen Agent V1a (user: "plan V1 trước đi", then "OK") — tier M, worktree `../Zen-DS-agent-v1`, branch `zen/feat/studio-agent-v1-20261018`
+
+- Plan §9 recorded with the user's "OK" to every recommendation (chat per page, ask when a request breaks a Zen rule,
+  eval budget with Sonnet + Haiku, V1a → V1b → V1c). V1a built: model picker (a Menu at the panel's foot; the AiChatField
+  model slot cannot anchor a Menu), Undo turn, `ask_person` (+ POST /agent/answer), pictures (paste or +, `pictures.ts`),
+  transcript parts in order, canvas flash of the changed layer for any MCP client (`mcp/highlight.ts`).
+- Found on the way: the flash outlined the parent Stack too ("Added to #parent" in the insert answer) → ids after
+  Added to / Moved into / Copied / Deleted are left out, children too; the E2E helper read the previous "Stopped" reply
+  as the new one → waits for the new reply; the tab's update answer is "Changed:" + outline → step details join them.
+  Machine load (replayd ~90% CPU, load 14) made two E2E repeats time out; reruns at load 6–9 passed.
+- Checks: agent.selftest 21/21, mcp.selftest 14/14, E2E AG-01…12 12/12 ×3 (baseline +6), tsc, style/usage guard on
+  the new files; screenshots 1512 / 390 (flash on the Button only, question card, model menu, picture).
