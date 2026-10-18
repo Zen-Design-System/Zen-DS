@@ -71,8 +71,8 @@
 //   button/accent-is-promoted   warning  an Accent Button/Main or Icon-Main: only a promoted CTA (onboarding, upsell)
 //   button/small-full-width  error    a Small / XSmall / 2XSmall text button stretched to Fill: small buttons hug
 //   button/overlay-on-imagery   warning  a Button/Main or Icon-Main on a photo: buttons on imagery are Overlay
-//   button/in-card-flat      error    a Button/Icon-Main inside a card or with the ⋮/⋯ icon: card actions are Icon-Flat
-//   button/in-card-wrapper   warning  a flat icon action in a card outside an Element-Size/Popular/Base Wrapper (bleed)
+//   button/in-card-flat      error    a Button/Icon-Main with the ⋮/⋯ icon inside a card: the card's more menu is Icon-Flat
+//   button/in-card-wrapper   warning  the card's flat ⋮/⋯ outside an Element-Size/Popular/Base Wrapper (bleed)
 //   spacing/control-gap      error    a button closer than Gap/XSmall (8) to the text or button beside it
 //   button/vague-label       warning  a button labelled OK, Yes, Submit or Click here
 //   touch/target-spacing     error    on a phone or tablet, two controls closer than their 44px hit areas allow: the
@@ -306,10 +306,18 @@ function isBleed(node, own, frame) {
 /**
  * Scroll content: a clipping frame set to scroll (Figma prototype overflow) shows the rest of its content when the
  * user scrolls, so a layer that runs on only past its far end (bottom for Vertical, right for Horizontal) is not cut.
- * A phone screen whose Body is longer than 844, or a Chip row wider than the screen, scrolls this way.
+ * A phone screen whose Body is longer than 844, or a Chip row wider than the screen, scrolls this way; so does the
+ * Content of a Pattern/AppShell, whose Body (or Sheet) is set to scroll vertically in the component.
  */
 function scrollsPast(node, own, frame, tolerance) {
-  return runsOnInScroll(node.parent, own, frame, tolerance);
+  if (runsOnInScroll(node.parent, own, frame, tolerance)) return true;
+  if (node.parent.clipsContent) return false;
+  // A parent that does not clip inside a scroll area runs on with it (user 2026-10-18): a page pattern's Content slot
+  // in the AppShell Body, which scrolls. The nearest clipping ancestor decides.
+  for (let ancestor = node.parent.parent; ancestor && ancestor.type !== "PAGE" && ancestor.type !== "SECTION"; ancestor = ancestor.parent) {
+    if ("clipsContent" in ancestor && ancestor.clipsContent) return runsOnInScroll(ancestor, own, frame, tolerance);
+  }
+  return false;
 }
 function runsOnInScroll(clipper, own, frame, tolerance = TOLERANCE) {
   const direction = clipper.overflowDirection;
@@ -600,8 +608,10 @@ function onImagery(node, screen) {
   }
   return false;
 }
-// Card actions (user 2026-10-17, Schedule/Event-Card: "các dạng action này trong card nên dùng flat"): an icon action
-// inside a card, and any ⋮ / ⋯ menu trigger, is Button/Icon-Flat (Zen's Card Sub-Action: Small, Secondary, ⋮).
+// Card actions: the ⋮ / ⋯ more menu floating in a card's corner is Button/Icon-Flat (Zen's Card Sub-Action: Small,
+// Secondary, ⋮). User 2026-10-18: "Button in card flat chỉ dành cho button ở floating ở góc cho hành động more" — every
+// other icon action in a card (power, stepper, playback, call) keeps its Icon-Main role, and a ⋮ outside a card (a page
+// header toolbar) stays Icon-Main Tertiary.
 const MORE_ICON = /^icon-dots-(horizontal|vertical)/;
 async function isMoreIcon(node) {
   const key = Object.keys(node.componentProperties ?? {}).find((name) => name.startsWith("Leading-Icon-Src"));
@@ -652,8 +662,9 @@ async function checkButtonRoles(root) {
       if (solid && level === "Accent") report("button/accent-is-promoted", WARNING, node, "Accent is only for a promoted CTA (onboarding, upsell, the floating feedback action); an ordinary main action is Primary");
       if ((kind === "Main" || kind === "Flat") && /^(Small|XSmall|2XSmall)$/.test(size) && node.layoutSizingHorizontal === "FILL") report("button/small-full-width", ERROR, node, `a ${size} button stretched to Fill: small buttons hug their label; a full-width button is Medium or larger`);
       if (solid && onImagery(node, screen)) report("button/overlay-on-imagery", WARNING, node, "a Button/Main or Icon-Main on a photo: use Button/Overlay or Icon-Overlay (White, White Overlay, Black Overlay, Inverse)");
-      if (kind === "Icon-Main" && ((await isMoreIcon(node)) || inCard(node, screen))) report("button/in-card-flat", ERROR, node, "an icon action inside a card or with the ⋮/⋯ icon is Button/Icon-Flat: Secondary for the quiet ⋮ menu (the Card Sub-Action, Small, icon-dots-vertical-line), Primary for a row action; Icon-Main Tertiary is for toolbars and control rows");
-      if (kind === "Icon-Flat" && inCard(node, screen) && !inSizeWrapper(node)) report("button/in-card-wrapper", WARNING, node, "a flat icon action in a card sits in a Wrapper sized by Element-Size/Popular/Base (20, no clip, centred), as the Card Sub-Action does: the button bleeds evenly and the row keeps the icon's size");
+      const cardMore = (kind === "Icon-Main" || kind === "Icon-Flat") && inCard(node, screen) && (await isMoreIcon(node));
+      if (kind === "Icon-Main" && cardMore) report("button/in-card-flat", ERROR, node, "the ⋮/⋯ more menu in a card's corner is Button/Icon-Flat (the Card Sub-Action: Small, Secondary, icon-dots-vertical-line); other icon actions in a card keep Icon-Main");
+      if (kind === "Icon-Flat" && cardMore && !inSizeWrapper(node)) report("button/in-card-wrapper", WARNING, node, "the card's ⋮ more menu sits in a Wrapper sized by Element-Size/Popular/Base (20, no clip, centred), as the Card Sub-Action does: the button bleeds evenly and the row keeps the icon's size");
       const label = kind === "Main" || kind === "Flat" || kind === "Overlay" ? node.findOne((child) => child.type === "TEXT") : null;
       if (label && VAGUE_LABEL.test(label.characters.trim())) report("button/vague-label", WARNING, node, `"${label.characters}": start with a verb and name the outcome ("Save changes", "Select")`);
     }
