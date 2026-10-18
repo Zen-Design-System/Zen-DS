@@ -13648,7 +13648,8 @@
         },
         "collapsed": {
           "type": "boolean",
-          "default": false
+          "default": false,
+          "description": "The icon rail (Figma Expand=No)."
         },
         "onCollapsedChange": {
           "x-kind": "action",

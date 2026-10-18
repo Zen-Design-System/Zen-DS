@@ -4444,7 +4444,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it\n from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps\n it (controlled).",
           "deprecated": null
         },
         {

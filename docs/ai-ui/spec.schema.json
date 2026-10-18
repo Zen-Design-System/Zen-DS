@@ -27727,7 +27727,8 @@
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "The icon rail (Figma Expand=No)."
               },
               "onCollapsedChange": {
                 "anyOf": [

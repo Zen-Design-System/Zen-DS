@@ -93,3 +93,32 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
   HeadingField, SkeletonShape, OpinionScale, UploaderFileItem, ControlBarSelectItem, InputConditionItem, Chat parts),
   the five overlays (deferred by design), 13 components with no variant set mapped, Dashboard header Navigation/Custom
   rows drawn without their content.
+
+## AppShell collapses a customised Sidebar (user: "lỗi sidebar lúc expand và collapse khi dùng template … nếu user gọi sidebar ra rồi custom") — tier M
+- Cause 1: AppShell read the rail from `sidebar.type === Sidebar` + its props. Measured (scratch vitest, 1440px): a
+  Sidebar wrapped in an app component got no control at all (240px, no toggle); wrapped with `collapsed` it stayed an
+  84px rail with no way out; a wrapped Sidebar with its own `collapsed` + `onCollapsedChange` beside a shell prop showed
+  two controls and the top-bar one did nothing. Same for a Sidebar in a Stack (Studio wrap) and a Studio ⌥⌘K main,
+  which compile.mjs exports as `<LocalFn />`.
+- Fix: `SidebarShellContext.register` (`_shared/sidebar-shell.ts`). The Sidebar registers in a layout effect
+  (canCollapse = not workspace, its `collapsed`, owns = has `onCollapsedChange`, `request` = a stable call of it); the
+  drawer copy never registers. AppShell reads a Sidebar passed straight in from its props as before (first render, SSR)
+  and a deeper one from the registration; the first word from a wrapped Sidebar seeds the rail unless
+  `defaultSidebarCollapsed` is set; an owning Sidebar keeps its header control and the shell's toggle /
+  `useAppShell().toggleSidebar()` call its handler.
+- Cause 2: HrShell's footer was a raw `<button><Icon/><span>`; Studio's template copy turns it into Stack + Icon + Text,
+  which the rail CSS (`> button > span`) cannot hide: rail 122px with "Apps" showing (the user's page "HR · Expense
+  overview"). Footer is now `<SidebarMenuItem id="apps">` (onItemClick "apps" → the demo toast): 84px, label hidden,
+  name "Apps".
+- Tests: 6 new cases in `tests/interaction/app-shell-sidebar-context.test.tsx` (wrapped, wrapped collapsed,
+  defaultSidebarCollapsed wins, Stack wrap, owning Sidebar + useAppShell, footer SidebarMenuItem 84px). AppShell,
+  Sidebar slots, nested overrides, navigation and smoke suites: 411 passed. tsc clean; guidelines rebuilt (Sidebar
+  `collapsed` now documented).
+- Gate: `npm run qa -- --isolated --keep-going --files=…` PASS (report `.qa/reports/2026-10-17T19-10-54-c49938e0.md`;
+  full vitest 70/70 on the second run, the first lost 3 unrelated-looking tests to load ~18 with another session's gate
+  running; my suites passed 4/4 repeats). Sheets read: templates (HR Apps row aligned, rail shows its icon alone),
+  app-shell, sidebar. Studio page "HR · Expense overview" (its Stack footer) still to replace once the Studio tab is
+  open again (the tab closed during the session).
+- Gathered by "Giám sát" after the session closed (PR zen/fix/appshell-wrapped-sidebar-20261018), with the "Bug"
+  session's Studio E2E SP-08 update (`tools/studio/e2e/scenarios/starters.mjs`: `appsButton` → `appsItem`), which must
+  land together with the HrShell footer change.
