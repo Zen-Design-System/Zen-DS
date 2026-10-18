@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Dark ramps lifted (2026-10-18, the Zen plugin's "Dark lift", user: "chốt +0,020"): in all 20 Global Colors ramps,
+  Dark Accent steps 2–8 and Dark Neutral steps 2–7 sit +0.020 OKLCH L above the contrast ramp, and Dark alpha follows
+  (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
+  and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
+  (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
 - Zen Studio: **Zen Agent V1a** (2026-10-18, plan §9): pick the model (Opus 5.5 · Sonnet 5.5 · Haiku 5.5) in the panel;
   "Undo turn" takes back all of the agent's last turn; the agent asks with 2–4 answers when a request is ambiguous or
   breaks a Zen rule; paste or attach reference pictures; the reply shows text, steps (what each change did) and the

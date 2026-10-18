@@ -91,6 +91,8 @@ Last updated: 2026-10-17.
   A new Component Size spacing value aliases a Spacing step. Segmented Medium Compact padding 8 (was 6).
   2026-10-17 (live Figma read): Segmented/Spacing/Medium/Horizontal-Padding 10 (Compact, Comfortable; raw, no Spacing
   step; Studio 6). Global Colors Zen ramp re-synced (Zen/9 #F755C9, 45 of 48 values; only the Zen ramp).
+  2026-10-18 (Zen plugin 5ce6ba8 "Dark lift", user-approved): every ramp's Dark steps 2–8 (Neutral 2–7) +0.020 OKLCH L,
+  regenerated with tools/studio/zen-ramp.generated.mjs (278 Dark values, Zen-High-Contrast recomputed).
   2026-10-13 (user, repo + Figma): Component Theme `Chart/Sector/Primary` = Support/Brand/Solid and `Secondary` =
   Support/Neutral/Deep in every mode (as Brand - S1).
   2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
