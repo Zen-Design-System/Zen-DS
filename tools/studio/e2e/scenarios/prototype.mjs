@@ -77,6 +77,34 @@ ${Array.from({ length: 40 }, (_, index) => `          <Text>Expense ${index + 1}
 }
 `;
 
+/** Scrolls what scrolls the shown page (the window's layer, or a box under Present's / Play's bar: the nearest ancestor of
+ *  its Sidebar that really scrolls) 400px and checks the AppShell Sidebar stays at the top of that box, at its height,
+ *  its rows scrolling inside (PT-11 Play, PT-14 Present). In CSS px, so a scaled fixed viewport measures the same;
+ *  `rows: false` skips the rows when the box is tall enough for them. */
+async function checkSidebarSticks(root, { rows = true } = {}) {
+  await root.locator(".zen-app-shell__sidebar").waitFor({ state: "visible", timeout: 5000 });
+  const measure = (scroll) => root.evaluate((el, by) => {
+    const side = el.querySelector(".zen-app-shell__sidebar");
+    let box = side.parentElement;
+    while (box && box !== el.parentElement && !(box.scrollHeight > box.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement;
+    if (!box || box === el.parentElement) return { error: "nothing scrolls the shown page" };
+    if (by) box.scrollTop = by;
+    const rect = side.getBoundingClientRect();
+    const view = box.getBoundingClientRect();
+    const scale = box.offsetHeight ? view.height / box.offsetHeight : 1;
+    const body = side.querySelector(".zen-sidebar__body");
+    return { top: (rect.top - view.top - box.clientTop * scale) / scale, height: rect.height / scale, view: box.clientHeight, scrolled: box.scrollTop, bodyScrolls: body.scrollHeight > body.clientHeight + 1, bodyOverflow: getComputedStyle(body).overflowY };
+  }, scroll);
+  const before = await measure(0);
+  if (before.error) throw new Error(before.error);
+  const after = await measure(400);
+  if (after.scrolled < 100) throw new Error(`the page scrolled only ${after.scrolled}px`);
+  if (Math.abs(after.top) > 1) throw new Error(`after a ${after.scrolled}px scroll the Sidebar is ${Math.round(after.top)}px from the top of the scroll box (it should stick at 0)`);
+  if (Math.abs(after.height - after.view) > 2) throw new Error(`the Sidebar is ${Math.round(after.height)}px tall in a ${after.view}px scroll box`);
+  if (rows && (!after.bodyScrolls || !/auto|scroll/.test(after.bodyOverflow))) throw new Error(`the Sidebar's rows do not scroll inside it (overflow-y ${after.bodyOverflow})`);
+  return `scrolled ${after.scrolled}px: Sidebar at ${Math.round(after.top)}px, ${Math.round(after.height)}px in a ${after.view}px box${rows ? ", its rows scroll inside" : ""}`;
+}
+
 /** Scrolls what scrolls the shown Screen (the nearest ancestor of its Top Navigation that scrolls its overflow) and checks
  *  the large title folds, the system bars stay at that box's edges, and the title opens again at the top. */
 async function checkFold(root) {
@@ -381,28 +409,9 @@ export const rows = [
         await page.keyboard.press("p");
         await playing(page).waitFor({ state: "visible", timeout: 5000 });
         await playing(page).locator(".zen-app-shell__sidebar").waitFor({ state: "visible", timeout: 5000 });
-        // The scroll box is whatever Present/Play scrolls in (the window's layer, or a box under its bar): the nearest
-        // ancestor of the device that really scrolls.
-        const measure = (scroll) => playing(page).evaluate((root, by) => {
-          const device = root.querySelector(".studio-player__device");
-          let box = device;
-          while (box && box !== root.parentElement && !(box.scrollHeight > box.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement;
-          if (!box || box === root.parentElement) return { error: "nothing scrolls the played page" };
-          if (by) box.scrollTop = by;
-          const side = root.querySelector(".zen-app-shell__sidebar").getBoundingClientRect();
-          const view = box.getBoundingClientRect();
-          const body = root.querySelector(".zen-app-shell__sidebar .zen-sidebar__body");
-          return { top: side.top - view.top, height: side.height, view: box.clientHeight, scrolled: box.scrollTop, bodyScrolls: body.scrollHeight > body.clientHeight + 1, bodyOverflow: getComputedStyle(body).overflowY };
-        }, scroll);
-        const before = await measure(0);
-        if (before.error) throw new Error(before.error);
-        const after = await measure(400);
-        if (after.scrolled < 100) throw new Error(`the page scrolled only ${after.scrolled}px`);
-        if (Math.abs(after.top) > 1) throw new Error(`after a ${after.scrolled}px scroll the Sidebar is ${Math.round(after.top)}px from the top of the scroll box (it should stick at 0)`);
-        if (Math.abs(after.height - after.view) > 2) throw new Error(`the Sidebar is ${Math.round(after.height)}px tall in a ${after.view}px scroll box`);
-        if (!after.bodyScrolls || !/auto|scroll/.test(after.bodyOverflow)) throw new Error(`the Sidebar's rows do not scroll inside it (overflow-y ${after.bodyOverflow})`);
+        const result = await checkSidebarSticks(playing(page));
         await page.keyboard.press("Escape");
-        return `scrolled ${after.scrolled}px: Sidebar at ${Math.round(after.top)}px, ${Math.round(after.height)}px in a ${after.view}px box, its rows scroll inside`;
+        return result;
       } finally {
         await page.setViewportSize(size);
       }
@@ -434,6 +443,35 @@ export const rows = [
       const result = await checkFold(present);
       await page.keyboard.press("Escape");
       return result;
+    },
+  },
+  {
+    id: "PT-14", feature: "Present runs an AppShell page as Play does: scrolling the page leaves the Sidebar at the top of the scroll box, at its height, its items scrolling inside (the user 2026-10-17: the Sidebar still scrolled in Present)", wp: "present sidebar 2026-10-17", timeout: 30_000,
+    async run(ctx) {
+      const { page } = await newPage(ctx, { device: "desktop" });
+      const size = page.viewportSize();
+      // A short window, as PT-11: the page (a 900px Screen) scrolls and the Sidebar's rows outgrow their box.
+      await page.setViewportSize({ width: size.width, height: 260 });
+      try {
+        await showLeftTab(page, "layers");
+        await page.locator('[data-layer-id^="frame:screen:"]').first().click();
+        await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+        const present = page.locator(".studio-present");
+        await present.waitFor({ state: "visible", timeout: 5000 });
+        const auto = await checkSidebarSticks(present);
+        // A fixed W × H viewport (the bar's Viewport › H) is the scroll box: the Sidebar takes its height, not the window's.
+        await present.getByRole("button", { name: /^Viewport:/ }).click();
+        const height = present.getByLabel("Viewport height");
+        await height.fill("400");
+        await height.press("Enter");
+        await present.locator('.studio-present__fit[data-viewport="fixed"]').waitFor({ state: "visible", timeout: 5000 });
+        await page.keyboard.press("Escape");
+        const fixed = await checkSidebarSticks(present, { rows: false });
+        await page.keyboard.press("Escape");
+        return `Auto: ${auto} · 400px viewport: ${fixed}`;
+      } finally {
+        await page.setViewportSize(size);
+      }
     },
   },
 ];

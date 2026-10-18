@@ -72,8 +72,9 @@
   .zen-chart__x { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); }
 }
 .zen-chart__sector[data-active] .zen-chart__x, .zen-chart__hlabel[data-active] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
-/* The Tooltip hangs from its sector by the sector's place along the plot (chartCore anchorStyle), so it stays inside. */
-.zen-chart__tooltip { position: absolute; top: 2px; left: 50%; z-index: 1; pointer-events: none; transform: translateX(calc(var(--zen-chart-anchor, .5) * -100%)); }
+/* The Tooltip is centred on its sector's rule (Figma CENTER) and moves only by what it would cross the chart's edge
+   (chartCore placeTip → --zen-chart-shift). */
+.zen-chart__tooltip { position: absolute; top: 2px; left: 50%; z-index: 1; pointer-events: none; transform: translateX(calc(-50% + var(--zen-chart-shift, 0px))); }
 /* Several series in one Tooltip: "● $320  ● $210"; the dot keeps an Inverse ring so a dark series still reads on the dark Tooltip. */
 .zen-chart__tip-values { display: inline-flex; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
 .zen-chart__tip-value { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
@@ -184,7 +185,7 @@
 .zen-chart__heat-label[data-active="true"] { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chart__cell { position: relative; height: calc(24px + var(--zen-chart-grow, 0px) / var(--zen-chart-rows, 1)); border-radius: var(--zen-corner-radius-small, 8px); cursor: pointer; }
 .zen-chart__cell[data-active="true"] { z-index: 1; box-shadow: 0 0 0 2px var(--zen-color-border-neutral-solid-default, #111); }
-.zen-chart__cell-tip { position: absolute; bottom: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px)); left: 50%; pointer-events: none; transform: translateX(calc(var(--zen-chart-anchor, .5) * -100%)); }
+.zen-chart__cell-tip { position: absolute; bottom: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px)); left: 50%; pointer-events: none; transform: translateX(calc(-50% + var(--zen-chart-shift, 0px))); }
 .zen-chart__cell[data-level="0"], .zen-chart__scale-step[data-level="0"] { background: var(--zen-color-background-support-brand-pale, rgb(255 2 152 / 4%)); }
 /* Levels 1–3: Soft · Solid · Rich (Figma Chart/Heatmap-Chart, 2026-10-14) — the most even lightness steps the Support
    ramp gives in both modes (Subtle sat 4 L* from Pale; Solid → Deep jumped 47 L* in light). */
