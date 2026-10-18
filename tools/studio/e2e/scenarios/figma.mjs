@@ -637,4 +637,70 @@ export const rows = [
       }
     },
   },
+  // F5c · Export, typography, local styles, selection colors.
+  {
+    id: "FW-91", feature: "Export: + adds 1x PNG to a layer, and Export <layer> downloads <layer>.png", wp: "F5c 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      await press(page, "Add export setting");
+      const scale = (await right(page).getByRole("button", { name: /^Scale/ }).first().innerText()).trim();
+      const format = (await right(page).getByRole("button", { name: /^Format/ }).first().innerText()).trim();
+      const [download] = await Promise.all([page.waitForEvent("download", { timeout: 20_000 }), press(page, "Export Button")]);
+      const file = download.suggestedFilename();
+      if (file !== "Button.png") throw new Error(`downloaded ${file}`);
+      await press(page, "Remove export setting");
+      return `${scale} ${format} → ${file}`;
+    },
+  },
+  {
+    id: "FW-92", feature: "A text's colour is its Fill section; Style details shows the text style's font and size read-only", wp: "F5c 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      const text = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Text"]`).first();
+      const box = await text.boundingBox();
+      if (!box) throw new Error("no Text on the walk page");
+      await page.keyboard.down("ControlOrMeta");
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.keyboard.up("ControlOrMeta");
+      await until(async () => (await sections(page)).includes("Typography"), { message: "a text selected" });
+      const headings = await sections(page);
+      if (headings.indexOf("Fill") < headings.indexOf("Typography")) throw new Error(`no Fill after Typography: ${headings.join(", ")}`);
+      await press(page, "Style details");
+      const font = right(page).getByRole("textbox", { name: "Font", exact: true }).first();
+      await font.waitFor({ state: "visible", timeout: 5000 });
+      const value = await font.inputValue();
+      if (!(await font.getAttribute("readonly") !== null)) throw new Error("the style's font is editable");
+      await shot(page, "fw-92-text-style-details");
+      return `${headings.join(", ")} · Font ${value}`;
+    },
+  },
+  {
+    id: "FW-93", feature: "With nothing selected, Local styles lists the text, color and effect styles (folded, with counts)", wp: "F5c 2026-10-19",
+    async run(ctx) {
+      const { page } = await walkPage(ctx);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await until(async () => (await sections(page)).includes("Local styles"), { message: "Local styles" });
+      const toggle = right(page).getByRole("button", { name: /^Text styles · \d+ styles$/ }).first();
+      const label = (await toggle.innerText()).trim();
+      await toggle.click();
+      const items = await right(page).getByRole("list", { name: "Text styles" }).getByRole("listitem").count();
+      if (items < 10) throw new Error(`${items} text styles`);
+      await toggle.click();
+      return `${label} (${items} listed)`;
+    },
+  },
+  {
+    id: "FW-94", feature: "Selection colors lists the colours a frame and its layers paint with, by variable", wp: "F5c 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      await until(async () => (await sections(page)).includes("Selection colors"), { message: "Selection colors" });
+      const rows = await right(page).locator('[data-prop="selection-color"]').count();
+      if (rows < 2) throw new Error(`${rows} colours`);
+      return `${rows} colours`;
+    },
+  },
 ];

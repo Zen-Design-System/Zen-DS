@@ -28,6 +28,7 @@ import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
 import { writeAtUse } from "./callSite";
 import { DetachAction } from "./DetachAction";
 import { ExportSection } from "./ExportSection";
+import { SelectionColors } from "./SelectionColors";
 import { TextStyleDetails, textStyleDefinition } from "./TextStyleDetails";
 import type { FieldApi } from "./fieldApi";
 import { copyText } from "./frames";
@@ -1012,6 +1013,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element && isFrameLook(name) ? <FillSection api={api} specs={appearanceSpecs} /> : null}
       {element && isFrameLook(name) ? <StrokeSection api={api} specs={appearanceSpecs} /> : null}
       {element && isFrameLook(name) ? <EffectsSection api={api} src={selection.src} /> : null}
+      {/* Figma's Selection colors: the colours a frame and its layers paint with. */}
+      {element && isFrameLook(name) ? <SelectionColors layers={[{ src: selection.src, instance: selection.instance }]} /> : null}
       {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}
 
       {instanceFirst ? null : propertyBlocks}

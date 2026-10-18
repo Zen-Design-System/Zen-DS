@@ -14,6 +14,8 @@ import { tokenPx, type SpacingScale } from "../select/spacing";
 import { useStudio } from "../store";
 import type { SourceElement } from "../types";
 import { setPropsOnLayers } from "./multi";
+import { isFrameLook } from "../appearance/AppearanceSection";
+import { MULTI_LOOK_PROPS } from "../inspector/MultiFrameLook";
 
 /*
  * The properties of several layers of one component (Figma's multi-selection: a value shared by all of them shows,
@@ -61,7 +63,8 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
   const names = new Set(layers.map((layer) => short(layer.name)));
   const component = names.size === 1 ? [...names][0] : null;
   const elements = useElements(component ? layers : []);
-  const specs = useMemo(() => (component ? propSpecs(component).filter((spec) => SHOWN_KINDS.has(spec.editor.kind) || isText(spec) || isNumber(spec)) : []), [component]);
+  // Frames' fill, stroke, opacity and effect show as Figma's sections (inspector/MultiFrameLook), not here.
+  const specs = useMemo(() => (component ? propSpecs(component).filter((spec) => (SHOWN_KINDS.has(spec.editor.kind) || isText(spec) || isNumber(spec)) && !(isFrameLook(component) && (MULTI_LOOK_PROPS as readonly string[]).includes(spec.name))) : []), [component]);
   if (!component || !specs.length) return null;
   if (!elements) return <InspectorSection title={`${component} properties`}><p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Reading the layers…</p></InspectorSection>;
   const rows: Shown[] = specs.map((spec) => {

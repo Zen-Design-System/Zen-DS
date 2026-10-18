@@ -12,6 +12,8 @@ import { autoLayoutKeys, autoLayoutShortcut, frameSelectionKeys, frameSelectionS
 import { canEdit, useStudio } from "../store";
 import { MixedProperties } from "../edit/MixedProperties";
 import { InspectorItem, InspectorSection } from "./Section";
+import { MultiFrameLook } from "./MultiFrameLook";
+import { SelectionColors } from "./SelectionColors";
 import { undoShortcut } from "./status";
 
 /*
@@ -69,6 +71,9 @@ export function SelectionActions() {
 
       {/* Several layers of one component: their shared properties, "Mixed" where they differ (edit/MixedProperties). */}
       <MixedProperties layers={layers} editable={canEdit()} />
+      {/* Several frames (Box, Stack, Grid in any mix): Figma's Appearance, Fill, Stroke and Effects for all of them. */}
+      <MultiFrameLook layers={layers} editable={canEdit()} />
+      <SelectionColors layers={layers} />
 
       <InspectorSection title="Selected layers">
         <ul aria-label="Selected layers" className="studio-inspector__items">

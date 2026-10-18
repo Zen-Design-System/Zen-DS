@@ -374,3 +374,12 @@
 /* Figma's style details of a text style (TextStyleDetails.tsx): read-only fields, two to a row, and where to edit them. */
 .studio-text-details { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-text-details__note { margin: 0; color: var(--zen-color-content-neutral-light); }
+/* Local styles (LocalStyles.tsx): a folded group per kind, each style its preview and name. */
+.studio-local-styles__group { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-local-styles__toggle { align-self: flex-start; }
+.studio-local-styles__list { display: grid; margin: 0; padding: 0; list-style: none; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-local-styles__item { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest); }
+.studio-local-styles__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* "Ag" in the style's family and weight; its size capped at Body/Base so a Display style fits the row. */
+.studio-local-styles__item .studio-local-styles__type { display: inline-flex; width: var(--zen-element-size-popular-medium, 24px); flex: none; justify-content: center; overflow: hidden; font-size: var(--zen-typography-font-size-body-base, 16px); line-height: 1; }
+.studio-local-styles__color { display: inline-block; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: none; border-radius: var(--zen-corner-radius-rounded, 999px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
