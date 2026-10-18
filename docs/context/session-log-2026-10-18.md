@@ -309,3 +309,17 @@ approved). F0 applies its glossary (§3a) and keys.
   XLarge”").
 - **Left (BACKLOG P1 line):** Code properties rows → the Code tab (structural, after F1); Rename / Lock / Group get built
   in F1–F3; Present from an Overlay frame.
+
+## Segmented Component Size + Primary track from Figma (tier S, session "Bug"; user: "Update tokens Component Size của segmented … từ Figma lên Studio")
+
+- Live read (Component Size, 14 Segmented/* variables): Medium/Horizontal-Padding Compact {dm-8} (repo 10) · Small/Horizontal-Padding
+  Comfortable {dm-8} (repo 6); the rest equal; repo-only Studio mode kept. component-size.json + sync note, tokens:build,
+  segmented.css Medium fallback 8px.
+- Contract hashes found two more drifts: Focus/Accent/Subtle resolved colour (#ff019e2f → #ff01982f, the Zen ramp sync)
+  in the 4 Focused items, and Segmented Level=Primary's track now filled Neutral/Subtle with no 2px stroke (CENTER/MIN),
+  plus the set description's overlay line. Code follows (Primary ring removed, JSDoc, guidelines rebuilt); contract
+  patched and both sets hash equal to the live file.
+  - Chat bubble avatar shadow (user removed it from Chat/Conversation/Bubble, "Kiểm tra Studio nếu có thì remove luôn"):
+    the two B2 avatars still carried it as an instance override → cleared. Code/Studio have none (chat.css avatar column
+    has no shadow, avatar.css only its 1px ring; Studio fixtures, chat-bubbles contract and native-pack carry no avatar
+    drop shadow); ◆ Social and ❖ Chat: 0 left.

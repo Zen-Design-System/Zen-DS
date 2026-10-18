@@ -3037,7 +3037,7 @@
           "type": "\"primary\" | \"secondary\" | \"black-overlay\" | \"white-overlay\" | \"overlay\"",
           "required": false,
           "default": "\"secondary\"",
-          "description": "Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis.\n On a colour band or photo: `black-overlay` (or `\"overlay\"`, the default overlay: a Black-Overlay track, light text)\n or `white-overlay` (on a solid colour: a White-Overlay track, light text); both select with a White/Solid segment\n and look the same in light and dark mode.",
+          "description": "Secondary (default) is the common case; Primary (the same filled track, an Inverse solid selected segment) adds emphasis.\n On a colour band or photo: `black-overlay` (or `\"overlay\"`, the default overlay: a Black-Overlay track, light text)\n or `white-overlay` (on a solid colour: a White-Overlay track, light text); both select with a White/Solid segment\n and look the same in light and dark mode.",
           "deprecated": null
         },
         {
