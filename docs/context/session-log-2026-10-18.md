@@ -266,7 +266,6 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
   - QA: `npm run qa -- --isolated` on empty-state, bottom-navigation and the 13 pages that render a Small Empty State: PASS
     (0 errors; 12 sheets reviewed). Studio, guidelines, usage selftests ✓, tsc ✓.
 
-
 ## Studio Flat hover (user: "UI của Studio dùng màu hover cho các nền flat chưa đúng (Định nghĩa flat là không có nền...)") — tier S
 - Cause: Studio items with no fill at rest hovered with Neutral/Subtle/Hover (alpha 4) or Surface/Hover; the selected
   fill is Active/Neutral/Subtle (alpha 3), so the hovered Variables group looked darker than the selected one.
@@ -309,6 +308,8 @@ approved). F0 applies its glossary (§3a) and keys.
   XLarge”").
 - **Left (BACKLOG P1 line):** Code properties rows → the Code tab (structural, after F1); Rename / Lock / Group get built
   in F1–F3; Present from an Overlay frame.
+- style:check on main after #134 (Giám sát): `.studio-device-duo` gap 8 / padding-top 32 had their zen-allow-raw-spacing
+  in the block comment above the selector; style-guard wants it right above each declaration. Fixed (tier XS).
 
 ## ◇ Master-Layout · Variants rebuilt on the AppShell (user: "Dùng appshell mới build lại các example bên ◇ Master-Layout · Variants trong Figma") — Figma only
 - All 41 screens (A1–A4, B1–B6, C1–C7, D1–D5, E1–E7, F1–F12) keep their frame and caption; each frame now holds one
