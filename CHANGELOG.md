@@ -677,6 +677,10 @@ removed (four unused colour ramps were, see Removed).
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio (2026-10-18, user: Flat items used the wrong hover colour): rows and targets with no fill at rest (Variables
+  groups, cells and alias options, inspector items, the alignment box) hover and press with Neutral/Flat/Hover and
+  Flat/Pressed; Subtle/Hover was darker than the selected row, so a hovered row read as selected. New style-guard rule
+  `color/flat-state` keeps it that way.
 - Zen Studio Present and Play (2026-10-16, user: "Có"): a phone Screen's Top Navigation with a large title folds under
   its bar as the page scrolls, as on iOS (TopNavigation `scrollRef`, unless the page sets `scrollRef` or `collapsed`),
   and the status bar and home indicator stay at the window's edges instead of scrolling away. The canvas is unchanged.

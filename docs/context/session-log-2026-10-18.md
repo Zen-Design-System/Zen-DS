@@ -122,3 +122,14 @@ User: "Update lại Progress component từ Figma lên Studio" · "Kiểm tra l�
 - Gathered by "Giám sát" after the session closed (PR zen/fix/appshell-wrapped-sidebar-20261018), with the "Bug"
   session's Studio E2E SP-08 update (`tools/studio/e2e/scenarios/starters.mjs`: `appsButton` → `appsItem`), which must
   land together with the HrShell footer change.
+
+## Studio Flat hover (user: "UI của Studio dùng màu hover cho các nền flat chưa đúng (Định nghĩa flat là không có nền...)") — tier S
+- Cause: Studio items with no fill at rest hovered with Neutral/Subtle/Hover (alpha 4) or Surface/Hover; the selected
+  fill is Active/Neutral/Subtle (alpha 3), so the hovered Variables group looked darker than the selected one.
+- Fix: `variables.css` (groups + `:active` + selected-row hover = Subtle/Hover as Sidebar, value cells, alias options),
+  `inspector.css` (`.studio-inspector__item` hover/pressed), `controls.css` (align-box target) → Neutral/Flat/Hover|Pressed.
+- Rule: style-guard `color/flat-state` (error; rest none/transparent/*-flat-default + :hover/:active with a non-Flat
+  state fill; selected rows exempt), fixtures bad/good; 0 findings repo-wide after the fix, 5 on the old Studio CSS.
+  Guideline background-layers do/don't added (guidelines.source.mjs → rebuilt).
+- Measured (Playwright, :5180 Variables): rest 0, hover rgba(5,5,5,.03), selected/pressed rgba(2,2,2,.075).
+- Gathered by "Giám sát" on 2026-10-18: the session closed while its gate was running; the gate was run again here (PR zen/fix/studio-flat-hover-20261018).
