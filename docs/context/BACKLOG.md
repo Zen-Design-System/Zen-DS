@@ -652,3 +652,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - P3 (2026-10-06, same session): **Card Flat has no hover/pressed** when clickable (`card.css` only styles Border's
   interactive states), so clickable cards stay `theme="border"` under §16; a Flat interactive state would let them
   follow the default mood.
+- P2 (2026-10-18, session "Bug") · **Studio Main component still incomplete** (needs the user's go-ahead: Assets items +
+  map entries): not drawn for lack of an Assets item — ToggleButton, BadgeCounter, HeadingField, SkeletonShape,
+  OpinionScale, UploaderFileItem, ControlBarSelectItem, InputConditionItem, ChatConversationItem/Bubble/File/Call/AvatarGroup;
+  the 5 overlays (Dialog, ModalForm, SidePanel, BottomSheet, Toast) by design; no variant set mapped — ListItem, Popover,
+  EmptyState, BottomNavigation, DatePicker, DatePickerSheet, Stepper, ChatPhotos, InputConditions, AutocompleteField,
+  RichTextField; Dashboard header Navigation/Custom rows draw without their content. Pointer: session-log-2026-10-18
+  "Studio component boards"; E2E BL-02 guards what is drawn.

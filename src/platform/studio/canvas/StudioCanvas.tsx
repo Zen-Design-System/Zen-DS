@@ -41,7 +41,7 @@ type WorldRect = { x: number; y: number; width: number; height: number };
  * Docs reading column beside them is left out: thousands of pixels tall, it would shrink the fit to an unreadable zoom. */
 /** What "Zoom to fit" (⇧1) fits: every frame on the board, the Docs frame too (Figma fits all; E2E S-04). */
 function fitRect(world: HTMLElement): WorldRect {
-  const parts = [...world.querySelectorAll<HTMLElement>("[data-studio-frame], [data-studio-section='examples']")];
+  const parts = [...world.querySelectorAll<HTMLElement>("[data-studio-frame], [data-studio-section]")];
   if (!parts.length) parts.push(world.querySelector<HTMLElement>(".studio-board") ?? world);
   const rects = parts.map((element) => toWorldRect(element.getBoundingClientRect()));
   const x = Math.min(...rects.map((rect) => rect.x));

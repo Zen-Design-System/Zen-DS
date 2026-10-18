@@ -34,7 +34,10 @@ for (const [component, entry] of Object.entries(FIGMA_PROPS)) {
     const axes = [];
     for (const prop of set.props) {
       if (prop.type !== "VARIANT") continue;
-      const row = entry.own.find((own) => own.type === "VARIANT" && own.label === prop.name && own.options);
+      // A number the Properties panel leaves out (Progress, Rating): the map's `main` gives each option its value.
+      const main = spec.props[prop.name]?.main;
+      const row = entry.own.find((own) => own.type === "VARIANT" && own.label === prop.name && own.options)
+        ?? (main ? { prop: main.prop, options: Object.fromEntries(Object.entries(main.values).map(([name, value]) => [name, String(value)])) } : null);
       if (!row) continue;
       const pairs = prop.options.map((name) => [name, row.options[name]]).filter(([, value]) => value !== undefined);
       // One value is no axis: the component shows it by itself.

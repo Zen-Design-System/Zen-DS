@@ -20,7 +20,8 @@ export type StudioFrameEntry = {
   example?: StudioExample;
 };
 
-export type StudioSectionEntry = { id: string; label: string; count: number; element: HTMLElement };
+/** `count`: the frames it holds, shown on its name tab (Examples); none for a fixed group (Component, Docs). */
+export type StudioSectionEntry = { id: string; label: string; count?: number; element: HTMLElement };
 
 let frames: StudioFrameEntry[] = [];
 let sections: StudioSectionEntry[] = [];

@@ -70,14 +70,21 @@ type ApiProp = { name: string; type: string; required: boolean; default: string 
 type ApiComponent = { name: string; extends: string | null; props: ApiProp[] };
 const propsFor = (page: PlatformPage): ApiComponent[] | undefined => (apiReference as unknown as Record<string, ApiComponent[]>)[guidelineSlugFor(page)];
 
-/** Props of every component on the page, generated from the TypeScript source (scripts/build-api.mjs → api.generated.json). */
-export function ComponentProps({ page }: { page: PlatformPage }) {
-  const components = propsFor(page);
+/** Does the page have a Keyboard or an API table (the Studio board draws its Docs frame only then)? */
+export const hasComponentReference = (page: PlatformPage) => Boolean(referenceFor(page)?.keyboard?.length || referenceFor(page)?.api?.length);
+/** The components whose props the page documents, in its order (the Studio board draws one Props frame each). */
+export const propsComponentNames = (page: PlatformPage) => (propsFor(page) ?? []).map((component) => component.name);
+
+/** Props of every component on the page, generated from the TypeScript source (scripts/build-api.mjs → api.generated.json).
+ *  `only`: one component's props (the Studio board's "Props · <Component>" frames), with ids of its own. */
+export function ComponentProps({ page, only }: { page: PlatformPage; only?: string }) {
+  const components = propsFor(page)?.filter((component) => !only || component.name === only);
   if (!components?.length) return null;
+  const key = only ? `props-${only}` : "props";
   return (
-    <PlatformSection id="props" label="Props">
-      <section className="pe-section platform-ref" aria-labelledby="platform-props-title">
-        <SectionHead id="platform-props-title" title="Props">Generated from the TypeScript source, so it is always current. AI agents read the same data from docs/api.</SectionHead>
+    <PlatformSection id={key} label={only ? `${only} props` : "Props"}>
+      <section className="pe-section platform-ref" aria-labelledby={`platform-${key}-title`}>
+        <SectionHead id={`platform-${key}-title`} title={only ? `${only} props` : "Props"}>Generated from the TypeScript source, so it is always current. AI agents read the same data from docs/api.</SectionHead>
         {components.map((component) => (
           <div key={component.name} className="platform-ref__component">
             <h3 className={typographyStyles["Heading/4"]}>{component.name}</h3>

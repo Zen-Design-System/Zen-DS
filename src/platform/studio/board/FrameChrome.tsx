@@ -360,7 +360,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       {sections.map((section) => (
         <div key={section.id} ref={track(`tab:${section.id}`)} data-chrome-key={`tab:${section.id}`} className="studio-section-tab">
           <span className={typographyStyles["Body/Small/Bold"]}>{section.label}</span>
-          <BadgeCounter value={section.count} theme="neutral" background="subtle" />
+          {section.count !== undefined ? <BadgeCounter value={section.count} theme="neutral" background="subtle" /> : null}
         </div>
       ))}
       {frames.map((frame) => (
