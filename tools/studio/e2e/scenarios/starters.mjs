@@ -202,7 +202,7 @@ export const rows = [
     },
   },
   {
-    id: "SP-08", feature: "HR · Home's Sidebar footer is a shared const (footer={appsButton}): Footer-Content lists its button and + adds a Menu item where the const is written", wp: "slots 2026-10-09",
+    id: "SP-08", feature: "HR · Home's Sidebar footer is a shared const (footer={appsItem}, a SidebarMenuItem): Footer-Content lists its row and + adds a Menu item where the const is written", wp: "slots 2026-10-09",
     timeout: 60_000,
     async run(ctx) {
       const file = "src/templates/hr/HrShell.tsx";
@@ -226,15 +226,15 @@ export const rows = [
         await until(async () => (await heading()) === "Sidebar", { message: "the Sidebar selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await heading()})`); });
         const slot = page.locator('#studio-right [data-slot="footer"]');
         await slot.waitFor({ state: "visible", timeout: 5000 });
-        await until(async () => /Written in\s*appsButton/.test(await page.locator("#studio-right").innerText()), { message: "the note: Written in appsButton" });
+        await until(async () => /Written in\s*appsItem/.test(await page.locator("#studio-right").innerText()), { message: "the note: Written in appsItem" });
         await slot.getByRole("button", { name: "Add to Footer-Content" }).click();
         await page.getByRole("option", { name: /^Menu item/ }).first().click();
         const written = async () => (await ctx.api.source(file)).content;
-        await until(async () => /const appsButton = <>[\s\S]*<SidebarMenuItem id="invoices-\w+"/.test(await written()), { message: "the Menu item added inside const appsButton" });
+        await until(async () => /const appsItem = <>[\s\S]*<SidebarMenuItem id="invoices-\w+"/.test(await written()), { message: "the Menu item added inside const appsItem" });
         const text = await written();
-        if ((text.match(/footer=\{appsButton\}/g) ?? []).length !== 2) throw new Error("both Sidebars should still show appsButton");
+        if ((text.match(/footer=\{appsItem\}/g) ?? []).length !== 2) throw new Error("both Sidebars should still show appsItem");
         await until(async () => (await frame.locator(".zen-sidebar__footer-content").first().locator(":scope > *").count()) >= 2, { message: "two footer rows on the canvas" });
-        return "footer={appsButton} → Footer-Content › + Menu item → const appsButton = <>…<SidebarMenuItem …/></>";
+        return "footer={appsItem} → Footer-Content › + Menu item → const appsItem = <>…<SidebarMenuItem …/></>";
       } finally {
         await ctx.api.discard([file]).catch(() => {});
         await ctx.studio({ fresh: true });

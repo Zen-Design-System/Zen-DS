@@ -35,6 +35,7 @@ import {
   ModalForm,
   SidePanel,
   Sidebar,
+  SidebarMenuItem,
   Stack,
   Tag,
   Text,
@@ -177,8 +178,9 @@ export function HrShell({ module, page, crumbs, onNavigate: onNavigateProp, asid
   const [panel, setPanel] = useState<Panel | null>(null);
   const go: HrNavigate = (target) => { setPanel(null); onNavigate?.(target); };
   const notInDemo = (label: string) => toast({ title: `${label} isn't part of this demo` });
-  // Apps in every Sidebar footer: the rail hides its label visually and shows it as the 1s tooltip.
-  const appsButton = <button type="button" onClick={() => notInDemo("Apps")}><Icon name="icon-shop-store-line" size="base" /><span>Apps</span></button>;
+  // Apps in every Sidebar footer: a Sidebar row (Figma Footer-Content Menu-Item), so the rail shows its icon alone with
+  // the label as its name and 1s tooltip. It reaches the Sidebar's onItemClick as "apps".
+  const appsItem = <SidebarMenuItem id="apps" label="Apps" icon="icon-shop-store-line" />;
 
   // Inbox: opening it reads everything; the rows that were new keep their badge until it closes.
   const [unread, setUnread] = useState(() => inboxItems.filter((item) => item.unread).map((item) => item.id));
@@ -280,8 +282,8 @@ export function HrShell({ module, page, crumbs, onNavigate: onNavigateProp, asid
         : approvals === undefined ? section
           : { ...section, items: section.items.map((item) => (item.id === "approvals" ? { ...item, counter: approvals || undefined } : item)) })}
       selectedId={page}
-      onItemClick={(item) => go({ module, page: item.id })}
-      footer={appsButton}
+      onItemClick={(item) => (item.id === "apps" ? notInDemo(item.label) : go({ module, page: item.id }))}
+      footer={appsItem}
     />
   ) : (
     <Sidebar
@@ -297,7 +299,7 @@ export function HrShell({ module, page, crumbs, onNavigate: onNavigateProp, asid
         else if (item.id === "home") setPanel(null);
         else notInDemo(item.label);
       }}
-      footer={appsButton}
+      footer={appsItem}
     />
   );
 
