@@ -358,7 +358,8 @@ const FRAME_CLICK = { width: 100, height: 100 };
 export function placeInView(width: number, height: number): FramePlace | null {
   const container = document.querySelector<HTMLElement>(FRAMES);
   if (!container) return null;
-  const boxes = framesIn(container).map((element) => ({ id: element.dataset.studioFrame ?? "", ...boxOf(element) }));
+  // Sections are areas, not frames in the way (a frame beside one in a Section stays in it).
+  const boxes = framesIn(container).map((element) => ({ id: element.dataset.studioFrame ?? "", ...boxOf(element) })).filter((box) => !isSectionId(box.id));
   const selection = studioStore.getState().selection;
   const selected = selection?.kind === "frame" ? boxes.find((box) => box.id === selection.frameId) : undefined;
   const rightmost = boxes.reduce<(typeof boxes)[number] | null>((best, box) => (!best || box.x + box.width > best.x + best.width ? box : best), null);

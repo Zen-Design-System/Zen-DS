@@ -31,7 +31,10 @@ export function StudioFrame({ id, kind, label, width, example, children }: { id:
     const element = ref.current;
     return element ? registerFrame({ id, kind, label, element, baseWidth: width, example }) : undefined;
   }, [id, kind, label, width, example]);
-  const style = { "--studio-frame-width": `${resolveFrameWidth(width, override?.width)}px` } as CSSProperties;
+  // A frame of a page you made has its own width in the page (F4: handles, Layout › W); a view width set on it before
+  // that (the old width menu) no longer applies.
+  const viewWidth = /^(screen|overlay):/.test(id) ? undefined : override?.width;
+  const style = { "--studio-frame-width": `${resolveFrameWidth(width, viewWidth)}px` } as CSSProperties;
   return (
     <div
       ref={ref}
@@ -41,7 +44,7 @@ export function StudioFrame({ id, kind, label, width, example, children }: { id:
       data-kind={kind}
       data-studio-frame={id}
       data-selected={selected ? "true" : undefined}
-      data-width-override={override?.width && override.width !== "auto" ? "true" : undefined}
+      data-width-override={viewWidth && viewWidth !== "auto" ? "true" : undefined}
       data-theme={override?.theme}
       data-zen-overlay-root=""
       style={style}
