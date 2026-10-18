@@ -13,6 +13,8 @@
 //   op "group" { with?, props?, box, kids }   on one of the layers: they go into one floating Box where the frontmost
 //     was, each keeping its place on the canvas (Frame selection and ⌘G on layers of a frame without auto layout)
 //
+//   op "ungroup" { kids? }   on a Box / Stack / Grid: its layers take its place, keeping theirs (⇧⌘G)
+//
 //   op "replaceElement" { code, state? }   on the element it replaces (Swap instance: a prop's or slot's component, a layer)
 //   op "pasteCode" { code, before?, after?, replace?, at? }   on the element the code goes into (⌘V from another file or
 //     after a cut): `code` is one JSX element; names it reads must exist there, or be Zen components (imported) or
@@ -692,6 +694,60 @@ function manyMoveToPlan(ctx, outer, op, h) {
 }
 
 const countLines = (value) => (value.match(/\r\n|\n|\r/g) ?? []).length;
+
+/** `raw` (one element's code) without the props that float it: it joins its new parent's auto layout. */
+function inFlow(raw) {
+  const wrapped = `<>\n${raw}\n</>`;
+  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"] });
+  const element = fragment.children.find((child) => child.type === "JSXElement");
+  const edits = [];
+  for (const attribute of element.openingElement.attributes) {
+    if (attribute.type !== "JSXAttribute" || !POSITION_PROPS.has(jsxName(attribute.name))) continue;
+    let start = attribute.start;
+    while (start > 0 && /\s/.test(wrapped[start - 1])) start -= 1;
+    edits.push({ start, end: attribute.end, text: "" });
+  }
+  return applyEdits(wrapped, edits).slice(3, -4);
+}
+
+/**
+ * The plan for op ungroup { kids? } on a Box, Stack or Grid (Figma's ⇧⌘G: Ungroup, Remove frame; plan F3): its layers
+ * take its place in its parent, keeping theirs on the canvas. `kids[loc]`: each layer's { x, y } in the parent's px
+ * when the parent has no auto layout (they float there, pinned left / top); without `kids` they join the parent's
+ * auto layout (their own position props go). The frame's own props go with it. Answer: moved { loc, locs } (each
+ * layer's loc before → after).
+ */
+export function ungroupPlan(ctx, nodePath, op, h) {
+  const { text, eol, element } = ctx;
+  const name = jsxName(element.openingElement.name);
+  if (!["Box", "Stack", "Grid"].includes(name.slice(name.lastIndexOf(".") + 1))) h.refuse(`Ungroup takes a group or a frame (a Box, Stack or Grid), not <${name}>`);
+  const parent = nodePath.at(-2);
+  if (parent?.type !== "JSXElement" || !parent.children.includes(element)) h.refuse(`<${name}> sits in a prop, a condition or a list: its layers have no frame to go to`);
+  const kids = element.children.filter((child) => child.type === "JSXElement");
+  if (element.children.some((child) => child.type !== "JSXElement" && !(child.type === "JSXText" && !child.value.trim()))) h.refuse(`<${name}> holds text or code (a list, a condition): ungroup it in the code`);
+  if (!kids.length) h.refuse(`<${name}> holds no layers: Delete removes it`);
+  if (op.kids !== undefined && (typeof op.kids !== "object" || kids.some((kid) => { const at = op.kids?.[locOfElement(kid)]; return !at || !Number.isFinite(at.x) || !Number.isFinite(at.y); }))) h.refuse("ungroup `kids` needs every layer's { x, y } by its loc");
+  const base = indentAt(text, element.start);
+  const blocks = kids.map((kid) => {
+    const flat = h.reindent(piece(text, kid), "", eol);
+    const code = op.kids ? floatAt(flat, op.kids[locOfElement(kid)]) : inFlow(flat);
+    return { kid, name: /^<([\w.]+)/.exec(code)[1], code: code.split("\n").map((line, index) => (!line.trim() ? "" : index === 0 ? line : `${base}${line}`)).join(eol) };
+  });
+  const edit = { start: element.start, end: element.end, text: blocks.map((block) => block.code).join(`${eol}${base}`) };
+  let within = 0;
+  const focuses = blocks.map((block) => {
+    const focus = { edit, within, name: block.name, from: locOfElement(block.kid) };
+    within += block.code.length + eol.length + base.length;
+    return focus;
+  });
+  return {
+    edits: [edit],
+    focus: focuses[0],
+    focuses,
+    answer: "moved",
+    snippet: () => ({ reason: "ungrouping is not copied into the example snippet; update it by hand" }),
+  };
+}
 
 /** An EditValue ({ kind, value }) as a JSX attribute. */
 function attributeOf(name, value) {

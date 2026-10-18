@@ -10,6 +10,7 @@ import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } 
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
+import { ungroupSelection } from "../edit/groupLayers";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { visibilityMenuItems } from "../edit/visibility";
@@ -130,6 +131,8 @@ export function CanvasMenu() {
     ...(autoLayoutAlone ? [{ id: "remove-auto-layout", label: "Remove auto layout", icon: "icon-square-line" as const, shortcut: removeAutoLayoutShortcut, onSelect: () => { void removeAutoLayoutFromSelection(); } }] : []),
     notYet("group", "Group selection", `${modKey}G`, "icon-layers-three-01-line"),
     { id: "wrap-box", label: "Frame selection", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
+    // ⇧⌘G on one frame: its layers take its place and keep theirs (edit/groupLayers.ts, F3).
+    ...(!several && /^(Box|Stack|Grid)$/.test(selection.name.slice(selection.name.lastIndexOf(".") + 1)) ? [{ id: "remove-frame", label: "Remove frame", icon: "icon-square-line" as const, shortcut: modKey === "⌘" ? "⇧⌘G" : "Ctrl+Shift+G", disabled: !canEdit(), onSelect: () => { void ungroupSelection(selection); } }] : []),
   ] : [];
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
   // Show / Hide, Lock / Unlock and Rename, as Figma's layer menu (edit/visibility.ts, edit/lock.ts, edit/rename.ts).

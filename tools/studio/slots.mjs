@@ -73,7 +73,7 @@ import { parseExpression } from "@babel/parser";
 import { CHROME_MARK, EditError, applyEdits, changedRange, chromeFunctions, collapseJsxText, describeAttr, describeAttrsIn, findElement, formatAttr, insideAny, isAnnotatedFile, jsxName, parseLoc, parseSource, sha1, snippetLiterals, staticString, walk } from "./jsx-source.mjs";
 import { isPlaygroundFile } from "./shared-code.mjs";
 import { UNIT, pathTo, piece } from "./source-helpers.mjs";
-import { childRefusal, groupPlan, holdsElements, inScreenContent, manyPlan, moveToPlan, pasteCodePlan, pxOf, replacePlan } from "./arrange.mjs";
+import { childRefusal, groupPlan, holdsElements, ungroupPlan, inScreenContent, manyPlan, moveToPlan, pasteCodePlan, pxOf, replacePlan } from "./arrange.mjs";
 import { ITEM_OPS, itemPlan } from "./items.mjs";
 
 const BOM = "\uFEFF";
@@ -105,7 +105,7 @@ const FALLBACK_FOLDERS = {
   RadioButton: "RadioButton", Tag: "Tag", Heading: "Text", Text: "Text", Toggle: "Toggle", useToast: "Toast",
 };
 
-export const SLOT_OPS = new Set(["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "group", "clearSlot", "resetSlot", ...ITEM_OPS]);
+export const SLOT_OPS = new Set(["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "group", "ungroup", "clearSlot", "resetSlot", ...ITEM_OPS]);
 /** Ops sent on the slot's host (the parent), not on an element inside the slot. */
 const HOST_OPS = new Set(["insertChild", "pasteCode", "clearSlot", "resetSlot", ...ITEM_OPS]);
 
@@ -2925,7 +2925,7 @@ export function applySlotOp(code, loc, name, op, options = {}) {
     if (!shared) return sharedRefusal(file);
   }
   // Ops that take content away need the text they were chosen on.
-  const hashed = { removeElement: "Remove and move", moveElement: "Remove and move", moveTo: "Remove and move", pasteCode: "Paste and replace", replaceElement: "Paste and replace", many: "Changes to several layers", group: "Changes to several layers", clearSlot: "Clear and reset", resetSlot: "Clear and reset", insertItem: "Item changes", removeItem: "Item changes", duplicateItem: "Item changes", moveItem: "Item changes", groupItem: "Item changes", ungroupItem: "Item changes" }[op.op];
+  const hashed = { removeElement: "Remove and move", moveElement: "Remove and move", moveTo: "Remove and move", pasteCode: "Paste and replace", replaceElement: "Paste and replace", many: "Changes to several layers", group: "Changes to several layers", ungroup: "Changes to several layers", clearSlot: "Clear and reset", resetSlot: "Clear and reset", insertItem: "Item changes", removeItem: "Item changes", duplicateItem: "Item changes", moveItem: "Item changes", groupItem: "Item changes", ungroupItem: "Item changes" }[op.op];
   if (hashed) {
     if (typeof hash !== "string" || !hash) return fail("invalid", `${hashed} need the file's hash (send \`hash\` with the request)`);
     if (hash !== sha1(code)) return fail("stale", "The file changed since it was read; reload it and try again");
@@ -2968,6 +2968,7 @@ export function applySlotOp(code, loc, name, op, options = {}) {
     else if (op.op === "replaceElement") plan = replacePlan(ctx, nodePath, op, ARRANGE_HELPERS);
     else if (op.op === "many") plan = manyPlan(ctx, nodePath, op, ARRANGE_HELPERS);
     else if (op.op === "group") plan = groupPlan(ctx, nodePath, op, ARRANGE_HELPERS);
+    else if (op.op === "ungroup") plan = ungroupPlan(ctx, nodePath, op, ARRANGE_HELPERS);
     else if (ITEM_OPS.has(op.op)) plan = itemPlan(ctx, nodePath, op, ITEM_HELPERS);
     else plan = movePlan(ctx, nodePath, op.to, typeof op.parent === "string" ? op.parent : undefined);
     if (plan.answer === "removed" || plan.answer === "cleared" || plan.answer === "reset") {

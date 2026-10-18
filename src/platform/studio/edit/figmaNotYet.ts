@@ -21,7 +21,6 @@ type NotYet = { code: string; keys: Keys; name: string; macOnly?: boolean };
  */
 export const FIGMA_NOT_YET: readonly NotYet[] = [
   { code: "KeyG", keys: { mod: true }, name: "Group selection" },
-  { code: "KeyG", keys: { mod: true, shift: true }, name: "Ungroup" },
   { code: "KeyE", keys: { mod: true }, name: "Flatten" },
   { code: "KeyO", keys: { mod: true, alt: true }, name: "Outline stroke" },
   { code: "KeyM", keys: { mod: true, ctrl: true }, name: "Use as mask" },

@@ -9,6 +9,7 @@ import { canEdit, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
 import { alignLayers, distributeLayers, tidyUpLayers } from "./alignLayers";
 import { stepLayer } from "./arrange";
+import { ungroupSelection } from "./groupLayers";
 import { textEditSession } from "./textEdit";
 
 /*
@@ -166,8 +167,15 @@ export function useFigmaKeys() {
       if (mod && !event.altKey && !event.shiftKey && event.code === "KeyA") { event.preventDefault(); selectAll(selection); return; }
       // ⌃⌥H / ⌃⌥V distribute, ⌃⌥T tidy up (Figma's; several layers: edit/alignLayers.ts).
       const arrange = event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey ? ARRANGE_KEYS[event.code] : undefined;
+      const ungroup = mod && event.shiftKey && !event.altKey && event.code === "KeyG";
       if (!canEdit(state) || running) {
-        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange) event.preventDefault();
+        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange || ungroup) event.preventDefault();
+        return;
+      }
+      // ⇧⌘G: Ungroup / Remove frame — the layers take its place and keep theirs (edit/groupLayers.ts).
+      if (ungroup) {
+        event.preventDefault();
+        run(ungroupSelection(selection));
         return;
       }
       if (arrange) {

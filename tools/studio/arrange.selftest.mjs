@@ -365,6 +365,26 @@ test("group (F3 Frame selection / ⌘G): floating layers into one floating Box, 
   assert.match(missing.error, /no place/);
 });
 
+test("ungroup (F3 ⇧⌘G): the layers take the group's place, floating where they were, or in the flow", () => {
+  const code = ['import { Box, Shape, Stack } from "../../../components/Layout";', "export function Demo() {", "  return (", "    <Box width={358} height={220}>", '      <Box position="absolute" insetLeft={20} insetTop={20} width={180} height={80} name="Group 1">', '        <Shape position="absolute" insetLeft={0} insetTop={0} type="rectangle" width={80} height={60} />', '        <Shape\n          position="absolute"\n          insetLeft={120}\n          insetTop={20}\n          type="ellipse"\n        />', "      </Box>", "    </Box>", "  );", "}", ""].join("\n");
+  const group = locOf(code, '<Box position="absolute"');
+  const rect = locOf(code, '<Shape position="absolute" insetLeft={0}');
+  const ellipse = locOf(code, "<Shape\n");
+  const result = applySlotOp(code, group, "Box", { op: "ungroup", kids: { [rect]: { x: 20, y: 20 }, [ellipse]: { x: 140, y: 40 } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!result.error, result.error);
+  assert.equal(result.code.split("\n").slice(3, 7).join("\n"), [
+    "    <Box width={358} height={220}>",
+    '      <Shape position="absolute" insetLeft={20} insetTop={20} type="rectangle" width={80} height={60} />',
+    '      <Shape position="absolute" insetLeft={140} insetTop={40}',
+    '        type="ellipse"',
+  ].join("\n"));
+  assert.deepEqual(result.moved.locs, { [rect]: "5:6", [ellipse]: "6:6" });
+  const flow = applySlotOp(code, group, "Box", { op: "ungroup" }, { file: FILE, hash: sha1(code) });
+  assert.ok(!flow.error, flow.error);
+  assert.match(flow.code, /<Box width=\{358\} height=\{220\}>\n {6}<Shape type="rectangle" width=\{80\} height=\{60\} \/>\n {6}<Shape\n {8}type="ellipse"\n {6}\/>\n {4}<\/Box>/);
+  assert.match(applySlotOp(code, group, "Box", { op: "ungroup", kids: { [rect]: { x: 1, y: 1 } } }, { file: FILE, hash: sha1(code) }).error, /every layer/);
+});
+
 const many = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "many", ...op }, { file: FILE, hash: sha1(code) });
 
 test("many remove: several layers in one edit, a nested one goes with its parent", () => {

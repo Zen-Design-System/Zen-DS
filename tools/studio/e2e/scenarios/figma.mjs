@@ -45,7 +45,7 @@ async function selectBody(page, id) {
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
-  ["ControlOrMeta+KeyG", "Group selection"], ["ControlOrMeta+Shift+KeyG", "Ungroup"],
+  ["ControlOrMeta+KeyG", "Group selection"],
   ["ControlOrMeta+KeyE", "Flatten"], ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
   ["Shift+KeyR", "Rulers"], ["Shift+KeyS", "Section"], ["KeyP", "Pen"], ["KeyK", "Scale"], ["KeyC", "Comment"],
   ["KeyI", "Pick color"], ["KeyN", "Next frame"], ["KeyS", "Slice"],
@@ -894,6 +894,34 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "Box" || /^Frame/.test(await selectedName(page)), { timeout: 4000, message: "the Box selected" }).catch(() => undefined);
       await undoTo(page, id, before);
       return "Box 20, 20, 180 × 80 · offsets 0, 0 and 120, 20 · nothing moved · ⌘Z";
+    },
+  },
+  {
+    id: "FW-39", feature: "⇧⌘G on a frame floating in a frame without auto layout: its layers take its place where they were, selected", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const where = async () => Promise.all([0, 1].map(async (k) => { const box = await clipShape(page, id, k).boundingBox(); return { x: Math.round(box.x), y: Math.round(box.y) }; }));
+      const start = await where();
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyG");
+      await until(async () => /<Box position="absolute" insetLeft=\{20\}/.test((await pageText(page, id)) ?? ""), { message: "framed" });
+      const framed = (await pageText(page, id)) ?? "";
+      await sleep(400);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Shift+KeyG");
+      await until(async () => !/<Box position="absolute"/.test((await pageText(page, id)) ?? ""), { message: "the frame removed" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const shapes = shapeTags((await pageText(page, id)) ?? "");
+      if (shapes[0].x !== 20 || shapes[0].y !== 20 || shapes[1].x !== 140 || shapes[1].y !== 40) throw new Error(`the layers at ${shapes.map((shape) => `${shape.x}, ${shape.y}`).join(" · ")} (want 20, 20 · 140, 40)`);
+      await sleep(400);
+      const now = await where();
+      if (now.some((point, k) => Math.abs(point.x - start[k].x) > 1 || Math.abs(point.y - start[k].y) > 1)) throw new Error(`moved on the canvas: ${JSON.stringify(start)} → ${JSON.stringify(now)}`);
+      await until(async () => (await selectedSrc(page)).length === 2, { timeout: 4000, message: "both layers selected" });
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === framed, { message: "⌘Z: framed again" });
+      await undoTo(page, id, before);
+      return "⌥⌘G → ⇧⌘G: back at 20, 20 · 140, 40, nothing moved, both selected · ⌘Z ×2";
     },
   },
 ];
