@@ -8,6 +8,7 @@ import { moveLayer, type DropTarget, type NodeSelection } from "./arrange";
 import { startMarquee } from "./marquee";
 import { moveLayersTo } from "./multi";
 import { floatingItems, writeMoves, type FloatingItem } from "./alignLayers";
+import { equalSpacing, type SpacingMark } from "./spacingModel";
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { ladderOf } from "../position/PositionSection";
 import { ladderName, pinOfConstraint, snap, snapText, type Ladder, type Pin, type Snap } from "../position/positionModel";
@@ -42,6 +43,8 @@ export type DragView = {
   tone: "info" | "negative";
   /** Red smart guides of a free move (client px). */
   guides?: Array<{ x: number; y: number; w: number; h: number }>;
+  /** Pink equal-spacing marks of a free move, with their px (client px; edit/spacingModel.ts). */
+  spacing?: Array<{ x: number; y: number; w: number; h: number; axis: "x" | "y"; label: string }>;
 } | null;
 
 let view: DragView = null;
@@ -342,11 +345,11 @@ type FloatMove = {
    * the px, snapping to the frame's and its other layers' edges and centres with red guides (⌘ held: no snapping; ⇧ one
    * axis), and writes px offsets. Inside auto layout it keeps the token ladder.
    */
-  free: { others: FrameBox[]; size: { width: number; height: number }; guides: SnapGuide[] } | null;
+  free: { others: FrameBox[]; size: { width: number; height: number }; guides: SnapGuide[]; spacing?: SpacingMark[] } | null;
 };
 
 /** Several floating layers moved together: their items, their shared block (null: in several frames, no snapping). */
-type GroupMove = { items: FloatingItem[]; block: HTMLElement | null; scale: number; others: FrameBox[] | null; union: FrameBox; shift: { x: number; y: number }; guides: SnapGuide[] };
+type GroupMove = { items: FloatingItem[]; block: HTMLElement | null; scale: number; others: FrameBox[] | null; union: FrameBox; shift: { x: number; y: number }; guides: SnapGuide[]; spacing: SpacingMark[] };
 
 /** A free frame's DOM node: a builder Screen (or its content box) or a Box that is not a layer's float wrapper. */
 const FREE_FRAME = ".studio-builder-screen, .studio-builder-screen__content, .zen-box";
@@ -381,7 +384,7 @@ function floatOf(host: HTMLElement, layer: NodeSelection): FloatMove | null {
     start: { x: left, y: top },
     end: { x: block.clientWidth - left - rect.width / scale, y: block.clientHeight - top - rect.height / scale },
     ladder: ladderOf(target), insets: [],
-    free: freeFrame ? { others, size: { width: rect.width / scale, height: rect.height / scale }, guides: [] } : null,
+    free: freeFrame ? { others, size: { width: rect.width / scale, height: rect.height / scale }, guides: [], spacing: [] } : null,
   };
 }
 
@@ -392,11 +395,14 @@ function followFree(current: Session, float: FloatMove, free: NonNullable<FloatM
   if (keys.shift) { if (Math.abs(dx) >= Math.abs(dy)) dy = 0; else dx = 0; }
   const moved = { x: float.start.x + dx, y: float.start.y + dy, width: free.size.width, height: free.size.height };
   free.guides = [];
+  free.spacing = [];
   if (!keys.mod) {
-    const snapped = snapBox(moved, free.others, SNAP_PX / (getViewport().zoom || 1));
-    moved.x += snapped.dx;
-    moved.y += snapped.dy;
-    free.guides = snapped.guides;
+    const threshold = SNAP_PX / (getViewport().zoom || 1);
+    const snap = snapAndSpace(moved, free.others, threshold);
+    moved.x += snap.dx;
+    moved.y += snap.dy;
+    free.guides = snap.guides;
+    free.spacing = snap.spacing;
   }
   const x = Math.round(moved.x);
   const y = Math.round(moved.y);
@@ -417,7 +423,8 @@ function followFree(current: Session, float: FloatMove, free: NonNullable<FloatM
   }
   if (!current.refusal) float.host.style.setProperty("translate", `${shift.x}px ${shift.y}px`);
   current.target = null;
-  publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? null, tone: current.refusal ? "negative" : "info", guides: freeGuides(float, free) });
+  const block = float.host.offsetParent;
+  publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? null, tone: current.refusal ? "negative" : "info", guides: freeGuides(float, free), spacing: block instanceof HTMLElement && free.spacing?.length ? spacingOn(block, float.scale, free.spacing) : undefined });
 }
 
 /** The guides of a free move in screen px (the canvas's red smart guides). */
@@ -700,7 +707,7 @@ function armGroup(event: PointerEvent, world: Element, layers: ExtraLayer[], ite
   const left = Math.min(...items.map((item) => item.offset.left));
   const top = Math.min(...items.map((item) => item.offset.top));
   const union = { x: left, y: top, width: Math.max(...items.map((item) => item.offset.left + item.box.width)) - left, height: Math.max(...items.map((item) => item.offset.top + item.box.height)) - top };
-  const group: GroupMove = { items, block, scale, others, union, shift: { x: 0, y: 0 }, guides: [] };
+  const group: GroupMove = { items, block, scale, others, union, shift: { x: 0, y: 0 }, guides: [], spacing: [] };
   begin(event, { layer: { kind: "node", ...layers[0] }, layers, hit: primary, hosts: items.map((item) => item.host), frame: primary.hosts[0]?.closest("[data-studio-frame]") ?? null, deferred: select, float: null, group });
   return true;
 }
@@ -711,17 +718,21 @@ function followGroup(current: Session, group: GroupMove) {
   let dy = (current.pointer.y - current.start.y) / group.scale;
   if (current.keys.shift) { if (Math.abs(dx) >= Math.abs(dy)) dy = 0; else dx = 0; }
   group.guides = [];
+  group.spacing = [];
   if (group.others && !current.keys.mod) {
-    const snapped = snapBox({ ...group.union, x: group.union.x + dx, y: group.union.y + dy }, group.others, SNAP_PX / (getViewport().zoom || 1));
-    dx += snapped.dx;
-    dy += snapped.dy;
-    group.guides = snapped.guides;
+    const threshold = SNAP_PX / (getViewport().zoom || 1);
+    const snap = snapAndSpace({ ...group.union, x: group.union.x + dx, y: group.union.y + dy }, group.others, threshold);
+    dx += snap.dx;
+    dy += snap.dy;
+    group.guides = snap.guides;
+    group.spacing = snap.spacing;
   }
   group.shift = { x: Math.round(dx), y: Math.round(dy) };
   if (!current.refusal) for (const item of group.items) item.host.style.setProperty("translate", `${group.shift.x}px ${group.shift.y}px`);
   current.target = null;
   const guides = group.block && group.guides.length ? guidesOn(group.block, group.scale, group.guides) : undefined;
-  publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? `X ${group.shift.x >= 0 ? "+" : ""}${group.shift.x}, Y ${group.shift.y >= 0 ? "+" : ""}${group.shift.y}`, tone: current.refusal ? "negative" : "info", guides });
+  const spacing = group.block && group.spacing.length ? spacingOn(group.block, group.scale, group.spacing) : undefined;
+  publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? `X ${group.shift.x >= 0 ? "+" : ""}${group.shift.x}, Y ${group.shift.y >= 0 ? "+" : ""}${group.shift.y}`, tone: current.refusal ? "negative" : "info", guides, spacing });
 }
 
 /** Snap guides measured in a block's unscaled px, as screen px (the canvas's red smart guides). */
@@ -732,6 +743,41 @@ function guidesOn(block: HTMLElement, scale: number, guides: SnapGuide[]) {
     const from = guide.axis === "x" ? at(guide.at, guide.from) : at(guide.from, guide.at);
     const length = (guide.to - guide.from) * scale;
     return guide.axis === "x" ? { x: from.x, y: from.y, w: 1, h: length } : { x: from.x, y: from.y, w: length, h: 1 };
+  });
+}
+
+/**
+ * A free move's snap (Figma's): per axis the nearer of an edge / centre snap (red guides) and an equal-spacing snap (pink
+ * marks with their px), within `threshold`.
+ */
+function snapAndSpace(box: FrameBox, others: readonly FrameBox[], threshold: number): { dx: number; dy: number; guides: SnapGuide[]; spacing: SpacingMark[] } {
+  const edges = snapBox(box, others, threshold);
+  const spacing = equalSpacing(box, others, threshold);
+  const take = (axis: "x" | "y") => {
+    const edge = edges.guides.some((guide) => guide.axis === axis);
+    const space = spacing.marks.some((mark) => mark.axis === axis);
+    const edgeDelta = axis === "x" ? edges.dx : edges.dy;
+    const spaceDelta = axis === "x" ? spacing.dx : spacing.dy;
+    return space && (!edge || Math.abs(spaceDelta) <= Math.abs(edgeDelta)) ? "space" : edge ? "edge" : null;
+  };
+  const x = take("x");
+  const y = take("y");
+  return {
+    dx: x === "space" ? spacing.dx : x === "edge" ? edges.dx : 0,
+    dy: y === "space" ? spacing.dy : y === "edge" ? edges.dy : 0,
+    guides: edges.guides.filter((guide) => (guide.axis === "x" ? x : y) === "edge"),
+    spacing: spacing.marks.filter((mark) => (mark.axis === "x" ? x : y) === "space"),
+  };
+}
+
+/** Equal-spacing marks measured in a block's unscaled px, as screen px with their labels (Figma's pink gaps). */
+function spacingOn(block: HTMLElement, scale: number, marks: SpacingMark[]) {
+  const outer = block.getBoundingClientRect();
+  const at = (x: number, y: number) => ({ x: outer.left + (x + block.clientLeft) * scale, y: outer.top + (y + block.clientTop) * scale });
+  return marks.map((mark) => {
+    const from = mark.axis === "x" ? at(mark.from, mark.at) : at(mark.at, mark.from);
+    const length = (mark.to - mark.from) * scale;
+    return mark.axis === "x" ? { x: from.x, y: from.y, w: length, h: 1, axis: mark.axis, label: String(mark.gap) } : { x: from.x, y: from.y, w: 1, h: length, axis: mark.axis, label: String(mark.gap) };
   });
 }
 

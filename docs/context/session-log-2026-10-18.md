@@ -357,3 +357,8 @@ equal-spacing guides, several frames: ⌘A, marquee) next. W / H arithmetic and 
 - UI: union outline (SelectionLayer `data-kind="union"`); `edit/AlignSelection.tsx` in the multi-selection panel (2 lines
   in inspector/SelectionActions.tsx, agreed with Session B).
 - E2E `--only=figma` FW-20…26: 7 / 7 on the first run.
+- F2b part 1: `select/ResizeLayer.tsx` ⌥ from the centre (free-frame floats; the release passed no ⌥ before), ⇧ on an
+  edge keeps the ratio (replaces the 8 px edge snap: no test read it), a Shape resizes as a float (its left / top edge
+  moved only the size before — a gap found while testing). `edit/spacingModel.ts` (pure, selftest 6): equal spacing to
+  the neighbours' gap or the middle; drag.ts `snapAndSpace` keeps the nearer of the edge snap (red) and the spacing snap
+  (pink marks with px, DragLayer). FW-27…29 pass; the `draw` group 15 / 15.

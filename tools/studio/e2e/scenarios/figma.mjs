@@ -119,6 +119,23 @@ async function selectShapes(page, id, indexes) {
 /** Each Shape's written X / Y in page order: [{ type, x, y }]. */
 const shapesIn = (text) => [...text.matchAll(/<Shape type="(\w+)"[^>]*?insetLeft=\{(-?\d+)\}[^>]*?insetTop=\{(-?\d+)\}/g)].map((match) => ({ type: match[1], x: Number(match[2]), y: Number(match[3]) }));
 
+
+/** Each Shape's written size in page order: [{ type, width, height }]. */
+const sizesIn = (text) => [...text.matchAll(/<Shape type="(\w+)"[^>]*?width=\{(\d+)\}[^>]*?height=\{(\d+)\}/g)].map((match) => ({ type: match[1], width: Number(match[2]), height: Number(match[3]) }));
+/** Drags a resize handle of the selection by (dx, dy) screen px, with `keys` held from the press. */
+async function dragHandle(page, handle, dx, dy, keys = []) {
+  const box = await page.locator(`.studio-resize__handle[data-handle="${handle}"]`).first().boundingBox();
+  if (!box) throw new Error(`no ${handle} handle`);
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  for (const key of keys) await page.keyboard.down(key);
+  await page.mouse.down();
+  for (let step = 1; step <= 5; step++) { await page.mouse.move(x + (dx * step) / 5, y + (dy * step) / 5); await sleep(30); }
+  await page.mouse.up();
+  for (const key of keys) await page.keyboard.up(key);
+}
+
 export const rows = [
   {
     id: "FW-01", feature: "⌘K opens Actions (Figma's command search), Esc closes it", wp: "F0 2026-10-18",
@@ -585,6 +602,66 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
       return "Align top from the panel · Distribute off for 2 · ⌘Z";
+    },
+  },
+  {
+    id: "FW-27", feature: "⌥ resizes a floating layer from its centre: both edges move, the centre stays (one ⌘Z)", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 1);
+      const [ellipse] = shapesIn(before).filter((shape) => shape.type === "ellipse");
+      const [size] = sizesIn(before).filter((shape) => shape.type === "ellipse");
+      await dragHandle(page, "e", 24, 0, ["Alt"]);
+      await until(async () => sizesIn((await pageText(page, id)) ?? "").find((shape) => shape.type === "ellipse")?.width !== size.width, { message: "the width changed" });
+      const now = shapesIn((await pageText(page, id)) ?? "").find((shape) => shape.type === "ellipse");
+      const width = sizesIn((await pageText(page, id)) ?? "").find((shape) => shape.type === "ellipse").width;
+      const grow = width - size.width;
+      if (Math.abs((ellipse.x - now.x) * 2 - grow) > 1) throw new Error(`not from the centre: width +${grow}, X ${ellipse.x} → ${now.x}`);
+      await page.locator(".studio-viewport").focus();
+      await undoTo(page, id, before);
+      return `width ${size.width} → ${width}, X ${ellipse.x} → ${now.x} · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-28", feature: "⇧ on an edge handle keeps the ratio: the other side follows", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      const [size] = sizesIn(before).filter((shape) => shape.type === "rectangle");
+      await dragHandle(page, "e", 30, 0, ["Shift"]);
+      await until(async () => sizesIn((await pageText(page, id)) ?? "").find((shape) => shape.type === "rectangle")?.width !== size.width, { message: "the width changed" });
+      const now = sizesIn((await pageText(page, id)) ?? "").find((shape) => shape.type === "rectangle");
+      if (Math.abs(now.height - Math.round(now.width * size.height / size.width)) > 1) throw new Error(`ratio not kept: ${size.width}×${size.height} → ${now.width}×${now.height}`);
+      await page.locator(".studio-viewport").focus();
+      await undoTo(page, id, before);
+      return `${size.width} × ${size.height} → ${now.width} × ${now.height} · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-29", feature: "Moving a layer snaps to the gap its neighbours have, with pink equal-spacing marks and their px", wp: "F2 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      // Rectangle 20…100, Ellipse 140…200 (a gap of 40), Star at 260: dragged left towards 240, the same gap.
+      await selectShape(page, id, 2);
+      const star = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(2);
+      const box = await star.boundingBox();
+      const zoom = box.width / 40;
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      const target = -18 * zoom;
+      for (let step = 1; step <= 6; step++) { await page.mouse.move(x + (target * step) / 6, y); await sleep(40); }
+      const marks = await page.locator(".studio-drag__spacing").allInnerTexts();
+      await page.mouse.up();
+      if (!marks.includes("40")) throw new Error(`no pink 40 mark while moving (marks: ${marks.join(", ") || "none"})`);
+      await until(async () => shapesIn((await pageText(page, id)) ?? "").find((shape) => shape.type === "star")?.x === 240, { message: "the Star at X 240 (gap 40)" }).catch(async (error) => { throw new Error(`${error.message} (X ${shapesIn((await pageText(page, id)) ?? "").find((shape) => shape.type === "star")?.x})`); });
+      await page.locator(".studio-viewport").focus();
+      await undoTo(page, id, before);
+      return `marks ${marks.join(", ")} · Star X 260 → 240 · ⌘Z`;
     },
   },
 ];

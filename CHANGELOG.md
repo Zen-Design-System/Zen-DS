@@ -21,7 +21,8 @@ removed (four unused colour ramps were, see Removed).
   (a frame without auto layout) move together by the px when dragged (snapping to their frame and its other layers, ⌘
   no snapping, ⇧ one axis) and nudge together with the arrows; ⌥A ⌥D ⌥W ⌥S ⌥H ⌥V align several layers to the box
   around them; ⌃⌥H / ⌃⌥V distribute spacing, ⌃⌥T tidies up; the multi-selection panel has Figma's alignment row. One
-  edit, one ⌘Z each.
+  edit, one ⌘Z each. Resizing: ⌥ grows from the centre, ⇧ on an edge keeps the ratio (it snapped to 8 px before), and a
+  Shape's dragged edge moves its X / Y as a frame's does. Moving snaps to equal spacing with pink marks and their px.
 - Zen Studio Layers like Figma (F1 of the same plan): on a page you made the front-most layer is on top, layers are
   named as Figma names them (Frame 1, Rectangle 2, a text by its words, an instance by its component) with Figma's
   icons, and the Screen is the frame's own row. Rename by double-click, ⌘R (Tab goes to the next name), ⌘R on several
