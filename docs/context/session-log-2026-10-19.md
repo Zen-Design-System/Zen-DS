@@ -33,3 +33,21 @@ and variable pills, F5c typography, multi-selection, nothing selected, Export, L
   `flipTurn` / `turnOps`, for A's ⇧H / ⇧V). ⇧A on a filled Box → one Stack keeping the paint (autoLayoutPlan; matrix
   12,569 cases, 0 findings). E2E Figma walk FW-50…56.
 - Left: BACKLOG P2 — figma-native.mjs / native-pack (⌘C → ⌘V) do not map a frame's look (no owner session).
+
+## Session B · Studio parity F5b: typed values and variables (decision 1)
+
+Branch `zen/feat/studio-f5b-typed-values-20261019` (worktree `../Zen-DS-f5b`, stacked on F5a). Spec card §1 of
+`docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
+
+- **Token fields** (ScaleField: gap, padding, radius, corners): a digit or operator starts typing; Enter evaluates
+  (controls/numberMath) on the shown value and snaps to the nearest step (`scale.ts nearestStep`, a tie the smaller);
+  the status names the snap. A written step reads as Figma's variable pill (`data-variable`, pale capsule) with the
+  variable's path as its tooltip.
+- **W / H**: `parseSizingInput(text, axis, evaluate)` takes Figma's arithmetic; Constrain proportions (session state per
+  layer, Figma keeps it in the file) writes the other axis at the shown ratio in the same change (`sizingModel withRatio`).
+- **Offsets in a free frame** (Box without auto layout, where Zen takes px): Detach variable → the step's px, Apply
+  variable → the nearest step.
+- **Colours**: a hex typed into a colour list's search lists the three nearest variables (`controls/colorMatch.ts`,
+  rendered colours read through a 1-px canvas) and Create variable… (opens Local variables).
+- Selftests: sizingModel 105, scale 18, colorMatch 8 (new, in studio:selftest). E2E FW-57…59, FW-90 (F5 also takes
+  FW-90…99, told A and C).

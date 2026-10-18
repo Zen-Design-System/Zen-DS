@@ -554,4 +554,87 @@ export const rows = [
       return headings.join(", ");
     },
   },
+  // F5b · typed values and variables (decision 1).
+  {
+    id: "FW-57", feature: "A number typed into Gap snaps to the nearest variable and the field reads as Figma's variable pill", wp: "F5b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      const before = (await pageText(page, id)) ?? "";
+      const row = inspectorRow(page, "gap");
+      const shown = (await row.locator(".zen-select__trigger").first().innerText()).trim();
+      // 13 snaps to Small (12); on a gap that is Small already, 30 snaps to XLarge (32).
+      const [typed, key, name] = /^Small/.test(shown) ? ["30", "xl", "XLarge"] : ["13", "sm", "Small"];
+      await row.locator(".zen-select__trigger").first().focus();
+      await page.keyboard.type(typed);
+      await page.keyboard.press("Enter");
+      await written(page, id, new RegExp(`<Stack\\b[^>]*gap="${key}"`), `gap="${key}"`);
+      await until(async () => (await row.locator(".studio-scale").first().getAttribute("data-variable")) === "true", { message: "the variable pill" });
+      await shot(page, "fw-57-variable-pill");
+      await undoTo(page, id, before);
+      return `${typed} → ${name} (variable pill) → ⌘Z`;
+    },
+  },
+  {
+    id: "FW-58", feature: "W takes Figma's arithmetic; with Constrain proportions on, H follows the ratio in the same change", wp: "F5b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectFrame(page, id);
+      const before = (await pageText(page, id)) ?? "";
+      await press(page, "Constrain proportions");
+      try {
+        // 358 × 200: W 179 → H 100; then "+21" on 179 → W 200, H at the 179 × 100 ratio → 112.
+        await typeNumber(page, "Width", 179);
+        await written(page, id, /<Box\b(?=[^>]*width=\{179\})(?=[^>]*height=\{100\})/, "W 179, H 100");
+        await typeNumber(page, "Width", "+21");
+        await written(page, id, /<Box\b(?=[^>]*width=\{200\})(?=[^>]*height=\{112\})/, "W 200 (179+21), H 112");
+      } finally {
+        await press(page, "Constrain proportions");
+      }
+      await undoTo(page, id, before);
+      return "lock → W 179 (H 100) → W +21 = 200 (H 112) → ⌘Z";
+    },
+  },
+  {
+    id: "FW-59", feature: "In a frame without auto layout, Detach variable makes a right offset px and Apply variable snaps it back to a step", wp: "F5b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Shape");
+      await until(async () => /^(Rectangle|Shape)/.test(await selectedName(page)), { message: "the Rectangle selected" });
+      const before = (await pageText(page, id)) ?? "";
+      const constraint = right(page).getByRole("button", { name: /Horizontal constraint/ }).first();
+      await constraint.click();
+      await page.getByRole("option", { name: "Right", exact: true }).click();
+      await written(page, id, /<Shape\b[^>]*constraintX="right"[^>]*insetRight="/, "pinned right on a step");
+      await press(page, "Detach variable from right offset");
+      await written(page, id, /<Shape\b[^>]*insetRight=\{\d+\}/, "the right offset in px");
+      await press(page, "Apply variable to right offset");
+      await written(page, id, /<Shape\b[^>]*insetRight="/, "a step again");
+      await undoTo(page, id, before, 5);
+      return "Right → step → Detach (px) → Apply (step) → ⌘Z";
+    },
+  },
+  {
+    id: "FW-90", feature: "A hex typed into a fill's colour list offers the nearest variables and Create variable…", wp: "F5b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      await press(page, "Add fill");
+      await written(page, id, /<Stack\b[^>]*surface="surface"/, "a fill");
+      try {
+        await inspectorRow(page, "surface").locator(".zen-select__trigger").first().click();
+        await page.keyboard.type("#F2F2F2");
+        const near = page.getByRole("group", { name: "Nearest to #F2F2F2" });
+        await near.waitFor({ state: "visible", timeout: 5000 });
+        const items = (await near.getByRole("option").allInnerTexts()).map((text) => text.split("\n")[0].trim());
+        if (!items.includes("Create variable…") || items.length < 2) throw new Error(`items: ${items.join(", ")}`);
+        await shot(page, "fw-90-hex-nearest");
+        await page.keyboard.press("Escape");
+        return items.join(" · ");
+      } finally {
+        await press(page, "Remove fill");
+        await written(page, id, /<Stack\b[^>]*surface=/, "the fill removed", true);
+      }
+    },
+  },
 ];

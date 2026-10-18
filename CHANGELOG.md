@@ -32,6 +32,10 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio right panel in Figma's order (F5a): an instance's properties under its header, then Position (with
   Rotate 90°, Flip horizontal, Flip vertical), Layout, Appearance (opacity, corner radius), Fill, Stroke (weight, sides,
   dash), Effects on every frame. Add auto layout (⇧A) on a filled frame makes one Stack that keeps the fill.
+- Zen Studio typed values (F5b, decision 1): a number typed into a gap, padding or corner field snaps to the nearest
+  variable, which the field shows as Figma's variable pill; W / H take Figma's arithmetic ("120+24", "*2") and a
+  Constrain proportions lock; in a frame without auto layout an offset has Detach variable (px) and Apply variable; a
+  hex typed into a colour list offers the nearest colour variables and Create variable… (Local variables).
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.
