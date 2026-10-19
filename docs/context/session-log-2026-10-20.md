@@ -42,3 +42,9 @@ BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studi
   "Main thật + Use thành frame": a `<Use>` is a frame copy of its variant with its values and overrides, one note.
 - Live paste (QA page, removed): Chip set with Label / Show icon / Size and bound layers, the Note main, three frames
   with their values. Selftest figma-native 113. Slots and swap properties stay notes.
+- B-20 again (Giám sát: B's full gate 03:31–03:56, 335/1, on a tree with #149; its report is gone, only "B-20
+  regressed"). Two leads read from the code: BuilderBoard.tsx drops a frame selection whenever the board's tree lacks
+  the frame, and under load the pin-row edit's older text can render after the preset frame's; the row waited 6 s for
+  the selection where the app waits 10 s. Fix (`zen/fix/studio-new-frame-selection-20261020`, folded in here): a frame
+  the Studio just added keeps its selection a few seconds (`arrivingFor`, board/frames.ts), then the check runs again;
+  B-20 waits 12 s for it.
