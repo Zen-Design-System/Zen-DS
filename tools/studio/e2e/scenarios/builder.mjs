@@ -288,6 +288,18 @@ ${shell("        ")}
 };
 /** One Screen's code in the page text. */
 const screenCode = (text, id) => { const at = text.indexOf(`<Screen id="${id}"`); return at < 0 ? "" : text.slice(at, text.indexOf("</Screen>", at)); };
+/** A Screen's opening tag: up to its first `>` outside braces (its slot props hold JSX). */
+const screenTag = (text, id) => {
+  const at = text.indexOf(`<Screen id="${id}"`);
+  if (at < 0) return "";
+  let depth = 0;
+  for (let k = at; k < text.length; k++) {
+    if (text[k] === "{") depth += 1;
+    else if (text[k] === "}") depth -= 1;
+    else if (text[k] === ">" && depth === 0) return text.slice(at, k + 1);
+  }
+  return text.slice(at);
+};
 
 export const rows = [
   {
@@ -666,12 +678,17 @@ export const rows = [
         if (!(await presets.getByRole("button", { name: group, exact: true }).count())) throw new Error(`no ${group} group in the presets`);
       }
       await presets.getByRole("list", { name: "Phone" }).getByRole("button", { name: /^iPhone\s*390 × 844$/ }).click();
-      await until(async () => (((await pageText(page, id)) ?? "").match(/<Screen\b/g) ?? []).length === 2, { message: "a second Screen" });
+      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a second Screen" });
       const text = (await pageText(page, id)) ?? "";
-      if ((text.match(/<Screen [^>]*device="phone"/g) ?? []).length !== 2) throw new Error("the new Screen is not a phone");
-      if (!/<Screen id="screen-2"[^>]*width=\{390\} height=\{844\}/.test(text)) throw new Error("the new Screen is not 390 × 844");
+      const first = screenTag(text, "screen-1");
+      const added = screenTag(text, "screen-2");
+      if (!/device="phone"/.test(added)) throw new Error(`the new Screen is not a phone: ${added}`);
+      if (!/width=\{390\} height=\{844\}/.test(added)) throw new Error(`the new Screen is not 390 × 844: ${added}`);
       // Beside the page's frame (Figma places a preset frame right of the frames), top-aligned.
-      if (!/<Screen id="screen-2"[^>]* x=\{486\} y=\{0\}/.test(text)) throw new Error(`the new Screen is not beside the first (${text.match(/<Screen id="screen-2"[^>]*>/)?.[0]})`);
+      const x = Number(first.match(/\sx=\{(-?\d+)\}/)?.[1] ?? 0);
+      const y = Number(first.match(/\sy=\{(-?\d+)\}/)?.[1] ?? 0);
+      const width = Number(first.match(/\swidth=\{(\d+)\}/)?.[1] ?? (/device="phone"/.test(first) ? 390 : 1440));
+      if (!added.includes(` x={${x + width + 96}} y={${y}}`)) throw new Error(`the new Screen is not beside the first (${added} · first ${first.replace(/\s+/g, " ").slice(0, 160)})`);
       await until(async () => (await page.locator(".studio-canvas-tools").getByRole("button", { name: "Move", exact: true }).getAttribute("aria-pressed")) === "true", { message: "back to Move" });
       await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
       return "Frame tool → presets › Phone › iPhone → an empty 390 × 844 phone frame beside screen-1, selected, Move again";
