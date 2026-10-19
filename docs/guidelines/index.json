@@ -1945,7 +1945,8 @@
         "A free-form curve or outline drawn with the Pen (P) or Pencil (⇧P): type=\"vector\" with its path d in its viewBox.",
         "A cut-out or combined mark (a ticket stub, a ring with a notch): a boolean group of shapes (⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E in Zen Studio).",
         "A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.",
-        "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets."
+        "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets.",
+        "A picture placed in Zen Studio (⇧⌘K, a dropped or pasted file): a Rectangle with an image fill, as Figma places it."
       ],
       "avoid": [
         "Data charts → Chart components (DonutChart, RadialChart, ProgressBar…): they carry labels, legends and accessible values.",
@@ -1974,6 +1975,10 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "image?: string",
+          "imageFit?: fill|fit|crop|tile",
+          "imageCrop?: { x: number; y: number; width: number; height: number }",
+          "imageScale?: number",
           "type?: rectangle|ellipse|line|arrow|polygon|star|vector|boolean = rectangle",
           "operation?: union|subtract|intersect|exclude",
           "children?: ReactNode",
@@ -2007,6 +2012,7 @@
         "Don't draw charts, progress or ratings from shapes: use the components that carry values and labels.",
         "Don't use a Shape as a card or section background: use Box surface or Card.",
         "Don't pass hex or rgb colours: fill and stroke take Zen token paths only.",
+        "Don't use an image fill for a picture in the content (an article photo, a product shot): use Image (alt, ratio, caption).",
         "Don't write a vector's d with relative commands, arcs or H / V: Zen Studio and Figma read absolute M / L / C / Q / Z."
       ],
       "rules": [
@@ -4269,6 +4275,10 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "image?: string",
+          "imageFit?: fill|fit|crop|tile",
+          "imageCrop?: { x: number; y: number; width: number; height: number }",
+          "imageScale?: number",
           "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
           "border?: none|pale|subtle = none",
           "borderWeight?: number",
@@ -4313,6 +4323,10 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "image?: string",
+          "imageFit?: fill|fit|crop|tile",
+          "imageCrop?: { x: number; y: number; width: number; height: number }",
+          "imageScale?: number",
           "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
           "border?: none|pale|subtle = none",
           "borderWeight?: number",
@@ -4357,6 +4371,10 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "image?: string",
+          "imageFit?: fill|fit|crop|tile",
+          "imageCrop?: { x: number; y: number; width: number; height: number }",
+          "imageScale?: number",
           "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
           "border?: none|pale|subtle = none",
           "borderWeight?: number",
@@ -4438,8 +4456,8 @@
       "file": "docs/guidelines/text.md",
       "apiFile": "docs/api/text.json",
       "figma": "Text styles (36) + Color/Content variables",
-      "import": "import { Text, Heading } from \"@zen-ds/react\";",
-      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.",
+      "import": "import { Text, Heading, TextRun } from \"@zen-ds/react\";",
+      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).",
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
         "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
@@ -4491,6 +4509,16 @@
           "tabularNumbers?: boolean = false",
           "children?: ReactNode",
           "ref?: Ref<HTMLHeadingElement>"
+        ],
+        "TextRun": [
+          "bold?: boolean = false",
+          "italic?: boolean = false",
+          "underline?: boolean = false",
+          "strikethrough?: boolean = false",
+          "tone?: ContentTone",
+          "textStyle?: keyof typeof typographyStyles",
+          "children?: ReactNode",
+          "ref?: Ref<HTMLSpanElement>"
         ]
       },
       "do": [
@@ -4504,16 +4532,20 @@
         "Emphasise inside a level with weight (Regular → Medium → Bold) and quiet secondary text with tone (light → base). Sizes stay as they are (a Zen rule; Apple also allows size). When weight carries a state (unread, new), say it in text too.",
         "Use tone=\"base\" for secondary copy and Body/Small meta, and \"light\" only for tertiary meta (timestamps, hints); Caption is always \"light\".",
         "Use Text as=\"span\" inside a line of other text or a flex row; the default p is a block.",
-        "Pluralise counts with plural(): \"1 member\", \"12 members\" (harness: copy/plural-count)."
+        "Pluralise counts with plural(): \"1 member\", \"12 members\" (harness: copy/plural-count).",
+        "Mark the few words that need weight or colour inside a sentence with TextRun (<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>), so the sentence stays one text for screen readers and translation; a link inside it is a Link."
       ],
       "dont": [
         "Don't pick a heading level for its size; set textStyle instead. A content h1 (the page title shown large) stays Heading/1.",
         "Don't make a value (metric, price, count) a heading.",
         "Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.",
         "Don't colour body text with a colour family's Light token or a raw hex; use tone.",
-        "Don't truncate essential information without another way to read it (a tooltip or detail view)."
+        "Don't truncate essential information without another way to read it (a tooltip or detail view).",
+        "Don't use TextRun outside a Text or Heading, or to set a whole text's style (set the Text's textStyle and tone instead).",
+        "Don't underline words to make them look like a link; a link is a Link."
       ],
       "rules": [
+        "text-run/inside-text",
         "flag/no-emoji-flag",
         "content/lights-no-light-text",
         "heading/h1-is-heading-1",

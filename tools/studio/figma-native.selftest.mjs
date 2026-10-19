@@ -192,6 +192,23 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(JSON.stringify([loose(self.parameterConsumptionMap), loose(self.variableConsumptionMap)]) === JSON.stringify([["WIDTH"], ["WIDTH"]]), `master layout: its width binding let go in both maps, its height kept (${JSON.stringify([loose(self.parameterConsumptionMap), loose(self.variableConsumptionMap)])})`);
 }
 
+// --- mixed styles (TextRun → figma-push segments): Figma's per-character style ids and their override table ---------
+{
+  const text = { type: "TEXT", characters: "Due Nov 2, unpaid", textStyle: "Body/Base/Regular", segments: [{ start: 4, end: 9, textStyle: "Body/Base/Bold" }, { start: 11, end: 17, italic: true, decoration: "UNDERLINE", fill: "Content/Negative/Base" }] };
+  const { message, notes } = run([text]);
+  check(notes.length === 0, `mixed styles: no notes (${notes.join("; ")})`);
+  const node = message.nodeChanges.find((n) => n.type === "TEXT" && n.textData?.characters === text.characters);
+  const ids = node?.textData.characterStyleIDs ?? [];
+  check(ids.join("") === "00001111100222222", `a style id per character (${ids.join("")})`);
+  const [bold, unpaid] = node?.textData.styleOverrideTable ?? [];
+  check(id(bold?.styleIdForText.guid) === pack.styles["Body/Base/Bold"][0] && bold?.fontName.style === pack.styles["Body/Base/Bold"][2].fontName.style, "a run in a text style binds it and takes its font");
+  check(unpaid?.fontName.style === "Italic" && unpaid?.fontName.postscript === "Inter-Italic" && unpaid?.textDecoration === "UNDERLINE" && id(unpaid?.fillPaints[0].colorVar.value.alias.guid) === pack.variables["Color/Content/Negative/Base"]?.[0], "italic font, underline and the tone's variable");
+  const html = (await figmaPasteHtml(exportOf([text]), pack)).html;
+  const back = await readFigmaClipboard(html);
+  const read = back?.message.nodeChanges.find((n) => n.type === "TEXT" && n.textData?.characters === text.characters);
+  check(read?.textData.styleOverrideTable?.length === 2 && read.textData.characterStyleIDs.length === text.characters.length, "the runs survive Figma's clipboard encoding");
+}
+
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------
 {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, "tools/studio/fixtures/figma-expenses.json"), "utf8"));

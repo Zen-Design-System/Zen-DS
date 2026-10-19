@@ -39,10 +39,21 @@ function canon(value) {
   });
 }
 
-/** An element's text (its text children joined), or null when it has none. */
+const isRun = (child) => child.kind === "element" && child.name === "TextRun";
+/** A Text's words with styles of their own (TextRun) are part of the Text: one text, not layers of their own. */
+const wordsOf = (node) => node.children.map((child) => (child.kind === "text" ? child.value : isRun(child) ? wordsOf(child) : "")).join("");
+
+/** An element's text (its text children joined, its TextRuns' words included), or null when it has none. */
 function textOf(node) {
-  const texts = node.children.filter((child) => child.kind === "text");
-  return texts.length ? texts.map((child) => child.value).join("") : null;
+  const texts = node.children.filter((child) => child.kind === "text" || isRun(child));
+  return texts.length ? wordsOf({ children: texts }) : null;
+}
+
+/** What a text change compares: the words, and the style of each run when the text has runs. */
+function textKey(node) {
+  if (!node.children.some(isRun)) return textOf(node);
+  const runs = (parent) => parent.children.map((child) => (child.kind === "text" ? JSON.stringify(child.value) : isRun(child) ? `<${Object.entries(child.props).sort(([a], [b]) => a.localeCompare(b)).map(([name, value]) => `${name}=${canon(value)}`).join(" ")}>${runs(child)}</>` : "")).join("");
+  return runs(node);
 }
 
 /** Every element of a page by id: the node, its parent's id, and where it sits ("children" or the prop it is the value of). */
@@ -51,7 +62,7 @@ function indexDoc(doc) {
   const visit = (node, parent, place) => {
     if (!node || index.has(node.id)) return;
     index.set(node.id, { node, parent, place });
-    node.children.forEach((child) => { if (child.kind === "element") visit(child, node.id, "children"); else if (child.kind === "map") visit(child.node, node.id, "map"); });
+    node.children.forEach((child) => { if (child.kind === "element" && !isRun(child)) visit(child, node.id, "children"); else if (child.kind === "map") visit(child.node, node.id, "map"); });
     const visitValue = (value, prop) => {
       if (!value) return;
       if (value.kind === "element") visit(value.node, node.id, `prop:${prop}`);
@@ -65,7 +76,7 @@ function indexDoc(doc) {
 }
 
 /** The ids of an element's element children, in order. */
-const childIds = (node) => node.children.filter((child) => child.kind === "element").map((child) => child.id);
+const childIds = (node) => node.children.filter((child) => child.kind === "element" && !isRun(child)).map((child) => child.id);
 
 /** Layout elements: named by how many layers they hold (the first text inside one belongs to one of its layers). */
 const LAYOUT = new Set(["Stack", "Grid", "Screen", "Board", "Box"]);
@@ -146,8 +157,12 @@ export function figmaChanges({ base, current, incoming, synced = null }) {
     // Text.
     const fromText = textOf(before.node);
     const toText = textOf(after.node);
-    if (fromText !== toText && textOf(here.node) !== toText) {
-      add({ kind: "text", id, before: fromText, after: toText, current: textOf(here.node), conflict: threeWay && textOf(here.node) !== (then.has(id) ? textOf(then.get(id).node) : fromText), label: `${after.node.name}: “${fromText ?? ""}” → “${toText ?? ""}”` });
+    const fromKey = textKey(before.node), toKey = textKey(after.node);
+    if (fromKey !== toKey && textKey(here.node) !== toKey) {
+      // Words with runs (TextRun) go as the Text's new words and runs, in their order.
+      const children = after.node.children.some(isRun) || here.node.children.some(isRun) ? after.node.children.filter((child) => child.kind === "text" || isRun(child)) : null;
+      const label = fromText === toText ? `${after.node.name}: “${toText ?? ""}” text styles` : `${after.node.name}: “${fromText ?? ""}” → “${toText ?? ""}”`;
+      add({ kind: "text", id, before: fromText, after: toText, ...(children ? { children } : {}), current: textOf(here.node), conflict: threeWay && textKey(here.node) !== (then.has(id) ? textKey(then.get(id).node) : fromKey), label });
     }
     // Moved to another parent.
     if (after.place === "children" && before.parent !== after.parent && here.parent !== after.parent && now.has(after.parent)) {
@@ -210,8 +225,9 @@ export function mergeFigma(current, incoming, changes) {
     } else if (change.kind === "text") {
       if (!entry) done = false;
       else {
-        const others = entry.node.children.filter((child) => child.kind !== "text");
-        entry.node.children = change.after === null ? others : [{ kind: "text", value: change.after }, ...others];
+        const others = entry.node.children.filter((child) => child.kind !== "text" && !isRun(child));
+        const words = change.children ? clone(change.children) : change.after === null ? [] : [{ kind: "text", value: change.after }];
+        entry.node.children = [...words, ...others];
       }
     } else if (change.kind === "add") {
       done = !entry && insert(index, change.parent, clone(change.node));

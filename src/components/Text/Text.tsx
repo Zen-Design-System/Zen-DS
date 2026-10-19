@@ -1,4 +1,4 @@
-import { type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
+import { Children, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
 import { contentTones, resolveContentTone, type ContentTone } from "../_shared/contentTone";
@@ -74,11 +74,14 @@ function truncateStyle(truncate: TextProps["truncate"], style: CSSProperties | u
 export function Text({ textStyle = "Body/Base/Regular", tone = "strongest", as: Element = "p", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ref, ...rest }: TextProps) {
   const lines = truncate === true ? 1 : typeof truncate === "number" ? Math.max(1, Math.floor(truncate)) : undefined;
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  // Line breaks in its words (`{"First line\nSecond line"}`, Figma's Enter in a text) show as lines.
+  const breaks = Children.toArray(children).some((child) => typeof child === "string" && child.includes("\n"));
   return (
     <Element
       {...rest}
       ref={ref as never}
       className={["zen-text", typographyStyles[textStyle], className].filter(Boolean).join(" ")}
+      data-breaks={breaks ? "true" : undefined}
       data-tone={resolveContentTone(tone)}
       data-truncate={lines === undefined ? undefined : lines === 1 ? "line" : "lines"}
       data-align={align}
