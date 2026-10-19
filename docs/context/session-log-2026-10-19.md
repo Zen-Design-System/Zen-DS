@@ -510,3 +510,11 @@ BACKLOG item the user approved 2026-10-17 ("Direct paste of Studio Shapes"), pic
 - Found: an arrow gets a head at both ends in Figma (plugin import too); the Studio draws one. A LINE with a per-vertex
   cap network was dropped by the paste; BACKLOG asks for a Figma copy of a ⇧L arrow. Experiments stopped once the user
   was active in Figma.
+- Page-local components (same BACKLOG item): a probe capture gave Figma's set / variant / property / instance
+  encoding; the writer is parked on `zen/wip/studio-native-local-components-20261020` (set and properties pasted right,
+  instances unlinked from their pasted main). Later pastes, even a known-good one, stopped landing while the user
+  worked in Figma: experiments stopped, every test node removed, BACKLOG says what to try next.
+- Gate (Giám sát's slot, 5faa80e7): static ✓, Studio E2E 335 works · 1 broken. The broken row, PT-15 (Present's device
+  simulator, a click timeout), works alone right after (`--rows=PT-15`, 63 s); nothing in the change reaches Present.
+  Reports `.qa/reports/2026-10-19T18-30-20-ee53b0aa.md`, `.qa/studio-e2e/2026-10-19T18-58-10.md`. Main 7db4c184 merged
+  after it (#155, compile.mjs only).
