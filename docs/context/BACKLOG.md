@@ -9,8 +9,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 ## Open items
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0, F1 and F4 shipped):**
   `docs/research/studio-figma-design-parity-2026-10-18.md` — next F2 (selection and transform), then F3–F10 in the plan's
-  order. Left: the Code properties rows move to the Code tab (§3a "Properties", structural); Group selection / Ungroup
-  (F3, decision 3) are menu items saying "Not in Zen Studio yet"; Present (⌥⌘↵) from a selected Overlay frame, as Figma
+  order. Left: the Code properties rows move to the Code tab (§3a "Properties", structural); Use as mask ⌃⌘M (F9,
+  decision 6: a Box `mask` in Session B's Layout, one PR with B; groups, booleans, Flatten, Outline stroke are built);
+  a group's box does not follow its layers after they move (F3: ⌘G sizes it once); Present (⌥⌘↵) from a selected Overlay frame, as Figma
   presents any frame (needs `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); ⌥-drag / ⌘D
   of a Section with its frames (F4 moves, resizes, deletes and wraps them; a copy is not built); an instance's data-name stays in
   the page (its Figma name is its component's or carries content, which pull reads as such).
