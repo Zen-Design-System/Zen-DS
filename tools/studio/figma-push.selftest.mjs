@@ -1139,7 +1139,7 @@ export default function Chips() {
           <ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true } }}>
             <Component id="chip-small" variant={{ Size: "Small" }}>
               <Stack direction="row">
-                <Icon name="icon-star-line" data-prop-visible="Show icon" />
+                <Icon name="icon-star-01-line" data-prop-visible="Show icon" />
                 <Text data-prop-text="Label">Filter</Text>
               </Stack>
             </Component>
@@ -1150,18 +1150,26 @@ export default function Chips() {
             </Component>
           </ComponentSet>
           <Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />
+          <Component id="panel" name="Panel" link="https://zen.example/panel" properties={{ Content: { type: "slot" }, Icon: { type: "swap", default: "icon-star-01-line" } }}>
+            <Stack data-prop-slot="Content">
+              <Icon name="icon-star-01-line" data-prop-swap="Icon" />
+            </Stack>
+          </Component>
         </Stack>
       </Screen>
     </Board>
   );
 }
 `;
-  const [setNode, instanceNode] = push(chips).frame.children;
+  const [setNode, instanceNode, panelNode] = push(chips).frame.children;
   check("set: COMPONENT_SET of named variants", [setNode.type, setNode.local, setNode.children.map((variant) => [variant.type, variant.name])], ["COMPONENT_SET", "chip", [["COMPONENT", "Size=Small"], ["COMPONENT", "Size=Large"]]]);
   check("set: its properties", setNode.properties, [{ name: "Label", type: "TEXT", default: "Filter" }, { name: "Show icon", type: "BOOLEAN", default: true }]);
   const bound = find(setNode.children[0], (node) => node.type === "TEXT");
   const hidden = find(setNode.children[0], (node) => node.propRefs?.visible);
   check("set: bound layers", [bound?.propRefs, hidden?.propRefs], [{ characters: "Label" }, { visible: "Show icon" }]);
+  check("main: its link, a slot and a swap property", [panelNode.link, panelNode.properties], ["https://zen.example/panel", [{ name: "Content", type: "SLOT" }, { name: "Icon", type: "INSTANCE_SWAP", default: "icon-star-01-line" }]]);
+  check("main: the slot layer and the swapped icon", [panelNode.children[0]?.slot, find(panelNode, (node) => node.propRefs?.mainComponent)?.propRefs], ["Content", { mainComponent: "Icon" }]);
+  check("round trip: sets, mains, bound layers and instances come back", shape(pageFromFigma(push(chips).frame, { mapping }).text), shape(chips));
   check("set: an instance's variant and values", [instanceNode.type, instanceNode.local, instanceNode.variant, instanceNode.props], ["INSTANCE", "chip", { Size: "Large" }, { Label: "Done", "Show icon": true }]);
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
 import { Board, Screen } from "@zen-ds/react/builder";

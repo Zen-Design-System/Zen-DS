@@ -415,6 +415,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (node && element.kind === "element") {
       const refs = Object.fromEntries(Object.keys(PROPERTY_BINDINGS).flatMap((attr) => (element.props[attr]?.kind === "literal" && REFERENCE[attr] ? [[REFERENCE[attr], String(element.props[attr].value)]] : [])));
       if (Object.keys(refs).length) node.propRefs = refs;
+      // A layer an instance fills: Figma's slot in its main (the importer's createSlot), named as its property.
+      if (element.props["data-prop-slot"]?.kind === "literal") node.slot = String(element.props["data-prop-slot"].value);
     }
     // The name the person gave a frame, shape or text (data-name, layer-meta.mjs) is its Figma name.
     const given = element.kind === "element" && FIGMA_NAMED.has(element.name) ? givenNameOf(element) : null;
@@ -456,7 +458,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // Figma's component set: its variants side by side in a wrapping row (the set frame), its properties defined on it.
       const set = localModel.sets.find((entry) => entry.node === element);
       const variants = element.children.filter((child) => child.kind === "element" && child.name === "Component").map((child) => convert(child, { direction: "row", stretch: false, width: null })).filter(Boolean);
-      node = { type: "COMPONENT_SET", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component set"), ...(id ? { id } : {}), ...(typeof code.description === "string" ? { description: code.description } : {}), properties: figmaProperties(set?.properties ?? []), layout: { mode: "HORIZONTAL", wrap: true, gap: 24, rowGap: 24, padding: [24, 24, 24, 24], counter: "MIN", primary: "MIN" }, children: variants, hugW: true, hugH: true };
+      node = { type: "COMPONENT_SET", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component set"), ...(id ? { id } : {}), ...(typeof code.description === "string" ? { description: code.description } : {}), ...(typeof code.link === "string" ? { link: code.link } : {}), properties: figmaProperties(set?.properties ?? []), layout: { mode: "HORIZONTAL", wrap: true, gap: 24, rowGap: 24, padding: [24, 24, 24, 24], counter: "MIN", primary: "MIN" }, children: variants, hugW: true, hugH: true };
     } else if (element.name === "Component") {
       const root = element.children.find((child) => child.kind === "element");
       const inner = root ? convert(root, parent) : null;
@@ -464,7 +466,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // A variant is named by its values ("Size=Small"), as Figma names one; a lone main carries its own properties.
       const named = main?.set ? { name: variantName(main.variant), variant: main.variant } : { name: String(code.name ?? code.id ?? "Component"), ...(main?.properties.length ? { properties: figmaProperties(main.properties) } : {}) };
       // The main hugs its layer (Figma's component frame around one layer); the layer keeps its own sizing inside.
-      node = { type: "COMPONENT", local: String(code.id ?? ""), ...named, ...(typeof code.description === "string" ? { description: code.description } : {}), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
+      node = { type: "COMPONENT", local: String(code.id ?? ""), ...named, ...(typeof code.description === "string" ? { description: code.description } : {}), ...(typeof code.link === "string" ? { link: code.link } : {}), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
     } else if (element.name === "Use") {
       // An instance of a set or a main, with its variant values and its property values (setProperties in the importer).
       const resolved = resolveInstance(doc.board, element, localModel);
