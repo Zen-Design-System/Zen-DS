@@ -313,6 +313,15 @@ Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
   - An instance of a main without properties now shows Properties when it changed layers inside it, so Reset all changes
     is reachable.
   - FW-70 counts several selected layers by the header.
+- Gate on F7b's top (F5b + F5c + F7a + F7b, main d8505fe9): PASS. All static steps passed; Studio E2E 336/336. Report
+  `.qa/reports/2026-10-19T14-03-08-ce247a8f.md`.
+- The E2E shots then showed three panel slips, now fixed:
+  - a set's variant property row was not on its properties' grid;
+  - the header said "Local component" for an instance and a set, where Figma says "Instance" and "Component set";
+  - an instance showed a Typography section.
+- Main d56666ec (#148) merged: its reader's GROUP box sits beside F7's component reading. Push and pull selftests pass.
+  Re-gated before shipping.
+- Two stacked PRs from the one gated tree, agreed with Giám sát: F5 (rest) = F5b + F5c, and F7 = F7a + F7b.
 
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 
