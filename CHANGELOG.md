@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Shape `type="vector"` (F9a of the same plan): a vector's path `d` (absolute M / L / C / Q / Z) in its `viewBox`,
+  stretched to the shape's size as Figma scales a vector, `fillRule`; stroked and unfilled by default, its stroke
+  centred. Harness `shape/vector-path`. Zen Studio: the Pen (P: clicks for corners, drags for curves, ⇧ 45°, ⌥ breaks
+  handles, a click on the first point closes, Enter ends) and the Pencil (⇧P, smoothed into curves) draw vectors into a
+  frame; Enter or a double-click on a vector edits its points and handles (Delete removes a point). Layers names them
+  "Vector N". Figma push / pull carry them as VECTOR nodes with their vectorPaths (Zen plugin updated).
 - Zen Studio structure and clipboard as in Figma (F3 of the same plan): Delete leaves nothing selected (⌘Z selects the
   layer again); Copy / Paste properties carry fill, stroke, effects, radius, opacity and text style only, never X / Y /
   W / H; ⌘V with nothing (or a frame) selected pastes into the frame in view at the layer's place; Paste here (layer

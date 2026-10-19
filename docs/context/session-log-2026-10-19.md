@@ -33,3 +33,22 @@ User: "làm tiếp phần còn thiếu của main component" · "Bug UI của st
   nền xám"): #128 had the Studio side; the live Progress-Circle/Icon Base now has no fill (2px ring only, all 14
   variants) → progress.css background transparent. Done=No pies differ per theme sample (20–85%); Accent/Neutral keep 80.
   The user's Studio (:5174, Vite from 2026-10-16 in the shared checkout) serves the new code: a reload shows it.
+
+## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
+
+Spec card `docs/research/studio-f9-vectors-spec-2026-10-19.md`; the user chose `pathkit-wasm` and live boolean groups
+(both F9b).
+- Library: `Shape type="vector"` (`d` in absolute M / L / C / Q / Z, `viewBox`, `fillRule`); geometry.ts
+  `parseVectorPath`, `vectorPathData`, `parseViewBox`, `vectorBounds` (curve extremes), `fitVectorPath` (selftest 12);
+  defaults as Figma's Pen (no fill, Border/Neutral/Solid, centred stroke). Harness `shape/vector-path` (+2 bad, 1 good).
+  Guideline, docs/api, AI catalog, compile API, keywords regenerated; two examples (Pencil underline, Pen logo mark) and
+  the playground's vector.
+- Studio: `draw/penModel.ts` (pure, selftest 23: corners, smooth points, ⇧ 45°, Schneider curve fit for the Pencil,
+  sub-paths with handles, move point / handle (mirrored), remove point), `draw/penTool.ts` (P / ⇧P, overlay, one
+  `pasteCode` per vector; drawTool.ts now exports targetAt / localOf / screenOf / snapTargets), `select/VectorHandles.tsx`
+  (Enter / double-click vertex edit: live `d`, one write with the new bounds and the box moved; turned vectors keep
+  their box). Tool bar Pen split button, CanvasStatus hints, Shortcuts, figmaNotYet without Pen / Pencil.
+- Figma: push `VECTOR` + `vectorPaths` (fitted to the size); pull VECTOR → Shape vector (unreadable paths noted and left
+  out); plugin `studio-import.js` builds a Shape VECTOR (plugin commit fc18ba7, its test extended). Selftests: push 296,
+  pull 81, layer-meta 12.
+- E2E figma FW-115…118 (Pen closed, Pen curve, vertex edit, Pencil) written; run once the gate slot is free.
