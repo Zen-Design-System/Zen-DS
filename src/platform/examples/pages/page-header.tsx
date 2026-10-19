@@ -386,7 +386,7 @@ function ClientPages() {
   const frameRef = useRef<HTMLDivElement | null>(null);
   const setFrame = useCallback((element: HTMLDivElement | null) => { frameRef.current = element; }, []);
   const [measure, width] = useWidth();
-  // A narrow page has no room for the trail beside the title it repeats: Back to the parent takes its place.
+  // On a narrow page a trailing Badge would squeeze the caption, so the status leads the caption instead.
   const narrow = width > 0 && width < 480;
   const focusAfter = useRef<string | null>(null);
   useEffect(() => {
@@ -395,8 +395,9 @@ function ClientPages() {
     focusAfter.current = null;
     frameRef.current?.querySelector<HTMLElement>(selector)?.focus();
   });
-  // Down a level, focus moves to the way back up (Back, or the parent crumb); up a level, to the row you came from.
-  const down = (next: string[]) => { focusAfter.current = ".zen-page-header__back button, .zen-breadcrumbs__item:nth-last-child(2) .zen-breadcrumb"; setPath(next); };
+  // Down a level, focus moves to the way back up (the parent crumb, or the Back a phone shows instead); up a level, to
+  // the row you came from.
+  const down = (next: string[]) => { focusAfter.current = ".zen-page-header__breadcrumbs > button, .zen-breadcrumbs__item:nth-last-child(2) .zen-breadcrumb"; setPath(next); };
   const up = (next: string[]) => { focusAfter.current = `[data-row="${path[next.length]}"] .zen-list-item__wrapper`; setPath(next); };
   const client = clients.find((item) => item.id === path[0]);
   const project = client ? projectsOf(client).find((item) => item.id === path[1]) : undefined;
@@ -409,19 +410,17 @@ function ClientPages() {
     ...(project ? [{ id: project.id, label: project.name }] : []),
   ];
   // Clients is a section, not the workspace root, so its crumb has no master (house) icon. The top row stays free of a
-  // trail (utilities only), so the Breadcrumbs appear once: in the PageHeader.
-  const breadcrumbs = client && !narrow ? (
+  // trail (utilities only), so the Breadcrumbs appear once: in the PageHeader. The full trail every time: on a phone the
+  // PageHeader turns it into Back to the parent by itself (component-usage-rules §17).
+  const breadcrumbs = client ? (
     <Breadcrumbs master={false} items={trail} onNavigate={(item, event) => { event.preventDefault(); up(item.id === "root" ? [] : [item.id]); }} />
   ) : undefined;
-  const back = client && narrow
-    ? (project ? { label: client.name, onClick: () => up([client.id]) } : { label: "Clients", onClick: () => up([]) })
-    : undefined;
 
   if (client && project) {
     const team = project.members.map((id) => people[id]);
     return (
       <StudioApp here="clients" onNavigate={onNavigate} frameRef={setFrame}
-        main={<PageHeader breadcrumbs={breadcrumbs} back={back} title={project.name} meta={projectBadge(project.status)}
+        main={<PageHeader breadcrumbs={breadcrumbs} title={project.name} meta={projectBadge(project.status)}
           description={`${formatRange(project.start, project.due)} · Led by ${people[project.lead].name}`} />}>
         <Grid ref={measure} columns={2} stackBelow={720} gap="md" align="start">
           <Card as="section" theme="shadow" aria-labelledby={sideId}>
@@ -453,7 +452,7 @@ function ClientPages() {
     const billed = invoicesOf(client);
     return (
       <StudioApp here="clients" onNavigate={onNavigate} frameRef={setFrame}
-        main={<PageHeader breadcrumbs={breadcrumbs} back={back} title={client.name} description={`Client since ${client.since} · ${people[client.director].name} is the account director`} />}>
+        main={<PageHeader breadcrumbs={breadcrumbs} title={client.name} description={`Client since ${client.since} · ${people[client.director].name} is the account director`} />}>
         <Grid ref={measure} columns={2} stackBelow={720} gap="md" align="start">
           <ListBox as="section" theme="shadow" aria-labelledby={titleId}
             header={<Heading level={2} id={titleId} textStyle="Heading/Subheading">Projects</Heading>}>
@@ -776,7 +775,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Nested pages",
-    description: "Pages deeper than one level put Breadcrumbs above the title instead of Back: the trail starts at Clients and ends at the current page, which is not a link. The top-level Clients page has no trail, and the header's top row keeps none either, so the trail shows once. Rows go down a level, crumbs and Clients in the Sidebar go back up; on a narrow page Back to the parent takes the trail's place.",
+    description: "Pages deeper than one level put Breadcrumbs above the title instead of Back: the trail starts at Clients and ends at the current page, which is not a link. The top-level Clients page has no trail, and the header's top row keeps none either, so the trail shows once. Rows go down a level, crumbs and Clients in the Sidebar go back up. Pass the full trail: on a phone (under 744 px) the PageHeader shows Back to the parent crumb in its place by itself.",
     wide: true,
     screen: true,
     render: () => <ClientPages />,
@@ -784,7 +783,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   actions={<>{notifications}{account}</>} // no trail in the top row: it shows once, in the PageHeader
   main={
     <PageHeader
-      breadcrumbs={narrow ? undefined : (
+      breadcrumbs={( // the full trail: on a phone it becomes Back to Lumen Bank by itself
         <Breadcrumbs
           master={false} // Clients is a section, not the workspace root
           items={[
@@ -795,7 +794,6 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
           onNavigate={(item, event) => { event.preventDefault(); navigate(item.href); }}
         />
       )}
-      back={narrow ? { label: "Lumen Bank", onClick: () => navigate("/clients/lumen") } : undefined}
       title="Online banking redesign"
       meta={<Badge theme="blue" background="subtle">Active</Badge>}
       description="Aug 16 – Dec 15, 2026 · Led by Alex Duong"
