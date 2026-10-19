@@ -167,9 +167,13 @@ in one gate (the slot queue is the bottleneck).
 - Figma: push BOOLEAN_OPERATION with its shapes (plugin 40d5bd6: built in a frame, then figma.union / subtract /
   intersect / exclude, painted); pull BOOLEAN_OPERATION → Shape boolean, its result from `fillGeometry`.
 - Not built: Use as mask ⌃⌘M (a Box `mask`: Session B's Layout, one PR with B) — BACKLOG.
-- E2E FW-122 (live Subtract), FW-123 (Flatten) written; run when the slot is ours.
+- E2E: figma group 70/70 (FW-115…124; FW-122 selects the shapes with Enter, FW-123's vector regex takes any attribute
+  order, FW-37 gets 40 s).
 - Group fit (found while writing the BACKLOG line "a group's box does not follow its layers" — fixed instead, scope
   lock): `tools/studio/group-fit.mjs` `planGroups` (pure, selftest 6) refits a Box group around its px layers after each
   edit, in localApi's same write; token insets, Fill sizes and turned / flipped groups are left as they are. FW-124.
 - Lesson: a union merge dropped a `}` in figma-pull.selftest.mjs and a "✗" grep missed the SyntaxError — fixed in F9 and
   F9b; memory "selftest-exit-code".
+- Gate (`--isolated`, 76 files): static, runtime audit (1512/390/320, dark), behaviour ✓; Studio E2E 335/336 — SP-09
+  ("Reports gone from the Screen", a starters row F9b does not touch) timed out under load, then passed alone and in
+  the whole starters group (24/24). Shape coverage ⚠ is the existing BACKLOG line (count updated to 9).
