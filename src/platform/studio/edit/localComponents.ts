@@ -463,3 +463,194 @@ export function setInstanceValues(selection: NodeSelection, variant: Record<stri
   ];
   return write(at.file, at.loc, ops, "Instance properties");
 }
+
+/* ── F7b · an instance's overrides (spec docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md) ─────────── */
+
+type TreeNode = { loc: string; name: string; props: Record<string, { kind: string; value?: unknown; fields?: Record<string, { kind: string; value?: unknown; fields?: unknown }> }>; children: Array<{ kind: string; value?: unknown }> };
+type Literal = string | number | boolean;
+/** An instance's overrides (`<Use overrides>`): layer path → literal props. */
+export type OverridesTable = Record<string, Record<string, Literal>>;
+
+/** A node's literal object prop as a table (`overrides`), or its fields (`variant`, `props`). */
+function literalTable(value: TreeNode["props"][string] | undefined): OverridesTable {
+  const out: OverridesTable = {};
+  if (value?.kind !== "object" || !value.fields) return out;
+  for (const [path, layer] of Object.entries(value.fields)) {
+    const fields = (layer as { kind?: string; fields?: Record<string, { kind: string; value?: unknown }> }).fields;
+    if (!fields) continue;
+    const own: Record<string, Literal> = {};
+    for (const [name, field] of Object.entries(fields)) if (field.kind === "literal" && ["string", "number", "boolean"].includes(typeof field.value)) own[name] = field.value as Literal;
+    if (Object.keys(own).length) out[path] = own;
+  }
+  return out;
+}
+const literalFields = (value: TreeNode["props"][string] | undefined): Record<string, Literal> =>
+  value?.kind === "object" && value.fields ? Object.fromEntries(Object.entries(value.fields).flatMap(([name, field]) => (field.kind === "literal" ? [[name, field.value as Literal]] : []))) : {};
+/** A literal as a prop value: text as a string, numbers and switches as an expression. */
+const literalValue = (value: Literal) => (typeof value === "string" ? { kind: "string" as const, value } : { kind: "expression" as const, code: JSON.stringify(value) });
+
+/** The page's tree, its components model and the `<Use>` at `loc` (null when there is none). */
+async function instanceAt(file: string, loc: string) {
+  const [engine, source] = await Promise.all([loadEngine(), studioApi.source(file)]);
+  const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
+  const model = { mains: engine.localComponents(tree.board), sets: engine.componentSets(tree.board) };
+  let use: TreeNode | null = null;
+  engine.eachElement(tree.board, (node) => { if ((node as TreeNode).loc === loc && (node as TreeNode).name === "Use") use = node as TreeNode; });
+  return { engine, tree, model, use: use as TreeNode | null };
+}
+
+/** How many layers an instance overrides (Figma's changed layers), for its panel. */
+export function overrideCount(use: { props: Record<string, unknown> } | null | undefined): number {
+  return Object.keys(literalTable((use?.props as TreeNode["props"] | undefined)?.overrides)).length;
+}
+
+/** Figma's Reset all changes on an instance: its variant and property values and its layers' overrides go, one edit. */
+export function resetInstance(selection: NodeSelection): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return Promise.resolve(false);
+  return write(at.file, at.loc, [{ op: "removeProp", name: "variant" }, { op: "removeProp", name: "props" }, { op: "removeProp", name: "overrides" }], "Reset all changes");
+}
+
+/**
+ * Figma's Push changes to main component: each layer the instance overrides takes those props in the main — its
+ * words (setText), its props, a nested instance's variant and property values — and a layer inside a component or a
+ * nested instance goes into that layer's own `overrides`; the instance keeps none. One edit, one ⌘Z; every other
+ * instance follows the main.
+ */
+export async function pushChangesToMain(selection: NodeSelection): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return false;
+  const { engine, tree, model, use } = await instanceAt(at.file, at.loc);
+  if (!use) return fail("Select an instance of a component on this page");
+  const table = literalTable(use.props.overrides);
+  if (!Object.keys(table).length) return fail("This instance has no changes of its layers to push");
+  const resolved = engine.resolveInstance(tree, use);
+  const main = model.mains.find((entry) => entry.id === resolved?.main.id);
+  if (!main) return fail("Its main component is not on this page");
+  const byPath = new Map([...engine.mainLayerPaths(main as never, model)].map(([node, path]) => [path, node as unknown as TreeNode]));
+  const opsByLoc: Record<string, EditOp[]> = {};
+  const add = (loc: string, op: EditOp) => { (opsByLoc[loc] ??= []).push(op); };
+  const inner = new Map<string, { node: TreeNode; table: OverridesTable }>();
+  // What the main cannot take (words of a layer whose text is not written there, a path it no longer has) stays on the
+  // instance.
+  const left: OverridesTable = {};
+  const keep = (path: string, name: string, value: Literal) => { left[path] = { ...(left[path] ?? {}), [name]: value }; };
+  for (const [path, props] of Object.entries(table)) {
+    const node = byPath.get(path);
+    if (node) {
+      const nested: Record<"variant" | "props", Record<string, Literal>> = { variant: {}, props: {} };
+      for (const [name, value] of Object.entries(props)) {
+        const dot = /^(variant|props)\.(.+)$/.exec(name);
+        if (dot) nested[dot[1] as "variant" | "props"][dot[2]] = value;
+        else if (name === "children") {
+          if (node.children.some((child) => child.kind === "text")) add(node.loc, { op: "setText", index: 0, value: String(value) });
+          else keep(path, name, value);
+        } else add(node.loc, { op: "setProp", name, value: literalValue(value) } as EditOp);
+      }
+      for (const kind of ["variant", "props"] as const) {
+        if (Object.keys(nested[kind]).length) add(node.loc, { op: "setProp", name: kind, value: expression({ ...literalFields(node.props[kind]), ...nested[kind] }) });
+      }
+      continue;
+    }
+    // A layer inside one the main does not list (a component's own, a nested instance's): that layer's overrides.
+    const leaf = [...byPath].filter(([known, candidate]) => path.startsWith(`${known}/`) && !candidate.children.some((child) => child.kind === "element")).sort((a, b) => b[0].length - a[0].length)[0];
+    if (!leaf) { for (const [name, value] of Object.entries(props)) keep(path, name, value); continue; }
+    const [known, holder] = leaf;
+    const entry = inner.get(holder.loc) ?? { node: holder, table: literalTable(holder.props.overrides) };
+    const rest = path.slice(known.length + 1);
+    entry.table[rest] = { ...(entry.table[rest] ?? {}), ...props };
+    inner.set(holder.loc, entry);
+  }
+  for (const { node, table: own } of inner.values()) add(node.loc, { op: "setProp", name: "overrides", value: expression(own) });
+  add(use.loc, Object.keys(left).length ? { op: "setProp", name: "overrides", value: expression(left) } : { op: "removeProp", name: "overrides" });
+  const element = await studioApi.element(at.file, at.loc);
+  if (!element) return fail("The instance is no longer there — select it again");
+  const name = resolved?.set?.name ?? resolved?.main.name ?? "its main component";
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc } as EditOp], hash: element.hash }, `Push changes to ${name}`);
+  const kept = Object.keys(left);
+  if (response.ok) inspectorStatus.set(kept.length ? "neutral" : "positive", kept.length ? `Pushed to ${name}; kept on this instance: ${kept.join(", ")}` : `Pushed to ${name}: every instance shows the change`);
+  return response.ok;
+}
+
+/** A layer inside an instance of a page's own component, as its part panel shows it (inspector/LocalPartPanel.tsx). */
+export type LocalLayer = {
+  /** The instance's overrides (all its layers). */
+  table: OverridesTable;
+  /** This layer's own overrides. */
+  own: Record<string, Literal>;
+  /** The instance's own variant and property values (`<Use variant props>`). */
+  instance: { name: string; variant: Record<string, string>; props: Record<string, unknown> };
+  /** The layer in its main: its tag, its words (a Text's first text child), the text property it is bound to. */
+  name: string;
+  words: string | null;
+  boundText: string | null;
+  /** Whether the main hides it (`hidden` on the main's layer). */
+  hiddenInMain: boolean;
+  /** A nested instance: its set (or main) and the values it shows here (the main's, then this instance's overrides). */
+  nested: { setId: string | null; mainId: string; variant: Record<string, string>; values: Record<string, unknown> } | null;
+  /** Below a component of the library (its own nested layer, as Figma's): the path inside it, else null. */
+  inner: string | null;
+};
+
+/** The layer at `path` inside the instance at `file:loc` (through nested instances), or null. */
+export async function localLayerAt(file: string, loc: string, path: string): Promise<LocalLayer | null> {
+  const { engine, tree, model, use } = await instanceAt(file, loc);
+  if (!use) return null;
+  const table = literalTable(use.props.overrides);
+  const mainOf = (node: TreeNode) => {
+    const resolved = engine.resolveInstance(tree, node);
+    return model.mains.find((entry) => entry.id === resolved?.main.id) ?? null;
+  };
+  let main = mainOf(use);
+  let rest = path;
+  let found: TreeNode | null = null;
+  let inner: string | null = null;
+  for (let depth = 0; main && depth < 8 && !found; depth++) {
+    const byPath = new Map([...engine.mainLayerPaths(main as never, model)].map(([node, at]) => [at, node as unknown as TreeNode]));
+    const exact = byPath.get(rest);
+    if (exact) { found = exact; break; }
+    const leaf = [...byPath].filter(([known, node]) => rest.startsWith(`${known}/`) && !node.children.some((child) => child.kind === "element")).sort((a, b) => b[0].length - a[0].length)[0];
+    if (!leaf) return null;
+    if (leaf[1].name !== "Use") { found = leaf[1]; inner = rest.slice(leaf[0].length + 1); break; }
+    rest = rest.slice(leaf[0].length + 1);
+    main = mainOf(leaf[1]);
+  }
+  if (!found) return null;
+  const own = table[path] ?? {};
+  const resolved = engine.resolveInstance(tree, use);
+  const textChild = found.children.find((child) => child.kind === "text");
+  const bound = found.props["data-prop-text"];
+  let nested: LocalLayer["nested"] = null;
+  if (found.name === "Use" && !inner) {
+    const resolvedNested = engine.resolveInstance(tree, found);
+    if (resolvedNested?.main.id) {
+      const variant: Record<string, string> = { ...resolvedNested.variant };
+      const values: Record<string, unknown> = { ...resolvedNested.values };
+      for (const [name, value] of Object.entries(own)) {
+        const dot = /^(variant|props)\.(.+)$/.exec(name);
+        if (dot?.[1] === "variant") variant[dot[2]] = String(value);
+        else if (dot) values[dot[2]] = value;
+      }
+      nested = { setId: resolvedNested.set?.id ?? null, mainId: resolvedNested.main.id, variant, values };
+    }
+  }
+  return {
+    table,
+    own,
+    instance: { name: resolved?.set?.name ?? resolved?.main.name ?? "Instance", variant: literalFields(use.props.variant) as Record<string, string>, props: literalFields(use.props.props) },
+    name: found.name,
+    words: typeof textChild?.value === "string" ? textChild.value.trim() : null,
+    boundText: bound?.kind === "literal" && typeof bound.value === "string" ? bound.value : null,
+    hiddenInMain: found.props.hidden?.kind === "literal" && found.props.hidden.value === true,
+    nested,
+    inner,
+  };
+}
+
+/** The instance's overrides become `next` (removed when empty): one edit. */
+export function setInstanceOverrides(selection: NodeSelection, next: OverridesTable, label: string): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return Promise.resolve(false);
+  const op: EditOp = Object.keys(next).length ? { op: "setProp", name: "overrides", value: expression(next) } : { op: "removeProp", name: "overrides" };
+  return write(at.file, at.loc, [op], label);
+}

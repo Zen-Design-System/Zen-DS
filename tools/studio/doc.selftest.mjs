@@ -227,6 +227,44 @@ export default function Page() {
     check("combine: a valid page", parsePage(result.code).errors.map((error) => error.message), []);
   }
 }
+// F7b: Push changes to main component — one `many setProps` edit: the main's Text takes the instance's words
+// (setText), its Badge a prop, and the instance's overrides go (edit/localComponents.ts pushChangesToMain).
+{
+  const page = `// @zen-page {"format":1,"title":"Push"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { Badge, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Push">
+        <Stack>
+          <Component id="card" name="Card">
+            <Stack>
+              <Text>Title</Text>
+              <Badge>New</Badge>
+            </Stack>
+          </Component>
+          <Use of="card" overrides={{ Text: { children: "Hello" }, Badge: { theme: "positive" } }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const tree = parsePage(page);
+  check("push: the page with overrides is valid", tree.errors.map((error) => error.message), []);
+  const loc = (name) => { let found = null; (function visit(node) { if (!node || node.kind !== "element") return; if (node.name === name && !found) found = node.loc; node.children.forEach(visit); })(tree.board); return found; };
+  const opsByLoc = { [loc("Text")]: [{ op: "setText", index: 0, value: "Hello" }], [loc("Badge")]: [{ op: "setProp", name: "theme", value: { kind: "string", value: "positive" } }], [loc("Use")]: [{ op: "removeProp", name: "overrides" }] };
+  const result = applyOps(page, loc("Use"), "Use", [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc }], engine(page));
+  check("push: accepted as one edit", result.error ?? null, null);
+  if (!result.error) {
+    check("push: the main takes the words and the prop, the instance keeps none", [/<Text>Hello<\/Text>/.test(result.code), /<Badge theme="positive">New<\/Badge>/.test(result.code), /<Use of="card" \/>/.test(result.code)], [true, true, true]);
+    check("push: a valid page", parsePage(result.code).errors.map((error) => error.message), []);
+  }
+}
 check("a loc with nothing there is refused, as the engine refuses it", editDoc(start, startText, { file: FILE, loc: "999:0", name: "Button", ops: [{ op: "removeElement" }] }, { applyOps, dataFieldEdit, sha1, options: engine(startText) }).code, "not-found");
 // M6 (a Figma update): code an op brings with data-zen-id sets those ids in the document, and the page's text never shows them.
 {

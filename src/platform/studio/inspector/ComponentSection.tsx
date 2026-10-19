@@ -8,7 +8,7 @@ import { applyEdit, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { loadEngine, zenComponents } from "../builder/engine";
 import {
   addVariant, BINDING_OF, bindLayer, createInstance, detachInstance, goToMain, mainsOf, newProperty, renameComponent, renameVariantProperty,
-  selectInstances, setAbout, setComponentProperties, setInstanceValues, setsOf, setVariantValues, swapInstance, objectCode,
+  overrideCount, pushChangesToMain, resetInstance, selectInstances, setAbout, setComponentProperties, setInstanceValues, setsOf, setVariantValues, swapInstance, objectCode,
   type MainRef, type PropertyRef, type SetRef,
 } from "../edit/localComponents";
 import type { EditOp, StudioSelection } from "../types";
@@ -29,7 +29,7 @@ import { inspectorStatus } from "./status";
  */
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
-type Instance = { of: string; mainId: string; setId: string | null; variant: Record<string, string>; values: Record<string, unknown>; own: { variant: Record<string, string>; props: Record<string, unknown> } };
+type Instance = { of: string; mainId: string; setId: string | null; variant: Record<string, string>; values: Record<string, unknown>; own: { variant: Record<string, string>; props: Record<string, unknown>; overrides: number } };
 type Found = {
   mains: MainRef[];
   sets: SetRef[];
@@ -66,7 +66,7 @@ function useComponents(selection: NodeSelection): Found | null {
           if (node.loc !== at.loc) return;
           if (node.name === "Use") {
             const resolved = engine.resolveInstance(tree, node);
-            if (resolved?.main.id) instance = { of: String(node.props.of?.value ?? ""), mainId: resolved.main.id, setId: resolved.set?.id ?? null, variant: resolved.variant, values: resolved.values, own: { variant: literalsOf(node.props.variant) as Record<string, string>, props: literalsOf(node.props.props) } };
+            if (resolved?.main.id) instance = { of: String(node.props.of?.value ?? ""), mainId: resolved.main.id, setId: resolved.set?.id ?? null, variant: resolved.variant, values: resolved.values, own: { variant: literalsOf(node.props.variant) as Record<string, string>, props: literalsOf(node.props.props), overrides: overrideCount(node) } };
           }
           const component = [...parents].reverse().find((parent) => (parent as { name?: string }).name === "Component") as { props?: Record<string, { value?: unknown }> } | undefined;
           const mainId = String(component?.props?.id?.value ?? "");
@@ -246,12 +246,13 @@ function InstancePropertiesSection({ selection, instance, found, disabled }: { s
     else props[property.name] = value;
     write(instance.own.variant, props);
   };
-  const changed = Object.keys(instance.own.variant).length + Object.keys(instance.own.props).length;
+  // Figma's changed instance: its own values and the layers inside it it changed (F7b overrides).
+  const changed = Object.keys(instance.own.variant).length + Object.keys(instance.own.props).length + instance.own.overrides;
   if (!set?.axes.length && !properties.length) return null;
   return (
     <InspectorSection
       title="Properties"
-      actions={changed ? <IconButton icon="icon-reverse-left-line" aria-label="Reset all changes" tooltip="Reset all changes" appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => write({}, {})} /> : undefined}
+      actions={changed ? <IconButton icon="icon-reverse-left-line" aria-label="Reset all changes" tooltip="Reset all changes" appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => void resetInstance(selection)} /> : undefined}
     >
       {(set?.axes ?? []).map((axis) => (
         <InspectorRow key={`axis-${axis.name}`} label={axis.name} name="instance-variant">
@@ -329,6 +330,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
         />
         <div className="studio-component-section__actions">
           <Button size="sm" level="tertiary" onClick={() => void goToMain(selection)}>Go to main component</Button>
+          {instance.own.overrides ? <Button size="sm" level="tertiary" disabled={disabled} onClick={() => void pushChangesToMain(selection)}>Push changes to main</Button> : null}
           <Button size="sm" level="tertiary" disabled={disabled} onClick={() => void detachInstance(selection)}>Detach instance</Button>
         </div>
       </InspectorSection>,
