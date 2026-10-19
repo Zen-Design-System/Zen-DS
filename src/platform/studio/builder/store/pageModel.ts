@@ -120,6 +120,119 @@ export function withHeaderOs(text: string, os: "ios" | "android"): string {
   return `${match[1]}${JSON.stringify(os === "android" ? { ...rest, os } : rest)}${match[3]}${text.slice(match[0].length)}`;
 }
 
+/**
+ * A ruler guide (Figma's, F10): a vertical (`x`) or horizontal (`y`) line at `at` px, from a frame's top-left when it
+ * belongs to that frame (`frame`: its data-studio-frame id, "screen:home"), else from the canvas origin.
+ */
+export type PageGuide = { axis: "x" | "y"; at: number; frame?: string };
+
+const isGuide = (value: unknown): value is PageGuide => {
+  const guide = value as PageGuide;
+  return Boolean(guide) && (guide.axis === "x" || guide.axis === "y") && typeof guide.at === "number" && Number.isFinite(guide.at) && (guide.frame === undefined || typeof guide.frame === "string");
+};
+
+/** The page's ruler guides (header `guides`), none without a readable header. */
+export function headerGuides(text: string): PageGuide[] {
+  const match = HEADER.exec(text);
+  try {
+    const guides = match ? (JSON.parse(match[2]) as { guides?: unknown }).guides : null;
+    return Array.isArray(guides) ? guides.filter(isGuide) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** The text with the header's `guides` set (none: left out); unchanged without a readable header. */
+export function withHeaderGuides(text: string, guides: readonly PageGuide[]): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { guides: _old, ...rest } = value;
+  const kept = guides.filter(isGuide).map(({ axis, at, frame }) => ({ axis, at: Math.round(at * 100) / 100, ...(frame ? { frame } : {}) }));
+  return `${match[1]}${JSON.stringify(kept.length ? { ...rest, guides: kept } : rest)}${match[3]}${text.slice(match[0].length)}`;
+}
+
+/**
+ * A frame's layout guide (Figma's layout grid, F10): `columns` or `rows` (`count`, between the Breakpoint & Grids
+ * Margin-Comfortable and with its Gutter, as the frame's device has them) or a square `grid` of `size` px.
+ */
+export type LayoutGuide = { type: "columns" | "rows"; count: number } | { type: "grid"; size: number };
+/** Columns a new guide starts with, by device (Zen has no column-count variable yet: BACKLOG, a designer's call). */
+export const DEFAULT_GUIDE_COLUMNS: Readonly<Record<string, number>> = { desktop: 12, tablet: 8, phone: 4 };
+
+const isLayoutGuide = (value: unknown): value is LayoutGuide => {
+  const guide = value as Record<string, unknown>;
+  if (!guide || typeof guide !== "object") return false;
+  if (guide.type === "grid") return typeof guide.size === "number" && guide.size >= 1;
+  return (guide.type === "columns" || guide.type === "rows") && typeof guide.count === "number" && guide.count >= 1;
+};
+
+/** The page's layout guides by frame (header `layoutGuides`: `{ "screen:home": [...] }`). */
+export function headerLayoutGuides(text: string): Record<string, LayoutGuide[]> {
+  const match = HEADER.exec(text);
+  try {
+    const all = match ? (JSON.parse(match[2]) as { layoutGuides?: unknown }).layoutGuides : null;
+    if (!all || typeof all !== "object" || Array.isArray(all)) return {};
+    return Object.fromEntries(Object.entries(all as Record<string, unknown>).map(([frame, guides]) => [frame, Array.isArray(guides) ? guides.filter(isLayoutGuide) : []]).filter(([, guides]) => (guides as LayoutGuide[]).length));
+  } catch {
+    return {};
+  }
+}
+
+/** The text with `frame`'s layout guides set (none: the frame left out); unchanged without a readable header. */
+export function withHeaderLayoutGuides(text: string, frame: string, guides: readonly LayoutGuide[]): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { layoutGuides: _old, ...rest } = value;
+  const all = { ...headerLayoutGuides(text) };
+  const kept = guides.filter(isLayoutGuide).map((guide) => (guide.type === "grid" ? { type: "grid" as const, size: Math.round(guide.size) } : { type: guide.type, count: Math.round(guide.count) }));
+  if (kept.length) all[frame] = kept; else delete all[frame];
+  return `${match[1]}${JSON.stringify(Object.keys(all).length ? { ...rest, layoutGuides: all } : rest)}${match[3]}${text.slice(match[0].length)}`;
+}
+
+/** The canvas background a page may take (Figma's page Background, F10), Zen background tokens only. */
+export const CANVAS_BACKGROUNDS = ["canvas", "canvas-alt", "canvas-flat", "surface", "neutral", "dark"] as const;
+export type CanvasBackground = (typeof CANVAS_BACKGROUNDS)[number];
+
+/** The page's canvas background (header `canvas`), or "canvas" (Background/Canvas/Default) when it has none. */
+export function headerCanvas(text: string): CanvasBackground {
+  const match = HEADER.exec(text);
+  try {
+    const value = match ? (JSON.parse(match[2]) as { canvas?: unknown }).canvas : null;
+    return (CANVAS_BACKGROUNDS as readonly unknown[]).includes(value) ? (value as CanvasBackground) : "canvas";
+  } catch {
+    return "canvas";
+  }
+}
+
+/** The text with the header's `canvas` set (the default left out); unchanged without a readable header. */
+export function withHeaderCanvas(text: string, canvas: CanvasBackground): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { canvas: _old, ...rest } = value;
+  return `${match[1]}${JSON.stringify(canvas === "canvas" ? rest : { ...rest, canvas })}${match[3]}${text.slice(match[0].length)}`;
+}
+
 /** A page id from a title or file name: "Checkout flow" → "checkout-flow" (Vietnamese marks dropped). */
 export function slugOf(value: string): string {
   return value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "page";

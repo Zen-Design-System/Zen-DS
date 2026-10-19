@@ -565,9 +565,10 @@ export function manyPlan(ctx, nodePath, op, h) {
   const outer = elements.filter((element) => !elements.some((other) => other !== element && other.start <= element.start && element.end <= other.end));
   outer.sort((a, b) => a.start - b.start);
   if (action === "setProps") {
-    const propOps = (ops) => Array.isArray(ops) && ops.length > 0 && ops.every((inner) => inner?.op === "setProp" || inner?.op === "removeProp");
+    // setText too: Find and replace's Replace all (F10) rewrites the words of several layers in one edit.
+    const propOps = (ops) => Array.isArray(ops) && ops.length > 0 && ops.every((inner) => inner?.op === "setProp" || inner?.op === "removeProp" || inner?.op === "setText");
     const byLoc = op.opsByLoc && typeof op.opsByLoc === "object" ? op.opsByLoc : null;
-    if (byLoc ? !op.locs.every((loc) => propOps(byLoc[loc])) : !propOps(op.ops)) h.refuse("setProps takes `ops` (or `opsByLoc`, one list per loc): setProp / removeProp only");
+    if (byLoc ? !op.locs.every((loc) => propOps(byLoc[loc])) : !propOps(op.ops)) h.refuse("setProps takes `ops` (or `opsByLoc`, one list per loc): setProp / removeProp / setText only");
     // Bottom-up, so the places above stay where they are; each element is found by its loc in the original text.
     let next = text;
     for (const element of [...elements].sort((a, b) => b.start - a.start)) {

@@ -49,6 +49,8 @@ import { previewAttributes } from "./shell/modes";
 import { isComponentPage, navigate, pageTitle, readLocation } from "./shell/navigation";
 import { CODE_EXPANDED_WIDTH, revealLeftPanel, toggleSidePanels, usePanelLayout } from "./shell/layout";
 import { openQuickActions } from "./edit/quick/state";
+import { useViewKeys } from "./canvas/viewKeys";
+import { useFindKey } from "./edit/FindPanel";
 import { useFigmaNotYet } from "./edit/figmaNotYet";
 import { useLockKeys } from "./edit/lock";
 import { useRenameKeys } from "./edit/rename";
@@ -181,6 +183,10 @@ export function StudioApp() {
   useRouting();
   // Figma keys with no Zen Studio feature yet say so instead of running the browser's command (edit/figmaNotYet.ts).
   useFigmaNotYet();
+  // Figma's View keys: ⌘' Pixel grid, ⌘Y Outlines, ⇧R Rulers, ⌃G Layout guides (F10, canvas/viewKeys.ts).
+  useViewKeys();
+  // Figma's Find and replace (⌘F, F10, edit/FindPanel.tsx).
+  useFindKey();
   // Figma's ⌘R (rename) and ⇧⌘L (lock), before the keys below (F1: edit/rename.ts, edit/lock.ts).
   useRenameKeys();
   useLockKeys();

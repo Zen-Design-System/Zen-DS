@@ -20,6 +20,7 @@ import type { StudioFrameWidth } from "../types";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
 import { copyText, exampleOf, frameKind, frameLabel, isBuilderFrame } from "./frames";
 import { FrameGeometry } from "../builder/FrameGeometry";
+import { LayoutGuidePanel } from "../canvas/LayoutGuidePanel";
 import { SectionPanel } from "../builder/SectionPanel";
 import { InspectorFields, InspectorRow, InspectorSection } from "./Section";
 import { RowSelectField } from "./rowFields";
@@ -308,6 +309,8 @@ function FramePanelBody({ frameId, controlsSlot }: { frameId: string; controlsSl
       {/* A frame of a page you made: Figma's X / Y / W / H, written in the page (builder/FrameGeometry.tsx, F4). */}
       {isBuilderFrame(frameId) ? <FrameGeometry frameId={frameId} /> : null}
       {frameId.startsWith("screen:") ? <ScreenSection frameId={frameId} /> : null}
+      {/* Figma's Layout grid on a frame of a page you made (canvas/LayoutGuidePanel.tsx, F10). */}
+      {isBuilderFrame(frameId) && frameId.startsWith("screen:") ? <LayoutGuidePanel frameId={frameId} /> : null}
       <InspectorSection title="Frame">
         {/* A view setting for example frames; a frame of a page you made has its own width (Layout › W). */}
         {isBuilderFrame(frameId) ? null : <InspectorRow label="Width">
