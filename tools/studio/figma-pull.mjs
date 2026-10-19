@@ -1899,6 +1899,8 @@ function frameElement(node, children, ctx) {
   if (node.name === "AiChatBlock" && children.length === 1 && children[0].name === "AiChatBlock") return children[0];
   const props = {};
   const layout = node.layout;
+  // A mask in an auto layout frame (a plugin can make one): Box mask holds it only in a group or a free frame.
+  if ((layout || !node.fixed) && (node.children ?? []).some((child) => child.isMask)) ctx.notes.push(`"${node.name}": a mask in an auto layout frame is left out; its mask layer draws (Use as mask on a group)`);
   // A wrapping row whose layers all fill it, or a grid whose cells all keep, the same minimum width: a Grid of columns
   // that fit (figma-push draws one so, a grid where it knows the page's width; minColumnWidth).
   const cells = children.map((child) => SOURCE.get(child));
@@ -1909,8 +1911,6 @@ function frameElement(node, children, ctx) {
     return { kind: "element", name: "Grid", props: { ...(fitMin !== 240 ? { minColumnWidth: literal(fitMin) } : {}), ...(gap !== "md" ? { gap: literal(gap) } : {}) }, children };
   }
   const grid = layout?.mode === "GRID";
-  // A mask in an auto layout frame (a plugin can make one): Box mask holds it only in a group or a free frame.
-  if ((layout || !node.fixed) && (node.children ?? []).some((child) => child.isMask)) ctx.notes.push(`"${node.name}": a mask in an auto layout frame is left out; its mask layer draws (Use as mask on a group)`);
   // A free frame (Figma's frame without auto layout): a Box of its px size, its layers at their X / Y (figma-push, the
   // other way; positioned() gave them px insets).
   if (!layout && node.fixed) {
