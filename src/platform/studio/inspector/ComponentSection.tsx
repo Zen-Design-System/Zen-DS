@@ -3,6 +3,7 @@ import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { InputField, SelectField } from "../../../components/Input";
 import { Menu } from "../../../components/Menu";
+import { typographyStyles } from "../../../tokens/typography.generated";
 import { ToggleButton } from "../../../components/Toggle";
 import { applyEdit, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { loadEngine, zenComponents } from "../builder/engine";
@@ -152,9 +153,13 @@ function PropertiesSection({ owner, properties, axes, onRenameAxis, disabled }: 
       note={!properties.length && !axes?.length ? "Add a property to change it on each instance" : undefined}
     >
       {(axes ?? []).map((axis) => (
-        <InspectorRow key={`axis-${axis.name}`} label={<Icon name="icon-diamond-line" size="sm" decorative />} name="variant-property" hint={axis.values.join(", ")}>
+        // A variant property in the same row as the component properties: its icon, its name, its values.
+        <div key={`axis-${axis.name}`} className="studio-component-property" data-prop="variant-property">
+          <span className="studio-component-property__type" title="Variant"><Icon name="icon-diamond-line" size="sm" decorative /></span>
           <NameField label={`Variant property ${axis.name}`} value={axis.name} disabled={disabled || !onRenameAxis} onCommit={(next) => onRenameAxis?.(axis.name, next)} />
-        </InspectorRow>
+          <span className={`studio-component-property__values ${typographyStyles["Body/Small/Regular"]}`} title={axis.values.join(", ")}>{axis.values.join(", ")}</span>
+          <span />
+        </div>
       ))}
       {properties.map((property, index) => (
         <div key={`${property.name}-${index}`} className="studio-component-property" data-prop="component-property">

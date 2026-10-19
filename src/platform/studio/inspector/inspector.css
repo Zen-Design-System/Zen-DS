@@ -390,3 +390,4 @@
 /* A component property row (ComponentSection.tsx): its type, name, default, − (Figma UI3's component properties). */
 .studio-component-property { display: grid; min-width: 0; grid-template-columns: var(--zen-element-size-popular-small, 16px) minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-component-property__type { display: inline-flex; color: var(--zen-color-content-support-violet-base); }
+.studio-component-property__values { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }

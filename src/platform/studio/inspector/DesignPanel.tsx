@@ -705,7 +705,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const textKind: TextKind | null = !element ? null
     : isText ? "text"
       : element.typography.length || hostText ? "class"
-        : isComponent && rendered.ownText ? "prop" : null;
+        // An instance of a page's own component, or its set: no text style of its own (its layers have theirs).
+        : isComponent && rendered.ownText && name !== "Use" && name !== "ComponentSet" ? "prop" : null;
   const relevantProp = textKind === "prop" ? textStyleProps.find((prop) => specs.some((spec) => spec.name === prop)) : undefined;
   const relevant = (() => {
     if (!relevantProp) return null;
