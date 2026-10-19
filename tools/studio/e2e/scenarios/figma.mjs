@@ -354,6 +354,182 @@ async function shot(page, name) {
 /** Section titles of the Design tab, in order. */
 const sections = async (page) => (await right(page).locator("h3").allInnerTexts()).map((text) => text.trim());
 
+/* ── F7 (components: sets, variants, properties) helpers ─────────────────────────────────────────────────────────── */
+
+/** A page with two lone mains side by side (Tag small, Tag large), a Chip set of two variants with a text and a boolean
+ *  property bound to its layers, and an instance of the set. */
+const setsText = (title) => [
+  `// @zen-page {"format":1,"title":${JSON.stringify(title)}}`,
+  'import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";',
+  'import { Icon, Stack, Text } from "@zen-ds/react";',
+  "",
+  "export const mock = {};",
+  "",
+  "export default function Page() {",
+  "  return (",
+  "    <Board>",
+  `      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">`,
+  '        <Stack gap="xl" padding="xl">',
+  '          <Stack direction="row" gap="xl">',
+  '            <Component id="tag-small" name="Tag small">',
+  '              <Stack direction="row" padding="lg" surface="subtle">',
+  "                <Text>Small</Text>",
+  "              </Stack>",
+  "            </Component>",
+  '            <Component id="tag-large" name="Tag large">',
+  '              <Stack direction="row" padding="xl" surface="subtle">',
+  "                <Text>Large</Text>",
+  "              </Stack>",
+  "            </Component>",
+  "          </Stack>",
+  '          <ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true } }}>',
+  '            <Component id="chip-small" variant={{ Size: "Small" }}>',
+  '              <Stack direction="row" gap="xs" padding="sm">',
+  '                <Icon name="icon-star-01-line" data-prop-visible="Show icon" />',
+  '                <Text data-prop-text="Label">Filter</Text>',
+  "              </Stack>",
+  "            </Component>",
+  '            <Component id="chip-large" variant={{ Size: "Large" }}>',
+  '              <Stack direction="row" gap="sm" padding="md">',
+  '                <Icon name="icon-star-01-line" data-prop-visible="Show icon" />',
+  '                <Text data-prop-text="Label">Filter</Text>',
+  "              </Stack>",
+  "            </Component>",
+  "          </ComponentSet>",
+  '          <Use of="chip" />',
+  // F7b: an instance of a lone main (its words are no property: an override), and a main that holds an instance of the set.
+  '          <Use of="tag-small" />',
+  '          <Component id="toolbar" name="Toolbar">',
+  '            <Stack direction="row" gap="sm" padding="sm">',
+  '              <Use of="chip" />',
+  "            </Stack>",
+  "          </Component>",
+  '          <Use of="toolbar" />',
+  "        </Stack>",
+  "      </Screen>",
+  "    </Board>",
+  "  );",
+  "}",
+  "",
+].join("\n");
+let setsMade = null;
+async function setsPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!setsMade) {
+    const seeded = await seededPage(ctx, setsText, /<ComponentSet id="chip"/);
+    setsMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${setsMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${setsMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await showLeftTab(page, "layers");
+  await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click().catch(() => undefined);
+  await deselect(page);
+  return { page, id: setsMade };
+}
+/** A rendered layer of the sets page by a data attribute ("data-zen-main", "tag-small"). */
+const marked = (page, id, attr, value) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][${attr}="${value}"]`).first();
+/** ⌘-clicks (Figma's deep select) just inside a layer's top-left corner, in its padding: that layer itself; with
+ *  `add`, ⇧⌘ adds it to the selection. */
+async function deepSelect(page, layer, add = false) {
+  const box = await layer.boundingBox();
+  if (!box) throw new Error("the layer has no box on the canvas");
+  if (add) await page.keyboard.down("Shift");
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(box.x + 4, box.y + 4);
+  await page.keyboard.up("ControlOrMeta");
+  if (add) await page.keyboard.up("Shift");
+  await sleep(300);
+}
+/** Picks `option` in the Inspector select inside the row `data-prop="prop"` (its `index`th). */
+async function chooseIn(page, prop, option, index = 0) {
+  await right(page).locator(`[data-prop="${prop}"]`).nth(index).locator("button").first().click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
+/**
+ * The right panel's fields as drawn (user, 2026-10-19: the tool's UI never juts out or steps in; Inline-Field is the
+ * shared field): every field inside the panel, its value or placeholder not cut off, and in each section every field and
+ * button that starts a row on one left edge. Returns what is wrong, empty when it fits.
+ */
+async function panelFits(page) {
+  return right(page).evaluate((panel) => {
+    const problems = [];
+    const box = panel.getBoundingClientRect();
+    const name = (field) => field.querySelector("input, button")?.getAttribute("aria-label") || field.textContent?.trim().slice(0, 24) || "a field";
+    for (const field of panel.querySelectorAll(".zen-input-field")) {
+      const rect = field.getBoundingClientRect();
+      if (!rect.width) continue;
+      if (rect.left < box.left - 0.5 || rect.right > box.right + 0.5) problems.push(`${name(field)} juts out of the panel`);
+      // A select's value is one word or token, a short input value a number or a name: never cut. A long text scrolls
+      // in its input by design.
+      const choice = field.querySelector(".zen-select__trigger");
+      if (choice && choice.scrollWidth > choice.clientWidth + 1) problems.push(`${name(field)}: its value is cut off`);
+      const input = field.querySelector("input.zen-input__native");
+      if (input && input.value && input.value.length <= 16 && input.scrollWidth > input.clientWidth + 1) problems.push(`${name(field)}: "${input.value}" is cut off`);
+    }
+    for (const section of panel.querySelectorAll(".studio-inspector__section")) {
+      const body = section.querySelector(".studio-inspector__section-body");
+      if (!body) continue;
+      const lefts = [];
+      for (const row of body.children) {
+        const first = row.matches(".zen-input-field, .zen-button, .zen-select") ? row : row.querySelector(":scope > .studio-inspector__row-control > .zen-input-field, :scope > .zen-input-field, :scope > .zen-button, :scope .studio-component-section__actions > .zen-button");
+        const label = row.querySelector(":scope > .studio-inspector__row-label");
+        const shown = label && getComputedStyle(label).display !== "none" ? null : first;
+        if (shown && shown.getBoundingClientRect().width) lefts.push(Math.round(shown.getBoundingClientRect().left));
+      }
+      if (new Set(lefts).size > 1) problems.push(`${section.querySelector("h3")?.textContent ?? "a section"}: fields start at ${[...new Set(lefts)].join(", ")}`);
+      // …and end on the panel grid's field lines (inspector.css: two equal field columns, then the 24px icon column that
+      // no field reaches into): the end of the first column or of the second. A property grid row is its own grid.
+      const inner = body.getBoundingClientRect();
+      const gap = 8;
+      const column = (inner.width - 24 - 2 * gap) / 2;
+      const lines = [inner.left + column, inner.left + 2 * column + gap];
+      const off = new Set();
+      for (const row of body.children) {
+        if (row.matches(".studio-component-property")) continue;
+        for (const field of row.querySelectorAll(".zen-input-field")) {
+          const rect = field.getBoundingClientRect();
+          if (rect.width && !lines.some((line) => Math.abs(rect.right - line) <= 1)) off.add(`${name(field)} ends at ${Math.round(rect.right - inner.left)} of ${Math.round(inner.width)}`);
+        }
+      }
+      if (off.size) problems.push(`${section.querySelector("h3")?.textContent ?? "a section"}: off the field grid: ${[...off].join(", ")}`);
+    }
+    return problems;
+  });
+}
+/** Throws when the right panel's fields do not fit (panelFits). */
+async function expectPanelFits(page, where) {
+  const problems = await panelFits(page);
+  if (problems.length) throw new Error(`${where}: ${problems.join(" · ")}`);
+}
+/** ⌘-click (Figma's deep select) at the middle of `layer`: a layer inside an instance. */
+async function deepInto(page, layer) {
+  const box = await layer.boundingBox();
+  if (!box) throw new Error("the layer has no box on the canvas");
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("ControlOrMeta");
+  await sleep(300);
+}
+/** Types into an Inspector text field by its name and commits it (Enter). */
+async function typeText(page, name, value, index = 0) {
+  const field = right(page).getByRole("textbox", { name, exact: true }).nth(index);
+  await field.click();
+  await field.fill(value);
+  await field.press("Enter");
+}
+
+/** Before a row's retry (run.mjs): the pages this module made are forgotten, so the retry seeds them again from scratch
+ *  (the runner removes the files the first try added). */
+export function forgetPages() {
+  made = null;
+  clipMade = null;
+  shapesMade = null;
+  twoMade = null;
+  setsMade = null;
+}
+
 export const rows = [
   {
     id: "FW-01", feature: "⌘K opens Actions (Figma's command search), Esc closes it", wp: "F0 2026-10-18",
@@ -2028,6 +2204,7 @@ export const rows = [
       const at = want.map((title) => headings.indexOf(title));
       if (at.some((index) => index < 0) || at.some((index, n) => n && index < at[n - 1])) throw new Error(`sections ${headings.join(", ")}`);
       await shot(page, "fw-50-auto-layout-frame");
+      await expectPanelFits(page, "an auto layout frame's panel");
       return headings.join(", ");
     },
   },
@@ -2054,6 +2231,7 @@ export const rows = [
       await typeNumber(page, "Stroke weight", 2);
       await written(page, id, /<Stack\b[^>]*borderWeight=\{2\}/, "borderWeight={2}");
       await shot(page, "fw-52-stroke");
+      await expectPanelFits(page, "the stroke");
       await press(page, "Remove stroke");
       await written(page, id, /<Stack\b[^>]*(border=|borderWeight=)/, "stroke and weight removed", true);
       return "+ → Pale → weight 2 → − (both gone)";
@@ -2081,6 +2259,7 @@ export const rows = [
       await press(page, "Rotate 90° right");
       await written(page, id, /<Box\b[^>]*rotation=\{-90\}/, "rotation={-90}");
       await shot(page, "fw-54-flipped-frame");
+      await expectPanelFits(page, "the turned frame's panel");
       await press(page, "Flip horizontal");
       await written(page, id, /<Box\b[^>]*rotation=\{90\}/, "rotation={90}, the flip undone");
       if (/<Box\b[^>]*flip=/.test((await pageText(page, id)) ?? "")) throw new Error("still flipped");
@@ -2117,6 +2296,7 @@ export const rows = [
       const position = headings.indexOf("Position");
       if (position <= 0) throw new Error(`Position first or missing: ${headings.join(", ")}`);
       await shot(page, "fw-56-instance");
+      await expectPanelFits(page, "a Zen instance's panel");
       return headings.join(", ");
     },
   },
@@ -2248,6 +2428,7 @@ export const rows = [
       const value = await font.inputValue();
       if (!(await font.getAttribute("readonly") !== null)) throw new Error("the style's font is editable");
       await shot(page, "fw-92-text-style-details");
+      await expectPanelFits(page, "a text's panel");
       return `${headings.join(", ")} · Font ${value}`;
     },
   },
@@ -2275,7 +2456,260 @@ export const rows = [
       await until(async () => (await sections(page)).includes("Selection colors"), { message: "Selection colors" });
       const rows = await right(page).locator('[data-prop="selection-color"]').count();
       if (rows < 2) throw new Error(`${rows} colours`);
+      await shot(page, "fw-94-selection-colors");
+      await expectPanelFits(page, "the selection colors");
       return `${rows} colours`;
+    },
+  },
+  // F7 · components: sets, variants, properties.
+  {
+    id: "FW-70", feature: "Combine as variants on two main components: one component set around them, named in Layers; one ⌘Z", wp: "F7 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      return restoring(page, id, async () => {
+        await deepSelect(page, marked(page, id, "data-zen-main", "tag-small"));
+        await deepSelect(page, marked(page, id, "data-zen-main", "tag-large"), true);
+        // Several layers: the header says how many, the second one has the extra outline (selectedSrc is the first's).
+        await until(async () => (await selectedName(page)) === "2 layers" || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 1, { message: "both mains selected" }).catch(async (error) => { throw new Error(`${error.message} · header ${await selectedName(page)}`); });
+        const box = await marked(page, id, "data-zen-main", "tag-large").boundingBox();
+        await page.mouse.click(box.x + 4, box.y + 4, { button: "right" });
+        const menu = page.getByRole("menu").last();
+        await menu.waitFor({ state: "visible", timeout: 5000 });
+        await menu.getByRole("menuitem", { name: /^Combine as variants/ }).click();
+        await written(page, id, /<ComponentSet id="[^"]+" name="[^"]+">\s*<Component id="tag-small" name="Tag small">[\s\S]*?<Component id="tag-large" name="Tag large">[\s\S]*?<\/ComponentSet>/, "one set around both mains").catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+        const name = /<ComponentSet id="[^"]+" name="([^"]+)">\s*<Component id="tag-small"/.exec((await pageText(page, id)) ?? "")[1];
+        // Selected, the set is named in the header and in Layers (which opens the way to the selection).
+        await deepSelect(page, page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-set-name="${name}"]`).first());
+        await until(async () => (await selectedName(page)) === name, { message: `the set ${name} selected` });
+        await until(async () => (await page.locator("#studio-left .studio-layers__name").allInnerTexts()).some((row) => row.trim() === name), { message: `Layers names the set ${name}` });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+        return `${name}: Tag small + Tag large · Layers row · one ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-71", feature: "A component set's Add variant copies the last variant with its next value (Size = Variant3); one ⌘Z", wp: "F7 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      return restoring(page, id, async () => {
+        await deepSelect(page, marked(page, id, "data-zen-set", "chip"));
+        await until(async () => (await selectedName(page)) === "Chip", { message: "the Chip set selected" });
+        await until(async () => (await sections(page)).includes("Component set"), { message: "the Component set section" });
+        await shot(page, "fw-71-set");
+        await expectPanelFits(page, "the set's panel");
+        await right(page).getByRole("button", { name: "Add variant", exact: true }).click();
+        await written(page, id, /<Component id="[^"]+" variant=\{\{ Size: "Variant3" \}\}>\s*<Stack direction="row" gap="sm" padding="md">/, "a third variant, a copy of Large").catch(async (error) => { const text = (await pageText(page, id)) ?? ""; const set = text.slice(text.indexOf("<ComponentSet"), text.indexOf("</ComponentSet>")).replace(/\s+/g, " "); throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 100)} · ${set.slice(-700)}`); });
+        await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-variant]`).count()) === 3, { message: "three variants on the canvas" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+        return "Chip › Add variant: Size=Variant3 (copy of Large) · one ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-72", feature: "Properties + on a set adds a boolean property (on by default); renaming it rewrites its name", wp: "F7 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        await deepSelect(page, marked(page, id, "data-zen-set", "chip"));
+        await until(async () => (await selectedName(page)) === "Chip", { message: "the Chip set selected" });
+        await right(page).getByRole("button", { name: "Add property", exact: true }).click();
+        await page.getByRole("menuitem", { name: "Boolean", exact: true }).click();
+        await written(page, id, /"Show icon": \{ type: "boolean", default: true \}, "Property 3": \{ type: "boolean", default: true \}/, "Property 3, a boolean, on");
+        await typeText(page, "Boolean property name", "Shadow", 1);
+        await written(page, id, /"Show icon": \{ type: "boolean", default: true \}, Shadow: \{ type: "boolean", default: true \}/, "renamed Shadow");
+        await shot(page, "fw-72-properties");
+        await expectPanelFits(page, "the set's properties");
+        return "Chip › + Boolean: Property 3 → Shadow";
+      });
+    },
+  },
+  {
+    id: "FW-73", feature: "Apply component property on a variant's text: None unbinds it; Create text property… adds one with its words and binds it", wp: "F7 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const label = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Text"]`).filter({ hasText: /^Filter$/ }).first();
+        const box = await label.boundingBox();
+        await page.keyboard.down("ControlOrMeta");
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        await page.keyboard.up("ControlOrMeta");
+        await until(async () => (await sections(page)).includes("Component property"), { message: "a variant's text selected (Component property)" });
+        await chooseIn(page, "bind-text", "None");
+        await written(page, id, /<Text>Filter<\/Text>/, "the text unbound");
+        await chooseIn(page, "bind-text", "Create text property…");
+        await written(page, id, /"Property 3": \{ type: "text", default: "Filter" \}[\s\S]*<Text data-prop-text="Property 3">Filter<\/Text>/, "Property 3 = Filter, bound");
+        return "None → unbound · Create text property… → Property 3 (Filter), bound";
+      });
+    },
+  },
+  {
+    id: "FW-74", feature: "An instance of a set: its variant and properties switch in the panel (the icon hides), Reset all changes clears them", wp: "F7 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const instance = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-instance]`).first();
+        const box = await instance.boundingBox();
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        await until(async () => (await selectedName(page)) === "Chip", { message: "the Chip instance selected" });
+        await chooseIn(page, "instance-variant", "Large");
+        await written(page, id, /<Use of="chip" variant=\{\{ Size: "Large" \}\} \/>/, "Size = Large");
+        // A boolean property is a switch (ToggleButton).
+        await right(page).getByRole("switch", { name: "Show icon", exact: true }).click();
+        await written(page, id, /<Use of="chip" variant=\{\{ Size: "Large" \}\} props=\{\{ "Show icon": false \}\} \/>/, "Show icon off");
+        await until(async () => (await instance.locator(".zen-icon").count()) === 0, { message: "the instance's icon hidden" });
+        await typeText(page, "Label", "Done");
+        await written(page, id, /props=\{\{ "Show icon": false, Label: "Done" \}\}/, "Label = Done");
+        await until(async () => /Done/.test(await instance.innerText()), { message: "the instance reads Done" });
+        await shot(page, "fw-74-instance");
+        await expectPanelFits(page, "the instance's panel");
+        await right(page).getByRole("button", { name: "Reset all changes", exact: true }).click();
+        await written(page, id, /<Use of="chip" \/>/, "all changes reset");
+        return "Size › Large · Show icon off (icon hidden) · Label Done · Reset all changes";
+      });
+    },
+  },
+  {
+    id: "FW-75", feature: "A main's description and link (Figma's Edit component) write description and link; emptied, they go", wp: "F7 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        await deepSelect(page, marked(page, id, "data-zen-main", "tag-small"));
+        await until(async () => (await selectedName(page)) === "Tag small", { message: "Tag small selected" });
+        await typeText(page, "Description", "A small tag");
+        await written(page, id, /<Component id="tag-small" name="Tag small" description="A small tag">/, "its description");
+        await typeText(page, "Link", "https://zen.example/tag");
+        await written(page, id, /description="A small tag" link="https:\/\/zen.example\/tag">/, "its link");
+        await shot(page, "fw-75-about");
+        await expectPanelFits(page, "the main's panel");
+        await typeText(page, "Description", "");
+        await written(page, id, /<Component id="tag-small" name="Tag small" link="https:\/\/zen.example\/tag">/, "the description gone");
+        return "description, link, description emptied";
+      });
+    },
+  },
+  {
+    id: "FW-76", feature: "Swap instance lists the page's sets and mains; swapping to a lone main drops the set's variant and values", wp: "F7 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const instance = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-instance]`).first();
+        const box = await instance.boundingBox();
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        await until(async () => (await selectedName(page)) === "Chip", { message: "the Chip instance selected" });
+        await chooseIn(page, "instance-variant", "Large");
+        await written(page, id, /<Use of="chip" variant=\{\{ Size: "Large" \}\} \/>/, "Size = Large");
+        // The swap select is named "Component" and reads its value ("Component Chip").
+        await right(page).getByRole("button", { name: /^Component Chip/ }).first().click();
+        const options = (await page.getByRole("option").allInnerTexts()).map((text) => text.trim());
+        for (const name of ["Chip", "Tag small", "Tag large"]) if (!options.includes(name)) throw new Error(`Swap lists ${options.join(", ")}`);
+        await page.getByRole("option", { name: "Tag large", exact: true }).click();
+        await written(page, id, /<Use of="tag-large" \/>/, "the instance of Tag large, no variant");
+        return `Swap lists ${options.join(", ")} · Chip (Large) → Tag large`;
+      });
+    },
+  },
+  // F7b · overrides inside an instance.
+  {
+    id: "FW-77", feature: "⌘-click into an instance selects a layer inside it; its words change for this instance only (an override)", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const instance = marked(page, id, "data-zen-instance", "tag-small");
+        await deepInto(page, instance.getByText("Small", { exact: true }));
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected (Layer section)" }).catch(async (error) => { throw new Error(`${error.message} · header ${await selectedName(page)} · sections ${(await sections(page)).join(", ")} · selected ${JSON.stringify(await selectedSrc(page))}`); });
+        await shot(page, "fw-77-layer-in-instance");
+        await expectPanelFits(page, "the layer's panel");
+        await typeText(page, "Text", "Hey");
+        await written(page, id, /<Use of="tag-small" overrides=\{\{ Text: \{ children: "Hey" \} \}\} \/>/, "the instance's override of its Text");
+        await until(async () => (await instance.innerText()).trim() === "Hey", { message: "the instance reads Hey" });
+        const main = (await marked(page, id, "data-zen-main", "tag-small").innerText()).trim();
+        if (main !== "Small") throw new Error(`the main reads ${main}`);
+        return "⌘-click Small → Text Hey: override on this instance, main still Small";
+      });
+    },
+  },
+  {
+    id: "FW-78", feature: "Hiding a layer inside an instance is an override; the instance's Reset all changes brings it back", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const instance = marked(page, id, "data-zen-instance", "tag-small");
+        await deepInto(page, instance.getByText("Small", { exact: true }));
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected" });
+        const panel = async () => `header ${await selectedName(page)} · sections ${(await sections(page)).join(", ")} · buttons ${(await right(page).getByRole("button").allInnerTexts()).map((text) => text.trim()).filter(Boolean).slice(0, 8).join(" | ")}`;
+        await right(page).getByRole("switch", { name: "Show layer", exact: true }).click({ timeout: 5000 }).catch(async (error) => { throw new Error(`Show layer: ${error.message.split("\n")[0]} · ${await panel()}`); });
+        await written(page, id, /<Use of="tag-small" overrides=\{\{ Text: \{ hidden: true \} \}\} \/>/, "the layer hidden in this instance");
+        await until(async () => (await instance.getByText("Small", { exact: true }).count()) === 0, { message: "the instance draws no text" });
+        await right(page).getByRole("button", { name: "Select Tag small", exact: true }).click({ timeout: 5000 }).catch(async (error) => { throw new Error(`Select Tag small: ${error.message.split("\n")[0]} · ${await panel()}`); });
+        await until(async () => (await selectedName(page)) === "Tag small", { message: "the instance selected again" });
+        await right(page).getByRole("button", { name: "Reset all changes", exact: true }).click({ timeout: 5000 }).catch(async (error) => { throw new Error(`Reset all changes: ${error.message.split("\n")[0]} · ${await panel()} · ${((await pageText(page, id)) ?? "").match(/<Use of="tag-small"[^\n]*/)?.[0]}`); });
+        await written(page, id, /<Use of="tag-small" \/>/, "Reset all changes");
+        return "Show layer off → hidden override · Select Tag small · Reset all changes";
+      });
+    },
+  },
+  {
+    id: "FW-79", feature: "Push changes to main component: the main takes the instance's change, every instance shows it, the instance keeps none", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const instance = marked(page, id, "data-zen-instance", "tag-small");
+        await deepInto(page, instance.getByText("Small", { exact: true }));
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected" });
+        await typeText(page, "Text", "Big");
+        await written(page, id, /overrides=\{\{ Text: \{ children: "Big" \} \}\}/, "the override");
+        await right(page).getByRole("button", { name: "Push changes to main", exact: true }).click();
+        await written(page, id, /<Component id="tag-small" name="Tag small">\s*<Stack[^>]*>\s*<Text>Big<\/Text>[\s\S]*<Use of="tag-small" \/>/, "the main says Big, the instance keeps no override");
+        await until(async () => (await marked(page, id, "data-zen-main", "tag-small").innerText()).trim() === "Big", { message: "the main reads Big" });
+        return "Text Big (override) → Push changes to main: main Big, instance plain";
+      });
+    },
+  },
+  {
+    id: "FW-95", feature: "A nested instance inside an instance: its variant changes for the outer instance only", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const toolbar = marked(page, id, "data-zen-instance", "toolbar");
+        // The nested Chip's own frame, in its padding: the nested instance, not a layer inside it.
+        const chip = toolbar.locator(".zen-stack").first();
+        const box = await chip.boundingBox();
+        await page.keyboard.down("ControlOrMeta");
+        await page.mouse.click(box.x + 3, box.y + 3);
+        await page.keyboard.up("ControlOrMeta");
+        await until(async () => (await sections(page)).includes("Instance"), { message: "the nested instance selected (its Instance section)" });
+        await chooseIn(page, "local-nested-variant", "Large");
+        await written(page, id, /<Use of="toolbar" overrides=\{\{ Chip: \{ "variant\.Size": "Large" \} \}\} \/>/, "the nested Chip's Size in this Toolbar only");
+        await shot(page, "fw-95-nested-instance");
+        await expectPanelFits(page, "the nested instance's panel");
+        return "Toolbar › Chip: Size Large as an override of this Toolbar";
+      });
+    },
+  },
+  {
+    id: "FW-96", feature: "Assets › Local components shows a component set as one tile; a click adds an instance of the set", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const stack = await page.locator('[data-studio-frame="screen:screen-1"] .zen-stack').first().boundingBox();
+        await page.mouse.click(stack.x + stack.width - 6, stack.y + stack.height - 6);
+        await page.locator("#studio-left").getByRole("tab", { name: "Assets" }).click();
+        const tiles = page.locator("#studio-left").getByRole("list", { name: "Local components" }).getByRole("button");
+        await tiles.first().waitFor({ state: "visible", timeout: 5000 });
+        const names = (await tiles.evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-label")))).filter(Boolean);
+        if (!names.includes("Chip, component set") || names.some((name) => /^Size=/.test(name))) throw new Error(`Local components: ${names.join(" · ")}`);
+        const before = (((await pageText(page, id)) ?? "").match(/<Use of="chip" \/>/g) ?? []).length;
+        await page.locator("#studio-left").getByRole("button", { name: "Chip, component set", exact: true }).click();
+        await until(async () => ((((await pageText(page, id)) ?? "").match(/<Use of="chip" \/>/g) ?? []).length) === before + 1, { message: "one more instance of the set" });
+        await showLeftTab(page, "layers");
+        return names.join(" · ");
+      });
     },
   },
   {

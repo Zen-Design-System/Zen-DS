@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { canvasApi } from "../canvas/viewport";
 import { findBySrc, onSourceUpdate } from "../select/picker";
 import { coloursOf, type ColourValue } from "./partInfo";
-import { ValueCell } from "./PartPanel";
-import { InspectorRow, InspectorSection } from "./Section";
+import { InputField } from "../../../components/Input";
+import { BadgeCounter } from "../../../components/Badge";
+import { InspectorSection } from "./Section";
 
 /*
  * Figma's Selection colors (F5c of docs/research/studio-figma-design-parity-2026-10-18.md): every colour the selected
@@ -35,6 +36,22 @@ export function selectionColours(hosts: readonly Element[]): Used[] {
   return [...byKey.values()].sort((a, b) => b.count - a.count);
 }
 
+/** Words Figma keeps whole in a variable's name ("Content/On-Accent"), not split at their dash. */
+const COMPOUNDS = ["on-accent", "on-colors", "on-color", "on-brights", "on-bright"];
+
+/** A colour variable in Figma's words: `--zen-color-content-neutral-strongest` → "Content / Neutral / Strongest". */
+export function colourVariableName(token: string): string {
+  let rest = token.replace(/^--zen-color-/, "").replace(/^--/, "");
+  const parts: string[] = [];
+  while (rest) {
+    const compound = COMPOUNDS.find((word) => rest === word || rest.startsWith(`${word}-`));
+    const part = compound ?? rest.split("-")[0];
+    parts.push(part);
+    rest = rest.slice(part.length).replace(/^-/, "");
+  }
+  return parts.map((part) => part.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join("-")).join(" / ");
+}
+
 /** The rendered elements of `layers` on the canvas (a repeated layer: the instance selected). */
 function hostsOf(layers: ReadonlyArray<{ src: string; instance?: number }>): Element[] {
   const world = canvasApi.getWorldElement();
@@ -61,11 +78,23 @@ export function SelectionColors({ layers }: { layers: ReadonlyArray<{ src: strin
   if (colours.length < 2) return null;
   return (
     <InspectorSection title="Selection colors">
-      {colours.map((used) => (
-        <InspectorRow key={used.key} label={used.count > 1 ? `${used.count} layers` : "1 layer"} name="selection-color">
-          <ValueCell value={used.colour.label} tokens={used.colour.tokens} swatch={used.colour.value} />
-        </InspectorRow>
-      ))}
+      {colours.map((used) => {
+        // Figma's row: the swatch and the variable's name (the colour's value without one); how many layers in the end.
+        const name = used.colour.tokens[0] ? colourVariableName(used.colour.tokens[0]) : used.colour.label;
+        const layers = used.count > 1 ? `${used.count} layers` : "1 layer";
+        return (
+          <div key={used.key} className="studio-inspector__wide-field" data-prop="selection-color" title={`${name} · ${layers}`}>
+            <InputField
+              size="sm"
+              readOnly
+              aria-label={`${name}, ${layers}`}
+              value={name}
+              leading={<span className="studio-selection-color__swatch" style={{ background: used.colour.value }} aria-hidden="true" />}
+              trailing={<BadgeCounter value={used.count} size="xs" theme="neutral" background="subtle" />}
+            />
+          </div>
+        );
+      })}
     </InspectorSection>
   );
 }

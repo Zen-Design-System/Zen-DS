@@ -25,7 +25,13 @@ type PartSelection = Extract<StudioSelection, { kind: "node" }>;
 
 const literalOf = (value: unknown): Literal | undefined => (typeof value === "string" || typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value)) ? value : undefined);
 
-export function OverrideProperties({ selection, part, path, title = "Properties", note }: { selection: PartSelection; part: PartHit; path: string; title?: string; note?: string }) {
+export function OverrideProperties({ selection, part, path, title = "Properties", note, table: given, onWrite }: {
+  selection: PartSelection; part: PartHit; path: string; title?: string; note?: string;
+  /** The owner's overrides when its rendered props do not hold them (a page's own instance, `<Use overrides>`: F7b). */
+  table?: OverrideTable;
+  /** Writes the owner's next overrides (a page's own instance). */
+  onWrite?: (next: OverrideTable, label: string) => void;
+}) {
   const parsed = parseSrc(selection.src);
   const server = useStudioServer();
   const role = useStudio((state) => state.role);
@@ -42,10 +48,11 @@ export function OverrideProperties({ selection, part, path, title = "Properties"
   const owner = selection.name;
   const ownerProps = part.owner.fiber ? currentFiber(part.owner.fiber).memoizedProps ?? {} : {};
   const props: Record<string, unknown> = currentFiber(part.fiber).memoizedProps ?? {};
-  const table = overrideTable(ownerProps.overrides);
+  const table = given ?? overrideTable(ownerProps.overrides);
   const own = table[path] ?? {};
   const editable = canEdit() && role === "admin" && server.writable && Boolean(element);
   const write = (next: OverrideTable, label: string) => {
+    if (onWrite) { onWrite(next, label); return; }
     if (!element) return;
     const ops = overrideOps(table, next);
     if (ops.length) void applyEdit({ file: element.file, loc: element.loc, name: owner, ops, hash: element.hash }, label);
