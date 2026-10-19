@@ -46,7 +46,7 @@ export default function Page() {
 
 const page = parsePage(PAGE, { components: new Set(["Button", "Shape", "Stack", "Text"]) });
 check("the page is valid dialect (an instance carries a data-name and a lock)", page.errors, []);
-check("validateDialect refuses other props on <Use>", validateDialect(PAGE.replace('<Use of="tag" data-name="Hot tag" data-locked />', '<Use of="tag" title="x" />'), { components: new Set(["Button", "Shape", "Stack", "Text"]) }).map((error) => error.message), ["<Use> takes of and overrides only, not title"]);
+check("validateDialect refuses other props on <Use>", validateDialect(PAGE.replace('<Use of="tag" data-name="Hot tag" data-locked />', '<Use of="tag" title="x" />'), { components: new Set(["Button", "Shape", "Stack", "Text"]) }).map((error) => error.message), ["<Use> takes of, variant, props, overrides and slots only, not title"]);
 const names = [...autoLayerNames(page.board).values()];
 check("automatic names: frames and shapes numbered per kind in page order, text by its words", names, ["Frame 1", "Welcome back, Alex", "Frame 2", "Ellipse 1", "Rectangle 1", "Ellipse 2", "Frame 3", "New"]);
 const row = page.board.children[0].children[0].children.find((child) => child.kind === "element" && child.props["data-name"]);

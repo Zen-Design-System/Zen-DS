@@ -26,7 +26,7 @@ import { renameShortcut, startRename } from "../rename";
 import { startTextEditOnSelection } from "../textEdit";
 import { stepFrame } from "../../board/frameOrder";
 import { wrapInSection } from "../../builder/proto/addFrame";
-import { createComponentOfLayers, createComponents } from "../localComponents";
+import { combineAsVariants, createComponentOfLayers, createComponents } from "../localComponents";
 import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../pathOps";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
@@ -84,6 +84,7 @@ export function commands(): Command[] {
     { id: "lock", group: "Edit", label: isSelectionLocked(selection) ? "Unlock" : "Lock", shortcut: lockShortcut, keywords: "lock unlock freeze", disabled: editOff ?? (state.localPage ? (selection ? undefined : "Select a layer first") : "Works on a page you made"), run: () => { void toggleLockSelection(); } },
     // Figma's Create component (⌥⌘K: one, of every selected layer) and Create multiple components, on a page you made (F3).
     { id: "create-component", group: "Edit", label: "Create component", shortcut: `⌥${modKey}K`, keywords: "main component symbol make", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void createComponentOfLayers(); } },
+    { id: "combine-variants", group: "Edit", label: "Combine as variants", keywords: "component set variants merge", disabled: editOff ?? (!state.localPage ? "Works on a page you made" : selectedLayers().length > 1 ? undefined : "Select several main components"), run: () => { void combineAsVariants(); } },
     { id: "create-components", group: "Edit", label: "Create multiple components", keywords: "main components symbols make each", disabled: editOff ?? (!state.localPage ? "Works on a page you made" : selectedLayers().length > 1 ? undefined : "Select several layers"), run: () => { void createComponents(); } },
     // Figma's boolean groups, Flatten and Outline stroke on shapes of a page you made (edit/pathOps.ts, F9b).
     ...(["union", "subtract", "intersect", "exclude"] as const).map((operation) => ({ id: `boolean-${operation}`, group: "Edit", label: `${operation[0].toUpperCase()}${operation.slice(1)} selection`, shortcut: `⌥⇧${operation === "union" ? "U" : operation === "subtract" ? "S" : operation === "intersect" ? "I" : "E"}`, keywords: "boolean shapes combine", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void booleanSelection(operation); } })),

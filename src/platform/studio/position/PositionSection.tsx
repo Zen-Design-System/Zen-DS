@@ -29,6 +29,7 @@ import {
 import "./position.css";
 import { srcAttr } from "../select/srcIds";
 import { tip } from "../shell/ShortcutTip";
+import { nearestStep, tokenName } from "../inspector/controls/scale";
 
 /*
  * The Design tab's Position section (Figma UI3 "Position": Align, X / Y, Ignore auto layout, Constraints; spec
@@ -400,7 +401,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
       ) : null}
 
       {insetRows.map((prop) => (
-        <InsetRow key={prop} prop={prop} value={values[prop]} ladder={ladder} api={api} name={name} />
+        <InsetRow key={prop} prop={prop} value={values[prop]} ladder={ladder} api={api} name={name} free={geometry.parent === "flow"} />
       ))}
 
       {/* A warning is Zen's Inline-Message (Warning), its fix the Action (one undoable draft edit); a neutral note is the
@@ -434,11 +435,27 @@ function ReadOnlyNumber({ axis, value }: { axis: string; value: number | null })
   );
 }
 
-/** One offset of the pinned edges: the Spacing/Padding step ("sm · 12"); reset = none (flush). */
-function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: PropValue; ladder: Ladder; api: FieldApi; name: string }) {
+/**
+ * One offset of the pinned edges: the Spacing/Padding step ("sm · 12"); reset = none (flush). In a frame without auto
+ * layout Zen also takes px (Figma's free X / Y): there the row offers Figma's Detach variable (the step's px) and Apply
+ * variable (the nearest step), decision 1 of docs/research/studio-figma-design-parity-2026-10-18.md.
+ */
+function InsetRow({ prop, value, ladder, api, name, free }: { prop: string; value: PropValue; ladder: Ladder; api: FieldApi; name: string; free: boolean }) {
   const label = edgeLabels[prop];
   const written = value.state === "literal" ? String(value.value) : null;
   const readOnly = value.state === "bound" || value.state === "spread";
+  const px = value.state === "literal" && typeof value.value === "number" ? value.value : null;
+  const step = written !== null && px === null ? ladder.find((entry) => entry.key === written) : undefined;
+  const detach = () => { if (step) void api.apply([{ op: "setProp", name: prop, value: { kind: "number", value: Math.round(step.px) } }], `${name} ${label} offset → ${Math.round(step.px)}`); };
+  const attach = () => {
+    const near = px === null ? null : nearestStep(ladder.map((entry) => ({ key: entry.key, px: entry.px })), px);
+    if (!near) return;
+    void api.apply([near.key === "none" ? { op: "removeProp", name: prop } : { op: "setProp", name: prop, value: { kind: "string", value: near.key } }], `${name} ${label} offset → ${tokenName(near.key)}`);
+  };
+  const variableAction = !free || readOnly || api.disabled ? undefined
+    : step && step.key !== "none" ? <IconButton icon="icon-link-broken-01-line" aria-label={`Detach variable from ${label.toLowerCase()} offset`} tooltip="Detach variable" appearance="flat" level="primary" size="xs" onClick={detach} />
+      : px !== null ? <IconButton icon="icon-hexagon-01-line" aria-label={`Apply variable to ${label.toLowerCase()} offset`} tooltip="Apply variable" appearance="flat" level="primary" size="xs" onClick={attach} />
+        : undefined;
   // Token + value on one line, as every token select (ScaleField): "md … 16px" in the list, "md 16" in the field.
   const options: SelectFieldOption[] = ladder.map((step) => ({ value: step.key, label: step.key, meta: `${Math.round(step.px)}px` }));
   if (written && !options.some((option) => option.value === written)) options.push({ value: written, label: written });
@@ -446,7 +463,8 @@ function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: Pro
     <InspectorRow
       name={prop}
       label={label}
-      labelTitle={`${label} offset · ${prop}`}
+      labelTitle={`${label} offset`}
+      action={variableAction}
       isDefault={value.state === "unset"}
       hint={readOnly ? `Set in the code (${value.state === "bound" ? `{${value.expression}}` : value.via})` : undefined}
     >

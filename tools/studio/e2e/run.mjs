@@ -23,7 +23,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { studioApi } from "./lib/api.mjs";
 import { compare, createMatrix, readBaseline, readFlaky, writeBaseline, writeReport } from "./lib/matrix.mjs";
-import { startServer } from "./lib/server.mjs";
+import { pagesDirOf, startServer } from "./lib/server.mjs";
 import { launchBrowser, openStudio, sleep } from "./lib/studio.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -136,6 +136,63 @@ function restoreDisk() {
     } else notes.push(`! ${rel} changed during the run by someone else — left as it is`);
   }
   return notes;
+}
+
+/* ── a row's documents, kept for its retry ───────────────────────────────────────────────────────────────────────── */
+
+/**
+ * What a row can change (user 2026-10-19: a retry starts where the first try started, not on its leftovers): every
+ * draft's text, and each file under this server's pages folder (its pages, photos and projects).
+ */
+async function documentsNow(api, port) {
+  const drafts = new Map();
+  for (const { file } of (await api.drafts()).drafts) drafts.set(file, (await api.source(file)).content);
+  const base = path.join(root, path.dirname(pagesDirOf(port)));
+  const files = new Map();
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const abs = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(abs);
+      else files.set(abs, fs.readFileSync(abs));
+    }
+  };
+  if (fs.existsSync(base)) walk(base);
+  return { drafts, files, base };
+}
+
+/**
+ * The documents as `before` had them: drafts added by the row discarded, changed ones written back; page files changed
+ * or removed by the row written back. A file the row added stays unless `dropAdded` (its scenario forgets the pages it
+ * made, forgetPages, and makes them again on the retry). Returns how many documents went back.
+ */
+async function restoreDocuments(api, before, { dropAdded = false } = {}) {
+  let restored = 0;
+  const now = (await api.drafts()).drafts.map((row) => row.file);
+  const added = now.filter((file) => !before.drafts.has(file));
+  if (added.length) { await api.discard(added); restored += added.length; }
+  for (const [file, text] of before.drafts) {
+    const current = await api.source(file).catch(() => null);
+    if (current && current.content !== text) { await api.put(file, text); restored += 1; }
+  }
+  const seen = new Set();
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const abs = path.join(dir, entry.name);
+      if (entry.isDirectory()) { walk(abs); continue; }
+      seen.add(abs);
+      const old = before.files.get(abs);
+      if (!old) { if (dropAdded) { fs.rmSync(abs, { force: true }); restored += 1; } }
+      else if (!fs.readFileSync(abs).equals(old)) { fs.writeFileSync(abs, old); restored += 1; }
+    }
+  };
+  if (fs.existsSync(before.base)) walk(before.base);
+  for (const [abs, bytes] of before.files) {
+    if (seen.has(abs)) continue;
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    fs.writeFileSync(abs, bytes);
+    restored += 1;
+  }
+  return restored;
 }
 
 /* ── run ─────────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -258,6 +315,11 @@ try {
           }),
         ]).finally(() => clearTimeout(timer));
       };
+      // The first try's error, kept, and the documents as the row found them: the retry runs in a fresh tab on those
+      // documents put back (user 2026-10-19), not on what the first try left (a row's cached page kept its edits, so a
+      // retry failed on that leftover and hid the cause).
+      let firstError = null;
+      const before = has("no-retry") ? null : await documentsNow(api, server.port).catch(() => null);
       try {
         try {
           evidence = await attempt();
@@ -265,14 +327,23 @@ try {
           // Peers edit the same source tree, and a hot update of a Studio file mid-row can break it: one retry on a fresh
           // page. A pass on retry is marked in the evidence, so a real race still shows (--no-retry turns this off).
           if (has("no-retry")) throw first;
+          firstError = String(first?.message ?? first).split("\n")[0];
+          // Pages the row made: gone only when its scenario makes them again (it forgets the ids it keeps).
+          const forgets = typeof mod.forgetPages === "function";
+          if (before) {
+            await restoreDocuments(api, before, { dropAdded: forgets }).catch((error) => console.log(`    ${row.id}: its documents were not put back before the retry (${error.message})`));
+            if (forgets) mod.forgetPages();
+          }
           await ctx.studio({ fresh: true });
           evidence = await attempt();
-          evidence = `${evidence ?? ""} (passed on retry; first try: ${String(first?.message ?? first).split("\n")[0].slice(0, 80)})`;
+          evidence = `${evidence ?? ""} (passed on retry; first try: ${firstError.slice(0, 80)})`;
         }
         if (evidence && typeof evidence === "object" && evidence.skip) { status = "skip"; evidence = evidence.skip; }
       } catch (caught) {
         status = "broken";
-        error = String(caught?.message ?? caught).split("\n")[0];
+        // The first try's error leads (the cause); the retry's follows it.
+        const last = String(caught?.message ?? caught).split("\n")[0];
+        error = firstError && firstError !== last ? `${firstError} (retry: ${last})` : last;
         if (session?.page && !session.page.isClosed()) {
           const shot = path.join(outDir, stamp, `${row.id}.png`);
           fs.mkdirSync(path.dirname(shot), { recursive: true });

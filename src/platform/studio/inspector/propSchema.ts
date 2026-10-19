@@ -93,6 +93,9 @@ export function nodeKind(name: string): NodeKind {
  *  shape, an instance of a Zen component or of one the page defines. */
 export function kindLabel(kind: NodeKind, name = ""): string {
   if (kind === "primitive") return name === "Text" || name === "Heading" ? "Text" : name === "Box" || name === "Container" ? "Frame" : "Auto layout";
+  // A page's own component (F7): an instance of it, or its set of variants, in Figma's words.
+  if (name === "Use") return "Instance";
+  if (name === "ComponentSet") return "Component set";
   return ({ zen: "Instance", shape: "Shape", local: "Local component", element: "Layer" } as const)[kind];
 }
 

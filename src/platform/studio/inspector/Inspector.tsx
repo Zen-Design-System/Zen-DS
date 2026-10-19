@@ -14,6 +14,7 @@ import { CodePanel } from "./CodePanel";
 import { DesignPanel } from "./DesignPanel";
 import "./drafts";
 import { FramePanel } from "./FramePanel";
+import { LocalPartPanel } from "./LocalPartPanel";
 import { FramePresets } from "../builder/FramePresets";
 import { PagePanel } from "./PagePanel";
 // A part: a Table's Data-Row or Cell has its own panel, any other part is PartPanel's (table/TableCellPanel.tsx).
@@ -135,6 +136,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
           : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} />
           : presetsPage ? <FramePresets localPage={presetsPage} />
           : several && selection?.kind === "node" && !selection.part ? <SelectionActions />
+          // A layer inside an instance of a page's own component (F7b): its overrides.
+          : selection?.kind === "node" && selection.part && selection.name === "Use" ? <LocalPartPanel key={identity} selection={selection} />
           : selection?.kind === "node" && selection.part ? <TablePartPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
           : selection?.kind === "node" ? <DesignPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
           : selection?.kind === "variant" ? <VariantPanel key={variantKey(selection)} selection={selection} />

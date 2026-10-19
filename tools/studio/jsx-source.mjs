@@ -2237,8 +2237,9 @@ function applyWrap(code, bom, text, ast, element, ops, { snippets, file, eol, li
   if (ops.length !== 1) return fail("invalid", "wrap cannot be combined with other ops");
   const op = ops[0];
   const tag = op.tag ?? "Box";
-  // A builder page's layer becomes a main component in place (Figma's ⌥⌘K): <Component id name> around it.
-  const component = tag === "Component" && LOCAL_PAGE.test(file ?? "");
+  // A builder page's layer becomes a main component in place (Figma's ⌥⌘K): <Component id name> around it; main
+  // components side by side become a set (Figma's Combine as variants): <ComponentSet id name> around them.
+  const component = (tag === "Component" || tag === "ComponentSet") && LOCAL_PAGE.test(file ?? "");
   if (!WRAP_TAGS.includes(tag) && !component) return fail("invalid", `wrap puts the element in ${WRAP_TAGS.join(", ")} (not ${JSON.stringify(op.tag)})`);
   const props = op.props ?? {};
   if (props === null || typeof props !== "object" || Array.isArray(props)) return fail("invalid", "wrap `props` must be an object of { name: EditValue }");
@@ -2254,7 +2255,7 @@ function applyWrap(code, bom, text, ast, element, ops, { snippets, file, eol, li
     if (!nodePath) throw new EditError("not-found", "The element is not in the file's tree");
     wrapPlace(element, nodePath);
     const startsLine = /^[ \t]*$/.test(text.slice(lineStartOf(text, element.start), element.start));
-    const imports = component ? builderImportEdits(ast, text, eol, ["Component"]) : importEdits(ast, text, eol, file, [tag], [], { action: "wrapping", looseTarget: true }).map((edit) => ({ ...edit, isImport: true }));
+    const imports = component ? builderImportEdits(ast, text, eol, [tag]) : importEdits(ast, text, eol, file, [tag], [], { action: "wrapping", looseTarget: true }).map((edit) => ({ ...edit, isImport: true }));
     edits = [...wrapEdits(text, element, { tag, attrs, eol, lineCommentEnds, startsLine }), ...imports];
     next = applyEdits(text, edits);
     // The wrapper starts where the element did, moved by the import edits above it.
@@ -2645,7 +2646,7 @@ function applyWrapMany(code, bom, text, ast, element, op, { tag, props, snippets
     run = adjacentRun(parent, nodes);
     if (run < nodes.length) checkMovable(text, nodes, run, names);
     const startsLine = /^[ \t]*$/.test(text.slice(lineStartOf(text, nodes[0].start), nodes[0].start));
-    imports = importEdits(ast, text, eol, file, [tag], [], { action: "wrapping", looseTarget: true }).map((edit) => ({ ...edit, isImport: true }));
+    imports = (tag === "Component" || tag === "ComponentSet") && LOCAL_PAGE.test(file ?? "") ? builderImportEdits(ast, text, eol, [tag]) : importEdits(ast, text, eol, file, [tag], [], { action: "wrapping", looseTarget: true }).map((edit) => ({ ...edit, isImport: true }));
     edits = [...wrapManyEdits(text, nodes, run, { tag, attrs, eol, startsLine }), ...imports];
     next = applyEdits(text, edits);
     offset = nodes[0].start + imports.filter((edit) => edit.end <= nodes[0].start).reduce((sum, edit) => sum + edit.text.length - (edit.end - edit.start), 0);

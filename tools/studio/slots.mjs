@@ -80,7 +80,7 @@ const BOM = "\uFEFF";
 const PACKAGE = "@zen-ds/react";
 const BUILDER_PACKAGE = "@zen-ds/react/builder";
 /** What a builder page's code may use from its runtime besides Zen components (Board is the page's root). */
-const BUILDER_RUNTIME = ["Screen", "Overlay", "Section", "proto", "Component", "Use"];
+const BUILDER_RUNTIME = ["Screen", "Overlay", "Section", "proto", "Component", "ComponentSet", "Use"];
 const PLUGINS = ["jsx", "typescript"];
 const LINE_SEPARATOR = /[\u2028\u2029]/;
 const FUNCTION_TYPES = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression", "ObjectMethod", "ClassMethod", "ClassPrivateMethod"]);

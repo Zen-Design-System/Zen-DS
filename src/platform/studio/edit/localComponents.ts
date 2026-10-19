@@ -22,7 +22,22 @@ import { boxFloating, floatingGroup } from "./groupLayers";
  */
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
-export type MainRef = { id: string; name: string; componentLoc: string; rootLoc: string; file: string; uses: string[] };
+/** A component property of a page's component (tools/studio/dialect.mjs COMPONENT_PROPERTY_TYPES). */
+export type PropertyRef = { name: string; type: "text" | "boolean" | "swap" | "slot"; default?: unknown; preferred?: unknown[] };
+export type MainRef = {
+  id: string; name: string; componentLoc: string; rootLoc: string; file: string; uses: string[];
+  /** Its component set's id, when it is a variant (F7). */
+  set?: string;
+  /** A variant's values ("Size" → "Small"). */
+  variant?: Record<string, string>;
+  /** Its properties (a variant's are its set's). */
+  properties: PropertyRef[];
+  description?: string;
+  /** Figma's documentation link. */
+  link?: string;
+};
+/** A page's component set (`<ComponentSet>`, Figma's Combine as variants). */
+export type SetRef = { id: string; name: string; loc: string; file: string; variants: string[]; axes: Array<{ name: string; values: string[] }>; properties: PropertyRef[]; uses: string[]; description?: string; link?: string };
 
 const fail = (message: string) => { announceEditStatus({ kind: "error", message, at: Date.now() }); return false; };
 
@@ -37,7 +52,10 @@ export async function mainsOf(file: string): Promise<MainRef[]> {
     const of = String(node.props.of?.value ?? "");
     uses.set(of, [...(uses.get(of) ?? []), node.loc]);
   });
-  return engine.localComponents(tree).filter((main) => main.id && main.root).map((main) => ({ id: main.id!, name: String(main.name ?? main.id), componentLoc: main.loc, rootLoc: main.root!.loc, file, uses: uses.get(main.id!) ?? [] }));
+  return engine.localComponents(tree).filter((main) => main.id && main.root).map((main) => ({
+    id: main.id!, name: String(main.name ?? main.id), componentLoc: main.loc, rootLoc: main.root!.loc, file, uses: uses.get(main.id!) ?? [],
+    ...(main.set ? { set: main.set, variant: main.variant ?? {} } : {}), properties: main.properties ?? [], ...(main.description ? { description: main.description } : {}), ...(main.link ? { link: main.link } : {}),
+  }));
 }
 
 /** The main component the selection is the root of, or null. */
@@ -258,13 +276,25 @@ export async function renameComponent(main: MainRef, name: string): Promise<bool
   return response.ok;
 }
 
+/** A main's or set's description or documentation link (Figma's Edit component); empty removes it. One edit. */
+export async function setAbout(file: string, loc: string, field: "description" | "link", value: string): Promise<boolean> {
+  const trimmed = value.trim();
+  const element = await studioApi.element(file, loc);
+  if (!element) return fail("The component is no longer there — select it again");
+  const op = trimmed ? { op: "setProp", name: field, value: { kind: "string", value: trimmed } } : { op: "removeProp", name: field };
+  const response = await applyEdit({ file, loc, name: element.name, ops: [op as EditOp], hash: element.hash }, trimmed ? `${field === "link" ? "Link" : "Description"} of ${element.name}` : `Remove ${field}`);
+  return response.ok;
+}
+
 /** Swap instance (Figma's instance menu): the instance shows another main component of the page. */
-export async function swapInstance(selection: NodeSelection, to: MainRef): Promise<boolean> {
+export async function swapInstance(selection: NodeSelection, to: Pick<MainRef, "id" | "name">): Promise<boolean> {
   const at = parseSrc(selection.src);
   if (!at) return false;
   const use = await studioApi.element(at.file, at.loc);
   if (!use) return false;
-  const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "setProp", name: "of", value: { kind: "string", value: to.id } } as EditOp], hash: use.hash }, `Swap instance → ${to.name}`);
+  // Another component takes its own variant and property values (Figma: a swap keeps only the overrides that still fit).
+  const extra = use.attributes.some((attr) => attr.name === "variant" || attr.name === "props") ? [{ op: "removeProp", name: "variant" }, { op: "removeProp", name: "props" }] as EditOp[] : [];
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "setProp", name: "of", value: { kind: "string", value: to.id } } as EditOp, ...extra], hash: use.hash }, `Swap instance → ${to.name}`);
   return response.ok;
 }
 
@@ -284,4 +314,344 @@ export async function deleteMain(selection: NodeSelection): Promise<boolean> {
   const response = await applyEdit({ file: main.file, loc: main.componentLoc, name: "Component", ops: [{ op: "removeElement" } as EditOp], hash: component.hash }, `Delete component ${main.name}`);
   if (response.ok) { multiSelection.clear(); studioStore.setState({ selection: null }); flushStudioStore(); }
   return true;
+}
+
+/* ── F7: component sets, variants and properties (docs/research/studio-f7-components-spec-2026-10-19.md) ───────────── */
+
+/** The page's component sets as read from its text now. */
+export async function setsOf(file: string): Promise<SetRef[]> {
+  const engine = await loadEngine();
+  const source = await studioApi.source(file);
+  const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
+  const uses = new Map<string, string[]>();
+  engine.eachElement(tree.board, (node) => {
+    if (node.name !== "Use") return;
+    const of = String(node.props.of?.value ?? "");
+    uses.set(of, [...(uses.get(of) ?? []), node.loc]);
+  });
+  return engine.componentSets(tree).filter((set) => set.id).map((set) => ({
+    id: set.id!, name: String(set.name ?? set.id), loc: set.loc, file, variants: set.variants.flatMap((main) => (main.id ? [main.id] : [])), axes: set.axes,
+    properties: set.properties ?? [], uses: [...(uses.get(set.id!) ?? []), ...set.variants.flatMap((main) => uses.get(main.id ?? "") ?? [])], ...(set.description ? { description: set.description } : {}), ...(set.link ? { link: set.link } : {}),
+  }));
+}
+
+/** A JS object literal of `values` as the page writes it: names as they are when they can be, else quoted. */
+export function objectCode(values: Record<string, unknown>): string {
+  const entries = Object.entries(values);
+  if (!entries.length) return "{}";
+  const key = (name: string) => (/^[A-Za-z_$][\w$]*$/.test(name) ? name : JSON.stringify(name));
+  const value = (entry: unknown): string => (entry && typeof entry === "object" && !Array.isArray(entry) ? objectCode(entry as Record<string, unknown>) : JSON.stringify(entry));
+  return `{ ${entries.map(([name, entry]) => `${key(name)}: ${value(entry)}`).join(", ")} }`;
+}
+const expression = (values: Record<string, unknown>) => ({ kind: "expression" as const, code: objectCode(values) });
+
+/** Writes `ops` on the element at `file:loc`, its hash read first (one edit, one ⌘Z). */
+async function write(file: string, loc: string, ops: EditOp[], label: string): Promise<boolean> {
+  const element = await studioApi.element(file, loc);
+  if (!element) return fail("The component is no longer there — select it again");
+  const response = await applyEdit({ file, loc, name: element.name, ops, hash: element.hash }, label);
+  return Boolean(response.ok);
+}
+
+/**
+ * Figma's Combine as variants: several main components side by side become one component set, each a variant named
+ * "Property 1=Default", "Property 1=Variant2"… by its place (dialect.mjs defaultVariant), one edit. They must share a
+ * frame (Figma moves them; here: put them in one frame first).
+ */
+export async function combineAsVariants(layers: ExtraLayer[] = selectedLayers()): Promise<boolean> {
+  if (layers.length < 2) return fail("Select two or more main components to combine them as variants");
+  const at = parseSrc(layers[0].src);
+  if (!at || layers.some((layer) => parseSrc(layer.src)?.file !== at.file)) return fail("Select main components of one page");
+  const mains = await mainsOf(at.file);
+  const picked = layers.map((layer) => mains.find((main) => main.rootLoc === parseSrc(layer.src)?.loc) ?? null);
+  if (picked.some((main) => !main)) return fail("Only main components combine as variants: make each a component first (⌥⌘K)");
+  if (picked.some((main) => main!.set)) return fail("A variant is already in a component set: add variants to that set instead");
+  const engine = await loadEngine();
+  const source = await studioApi.source(at.file);
+  const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
+  const parentOf = new Map<string, string>();
+  engine.eachElement(tree.board, (node, parents) => { if (node.name === "Component") parentOf.set(node.loc, (parents.at(-1) as { loc?: string } | undefined)?.loc ?? ""); });
+  const ordered = [...picked as MainRef[]].sort((a, b) => compareLoc(a.componentLoc, b.componentLoc));
+  if (new Set(ordered.map((main) => parentOf.get(main.componentLoc))).size !== 1) return fail("Put the components in one frame first, then combine them as variants");
+  const sets = await setsOf(at.file);
+  const { name, id } = freshNames([...mains, ...sets.map((set) => ({ ...set, componentLoc: set.loc, rootLoc: set.loc, properties: [] } as MainRef))], [ordered[0].name])[0];
+  const [first, ...rest] = ordered;
+  const ok = await write(at.file, first.componentLoc, [{ op: "wrap", tag: "ComponentSet", props: { id: { kind: "string", value: id }, name: { kind: "string", value: name } }, with: rest.map((main) => main.componentLoc) } as EditOp], `Combine as variants · ${name}`);
+  if (ok) inspectorStatus.set("positive", `${name}: ${ordered.length} variants, Property 1 = Default, Variant2…`);
+  return ok;
+}
+
+const compareLoc = (a: string, b: string) => { const [la, ca] = a.split(":").map(Number); const [lb, cb] = b.split(":").map(Number); return la - lb || ca - cb; };
+
+/** Figma's + on a component set: the last variant again, its first property's value a new one (Variant3…), one edit. */
+export async function addVariant(set: SetRef): Promise<boolean> {
+  const mains = await mainsOf(set.file);
+  const variants = set.variants.map((id) => mains.find((main) => main.id === id)).filter((main): main is MainRef => Boolean(main));
+  const last = variants.at(-1);
+  if (!last) return fail("The set has no variant to copy");
+  const element = await studioApi.element(set.file, last.componentLoc);
+  const source = await studioApi.source(set.file);
+  if (!element?.range) return fail("The variant is no longer there — select the set again");
+  // Its code as written (range: character offsets, after a byte-order mark if the file has one; edit/clipboard.ts).
+  const offset = source.content.charCodeAt(0) === 0xfeff ? 1 : 0;
+  const code = source.content.slice(element.range.start + offset, element.range.end + offset).trim();
+  const axis = set.axes[0]?.name ?? "Property 1";
+  const taken = new Set(set.axes[0]?.values ?? []);
+  let n = variants.length + 1;
+  while (taken.has(`Variant${n}`)) n += 1;
+  const values = { ...(last.variant ?? {}), [axis]: `Variant${n}` };
+  const { id } = freshNames(mains, [`${set.name} ${values[axis]}`])[0];
+  const opening = code.replace(/^<Component\b[^>]*>/, `<Component id="${id}" variant={${objectCode(values)}}>`);
+  const ok = await write(set.file, set.loc, [{ op: "pasteCode", code: opening, after: last.componentLoc } as EditOp], `Add variant · ${set.name}`);
+  if (ok) inspectorStatus.set("positive", `${set.name}: ${axis}=${values[axis]} added`);
+  return ok;
+}
+
+/** A variant's values (Figma: a variant property's value on that variant), one edit. */
+export function setVariantValues(main: MainRef, values: Record<string, string>): Promise<boolean> {
+  return write(main.file, main.componentLoc, [{ op: "setProp", name: "variant", value: expression(values) }], `${main.name} → ${Object.entries(values).map(([key, value]) => `${key}=${value}`).join(", ")}`);
+}
+
+/** Renames a variant property on every variant of the set (one edit). */
+export async function renameVariantProperty(set: SetRef, from: string, to: string): Promise<boolean> {
+  const name = to.trim();
+  if (!name || name === from) return false;
+  if (set.axes.some((axis) => axis.name === name)) return fail(`${set.name} has a ${name} property already`);
+  const mains = await mainsOf(set.file);
+  const variants = set.variants.map((id) => mains.find((main) => main.id === id)).filter((main): main is MainRef => Boolean(main));
+  const opsByLoc = Object.fromEntries(variants.map((main) => [main.componentLoc, [{ op: "setProp", name: "variant", value: expression(Object.fromEntries(Object.entries(main.variant ?? {}).map(([key, value]) => [key === from ? name : key, value]))) } as EditOp]]));
+  const element = await studioApi.element(set.file, variants[0].componentLoc);
+  if (!element) return fail("The set is no longer there — select it again");
+  const response = await applyEdit({ file: set.file, loc: variants[0].componentLoc, name: "Component", ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc } as EditOp], hash: element.hash }, `${set.name}: ${from} → ${name}`);
+  return Boolean(response.ok);
+}
+
+/** Figma's default for a new property of a type: "Property N", and a value of its kind. */
+export function newProperty(properties: PropertyRef[], type: PropertyRef["type"]): PropertyRef {
+  const names = new Set(properties.map((property) => property.name));
+  let n = properties.length + 1;
+  while (names.has(`Property ${n}`)) n += 1;
+  const fallback = { text: "Text", boolean: true, swap: "icon-star-01-line", slot: undefined }[type];
+  return { name: `Property ${n}`, type, ...(fallback !== undefined ? { default: fallback } : {}) };
+}
+
+/** The `properties={{ … }}` value of a component or set (null: none, the prop goes). */
+const propertiesValue = (properties: PropertyRef[]) => Object.fromEntries(properties.map((property) => [property.name, { type: property.type, ...(property.default !== undefined ? { default: property.default } : {}), ...(property.preferred ? { preferred: property.preferred } : {}) }]));
+
+/** Writes a component's (or set's) properties, one edit; an empty list removes the prop. */
+export function setComponentProperties(owner: { file: string; loc: string; name: string }, properties: PropertyRef[], label: string): Promise<boolean> {
+  return write(owner.file, owner.loc, [properties.length ? { op: "setProp", name: "properties", value: expression(propertiesValue(properties)) } : { op: "removeProp", name: "properties" }], `${owner.name} · ${label}`);
+}
+
+/** The layer attribute that binds a layer to a property of each type (dialect.mjs PROPERTY_BINDINGS). */
+export const BINDING_OF: Readonly<Record<PropertyRef["type"], string>> = { text: "data-prop-text", boolean: "data-prop-visible", swap: "data-prop-swap", slot: "data-prop-slot" };
+
+/** Figma's Apply component property on a layer of a main: binds it to `property` (null unbinds), one edit. */
+export function bindLayer(selection: NodeSelection, type: PropertyRef["type"], property: string | null): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return Promise.resolve(false);
+  const attr = BINDING_OF[type];
+  return write(at.file, at.loc, [property ? { op: "setProp", name: attr, value: { kind: "string", value: property } } : { op: "removeProp", name: attr }], property ? `${selection.name} → property ${property}` : `${selection.name} unbound`);
+}
+
+/** An instance's variant values and property values (`<Use variant props>`), one edit; empty objects remove the props. */
+export function setInstanceValues(selection: NodeSelection, variant: Record<string, string>, props: Record<string, unknown>): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return Promise.resolve(false);
+  const ops: EditOp[] = [
+    Object.keys(variant).length ? { op: "setProp", name: "variant", value: expression(variant) } : { op: "removeProp", name: "variant" },
+    Object.keys(props).length ? { op: "setProp", name: "props", value: expression(props) } : { op: "removeProp", name: "props" },
+  ];
+  return write(at.file, at.loc, ops, "Instance properties");
+}
+
+/* ── F7b · an instance's overrides (spec docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md) ─────────── */
+
+type TreeNode = { loc: string; name: string; props: Record<string, { kind: string; value?: unknown; fields?: Record<string, { kind: string; value?: unknown; fields?: unknown }> }>; children: Array<{ kind: string; value?: unknown }> };
+type Literal = string | number | boolean;
+/** An instance's overrides (`<Use overrides>`): layer path → literal props. */
+export type OverridesTable = Record<string, Record<string, Literal>>;
+
+/** A node's literal object prop as a table (`overrides`), or its fields (`variant`, `props`). */
+function literalTable(value: TreeNode["props"][string] | undefined): OverridesTable {
+  const out: OverridesTable = {};
+  if (value?.kind !== "object" || !value.fields) return out;
+  for (const [path, layer] of Object.entries(value.fields)) {
+    const fields = (layer as { kind?: string; fields?: Record<string, { kind: string; value?: unknown }> }).fields;
+    if (!fields) continue;
+    const own: Record<string, Literal> = {};
+    for (const [name, field] of Object.entries(fields)) if (field.kind === "literal" && ["string", "number", "boolean"].includes(typeof field.value)) own[name] = field.value as Literal;
+    if (Object.keys(own).length) out[path] = own;
+  }
+  return out;
+}
+const literalFields = (value: TreeNode["props"][string] | undefined): Record<string, Literal> =>
+  value?.kind === "object" && value.fields ? Object.fromEntries(Object.entries(value.fields).flatMap(([name, field]) => (field.kind === "literal" ? [[name, field.value as Literal]] : []))) : {};
+/** A literal as a prop value: text as a string, numbers and switches as an expression. */
+const literalValue = (value: Literal) => (typeof value === "string" ? { kind: "string" as const, value } : { kind: "expression" as const, code: JSON.stringify(value) });
+
+/** The page's tree, its components model and the `<Use>` at `loc` (null when there is none). */
+async function instanceAt(file: string, loc: string) {
+  const [engine, source] = await Promise.all([loadEngine(), studioApi.source(file)]);
+  const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
+  const model = { mains: engine.localComponents(tree.board), sets: engine.componentSets(tree.board) };
+  let use: TreeNode | null = null;
+  engine.eachElement(tree.board, (node) => { if ((node as TreeNode).loc === loc && (node as TreeNode).name === "Use") use = node as TreeNode; });
+  return { engine, tree, model, use: use as TreeNode | null };
+}
+
+/** How many layers an instance overrides (Figma's changed layers), for its panel. */
+export function overrideCount(use: { props: Record<string, unknown> } | null | undefined): number {
+  return Object.keys(literalTable((use?.props as TreeNode["props"] | undefined)?.overrides)).length;
+}
+
+/** Figma's Reset all changes on an instance: its variant and property values and its layers' overrides go, one edit. */
+export function resetInstance(selection: NodeSelection): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return Promise.resolve(false);
+  return write(at.file, at.loc, [{ op: "removeProp", name: "variant" }, { op: "removeProp", name: "props" }, { op: "removeProp", name: "overrides" }], "Reset all changes");
+}
+
+/**
+ * Figma's Push changes to main component: each layer the instance overrides takes those props in the main — its
+ * words (setText), its props, a nested instance's variant and property values — and a layer inside a component or a
+ * nested instance goes into that layer's own `overrides`; the instance keeps none. One edit, one ⌘Z; every other
+ * instance follows the main.
+ */
+export async function pushChangesToMain(selection: NodeSelection): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return false;
+  const { engine, tree, model, use } = await instanceAt(at.file, at.loc);
+  if (!use) return fail("Select an instance of a component on this page");
+  const table = literalTable(use.props.overrides);
+  if (!Object.keys(table).length) return fail("This instance has no changes of its layers to push");
+  const resolved = engine.resolveInstance(tree, use);
+  const main = model.mains.find((entry) => entry.id === resolved?.main.id);
+  if (!main) return fail("Its main component is not on this page");
+  const byPath = new Map([...engine.mainLayerPaths(main as never, model)].map(([node, path]) => [path, node as unknown as TreeNode]));
+  const opsByLoc: Record<string, EditOp[]> = {};
+  const add = (loc: string, op: EditOp) => { (opsByLoc[loc] ??= []).push(op); };
+  const inner = new Map<string, { node: TreeNode; table: OverridesTable }>();
+  // What the main cannot take (words of a layer whose text is not written there, a path it no longer has) stays on the
+  // instance.
+  const left: OverridesTable = {};
+  const keep = (path: string, name: string, value: Literal) => { left[path] = { ...(left[path] ?? {}), [name]: value }; };
+  for (const [path, props] of Object.entries(table)) {
+    const node = byPath.get(path);
+    if (node) {
+      const nested: Record<"variant" | "props", Record<string, Literal>> = { variant: {}, props: {} };
+      for (const [name, value] of Object.entries(props)) {
+        const dot = /^(variant|props)\.(.+)$/.exec(name);
+        if (dot) nested[dot[1] as "variant" | "props"][dot[2]] = value;
+        else if (name === "children") {
+          if (node.children.some((child) => child.kind === "text")) add(node.loc, { op: "setText", index: 0, value: String(value) });
+          else keep(path, name, value);
+        } else add(node.loc, { op: "setProp", name, value: literalValue(value) } as EditOp);
+      }
+      for (const kind of ["variant", "props"] as const) {
+        if (Object.keys(nested[kind]).length) add(node.loc, { op: "setProp", name: kind, value: expression({ ...literalFields(node.props[kind]), ...nested[kind] }) });
+      }
+      continue;
+    }
+    // A layer inside one the main does not list (a component's own, a nested instance's): that layer's overrides.
+    const leaf = [...byPath].filter(([known, candidate]) => path.startsWith(`${known}/`) && !candidate.children.some((child) => child.kind === "element")).sort((a, b) => b[0].length - a[0].length)[0];
+    if (!leaf) { for (const [name, value] of Object.entries(props)) keep(path, name, value); continue; }
+    const [known, holder] = leaf;
+    const entry = inner.get(holder.loc) ?? { node: holder, table: literalTable(holder.props.overrides) };
+    const rest = path.slice(known.length + 1);
+    entry.table[rest] = { ...(entry.table[rest] ?? {}), ...props };
+    inner.set(holder.loc, entry);
+  }
+  for (const { node, table: own } of inner.values()) add(node.loc, { op: "setProp", name: "overrides", value: expression(own) });
+  add(use.loc, Object.keys(left).length ? { op: "setProp", name: "overrides", value: expression(left) } : { op: "removeProp", name: "overrides" });
+  const element = await studioApi.element(at.file, at.loc);
+  if (!element) return fail("The instance is no longer there — select it again");
+  const name = resolved?.set?.name ?? resolved?.main.name ?? "its main component";
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc } as EditOp], hash: element.hash }, `Push changes to ${name}`);
+  const kept = Object.keys(left);
+  if (response.ok) inspectorStatus.set(kept.length ? "neutral" : "positive", kept.length ? `Pushed to ${name}; kept on this instance: ${kept.join(", ")}` : `Pushed to ${name}: every instance shows the change`);
+  return response.ok;
+}
+
+/** A layer inside an instance of a page's own component, as its part panel shows it (inspector/LocalPartPanel.tsx). */
+export type LocalLayer = {
+  /** The instance's overrides (all its layers). */
+  table: OverridesTable;
+  /** This layer's own overrides. */
+  own: Record<string, Literal>;
+  /** The instance's own variant and property values (`<Use variant props>`). */
+  instance: { name: string; variant: Record<string, string>; props: Record<string, unknown> };
+  /** The layer in its main: its tag, its words (a Text's first text child), the text property it is bound to. */
+  name: string;
+  words: string | null;
+  boundText: string | null;
+  /** Whether the main hides it (`hidden` on the main's layer). */
+  hiddenInMain: boolean;
+  /** A nested instance: its set (or main) and the values it shows here (the main's, then this instance's overrides). */
+  nested: { setId: string | null; mainId: string; variant: Record<string, string>; values: Record<string, unknown> } | null;
+  /** Below a component of the library (its own nested layer, as Figma's): the path inside it, else null. */
+  inner: string | null;
+};
+
+/** The layer at `path` inside the instance at `file:loc` (through nested instances), or null. */
+export async function localLayerAt(file: string, loc: string, path: string): Promise<LocalLayer | null> {
+  const { engine, tree, model, use } = await instanceAt(file, loc);
+  if (!use) return null;
+  const table = literalTable(use.props.overrides);
+  const mainOf = (node: TreeNode) => {
+    const resolved = engine.resolveInstance(tree, node);
+    return model.mains.find((entry) => entry.id === resolved?.main.id) ?? null;
+  };
+  let main = mainOf(use);
+  let rest = path;
+  let found: TreeNode | null = null;
+  let inner: string | null = null;
+  for (let depth = 0; main && depth < 8 && !found; depth++) {
+    const byPath = new Map([...engine.mainLayerPaths(main as never, model)].map(([node, at]) => [at, node as unknown as TreeNode]));
+    const exact = byPath.get(rest);
+    if (exact) { found = exact; break; }
+    const leaf = [...byPath].filter(([known, node]) => rest.startsWith(`${known}/`) && !node.children.some((child) => child.kind === "element")).sort((a, b) => b[0].length - a[0].length)[0];
+    if (!leaf) return null;
+    if (leaf[1].name !== "Use") { found = leaf[1]; inner = rest.slice(leaf[0].length + 1); break; }
+    rest = rest.slice(leaf[0].length + 1);
+    main = mainOf(leaf[1]);
+  }
+  if (!found) return null;
+  const own = table[path] ?? {};
+  const resolved = engine.resolveInstance(tree, use);
+  const textChild = found.children.find((child) => child.kind === "text");
+  const bound = found.props["data-prop-text"];
+  let nested: LocalLayer["nested"] = null;
+  if (found.name === "Use" && !inner) {
+    const resolvedNested = engine.resolveInstance(tree, found);
+    if (resolvedNested?.main.id) {
+      const variant: Record<string, string> = { ...resolvedNested.variant };
+      const values: Record<string, unknown> = { ...resolvedNested.values };
+      for (const [name, value] of Object.entries(own)) {
+        const dot = /^(variant|props)\.(.+)$/.exec(name);
+        if (dot?.[1] === "variant") variant[dot[2]] = String(value);
+        else if (dot) values[dot[2]] = value;
+      }
+      nested = { setId: resolvedNested.set?.id ?? null, mainId: resolvedNested.main.id, variant, values };
+    }
+  }
+  return {
+    table,
+    own,
+    instance: { name: resolved?.set?.name ?? resolved?.main.name ?? "Instance", variant: literalFields(use.props.variant) as Record<string, string>, props: literalFields(use.props.props) },
+    name: found.name,
+    words: typeof textChild?.value === "string" ? textChild.value.trim() : null,
+    boundText: bound?.kind === "literal" && typeof bound.value === "string" ? bound.value : null,
+    hiddenInMain: found.props.hidden?.kind === "literal" && found.props.hidden.value === true,
+    nested,
+    inner,
+  };
+}
+
+/** The instance's overrides become `next` (removed when empty): one edit. */
+export function setInstanceOverrides(selection: NodeSelection, next: OverridesTable, label: string): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return Promise.resolve(false);
+  const op: EditOp = Object.keys(next).length ? { op: "setProp", name: "overrides", value: expression(next) } : { op: "removeProp", name: "overrides" };
+  return write(at.file, at.loc, [op], label);
 }

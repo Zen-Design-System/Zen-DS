@@ -1,3 +1,4 @@
+import { LocalStyles } from "./LocalStyles";
 import { useEffect, useState } from "react";
 import { CanvasBackgroundField } from "../canvas/CanvasBackground";
 import { Button, IconButton } from "../../../components/Button";
@@ -134,6 +135,8 @@ export function PagePanel() {
           <Button level="tertiary" size="sm" startIcon="icon-hexagon-01-line" onClick={openVariables}>Local variables</Button>
         </div>
       </InspectorSection>
+      {/* Figma's Local styles: the text, color and effect styles, read-only (styles are tokens edited in Figma). */}
+      <LocalStyles />
       {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here. */}
       <InspectorSection title="Preview modes">
         <p className={`studio-inspector__summary ${typographyStyles["Body/Small/Regular"]}`}>{summary}</p>

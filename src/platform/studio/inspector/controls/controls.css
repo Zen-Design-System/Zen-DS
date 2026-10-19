@@ -85,3 +85,8 @@
 .studio-scrub-field > .zen-input-field { width: 100%; min-width: 0; }
 .studio-scrub-field__label { display: inline-flex; min-width: var(--zen-element-size-popular-small, 16px); justify-content: center; color: var(--zen-color-content-neutral-base); cursor: ew-resize; touch-action: none; user-select: none; }
 .studio-scrub-field__label[data-disabled] { cursor: default; }
+
+/* Figma's variable pill (decision 1, F5b): a written step reads as a bound variable, its name on a pale capsule. The
+   capsule's padding reaches into the field's gaps (as much negative margin as padding): the name keeps the width it had
+   without the pill ("Medium" beside "16" read "Medi…" when the padding took it). */
+.studio-scale[data-variable="true"] .zen-select__trigger { flex: 0 1 auto; width: auto; min-width: 0; max-width: 100%; margin-inline: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default); }

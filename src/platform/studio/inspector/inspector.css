@@ -354,6 +354,10 @@
 
 /* A page's own component (ComponentSection): its name or the component an instance shows, then two quiet actions. */
 .studio-component-section__actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* One field across the panel's grid outside a label-left row (a component's name, an instance's component, a selection
+   colour): it ends where every field ends, the icon column kept (user 2026-10-19: the tool's UI never juts out). */
+.studio-inspector__wide-field { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-selection-color__swatch { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: none; border-radius: var(--zen-corner-radius-xsmall, 4px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default); }
 .studio-component-section .zen-input-field__leading, .studio-component-section .zen-select__leading { color: var(--zen-color-content-support-violet-base); }
 /* A section that is only its header (Figma's "Auto layout +" on a frame without auto layout). */
 .studio-inspector__section--head-only .studio-inspector__section-body { display: none; }
@@ -372,3 +376,22 @@
 .studio-inspector__code-body { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 0 var(--zen-spacing-padding-small, 12px); }
 .studio-inspector__code[data-placement="panel"] { padding-inline: var(--zen-spacing-padding-small, 12px); }
 
+
+/* Export (ExportSection.tsx): a setting's scale and format side by side, its − at the end. */
+.studio-export__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Figma's style details of a text style (TextStyleDetails.tsx): read-only fields, two to a row, and where to edit them. */
+.studio-text-details { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-text-details__note { margin: 0; color: var(--zen-color-content-neutral-light); }
+/* Local styles (LocalStyles.tsx): a folded group per kind, each style its preview and name. */
+.studio-local-styles__group { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-local-styles__toggle { align-self: flex-start; }
+.studio-local-styles__list { display: grid; margin: 0; padding: 0; list-style: none; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-local-styles__item { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest); }
+.studio-local-styles__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* "Ag" in the style's family and weight; its size capped at Body/Base so a Display style fits the row. */
+.studio-local-styles__item .studio-local-styles__type { display: inline-flex; width: var(--zen-element-size-popular-medium, 24px); flex: none; justify-content: center; overflow: hidden; font-size: var(--zen-typography-font-size-body-base, 16px); line-height: 1; }
+.studio-local-styles__color { display: inline-block; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: none; border-radius: var(--zen-corner-radius-rounded, 999px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+/* A component property row (ComponentSection.tsx): its type, name, default, − (Figma UI3's component properties). */
+.studio-component-property { display: grid; min-width: 0; grid-template-columns: var(--zen-element-size-popular-small, 16px) minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-component-property__type { display: inline-flex; color: var(--zen-color-content-support-violet-base); }
+.studio-component-property__values { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
