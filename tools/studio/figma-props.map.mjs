@@ -9,6 +9,8 @@
 //     "size"                                a code prop (a variant's options map by name: "Danger Subtle" → danger-subtle,
 //                                           "Medium (Base)" → medium; `values` overrides one option)
 //     { prop, values: { "Max-Fixed": "max" } }
+//                                           on a number prop: a select of Figma's named steps writing those numbers
+//                                           (Progress-Bar Progress: Low → 20); the number's own field stays below it
 //     { prop, bool: true }                  a Yes/No (or True/False) variant held as a boolean
 //     { prop, trust: "why" }                the code type is wider than api.generated.json says: options are not checked
 //     { toggle: "startIcon", on: … }        a Figma boolean that shows a layer = the presence of a code prop: on writes
@@ -281,8 +283,9 @@ export const FIGMA_PROPS = {
   },
   ProgressBar: {
     sets: { "Progress-Bar": null },
-    // Figma's Progress fills (live file 2026-10-18): None 0, Low 20, Medium 40, Good 80, Done 100.
-    props: { Text: skip("the label text (the Label row)"), Label: { toggle: "label", on: "Label" }, Theme: "theme", Progress: { ...skip("progress is the numeric value"), main: { prop: "value", values: { None: 0, Low: 20, Medium: 40, Good: 80, Done: 100 } } }, Layout: "layout" },
+    // Figma's Progress fills (live file 2026-10-18): None 0, Low 20, Medium 40, Good 80, Done 100. A select of those steps
+    // in Properties (user 2026-10-19: "thêm ô chọn Progress cho ProgressBar"); the Value slider sets any other number.
+    props: { Text: skip("the label text (the Label row)"), Label: { toggle: "label", on: "Label" }, Theme: "theme", Progress: { prop: "value", values: { None: "0", Low: "20", Medium: "40", Good: "80", Done: "100" } }, Layout: "layout" },
   },
   ProgressCircle: {
     // Progress-Circle (label, one size) holds Progress-Circle/Icon, where the colour and the done check live (Done=No
