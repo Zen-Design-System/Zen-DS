@@ -2662,7 +2662,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an <ActionBar> (`surface=\"glass\"` over photos)."
+                "description": "Mobile Figma Bottom Actions: what the screen pins to the bottom: an <ActionBar> (`surface=\"glass\"` over photos), or the screen's input bar in the same place (a chat's ChatComposer,"
               },
               "sidebarCollapsed": {
                 "anyOf": [
