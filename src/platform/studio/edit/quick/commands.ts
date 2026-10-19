@@ -17,6 +17,7 @@ import { clipboardActions, clipboardShortcuts } from "../clipboard";
 import { duplicateLayers, removeLayers, stepLayers } from "../multi";
 import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
 import { multiSelection, selectedLayers } from "../../select/multiSelection";
+import { selectedFrames } from "../../select/frameSelection";
 import { COLLAPSE_LAYERS_EVENT } from "../../select/layerMeta";
 import { isSelectionLocked, lockShortcut, toggleLockSelection } from "../lock";
 import { renameShortcut, startRename } from "../rename";
@@ -55,7 +56,7 @@ export function commands(): Command[] {
     // Figma's Frame and Section tools (F4), on a page you made.
     { id: "tool-frame", group: "Tools", label: "Frame", shortcut: "F", keywords: "screen artboard preset device", disabled: state.localPage ? undefined : "Frame works on a page you made", run: () => studioStore.setState({ tool: "frame" }) },
     { id: "tool-section", group: "Tools", label: "Section", shortcut: "⇧S", keywords: "group area board", disabled: state.localPage ? undefined : "Section works on a page you made", run: () => studioStore.setState({ tool: "section" }) },
-    { id: "wrap-section", group: "Edit", label: "Wrap in new section", keywords: "section group frames", disabled: !state.localPage || !frameId || !/^(screen|overlay):/.test(frameId) || selection?.kind !== "frame" ? "Select a frame on a page you made" : !canEdit(state) ? "View only" : undefined, run: () => { if (state.localPage && frameId) void wrapInSection(state.localPage, [frameId]); } },
+    { id: "wrap-section", group: "Edit", label: "Wrap in new section", keywords: "section group frames", disabled: !state.localPage || !frameId || !/^(screen|overlay):/.test(frameId) || selection?.kind !== "frame" ? "Select a frame on a page you made" : !canEdit(state) ? "View only" : undefined, run: () => { if (state.localPage && frameId) void wrapInSection(state.localPage, selectedFrames().length ? selectedFrames() : [frameId]); } },
     // Zen's own tool (Figma has none): try the components where they are drawn, an Overlay frame's form included. On a
     // page you made it is here only (no toolbar button; I is Figma's Pick color there).
     { id: "tool-interact", group: "Tools", label: "Interact", shortcut: state.localPage ? undefined : "I", keywords: "preview play use try examples components", run: () => studioStore.setState({ tool: "interact" }) },

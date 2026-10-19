@@ -14,6 +14,7 @@ import type { IconName } from "../../../icons/generated/names";
 import type { PlatformPage } from "../../PlatformExamples";
 import { useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
+import { boardBoxes, isSectionId, sectionOf } from "../board/sections";
 import { frameLabel } from "../inspector/frames";
 import { focusSlot, selectedSlotOf, useSlotFocusRequest } from "../slots/actions";
 import { layerSlotsOf } from "../slots/layers";
@@ -212,7 +213,30 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean, local =
     }
     group.children.forEach((child) => relink(child, group));
   }
+  if (local) nestInSections(groups);
   return { groups, byId, total, aliases, figma: !showAll, front: local };
+}
+
+/**
+ * A page you made: a frame (or Section) inside a Section is listed under that Section's row, as Figma's Layers does
+ * (board/sections.ts reads which Section holds what from the board).
+ */
+function nestInSections(groups: LayerNode[]) {
+  const boxes = boardBoxes();
+  if (!boxes.some((box) => isSectionId(box.id))) return;
+  const byFrame = new Map(groups.map((group) => [group.frameId, group]));
+  const holder = new Map<LayerNode, LayerNode>();
+  for (const group of groups) {
+    const around = sectionOf(group.frameId, boxes);
+    const section = around ? byFrame.get(around) : undefined;
+    if (!section || section === group) continue;
+    section.children.push(group);
+    holder.set(group, section);
+  }
+  // Depths from the top-level Sections down (a Section inside a Section carries its own rows along).
+  const deepen = (node: LayerNode, parent: LayerNode) => { node.parent = parent; node.depth = parent.depth + 1; node.children.forEach((child) => deepen(child, node)); };
+  for (const [group, section] of holder) if (!holder.has(section)) deepen(group, section);
+  for (let k = groups.length - 1; k >= 0; k--) if (holder.has(groups[k])) groups.splice(k, 1);
 }
 
 /** Figma's eye on a layer row: on hover, and always while the layer is hidden; ⇧⌘H does the same from the keyboard. Its
@@ -731,7 +755,7 @@ const componentOfRow = (node: LayerNode) => {
 
 function rowIcon(node: LayerNode, front: boolean): IconName {
   // A page you made: a frame is Figma's frame (#); a code page's frames are its sections.
-  if (node.kind === "frame") return front ? "icon-hash-01-line" : "icon-layout-alt-01-line";
+  if (node.kind === "frame") return front ? (isSectionId(node.frameId) ? "icon-browser-line" : "icon-hash-01-line") : "icon-layout-alt-01-line";
   // Figma's layer icons (select/layerNames.ts): a component's ◇ (its main and its instances), a shape's own, a frame's
   // # (Box), auto layout by its direction (Stack), text's T.
   const own = node.kind === "node" ? objectIcon(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : null;
