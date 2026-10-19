@@ -346,14 +346,15 @@ class Writer {
       const tree = this.index.tree(this.mainFor(spec.set) ?? "");
       return { w: spec.size || spec.fixedWidth || tree?.w || 100, h: spec.size || tree?.h || 40 };
     }
-    if (spec.type !== "FRAME" || !spec.layout || spec.layout.mode === "GRID") return { w: spec.fixedWidth || 100, h: 100 };
+    // A free frame (layoutMode NONE) and a grid: their own size (a free frame's layers float, they size nothing).
+    if (spec.type !== "FRAME" || !spec.layout || spec.layout.mode === "GRID" || spec.layout.mode === "NONE") return { w: spec.fixedWidth || 100, h: spec.fixedHeight || 100 };
     const kids = (spec.children ?? []).filter((child) => !child.absolute).map((child) => this.estimate(child));
     const [top, right, bottom, left] = spec.layout.padding ?? [0, 0, 0, 0];
     const gap = (spec.layout.gap || 0) * Math.max(0, kids.length - 1);
     const horizontal = spec.layout.mode === "HORIZONTAL";
     const along = kids.reduce((sum, kid) => sum + (horizontal ? kid.w : kid.h), 0) + gap;
     const across = kids.reduce((max, kid) => Math.max(max, horizontal ? kid.h : kid.w), 0);
-    const w = spec.fixedWidth || (horizontal ? along : across) + left + right, h = (horizontal ? across : along) + top + bottom;
+    const w = spec.fixedWidth || (horizontal ? along : across) + left + right, h = spec.fixedHeight || (horizontal ? across : along) + top + bottom;
     return { w: Math.max(1, w), h: Math.max(1, h) };
   }
 
