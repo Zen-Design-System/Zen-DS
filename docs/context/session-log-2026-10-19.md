@@ -154,3 +154,32 @@ Branch `zen/feat/studio-f5c-panel-export-20261019` (worktree `../Zen-DS-f5c`, st
 - **Nothing selected**: Local styles (`LocalStyles.tsx`): text, color, effect styles from the style manifest, folded.
 - Moved to F10 (Session C, agreed): Layout guide and the page background.
 - E2E FW-91…94.
+
+## Session B · Studio parity F7a: component sets, variants, properties
+
+Branch `zen/feat/studio-f7-components-20261019` (stacked on F5c). Spec card:
+`docs/research/studio-f7-components-spec-2026-10-19.md`.
+
+- **Dialect** (`dialect.mjs`): `<ComponentSet id name properties? description? link?>` around `<Component variant={{…}}>`;
+  `properties={{ Name: { type: text|boolean|swap|slot, default?, preferred? } }}`; bindings `data-prop-text`,
+  `-visible`, `-swap`, `-slot`; `<Use of variant props>`. Variants without values get Figma's positional names
+  (Property 1 = Default, Variant2…). `localComponents`, `componentSets`, `resolveInstance`, checks with messages.
+- **Canvas** (`renderPage.tsx`): a set renders as Figma's set frame (wrap row, `data-zen-set`), each variant marked,
+  instances resolve their variant and values (text, visibility, swap), nested instances with a cycle guard.
+- **Studio** (`edit/localComponents.ts`, `inspector/ComponentSection.tsx`): Combine as variants (siblings, one edit),
+  Add variant, variant values and axis rename, Properties (+ Text / Boolean / Instance swap / Slot, rename, default,
+  −), Apply component property on a main's layer (None / a property / Create …), instance panel (variant selects,
+  values, Reset all changes), swap lists sets and mains (drops variant / props), description and link rows. Layers
+  names a set and gives it the component icon (`select/layerNames.ts`, `layerMeta.ts`, told A).
+- **Export** (`compile.mjs`): one function per set or main, typed destructured props, variants by if-chains, bindings.
+- **Figma**: push COMPONENT_SET (variants named by values, properties, `propRefs`, `slot`, link), INSTANCE with
+  variant / props; pull reads sets, mains, instances and bindings back (round trip in figma-push.selftest); the
+  reader marks a page's own component by its place inside the frame read. Zen plugin (only committer for F7):
+  `dc882cd` (combineAsVariants, add/edit/deleteComponentProperty, componentPropertyReferences, createSlot, instances
+  on their variant with setProperties, stand-ins settled async) and `34fe7b4` (mains and sets keep their Studio id);
+  full `npm test` before each build, dist backed up.
+- Fixed on the way: a new swap property defaulted to `icon-star-line`, which no icon has (now `icon-star-01-line`);
+  layer-meta selftest's `<Use>` message.
+- Checks: dialect / compile / doc / push (307) / pull (83) selftests, studio:selftest, tsc. E2E FW-70…76 written; run
+  waits for the gate slot.
+- F7b (own PR): overrides inside an instance, Push changes / Restore, nested exposed instances, Assets › Local.

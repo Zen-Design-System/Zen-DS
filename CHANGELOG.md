@@ -63,6 +63,13 @@ removed (four unused colour ramps were, see Removed).
   named as Figma names them), a text's colour as its Fill and its text style's details read-only, several frames'
   Appearance / Fill / Stroke / Effects at once, Selection colors, and Local styles (text, color, effect) with nothing
   selected.
+- Zen Studio component sets and properties as in Figma (F7a): Combine as variants (right-click or ⌘K) wraps main
+  components in a `<ComponentSet>` (Property 1 = Default, Variant2…), Add variant copies the last one; a set or a lone
+  main defines text, boolean, instance swap and slot properties with defaults, and a layer of a main binds to one
+  (Apply component property, or Create … property… in one step); an instance switches its variant and property values
+  in the panel (Reset all changes). Description and link on mains and sets. React export writes one function per set
+  with typed props; Figma push makes a COMPONENT_SET with its properties and bound layers (Zen plugin), and pull reads
+  them back.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.
