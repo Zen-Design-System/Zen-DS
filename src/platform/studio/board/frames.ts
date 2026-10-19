@@ -80,15 +80,34 @@ export function onFramesMoved(listener: () => void) {
  * full run), up to `timeout`.
  */
 export function selectFrameWhenShown(frameId: string, select: (frameId: string) => void, timeout = 10_000) {
-  if (frames.some((frame) => frame.id === frameId)) { select(frameId); return; }
+  arriving.set(frameId, Date.now() + timeout);
+  const shown = () => { arriving.set(frameId, Date.now() + ARRIVED_GRACE); select(frameId); };
+  if (frames.some((frame) => frame.id === frameId)) { shown(); return; }
   let done = false;
   const stop = () => { done = true; unsubscribe(); window.clearTimeout(timer); };
   const unsubscribe = subscribe(() => {
     if (done || !frames.some((frame) => frame.id === frameId)) return;
     stop();
-    select(frameId);
+    shown();
   });
-  const timer = window.setTimeout(stop, timeout);
+  const timer = window.setTimeout(() => { stop(); arriving.delete(frameId); }, timeout);
+}
+
+/*
+ * Frames the Studio just added and selects (selectFrameWhenShown), until a short while after they show: the board keeps
+ * their selection through a render of an older page text. Under load the text of an earlier edit (the row pinned
+ * before a preset frame went in) can land after the new frame's and drop its selection (E2E B-20 in full runs,
+ * 2026-10-20).
+ */
+const ARRIVED_GRACE = 4_000;
+const arriving = new Map<string, number>();
+/** How long (ms) the board keeps `frameId`'s selection without the page showing it: 0 once it has settled. */
+export function arrivingFor(frameId: string): number {
+  const until = arriving.get(frameId);
+  if (until === undefined) return 0;
+  const left = until - Date.now();
+  if (left <= 0) { arriving.delete(frameId); return 0; }
+  return left;
 }
 
 export function useStudioFrames() {

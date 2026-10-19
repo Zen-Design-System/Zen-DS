@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "../../../components/Icon";
 import { Heading, Text } from "../../../components/Text";
 import { StudioFrame } from "../board/StudioFrame";
@@ -14,7 +14,7 @@ import { SectionFrame } from "./SectionFrame";
 import { placeFrames } from "./render/framePlace";
 import { livePlace, settleLivePlace } from "./frameMove";
 import { useFrameKeys } from "./frameKeys";
-import { notifyFramesMoved } from "../board/frames";
+import { arrivingFor, notifyFramesMoved } from "../board/frames";
 import { notifyCanvas } from "../canvas/viewport";
 import { assetIdsOf, missingAssets, useUploadsVersion } from "./assets/uploads";
 import { cacheGeneration, componentsKey, componentsOf, renderCache, renderFrame, type PageNode, type RenderCache } from "./render/renderPage";
@@ -137,12 +137,19 @@ export function BuilderBoard({ id }: { id: string }) {
   const sections = useMemo(() => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && isSectionNode(child)).map(frameOf), [tree]);
   const allPlaces = useMemo(() => placeFrames([...sections, ...frames]), [sections, frames]);
   const framePlaces = useMemo(() => allPlaces.slice(sections.length), [allPlaces, sections.length]);
-  // A selected frame the page no longer has (⌘Z took back the copy or the drawn frame): nothing stays selected.
+  // A selected frame the page no longer has (⌘Z took back the copy or the drawn frame): nothing stays selected. A frame
+  // the Studio has just added keeps its selection a moment (a render of an older text can come after its own, board/
+  // frames.ts arrivingFor), then the check runs again.
+  const [recheck, setRecheck] = useState(0);
   useEffect(() => {
     if (!tree?.board || tree.errors.length) return;
     const selection = studioStore.getState().selection;
-    if (selection?.kind === "frame" && /^(screen|overlay|section):/.test(selection.frameId) && !frames.some((frame) => frame.id === selection.frameId) && !sections.some((section) => section.id === selection.frameId)) studioStore.setState({ selection: null });
-  }, [tree, frames, sections]);
+    if (selection?.kind !== "frame" || !/^(screen|overlay|section):/.test(selection.frameId) || frames.some((frame) => frame.id === selection.frameId) || sections.some((section) => section.id === selection.frameId)) return;
+    const wait = arrivingFor(selection.frameId);
+    if (!wait) { studioStore.setState({ selection: null }); return; }
+    const timer = window.setTimeout(() => setRecheck((n) => n + 1), wait + 50);
+    return () => window.clearTimeout(timer);
+  }, [tree, frames, sections, recheck]);
   useLayoutEffect(() => {
     const container = framesRef.current;
     if (!container) return;
