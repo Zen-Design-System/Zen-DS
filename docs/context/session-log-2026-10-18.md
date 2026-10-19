@@ -449,3 +449,15 @@ equal-spacing guides, several frames: ⌘A, marquee) next. W / H arithmetic and 
 - E2E figma FW-33…39, FW-110…112 (A also takes FW-110…129): 12 / 12. Selftests: arrange 50, slots 1961, doc 135.
 - Open: Detach on every instance contradicts the user's 2026-10-03 rule (interactive components never detach) — asked
   the user. ⌘G after B's answer; ⇧⌘C after B's F5c.
+
+## F3 follow-up on F4's Sections (2026-10-19) — Session A, worktree `../Zen-DS-f3b`, branch `zen/feat/studio-f3-sections-20261019`
+
+- Layers (`select/LayersPanel.tsx` `nestInSections`): on a page you made a frame row goes under the Section that holds
+  it (C's `board/sections.ts` `sectionOf`, nested Sections too), depths re-set from the top; a Section row shows
+  `icon-browser-line`.
+- Delete / ⌘⌫ (StudioApp), the frame menu's Delete and Wrap in new section, and Actions › Wrap in new section act on every
+  selected frame (`selectedFrames()`, C's `removeFrames` / `wrapInSection`): the F2c note "Delete still removes the
+  primary frame" is closed.
+- E2E figma FW-113 (Delete two frames, one ⌘Z), FW-114 (Wrap two frames, Layers levels and icon): the group 53 / 53.
+- Detach: Session B handed detach.ts to A; the user's 2026-10-19 rule stands (controls stay instances). ⌘G: B asks to
+  build the Box `group` marker in A's phase on top of F5a (#144). ⇧⌘C: after B's F5c.

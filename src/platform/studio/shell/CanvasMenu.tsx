@@ -12,6 +12,7 @@ import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
 import { copyAsCode, copyAsCss } from "../edit/copyAs";
 import { groupSelection, ungroupSelection } from "../edit/groupLayers";
+import { selectedFrames } from "../select/frameSelection";
 import { findBySrc } from "../select/picker";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
@@ -27,7 +28,7 @@ import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
 import { modKey, presentShortcut } from "./modKey";
 import { createComponent, createComponentOfLayers, createComponents } from "../edit/localComponents";
-import { removeFrame, wrapInSection } from "../builder/proto/addFrame";
+import { removeFrames, wrapInSection } from "../builder/proto/addFrame";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
 import type { StudioSelection } from "../types";
@@ -82,6 +83,9 @@ export function openEmptyCanvasMenu(x: number, y: number) {
 
 /** Whether the selected layer is a group (Box group, ⌘G): ⇧⌘G says Ungroup for it, Remove frame for a frame. */
 const selectedIsGroup = (selection: NodeSelection) => Boolean(findBySrc(canvasApi.getWorldElement() ?? document.body, selection.src)[selection.instance]?.props.group);
+
+/** The frames a frame menu acts on: every selected frame when it opened on one of them (F2c's several frames), else that frame. */
+const framesOf = (frameId: string) => { const all = selectedFrames(); return all.includes(frameId) ? all : [frameId]; };
 
 
 export function CanvasMenu() {
@@ -198,11 +202,11 @@ export function CanvasMenu() {
     // frame can be wrapped in a new Section (Figma's Wrap in new section).
     ...(localPage && /^(screen|overlay|section):/.test(frame.id) ? [
       { type: "separator" as const, id: "frame-name-separator" },
-      ...(!section ? [{ id: "frame-wrap-section", label: "Wrap in new section", icon: "icon-browser-line" as const, disabled: Boolean(editOff), onSelect: () => { void wrapInSection(localPage, [frame.id]); } }] : []),
+      ...(!section ? [{ id: "frame-wrap-section", label: "Wrap in new section", icon: "icon-browser-line" as const, disabled: Boolean(editOff), onSelect: () => { void wrapInSection(localPage, framesOf(frame.id)); } }] : []),
       ...lockMenuItems({ kind: "frame", frameId: frame.id }),
       renameItem("Rename"),
       { type: "separator" as const, id: "frame-delete-separator" },
-      { id: "frame-delete", label: "Delete", icon: "icon-trash-line" as const, shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), onSelect: () => { void removeFrame(localPage, frame.id); } },
+      { id: "frame-delete", label: "Delete", icon: "icon-trash-line" as const, shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), onSelect: () => { void removeFrames(localPage, framesOf(frame.id)); } },
     ] : []),
   ] : [];
   const canvasItems: MenuEntry[] = [

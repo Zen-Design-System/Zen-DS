@@ -1410,6 +1410,53 @@ export const rows = [
       return `${(vector.d.match(/C/g) ?? []).length} curves · ${vector.w} × ${vector.h} · Pencil stays · Esc → Move · ⌘Z`;
     },
   },
+  {
+    id: "FW-113", feature: "Delete with two frames selected deletes both in one edit; one ⌘Z brings both back", wp: "F3 2026-10-19 · F4 removeFrames", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await twoScreensPage(ctx);
+      const id = new URL(page.url()).searchParams.get("page").replace(/^local:/, "");
+      const before = (await pageText(page, id)) ?? "";
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id="frame:screen:screen-1"]').click();
+      await page.locator('[data-layer-id="frame:screen:screen-2"]').click({ modifiers: ["Shift"] });
+      await until(async () => (await page.locator('.studio-frame[data-selected="true"]').count()) === 2, { message: "both frames selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Delete");
+      await until(async () => !/<Screen id="screen-(1|2)"/.test((await pageText(page, id)) ?? ""), { message: "both Screens deleted" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z brings both back" });
+      return "2 frames → Delete → both gone · one ⌘Z";
+    },
+  },
+  {
+    id: "FW-114", feature: "Wrap in new section with two frames selected: one Section around both; Layers lists them under its row", wp: "F3 2026-10-19 · F4 sections", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await twoScreensPage(ctx);
+      const id = new URL(page.url()).searchParams.get("page").replace(/^local:/, "");
+      const before = (await pageText(page, id)) ?? "";
+      try {
+        await showLeftTab(page, "layers");
+        await page.locator('[data-layer-id="frame:screen:screen-1"]').click();
+        await page.locator('[data-layer-id="frame:screen:screen-2"]').click({ modifiers: ["Shift"] });
+        await until(async () => (await page.locator('.studio-frame[data-selected="true"]').count()) === 2, { message: "both frames selected" });
+        await page.locator('[data-layer-id="frame:screen:screen-2"]').click({ button: "right" });
+        const menu = page.getByRole("menu").last();
+        await menu.waitFor({ state: "visible", timeout: 5000 });
+        await menu.getByRole("menuitem", { name: /^Wrap in new section/ }).click();
+        await until(async () => /<Section id="section-1"/.test((await pageText(page, id)) ?? ""), { message: "a Section" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+        const section = page.locator('[data-layer-id="frame:section:section-1"]');
+        await section.waitFor({ state: "visible", timeout: 5000 });
+        const levels = async () => page.locator(".studio-layers__tree [role='treeitem'][data-kind='frame']").evaluateAll((rows) => rows.map((row) => `${row.getAttribute("data-layer-id")}@${row.getAttribute("aria-level")}`));
+        await until(async () => { const now = await levels(); return now.includes("frame:section:section-1@1") && now.includes("frame:screen:screen-1@2") && now.includes("frame:screen:screen-2@2"); }, { message: "both frames one level under the Section" }).catch(async (error) => { throw new Error(`${error.message} (${(await levels()).join(", ")})`); });
+        const icons = await section.locator("[data-icon]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-icon")));
+        if (!icons.some((name) => /browser/.test(name ?? ""))) throw new Error(`the Section row's icons: ${icons.join(", ")} (want icon-browser-line)`);
+        return `Section 1 around both · Layers: ${(await levels()).join(", ")} · icon-browser-line`;
+      } finally {
+        await undoTo(page, id, before, 4).catch(() => undefined);
+      }
+    },
+  },
   // F5 · right panel parity (docs/research/studio-f5-right-panel-spec-2026-10-19.md).
   {
     id: "FW-50", feature: "An auto layout frame's Design tab is in Figma's order: Position, Auto layout, Appearance, Fill, Stroke, Effects", wp: "F5 2026-10-19",

@@ -37,6 +37,8 @@ removed (four unused colour ramps were, see Removed).
   frames inside it move with it, Delete takes them, ⌘⌫ keeps them, right-click › Wrap in new section, rename by
   double-clicking its name), N / ⇧N zoom to the next / previous frame, and the Pages list keeps the order you drag pages
   into, with dividers (Add divider).
+- Zen Studio with Sections (F3 with F4): Layers lists the frames of a Section under its row (icon, one level in), as
+  Figma does; Delete with several frames selected deletes them all in one edit, and Wrap in new section wraps them all.
 - Zen Studio structure and clipboard as in Figma (F3 of the same plan): Delete leaves nothing selected (⌘Z selects the
   layer again); Copy / Paste properties carry fill, stroke, effects, radius, opacity and text style only, never X / Y /
   W / H; ⌘V with nothing (or a frame) selected pastes into the frame in view at the layer's place; Paste here (layer
