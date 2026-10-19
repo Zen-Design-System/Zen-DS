@@ -9,6 +9,7 @@ import { PropField } from "../inspector/PropField";
 import type { Literal, PropSpec, PropValue } from "../inspector/propSchema";
 import { InspectorSection } from "../inspector/Section";
 import type { EditOp } from "../types";
+import { ImageFillRow } from "./ImageFillRow";
 import "./appearance.css";
 
 /*
@@ -20,7 +21,7 @@ import "./appearance.css";
  */
 
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
-export const shapePropNames: readonly string[] = ["type", "fill", "stroke", "strokeWeight", "strokeAlign", "arcStart", "arcSweep", "arcRatio", "pointCount", "starRatio", "opacity", "radius", ...CORNERS];
+export const shapePropNames: readonly string[] = ["type", "fill", "image", "imageFit", "imageCrop", "imageScale", "stroke", "strokeWeight", "strokeAlign", "arcStart", "arcSweep", "arcRatio", "pointCount", "starRatio", "opacity", "radius", ...CORNERS];
 
 /** A field's leading mark, an icon as Figma's (it is also what the pointer scrubs). */
 const mark = (name: IconName) => <Icon name={name} size="sm" decorative />;
@@ -83,7 +84,8 @@ export function ShapeSections({ api, specs, host }: { api: FieldApi; specs: Prop
       </InspectorSection>
       {line ? null : (
         <InspectorSection title="Fill">
-          {field("fill", "Fill", DEFAULT_SHAPE_FILL)}
+          {field("fill", "Fill", api.valueFor("image").state === "unset" ? DEFAULT_SHAPE_FILL : "none")}
+          <ImageFillRow api={api} specs={specs} host={host} />
         </InspectorSection>
       )}
       <InspectorSection title="Stroke" fieldGrid={stroke !== "none"}>

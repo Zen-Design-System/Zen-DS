@@ -28,7 +28,8 @@ const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-squar
  */
 export function objectIcon(name: string, props: Record<string, unknown> | null | undefined): IconName | null {
   if (props?.["data-zen-main"] || props?.["data-zen-instance"]) return "icon-diamond-line";
-  if (name === "Shape") return SHAPE_ICONS[String(props?.type ?? "rectangle")] ?? "icon-square-line";
+  // A rectangle with an image fill: Figma's image icon (F8); other shapes keep their own.
+  if (name === "Shape") return props?.image && (props.type ?? "rectangle") === "rectangle" ? "icon-image-line" : SHAPE_ICONS[String(props?.type ?? "rectangle")] ?? "icon-square-line";
   if (name === "Box") return "icon-hash-01-line";
   if (name === "Stack") return props?.direction === "row" ? "icon-columns-01-line" : "icon-rows-01-line";
   if (name === "Grid") return "icon-grid-01-line";

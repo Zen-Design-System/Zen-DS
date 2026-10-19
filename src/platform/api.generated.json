@@ -7849,7 +7849,7 @@
   "shape": [
     {
       "name": "Shape",
-      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps",
       "props": [
         {
           "name": "width",
@@ -7996,6 +7996,38 @@
           "deprecated": null
         },
         {
+          "name": "image",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture\nthat means something needs an accessible name on its layer; without one it is decoration. A picture in the content\n(an article photo, a product shot) is an Image (alt, ratio, caption), not a fill.",
+          "deprecated": null
+        },
+        {
+          "name": "imageFit",
+          "type": "\"fill\" | \"fit\" | \"crop\" | \"tile\"",
+          "required": false,
+          "default": null,
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows,\n`fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at\n`imageScale`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageCrop",
+          "type": "{ x: number; y: number; width: number; height: number }",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageScale",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "\"rectangle\" | \"ellipse\" | \"line\" | \"arrow\" | \"polygon\" | \"star\"",
           "required": false,
@@ -8008,7 +8040,7 @@
           "type": "ShapeFill",
           "required": false,
           "default": null,
-          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none.",
+          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none, and\na shape with an `image` has none unless it is given (the colour then shows around a `fit` picture).",
           "deprecated": null
         },
         {
@@ -15600,6 +15632,38 @@
           "deprecated": null
         },
         {
+          "name": "image",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture\nthat means something needs an accessible name on its layer; without one it is decoration. A picture in the content\n(an article photo, a product shot) is an Image (alt, ratio, caption), not a fill.",
+          "deprecated": null
+        },
+        {
+          "name": "imageFit",
+          "type": "\"fill\" | \"fit\" | \"crop\" | \"tile\"",
+          "required": false,
+          "default": null,
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows,\n`fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at\n`imageScale`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageCrop",
+          "type": "{ x: number; y: number; width: number; height: number }",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageScale",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
@@ -15942,6 +16006,38 @@
           "deprecated": null
         },
         {
+          "name": "image",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture\nthat means something needs an accessible name on its layer; without one it is decoration. A picture in the content\n(an article photo, a product shot) is an Image (alt, ratio, caption), not a fill.",
+          "deprecated": null
+        },
+        {
+          "name": "imageFit",
+          "type": "\"fill\" | \"fit\" | \"crop\" | \"tile\"",
+          "required": false,
+          "default": null,
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows,\n`fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at\n`imageScale`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageCrop",
+          "type": "{ x: number; y: number; width: number; height: number }",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageScale",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
@@ -16281,6 +16377,38 @@
           "required": false,
           "default": null,
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "image",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture\nthat means something needs an accessible name on its layer; without one it is decoration. A picture in the content\n(an article photo, a product shot) is an Image (alt, ratio, caption), not a fill.",
+          "deprecated": null
+        },
+        {
+          "name": "imageFit",
+          "type": "\"fill\" | \"fit\" | \"crop\" | \"tile\"",
+          "required": false,
+          "default": null,
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows,\n`fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at\n`imageScale`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageCrop",
+          "type": "{ x: number; y: number; width: number; height: number }",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageScale",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
           "deprecated": null
         },
         {

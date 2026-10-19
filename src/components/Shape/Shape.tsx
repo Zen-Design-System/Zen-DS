@@ -5,6 +5,7 @@ import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
 import { useMergedRefs } from "../_shared/merge-refs";
 import type { ZenCornerRadius } from "../_shared/scale";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
+import { imagePattern, useImageFill, type ImageFillProps } from "../_shared/image-fill";
 import { arrowHeadPath, ellipsePath, isFullArc, normalizeArc, pointsPath, polygonPoints, POLYGON_POINTS, starPoints, STAR_POINTS, STAR_RATIO } from "./geometry";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, fillPaint, strokePaint, type ShapeFill, type ShapeStroke } from "./paint";
 import "./shape.css";
@@ -19,7 +20,7 @@ export type ShapeStrokeAlign = (typeof shapeStrokeAligns)[number];
 /** Figma's default size for a shape placed with a click (100 × 100). */
 export const SHAPE_DEFAULT_SIZE = 100;
 
-export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps {
+export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps {
   /**
    * The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),
    * `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end
@@ -28,7 +29,8 @@ export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "childr
   type?: ShapeType;
   /**
    * Fill: a Color/Background token by its path ("neutral-subtle", "accent-solid", "surface", "support-blue-soft"; list in
-   * `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none.
+   * `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none, and
+   * a shape with an `image` has none unless it is given (the colour then shows around a `fit` picture).
    */
   fill?: ShapeFill;
   /** Stroke: a Color/Border token by its path ("neutral-solid", "accent-subtle", "support-teal-solid"; `shapeStrokes`), or "none" (default; a line or arrow takes Border/Neutral/Solid). */
@@ -110,6 +112,10 @@ export function Shape({
   rotation,
   opacity,
   label,
+  image,
+  imageFit,
+  imageCrop,
+  imageScale,
   width,
   height,
   minWidth,
@@ -137,7 +143,9 @@ export function Shape({
   const id = safeId(useId());
   const sizing = layoutSizing({ width, height: line ? undefined : height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
-  const fillColor = fillPaint(fill ?? (line ? "none" : DEFAULT_SHAPE_FILL));
+  // An image fill (Figma's Image paint) over the fill colour; a line has none.
+  const picture = useImageFill(line ? {} : { image, imageFit, imageCrop, imageScale });
+  const fillColor = fillPaint(fill ?? (line || picture.mode ? "none" : DEFAULT_SHAPE_FILL));
   const strokeColor = strokePaint(stroke ?? (line ? DEFAULT_LINE_STROKE : "none"));
   const weight = finite(strokeWeight) ? Math.max(0, strokeWeight) : 1;
   const align: ShapeStrokeAlign = line ? "center" : strokeAlign && (shapeStrokeAligns as readonly string[]).includes(strokeAlign) ? strokeAlign : "inside";
@@ -151,6 +159,7 @@ export function Shape({
     "--zen-shape-default-width": finite(width) ? undefined : `${SHAPE_DEFAULT_SIZE}px`,
     opacity: finite(opacity) ? Math.min(100, Math.max(0, opacity)) / 100 : undefined,
     transform: finite(rotation) && rotation % 360 !== 0 ? `rotate(${-rotation}deg)` : undefined,
+    ...(kind === "rectangle" ? picture.vars : {}),
   };
   const shown = Object.fromEntries(Object.entries(vars).filter(([, value]) => value !== undefined)) as CSSProperties;
   const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true as const };
@@ -164,6 +173,8 @@ export function Shape({
     else if (kind === "polygon") d = pointsPath(polygonPoints(w, h, pointCount ?? POLYGON_POINTS));
     else if (kind === "star") d = pointsPath(starPoints(w, h, pointCount ?? STAR_POINTS, starRatio ?? STAR_RATIO));
     const stroked = Boolean(strokeColor && weight);
+    // The picture as a pattern the path fills (Fill, Fit, Crop, Tile: _shared/image-fill.ts).
+    const pattern = picture.mode && image ? imagePattern({ imageFit, imageCrop, imageScale }, w, h, picture.picture) : null;
     if (line) {
       const pad = Math.max(weight, kind === "arrow" ? Math.max(6, weight * 4) * 0.75 + weight : weight) + 1;
       drawing = (
@@ -191,7 +202,15 @@ export function Shape({
               )}
             </defs>
           ) : null}
+          {pattern ? (
+            <defs>
+              <pattern id={`${id}-image`} patternUnits="userSpaceOnUse" x={0} y={0} width={pattern.tile.width} height={pattern.tile.height}>
+                <image href={image} {...pattern.picture} />
+              </pattern>
+            </defs>
+          ) : null}
           {d && fillColor ? <path d={d} fill="var(--zen-shape-fill)" fillRule={evenOdd} /> : null}
+          {d && pattern ? <path d={d} fill={`url(#${id}-image)`} fillRule={evenOdd} /> : null}
           {d && stroked ? (
             <path
               d={d}
@@ -216,6 +235,7 @@ export function Shape({
       className={["zen-shape", className].filter(Boolean).join(" ")}
       data-type={kind}
       data-stroke-align={strokeColor && weight ? align : undefined}
+      {...(kind === "rectangle" ? picture.attributes : {})}
       {...sizing.attributes}
       {...placed.attributes}
       style={withSizingVars(style, shown as Record<`--${string}`, string>)}

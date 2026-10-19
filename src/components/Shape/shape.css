@@ -24,6 +24,15 @@
 .zen-shape[data-type="rectangle"][data-stroke-align="outside"] { box-shadow: 0 0 0 var(--zen-shape-stroke-weight) var(--zen-shape-stroke); }
 .zen-shape[data-type="rectangle"][data-stroke-align="center"] { box-shadow: inset 0 0 0 calc(var(--zen-shape-stroke-weight) / 2) var(--zen-shape-stroke), 0 0 0 calc(var(--zen-shape-stroke-weight) / 2) var(--zen-shape-stroke); }
 
+/* An image fill (image prop, _shared/image-fill.ts): the picture over the fill colour and under the stroke's box shadow.
+   An SVG shape paints it as a pattern instead. */
+.zen-shape[data-type="rectangle"][data-image] {
+  background-image: var(--zen-image-fill);
+  background-size: var(--zen-image-size);
+  background-position: var(--zen-image-position);
+  background-repeat: var(--zen-image-repeat);
+}
+
 /* Ellipse, polygon, star: an SVG drawn in the element's own px box; strokes may reach past it (outside, centre). */
 .zen-shape__drawing { position: absolute; top: 0; left: 0; display: block; overflow: visible; pointer-events: none; }
 

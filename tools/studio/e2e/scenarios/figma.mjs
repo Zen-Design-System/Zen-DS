@@ -1,6 +1,8 @@
 // Figma walk (plan docs/research/studio-figma-design-parity-2026-10-18.md §6): a Figma user's gestures on a page made in
 // the Studio, each asserted as Figma answers them (selection, Layers, Inspector and menu words, the status line). Opt-in:
 // npm run studio:e2e -- --only=figma. Each phase of the plan moves rows here from ❌ / 🟡 to ✅; F0 (words and keys) first.
+import fs from "node:fs";
+import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
 import { inspectorRow, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
@@ -268,6 +270,39 @@ async function textTool(page, at, to = null) {
   await page.mouse.up();
 }
 const textEditing = (page) => page.locator("[data-studio-text-editing]").count();
+/** The test picture (a library photo's file), as a dropped / chosen file named `name`. */
+const PICTURE = (ctx) => fs.readFileSync(path.join(ctx.root, "src/assets/media/site-bridge.webp"));
+/** ⇧⌘K and the file dialog answered with the test picture: the Image tool waits for a click. */
+async function pickPicture(page, ctx, name = "Bridge.webp") {
+  await page.locator(".studio-viewport").focus();
+  const chooser = page.waitForEvent("filechooser", { timeout: 10_000 });
+  await page.keyboard.press("ControlOrMeta+Shift+KeyK");
+  await (await chooser).setFiles({ name, mimeType: "image/webp", buffer: PICTURE(ctx) });
+  await until(async () => /Click to place Bridge/.test(await statusText(page)), { message: "the Image tool waits for a click" });
+}
+/** The placed picture's Shape tag in the page. */
+const pictureTag = async (page, id) => ((await pageText(page, id)) ?? "").match(/<Shape image="zen-asset:bridge-[^"]+"[^>]*\/>/)?.[0] ?? "";
+const num = (tag, name) => Number(new RegExp(`\\b${name}=\\{(-?[\\d.]+)\\}`).exec(tag)?.[1]);
+/** Fill › Image fit set to `label`, tried again while the panel re-renders under the click, until `done()`. */
+async function chooseFit(page, label, done) {
+  const row = page.locator('#studio-right [data-prop="image-fill"]');
+  await row.waitFor({ state: "visible", timeout: 8000 });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await row.getByRole("combobox", { name: /Image fit/ }).or(row.getByRole("button", { name: /Image fit/ })).first().click();
+    const name = new RegExp(`^${label}$`, "i");
+    const option = page.getByRole("option", { name }).or(page.getByRole("menuitemradio", { name })).first();
+    if (await option.isVisible().catch(() => false) || await option.waitFor({ state: "visible", timeout: 1500 }).then(() => true, () => false)) await option.click();
+    if (await until(done, { timeout: 2500, message: label }).then(() => true, () => false)) return;
+    await page.keyboard.press("Escape").catch(() => undefined);
+  }
+  throw new Error(`Image fit → ${label} was not written`);
+}
+/** The picture's own ratio (height ÷ width), read in the page. */
+const ownRatio = (page, ctx) => page.evaluate(async (bytes) => {
+  const bitmap = await createImageBitmap(new Blob([new Uint8Array(bytes)], { type: "image/webp" }));
+  return bitmap.height / bitmap.width;
+}, [...PICTURE(ctx)]);
+
 /** T on the walk frame, `words` typed, the last `select` characters selected (⇧←) and `keys` pressed, then Esc. */
 async function richText(page, id, words, select, keys) {
   const box = await freeFrame(page, id).boundingBox();
@@ -1504,6 +1539,149 @@ export const rows = [
         const line = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"] .zen-text-run`, { hasText: "today" }).first().evaluate((element) => getComputedStyle(element).textDecorationLine);
         if (!/line-through/.test(line) || /underline/.test(line)) throw new Error(`the run is drawn with ${line}`);
         return `⌘U, ⇧⌘X, ⌘U on "today" → <TextRun strikethrough>today</TextRun> (${line})`;
+      });
+    },
+  },
+  {
+    id: "FW-80", feature: "⇧⌘K opens the file dialog; a click on a frame places the picture as a Rectangle with the image fill, at its own size made to fit the frame (Figma's Place image)", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await freeFrame(page, id).boundingBox();
+        await page.mouse.click(box.x + 20, box.y + 20);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "a Shape with the picture written" });
+        const tag = await pictureTag(page, id);
+        if (!/label="Bridge"/.test(tag) || !/data-name="Bridge"/.test(tag) || !/position="absolute"/.test(tag)) throw new Error(`the Shape: ${tag}`);
+        const zoom = await page.evaluate(() => Number(getComputedStyle(document.querySelector(".studio-world")).getPropertyValue("--studio-zoom")) || 1).catch(() => 1);
+        const [width, height] = [num(tag, "width"), num(tag, "height")];
+        const ratio = await ownRatio(page, ctx);
+        if (Math.abs(height / width - ratio) > 0.02) throw new Error(`ratio ${height / width} ≠ the picture's ${ratio}`);
+        const frameWidth = await freeFrame(page, id).evaluate((element) => element.clientWidth);
+        if (width > frameWidth + 1) throw new Error(`${width} px wide in a ${frameWidth} px frame`);
+        const painted = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"][data-image]`).first().evaluate((element) => getComputedStyle(element).backgroundImage);
+        if (!/url\("?blob:/.test(painted)) throw new Error(`the canvas paints ${painted}`);
+        await until(async () => (await page.evaluate(() => document.querySelector(".studio-viewport")?.getAttribute("data-studio-drawing"))) === null, { message: "back to Move" });
+        return `⇧⌘K + click → ${tag.slice(0, 120)}… (${width} × ${height}, zoom ${zoom})`;
+      });
+    },
+  },
+  {
+    id: "FW-81", feature: "Place image by dragging: the picture at the dragged width, its own ratio kept", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await freeFrame(page, id).boundingBox();
+        await page.mouse.move(box.x + 10, box.y + 10);
+        await page.mouse.down();
+        await page.mouse.move(box.x + 60, box.y + 30, { steps: 4 });
+        await page.mouse.move(box.x + 110, box.y + 40, { steps: 4 });
+        await page.mouse.up();
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the dragged picture written" });
+        const tag = await pictureTag(page, id);
+        const ratio = await ownRatio(page, ctx);
+        const [width, height] = [num(tag, "width"), num(tag, "height")];
+        if (Math.abs(height - width * ratio) > 1.5) throw new Error(`${width} × ${height}: not the picture's ratio ${ratio}`);
+        return `drag → ${width} × ${height}`;
+      });
+    },
+  },
+  {
+    id: "FW-82", feature: "A picture file dropped on a frame goes in where it fell (a free frame: at the point)", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await freeFrame(page, id).boundingBox();
+        const at = { x: Math.round(box.x + 30), y: Math.round(box.y + 25) };
+        await page.evaluate(({ bytes, at }) => {
+          const transfer = new DataTransfer();
+          transfer.items.add(new File([new Uint8Array(bytes)], "Bridge.webp", { type: "image/webp" }));
+          const target = document.elementFromPoint(at.x, at.y);
+          for (const type of ["dragenter", "dragover", "drop"]) target.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, clientX: at.x, clientY: at.y, dataTransfer: transfer }));
+        }, { bytes: [...PICTURE(ctx)], at });
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the dropped picture written" });
+        // At the drop point, moved in where it would stick out of the frame (drawModel pictureBox).
+        const placed = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"][data-image]`).first().boundingBox();
+        const inside = placed.x >= box.x - 1 && placed.y >= box.y - 1 && placed.x + placed.width <= box.x + box.width + 1 && placed.y + placed.height <= box.y + box.height + 1;
+        const holds = at.x >= placed.x - 1 && at.x <= placed.x + placed.width + 1 && at.y >= placed.y - 1 && at.y <= placed.y + placed.height + 1;
+        if (!inside || !holds || Math.abs(placed.x - at.x) > 3) throw new Error(`placed at ${placed.x}, ${placed.y} (${placed.width} × ${placed.height}), dropped at ${at.x}, ${at.y} in ${box.x}, ${box.y}`);
+        return `drop → ${(await pictureTag(page, id)).slice(0, 100)}…`;
+      });
+    },
+  },
+  {
+    id: "FW-83", feature: "⌘V with a picture on the clipboard (no layer copied) places it in the middle of the frame in view", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = ((await pageText(page, id)) ?? "").match(/<Shape /g)?.length ?? 0;
+        await page.locator(".studio-viewport").focus();
+        await page.evaluate((bytes) => {
+          const transfer = new DataTransfer();
+          transfer.items.add(new File([new Uint8Array(bytes)], "Bridge.webp", { type: "image/webp" }));
+          (document.activeElement ?? document).dispatchEvent(new ClipboardEvent("paste", { clipboardData: transfer, bubbles: true, cancelable: true }));
+        }, [...PICTURE(ctx)]);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the pasted picture written" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+        const after = ((await pageText(page, id)) ?? "").match(/<Shape /g)?.length ?? 0;
+        if (after !== before + 1) throw new Error(`${after - before} Shapes added`);
+        return `⌘V picture → ${(await pictureTag(page, id)).slice(0, 100)}…`;
+      });
+    },
+  },
+  {
+    id: "FW-84", feature: "Fill › Image fit: Fit, Crop (Fill's visible part written as the crop) and Tile write the image fill's mode, one ⌘Z each", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await freeFrame(page, id).boundingBox();
+        await page.mouse.click(box.x + 20, box.y + 20);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the picture placed" });
+        await chooseFit(page, "fit", async () => /imageFit="fit"/.test(await pictureTag(page, id)));
+        await chooseFit(page, "crop", async () => /imageFit="crop" imageCrop=\{\{ x: [\d.]+, y: [\d.]+, width: [\d.]+, height: [\d.]+ \}\}/.test(await pictureTag(page, id)));
+        await chooseFit(page, "tile", async () => /imageFit="tile"/.test(await pictureTag(page, id)) && !/imageCrop/.test(await pictureTag(page, id)));
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => /imageFit="crop"/.test(await pictureTag(page, id)), { message: "one ⌘Z: Crop again" });
+        return "Fit → Crop (crop written) → Tile; ⌘Z → Crop";
+      });
+    },
+  },
+  {
+    id: "FW-85", feature: "Fill › Image: picking another picture replaces it and keeps how it fills (Figma's Replace image)", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await freeFrame(page, id).boundingBox();
+        await page.mouse.click(box.x + 20, box.y + 20);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the picture placed" });
+        await chooseFit(page, "fit", async () => /imageFit="fit"/.test(await pictureTag(page, id)));
+        const row = page.locator('#studio-right [data-prop="image-fill"]');
+        await row.getByRole("button", { name: /^Image:/ }).click();
+        const library = page.locator('[data-photo-group="library"] [role="option"], [data-photo-group="library"] [role="menuitem"], [data-photo-group="library"] button').first();
+        await library.waitFor({ state: "visible", timeout: 5000 });
+        await library.click();
+        const tag = () => pageText(page, id).then((text) => (text ?? "").match(/<Shape image="zen-media:[^"]+"[^>]*data-name="Bridge"[^>]*\/>/)?.[0] ?? "");
+        await until(async () => /imageFit="fit"/.test(await tag()), { message: "a library picture, still Fit" });
+        return `replaced → ${(await tag()).slice(0, 90)}…`;
+      });
+    },
+  },
+  {
+    id: "FW-86", feature: "Fill › − on the image removes the picture and its settings in one edit", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await freeFrame(page, id).boundingBox();
+        await page.mouse.click(box.x + 20, box.y + 20);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the picture placed" });
+        const before = ((await pageText(page, id)) ?? "").match(/<Shape [^>]*data-name="Bridge"[^>]*\/>/)?.[0];
+        await page.locator('#studio-right [data-prop="image-fill"]').getByRole("button", { name: "Remove image" }).click();
+        await until(async () => !/image=/.test(((await pageText(page, id)) ?? "").match(/<Shape [^>]*data-name="Bridge"[^>]*\/>/)?.[0] ?? "image="), { message: "the picture removed" });
+        return `${before?.slice(0, 60)}… → no image`;
       });
     },
   },

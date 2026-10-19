@@ -1,4 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
+import { placeImages } from "../draw/placeImage";
+import { installFileDrop } from "./fileDrop";
 import { IconButton } from "../../../components/Button";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Menu } from "../../../components/Menu";
@@ -148,6 +150,9 @@ export function CanvasTools() {
     } else if (tool === "text" && localPage) {
       // Figma's Text tool on a page you made (F6): a click or a drag at the pointer, then typing (draw/drawTool.ts).
       if (!armDraw("text")) studioStore.setState({ tool: "select" });
+    } else if (tool === "image" && localPage) {
+      // Figma's Place image on a page you made (F8): the file dialog, then a click per picture (draw/placeImage.ts).
+      void placeImages(() => armDraw("image"));
     } else if (tool === "stack" || tool === "text" || tool === "image") {
       const item = placed(tool);
       if (!item || !armPlacement({ label: item.label, item })) studioStore.setState({ tool: "select" });
@@ -157,6 +162,8 @@ export function CanvasTools() {
     }
     return () => { disarmPlacement(); disarmFrameDraw(); disarmDraw(); };
   }, [tool, localPage]);
+  // Pictures dropped from the computer onto a frame (F8: canvas/fileDrop.ts).
+  useEffect(() => installFileDrop(localPage), [localPage]);
   return (
     <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools">
       {canvasToolGroups.map((group, index) => {

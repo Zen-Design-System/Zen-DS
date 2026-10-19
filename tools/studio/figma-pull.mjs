@@ -23,6 +23,7 @@ import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-metric.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
+import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { arcFromData, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
@@ -58,6 +59,7 @@ export function figmaReadCode(nodeId, { part = 0 } = {}) {
 figma.skipInvisibleInstanceChildren = false;
 const layerKey = ${layerKey.toString()};
 const variableName = async (id) => { if (!id) return null; const v = await figma.variables.getVariableByIdAsync(id); return v ? v.name : null; };
+${READ_IMAGE_FILL}
 const textStyles = new Map();
 const textStyleOf = async (id) => { if (!textStyles.has(id)) textStyles.set(id, await figma.getStyleByIdAsync(id)); return textStyles.get(id); };
 const fillVariable = async (fills) => { const paint = Array.isArray(fills) ? fills.find((fill) => fill.visible !== false) : null; return paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null; };
@@ -391,7 +393,7 @@ const readFrame = async (node, root = false) => {
       strokeWeight: typeof node.strokeWeight === "number" ? node.strokeWeight : 1, strokeAlign: node.strokeAlign, cap: typeof node.strokeCap === "string" ? node.strokeCap : null,
       arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: node.pointCount, innerRadius: node.innerRadius,
       radius: typeof node.cornerRadius === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
-      rotation: Math.round((node.rotation || 0) * 100) / 100, opacity: node.opacity,
+      rotation: Math.round((node.rotation || 0) * 100) / 100, opacity: node.opacity, imageFill: readImageFill(node),
     } };
   }
   if (DRAWING.has(node.type)) return { type: node.type, name: node.name };
@@ -408,6 +410,9 @@ const readFrame = async (node, root = false) => {
   const paint = !root && Array.isArray(node.fills) ? node.fills.find((fill) => fill.visible !== false) : null;
   const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
   if (fill) out.fill = fill;
+  // An image fill (F8, figma-image.mjs): the picture back by its Studio src.
+  const imageFill = !root ? readImageFill(node) : null;
+  if (imageFill) out.imageFill = imageFill;
   // Its stroke (variable, weight per side, dash), corners and their variables, effect style, opacity, rotation and
   // mirror: one Zen frame (figma-push frameLook, the other way). The page frame itself is the Screen.
   if (!root) {
@@ -1377,7 +1382,11 @@ function shapeElement(node, ctx) {
     if (tone && tone !== fallback) props[prop] = literal(tone);
     else if (!tone) ctx.notes.push(`${where}: its ${prop} ${value === "unbound" ? "is no colour variable" : `variable ${value} is no Zen ${prop === "fill" ? "Background" : "Border"} colour`}; the default is kept`);
   };
-  paint("fill", line ? null : shape.fill, FILL_OF, line ? "none" : DEFAULT_SHAPE_FILL);
+  // An image fill (F8, figma-image.mjs): the picture back by its Studio src; a shape with one has no colour unless given.
+  const picture = line ? { props: {}, note: null } : imageFillProps(shape.imageFill, literal);
+  Object.assign(props, picture.props);
+  if (picture.note) ctx.notes.push(`${where}: ${picture.note}`);
+  paint("fill", line ? null : shape.fill, FILL_OF, line || shape.imageFill ? "none" : DEFAULT_SHAPE_FILL);
   paint("stroke", shape.stroke, STROKE_OF, line ? DEFAULT_LINE_STROKE : "none");
   if (shape.stroke && shape.strokeWeight !== 1) props.strokeWeight = literal(round2(shape.strokeWeight));
   if (shape.stroke && !line && shape.strokeAlign && shape.strokeAlign !== "INSIDE") props.strokeAlign = literal(shape.strokeAlign.toLowerCase());
@@ -1755,6 +1764,10 @@ function frameLookProps(node, ctx) {
   const where = `Frame "${node.name}"`;
   const surface = SURFACE_OF[String(node.fill ?? "").replace(/^Color\//, "")];
   if (surface) props.surface = literal(surface);
+  // An image fill (F8, figma-image.mjs) over the fill.
+  const picture = imageFillProps(node.imageFill, literal);
+  Object.assign(props, picture.props);
+  if (picture.note) ctx.notes.push(`${where}: ${picture.note}`);
   else if (node.fill) ctx.notes.push(`${where}: its fill ${node.fill} is no Zen background layer (surface · surface-alt · subtle · pale · canvas); left without a fill`);
   if (node.stroke) {
     const border = BORDER_OF[String(node.stroke).replace(/^Color\//, "")];

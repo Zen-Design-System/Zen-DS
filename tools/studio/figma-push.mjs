@@ -23,6 +23,7 @@ import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { textSegments } from "./text-runs.mjs";
+import { imageFillOf } from "./figma-image.mjs";
 import { arcData, normalizeArc, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
 import { zenLabels } from "../../src/components/_shared/labels.ts";
@@ -438,7 +439,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     let node;
     if (element.name === "Stack" || element.name === "Grid" || element.name === "Box") node = frameNode(element, code, id, parent);
     // Figma's own shapes (Shape): RECTANGLE, ELLIPSE with its arcData, LINE (an arrow's end cap), POLYGON, STAR.
-    else if (element.name === "Shape") node = shapeNode(code, id);
+    else if (element.name === "Shape") node = shapeNode(code, id, element);
     // A page's own component: its main as Figma's COMPONENT around its layer, each instance an INSTANCE of it (the
     // importer makes the main first, then the instances; `local` is the page's component id).
     else if (element.name === "Component") {
@@ -503,10 +504,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
    * rotation (degrees, counter-clockwise, about the centre) and opacity as Figma's. `shape: true` tells the importer
    * from a chart mark's ELLIPSE.
    */
-  function shapeNode(code, id) {
+  function shapeNode(code, id, element = null) {
     const kind = SHAPE_NODE[code.type] ? code.type : "rectangle";
     const line = kind === "line" || kind === "arrow";
-    const fill = code.fill ?? (line ? "none" : DEFAULT_SHAPE_FILL);
+    // An image fill (F8, figma-image.mjs): the importer's IMAGE paint over the colour; a shape with one has no colour unless given.
+    const picture = line ? null : imageFillOf(code, element);
+    if (picture) images.add(picture.src);
+    const fill = code.fill ?? (line || picture ? "none" : DEFAULT_SHAPE_FILL);
     const stroke = code.stroke ?? (line ? DEFAULT_LINE_STROKE : "none");
     const width = typeof code.width === "number" ? code.width : SHAPE_DEFAULT_SIZE;
     const height = line ? 0 : typeof code.height === "number" ? code.height : SHAPE_DEFAULT_SIZE;
@@ -517,6 +521,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return {
       type: SHAPE_NODE[kind], shape: true, ...(id ? { id } : {}), name: SHAPE_LABEL[kind],
       ...(fill !== "none" && shapeFillTokens[fill] ? { fill: shapeFillTokens[fill] } : {}),
+      ...(picture ? { imageFill: picture } : {}),
       ...(stroke !== "none" && shapeStrokeTokens[stroke] ? { stroke: shapeStrokeTokens[stroke], strokeWeight: weight, strokeAlign: line ? "CENTER" : { center: "CENTER", outside: "OUTSIDE" }[code.strokeAlign] ?? "INSIDE" } : {}),
       ...(kind === "arrow" ? { endCap: "ARROW_LINES" } : {}),
       ...(data ? { arc: { start: data.startingAngle, end: data.endingAngle, inner: data.innerRadius } } : {}),
@@ -1230,10 +1235,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
    * `radiiVars` TL TR BR BL when they differ), the effect style by name, opacity 0–1, rotation (degrees,
    * counter-clockwise) and flip. Only what the code writes; Figma's defaults are left out.
    */
-  function frameLook(code) {
+  function frameLook(code, element = null) {
     const look = {};
     const fill = BOX_SURFACE[code.surface];
     if (fill) look.fill = fill;
+    // An image fill (F8, figma-image.mjs) over the frame's fill.
+    const picture = imageFillOf(code, element);
+    if (picture) { look.imageFill = picture; images.add(picture.src); }
     const stroke = FRAME_STROKE[code.border];
     if (stroke) {
       look.stroke = stroke;
@@ -1344,7 +1352,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const scroll = { x: "HORIZONTAL", y: "VERTICAL" }[code.scroll];
     // Only a frame with `clip` (Box, Stack or Grid) cuts what overflows it: the importer clips that frame alone. Its
     // fill, stroke, corners, effect, opacity, rotation and flip: one Figma frame (frameLook).
-    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children, ...frameLook(code), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
+    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children, ...frameLook(code, element), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */

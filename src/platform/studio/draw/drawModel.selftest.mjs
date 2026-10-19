@@ -1,6 +1,6 @@
 // node src/platform/studio/draw/drawModel.selftest.mjs — the draw model (drawModel.ts) and the Shape geometry.
 import assert from "node:assert/strict";
-import { clickBox, drawBox, drawCode, drawLine, lineBox } from "./drawModel.ts";
+import { clickBox, drawBox, drawCode, drawLine, lineBox, pictureBox, pictureCode, pictureDragBox } from "./drawModel.ts";
 import { arcData, arcFromData, ellipseAngle, ellipsePath, normalizeArc, polygonPoints, starPoints } from "../../../components/Shape/geometry.ts";
 
 let count = 0;
@@ -58,6 +58,20 @@ test("star tips touch the box", () => {
   assert.equal(points.length, 10);
   assert.equal(Math.round(Math.min(...points.map((point) => point.y))), 0);
   assert.equal(Math.round(Math.max(...points.map((point) => point.x))), 100);
+});
+
+test("Place image: a click places the picture at its own size, smaller to fit the frame, moved inside it", () => {
+  const picture = { src: "zen-asset:bridge-1a2b3c4d.webp", label: "Bridge", name: "Bridge", width: 800, height: 400 };
+  assert.deepEqual(pictureBox(picture, { x: 10, y: 20 }), { x: 10, y: 20, width: 800, height: 400 });
+  assert.deepEqual(pictureBox(picture, { x: 300, y: 20 }, { width: 400, height: 600 }), { x: 0, y: 20, width: 400, height: 200 });
+  assert.deepEqual(pictureBox(picture, { x: 200, y: 300 }, { width: 400, height: 600 }, true), { x: 0, y: 200, width: 400, height: 200 });
+});
+
+test("Place image: a drag keeps the picture's ratio; the code is a Rectangle with the image fill", () => {
+  const picture = { src: "zen-asset:bridge-1a2b3c4d.webp", label: "Bridge \"B\"", name: "Bridge", width: 800, height: 400 };
+  assert.deepEqual(pictureDragBox({ x: 0, y: 0 }, { x: 100, y: 10 }, picture, { shift: false, alt: false }), { x: 0, y: 0, width: 100, height: 50 });
+  assert.equal(pictureCode(picture, { x: 10, y: 20, width: 100, height: 50 }, { mode: "free", x: 10, y: 20 }),
+    '<Shape image="zen-asset:bridge-1a2b3c4d.webp" label={"Bridge \\"B\\""} data-name="Bridge" position="absolute" insetLeft={10} insetTop={20} width={100} height={50} />');
 });
 
 console.log(`drawModel selftest: ${count} passed`);

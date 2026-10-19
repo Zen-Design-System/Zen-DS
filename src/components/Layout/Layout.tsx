@@ -5,6 +5,7 @@ import { layoutSizing, type LayoutSizingProps } from "./sizing";
 import { layoutPosition, type LayoutPositionProps } from "./position";
 import { boxEffects, type BoxEffectProps, type FrameEffectProps } from "./effects";
 import { frameAppearance, frameCorners, type FrameAppearanceProps, type FrameTransformProps } from "./appearance";
+import { useImageFill } from "../_shared/image-fill";
 import { cornerRadiusValue } from "../_shared/corners";
 import { useMergedRefs } from "../_shared/merge-refs";
 
@@ -82,10 +83,11 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack gap="lg">…sections…</Stack>
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
-export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, rotation, flip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: StackProps) {
+export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: StackProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const picture = useImageFill({ image, imageFit, imageCrop, imageScale });
   const corners = frameCorners(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft });
   return (
     <Element
@@ -102,9 +104,10 @@ export function Stack({ direction = "column", gap = "md", align, justify, wrap =
       {...sizing.attributes}
       {...placed.attributes}
       {...look.attributes}
+      {...picture.attributes}
       {...corners.attributes}
       {...boxEffects({ effectStyle, clip })}
-      style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)), ...sizing.vars, ...placed.vars, ...look.vars, ...corners.vars })}
+      style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)), ...sizing.vars, ...placed.vars, ...look.vars, ...picture.vars, ...corners.vars })}
     >
       {children}
     </Element>
@@ -181,7 +184,7 @@ function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement> | 
  *   <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…</Grid>
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
-export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, rotation, flip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: GridProps) {
+export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: GridProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   const perBreakpoint = typeof columns === "object" ? columns : undefined;
@@ -190,6 +193,7 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
   const min = typeof minColumnWidth === "number" ? `${minColumnWidth}px` : minColumnWidth;
   const { stacked, measure } = useStackBelow(stackBelow, ref);
   const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const picture = useImageFill({ image, imageFit, imageCrop, imageScale });
   const corners = frameCorners(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft });
   return (
     <Element
@@ -202,6 +206,7 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
       {...sizing.attributes}
       {...placed.attributes}
       {...look.attributes}
+      {...picture.attributes}
       {...corners.attributes}
       {...boxEffects({ effectStyle, clip })}
       style={withVars(style, {
@@ -214,7 +219,7 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
         "--zen-grid-padding": own(paddingValue(padding)),
         ...sizing.vars,
         ...placed.vars,
-        ...look.vars,
+        ...look.vars, ...picture.vars,
         ...corners.vars,
       })}
     >
@@ -242,10 +247,11 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
  * around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,
  * which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
  */
-export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, rotation, flip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
+export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const picture = useImageFill({ image, imageFit, imageCrop, imageScale });
   return (
     <Element
       {...rest}
@@ -256,6 +262,7 @@ export function Box({ padding, paddingX, paddingY, surface = "none", border = "n
       {...sizing.attributes}
       {...placed.attributes}
       {...look.attributes}
+      {...picture.attributes}
       {...boxEffects({ effectStyle, clip })}
       style={withVars(style, {
         "--zen-box-padding-block": own(paddingValue(paddingY ?? padding)),
@@ -263,7 +270,7 @@ export function Box({ padding, paddingX, paddingY, surface = "none", border = "n
         "--zen-box-radius": own(cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft })),
         ...sizing.vars,
         ...placed.vars,
-        ...look.vars,
+        ...look.vars, ...picture.vars,
       })}
     >
       {children}

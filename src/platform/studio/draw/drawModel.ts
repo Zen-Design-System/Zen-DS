@@ -12,11 +12,13 @@
  * - names: Rectangle, Ellipse, Line, Arrow, Polygon, Star, Frame, Text.
  * - the Text tool (T, F6): a click makes an Auto width text at the point, a drag a text box of the dragged width (Auto
  *   height); the person types at once (edit/textCreate.ts).
+ * - Place image (⇧⌘K, F8): a click places the picture at its own size (made smaller to fit the frame), a drag at the
+ *   dragged width with the picture's ratio; it is a Rectangle with the image fill, named after its file.
  */
 
-export const drawKinds = ["rectangle", "ellipse", "line", "arrow", "polygon", "star", "frame", "text"] as const;
+export const drawKinds = ["rectangle", "ellipse", "line", "arrow", "polygon", "star", "frame", "text", "image"] as const;
 export type DrawKind = (typeof drawKinds)[number];
-export type ShapeKind = Exclude<DrawKind, "frame" | "text">;
+export type ShapeKind = Exclude<DrawKind, "frame" | "text" | "image">;
 
 export type Point = { x: number; y: number };
 export type Box = { x: number; y: number; width: number; height: number };
@@ -30,7 +32,10 @@ export const CLICK_TRAVEL = 3;
 export const isLineKind = (kind: DrawKind): kind is "line" | "arrow" => kind === "line" || kind === "arrow";
 
 /** The layer name Figma gives what each tool draws (Layers panel, the size tag, the undo label). */
-export const drawLabels: Record<DrawKind, string> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", frame: "Frame", text: "Text" };
+export const drawLabels: Record<DrawKind, string> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", frame: "Frame", text: "Text", image: "Image" };
+
+/** A picture to place (draw/placeImage.ts): its src as the page writes it, an accessible name, a layer name, its own size. */
+export type PlacedPicture = { src: string; label: string; name: string; width: number; height: number };
 
 /** The words a new text layer holds until the person types (selected, so the first key replaces them). */
 export const NEW_TEXT = "Text";
@@ -84,6 +89,44 @@ export function lineBox(from: Point, to: Point): { box: Box; rotation: number } 
 export function clickBox(kind: DrawKind, at: Point): Box {
   if (kind === "text") return { x: at.x, y: at.y, width: 0, height: 0 };
   return isLineKind(kind) ? { x: at.x, y: at.y, width: CLICK_SIZE, height: 0 } : { x: at.x, y: at.y, width: CLICK_SIZE, height: CLICK_SIZE };
+}
+
+/**
+ * What a click places of a picture: its own size, made smaller (ratio kept) to fit `limit` (the frame under the pointer),
+ * its top-left at the point (moved in when it would stick out of the frame); `center` puts its middle there (a paste in
+ * the middle of the frame in view).
+ */
+export function pictureBox(picture: Pick<PlacedPicture, "width" | "height">, at: Point, limit?: { width: number; height: number } | null, center = false): Box {
+  const own = { width: Math.max(1, picture.width), height: Math.max(1, picture.height) };
+  const scale = limit && limit.width > 0 && limit.height > 0 ? Math.min(1, limit.width / own.width, limit.height / own.height) : 1;
+  const width = Math.max(1, round(own.width * scale));
+  const height = Math.max(1, round(own.height * scale));
+  const placed = center ? { x: round(at.x - width / 2), y: round(at.y - height / 2) } : { x: at.x, y: at.y };
+  // Inside the frame: a picture placed near its right or bottom edge moves in rather than being cut off.
+  if (limit && limit.width > 0 && limit.height > 0) {
+    placed.x = Math.max(0, Math.min(placed.x, limit.width - width));
+    placed.y = Math.max(0, Math.min(placed.y, limit.height - height));
+  }
+  return { ...placed, width, height };
+}
+
+/** A drag placing a picture: the dragged width with the picture's own ratio (⌥ from the centre, as other drags). */
+export function pictureDragBox(start: Point, pointer: Point, picture: Pick<PlacedPicture, "width" | "height">, keys: DrawKeys): Box {
+  const box = drawBox(start, pointer, { ...keys, shift: false });
+  const ratio = Math.max(1, picture.height) / Math.max(1, picture.width);
+  const height = box.width * ratio;
+  const up = pointer.y < start.y;
+  if (keys.alt) return { x: box.x, y: start.y - height / 2, width: box.width, height };
+  return { x: box.x, y: up ? start.y - height : start.y, width: box.width, height };
+}
+
+/** A JSX string attribute: plain when JSX keeps it as written, else an expression. */
+const textAttr = (name: string, value: string) => (/^[^"\\{}<>&\r\n]*$/.test(value) ? `${name}="${value}"` : `${name}={${JSON.stringify(value)}}`);
+
+/** The JSX a placed picture writes: a Rectangle (Shape) with the image fill, its accessible name and its file's name. */
+export function pictureCode(picture: PlacedPicture, box: Box, placement: DrawPlacement): string {
+  const placed = placement.mode === "free" ? ["position=\"absolute\"", attr("insetLeft", round(placement.x)), attr("insetTop", round(placement.y))] : [];
+  return `<Shape ${[textAttr("image", picture.src), textAttr("label", picture.label), textAttr("data-name", picture.name), ...placed, attr("width", Math.max(1, round(box.width))), attr("height", Math.max(1, round(box.height)))].join(" ")} />`;
 }
 
 /** Where the new layer goes: `free` (a frame without auto layout: at X / Y px) or `flow` (an auto layout frame). */

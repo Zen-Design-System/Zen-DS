@@ -1943,7 +1943,8 @@
       "use": [
         "A decorative mark or illustration a designer drew in Zen Studio with R, O, L, ⇧L, Polygon or Star.",
         "A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.",
-        "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets."
+        "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets.",
+        "A picture placed in Zen Studio (⇧⌘K, a dropped or pasted file): a Rectangle with an image fill, as Figma places it."
       ],
       "avoid": [
         "Data charts → Chart components (DonutChart, RadialChart, ProgressBar…): they carry labels, legends and accessible values.",
@@ -1971,6 +1972,10 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "image?: string",
+          "imageFit?: fill|fit|crop|tile",
+          "imageCrop?: { x: number; y: number; width: number; height: number }",
+          "imageScale?: number",
           "type?: rectangle|ellipse|line|arrow|polygon|star = rectangle",
           "fill?: ShapeFill",
           "stroke?: ShapeStroke",
@@ -1997,7 +2002,8 @@
       "dont": [
         "Don't draw charts, progress or ratings from shapes: use the components that carry values and labels.",
         "Don't use a Shape as a card or section background: use Box surface or Card.",
-        "Don't pass hex or rgb colours: fill and stroke take Zen token paths only."
+        "Don't pass hex or rgb colours: fill and stroke take Zen token paths only.",
+        "Don't use an image fill for a picture in the content (an article photo, a product shot): use Image (alt, ratio, caption)."
       ],
       "rules": [
         "layout/opacity-percent",
@@ -4258,6 +4264,10 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "image?: string",
+          "imageFit?: fill|fit|crop|tile",
+          "imageCrop?: { x: number; y: number; width: number; height: number }",
+          "imageScale?: number",
           "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
           "border?: none|pale|subtle = none",
           "borderWeight?: number",
@@ -4302,6 +4312,10 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "image?: string",
+          "imageFit?: fill|fit|crop|tile",
+          "imageCrop?: { x: number; y: number; width: number; height: number }",
+          "imageScale?: number",
           "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
           "border?: none|pale|subtle = none",
           "borderWeight?: number",
@@ -4346,6 +4360,10 @@
           "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "image?: string",
+          "imageFit?: fill|fit|crop|tile",
+          "imageCrop?: { x: number; y: number; width: number; height: number }",
+          "imageScale?: number",
           "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
           "border?: none|pale|subtle = none",
           "borderWeight?: number",

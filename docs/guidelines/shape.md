@@ -10,6 +10,7 @@ Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ri
 - A decorative mark or illustration a designer drew in Zen Studio with R, O, L, ⇧L, Polygon or Star.
 - A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.
 - A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position="absolute" with px insets.
+- A picture placed in Zen Studio (⇧⌘K, a dropped or pasted file): a Rectangle with an image fill, as Figma places it.
 
 ## Use something else for
 - Data charts → Chart components (DonutChart, RadialChart, ProgressBar…): they carry labels, legends and accessible values.
@@ -22,6 +23,7 @@ Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ri
 | --- | --- | --- |
 | Type | `type` | rectangle (default) · ellipse · line · arrow · polygon · star |
 | Fill | `fill` | a Color/Background token by path (neutral-subtle · accent-solid · surface · support-blue-soft …) or none; default Background/Support/Neutral/Soft (Figma's #D9D9D9) |
+| Image fill | `image / imageFit / imageCrop / imageScale` | a picture over the fill: fill (default, covers) · fit (the whole picture) · crop (imageCrop: the part shown, in %) · tile (imageScale %); Figma's Image paint |
 | Stroke | `stroke / strokeWeight / strokeAlign` | a Color/Border token by path or none · px · inside (default) · center · outside |
 | Arc | `arcStart / arcSweep / arcRatio` | ellipse: Start in degrees (clockwise from 3 o'clock) · Sweep % · Ratio % (the hole), Figma's arcData |
 | Count / Ratio | `pointCount / starRatio` | polygon corners (3) · star tips (5) · star inner radius % (38.2) |
@@ -35,7 +37,7 @@ Generated from the TypeScript source; full JSON in `docs/api/shape.json`.
 ### Shape
 Zen Shape: Figma's native shapes (Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star) for illustrations, marks and decoration drawn in Zen Studio. Not a Figma library component: it maps to Figma's own nodes (RECTANGLE, ELLIPSE with arcData, LINE, REGULAR_POLYGON, STAR) on export and import. Colours are Zen tokens only (`fill` from Color/Background, `stroke` from Color/Border); the rectangle's radius takes the Corner-Radius tokens. It sizes and places like a layout primitive: `width` / `height` (px or fill) and Figma's position props (in a free frame: `position="absolute"` with px insets).
 
-Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps`.
+Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -57,8 +59,12 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProp
 | `radiusTopRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`. |
 | `radiusBottomRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`. |
 | `radiusBottomLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`. |
+| `image` | `string` | — | An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture that means something needs an accessible name on its layer; without one it is decoration. A picture in the content (an article photo, a product shot) is an Image (alt, ratio, caption), not a fill. |
+| `imageFit` | `"fill" \| "fit" \| "crop" \| "tile"` | — | How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at `imageScale`. |
+| `imageCrop` | `{ x: number; y: number; width: number; height: number }` | — | With `imageFit="crop"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`. |
+| `imageScale` | `number` | — | With `imageFit="tile"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100. |
 | `type` | `"rectangle" \| "ellipse" \| "line" \| "arrow" \| "polygon" \| "star"` | `"rectangle"` | The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc), `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end cap), `polygon` (REGULAR_POLYGON, `pointCount` corners) and `star` (STAR, `pointCount` tips, `starRatio`). |
-| `fill` | `ShapeFill` | — | Fill: a Color/Background token by its path ("neutral-subtle", "accent-solid", "surface", "support-blue-soft"; list in `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none. |
+| `fill` | `ShapeFill` | — | Fill: a Color/Background token by its path ("neutral-subtle", "accent-solid", "surface", "support-blue-soft"; list in `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none, and a shape with an `image` has none unless it is given (the colour then shows around a `fit` picture). |
 | `stroke` | `ShapeStroke` | — | Stroke: a Color/Border token by its path ("neutral-solid", "accent-subtle", "support-teal-solid"; `shapeStrokes`), or "none" (default; a line or arrow takes Border/Neutral/Solid). |
 | `strokeWeight` | `number` | `1` | Stroke weight in px (Figma strokeWeight). Default 1. |
 | `strokeAlign` | `"inside" \| "center" \| "outside"` | — | Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's) or `outside`. |
@@ -96,6 +102,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 - Don't draw charts, progress or ratings from shapes: use the components that carry values and labels.
 - Don't use a Shape as a card or section background: use Box surface or Card.
 - Don't pass hex or rgb colours: fill and stroke take Zen token paths only.
+- Don't use an image fill for a picture in the content (an article photo, a product shot): use Image (alt, ratio, caption).
 
 ## Accessibility
 - Decorative by default (aria-hidden); with label it is role=img named by the label.

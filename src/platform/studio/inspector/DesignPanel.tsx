@@ -980,7 +980,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} layer={{ src: selection.src, name: element.name }} /> : null}
       {element && shapeSpecs.length ? <ShapeSections api={api} specs={shapeSpecs} host={sourceHost(selection)} /> : null}
       {textFirst ? null : textSection}
-      {element && isFrameLook(name) ? <FillSection api={api} specs={appearanceSpecs} /> : null}
+      {element && isFrameLook(name) ? <FillSection api={api} specs={appearanceSpecs} host={sourceHost(selection)} /> : null}
       {element && isFrameLook(name) ? <StrokeSection api={api} specs={appearanceSpecs} /> : null}
       {element && isFrameLook(name) ? <EffectsSection api={api} src={selection.src} /> : null}
       {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}
