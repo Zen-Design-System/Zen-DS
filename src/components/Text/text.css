@@ -34,3 +34,10 @@
 }
 /* Inline code inside copy uses the Dev font family (JetBrains Mono in Zen; the app loads it, else the system mono). */
 .zen-text code { font: inherit; font-family: var(--zen-typography-font-family-dev, ui-monospace), ui-monospace, monospace; }
+/* TextRun: words with a style of their own inside a Text (Figma's mixed styles). Everything else comes from the text
+   around it; a tone uses the Content roles (content-tone.css), a text style its class. */
+.zen-text-run[data-bold="true"] { font-weight: var(--zen-emphasis-font-weight-bold, 700); }
+.zen-text-run[data-italic="true"] { font-style: italic; }
+.zen-text-run[data-decoration="underline"] { text-decoration-line: underline; }
+.zen-text-run[data-decoration="strikethrough"] { text-decoration-line: line-through; }
+.zen-text-run[data-decoration="underline strikethrough"] { text-decoration-line: underline line-through; }
