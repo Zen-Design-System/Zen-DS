@@ -17,6 +17,14 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
+  panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
+  first) and a preset makes an empty frame of that size beside the frames; a click on the canvas makes a 100 × 100 frame
+  at once (no menu). A selected frame of a page you made resizes by its handles (⇧ ratio, ⌥ from the center, snapping)
+  and by the right panel's X / Y / W / H, written in the page. Sections ⇧S (`<Section>` on the Board: a named area; the
+  frames inside it move with it, Delete takes them, ⌘⌫ keeps them, right-click › Wrap in new section, rename by
+  double-clicking its name), N / ⇧N zoom to the next / previous frame, and the Pages list keeps the order you drag pages
+  into, with dividers (Add divider).
 - Zen Studio structure and clipboard as in Figma (F3 of the same plan): Delete leaves nothing selected (⌘Z selects the
   layer again); Copy / Paste properties carry fill, stroke, effects, radius, opacity and text style only, never X / Y /
   W / H; ⌘V with nothing (or a frame) selected pastes into the frame in view at the layer's place; Paste here (layer

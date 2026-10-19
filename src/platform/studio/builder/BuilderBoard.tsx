@@ -9,7 +9,8 @@ import { zoomToFrame } from "../board/presentFrame";
 import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
 import { PageOsContext, pageOsOf, ProtoContext, type ProtoActions } from "./proto/runtime";
-import { frameOf } from "./render/frames";
+import { frameOf, isSectionNode } from "./render/frames";
+import { SectionFrame } from "./SectionFrame";
 import { placeFrames } from "./render/framePlace";
 import { livePlace, settleLivePlace } from "./frameMove";
 import { useFrameKeys } from "./frameKeys";
@@ -123,7 +124,7 @@ export function BuilderBoard({ id }: { id: string }) {
     if (!tree?.board) return [];
     // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
     const ctx = { file, mock: tree.mock, proto, cache: cacheRef.current ?? undefined, ids: places?.idAt, components };
-    return tree.board.children.filter((child): child is PageNode => child.kind === "element").map((node) => {
+    return tree.board.children.filter((child): child is PageNode => child.kind === "element" && !isSectionNode(child)).map((node) => {
       const frame = frameOf(node);
       const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => renderFrame(node, ctx) };
       return { ...frame, example };
@@ -132,24 +133,27 @@ export function BuilderBoard({ id }: { id: string }) {
   // Free frames (Figma-like): each at its x / y from the page, the others in the row (render/framePlace.ts); a frame being
   // dragged or nudged keeps its live place until the page has it (frameMove.ts). Written before the browser paints, as
   // the component board places its examples; the box spans the frames for the board's size.
-  const framePlaces = useMemo(() => placeFrames(frames), [frames]);
+  // Figma's sections (F4): drawn first, behind the frames; placed like them (always at their own place).
+  const sections = useMemo(() => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && isSectionNode(child)).map(frameOf), [tree]);
+  const allPlaces = useMemo(() => placeFrames([...sections, ...frames]), [sections, frames]);
+  const framePlaces = useMemo(() => allPlaces.slice(sections.length), [allPlaces, sections.length]);
   // A selected frame the page no longer has (⌘Z took back the copy or the drawn frame): nothing stays selected.
   useEffect(() => {
     if (!tree?.board || tree.errors.length) return;
     const selection = studioStore.getState().selection;
-    if (selection?.kind === "frame" && /^(screen|overlay):/.test(selection.frameId) && !frames.some((frame) => frame.id === selection.frameId)) studioStore.setState({ selection: null });
-  }, [tree, frames]);
+    if (selection?.kind === "frame" && /^(screen|overlay|section):/.test(selection.frameId) && !frames.some((frame) => frame.id === selection.frameId) && !sections.some((section) => section.id === selection.frameId)) studioStore.setState({ selection: null });
+  }, [tree, frames, sections]);
   useLayoutEffect(() => {
     const container = framesRef.current;
     if (!container) return;
     let moved = false;
     let right = 0;
     let bottom = 0;
-    frames.forEach((frame, index) => {
+    [...sections, ...frames].forEach((frame, index) => {
       const element = container.querySelector<HTMLElement>(`:scope > [data-studio-frame="${CSS.escape(frame.id)}"]`);
       if (!element) return;
-      settleLivePlace(frame.id, framePlaces[index]);
-      const place = livePlace(frame.id) ?? framePlaces[index];
+      settleLivePlace(frame.id, allPlaces[index]);
+      const place = livePlace(frame.id) ?? allPlaces[index];
       const left = `${place.x}px`;
       const top = `${place.y}px`;
       if (element.style.left !== left || element.style.top !== top) {
@@ -196,6 +200,7 @@ export function BuilderBoard({ id }: { id: string }) {
           </div>
         ) : null}
         <div ref={framesRef} className="studio-builder-board__frames">
+          {sections.map((section) => <SectionFrame key={section.id} id={section.id} label={section.label} width={section.width} height={section.height ?? 100} />)}
           {frames.map((frame) => (
             <StudioFrame key={frame.id} id={frame.id} kind="example" label={frame.label} width={frame.width} example={frame.example}>
               {frame.example.render()}

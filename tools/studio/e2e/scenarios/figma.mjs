@@ -4,7 +4,10 @@
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
 import { inspectorRow, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
-import { clickNamed, pageText, seededPage, selectedName } from "./builder.mjs";
+import { clickNamed, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
+
+/** A new page of the Studio space titled `title` (its name). */
+const newPageFor = async (ctx, title) => (await newPage(ctx, { title })).name;
 import { pickOption, scaleStep } from "./inspector.mjs";
 
 /** A phone page with its bars, a Button, a Card and a frame holding two shapes (the audit's walk page). */
@@ -47,8 +50,8 @@ async function selectBody(page, id) {
 const NOT_YET = [
   ["ControlOrMeta+KeyG", "Group selection"],
   ["ControlOrMeta+KeyE", "Flatten"], ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
-  ["Shift+KeyR", "Rulers"], ["Shift+KeyS", "Section"], ["KeyP", "Pen"], ["KeyK", "Scale"], ["KeyC", "Comment"],
-  ["KeyI", "Pick color"], ["KeyN", "Next frame"], ["KeyS", "Slice"],
+  ["Shift+KeyR", "Rulers"], ["KeyP", "Pen"], ["KeyK", "Scale"], ["KeyC", "Comment"],
+  ["KeyI", "Pick color"], ["KeyS", "Slice"],
 ];
 
 
@@ -77,6 +80,61 @@ async function undoTo(page, id, text, tries = 3) {
     await until(async () => (await pageText(page, id)) === text, { timeout: 4000, message: "⌘Z" }).catch(() => undefined);
   }
   if ((await pageText(page, id)) !== text) throw new Error("⌘Z did not bring the page back");
+}
+
+/* ── F4 (frames, presets, sections) helpers ───────────────────────────────────────────────────────────────────── */
+
+/** The opening tag of the Board child `<Tag id="id"`: up to its first `>` outside braces (slot props hold JSX). */
+function boardTag(text, tag, id) {
+  const at = text.indexOf(`<${tag} id="${id}"`);
+  if (at < 0) return "";
+  let depth = 0;
+  for (let k = at; k < text.length; k++) {
+    const char = text[k];
+    if (char === "{") depth += 1;
+    else if (char === "}") depth -= 1;
+    else if (char === ">" && depth === 0) return text.slice(at, k + 1);
+  }
+  return text.slice(at);
+}
+const numberAttr = (tag, name) => { const match = tag.match(new RegExp(`\\s${name}=\\{(-?\\d+)\\}`)); return match ? Number(match[1]) : null; };
+const toolButton = (page, name) => page.locator(".studio-canvas-tools").getByRole("button", { name, exact: true });
+const framePresets = (page) => page.locator("#studio-right").getByRole("region", { name: "Frame presets" });
+/** Selects a frame of the walk page by its name on the canvas. */
+async function selectFrame(page, frameId) {
+  const label = page.locator(`.studio-frame-label[data-chrome-key="label:${frameId}"]`);
+  await label.waitFor({ state: "visible", timeout: 5000 });
+  await label.click();
+  await until(async () => (await page.locator(`[data-studio-frame="${frameId}"]`).getAttribute("data-selected")) === "true", { message: `${frameId} selected` });
+}
+/** Draws a Section with ⇧S from a screen point to another (Figma's Section tool). */
+async function drawSection(page, from, to) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Shift+KeyS");
+  await until(async () => (await toolButton(page, "Section").getAttribute("aria-pressed")) === "true", { message: "the Section tool" });
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move((from.x + to.x) / 2, (from.y + to.y) / 2, { steps: 4 });
+  await page.mouse.move(to.x, to.y, { steps: 4 });
+  await page.mouse.up();
+}
+/** Runs `work` on the walk page and puts the page back after it, also when it fails (so a broken row leaves no Section
+ *  behind for the next row). */
+async function restoring(page, id, work) {
+  const before = (await pageText(page, id)) ?? "";
+  try {
+    return await work();
+  } finally {
+    await undoTo(page, id, before, 5).catch(() => undefined);
+  }
+}
+/** Zooms out so the walk page's frame and room around it show (⇧1, then one zoom-out step). */
+async function roomAround(page) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Shift+Digit1");
+  await sleep(300);
+  await page.keyboard.press("Minus");
+  await sleep(300);
 }
 
 
@@ -535,6 +593,228 @@ export const rows = [
       if (!/Checkout/.test(await label.innerText())) throw new Error("the label still shows the old name");
       await undoTo(page, id, before);
       return "frame name → Checkout → ⌘Z";
+    },
+  },
+  {
+    id: "FW-40", feature: "F: the right panel lists Figma's frame presets; Phone › iPhone 16 makes an empty 393 × 852 frame beside the page's frame, named and selected, with Move back on; ⌘Z", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await page.keyboard.press("KeyF");
+        await framePresets(page).waitFor({ state: "visible", timeout: 5000 });
+        await framePresets(page).getByRole("list", { name: "Phone" }).getByRole("button", { name: /^iPhone 16\s*393 × 852$/ }).click();
+        await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a second frame" });
+        const tag = boardTag((await pageText(page, id)) ?? "", "Screen", "screen-2");
+        if (!/title="iPhone 16 2"/.test(tag) || numberAttr(tag, "width") !== 393 || numberAttr(tag, "height") !== 852 || !/device="phone"/.test(tag)) throw new Error(`not an iPhone 16 frame: ${tag}`);
+        const first = boardTag((await pageText(page, id)) ?? "", "Screen", "screen-1");
+        if (numberAttr(tag, "x") !== (numberAttr(first, "x") ?? 0) + (numberAttr(first, "width") ?? 390) + 96) throw new Error(`not beside the first frame: ${tag}`);
+        if ((await pressedTool(page)) !== "Move") throw new Error(`the tool is ${await pressedTool(page)}`);
+        await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
+        await undoTo(page, id, before);
+        return "F › iPhone 16 → 393 × 852 frame beside screen-1, selected, Move → ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-41", feature: "F and a click on the empty canvas: an empty 100 × 100 frame there at once (no menu), named Frame 2; ⌘Z", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await roomAround(page);
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await page.keyboard.press("KeyF");
+        await page.mouse.click(frame.x + frame.width + 120, frame.y + 40);
+        await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a second frame" });
+        if (await page.getByRole("menu").count()) throw new Error("a menu opened");
+        const tag = boardTag((await pageText(page, id)) ?? "", "Screen", "screen-2");
+        if (numberAttr(tag, "width") !== 100 || numberAttr(tag, "height") !== 100 || !/title="Frame 2"/.test(tag)) throw new Error(`not a 100 × 100 Frame 2: ${tag}`);
+        await undoTo(page, id, before);
+        return "F + click → Frame 2, 100 × 100 → ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-42", feature: "A selected frame has Figma's resize handles: dragging its bottom-right corner writes W and H in one edit (the size shows while dragging); ⌘Z", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await roomAround(page);
+        await selectFrame(page, "screen:screen-1");
+        const handle = page.locator('.studio-frame-handle[data-handle="se"]');
+        await handle.waitFor({ state: "visible", timeout: 5000 });
+        const box = await handle.boundingBox();
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(box.x + 30, box.y + 20, { steps: 4 });
+        await page.mouse.move(box.x + 60, box.y + 40, { steps: 4 });
+        const live = await page.locator(".studio-frame-handle__pill").innerText();
+        await page.mouse.up();
+        await until(async () => numberAttr(boardTag((await pageText(page, id)) ?? "", "Screen", "screen-1"), "width") > 390, { message: "a wider frame" });
+        const tag = boardTag((await pageText(page, id)) ?? "", "Screen", "screen-1");
+        if (!/^\d+ × \d+$/.test(live)) throw new Error(`no size while dragging: ${JSON.stringify(live)}`);
+        await undoTo(page, id, before);
+        return `corner drag → ${numberAttr(tag, "width")} × ${numberAttr(tag, "height")} (live ${live}) → ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-43", feature: "A selected frame's right panel has Figma's Position X / Y and Layout W / H: typing W 420 and X 200 writes them on the Screen; ⌘Z", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await selectFrame(page, "screen:screen-1");
+        const width = page.locator('#studio-right [data-prop="frame-size"] input[aria-label="Width"]');
+        await width.fill("420");
+        await width.press("Enter");
+        await until(async () => numberAttr(boardTag((await pageText(page, id)) ?? "", "Screen", "screen-1"), "width") === 420, { message: "W 420" });
+        const x = page.locator('#studio-right [data-prop="frame-position"] input[aria-label="X"]');
+        await x.fill("200");
+        await x.press("Enter");
+        await until(async () => numberAttr(boardTag((await pageText(page, id)) ?? "", "Screen", "screen-1"), "x") === 200, { message: "X 200" });
+        await undoTo(page, id, before, 4);
+        return "W 420, X 200 → ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-44", feature: "⇧S draws a Section around the frame (Section 1, its name inside its top-left corner); dragging the Section's name moves the frame with it in one edit; ⌘Z", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await roomAround(page);
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await drawSection(page, { x: frame.x - 60, y: frame.y - 60 }, { x: frame.x + frame.width + 60, y: frame.y + frame.height + 60 });
+        await until(async () => /<Section id="section-1" title="Section 1"/.test((await pageText(page, id)) ?? ""), { message: "Section 1" });
+        const label = page.locator('.studio-frame-label[data-kind="section"]').first();
+        await label.waitFor({ state: "visible", timeout: 5000 });
+        const area = await page.locator('[data-studio-frame="section:section-1"]').boundingBox();
+        const tab = await label.boundingBox();
+        if (tab.x < area.x || tab.y < area.y) throw new Error("the Section's name is not inside its corner");
+        const x0 = numberAttr(boardTag((await pageText(page, id)) ?? "", "Screen", "screen-1"), "x");
+        await page.mouse.move(tab.x + 8, tab.y + tab.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(tab.x + 40, tab.y + tab.height / 2 + 10, { steps: 5 });
+        await page.mouse.move(tab.x + 80, tab.y + tab.height / 2 + 20, { steps: 5 });
+        await page.mouse.up();
+        await until(async () => numberAttr(boardTag((await pageText(page, id)) ?? "", "Screen", "screen-1"), "x") !== x0, { message: "the frame moved with its Section" });
+        await undoTo(page, id, before, 4);
+        return "⇧S around screen-1 → Section 1; drag its name → both move → ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-45", feature: "Delete on a selected Section deletes the frames in it too (one ⌘Z brings both back); ⌘⌫ deletes the Section only", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await roomAround(page);
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await drawSection(page, { x: frame.x - 60, y: frame.y - 60 }, { x: frame.x + frame.width + 60, y: frame.y + frame.height + 60 });
+        await until(async () => /<Section id="section-1"/.test((await pageText(page, id)) ?? ""), { message: "a Section" });
+        const drawn = (await pageText(page, id)) ?? "";
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Delete");
+        await until(async () => { const text = (await pageText(page, id)) ?? ""; return !/<Section /.test(text) && !/<Screen id="screen-1"/.test(text); }, { message: "Delete takes the Section and its frame" });
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === drawn, { message: "one ⌘Z brings both back" });
+        await selectFrame(page, "section:section-1");
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+Backspace");
+        await until(async () => { const text = (await pageText(page, id)) ?? ""; return !/<Section /.test(text) && /<Screen id="screen-1"/.test(text); }, { message: "⌘⌫ keeps the frame" });
+        await undoTo(page, id, before, 4);
+        return "Delete → Section + frame; ⌘Z; ⌘⌫ → Section only";
+      });
+    },
+  },
+  {
+    id: "FW-46", feature: "Right-click a frame › Wrap in new section: a Section around the frame (80 px of room on each side), selected; ⌘Z", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await selectFrame(page, "screen:screen-1");
+        await page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]').click({ button: "right" });
+        await page.getByRole("menuitem", { name: "Wrap in new section" }).click();
+        await until(async () => /<Section id="section-1"/.test((await pageText(page, id)) ?? ""), { message: "a Section" });
+        const text = (await pageText(page, id)) ?? "";
+        const section = boardTag(text, "Section", "section-1");
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').evaluate((element) => ({ x: element.offsetLeft, y: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight }));
+        if (numberAttr(section, "x") !== frame.x - 80 || numberAttr(section, "y") !== frame.y - 80 || numberAttr(section, "width") !== frame.width + 160) throw new Error(`not around the frame: ${section} (${JSON.stringify(frame)})`);
+        await until(async () => (await page.locator('[data-studio-frame="section:section-1"]').getAttribute("data-selected")) === "true", { message: "the Section selected" });
+        await undoTo(page, id, before, 4);
+        return "Wrap in new section → Section around screen-1 (80 px) → ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-47", feature: "N selects and zooms to the next frame, ⇧N to the previous (reading order, wrapping round)", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await page.keyboard.press("KeyF");
+        await framePresets(page).getByRole("list", { name: "Phone" }).getByRole("button", { name: /^iPhone 16\s*393 × 852$/ }).click();
+        await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a second frame" });
+        const selected = async () => (await page.locator("[data-studio-frame][data-selected='true']").first().getAttribute("data-studio-frame").catch(() => null));
+        await until(async () => (await selected()) === "screen:screen-2", { message: "screen-2 selected" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyN");
+        await until(async () => (await selected()) === "screen:screen-1", { message: "N wraps round to screen-1" });
+        await page.keyboard.press("KeyN");
+        await until(async () => (await selected()) === "screen:screen-2", { message: "N → screen-2" });
+        await page.keyboard.press("Shift+KeyN");
+        await until(async () => (await selected()) === "screen:screen-1", { message: "⇧N → screen-1" });
+        await undoTo(page, id, before);
+        return "N → screen-1 → screen-2, ⇧N → screen-1";
+      });
+    },
+  },
+  {
+    id: "FW-48", feature: "The Frame button's menu lists Frame F and Section ⇧S (Figma UI3); picking Section turns the Section tool on and the button shows it", wp: "F4 2026-10-19",
+    async run(ctx) {
+      const { page } = await walkPage(ctx);
+      await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame tools" }).click();
+      const menu = page.getByRole("menu", { name: "Frame tools" });
+      await menu.waitFor({ state: "visible", timeout: 3000 });
+      const items = await menu.getByRole("menuitem").allInnerTexts();
+      if (!/Frame[\s\S]*F/.test(items[0] ?? "") || !/Section[\s\S]*⇧S/.test(items[1] ?? "")) throw new Error(`menu: ${JSON.stringify(items)}`);
+      await menu.getByRole("menuitem", { name: /^Section/ }).click();
+      await until(async () => (await toolButton(page, "Section").getAttribute("aria-pressed")) === "true", { message: "the Section tool on" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("KeyV");
+      return `menu ${items.map((item) => item.replace(/\s+/g, " ")).join(" / ")} → Section on`;
+    },
+  },
+  {
+    id: "FW-49", feature: "Pages keep the person's order: a new page comes last, a page dragged above another stays there, Add divider puts a line between them, and both stay after a reload", wp: "F4 2026-10-19", timeout: 45_000,
+    async run(ctx) {
+      const { page } = await walkPage(ctx);
+      await showLeftTab(page, "pages");
+      const walkName = (await page.locator('#studio-left .studio-pages__row[aria-current="page"] .studio-pages__name').first().innerText()).trim();
+      const b = await newPageFor(ctx, `Order B ${Date.now().toString(36)}`);
+      await showLeftTab(page, "pages");
+      const list = page.locator('#studio-left ul[aria-labelledby="studio-pages-loose"]');
+      const order = async () => (await list.locator(":scope > li").evaluateAll((rows) => rows.map((row) => (row.getAttribute("data-entry")?.startsWith("divider:") ? "—" : row.querySelector(".studio-pages__name")?.textContent ?? "?")))).filter((name) => name === walkName || name === b || name === "—");
+      if ((await order()).join("|") !== [walkName, b].join("|")) throw new Error(`the new page is not last: ${JSON.stringify(await order())}`);
+      const rowA = list.locator(":scope > li", { hasText: walkName });
+      const rowB = list.locator(":scope > li", { hasText: b });
+      await rowB.dragTo(rowA, { targetPosition: { x: 40, y: 4 } });
+      await until(async () => (await order()).join("|") === [b, walkName].join("|"), { message: "B above the walk page" });
+      await rowB.hover();
+      await rowB.getByRole("button", { name: `${b} actions` }).click();
+      await page.getByRole("menuitem", { name: "Add divider" }).click();
+      await until(async () => (await order()).join("|") === [b, "—", walkName].join("|"), { message: "a divider after B" });
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+      await showLeftTab(page, "pages");
+      await until(async () => (await order()).join("|") === [b, "—", walkName].join("|"), { message: "the order after a reload", timeout: 15_000 });
+      return `${b} | — | ${walkName}, kept after a reload`;
     },
   },
   {

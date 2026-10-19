@@ -9,7 +9,7 @@ import type { PlatformShellSettings } from "../PlatformTemplate";
 /** Canvas tools: Select (V) picks layers, Hand (H) pans, Interact (I) uses the examples like a real app. */
 /** Canvas tools: Move (select), Hand, Interact, and the placement tools (toolbar, 2026-10-09: Screen, Stack, Text, Image);
  *  Figma's shape tools since 2026-10-17 (draw/drawTool.ts: Rectangle R, Ellipse O, Line L, Arrow ⇧L, Polygon, Star). */
-export type StudioTool = "select" | "hand" | "interact" | "frame" | "stack" | "text" | "image" | StudioShapeTool;
+export type StudioTool = "select" | "hand" | "interact" | "frame" | "section" | "stack" | "text" | "image" | StudioShapeTool;
 export type StudioShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "polygon" | "star";
 
 /** Admin edits source through the dev server; Viewer inspects read-only. Default admin. */
@@ -23,7 +23,7 @@ export type StudioPreviewSettings = PlatformShellSettings;
 
 /** A frame on the board. Ids are stable per page: "playground", "main-component", "docs", "guidelines", "document",
  *  "example:<n>". */
-export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document";
+export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document" | "section";
 /** "auto" = the rule width; a number = px, a toolbar preset (390…1440) or a free width dragged on the frame's right edge. */
 export type StudioFrameWidth = "auto" | number;
 export type StudioFrameOverride = { width?: StudioFrameWidth; theme?: "light" | "dark" };

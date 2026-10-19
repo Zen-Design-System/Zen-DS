@@ -3,6 +3,7 @@ import { studioStore } from "../store";
 import type { EditOp } from "../types";
 import { loadEngine, zenComponents } from "./engine";
 import { frameOf, literalOf, type PageFrame } from "./render/frames";
+import { selectFrameWhenShown } from "../board/frames";
 import { FRAME_GAP, placeFrames, type FramePlace } from "./render/framePlace";
 import type { PageNode, PageTree } from "./render/renderPage";
 import { getPage, pageFile } from "./store/pageStore";
@@ -42,6 +43,40 @@ export async function moveFrames(localPage: string, moves: ReadonlyMap<string, F
   board.frames.forEach((frame, index) => {
     const to = moves.get(frame.id) ?? (frame.place ? null : board.places[index]);
     if (to && !same(frame.place, to)) opsByLoc[frame.loc] = placeOps(to);
+  });
+  const locs = Object.keys(opsByLoc);
+  if (!locs.length) return true;
+  const first = board.nodes[board.frames.findIndex((frame) => frame.loc === locs[0])];
+  const response = await applyEdit({ file: board.file, loc: first.loc, name: first.name, ops: [{ op: "many", action: "setProps", locs, opsByLoc }], hash: board.hash }, label);
+  return Boolean(response.ok);
+}
+
+/** A frame's or Section's new box on the board (Figma's X / Y / W / H, a resize handle): only the fields given change. */
+export type FrameBoxChange = Partial<{ x: number; y: number; width: number; height: number }>;
+
+/**
+ * Sets the place and size of frames and Sections in one edit (one ⌘Z): x / y on any of them, width / height on a Screen
+ * (its height is the least it takes: content past it grows the frame) or a Section. An Overlay takes its content's
+ * size. Frames still in the row are pinned where they show, as a move does.
+ */
+export async function setFrameBoxes(localPage: string, changes: ReadonlyMap<string, FrameBoxChange>, label: string): Promise<boolean> {
+  const board = await readBoard(localPage);
+  if (!board) return false;
+  const opsByLoc: Record<string, EditOp[]> = {};
+  board.frames.forEach((frame, index) => {
+    const change = changes.get(frame.id);
+    const ops: EditOp[] = [];
+    const place = frame.place ?? board.places[index];
+    const to = { x: change?.x ?? place.x, y: change?.y ?? place.y };
+    if (!same(frame.place, to)) ops.push(...placeOps(to));
+    if (change && frame.kind !== "overlay") {
+      const limits = frame.kind === "section" ? { min: 100, max: 40000 } : { min: 100, max: 4096 };
+      for (const name of ["width", "height"] as const) {
+        const value = change[name];
+        if (value !== undefined) ops.push(number(name, Math.min(limits.max, Math.max(limits.min, value))));
+      }
+    }
+    if (ops.length) opsByLoc[frame.loc] = ops;
   });
   const locs = Object.keys(opsByLoc);
   if (!locs.length) return true;
@@ -99,7 +134,7 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
   const after = index >= 0 ? fresh.nodes[index]?.loc : undefined;
   const response = await applyEdit({ file: fresh.file, loc: fresh.tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, ...(after ? { after } : {}) }], hash: fresh.hash }, label);
   if (!response.ok) return null;
-  studioStore.setState({ selection: { kind: "frame", frameId: newFrame } });
+  selectFrameWhenShown(newFrame, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return newFrame;
 }
 

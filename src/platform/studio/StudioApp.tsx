@@ -40,6 +40,7 @@ import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { VariablesWindow } from "./variables/VariablesWindow";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
 import { removeFrame } from "./builder/proto/addFrame";
+import { stepFrame } from "./board/frameOrder";
 import { startPageMirror } from "./builder/store/mirrors";
 import { cachedPage } from "./builder/store/pageStore";
 import { ChromePortalContext, ChromeScope, useChromeAttributes } from "./shell/ChromeScope";
@@ -53,7 +54,6 @@ import { useRenameKeys } from "./edit/rename";
 import { BatchRenameDialog } from "./shell/BatchRenameDialog";
 import { PAGE_SEARCH_ID, PagesPanel } from "./shell/PagesPanel";
 import { CanvasMenu } from "./shell/CanvasMenu";
-import { FramePicker } from "./builder/FramePicker";
 import { DraftsDialog } from "./shell/DraftsControls";
 import { ParityDialog } from "./mainComponent/ParityDialog";
 import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
@@ -463,6 +463,12 @@ export function StudioApp() {
           return;
         }
         if (key === "y" && event.ctrlKey && !inExample) { event.preventDefault(); if (canEdit(state)) void redoEdit(); return; }
+        // ⌘⌫ on a selected Section of a page you made: Figma's delete section, keep its frames (F4).
+        if ((event.key === "Backspace" || event.key === "Delete") && !doc && !event.repeat && !event.shiftKey && state.localPage && state.tool === "select"
+          && state.selection?.kind === "frame" && state.selection.frameId.startsWith("section:") && canEdit(state)) {
+          event.preventDefault();
+          void removeFrame(state.localPage, state.selection.frameId, { keepContents: true });
+        }
         return;
       }
       // ⌥⇧A: Figma's Remove auto layout on a Stack (edit/autoLayout.ts): a Box, each layer where it shows.
@@ -490,8 +496,9 @@ export function StudioApp() {
         const onFrame = here || Boolean(target?.closest(".studio-frame-label[data-selected='true']"))
           || Boolean(row && row === target && row.getAttribute("data-kind") === "frame" && row.getAttribute("aria-selected") === "true");
         if (!doc && !event.repeat && !event.shiftKey && onFrame && state.tool === "select" && selection?.kind === "frame" && state.localPage
-          && /^(screen|overlay):/.test(selection.frameId) && canEdit(state)) {
+          && /^(screen|overlay|section):/.test(selection.frameId) && canEdit(state)) {
           event.preventDefault();
+          // A Section goes with its frames (⌘⌫ keeps them: the ⌘ keys above).
           void removeFrame(state.localPage, selection.frameId);
           return;
         }
@@ -547,6 +554,10 @@ export function StudioApp() {
             return;
           }
         }
+        // ⇧N: Figma's Zoom to previous frame (a page you made; board/frameOrder.ts).
+        if (event.code === "KeyN" && state.localPage) { event.preventDefault(); stepFrame(-1); return; }
+        // ⇧S: Figma's Section tool (a page you made; builder/frameMove.ts).
+        if (event.code === "KeyS" && !event.repeat && state.localPage) { event.preventDefault(); studioStore.setState({ tool: "section" }); return; }
         // ⇧L: Figma's Arrow tool (a page you made).
         if (event.code === "KeyL" && !event.repeat && state.localPage) { event.preventDefault(); studioStore.setState({ tool: "arrow" }); return; }
         // ⇧I opens Quick insert (Figma's): search the library, Enter adds the item (builder/library/QuickInsert.tsx).
@@ -563,6 +574,8 @@ export function StudioApp() {
       // Figma's A is the Frame tool too (on a page you made; elsewhere the Stack placement tool); T places text.
       else if (key === "a") studioStore.setState({ tool: state.localPage ? "frame" : "stack" });
       else if (key === "t") studioStore.setState({ tool: "text" });
+      // Figma's Zoom to next frame (a page you made; board/frameOrder.ts).
+      else if (key === "n" && state.localPage) stepFrame(1);
       // Figma's shape tools, on a page you made (draw/drawTool.ts): R rectangle, O ellipse, L line (⇧L arrow, above).
       else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
       else if (key === "f") {
@@ -689,7 +702,6 @@ export function StudioApp() {
           <ParityDialog />
           <BindingDiffDialog />
           <CanvasMenu />
-          <FramePicker />
         </ChromeScope>
         {/* Popovers, menus, tooltips and dialogs of the chrome: above the canvas and its overlays. */}
         <div ref={setChromePortal} className="studio-chrome-portal" {...chromeAttributes} />

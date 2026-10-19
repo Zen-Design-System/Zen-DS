@@ -21,6 +21,8 @@ import { COLLAPSE_LAYERS_EVENT } from "../../select/layerMeta";
 import { isSelectionLocked, lockShortcut, toggleLockSelection } from "../lock";
 import { renameShortcut, startRename } from "../rename";
 import { startTextEditOnSelection } from "../textEdit";
+import { stepFrame } from "../../board/frameOrder";
+import { wrapInSection } from "../../builder/proto/addFrame";
 import { createComponentOfLayers, createComponents } from "../localComponents";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
@@ -50,6 +52,10 @@ export function commands(): Command[] {
   const list: Command[] = [
     { id: "tool-select", group: "Tools", label: "Move", shortcut: "V", keywords: "select", run: () => studioStore.setState({ tool: "select" }) },
     { id: "tool-hand", group: "Tools", label: "Hand", shortcut: "H", keywords: "pan", run: () => studioStore.setState({ tool: "hand" }) },
+    // Figma's Frame and Section tools (F4), on a page you made.
+    { id: "tool-frame", group: "Tools", label: "Frame", shortcut: "F", keywords: "screen artboard preset device", disabled: state.localPage ? undefined : "Frame works on a page you made", run: () => studioStore.setState({ tool: "frame" }) },
+    { id: "tool-section", group: "Tools", label: "Section", shortcut: "⇧S", keywords: "group area board", disabled: state.localPage ? undefined : "Section works on a page you made", run: () => studioStore.setState({ tool: "section" }) },
+    { id: "wrap-section", group: "Edit", label: "Wrap in new section", keywords: "section group frames", disabled: !state.localPage || !frameId || !/^(screen|overlay):/.test(frameId) || selection?.kind !== "frame" ? "Select a frame on a page you made" : !canEdit(state) ? "View only" : undefined, run: () => { if (state.localPage && frameId) void wrapInSection(state.localPage, [frameId]); } },
     // Zen's own tool (Figma has none): try the components where they are drawn, an Overlay frame's form included. On a
     // page you made it is here only (no toolbar button; I is Figma's Pick color there).
     { id: "tool-interact", group: "Tools", label: "Interact", shortcut: state.localPage ? undefined : "I", keywords: "preview play use try examples components", run: () => studioStore.setState({ tool: "interact" }) },
@@ -90,6 +96,8 @@ export function commands(): Command[] {
     { id: "zoom-100", group: "View", label: "Zoom to 100%", shortcut: "⇧0", run: () => canvasApi.setZoom(1) },
     { id: "zoom-fit", group: "View", label: "Zoom to fit", shortcut: "⇧1", run: () => canvasApi.fit() },
     { id: "zoom-selection", group: "View", label: "Zoom to selection", shortcut: "⇧2", disabled: selection ? undefined : "Select a layer or frame first", run: () => press({ key: "@", code: "Digit2", shiftKey: true }) },
+    { id: "next-frame", group: "View", label: "Zoom to next frame", shortcut: "N", disabled: state.localPage ? undefined : "Works on a page you made", run: () => { stepFrame(1); } },
+    { id: "previous-frame", group: "View", label: "Zoom to previous frame", shortcut: "⇧N", disabled: state.localPage ? undefined : "Works on a page you made", run: () => { stepFrame(-1); } },
     { id: "present", group: "View", label: "Present", shortcut: presentShortcut, keywords: "full screen play", disabled: frameId ? undefined : "Select a frame or a layer in one", run: () => { if (frameId) presentFrame(frameId); } },
     { id: "panels", group: "View", label: "Show/Hide UI", shortcut: `${modKey}\\`, keywords: "side panels", run: toggleSidePanels },
     { id: "theme", group: "View", label: state.chromeTheme === "dark" ? "Light mode" : "Dark mode", keywords: "theme dark light interface canvas mode", run: toggleStudioTheme },

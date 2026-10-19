@@ -33,7 +33,8 @@ const holds = (outer: DOMRect, inner: DOMRect) => outer.left <= inner.left && ou
 function frameUnder(box: DOMRect): Element | null {
   let best: Element | null = null;
   let area = 0;
-  for (const frame of canvasApi.getWorldElement()?.querySelectorAll("[data-studio-frame]") ?? []) {
+  // A Section (F4) holds no layers of its own: the frames on it are what a marquee picks in.
+  for (const frame of canvasApi.getWorldElement()?.querySelectorAll("[data-studio-frame]:not([data-kind='section'])") ?? []) {
     const r = frame.getBoundingClientRect();
     const w = Math.min(r.right, box.right) - Math.max(r.left, box.left);
     const h = Math.min(r.bottom, box.bottom) - Math.max(r.top, box.top);

@@ -12,7 +12,8 @@ import { studioStore, useStudio } from "../store";
 import { MyPageRow } from "./MyPages";
 import { RenameField } from "./RenameField";
 import { createFolder, deleteFolder, renameFolder, type StudioFolder } from "./store/folderStore";
-import { cachedPage, type PageMeta } from "./store/pageStore";
+import { cachedPage, movePage, type PageMeta } from "./store/pageStore";
+import { moveEntry, orderedEntries, removeDivider, showEntries, usePageOrder } from "./store/pageOrderStore";
 import { activeProjectId } from "../project/activeProject";
 
 /*
@@ -67,6 +68,83 @@ function DeleteFolderDialog({ folder, count, onClose }: { folder: StudioFolder; 
   );
 }
 
+/** The row being dragged in the Pages panel (one list or another) and the list it came from. */
+let dragging: { id: string; scope: string } | null = null;
+
+/** Figma's divider between groups of pages: a line, dragged as a page is, with Delete in its menu. */
+function DividerRow({ scope, id }: { scope: string; id: string }) {
+  const admin = useStudio((state) => state.role === "admin");
+  return (
+    <li className="studio-pages__item studio-pages__divider" data-entry={id} draggable={admin}>
+      <div className="studio-pages__divider-line" role="separator" aria-label="Divider" />
+      <span className="studio-pages__actions">
+        <Menu align="end" aria-label="Divider options" trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="Divider options" appearance="flat" level="primary" size="xs" tabIndex={-1} />}
+          items={[{ id: "delete", label: "Delete divider", icon: "icon-trash-line", danger: true, disabled: !admin, onSelect: () => void removeDivider(scope, id).catch(fail) }]} />
+      </span>
+    </li>
+  );
+}
+
+/**
+ * A list of the Pages panel (a folder's pages, or those in no folder) in the person's order with its dividers
+ * (store/pageOrderStore.ts, F4): a row drags to another place, here or in another list (it moves to that folder); the
+ * line shows where it lands. `folder`: the folder the list is (null: no folder).
+ */
+function PageList({ scope, folder, pages, nested = false, tabStop, id, label, labelledBy }: { scope: string; folder: string | null; pages: PageMeta[]; nested?: boolean; tabStop: PageMeta | null; id?: string; label?: string; labelledBy?: string }) {
+  usePageOrder();
+  const localPage = useStudio((state) => state.localPage);
+  const entries = orderedEntries(scope, pages);
+  showEntries(scope, entries);
+  const rowOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement>("[data-entry]") : null);
+  const clear = (list: HTMLElement) => list.querySelectorAll<HTMLElement>("[data-drop]").forEach((row) => { delete row.dataset.drop; });
+  return (
+    <ul
+      id={id}
+      className="studio-pages__list"
+      aria-label={label}
+      aria-labelledby={labelledBy}
+      onDragStart={(event) => {
+        const row = rowOf(event.target);
+        if (!row?.dataset.entry) return;
+        dragging = { id: row.dataset.entry, scope };
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", row.dataset.entry);
+      }}
+      onDragOver={(event) => {
+        if (!dragging || (dragging.scope !== scope && dragging.id.startsWith("divider:"))) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        clear(event.currentTarget);
+        const row = rowOf(event.target);
+        if (!row || row.dataset.entry === dragging.id) return;
+        const box = row.getBoundingClientRect();
+        row.dataset.drop = event.clientY < box.top + box.height / 2 ? "before" : "after";
+      }}
+      onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) clear(event.currentTarget); }}
+      onDrop={(event) => {
+        const from = dragging;
+        dragging = null;
+        const row = event.currentTarget.querySelector<HTMLElement>("[data-drop]");
+        const side = row?.dataset.drop;
+        clear(event.currentTarget);
+        if (!from) return;
+        event.preventDefault();
+        const at = row ? entries.findIndex((entry) => entry.id === row.dataset.entry) : -1;
+        const before = at < 0 ? null : side === "before" ? entries[at].id : entries[at + 1]?.id ?? null;
+        if (before === from.id) return;
+        // From another list: the page moves to this folder first.
+        const moved = from.scope === scope ? Promise.resolve() : movePage(from.id, folder);
+        void moved.then(() => moveEntry(scope, from.id, before)).catch(fail);
+      }}
+      onDragEnd={(event) => { dragging = null; clear(event.currentTarget); }}
+    >
+      {entries.map((entry) => (entry.kind === "divider"
+        ? <DividerRow key={entry.id} scope={scope} id={entry.id} />
+        : <MyPageRow key={entry.id} item={entry.page} nested={nested} scope={scope} current={entry.id === localPage} tabIndex={entry.page === tabStop ? 0 : -1} />))}
+    </ul>
+  );
+}
+
 /** One folder: the row that opens and closes it, New page in it, its options, then its pages. */
 function FolderGroup({ folder, pages, open, onToggle, onNewPage, tabStop, rowTab }: { folder: StudioFolder; pages: PageMeta[]; open: boolean; onToggle: () => void; onNewPage: () => void; tabStop: PageMeta | null; rowTab: boolean }) {
   const admin = useStudio((state) => state.role === "admin");
@@ -110,9 +188,7 @@ function FolderGroup({ folder, pages, open, onToggle, onNewPage, tabStop, rowTab
       </div>
       {open ? (
         pages.length ? (
-          <ul id={listId} className="studio-pages__list" aria-label={folder.name}>
-            {pages.map((item) => <MyPageRow key={item.id} item={item} nested current={item.id === localPage} tabIndex={item === tabStop ? 0 : -1} />)}
-          </ul>
+          <PageList id={listId} label={folder.name} scope={folder.id} folder={folder.id} pages={pages} nested tabStop={tabStop} />
         ) : <Text as="p" id={listId} textStyle="Caption/Regular" tone="base" className="studio-folder__empty">No pages yet</Text>
       ) : null}
       {dialog === "delete" ? <DeleteFolderDialog folder={folder} count={pages.length} onClose={() => setDialog(null)} /> : null}
@@ -145,9 +221,7 @@ export function StudioFolderTree({ folders, pages, searching, onNewPage }: { fol
       {loose.length ? (
         <div className="studio-pages__section" data-section="loose">
           <Text as="p" id="studio-pages-loose" textStyle="Caption/Medium" tone="base" className="studio-pages__kicker">Not in a folder</Text>
-          <ul className="studio-pages__list" aria-labelledby="studio-pages-loose">
-            {loose.map((item) => <MyPageRow key={item.id} item={item} current={item.id === localPage} tabIndex={item === tabStop ? 0 : -1} />)}
-          </ul>
+          <PageList labelledBy="studio-pages-loose" scope={`loose:${activeProjectId() ?? "drafts"}`} folder={null} pages={loose} tabStop={tabStop} />
         </div>
       ) : null}
     </>
