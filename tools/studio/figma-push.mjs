@@ -1386,7 +1386,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const px = (value) => (/^\d+(\.\d+)?(px)?$/.test(String(value ?? "")) ? Number.parseFloat(String(value)) : null);
     const fixedWidth = px(code.width);
     const fixedHeight = px(code.height);
-    return { type: "FRAME", ...(id ? { id } : {}), name: group ? "Group" : element.name, ...(group ? { group: true } : {}), layout, children, ...frameLook(code, element), ...(fixedWidth !== null ? { fixedWidth } : {}), ...(fixedHeight !== null ? { fixedHeight } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
+    // A free frame (a Box of a px size whose layers all float at their X / Y, or none: the Frame tool's): Figma's frame
+    // without auto layout (layoutMode NONE), its layers at their X / Y (F4, A found it 2026-10-19).
+    const layers = element.children.filter((child) => child.kind === "element");
+    const free = element.name === "Box" && !group && fixedWidth !== null && fixedHeight !== null && layers.every((child) => literalOf(child.props.position) === "absolute");
+    return { type: "FRAME", ...(id ? { id } : {}), name: group ? "Group" : element.name, ...(group ? { group: true } : {}), layout: free ? { mode: "NONE" } : layout, children, ...frameLook(code, element), ...(fixedWidth !== null ? { fixedWidth } : {}), ...(fixedHeight !== null ? { fixedHeight } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */

@@ -317,7 +317,8 @@ const placed = (out, child, parent) => {
     const inGroup = parent.type === "GROUP" || parent.type === "BOOLEAN_OPERATION";
     const w = out.shape ? out.shape.w : Math.round(child.width * 100) / 100;
     const h = out.shape ? out.shape.h : Math.round(child.height * 100) / 100;
-    if ((out.shape || out.type === "GROUP" || inGroup) && ("layoutMode" in parent || inGroup)) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: constraints.horizontal, cy: constraints.vertical, free: true };
+    // Every layer of a frame without auto layout (Figma's free frame: shapes, frames, texts, instances) keeps its X / Y.
+    if ("layoutMode" in parent || inGroup) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: constraints.horizontal, cy: constraints.vertical, free: true };
     return out;
   }
   // A grid cell keeps its minimum width (figma-push: columns that fit, counted for the page's width).
@@ -435,6 +436,8 @@ const readFrame = async (node, root = false) => {
     if (sets.every((set) => set && set.name === "Primitives/Table/Data-Row")) return readTable(node, visible, root);
   }
   const out = { type: node.type, id: node.id, name: node.name, ...frameOf(node, root), children: [] };
+  // A frame without auto layout (Figma's free frame): its own size, its layers at their X / Y (a Zen free Box).
+  if (!root && own("layoutMode") === "NONE") out.fixed = { w: Math.round(node.width * 100) / 100, h: Math.round(node.height * 100) / 100 };
   // A GROUP's box (a Zen group's width and height; the live Zen file 2026-10-19 read none and the group came back NaN).
   if (node.type === "GROUP") Object.assign(out, { width: Math.round(node.width * 100) / 100, height: Math.round(node.height * 100) / 100 });
   // Clip content: a frame inside the page that clips (the page frame itself is the screen, which always does).
@@ -1301,6 +1304,16 @@ function positioned(element, node, ctx) {
   }
   const x = { MIN: "left", MAX: "right", CENTER: "center", STRETCH: "left-right", SCALE: "left-right" }[box.cx] ?? "left";
   const y = { MIN: "top", MAX: "bottom", CENTER: "center", STRETCH: "top-bottom", SCALE: "top-bottom" }[box.cy] ?? "top";
+  // A text or a component in a free frame: the Studio's float wrapper (position/float.ts), a Box at its px X / Y.
+  if (box.free) {
+    const wrap = { position: literal("absolute"), ...(x !== "left" ? { constraintX: literal(x) } : {}), ...(y !== "top" ? { constraintY: literal(y) } : {}) };
+    const round2 = (value) => Math.round(value * 100) / 100;
+    if (x === "left" || x === "left-right") wrap.insetLeft = literal(round2(box.x));
+    if (x === "right" || x === "left-right") wrap.insetRight = literal(round2(box.pw - box.x - box.w));
+    if (y === "top" || y === "top-bottom") wrap.insetTop = literal(round2(box.y));
+    if (y === "bottom" || y === "top-bottom") wrap.insetBottom = literal(round2(box.ph - box.y - box.h));
+    return { kind: "element", ...(idOf(node, ctx, "place") ? { id: idOf(node, ctx, "place") } : {}), name: "Box", props: wrap, children: [element] };
+  }
   const props = { position: literal("absolute"), constraintX: literal(x), constraintY: literal(y) };
   const far = [];
   const inset = (prop, px) => {
@@ -1720,6 +1733,12 @@ function frameElement(node, children, ctx) {
     return { kind: "element", name: "Grid", props: { ...(fitMin !== 240 ? { minColumnWidth: literal(fitMin) } : {}), ...(gap !== "md" ? { gap: literal(gap) } : {}) }, children };
   }
   const grid = layout?.mode === "GRID";
+  // A free frame (Figma's frame without auto layout): a Box of its px size, its layers at their X / Y (figma-push, the
+  // other way; positioned() gave them px insets).
+  if (!layout && node.fixed) {
+    const look = frameLookProps(node, ctx);
+    return { kind: "element", name: "Box", props: { width: literal(node.fixed.w), height: literal(node.fixed.h), ...look, ...(node.clip ? { clip: literal(true) } : {}) }, children };
+  }
   // A column of List-Items (figma-push draws List as one): a List, which spaces its rows itself (Gap/3XSmall).
   if (!grid && layout?.mode !== "HORIZONTAL" && children.length && children.every((child) => child.name === "ListItem") && !node.fill && !node.scroll) {
     return { kind: "element", name: "List", props: {}, children };
