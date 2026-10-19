@@ -1305,8 +1305,9 @@ export const rows = [
         await section.waitFor({ state: "visible", timeout: 5000 });
         const levels = async () => page.locator(".studio-layers__tree [role='treeitem'][data-kind='frame']").evaluateAll((rows) => rows.map((row) => `${row.getAttribute("data-layer-id")}@${row.getAttribute("aria-level")}`));
         await until(async () => { const now = await levels(); return now.includes("frame:section:section-1@1") && now.includes("frame:screen:screen-1@2") && now.includes("frame:screen:screen-2@2"); }, { message: "both frames one level under the Section" }).catch(async (error) => { throw new Error(`${error.message} (${(await levels()).join(", ")})`); });
-        const icon = await section.locator("[data-icon], svg").first().getAttribute("data-icon").catch(() => null);
-        return `Section 1 around both · Layers: ${(await levels()).join(", ")}${icon ? ` · icon ${icon}` : ""}`;
+        const icons = await section.locator("[data-icon]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-icon")));
+        if (!icons.some((name) => /browser/.test(name ?? ""))) throw new Error(`the Section row's icons: ${icons.join(", ")} (want icon-browser-line)`);
+        return `Section 1 around both · Layers: ${(await levels()).join(", ")} · icon-browser-line`;
       } finally {
         await undoTo(page, id, before, 4).catch(() => undefined);
       }
