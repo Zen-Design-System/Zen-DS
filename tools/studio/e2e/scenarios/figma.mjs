@@ -1422,7 +1422,7 @@ export const rows = [
     id: "FW-58", feature: "W takes Figma's arithmetic; with Constrain proportions on, H follows the ratio in the same change", wp: "F5b 2026-10-19",
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
-      await selectFrame(page, id);
+      await selectWalkFrame(page, id);
       const before = (await pageText(page, id)) ?? "";
       await press(page, "Constrain proportions");
       try {
