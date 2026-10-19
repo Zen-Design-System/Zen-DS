@@ -288,7 +288,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
     const set = found.set;
     blocks.push(
       <InspectorSection key="set" title="Component set" className="studio-component-section">
-        <div className="studio-component-section__field"><NameField label="Component set name" value={set.name} leading={diamond} disabled={disabled} onCommit={(next) => void setName(set.file, set.loc, next)} /></div>
+        <div className="studio-inspector__wide-field"><NameField label="Component set name" value={set.name} leading={diamond} disabled={disabled} onCommit={(next) => void setName(set.file, set.loc, next)} /></div>
         <AboutRows file={set.file} loc={set.loc} description={set.description} link={set.link} disabled={disabled} />
         <div className="studio-component-section__actions">
           <Button size="sm" level="tertiary" startIcon="icon-plus-line" disabled={disabled} onClick={() => void addVariant(set)}>Add variant</Button>
@@ -306,7 +306,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
             <NameField label={`${axis.name} of this variant`} value={main.variant?.[axis.name] ?? ""} disabled={disabled} onCommit={(next) => void setVariantValues(main, { ...(main.variant ?? {}), [axis.name]: next })} />
           </InspectorRow>
         ))) : (
-          <div className="studio-component-section__field"><NameField label="Component name" value={main.name} leading={diamond} disabled={disabled} onCommit={(next) => void renameComponent(main, next)} /></div>
+          <div className="studio-inspector__wide-field"><NameField label="Component name" value={main.name} leading={diamond} disabled={disabled} onCommit={(next) => void renameComponent(main, next)} /></div>
         )}
         {!set ? <AboutRows file={main.file} loc={main.componentLoc} description={main.description} link={main.link} disabled={disabled} /> : null}
         <div className="studio-component-section__actions">
@@ -323,7 +323,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
     const shown = instance.setId ?? instance.mainId;
     blocks.push(
       <InspectorSection key="instance" title="Instance" className="studio-component-section">
-        <div className="studio-component-section__field">
+        <div className="studio-inspector__wide-field">
         <RowSelectField
           size="sm"
           aria-label="Component"

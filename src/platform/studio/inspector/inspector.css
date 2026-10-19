@@ -354,9 +354,10 @@
 
 /* A page's own component (ComponentSection): its name or the component an instance shows, then two quiet actions. */
 .studio-component-section__actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
-/* A component's name or an instance's component on the panel's grid: it ends where every field ends, the icon column
-   kept (no field reaches past the others; user 2026-10-19: the tool's UI never juts out). */
-.studio-component-section__field { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* One field across the panel's grid outside a label-left row (a component's name, an instance's component, a selection
+   colour): it ends where every field ends, the icon column kept (user 2026-10-19: the tool's UI never juts out). */
+.studio-inspector__wide-field { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-selection-color__swatch { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: none; border-radius: var(--zen-corner-radius-xsmall, 4px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default); }
 .studio-component-section .zen-input-field__leading, .studio-component-section .zen-select__leading { color: var(--zen-color-content-support-violet-base); }
 /* A section that is only its header (Figma's "Auto layout +" on a frame without auto layout). */
 .studio-inspector__section--head-only .studio-inspector__section-body { display: none; }

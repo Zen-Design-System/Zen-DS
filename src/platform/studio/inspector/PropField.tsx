@@ -946,7 +946,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
  * data lives, or a fixed value that ↺ (Restore) turns back into the binding. A value that reads state stays read-only
  * (the keep-behaviour rule), in a field's frame so the column reads the same.
  */
-export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon, component }: {
+export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon, component, action: extraAction }: {
   spec: PropSpec;
   value: PropValue;
   disabled: boolean;
@@ -960,6 +960,8 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   defaultIcon?: string;
   /** The selected element's component (the tone picker warns about picks its rules flag on Text and Heading). */
   component?: string;
+  /** A button in the row's icon column (Corner radius' Independent corners), when the field has no action of its own. */
+  action?: ReactNode;
   /** Why a bound value is read-only here ("Use Playground properties"): in the ƒ tooltip. */
   boundHint?: string;
   label?: string;
@@ -1028,7 +1030,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   // that replaced a saved binding keeps its Restore; an object prop with a starter keeps its Add (real actions).
   const action = restoreAction ?? (starter && onAddObject
     ? <IconButton icon="icon-plus-line" aria-label={`Add ${inSentence(label)}`} tooltip={`Add ${inSentence(label)}: ${starter}`} appearance="flat" level="primary" size="xs" onClick={() => onAddObject(starter)} />
-    : null);
+    : extraAction ?? null);
   const common = { label, disabled: locked };
   if (editor.kind === "truncate" && !(viaSpread && value.live !== undefined && !isLiteral(value.live))) {
     // Figma's Truncate text + Max lines: true is one line, a number that many (Text keeps it ≥ 1); off shows it all.

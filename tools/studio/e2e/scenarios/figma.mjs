@@ -2319,6 +2319,8 @@ export const rows = [
       await until(async () => (await sections(page)).includes("Selection colors"), { message: "Selection colors" });
       const rows = await right(page).locator('[data-prop="selection-color"]').count();
       if (rows < 2) throw new Error(`${rows} colours`);
+      await shot(page, "fw-94-selection-colors");
+      await expectPanelFits(page, "the selection colors");
       return `${rows} colours`;
     },
   },
