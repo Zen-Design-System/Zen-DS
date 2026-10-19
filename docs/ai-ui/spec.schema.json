@@ -390,6 +390,9 @@
           "$ref": "#/$defs/components/TextAreaField"
         },
         {
+          "$ref": "#/$defs/components/TextRun"
+        },
+        {
           "$ref": "#/$defs/components/Thumbnail"
         },
         {
@@ -5670,6 +5673,76 @@
                   }
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+              },
+              "image": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
+              },
+              "imageFit": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "fill",
+                      "fit",
+                      "crop",
+                      "tile"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, s"
+              },
+              "imageCrop": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "width",
+                      "height"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g."
+              },
+              "imageScale": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
               },
               "surface": {
                 "anyOf": [
@@ -16585,6 +16658,76 @@
                   }
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+              },
+              "image": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
+              },
+              "imageFit": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "fill",
+                      "fit",
+                      "crop",
+                      "tile"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, s"
+              },
+              "imageCrop": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "width",
+                      "height"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g."
+              },
+              "imageScale": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
               },
               "surface": {
                 "anyOf": [
@@ -27598,6 +27741,76 @@
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
               },
+              "image": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
+              },
+              "imageFit": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "fill",
+                      "fit",
+                      "crop",
+                      "tile"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, s"
+              },
+              "imageCrop": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "width",
+                      "height"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g."
+              },
+              "imageScale": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
+              },
               "type": {
                 "anyOf": [
                   {
@@ -30564,6 +30777,76 @@
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
               },
+              "image": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
+              },
+              "imageFit": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "fill",
+                      "fit",
+                      "crop",
+                      "tile"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, s"
+              },
+              "imageCrop": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "width",
+                      "height"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g."
+              },
+              "imageScale": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
+              },
               "surface": {
                 "anyOf": [
                   {
@@ -33258,6 +33541,299 @@
                   }
                 ],
                 "description": "Initial value when uncontrolled."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "TextRun": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "TextRun"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "bold": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Bold words (Figma's Bold weight on a range, ⌘B): the Bold emphasis token over the text style around it."
+              },
+              "italic": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Italic words (Figma's Italic on a range, ⌘I)."
+              },
+              "underline": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Underlined words (Figma's Decoration: Underline, ⌘U)."
+              },
+              "strikethrough": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Struck-through words (Figma's Decoration: Strikethrough, ⇧⌘X): an old price, a done item."
+              },
+              "tone": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "strongest",
+                      "base",
+                      "light",
+                      "accent-strongest",
+                      "accent-base",
+                      "accent-light",
+                      "info-strongest",
+                      "info-base",
+                      "info-light",
+                      "positive-strongest",
+                      "positive-base",
+                      "positive-light",
+                      "negative-strongest",
+                      "negative-base",
+                      "negative-light",
+                      "warning-strongest",
+                      "warning-base",
+                      "warning-light",
+                      "support-blue-strongest",
+                      "support-blue-base",
+                      "support-blue-light",
+                      "support-bronze-strongest",
+                      "support-bronze-base",
+                      "support-bronze-light",
+                      "support-brown-strongest",
+                      "support-brown-base",
+                      "support-brown-light",
+                      "support-crimson-strongest",
+                      "support-crimson-base",
+                      "support-crimson-light",
+                      "support-cyan-strongest",
+                      "support-cyan-base",
+                      "support-cyan-light",
+                      "support-golden-strongest",
+                      "support-golden-base",
+                      "support-golden-light",
+                      "support-green-strongest",
+                      "support-green-base",
+                      "support-green-light",
+                      "support-indigo-strongest",
+                      "support-indigo-base",
+                      "support-indigo-light",
+                      "support-mint-strongest",
+                      "support-mint-base",
+                      "support-mint-light",
+                      "support-orange-strongest",
+                      "support-orange-base",
+                      "support-orange-light",
+                      "support-pink-strongest",
+                      "support-pink-base",
+                      "support-pink-light",
+                      "support-plum-strongest",
+                      "support-plum-base",
+                      "support-plum-light",
+                      "support-purple-strongest",
+                      "support-purple-base",
+                      "support-purple-light",
+                      "support-red-strongest",
+                      "support-red-base",
+                      "support-red-light",
+                      "support-sky-strongest",
+                      "support-sky-base",
+                      "support-sky-light",
+                      "support-teal-strongest",
+                      "support-teal-base",
+                      "support-teal-light",
+                      "support-violet-strongest",
+                      "support-violet-base",
+                      "support-violet-light",
+                      "support-yellow-strongest",
+                      "support-yellow-base",
+                      "support-yellow-light",
+                      "inverse-strongest",
+                      "inverse-base",
+                      "inverse-light",
+                      "on-black-overlay-strongest",
+                      "on-black-overlay-base",
+                      "on-black-overlay-light",
+                      "on-white-overlay-strongest",
+                      "on-white-overlay-base",
+                      "on-white-overlay-light",
+                      "on-colors",
+                      "on-brights",
+                      "on-accent",
+                      "hyperlink",
+                      "disabled",
+                      "inherit",
+                      "primary",
+                      "secondary",
+                      "tertiary",
+                      "neutral-strongest",
+                      "neutral-base",
+                      "neutral-light",
+                      "accent",
+                      "info",
+                      "positive",
+                      "negative",
+                      "warning",
+                      "inverse"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The words' colour role (Figma's fill on a range): a Color/Content token by its path (\"accent-base\", \"negative-base\")."
+              },
+              "textStyle": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "Display-Extra/1",
+                      "Display-Extra/2",
+                      "Display-Extra/3",
+                      "Display/1",
+                      "Display/2",
+                      "Display/3",
+                      "Display/4",
+                      "Heading/1",
+                      "Heading/2",
+                      "Heading/3",
+                      "Heading/4",
+                      "Heading/Subheading",
+                      "Body/Extra/Regular",
+                      "Body/Extra/Medium",
+                      "Body/Extra/Bold",
+                      "Body/Base/Regular",
+                      "Body/Base/Medium",
+                      "Body/Base/Bold",
+                      "Body/Small/Regular",
+                      "Body/Small/Medium",
+                      "Body/Small/Bold",
+                      "Body/Code/Regular",
+                      "Body/Code/Bold",
+                      "Caption/Regular",
+                      "Caption/Medium",
+                      "Caption/Bold",
+                      "Label/Small/Medium",
+                      "Label/Small/Bold",
+                      "Button-Label/XL",
+                      "Button-Label/L",
+                      "Button-Label/M",
+                      "Button-Label/S",
+                      "Button-Label/XS",
+                      "All-Caps/M",
+                      "All-Caps/M-BOLD",
+                      "All-Caps/S"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Another Figma text style for these words (a range in Body/Base/Bold inside Body/Base/Regular, a Caption in a line)."
+              },
+              "children": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-labelledby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-describedby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
               }
             },
             "required": [],
