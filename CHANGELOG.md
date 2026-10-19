@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Figma push / pull, tested in the live Zen file: a free frame keeps its px width and height (it used to hug its layers);
+  Pull reads vectors, groups and boolean groups again (it stopped on the first property a node type lacks), brings a
+  mirrored shape back flipped at its own place, and keeps a group's size and px X / Y when it sits outside an auto
+  layout. The Zen plugin places groups, boolean groups and vectors where the Studio draws them.
 - Text keeps line breaks written in its words (`{"First line\nSecond line"}`): they show as lines, and with
   `wrap={false}` each line stays whole (Figma's Enter in a text).
 - Image fills (Figma's Image paint) on Shape and on frames (Box, Stack, Grid): `image`, `imageFit` (fill · fit · crop ·
