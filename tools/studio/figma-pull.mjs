@@ -24,7 +24,7 @@ import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./fig
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-metric.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
-import { arcFromData, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
+import { arcFromData, parseVectorPath, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
 
 /* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -279,14 +279,18 @@ const layoutOf = async (node) => {
 };
 // A drawing (vector, shape) by its type and name only: the page has no layer for it.
 const DRAWING = new Set(["VECTOR", "RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "BOOLEAN_OPERATION"]);
-// Figma's shape nodes a Zen Shape draws (src/components/Shape).
-const SHAPE_READ = new Set(["RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON"]);
+// Figma's shape nodes a Zen Shape draws (src/components/Shape); a VECTOR is Shape type="vector" (F9).
+const SHAPE_READ = new Set(["RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "VECTOR", "BOOLEAN_OPERATION"]);
 // A child that fills its auto-layout parent on an axis (Figma's Fill container), or one placed outside the auto layout
 // (Ignore auto layout): its constraints and its box in the parent's.
 const placed = (out, child, parent) => {
   if (!("layoutMode" in parent) || parent.layoutMode === "NONE") {
-    // A shape in a frame without auto layout keeps its X / Y (a Zen Shape in a free frame: px insets).
-    if (out.shape && "layoutMode" in parent) out.absolute = { x: Math.round(child.x * 100) / 100, y: Math.round(child.y * 100) / 100, w: out.shape.w, h: out.shape.h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints ? child.constraints.horizontal : "MIN", cy: child.constraints ? child.constraints.vertical : "MIN", free: true };
+    // A shape or a group in a frame without auto layout keeps its X / Y (a Zen Shape or Box group in a free frame: px
+    // insets); a group's layers keep theirs inside it (Figma writes them in the group's parent's space).
+    const inGroup = parent.type === "GROUP" || parent.type === "BOOLEAN_OPERATION";
+    const w = out.shape ? out.shape.w : Math.round(child.width * 100) / 100;
+    const h = out.shape ? out.shape.h : Math.round(child.height * 100) / 100;
+    if ((out.shape || out.type === "GROUP" || inGroup) && ("layoutMode" in parent || inGroup)) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints ? child.constraints.horizontal : "MIN", cy: child.constraints ? child.constraints.vertical : "MIN", free: true };
     return out;
   }
   // A grid cell keeps its minimum width (figma-push: columns that fit, counted for the page's width).
@@ -361,7 +365,7 @@ const readFrame = async (node, root = false) => {
     const strokePaint = solid(node.strokes);
     const boundId = (paint) => (paint && paint.boundVariables && paint.boundVariables.color ? paint.boundVariables.color.id : null);
     const radiusBinding = node.boundVariables && node.boundVariables.topLeftRadius ? node.boundVariables.topLeftRadius.id : null;
-    return { type: node.type, name: node.name, shape: {
+    const read_ = { type: node.type, name: node.name, shape: {
       w: Math.round(node.width * 100) / 100, h: Math.round(node.height * 100) / 100,
       fill: fillPaint ? (await variableName(boundId(fillPaint))) || "unbound" : null,
       stroke: strokePaint ? (await variableName(boundId(strokePaint))) || "unbound" : null,
@@ -369,7 +373,23 @@ const readFrame = async (node, root = false) => {
       arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: node.pointCount, innerRadius: node.innerRadius,
       radius: typeof node.cornerRadius === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
       rotation: Math.round((node.rotation || 0) * 100) / 100, opacity: node.opacity,
+      // A vector's own paths; a boolean group's result (its fill geometry: Figma combined its shapes, F9b).
+      paths: node.type === "VECTOR" && Array.isArray(node.vectorPaths) ? node.vectorPaths.map((path) => ({ windingRule: path.windingRule, data: path.data }))
+        : node.type === "BOOLEAN_OPERATION" && Array.isArray(node.fillGeometry) ? node.fillGeometry.map((path) => ({ windingRule: path.windingRule, data: path.data })) : null,
+      operation: node.type === "BOOLEAN_OPERATION" ? node.booleanOperation : undefined,
     } };
+    // A boolean group's shapes, each at its X / Y inside it.
+    if (node.type === "BOOLEAN_OPERATION") {
+      read_.children = [];
+      for (const child of node.children || []) {
+        if (child.visible === false) continue;
+        const kid = await read(child);
+        if (!kid) continue;
+        placed(kid, child, node);
+        read_.children.push(kid);
+      }
+    }
+    return read_;
   }
   if (DRAWING.has(node.type)) return { type: node.type, name: node.name };
   const visible = (node.children || []).filter((child) => child.visible);
@@ -1213,8 +1233,9 @@ function convert(node, ctx) {
  */
 function positioned(element, node, ctx) {
   const box = node.absolute;
-  // A Shape takes its own position props, in px: Figma's X / Y (its unrotated box, as Shape turns about its centre).
-  if (element.name === "Shape") {
+  // A Shape takes its own position props, in px: Figma's X / Y (its unrotated box, as Shape turns about its centre); so
+  // does a group, or a frame placed in a frame without auto layout (free px insets, F3).
+  if (element.name === "Shape" || (box.free && ["Box", "Stack", "Grid"].includes(element.name))) {
     const shape = node.shape ?? {};
     const turn = ((shape.rotation ?? 0) * Math.PI) / 180;
     const w = shape.w ?? box.w;
@@ -1344,20 +1365,32 @@ function shapeElement(node, ctx) {
   const shape = node.shape;
   const where = `"${node.name}"`;
   const arrow = node.type === "LINE" && typeof shape.cap === "string" && /ARROW/.test(shape.cap);
-  const type = { RECTANGLE: "rectangle", ELLIPSE: "ellipse", LINE: arrow ? "arrow" : "line", POLYGON: "polygon", STAR: "star" }[node.type];
+  const type = { RECTANGLE: "rectangle", ELLIPSE: "ellipse", LINE: arrow ? "arrow" : "line", POLYGON: "polygon", STAR: "star", VECTOR: "vector", BOOLEAN_OPERATION: "boolean" }[node.type];
   const line = type === "line" || type === "arrow";
+  const boolean = type === "boolean";
+  // A boolean group writes its result as a vector does (its shapes come along as its children).
+  const vector = type === "vector" || boolean;
+  // A vector's path: Figma's vectorPaths in the node's px (absolute M / L / Q / C / Z), its box the viewBox.
+  const d = vector ? (shape.paths ?? []).map((path) => path.data).join(" ").trim() : "";
+  if (vector && !parseVectorPath(d)) { ctx.notes.push(`${where}: its vector path is not one Zen reads (${d ? "commands other than M / L / Q / C / Z" : "no path"}); left out`); return null; }
   const props = { type: literal(type), width: literal(round2(shape.w)) };
   if (!line) props.height = literal(round2(shape.h));
+  if (boolean && shape.operation && shape.operation !== "UNION") props.operation = literal(String(shape.operation).toLowerCase());
+  if (vector) {
+    props.d = literal(d);
+    props.viewBox = literal(`0 0 ${round2(shape.w)} ${round2(shape.h)}`);
+    if ((shape.paths ?? []).some((path) => path.windingRule === "EVENODD")) props.fillRule = literal("evenodd");
+  }
   const paint = (prop, value, map, fallback) => {
     if (value === null || value === undefined) { if (fallback !== "none") props[prop] = literal("none"); return; }
     const tone = map.get(value);
     if (tone && tone !== fallback) props[prop] = literal(tone);
     else if (!tone) ctx.notes.push(`${where}: its ${prop} ${value === "unbound" ? "is no colour variable" : `variable ${value} is no Zen ${prop === "fill" ? "Background" : "Border"} colour`}; the default is kept`);
   };
-  paint("fill", line ? null : shape.fill, FILL_OF, line ? "none" : DEFAULT_SHAPE_FILL);
-  paint("stroke", shape.stroke, STROKE_OF, line ? DEFAULT_LINE_STROKE : "none");
+  paint("fill", line ? null : shape.fill, FILL_OF, line || (vector && !boolean) ? "none" : DEFAULT_SHAPE_FILL);
+  paint("stroke", shape.stroke, STROKE_OF, line || (vector && !boolean) ? DEFAULT_LINE_STROKE : "none");
   if (shape.stroke && shape.strokeWeight !== 1) props.strokeWeight = literal(round2(shape.strokeWeight));
-  if (shape.stroke && !line && shape.strokeAlign && shape.strokeAlign !== "INSIDE") props.strokeAlign = literal(shape.strokeAlign.toLowerCase());
+  if (shape.stroke && !line && shape.strokeAlign && shape.strokeAlign !== (vector && !boolean ? "CENTER" : "INSIDE")) props.strokeAlign = literal(shape.strokeAlign.toLowerCase());
   if (type === "ellipse" && shape.arc) {
     const arc = arcFromData(shape.arc);
     if (arc.start) props.arcStart = literal(round2(arc.start));
@@ -1373,7 +1406,8 @@ function shapeElement(node, ctx) {
   }
   if (shape.rotation) props.rotation = literal(shape.rotation);
   if (typeof shape.opacity === "number" && shape.opacity < 1) props.opacity = literal(Math.round(shape.opacity * 100));
-  return { kind: "element", name: "Shape", props, children: [] };
+  const children = boolean ? (node.children ?? []).map((child) => convert(child, ctx)).filter((child) => child?.name === "Shape") : [];
+  return { kind: "element", name: "Shape", props, children };
 }
 
 function convertNode(node, ctx) {
@@ -1601,6 +1635,11 @@ function convertNode(node, ctx) {
   const children = layers.map((child) => convert(child, ctx)).filter(Boolean);
   // A frame whose layers were all left out (a drawing's wrapper) is left out with them.
   if (node.children?.length && !children.length) return null;
+  // Figma's GROUP: a Zen group (Box group) of its layers at their X / Y inside it, sized to them (figma-push, the other way).
+  if (node.type === "GROUP") {
+    const { opacity } = frameLookProps(node, ctx);
+    return { kind: "element", name: "Box", props: { group: literal(true), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
+  }
   return frameElement(node, children, ctx);
 }
 

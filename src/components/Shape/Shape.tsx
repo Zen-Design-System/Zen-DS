@@ -1,20 +1,25 @@
-import { useId, useRef, useState, type CSSProperties, type HTMLAttributes, type Ref } from "react";
+import { useId, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
+import { frameFlips, type FrameFlip } from "../Layout/appearance";
 import { layoutPosition, type LayoutPositionProps } from "../Layout/position";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
 import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
 import { useMergedRefs } from "../_shared/merge-refs";
 import type { ZenCornerRadius } from "../_shared/scale";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
-import { arrowHeadPath, ellipsePath, isFullArc, normalizeArc, pointsPath, polygonPoints, POLYGON_POINTS, starPoints, STAR_POINTS, STAR_RATIO } from "./geometry";
+import { arrowHeadPath, ellipsePath, fitVectorPath, isFullArc, normalizeArc, parseVectorPath, parseViewBox, pointsPath, polygonPoints, POLYGON_POINTS, starPoints, STAR_POINTS, STAR_RATIO, vectorBounds } from "./geometry";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, fillPaint, strokePaint, type ShapeFill, type ShapeStroke } from "./paint";
 import "./shape.css";
 
-/** Figma's shape tools: Rectangle (R), Ellipse (O), Line (L), Arrow (⇧L), Polygon, Star. */
-export const shapeTypes = ["rectangle", "ellipse", "line", "arrow", "polygon", "star"] as const;
+/** Figma's shape tools: Rectangle (R), Ellipse (O), Line (L), Arrow (⇧L), Polygon, Star, and the Pen's Vector (P). */
+export const shapeTypes = ["rectangle", "ellipse", "line", "arrow", "polygon", "star", "vector", "boolean"] as const;
 export type ShapeType = (typeof shapeTypes)[number];
 /** Figma strokeAlign INSIDE | CENTER | OUTSIDE. */
 export const shapeStrokeAligns = ["inside", "center", "outside"] as const;
 export type ShapeStrokeAlign = (typeof shapeStrokeAligns)[number];
+
+/** Figma's boolean groups: Union, Subtract (the first shape minus the others), Intersect, Exclude. */
+export const shapeBooleanOperations = ["union", "subtract", "intersect", "exclude"] as const;
+export type ShapeBooleanOperation = (typeof shapeBooleanOperations)[number];
 
 /** Figma's default size for a shape placed with a click (100 × 100). */
 export const SHAPE_DEFAULT_SIZE = 100;
@@ -23,19 +28,34 @@ export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "childr
   /**
    * The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),
    * `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end
-   * cap), `polygon` (REGULAR_POLYGON, `pointCount` corners) and `star` (STAR, `pointCount` tips, `starRatio`).
+   * cap), `polygon` (REGULAR_POLYGON, `pointCount` corners), `star` (STAR, `pointCount` tips, `starRatio`) and `vector`
+   * (VECTOR: the path `d` in its `viewBox`, as the Pen draws it) and `boolean` (BOOLEAN_OPERATION: its shapes, the
+   * children, combined by `operation`; Zen Studio writes the result as `d`).
    */
   type?: ShapeType;
+  /** A boolean group's operation (`type="boolean"`): `union` (default), `subtract`, `intersect` or `exclude`, as Figma's. */
+  operation?: ShapeBooleanOperation;
+  /** A boolean group's shapes (`type="boolean"`): placed at their X / Y inside it, not drawn themselves; their combined outline is. */
+  children?: ReactNode;
+  /**
+   * A vector's path (`type="vector"`): SVG path data in absolute M / L / C / Q / Z commands only (what Figma's vectorPaths
+   * take), in the coordinates of `viewBox`. Zen Studio's Pen and Pencil write it.
+   */
+  d?: string;
+  /** The box a vector's `d` is written in ("minX minY width height"); the path stretches from it to the shape's size, as Figma scales a vector. Default: the path's own bounds. */
+  viewBox?: string;
+  /** How a vector's overlapping sub-paths fill (Figma's winding rule): `nonzero` (default) or `evenodd` (holes). */
+  fillRule?: "nonzero" | "evenodd";
   /**
    * Fill: a Color/Background token by its path ("neutral-subtle", "accent-solid", "surface", "support-blue-soft"; list in
-   * `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none.
+   * `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none.
    */
   fill?: ShapeFill;
-  /** Stroke: a Color/Border token by its path ("neutral-solid", "accent-subtle", "support-teal-solid"; `shapeStrokes`), or "none" (default; a line or arrow takes Border/Neutral/Solid). */
+  /** Stroke: a Color/Border token by its path ("neutral-solid", "accent-subtle", "support-teal-solid"; `shapeStrokes`), or "none" (default; a line, arrow or vector takes Border/Neutral/Solid). */
   stroke?: ShapeStroke;
   /** Stroke weight in px (Figma strokeWeight). Default 1. */
   strokeWeight?: number;
-  /** Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's) or `outside`. */
+  /** Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's and a vector's) or `outside`. */
   strokeAlign?: ShapeStrokeAlign;
   /** Rectangle corner radius on the Corner-Radius tokens (Figma cornerRadius); `radiusTopLeft` … override single corners. */
   radius?: ZenCornerRadius;
@@ -51,6 +71,8 @@ export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "childr
   starRatio?: number;
   /** Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the shape about its centre. */
   rotation?: number;
+  /** Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre. */
+  flip?: FrameFlip;
   /** Layer opacity in percent (Figma's layer opacity, 0 … 100). Default 100. */
   opacity?: number;
   /** Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech. */
@@ -84,15 +106,20 @@ function useShapeSize(element: { current: HTMLDivElement | null }, width: unknow
 }
 
 /**
- * Zen Shape: Figma's native shapes (Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star) for illustrations, marks
- * and decoration drawn in Zen Studio. Not a Figma library component: it maps to Figma's own nodes (RECTANGLE, ELLIPSE
- * with arcData, LINE, REGULAR_POLYGON, STAR) on export and import. Colours are Zen tokens only (`fill` from
+ * Zen Shape: Figma's native shapes (Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star, and the Pen's Vector)
+ * for illustrations, marks and decoration drawn in Zen Studio. Not a Figma library component: it maps to Figma's own
+ * nodes (RECTANGLE, ELLIPSE with arcData, LINE, REGULAR_POLYGON, STAR, VECTOR) on export and import. Colours are Zen tokens only (`fill` from
  * Color/Background, `stroke` from Color/Border); the rectangle's radius takes the Corner-Radius tokens. It sizes and
  * places like a layout primitive: `width` / `height` (px or fill) and Figma's position props (in a free frame:
  * `position="absolute"` with px insets).
  */
 export function Shape({
   type = "rectangle",
+  operation,
+  children,
+  d: path,
+  viewBox,
+  fillRule,
   fill,
   stroke,
   strokeWeight = 1,
@@ -108,6 +135,7 @@ export function Shape({
   pointCount,
   starRatio,
   rotation,
+  flip,
   opacity,
   label,
   width,
@@ -137,10 +165,14 @@ export function Shape({
   const id = safeId(useId());
   const sizing = layoutSizing({ width, height: line ? undefined : height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
-  const fillColor = fillPaint(fill ?? (line ? "none" : DEFAULT_SHAPE_FILL));
-  const strokeColor = strokePaint(stroke ?? (line ? DEFAULT_LINE_STROKE : "none"));
+  // A boolean group draws its result as a vector does: its path in its viewBox (Zen Studio computes it from its shapes).
+  const vector = kind === "vector" || kind === "boolean";
+  const boolean = kind === "boolean";
+  // Figma's Pen draws a stroke and no fill, centred on the path (as a line).
+  const fillColor = fillPaint(fill ?? (line || (vector && !boolean) ? "none" : DEFAULT_SHAPE_FILL));
+  const strokeColor = strokePaint(stroke ?? (line || (vector && !boolean) ? DEFAULT_LINE_STROKE : "none"));
   const weight = finite(strokeWeight) ? Math.max(0, strokeWeight) : 1;
-  const align: ShapeStrokeAlign = line ? "center" : strokeAlign && (shapeStrokeAligns as readonly string[]).includes(strokeAlign) ? strokeAlign : "inside";
+  const align: ShapeStrokeAlign = line ? "center" : strokeAlign && (shapeStrokeAligns as readonly string[]).includes(strokeAlign) ? strokeAlign : vector && !boolean ? "center" : "inside";
   const vars: Record<string, string | number | undefined> = {
     ...sizing.vars,
     ...placed.vars,
@@ -150,7 +182,9 @@ export function Shape({
     "--zen-shape-radius": kind === "rectangle" ? cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft }) : undefined,
     "--zen-shape-default-width": finite(width) ? undefined : `${SHAPE_DEFAULT_SIZE}px`,
     opacity: finite(opacity) ? Math.min(100, Math.max(0, opacity)) / 100 : undefined,
-    transform: finite(rotation) && rotation % 360 !== 0 ? `rotate(${-rotation}deg)` : undefined,
+    // CSS's individual transforms (as Box, Stack and Grid turn and flip): CSS turns clockwise, Figma counter-clockwise.
+    rotate: finite(rotation) && rotation % 360 !== 0 ? `${-rotation}deg` : undefined,
+    scale: flip === "horizontal" ? "-1 1" : flip === "vertical" ? "1 -1" : flip === "both" ? "-1 -1" : undefined,
   };
   const shown = Object.fromEntries(Object.entries(vars).filter(([, value]) => value !== undefined)) as CSSProperties;
   const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true as const };
@@ -163,6 +197,11 @@ export function Shape({
     if (kind === "ellipse") d = ellipsePath(w, h, normalizeArc({ start: arcStart, sweep: arcSweep, ratio: arcRatio }));
     else if (kind === "polygon") d = pointsPath(polygonPoints(w, h, pointCount ?? POLYGON_POINTS));
     else if (kind === "star") d = pointsPath(starPoints(w, h, pointCount ?? STAR_POINTS, starRatio ?? STAR_RATIO));
+    else if (vector) {
+      const commands = parseVectorPath(path);
+      const box = commands ? parseViewBox(viewBox) ?? vectorBounds(commands) : null;
+      d = commands && box ? fitVectorPath(commands, box, w, h) : "";
+    }
     const stroked = Boolean(strokeColor && weight);
     if (line) {
       const pad = Math.max(weight, kind === "arrow" ? Math.max(6, weight * 4) * 0.75 + weight : weight) + 1;
@@ -174,7 +213,7 @@ export function Shape({
     } else {
       // Inside and outside strokes: a stroke twice as wide, cut to the shape (inside) or to what lies outside it.
       const doubled = align === "center" ? weight : weight * 2;
-      const evenOdd = kind === "ellipse" && !isFullArc(normalizeArc({ start: arcStart, sweep: arcSweep, ratio: arcRatio })) ? "evenodd" : "nonzero";
+      const evenOdd = (kind === "ellipse" && !isFullArc(normalizeArc({ start: arcStart, sweep: arcSweep, ratio: arcRatio }))) || (vector && fillRule === "evenodd") ? "evenodd" : "nonzero";
       drawing = (
         <svg className="zen-shape__drawing" viewBox={`0 0 ${w || 1} ${h || 1}`} width={w} height={h} focusable="false" aria-hidden="true">
           {stroked && align !== "center" ? (
@@ -215,12 +254,14 @@ export function Shape({
       ref={merged}
       className={["zen-shape", className].filter(Boolean).join(" ")}
       data-type={kind}
+      data-flip={flip && (frameFlips as readonly string[]).includes(flip) ? flip : undefined}
       data-stroke-align={strokeColor && weight ? align : undefined}
       {...sizing.attributes}
       {...placed.attributes}
       style={withSizingVars(style, shown as Record<`--${string}`, string>)}
     >
       {drawing}
+      {boolean && children ? <div className="zen-shape__operands" data-operation={operation && (shapeBooleanOperations as readonly string[]).includes(operation) ? operation : "union"} aria-hidden="true">{children}</div> : null}
     </div>
   );
 }

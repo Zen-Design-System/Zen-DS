@@ -48,9 +48,8 @@ async function selectBody(page, id) {
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
-  ["ControlOrMeta+KeyG", "Group selection"],
-  ["ControlOrMeta+KeyE", "Flatten"], ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
-  ["Shift+KeyR", "Rulers"], ["KeyP", "Pen"], ["KeyK", "Scale"], ["KeyC", "Comment"],
+["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
+  ["Shift+KeyR", "Rulers"], ["KeyK", "Scale"], ["KeyC", "Comment"],
   ["KeyI", "Pick color"], ["KeyS", "Slice"],
 ];
 
@@ -169,6 +168,21 @@ const shapeTags = (text) => [...text.matchAll(/<Shape\b[^>]*\/>/g)].map(([tag]) 
   return { type: value("type"), x: value("insetLeft"), y: value("insetTop"), width: value("width"), height: value("height"), fill: value("fill"), stroke: value("stroke"), strokeWeight: value("strokeWeight"), opacity: value("opacity") };
 });
 const clipShape = (page, id, index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index);
+
+
+/* ── F9 (vectors) ────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** The free frame of the clipboard page on the screen, and a point of its own px there. */
+async function freeFrame(page, id) {
+  const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).filter({ has: page.locator('[data-zen-name="Shape"]') }).first().boundingBox();
+  const scale = box.width / 358;
+  return { at: (x, y) => ({ x: box.x + x * scale, y: box.y + y * scale }), scale };
+}
+/** The page's vector tags: [{ d, viewBox, x, y, w, h }]. */
+const vectorTags = (text) => [...text.matchAll(/<Shape\b[^>]*\btype="vector"[^>]*\/>/g)].map(([tag]) => ({
+  d: /\sd="([^"]*)"/.exec(tag)?.[1], viewBox: /viewBox="([^"]*)"/.exec(tag)?.[1],
+  x: Number(/insetLeft=\{(-?[\d.]+)\}/.exec(tag)?.[1]), y: Number(/insetTop=\{(-?[\d.]+)\}/.exec(tag)?.[1]), w: Number(/width=\{([\d.]+)\}/.exec(tag)?.[1]), h: Number(/height=\{([\d.]+)\}/.exec(tag)?.[1]),
+}));
 
 
 /* ── F2 (selection and transform) ───────────────────────────────────────────────────────────────────────────────── */
@@ -395,8 +409,8 @@ export const rows = [
       const retired = items.filter((item) => /^(?:Remove\b(?! auto layout)|Move (?:up|down|earlier|later)\b|Hide layer\b|Select first child\b)/.test(item));
       if (retired.length) throw new Error(`retired words: ${retired.join(", ")}`);
       if (lock !== false) throw new Error("Lock is off (F1 builds it)");
-      if (group !== true) throw new Error("Group selection is on (Zen Studio has no groups yet)");
-      return `${items.length} items in Figma's words; Lock on, Group selection off ("Not in Zen Studio yet")`;
+      if (group !== false) throw new Error("Group selection is off (⌘G groups since F3)");
+      return `${items.length} items in Figma's words; Lock and Group selection on`;
     },
   },
   {
@@ -1159,7 +1173,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-37", feature: "⌘D on a moved copy repeats its offset (Figma's smart duplicate)", wp: "F3 2026-10-19",
+    id: "FW-37", feature: "⌘D on a moved copy repeats its offset (Figma's smart duplicate)", wp: "F3 2026-10-19", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await clipPage(ctx);
       const before = (await pageText(page, id)) ?? "";
@@ -1292,6 +1306,108 @@ export const rows = [
       if (!/<Shape type="rectangle"/.test(code)) throw new Error(`code: ${code.slice(0, 160)}`);
       const tokens = (css.match(/var\(--zen-[\w-]+\)/g) ?? []).length;
       return `CSS ${css.split("\n").length - 2} declarations (${tokens} by variable: ${css.split("\n").slice(1).join(" ").slice(0, 400)}) · code <Shape …>`;
+    },
+  },
+  {
+    id: "FW-115", feature: "P (Pen): three clicks and a click on the first point draw a closed vector at its X / Y in the frame; the tool goes back to Move", wp: "F9 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("KeyP");
+      await until(async () => (await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Pen"]').getAttribute("aria-pressed")) === "true", { message: "the Pen" });
+      for (const [x, y] of [[220, 60], [320, 60], [270, 160], [220, 60]]) { const at = frame.at(x, y); await page.mouse.click(at.x, at.y); await sleep(120); }
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1, { message: "a vector" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const [vector] = vectorTags((await pageText(page, id)) ?? "");
+      const near = (a, b) => Math.abs(a - b) <= 2;
+      if (!/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+ L [\d.]+ [\d.]+ L [\d.]+ [\d.]+ Z$/.test(vector.d ?? "")) throw new Error(`d = ${vector.d}`);
+      if (!near(vector.x, 220) || !near(vector.y, 60) || !near(vector.w, 100) || !near(vector.h, 100)) throw new Error(`box ${vector.x}, ${vector.y}, ${vector.w} × ${vector.h} (want 220, 60, 100 × 100)`);
+      await until(async () => (await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Move"]').getAttribute("aria-pressed")) === "true", { message: "back to Move" });
+      await until(async () => (await selectedSrc(page)).length === 1, { message: "the vector selected" });
+      await undoTo(page, id, before);
+      return `${vector.d} · ${vector.w} × ${vector.h} at ${vector.x}, ${vector.y} · Move · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-116", feature: "Pen: a press-drag makes a smooth point (a curve), Enter ends the open path", wp: "F9 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("KeyP");
+      const a = frame.at(220, 120);
+      await page.mouse.click(a.x, a.y);
+      const b = frame.at(330, 120);
+      const drag = frame.at(330, 180);
+      await page.mouse.move(b.x, b.y);
+      await page.mouse.down();
+      await page.mouse.move(drag.x, drag.y, { steps: 6 });
+      await page.mouse.up();
+      await page.keyboard.press("Enter");
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1, { message: "a vector" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const [vector] = vectorTags((await pageText(page, id)) ?? "");
+      if (!/^M [\d.]+ [\d.]+ C /.test(vector.d ?? "") || /Z/.test(vector.d ?? "")) throw new Error(`d = ${vector.d} (want an open M … C curve)`);
+      await undoTo(page, id, before);
+      return `${vector.d} · open curve · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-117", feature: "Enter on a vector: vertex edit — drag a point, the path changes in one edit; Esc leaves", wp: "F9 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("KeyP");
+      for (const [x, y] of [[220, 60], [320, 60], [270, 160], [220, 60]]) { const at = frame.at(x, y); await page.mouse.click(at.x, at.y); await sleep(120); }
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1, { message: "a vector" });
+      const drawn = (await pageText(page, id)) ?? "";
+      await until(async () => (await selectedSrc(page)).length === 1, { message: "the vector selected" });
+      await sleep(300);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Enter");
+      const points = page.locator('[data-e2e="vector-edit"] .studio-vector__point');
+      await until(async () => (await points.count()) === 3, { message: "three points in vertex edit" });
+      // The bottom point (270, 160) dragged 20 px down.
+      const bottom = frame.at(270, 160);
+      await page.mouse.move(bottom.x, bottom.y);
+      await page.mouse.down();
+      await page.mouse.move(bottom.x, bottom.y + 20 * frame.scale, { steps: 5 });
+      await page.mouse.up();
+      await until(async () => { const [vector] = vectorTags((await pageText(page, id)) ?? ""); return Math.abs(vector.h - 120) <= 2; }, { message: "the vector 120 high" }).catch(async (error) => { throw new Error(`${error.message} (${JSON.stringify(vectorTags((await pageText(page, id)) ?? ""))}) · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await page.keyboard.press("Escape");
+      await until(async () => (await points.count()) === 0, { message: "Esc leaves vertex edit" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === drawn, { message: "one ⌘Z undoes the point's move" });
+      await undoTo(page, id, before);
+      return "Enter → 3 points · drag → 120 high · Esc · ⌘Z";
+    },
+  },
+  {
+    id: "FW-118", feature: "⇧P (Pencil): a drag draws a smoothed vector; the Pencil stays on, Esc goes back to Move", wp: "F9 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyP");
+      await until(async () => (await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Pencil"]').getAttribute("aria-pressed")) === "true", { message: "the Pencil" });
+      const start = frame.at(220, 150);
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      for (let k = 1; k <= 20; k++) { const at = frame.at(220 + k * 5, 150 - Math.sin((k / 20) * Math.PI) * 60); await page.mouse.move(at.x, at.y); await sleep(10); }
+      await page.mouse.up();
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1, { message: "a vector" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const [vector] = vectorTags((await pageText(page, id)) ?? "");
+      if (!/^M [\d.]+ [\d.]+ C /.test(vector.d ?? "")) throw new Error(`d = ${vector.d}`);
+      if ((await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Pencil"]').getAttribute("aria-pressed")) !== "true") throw new Error("the Pencil went off after a stroke");
+      await page.keyboard.press("Escape");
+      await until(async () => (await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Move"]').getAttribute("aria-pressed")) === "true", { message: "Esc → Move" });
+      await undoTo(page, id, before);
+      return `${(vector.d.match(/C/g) ?? []).length} curves · ${vector.w} × ${vector.h} · Pencil stays · Esc → Move · ⌘Z`;
     },
   },
   {
@@ -1600,6 +1716,145 @@ export const rows = [
       const rows = await right(page).locator('[data-prop="selection-color"]').count();
       if (rows < 2) throw new Error(`${rows} colours`);
       return `${rows} colours`;
+    },
+  },
+  {
+    id: "FW-119", feature: "⌘G groups floating layers where they are (a Box group, Layers \"Group 1\"); ⇧⌘G ungroups", wp: "F3 2026-10-19 · decision 3", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyG");
+      await until(async () => /<Box position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{180\} height=\{80\} group>/.test((await pageText(page, id)) ?? ""), { message: "a group at 20, 20, 180 × 80" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)} · ${((await pageText(page, id)) ?? "").match(/<Box[^>]*group[^>]*>/)?.[0]}`); });
+      await showLeftTab(page, "layers");
+      await until(async () => (await page.locator(".studio-layers__tree [role='treeitem'] .studio-layers__name", { hasText: /^Group 1$/ }).count()) === 1, { message: "Layers: Group 1" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Shift+KeyG");
+      await until(async () => !/group>/.test((await pageText(page, id)) ?? ""), { message: "⇧⌘G ungroups" });
+      const shapes = shapeTags((await pageText(page, id)) ?? "");
+      if (shapes[0].x !== 20 || shapes[0].y !== 20 || shapes[1].x !== 140 || shapes[1].y !== 40) throw new Error(`after ungroup at ${shapes.map((shape) => `${shape.x}, ${shape.y}`).join(" · ")}`);
+      await undoTo(page, id, before, 4);
+      return "⌘G → Group 1 at 20, 20 · ⇧⌘G → back where they were · ⌘Z";
+    },
+  },
+  {
+    id: "FW-120", feature: "⇧H flips a shape (flip=\"horizontal\", again: none); with two floating layers they also swap places across their box", wp: "F2 2026-10-19 · F5a flipTurn", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyH");
+      await until(async () => /<Shape type="rectangle"[^>]*flip="horizontal"/.test((await pageText(page, id)) ?? ""), { message: "flip horizontal" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await page.keyboard.press("Shift+KeyH");
+      await until(async () => (await pageText(page, id)) === before, { message: "⇧H again: no flip" });
+      await deselect(page);
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyH");
+      await until(async () => { const shapes = shapeTags((await pageText(page, id)) ?? ""); return shapes[0].x === 120 && shapes[1].x === 20; }, { message: "the rectangle at X 120, the ellipse at X 20" }).catch(async (error) => { throw new Error(`${error.message} (${shapeTags((await pageText(page, id)) ?? "").map((shape) => shape.x).join(", ")})`); });
+      await undoTo(page, id, before, 4);
+      return "⇧H → flip · ⇧H → none · two layers: swapped across their box (120 · 20) · ⌘Z";
+    },
+  },
+  {
+    id: "FW-121", feature: "A rotate handle outside a corner turns the shape; ⇧ steps 15° (a quarter turn clockwise: rotation -90)", wp: "F2 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      const zone = await page.locator('[data-e2e="rotate-ne"]').boundingBox();
+      if (!zone) throw new Error("no rotate handle outside the top-right corner");
+      const shape = await clipShape(page, id, 0).boundingBox();
+      const centre = { x: shape.x + shape.width / 2, y: shape.y + shape.height / 2 };
+      const from = { x: zone.x + zone.width / 2, y: zone.y + zone.height / 2 };
+      const turn = (deg) => { const r = (deg * Math.PI) / 180; const dx = from.x - centre.x; const dy = from.y - centre.y; return { x: centre.x + dx * Math.cos(r) - dy * Math.sin(r), y: centre.y + dx * Math.sin(r) + dy * Math.cos(r) }; };
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      await page.keyboard.down("Shift");
+      for (const deg of [20, 45, 70, 88]) { const at = turn(deg); await page.mouse.move(at.x, at.y, { steps: 3 }); }
+      await page.mouse.up();
+      await page.keyboard.up("Shift");
+      await until(async () => /<Shape type="rectangle"[^>]*rotation=\{-90\}/.test((await pageText(page, id)) ?? ""), { message: "rotation -90" }).catch(async (error) => { throw new Error(`${error.message} (${((await pageText(page, id)) ?? "").match(/<Shape type="rectangle"[^>]*>/)?.[0]})`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return "NE handle → a quarter turn with ⇧ → rotation -90 · ⌘Z";
+    },
+  },
+  {
+    id: "FW-122", feature: "⌥⇧S (Subtract selection): a live boolean group of two shapes; moving a shape inside it redraws the result in the same edit", wp: "F9b 2026-10-19", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const boolean = () => /<Shape position="absolute"[^>]*type="boolean"[^>]*>/.exec((pageTextNow ?? ""))?.[0] ?? "";
+      let pageTextNow = "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+Shift+KeyS");
+      await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; return /type="boolean" operation="subtract"[^>]*d="M/.test(boolean()); }, { timeout: 20_000, message: "a Subtract group with its result" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 160)} · ${boolean()}`); });
+      const first = /\sd="([^"]+)"/.exec(boolean())?.[1];
+      try {
+        await showLeftTab(page, "layers");
+        await until(async () => (await page.locator(".studio-layers__tree [role='treeitem'] .studio-layers__name", { hasText: /^Subtract 1$/ }).count()) === 1, { message: "Layers: Subtract 1" });
+        // Its shapes (Enter: Figma's Select children), nudged: the group's result follows in the same edit.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Enter");
+        await until(async () => (await selectedSrc(page)).length === 2, { message: "Enter: its two shapes" });
+        await page.keyboard.press("Shift+ArrowLeft");
+        await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; const d = /\sd="([^"]+)"/.exec(boolean())?.[1]; return Boolean(d) && d !== first; }, { timeout: 20_000, message: "the result follows its shapes" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; return /\sd="([^"]+)"/.exec(boolean())?.[1] === first; }, { message: "one ⌘Z: the move and its result" });
+      } finally {
+        await undoTo(page, id, before, 6).catch(() => undefined);
+      }
+      return "⌥⇧S → Subtract 1 with its d · Enter, nudge its shapes → d follows · one ⌘Z";
+    },
+  },
+  {
+    id: "FW-123", feature: "⌘E (Flatten) on two shapes: one vector with both outlines, at their box", wp: "F9b 2026-10-19", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyE");
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1 && !/type="(rectangle|ellipse)"/.test((await pageText(page, id)) ?? ""), { timeout: 20_000, message: "one vector instead of the two shapes" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 160)}`); });
+      const [vector] = vectorTags((await pageText(page, id)) ?? "");
+      if (Math.abs(vector.x - 20) > 1 || Math.abs(vector.y - 20) > 1 || Math.abs(vector.w - 180) > 1 || Math.abs(vector.h - 80) > 1) throw new Error(`the vector at ${vector.x}, ${vector.y}, ${vector.w} × ${vector.h} (want 20, 20, 180 × 80)`);
+      if ((vector.d.match(/M/g) ?? []).length < 2) throw new Error(`one outline only: ${vector.d.slice(0, 80)}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" }).catch(async (error) => { await undoTo(page, id, before, 4).catch(() => undefined); throw error; });
+      return `vector 180 × 80 at 20, 20 · ${(vector.d.match(/M/g) ?? []).length} outlines · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-124", feature: "A group hugs its layers: nudging a layer out of it grows the group in the same edit (Figma's Group), nothing else moves", wp: "F3 2026-10-19 · decision 3", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyG");
+      await until(async () => /width=\{180\} height=\{80\} group>/.test((await pageText(page, id)) ?? ""), { message: "a group 180 × 80" });
+      const rect = await clipShape(page, id, 0).boundingBox();
+      try {
+        // The Ellipse inside the group (⌘-click: Figma's deep select), nudged down twice.
+        await deselect(page);
+        await selectShape(page, id, 1);
+        await until(async () => (await selectedSrc(page)).length === 1, { message: "the Ellipse selected" });
+        await page.locator(".studio-viewport").focus();
+        for (let k = 0; k < 2; k++) { await page.keyboard.press("Shift+ArrowDown"); await sleep(400); }
+        await until(async () => /width=\{180\} height=\{100\} group>/.test((await pageText(page, id)) ?? ""), { message: "the group grows to 100 high" }).catch(async (error) => { throw new Error(`${error.message} (${((await pageText(page, id)) ?? "").match(/<Box[^>]*group>/)?.[0]})`); });
+        const still = await clipShape(page, id, 0).boundingBox();
+        if (Math.abs(still.x - rect.x) > 1 || Math.abs(still.y - rect.y) > 1) throw new Error("the Rectangle moved on the canvas");
+      } finally {
+        await undoTo(page, id, before, 6).catch(() => undefined);
+      }
+      return "⌘G → 180 × 80 · Ellipse ⇧↓ ×2 → the group 180 × 100, the Rectangle in place · ⌘Z";
     },
   },
 ];

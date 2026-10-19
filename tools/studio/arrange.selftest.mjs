@@ -361,6 +361,9 @@ test("group (F3 Frame selection / ⌘G): floating layers into one floating Box, 
   const tail = applySlotOp(code, ellipse, "Shape", { op: "group", with: [star], box: { x: 140, y: 10, width: 208, height: 90 }, kids: { [ellipse]: { x: 0, y: 30 }, [star]: { x: 168, y: 0 } } }, { file: FILE, hash: sha1(code) });
   assert.ok(!tail.error, tail.error);
   assert.match(tail.code, /insetTop=\{20\} width=\{80\} height=\{60\} \/>\n {6}<Box position="absolute" insetLeft=\{140\} insetTop=\{10\} width=\{208\} height=\{90\}>\n {8}<Shape position="absolute" insetLeft=\{0\} insetTop=\{30\} type="ellipse"[^\n]*\n {8}<Shape position="absolute" insetLeft=\{168\} insetTop=\{0\} type="star" width=\{40\} height=\{40\} \/>\n {6}<\/Box>\n {4}<\/Box>/);
+  const flow = applySlotOp(code, rect, "Shape", { op: "group", with: [ellipse], flow: true, box: { x: 0, y: 0, width: 180, height: 80 }, kids: { [rect]: { x: 0, y: 0 }, [ellipse]: { x: 120, y: 20 } }, props: { group: { kind: "boolean", value: true } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!flow.error, flow.error);
+  assert.match(flow.code, /<Box width=\{180\} height=\{80\} group>/, "in auto layout: no position of its own; group as a bare prop");
   const missing = applySlotOp(code, rect, "Shape", { op: "group", with: [ellipse], box: { x: 0, y: 0, width: 1, height: 1 }, kids: { [rect]: { x: 0, y: 0 } } }, { file: FILE, hash: sha1(code) });
   assert.match(missing.error, /no place/);
 });
@@ -400,6 +403,19 @@ test("components (F3, a page you made): Create component of several floating lay
   assert.match(each.code, /<Component id="rectangle" name="Rectangle">\n {12}<Shape type="rectangle"[^\n]*\n {10}<\/Component>\n {10}<Component id="ellipse" name="Ellipse">\n {12}<Shape type="ellipse"[^\n]*\n {10}<\/Component>/);
   assert.equal(each.code.split('"@zen-ds/react/builder"').length, 2, "one builder import");
   assert.match(applySlotOp(code, rect, "Shape", { op: "many", action: "components", locs: [rect, ellipse], names: { [rect]: { id: "r", name: "R" } } }, { file: PAGE, hash: sha1(code) }).error, /names/);
+});
+
+test("group as a boolean group (F9b) and as one vector (Flatten / Outline stroke)", () => {
+  const code = ['import { Box } from "../../../components/Layout";', 'import { Shape } from "../../../components/Shape";', "export function Demo() {", "  return (", "    <Box width={358} height={220}>", '      <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />', '      <Shape type="ellipse" position="absolute" insetLeft={60} insetTop={40} width={60} height={60} />', "    </Box>", "  );", "}", ""].join("\n");
+  const rect = locOf(code, '<Shape type="rectangle"');
+  const ellipse = locOf(code, '<Shape type="ellipse"');
+  const boolean = applySlotOp(code, rect, "Shape", { op: "group", tag: "Shape", with: [ellipse], box: { x: 20, y: 20, width: 100, height: 80 }, kids: { [rect]: { x: 0, y: 0 }, [ellipse]: { x: 40, y: 20 } }, props: { type: { kind: "string", value: "boolean" }, operation: { kind: "string", value: "subtract" } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!boolean.error, boolean.error);
+  assert.match(boolean.code, /<Shape position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{100\} height=\{80\} type="boolean" operation="subtract">\n {8}<Shape position="absolute" insetLeft=\{0\} insetTop=\{0\} type="rectangle"[^\n]*\n {8}<Shape position="absolute" insetLeft=\{40\} insetTop=\{20\} type="ellipse"[^\n]*\n {6}<\/Shape>/);
+  const flat = applySlotOp(code, rect, "Shape", { op: "group", tag: "Shape", childless: true, with: [ellipse], box: { x: 20, y: 20, width: 100, height: 80 }, props: { type: { kind: "string", value: "vector" }, d: { kind: "string", value: "M 0 0 L 10 0 Z" }, viewBox: { kind: "string", value: "0 0 100 80" } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!flat.error, flat.error);
+  assert.match(flat.code, /<Box width=\{358\} height=\{220\}>\n {6}<Shape position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{100\} height=\{80\} type="vector" d="M 0 0 L 10 0 Z" viewBox="0 0 100 80" \/>\n {4}<\/Box>/);
+  assert.match(applySlotOp(code, rect, "Shape", { op: "group", tag: "Shape", with: [ellipse], box: { x: 0, y: 0, width: 1, height: 1 }, kids: {} }, { file: FILE, hash: sha1(code) }).error, /boolean group or one vector/);
 });
 
 const many = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "many", ...op }, { file: FILE, hash: sha1(code) });
