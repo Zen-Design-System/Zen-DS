@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 - Text keeps line breaks written in its words (`{"First line\nSecond line"}`): they show as lines, and with
   `wrap={false}` each line stays whole (Figma's Enter in a text).
+- Image fills (Figma's Image paint) on Shape and on frames (Box, Stack, Grid): `image`, `imageFit` (fill · fit · crop ·
+  tile), `imageCrop`, `imageScale`. In Zen Studio (F8a, pages you made) ⇧⌘K opens the file dialog and a click places the
+  picture as a Rectangle with the image fill (its own size, fitted to the frame; a drag sets the width, the ratio kept);
+  picture files dropped on a frame or pasted go in at once; Fill › Image picks, uploads, replaces or removes the picture
+  and sets how it fills. Studio → Figma gives the layer an Image paint, and pulling brings it back.
 - `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
   another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
   (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer

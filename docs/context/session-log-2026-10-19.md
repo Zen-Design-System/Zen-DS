@@ -129,6 +129,27 @@ Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a ne
 - **Tests:** richText selftest 12; figma-push +7 (round trip, React export), figma-native +5, figma-diff +3,
   layer-meta +1; Figma walk FW-67…69.
 
+## Studio images — F8a (Session C, decision 8; split as F6: F8b = canvas crop editing + direct ⌘C→⌘V of pictures) — tier M, branch `zen/feat/studio-f8-images-20261019` (stacked on F6b)
+
+- **Library** (`src/components/_shared/image-fill.ts` + selftest 17): `image` / `imageFit` (fill · fit · crop · tile) /
+  `imageCrop` (% of the picture) / `imageScale` (tile %) on Shape (rectangle: CSS background; ellipse / polygon / star:
+  an SVG pattern) and on Box / Stack / Grid (Layout `appearance.ts`, its own `data-image`; Session B agreed the Layout
+  edit). A Shape with a picture has no colour unless given. Stories, guideline rows (Shape, Layout), docs regenerated.
+- **Studio:** ⇧⌘K on a page you made → the file dialog → `draw/placeImage.ts` queues the pictures → drawTool kind
+  "image": a click places the picture at its own size, fitted to the frame and moved inside it; a drag sets the width
+  with the picture's ratio; each further picture waits for its click (status line), Esc puts the rest away. Written as
+  `<Shape image="zen-asset:…" label="…" data-name="<file>" …/>`. `canvas/fileDrop.ts`: files dropped on a frame go in
+  at the point (window listeners: the viewport may mount after the toolbar), pasted pictures in the middle of the
+  selected frame or the frame that shows most (clipboard.ts `setImagePaste`, Session A agreed). Fill › Image
+  (`appearance/ImageFillRow.tsx`, Shape and frames): the photo picker + Upload + −, Image fit, Tile scale; Crop starts
+  from Fill's visible part (`coverCrop`). Layers: a rectangle with a picture shows the image icon.
+- **Figma** (`tools/studio/figma-image.mjs`): push `imageFill` {src, scaleMode, crop, scale} + bytes in `images`; the
+  pull reader reads the IMAGE paint (crop from imageTransform, src from shared plugin data "zenstudio"/"image"); a
+  picture made in Figma is noted. Importer lines: Session B (sample nodes sent). Direct paste notes image fills (F8b).
+- Found while testing: a picture placed near a frame's edge was cut off (now moved inside); the drop listener on the
+  viewport element was never attached (now on the window).
+- **Tests:** image-fill selftest 17; drawModel +2; figma-push +4, figma-pull +4; Figma walk FW-80…86.
+
 ## Session B · Studio parity F5a: one Figma frame is one element, the right panel in Figma's order
 
 Plan `docs/research/studio-figma-design-parity-2026-10-18.md` F5 (decisions 1–2, approved 2026-10-18); spec card

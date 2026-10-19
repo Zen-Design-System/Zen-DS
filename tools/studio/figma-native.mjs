@@ -260,6 +260,8 @@ class Writer {
   /** Every node of a spec under `parent` (a guid), at `index` among its siblings. */
   build(spec, parent, parentInfo) {
     const where = spec.name || spec.type;
+    // An image fill (F8, figma-image.mjs) needs the picture's bytes in Figma: Import from Studio brings it.
+    if (spec.imageFill) this.note(`${where}: its image fill is not in a direct paste yet (Import from Studio brings it)`);
     if (spec.type === "FRAME") return this.frame(spec, parent, parentInfo);
     if (spec.type === "TEXT") return this.text(spec, parent, parentInfo);
     if (spec.type === "ELLIPSE") return this.ellipse(spec, parent, parentInfo);
