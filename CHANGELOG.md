@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Groups, flips and rotation as in Figma (F2 / F3 of the same plan): Box `group` (Figma's Group: holds its layers at
+  their X / Y, sized to them, no look of its own; harness `box/group-no-look`); Zen Studio ⌘G groups the selection
+  (floating layers where they are, layers in auto layout as one group in the flow), Layers names it "Group N", ⇧⌘G /
+  Ungroup puts them back; Figma push / pull carry groups as GROUP nodes. ⇧H / ⇧V flip the selection (several floating
+  layers also swap places across their box); a rotate handle just outside each corner turns a frame or shape (⇧ 15°).
+  Shape gains `flip`.
 - Shape `type="vector"` (F9a of the same plan): a vector's path `d` (absolute M / L / C / Q / Z) in its `viewBox`,
   stretched to the shape's size as Figma scales a vector, `fillRule`; stroked and unfilled by default, its stroke
   centred. Harness `shape/vector-path`. Zen Studio: the Pen (P: clicks for corners, drags for curves, ⇧ 45°, ⌥ breaks

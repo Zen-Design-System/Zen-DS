@@ -135,3 +135,20 @@ Spec card `docs/research/studio-f9-vectors-spec-2026-10-19.md`; the user chose `
   out); plugin `studio-import.js` builds a Shape VECTOR (plugin commit fc18ba7, its test extended). Selftests: push 296,
   pull 81, layer-meta 12.
 - E2E figma FW-115…118 (Pen closed, Pen curve, vertex edit, Pencil) written; run once the gate slot is free.
+
+## F2 / F3 leftovers on F5a — groups, flips, rotate handles (Session A, merged into the F9 branch)
+
+Built on main d145fd16 (B's F5a: `flipTurn` / `turnOps`, frame rotation / flip), branch
+`zen/feat/studio-group-flip-rotate-20261019`, then merged into `zen/feat/studio-f9-vectors-20261019` to ship with F9a
+in one gate (the slot queue is the bottleneck).
+- Box `group` (B handed it over: "a group renders no look"): Layout.tsx ignores surface / border / radius / effect /
+  padding / scroll / clip for a group, keeps opacity / rotation / flip; harness `box/group-no-look`; guideline row.
+- `edit/groupLayers.ts` `groupSelection` (⌘G, menu, floating via op group + `group`, auto layout via op group `flow`),
+  Layers "Group N" (layer-meta) and icon, ⇧⌘G "Ungroup" label; figmaNotYet without ⌘G / ⇧H / ⇧V.
+- `edit/flipLayers.ts` (⇧H / ⇧V: flipTurn per layer, several floating layers mirrored across their union via
+  alignLayers `moveOps`), Shape `flip` (CSS individual `rotate` / `scale`, as frames), `select/RotateHandles.tsx`
+  (zones just outside the corners, ⇧ 15°, Esc, one write through turnOps).
+- Figma: push Box group → frame `group: true` (plugin turns it into a GROUP of its layers; plugin 7bc4ddf), Shape flip
+  (plugin e9767da); pull GROUP → Box group with its layers at their X / Y inside it (reader: positions relative to the
+  group), free-frame px insets for frames too. Selftests push 302, pull 86, arrange 50, layer-meta 13, usage 218 rules.
+- E2E FW-119…121 written; run with F9a's when the slot is ours.
