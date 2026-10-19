@@ -1,26 +1,33 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
 import { DockIcon, type DockIconTheme } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Image } from "../../../components/Image";
-import { Container, Grid, Stack } from "../../../components/Layout";
+import { Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { Pagination } from "../../../components/Pagination";
 import { Search } from "../../../components/Search";
+import { Sidebar, SidebarMenuItem } from "../../../components/Sidebar";
 import { SkeletonShape, SkeletonText } from "../../../components/Skeleton";
 import { Table, TableBadges, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
+import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { platformMedia } from "../../PlatformMedia";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
-  TODAY, daysFromToday, formatDate, formatMoney, formatRelative, initials, invoiceStatusTheme, invoices, people, studio, studioMonths,
+  TODAY, daysFromToday, formatDate, formatMoney, formatRelative, initials, invoiceStatusTheme, invoices, me, people, studio, studioMonths,
   type InvoiceStatus, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -173,6 +180,9 @@ const EXHIBITORS_PER_PAGE = 14;
 
 /** Inline theme under an index table: page size in the Chip, the range beside the arrows; filters survive page turns. */
 function InvoiceTableExample() {
+  const { toast } = useToast();
+  const [unread, setUnread] = useState(1);
+  const notHere = (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the pages." });
   const [status, setStatus] = useState<InvoiceStatus | null>(null);
   const [client, setClient] = useState<string | null>(null);
   const [pageNo, setPageNo] = useState(1);
@@ -186,23 +196,57 @@ function InvoiceTableExample() {
   const clearFilters = () => { filter(() => { setStatus(null); setClient(null); }); statusRef.current?.focus(); };
   const turn = (next: number) => { setPageNo(next); backToTop(topRef.current); };
   const resize = (size: number) => { setPageSize(size); setPageNo(pageHolding((pageNo - 1) * pageSize, size)); };
+  const billed = rows.reduce((sum, invoice) => sum + invoice.amount, 0);
   return (
-    <Container maxWidth="full">
-      <Stack paddingY="xl" gap="xl">
-        <PageHeader title="Invoices" description={`Everything ${studio.name} has billed its clients this year.`} />
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      {/* The studio's Invoices page: AppShell pattern sidebar, the PageHeader in the header's Main row and the filters in
+          its Sections row (they stay with the title while the rows scroll); the table and its pages on the page. */}
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            selectedId="invoices" onItemClick={(item) => { if (item.id !== "invoices") notHere(item.label); }}
+            sections={[{ items: [
+              { id: "home", label: "Home", icon: "icon-home-03-line" },
+              { id: "projects", label: "Projects", icon: "icon-folder-line" },
+              { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+              { id: "people", label: "People", icon: "icon-users-line" },
+            ] }]}
+            footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+        )}
+        header={(
+          <AppShellHeader
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                setUnread(0);
+                toast({ title: unread ? "1 new notification" : "You're all caught up", children: "INV-2026-0139 to Mekong Freight is 14 days overdue" });
+              }} />
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+              ]} />
+            </>}
+            main={(
+              <PageHeader title="Invoices" description={`Everything ${studio.name} has billed its clients this year.`}
+                actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Invoices exported", children: `${plural(rows.length, "invoice")} · ${formatMoney(billed, true)}` })}>Export</Button>} />
+            )}
+            sections={(
+              <Stack direction="row" gap="xs" align="center" wrap paddingY="xs">
+                <Chip ref={statusRef} variant="advanced" selected={Boolean(status)} popoverLabel="Status"
+                  popoverItems={invoiceStatuses.map((value) => ({ id: value, label: value, selected: value === status }))}
+                  onPopoverSelect={(item) => filter(() => setStatus(item.id as InvoiceStatus))} onClearSelection={() => filter(() => setStatus(null))}>
+                  {status ?? "Status"}
+                </Chip>
+                <Chip variant="advanced" selected={Boolean(client)} popoverLabel="Client"
+                  popoverItems={invoiceClients.map((value) => ({ id: value, label: value, selected: value === client }))}
+                  onPopoverSelect={(item) => filter(() => setClient(item.id))} onClearSelection={() => filter(() => setClient(null))}>
+                  {client ?? "Client"}
+                </Chip>
+              </Stack>
+            )}
+          />
+        )}
+      >
         <Stack gap="md" ref={topRef}>
-          <Stack direction="row" gap="xs" wrap>
-            <Chip ref={statusRef} variant="advanced" selected={Boolean(status)} popoverLabel="Status"
-              popoverItems={invoiceStatuses.map((value) => ({ id: value, label: value, selected: value === status }))}
-              onPopoverSelect={(item) => filter(() => setStatus(item.id as InvoiceStatus))} onClearSelection={() => filter(() => setStatus(null))}>
-              {status ?? "Status"}
-            </Chip>
-            <Chip variant="advanced" selected={Boolean(client)} popoverLabel="Client"
-              popoverItems={invoiceClients.map((value) => ({ id: value, label: value, selected: value === client }))}
-              onPopoverSelect={(item) => filter(() => setClient(item.id))} onClearSelection={() => filter(() => setClient(null))}>
-              {client ?? "Client"}
-            </Chip>
-          </Stack>
           <Table aria-label="Invoices" columns={invoiceColumns} rows={pageOf(rows, pageNo, pageSize)}
             empty={<EmptyState headingLevel={2} icon="icon-search-medium-line" title="No invoices match"
               secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another status or client.</EmptyState>} />
@@ -213,8 +257,8 @@ function InvoiceTableExample() {
             </Stack>
           ) : null}
         </Stack>
-      </Stack>
-    </Container>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -326,7 +370,16 @@ function ActivityLogExample() {
 
 /** Phone: numbered pages at the end of a list longer than the screen; a page change scrolls back to the top, so the
     large title opens again over the first row, and focus goes up with it to the count line. */
+/** The fair app's roots, in its bottom bar: a selected root shows its solid icon. */
+const fairRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "exhibitors", label: "Exhibitors", icon: "icon-book-open-line", selectedIcon: "icon-book-open-solid" },
+  { id: "schedule", label: "Schedule", icon: "icon-calendar-line", selectedIcon: "icon-calendar-solid" },
+  { id: "tickets", label: "Tickets", icon: "icon-ticket-01-line", selectedIcon: "icon-ticket-01-solid" },
+];
+
 function MobileExhibitorsExample() {
+  const { toast } = useToast();
   const [pageNo, setPageNo] = useState(1);
   const screenRef = useRef<HTMLDivElement>(null);
   const countRef = useRef<HTMLParagraphElement>(null);
@@ -340,23 +393,28 @@ function MobileExhibitorsExample() {
     countRef.current?.focus({ preventScroll: true });
   };
   return (
-    <PlatformPhone label="Hanoi Book Fair app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
-      {/* Body padding lg (20) = the bar's margin; rows pad 0 at the sides, so they line up with the count. */}
-      <Stack padding="lg" gap="md">
+    // The Exhibitors root of the fair's app: the large title, the list and its pages, and the app's roots in the bottom
+    // bar. The Body pads the screen, so the rows (no side padding of their own) line up with the count.
+    <PlatformPhone label="Hanoi Book Fair app" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation title="Exhibitors" largeTitle="Exhibitors" largeTitleSubheading="Hanoi Book Fair 2026 · Halls A–C" scrollRef={screenRef} />}
+        bottomNavigation={<BottomNavigation aria-label="Hanoi Book Fair" showLabels items={fairRoots} value="exhibitors"
+          onValueChange={(id) => { if (id !== "exhibitors") toast({ title: `${fairRoots.find((item) => item.id === id)?.label ?? id} isn't part of this example`, children: "This screen shows the pages." }); }} />}
+      >
         <Stack gap="xs">
           <Text ref={countRef} tabIndex={-1} role="status" textStyle="Body/Small/Regular" tone="base">{`${first}–${last} of ${plural(exhibitors.length, "exhibitor")}`}</Text>
           <List aria-label="Exhibitors">
             {pageOf(exhibitors, pageNo, EXHIBITORS_PER_PAGE).map((exhibitor) => (
               <ListItem key={exhibitor.id} leading={<DockIcon icon="icon-book-open-line" theme={exhibitor.genre.theme} background="subtle" size="md" />}
-                title={exhibitor.name} caption={`Hall ${exhibitor.hall} · Stand ${exhibitor.hall}${exhibitor.stand} · ${exhibitor.genre.label}`} />
+                title={exhibitor.name} caption={`Hall ${exhibitor.hall} · Stand ${exhibitor.hall}${exhibitor.stand} · ${exhibitor.genre.label}`}
+                onClick={() => toast({ title: exhibitor.name, children: `Hall ${exhibitor.hall}, stand ${exhibitor.hall}${exhibitor.stand} · ${exhibitor.genre.label}` })} />
             ))}
           </List>
         </Stack>
         <Stack direction="row" justify="center">
           <Pagination size="sm" aria-label="Exhibitor pages" page={pageNo} onPageChange={turn} pageCount={pageCount} />
         </Stack>
-      </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -368,7 +426,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Table footer",
     wide: true,
     screen: true,
-    description: "The Inline theme sits under an index table: its Chip picks 10, 25 or 50 rows a page and the range beside the arrows says which rows show. A new filter starts again from page 1, while turning pages keeps the filters.",
+    description: "The Inline theme sits under an index table on the studio's Invoices page: its Chip picks 10, 25 or 50 rows a page and the range beside the arrows says which rows show. The filters sit in the AppShell header's Sections row; a new filter starts again from page 1, while turning pages keeps the filters.",
     render: () => <InvoiceTableExample />,
     code: `const [page, setPage] = useState(1);
 const [pageSize, setPageSize] = useState(10);
@@ -376,20 +434,29 @@ const rows = invoices.filter(matchesFilters);
 // A new filter starts from page 1; turning pages keeps the filters.
 const filter = (change: () => void) => { change(); setPage(1); };
 
-<Table aria-label="Invoices" columns={columns} rows={rows.slice((page - 1) * pageSize, page * pageSize)} empty={noMatches} />
-<Stack direction="row" justify="end">
-  <Pagination
-    theme="inline"
-    aria-label="Invoice pages"
-    page={page}
-    onPageChange={setPage}
-    total={rows.length}
-    pageSize={pageSize}
-    pageSizeOptions={[10, 25, 50]}
-    // A new page size keeps the first visible row on screen.
-    onPageSizeChange={(size) => { setPage(Math.floor(((page - 1) * pageSize) / size) + 1); setPageSize(size); }}
-  />
-</Stack>`,
+<AppShell
+  sidebar={<Sidebar logo={logo} sections={places} selectedId="invoices" onItemClick={go} />}
+  header={
+    <AppShellHeader actions={<>{notifications}{account}</>}
+      main={<PageHeader title="Invoices" description="Everything Đìzai Studio has billed its clients this year." actions={exportButton} />}
+      sections={<Stack direction="row" gap="xs" align="center" wrap paddingY="xs">{statusChip}{clientChip}</Stack>} />
+  }
+>
+  <Table aria-label="Invoices" columns={columns} rows={rows.slice((page - 1) * pageSize, page * pageSize)} empty={noMatches} />
+  <Stack direction="row" justify="end">
+    <Pagination
+      theme="inline"
+      aria-label="Invoice pages"
+      page={page}
+      onPageChange={setPage}
+      total={rows.length}
+      pageSize={pageSize}
+      pageSizeOptions={[10, 25, 50]}
+      // A new page size keeps the first visible row on screen.
+      onPageSizeChange={(size) => { setPage(Math.floor(((page - 1) * pageSize) / size) + 1); setPageSize(size); }}
+    />
+  </Stack>
+</AppShell>`,
   },
   {
     title: "Search results",
@@ -411,7 +478,7 @@ const search = (next: string) => { setQuery(next); setPage(1); };
   },
   {
     title: "Mobile list",
-    description: "On a phone the pages sit at the end of a list longer than the screen, in the Small size for 32px targets. A page change scrolls the screen back to the top, so the large title opens again over the first row, and focus moves up to the count.",
+    description: "On a phone the pages sit at the end of a list longer than the screen, in the Small size for 32px targets, on the Exhibitors root of the fair's app (the large title, the bottom bar). A page change scrolls the screen back to the top, so the large title opens again over the first row, and focus moves up to the count.",
     render: () => <MobileExhibitorsExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 const countRef = useRef<HTMLParagraphElement>(null);
@@ -421,9 +488,12 @@ const turn = (next: number) => {
   countRef.current?.focus({ preventScroll: true }); // focus goes up with the scroll
 };
 
-<PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
-  <Stack padding="lg" gap="md">
+<PlatformPhone screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation title="Exhibitors" largeTitle="Exhibitors" largeTitleSubheading="Hanoi Book Fair 2026 · Halls A–C" scrollRef={screenRef} />}
+    bottomNavigation={<BottomNavigation aria-label="Hanoi Book Fair" showLabels value="exhibitors" onValueChange={go} items={roots} />}
+  >
+    {/* The Body pads 20: the rows line up with the count */}
     <Stack gap="xs">
       <Text ref={countRef} tabIndex={-1} role="status" textStyle="Body/Small/Regular" tone="base">15–28 of 48 exhibitors</Text>
       <List aria-label="Exhibitors">{/* 14 rows a page */}</List>
@@ -431,7 +501,7 @@ const turn = (next: number) => {
     <Stack direction="row" justify="center">
       <Pagination size="sm" aria-label="Exhibitor pages" page={page} onPageChange={turn} pageCount={4} />
     </Stack>
-  </Stack>
+  </AppShell>
 </PlatformPhone>`
   },
   {

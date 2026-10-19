@@ -54,7 +54,9 @@ function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, tog
     const natural = content.getBoundingClientRect().width / scale;
     content.style.flex = flex; content.style.width = width;
     const needed = natural + (toggleWidth ? toggleWidth + rowGap : 0) + (actionsWidth ? actionsWidth + leadingGap : 0);
-    setStacked(needed > room + 0.5);
+    // Fits only with a pixel to spare: a trail that fills the row exactly wraps anyway once its sub-pixel width rounds
+    // (layout page, 390: 158 + 20 + 16 + 92 + 16 = 302 in a 302 row broke "Settings › Workspace" onto two lines).
+    setStacked(needed > room - 1);
   }, [row, content, toggle, actions]);
   useIsomorphicLayoutEffect(measure);
   useIsomorphicLayoutEffect(() => {
