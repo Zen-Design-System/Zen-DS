@@ -40,17 +40,22 @@ function consume(target, map, entries, drop = []) {
   if (all.length) target[map] = { entries: all }; else delete target[map];
 }
 
-/** A path (absolute M, L, C, Z, as the push writes them) as subpaths, scaled by sx, sy. */
+/** A path (absolute M, L, C, Q, Z, as the push writes them) as subpaths, scaled by sx, sy; a quadratic as its cubic (Figma's own). */
 export function parsePath(d, sx = 1, sy = 1) {
-  const tokens = String(d).match(/[MLCZ]|-?\d*\.?\d+(?:e[-+]?\d+)?/gi) ?? [];
+  const tokens = String(d).match(/[MLCQZ]|-?\d*\.?\d+(?:e[-+]?\d+)?/gi) ?? [];
   const subpaths = [];
   let current = null, command = null, i = 0;
   const point = () => [Number(tokens[i++]) * sx, Number(tokens[i++]) * sy];
   while (i < tokens.length) {
-    if (/^[MLCZ]$/i.test(tokens[i])) command = tokens[i++].toUpperCase();
+    if (/^[MLCQZ]$/i.test(tokens[i])) command = tokens[i++].toUpperCase();
     if (command === "M") { current = { start: point(), segments: [], closed: false }; subpaths.push(current); command = "L"; }
     else if (command === "L" && current) current.segments.push({ to: point() });
     else if (command === "C" && current) { const c1 = point(), c2 = point(); current.segments.push({ c1, c2, to: point() }); }
+    else if (command === "Q" && current) {
+      const from = current.segments.length ? current.segments[current.segments.length - 1].to : current.start;
+      const q = point(), to = point();
+      current.segments.push({ c1: [from[0] + (2 / 3) * (q[0] - from[0]), from[1] + (2 / 3) * (q[1] - from[1])], c2: [to[0] + (2 / 3) * (q[0] - to[0]), to[1] + (2 / 3) * (q[1] - to[1])], to });
+    }
     else if (command === "Z") { if (current) current.closed = true; command = null; }
     else i++;
   }
@@ -88,9 +93,11 @@ export function pathBounds(subpaths) {
  * Figma's vector network blob: uint32 counts (vertices, segments, regions); a vertex [style, x, y]; a segment [style,
  * start, tangent start x/y, end, tangent end x/y] (tangents relative to their vertex); a region [style << 1 | NONZERO,
  * loops, (segments, indexes…)…]. Coordinates are shifted by (dx, dy) so the shape starts at its node's origin.
+ * Each closed subpath is a NONZERO region of its own, unless `regions` groups them: [{ subpaths: [index…], evenOdd }]
+ * (one region with a loop per subpath; Figma's even-odd path is one region with style 0, its copy 2026-10-20).
  */
-export function vectorNetwork(subpaths, dx = 0, dy = 0) {
-  const vertices = [], segments = [], regions = [];
+export function vectorNetwork(subpaths, dx = 0, dy = 0, { regions: groups = null } = {}) {
+  const vertices = [], segments = [], loops = [];
   const near = (a, b) => Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6;
   for (const sub of subpaths) {
     const first = vertices.length;
@@ -106,9 +113,12 @@ export function vectorNetwork(subpaths, dx = 0, dy = 0) {
       previous = end;
     });
     if (sub.closed && previous !== first) { segments.push({ start: previous, end: first, t0: [0, 0], t1: [0, 0] }); loop.push(segments.length - 1); }
-    if (sub.closed && loop.length) regions.push(loop);
+    loops.push(sub.closed && loop.length ? loop : null);
   }
-  const size = 12 + vertices.length * 12 + segments.length * 28 + regions.reduce((sum, loop) => sum + 12 + loop.length * 4, 0);
+  const regions = (groups ?? loops.map((loop, index) => ({ subpaths: [index], evenOdd: false })))
+    .map((group) => ({ flag: group.evenOdd ? 0 : 1, loops: group.subpaths.map((index) => loops[index]).filter(Boolean) }))
+    .filter((region) => region.loops.length);
+  const size = 12 + vertices.length * 12 + segments.length * 28 + regions.reduce((sum, region) => sum + 8 + region.loops.reduce((n, loop) => n + 4 + loop.length * 4, 0), 0);
   const bytes = new Uint8Array(size);
   const view = new DataView(bytes.buffer);
   let at = 0;
@@ -117,15 +127,15 @@ export function vectorNetwork(subpaths, dx = 0, dy = 0) {
   u32(vertices.length); u32(segments.length); u32(regions.length);
   for (const [x, y] of vertices) { u32(0); f32(x - dx); f32(y - dy); }
   for (const segment of segments) { u32(0); u32(segment.start); f32(segment.t0[0]); f32(segment.t0[1]); u32(segment.end); f32(segment.t1[0]); f32(segment.t1[1]); }
-  for (const loop of regions) { u32(1); u32(1); u32(loop.length); for (const index of loop) u32(index); }
+  for (const region of regions) { u32(region.flag); u32(region.loops.length); for (const loop of region.loops) { u32(loop.length); for (const index of loop) u32(index); } }
   return bytes;
 }
 
-/** A vector's node fields for subpaths: its size and offset (the shape's bounds) and the network. */
-function vectorFields(subpaths) {
+/** A vector's node fields for subpaths: its size and offset (the shape's bounds) and the network (`options`: vectorNetwork's). */
+function vectorFields(subpaths, options) {
   const { minX, minY, maxX, maxY } = pathBounds(subpaths);
   const size = { x: Math.max(0.01, maxX - minX), y: Math.max(0.01, maxY - minY) };
-  return { minX, minY, size, vectorData: { vectorNetworkBlob: { blob: base64Of(vectorNetwork(subpaths, minX, minY)) }, normalizedSize: size } };
+  return { minX, minY, size, vectorData: { vectorNetworkBlob: { blob: base64Of(vectorNetwork(subpaths, minX, minY, options)) }, normalizedSize: size } };
 }
 
 /** Whether a laid-out frame (Figma's fields) hugs its content along x and y: an unset primary sizing hugs. */
@@ -252,6 +262,10 @@ export async function nativePictures(images, { toPng = null } = {}) {
   return out;
 }
 
+/** A Studio Shape's node type → Figma's (its clipboard names) and the layer name Figma gives a drawn one. */
+const SHAPE_TYPES = { RECTANGLE: ["ROUNDED_RECTANGLE", "Rectangle"], ELLIPSE: ["ELLIPSE", "Ellipse"], LINE: ["LINE", "Line"], POLYGON: ["REGULAR_POLYGON", "Polygon"], STAR: ["STAR", "Star"], VECTOR: ["VECTOR", "Vector"], BOOLEAN_OPERATION: ["BOOLEAN_OPERATION", "Union"] };
+/** figma-push's boolean operations → Figma's clipboard enum (Exclude is XOR). */
+const BOOLEAN_OPERATIONS = { UNION: "UNION", SUBTRACT: "SUBTRACT", INTERSECT: "INTERSECT", EXCLUDE: "XOR" };
 /** figma-image.mjs scale modes → Figma's (its Crop is STRETCH with the shown part as the paint's transform). */
 const IMAGE_SCALE_MODES = { FILL: "FILL", FIT: "FIT", CROP: "STRETCH", TILE: "TILE" };
 const IMAGE_FITS = Object.fromEntries(Object.entries(IMAGE_SCALE_MODES).map(([fit, mode]) => [mode, fit]));
@@ -359,9 +373,8 @@ class Writer {
     if (spec.type === "TEXT") return this.text(spec, parent, parentInfo);
     // A Studio Shape (figma-push shapeNode, `shape: true`) as Figma's own rectangle or ellipse; a chart mark's ELLIPSE
     // (an arc painted with styles) below.
-    if (spec.shape && (spec.type === "RECTANGLE" || spec.type === "ELLIPSE")) return this.shape(spec, parent, parentInfo);
-    // Its other kinds (a line, polygon, star, path or boolean group) wait (BACKLOG): a Shape's path is no chart path.
-    if (spec.shape) { this.note(`${where}: a ${spec.type.toLowerCase().replace("_operation", "")} shape is not in a direct paste yet (Import from Studio places it)`); return null; }
+    if (spec.shape && SHAPE_TYPES[spec.type]) return this.shape(spec, parent, parentInfo);
+    if (spec.shape) { this.note(`${where}: a ${String(spec.type).toLowerCase()} shape is not in a direct paste yet (Import from Studio places it)`); return null; }
     if (spec.type === "ELLIPSE") return this.ellipse(spec, parent, parentInfo);
     if (spec.type === "INSTANCE") return this.instance(spec, parent, parentInfo);
     if (spec.type === "VECTOR") return this.vector(spec, parent, parentInfo);
@@ -667,30 +680,50 @@ class Writer {
   }
 
   /**
-   * A Studio Shape's rectangle or ellipse (the importer's `spec.shape` branch): its px size, Color/Background and
-   * Color/Border variables, a rectangle's Corner-Radius variable, an ellipse's arc, opacity, rotation and flip about its
-   * centre, and its picture.
+   * A Studio Shape (figma-push shapeNode, the importer's `spec.shape` branch) as Figma's own layer, written as Figma's
+   * copy of the importer's layers writes it (2026-10-20): its px size (a line: its length, no height), Color/Background
+   * fill and Color/Border stroke variables, opacity, rotation and flip about its centre, and its picture; a rectangle's
+   * Corner-Radius variable, an ellipse's arc, an arrow's end cap, a polygon's or star's count and a star's inner radius,
+   * a path's vector network from `vectorPaths` (sized to its curve, where the Studio box puts it), a boolean group's
+   * operation over its shapes.
    */
   shape(spec, parent, parentInfo) {
-    const rect = spec.type === "RECTANGLE";
-    const name = spec.name || (rect ? "Rectangle" : "Ellipse");
-    const pos = this.position(spec, parentInfo, spec.fixedWidth ?? 100, spec.fixedHeight ?? 100);
+    const name = spec.name || SHAPE_TYPES[spec.type][1];
+    const line = spec.type === "LINE";
+    let pos = this.position(spec, parentInfo, spec.fixedWidth ?? 100, line ? 0 : spec.fixedHeight ?? 100);
+    let path = null;
+    if (spec.type === "VECTOR") {
+      // Every vectorPaths entry is one region of its own winding rule; the layer is its curve's bounds in the box.
+      const subpaths = [], regions = [];
+      for (const entry of spec.vectorPaths ?? []) { const parsed = parsePath(entry.data); regions.push({ subpaths: parsed.map((_, k) => subpaths.length + k), evenOdd: entry.windingRule === "EVENODD" }); subpaths.push(...parsed); }
+      if (!subpaths.length) { this.note(`${name}: a path without points is not placed`); return null; }
+      path = vectorFields(subpaths, { regions });
+      pos = { x: pos.x + path.minX, y: pos.y + path.minY, w: path.size.x, h: path.size.y };
+    }
     const node = {
-      guid: this.fresh(), phase: "CREATED", parentIndex: { guid: parent, position: this.place(parent) }, type: rect ? "ROUNDED_RECTANGLE" : "ELLIPSE", name, visible: true,
-      opacity: typeof spec.opacity === "number" ? spec.opacity : 1, size: { x: pos.w, y: pos.h },
-      transform: (typeof spec.rotation === "number" && spec.rotation) || spec.flip ? turned(pos.x, pos.y, pos.w, pos.h, spec.rotation, spec.flip) : at(pos.x, pos.y),
-      strokeWeight: spec.stroke && typeof spec.strokeWeight === "number" ? spec.strokeWeight : 1, strokeAlign: (spec.stroke && spec.strokeAlign) || "INSIDE", strokeJoin: "MITER",
+      guid: this.fresh(), phase: "CREATED", parentIndex: { guid: parent, position: this.place(parent) }, type: SHAPE_TYPES[spec.type][0], name, visible: true,
+      opacity: typeof spec.opacity === "number" ? spec.opacity : 1, size: { x: pos.w, y: line ? 0 : pos.h },
+      transform: (typeof spec.rotation === "number" && spec.rotation) || spec.flip ? turned(pos.x, pos.y, pos.w, line ? 0 : pos.h, spec.rotation, spec.flip) : at(pos.x, pos.y),
+      strokeWeight: spec.stroke && typeof spec.strokeWeight === "number" ? spec.strokeWeight : 1, strokeAlign: (spec.stroke && spec.strokeAlign) || (line || path ? "CENTER" : "INSIDE"), strokeJoin: "MITER",
       fillPaints: spec.fill ? this.paint(spec.fill, name) : [], strokePaints: spec.stroke ? this.paint(spec.stroke, name) : [],
       ...this.childFields(spec, parentInfo),
     };
-    if (rect && typeof spec.radius === "number") {
+    if (spec.type === "RECTANGLE" && typeof spec.radius === "number") {
       for (const corner of ["rectangleTopLeftCornerRadius", "rectangleTopRightCornerRadius", "rectangleBottomLeftCornerRadius", "rectangleBottomRightCornerRadius"]) node[corner] = spec.radius;
       node.rectangleCornerRadiiIndependent = true;
       if (spec.radiusVar) Object.assign(node, this.bindings(["RECTANGLE_TOP_LEFT_CORNER_RADIUS", "RECTANGLE_TOP_RIGHT_CORNER_RADIUS", "RECTANGLE_BOTTOM_LEFT_CORNER_RADIUS", "RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS"].map((field) => [field, spec.radiusVar])));
     }
-    if (!rect && spec.arc) node.arcData = { startingAngle: spec.arc.start || 0, endingAngle: spec.arc.end || 0, innerRadius: spec.arc.inner || 0 };
-    this.imageFill(node, spec, name);
-    return this.push(node, parentInfo);
+    if (spec.type === "ELLIPSE" && spec.arc) node.arcData = { startingAngle: spec.arc.start || 0, endingAngle: spec.arc.end || 0, innerRadius: spec.arc.inner || 0 };
+    if (line && spec.endCap) node.strokeCap = spec.endCap;
+    if (spec.type === "POLYGON" || spec.type === "STAR") node.count = typeof spec.pointCount === "number" ? spec.pointCount : spec.type === "STAR" ? 5 : 3;
+    if (spec.type === "STAR" && typeof spec.innerRadius === "number") node.starInnerScale = spec.innerRadius;
+    if (path) node.vectorData = path.vectorData;
+    if (spec.type === "BOOLEAN_OPERATION") { node.booleanOperation = BOOLEAN_OPERATIONS[spec.booleanOperation] ?? "UNION"; node.vectorOperationVersion = 1; }
+    if (!line) this.imageFill(node, spec, name);
+    this.push(node, parentInfo);
+    // A boolean group's shapes, each at its X / Y inside it (Figma combines them).
+    if (spec.type === "BOOLEAN_OPERATION") for (const child of spec.children ?? []) this.build(child, node.guid, { mode: "NONE", w: pos.w, h: pos.h, internal: parentInfo?.internal });
+    return node;
   }
 
   ellipse(spec, parent, parentInfo) {
