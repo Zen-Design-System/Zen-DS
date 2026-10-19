@@ -1174,6 +1174,10 @@ export default function Chips() {
   const overridden = push(chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />'));
   const overriddenInstance = overridden.frame.children.find((node) => node.type === "INSTANCE" && node.local === "chip");
   check("overrides: placed by index in the main, in Figma's fields", overriddenInstance?.layerOverrides, [{ at: [0, 1], characters: "Hi", fill: "Content/Accent/Base" }, { at: [0, 0], visible: false }]);
+  // F7b: an instance's slot content, by the slot's name.
+  const filledPanel = push(chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="panel" slots={{ Content: <Text>Filled</Text> }} />'));
+  const filledInstance = filledPanel.frame.children.find((node) => node.type === "INSTANCE" && node.local === "panel");
+  check("slots: an instance's slot content by name", filledInstance?.slots?.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.characters])]), [["Content", [["TEXT", "Filled"]]]]);
   check("set: an instance's variant and values", [instanceNode.type, instanceNode.local, instanceNode.variant, instanceNode.props], ["INSTANCE", "chip", { Size: "Large" }, { Label: "Done", "Show icon": true }]);
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
 import { Board, Screen } from "@zen-ds/react/builder";

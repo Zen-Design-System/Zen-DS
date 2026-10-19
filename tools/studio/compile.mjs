@@ -268,7 +268,7 @@ function overridesOf(node) {
     : [])));
 }
 
-function instanceCall(node, ctx) {
+function instanceCall(node, ctx, indent = "") {
   const resolved = resolveInstance(ctx.page, node, ctx.model);
   const local = resolved ? ctx.locals?.get(resolved.set?.id ?? resolved.main.id) : null;
   if (!resolved || !local) return "{null}";
@@ -301,6 +301,12 @@ function instanceCall(node, ctx) {
     if (value === undefined || value === property.default) continue;
     props.push(typeof value === "string" ? `${propIdentifier(property.name)}=${json(value)}` : `${propIdentifier(property.name)}={${json(value)}}`);
   }
+  // What it puts in its main's slots (F7b): the layers, as the slot prop.
+  const slots = node.props.slots?.kind === "object" ? node.props.slots.fields : {};
+  for (const property of local.properties) {
+    const content = property.type === "slot" ? slots[property.name] : undefined;
+    if (content && (content.kind === "element" || content.kind === "fragment")) props.push(`${propIdentifier(property.name)}={${valueCode(content, ctx, indent, `slots.${property.name}`)}}`);
+  }
   if (notes.length) props.push(`/* Figma overrides of this instance (no prop in ${local.fn}): ${notes.join("; ").replace(/\*\//g, "* /")} */`);
   return `<${local.fn}${props.length ? ` ${props.join(" ")}` : ""} />`;
 }
@@ -313,8 +319,8 @@ function elementCode(node, ctx, indent, extra = []) {
   // A page-local component (Figma's main, <Component>) and its instances (<Use>) are calls of its function (compileReact
   // writes one per main or set, named from its name); a component set's frame is the design's, not the app's.
   if (node.name === "ComponentSet") return `{/* ${String(literalOf(node, "name") ?? "Component set").replace(/\*\//g, "* /")}: its variants are one function */}`;
-  if (node.name === "Component") return instanceCall({ ...node, props: { of: node.props.id } }, ctx);
-  if (node.name === "Use") return instanceCall(node, ctx);
+  if (node.name === "Component") return instanceCall({ ...node, props: { of: node.props.id } }, ctx, indent);
+  if (node.name === "Use") return instanceCall(node, ctx, indent);
   // Inside a component's function, a layer bound to a component property reads the function's prop (Figma's text,
   // boolean and instance swap properties); the binding attributes are the design's.
   const binding = ctx.bindings ? Object.fromEntries(Object.keys(PROPERTY_BINDINGS).flatMap((attr) => (typeof literalOf(node, attr) === "string" ? [[attr, literalOf(node, attr)]] : []))) : {};
@@ -324,6 +330,9 @@ function elementCode(node, ctx, indent, extra = []) {
     extra = [...extra, ["name", swap]];
     node = { ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => name !== "name")) };
   }
+  // A slot layer (Figma's slot): the instance's layers, else the main's own.
+  const slot = binding["data-prop-slot"] ? ctx.slotBindings?.get(binding["data-prop-slot"]) : null;
+  if (slot) node = { ...node, children: node.children.length ? [{ kind: "code", code: `{${slot} ?? <>` }, ...node.children, { kind: "code", code: "</>}" }] : [{ kind: "code", code: `{${slot}}` }] };
   const text = binding["data-prop-text"] ? ctx.bindings.get(binding["data-prop-text"]) : null;
   if (text) node = { ...node, children: [{ kind: "code", code: `{${text}}` }] };
   const shownIf = binding["data-prop-visible"] ? ctx.bindings.get(binding["data-prop-visible"]) : null;
@@ -527,12 +536,17 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
       // Its props: the set's variant properties (each its values), then the component properties with their defaults.
       const axes = local.set ? local.set.axes : [];
       const properties = local.properties.filter((property) => property.type !== "slot");
+      const slotProperties = local.properties.filter((property) => property.type === "slot");
       ctx.bindings = new Map(properties.map((property) => [property.name, propIdentifier(property.name)]));
+      ctx.slotBindings = new Map(slotProperties.map((property) => [property.name, propIdentifier(property.name)]));
+      if (slotProperties.length) ctx.uses.add("reactNode");
       const params = [
         ...axes.map((axis) => [propIdentifier(axis.name), json(axis.values[0]), axis.values.map(json).join(" | ")]),
         ...properties.map((property) => [propIdentifier(property.name), json(property.default ?? (property.type === "boolean" ? false : "")), property.type === "boolean" ? "boolean" : "string"]),
+        // A slot: the layers an instance puts there (its main's own when it gives none).
+        ...slotProperties.map((property) => [propIdentifier(property.name), null, "ReactNode"]),
       ];
-      const signature = params.length ? `{ ${params.map(([key, value]) => `${key} = ${value}`).join(", ")} }: { ${params.map(([key, , type]) => `${key}?: ${type}`).join("; ")} }` : "";
+      const signature = params.length ? `{ ${params.map(([key, value]) => (value === null ? key : `${key} = ${value}`)).join(", ")} }: { ${params.map(([key, , type]) => `${key}?: ${type}`).join("; ")} }` : "";
       const what = local.set ? "a component set of the design: its instances call it with their variant and properties" : "a component of the design: its instances call it";
       localLines.push(`/** ${local.name.replace(/\*\//g, "* /")} (${what}). */`, `function ${local.fn}(${signature}) {`);
       if (local.set) {
@@ -550,6 +564,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
         localLines.push("  return (", `    ${elementCode(local.root, ctx, "    ")}`, "  );", "}", "");
       }
       ctx.bindings = null;
+      ctx.slotBindings = null;
     }
   }
 
@@ -562,8 +577,9 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   lines.push(`// Generated by Zen Studio from ${file ?? `${name}.zen.tsx`}. Edit the design, then export again.`);
   const typesProps = hasMock && ctx.typed.size > 0;
   const reactHooks = [...(ctx.uses.has("effect") ? ["useEffect"] : []), ...(usesState ? ["useState"] : [])];
-  if (reactHooks.length) lines.push(`import { ${reactHooks.join(", ")}${typesProps ? ", type ComponentProps" : ""} } from "react";`);
-  else if (typesProps) lines.push(`import type { ComponentProps } from "react";`);
+  const reactTypes = [...(typesProps ? ["ComponentProps"] : []), ...(ctx.uses.has("reactNode") ? ["ReactNode"] : [])];
+  if (reactHooks.length) lines.push(`import { ${[...reactHooks, ...reactTypes.map((type) => `type ${type}`)].join(", ")} } from "react";`);
+  else if (reactTypes.length) lines.push(`import type { ${reactTypes.join(", ")} } from "react";`);
   const zen = [...ctx.components, ...(ctx.uses.has("toast") ? ["useToast"] : [])].sort((a, b) => a.localeCompare(b));
   lines.push(`import { ${zen.join(", ")} } from "@zen-ds/react";`);
   for (const entry of ctx.media.values()) lines.push(`import ${entry.name} from "./assets/${entry.file}";`);

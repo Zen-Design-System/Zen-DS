@@ -296,6 +296,46 @@ export default function Page() {
   ok("overrides: the export still parses", parsed);
 }
 
+// F7b: a slot property is a ReactNode prop; the main's slot layer shows it, else its own layers; an instance passes
+// the layers it puts there.
+{
+  const page = `// @zen-page {"format":1,"title":"Panels"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Panels">
+        <Stack>
+          <Component id="panel" name="Panel" properties={{ Content: { type: "slot" } }}>
+            <Stack padding="md">
+              <Stack data-prop-slot="Content">
+                <Text>Empty</Text>
+              </Stack>
+            </Stack>
+          </Component>
+          <Use of="panel" slots={{ Content: <Text>Filled</Text> }} />
+          <Use of="panel" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  ok("slots: a valid page", validateDialect(page).length === 0);
+  const out = compileReact(page, { file: "panels.zen.tsx" });
+  ok("slots: no error", !out.error);
+  ok("slots: a ReactNode prop", out.code.includes("function Panel({ content }: { content?: ReactNode })") && out.code.includes('import type { ReactNode } from "react";'));
+  ok("slots: the slot layer shows it, else its own layers", /\{content \?\? <>\s*<Text>Empty<\/Text>\s*<\/>\}/.test(out.code));
+  ok("slots: the instance passes its layers; the other none", out.code.includes("<Panel content={<Text>Filled</Text>} />") && out.code.includes("<Panel />"));
+  let parsed = true;
+  try { parseSource(out.code); } catch { parsed = false; }
+  ok("slots: the export parses", parsed);
+}
+
 if (failures.length) {
   console.error(`✗ compile selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

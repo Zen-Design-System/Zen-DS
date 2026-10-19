@@ -474,6 +474,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const resolved = resolveInstance(doc.board, element, localModel);
       const local = resolved?.set?.id ?? String(code.of ?? "");
       node = { type: "INSTANCE", local, name: localNames.get(local) ?? "Instance", ...(resolved?.set ? { variant: resolved.variant } : {}), ...(resolved && Object.keys(resolved.values).length ? { props: resolved.values } : {}), ...(id ? { id } : {}), hugW: true, hugH: true };
+      // What it puts in its main's slots (F7b): Figma's slot content, by the slot's name (the importer fills it).
+      const fills = element.props.slots?.kind === "object" ? element.props.slots.fields : null;
+      if (fills) {
+        const slots = Object.entries(fills).map(([name, content]) => {
+          const layers = content.kind === "element" ? [content.node] : content.kind === "fragment" ? content.children.filter((child) => child.kind === "element") : [];
+          return { name, children: layers.map((layer) => convert(layer, { direction: "column", stretch: false, width: null })).filter(Boolean) };
+        }).filter((slot) => slot.children.length);
+        if (slots.length) node.slots = slots;
+      }
       // Its overrides of its main's layers (F7b): placed by the main's drawn layers once the frame is built (below).
       const table = element.props.overrides?.kind === "object" ? element.props.overrides.fields : null;
       const main = resolved ? localModel.mains.find((entry) => entry.id === resolved.main.id) : null;

@@ -611,7 +611,7 @@ export function resolveInstance(tree, use, model) {
 }
 
 /** What `<Use>` takes: its component, its variant and property values, its overrides, and the layer data any layer carries (layer-meta.mjs). */
-const USE_PROPS = new Set(["of", "variant", "props", "overrides", "data-name", "data-locked"]);
+const USE_PROPS = new Set(["of", "variant", "props", "overrides", "slots", "data-name", "data-locked"]);
 const COMPONENT_PROPS = new Set(["id", "name", "variant", "properties", "description", "link"]);
 const SET_PROPS = new Set(["id", "name", "properties", "description", "link"]);
 
@@ -684,7 +684,7 @@ function checkComponents(board, errors) {
     // An instance inside its own main (or its own set) would draw itself forever.
     if (parents.some((parent) => (parent.name === "Component" || parent.name === "ComponentSet") && parent.props.id?.value === of)) at(node, `<Use of="${of}"> sits inside its own component`);
     // An instance may carry its own layer name and lock (tools/studio/layer-meta.mjs), as any layer does.
-    for (const prop of Object.keys(node.props)) if (!USE_PROPS.has(prop)) at(node, `<Use> takes of, variant, props and overrides only, not ${prop}`);
+    for (const prop of Object.keys(node.props)) if (!USE_PROPS.has(prop)) at(node, `<Use> takes of, variant, props, overrides and slots only, not ${prop}`);
     const resolved = resolveInstance(board, node, model);
     if (!resolved) return;
     const set = resolved.set;
@@ -702,6 +702,16 @@ function checkComponents(board, errors) {
       if (!property) at(node, `${resolved.main.name} has no property ${key}`);
       else if (property.type === "boolean" && typeof value !== "boolean") at(node, `${key} is on or off: true or false`);
       else if ((property.type === "text" || property.type === "swap") && typeof value !== "string") at(node, `${key} takes text`);
+    }
+    // What it puts in its main's slots (F7b): layers for a slot property the main has.
+    const slots = node.props.slots;
+    if (slots !== undefined) {
+      if (slots.kind !== "object") at(node, "slots is an object: slots={{ Content: <Text>Hi</Text> }}");
+      else for (const [name, content] of Object.entries(slots.fields)) {
+        const property = resolved.main.properties.find((entry) => entry.name === name);
+        if (!property || property.type !== "slot") at(node, `${set?.name ?? resolved.main.name} has no slot ${name}`);
+        if (content.kind !== "element" && content.kind !== "fragment") at(node, `slots.${name} takes layers: <Text>…</Text> or <>…</>`);
+      }
     }
     // Its overrides (F7b): each names a layer of its main by its path, or a layer inside one (a nested component's own,
     // a nested instance's), with literal values.

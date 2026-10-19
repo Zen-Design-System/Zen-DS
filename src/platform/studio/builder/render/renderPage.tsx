@@ -67,6 +67,9 @@ export type RenderContext = {
   /** Drawing an instance: its main's layers by their path in it (layerPathsOf), where the instance sits in an outer one,
    *  and the `overrides` tables that apply, outermost written first (Figma's instance overrides; nested.tsx). */
   nest?: InstanceNest;
+  /** Drawing an instance: the layers it puts in its main's slots (`<Use slots>`), drawn in the scope and context the
+   *  `<Use>` sits in — the page's own layers, selectable as any. */
+  slotFill?: { values: Readonly<Record<string, PageValue>>; scope: Scope; ctx: RenderContext };
 };
 
 /** An instance's `overrides` table, as nested.tsx keeps them: layer path → literal props, relative to `base`. */
@@ -82,7 +85,7 @@ export type LocalSet = { kind: "set"; name: string; variants: readonly string[];
 export type LocalComponents = ReadonlyMap<string, LocalMain | LocalSet>;
 
 /** The layer attributes that bind a main's layer to a component property (dialect.mjs PROPERTY_BINDINGS). */
-const BINDINGS = { text: "data-prop-text", visible: "data-prop-visible", swap: "data-prop-swap" } as const;
+const BINDINGS = { text: "data-prop-text", visible: "data-prop-visible", swap: "data-prop-swap", slot: "data-prop-slot" } as const;
 
 type Scope = Record<string, unknown>;
 
@@ -408,7 +411,8 @@ function renderComponentNode(node: PageNode, scope: Scope, ctx: RenderContext, k
   const table = overridesTable(node.props.overrides);
   const base = at ?? "";
   const nest: InstanceNest = { paths: layerPathsOf(drawn.main.root, ctx.components), base, tables: [...(ctx.nest?.tables ?? []), ...(table ? [{ base, table }] : [])] };
-  const drawnRoot = renderNode(drawn.main.root, scope, { ...ctx, instance: true, values: drawn.values, chain: [...(ctx.chain ?? []), drawn.id], nest }, at === null ? key : undefined, { ...extra, ...own, ...mark });
+  const slotFill = node.props.slots?.kind === "object" ? { values: node.props.slots.fields, scope, ctx } : undefined;
+  const drawnRoot = renderNode(drawn.main.root, scope, { ...ctx, instance: true, values: drawn.values, chain: [...(ctx.chain ?? []), drawn.id], nest, slotFill }, at === null ? key : undefined, { ...extra, ...own, ...mark });
   return asLayer(drawnRoot, at, ctx.nest, key);
 }
 
@@ -455,7 +459,11 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   // shows the new state at once instead of after a reload (user, 2026-10-11).
   const initial = initialStateOf(props);
   if (initial) props.key = `${key ?? ""}~${initial}`;
-  return asLayer(createElement(component as never, props, ...renderChildren(node.children, scope, ctx)), at, ctx.nest, key);
+  // A main's slot layer in an instance that fills it: the instance's layers, out of every nested scope (nested.tsx slot).
+  const slotName = ctx.slotFill && bound ? literalOf(node.props[BINDINGS.slot]) : undefined;
+  const filled = typeof slotName === "string" ? ctx.slotFill!.values[slotName] : undefined;
+  const children = filled ? [createElement(NestedContext, { key: "slot", value: { path: "", tables: [] } }, valueOf(filled, ctx.slotFill!.scope, ctx.slotFill!.ctx) as ReactNode)] : renderChildren(node.children, scope, ctx);
+  return asLayer(createElement(component as never, props, ...children), at, ctx.nest, key);
 }
 
 /** An element's children, or a slot fragment's: text, mock fields, lists (one element per row) and elements. */
