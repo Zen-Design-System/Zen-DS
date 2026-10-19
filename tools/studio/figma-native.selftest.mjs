@@ -328,6 +328,49 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(back?.message.nodeChanges.filter((n) => ["LINE", "REGULAR_POLYGON", "STAR", "VECTOR", "BOOLEAN_OPERATION"].includes(n.type)).length === 7, "the shapes survive Figma's clipboard encoding");
 }
 
+// --- the page's own components (figma-push COMPONENT_SET / COMPONENT / local INSTANCE; Figma's copy of a probe) -------
+{
+  const text = (characters, extra = {}) => ({ type: "TEXT", characters, ...extra });
+  const row = (children) => ({ type: "FRAME", name: "Stack", layout: { mode: "HORIZONTAL", gap: 4 }, children });
+  const set = { type: "COMPONENT_SET", local: "chip", name: "Chip", properties: [{ name: "Label", type: "TEXT", default: "Filter" }, { name: "Show icon", type: "BOOLEAN", default: true }, { name: "Content", type: "SLOT" }], layout: { mode: "HORIZONTAL", gap: 24 }, hugW: true, hugH: true, children: [
+    { type: "COMPONENT", local: "chip-small", name: "Size=Small", variant: { Size: "Small" }, layout: { mode: "VERTICAL" }, hugW: true, hugH: true, children: [row([{ type: "ELLIPSE", shape: true, name: "Dot", fixedWidth: 6, fixedHeight: 6, propRefs: { visible: "Show icon" } }, text("Filter", { propRefs: { characters: "Label" } })])] },
+    { type: "COMPONENT", local: "chip-large", name: "Size=Large", variant: { Size: "Large" }, layout: { mode: "VERTICAL" }, hugW: true, hugH: true, children: [row([{ type: "ELLIPSE", shape: true, name: "Dot", fixedWidth: 8, fixedHeight: 8, propRefs: { visible: "Show icon" } }, text("Filter", { propRefs: { characters: "Label" } })])] },
+  ] };
+  const note = { type: "COMPONENT", local: "note", name: "Note", properties: [{ name: "Title", type: "TEXT", default: "Title" }], layout: { mode: "VERTICAL" }, hugW: true, hugH: true, children: [{ type: "FRAME", name: "Stack", layout: { mode: "VERTICAL" }, children: [text("Title", { propRefs: { characters: "Title" } }), text("Body")] }] };
+  const uses = [
+    { type: "INSTANCE", local: "chip", name: "Done", variant: { Size: "Large" }, props: { Label: "Done", "Show icon": false } },
+    { type: "INSTANCE", local: "note", name: "Card note", props: { Title: "Hello" }, layerOverrides: [{ at: [0, 1], characters: "Changed body", fill: "Color/Content/Accent/Base" }] },
+    { type: "INSTANCE", local: "elsewhere", name: "Lost" },
+  ];
+  const { message, notes } = nativeMessage(exportOf([set, note, ...uses]), pack);
+  const nodes = message.nodeChanges;
+  const named = (name, type) => nodes.find((n) => n.name === name && (!type || n.type === type));
+  const children = (node) => nodes.filter((n) => n.parentIndex && id(n.parentIndex.guid) === id(node?.guid));
+  const group = named("Chip", "FRAME");
+  const defs = Object.fromEntries((group?.componentPropDefs ?? []).map((def) => [def.name, def]));
+  check(group?.isStateGroup === true && JSON.stringify(group.stateGroupPropertyValueOrders) === JSON.stringify([{ property: "Size", values: ["Small", "Large"] }]), "a set: Figma's state group with its variant value order");
+  check(defs.Label?.type === "TEXT" && defs.Label.initialValue.textValue.characters === "Filter" && defs.Label.varValue.dataType === "TEXT_DATA" && defs["Show icon"]?.type === "BOOL" && defs["Show icon"].initialValue.boolValue === true && defs.Size?.type === "VARIANT" && !defs.Content, "its definitions as Figma's copy writes them (a slot property waits)");
+  const [small, large] = children(group);
+  check(small?.type === "SYMBOL" && small.name === "Size=Small" && large?.type === "SYMBOL" && small.variantPropSpecs?.[0]?.value === "Small" && id(small.variantPropSpecs[0].propDefId) === id(defs.Size.id), "its variants: symbols named by their values, with variantPropSpecs");
+  const own = Object.fromEntries((large?.componentPropDefs ?? []).map((def) => [id(def.parentPropDefId), id(def.id)]));
+  check(own[id(defs.Label.id)] && own[id(defs["Show icon"].id)] && own[id(defs.Label.id)] !== id(defs.Label.id), "a variant's own definitions point at the set's (parentPropDefId)");
+  const largeDot = children(children(large)[0]).find((n) => n.name === "Dot");
+  const largeText = children(children(large)[0]).find((n) => n.type === "TEXT");
+  check(id(largeDot?.componentPropRefs?.[0]?.defID) === own[id(defs["Show icon"].id)] && largeDot.componentPropRefs[0].componentPropNodeField === "VISIBLE" && largeDot.parameterConsumptionMap?.entries?.[0]?.variableData.dataType === "PROP_REF", "a bound layer names its variant's own definition, with its PROP_REF link");
+  check(largeText?.componentPropRefs?.[0]?.componentPropNodeField === "TEXT_DATA", "a bound text: TEXT_DATA");
+  const noteMain = named("Note", "SYMBOL");
+  check(noteMain?.componentPropDefs?.[0]?.name === "Title" && !noteMain.variantPropSpecs, "a lone main: a symbol with its own definitions");
+  // A <Use>: a frame that copies its variant's layers with its values (Figma links no pasted instance to a pasted main).
+  const done = named("Done", "FRAME");
+  const doneLayers = children(children(done)[0]);
+  check(done && !nodes.some((n) => n.type === "INSTANCE" && n.name === "Done") && doneLayers.find((n) => n.name === "Dot")?.visible === false && doneLayers.find((n) => n.type === "TEXT")?.textData.characters === "Done" && !doneLayers.some((n) => n.componentPropRefs), "a Use is a frame copy of its variant: its values shown, nothing bound");
+  const cardTexts = children(children(named("Card note", "FRAME"))[0]).filter((n) => n.type === "TEXT");
+  check(cardTexts[0]?.textData.characters === "Hello" && cardTexts[1]?.textData.characters === "Changed body" && id(cardTexts[1].fillPaints?.[0]?.colorVar?.value.alias.guid) === pack.variables["Color/Content/Accent/Base"]?.[0], "its overrides of its main's layers (characters, fill)");
+  check(notes.some((n) => n.includes("Lost") && n.includes("not in this paste")) && notes.some((n) => /^2 instances of the page's own components came as frames/.test(n)) && notes.some((n) => n.includes("slot property Content")), `notes: a missing main, the frame copies, the slot property (${notes.join("; ")})`);
+  const back = await readFigmaClipboard((await figmaPasteHtml(exportOf([set, note]), pack)).html);
+  check(back?.message.nodeChanges.filter((n) => n.type === "SYMBOL" && id(n.guid).startsWith("2147480000")).length === 3 && back.message.nodeChanges.some((n) => n.isStateGroup), "the components survive Figma's clipboard encoding");
+}
+
 // --- a component's own picture (an Avatar's photo, a table cell's): the first layer that shows one (pack `img`) ------
 {
   const logoBytes = fs.readFileSync(path.join(root, "src/templates/hr/assets/workspace-logo.png"));

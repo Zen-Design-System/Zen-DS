@@ -20,3 +20,13 @@ Branch `zen/feat/studio-export-overrides-props-20261020` (from main 002b2194, af
   selftest's "the export parses" checks used the lenient `parseSource`, which let it through; they now use Babel with
   no error recovery.
 - compile selftest 76.
+
+## Direct paste of the page's own components (Session C) — tier S, branch `zen/feat/studio-native-local-components-20261020`
+BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studio Shapes and page-local components").
+- Figma's encoding read from its own copy of a probe (lone main with TEXT + BOOL properties, a 2-variant set with a
+  BOOL property, three instances): figma-native writes sets, variants, lone mains and bound layers the same way.
+- A live paste gave the set and its properties right but instances with no main. Figma's own copy pasted back (its
+  mains deleted) did the same: a paste never links an instance to a main pasted with it. User choice (2026-10-20):
+  "Main thật + Use thành frame": a `<Use>` is a frame copy of its variant with its values and overrides, one note.
+- Live paste (QA page, removed): Chip set with Label / Show icon / Size and bound layers, the Note main, three frames
+  with their values. Selftest figma-native 113. Slots and swap properties stay notes.

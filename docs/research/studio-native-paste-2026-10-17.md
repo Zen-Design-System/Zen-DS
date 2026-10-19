@@ -158,6 +158,16 @@ này bằng use_figma khi thư viện đổi ảnh mà không cần chụp lại
 (`booleanOperation`, `vectorOperationVersion: 1`, hình con nằm trong nó; Exclude = XOR). Dán thật cả trang Shape từ
 figma-push: đúng loại, kích thước, xoay/lật quanh tâm, biến màu. Mũi tên một đầu còn mở (BACKLOG).
 
+## 7e. Component riêng của trang (2026-10-20, user chọn "Main thật + Use thành frame")
+
+Bản Figma tự copy một probe (main có property, set 2 variant, instance) cho cách ghi: set = FRAME `isStateGroup` +
+`stateGroupPropertyValueOrders` + `componentPropDefs` (BOOL/TEXT có initialValue + varValue, VARIANT varValue STRING
+""); variant = SYMBOL có def riêng `parentPropDefId` + `variantPropSpecs`; layer gắn = `componentPropRefs` + PROP_REF;
+instance gán theo def riêng của variant. **Figma không nối instance với main được dán cùng lúc**: dán lại chính bản
+Figma copy (main gốc đã xoá) thì mọi instance mất main (bản dán cùng file luôn trỏ main theo id gốc). Vì vậy `<Use>`
+thành frame sao y biến thể với giá trị của nó (property, override `at`); một ghi chú gộp; slot / swap property còn là
+ghi chú.
+
 ## 8. Còn mở
 
 Cách ghi slot ở cấp ngoài như Figma (nội dung "Contents" của List-Item, "Header-Text" của Header: bản dán ghi override vào

@@ -312,7 +312,6 @@ class Writer {
     /** Each written parent's children in order, and the main layers bound to a property (key → [defId, field]). */
     this.kids = new Map();
     this.bound = new Map();
-    this.pendingOverrides = [];
     this.notes = [];
     this.next = 1;
     this.scene = [];
@@ -379,6 +378,7 @@ class Writer {
   build(spec, parent, parentInfo) {
     const node = this.buildNode(spec, parent, parentInfo);
     if (node && spec.propRefs) this.bindProps(node, spec);
+    if (node && spec.hidden === true) node.visible = false;
     if (spec.slot) this.note(`${spec.name || spec.type}: a slot in a page's component is not in a direct paste yet (Import from Studio makes it)`);
     return node;
   }
@@ -986,7 +986,13 @@ class Writer {
       this.bound.set(`${key(node.guid)}|${kind[0]}`, def.id);
     }
   }
-  /** A Studio <Use> of the page's own component: its main's variant, its property values, its layer overrides (later). */
+  /**
+   * A Studio <Use> of the page's own component. Figma links a pasted instance only to a component already in the file
+   * (its own copy of a main and its instances, pasted back, lost every link, 2026-10-20), so the user chose a frame
+   * that copies its variant's layers with its values: its property values on the layers bound to them, its overrides
+   * of its main's layers (figma-push `layerOverrides`: `at` = child indexes in the main). It looks as the instance;
+   * Import from Studio places a linked instance.
+   */
   localInstance(spec, parent, parentInfo) {
     const where = spec.name || "Instance";
     const record = this.locals.get(spec.local);
@@ -994,51 +1000,39 @@ class Writer {
     const wanted = spec.variant ?? {};
     const main = record.kind === "set" ? record.variants.find((v) => Object.entries(wanted).every(([name, value]) => String(v.values[name]) === String(value))) ?? record.variants[0] : record;
     if (!main) { this.note(`${where}: its component set ${spec.local} has no variants`); return null; }
-    const guess = this.estimate(main.spec);
-    const pos = this.position(spec, parentInfo, guess.w, guess.h);
-    const node = {
-      guid: this.fresh(), phase: "CREATED", parentIndex: { guid: parent, position: this.place(parent) }, type: "INSTANCE", name: spec.name || main.spec.name || "Instance", visible: true, opacity: 1,
-      size: { x: pos.w, y: pos.h }, transform: at(pos.x, pos.y), symbolData: { symbolID: main.guid, uniformScaleFactor: 1 },
-      ...this.childFields(spec, parentInfo),
-    };
-    const assignments = [];
-    for (const [name, value] of Object.entries(spec.props ?? {})) {
-      const def = this.defOf(main, name);
-      if (!def) { this.note(`${where}: no property ${name} on its component`); continue; }
-      assignments.push(localAssignment(def, value));
-    }
-    if (assignments.length) node.componentPropAssignments = assignments;
-    if (spec.slots?.length) this.note(`${where}: what it puts in its component's slots is not in a direct paste yet (Import from Studio fills them)`);
-    if (spec.layerOverrides?.length) this.pendingOverrides.push({ node, main, overrides: spec.layerOverrides, where });
-    return this.push(node, parentInfo);
-  }
-  /**
-   * The instances' overrides of their main's layers (figma-push `layerOverrides`: `at` = child indexes in the main),
-   * once every main is written: a text's characters and a layer's visibility (through its property when bound, as
-   * Figma rewrites them), a text's fill.
-   */
-  finishLocals() {
-    for (const { node, main, overrides, where } of this.pendingOverrides) {
-      for (const override of overrides) {
-        let layer = { guid: main.guid };
-        for (const index of override.at ?? []) layer = this.kids.get(key(layer.guid))?.[index] ?? null;
-        if (!layer || layer.guid === main.guid) { this.note(`${where}: an override of a layer its main does not draw`); continue; }
-        const entry = () => { const list = (node.symbolData.symbolOverrides ??= []); let found = list.find((e) => key(e.guidPath.guids[0]) === key(layer.guid)); if (!found) { found = { guidPath: { guids: [layer.guid] } }; list.push(found); } return found; };
-        const viaProp = (field, value) => {
-          const defId = this.bound.get(`${key(layer.guid)}|${field}`);
-          if (!defId) return false;
-          const list = (node.componentPropAssignments ??= []);
-          const assignment = localAssignment({ id: defId, type: field === "TEXT_DATA" ? "TEXT" : "BOOL" }, value);
-          const at = list.findIndex((a) => key(a.defID) === key(defId));
-          if (at >= 0) list[at] = assignment; else list.push(assignment);
-          return true;
-        };
-        if (typeof override.characters === "string" && !viaProp("TEXT_DATA", override.characters)) entry().textData = textData(override.characters);
-        if (typeof override.visible === "boolean" && !viaProp("VISIBLE", override.visible)) entry().visible = override.visible;
-        if (override.fill) entry().fillPaints = this.paint(override.fill, where);
-        if (override.variant || override.props) this.note(`${where}: a nested instance's variant or properties in its main are not in a direct paste yet`);
+    const copy = structuredClone(main.spec);
+    for (const field of ["local", "variant", "properties", "description", "link"]) delete copy[field];
+    copy.type = "FRAME";
+    copy.name = spec.name || main.spec.name || "Instance";
+    for (const field of ["absolute", "fillW", "fillH", "hugW", "hugH", "cell", "place", "minW", "minH", "maxW", "maxH", "fixedWidth", "fixedHeight", "key", "id"]) { if (spec[field] !== undefined) copy[field] = spec[field]; else if (["absolute", "cell", "place"].includes(field)) delete copy[field]; }
+    // Its property values on the layers bound to them; the copy binds nothing of its own (it is no main).
+    const values = spec.props ?? {};
+    const walk = (node) => {
+      if (node.propRefs) {
+        if (node.propRefs.characters && values[node.propRefs.characters] !== undefined && node.type === "TEXT") node.characters = String(values[node.propRefs.characters]);
+        if (node.propRefs.visible && values[node.propRefs.visible] === false) node.hidden = true;
+        delete node.propRefs;
       }
+      delete node.slot;
+      (node.children ?? []).forEach(walk);
+    };
+    walk(copy);
+    for (const override of spec.layerOverrides ?? []) {
+      let layer = copy;
+      for (const index of override.at ?? []) layer = layer?.children?.[index] ?? null;
+      if (!layer || layer === copy) { this.note(`${where}: an override of a layer its main does not draw`); continue; }
+      if (typeof override.characters === "string" && layer.type === "TEXT") layer.characters = override.characters;
+      if (typeof override.visible === "boolean") layer.hidden = !override.visible;
+      if (override.fill) layer.fill = override.fill;
+      if (override.variant || override.props) this.note(`${where}: a nested instance's variant or properties in its main are not in a direct paste yet`);
     }
+    if (spec.slots?.length) this.note(`${where}: what it puts in its component's slots is not in a direct paste yet (Import from Studio fills them)`);
+    this.localCopies = (this.localCopies ?? 0) + 1;
+    return this.frame(copy, parent, parentInfo);
+  }
+  /** One note for the instances of the page's own components that came as frames. */
+  finishLocals() {
+    if (this.localCopies) this.note(`${this.localCopies} instance${this.localCopies > 1 ? "s" : ""} of the page's own components came as frames (Figma links a pasted instance only to a component already in the file): Import from Studio places linked instances`);
   }
 
   skeletons() {
