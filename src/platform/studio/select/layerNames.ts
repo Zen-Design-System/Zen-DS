@@ -8,7 +8,7 @@ import type { IconName } from "../../../icons/generated/names";
  * do người dùng") — only a component the person made (⌥⌘K) or a Zen component instance reads as one.
  */
 
-const SHAPE_LABELS: Readonly<Record<string, string>> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star" };
+const SHAPE_LABELS: Readonly<Record<string, string>> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector" };
 
 /** `name` as the layer shows it, given its props (a Shape's `type`). */
 export function layerName(name: string, props: Record<string, unknown> | null | undefined): string {
@@ -19,7 +19,7 @@ export function layerName(name: string, props: Record<string, unknown> | null | 
   return name;
 }
 
-const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-square-line", ellipse: "icon-circle-line", line: "icon-minus-line", arrow: "icon-arrow-up-right-line", polygon: "icon-triangle-line", star: "icon-star-01-line" };
+const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-square-line", ellipse: "icon-circle-line", line: "icon-minus-line", arrow: "icon-arrow-up-right-line", polygon: "icon-triangle-line", star: "icon-star-01-line", vector: "icon-pen-tool-01-line" };
 
 /**
  * A layer's own icon, as Figma's layers show it: a page-local component's ◇ (its main and its instances), a shape's

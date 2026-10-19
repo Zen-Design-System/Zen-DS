@@ -38,7 +38,7 @@ export const FRAME_COMPONENTS = new Set(["Box", "Stack", "Grid"]);
 export const FIGMA_NAMED = new Set([...FRAME_COMPONENTS, "Shape", "Text"]);
 
 /** A Shape's Figma node name by its type, as Figma's tools name what they draw. */
-export const SHAPE_NAMES = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star" };
+export const SHAPE_NAMES = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector" };
 
 /** The words of a text layer (its literal text, one line), as Figma names a text layer; null when it has none. */
 export function textWordsOf(node, max = 60) {
