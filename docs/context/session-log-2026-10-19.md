@@ -39,6 +39,15 @@ device simulator (#134) and on F1 (#139).
 - **Tests:** `board/sections.selftest.mjs` (12), dialect selftest +7 (Section), `studio:selftest` ✓, tsc ✓. E2E: B-20,
   B-45, B-46, PT-15 moved to the presets; Figma walk FW-40…49 (presets, click, handles, fields, Section draw / move /
   delete / wrap, N / ⇧N, Frame button menu, Pages order + divider after a reload).
+- **Runs (after merging main 5918b309: F2, F3, Bug):** full Studio E2E 336 / 336; `--only=figma` 51 / 51; CI quick steps
+  (usage, guidelines, ai-ui, mcp, style) ✓; gate `npm run qa -- --isolated --files=…` PASS (third run). The first two
+  gate runs caught B-20, both fixed: a frame just added was selected before the board showed it, and the board's next
+  render of the row-pinned text cleared the selection (now `board/frames.ts selectFrameWhenShown`, for addFrame,
+  addSection and copyFrame); the row now reads the Screen tags exactly. FW-49 once lost the page order on an instant
+  reload: the order is now written before it shows.
+- **Seen, not F4 (main has it too):** the builder / prototype / starters / main / device E2E groups log 19× "[Unhandled
+  error] ResizeObserver loop completed with undelivered notifications" (Vite forwards it; every row passes); same count
+  on main 5918b309. Told Giám sát.
 
 ## Main component for every component + count rule + Code properties (tier L, session "Bug")
 

@@ -31,10 +31,14 @@ async function load(): Promise<void> {
   notify();
 }
 
+/** Keeps a list's order: written first, then shown, so what the list shows survives a reload at once. */
 async function save(scope: string, ids: string[]): Promise<void> {
   orders = { ...orders, [scope]: ids };
-  notify();
-  await run(SETTINGS, "readwrite", (store) => store.put({ key: KEY, value: orders }));
+  try {
+    await run(SETTINGS, "readwrite", (store) => store.put({ key: KEY, value: orders }));
+  } finally {
+    notify();
+  }
   channel?.postMessage("changed");
 }
 
