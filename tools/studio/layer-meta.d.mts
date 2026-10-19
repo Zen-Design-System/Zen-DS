@@ -5,6 +5,7 @@ export function isLockedValue(value: unknown): boolean;
 export const FRAME_COMPONENTS: Set<string>;
 export const FIGMA_NAMED: Set<string>;
 export const SHAPE_NAMES: Record<string, string>;
+export const BOOLEAN_NAMES: Record<string, string>;
 export function textWordsOf(node: { children?: ReadonlyArray<{ kind: string; value?: string }> } | null | undefined, max?: number): string | null;
 export function autoNameBase(node: { name: string; props?: Record<string, unknown> }): string | null;
 export function autoLayerNames(board: unknown): Map<string, string>;

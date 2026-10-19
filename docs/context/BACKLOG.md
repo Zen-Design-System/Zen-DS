@@ -9,8 +9,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 ## Open items
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0, F1 and F4 shipped):**
   `docs/research/studio-figma-design-parity-2026-10-18.md` — next F2 (selection and transform), then F3–F10 in the plan's
-  order. Left: the Code properties rows move to the Code tab (§3a "Properties", structural); Group selection / Ungroup
-  (F3, decision 3) are menu items saying "Not in Zen Studio yet"; Present (⌥⌘↵) from a selected Overlay frame, as Figma
+  order. Left: the Code properties rows move to the Code tab (§3a "Properties", structural); Use as mask ⌃⌘M (F9,
+  decision 6: a Box `mask` in Session B's Layout, one PR with B; groups, booleans, Flatten, Outline stroke are built);
+  Present (⌥⌘↵) from a selected Overlay frame, as Figma
   presents any frame (needs `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); ⌥-drag / ⌘D
   of a Section with its frames (F4 moves, resizes, deletes and wraps them; a copy is not built); an instance's data-name stays in
   the page (its Figma name is its component's or carries content, which pull reads as such).
@@ -40,7 +41,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Studio components v2 (2026-10-17):** v1 is built (⌥⌘K, instances, Go to main, Detach, swap, React export,
   push to Figma). Open: instance overrides (text, visibility) + Reset all changes, component properties, variants, pull of
   local components from Figma. Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §9.
-- **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 5 examples; not covered yet: states,
+- **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.
 - **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,

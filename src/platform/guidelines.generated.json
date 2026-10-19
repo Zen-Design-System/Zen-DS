@@ -3299,9 +3299,11 @@
   },
   "shape": {
     "title": "Shape",
-    "purpose": "Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon and Star — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only.",
+    "purpose": "Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon, Star and the Pen's Vector — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only.",
     "use": [
       "A decorative mark or illustration a designer drew in Zen Studio with R, O, L, ⇧L, Polygon or Star.",
+      "A free-form curve or outline drawn with the Pen (P) or Pencil (⇧P): type=\"vector\" with its path d in its viewBox.",
+      "A cut-out or combined mark (a ticket stub, a ring with a notch): a boolean group of shapes (⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E in Zen Studio).",
       "A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.",
       "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets.",
       "A picture placed in Zen Studio (⇧⌘K, a dropped or pasted file): a Rectangle with an image fill, as Figma places it."
@@ -3310,13 +3312,24 @@
       "Data charts → Chart components (DonutChart, RadialChart, ProgressBar…): they carry labels, legends and accessible values.",
       "A divider line → Divider.",
       "A surface or card background → Box surface or Card.",
-      "A status dot or badge on a component → that component's own prop (Avatar status, notification dot)."
+      "A status dot or badge on a component → that component's own prop (Avatar status, notification dot).",
+      "An icon → Icon (the icon set); a vector is drawn art, not a glyph."
     ],
     "api": [
       [
         "Type",
         "type",
-        "rectangle (default) · ellipse · line · arrow · polygon · star"
+        "rectangle (default) · ellipse · line · arrow · polygon · star · vector · boolean"
+      ],
+      [
+        "Boolean group",
+        "operation · children",
+        "union (default) · subtract · intersect · exclude of its shapes (children at their X / Y); Zen Studio writes the result as d"
+      ],
+      [
+        "Path",
+        "d / viewBox / fillRule",
+        "a vector's path in absolute M / L / C / Q / Z commands, the box it is written in (it stretches to the size), nonzero (default) · evenodd"
       ],
       [
         "Fill",
@@ -3370,7 +3383,8 @@
       "Don't draw charts, progress or ratings from shapes: use the components that carry values and labels.",
       "Don't use a Shape as a card or section background: use Box surface or Card.",
       "Don't pass hex or rgb colours: fill and stroke take Zen token paths only.",
-      "Don't use an image fill for a picture in the content (an article photo, a product shot): use Image (alt, ratio, caption)."
+      "Don't use an image fill for a picture in the content (an article photo, a product shot): use Image (alt, ratio, caption).",
+      "Don't write a vector's d with relative commands, arcs or H / V: Zen Studio and Figma read absolute M / L / C / Q / Z."
     ],
     "a11y": [
       "Decorative by default (aria-hidden); with label it is role=img named by the label.",
@@ -3412,6 +3426,12 @@
         "severity": "warn",
         "summary": "A line or arrow has no height (Figma's LINE): its length is width, its angle rotation, its weight strokeWeight.",
         "allow": "line-height"
+      },
+      {
+        "id": "shape/vector-path",
+        "severity": "error",
+        "summary": "A vector (type=\"vector\") carries its path d in absolute M / L / C / Q / Z commands — what Zen Studio and Figma's vectorPaths read.",
+        "allow": "vector-path"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -7459,6 +7479,11 @@
     ],
     "api": [
       [
+        "Group (Box)",
+        "group",
+        "Figma's Group (Zen Studio ⌘G): holds its layers at their X / Y, sized to them; no fill, stroke, corners, effect, padding (ignored); moves, turns, flips and fades as one"
+      ],
+      [
         "Gap (Spacing/Gap)",
         "gap · rowGap · columnGap",
         "none · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 (default) · lg 24 · xl 32 · 2xl 40 · 3xl 48 · giant 64 · xgiant 88 · 2xgiant 144 (long names like small also work)"
@@ -7669,6 +7694,12 @@
         "severity": "warn",
         "summary": "borderStyle=\"dashed\" draws only with border=\"subtle\": dashed borders are always Subtle (a drop zone, an empty slot).",
         "allow": "dashed-border"
+      },
+      {
+        "id": "box/group-no-look",
+        "severity": "warn",
+        "summary": "A group (Box group, Figma's Group) only holds its layers together: no fill, stroke, corners, effect, padding, scroll or clip — they are ignored.",
+        "allow": "group-look"
       },
       {
         "id": "layout/opacity-percent",

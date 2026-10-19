@@ -41,7 +41,7 @@
 - [Pagination](docs/guidelines/pagination.md): Move through a large, ordered result set one page at a time. Props: docs/api/pagination.json
 - [Skeleton](docs/guidelines/skeleton.md): Placeholder that mirrors the layout of content while it loads. Props: docs/api/skeleton.json
 - [Divider](docs/guidelines/divider.md): A 1px line that separates groups of content. Default (Pale) is the everyday rule; Medium and High add emphasis only when the design calls for it. Props: docs/api/divider.json
-- [Shape](docs/guidelines/shape.md): Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon and Star — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only. Props: docs/api/shape.json
+- [Shape](docs/guidelines/shape.md): Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon, Star and the Pen's Vector — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only. Props: docs/api/shape.json
 - [Inline Message](docs/guidelines/inline-message.md): A Subtle-surface message placed inside the content it describes — contextual, persistent until resolved or dismissed. Props: docs/api/inline-message.json
 - [Empty State](docs/guidelines/empty-state.md): Explains why a screen or region has nothing to show and what the user can do next. Props: docs/api/empty-state.json
 - [Stepper](docs/guidelines/stepper.md): Shows progress through a multi-step, sequential process and where the user is in it. Props: docs/api/stepper.json

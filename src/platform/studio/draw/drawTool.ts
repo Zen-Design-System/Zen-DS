@@ -34,7 +34,7 @@ const EDGE = 32;
 /** Props a Box that only floats one layer has (position/float.ts): such a Box is a layer's wrapper, not a frame. */
 const FLOAT_PROPS = new Set(["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft", "children", "key"]);
 
-type DrawTarget = {
+export type DrawTarget = {
   mode: "free" | "flow";
   /** The frame the layer goes into. */
   parent: FiberHit;
@@ -56,7 +56,7 @@ function floatsOneLayer(hit: FiberHit): boolean {
 }
 
 /** The frame a draw starting at (x, y) goes into, a reason it cannot, or null (no Screen there). */
-function targetAt(x: number, y: number): DrawTarget | string | null {
+export function targetAt(x: number, y: number): DrawTarget | string | null {
   const world = canvasApi.getWorldElement();
   let hit: FiberHit | null = null;
   for (const element of document.elementsFromPoint(x, y)) {
@@ -88,13 +88,13 @@ function targetAt(x: number, y: number): DrawTarget | string | null {
 }
 
 /** A point on the screen in the frame's own px (from its padding box's top-left, its scroll included). */
-function localOf(host: HTMLElement, client: Point): Point {
+export function localOf(host: HTMLElement, client: Point): Point {
   const rect = host.getBoundingClientRect();
   const { zoom } = getViewport();
   return { x: (client.x - rect.left) / zoom - host.clientLeft + host.scrollLeft, y: (client.y - rect.top) / zoom - host.clientTop + host.scrollTop };
 }
 /** The frame's own px back on the screen, relative to the canvas viewport's top-left. */
-function screenOf(host: HTMLElement, local: Point): Point {
+export function screenOf(host: HTMLElement, local: Point): Point {
   const rect = host.getBoundingClientRect();
   const view = getViewportBox();
   const { zoom } = getViewport();
@@ -102,7 +102,7 @@ function screenOf(host: HTMLElement, local: Point): Point {
 }
 
 /** The frame's box and its layers' boxes in its own px: what a drawn corner snaps to (Figma's smart guides). */
-function snapTargets(host: HTMLElement): FrameBox[] {
+export function snapTargets(host: HTMLElement): FrameBox[] {
   const own: FrameBox = { x: 0, y: 0, width: host.clientWidth, height: host.clientHeight };
   const { zoom } = getViewport();
   const origin = host.getBoundingClientRect();

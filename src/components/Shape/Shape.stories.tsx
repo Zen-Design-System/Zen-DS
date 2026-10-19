@@ -27,7 +27,9 @@ export const Playground: Story = {};
 export const Types: Story = {
   render: () => (
     <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
-      {shapeTypes.map((type) => (type === "line" || type === "arrow" ? <Shape key={type} type={type} width={100} rotation={20} /> : <Shape key={type} type={type} width={80} height={80} />))}
+      {shapeTypes.map((type) => (type === "line" || type === "arrow" ? <Shape key={type} type={type} width={100} rotation={20} />
+        : type === "vector" ? <Shape key={type} type="vector" d={WAVE} viewBox="0 0 80 40" width={80} height={40} strokeWeight={2} />
+          : <Shape key={type} type={type} width={80} height={80} />))}
     </div>
   ),
 };
@@ -50,6 +52,16 @@ export const ImageFill: Story = {
       <Shape image={photo} imageFit="tile" imageScale={10} width={160} height={100} radius="md" stroke="neutral-solid" />
       <Shape type="ellipse" image={photo} label="Santorini in a circle" width={100} height={100} />
       <Shape type="star" image={photo} imageFit="fit" fill="support-yellow-soft" width={100} height={100} />
+    </div>
+  ),
+};
+/** A wave drawn with the Pen: two cubic curves (Figma's VECTOR). */
+const WAVE = "M 0 20 C 13 0 27 0 40 20 C 53 40 67 40 80 20";
+export const Vectors: Story = {
+  render: () => (
+    <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+      <Shape type="vector" d={WAVE} viewBox="0 0 80 40" width={160} height={40} strokeWeight={3} stroke="accent-solid" />
+      <Shape type="vector" d="M 20 0 C 31 0 40 9 40 20 C 40 31 31 40 20 40 C 9 40 0 31 0 20 C 0 9 9 0 20 0 Z M 20 10 L 30 20 L 20 30 L 10 20 Z" viewBox="0 0 40 40" width={64} height={64} fill="support-teal-solid" stroke="none" fillRule="evenodd" />
     </div>
   ),
 };

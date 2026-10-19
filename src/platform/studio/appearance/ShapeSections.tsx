@@ -21,7 +21,7 @@ import "./appearance.css";
  */
 
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
-export const shapePropNames: readonly string[] = ["type", "fill", "image", "imageFit", "imageCrop", "imageScale", "stroke", "strokeWeight", "strokeAlign", "arcStart", "arcSweep", "arcRatio", "pointCount", "starRatio", "opacity", "radius", ...CORNERS];
+export const shapePropNames: readonly string[] = ["type", "fill", "image", "imageFit", "imageCrop", "imageScale", "stroke", "strokeWeight", "strokeAlign", "arcStart", "arcSweep", "arcRatio", "pointCount", "starRatio", "opacity", "radius", ...CORNERS, "d", "viewBox", "fillRule"];
 
 /** A field's leading mark, an icon as Figma's (it is also what the pointer scrubs). */
 const mark = (name: IconName) => <Icon name={name} size="sm" decorative />;
@@ -35,6 +35,8 @@ const writeOps = (prop: string, value: number, fallback: number): EditOp[] => (v
 export function ShapeSections({ api, specs, host }: { api: FieldApi; specs: PropSpec[]; host: HTMLElement | null }) {
   const type = String(literalOf(api.valueFor("type")) ?? "rectangle");
   const line = type === "line" || type === "arrow";
+  // A vector (the Pen's, F9) is stroked and unfilled by default, its stroke centred on the path, as Figma's.
+  const vector = type === "vector";
   const spec = (name: string) => specs.find((candidate) => candidate.name === name);
   const number = (prop: string, fallback: number) => numberOf(api.valueFor(prop)) ?? fallback;
   const bound = (prop: string) => { const state = api.valueFor(prop).state; return state === "bound" || state === "spread"; };
@@ -46,7 +48,7 @@ export function ShapeSections({ api, specs, host }: { api: FieldApi; specs: Prop
     const withDefault: PropSpec = { ...found, defaultValue: fallback };
     return <PropField spec={withDefault} label={label} value={api.valueFor(prop)} disabled={api.disabled} onSet={onSet ?? ((value) => api.setProp(prop, value))} onReset={() => api.removeProp(prop)} />;
   };
-  const stroke = String(literalOf(api.valueFor("stroke")) ?? (line ? DEFAULT_LINE_STROKE : "none"));
+  const stroke = String(literalOf(api.valueFor("stroke")) ?? (line || vector ? DEFAULT_LINE_STROKE : "none"));
   return (
     <>
       {type === "ellipse" ? (
@@ -84,19 +86,19 @@ export function ShapeSections({ api, specs, host }: { api: FieldApi; specs: Prop
       </InspectorSection>
       {line ? null : (
         <InspectorSection title="Fill">
-          {field("fill", "Fill", api.valueFor("image").state === "unset" ? DEFAULT_SHAPE_FILL : "none")}
+          {field("fill", "Fill", vector || api.valueFor("image").state !== "unset" ? "none" : DEFAULT_SHAPE_FILL)}
           <ImageFillRow api={api} specs={specs} host={host} />
         </InspectorSection>
       )}
       <InspectorSection title="Stroke" fieldGrid={stroke !== "none"}>
-        {field("stroke", "Stroke", line ? DEFAULT_LINE_STROKE : "none")}
+        {field("stroke", "Stroke", line || vector ? DEFAULT_LINE_STROKE : "none")}
         {stroke !== "none" ? (
           <>
             <div className="studio-shape__pair">
               <ScrubNumberField label={mark("icon-line-height-line")} name="Stroke weight" min={0} max={400} round={1} value={number("strokeWeight", 1)} disabled={api.disabled || bound("strokeWeight")}
                 onCommit={(value) => write("strokeWeight", value, 1, `Stroke weight → ${value}`)} />
             </div>
-            {line ? null : field("strokeAlign", "Position", "inside")}
+            {line ? null : field("strokeAlign", "Position", vector ? "center" : "inside")}
           </>
         ) : null}
       </InspectorSection>

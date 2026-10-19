@@ -1045,6 +1045,14 @@
           "deprecated": null
         },
         {
+          "name": "group",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them\n(Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are\nignored. It moves, turns, flips and fades (opacity) as one.",
+          "deprecated": null
+        },
+        {
           "name": "as",
           "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
           "required": false,

@@ -35,6 +35,24 @@ removed (four unused colour ramps were, see Removed).
   the click, T and a drag a text box of that width, and the typing goes into it at once; Enter is a new line, Esc leaves;
   a new text left untouched, or any text layer emptied, is deleted; T on the words of a text puts the caret there.
   Typography › Resizing has Figma's Auto width · Auto height · Fixed size.
+- Boolean groups, Flatten and Outline stroke (F9b of the same plan): Shape `type="boolean"` (`operation` union /
+  subtract / intersect / exclude, its shapes as children, its result `d`); Zen Studio ⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E make a
+  live boolean group of the selected shapes (its result follows every edit of its shapes in the same ⌘Z), ⌘E flattens
+  shapes into one vector, ⌥⌘O turns a stroke into a filled vector; Layers names groups by operation. Computed with
+  Skia's PathOps (`pathkit-wasm`, loaded on first use). Figma push / pull carry BOOLEAN_OPERATION nodes.
+- Groups, flips and rotation as in Figma (F2 / F3 of the same plan): Box `group` (Figma's Group: holds its layers at
+  their X / Y, sized to them, no look of its own; harness `box/group-no-look`); Zen Studio ⌘G groups the selection
+  (floating layers where they are, layers in auto layout as one group in the flow) and keeps it hugging its layers as
+  they move or resize (same ⌘Z), Layers names it "Group N", ⇧⌘G /
+  Ungroup puts them back; Figma push / pull carry groups as GROUP nodes. ⇧H / ⇧V flip the selection (several floating
+  layers also swap places across their box); a rotate handle just outside each corner turns a frame or shape (⇧ 15°).
+  Shape gains `flip`.
+- Shape `type="vector"` (F9a of the same plan): a vector's path `d` (absolute M / L / C / Q / Z) in its `viewBox`,
+  stretched to the shape's size as Figma scales a vector, `fillRule`; stroked and unfilled by default, its stroke
+  centred. Harness `shape/vector-path`. Zen Studio: the Pen (P: clicks for corners, drags for curves, ⇧ 45°, ⌥ breaks
+  handles, a click on the first point closes, Enter ends) and the Pencil (⇧P, smoothed into curves) draw vectors into a
+  frame; Enter or a double-click on a vector edits its points and handles (Delete removes a point). Layers names them
+  "Vector N". Figma push / pull carry them as VECTOR nodes with their vectorPaths (Zen plugin updated).
 - Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
   panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
   first) and a preset makes an empty frame of that size beside the frames; a click on the canvas makes a 100 × 100 frame

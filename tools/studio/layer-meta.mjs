@@ -38,7 +38,10 @@ export const FRAME_COMPONENTS = new Set(["Box", "Stack", "Grid"]);
 export const FIGMA_NAMED = new Set([...FRAME_COMPONENTS, "Shape", "Text"]);
 
 /** A Shape's Figma node name by its type, as Figma's tools name what they draw. */
-export const SHAPE_NAMES = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star" };
+export const SHAPE_NAMES = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector" };
+
+/** A boolean group's Figma name by its operation. */
+export const BOOLEAN_NAMES = { union: "Union", subtract: "Subtract", intersect: "Intersect", exclude: "Exclude" };
 
 const isRun = (child) => child.kind === "element" && child.name === "TextRun";
 /** A text's words with its TextRuns' (words with styles of their own, part of the text) in their place. */
@@ -54,7 +57,11 @@ export function textWordsOf(node, max = 60) {
 
 /** The kind an automatic name counts in ("Frame", "Rectangle"…), or null for layers named otherwise. */
 export function autoNameBase(node) {
+  // A Box marked as a group (Figma's Group, ⌘G) counts as "Group N".
+  if (node.name === "Box" && literalOf(node.props?.group) === true) return "Group";
   if (FRAME_COMPONENTS.has(node.name)) return "Frame";
+  // A boolean group is named by its operation, as Figma names it ("Union 1", "Subtract 2").
+  if (node.name === "Shape" && literalOf(node.props?.type) === "boolean") return BOOLEAN_NAMES[String(literalOf(node.props?.operation) ?? "union")] ?? "Union";
   if (node.name === "Shape") return SHAPE_NAMES[String(literalOf(node.props?.type) ?? "rectangle")] ?? "Rectangle";
   return null;
 }

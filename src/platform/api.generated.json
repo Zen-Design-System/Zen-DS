@@ -8029,10 +8029,50 @@
         },
         {
           "name": "type",
-          "type": "\"rectangle\" | \"ellipse\" | \"line\" | \"arrow\" | \"polygon\" | \"star\"",
+          "type": "\"rectangle\" | \"ellipse\" | \"line\" | \"arrow\" | \"polygon\" | \"star\" | \"vector\" | \"boolean\"",
           "required": false,
           "default": "\"rectangle\"",
-          "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),\n`line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's \"Line arrow\" end\ncap), `polygon` (REGULAR_POLYGON, `pointCount` corners) and `star` (STAR, `pointCount` tips, `starRatio`).",
+          "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),\n`line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's \"Line arrow\" end\ncap), `polygon` (REGULAR_POLYGON, `pointCount` corners), `star` (STAR, `pointCount` tips, `starRatio`) and `vector`\n(VECTOR: the path `d` in its `viewBox`, as the Pen draws it) and `boolean` (BOOLEAN_OPERATION: its shapes, the\nchildren, combined by `operation`; Zen Studio writes the result as `d`).",
+          "deprecated": null
+        },
+        {
+          "name": "operation",
+          "type": "\"union\" | \"subtract\" | \"intersect\" | \"exclude\"",
+          "required": false,
+          "default": null,
+          "description": "A boolean group's operation (`type=\"boolean\"`): `union` (default), `subtract`, `intersect` or `exclude`, as Figma's.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A boolean group's shapes (`type=\"boolean\"`): placed at their X / Y inside it, not drawn themselves; their combined outline is.",
+          "deprecated": null
+        },
+        {
+          "name": "d",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "A vector's path (`type=\"vector\"`): SVG path data in absolute M / L / C / Q / Z commands only (what Figma's vectorPaths\ntake), in the coordinates of `viewBox`. Zen Studio's Pen and Pencil write it.",
+          "deprecated": null
+        },
+        {
+          "name": "viewBox",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The box a vector's `d` is written in (\"minX minY width height\"); the path stretches from it to the shape's size, as Figma scales a vector. Default: the path's own bounds.",
+          "deprecated": null
+        },
+        {
+          "name": "fillRule",
+          "type": "\"nonzero\" | \"evenodd\"",
+          "required": false,
+          "default": null,
+          "description": "How a vector's overlapping sub-paths fill (Figma's winding rule): `nonzero` (default) or `evenodd` (holes).",
           "deprecated": null
         },
         {
@@ -8040,7 +8080,7 @@
           "type": "ShapeFill",
           "required": false,
           "default": null,
-          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line or arrow has none, and\na shape with an `image` has none unless it is given (the colour then shows around a `fit` picture).",
+          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none,\nand a shape with an `image` has none unless it is given (the colour then shows around a `fit` picture).",
           "deprecated": null
         },
         {
@@ -8048,7 +8088,7 @@
           "type": "ShapeStroke",
           "required": false,
           "default": null,
-          "description": "Stroke: a Color/Border token by its path (\"neutral-solid\", \"accent-subtle\", \"support-teal-solid\"; `shapeStrokes`), or \"none\" (default; a line or arrow takes Border/Neutral/Solid).",
+          "description": "Stroke: a Color/Border token by its path (\"neutral-solid\", \"accent-subtle\", \"support-teal-solid\"; `shapeStrokes`), or \"none\" (default; a line, arrow or vector takes Border/Neutral/Solid).",
           "deprecated": null
         },
         {
@@ -8064,7 +8104,7 @@
           "type": "\"inside\" | \"center\" | \"outside\"",
           "required": false,
           "default": null,
-          "description": "Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's) or `outside`.",
+          "description": "Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's and a vector's) or `outside`.",
           "deprecated": null
         },
         {
@@ -8121,6 +8161,14 @@
           "required": false,
           "default": null,
           "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the shape about its centre.",
+          "deprecated": null
+        },
+        {
+          "name": "flip",
+          "type": "\"horizontal\" | \"vertical\" | \"both\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre.",
           "deprecated": null
         },
         {
@@ -16513,6 +16561,14 @@
           "required": false,
           "default": null,
           "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside).",
+          "deprecated": null
+        },
+        {
+          "name": "group",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them\n(Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are\nignored. It moves, turns, flips and fades (opacity) as one.",
           "deprecated": null
         },
         {
