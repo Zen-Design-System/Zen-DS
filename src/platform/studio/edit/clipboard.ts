@@ -392,12 +392,18 @@ function spotInView(frameId: string | null): Spot | string {
   return spot;
 }
 
+/* Plain text pasted with nothing selected: F6 (Session C, edit/textCreate.ts) makes Figma's text layer of it. */
+let plainTextPaste: ((text: string) => Promise<boolean>) | null = null;
+/** Lets the text tool make the layer a paste of plain text with nothing selected creates (null: a <Text> here). */
+export const setPlainTextPaste = (paste: ((text: string) => Promise<boolean>) | null) => { plainTextPaste = paste; };
+
 /** Pastes `text` (null: the Studio's own clip) at `point` (Paste here), or with nothing selected into the frame in view. */
 async function pasteOnCanvas(text: string | null, point: { x: number; y: number } | null): Promise<boolean> {
   if (pasting) return false;
   const own = clip && (text === null || text.trim() === clip.code.trim()) ? clip : null;
   const raw = own ? own.code : text?.trim() ?? "";
   if (!raw) { fail("The clipboard is empty — copy a layer first"); return false; }
+  if (!own && !point && !raw.startsWith("<") && plainTextPaste) return plainTextPaste(raw);
   const code = raw.startsWith("<") ? raw : textLayer(raw);
   const selection = studioStore.getState().selection;
   const spot = point ? spotAtPoint(point) : spotInView(selection?.kind === "frame" ? selection.frameId : null);
