@@ -596,6 +596,27 @@ Then "Các example Appshell nên build như trong Figma ◇ Master-Layout · Exa
     - `platform:audit --quality` on the other 39 pages;
     - the full Studio E2E;
     - then the PR.
+- **Gate 2026-10-20, 02:00–03:05 (the supervisor's slot): FAIL.** Report `.qa/reports/2026-10-19T18-59-47-26060f06.md`.
+  - Static: all green, including the full vitest and every Figma contract.
+  - Platform audit: shard 2 started with app-shell (41 screens × 1512/390/320, smoke, density) and hit the 30 min cap,
+    so it wrote no report. The next run uses `ZEN_QA_SHARDS=4`.
+  - Behaviour found two problems, both fixed at their owners:
+    - Sidebar with `brand` + `logoCollapsed`: the collapse button remounted when the brand gave way to the rail mark,
+      so focus was lost and aria-expanded stayed stale. It is now the header's second child in both states. A
+      regression test fails on the old code.
+    - Avatar's self row offered only disabled menu items; it now offers Edit your profile.
+    - app-shell joins the behaviour probe's HEAVY_PAGES.
+  - Studio E2E: 315 works · 21 broken, all on this branch.
+    - LB-03, LB-05, AI-*, AG-* read the blank desktop page's content Stack as `padding="xl"`. Inside the master layout
+      the AppShell Body pads, so that Stack is unpadded; the rows now accept both.
+    - MC-02 (Layers row timeout) waits for a row re-run.
+  - Contact sheets at 390, plus two fixes:
+    - The B4 artboard was a fixed 390 and overflowed a phone column; it now fills, up to 390.
+    - B5's three labelled links sat at the row's edge; in the drawer layout Changelog and Community move into More.
+  - Also fixed: page-header Nested pages hid its trail by hand under 480. It now passes the full trail, and PageHeader
+    turns it into Back on a phone.
+  - Merged main 36c866ce (#156, #157). Conflicts in CHANGELOG and this log were resolved keeping both sides. tsc, all
+    67 studio selftests and the E2E selftest are green.
 - **Open:**
   - Image has no frameless option for the E1 mascot; this needs the user's approval for a new prop.
   - Designer questions:
