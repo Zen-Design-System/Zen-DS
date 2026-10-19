@@ -3,10 +3,11 @@ import { plural } from "../../../components/Text";
 import { parseSrc, studioApi, subscribeStudioWrites, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { mapLine } from "../code/diff";
+import { floatingPlace, rememberDuplicate, repeatOffset } from "../edit/duplicateOffset";
 import { rowOf } from "../inspector/detach";
 import { componentSchema } from "../inspector/propSchema";
 import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "../inspector/status";
-import { childHits, findBySrc, instanceOf, onSourceUpdate, panelOf, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
+import { childHits, findBySrc, instanceOf, onSourceUpdate, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
 import { selectPart, withoutPart } from "../select/parts";
 import { expectRender, mapSrc, noteEditTarget, remapSelection, renderedNow, sameSelectedElement, type RenderWaitEnd } from "../select/remap";
 import { stackTagBefore, studioWrapper, wrappedChildLoc, wrapperCandidate } from "../select/resize";
@@ -255,7 +256,8 @@ const showWhenRendered = (text: string) => (end: RenderWaitEnd) => {
  * sessionStorage: a write may reload the page before ⌘Z.
  */
 type Sides = { before: boolean; after: boolean };
-type LastSlotEdit = { file: string; size: number; hash: string; before: StudioSelection; after: StudioSelection; fresh: Sides; away?: Sides };
+/** null: nothing selected (`after`: a removal; `before`: a paste with nothing selected). */
+type LastSlotEdit = { file: string; size: number; hash: string; before: StudioSelection | null; after: StudioSelection | null; fresh: Sides; away?: Sides };
 
 /** FNV-1a of a text (a fingerprint, not security). */
 function fingerprint(text: string) {
@@ -268,22 +270,22 @@ function fingerprint(text: string) {
 }
 
 let lastEdit: LastSlotEdit | null = typeof window === "undefined" ? null : readSession<LastSlotEdit>(LAST_KEY);
-if (lastEdit && (typeof lastEdit.file !== "string" || !lastEdit.before?.kind || !lastEdit.after?.kind)) lastEdit = null;
+if (lastEdit && (typeof lastEdit.file !== "string" || (lastEdit.before !== null && !lastEdit.before?.kind) || (lastEdit.after !== null && !lastEdit.after?.kind))) lastEdit = null;
 
-function remember(file: string, after: string, before: StudioSelection, next: StudioSelection, fresh: Sides, away?: Sides) {
+function remember(file: string, after: string, before: StudioSelection | null, next: StudioSelection | null, fresh: Sides, away?: Sides) {
   lastEdit = { file, size: after.length, hash: fingerprint(after), before, after: next, fresh, ...(away?.before || away?.after ? { away } : {}) };
   writeSession(LAST_KEY, lastEdit);
 }
 
 /** Remembers an insert made outside the slot picker (a paste, an Assets item) so its undo and redo restore the
  *  selection too: undo goes back to `before`, redo awaits the inserted layer again. */
-export function rememberInsert(file: string, after: string, before: StudioSelection, inserted: StudioSelection, replaced = false) {
+export function rememberInsert(file: string, after: string, before: StudioSelection | null, inserted: StudioSelection, replaced = false) {
   remember(file, after, before, inserted, { before: replaced, after: true });
 }
 
-/** Whether `current` is `from` (moved by writes since, or read back from the session after a reload). */
-function stillSelected(from: StudioSelection, current: StudioSelection | null, write: StudioWrite) {
-  if (!current) return false;
+/** Whether `current` is `from` (moved by writes since, or read back from the session after a reload); null: nothing. */
+function stillSelected(from: StudioSelection | null, current: StudioSelection | null, write: StudioWrite) {
+  if (!from || !current) return !from && !current;
   if (from.kind === "frame") return current.kind === "frame" && current.frameId === from.frameId;
   // A layer of the Main component frame is never the target of a slot write.
   if (from.kind === "variant") return false;
@@ -305,8 +307,8 @@ const unsubscribe = subscribeStudioWrites((write) => {
     if (!stillSelected(undo ? last.after : last.before, studioStore.getState().selection, write)) return;
     const next = undo ? last.before : last.after;
     // Content the canvas cannot find is kept as it is; a new element is awaited (never one of the nodes before).
-    if (undo ? last.away?.before : last.away?.after) markOffCanvas(next);
-    else if (undo ? last.fresh.before : last.fresh.after) expectRender(next, rendered, () => undefined);
+    if (next && (undo ? last.away?.before : last.away?.after)) markOffCanvas(next);
+    else if (next && (undo ? last.fresh.before : last.fresh.after)) expectRender(next, rendered, () => undefined);
     studioStore.setState({ selection: next });
     flushStudioStore();
   });
@@ -314,18 +316,6 @@ const unsubscribe = subscribeStudioWrites((write) => {
 import.meta.hot?.dispose(unsubscribe);
 
 /* ───────────── Selection helpers ───────────── */
-
-/** The element around the selection on the canvas, read before a write (else its frame, else nothing). */
-function parentSelectionOf(selection: NodeSelection): StudioSelection | null {
-  const world = canvasApi.getWorldElement();
-  const hit = selectedHit(selection, world);
-  const frame = frameElement(selection.frameId, world);
-  const parent = hit ? parentHit(hit, frame) : null;
-  if (parent && parent.hosts.length && (!frame || frame.contains(parent.hosts[0]))) {
-    return { kind: "node", src: parent.src, name: parent.name, frameId: selection.frameId, panelId: panelOf(parent.hosts[0]), instance: world ? instanceOf(world, parent) : 0 };
-  }
-  return selection.frameId ? { kind: "frame", frameId: selection.frameId } : null;
-}
 
 /* The last selections made from the source for elements the canvas cannot show (an overlay's content renders in a
  * portal, a closed panel): a row picked in the Slots section, or what an edit there added, duplicated or moved.
@@ -1005,18 +995,12 @@ export function insideWrap(selection: NodeSelection, file: string, text: string,
   return child ? { ...selection, src: `${file}:${child}` } : { ...selection, src: `${file}:${loc}`, name: "Stack" };
 }
 
-/* The selection a removal left (its parent) and when: a held ⌫ (key repeat), a quick second press or a double click on
- * Remove must not go on to remove that parent too. */
-let lastRemoval: { selection: StudioSelection; at: number } | null = null;
-const REMOVAL_SETTLE_MS = 700;
-const justRemoved = (selection: StudioSelection) => Boolean(lastRemoval && performance.now() - lastRemoval.at < REMOVAL_SETTLE_MS && sameSelectedElement(lastRemoval.selection, selection));
-
 /**
  * Removes the selected element from its example (the server removes its lines, the attribute that holds it, or the
- * `&&` around it). Its parent, read before the write, is selected at its place after it; `parent` overrides it.
+ * `&&` around it). Nothing is selected after it, as in Figma (plan F3; ⌘Z selects it again); `parent` selects that
+ * instead.
  */
 export function removeSelection(selection: NodeSelection, options: { parent?: StudioSelection | null } = {}): Promise<boolean> {
-  if (justRemoved(selection)) return Promise.resolve(false);
   return exclusive(async () => single("Remove") && runRemove(selection, options.parent));
 }
 
@@ -1047,8 +1031,7 @@ async function runRemove(selection: NodeSelection, parentHint?: StudioSelection 
   const block = await structuralBlock(target, "remove");
   if (block) return fail(block);
   const away = isOffCanvasSelection(selection) || !selectedHit(selection);
-  // Read before the write: the element is gone after it.
-  const parent = parentHint !== undefined ? parentHint : parentSelectionOf(target);
+  const parent = parentHint ?? null;
   const parentAt = parent?.kind === "node" ? parseSrc(parent.src) : null;
   // A parent whose opening tag sits above the removed lines keeps its place through the write.
   const keep = parent?.kind === "node" && parentAt && parentAt.file === element.file && parentAt.line <= element.startLine ? [parent.src] : [];
@@ -1064,8 +1047,7 @@ async function runRemove(selection: NodeSelection, parentHint?: StudioSelection 
     if (next && parent && isOffCanvasSelection(parent)) markOffCanvas(next);
     studioStore.setState({ selection: next });
     flushStudioStore();
-    lastRemoval = next ? { selection: next, at: performance.now() } : null;
-    if (next) remember(response.file, response.after, selection, next, { before: true, after: false }, { before: away, after: false });
+    remember(response.file, response.after, selection, next, { before: true, after: false }, { before: away, after: false });
   }
   return true;
 }
@@ -1089,8 +1071,11 @@ export function duplicateSelection(selection: NodeSelection): Promise<boolean> {
     writing("Duplicating…");
     // The copy renders where the original does: off the canvas with an overlay's content.
     const away = isOffCanvasSelection(selection) || !selectedHit(selection);
+    // A floating copy moved since its ⌘D: the next copy repeats that move (Figma, edit/duplicateOffset.ts).
+    const place = wrap || row ? null : floatingPlace(target);
+    const offset = repeatOffset(target, place);
     const before = renderedNow(canvasApi.getWorldElement());
-    const response = await write(targetOf(element), row ? { op: "duplicateElement", row: row.row } : { op: "duplicateElement" }, `Duplicate ${selection.name}`, [target.src]);
+    const response = await write(targetOf(element), row ? { op: "duplicateElement", row: row.row } : { op: "duplicateElement", ...(offset ? { offset } : {}) }, `Duplicate ${selection.name}`, [target.src]);
     if (!response) return false;
     const text = outcomeOf(response.row ? `Duplicated ${selection.name} row ${row!.row + 1} in its data` : `Duplicated ${selection.name}`, response);
     announce(text);
@@ -1106,6 +1091,7 @@ export function duplicateSelection(selection: NodeSelection): Promise<boolean> {
     if (!loc) return true;
     const copy: NodeSelection = wrap ? insideWrap(selection, response.file, response.after, loc)
       : { kind: "node", src: `${response.file}:${loc}`, name: tagAt(response.after, loc) ?? selection.name, frameId: selection.frameId, panelId: selection.panelId, instance: selection.instance };
+    rememberDuplicate(copy, place);
     // React may reuse a sibling's DOM node for the copy: a short wait, then the copy is found by its location.
     if (selectNew(selection, copy, before, text, { timeout: 3000, away })) remember(response.file, response.after, selection, copy, { before: false, after: true }, { before: away, after: away });
     return true;

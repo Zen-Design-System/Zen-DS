@@ -17,6 +17,29 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
+  panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
+  first) and a preset makes an empty frame of that size beside the frames; a click on the canvas makes a 100 × 100 frame
+  at once (no menu). A selected frame of a page you made resizes by its handles (⇧ ratio, ⌥ from the center, snapping)
+  and by the right panel's X / Y / W / H, written in the page. Sections ⇧S (`<Section>` on the Board: a named area; the
+  frames inside it move with it, Delete takes them, ⌘⌫ keeps them, right-click › Wrap in new section, rename by
+  double-clicking its name), N / ⇧N zoom to the next / previous frame, and the Pages list keeps the order you drag pages
+  into, with dividers (Add divider).
+- Zen Studio structure and clipboard as in Figma (F3 of the same plan): Delete leaves nothing selected (⌘Z selects the
+  layer again); Copy / Paste properties carry fill, stroke, effects, radius, opacity and text style only, never X / Y /
+  W / H; ⌘V with nothing (or a frame) selected pastes into the frame in view at the layer's place; Paste here (layer
+  and frame menus) pastes at the pointer; ⌘D on a moved copy repeats its offset. Frame selection on floating layers
+  frames them where they are (it collapsed them into an empty Box before); ⇧⌘G / Remove frame puts a frame's layers in
+  its place, each kept where it was. ⌥⌘K on several layers makes one component of them, Create multiple components
+  (menu, Actions) one each. Copy as › code / CSS in the layer menu.
+- Zen Studio, several layers as in Figma (F2a of the same plan): one box around a multi-selection; floating layers
+  (a frame without auto layout) move together by the px when dragged (snapping to their frame and its other layers, ⌘
+  no snapping, ⇧ one axis) and nudge together with the arrows; ⌥A ⌥D ⌥W ⌥S ⌥H ⌥V align several layers to the box
+  around them; ⌃⌥H / ⌃⌥V distribute spacing, ⌃⌥T tidies up; the multi-selection panel has Figma's alignment row. One
+  edit, one ⌘Z each. Resizing: ⌥ grows from the centre, ⇧ on an edge keeps the ratio (it snapped to 8 px before), and a
+  Shape's dragged edge moves its X / Y as a frame's does. Moving snaps to equal spacing with pink marks and their px.
+  Several frames: ⌘A with no layer selected selects every frame, a marquee from the empty canvas selects the frames it
+  touches, ⇧-click on a frame's name or row adds or takes it out.
 - Zen Studio Layers like Figma (F1 of the same plan): on a page you made the front-most layer is on top, layers are
   named as Figma names them (Frame 1, Rectangle 2, a text by its words, an instance by its component) with Figma's
   icons, and the Screen is the frame's own row. Rename by double-click, ⌘R (Tab goes to the next name), ⌘R on several
@@ -61,6 +84,27 @@ removed (four unused colour ramps were, see Removed).
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- ProgressCircle's ring has no fill (2026-10-19, user: "Nền nó đang là trong suốt, trên studio là nền xám"): Figma's
+  Progress-Circle/Icon Base is the 2px Support/Subtle ring only, so the grey Neutral/Subtle disc inside is gone.
+- BottomNavigation follows Figma (2026-10-19, user: "Update bottom navigation từ Figma lên Studio"): a Floating bar's
+  action is Primary by default (Figma's Floating Action Theme=Primary; Floating-Glass keeps its Glass action). Studio:
+  the Figma CTA boolean is the action (on by default), the bars draw at Figma's 390 in the Main component with four
+  tabs, the selected one solid; Figma booleans that write an object (actions, saved colours) now draw in the Main
+  component too.
+- Zen Studio Main component draws every component (2026-10-19, user: "làm tiếp phần còn thiếu của main component"):
+  Dialog, Modal Form, Side Panel, Bottom Sheet and the date sheet open in a screen of their own per variant; Popover,
+  Toast, the calendar, the chat parts, Uploader rows, Control-Bar items, Badge-Counter, Toggle-Button, Heading field,
+  Skeleton shapes and the Opinion scale from Main component samples; List-Item Default/Selected, the conversation's call
+  rows, one cell for sets without an axis; Dashboard header rows at Figma's 1232 width, stacked. E2E BL-02 fails a
+  component with Figma sets that is not drawn (1202 variants on 42 pages).
+- Overlays: an internal OverlayPreviewContext lets a static preview (Studio's Main component) draw an open Dialog, Modal
+  Form, Side Panel or Bottom Sheet without the modal behaviour (focus, Tab trap, Escape, scroll lock); apps are unchanged.
+- Counts are BadgeCounters (2026-10-19, user: "Luôn ghi vào harness và rule là các badge dùng số đếm luôn dùng badge
+  counter"): harness `badge/count-uses-counter` is an error and `badge/count-text-uses-counter` (a count shown as text
+  beside a label) is new; component-usage-rules §18; the Figma audit flags a Badge holding a number. Studio's folder,
+  Assets, Variables and Code properties counts are BadgeCounters now.
+- Zen Studio Inspector: Code properties of a frame, text or shape line up with the other sections (12 in, rows 8 apart);
+  user 2026-10-19 "Bug UI của studio".
 - Segmented follows the live Figma (2026-10-18, user: "Update tokens Component Size của segmented … từ Figma lên Studio"):
   Medium segments pad 8 in Compact (was 10; Comfortable stays 10) and Small ones 8 in Comfortable (was 6; Compact stays
   6). `level="primary"` now sits on the same Neutral/Subtle track as Secondary, without the 2px ring, as Figma's Primary

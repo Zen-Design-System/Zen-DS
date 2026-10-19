@@ -9,7 +9,7 @@ import type { PlatformShellSettings } from "../PlatformTemplate";
 /** Canvas tools: Select (V) picks layers, Hand (H) pans, Interact (I) uses the examples like a real app. */
 /** Canvas tools: Move (select), Hand, Interact, and the placement tools (toolbar, 2026-10-09: Screen, Stack, Text, Image);
  *  Figma's shape tools since 2026-10-17 (draw/drawTool.ts: Rectangle R, Ellipse O, Line L, Arrow ⇧L, Polygon, Star). */
-export type StudioTool = "select" | "hand" | "interact" | "frame" | "stack" | "text" | "image" | StudioShapeTool;
+export type StudioTool = "select" | "hand" | "interact" | "frame" | "section" | "stack" | "text" | "image" | StudioShapeTool;
 export type StudioShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "polygon" | "star";
 
 /** Admin edits source through the dev server; Viewer inspects read-only. Default admin. */
@@ -23,7 +23,7 @@ export type StudioPreviewSettings = PlatformShellSettings;
 
 /** A frame on the board. Ids are stable per page: "playground", "main-component", "docs", "guidelines", "document",
  *  "example:<n>". */
-export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document";
+export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document" | "section";
 /** "auto" = the rule width; a number = px, a toolbar preset (390…1440) or a free width dragged on the frame's right edge. */
 export type StudioFrameWidth = "auto" | number;
 export type StudioFrameOverride = { width?: StudioFrameWidth; theme?: "light" | "dark" };
@@ -354,7 +354,7 @@ export type EditOp =
   /** Remove the element (its lines, the attribute that holds it, or the `&&` around it); `hash` required. Answer: `removed`. */
   | { op: "removeElement" }
   /** The element's source again right after it; the answer's `inserted.loc` is the copy. */
-  | { op: "duplicateElement" }
+  | { op: "duplicateElement"; /** px the copy's insets move by (⌘D repeating the last offset, F3). */ offset?: { dx: number; dy: number } }
   /** Swap with the previous / next element sibling in the same JSX parent; the answer's `moved.loc` is where it is now. */
   | { op: "moveElement"; to: "prev" | "next" }
   /**
@@ -369,7 +369,7 @@ export type EditOp =
    * the names of `state` (an Assets item: declared as insertChild does). `hash` required. Answer: `inserted.loc`
    * (tools/studio/arrange.mjs).
    */
-  | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[] }
+  | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[]; /** px in the frame without auto layout it lands in: the layers float there (Paste here). */ at?: { x: number; y: number } }
   /**
    * Swap instance (GĐ4 M2): `code`, one JSX element, takes the place of the element at loc wherever it is written (a
    * child, a prop's value, a .map row); its key stays; Zen components are imported, the ones left unused go. `hash`

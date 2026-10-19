@@ -6,12 +6,15 @@ import { pinRow } from "../frameEdit";
 import type { FramePlace } from "../render/framePlace";
 import type { PageNode, PageTree } from "../render/renderPage";
 import { getPage, pageFile } from "../store/pageStore";
+import { boardBoxes, boxAround, isSectionId, sectionContents } from "../../board/sections";
+import { selectFrameWhenShown } from "../../board/frames";
 
 /*
  * A new Screen or Overlay at the end of a builder page's Board (one edit, one undo step): the Prototype panel's
  * "Add screen" / "Add overlay" (holding a Dialog, Bottom Sheet, Side Panel or Card) and the toolbar's Frame tool. A Screen takes the device of the page's first Screen, so a
- * phone flow stays on phones. The Frame tool gives it a place on the board (a click) and a drawn size (a drag: an empty
- * Screen of that size, its device read from the width); the new frame is then selected.
+ * phone flow stays on phones. The Frame tool gives it a place on the board and a size (a click: 100 × 100; a drag: the
+ * drawn size, its device read from the width; a preset of the right panel: the preset's size and device), always empty;
+ * the new frame is then selected.
  */
 
 const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
@@ -27,19 +30,73 @@ async function readBoard(localPage: string) {
   return tree.board ? { engine, tree: tree as PageTree & { board: PageNode }, frames: tree.board.children.filter((child): child is PageNode => child.kind === "element") } : null;
 }
 
-/** Removes a Screen or Overlay (`screen:<id>` / `overlay:<id>`) from a builder page's Board, one edit and one undo step,
- *  as Figma's Delete on a selected frame (the user 2026-10-16: "Chưa bấm delete frame màn hình"); the selection clears. */
-export async function removeFrame(localPage: string, frameId: string): Promise<boolean> {
-  const [kind, id] = frameId.split(":");
-  if ((kind !== "screen" && kind !== "overlay") || !id) return false;
+const TAGS: Record<string, string> = { screen: "Screen", overlay: "Overlay", section: "Section" };
+
+/** A Board child by its frame id (`screen:<id>[:<state>]`, `overlay:<id>`, `section:<id>`). */
+function boardNode(frames: readonly PageNode[], frameId: string) {
+  const [kind, id, state] = frameId.split(":");
+  return frames.find((node) => node.name === TAGS[kind] && literal(node, "id") === id && (kind !== "screen" || (literal(node, "state") ?? undefined) === (state || undefined)));
+}
+
+/** Removes a Screen, Overlay or Section (`screen:<id>`, `overlay:<id>`, `section:<id>`) from a builder page's Board, one
+ *  edit and one undo step, as Figma's Delete on a selected frame (the user 2026-10-16: "Chưa bấm delete frame màn hình");
+ *  the selection clears. */
+export const removeFrame = (localPage: string, frameId: string, options: { keepContents?: boolean } = {}) => removeFrames(localPage, [frameId], options);
+
+/**
+ * Figma's Delete on selected frames and Sections, one edit: a Section takes the frames and Sections inside it with it
+ * (board/sections.ts); `keepContents` (Figma's ⌘⌫ on a Section) removes the Sections only. The selection clears.
+ */
+export async function removeFrames(localPage: string, frameIds: readonly string[], { keepContents = false }: { keepContents?: boolean } = {}): Promise<boolean> {
   const [board, page] = await Promise.all([readBoard(localPage), getPage(localPage)]);
-  const frame = board?.frames.find((node) => node.name === (kind === "screen" ? "Screen" : "Overlay") && literal(node, "id") === id);
-  if (!board || !page || !frame) return false;
-  const title = String(literal(frame, "title") ?? id);
+  if (!board || !page) return false;
+  const boxes = boardBoxes();
+  const ids = new Set(frameIds);
+  if (!keepContents) for (const id of frameIds) if (isSectionId(id)) sectionContents(id, boxes).forEach((member) => ids.add(member));
+  const nodes = [...ids].map((id) => boardNode(board.frames, id)).filter((node): node is PageNode => Boolean(node));
+  if (!nodes.length) return false;
+  const titleOf = (node: PageNode) => String(literal(node, "title") ?? literal(node, "id") ?? node.name);
+  const label = nodes.length === 1 ? `Delete ${titleOf(nodes[0])}` : `Delete ${nodes.length} frames`;
   // A removal names the text it was read from (the server refuses it without the file's hash).
-  const response = await applyEdit({ file: pageFile(localPage), loc: frame.loc, name: frame.name, ops: [{ op: "removeElement" } as EditOp], hash: board.engine.sha1(page.text) }, `Delete ${title}`);
+  const hash = board.engine.sha1(page.text);
+  const response = nodes.length === 1
+    ? await applyEdit({ file: pageFile(localPage), loc: nodes[0].loc, name: nodes[0].name, ops: [{ op: "removeElement" } as EditOp], hash }, label)
+    : await applyEdit({ file: pageFile(localPage), loc: nodes[0].loc, name: nodes[0].name, ops: [{ op: "many", action: "remove", locs: nodes.map((node) => node.loc) } as EditOp], hash }, label);
   if (response.ok) studioStore.setState({ selection: null });
   return Boolean(response.ok);
+}
+
+/** Room Figma leaves between a Section made around frames and the frames. */
+export const SECTION_PADDING = 80;
+
+/**
+ * A new Section on a builder page (Figma's Section tool ⇧S, Wrap in new section): at `box` (board frame px), named
+ * "Section N", first on the Board so it draws behind the frames; selected. One edit and one undo step (frames still in
+ * the row are pinned first, as a placed frame does).
+ */
+export async function addSection(localPage: string, box: { x: number; y: number; width: number; height: number }, label = "Add section"): Promise<string | null> {
+  let board = await readBoard(localPage);
+  if (!board) return null;
+  if (board.frames.some((frame) => frame.name !== "Section" && literal(frame, "x") === undefined)) {
+    if (!(await pinRow(localPage))) return null;
+    board = await readBoard(localPage);
+    if (!board) return null;
+  }
+  const { engine, tree, frames } = board;
+  const id = engine.freeFrameId("section", frames.filter((frame) => frame.name === "Section").map((frame) => String(literal(frame, "id") ?? "")));
+  const code = engine.sectionCode({ id, title: `Section ${id.split("-").at(-1)}`, x: box.x, y: box.y, width: Math.max(100, box.width), height: Math.max(100, box.height) });
+  const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, index: 0 } as EditOp] }, label);
+  if (!response.ok) return null;
+  const frameId = `section:${id}`;
+  selectFrameWhenShown(frameId, (shown) => studioStore.setState({ selection: { kind: "frame", frameId: shown } }));
+  return frameId;
+}
+
+/** Figma's Wrap in new section: a Section around the selected frames (their boxes on the board, padded). */
+export async function wrapInSection(localPage: string, frameIds: readonly string[]): Promise<string | null> {
+  const boxes = boardBoxes().filter((box) => frameIds.includes(box.id));
+  const around = boxAround(boxes, SECTION_PADDING);
+  return around ? addSection(localPage, around, "Wrap in new section") : null;
 }
 
 export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, holds }: Placement = {}): Promise<boolean> {
@@ -55,12 +112,13 @@ export async function addFrame(localPage: string, kind: "screen" | "overlay", { 
   const id = engine.freeFrameId(kind, frames.map((frame) => String(literal(frame, "id") ?? "")));
   const firstScreen = frames.find((frame) => frame.name === "Screen");
   const device = drawn ?? String((firstScreen && literal(firstScreen, "device")) ?? "desktop");
-  const title = kind === "screen" ? `${name ?? "Screen"} ${id.split("-").at(-1)}` : undefined;
+  // A drawn or sized frame is a Frame (Figma's word, decision 5); the Prototype panel's Add screen keeps "Screen".
+  const title = kind === "screen" ? `${name ?? (width !== undefined ? "Frame" : "Screen")} ${id.split("-").at(-1)}` : undefined;
   // A drawn or picked Screen is empty, as Figma's frame (no app frame, nothing in it: the AppShell is the person's choice,
   // user 2026-10-18); the Prototype panel's Add screen still comes with the app frame.
   const empty = bare ?? width !== undefined;
   const code = engine.frameCode({ kind, id, title, device, layout, chrome: !empty, empty, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, kind === "screen" ? (width !== undefined ? (name ? `Add ${name}` : "Draw frame") : "Add screen") : "Add overlay");
-  if (response.ok && place) studioStore.setState({ selection: { kind: "frame", frameId: `${kind}:${id}` } });
+  if (response.ok && place) selectFrameWhenShown(`${kind}:${id}`, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return Boolean(response.ok);
 }

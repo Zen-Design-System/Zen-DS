@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { BadgeCounter } from "../../../../components/Badge";
 import { Button, IconButton } from "../../../../components/Button";
 import { EmptyState } from "../../../../components/EmptyState";
 import { Icon } from "../../../../components/Icon";
@@ -142,7 +143,7 @@ function LocalComponents() {
                 <span className={`studio-assets__name ${typographyStyles["Body/Small/Medium"]}`}>{main.name}</span>
                 <span className={`studio-assets__source ${typographyStyles["Caption/Regular"]}`}>This page</span>
               </span>
-              <span className={`studio-assets__count ${typographyStyles["Caption/Regular"]}`}>{main.uses.length}</span>
+              <BadgeCounter className="studio-assets__count" value={main.uses.length} size="xs" theme="neutral" background="subtle" />
             </button>
           </li>
         ))}
@@ -173,7 +174,7 @@ function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
                   <span className={`studio-assets__name ${typographyStyles["Body/Small/Medium"]}`}>{entry.label}</span>
                   <span className={`studio-assets__source ${typographyStyles["Caption/Regular"]}`}>{entry.source}</span>
                 </span>
-                <span className={`studio-assets__count ${typographyStyles["Caption/Regular"]}`}>{count}</span>
+                <BadgeCounter className="studio-assets__count" value={count} size="xs" theme="neutral" background="subtle" />
                 <Icon name="icon-chevron-right-line" size="xs" decorative />
               </button>
             </li>
@@ -273,7 +274,7 @@ function ComponentLibrary({ query, view, onClear }: { query: string; view: View;
               <button type="button" className="studio-assets__fold" aria-expanded={open} onClick={() => toggle(group)}>
                 <Icon name={open ? "icon-chevron-down-line" : "icon-chevron-right-line"} size="xs" decorative />
                 <span className={`studio-assets__fold-name ${typographyStyles["Caption/Medium"]}`}>{group}</span>
-                <span className={`studio-assets__count ${typographyStyles["Caption/Regular"]}`}>{items.length}</span>
+                <BadgeCounter className="studio-assets__count" value={items.length} size="xs" theme="neutral" background="subtle" />
               </button>
             )}
             {open ? <ComponentItems items={items} view={view} showGroup={group === "Results"} /> : null}

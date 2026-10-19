@@ -25,6 +25,9 @@ export function pageHeader(text: string): Record<string, unknown> | null;
 export type BoardFrame = { kind: "screen" | "overlay"; id: string; state?: string; title: string; device?: string; x?: number; y?: number; loc: string };
 export function boardFrames(tree: unknown): BoardFrame[];
 export function freeFrameId(base: string, taken: Iterable<string>): string;
+/** Figma's sections on the Board (dialect.mjs boardSections). */
+export function boardSections(tree: unknown): Array<{ id: string; title: string; x: number; y: number; width: number; height: number; loc: string }>;
+export function sectionCode(options: { id: string; title?: string; x: number; y: number; width: number; height: number }): string;
 export function frameCode(options: { kind: "screen" | "overlay"; id: string; title?: string; device?: string; layout?: string; chrome?: boolean; empty?: boolean; x?: number; y?: number; width?: number; height?: number; holds?: "dialog" | "sheet" | "panel" | "card" }): string;
 export function protoCode(action: string, arg?: string): string;
 /** The builder page as a JSON document (doc.mjs): the dialect's neutral tree with a stable id on every element. */

@@ -10,10 +10,17 @@
 //     copy    true: a copy goes there and the element stays (⌥-drag, ⌘V in the same file); `inserted`, else `moved`
 //     replace with copy: the copy takes the place of the child at that loc, which goes (⇧⌘R, paste to replace)
 //
+//   op "group" { with?, props?, box, kids, component? }   on one of the layers: they go into one floating Box where the
+//     frontmost was, each keeping its place on the canvas (Frame selection and ⌘G on layers of a frame without auto
+//     layout); `component` { id, name }: that Box is a new main component's layer (Create component, a page you made)
+//
+//   op "ungroup" { kids? }   on a Box / Stack / Grid: its layers take its place, keeping theirs (⇧⌘G)
+//
 //   op "replaceElement" { code, state? }   on the element it replaces (Swap instance: a prop's or slot's component, a layer)
-//   op "pasteCode" { code, before?, after?, replace? }   on the element the code goes into (⌘V from another file or
+//   op "pasteCode" { code, before?, after?, replace?, at? }   on the element the code goes into (⌘V from another file or
 //     after a cut): `code` is one JSX element; names it reads must exist there, or be Zen components (imported) or
-//     `toast`; `inserted` = { loc }
+//     `toast`; `inserted` = { loc }. `at` { x, y }: px in the frame without auto layout it lands in (Figma's Paste
+//     here, ⌘V at its place): the layers float there (floatAt)
 //
 // Rules:
 // - Only a child of an element or fragment moves (`<X />` or `{<X />}` among children); an element in a prop, a
@@ -29,7 +36,7 @@
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
 import { parseExpression } from "@babel/parser";
 import { applyEdits, applyOps, findElement, jsxName, parseLoc, parseSource } from "./jsx-source.mjs";
-import { indentAt, pathTo, piece } from "./source-helpers.mjs";
+import { UNIT, indentAt, pathTo, piece } from "./source-helpers.mjs";
 
 /** Self-closing elements a layer can be dropped into (they open: `<Stack />` → `<Stack>…</Stack>`). */
 // A builder page's Screen opens too (Figma: an empty frame takes the layers drawn or dropped into it).
@@ -325,6 +332,60 @@ function tidyImports(ctx, h, edits, needed) {
   return needed.length || unused.length ? h.importChanges(ctx.ast, ctx.text, ctx.eol, ctx.file, needed, unused, ctx.folders) : [];
 }
 
+/** The props that place a floating layer: a paste at a point writes its own. */
+const POSITION_PROPS = new Set(["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft"]);
+/** Layers that float themselves; any other floats in a Box of its own (edit/autoLayoutPlan.ts floatingCode). */
+const FLOATS = new Set(["Stack", "Grid", "Box", "Shape"]);
+
+/** The px an attribute is written as (`insetLeft={40}`, `{-4}`, `"40"`), else null (a token step, a binding). */
+export function pxOf(attribute) {
+  const value = attribute?.value;
+  if (value?.type === "StringLiteral") return /^-?\d+(\.\d+)?$/.test(value.value) ? Number(value.value) : null;
+  const expression = value?.type === "JSXExpressionContainer" ? value.expression : null;
+  if (expression?.type === "NumericLiteral") return expression.value;
+  if (expression?.type === "UnaryExpression" && expression.operator === "-" && expression.argument.type === "NumericLiteral") return -expression.argument.value;
+  return null;
+}
+
+/**
+ * Pasted layers placed at `at` px in a frame without auto layout (Figma's Paste here; ⌘V with nothing selected at its
+ * place): the corner of the box around them goes there and each keeps its offset from the others (its own insetLeft /
+ * insetTop; none: 0). Their constraints and other insets go (pinned left / top, as a move writes them). A layer that
+ * cannot float itself (not a Stack / Grid / Box / Shape) floats in a Box of its own. `raw`: the pasted elements' code.
+ */
+export function floatAt(raw, at) {
+  const wrapped = `<>\n${raw}\n</>`;
+  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"] });
+  const elements = fragment.children.filter((child) => child.type === "JSXElement");
+  const own = elements.map((element) => {
+    const attributes = element.openingElement.attributes.filter((attribute) => attribute.type === "JSXAttribute");
+    const named = (name) => attributes.find((attribute) => jsxName(attribute.name) === name);
+    return { element, attributes, x: pxOf(named("insetLeft")) ?? 0, y: pxOf(named("insetTop")) ?? 0 };
+  });
+  const left = Math.min(...own.map((entry) => entry.x));
+  const top = Math.min(...own.map((entry) => entry.y));
+  const edits = [];
+  for (const { element, attributes, x, y } of own) {
+    const place = `position="absolute" insetLeft={${Math.round(at.x + x - left)}} insetTop={${Math.round(at.y + y - top)}}`;
+    const name = jsxName(element.openingElement.name);
+    if (FLOATS.has(name.slice(name.lastIndexOf(".") + 1))) {
+      for (const attribute of attributes) {
+        if (!POSITION_PROPS.has(jsxName(attribute.name))) continue;
+        let start = attribute.start;
+        while (start > 0 && /\s/.test(wrapped[start - 1])) start -= 1;
+        edits.push({ start, end: attribute.end, text: "" });
+      }
+      edits.push({ start: element.openingElement.name.end, end: element.openingElement.name.end, text: ` ${place}` });
+      continue;
+    }
+    const lineStart = wrapped.lastIndexOf("\n", element.start - 1) + 1;
+    const indent = /^[ \t]*/.exec(wrapped.slice(lineStart))[0];
+    const body = wrapped.slice(element.start, element.end).split("\n").map((line, index) => (index === 0 ? `${indent}  ${line}` : `  ${line}`)).join("\n");
+    edits.push({ start: element.start, end: element.end, text: `<Box ${place}>\n${body}\n${indent}</Box>` });
+  }
+  return applyEdits(wrapped, edits).slice(3, -4);
+}
+
 /** Names pasted code may read without a binding where it lands. */
 const GLOBALS = new Set(["undefined", "NaN", "Infinity", "Math", "Date", "Number", "String", "Boolean", "Array", "Object", "JSON", "Intl", "console", "window", "document"]);
 
@@ -341,8 +402,17 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   if (typeof raw !== "string" || !raw.trim()) h.refuse("pasteCode needs `code`: one JSX element");
   if (raw.length > 65536) h.refuse("The code is too long (64 KB at most)");
   if (/[\u2028\u2029]/.test(raw)) h.refuse("The code holds a line separator (U+2028/U+2029)");
+  if (op.at !== undefined && !(op.at && Number.isFinite(op.at.x) && Number.isFinite(op.at.y))) h.refuse("`at` must be { x, y } in px");
+  let code = raw.replace(/\r\n|\r/g, "\n").replace(/^(?:[ \t]*\n)+/, "").replace(/\s+$/, "");
+  if (op.at) {
+    try {
+      code = floatAt(code, op.at);
+    } catch (error) {
+      h.refuse(`The clipboard is not JSX elements: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")}`);
+    }
+  }
   // An Assets item with state (op.state, as insertChild takes it): its names are renamed fresh before anything reads them.
-  const state = h.stateFor(ctx, raw.replace(/\r\n|\r/g, "\n").replace(/^(?:[ \t]*\n)+/, "").replace(/\s+$/, ""), op.state);
+  const state = h.stateFor(ctx, code, op.state);
   const src = state.src;
   // One JSX element, or several side by side (several layers copied together), each one its own line(s).
   const wrapped = `<>\n${src}\n</>`;
@@ -484,7 +554,7 @@ export function replacePlan(ctx, nodePath, op, h) {
 export function manyPlan(ctx, nodePath, op, h) {
   const { ast, text } = ctx;
   const action = op.action;
-  if (!["remove", "duplicate", "setProps", "move", "moveTo"].includes(action)) h.refuse('many needs `action`: "remove", "duplicate", "setProps", "move" or "moveTo"');
+  if (!["remove", "duplicate", "setProps", "move", "moveTo", "components"].includes(action)) h.refuse('many needs `action`: "remove", "duplicate", "setProps", "move", "moveTo" or "components"');
   if (!Array.isArray(op.locs) || !op.locs.length || op.locs.length > 200 || op.locs.some((loc) => typeof loc !== "string" || !parseLoc(loc))) h.refuse("many needs `locs`: the \"<line>:<column>\" of each layer (200 at most)");
   const elements = [...new Set(op.locs)].map((loc) => {
     const element = findElement(ast, parseLoc(loc));
@@ -509,6 +579,7 @@ export function manyPlan(ctx, nodePath, op, h) {
     }
     return { edits: [{ start: 0, end: text.length, text: next }], focus: null, answer: "updated", snippet: () => ({ reason: "a change on several layers is not copied into the example snippet; update it by hand" }) };
   }
+  if (action === "components") return manyComponentsPlan(ctx, elements, op, h);
   if (action === "move") return manyMovePlan(ctx, outer, op.to, h);
   if (action === "moveTo") return manyMoveToPlan(ctx, outer, op, h);
   const plans = outer.map((element) => {
@@ -517,7 +588,7 @@ export function manyPlan(ctx, nodePath, op, h) {
     const local = { ...ctx, element };
     h.guard(local, path, action === "remove" ? "removeElement" : "duplicateElement");
     if (action === "remove") return { edits: h.removal(local, path, path.length - 1, `<${jsxName(element.openingElement.name)}>`).edits, focus: null };
-    return h.duplicatePlan(local, path);
+    return h.duplicatePlan(local, path, op.offset ?? null);
   });
   const edits = plans.flatMap((plan) => plan.edits);
   const sorted = [...edits].sort((a, b) => a.start - b.start);
@@ -532,6 +603,34 @@ export function manyPlan(ctx, nodePath, op, h) {
 
 /** "<line>:<column>" of an element's opening tag. */
 const locOfElement = (element) => `${element.openingElement.loc.start.line}:${element.openingElement.loc.start.column}`;
+
+/**
+ * Figma's Create multiple components (a page you made; plan F3): each element at `locs` becomes a main component where
+ * it is, `<Component id name>` around it (`names[loc]` = { id, name }), in one edit. The import comes first, then the
+ * wraps bottom-up, so each element's place is known when it is wrapped. Answer: updated.
+ */
+function manyComponentsPlan(ctx, elements, op, h) {
+  const { ast, text, eol } = ctx;
+  if (!h.LOCAL_PAGE.test(ctx.file ?? "")) h.refuse("Components are made on a page you made");
+  const names = op.names && typeof op.names === "object" ? op.names : null;
+  const named = elements.map((element) => {
+    const entry = names?.[op.locs.find((loc) => findElement(ast, parseLoc(loc)) === element)];
+    if (typeof entry?.id !== "string" || typeof entry?.name !== "string") h.refuse("components needs `names`: each layer's { id, name } by its loc");
+    return { element, entry };
+  });
+  if (named.some(({ element }) => named.some((other) => other.element !== element && other.element.start <= element.start && element.end <= other.element.end))) h.refuse("One of the layers is inside another: make them components one at a time");
+  const imported = applyEdits(text, h.builderImportEdits(ast, text, eol, ["Component"]));
+  const shift = countLines(imported) - countLines(text);
+  let next = imported;
+  for (const { element, entry } of [...named].sort((a, b) => b.element.start - a.element.start)) {
+    const loc = `${element.openingElement.loc.start.line + shift}:${element.openingElement.loc.start.column}`;
+    const props = { id: { kind: "string", value: entry.id }, name: { kind: "string", value: entry.name } };
+    const result = applyOps(next, loc, jsxName(element.openingElement.name), [{ op: "wrap", tag: "Component", props }], { snippets: false, file: ctx.file });
+    if (result.error) h.refuse(`<${jsxName(element.openingElement.name)}> at ${loc}: ${result.error}`);
+    next = result.code;
+  }
+  return { edits: [{ start: 0, end: text.length, text: next }], focus: null, answer: "updated", snippet: () => ({ reason: "making several components is not copied into the example snippet; update it by hand" }) };
+}
 
 /**
  * op many moveTo { parent, before?, after?, copy? } (a drag of several layers, Figma: they land together): the same rules
@@ -625,6 +724,131 @@ function manyMoveToPlan(ctx, outer, op, h) {
 }
 
 const countLines = (value) => (value.match(/\r\n|\n|\r/g) ?? []).length;
+
+/** `raw` (one element's code) without the props that float it: it joins its new parent's auto layout. */
+function inFlow(raw) {
+  const wrapped = `<>\n${raw}\n</>`;
+  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"] });
+  const element = fragment.children.find((child) => child.type === "JSXElement");
+  const edits = [];
+  for (const attribute of element.openingElement.attributes) {
+    if (attribute.type !== "JSXAttribute" || !POSITION_PROPS.has(jsxName(attribute.name))) continue;
+    let start = attribute.start;
+    while (start > 0 && /\s/.test(wrapped[start - 1])) start -= 1;
+    edits.push({ start, end: attribute.end, text: "" });
+  }
+  return applyEdits(wrapped, edits).slice(3, -4);
+}
+
+/**
+ * The plan for op ungroup { kids? } on a Box, Stack or Grid (Figma's ⇧⌘G: Ungroup, Remove frame; plan F3): its layers
+ * take its place in its parent, keeping theirs on the canvas. `kids[loc]`: each layer's { x, y } in the parent's px
+ * when the parent has no auto layout (they float there, pinned left / top); without `kids` they join the parent's
+ * auto layout (their own position props go). The frame's own props go with it. Answer: moved { loc, locs } (each
+ * layer's loc before → after).
+ */
+export function ungroupPlan(ctx, nodePath, op, h) {
+  const { text, eol, element } = ctx;
+  const name = jsxName(element.openingElement.name);
+  if (!["Box", "Stack", "Grid"].includes(name.slice(name.lastIndexOf(".") + 1))) h.refuse(`Ungroup takes a group or a frame (a Box, Stack or Grid), not <${name}>`);
+  const parent = nodePath.at(-2);
+  if (parent?.type !== "JSXElement" || !parent.children.includes(element)) h.refuse(`<${name}> sits in a prop, a condition or a list: its layers have no frame to go to`);
+  const kids = element.children.filter((child) => child.type === "JSXElement");
+  if (element.children.some((child) => child.type !== "JSXElement" && !(child.type === "JSXText" && !child.value.trim()))) h.refuse(`<${name}> holds text or code (a list, a condition): ungroup it in the code`);
+  if (!kids.length) h.refuse(`<${name}> holds no layers: Delete removes it`);
+  if (op.kids !== undefined && (typeof op.kids !== "object" || kids.some((kid) => { const at = op.kids?.[locOfElement(kid)]; return !at || !Number.isFinite(at.x) || !Number.isFinite(at.y); }))) h.refuse("ungroup `kids` needs every layer's { x, y } by its loc");
+  const base = indentAt(text, element.start);
+  const blocks = kids.map((kid) => {
+    const flat = h.reindent(piece(text, kid), "", eol);
+    const code = op.kids ? floatAt(flat, op.kids[locOfElement(kid)]) : inFlow(flat);
+    return { kid, name: /^<([\w.]+)/.exec(code)[1], code: code.split("\n").map((line, index) => (!line.trim() ? "" : index === 0 ? line : `${base}${line}`)).join(eol) };
+  });
+  const edit = { start: element.start, end: element.end, text: blocks.map((block) => block.code).join(`${eol}${base}`) };
+  const needed = blocks.some((block) => block.name === "Box") ? ["Box"] : [];
+  let within = 0;
+  const focuses = blocks.map((block) => {
+    const focus = { edit, within, name: block.name, from: locOfElement(block.kid) };
+    within += block.code.length + eol.length + base.length;
+    return focus;
+  });
+  return {
+    edits: [edit, ...tidyImports(ctx, h, [edit], needed)],
+    focus: focuses[0],
+    focuses,
+    answer: "moved",
+    snippet: () => ({ reason: "ungrouping is not copied into the example snippet; update it by hand" }),
+  };
+}
+
+/** An EditValue ({ kind, value }) as a JSX attribute. */
+function attributeOf(name, value) {
+  if (value?.kind === "boolean") return value.value ? name : `${name}={false}`;
+  if (value?.kind === "number" && Number.isFinite(value.value)) return `${name}={${value.value}}`;
+  if (value?.kind === "string") return /["\\{}<>]/.test(value.value) ? `${name}={${JSON.stringify(value.value)}}` : `${name}="${value.value}"`;
+  return null;
+}
+
+/**
+ * The plan for op group { with?, tag?, props?, box, kids } on one of the layers (Figma's Frame selection and ⌘G on
+ * layers floating in a frame without auto layout; plan F3, decision 3): the element and the `with` elements, children
+ * of one JSX element, go into one `<Box position="absolute" …box>` (`props` written on it) where the frontmost of them
+ * was, and keep their place on the canvas: each one's insets become `kids[loc]` (px in the new Box; pinned left / top,
+ * as a move writes them). Their code and ids go along as written. Answer: inserted { loc } (the Box).
+ */
+export function groupPlan(ctx, nodePath, op, h) {
+  const { ast, text, eol } = ctx;
+  const tag = op.tag ?? "Box";
+  if (tag !== "Box") h.refuse("group puts the layers in a Box");
+  const box = op.box;
+  if (!box || !["x", "y", "width", "height"].every((key) => Number.isFinite(box[key]))) h.refuse("group needs `box`: { x, y, width, height } in px");
+  if (!op.kids || typeof op.kids !== "object") h.refuse("group needs `kids`: each layer's { x, y } in the new Box, by its loc");
+  const locs = [locOfElement(ctx.element), ...(Array.isArray(op.with) ? op.with : [])];
+  const elements = [...new Set(locs)].map((loc) => {
+    const element = typeof loc === "string" && parseLoc(loc) ? findElement(ast, parseLoc(loc)) : null;
+    if (!element) h.refuse(`No element starts at ${loc}; select the layers again`, "stale");
+    const kid = op.kids[loc];
+    if (!kid || !Number.isFinite(kid.x) || !Number.isFinite(kid.y)) h.refuse(`group has no place for the layer at ${loc}`);
+    return { element, kid };
+  }).sort((a, b) => a.element.start - b.element.start);
+  const parentPath = nodePath.slice(0, -1);
+  const parent = parentPath.at(-1);
+  if (parent?.type !== "JSXElement") h.refuse("Only layers of a frame are grouped (this one sits in a prop, a condition or a list)");
+  if (elements.some(({ element }) => !parent.children.includes(element))) h.refuse("The layers must sit side by side in one frame to be grouped");
+  // The Box takes the frontmost layer's place (the last in the code); each layer's code goes in, its own indentation
+  // taken off and its insets the ones it keeps its place by.
+  const last = elements.at(-1).element;
+  const base = indentAt(text, last.start);
+  const blocks = elements.map(({ element, kid }) => floatAt(h.reindent(piece(text, element), "", eol), kid).split("\n").map((line) => (line.trim() ? `${base}${UNIT}${line}` : "")).join(eol));
+  const extra = Object.entries(op.props ?? {}).map(([name, value]) => attributeOf(name, value)).filter(Boolean);
+  const attrs = [`position="absolute"`, `insetLeft={${Math.round(box.x)}}`, `insetTop={${Math.round(box.y)}}`, `width={${Math.round(box.width)}}`, `height={${Math.round(box.height)}}`, ...extra].join(" ");
+  let boxText = `<${tag} ${attrs}>${eol}${blocks.join(eol)}${eol}${base}</${tag}>`;
+  // Create component on several layers (a page you made): the Box is the main component's one layer.
+  const component = op.component;
+  if (component !== undefined && !(h.LOCAL_PAGE.test(ctx.file ?? "") && typeof component?.id === "string" && typeof component?.name === "string")) h.refuse("group `component` needs { id, name }, on a page you made");
+  let within = 0;
+  if (component) {
+    const open = `<Component ${attributeOf("id", { kind: "string", value: component.id })} ${attributeOf("name", { kind: "string", value: component.name })}>`;
+    boxText = `${open}${eol}${base}${UNIT}${boxText.split(eol).map((line, index) => (index === 0 || !line.trim() ? line : `${UNIT}${line}`)).join(eol)}${eol}${base}</Component>`;
+    within = open.length + eol.length + base.length + UNIT.length;
+  }
+  const edit = { start: last.start, end: last.end, text: boxText };
+  const removed = elements.slice(0, -1).flatMap(({ element }) => {
+    const path = pathTo(ast.program, element);
+    return h.removal({ ...ctx, element }, path, path.length - 1, `<${jsxName(element.openingElement.name)}>`).edits;
+  });
+  for (const gone of removed) {
+    if (gone.end > edit.start) h.refuse("The layers cannot be grouped there");
+  }
+  const edits = [...removed, edit];
+  edits.push(...tidyImports(ctx, h, edits, [tag]));
+  if (component) edits.push(...h.builderImportEdits(ctx.ast, ctx.text, eol, ["Component"]));
+  return {
+    edits,
+    focus: { edit, within, name: tag },
+    answer: "inserted",
+    snippet: () => ({ reason: "grouping layers is not copied into the example snippet; update it by hand" }),
+  };
+}
 
 /**
  * Arrow keys on several layers of one parent (Figma's reorder in auto layout): each selected child takes one place

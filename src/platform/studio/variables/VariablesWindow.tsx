@@ -1,4 +1,5 @@
 import { tip } from "../shell/ShortcutTip";
+import { BadgeCounter } from "../../../components/Badge";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Chip } from "../../../components/Chip";
@@ -406,7 +407,7 @@ function VariablesPanel() {
       <div className="studio-vars__body">
         <nav className="studio-vars__groups" aria-label="Groups">
           <button type="button" className={`studio-vars__group ${typographyStyles["Body/Small/Medium"]}`} aria-current={group === "" ? "true" : undefined} onClick={() => { setGroup(""); focusCell({ row: 0, col: 1 }); }}>
-            <span>All variables</span><span className="studio-vars__count">{total}</span>
+            <span>All variables</span><BadgeCounter className="studio-vars__count" value={total} size="xs" theme="neutral" background="subtle" />
           </button>
           {groups.map((node) => (
             <button
@@ -418,7 +419,7 @@ function VariablesPanel() {
               title={node.path}
               onClick={() => { setGroup(node.path); if (gridRef.current) gridRef.current.scrollTop = 0; setFocus({ row: 0, col: 1 }); }}
             >
-              <span className="studio-vars__group-label">{node.label}</span><span className="studio-vars__count">{node.count}</span>
+              <span className="studio-vars__group-label">{node.label}</span><BadgeCounter className="studio-vars__count" value={node.count} size="xs" theme="neutral" background="subtle" />
             </button>
           ))}
         </nav>

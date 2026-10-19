@@ -16,6 +16,12 @@ export function DragLayer({ viewport }: { viewport: HTMLElement | null }) {
       {view.into ? <div className="studio-drag__into" style={place(view.into)} /> : null}
       {view.line ? <div className="studio-drag__line" style={place(view.line)} /> : null}
       {view.guides?.map((guide, index) => <div key={index} className="studio-drag__guide" style={place(guide)} />)}
+      {/* Figma's equal spacing: the matching gaps in pink, each with its px. */}
+      {view.spacing?.map((mark, index) => (
+        <div key={`s${index}`} className="studio-drag__spacing" data-axis={mark.axis} style={place(mark)}>
+          <span className={`studio-drag__spacing-label ${typographyStyles["Caption/Medium"]}`}>{mark.label}</span>
+        </div>
+      ))}
       {view.label ? (
         <span className={`studio-drag__label ${typographyStyles["Caption/Medium"]}`} data-tone={view.tone} style={{ transform: `translate(${view.pointer.x - origin.left}px, ${view.pointer.y - origin.top}px)` }}>
           {view.label}

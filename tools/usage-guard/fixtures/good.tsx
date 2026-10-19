@@ -189,6 +189,9 @@ export const Good = () => <>
   <TableMedia media={<DockIcon icon="icon-file-doc-line" size="small" />} caption="2.4 MB">Spec.pdf</TableMedia>
   <FileUpload label="Avatar" caption="PNG or JPG. Max 2 MB" accept="image/*" files={files} onReplace={(file) => replace(file)} />
   <BadgeCounter size="small" theme="neutral" background="subtle" value={12} />
+  {/* A count beside its label is a BadgeCounter; a count inside a sentence stays text (badge/count-text-uses-counter). */}
+  <BadgeCounter className="panel__count" size="xs" theme="neutral" background="subtle" value={items.length} />
+  <span className="panel__caption">{items.length} files</span>
   <Badge size="small" theme="green" background="subtle">Live</Badge>
   <Chip variant="advanced" size="small" leading={<Icon name="icon-filter-lines-line" decorative />} aria-haspopup="dialog" onClick={openFilters}>All filters</Chip>
   <ProgressBar value={92} theme="status" scale="quota" label="Storage · 92% used" />
