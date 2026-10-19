@@ -690,7 +690,9 @@ export const rows = [
       const width = Number(first.match(/\swidth=\{(\d+)\}/)?.[1] ?? (/device="phone"/.test(first) ? 390 : 1440));
       if (!added.includes(` x={${x + width + 96}} y={${y}}`)) throw new Error(`the new Screen is not beside the first (${added} · first ${first.replace(/\s+/g, " ").slice(0, 160)})`);
       await until(async () => (await page.locator(".studio-canvas-tools").getByRole("button", { name: "Move", exact: true }).getAttribute("aria-pressed")) === "true", { message: "back to Move" });
-      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
+      // The Studio selects the new frame once the board shows it, waiting up to 10 s (board/frames.ts): a loaded full
+      // run can take longer than until's 6 s to show it.
+      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { timeout: 12_000, message: "the new frame selected" });
       return "Frame tool → presets › Phone › iPhone → an empty 390 × 844 phone frame beside screen-1, selected, Move again";
     },
   },
