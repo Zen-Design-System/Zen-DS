@@ -418,7 +418,7 @@ export function newProperty(properties: PropertyRef[], type: PropertyRef["type"]
   const names = new Set(properties.map((property) => property.name));
   let n = properties.length + 1;
   while (names.has(`Property ${n}`)) n += 1;
-  const fallback = { text: "Text", boolean: true, swap: "icon-star-line", slot: undefined }[type];
+  const fallback = { text: "Text", boolean: true, swap: "icon-star-01-line", slot: undefined }[type];
   return { name: `Property ${n}`, type, ...(fallback !== undefined ? { default: fallback } : {}) };
 }
 
