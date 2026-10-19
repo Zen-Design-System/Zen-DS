@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerFigma, headerLayoutGuides, headerProject, headerTitle, withHeaderGuides, withHeaderLayoutGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type LayoutGuide, type PageGuide, type RevisionReason } from "./pageModel";
+import { headerFigma, headerLayoutGuides, withHeaderCanvas, headerProject, headerTitle, withHeaderGuides, withHeaderLayoutGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type CanvasBackground, type LayoutGuide, type PageGuide, type RevisionReason } from "./pageModel";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 
 /*
@@ -302,6 +302,17 @@ export async function setFrameLayoutGuides(id: string, frame: string, guides: re
   const header = { ...(page.doc?.header ?? {}) };
   const all = headerLayoutGuides(text);
   if (Object.keys(all).length) header.layoutGuides = all; else delete header.layoutGuides;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
+}
+
+/** The page's canvas background (header `canvas`, F10): written with the page, outside ⌘Z (as its OS). */
+export async function setPageCanvas(id: string, canvas: CanvasBackground): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderCanvas(page.text, canvas);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  if (canvas === "canvas") delete header.canvas; else header.canvas = canvas;
   await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
 }
 

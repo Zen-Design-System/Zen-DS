@@ -203,6 +203,36 @@ export function withHeaderLayoutGuides(text: string, frame: string, guides: read
   return `${match[1]}${JSON.stringify(Object.keys(all).length ? { ...rest, layoutGuides: all } : rest)}${match[3]}${text.slice(match[0].length)}`;
 }
 
+/** The canvas background a page may take (Figma's page Background, F10), Zen background tokens only. */
+export const CANVAS_BACKGROUNDS = ["canvas", "canvas-alt", "canvas-flat", "surface", "neutral", "dark"] as const;
+export type CanvasBackground = (typeof CANVAS_BACKGROUNDS)[number];
+
+/** The page's canvas background (header `canvas`), or "canvas" (Background/Canvas/Default) when it has none. */
+export function headerCanvas(text: string): CanvasBackground {
+  const match = HEADER.exec(text);
+  try {
+    const value = match ? (JSON.parse(match[2]) as { canvas?: unknown }).canvas : null;
+    return (CANVAS_BACKGROUNDS as readonly unknown[]).includes(value) ? (value as CanvasBackground) : "canvas";
+  } catch {
+    return "canvas";
+  }
+}
+
+/** The text with the header's `canvas` set (the default left out); unchanged without a readable header. */
+export function withHeaderCanvas(text: string, canvas: CanvasBackground): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { canvas: _old, ...rest } = value;
+  return `${match[1]}${JSON.stringify(canvas === "canvas" ? rest : { ...rest, canvas })}${match[3]}${text.slice(match[0].length)}`;
+}
+
 /** A page id from a title or file name: "Checkout flow" → "checkout-flow" (Vietnamese marks dropped). */
 export function slugOf(value: string): string {
   return value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "page";
