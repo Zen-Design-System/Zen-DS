@@ -1156,6 +1156,17 @@ export const rules = [
   { id: "shape/line-no-height", components: ["Shape"], severity: "warn", allow: "line-height", guideline: "docs/guidelines/shape.md",
     summary: "A line or arrow has no height (Figma's LINE): its length is width, its angle rotation, its weight strokeWeight.",
     check: ({ attrs }) => { const own = topAttrs(attrs); const type = fixedProp(own, "type"); return (type === "line" || type === "arrow") && own.has("height") && `a ${type} has no height — set its length with width, its angle with rotation and its weight with strokeWeight.`; } },
+  { id: "shape/vector-path", components: ["Shape"], severity: "error", allow: "vector-path", guideline: "docs/guidelines/shape.md",
+    summary: "A vector (type=\"vector\") carries its path d in absolute M / L / C / Q / Z commands — what Zen Studio and Figma's vectorPaths read.",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs);
+      if (fixedProp(own, "type") !== "vector") return null;
+      if (!own.has("d")) return "is a vector without d — it draws nothing; give it its path (Zen Studio's Pen writes it).";
+      const path = fixedProp(own, "d");
+      if (typeof path !== "string") return null;
+      const bad = (path.replace(/\d[eE][-+]?\d/g, "0").match(/[A-Za-z]/g) ?? []).find((letter) => !"MLCQZ".includes(letter));
+      return bad && `d uses "${bad}" — write absolute M / L / C / Q / Z commands only (no relative, arc or H / V commands).`;
+    } },
   { id: "inline-message/needs-content", components: ["InlineMessage"], severity: "error", allow: "empty-message", guideline: "docs/guidelines/inline-message.md",
     summary: "An Inline Message says something: a title, a caption, or both.",
     check: ({ attrs, children }) => !present(attrs, "title") && !text(children) && !opaque(attrs) && "has neither title nor caption." },

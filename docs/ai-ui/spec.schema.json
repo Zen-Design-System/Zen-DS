@@ -27245,7 +27245,8 @@
                       "line",
                       "arrow",
                       "polygon",
-                      "star"
+                      "star",
+                      "vector"
                     ]
                   },
                   {
@@ -27253,6 +27254,42 @@
                   }
                 ],
                 "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc), `line` (LINE: `width` is its length, `rotation` its angle, no h"
+              },
+              "d": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A vector's path (`type=\"vector\"`): SVG path data in absolute M / L / C / Q / Z commands only (what Figma's vectorPaths take), in the coordinates of `viewBox`."
+              },
+              "viewBox": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The box a vector's `d` is written in (\"minX minY width height\"); the path stretches from it to the shape's size, as Figma scales a vector."
+              },
+              "fillRule": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "nonzero",
+                      "evenodd"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How a vector's overlapping sub-paths fill (Figma's winding rule): `nonzero` (default) or `evenodd` (holes)."
               },
               "fill": {
                 "anyOf": [
@@ -27484,7 +27521,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Stroke: a Color/Border token by its path (\"neutral-solid\", \"accent-subtle\", \"support-teal-solid\"; `shapeStrokes`), or \"none\" (default; a line or arrow takes Border/Neutral/Solid)."
+                "description": "Stroke: a Color/Border token by its path (\"neutral-solid\", \"accent-subtle\", \"support-teal-solid\"; `shapeStrokes`), or \"none\" (default; a line, arrow or vector takes Border/Neutral/"
               },
               "strokeWeight": {
                 "anyOf": [
@@ -27510,7 +27547,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's) or `outside`."
+                "description": "Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's and a vector's) or `outside`."
               },
               "radius": {
                 "anyOf": [

@@ -144,6 +144,10 @@ export const Bad = () => <>
   </Stack>
   {/* expect: shape/line-no-height */}
   <Shape type="line" width={120} height={2} />
+  {/* expect: shape/vector-path */}
+  <Shape type="vector" d="m 0 0 l 10 10 h 5" viewBox="0 0 15 10" width={30} height={20} />
+  {/* expect: shape/vector-path */}
+  <Shape type="vector" width={30} height={20} />
   {/* expect: inline-message/needs-content */}
   <InlineMessage theme="info" />
   {/* expect: inline-message/custom-needs-visual */}

@@ -33,7 +33,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Pagination](pagination.md) | `pagination/worth-paging`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Skeleton](skeleton.md) | `motion/reduced-motion`, `motion/token-only`, `motion/no-layout-animation`, `interaction/no-noop-handler` |
 | [Divider](divider.md) | `divider/no-double`, `interaction/no-noop-handler` |
-| [Shape](shape.md) | `shape/token-paint`, `shape/px-offset-in-auto-layout`, `shape/line-no-height`, `interaction/no-noop-handler` |
+| [Shape](shape.md) | `shape/token-paint`, `shape/px-offset-in-auto-layout`, `shape/line-no-height`, `shape/vector-path`, `interaction/no-noop-handler` |
 | [Inline Message](inline-message.md) | `inline-message/needs-content`, `inline-message/custom-needs-visual`, `api/deprecated-prop`, `api/overrides-studio-only`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Empty State](empty-state.md) | `empty-state/needs-title`, `empty-state/action-label`, `empty-state/way-out-tertiary`, `empty-state/keep-illustration`, `empty-state/small-in-box`, `api/overrides-studio-only`, `icon/unknown-name`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Stepper](stepper.md) | `stepper/needs-label`, `stepper/step-count`, `api/overrides-studio-only`, `icon/unknown-name`, `interaction/no-noop-handler` |

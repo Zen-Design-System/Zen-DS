@@ -14,5 +14,12 @@ export {
   polygonPoints,
   starPoints,
   STAR_RATIO,
+  parseVectorPath,
+  vectorPathData,
+  parseViewBox,
+  vectorBounds,
+  fitVectorPath,
   type ShapeArc,
+  type PathCommand,
+  type ViewBox,
 } from "./geometry";
