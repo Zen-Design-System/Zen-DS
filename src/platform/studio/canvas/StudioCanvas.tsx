@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useViewOptions } from "./viewOptions";
 import { Rulers } from "./Rulers";
+import { FindPanel } from "../edit/FindPanel";
 import { CanvasBackgroundSync } from "./CanvasBackground";
 import { LayoutGuides } from "./LayoutGuides";
 import { PlatformTypographyContext } from "../../PlatformTemplate";
@@ -346,6 +347,8 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
       <FrameChrome viewport={viewport} />
       {/* A page's canvas Background (F10). */}
       <CanvasBackgroundSync viewport={viewport} />
+      {/* Figma's Find and replace (⌘F, F10). */}
+      <FindPanel />
       {/* Figma's rulers and guides (⇧R, F10). */}
       <Rulers viewport={viewport} />
     </div>
