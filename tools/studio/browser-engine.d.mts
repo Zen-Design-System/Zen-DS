@@ -69,3 +69,4 @@ export function booleanResult(kit: PathKit, operation: string, operands: Array<R
 export function flattenResult(kit: PathKit, layers: Array<Record<string, unknown>>): PlacedLayer | null;
 export function outlineStrokeResult(kit: PathKit, props: Record<string, unknown>): PlacedLayer | null;
 export function planBooleans(kit: PathKit, text: string, options?: { components?: Set<string> }): Array<{ loc: string; name: "Shape"; ops: Array<{ op: "setProp"; name: string; value: { kind: "string"; value: string } } | { op: "removeProp"; name: string }> }>;
+export function planGroups(text: string, options?: { components?: Set<string> }): Array<{ loc: string; name: "Box"; ops: Array<{ op: "many"; action: "setProps"; locs: string[]; opsByLoc: Record<string, Array<{ op: "setProp"; name: string; value: { kind: "number"; value: number } }>> }> }>;

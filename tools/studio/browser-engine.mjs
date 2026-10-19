@@ -11,3 +11,4 @@ export { ID_PROP, docFromText, editDoc, elementText, locMap, locsOf, newDocId, p
 export { migrateScreenFrame } from "./screen-frame.mjs";
 export { relayoutCode } from "./relayout.mjs";
 export { booleanResult, flattenResult, outlineStrokeResult, planBooleans } from "./path-ops.mjs";
+export { planGroups } from "./group-fit.mjs";

@@ -55,17 +55,20 @@ function withPhoneSync(engine: Engine, before: string | null, edited: Edited, fi
 }
 
 /**
- * A page's boolean groups follow the edit (one ⌘Z with it; plan F9b): each group's result (`d`) is its shapes combined
- * now, written by tools/studio/path-ops.mjs planBooleans, one group per round. Skia's PathOps load on the first page
- * that has a group.
+ * A page's groups and boolean groups follow the edit (one ⌘Z with it): a group hugs its layers again
+ * (tools/studio/group-fit.mjs planGroups, Figma's Group), a boolean group's result (`d`) is its shapes combined now
+ * (tools/studio/path-ops.mjs planBooleans, F9b), one group per round. Skia's PathOps load on the first page that has a
+ * boolean group.
  */
 async function withBooleans(engine: Engine, edited: Edited, file: string, options: Record<string, unknown>): Promise<Edited> {
-  if (!edited.text.includes('type="boolean"')) return edited;
-  const kit = await loadPathKit();
+  const hasGroups = edited.text.includes(" group>") || edited.text.includes(" group ");
+  const hasBooleans = edited.text.includes('type="boolean"');
+  if (!hasGroups && !hasBooleans) return edited;
+  const kit = hasBooleans ? await loadPathKit() : null;
   const components = new Set(zenComponents);
   let current = edited;
   for (let round = 0; round < 24; round++) {
-    const [plan] = engine.planBooleans(kit, current.text, { components });
+    const [plan] = [...(hasGroups ? engine.planGroups(current.text, { components }) : []), ...(kit ? engine.planBooleans(kit, current.text, { components }) : [])];
     if (!plan) break;
     const next = engine.editDoc(current.doc, current.text, { file, loc: plan.loc, name: plan.name, ops: plan.ops }, { components, applyOps: engine.applyOps, dataFieldEdit: engine.dataFieldEdit, sha1: engine.sha1, options: { ...options, hash: engine.sha1(current.text) } });
     if ("error" in next) break;

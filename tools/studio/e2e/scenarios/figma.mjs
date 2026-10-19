@@ -1669,4 +1669,25 @@ export const rows = [
       return `vector 180 × 80 at 20, 20 · ${(vector.d.match(/M/g) ?? []).length} outlines · ⌘Z`;
     },
   },
+  {
+    id: "FW-124", feature: "A group hugs its layers: nudging a layer out of it grows the group in the same edit (Figma's Group), nothing else moves", wp: "F3 2026-10-19 · decision 3", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyG");
+      await until(async () => /width=\{180\} height=\{80\} group>/.test((await pageText(page, id)) ?? ""), { message: "a group 180 × 80" });
+      const rect = await clipShape(page, id, 0).boundingBox();
+      await showLeftTab(page, "layers");
+      await page.locator(".studio-layers__tree [role='treeitem']", { has: page.locator(".studio-layers__name", { hasText: /^Ellipse/ }) }).first().click();
+      await page.locator(".studio-viewport").focus();
+      for (let k = 0; k < 2; k++) { await page.keyboard.press("Shift+ArrowDown"); await sleep(400); }
+      await until(async () => /width=\{180\} height=\{100\} group>/.test((await pageText(page, id)) ?? ""), { message: "the group grows to 100 high" }).catch(async (error) => { throw new Error(`${error.message} (${((await pageText(page, id)) ?? "").match(/<Box[^>]*group>/)?.[0]})`); });
+      const still = await clipShape(page, id, 0).boundingBox();
+      if (Math.abs(still.x - rect.x) > 1 || Math.abs(still.y - rect.y) > 1) throw new Error("the Rectangle moved on the canvas");
+      await undoTo(page, id, before, 6);
+      return "⌘G → 180 × 80 · Ellipse ⇧↓ ×2 → the group 180 × 100, the Rectangle in place · ⌘Z";
+    },
+  },
 ];

@@ -11,7 +11,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `docs/research/studio-figma-design-parity-2026-10-18.md` — next F2 (selection and transform), then F3–F10 in the plan's
   order. Left: the Code properties rows move to the Code tab (§3a "Properties", structural); Use as mask ⌃⌘M (F9,
   decision 6: a Box `mask` in Session B's Layout, one PR with B; groups, booleans, Flatten, Outline stroke are built);
-  a group's box does not follow its layers after they move (F3: ⌘G sizes it once); Present (⌥⌘↵) from a selected Overlay frame, as Figma
+  Present (⌥⌘↵) from a selected Overlay frame, as Figma
   presents any frame (needs `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); ⌥-drag / ⌘D
   of a Section with its frames (F4 moves, resizes, deletes and wraps them; a copy is not built); an instance's data-name stays in
   the page (its Figma name is its component's or carries content, which pull reads as such).
