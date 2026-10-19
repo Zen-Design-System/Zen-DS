@@ -1,17 +1,28 @@
 import { announceEditStatus } from "../api";
+import { findFrame } from "../board/frames";
+import { layerPicture } from "../builder/export/htmlExport";
 import { canvasApi } from "../canvas/viewport";
+import { exportSettingsOf } from "../inspector/ExportSection";
 import { displayName } from "../select/layerMeta";
 import { findBySrc } from "../select/picker";
+import { srcAttr } from "../select/srcIds";
+import { modKey } from "../shell/modKey";
+import { pageKey, studioStore } from "../store";
 import type { StudioSelection } from "../types";
 import { clipboardActions } from "./clipboard";
 
 /*
  * Figma's Copy as (plan docs/research/studio-figma-design-parity-2026-10-18.md F3) for the selected layer: as code (its
- * JSX, as ⌘C copies it) and as CSS (how it lays out and what it paints, each value by the Zen variable it reads when
- * one matches it, else the value). PNG (⇧⌘C) and SVG come from the Export section's drawing once it is on main.
+ * JSX, as ⌘C copies it), as CSS (how it lays out and what it paints, each value by the Zen variable it reads when one
+ * matches it, else the value), as PNG (⇧⌘C: a picture on the clipboard at 2x, or at the layer's first export setting's
+ * scale, as Figma copies) and as SVG (its markup as text). Both pictures are the Export section's drawing
+ * (htmlExport.ts layerPicture, F5c): the layer alone at its size, in its modes; a frame copies its body.
  */
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
+
+/** ⇧⌘C (Ctrl+Shift+C elsewhere): Copy as PNG, as the menus write it. */
+export const copyAsPngShortcut = modKey === "⌘" ? "⇧⌘C" : "Ctrl+Shift+C";
 
 const done = (message: string) => announceEditStatus({ kind: "unchanged", message, at: Date.now() });
 const fail = (message: string) => announceEditStatus({ kind: "error", message, at: Date.now() });
@@ -151,4 +162,67 @@ export async function copyAsCode(selection: NodeSelection): Promise<boolean> {
   const copied = await clipboardActions.copy(selection);
   if (copied !== false) done(`Copied ${selection.name} as code`);
   return copied !== false;
+}
+
+/**
+ * What a picture copy draws: a layer's own element (the one its source writes, as the Export section draws it) or a
+ * frame's body, its name, and the key its export settings are kept under (ExportSection: `src`, or the frame's).
+ */
+function pictureTarget(selection: StudioSelection | null): { host: HTMLElement; name: string; key: string } | null {
+  if (selection?.kind === "frame") {
+    const frame = findFrame(selection.frameId);
+    if (!frame?.element.isConnected) return null;
+    const state = studioStore.getState();
+    return { host: frame.element, name: frame.label, key: `frame:${pageKey(state.page, state.collection, state.localPage)}:${frame.id}` };
+  }
+  if (selection?.kind !== "node" || selection.part) return null;
+  const world = canvasApi.getWorldElement();
+  const hit = world ? findBySrc(world, selection.src)[selection.instance] : undefined;
+  const hosts = (hit?.hosts ?? []).filter((node): node is HTMLElement => node instanceof HTMLElement);
+  const host = hosts.find((node) => srcAttr(node) === selection.src) ?? hosts[0];
+  return host ? { host, name: displayName(selection.name, hit?.props, selection.src), key: selection.src } : null;
+}
+
+/**
+ * Figma's Copy as PNG (⇧⌘C): the selected layer or frame as a picture on the clipboard, at its first export setting's
+ * scale, else 2x. The clipboard item takes the drawing as a promise, so the write starts inside the key press (the
+ * browser asks for one; the drawing itself takes a moment).
+ */
+export async function copyAsPng(selection: StudioSelection | null): Promise<boolean> {
+  const target = pictureTarget(selection);
+  if (!target) { fail("Select a layer or a frame to copy as PNG"); return false; }
+  if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) { fail("This browser cannot put a picture on the clipboard"); return false; }
+  const scale = exportSettingsOf(target.key)[0]?.scale ?? 2;
+  const picture = layerPicture(target.host, { format: "png", scale });
+  const blob = picture.then((result) => { if ("error" in result) throw new Error(result.error); return result.blob; });
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+  } catch {
+    const result = await picture.catch(() => null);
+    fail(result && "error" in result ? `Couldn't copy ${target.name} as PNG. ${result.error}` : "The browser did not let the Studio put a picture on the clipboard");
+    return false;
+  }
+  const result = await picture;
+  const note = "error" in result ? null : result.notes[0];
+  done(`Copied ${target.name} as PNG${scale === 1 ? "" : ` (${scale}x)`}${note ? ` · ${note}` : ""}`);
+  return true;
+}
+
+/** Figma's Copy as SVG: the selected layer or frame as SVG markup (text), as the Export section's SVG draws it. */
+export async function copyAsSvg(selection: StudioSelection | null): Promise<boolean> {
+  const target = pictureTarget(selection);
+  if (!target) { fail("Select a layer or a frame to copy as SVG"); return false; }
+  const result = await layerPicture(target.host, { format: "svg", scale: 1 });
+  if ("error" in result) { fail(`Couldn't copy ${target.name} as SVG. ${result.error}`); return false; }
+  // A layer without text needs none of the fonts the drawing embeds (a Rectangle's SVG was 1.7 MB with them).
+  const markup = await result.blob.text();
+  const text = target.host.textContent?.trim() ? markup : markup.replace(/@font-face\s*\{[^}]*\}/g, "");
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    fail("The browser did not let the Studio write to the clipboard");
+    return false;
+  }
+  done(`Copied ${target.name} as SVG${result.notes[0] ? ` · ${result.notes[0]}` : ""}`);
+  return true;
 }

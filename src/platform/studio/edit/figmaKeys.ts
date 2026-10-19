@@ -9,6 +9,7 @@ import { canEdit, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
 import { alignLayers, distributeLayers, tidyUpLayers } from "./alignLayers";
 import { stepLayer } from "./arrange";
+import { copyAsPng } from "./copyAs";
 import { flipLayers } from "./flipLayers";
 import { groupSelection, ungroupSelection } from "./groupLayers";
 import { booleanSelection, flattenSelection, outlineStrokeSelection, type BooleanOperation } from "./pathOps";
@@ -156,6 +157,13 @@ export function useFigmaKeys() {
         return;
       }
       const selection = state.selection;
+      // ⇧⌘C: Figma's Copy as PNG, of a layer or a frame (edit/copyAs.ts); it reads the canvas, so a page you only view
+      // copies too.
+      if (mod && event.shiftKey && !event.altKey && event.code === "KeyC" && state.tool === "select" && (selection?.kind === "frame" || (selection?.kind === "node" && !selection.part))) {
+        event.preventDefault();
+        void copyAsPng(selection);
+        return;
+      }
       if (selection?.kind !== "node" || selection.part || state.tool !== "select") return;
       // \: the parent (as ⇧Enter).
       if (!mod && !event.altKey && event.key === "\\") {
