@@ -55,3 +55,7 @@ before shipping; B's conventions: JSDoc cites Figma, tokens-only CSS, a guidelin
 - Live Zen file (B's item 4): the real importer placed "Mask group" (GROUP, the Star isMask, the Rectangle and Ellipse
   clipped to it, screenshot checked) and the reader brought it back as `<Box group mask>` with the same layers, no notes;
   the QA frame removed. Plugin 3f0cf52 is on studio-import.
+- FW-122/123 broken in B's runs (2026-10-20): B's worktree node_modules (a copy from 2026-10-15) had no `pathkit-wasm`,
+  so loadPathKit rejected before any status line and ⌥⇧S / ⌘E looked dead; main was fine. Fixed at the owner (778738d0):
+  Union…/Flatten/Outline stroke say "… could not load the path engine: reload the page", and `withBooleans` keeps the
+  edit and fits groups without PathKit (results stay as they are).
