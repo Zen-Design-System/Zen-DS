@@ -934,6 +934,14 @@ export const rules = [
       if (border === null || (border === undefined && opaque(attrs)) || border === "subtle") return null;
       return border === undefined || border === "none" ? 'borderStyle="dashed" without a border draws nothing; add border="subtle".' : `borderStyle="dashed" with border="${border}" draws a solid line: dashed borders are Subtle. Use border="subtle".`;
     } },
+  { id: "box/group-no-look", components: ["Box"], severity: "warn", allow: "group-look", guideline: "docs/guidelines/layout.md",
+    summary: "A group (Box group, Figma's Group) only holds its layers together: no fill, stroke, corners, effect, padding, scroll or clip — they are ignored.",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs);
+      if (!own.has("group") || fixedProp(own, "group") === false) return null;
+      const look = ["surface", "border", "borderWeight", "borderSides", "borderStyle", "radius", "radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft", "effectStyle", "padding", "paddingX", "paddingY", "scroll", "clip"].find((prop) => own.has(prop));
+      return look && `is a group with ${look} — a group has no look of its own (ignored); use a frame (a Box without group) for a fill, stroke or padding.`;
+    } },
   { id: "layout/opacity-percent", components: ["Box", "Stack", "Grid", "Shape"], severity: "error", allow: "opacity-fraction", guideline: "docs/guidelines/layout.md",
     summary: "opacity is a percentage, as Figma's layer opacity (0 … 100): write opacity={50}, not CSS's 0.5.",
     check: ({ attrs }) => {

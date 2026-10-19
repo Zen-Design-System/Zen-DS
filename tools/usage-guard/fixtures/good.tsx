@@ -86,6 +86,10 @@ export const Good = () => <>
   <Box width={160} height={120}>
     <Shape type="ellipse" position="absolute" insetLeft={24} insetTop={8} width={96} height={96} arcRatio={60} fill="accent-solid" />
     <Shape type="line" position="absolute" insetLeft={8} insetTop={110} width={140} rotation={10} stroke="neutral-subtle" />
+    <Box group position="absolute" insetLeft={100} insetTop={4} width={48} height={20} opacity={80}>
+      <Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={20} height={20} fill="accent-solid" />
+      <Shape type="ellipse" position="absolute" insetLeft={28} insetTop={0} width={20} height={20} fill="support-yellow-solid" />
+    </Box>
   </Box>
   <InlineMessage theme="info" title="Invites expire after 7 days">Resend the invite from Members.</InlineMessage>
   <InlineMessage theme="custom" icon={<Avatar size="small" alt="">AC</Avatar>} title="Ava shared a file" />

@@ -48,7 +48,6 @@ async function selectBody(page, id) {
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
-  ["ControlOrMeta+KeyG", "Group selection"],
   ["ControlOrMeta+KeyE", "Flatten"], ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
   ["Shift+KeyR", "Rulers"], ["KeyP", "Pen"], ["KeyK", "Scale"], ["KeyC", "Comment"],
   ["KeyI", "Pick color"], ["KeyS", "Slice"],
@@ -395,8 +394,8 @@ export const rows = [
       const retired = items.filter((item) => /^(?:Remove\b(?! auto layout)|Move (?:up|down|earlier|later)\b|Hide layer\b|Select first child\b)/.test(item));
       if (retired.length) throw new Error(`retired words: ${retired.join(", ")}`);
       if (lock !== false) throw new Error("Lock is off (F1 builds it)");
-      if (group !== true) throw new Error("Group selection is on (Zen Studio has no groups yet)");
-      return `${items.length} items in Figma's words; Lock on, Group selection off ("Not in Zen Studio yet")`;
+      if (group !== false) throw new Error("Group selection is off (⌘G groups since F3)");
+      return `${items.length} items in Figma's words; Lock and Group selection on`;
     },
   },
   {

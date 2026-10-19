@@ -10,7 +10,7 @@
 //     copy    true: a copy goes there and the element stays (⌥-drag, ⌘V in the same file); `inserted`, else `moved`
 //     replace with copy: the copy takes the place of the child at that loc, which goes (⇧⌘R, paste to replace)
 //
-//   op "group" { with?, props?, box, kids, component? }   on one of the layers: they go into one floating Box where the
+//   op "group" { with?, props?, box, kids, component?, flow? }   on one of the layers: they go into one floating Box where the
 //     frontmost was, each keeping its place on the canvas (Frame selection and ⌘G on layers of a frame without auto
 //     layout); `component` { id, name }: that Box is a new main component's layer (Create component, a page you made)
 //
@@ -793,7 +793,8 @@ function attributeOf(name, value) {
  * layers floating in a frame without auto layout; plan F3, decision 3): the element and the `with` elements, children
  * of one JSX element, go into one `<Box position="absolute" …box>` (`props` written on it) where the frontmost of them
  * was, and keep their place on the canvas: each one's insets become `kids[loc]` (px in the new Box; pinned left / top,
- * as a move writes them). Their code and ids go along as written. Answer: inserted { loc } (the Box).
+ * as a move writes them). Their code and ids go along as written. `flow`: the layers sat in auto layout, the Box takes
+ * their place in the flow (no position of its own), sized to them. Answer: inserted { loc } (the Box).
  */
 export function groupPlan(ctx, nodePath, op, h) {
   const { ast, text, eol } = ctx;
@@ -820,7 +821,9 @@ export function groupPlan(ctx, nodePath, op, h) {
   const base = indentAt(text, last.start);
   const blocks = elements.map(({ element, kid }) => floatAt(h.reindent(piece(text, element), "", eol), kid).split("\n").map((line) => (line.trim() ? `${base}${UNIT}${line}` : "")).join(eol));
   const extra = Object.entries(op.props ?? {}).map(([name, value]) => attributeOf(name, value)).filter(Boolean);
-  const attrs = [`position="absolute"`, `insetLeft={${Math.round(box.x)}}`, `insetTop={${Math.round(box.y)}}`, `width={${Math.round(box.width)}}`, `height={${Math.round(box.height)}}`, ...extra].join(" ");
+  // In auto layout (`flow`) the Box takes the layers' place in the flow, sized to them; else it floats at `box`.
+  const placed = op.flow ? [] : [`position="absolute"`, `insetLeft={${Math.round(box.x)}}`, `insetTop={${Math.round(box.y)}}`];
+  const attrs = [...placed, `width={${Math.round(box.width)}}`, `height={${Math.round(box.height)}}`, ...extra].join(" ");
   let boxText = `<${tag} ${attrs}>${eol}${blocks.join(eol)}${eol}${base}</${tag}>`;
   // Create component on several layers (a page you made): the Box is the main component's one layer.
   const component = op.component;

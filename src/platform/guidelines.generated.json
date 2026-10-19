@@ -7452,6 +7452,11 @@
     ],
     "api": [
       [
+        "Group (Box)",
+        "group",
+        "Figma's Group (Zen Studio ⌘G): holds its layers at their X / Y, sized to them; no fill, stroke, corners, effect, padding (ignored); moves, turns, flips and fades as one"
+      ],
+      [
         "Gap (Spacing/Gap)",
         "gap · rowGap · columnGap",
         "none · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 (default) · lg 24 · xl 32 · 2xl 40 · 3xl 48 · giant 64 · xgiant 88 · 2xgiant 144 (long names like small also work)"
@@ -7657,6 +7662,12 @@
         "severity": "warn",
         "summary": "borderStyle=\"dashed\" draws only with border=\"subtle\": dashed borders are always Subtle (a drop zone, an empty slot).",
         "allow": "dashed-border"
+      },
+      {
+        "id": "box/group-no-look",
+        "severity": "warn",
+        "summary": "A group (Box group, Figma's Group) only holds its layers together: no fill, stroke, corners, effect, padding, scroll or clip — they are ignored.",
+        "allow": "group-look"
       },
       {
         "id": "layout/opacity-percent",

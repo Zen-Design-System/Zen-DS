@@ -11,7 +11,8 @@ import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, 
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
 import { copyAsCode, copyAsCss } from "../edit/copyAs";
-import { ungroupSelection } from "../edit/groupLayers";
+import { groupSelection, ungroupSelection } from "../edit/groupLayers";
+import { findBySrc } from "../select/picker";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { visibilityMenuItems } from "../edit/visibility";
@@ -79,8 +80,9 @@ export function openEmptyCanvasMenu(x: number, y: number) {
   set({ x, y, target: { kind: "canvas" }, at: Date.now() });
 }
 
-/** A Figma item Zen Studio has no feature for yet: in Figma's place in the menu, off, saying so (edit/figmaNotYet.ts). */
-const notYet = (id: string, label: string, shortcut: string, icon: MenuItemData["icon"]): MenuItemData => ({ id: `not-yet-${id}`, label, icon, shortcut, disabled: true, caption: "Not in Zen Studio yet", onSelect: () => {} });
+/** Whether the selected layer is a group (Box group, ⌘G): ⇧⌘G says Ungroup for it, Remove frame for a frame. */
+const selectedIsGroup = (selection: NodeSelection) => Boolean(findBySrc(canvasApi.getWorldElement() ?? document.body, selection.src)[selection.instance]?.props.group);
+
 
 export function CanvasMenu() {
   const menu = useSyncExternalStore(subscribe, () => state, () => null);
@@ -130,10 +132,10 @@ export function CanvasMenu() {
     // layout, and wraps anything else in an auto layout frame; Frame selection wraps in a frame.
     { id: "wrap-stack", label: "Add auto layout", icon: "icon-rows-01-line", shortcut: autoLayoutShortcut, caption: wrap.ok || frameAlone ? undefined : wrap.reason, disabled: !wrap.ok && !frameAlone, onSelect: () => { void addAutoLayoutToSelection(); } },
     ...(autoLayoutAlone ? [{ id: "remove-auto-layout", label: "Remove auto layout", icon: "icon-square-line" as const, shortcut: removeAutoLayoutShortcut, onSelect: () => { void removeAutoLayoutFromSelection(); } }] : []),
-    notYet("group", "Group selection", `${modKey}G`, "icon-layers-three-01-line"),
+    { id: "group", label: "Group selection", icon: "icon-layers-two-01-line" as const, shortcut: `${modKey}G`, disabled: !wrap.ok, onSelect: () => { void groupSelection(); } },
     { id: "wrap-box", label: "Frame selection", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
     // ⇧⌘G on one frame: its layers take its place and keep theirs (edit/groupLayers.ts, F3).
-    ...(selection && !several && /^(Box|Stack|Grid)$/.test(selection.name.slice(selection.name.lastIndexOf(".") + 1)) ? [{ id: "remove-frame", label: "Remove frame", icon: "icon-square-line" as const, shortcut: modKey === "⌘" ? "⇧⌘G" : "Ctrl+Shift+G", disabled: !canEdit(), onSelect: () => { void ungroupSelection(selection); } }] : []),
+    ...(selection && !several && /^(Box|Stack|Grid)$/.test(selection.name.slice(selection.name.lastIndexOf(".") + 1)) ? [{ id: "remove-frame", label: selectedIsGroup(selection) ? "Ungroup" : "Remove frame", icon: "icon-square-line" as const, shortcut: modKey === "⌘" ? "⇧⌘G" : "Ctrl+Shift+G", disabled: !canEdit(), onSelect: () => { void ungroupSelection(selection); } }] : []),
   ] : [];
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
   // Show / Hide, Lock / Unlock and Rename, as Figma's layer menu (edit/visibility.ts, edit/lock.ts, edit/rename.ts).

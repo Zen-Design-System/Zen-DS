@@ -1983,6 +1983,7 @@
           "pointCount?: number",
           "starRatio?: number",
           "rotation?: number",
+          "flip?: horizontal|vertical|both",
           "opacity?: number",
           "label?: string",
           "ref?: Ref<HTMLDivElement>"
@@ -4359,6 +4360,7 @@
           "paddingX?: none|ZenScaleInput|4xl|ZenMargin",
           "paddingY?: none|ZenScaleInput|4xl|ZenMargin",
           "scroll?: x|y",
+          "group?: boolean",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
           "children?: ReactNode",
           "ref?: Ref<HTMLElement>"
@@ -4411,6 +4413,7 @@
         "box/blur-needs-tint",
         "box/shadow-no-border",
         "box/dashed-is-subtle",
+        "box/group-no-look",
         "layout/opacity-percent",
         "radius/redundant-corners",
         "radius/full-mixed",

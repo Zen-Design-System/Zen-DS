@@ -69,6 +69,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProp
 | `pointCount` | `number` | — | Polygon corners or star tips (Figma Count, 3 … 60). Default 3 for a polygon, 5 for a star. |
 | `starRatio` | `number` | — | Star inner radius in percent of the outer one (Figma Ratio). Default 38.2. |
 | `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the shape about its centre. |
+| `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre. |
 | `opacity` | `number` | — | Layer opacity in percent (Figma's layer opacity, 0 … 100). Default 100. |
 | `label` | `string` | — | Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech. |
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the shape's root element. |

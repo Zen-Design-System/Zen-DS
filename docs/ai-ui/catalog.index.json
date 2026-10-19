@@ -128,7 +128,7 @@
       "name": "Box",
       "status": "stable",
       "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? rotation? flip? padding? paddingX? paddingY? scroll? as? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? rotation? flip? padding? paddingX? paddingY? scroll? group? as? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BreadcrumbItem",
@@ -623,7 +623,7 @@
       "name": "Shape",
       "status": "stable",
       "purpose": "Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon and Star — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? type? fill? stroke? strokeWeight? strokeAlign? radius? arcStart? arcSweep? arcRatio? pointCount? starRatio? rotation? opacity? label? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? type? fill? stroke? strokeWeight? strokeAlign? radius? arcStart? arcSweep? arcRatio? pointCount? starRatio? rotation? flip? opacity? label? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "Sidebar",

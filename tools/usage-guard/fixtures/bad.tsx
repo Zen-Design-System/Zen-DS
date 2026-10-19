@@ -517,6 +517,8 @@ export const Bad = () => <>
   <Stack surface="surface" radius="lg" radiusTopLeft="lg" radiusBottomRight="xs">Bubble</Stack>
   {/* expect: radius/full-mixed */}
   <Stack surface="surface" radius="full" radiusBottomRight="xs" direction="row">Pill tail</Stack>
+  {/* expect: box/group-no-look */}
+  <Box group surface="surface" width={120} height={80} />
   {/* expect: box/dashed-is-subtle */}
   <Stack border="pale" borderStyle="dashed" padding="lg">Drop files here</Stack>
   {/* expect: box/dashed-is-subtle */}

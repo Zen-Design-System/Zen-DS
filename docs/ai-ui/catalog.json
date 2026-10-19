@@ -2617,6 +2617,10 @@
           ],
           "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside)."
         },
+        "group": {
+          "type": "boolean",
+          "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them (Zen Studio writes its box)."
+        },
         "as": {
           "enum": [
             "div",
@@ -13815,6 +13819,14 @@
           "type": "number",
           "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
         },
+        "flip": {
+          "enum": [
+            "horizontal",
+            "vertical",
+            "both"
+          ],
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre."
+        },
         "opacity": {
           "type": "number",
           "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100)."
@@ -19231,6 +19243,7 @@
         "box/blur-needs-tint",
         "box/shadow-no-border",
         "box/dashed-is-subtle",
+        "box/group-no-look",
         "layout/opacity-percent",
         "radius/redundant-corners",
         "radius/full-mixed",
