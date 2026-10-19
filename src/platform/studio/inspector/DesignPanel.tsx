@@ -35,7 +35,7 @@ import { LayoutSection } from "./LayoutSection";
 import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from "./controls/hostContext";
 import { componentGroupsOf } from "./componentGroups";
 import { hasIdleNotes, idleNotes } from "./computedDefaults";
-import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection } from "../appearance/AppearanceSection";
+import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection, FillSection, isFrameLook, StrokeSection } from "../appearance/AppearanceSection";
 import { ShapeSections, shapePropNames } from "../appearance/ShapeSections";
 import { NestedProperties } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
@@ -647,7 +647,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const appearanceSpecs = specs.filter((spec) => (appearancePropNames[name] ?? []).includes(spec.name));
   // A shape's Arc, Count, Appearance, Fill and Stroke (Figma UI3's shape panel); its rotation is in Position.
   const shapeSpecs = name === "Shape" ? specs.filter((spec) => shapePropNames.includes(spec.name) || spec.name === "rotation") : [];
-  const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec) && !shapeSpecs.includes(spec));
+  // A frame's rotation and flip: Position's rotation field and its Rotate / Flip buttons (Figma UI3).
+  const turnSpecs = isFrameLook(name) ? specs.filter((spec) => spec.name === "rotation" || spec.name === "flip") : [];
+  const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec) && !shapeSpecs.includes(spec) && !turnSpecs.includes(spec));
   // Object and array literals written in place (leading={{ … }}, trailing={[{ … }]}): edited field by field below the rows.
   const shapedProps: ShapedProp[] = propertySpecs.flatMap((spec) => {
     const attr = element?.attributes.filter((attribute) => attribute.kind === "expression" && attribute.name === spec.name).at(-1);
@@ -806,6 +808,58 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     void runPlan(planFor(element.attributes), `${element.name} reset all overrides`, optimistic, (attributes) => planFor(attributes).ops);
   };
 
+  // Properties (instance properties, nested instances, slots): right under the header for an instance, as Figma UI3
+  // shows them; a frame's, text's or shape's code-only properties and its layers stay at the end.
+  const instanceFirst = kind === "zen" || kind === "local";
+  const propertyBlocks = (
+    <>
+      {element && propertySpecs.length && groups ? (
+        <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
+      ) : element && propertySpecs.length && (kind === "primitive" || kind === "shape") ? (
+        // A frame, text or shape has no Figma properties: what the code adds (HTML element, Scroll, Html for…) waits in
+        // Code properties, closed (user, 2026-10-17: less developer language).
+        <CodeProperties count={propertySpecs.length} placement="panel">
+          {propertySpecs.filter((spec) => !shapedNames.has(spec.name)).map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={propLabel(spec.name, name)} />)}
+          {shapedProps.map((entry) => <ObjectProperties key={entry.spec.name} component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />)}
+        </CodeProperties>
+      ) : element && propertySpecs.length ? (
+        // Properties in titled groups with a divider between them (autoGroups.ts), then one section per object or array
+        // prop (Trend, items), titled with its name; an object's fields need no header of their own there.
+        <>
+          {autoGroups(propertySpecs.filter((spec) => !shapedNames.has(spec.name))).map((group, index) => (
+            <InspectorSection key={group.id} title={group.title} note={index === 0 ? propertiesNote : undefined}>
+              {group.specs.map((spec) => {
+                const label = labelInGroup(propLabel(spec.name, name), group);
+                // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content
+                // in it (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
+                if (spec.editor.kind === "node" && slotOf(name, spec.name)) {
+                  // A slot this state never draws has no switch (it would write content nothing shows).
+                  if (!isSlotActive(slotOf(name, spec.name)!, hostPropsOf(element.attributes))) return null;
+                  const value = api.valueFor(spec.name);
+                  return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
+                }
+                // A prop that draws nothing in this state (LineChart Show legend without Compare) says why.
+                const idle = idleNotes(name, spec.name, renderedProps ?? {});
+                return <Field key={spec.name} spec={spec} api={api} component={name} label={label} hint={idle.length ? idle.join(" ") : undefined} />;
+              })}
+            </InspectorSection>
+          ))}
+          {shapedProps.map((entry) => (
+            <InspectorSection key={entry.spec.name} title={propLabel(entry.spec.name, name)}>
+              <ObjectProperties component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />
+            </InspectorSection>
+          ))}
+        </>
+      ) : null}
+
+      {/* Figma nested instances: the booleans of the Zen components written in this element's props. */}
+      {element && !groups ? <NestedProperties element={element} api={api} nested={nested} /> : null}
+
+      {/* Content slots (Children for Stack/Grid/Box): nothing for a component without slots. */}
+      {element ? <SlotsSection api={api} selection={selection} element={element} /> : null}
+    </>
+  );
+
   return (
     // Scale fields measure their tokens on the selected element (density, breakpoint and mode applied).
     <InspectorHostContext value={sourceHost(selection)}>
@@ -913,63 +967,22 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
 
       {/* A page's own component (Figma UI3 puts it first): the main's name and actions, or the instance's component. */}
       {element && /^local:/.test(element.file) ? <ComponentSection selection={selection} disabled={api.disabled} /> : null}
-      {/* Figma UI3 order: Position (Ignore auto layout, constraints), then Layout, then Properties. */}
+      {/* Figma UI3 order: the instance's properties under its header, then Position (Ignore auto layout, constraints,
+          rotation), Layout, Appearance, Typography, Fill, Stroke, Effects. */}
+      {instanceFirst ? propertyBlocks : null}
       {element ? <PositionSection selection={selection} element={element} api={api} component={name} /> : null}
 
-      {/* Layout components: Layout directly under the header (after Playground properties), before Properties. */}
       {layoutSection}
 
-      {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} /> : null}
+      {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} layer={{ src: selection.src, name: element.name }} /> : null}
       {element && shapeSpecs.length ? <ShapeSections api={api} specs={shapeSpecs} host={sourceHost(selection)} /> : null}
-      {element && name === "Box" ? <EffectsSection api={api} src={selection.src} /> : null}
+      {textFirst ? null : textSection}
+      {element && isFrameLook(name) ? <FillSection api={api} specs={appearanceSpecs} /> : null}
+      {element && isFrameLook(name) ? <StrokeSection api={api} specs={appearanceSpecs} /> : null}
+      {element && isFrameLook(name) ? <EffectsSection api={api} src={selection.src} /> : null}
       {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}
 
-      {element && propertySpecs.length && groups ? (
-        <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
-      ) : element && propertySpecs.length && (kind === "primitive" || kind === "shape") ? (
-        // A frame, text or shape has no Figma properties: what the code adds (HTML element, Scroll, Html for…) waits in
-        // Code properties, closed (user, 2026-10-17: less developer language).
-        <CodeProperties count={propertySpecs.length} placement="panel">
-          {propertySpecs.filter((spec) => !shapedNames.has(spec.name)).map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={propLabel(spec.name, name)} />)}
-          {shapedProps.map((entry) => <ObjectProperties key={entry.spec.name} component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />)}
-        </CodeProperties>
-      ) : element && propertySpecs.length ? (
-        // Properties in titled groups with a divider between them (autoGroups.ts), then one section per object or array
-        // prop (Trend, items), titled with its name; an object's fields need no header of their own there.
-        <>
-          {autoGroups(propertySpecs.filter((spec) => !shapedNames.has(spec.name))).map((group, index) => (
-            <InspectorSection key={group.id} title={group.title} note={index === 0 ? propertiesNote : undefined}>
-              {group.specs.map((spec) => {
-                const label = labelInGroup(propLabel(spec.name, name), group);
-                // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content
-                // in it (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
-                if (spec.editor.kind === "node" && slotOf(name, spec.name)) {
-                  // A slot this state never draws has no switch (it would write content nothing shows).
-                  if (!isSlotActive(slotOf(name, spec.name)!, hostPropsOf(element.attributes))) return null;
-                  const value = api.valueFor(spec.name);
-                  return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
-                }
-                // A prop that draws nothing in this state (LineChart Show legend without Compare) says why.
-                const idle = idleNotes(name, spec.name, renderedProps ?? {});
-                return <Field key={spec.name} spec={spec} api={api} component={name} label={label} hint={idle.length ? idle.join(" ") : undefined} />;
-              })}
-            </InspectorSection>
-          ))}
-          {shapedProps.map((entry) => (
-            <InspectorSection key={entry.spec.name} title={propLabel(entry.spec.name, name)}>
-              <ObjectProperties component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />
-            </InspectorSection>
-          ))}
-        </>
-      ) : null}
-
-      {/* Figma nested instances: the booleans of the Zen components written in this element's props. */}
-      {element && !groups ? <NestedProperties element={element} api={api} nested={nested} /> : null}
-
-      {/* Content slots (Children for Stack/Grid/Box): nothing for a component without slots. */}
-      {element ? <SlotsSection api={api} selection={selection} element={element} /> : null}
-
-      {textFirst ? null : textSection}
+      {instanceFirst ? null : propertyBlocks}
 
       {element && (texts.length || expressions.length || childElements.length) ? (
         <InspectorSection title="Content">
