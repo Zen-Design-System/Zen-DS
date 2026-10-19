@@ -145,7 +145,8 @@ Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a ne
   from Fill's visible part (`coverCrop`). Layers: a rectangle with a picture shows the image icon.
 - **Figma** (`tools/studio/figma-image.mjs`): push `imageFill` {src, scaleMode, crop, scale} + bytes in `images`; the
   pull reader reads the IMAGE paint (crop from imageTransform, src from shared plugin data "zenstudio"/"image"); a
-  picture made in Figma is noted. Importer lines: Session B (sample nodes sent). Direct paste notes image fills (F8b).
+  picture made in Figma is noted. Importer: Session B's plugin `0d55f95` (applyImageFill; re-import replaces or removes
+  only the picture it placed). Direct paste notes image fills (F8b).
 - Found while testing: a picture placed near a frame's edge was cut off (now moved inside); the drop listener on the
   viewport element was never attached (now on the window).
 - **Tests:** image-fill selftest 17; drawModel +2; figma-push +4, figma-pull +4; Figma walk FW-80…86.
