@@ -348,3 +348,5 @@ User picked "Dán ảnh qua ⌘C→⌘V" (the rest of F8). `tools/studio/figma-n
   writer fills the first such layer after the nested edits (the variant shown), an override `fillPaints` with the
   picture's blob. Live paste (QA page, removed): Avatar Large, Avatar-Cell (nested Avatar → Square Small Photo),
   Photo-Cell show their fresh pictures, hashes exact. Selftest figma-native 90.
+- Gate (Giám sát's slot after B, on 1a18705f): `npm run qa -- --isolated --files=<11 files>` PASS — static ✓, Studio E2E
+  336 works · 0 broken (1577 s); report `.qa/reports/2026-10-19T16-58-37-ee53b0aa.md`.
