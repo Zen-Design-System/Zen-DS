@@ -124,6 +124,8 @@ Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a ne
   Zen plugin's importer applies segments (Session B, `studio-import.js applySegments`). `figma-diff` keeps TextRuns as
   part of their Text (a text change carries the runs, in order; before, a merge put the words first and the runs last).
   `doc.mjs` / `compile.mjs` write a text with runs on one line as a person writes it.
+- Enter in the rich editor: a new line on a page you made, else it leaves (as F6a's plain editor after K-08 / DA-01).
+  Plugin importer: Session B's `711e203` (feat(studio-import): a text's runs from Zen Studio).
 - **Tests:** richText selftest 12; figma-push +7 (round trip, React export), figma-native +5, figma-diff +3,
   layer-meta +1; Figma walk FW-67…69.
 

@@ -7,8 +7,8 @@ import { commitRichTextEdit, endRichTextEdit, renderRuns, runsFromDom, useRichTe
 /*
  * The canvas editor for a text layer with styles of its own (Figma's mixed styles, F6b; richTextEdit.ts). It sits over
  * the text with its font, size, line height and colour, scaled with the zoom; the text under it is hidden while it is
- * open. Keys (Figma): ⌘B bold, ⌘I italic, ⌘U underline, ⇧⌘X strikethrough on the selected words; Enter a new line; Esc,
- * Tab or a click outside leave and keep the words.
+ * open. Keys (Figma): ⌘B bold, ⌘I italic, ⌘U underline, ⇧⌘X strikethrough on the selected words; Enter a new line (a
+ * page you made; elsewhere Enter leaves); Esc, Tab or a click outside leave and keep the words.
  */
 
 const COPIED = [
@@ -115,8 +115,9 @@ function Editor({ target, viewport }: { target: RichTarget; viewport: HTMLElemen
     const mod = event.metaKey || event.ctrlKey;
     const key = mod && !event.altKey ? (event.shiftKey ? (event.code === "KeyX" ? "strikethrough" : null) : FORMAT_KEYS[event.code]) : null;
     if (key) { event.preventDefault(); format(key); return; }
-    if (event.key === "Enter") { event.preventDefault(); document.execCommand("insertText", false, "\n"); return; }
-    if (event.key === "Escape" || event.key === "Tab") { event.preventDefault(); finish(true); }
+    // Enter: a new line in a text of a page you made (Figma's); elsewhere it leaves, as the plain editor does.
+    if (event.key === "Enter" && target.element.file.startsWith("local:")) { event.preventDefault(); document.execCommand("insertText", false, "\n"); return; }
+    if (event.key === "Escape" || event.key === "Tab" || event.key === "Enter") { event.preventDefault(); finish(true); }
   };
 
   // Pasted words come in as plain text, in the style at the caret.
