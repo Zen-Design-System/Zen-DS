@@ -5,7 +5,7 @@ import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, STUDIO_ONLY_PROPS, hiddenOn, hiddenSlot
 import { LOCKED_PROP, NAME_PROP } from "../../../../../tools/studio/layer-meta.mjs";
 import * as Zen from "../../../../index";
 import { resolveMediaDeep } from "../library/media";
-import { Board, Overlay, protoHandler, Screen, type ProtoActions } from "../proto/runtime";
+import { Board, Overlay, protoHandler, Screen, Section, type ProtoActions } from "../proto/runtime";
 
 /*
  * The builder page renderer (spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2b): the neutral tree of
@@ -26,7 +26,7 @@ export type PageNode = { kind: "element"; name: string; loc: string; props: Reco
 export type PageChild = PageNode | { kind: "text"; value: string } | { kind: "ref"; root: string; path: string[] } | { kind: "map"; source: { root: string; path: string[] }; item: string; node: PageNode };
 export type PageTree = { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: PageNode | null; errors: Array<{ line: number; column: number; message: string }> };
 
-const BUILDER: Record<string, unknown> = { Board, Screen, Overlay };
+const BUILDER: Record<string, unknown> = { Board, Screen, Overlay, Section };
 
 /** A component by name (`Card.Header` follows the dots); null when the library has none. */
 function componentOf(name: string): unknown {

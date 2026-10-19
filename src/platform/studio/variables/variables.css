@@ -42,7 +42,7 @@
 .studio-vars__group:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
 .studio-vars__group-label { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-vars__group > span:first-child { flex: 1 1 auto; }
-.studio-vars__count { flex: 0 0 auto; color: var(--zen-color-content-neutral-light); }
+.studio-vars__count { flex: 0 0 auto; }
 
 /* The table: Name and a column per mode, a virtual list of 32px rows under a sticky header. */
 .studio-vars__grid { position: relative; min-width: 0; flex: 1 1 auto; overflow: auto; --studio-vars-columns: minmax(200px, 1.2fr) repeat(var(--studio-vars-modes, 1), minmax(168px, 1fr)); }

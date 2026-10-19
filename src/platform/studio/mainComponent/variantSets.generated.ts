@@ -4,8 +4,8 @@
 /** One VARIANT property of a Figma set: the code prop, the Figma name, its options in Figma order (`names`) and their
  *  code values (`values`; "true" / "false" for a Yes / No variant held as a boolean), and Figma's default. */
 export type VariantAxis = { prop: string; label: string; names: readonly string[]; values: readonly string[]; default: string };
-/** A Figma boolean that shows a layer: on sets `prop` to `on` (an icon name), off leaves it out. */
-export type VariantToggle = { prop: string; label: string; on: string; default: boolean };
+/** A Figma boolean that shows a layer: on sets `prop` to `on` (an icon name, text, or a value the map writes as code: an action object), off leaves it out. */
+export type VariantToggle = { prop: string; label: string; on: unknown; default: boolean };
 /** A Figma component set as the Main component frame draws it: `fixed` are the code props that pick this set
  *  (Button/Flat: appearance "flat"), `axes` its variant properties. */
 export type VariantSet = { name: string; figma: string; fixed: Readonly<Record<string, string>>; axes: readonly VariantAxis[]; toggles: readonly VariantToggle[] };
@@ -715,7 +715,16 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "default"
         }
       ],
-      "toggles": []
+      "toggles": [
+        {
+          "prop": "action",
+          "label": "Action",
+          "on": {
+            "label": "Action"
+          },
+          "default": true
+        }
+      ]
     }
   ],
   "Badge": [
@@ -1805,6 +1814,43 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "hex"
         }
       ],
+      "toggles": [
+        {
+          "prop": "savedColors",
+          "label": "Saved",
+          "on": [
+            "#1F6FEB",
+            "#0E9F8E",
+            "#E07B12",
+            "#E5533D"
+          ],
+          "default": true
+        }
+      ]
+    }
+  ],
+  "AutocompleteField": [
+    {
+      "name": "Input/Autocomplete-Field",
+      "figma": "1241:5616",
+      "fixed": {},
+      "axes": [],
+      "toggles": [
+        {
+          "prop": "helpText",
+          "label": "Help-Text",
+          "on": "Help text",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "RichTextField": [
+    {
+      "name": "Input/Richtext",
+      "figma": "6385:17480",
+      "fixed": {},
+      "axes": [],
       "toggles": []
     }
   ],
@@ -1884,12 +1930,43 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       ],
       "toggles": [
         {
+          "prop": "action",
+          "label": "Action",
+          "on": {
+            "label": "Action"
+          },
+          "default": false
+        },
+        {
           "prop": "title",
           "label": "Title",
           "on": "Title",
           "default": true
         }
       ]
+    }
+  ],
+  "ListItem": [
+    {
+      "name": "List-Item",
+      "figma": "4080:11700",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "selected",
+          "label": "State",
+          "names": [
+            "Default",
+            "Selected"
+          ],
+          "values": [
+            "false",
+            "true"
+          ],
+          "default": "false"
+        }
+      ],
+      "toggles": []
     }
   ],
   "ListBox": [
@@ -1989,6 +2066,22 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Caption",
           "on": "Description",
           "default": true
+        }
+      ]
+    }
+  ],
+  "Popover": [
+    {
+      "name": "Popover/Default",
+      "figma": "4031:26126",
+      "fixed": {},
+      "axes": [],
+      "toggles": [
+        {
+          "prop": "label",
+          "label": "Label",
+          "on": "Label",
+          "default": false
         }
       ]
     }
@@ -3066,7 +3159,16 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "neutral"
         }
       ],
-      "toggles": []
+      "toggles": [
+        {
+          "prop": "action",
+          "label": "Actions",
+          "on": {
+            "label": "Action"
+          },
+          "default": true
+        }
+      ]
     }
   ],
   "UploaderFileItem": [
@@ -3138,6 +3240,55 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "prop": "helpText",
           "label": "hasHelperText",
           "on": "Up to 5 files.",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "BottomNavigation": [
+    {
+      "name": "Bottom-Navigation/Mobile/Default",
+      "figma": "4060:26671",
+      "fixed": {
+        "type": "default"
+      },
+      "axes": [],
+      "toggles": []
+    },
+    {
+      "name": "Bottom-Navigation/Mobile/Floating",
+      "figma": "9017:26239",
+      "fixed": {
+        "type": "floating"
+      },
+      "axes": [],
+      "toggles": [
+        {
+          "prop": "action",
+          "label": "CTA",
+          "on": {
+            "icon": "icon-plus-line",
+            "label": "New"
+          },
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Bottom-Navigation/Mobile/Floating-Glass",
+      "figma": "9017:42257",
+      "fixed": {
+        "type": "floating-glass"
+      },
+      "axes": [],
+      "toggles": [
+        {
+          "prop": "action",
+          "label": "CTA",
+          "on": {
+            "icon": "icon-plus-line",
+            "label": "New"
+          },
           "default": true
         }
       ]
@@ -3415,6 +3566,69 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       ]
     }
   ],
+  "DatePicker": [
+    {
+      "name": "Date-Picker/Single-Calendar",
+      "figma": "895:31954",
+      "fixed": {
+        "calendar": "single"
+      },
+      "axes": [],
+      "toggles": []
+    },
+    {
+      "name": "Date-Picker/Dual-Calendar",
+      "figma": "465:41427",
+      "fixed": {
+        "calendar": "dual"
+      },
+      "axes": [],
+      "toggles": []
+    }
+  ],
+  "DatePickerSheet": [
+    {
+      "name": "Date-Picker/Mobile",
+      "figma": "9923:3576",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "selectionMode",
+          "label": "Variant",
+          "names": [
+            "Single",
+            "Multiple-Default"
+          ],
+          "values": [
+            "single",
+            "range"
+          ],
+          "default": "single"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "Stepper": [
+    {
+      "name": "Stepper-Bar/Horizontal",
+      "figma": "1625:8328",
+      "fixed": {
+        "orientation": "horizontal"
+      },
+      "axes": [],
+      "toggles": []
+    },
+    {
+      "name": "Stepper-Bar/Vertical",
+      "figma": "1625:8656",
+      "fixed": {
+        "orientation": "vertical"
+      },
+      "axes": [],
+      "toggles": []
+    }
+  ],
   "Metric": [
     {
       "name": "Primitives/Metric/Metric-Inline/Icon-Highlight",
@@ -3444,6 +3658,15 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
         }
       ],
       "toggles": [
+        {
+          "prop": "trend",
+          "label": "Trend",
+          "on": {
+            "direction": "positive",
+            "label": "+12%"
+          },
+          "default": true
+        },
         {
           "prop": "counter",
           "label": "Counter",
@@ -3480,6 +3703,15 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
         }
       ],
       "toggles": [
+        {
+          "prop": "trend",
+          "label": "Trend",
+          "on": {
+            "direction": "positive",
+            "label": "+12%"
+          },
+          "default": true
+        },
         {
           "prop": "hint",
           "label": "Hint",
@@ -3668,12 +3900,53 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "ChatPhotos": [
+    {
+      "name": "Chat/Bubble/Photo-You",
+      "figma": "6349:62779",
+      "fixed": {
+        "side": "you"
+      },
+      "axes": [],
+      "toggles": []
+    },
+    {
+      "name": "Chat/Bubble/Photo-Others",
+      "figma": "6342:52347",
+      "fixed": {
+        "side": "others"
+      },
+      "axes": [],
+      "toggles": []
+    }
+  ],
   "ChatConversationItem": [
     {
       "name": "Chat/Conversation-List/List-Item/Content",
       "figma": "6331:34480",
       "fixed": {},
       "axes": [
+        {
+          "prop": "call",
+          "label": "State",
+          "names": [
+            "Text",
+            "Audio Missed Call",
+            "Audio Out-Call",
+            "Audio In-Call",
+            "Video Missed Call",
+            "Ongoing-Call"
+          ],
+          "values": [
+            "",
+            "missed-audio",
+            "outgoing",
+            "incoming",
+            "missed-video",
+            "ongoing"
+          ],
+          "default": ""
+        },
         {
           "prop": "unread",
           "label": "Unread",
@@ -3734,7 +4007,16 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "medium"
         }
       ],
-      "toggles": []
+      "toggles": [
+        {
+          "prop": "primaryAction",
+          "label": "CTA",
+          "on": {
+            "label": "Action"
+          },
+          "default": true
+        }
+      ]
     }
   ],
   "InputConditionItem": [
@@ -3759,6 +4041,15 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "default"
         }
       ],
+      "toggles": []
+    }
+  ],
+  "InputConditions": [
+    {
+      "name": "Input-Conditions",
+      "figma": "373:97663",
+      "fixed": {},
+      "axes": [],
       "toggles": []
     }
   ],

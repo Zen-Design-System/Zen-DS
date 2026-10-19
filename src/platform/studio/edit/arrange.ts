@@ -1,3 +1,4 @@
+import { floatingItems, nudgeLayers } from "./alignLayers";
 import { inspectorStatus } from "../inspector/status";
 import { isLockedSrc } from "../select/layerMeta";
 import { lockShortcut } from "./lock";
@@ -192,6 +193,18 @@ export function useArrangeKeys() {
       if (isLockedSrc(selection.src) || multiSelection.get().some((layer) => isLockedSrc(layer.src))) {
         event.preventDefault();
         if (!event.repeat) inspectorStatus.set("neutral", `Locked: ${lockShortcut} unlocks it`);
+        return;
+      }
+      // Several layers that all float: each moves by the px (Figma's nudge of a selection), one edit.
+      const several = multiSelection.get().length ? floatingItems() : null;
+      if (several && typeof several !== "string") {
+        event.preventDefault();
+        if (running) return;
+        running = true;
+        const step = event.shiftKey ? 10 : 1;
+        const dx = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
+        const dy = event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0;
+        void nudgeLayers(several, dx, dy).finally(() => { running = false; });
         return;
       }
       const floating = multiSelection.get().length ? null : floatingHost(selection);

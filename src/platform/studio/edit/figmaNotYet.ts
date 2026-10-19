@@ -21,7 +21,6 @@ type NotYet = { code: string; keys: Keys; name: string; macOnly?: boolean };
  */
 export const FIGMA_NOT_YET: readonly NotYet[] = [
   { code: "KeyG", keys: { mod: true }, name: "Group selection" },
-  { code: "KeyG", keys: { mod: true, shift: true }, name: "Ungroup" },
   { code: "KeyE", keys: { mod: true }, name: "Flatten" },
   { code: "KeyO", keys: { mod: true, alt: true }, name: "Outline stroke" },
   { code: "KeyM", keys: { mod: true, ctrl: true }, name: "Use as mask" },
@@ -29,22 +28,16 @@ export const FIGMA_NOT_YET: readonly NotYet[] = [
   // Ctrl+Y redoes elsewhere: Outline view is the Mac's ⌘Y only.
   { code: "KeyY", keys: { mod: true }, name: "Outline view", macOnly: true },
   { code: "KeyC", keys: { mod: true, shift: true }, name: "Copy as PNG" },
-  { code: "KeyT", keys: { ctrl: true, alt: true }, name: "Tidy up" },
-  { code: "KeyH", keys: { ctrl: true, alt: true }, name: "Distribute horizontal spacing" },
-  { code: "KeyV", keys: { ctrl: true, alt: true }, name: "Distribute vertical spacing" },
   { code: "KeyG", keys: { ctrl: true }, name: "Layout guides", macOnly: true },
   { code: "KeyR", keys: { shift: true }, name: "Rulers" },
-  { code: "KeyS", keys: { shift: true }, name: "Section" },
   { code: "KeyP", keys: { shift: true }, name: "Pencil" },
   { code: "KeyH", keys: { shift: true }, name: "Flip horizontal" },
   { code: "KeyV", keys: { shift: true }, name: "Flip vertical" },
-  { code: "KeyN", keys: { shift: true }, name: "Previous frame" },
   { code: "KeyK", keys: {}, name: "Scale" },
   { code: "KeyS", keys: {}, name: "Slice" },
   { code: "KeyP", keys: {}, name: "Pen" },
   { code: "KeyC", keys: {}, name: "Comment" },
   { code: "KeyI", keys: {}, name: "Pick color" },
-  { code: "KeyN", keys: {}, name: "Next frame" },
 ];
 
 /** Whether the modifiers of `event` are exactly `keys` on this platform. */

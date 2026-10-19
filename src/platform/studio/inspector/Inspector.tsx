@@ -14,6 +14,7 @@ import { CodePanel } from "./CodePanel";
 import { DesignPanel } from "./DesignPanel";
 import "./drafts";
 import { FramePanel } from "./FramePanel";
+import { FramePresets } from "../builder/FramePresets";
 import { PagePanel } from "./PagePanel";
 // A part: a Table's Data-Row or Cell has its own panel, any other part is PartPanel's (table/TableCellPanel.tsx).
 import { TablePartPanel } from "../table/TableCellPanel";
@@ -112,6 +113,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
   // Several layers selected (Shift+click): what they share (wrap in a container) instead of one layer's properties.
   const several = useExtraSelection().length > 0;
   const identity = useSelectionIdentity(selection);
+  // The Frame tool on a page you made: Figma's frame presets (builder/FramePresets.tsx, Session C's F4).
+  const presetsPage = useStudio((state) => (state.tool === "frame" ? state.localPage : null));
   return (
     <div className="studio-inspector">
       <div className="studio-inspector__tabs">
@@ -130,6 +133,7 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
       <TabPanel idPrefix="studio-inspector" id={tab} className="studio-inspector__body">
         {tab === "prototype" ? <PrototypePanel />
           : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} />
+          : presetsPage ? <FramePresets localPage={presetsPage} />
           : several && selection?.kind === "node" && !selection.part ? <SelectionActions />
           : selection?.kind === "node" && selection.part ? <TablePartPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
           : selection?.kind === "node" ? <DesignPanel key={identity} selection={selection} controlsSlot={controlsSlot} />

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Self-test of the builder page dialect (tools/studio/dialect.mjs). Run: node tools/studio/dialect.selftest.mjs
-import { jsxText, localComponents, newPageText, pageHeader, parsePage, validateDialect } from "./dialect.mjs";
+import { boardFrames, boardSections, jsxText, localComponents, newPageText, pageHeader, parsePage, sectionCode, validateDialect } from "./dialect.mjs";
 
 const failures = [];
 let passed = 0;
@@ -118,6 +118,30 @@ check("components: two layers in a main", /exactly one layer/.test(first(withCom
 check("components: a repeated id", /share the id/.test(first(withComponents('<Component id="a" name="A"><Text>a</Text></Component><Component id="a" name="B"><Text>b</Text></Component>'))), true);
 check("components: an instance inside its main", /inside its own component/.test(first(withComponents('<Component id="a" name="A"><Stack><Use of="a" /></Stack></Component>'))), true);
 check("components: a bad id", /needs an id/.test(first(withComponents('<Component id="A b" name="A"><Text>a</Text></Component>'))), true);
+
+// Sections (Figma's, F4): a named board area beside the frames.
+const withSection = (section) => `// @zen-page {"format":1,"title":"Sections"}
+import { Board, Screen, Section } from "@zen-ds/react/builder";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      ${section}
+      <Screen id="home" title="Home" x={100} y={100} />
+    </Board>
+  );
+}
+`;
+const sectionPage = withSection('<Section id="section-1" title="Onboarding" x={0} y={0} width={1200} height={1000} />');
+check("sections: a Section on the Board", messages(sectionPage), []);
+check("sections: boardSections reads it", boardSections(parsePage(sectionPage)), [{ id: "section-1", title: "Onboarding", x: 0, y: 0, width: 1200, height: 1000, loc: "9:6" }]);
+check("sections: not a frame", boardFrames(parsePage(sectionPage)).map((frame) => frame.id), ["home"]);
+check("sections: needs its size", /<Section> needs width/.test(first(withSection('<Section id="s" title="S" x={0} y={0} height={100} />'))), true);
+check("sections: holds no layers", /holds no layers/.test(first(withSection('<Section id="s" title="S" x={0} y={0} width={400} height={400}><Screen id="x" /></Section>'))), true);
+check("sections: sectionCode", sectionCode({ id: "section-2", title: "Flow <A>", x: -40.4, y: 10, width: 470, height: 925 }), '<Section id="section-2" title="Flow A" x={-40} y={10} width={470} height={925} />');
+check("sections: the code is a valid Section", messages(withSection(sectionCode({ id: "section-2", title: "Flow", x: 0, y: 0, width: 470, height: 925 }))), []);
 
 if (failures.length) {
   console.error(`dialect selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

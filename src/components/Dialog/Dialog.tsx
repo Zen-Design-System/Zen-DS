@@ -1,11 +1,11 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode, type Ref, type RefObject } from "react";
+import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { usePresence } from "../Motion";
 import { ZenPortal, usePortalContainer } from "../Portal";
 import { Button, IconButton, type ButtonLevel } from "../Button";
 import { Icon, type IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
-import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
+import { OverlayPreviewContext, useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
 import { useZenLabels } from "../_shared/zen-context";
 import { afterErrorsRender, focusFirstInvalidField } from "../Form/focus";
 import { VisuallyHidden } from "../VisuallyHidden";
@@ -97,8 +97,10 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
   container?: Element | null;
 } = {}) {
   const openerRef = useRef<Element | null>(null);
+  // A static preview (OverlayPreviewContext) draws the panel only: no focus, keys, scroll lock or isolation.
+  const preview = useContext(OverlayPreviewContext);
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || preview) return undefined;
     const entry = {};
     modalStack.push(entry);
     openerRef.current = document.activeElement;
@@ -153,7 +155,7 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
       const opener = openerRef.current as HTMLElement | null;
       if (opener?.isConnected) opener.focus?.({ preventScroll: true });
     };
-  }, [open, dismissible, onOpenChange, panelRef, initialSelector, isolate, container]);
+  }, [open, preview, dismissible, onOpenChange, panelRef, initialSelector, isolate, container]);
 }
 
 /**

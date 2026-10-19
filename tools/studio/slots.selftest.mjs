@@ -132,7 +132,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("requiredFromApi: required props", [requiredProps.get("Dialog")?.has("title"), requiredProps.get("ListItem")?.has("title"), requiredProps.get("ListItem")?.has("leading")], [true, true, false]);
   check("requiredFromApi: junk → empty", [requiredFromApi(null).requiredChildren.size, requiredFromApi({ x: "y" }).requiredProps.size], [0, 0]);
   check("isSlotFile", ["src/platform/examples/pages/card.tsx", "src/templates/hr/HrHomeTemplate.tsx", "src/templates/X.tsx", "src/platform/PlatformExamples.tsx", "src/platform/examples/pages/sub/x.tsx", "src/platform/appLayer/templates.tsx", "src/components/Card/Card.tsx", "src/platform/examples/pages/card.css", "src/templates/X.tsx?raw", null].map(isSlotFile), [true, true, true, false, false, false, false, false, false, false]);
-  check("SLOT_OPS", [...SLOT_OPS], ["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "clearSlot", "resetSlot", "insertItem", "removeItem", "duplicateItem", "moveItem", "groupItem", "ungroupItem", "setItems"]);
+  check("SLOT_OPS", [...SLOT_OPS], ["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "group", "ungroup", "clearSlot", "resetSlot", "insertItem", "removeItem", "duplicateItem", "moveItem", "groupItem", "ungroupItem", "setItems"]);
 }
 
 /* ── insertChild: children ────────────────────────────────────────────────────────────────────────────────────────── */
@@ -897,6 +897,15 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("duplicate inline", rows(run("duplicate inline", inline, "<b>", "b", DUPLICATE), 1, 1), ["export const I = () => <p>Hello <b>x</b><b>x</b></p>;"]);
   check("duplicate a keyed element: refused", applySlotOp(src, locOf(src, "<ListItem"), "ListItem", DUPLICATE, options()).error, "<ListItem> has a key (key={item.id}); a copy would repeat it. Edit it in the code.");
   check("duplicate a root: refused", applySlotOp(src, locOf(src, "<Stack"), "Stack", DUPLICATE, options()).error, "<Stack> is the root of Plans; wrap it in a layout first, then duplicate it inside.");
+  // F3: ⌘D after the copy was moved repeats that move (Figma) — px insets shift, token ones and other props stay.
+  const floating = ['import { Box, Shape } from "../../../components/Layout";', "export const F = () => (", "  <Box>", '    <Shape type="rectangle" position="absolute" insetLeft={40} insetTop={10} insetBottom="md" />', "    <Shape type=\"ellipse\" position=\"absolute\" insetRight={8} insetBottom={-4} />", "  </Box>", ");", ""].join("\n");
+  const offset = run("duplicate with offset", floating, "<Shape type=\"rectangle\"", "Shape", { op: "duplicateElement", offset: { dx: 24, dy: -6 } });
+  const pinned = run("duplicate pinned right / bottom", floating, "<Shape type=\"ellipse\"", "Shape", { op: "duplicateElement", offset: { dx: 5, dy: 3 } });
+  check("duplicate with offset: insets moved, the original stays", [rows(offset, 4, 5), rows(pinned, 6, 6)], [[
+    '    <Shape type="rectangle" position="absolute" insetLeft={40} insetTop={10} insetBottom="md" />',
+    '    <Shape type="rectangle" position="absolute" insetLeft={64} insetTop={4} insetBottom="md" />',
+  ], ['    <Shape type="ellipse" position="absolute" insetRight={3} insetBottom={-7} />']]);
+  check("duplicate with a bad offset: refused", applySlotOp(floating, locOf(floating, "<Shape"), "Shape", { op: "duplicateElement", offset: { dx: "1" } }, options()).error, "`offset` must be { dx, dy } in px");
 }
 
 /* ── moveElement ──────────────────────────────────────────────────────────────────────────────────────────────────── */

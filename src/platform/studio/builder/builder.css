@@ -92,6 +92,13 @@
 .studio-pages__item:has(> .studio-pages__row[aria-current="page"]) > .studio-pages__actions,
 .studio-pages__actions:has([aria-expanded="true"]) { opacity: 1; }
 @media (hover: none) { .studio-pages__actions { opacity: 1; } }
+/* Figma's divider between groups of pages (StudioFolders.tsx DividerRow): a Subtle line across the row. */
+.studio-pages__divider { display: flex; height: var(--zen-element-size-popular-medium, 24px); align-items: center; padding-inline: var(--zen-spacing-padding-xsmall, 8px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-md, 20px) + var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-pages__divider-line { flex: 1 1 auto; height: 1px; background: var(--zen-color-border-neutral-subtle-default); }
+/* Where a dragged page or divider lands (StudioFolders.tsx PageList): an Info line above or below the row. */
+.studio-pages__item[data-drop]::before { position: absolute; z-index: 1; right: var(--zen-spacing-padding-2-xsmall, 4px); left: var(--zen-spacing-padding-2-xsmall, 4px); height: 2px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-info-solid-default); content: ""; pointer-events: none; }
+.studio-pages__item[data-drop="before"]::before { top: -1px; }
+.studio-pages__item[data-drop="after"]::before { bottom: -1px; }
 
 /* Version history and Trash lists inside their Dialogs. */
 .studio-page-list { display: flex; max-height: 360px; flex-direction: column; margin: 0; padding: 0; overflow: auto; list-style: none; }
@@ -234,3 +241,50 @@
 .studio-pages__info:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle); outline-offset: 0; }
 /* A 24px hit area around the 12px icon. */
 .studio-pages__info::after { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; content: ""; transform: translate(-50%, -50%); }
+
+/* Figma's frame presets in the right panel while the Frame tool is on (FramePresets.tsx): a title, then one disclosure per
+   group (Phone, Tablet…), each a list of presets with their sizes. */
+.studio-frame-presets { display: grid; }
+.studio-frame-presets__title { margin: 0; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) 0; color: var(--zen-color-content-neutral-strongest); }
+.studio-frame-presets__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px); }
+.studio-frame-presets__group:last-child { padding-bottom: var(--zen-spacing-padding-small, 12px); }
+.studio-frame-presets__head { margin: 0; }
+.studio-frame-presets__toggle {
+  display: flex;
+  width: calc(100% + 2 * var(--zen-spacing-padding-2-xsmall, 4px));
+  min-height: 28px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  margin-inline: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px));
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-base, 12px);
+  background: transparent;
+  color: var(--zen-color-content-neutral-strongest);
+  cursor: pointer;
+  text-align: start;
+}
+.studio-frame-presets__toggle:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-frame-presets__toggle:active { background: var(--zen-color-background-neutral-flat-pressed); }
+.studio-frame-presets__toggle:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-frame-presets__toggle > :first-child { color: var(--zen-color-content-neutral-base); }
+
+/* Figma's section on a builder page (SectionFrame.tsx): a named board area behind the frames, the look of the component
+   boards' sections (board.css .studio-section__surface): Neutral Pale with its Pale edge, one screen pixel at every zoom. */
+.studio-builder-board__frames > .studio-board-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border-radius: var(--zen-corner-radius-xgiant, 36px);
+  background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+  box-shadow: inset 0 0 0 calc(1px / var(--studio-zoom, 1)) var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+}
+/* Hover and selection as a frame's (board.css .studio-frame): Info outline, 1px hovered, 2px selected. */
+.studio-builder-board__frames > .studio-board-section[data-hovered="true"] { outline: calc(1px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
+.studio-builder-board__frames > .studio-board-section[data-selected="true"] { outline: calc(2px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
+
+/* A frame's X / Y and W / H on a page you made (FrameGeometry.tsx): two of Figma's number fields side by side, as the
+   Position section's pair (position.css), with the same trailing room. */
+.studio-frame-geometry__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }

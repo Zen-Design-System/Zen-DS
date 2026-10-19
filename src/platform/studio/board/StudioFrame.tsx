@@ -1,3 +1,4 @@
+import { useFrameSelection } from "../select/frameSelection";
 import { Fragment, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { usePortalContainer, ZenPortalProvider } from "../../../components/Portal";
 import { pageKey, useStudio } from "../store";
@@ -20,7 +21,9 @@ import "./board.css";
 export function StudioFrame({ id, kind, label, width, example, children }: { id: string; kind: StudioFrameKind; label: string; width: number; example?: StudioExample; children: ReactNode }) {
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[id]);
-  const selected = useStudio((state) => state.selection?.kind === "frame" && state.selection.frameId === id);
+  const primary = useStudio((state) => state.selection?.kind === "frame" && state.selection.frameId === id);
+  // One of several selected frames (select/frameSelection.ts) is outlined as the primary is.
+  const selected = useFrameSelection().includes(id) || primary;
   // An initial-state edit remounts the content (./remount), so it starts from the new state.
   const epoch = useFrameEpoch(id);
   const ref = useRef<HTMLDivElement>(null);
@@ -31,7 +34,10 @@ export function StudioFrame({ id, kind, label, width, example, children }: { id:
     const element = ref.current;
     return element ? registerFrame({ id, kind, label, element, baseWidth: width, example }) : undefined;
   }, [id, kind, label, width, example]);
-  const style = { "--studio-frame-width": `${resolveFrameWidth(width, override?.width)}px` } as CSSProperties;
+  // A frame of a page you made has its own width in the page (F4: handles, Layout › W); a view width set on it before
+  // that (the old width menu) no longer applies.
+  const viewWidth = /^(screen|overlay):/.test(id) ? undefined : override?.width;
+  const style = { "--studio-frame-width": `${resolveFrameWidth(width, viewWidth)}px` } as CSSProperties;
   return (
     <div
       ref={ref}
@@ -41,7 +47,7 @@ export function StudioFrame({ id, kind, label, width, example, children }: { id:
       data-kind={kind}
       data-studio-frame={id}
       data-selected={selected ? "true" : undefined}
-      data-width-override={override?.width && override.width !== "auto" ? "true" : undefined}
+      data-width-override={viewWidth && viewWidth !== "auto" ? "true" : undefined}
       data-theme={override?.theme}
       data-zen-overlay-root=""
       style={style}

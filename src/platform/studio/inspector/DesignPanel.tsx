@@ -818,7 +818,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       ) : element && propertySpecs.length && (kind === "primitive" || kind === "shape") ? (
         // A frame, text or shape has no Figma properties: what the code adds (HTML element, Scroll, Html for…) waits in
         // Code properties, closed (user, 2026-10-17: less developer language).
-        <CodeProperties count={propertySpecs.length}>
+        <CodeProperties count={propertySpecs.length} placement="panel">
           {propertySpecs.filter((spec) => !shapedNames.has(spec.name)).map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={propLabel(spec.name, name)} />)}
           {shapedProps.map((entry) => <ObjectProperties key={entry.spec.name} component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />)}
         </CodeProperties>

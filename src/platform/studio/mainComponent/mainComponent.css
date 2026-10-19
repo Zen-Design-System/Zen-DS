@@ -33,6 +33,19 @@
 /* A variant that fills its container (Divider, a Dashboard header row) gets its set's Figma width (MainComponentFrame). */
 .studio-mc__stage[data-fill] { width: var(--studio-mc-fill, 360px); }
 .studio-mc__stage[data-fill] > * { flex: 1 1 auto; min-width: 0; }
+/* A modal overlay's variant: a screen of its own that holds the open overlay (its fixed layers included: containment
+   makes the screen their containing block), on the Canvas it opens over. */
+.studio-mc__screen {
+  position: relative;
+  width: var(--studio-mc-screen-width, 640px);
+  height: var(--studio-mc-screen-height, 480px);
+  overflow: hidden;
+  contain: layout paint;
+  border-radius: var(--zen-corner-radius-medium, 8px);
+  background: var(--zen-color-background-canvas-default, #f5f5f5);
+}
+/* An open Popover drawn in a cell sits in place (no anchor to float from), as the docs' guideline visuals draw it. */
+.studio-mc__stage .zen-popover { position: relative; top: auto; left: auto; }
 .studio-mc__portal { position: relative; width: 0; height: 0; overflow: visible; }
 
 /* Inspector: where a style comes from (file · variant scope, then the custom properties it reads), one per line. */

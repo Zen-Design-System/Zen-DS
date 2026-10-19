@@ -584,7 +584,7 @@ export async function prepareHandoff({ id, title, text }: { id: string; title: s
     const pictures: ZipInput[] = [];
     for (const entry of rendered.frames) {
       const png = entry.file.replace(/\.html$/, ".png");
-      const handoffFrame: HandoffFrame = { frame: entry.frame.id, title: entry.title, kind: entry.frame.kind, device: entry.frame.device, png: null, html: `html/${entry.file}`, focus: entry.root ? focusStops(entry.root) : [] };
+      const handoffFrame: HandoffFrame = { frame: entry.frame.id, title: entry.title, kind: entry.frame.kind === "overlay" ? "overlay" : "screen", device: entry.frame.device, png: null, html: `html/${entry.file}`, focus: entry.root ? focusStops(entry.root) : [] };
       frames.push(handoffFrame);
       const picture = await drawFrame(entry, pictureCss, photos, pictureNotes, () => 2);
       if (!picture) continue;
