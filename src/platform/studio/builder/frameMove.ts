@@ -384,12 +384,13 @@ export function placeInView(width: number, height: number): FramePlace | null {
 /** Brings the selected frame into view once the board shows it (a frame made from a preset): a pan, or a zoom out
  *  when it is larger than the visible canvas. */
 export function revealFrame() {
-  const selection = studioStore.getState().selection;
-  if (selection?.kind !== "frame") return;
+  const before = studioStore.getState().selection;
   let tries = 0;
   const look = () => {
-    const element = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(selection.frameId)}"]`);
-    if (!element) { if ((tries += 1) < 60) requestAnimationFrame(look); return; }
+    // The new frame is selected once the board shows it (board/frames.ts selectFrameWhenShown).
+    const selection = studioStore.getState().selection;
+    const element = selection?.kind === "frame" && selection !== before ? document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(selection.frameId)}"]`) : null;
+    if (!element) { if ((tries += 1) < 120) requestAnimationFrame(look); return; }
     const rect = element.getBoundingClientRect();
     const safe = getSafeBox();
     if (rect.width > safe.width - 64 || rect.height > safe.height - 64) zoomToFrame(element);

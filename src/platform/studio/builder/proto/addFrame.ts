@@ -7,6 +7,7 @@ import type { FramePlace } from "../render/framePlace";
 import type { PageNode, PageTree } from "../render/renderPage";
 import { getPage, pageFile } from "../store/pageStore";
 import { boardBoxes, boxAround, isSectionId, sectionContents } from "../../board/sections";
+import { selectFrameWhenShown } from "../../board/frames";
 
 /*
  * A new Screen or Overlay at the end of a builder page's Board (one edit, one undo step): the Prototype panel's
@@ -87,7 +88,7 @@ export async function addSection(localPage: string, box: { x: number; y: number;
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, index: 0 } as EditOp] }, label);
   if (!response.ok) return null;
   const frameId = `section:${id}`;
-  studioStore.setState({ selection: { kind: "frame", frameId } });
+  selectFrameWhenShown(frameId, (shown) => studioStore.setState({ selection: { kind: "frame", frameId: shown } }));
   return frameId;
 }
 
@@ -118,6 +119,6 @@ export async function addFrame(localPage: string, kind: "screen" | "overlay", { 
   const empty = bare ?? width !== undefined;
   const code = engine.frameCode({ kind, id, title, device, layout, chrome: !empty, empty, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, kind === "screen" ? (width !== undefined ? (name ? `Add ${name}` : "Draw frame") : "Add screen") : "Add overlay");
-  if (response.ok && place) studioStore.setState({ selection: { kind: "frame", frameId: `${kind}:${id}` } });
+  if (response.ok && place) selectFrameWhenShown(`${kind}:${id}`, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return Boolean(response.ok);
 }

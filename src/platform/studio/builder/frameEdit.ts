@@ -3,6 +3,7 @@ import { studioStore } from "../store";
 import type { EditOp } from "../types";
 import { loadEngine, zenComponents } from "./engine";
 import { frameOf, literalOf, type PageFrame } from "./render/frames";
+import { selectFrameWhenShown } from "../board/frames";
 import { FRAME_GAP, placeFrames, type FramePlace } from "./render/framePlace";
 import type { PageNode, PageTree } from "./render/renderPage";
 import { getPage, pageFile } from "./store/pageStore";
@@ -133,7 +134,7 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
   const after = index >= 0 ? fresh.nodes[index]?.loc : undefined;
   const response = await applyEdit({ file: fresh.file, loc: fresh.tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, ...(after ? { after } : {}) }], hash: fresh.hash }, label);
   if (!response.ok) return null;
-  studioStore.setState({ selection: { kind: "frame", frameId: newFrame } });
+  selectFrameWhenShown(newFrame, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return newFrame;
 }
 
