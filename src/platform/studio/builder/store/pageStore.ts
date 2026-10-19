@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerFigma, headerProject, headerTitle, withHeaderGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type PageGuide, type RevisionReason } from "./pageModel";
+import { headerFigma, headerLayoutGuides, headerProject, headerTitle, withHeaderGuides, withHeaderLayoutGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type LayoutGuide, type PageGuide, type RevisionReason } from "./pageModel";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 
 /*
@@ -290,6 +290,18 @@ export async function setPageGuides(id: string, guides: readonly PageGuide[]): P
   if (text === page.text) return;
   const header = { ...(page.doc?.header ?? {}) };
   if (guides.length) header.guides = guides.map((guide) => ({ ...guide })); else delete header.guides;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
+}
+
+/** A frame's layout guides (header `layoutGuides`, F10): written with the page, outside ⌘Z (as its guides). */
+export async function setFrameLayoutGuides(id: string, frame: string, guides: readonly LayoutGuide[]): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderLayoutGuides(page.text, frame, guides);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  const all = headerLayoutGuides(text);
+  if (Object.keys(all).length) header.layoutGuides = all; else delete header.layoutGuides;
   await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
 }
 

@@ -1,0 +1,15 @@
+/* Figma's layout guides (LayoutGuides.tsx, F10) over a frame, in the viewport's px: columns and rows as translucent
+   Negative bands (Figma's red 10 %), a grid as hairlines; under the selection layer (z 10), never taking a click. */
+.studio-layout-guides { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; }
+.studio-layout-guide { position: absolute; top: 0; left: 0; box-sizing: border-box; display: grid; pointer-events: none; }
+.studio-layout-guide__track { background: color-mix(in srgb, var(--zen-color-background-negative-solid-default) 10%, transparent); }
+.studio-layout-guide[data-type="grid"] {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--zen-color-background-negative-solid-default) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--zen-color-background-negative-solid-default) 20%, transparent) 1px, transparent 1px);
+}
+.studio-viewport:has(.studio-world [data-fullscreen="true"]) > .studio-layout-guides { display: none; }
+
+/* The right panel's Layout guide rows (LayoutGuidePanel.tsx): type, count or size, and − on one line. */
+.studio-layout-guide-row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-layout-guide-note { margin: 0; color: var(--zen-color-content-neutral-light); }

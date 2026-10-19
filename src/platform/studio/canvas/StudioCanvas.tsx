@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useViewOptions } from "./viewOptions";
 import { Rulers } from "./Rulers";
+import { LayoutGuides } from "./LayoutGuides";
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { FrameChrome } from "../board/FrameChrome";
 import { SelectionLayer } from "../select/SelectionLayer";
@@ -334,6 +335,8 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
         <PlatformTypographyContext value={preview.typography}>{children}</PlatformTypographyContext>
       </div>
       <div ref={pixelRef} className="studio-pixel-grid" data-hidden="true" aria-hidden="true" />
+      {/* Figma's layout guides over the frames (⌃G, F10). */}
+      <LayoutGuides viewport={viewport} />
       <SelectionLayer viewport={viewport} world={world} />
       <VariantOutline world={world} />
       <SlotLayer viewport={viewport} world={world} />

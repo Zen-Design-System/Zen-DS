@@ -158,6 +158,51 @@ export function withHeaderGuides(text: string, guides: readonly PageGuide[]): st
   return `${match[1]}${JSON.stringify(kept.length ? { ...rest, guides: kept } : rest)}${match[3]}${text.slice(match[0].length)}`;
 }
 
+/**
+ * A frame's layout guide (Figma's layout grid, F10): `columns` or `rows` (`count`, between the Breakpoint & Grids
+ * Margin-Comfortable and with its Gutter, as the frame's device has them) or a square `grid` of `size` px.
+ */
+export type LayoutGuide = { type: "columns" | "rows"; count: number } | { type: "grid"; size: number };
+/** Columns a new guide starts with, by device (Zen has no column-count variable yet: BACKLOG, a designer's call). */
+export const DEFAULT_GUIDE_COLUMNS: Readonly<Record<string, number>> = { desktop: 12, tablet: 8, phone: 4 };
+
+const isLayoutGuide = (value: unknown): value is LayoutGuide => {
+  const guide = value as Record<string, unknown>;
+  if (!guide || typeof guide !== "object") return false;
+  if (guide.type === "grid") return typeof guide.size === "number" && guide.size >= 1;
+  return (guide.type === "columns" || guide.type === "rows") && typeof guide.count === "number" && guide.count >= 1;
+};
+
+/** The page's layout guides by frame (header `layoutGuides`: `{ "screen:home": [...] }`). */
+export function headerLayoutGuides(text: string): Record<string, LayoutGuide[]> {
+  const match = HEADER.exec(text);
+  try {
+    const all = match ? (JSON.parse(match[2]) as { layoutGuides?: unknown }).layoutGuides : null;
+    if (!all || typeof all !== "object" || Array.isArray(all)) return {};
+    return Object.fromEntries(Object.entries(all as Record<string, unknown>).map(([frame, guides]) => [frame, Array.isArray(guides) ? guides.filter(isLayoutGuide) : []]).filter(([, guides]) => (guides as LayoutGuide[]).length));
+  } catch {
+    return {};
+  }
+}
+
+/** The text with `frame`'s layout guides set (none: the frame left out); unchanged without a readable header. */
+export function withHeaderLayoutGuides(text: string, frame: string, guides: readonly LayoutGuide[]): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { layoutGuides: _old, ...rest } = value;
+  const all = { ...headerLayoutGuides(text) };
+  const kept = guides.filter(isLayoutGuide).map((guide) => (guide.type === "grid" ? { type: "grid" as const, size: Math.round(guide.size) } : { type: guide.type, count: Math.round(guide.count) }));
+  if (kept.length) all[frame] = kept; else delete all[frame];
+  return `${match[1]}${JSON.stringify(Object.keys(all).length ? { ...rest, layoutGuides: all } : rest)}${match[3]}${text.slice(match[0].length)}`;
+}
+
 /** A page id from a title or file name: "Checkout flow" → "checkout-flow" (Vietnamese marks dropped). */
 export function slugOf(value: string): string {
   return value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "page";
