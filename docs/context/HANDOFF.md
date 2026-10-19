@@ -76,9 +76,13 @@ Last updated: 2026-10-19.
   - Templates, HR, appLayer, the harness and Studio are migrated (all studio:selftest steps pass).
   - The platform page `app-shell` is Figma ◇ Master-Layout · Example sections A–F (41 screens, Figma's own photos) in
     `src/platform/examples/pages/app-shell/*`, plus six behaviour examples.
-  - Phase 3 is done for 26 platform pages; the screen and phone app examples run on the new shell. The conversation
-    group (chat, ai-*, action-bar, form, menu) is still running.
-  - The gate and Studio E2E wait for a slot from Giám sát.
+  - Phase 3 is done: the screen and phone app examples on all 32 platform pages run on the new shell. On a phone, a
+    trail turns into Back (`_shared/trail-back.tsx`).
+  - The audit and harness follow the user's 2026-10-19 rules: APCA contrast, h1 ≥ Heading/1 (Display allowed), and
+    Gap/3XSmall on the ladder.
+  - main 02dd4dca is merged (8dd57911): static gates, vitest (1126) and the 67 studio selftests are green.
+  - The scoped gate (41 pages), the audit of the other 39 pages and the full Studio E2E wait for a slot from Giám sát.
+    The PR follows them.
   - Detail in session-log-2026-10-19.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:

@@ -53,7 +53,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   does (the name after its Avatar / Icon / Dock Icon mark, or in a brand / logo wrapper) and leaves the navigation chrome
   (Sidebar, TopNavigation compact bar) out of its text-style count; `surfaces` reads the canvas of the nearest AppShell,
   not of a phone frame around it (a PlatformPhone's `canvas="alt"` is the grey Surface/Alt, not the white Canvas/Alt).
-removed (four unused colour ramps were, see Removed).
+- **Contrast is judged by APCA** (2026-10-19, user: "k áp dụng cứng nhắc WCAG … dùng APCA … có mode High Contrast"):
+  the platform audit passes text on a fill when it is the fill's APCA pick and reaches Lc 45, as the Zen ramp picks
+  On colours; High Contrast mode raises every pair.
+- **No Breadcrumbs on a phone** (2026-10-19, user): under 744px, AppShellHeader's top row and PageHeader turn a
+  Breadcrumbs into a Back to the parent crumb on a child page and drop it on a root. Pass the full trail.
 - Zen Studio's View and Find like Figma (F10 of the parity plan): zoom from 2 % to 25 600 % (zoom to fit still stops
   at 400 %), the pixel grid from 400 % (⌘'), Outlines (⌘Y), rulers (⇧R) with guides dragged onto a frame or the canvas
   (back onto the ruler deletes one), layout guides on a frame (right panel › Layout guide: Columns, Rows or Grid; margin

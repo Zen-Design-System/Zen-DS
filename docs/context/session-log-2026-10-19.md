@@ -558,9 +558,26 @@ Then "Các example Appshell nên build như trong Figma ◇ Master-Layout · Exa
     - The harness tag reader skips comments.
     - PlatformPhone gives its content the mobile Zen modes, so focus is no longer lost on a phone screen switch.
     - Studio's Assets App shell writes AppShellHeader.
+- **Night: finish and merge main:**
+  - The conversation group is done, so all 32 Phase-3 pages are on the new shell.
+  - User rules, now in the audit and the harness:
+    - Contrast by APCA (`apcaPick`, Lc ≥45).
+    - h1 ≥ Heading/1 (Display allowed).
+    - Gap/3XSmall on the ladder.
+  - False positives the new shell exposed were fixed at their checks: sizes under any transform, `.pf-app-frame`
+    device, outline after the leading pane, chrome left out of the style count, wordmarks, the nearest shell's canvas.
+  - Merged main 02dd4dca (118 commits, 8 conflicts) as 8dd57911. tsc, usage, style, guidelines, ai-ui, ai-kit and mcp
+    are green; vitest has 1126 passed; all 67 studio selftests pass.
+  - Gate plan agreed with the supervisor:
+    - the scoped `qa --isolated` on the 211 changed files (41 pages);
+    - `platform:audit --quality` on the other 39 pages;
+    - the full Studio E2E;
+    - then the PR.
 - **Open:**
-  - The conversation group (chat, ai-chat, ai-ui, action-bar, form, menu) is still running.
   - Image has no frameless option for the E1 mascot; this needs the user's approval for a new prop.
-  - Studio E2E groups (builder, starters, handoff), guidelines and ai-ui build, the full gate, PR.
+  - Designer questions:
+    - E7 Segmented on black-overlay: the Figma node fails there.
+    - F4 vacuum crop.
+    - Card spacing xs (a new API).
   - `src/platform/examples/pages/progress.tsx` has two `layout="stacked"` edits of unknown origin. Left out of this
     change.
