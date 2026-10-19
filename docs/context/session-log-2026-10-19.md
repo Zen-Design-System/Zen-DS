@@ -135,3 +135,6 @@ Branch `zen/feat/studio-f5b-typed-values-20261019` (worktree `../Zen-DS-f5b`, st
   rendered colours read through a 1-px canvas) and Create variable… (opens Local variables).
 - Selftests: sizingModel 105, scale 18, colorMatch 8 (new, in studio:selftest). E2E FW-57…59, FW-90 (F5 also takes
   FW-90…99, told A and C).
+- Gate 1 (2026-10-19): static pass; Studio E2E 335/336, PT-15 (Present simulator) a click timeout under load, passes
+  alone. The E2E shots showed the variable pill cutting "Medium 16" to "Medi…" (its padding took the name's width):
+  fixed with a negative margin as wide as the padding (controls.css), and FW-57 now types 16 and checks "Medium" whole.
