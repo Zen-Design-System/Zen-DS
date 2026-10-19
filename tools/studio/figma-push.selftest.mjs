@@ -1930,6 +1930,46 @@ export default function Page() {
   check("image fill: the pictures' bytes are asked for", [...(images ?? [])].sort(), ["zen-asset:bridge-1a2b3c4d.webp", "zen-media:site-cafe"]);
 }
 
+// F4 fix (A found it in the live Zen file, 2026-10-19): a free frame (a Box of a px size whose layers all float) is
+// Figma's frame without auto layout, layoutMode NONE; pulled back it is the same Box, its layers at their X / Y.
+{
+  const freePage = `// @zen-page {"format":1,"title":"Free"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Free" device="desktop">
+        <Stack>
+          <Box width={560} height={240} surface="surface">
+            <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={30} width={80} height={60} />
+            <Box position="absolute" insetLeft={140} insetTop={40}><Text wrap={false}>Label</Text></Box>
+          </Box>
+          <Box width={200} height={120} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(freePage);
+  const [free, empty] = frame.children;
+  check("free frame: layoutMode NONE with its px size", [free.layout?.mode, free.fixedWidth, free.fixedHeight, empty.layout?.mode], ["NONE", 560, 240, "NONE"]);
+  // The pull reads it as figmaReadCode does: no layout, its size, every layer at its X / Y.
+  const read = { type: "FRAME", name: "Free", width: 1440, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: [
+    { type: "FRAME", name: "Box", layout: null, fixed: { w: 560, h: 240 }, fill: "Color/Background/Surface/Default", children: [
+      { type: "RECTANGLE", name: "Rectangle", shape: { w: 80, h: 60, fill: "Color/Background/Support/Neutral/Soft", stroke: null, strokeWeight: 1, rotation: 0, opacity: 1 }, absolute: { x: 20, y: 30, w: 80, h: 60, pw: 560, ph: 240, cx: "MIN", cy: "MIN", free: true } },
+      { type: "TEXT", characters: "Label", textStyle: "Body/Base/Regular", absolute: { x: 140, y: 40, w: 40, h: 20, pw: 560, ph: 240, cx: "MIN", cy: "MIN", free: true } },
+    ] },
+  ] };
+  const back = pageFromFigma(read, { mapping }).text;
+  ok("free frame pulled: a Box of its size, the shape at its px X / Y, the text in a float Box at its px X / Y",
+    /<Box width=\{560\} height=\{240\} surface="surface">/.test(back) && /<Shape [^>]*position="absolute" insetLeft=\{20\} insetTop=\{30\}/.test(back) && /<Box position="absolute" insetLeft=\{140\} insetTop=\{40\}>\s*<Text[^>]*>Label<\/Text>/.test(back) && !/no auto layout/.test(pageFromFigma(read, { mapping }).notes.join(" ")));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
