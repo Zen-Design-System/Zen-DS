@@ -132,25 +132,35 @@ function ScreenSection({ frameId }: { frameId: string }) {
   // takes it away (op screenFrame, tools/studio/screen-frame.mjs).
   const content = node.children.filter((child) => !(child.kind === "text" && !child.value.trim()));
   const shell = content.length === 1 && content[0].kind === "element" && content[0].name === "AppShell" ? content[0] : null;
-  // A template's Page header is in its content, not the AppShell's `sections`: Page header reads it (as the move of an
-  // older page does, screen-frame.mjs), so switching it on never adds a second one, and off takes that one away.
+  // The header's parts (Top bar, its center and actions, the Page header) are props of the AppShellHeader in the
+  // AppShell's `header` (Header/AppShell; the AppShell rebuilt on Figma's patterns 2026-10-19).
+  const headerValue = shell?.props.header;
+  const headerNode = headerValue?.kind === "element" && headerValue.node.name === "AppShellHeader" ? headerValue.node : null;
+  // A Page header in the content, not the header's `main`: Page header reads it, so switching it on never adds a second
+  // one, and off takes that one away.
   const contentHeader = shell ? firstElementNamed(shell.children, "PageHeader") : null;
   // A part holds one layer or several (a fragment: the template's header actions).
   const holds = (value: { kind: string } | undefined) => value?.kind === "element" || value?.kind === "fragment";
   // Off hides a part (the root AppShell's `hiddenSlots`; the content's Page header by its own `hidden`) and keeps its layers,
   // as Figma's boolean does: on brings back what the template or you put there (user, 2026-10-16).
   const shellOff = hiddenSlotsOf(shell?.props[HIDDEN_SLOTS_PROP]);
+  const headerOff = hiddenSlotsOf(headerNode?.props[HIDDEN_SLOTS_PROP]);
   const headerHidden = Boolean(contentHeader && hiddenValueOf(contentHeader.props[HIDDEN_PROP]) === true);
-  const partOn = (prop: string) => (holds(shell?.props[prop]) && !shellOff.includes(prop)) || (prop === "sections" && Boolean(contentHeader) && !headerHidden && !holds(shell?.props.sections));
-  const writeFramePart = (part: (typeof FRAME_PARTS)[number], on: boolean) => {
+  type FramePart = (typeof FRAME_PARTS)[number];
+  const hostOf = (part: FramePart) => (part.host === "header" ? headerNode : shell);
+  const offOf = (part: FramePart) => (part.host === "header" ? headerOff : shellOff);
+  const partOn = (part: FramePart) => (holds(hostOf(part)?.props[part.prop]) && !offOf(part).includes(part.prop)) || (part.prop === "main" && Boolean(contentHeader) && !headerHidden && !holds(headerNode?.props.main));
+  const writeFramePart = (part: FramePart, on: boolean) => {
     const label = `${part.label} ${on ? "on" : "off"}`;
     const file = pageFile(localPage);
-    if (part.prop === "sections" && contentHeader && !holds(shell?.props.sections)) {
+    if (part.prop === "main" && contentHeader && !holds(headerNode?.props.main)) {
       void setLayerHidden(`${file}:${contentHeader.loc}`, contentHeader.name, on ? null : true);
       return;
     }
-    const keep = shell && ((on && shellOff.includes(part.prop)) || (!on && holds(shell.props[part.prop]))) ? slotSwitchOp(shellOff, part.prop, on) : null;
-    if (shell && keep) { void applyEdit({ file, loc: shell.loc, name: shell.name, ops: [keep] }, label); return; }
+    const host = hostOf(part);
+    const off = offOf(part);
+    const keep = host && ((on && off.includes(part.prop)) || (!on && holds(host.props[part.prop]))) ? slotSwitchOp(off, part.prop, on) : null;
+    if (host && keep) { void applyEdit({ file, loc: host.loc, name: host.name, ops: [keep] }, label); return; }
     const op = { op: "screenFrame" as const, prop: part.prop, on, code: screenFrameCode(part.prop, title) };
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, label);
   };
@@ -220,8 +230,8 @@ function ScreenSection({ frameId }: { frameId: string }) {
         <InspectorFields
           key={part.prop}
           name={part.prop}
-          code={`AppShell ${part.prop}`}
-          fields={[<Toggle key={part.prop} label={part.label} checked={partOn(part.prop)} disabled={!admin} onCheckedChange={(next) => writeFramePart(part, next)} />]}
+          code={part.host === "header" ? `AppShellHeader ${part.prop}` : `AppShell ${part.prop}`}
+          fields={[<Toggle key={part.prop} label={part.label} checked={partOn(part)} disabled={!admin} onCheckedChange={(next) => writeFramePart(part, next)} />]}
         />
       )) : SCREEN_CHROME.filter((part) => part.layout === layout).map((part) => (
         <InspectorFields

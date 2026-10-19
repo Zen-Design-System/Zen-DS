@@ -1,57 +1,60 @@
-/* App Shell examples: Figma's AppShell patterns (◇ Master-Layout 16254:1057) with Đìzai Studio's own apps, signed in as
-   Alex Duong, Wednesday Sep 30, 2026, 10:30 am. Desktop patterns: the studio's web app (Sidebar), the people directory
-   (the toggle in the Sidebar beside a Master crumb), leave requests (List-Detail), the client portal (Top-Bar), a
-   design review (Workspace), the handbook (Docs) and project setup (Focus), plus the docked task panel, the sticky
-   selection bar, the banner and the narrow window. Mobile patterns: the studio app on a phone (Bar + Tab-Bar), expenses
-   (Band + Floating), a teammate's profile (Band-Sheet + Actions), a trail on the Saola guide (Media + glass Actions) and
-   the studio app on an iPad held upright. One elevation per screen, set by the Sidebar and the Canvas. */
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+/* App Shell examples. First the Figma page ◇ Master-Layout · Example (15902:109717) screen by screen, sections A–F in
+   ./app-shell/* (user, 2026-10-19: "Các example Appshell nên build như trong Figma ◇ Master-Layout · Example"). Then the
+   shell's behaviours with Đìzai Studio's own apps, signed in as Alex Duong, Wednesday Sep 30, 2026, 10:30 am: the
+   toggle in the Sidebar beside a Master crumb, the docked task panel, the sticky selection bar, the banner, the narrow
+   window (drawer) and the studio app on an iPad held upright. */
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { ActionBar } from "../../../components/ActionBar";
 import { AlertBanner } from "../../../components/AlertBanner";
-import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, AppShellPane } from "../../../components/AppShell";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge, type BadgeTheme } from "../../../components/Badge";
-import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
-import { BottomSheet } from "../../../components/BottomSheet";
+import { BottomNavigation } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
-import { Button, IconButton } from "../../../components/Button";
+import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
-import { Checkbox } from "../../../components/Checkbox";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { Dialog } from "../../../components/Dialog";
 import { DockIcon, type DockIconTheme } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
-import { useFormState } from "../../../components/Form";
 import type { IconName } from "../../../components/Icon";
-import { Image } from "../../../components/Image";
-import { InputField, SelectField, TextAreaField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
-import { List, ListBox, ListItem, ToggleListItem } from "../../../components/ListItem";
+import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
 import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
 import { Sidebar, type SidebarSection } from "../../../components/Sidebar";
-import { Stepper } from "../../../components/Stepper";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
 import { Tabs } from "../../../components/Tabs";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
-import { platformMedia } from "../../PlatformMedia";
-import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
+import { PlatformPhone } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import {
-  activity, daysFromToday, files, formatBytes, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRange, formatRelative, formatTime, initials,
-  invoiceStatusTheme, invoices, leaveBalance, leaveRequests, leaveStatusTheme, me, people, peopleList, priorityTheme, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks,
-  type Invoice, type LeaveRequest, type LeaveStatus, type Person, type PersonId, type Project, type ProjectStatus, type StudioFile, type Task, type TaskStatus, type Team,
+  activity, daysFromToday, files, formatBytes, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRelative, initials,
+  invoiceStatusTheme, invoices, me, people, peopleList, priorityTheme, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks,
+  type Invoice, type Person, type Project, type StudioFile, type Task, type TaskStatus, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
+import { examples as compositions } from "./app-shell/a-compositions";
+import { examples as desktop1 } from "./app-shell/b-desktop-1";
+import { examples as desktop2 } from "./app-shell/b-desktop-2";
+import { examples as mobile1 } from "./app-shell/c-mobile-1";
+import { examples as mobile2 } from "./app-shell/c-mobile-2";
+import { examples as expressive1 } from "./app-shell/d-expressive-1";
+import { examples as expressive2 } from "./app-shell/d-expressive-2";
+import { examples as consumer1 } from "./app-shell/e-consumer-1";
+import { examples as consumer2 } from "./app-shell/e-consumer-2";
+import { examples as smartHome1 } from "./app-shell/f-smart-home-1";
+import { examples as smartHome2 } from "./app-shell/f-smart-home-2";
+import { examples as smartHome3 } from "./app-shell/f-smart-home-3";
 
 export const page: PlatformPage = "app-shell";
 
@@ -423,382 +426,6 @@ function PeopleDirectoryApp() {
   );
 }
 
-// ——— 3. Leave requests (Layout=List-Detail) ————————————————————————————————————————————————————————————————
-const leaveSections: SidebarSection[] = [{ items: [
-  { id: "home", label: "Home", icon: "icon-home-03-line" },
-  { id: "leave", label: "Leave", icon: "icon-calendar-line" },
-  { id: "people", label: "People", icon: "icon-users-line" },
-  { id: "payroll", label: "Payroll", icon: "icon-wallet-02-line" },
-] }];
-
-function LeaveRequestsApp() {
-  const { toast } = useToast();
-  const [requests, setRequests] = useState<LeaveRequest[]>(leaveRequests.filter((request) => request.person !== "alex"));
-  const [openId, setOpenId] = useState(requests.find((request) => request.status === "Pending")?.id ?? requests[0].id);
-  const [notifyTeam, setNotifyTeam] = useState(true);
-  const request = requests.find((item) => item.id === openId) ?? requests[0];
-  const person = people[request.person];
-  const pending = requests.filter((item) => item.status === "Pending").length;
-  const decide = (status: LeaveStatus) => {
-    const before = request.status;
-    setRequests((list) => list.map((item) => (item.id === request.id ? { ...item, status } : item)));
-    toast({ title: status === "Approved" ? `${person.name.split(" ")[0]}’s leave approved` : `${person.name.split(" ")[0]}’s leave declined`, action: { label: "Undo", onClick: () => setRequests((list) => list.map((item) => (item.id === request.id ? { ...item, status: before } : item))) } });
-  };
-  // Who else is away those days: the approver's first question.
-  const overlapping = leaveRequests.filter((item) => item.id !== request.id && item.status === "Approved" && item.from <= request.to && item.to >= request.from);
-  return (
-    <AppFrame>
-      {/* List-Detail: the Sidebar starts on its rail, the requests sit in the leading pane (360) and the open request
-          fills the page. Selecting a row changes the detail in place; the list keeps its scroll. */}
-      <AppShell pattern="list-detail"
-        sidebar={<Sidebar logo={studioLogo} logoCollapsed={studioMark} sections={leaveSections} selectedId="leave" />}
-        leadingPane={(
-          <AppShellPane title="Leave requests" action={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-filter-lines-line" aria-label="Filter requests" />}>
-            <List aria-label="Leave requests">
-              {requests.map((item) => (
-                <ListItem key={item.id} selected={item.id === request.id} title={people[item.person].name}
-                  caption={`${item.kind} · ${formatRange(item.from, item.to)}`}
-                  leading={<Avatar size="md" {...avatarOf(people[item.person])} />}
-                  trailing={badge(item.status, leaveStatusTheme[item.status])}
-                  onClick={() => setOpenId(item.id)} />
-              ))}
-            </List>
-          </AppShellPane>
-        )}
-        header={(
-          <AppShellHeader
-            leading={<Breadcrumbs master={false} items={[{ id: "leave", label: "Leave" }, { id: "requests", label: `Requests · ${pending} pending` }]} />}
-            actions={<AppShellAccount name={me.name} src={me.photo} />}
-            main={(
-              <PageHeader title={`${person.name} · ${request.kind}`} description={`${formatRange(request.from, request.to)} · ${plural(request.days, "working day")} · requested ${formatRelative(request.requested)}`}
-                actions={request.status === "Pending" ? <>
-                  <Button level="tertiary" onClick={() => decide("Declined")}>Decline</Button>
-                  <Button level="primary" onClick={() => decide("Approved")}>Approve</Button>
-                </> : badge(request.status, leaveStatusTheme[request.status])} />
-            )}
-          />
-        )}
-      >
-        <Grid columns={{ mobile: 1, desktop: 2 }} gap="md">
-          <Card theme="shadow">
-            <Stack gap="md">
-              <Heading level={2} textStyle="Heading/4">Request</Heading>
-              <DescriptionList items={[
-                { term: "Person", description: `${person.name} · ${person.role}` },
-                { term: "Type", description: request.kind },
-                { term: "Dates", description: formatRange(request.from, request.to) },
-                { term: "Note", description: request.note ?? "No note" },
-              ]} />
-            </Stack>
-          </Card>
-          <Card theme="shadow">
-            <Stack gap="md">
-              <Heading level={2} textStyle="Heading/4">Also away</Heading>
-              {overlapping.length ? (
-                <List aria-label="Also away those days">
-                  {overlapping.map((item) => (
-                    <ListItem key={item.id} title={people[item.person].name} caption={`${item.kind} · ${formatRange(item.from, item.to)}`} leading={<Avatar size="md" {...avatarOf(people[item.person])} />} />
-                  ))}
-                </List>
-              ) : <Text tone="base">Nobody else on the {person.team} team is away those days.</Text>}
-              <Checkbox label={`Tell the ${person.team} team once it’s decided`} checked={notifyTeam} onCheckedChange={setNotifyTeam} />
-            </Stack>
-          </Card>
-        </Grid>
-      </AppShell>
-    </AppFrame>
-  );
-}
-
-// ——— 4. Client portal (Layout=Top-Bar) ——————————————————————————————————————————————————————————————————————
-type PortalTab = "overview" | "files" | "invoices";
-const phinProjects = projects.filter((project) => project.client === "Phin & Co");
-const phinInvoices = invoices.filter((invoice) => invoice.client === "Phin & Co");
-const phinFiles = files.filter((file) => phinProjects.some((project) => project.id === file.project));
-
-function ClientPortalApp() {
-  const { toast } = useToast();
-  const [tab, setTab] = useState<PortalTab>("overview");
-  const [query, setQuery] = useState("");
-  const q = query.trim().toLowerCase();
-  const fileColumns: TableColumn<StudioFile>[] = [
-    { id: "name", header: "Name", cell: (file) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(file.name)} size="base" />}>{file.name}</TableMedia> },
-    { id: "updated", header: "Shared", width: "200px", cell: (file) => <TableText>{formatRelative(file.updated)}</TableText> },
-    { id: "size", header: "Size", align: "right", width: "96px", cell: (file) => <TableText>{formatBytes(file.bytes)}</TableText> },
-  ];
-  const invoiceColumns: TableColumn<Invoice>[] = [
-    { id: "invoice", header: "Invoice", cell: (row) => <TableText bold>{row.number}</TableText> },
-    { id: "status", header: "Status", width: "128px", cell: (row) => badge(row.status, invoiceStatusTheme[row.status]) },
-    { id: "due", header: "Due", width: "152px", cell: (row) => <TableText>{formatDate(row.due)}</TableText> },
-    { id: "amount", header: "Amount", align: "right", width: "136px", cell: (row) => <TableText>{formatMoney(row.amount, true)}</TableText> },
-  ];
-  const shownFiles = phinFiles.filter((file) => !q || file.name.toLowerCase().includes(q));
-  return (
-    <AppFrame>
-      {/* Top-Bar: a client sees one company, so there is no Sidebar; the header runs across the window, the portal's
-          views are its Sections (Tabs) and the Search sits in the top row's middle. */}
-      <AppShell pattern="top-bar" canvas="alt"
-        header={(
-          <AppShellHeader
-            leading={<StudioLogo src={studio.logo} name={`${studio.name} · Phin & Co`} />}
-            center={<Search placeholder="Search shared files" aria-label="Search shared files" value={query} onValueChange={(value) => { setQuery(value); if (value.trim()) setTab("files"); }} />}
-            actions={<>
-              <AppShellAction icon="icon-message-circle-line" aria-label="Messages" dot onClick={() => toast({ title: "Hana Kim replies within a working day" })} />
-              <AppShellAccount name="Lan Phạm" />
-            </>}
-            main={<PageHeader title="Phin & Co" description={`Your projects with ${studio.name} · account director ${people.hana.name}`}
-              actions={<Button level="primary" startIcon="icon-upload-01-line" onClick={() => toast({ title: "Upload brief", children: "Briefs go straight to Hana." })}>Upload brief</Button>} />}
-            sections={<Tabs aria-label="Portal" value={tab} onValueChange={(id) => setTab(id as PortalTab)} items={[
-              { id: "overview", label: "Overview" },
-              { id: "files", label: "Files", badge: phinFiles.length },
-              { id: "invoices", label: "Invoices", badge: phinInvoices.length },
-            ]} />}
-          />
-        )}
-      >
-        {tab === "overview" ? (
-          <Grid as="ul" minColumnWidth={280} gap="md" aria-label="Projects">
-            {phinProjects.map((project) => (
-              <Card as="li" key={project.id} theme="border">
-                <Stack gap="md">
-                  <Stack direction="row" gap="sm" align="center" justify="between">
-                    <DockIcon icon={project.icon} theme={project.theme} background="subtle" />
-                    {badge(project.status, projectStatusTheme[project.status])}
-                  </Stack>
-                  <Stack gap="xs">
-                    <Heading level={2} textStyle="Heading/Subheading">{project.name}</Heading>
-                    <Text textStyle="Body/Small/Regular" tone="base">{`Led by ${people[project.lead].name} · due ${formatDate(project.due)}`}</Text>
-                  </Stack>
-                </Stack>
-              </Card>
-            ))}
-          </Grid>
-        ) : tab === "files" ? (
-          <Table aria-label="Shared files" rows={shownFiles} columns={fileColumns}
-            empty={<EmptyState size="sm" headingLevel={2} icon="icon-search-medium-line" title="No files match" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Try a project name or a file type.</EmptyState>} />
-        ) : (
-          <Table aria-label="Invoices" rows={phinInvoices} columns={invoiceColumns} />
-        )}
-      </AppShell>
-    </AppFrame>
-  );
-}
-
-// ——— 5. Design review (Layout=Workspace) ——————————————————————————————————————————————————————————————————
-const reviewFiles = files.filter((file) => /\.fig$/.test(file.name));
-const reviewComments: { id: string; author: PersonId; text: string; at: Date; resolved?: boolean }[] = [
-  { id: "c1", author: "chi", text: "The points total reads as a button here: can it lose the border?", at: daysFromToday(0, 9, 5) },
-  { id: "c2", author: "ava", text: "Research says people look for the expiry date first. Move it above the history?", at: daysFromToday(0, 9, 40) },
-  { id: "c3", author: "bao", text: "Months with no visits: the empty row height doesn’t match the others.", at: daysFromToday(-1, 17, 20) },
-  { id: "c4", author: "emi", text: "Counter motion is in the prototype, 280 ms ease-out.", at: daysFromToday(-1, 15, 0), resolved: true },
-];
-
-function DesignReviewApp() {
-  const { toast } = useToast();
-  const [openId, setOpenId] = useState(reviewFiles[0]?.id ?? files[0].id);
-  const [comments, setComments] = useState(reviewComments);
-  const [draft, setDraft] = useState("");
-  const file = files.find((item) => item.id === openId) ?? files[0];
-  const project = projectById(file.project);
-  const open = comments.filter((comment) => !comment.resolved);
-  return (
-    <AppFrame>
-      {/* Workspace: the header runs across the top; the files to review sit in the leading pane and the comments in the
-          trailing one, both Sidebar/Default-Width (the same on both sides), with the frame under review between them. */}
-      <AppShell pattern="workspace"
-        header={(
-          <AppShellHeader
-            leading={<Breadcrumbs master={false} items={[{ id: "reviews", label: "Design reviews" }, { id: project.id, label: project.name }, { id: file.id, label: file.name }]} />}
-            actions={<>
-              <AvatarStack size="sm" items={[people.chi, people.ava, people.bao].map((person) => ({ src: person.photo, alt: person.name, theme: "photo" as const }))} />
-              <Button level="tertiary" startIcon="icon-share-01-line" onClick={() => toast({ title: "Link copied", children: "Anyone at the studio can comment." })}>Share</Button>
-              <AppShellAccount name={me.name} src={me.photo} />
-            </>}
-          />
-        )}
-        leadingPane={(
-          <AppShellPane title="Files">
-            <List aria-label="Files in review">
-              {reviewFiles.map((item) => (
-                <ListItem key={item.id} selected={item.id === file.id} title={item.name} caption={formatRelative(item.updated)}
-                  leading={<FileIcon format={fileIconFormatOf(item.name)} size="lg" />} onClick={() => setOpenId(item.id)} />
-              ))}
-            </List>
-          </AppShellPane>
-        )}
-        trailingPane={(
-          <AppShellPane title={`Comments · ${open.length}`}>
-            <List aria-label="Comments">
-              {comments.map((comment) => (
-                <ListItem key={comment.id} title={people[comment.author].name} titleLines={1}
-                  caption={<>{comment.text}{" "}{whole(`· ${comment.resolved ? "Resolved · " : ""}${formatRelative(comment.at)}`)}</>}
-                  leading={<Avatar size="small" {...avatarOf(people[comment.author])} />} />
-              ))}
-            </List>
-            <form onSubmit={(event) => {
-              event.preventDefault();
-              if (!draft.trim()) return;
-              setComments((list) => [...list, { id: `c${list.length + 1}`, author: "alex", text: draft.trim(), at: daysFromToday(0) }]);
-              setDraft("");
-            }}>
-              <Stack gap="xs">
-                <TextAreaField label="Add a comment" placeholder="Reply to the team" value={draft} onValueChange={setDraft} rows={2} />
-                <Button type="submit" level="primary" size="sm" disabled={!draft.trim()}>Comment</Button>
-              </Stack>
-            </form>
-          </AppShellPane>
-        )}
-      >
-        <Stack gap="md">
-          <PageHeader title={file.name} description={`${project.name} · ${formatBytes(file.bytes)} · edited ${formatRelative(file.updated)} by ${people[file.owner].name}`} headingLevel={1} />
-          <Card theme="shadow" spacing="sm">
-            <Image src={platformMedia.site[5].src} alt={`Frame under review in ${file.name}`} ratio="16:9" />
-          </Card>
-        </Stack>
-      </AppShell>
-    </AppFrame>
-  );
-}
-
-// ——— 6. Studio handbook (Layout=Docs) ——————————————————————————————————————————————————————————————————
-const handbookChapters = [
-  { id: "welcome", title: "Welcome to Đìzai" },
-  { id: "leave", title: "Leave and time off" },
-  { id: "expenses", title: "Expenses" },
-  { id: "equipment", title: "Equipment" },
-  { id: "security", title: "Security basics" },
-];
-const leaveSectionsOnPage = [
-  { id: "allowance", title: "Your allowance" },
-  { id: "asking", title: "Asking for leave" },
-  { id: "sick", title: "When you’re sick" },
-  { id: "public-holidays", title: "Public holidays" },
-];
-
-function HandbookApp() {
-  const [chapter, setChapter] = useState("leave");
-  const baseId = useId();
-  return (
-    <AppFrame>
-      {/* Docs: a reading column (at most 720) between the contents and "On this page", both on the Canvas (Theme=Canvas) so
-          nothing competes with the text. */}
-      <AppShell pattern="docs" canvas="alt"
-        header={(
-          <AppShellHeader
-            leading={<StudioLogo src={studio.logo} name="Studio handbook" />}
-            center={<Search placeholder="Search the handbook" aria-label="Search the handbook" />}
-            actions={<AppShellAccount name={me.name} src={me.photo} />}
-          />
-        )}
-        leadingPane={(
-          <AppShellPane title="Contents" theme="canvas">
-            <List aria-label="Chapters">
-              {handbookChapters.map((item) => (
-                <ListItem key={item.id} selected={item.id === chapter} title={item.title} leading="icon-book-open-line" onClick={() => setChapter(item.id)} />
-              ))}
-            </List>
-          </AppShellPane>
-        )}
-        trailingPane={(
-          <AppShellPane title="On this page" theme="canvas">
-            <List aria-label="On this page">
-              {leaveSectionsOnPage.map((section) => <ListItem key={section.id} title={section.title} href={`#${baseId}-${section.id}`} />)}
-            </List>
-          </AppShellPane>
-        )}
-      >
-        <Stack as="article" gap="xl">
-          <Stack gap="xs">
-            <Text textStyle="Body/Small/Bold" tone="light">Handbook · updated Sep 12, 2026 by {people.minhAnh.name}</Text>
-            <Heading level={1} textStyle="Heading/1">{handbookChapters.find((item) => item.id === chapter)?.title}</Heading>
-          </Stack>
-          <Stack as="section" gap="sm" id={`${baseId}-allowance`}>
-            <Heading level={2} textStyle="Heading/3">Your allowance</Heading>
-            <Text>Everyone gets {leaveBalance["Annual leave"]?.perYear} days of annual leave a year and {leaveBalance["Sick leave"]?.perYear} days of sick leave. Unused annual leave carries over until the end of March.</Text>
-          </Stack>
-          <Stack as="section" gap="sm" id={`${baseId}-asking`}>
-            <Heading level={2} textStyle="Heading/3">Asking for leave</Heading>
-            <Text>Ask in Zen at least two weeks ahead for anything longer than three days. Your team lead approves it, usually within a day; you’ll see who else is away before you send it.</Text>
-          </Stack>
-          <Stack as="section" gap="sm" id={`${baseId}-sick`}>
-            <Heading level={2} textStyle="Heading/3">When you’re sick</Heading>
-            <Text>Tell your lead before 10:00 am and log it when you’re back. From the third day in a row we need a doctor’s note.</Text>
-          </Stack>
-          <Stack as="section" gap="sm" id={`${baseId}-public-holidays`}>
-            <Heading level={2} textStyle="Heading/3">Public holidays</Heading>
-            <Text>The studio follows Vietnam’s public holidays, including five days for Tết. Remote teammates follow their own country’s calendar.</Text>
-          </Stack>
-        </Stack>
-      </AppShell>
-    </AppFrame>
-  );
-}
-
-// ——— 7. Project setup (Layout=Focus) ——————————————————————————————————————————————————————————————————
-const setupSteps = [
-  { id: "details", title: "Details" },
-  { id: "team", title: "Team" },
-  { id: "budget", title: "Budget" },
-  { id: "review", title: "Review" },
-];
-
-function ProjectSetupApp() {
-  const { toast } = useToast();
-  const [step, setStep] = useState(0);
-  const form = useFormState<{ name: string; client: string; brief: string }>({
-    initialValues: { name: "Trail guide app", client: "Saola Outdoor", brief: "Offline maps and safety check-ins for guided treks in Hà Giang." },
-    validate: (values) => ({ name: values.name.trim() ? undefined : "Enter a project name" }),
-    onSubmit: () => { setStep((current) => Math.min(current + 1, setupSteps.length - 1)); },
-  });
-  return (
-    <AppFrame>
-      {/* Focus: one task with nothing else to click. The header keeps only the way out; the steps sit under it and the
-          form shares a centred column with its summary pane. */}
-      <AppShell pattern="focus"
-        header={(
-          <AppShellHeader
-            leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: "new", label: "New project" }]} />}
-            actions={<Button level="tertiary" onClick={() => toast({ title: "Draft saved", children: "Finish it from Projects any time." })}>Save and close</Button>}
-          />
-        )}
-        progress={<Stepper aria-label="New project" steps={setupSteps} current={step} onStepClick={(_, index) => { if (index < step) setStep(index); }} />}
-        trailingPane={(
-          <AppShellPane title="Summary">
-            <Box padding="sm">
-              <DescriptionList items={[
-                { term: "Project", description: form.values.name || "Not set yet" },
-                { term: "Client", description: form.values.client },
-                { term: "Lead", description: me.name },
-                { term: "Starts", description: formatDate(daysFromToday(14)) },
-              ]} />
-            </Box>
-          </AppShellPane>
-        )}
-      >
-        <form onSubmit={form.handleSubmit}>
-          <Stack gap="xl">
-            <Stack gap="xs">
-              <Heading level={1} textStyle="Heading/2">{setupSteps[step].title}</Heading>
-              <Text tone="base">{step === 0 ? "What the project is and who it’s for." : "This demo stops here: go back to Details to change them."}</Text>
-            </Stack>
-            {step === 0 ? (
-              <Stack gap="lg">
-                <InputField label="Project name" {...form.field("name")} />
-                <SelectField label="Client" options={[...new Set(projects.map((project) => project.client))].map((client) => ({ value: client, label: client }))} {...form.selectField("client")} />
-                <TextAreaField label="Brief" helpText="Two or three lines the team will read first." rows={3} {...form.field("brief")} />
-              </Stack>
-            ) : null}
-            <Stack direction="row" gap="sm" justify="end">
-              {step > 0 ? <Button level="tertiary" onClick={() => setStep(step - 1)}>Back</Button> : null}
-              <Button type="submit" level="primary">Continue</Button>
-            </Stack>
-          </Stack>
-        </form>
-      </AppShell>
-    </AppFrame>
-  );
-}
-
 // ——— 8. A docked task panel, on a flat Canvas ——————————————————————————————————————————————————————————————
 type View = "all" | "mine" | "review";
 const views: Record<View, { label: string; icon: IconName; description: string; filter: (task: Task) => boolean }> = {
@@ -901,7 +528,10 @@ function FilesApp() {
         header={(
           <AppShellHeader
             leading={<Breadcrumbs master={false} items={[{ id: "files", label: "Files" }, { id: folder, label: folders[folder].label }]} onNavigate={(_, event) => { event.preventDefault(); setFolder("all"); }} />}
-            actions={<AppShellAccount name={me.name} src={me.photo} />}
+            actions={<Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+              { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: "Profile", children: me.name }) },
+              { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out" }) },
+            ]} />}
             main={<PageHeader title={folders[folder].label} description={`${plural(shown.length, "file")} · newest first`} />}
           />
         )}
@@ -920,306 +550,21 @@ function FilesApp() {
   );
 }
 
-// ——— 10. The studio app on a phone (Top=Bar, Bottom=Tab-Bar) ———————————————————————————————————————————
-type Root = "home" | "projects" | "profile";
-type PhoneProject = { id: string; name: string; client: string; icon: IconName; theme: DockIconTheme; status: ProjectStatus; due: Date };
-const phoneProjects: PhoneProject[] = projects.map(({ id, name, client, icon, theme, status, due }) => ({ id, name, client, icon, theme, status, due })).sort((a, b) => a.name.localeCompare(b.name));
-const meetings = [
-  { id: "m1", title: "Design critique", start: daysFromToday(0, 11, 0), where: "Studio room 2", project: "phin-loyalty" },
-  { id: "m2", title: "Lumen Bank check-in", start: daysFromToday(0, 14, 0), where: "Video call", project: "lumen-banking" },
-  { id: "m3", title: "Zen office hours", start: daysFromToday(0, 16, 30), where: "Studio room 1", project: "zen-ds" },
-];
-const clientOptions = [...new Set(phoneProjects.map((project) => project.client))].map((client) => ({ value: client, label: client }));
-const phoneRoots: BottomNavigationItem[] = [
-  { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
-  { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
-  { id: "profile", label: "Profile", icon: "icon-user-circle-line", selectedIcon: "icon-user-circle-solid" },
-];
-
-/** One group of a grouped list: a white block under the kicker that names it, the kicker aligned with the row text. */
-function Group({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  return (
-    <Stack as="section" gap="xs" aria-labelledby={id}>
-      <Box paddingX="lg"><Heading level={2} id={id} textStyle="Body/Small/Bold" tone="light">{title}</Heading></Box>
-      <ListBox>{children}</ListBox>
-    </Stack>
-  );
-}
-
-function PhoneApp() {
-  const { toast } = useToast();
-  const screen = usePhoneScreen();
-  const screenRef = useRef<HTMLDivElement>(null);
-  const baseId = useId();
-  const [root, setRoot] = useState<Root>("home");
-  const [pushed, setPushed] = useState<string | null>(null);
-  const [unseen, setUnseen] = useState(true);
-  const [list, setList] = useState(phoneProjects);
-  const [creating, setCreating] = useState(false);
-  const [push, setPush] = useState(true);
-  const [digest, setDigest] = useState(false);
-  const form = useFormState<{ name: string; client: string }>({
-    initialValues: { name: "", client: "Phin & Co" },
-    validate: (values) => ({ name: values.name.trim() ? undefined : "Enter a project name" }),
-    onSubmit: (values, { reset }) => {
-      setList((current) => [{ id: `new-${current.length}`, name: values.name.trim(), client: values.client, icon: "icon-cube-line", theme: "neutral", status: "Planning", due: daysFromToday(90) }, ...current]);
-      setCreating(false);
-      reset();
-      toast({ type: "positive", title: "Project created", children: values.name.trim() });
-    },
-  });
-  // Tapping the current root again scrolls it back to the top; another root opens at its top.
-  const openRoot = (id: string) => {
-    if (id === root && !pushed) screen.scrollTop();
-    setRoot(id as Root);
-    setPushed(null);
-  };
-  const bottom = <BottomNavigation aria-label={studio.name} items={phoneRoots} value={root} onValueChange={openRoot} showLabels />;
-  const project = list.find((item) => item.id === pushed);
-
-  let top: ReactNode;
-  let body: ReactNode;
-  if (project) {
-    top = <TopNavigation type="compact-alt" title={project.name} scrollRef={screenRef}
-      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-project="${project.id}"] .zen-list-item__wrapper`, () => setPushed(null)) }} />;
-    body = (
-      <Card theme="flat">
-        <DescriptionList items={[
-          { term: "Client", description: project.client },
-          { term: "Status", description: badge(project.status, projectStatusTheme[project.status]) },
-          { term: project.status === "Completed" ? "Finished" : "Due", description: formatDate(project.due) },
-        ]} />
-      </Card>
-    );
-  } else if (root === "projects") {
-    // The page's Primary (New project) becomes the root's trailing action.
-    top = <TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "New project", onClick: () => setCreating(true) }]} />;
-    body = (
-      <ListBox>
-        <List aria-label="Projects">
-          {list.map((item) => (
-            <ListItem key={item.id} data-project={item.id} title={item.name} caption={item.client}
-              leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" size="md" />}
-              trailing={badge(item.status, projectStatusTheme[item.status])}
-              onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setPushed(item.id))} />
-          ))}
-        </List>
-      </ListBox>
-    );
-  } else if (root === "profile") {
-    top = <TopNavigation title="Profile" largeTitle="Profile" scrollRef={screenRef} />;
-    body = (
-      <>
-        <ListBox>
-          <List aria-label="Signed in as">
-            <ListItem title={me.name} caption={`${me.role} · ${me.location}`} leading={<Avatar size="md" {...avatarOf(me)} />} />
-          </List>
-        </ListBox>
-        <Group id={`${baseId}-notify`} title="Notifications">
-          <List aria-labelledby={`${baseId}-notify`}>
-            <ToggleListItem title="Push notifications" caption="Comments, reviews and approvals" checked={push} onCheckedChange={setPush} />
-            <ToggleListItem title="Daily email digest" caption="Every morning at 8:00 am" checked={digest} onCheckedChange={setDigest} />
-          </List>
-        </Group>
-      </>
-    );
-  } else {
-    // Home: the web app's Notifications becomes the root's trailing action, with a dot until it is opened.
-    top = <TopNavigation title="Home" largeTitle="Home" scrollRef={screenRef} topBar={false}
-      trailing={[{ icon: "icon-bell-01-line", label: unseen ? "Notifications, new" : "Notifications", dot: unseen, onClick: () => { setUnseen(false); toast({ title: "3 notifications", children: "Chi, Ava and Bao commented this morning." }); } }]} />;
-    body = (
-      <>
-        <Group id={`${baseId}-today`} title="Today">
-          <List aria-labelledby={`${baseId}-today`}>
-            {meetings.map((meeting) => {
-              const p = projectById(meeting.project);
-              return <ListItem key={meeting.id} title={meeting.title} caption={`${formatTime(meeting.start)} · ${meeting.where}`} leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="md" />} />;
-            })}
-          </List>
-        </Group>
-        <Group id={`${baseId}-due`} title="Due this week">
-          <List aria-labelledby={`${baseId}-due`}>
-            {dueThisWeek.map((task) => (
-              <ListItem key={task.id} title={task.title} caption={`${task.key} · ${formatDue(task.due)}`} leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} />
-            ))}
-          </List>
-        </Group>
-      </>
-    );
-  }
-  return (
-    <PlatformPhone key={pushed ?? root} label="Zen app" canvas="alt" screenRef={screenRef}>
-      {screen.anchor}
-      {/* The Bar pattern: the TopNavigation (its large title folds as the screen scrolls), the Body at the phone's
-          margins, the Tab-Bar on every root screen and on screens pushed from them. */}
-      <AppShell topNavigation={top} bottomNavigation={bottom}>{body}</AppShell>
-      <BottomSheet inline open={creating} onOpenChange={(open) => { setCreating(open); if (!open) form.reset(); }} title="New project" onSubmit={form.handleSubmit}
-        primaryAction={{ label: "Create project" }} secondaryAction={{ label: "Cancel" }}>
-        <InputField label="Project name" placeholder="Saola trail guide" data-autofocus="" {...form.field("name")} />
-        <SelectField label="Client" options={clientOptions} {...form.selectField("client")} />
-      </BottomSheet>
-    </PlatformPhone>
-  );
-}
-
-// ——— 11. Expenses (Top=Band, Bottom=Floating) ——————————————————————————————————————————————————————————————
-const expenses = [
-  { id: "e1", merchant: "Phin & Co Lê Lợi", category: "Client coffee", icon: "icon-coffee-cup-line" as IconName, theme: "orange" as DockIconTheme, amount: 186_000, at: daysFromToday(0, 8, 40), receipt: true },
-  { id: "e2", merchant: "Grab", category: "Transport · Lumen Bank", icon: "icon-car-01-line" as IconName, theme: "green" as DockIconTheme, amount: 94_000, at: daysFromToday(-1, 18, 15), receipt: true },
-  { id: "e3", merchant: "Fahasa", category: "Books · research", icon: "icon-book-open-line" as IconName, theme: "blue" as DockIconTheme, amount: 420_000, at: daysFromToday(-2, 12, 5), receipt: false },
-  { id: "e4", merchant: "Vietjet Air", category: "Flight · Hanoi kickoff", icon: "icon-plane-line" as IconName, theme: "purple" as DockIconTheme, amount: 2_350_000, at: daysFromToday(-4, 7, 20), receipt: true },
-  { id: "e5", merchant: "Highlands Coffee", category: "Workshop snacks", icon: "icon-coffee-cup-line" as IconName, theme: "orange" as DockIconTheme, amount: 310_000, at: daysFromToday(-5, 15, 0), receipt: false },
-  { id: "e6", merchant: "Grab", category: "Transport · Saola Outdoor", icon: "icon-car-01-line" as IconName, theme: "green" as DockIconTheme, amount: 128_000, at: daysFromToday(-6, 9, 45), receipt: true },
-];
-const dong = (amount: number) => `${amount.toLocaleString("vi-VN")} ₫`;
-
-function ExpensesPhone() {
-  const { toast } = useToast();
-  const [root, setRoot] = useState("expenses");
-  const total = expenses.reduce((sum, item) => sum + item.amount, 0);
-  const missing = expenses.filter((item) => !item.receipt).length;
-  return (
-    <PlatformPhone label="Expenses app" canvas="default">
-      {/* Band: a brand band holds the transparent TopNavigation and this month's total (the Hero); the expenses list
-          follows on the Canvas and the floating glass bar rides over it. */}
-      <AppShell mobileTop="band"
-        topNavigation={<TopNavigation title="Expenses" largeTitle="Expenses" trailing={[{ icon: "icon-plus-line", label: "Add expense", onClick: () => toast({ title: "Add expense", children: "Scan a receipt or type it in." }) }]} />}
-        hero={(
-          <Stack gap="md">
-            <Stack gap="2xs">
-              <Text textStyle="Body/Small/Medium" tone="base">September so far</Text>
-              <Text as="p" textStyle="Heading/1">{dong(total)}</Text>
-              <Text textStyle="Body/Small/Regular" tone="base">{`${plural(expenses.length, "expense")} · ${plural(missing, "receipt")} to add`}</Text>
-            </Stack>
-            <Stack direction="row" gap="sm">
-              <Button level="primary" startIcon="icon-camera-line" onClick={() => toast({ title: "Camera opens here" })}>Scan receipt</Button>
-              <Button level="tertiary" startIcon="icon-route-line" onClick={() => toast({ title: "Mileage", children: "Log a trip from the map." })}>Add mileage</Button>
-            </Stack>
-          </Stack>
-        )}
-        bottomNavigation={<BottomNavigation type="floating-glass" aria-label="Expenses app" value={root} onValueChange={setRoot} items={[
-          { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
-          { id: "expenses", label: "Expenses", icon: "icon-receipt-line", selectedIcon: "icon-receipt-solid" },
-          { id: "cards", label: "Cards", icon: "icon-credit-card-line", selectedIcon: "icon-credit-card-solid" },
-        ]} />}
-      >
-        <Stack as="section" gap="xs" aria-label="Recent expenses">
-          <Heading level={2} textStyle="Heading/4">Recent</Heading>
-          <ListBox>
-            <List aria-label="Recent expenses">
-              {expenses.map((item) => (
-                <ListItem key={item.id} title={item.merchant} caption={`${item.category} · ${formatRelative(item.at)}`}
-                  leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" size="md" />}
-                  value={dong(item.amount)} valueCaption={item.receipt ? "Receipt added" : "No receipt"} />
-              ))}
-            </List>
-          </ListBox>
-        </Stack>
-      </AppShell>
-    </PlatformPhone>
-  );
-}
-
-// ——— 12. A teammate's profile (Top=Band-Sheet, Bottom=Actions) ——————————————————————————————————————————————
-function ProfilePhone() {
-  const { toast } = useToast();
-  const person = people.chi;
-  const away = leaveRequests.find((request) => request.person === person.id && request.status !== "Declined");
-  const theirProjects = projects.filter((project) => project.lead === person.id || tasks.some((task) => task.project === project.id && task.assignee === person.id));
-  return (
-    <PlatformPhone label="Zen app" canvas="surface">
-      {/* Band-Sheet: the band fills the screen behind the person's photo and name; their details rise over it as a
-          sheet, and the two ways to reach them stay pinned at the bottom (Bottom=Actions). */}
-      <AppShell mobileTop="band-sheet"
-        topNavigation={<TopNavigation type="transparent" aria-label={person.name} topBar
-          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to People" }) }}
-          trailing={[{ icon: "icon-share-01-line", label: "Share contact", onClick: () => toast({ title: "Contact card copied" }) }]} />}
-        hero={(
-          <Stack align="center" gap="sm">
-            <Avatar size="2xlarge" {...avatarOf(person)} />
-            <Stack align="center" gap="2xs">
-              <Heading level={1} textStyle="Heading/2" align="center">{person.name}</Heading>
-              <Text tone="base" align="center">{`${person.role} · ${person.team} · ${person.location}`}</Text>
-            </Stack>
-          </Stack>
-        )}
-        actionBar={<ActionBar direction="horizontal" secondaryAction={{ label: "Call", onClick: () => toast({ title: `Calling ${person.name}…` }) }}
-          primaryAction={{ label: "Message", onClick: () => toast({ title: "Message", children: `${person.name.split(" ")[0]} is in Hanoi, 10:30 am there too.` }) }} />}
-      >
-        <DescriptionList items={[
-          { term: "Email", description: `${person.id}@${studio.domain}` },
-          { term: "Office", description: person.location },
-          { term: "Reports to", description: me.name },
-          { term: "Away", description: away ? `${formatRange(away.from, away.to)} · ${away.status}` : "Not this month" },
-        ]} />
-        <Stack as="section" gap="xs" aria-label="Working on">
-          <Heading level={2} textStyle="Heading/4">Working on</Heading>
-          <List aria-label="Working on">
-            {theirProjects.map((project) => (
-              <ListItem key={project.id} title={project.name} caption={project.client} leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" size="md" />}
-                trailing={badge(project.status, projectStatusTheme[project.status])} />
-            ))}
-          </List>
-        </Stack>
-      </AppShell>
-    </PlatformPhone>
-  );
-}
-
-// ——— 13. A trail on the Saola guide (Top=Media, Bottom=Actions glass) ———————————————————————————————————————
-function TrailPhone() {
-  const { toast } = useToast();
-  const [saved, setSaved] = useState(false);
-  return (
-    <PlatformPhone label="Saola trail guide" canvas="surface" statusBar="light">
-      {/* Media: the trail's photo fills the top behind a liquid-overlay TopNavigation; the guide rises over it as a sheet
-          and the Action bar keeps the route one tap away. */}
-      <AppShell mobileTop="media"
-        backdrop={<Image src={platformMedia.mountainRoad.src} alt={platformMedia.mountainRoad.alt} />}
-        topNavigation={<TopNavigation aria-label="Mã Pí Lèng loop" topBar
-          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to trails" }) }}
-          trailing={[
-            { icon: saved ? "icon-bookmark-solid" : "icon-bookmark-line", label: saved ? "Saved" : "Save trail", onClick: () => setSaved((value) => !value) },
-            { icon: "icon-share-01-line", label: "Share trail", onClick: () => toast({ title: "Trail link copied" }) },
-          ]} />}
-        actionBar={<ActionBar direction="horizontal" summary="Next guided walk Sat, Oct 3 · 6 spots"
-          primaryAction={{ label: "Start route", onClick: () => toast({ title: "Route started", children: "Offline map ready · check-ins every 2 hours" }) }} />}
-      >
-        <Stack gap="xs">
-          <Text textStyle="Body/Small/Bold" tone="light">Hà Giang · Saola Outdoor</Text>
-          <Heading level={1} textStyle="Heading/2">Mã Pí Lèng loop</Heading>
-        </Stack>
-        <Grid columns={3} gap="sm">
-          {[
-            { label: "Distance", value: "14.2 km" },
-            { label: "Climb", value: "820 m" },
-            { label: "Time", value: "5–6 h" },
-          ].map((stat) => (
-            <Card key={stat.label} theme="pale" spacing="sm">
-              <Stack gap="2xs">
-                <Text textStyle="Body/Small/Regular" tone="base">{stat.label}</Text>
-                <Text as="p" textStyle="Heading/Subheading">{stat.value}</Text>
-              </Stack>
-            </Card>
-          ))}
-        </Grid>
-        <Text>A ridge walk above the Nho Quế river: limestone switchbacks, two homestays for water, and the pass at sunrise. Check in at the Khau Vai gate; the guide carries the satellite beacon.</Text>
-      </AppShell>
-    </PlatformPhone>
-  );
-}
-
 // ——— 14. The studio app on an iPad held upright (Device=Tablet: the mobile shell) ———————————————————————————
 function TabletPortraitApp() {
   const [root, setRoot] = useState("projects");
+  const { toast } = useToast();
   return (
     <PlatformPhone device="ipad" label="Zen app on iPad" canvas="alt">
       {/* Upright an iPad is narrower than 1024, so the same AppShell draws its mobile parts (Top=Bar, Bottom=Tab-Bar);
           turned sideways it draws the Sidebar and the header. The Sidebar stays one tap away as the drawer. */}
       <AppShell
         sidebar={<Sidebar logo={studioLogo} sections={studioSections} selectedId={root} onItemClick={(item) => setRoot(item.id)} />}
-        header={<AppShellHeader leading={<Breadcrumbs master={false} items={[{ id: "home", label: "Home" }, { id: "projects", label: "Projects" }]} />} actions={<AppShellAccount name={me.name} src={me.photo} />} />}
-        topNavigation={<TopNavigation title="Projects" largeTitle="Projects" trailing={[{ icon: "icon-plus-line", label: "New project", onClick: () => undefined }]} />}
+        header={<AppShellHeader
+          leading={<Breadcrumbs master={false} items={[{ id: "home", label: "Home" }, { id: "projects", label: "Projects" }]} onNavigate={(item, event) => { event.preventDefault(); setRoot(item.id); }} />}
+          actions={<Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[{ id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out" }) }]} />}
+        />}
+        topNavigation={<TopNavigation title="Projects" largeTitle="Projects" trailing={[{ icon: "icon-plus-line", label: "New project", onClick: () => toast({ title: "New project", children: "The form opens here." }) }]} />}
         bottomNavigation={<BottomNavigation aria-label={studio.name} value={root} onValueChange={setRoot} showLabels items={[
           { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
           { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
@@ -1247,35 +592,13 @@ function TabletPortraitApp() {
   );
 }
 
-export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
-  {
-    title: "Studio app",
-    description: "The studio's web app on the Sidebar pattern. The header's top row starts with the collapse toggle and the trail and keeps only utilities on the right (the plan, Notifications with its unread count, the account menu). Each page's own header (its title and Primary) is the Main row, Projects' views are its Sections, and the Body holds the content at the page margin.",
-    wide: true,
-    screen: true,
-    render: () => <StudioApp />,
-    code: `const [collapsed, setCollapsed] = useState(false); // store it per person
+/** The screens of Figma ◇ Master-Layout · Example (15902:109717), section by section: A background compositions, B desktop
+ *  structures, C mobile structures, D expressive mobile, E consumer apps from references, F the smart-home concept on every
+ *  device (user, 2026-10-19: "Các example Appshell nên build như trong Figma ◇ Master-Layout · Example"). */
+const figmaExamples: ExampleDef[] = [...compositions, ...desktop1, ...desktop2, ...mobile1, ...mobile2, ...expressive1, ...expressive2, ...consumer1, ...consumer2, ...smartHome1, ...smartHome2, ...smartHome3];
 
-<AppShell
-  sidebar={<Sidebar logo={logo} logoCollapsed={mark} sections={sections} selectedId={page} onItemClick={(item) => go(item.id)} />}
-  sidebarCollapsed={collapsed}
-  onSidebarCollapsedChange={setCollapsed}
-  header={
-    <AppShellHeader
-      leading={<Breadcrumbs master={false} items={[{ id: "home", label: "Home" }, { id: "projects", label: "Projects" }]} onNavigate={navigate} />}
-      actions={<>
-        <Badge theme="accent" background="subtle" leadingIcon={false}>Business</Badge>
-        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unseen} onClick={() => go("notifications")} />
-        <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={accountItems} />
-      </>}
-      main={<PageHeader title="Projects" description="6 projects" actions={<Button level="primary" onClick={newProject}>New project</Button>} />}
-      sections={<Tabs aria-label="Project views" value={view} onValueChange={setView} items={views} />}
-    />
-  }
->
-  <Table aria-label="Active projects" rows={shown} columns={columns} />
-</AppShell>`,
-  },
+/** What the shell does beyond the Figma screens: the toggle in the Sidebar, the docked panel, the narrow window, the banner. */
+const behaviourExamples: ExampleDef[] = [
   {
     title: "Toggle in the Sidebar",
     description: "The people directory's trail starts with the workspace's Master crumb and its home icon, so the collapse toggle moves into the Sidebar's own header (collapse=\"sidebar\"): two icons at the start of the header read as one control. The Search sits in the middle of the top row (up to 400px) and finds people from any page. On a white Canvas the Sidebar is Surface-alt and cards take a Pale border.",
@@ -1299,120 +622,6 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   }
 >
   <Table aria-label="People" rows={shown} columns={columns} empty={noMatches} />
-</AppShell>`,
-  },
-  {
-    title: "List and detail",
-    description: "Leave requests on the List-Detail pattern: the Sidebar starts on its rail, the requests fill the leading pane (360) and the open one fills the page, with Approve and Decline in its header. Picking a row changes the detail in place and the list keeps its scroll; Undo in the toast puts a decision back.",
-    wide: true,
-    screen: true,
-    render: () => <LeaveRequestsApp />,
-    code: `<AppShell
-  pattern="list-detail"
-  sidebar={<Sidebar logo={logo} logoCollapsed={mark} sections={sections} selectedId="leave" />}
-  leadingPane={
-    <AppShellPane title="Leave requests" action={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-filter-lines-line" aria-label="Filter requests" />}>
-      <List aria-label="Leave requests">
-        {requests.map((request) => (
-          <ListItem key={request.id} selected={request.id === openId} title={request.name} caption={\`\${request.kind} · \${request.dates}\`}
-            leading={<Avatar size="md" src={request.photo} alt="" />} trailing={<Badge theme="yellow" background="subtle">Pending</Badge>}
-            onClick={() => setOpenId(request.id)} />
-        ))}
-      </List>
-    </AppShellPane>
-  }
-  header={
-    <AppShellHeader
-      leading={<Breadcrumbs master={false} items={[{ id: "leave", label: "Leave" }, { id: "requests", label: "Requests · 2 pending" }]} />}
-      actions={<AppShellAccount name="Alex Duong" src={alex.photo} />}
-      main={<PageHeader title="Chi Tran · Annual leave" description="Oct 19 – 21, 2026 · 3 working days"
-        actions={<><Button level="tertiary" onClick={decline}>Decline</Button><Button level="primary" onClick={approve}>Approve</Button></>} />}
-    />
-  }
->
-  <Grid columns={{ mobile: 1, desktop: 2 }} gap="md">…</Grid>
-</AppShell>`,
-  },
-  {
-    title: "Top bar",
-    description: "Phin & Co's client portal on the Top-Bar pattern: a client sees one company, so there is no Sidebar. The header runs across the window with the portal's views as its Sections and the file Search in the middle of the top row; Upload brief is the page's one Primary.",
-    wide: true,
-    screen: true,
-    render: () => <ClientPortalApp />,
-    code: `<AppShell
-  pattern="top-bar"
-  canvas="alt"
-  header={
-    <AppShellHeader
-      leading={<StudioLogo src={logo} name="Đìzai Studio · Phin & Co" />}
-      center={<Search placeholder="Search shared files" aria-label="Search shared files" value={query} onValueChange={setQuery} />}
-      actions={<><AppShellAction icon="icon-message-circle-line" aria-label="Messages" dot /><AppShellAccount name="Lan Phạm" /></>}
-      main={<PageHeader title="Phin & Co" description="Your projects with Đìzai Studio" actions={<Button level="primary" startIcon="icon-upload-01-line">Upload brief</Button>} />}
-      sections={<Tabs aria-label="Portal" value={tab} onValueChange={setTab} items={tabs} />}
-    />
-  }
->
-  {tab === "files" ? <Table aria-label="Shared files" rows={files} columns={columns} /> : overview}
-</AppShell>`,
-  },
-  {
-    title: "Workspace",
-    description: "A design review on the Workspace pattern: the header runs across the top, the files under review sit in the leading pane and the comments in the trailing one, both Sidebar/Default-Width, with the frame between them. Each pane scrolls on its own; a comment posts to the end of the list.",
-    wide: true,
-    screen: true,
-    render: () => <DesignReviewApp />,
-    code: `<AppShell
-  pattern="workspace"
-  header={<AppShellHeader leading={<Breadcrumbs master={false} items={trail} />} actions={<><AvatarStack size="sm" items={reviewers} /><Button level="tertiary" startIcon="icon-share-01-line">Share</Button><AppShellAccount name="Alex Duong" src={alex.photo} /></>} />}
-  leadingPane={<AppShellPane title="Files"><List aria-label="Files in review">{fileRows}</List></AppShellPane>}
-  trailingPane={
-    <AppShellPane title="Comments · 3">
-      <List aria-label="Comments">{commentRows}</List>
-      <TextAreaField label="Add a comment" value={draft} onValueChange={setDraft} rows={2} />
-    </AppShellPane>
-  }
->
-  <PageHeader title="Points history v4.fig" description="Loyalty app · edited 2 hours ago by Chi Tran" />
-  <Card theme="shadow" spacing="sm"><Image src={frame} alt="Frame under review" ratio="16:9" /></Card>
-</AppShell>`,
-  },
-  {
-    title: "Docs",
-    description: "The studio handbook on the Docs pattern: a reading column of at most 720 between the contents and On this page, both on the Canvas (theme=\"canvas\") so nothing competes with the text. The handbook Search sits in the middle of the top row.",
-    wide: true,
-    screen: true,
-    render: () => <HandbookApp />,
-    code: `<AppShell
-  pattern="docs"
-  canvas="alt"
-  header={<AppShellHeader leading={<StudioLogo src={logo} name="Studio handbook" />} center={<Search placeholder="Search the handbook" aria-label="Search the handbook" />} actions={<AppShellAccount name="Alex Duong" src={alex.photo} />} />}
-  leadingPane={<AppShellPane title="Contents" theme="canvas"><List aria-label="Chapters">{chapters}</List></AppShellPane>}
-  trailingPane={<AppShellPane title="On this page" theme="canvas"><List aria-label="On this page">{anchors}</List></AppShellPane>}
->
-  <Stack as="article" gap="xl">
-    <Heading level={1} textStyle="Heading/1">Leave and time off</Heading>
-    …
-  </Stack>
-</AppShell>`,
-  },
-  {
-    title: "Focus",
-    description: "Setting up a project on the Focus pattern: one task with nothing else to click. The header keeps only Save and close, the steps sit under it, and the form shares a centred column (at most 680) with its summary pane, which follows what is typed.",
-    wide: true,
-    screen: true,
-    render: () => <ProjectSetupApp />,
-    code: `<AppShell
-  pattern="focus"
-  header={<AppShellHeader leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: "new", label: "New project" }]} />}
-    actions={<Button level="tertiary" onClick={saveAndClose}>Save and close</Button>} />}
-  progress={<Stepper aria-label="New project" steps={steps} current={step} />}
-  trailingPane={<AppShellPane title="Summary"><DescriptionList items={summary} /></AppShellPane>}
->
-  <form onSubmit={form.handleSubmit}>
-    <InputField label="Project name" {...form.field("name")} />
-    …
-    <Button type="submit" level="primary">Continue</Button>
-  </form>
 </AppShell>`,
   },
   {
@@ -1481,72 +690,6 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 </AppShell>`,
   },
   {
-    title: "Phone app",
-    description: "The studio app on a phone with the Bar pattern: the TopNavigation (its large title folds as the list scrolls), the Body at the phone's margins and the Tab-Bar on every root. Tapping the current root again scrolls it back to the top; a project opens on a pushed screen with Back.",
-    render: () => <PhoneApp />,
-    code: `<PlatformPhone screenRef={screenRef}>
-  <AppShell
-    topNavigation={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef}
-      trailing={[{ icon: "icon-plus-line", label: "New project", onClick: () => setCreating(true) }]} />}
-    bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" value={root} onValueChange={open} showLabels items={roots} />}
-  >
-    <ListBox>
-      <List aria-label="Projects">{projectRows}</List>
-    </ListBox>
-  </AppShell>
-</PlatformPhone>`,
-  },
-  {
-    title: "Band with a hero",
-    description: "Expenses on the Band pattern: a brand band holds the transparent TopNavigation and this month's total with the two quick actions; the expenses follow on the Canvas and the floating glass bar rides over them.",
-    render: () => <ExpensesPhone />,
-    code: `<AppShell
-  mobileTop="band"
-  topNavigation={<TopNavigation title="Expenses" largeTitle="Expenses" trailing={[{ icon: "icon-plus-line", label: "Add expense", onClick: add }]} />}
-  hero={
-    <Stack gap="md">
-      <Text textStyle="Body/Small/Medium" tone="base">September so far</Text>
-      <Text as="p" textStyle="Heading/1">3.488.000 ₫</Text>
-      <Stack direction="row" gap="sm">
-        <Button level="primary" startIcon="icon-camera-line">Scan receipt</Button>
-        <Button level="tertiary" startIcon="icon-route-line">Add mileage</Button>
-      </Stack>
-    </Stack>
-  }
-  bottomNavigation={<BottomNavigation type="floating-glass" aria-label="Expenses app" value={root} onValueChange={setRoot} items={roots} />}
->
-  <ListBox><List aria-label="Recent expenses">{expenseRows}</List></ListBox>
-</AppShell>`,
-  },
-  {
-    title: "Profile on a sheet",
-    description: "A teammate's profile on the Band-Sheet pattern: the band fills the screen behind their photo and name, their details rise over it as a sheet, and Message and Call stay pinned at the bottom in an Action bar.",
-    render: () => <ProfilePhone />,
-    code: `<AppShell
-  mobileTop="band-sheet"
-  topNavigation={<TopNavigation type="transparent" aria-label="Chi Tran" topBar leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
-  hero={<Stack align="center" gap="sm"><Avatar size="2xlarge" src={chi.photo} alt="" /><Heading level={1} textStyle="Heading/2">Chi Tran</Heading></Stack>}
-  actionBar={<ActionBar direction="horizontal" secondaryAction={{ label: "Call", onClick: call }} primaryAction={{ label: "Message", onClick: message }} />}
->
-  <DescriptionList items={details} />
-</AppShell>`,
-  },
-  {
-    title: "Photo behind the page",
-    description: "A trail on the Saola guide with the Media pattern: the photo fills the top behind a liquid-overlay TopNavigation, the guide rises over it as a sheet, and the Action bar keeps Start route one tap away. Over a photo that runs under it, the bar takes surface=\"glass\".",
-    render: () => <TrailPhone />,
-    code: `<AppShell
-  mobileTop="media"
-  backdrop={<Image src={trail.photo} alt="A mountain road curving above a green valley" />}
-  topNavigation={<TopNavigation aria-label="Mã Pí Lèng loop" topBar leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }}
-    trailing={[{ icon: "icon-bookmark-line", label: "Save trail", onClick: save }, { icon: "icon-share-01-line", label: "Share trail", onClick: share }]} />}
-  actionBar={<ActionBar direction="horizontal" summary="Next guided walk Sat, Oct 3 · 6 spots" primaryAction={{ label: "Start route", onClick: start }} />}
->
-  <Heading level={1} textStyle="Heading/2">Mã Pí Lèng loop</Heading>
-  …
-</AppShell>`,
-  },
-  {
     title: "iPad held upright",
     description: "The same AppShell on an iPad held upright: narrower than 1024, it draws its mobile parts (Bar and Tab-Bar) instead of the Sidebar and the header; turned sideways it draws the desktop pattern. The Sidebar stays reachable as the drawer.",
     render: () => <TabletPortraitApp />,
@@ -1560,4 +703,6 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   <Grid as="ul" minColumnWidth={280} gap="md" aria-label="Projects">{projectCards}</Grid>
 </AppShell>`,
   },
-]);
+];
+
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [...figmaExamples, ...behaviourExamples]);

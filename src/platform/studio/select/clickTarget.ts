@@ -113,11 +113,12 @@ export function layersAt(deepest: FiberHit, frame: Element | null): { path: Fibe
   const path = kept.filter((hit, index) => index === kept.length - 1 || hit === root || !folded(hit, kept[index + 1], kept[index - 1]));
   let at = root ? path.indexOf(root) : -1;
   // The page's app frame and the column that holds the page stand for the frame too, as a Figma frame's own auto layout
-  // does: a click lands on the Sidebar, a header item or a section of the page, never on AppShell or the page's body
-  // Stack (which the pointer's own empty area still selects: the last layer under it never becomes the root).
+  // does: a click lands on the Sidebar, a header item or a section of the page, never on AppShell, its AppShellHeader
+  // (the frame's header rows, since 2026-10-19) or the page's body Stack (which the pointer's own empty area still
+  // selects: the last layer under it never becomes the root).
   for (let guard = 0; at >= 0 && at < path.length - 2 && guard < 8; guard++) {
     const next = path[at + 1];
-    const shell = next.name === "AppShell" || (LAYOUT.has(next.name) && (path[at].name === "AppShell" || shownChildren(path[at]).length === 1));
+    const shell = next.name === "AppShell" || (next.name === "AppShellHeader" && path[at].name === "AppShell") || (LAYOUT.has(next.name) && (path[at].name === "AppShell" || shownChildren(path[at]).length === 1));
     if (!shell) break;
     at += 1;
   }

@@ -54,8 +54,12 @@
 
 /* Progress (Focus): the task's steps under the header, centred. */
 .zen-app-shell__progress { display: flex; min-width: 0; justify-content: center; padding-inline: var(--zen-margin-comfortable, 24px); }
-/* zen-allow-slot-size: Figma Stepper-Bar hugs its steps (600 for four), centred, instead of spreading across a wide window. */
-.zen-app-shell__progress > * { min-width: 0; flex: 0 1 600px; }
+/* Figma Stepper-Bar hugs its steps, each .Primitives/Stepper/Step-Horizontal 200 wide (600 for three, 800 for four in
+   Example B6), centred, instead of spreading across a wide window; a narrow window shrinks them. */
+.zen-app-shell__progress > * { min-width: 0; flex: 0 1 auto; }
+.zen-app-shell__progress > .zen-stepper { width: auto; }
+/* zen-allow-slot-size: Figma Step-Horizontal's 200 in the Focus pattern (no token for a step width). */
+.zen-app-shell__progress > .zen-stepper > .zen-stepper__step { flex: 0 1 200px; }
 
 /* Panes (Figma Leading-Pane / Trailing-Pane around .Primitives/AppShell/Pane): sticky full-height columns. List-Detail's
    sits beside the rail (Spacing/Padding/XSmall above, below and at the start; a 360 pane); Workspace and Docs put theirs
@@ -95,8 +99,9 @@
    its children's shapes: drop-shadow follows them (half the blur, as a standard deviation; no spread). */
 .zen-app-shell__floating { position: sticky; z-index: 20; bottom: 0; height: 0; }
 .zen-app-shell__floating-items { position: absolute; right: var(--zen-margin-comfortable, 24px); bottom: var(--zen-margin-comfortable, 24px); display: flex; align-items: center; gap: var(--zen-spacing-gap-large, 24px); filter: drop-shadow(0 4px 8px var(--zen-color-shadow-neutral-strongest, rgb(0 0 0 / 16%))) drop-shadow(0 0 1px var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%))); }
-/* The end of the page keeps the floating row's height free, so the last row scrolls clear of it. */
-.zen-app-shell:has(.zen-app-shell__floating) .zen-app-shell__body { padding-block-end: var(--zen-spacing-gap-xgiant, 88px); }
+/* The end of the page keeps the floating row's height free, so the last row scrolls clear of it: its bottom margin, a
+   Large button (Element-Size/Popular/3XLarge) and Padding/XSmall above it (88 at Comfortable). */
+.zen-app-shell:has(.zen-app-shell__floating) .zen-app-shell__body { padding-block-end: calc(var(--zen-margin-comfortable, 24px) + var(--zen-element-size-popular-3-xlarge, 56px) + var(--zen-spacing-padding-xsmall, 8px)); }
 /* Phones: hidden while the page scrolls down (useHideOnScroll), back on a scroll up or when it holds focus; it slides
    by Spacing/Padding/Medium × the motion movement (0 with reduced motion, so only the fade stays). */
 .zen-app-shell__floating-items { transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out), translate var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out); }
@@ -105,7 +110,7 @@
 /* ───────────── Header (Header/AppShell) ───────────── */
 
 /* zen-allow-canvas-layer: the sticky header continues the page Canvas so content scrolls under it. */
-.zen-app-shell .zen-app-shell-header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); background: var(--zen-app-shell-canvas); }
+.zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); flex: 0 0 auto; background: var(--zen-app-shell-canvas); }
 .zen-app-shell-header { display: flex; min-width: 0; flex: 0 0 auto; flex-direction: column; }
 /* Main: Margin-Comfortable above and at the sides, Spacing/Padding/XSmall below, Spacing/Gap/Medium between the rows. */
 .zen-app-shell-header__main { display: flex; box-sizing: border-box; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xsmall, 8px); }
@@ -145,9 +150,11 @@
 .zen-app-shell-pane[data-tone="shadow"][data-surface="alt"] { box-shadow: none; }
 .zen-app-shell-pane[data-surface="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
 .zen-app-shell-pane[data-tone="border"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* zen-allow-surface-flat: Figma .Primitives/AppShell/Pane Theme=Border Surface=Flat (16254:1099), as Card's Border/Flat. */
 .zen-app-shell-pane[data-tone="border"][data-surface="flat"] { background: var(--zen-color-background-surface-flat); }
 .zen-app-shell-pane[data-tone="pale"] { background: var(--zen-color-background-support-neutral-pale); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 .zen-app-shell-pane[data-tone="subtle"] { background: var(--zen-color-background-support-neutral-subtle); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+/* zen-allow-surface-flat: Figma Pane Theme=On-Container is Surface/Flat on a container's fill, as Card on-container. */
 .zen-app-shell-pane[data-tone="on-container"] { background: var(--zen-color-background-surface-flat); }
 .zen-app-shell-pane[data-tone="canvas"] { background: transparent; }
 /* Pane-Header: Margin-Compact above and at the sides, Spacing/Padding/XSmall below, Spacing/Gap/XSmall apart. */
@@ -166,9 +173,20 @@
 .zen-app-shell[data-layout="mobile"] .zen-app-shell__body { gap: var(--zen-layout-mobile-section-gap, 32px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-comfortable, 20px) var(--zen-spacing-padding-large, 20px); }
 /* Bar: the TopNavigation sticks under the banner. */
 .zen-app-shell__top-nav { position: sticky; z-index: 20; top: var(--zen-app-shell-top); min-width: 0; }
+/* Top=Bar with a Transparent TopNavigation (Figma F1–F12: the bar has no fill, it sits on the page's Canvas): the sticky
+   row takes the page's canvas, so the bar looks the same at rest and the page scrolling under it never shows through. */
+.zen-app-shell[data-layout="mobile"][data-top="bar"] .zen-app-shell__top-nav:has(> .zen-top-nav[data-type="transparent"]) { background: var(--zen-app-shell-canvas); }
 /* Band: a Support/Brand/Subtle band with the TopNavigation and the Hero, Corner-Radius/2XLarge at the bottom; the page
-   starts Spacing/Padding/XLarge under it. The bar scrolls away with the band. */
-.zen-app-shell__band { flex: 0 0 auto; border-end-end-radius: var(--zen-corner-radius-2-xlarge, 24px); border-end-start-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-color-background-support-brand-subtle); }
+   starts Spacing/Padding/XLarge under it. The bar scrolls away with the band. `band` fills it as Figma's examples do:
+   Pale (E2), Soft (E1) or Accent/Solid (D5, E7); on Accent the bar is transparent-on-color (AppShell.tsx). */
+.zen-app-shell { --zen-app-shell-band: var(--zen-color-background-support-brand-subtle); }
+.zen-app-shell[data-band="pale"] { --zen-app-shell-band: var(--zen-color-background-support-brand-pale); }
+.zen-app-shell[data-band="soft"] { --zen-app-shell-band: var(--zen-color-background-support-brand-soft); }
+.zen-app-shell[data-band="accent"] { --zen-app-shell-band: var(--zen-color-background-accent-solid-default); }
+/* On the Accent/Solid band an Accent focus ring would vanish into the fill: the band's controls (the bar's actions, the
+   hero's) ring in Focus/Neutral/Solid, as on any colour fill; the page's sheet keeps the Accent ring. */
+.zen-app-shell[data-band="accent"] :is(.zen-app-shell__band, .zen-app-shell__stage > :not(.zen-app-shell__body)) { --zen-color-focus-accent-solid: var(--zen-color-focus-neutral-solid); }
+.zen-app-shell__band { flex: 0 0 auto; border-end-end-radius: var(--zen-corner-radius-2-xlarge, 24px); border-end-start-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-app-shell-band); }
 .zen-app-shell[data-top="band"] .zen-app-shell__top-nav, .zen-app-shell__stage .zen-app-shell__top-nav { position: relative; top: auto; }
 .zen-app-shell[data-layout="mobile"][data-top="band"] .zen-app-shell__body { padding-top: var(--zen-spacing-padding-xlarge, 24px); }
 /* Hero: Spacing/Padding/XSmall above, Margin-Comfortable at the sides, Spacing/Padding/XLarge below, Spacing/Gap/XSmall apart. */
@@ -178,16 +196,30 @@
    the sheet is Surface, so the bottom bar continues it. */
 .zen-app-shell:is([data-top="band-sheet"], [data-top="media"]) { --zen-app-shell-canvas: var(--zen-color-background-surface-default, #fff); }
 .zen-app-shell__stage { position: relative; display: flex; min-width: 0; min-height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); flex: 1 1 auto; flex-direction: column; }
-.zen-app-shell__stage[data-top="band-sheet"] { background: var(--zen-color-background-support-brand-subtle); }
+.zen-app-shell__stage[data-top="band-sheet"] { background: var(--zen-app-shell-band); }
 .zen-app-shell__stage > .zen-app-shell__body { position: relative; z-index: 1; flex: 1 0 auto; border-start-start-radius: var(--zen-corner-radius-3-xlarge, 28px); border-start-end-radius: var(--zen-corner-radius-3-xlarge, 28px); background: var(--zen-color-background-surface-default, #fff); }
 .zen-app-shell[data-layout="mobile"] .zen-app-shell__stage > .zen-app-shell__body { padding-top: var(--zen-spacing-padding-xlarge, 24px); }
-/* Media: the Backdrop (520 high) behind the top of the screen, the liquid-overlay TopNavigation over it; the sheet starts
-   120 above the Backdrop's end, so the photo shows above and under its rounded top.
-   zen-allow-slot-size zen-allow-raw-spacing: Figma's Backdrop slot (520) and the sheet's overlap with it, no tokens. */
+/* Media (Figma Pattern/AppShell/Mobile Top=Media 16261:3512 · 3782 · 3972 · 4140; C4 16378:24966): the Stage stacks the
+   liquid-overlay TopNavigation (in flow), a Spacer that FILLs and the Sheet, which HUGs its content, over an absolute
+   Backdrop. So the sheet rises from the bottom of the screen as far as its content needs (C4: a 384 sheet starts at 366,
+   under a 114 bar and a 252 spacer; the variants' 360 sheets at 390–458), and the photo shows above and under its
+   rounded top. The spacer keeps at least C4's 252 — the shortest Figma draws — so a long page still opens on the photo
+   and scrolls. The Backdrop is 520 high on a phone; on a tablet (Device=Tablet, 744 wide) it fills the stage.
+   zen-allow-slot-size zen-allow-raw-spacing: Figma's Backdrop slot (520), the tablet width (744) and the shortest Spacer
+   (252), no tokens. */
+.zen-app-shell__stage[data-top="media"] { container-type: inline-size; }
+.zen-app-shell__stage[data-top="media"] > .zen-app-shell__body { flex-grow: 0; }
 .zen-app-shell__backdrop { position: absolute; z-index: 0; top: 0; right: 0; left: 0; display: flex; overflow: hidden; height: 520px; }
+@container (min-width: 744px) { .zen-app-shell__backdrop { bottom: 0; height: auto; } }
 .zen-app-shell__backdrop > * { width: 100%; height: 100%; object-fit: cover; }
-.zen-app-shell__stage[data-top="media"] > .zen-app-shell__top-nav { position: absolute; z-index: 2; top: 0; right: 0; left: 0; }
-.zen-app-shell__spacer { flex: 0 0 400px; }
+/* A Zen Image fills it as Figma's Media layer does (FILL × FILL, image scale mode FILL = cover, square corners, no
+   stroke): its frame drops the ratio, the radius and the Pale hairline, and the picture covers the frame (an Image
+   `fit="contain"` keeps contain). */
+.zen-app-shell__stage[data-top="media"] > .zen-app-shell__backdrop > .zen-image > .zen-image__frame { height: 100%; flex: 1 1 auto; aspect-ratio: auto; border-radius: 0; }
+.zen-app-shell__stage[data-top="media"] > .zen-app-shell__backdrop > .zen-image > .zen-image__frame::after { display: none; }
+.zen-app-shell__stage[data-top="media"] > .zen-app-shell__backdrop > .zen-image > .zen-image__frame > .zen-image__img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.zen-app-shell__stage[data-top="media"] > .zen-app-shell__top-nav { z-index: 2; }
+.zen-app-shell__spacer { flex: 1 0 252px; }
 
 /* Bottom: the Action-Bar, or the BottomNavigation, sticky at the bottom; the floating actions ride above it. */
 .zen-app-shell__bottom { position: sticky; z-index: 20; bottom: 0; }

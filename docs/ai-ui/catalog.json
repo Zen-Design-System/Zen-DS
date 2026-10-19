@@ -168,6 +168,7 @@
           "enum": [
             "default",
             "alt",
+            "glass",
             "none"
           ],
           "default": "default",
@@ -661,65 +662,74 @@
       "folder": "AppShell",
       "status": "stable",
       "chrome": true,
-      "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
-      "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
+      "import": "import { AppShell, AppShellHeader, AppShellPane, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
       "use": [
-        "Every signed-in web app screen (dashboards, admin, HR and settings).",
-        "One app frame for desktop, tablet and phone: below 1024px the Sidebar becomes a drawer; under 744px topNavigation and bottomNavigation take over from the top bar (see Do).",
-        "Top-bar icon actions with an unread dot or count → AppShellAction.",
-        "The account menu → Menu with an AppShellAccount trigger."
+        "Every app screen: one AppShell at the root, inside ZenProvider.",
+        "Navigation between a few roots → pattern=\"sidebar\" (the default); a list beside its detail (inbox, requests) → \"list-detail\"; one company or product without navigation → \"top-bar\"; tools around a canvas → \"workspace\"; reading → \"docs\"; one task with steps → \"focus\".",
+        "A phone or an upright iPad → topNavigation with bottomNavigation (roots) or actionBar (a task's actions); a brand band → mobileTop=\"band\" with hero; a profile or a summary rising over colour → \"band-sheet\"; a photo, video or map → \"media\" with backdrop.",
+        "Header icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger."
       ],
       "avoid": [
-        "Phone-only apps → TopNavigation + BottomNavigation inside ZenProvider typography=\"mobile\".",
         "Marketing pages → Container + your own header.",
         "A modal flow → Dialog or SidePanel type=\"modal\".",
-        "Page actions (Submit, Export, New) → the PageHeader actions, not the top bar."
+        "Page actions (Submit, Export, New) → the PageHeader actions in the header's main, not its top row.",
+        "A second shell inside a pane or a card → one AppShell per screen."
       ],
-      "description": "The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform): Sidebar navigation, a sticky top bar, the page, and optional bann",
+      "description": "The frame of an app, built on Figma's AppShell patterns (◇ Master-Layout 16254:1057): Pattern/AppShell/Desktop (16258:1857) from 1024px, Pattern/AppShell/Mobile (16261:136204) belo",
       "props": {
+        "pattern": {
+          "enum": [
+            "sidebar",
+            "list-detail",
+            "top-bar",
+            "workspace",
+            "docs",
+            "focus"
+          ],
+          "default": "sidebar",
+          "description": "Figma Layout, the desktop structure (from 1024px: desktops and iPad landscape): - `sidebar` (default): Sidebar · header + page · docked side panel."
+        },
+        "collapse": {
+          "enum": [
+            "header",
+            "sidebar",
+            "none"
+          ],
+          "default": "header",
+          "description": "Figma Collapse: where the Sidebar's collapse toggle sits."
+        },
         "sidebar": {
           "x-kind": "node",
-          "description": "Left navigation, usually <Sidebar>."
+          "description": "Figma Sidebar: the app's navigation, a <Sidebar> (the `sidebar` and `list-detail` patterns)."
         },
         "header": {
           "x-kind": "node",
-          "description": "Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search."
+          "description": "Figma Header/AppShell: the page's header, an <AppShellHeader> (top row, Main row, Sections)."
         },
-        "headerCenter": {
+        "leadingPane": {
           "x-kind": "node",
-          "description": "Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the leading content and the actions, e.g."
+          "description": "Figma Leading-Pane: an <AppShellPane> before the page (`list-detail` 360; `workspace`, `docs` Sidebar/Default-Width)."
         },
-        "sections": {
+        "trailingPane": {
           "x-kind": "node",
-          "description": "Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main), a toolbar of Search + filters (Type=Control-Bar) or your ow"
+          "description": "Figma Trailing-Pane: an <AppShellPane> after the page (`workspace`, `docs` Sidebar/Default-Width; `focus` 376)."
         },
-        "headerActions": {
+        "sidePanel": {
           "x-kind": "node",
-          "description": "Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help), then the account menu (`<Menu trigger={<AppShellAccount … />}>`)."
+          "description": "Figma Side-Panel: a right panel docked beside the page, usually <SidePanel type=\"standard\">."
+        },
+        "progress": {
+          "x-kind": "node",
+          "description": "Figma Progress (`focus`): the task's steps under the header, usually a horizontal <Stepper>, centred."
+        },
+        "floatingActions": {
+          "x-kind": "node",
+          "description": "Figma Floating-Actions: the page's floating buttons in the bottom-right corner, Margin-Comfortable from the edges."
         },
         "banner": {
           "x-kind": "node",
           "description": "A full-width message strip above the whole shell, usually <AlertBanner> (trial ending, maintenance, offline)."
-        },
-        "aside": {
-          "x-kind": "node",
-          "description": "A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type=\"standard\">."
-        },
-        "floatingAction": {
-          "x-kind": "node",
-          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g."
-        },
-        "footer": {
-          "x-kind": "node",
-          "description": "A sticky bar at the bottom of the main column, e.g."
-        },
-        "topNavigation": {
-          "x-kind": "node",
-          "description": "Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma Top-Navigation/Mobile 12014:45167)."
-        },
-        "bottomNavigation": {
-          "x-kind": "node",
-          "description": "Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the first 4 + More)."
         },
         "canvas": {
           "enum": [
@@ -730,13 +740,53 @@
           "default": "default",
           "description": "Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background=\"flat\")."
         },
+        "mobileTop": {
+          "enum": [
+            "bar",
+            "band",
+            "band-sheet",
+            "media"
+          ],
+          "default": "bar",
+          "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait): - `bar` (default): the TopNavigation on Surface/Alt over the page."
+        },
+        "band": {
+          "enum": [
+            "subtle",
+            "pale",
+            "soft",
+            "accent"
+          ],
+          "default": "subtle",
+          "description": "Mobile `band` / `band-sheet`: the band's fill (user, 2026-10-19)."
+        },
+        "topNavigation": {
+          "x-kind": "node",
+          "description": "Mobile: the screen's <TopNavigation> (its h1, Back on a child screen, up to three actions)."
+        },
+        "hero": {
+          "x-kind": "node",
+          "description": "Mobile Figma Hero (`band`, `band-sheet`): what the band shows under the TopNavigation (a balance, a profile, a summary)."
+        },
+        "backdrop": {
+          "x-kind": "node",
+          "description": "Mobile Figma Backdrop (`media`): the photo, video or map behind the top of the screen."
+        },
+        "bottomNavigation": {
+          "x-kind": "node",
+          "description": "Mobile Figma Bottom Tab-Bar | Floating: the root navigation, a <BottomNavigation> (`floating-glass` floats over the page)."
+        },
+        "actionBar": {
+          "x-kind": "node",
+          "description": "Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an <ActionBar> (`surface=\"glass\"` over photos)."
+        },
         "sidebarCollapsed": {
           "type": "boolean",
           "description": "Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`."
         },
         "defaultSidebarCollapsed": {
           "type": "boolean",
-          "description": "Initial rail state when uncontrolled."
+          "description": "Rail state to start from, uncontrolled."
         },
         "onSidebarCollapsedChange": {
           "x-kind": "action",
@@ -749,14 +799,9 @@
           ],
           "description": "Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar."
         },
-        "sidebarToggle": {
-          "type": "boolean",
-          "default": true,
-          "description": "The collapse toggle at the start of the top bar (Figma HR-Platform: icon-layout-left before the Breadcrumbs)."
-        },
         "navOpen": {
           "type": "boolean",
-          "description": "Drawer state when controlled (narrow shells)."
+          "description": "Drawer state when controlled (drawer and mobile layouts)."
         },
         "defaultNavOpen": {
           "type": "boolean",
@@ -778,21 +823,21 @@
         },
         "mainId": {
           "type": "string",
-          "description": "id of <main>, the target of the \"Skip to content\" link."
+          "description": "Id of the main element, the target of the skip link."
         },
         "layout": {
           "enum": [
             "auto",
-            "sidebar",
+            "desktop",
             "drawer",
-            "phone"
+            "mobile"
           ],
           "default": "auto",
-          "description": "Force the layout."
+          "description": "Which structure to draw: `auto` (default) follows the shell's own width (1024px and up desktop; narrower, `mobile` when a mobile part is given, else `drawer`), or force `desktop`,"
         },
         "children": {
           "x-kind": "node",
-          "description": "The page."
+          "description": "Figma Content: the page (the Body pads Margin-Comfortable; Spacing/Gap/XSmall on desktop, Layout-Mobile/Section-Gap on mobile)."
         },
         "aria-label": {
           "type": "string",
@@ -830,21 +875,21 @@
       "slug": "app-shell",
       "folder": "AppShell",
       "status": "stable",
-      "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
-      "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
+      "import": "import { AppShell, AppShellHeader, AppShellPane, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
       "use": [
-        "Every signed-in web app screen (dashboards, admin, HR and settings).",
-        "One app frame for desktop, tablet and phone: below 1024px the Sidebar becomes a drawer; under 744px topNavigation and bottomNavigation take over from the top bar (see Do).",
-        "Top-bar icon actions with an unread dot or count → AppShellAction.",
-        "The account menu → Menu with an AppShellAccount trigger."
+        "Every app screen: one AppShell at the root, inside ZenProvider.",
+        "Navigation between a few roots → pattern=\"sidebar\" (the default); a list beside its detail (inbox, requests) → \"list-detail\"; one company or product without navigation → \"top-bar\"; tools around a canvas → \"workspace\"; reading → \"docs\"; one task with steps → \"focus\".",
+        "A phone or an upright iPad → topNavigation with bottomNavigation (roots) or actionBar (a task's actions); a brand band → mobileTop=\"band\" with hero; a profile or a summary rising over colour → \"band-sheet\"; a photo, video or map → \"media\" with backdrop.",
+        "Header icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger."
       ],
       "avoid": [
-        "Phone-only apps → TopNavigation + BottomNavigation inside ZenProvider typography=\"mobile\".",
         "Marketing pages → Container + your own header.",
         "A modal flow → Dialog or SidePanel type=\"modal\".",
-        "Page actions (Submit, Export, New) → the PageHeader actions, not the top bar."
+        "Page actions (Submit, Export, New) → the PageHeader actions in the header's main, not its top row.",
+        "A second shell inside a pane or a card → one AppShell per screen."
       ],
-      "description": "The account button at the end of the top bar: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a button.",
+      "description": "The account button at the end of the header's top row: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a button.",
       "props": {
         "name": {
           "type": "string",
@@ -924,21 +969,21 @@
       "slug": "app-shell",
       "folder": "AppShell",
       "status": "stable",
-      "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
-      "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
+      "import": "import { AppShell, AppShellHeader, AppShellPane, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
       "use": [
-        "Every signed-in web app screen (dashboards, admin, HR and settings).",
-        "One app frame for desktop, tablet and phone: below 1024px the Sidebar becomes a drawer; under 744px topNavigation and bottomNavigation take over from the top bar (see Do).",
-        "Top-bar icon actions with an unread dot or count → AppShellAction.",
-        "The account menu → Menu with an AppShellAccount trigger."
+        "Every app screen: one AppShell at the root, inside ZenProvider.",
+        "Navigation between a few roots → pattern=\"sidebar\" (the default); a list beside its detail (inbox, requests) → \"list-detail\"; one company or product without navigation → \"top-bar\"; tools around a canvas → \"workspace\"; reading → \"docs\"; one task with steps → \"focus\".",
+        "A phone or an upright iPad → topNavigation with bottomNavigation (roots) or actionBar (a task's actions); a brand band → mobileTop=\"band\" with hero; a profile or a summary rising over colour → \"band-sheet\"; a photo, video or map → \"media\" with backdrop.",
+        "Header icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger."
       ],
       "avoid": [
-        "Phone-only apps → TopNavigation + BottomNavigation inside ZenProvider typography=\"mobile\".",
         "Marketing pages → Container + your own header.",
         "A modal flow → Dialog or SidePanel type=\"modal\".",
-        "Page actions (Submit, Export, New) → the PageHeader actions, not the top bar."
+        "Page actions (Submit, Export, New) → the PageHeader actions in the header's main, not its top row.",
+        "A second shell inside a pane or a card → one AppShell per screen."
       ],
-      "description": "Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a top-bar icon action with an optional Primitives/Notification-Dot (4116:21789).",
+      "description": "Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a header icon action with an optional Primitives/Notification-Dot (4116:21789).",
       "props": {
         "icon": {
           "x-kind": "node",
@@ -1005,6 +1050,151 @@
               "json": false
             }
           ],
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "AppShellHeader": {
+      "name": "AppShellHeader",
+      "slug": "app-shell",
+      "folder": "AppShell",
+      "status": "stable",
+      "import": "import { AppShell, AppShellHeader, AppShellPane, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
+      "use": [
+        "Every app screen: one AppShell at the root, inside ZenProvider.",
+        "Navigation between a few roots → pattern=\"sidebar\" (the default); a list beside its detail (inbox, requests) → \"list-detail\"; one company or product without navigation → \"top-bar\"; tools around a canvas → \"workspace\"; reading → \"docs\"; one task with steps → \"focus\".",
+        "A phone or an upright iPad → topNavigation with bottomNavigation (roots) or actionBar (a task's actions); a brand band → mobileTop=\"band\" with hero; a profile or a summary rising over colour → \"band-sheet\"; a photo, video or map → \"media\" with backdrop.",
+        "Header icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger."
+      ],
+      "avoid": [
+        "Marketing pages → Container + your own header.",
+        "A modal flow → Dialog or SidePanel type=\"modal\".",
+        "Page actions (Submit, Export, New) → the PageHeader actions in the header's main, not its top row.",
+        "A second shell inside a pane or a card → one AppShell per screen."
+      ],
+      "description": "Figma Header/AppShell (16243:290461), the header of Pattern/AppShell/Desktop.",
+      "props": {
+        "leading": {
+          "x-kind": "node",
+          "description": "Figma Top-Elements › Leading-Slots: where the user is, usually `<Breadcrumbs size=\"sm\">`, or a Search."
+        },
+        "center": {
+          "x-kind": "node",
+          "description": "Figma Center-Slots: the row's middle, up to 400px and centred between `leading` and `actions`, e.g."
+        },
+        "actions": {
+          "x-kind": "node",
+          "description": "Figma Trailing-Slots, Spacing/Gap/Small apart: a plan Badge, `AppShellAction` buttons (notifications, help), then the account (`<Menu trigger={<AppShellAccount … />}>`)."
+        },
+        "main": {
+          "x-kind": "node",
+          "description": "Figma Main-Element (the Main row): the page's own header, usually `<PageHeader title=… />` with its actions."
+        },
+        "sections": {
+          "x-kind": "node",
+          "description": "Figma Sections: rows under the Main row, e.g."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "AppShellPane": {
+      "name": "AppShellPane",
+      "slug": "app-shell",
+      "folder": "AppShell",
+      "status": "stable",
+      "import": "import { AppShell, AppShellHeader, AppShellPane, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
+      "use": [
+        "Every app screen: one AppShell at the root, inside ZenProvider.",
+        "Navigation between a few roots → pattern=\"sidebar\" (the default); a list beside its detail (inbox, requests) → \"list-detail\"; one company or product without navigation → \"top-bar\"; tools around a canvas → \"workspace\"; reading → \"docs\"; one task with steps → \"focus\".",
+        "A phone or an upright iPad → topNavigation with bottomNavigation (roots) or actionBar (a task's actions); a brand band → mobileTop=\"band\" with hero; a profile or a summary rising over colour → \"band-sheet\"; a photo, video or map → \"media\" with backdrop.",
+        "Header icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger."
+      ],
+      "avoid": [
+        "Marketing pages → Container + your own header.",
+        "A modal flow → Dialog or SidePanel type=\"modal\".",
+        "Page actions (Submit, Export, New) → the PageHeader actions in the header's main, not its top row.",
+        "A second shell inside a pane or a card → one AppShell per screen."
+      ],
+      "description": "Figma .Primitives/AppShell/Pane (16254:1099): a side pane of Pattern/AppShell/Desktop (List-Detail's list, Workspace's and Docs' leading and trailing panes, Focus' summary).",
+      "props": {
+        "title": {
+          "x-kind": "node",
+          "description": "Figma Title (Heading/3, Content/Neutral/Strongest, one line, cut with \"…\"): the pane's heading and its region name."
+        },
+        "headingLevel": {
+          "enum": [
+            2,
+            3,
+            4
+          ],
+          "default": 2,
+          "description": "Heading level of the title."
+        },
+        "action": {
+          "x-kind": "node",
+          "description": "Figma Action: one icon action at the end of the header, usually `<IconButton appearance=\"flat\" level=\"secondary\" size=\"sm\" …>` (a 20px glyph with a 32px hit area)."
+        },
+        "theme": {
+          "enum": [
+            "shadow",
+            "flat",
+            "border",
+            "pale",
+            "subtle",
+            "on-container",
+            "canvas"
+          ],
+          "default": "shadow",
+          "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `flat` · `border` Border/Neutral/Pale · `pale` Support/Neutral/Pale · `subtle` Support/Neu"
+        },
+        "surface": {
+          "enum": [
+            "default",
+            "alt",
+            "flat"
+          ],
+          "default": "default",
+          "description": "Figma Surface for the flat and border themes: `default` Surface/Default · `alt` Surface/Alt · `flat` Surface/Flat (border only)."
+        },
+        "children": {
+          "x-kind": "node",
+          "description": "Figma Pane-Content: the pane's body (a List, a tree, filters, a summary)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
           "x-html": true
         }
       },
@@ -5059,7 +5249,7 @@
         "Converting a Figma Header/Dashboard: every Primitives/Dashboard/Header row keeps its Type."
       ],
       "avoid": [
-        "The app frame's top bar inside an AppShell → AppShell header · headerCenter · headerActions.",
+        "The app frame's top row inside an AppShell → AppShellHeader leading · center · actions.",
         "A page title with breadcrumbs, Back or section tabs → PageHeader (type main renders the same row without them).",
         "Phone screens → TopNavigation and the mobile filter row (Chip › Mobile filter row).",
         "A toolbar inside a card or a table widget → a Stack in the card's header."
@@ -13734,6 +13924,11 @@
           "default": false,
           "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the page on a Canvas/Alt (white) page."
         },
+        "shadow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes)."
+        },
         "workspaceBrand": {
           "x-kind": "node"
         },
@@ -16721,7 +16916,9 @@
             "liquid-overlay",
             "compact",
             "compact-alt",
-            "compact-overlay"
+            "compact-overlay",
+            "transparent",
+            "transparent-on-color"
           ],
           "default": "default"
         },
@@ -16734,10 +16931,11 @@
         },
         "subtitle": {
           "x-kind": "node",
-          "description": "Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title becomes a left-aligned identity — a 48px `titleLeading` visual"
+          "description": "Figma Heading-Text Type=Sub with Subheading (Top-Heading-Text 12014:44793, `.Primitives/Heading-Text/Basic` 4060:17984): a second line under the bar title, the title in Body/Extra/"
         },
         "titleLeading": {
-          "x-kind": "node"
+          "x-kind": "node",
+          "description": "Figma Heading-Text Leading on (◆ Social conversation header 6353:69678): a 48px visual (Avatar / ChatAvatarGroup) before the title, Spacing/Gap/Small (12) apart, and the title and"
         },
         "onTitleClick": {
           "x-kind": "action",
@@ -16754,6 +16952,14 @@
         "largeTitle": {
           "x-kind": "node",
           "description": "Figma Expand-Heading (Heading/1–3) under the navigator bar: a tab root's large title."
+        },
+        "largeTitleCapline": {
+          "x-kind": "node",
+          "description": "Figma Expand-Heading › Main-Heading-Text Capline (`.Primitives/Heading-Text/Basic` 4060:17984, Capline on): a line above the large title — \"Welcome home\" over \"Hi, Mai Anh\" (◇ Mast"
+        },
+        "largeTitleSubheading": {
+          "x-kind": "node",
+          "description": "Figma Expand-Heading › Main-Heading-Text Subheading (Subheading on): a line under the large title — \"6 devices · 4 on\" under \"Living room\" (F2), \"Living room\" under \"HomePod mini\""
         },
         "headingLevel": {
           "enum": [
@@ -16777,25 +16983,24 @@
         },
         "trailing": {
           "type": "array",
-          "items": {
-            "$ref": "#/$defs/TopNavigationAction"
-          },
+          "items": {},
           "default": [],
-          "description": "Figma Top-Trailing: up to three actions (its Trailing-Slot takes 3); more are not drawn."
+          "description": "Figma Top-Trailing: up to three places (its Trailing-Slot takes 3); more are not drawn."
         },
         "largeTitleAction": {
           "anyOf": [
+            {
+              "x-kind": "node"
+            },
             {
               "$ref": "#/$defs/TopNavigationAction"
             },
             {
               "type": "array",
-              "items": {
-                "$ref": "#/$defs/TopNavigationAction"
-              }
+              "items": {}
             }
           ],
-          "description": "Figma Expand-Trailing (Header-Trailing): one action, or a list of up to three, beside the large title."
+          "description": "Figma Expand-Trailing (Header-Trailing): one place, or a list of up to three, beside the large title — actions or visuals, as `trailing` (D3 and D5 15952:9644 put their Badge and A"
         },
         "topBar": {
           "type": "boolean",
@@ -16803,7 +17008,7 @@
         },
         "controlBar": {
           "x-kind": "node",
-          "description": "Figma Control-Bar slot (48px): a Search, Segmented or Tabs under the heading."
+          "description": "Figma Control-Bar slot (12014:44764): a Search, Segmented, Tabs or a Progress under the heading."
         },
         "banner": {
           "x-kind": "node",
@@ -18568,6 +18773,9 @@
         "Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.",
         "Use a large title only on top-level screens (tab roots); a pushed screen with Back uses the bar title alone.",
         "On a root, keep the default: the bar row folds into the large-title row (Figma Top-bar=false), so the actions sit at the right of the large title and stay put when it folds; pass topBar only for a stack that keeps the bar above the large title.",
+        "Put the line above a large title (a greeting, a brand) in largeTitleCapline and the line under it (a count, a room) in largeTitleSubheading, not in the title text: the title stays the heading's name and both fold away with it.",
+        "Pass a Badge or an Avatar straight in trailing (or largeTitleAction) as Figma's Trailing-Slot holds them, not inside an icon action; an account Avatar is size md or lg (Figma Medium 48 / Large 56 at Comfortable density). A visual is not a button: a tappable one needs its own labelled button.",
+        "Use topBar={false} without a large title only for a screen that starts with a brand band or a hero (Figma D2): keep title for screen readers, or leave it out when the content draws the h1.",
         "Pin a status that must stay in view (offline, syncing, read-only) with banner, a Small AlertBanner: it sits under the bar and the control bar, edge to edge, and never scrolls away.",
         "Let the large title follow the scroll with scrollRef instead of switching collapsed on a scrollTop threshold: it moves with the finger, never makes the content jump, and settles open or closed.",
         "Let the title be the screen's h1 and start the content headings at h2: the large title (Heading/1) on a root screen, the compact bar title (Body/Extra/Bold) on a child screen and once the large title collapses. Don't add a second, hidden h1.",
@@ -18857,23 +19065,24 @@
       "title": "App Shell",
       "file": "docs/guidelines/app-shell.md",
       "do": [
-        "Put one AppShell at the root of each signed-in screen, inside ZenProvider.",
-        "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
-        "Lead the top bar with Breadcrumbs (master={false}; the toggle comes first) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.",
-        "Give the page a Container with a PageHeader as its first child; page actions (one Primary) go in the PageHeader.",
+        "Put one AppShell at the root of each app screen, inside ZenProvider, and pick the pattern from the screen's job (see Use).",
+        "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards and panes; Canvas alt (white) + a Surface-alt or Flat Sidebar + bordered cards and panes (theme=\"border\"); Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
+        "Lead the header's top row with Breadcrumbs (master={false} beside the toggle) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.",
+        "Put the page's PageHeader in the header's main (one h1) and its views (Tabs) in sections; the Body holds the content at the page margin, with no Container.",
+        "Give both side panes the same width (workspace and docs size them for you) and one theme.",
         "Show unread items on the action itself (AppShellAction count or dot) so the count is also in its accessible name.",
         "Store the rail state from onSidebarCollapsedChange so the Sidebar opens the way people left it.",
-        "Let layout follow the shell's width; force it only for previews and tests.",
-        "For an app that runs on phones, give the shell topNavigation and bottomNavigation mapped from its header: Sidebar rows → BottomNavigation (up to 5; more → the first 4 + More), Breadcrumbs → the Back chevron on a child screen, the PageHeader title → the bar's title (large on a root), at most 3 trailing actions (Search, +, notifications, then ⋯ More), the account → the avatar in leading on a root. Every desktop header action stays reachable (component-usage-rules §17, skill zen-responsive-screens)."
+        "For an app that runs on phones, give the shell its mobile parts mapped from the header: Sidebar rows → BottomNavigation (up to 5; more → the first 4 + More), Breadcrumbs → Back on a child screen, the PageHeader title → the TopNavigation title (large on a root), at most 3 trailing actions, the account → the avatar on a root (component-usage-rules §17)."
       ],
       "dont": [
-        "Don't build your own sidebar + main flex layout or your own drawer.",
-        "Don't put primary page actions in the top bar (harness: app-shell/primary-in-top-bar).",
+        "Don't build your own sidebar + main flex layout, your own panes or your own drawer.",
+        "Don't put primary page actions in the header's top row (harness: app-shell/primary-in-top-bar).",
+        "Don't put a Master crumb right after the header's collapse toggle: master={false}, or collapse=\"sidebar\" (harness: app-shell/collapse-beside-master-crumb).",
+        "Don't give a pattern a part it does not draw, such as a trailingPane on sidebar (harness: app-shell/pattern-parts).",
         "Don't nest AppShells (harness: app-shell/nested).",
-        "Don't repeat the Breadcrumbs in the PageHeader when the top bar shows them (harness: app-shell/breadcrumbs-once).",
+        "Don't repeat the Breadcrumbs in the PageHeader when the top row shows them (harness: app-shell/breadcrumbs-once).",
         "Don't force layout in an app (harness: app-shell/forced-layout).",
-        "Don't hand-build a bell with a red dot; use AppShellAction.",
-        "Don't put the page's PageHeader in the content when the shell has a topNavigation: on a phone it stays beside the bar's title, two h1s; it belongs in sections (harness: app-shell/page-header-in-sections).",
+        "Don't put the PageHeader in the Body when the shell has a topNavigation: on a phone it stays beside the bar's title, two h1s (harness: app-shell/page-header-in-main).",
         "Don't give the phone bar other words than the PageHeader title (harness: app-shell/top-navigation-title)."
       ],
       "rules": [
@@ -18882,8 +19091,10 @@
         "app-shell/nested",
         "app-shell/breadcrumbs-once",
         "app-shell/forced-layout",
-        "app-shell/page-header-in-sections",
+        "app-shell/page-header-in-main",
         "app-shell/top-navigation-title",
+        "app-shell/collapse-beside-master-crumb",
+        "app-shell/pattern-parts",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"

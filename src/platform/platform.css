@@ -1078,7 +1078,9 @@
 .platform-phone[data-header-overlay="true"] .platform-phone__screen { scroll-padding-top: var(--platform-phone-header-pinned, 0px); }
 /* An AppShell drawing its own phone chrome (layout "phone", AppShell › Desktop and phone): its TopNavigation and
    BottomNavigation pad by the safe areas themselves, so the screen does not; the shell fills the screen. */
-.platform-phone .platform-phone__screen:has(> .zen-app-shell[data-layout="mobile"]) { padding-top: 0; padding-bottom: 0; }
+/* An AppShell on its mobile pattern draws its own bars under the status bar and the home indicator, at any depth (a
+   template wraps it in its own ZenProvider). */
+.platform-phone .platform-phone__screen:has(.zen-app-shell[data-layout="mobile"]) { padding-top: 0; padding-bottom: 0; }
 .platform-phone__screen > .zen-app-shell { --zen-app-shell-height: 100%; }
 .platform-phone[data-canvas="media"] .platform-phone__screen { padding-top: 0; }
 .platform-phone__footer:has(> .zen-bottom-nav:not([data-type="default"])) { position: absolute; right: 0; bottom: 0; left: 0; }

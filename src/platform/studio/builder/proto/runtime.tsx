@@ -196,7 +196,8 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
 function withoutMasterLayout(children: ReactNode): ReactNode {
   const nodes = Children.toArray(children).filter((child) => !(typeof child === "string" && !child.trim()));
   const [only] = nodes;
-  return nodes.length === 1 && isValidElement<{ children?: ReactNode }>(only) && only.type === AppShell ? only.props.children : children;
+  // The AppShell's mobile Body (Pattern/AppShell/Mobile): its padding and section gap, around the master layout's content.
+  return nodes.length === 1 && isValidElement<{ children?: ReactNode }>(only) && only.type === AppShell ? <div className="studio-builder-screen__shell-body">{only.props.children}</div> : children;
 }
 
 /** An overlay drawn open in its own frame: its portal is a node inside the frame, not the page's. A layer that does not

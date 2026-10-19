@@ -1,21 +1,37 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "app-shell",
-  "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
+  "import": "import { AppShell, AppShellHeader, AppShellPane, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "AppShell",
       "file": "src/components/AppShell/AppShell.tsx",
-      "description": "The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform):\nSidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a\n\"Skip to content\" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar\ncollapses it to its rail; narrower, it opens as a modal drawer. On phones (under 744px) a shell given `topNavigation`\nand `bottomNavigation` draws those instead of its top bar and `sections` (docs/component-usage-rules.md §17).\n\nEach part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader\ntype=\"navigation\" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots,\n`headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually\nDashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar\npads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on\ndesktop, as Figma's Navigation row).\n\n  <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}>\n    <Container><PageHeader title=\"Team members\" /> …</Container>\n  </AppShell>",
+      "description": "The frame of an app, built on Figma's AppShell patterns (◇ Master-Layout 16254:1057): Pattern/AppShell/Desktop\n(16258:1857) from 1024px, Pattern/AppShell/Mobile (16261:136204) below it when a mobile part is given, with a\n\"Skip to content\" link, a modal navigation drawer and a docked or modal side panel.\n\nDesktop (`pattern`): Sidebar, Header/AppShell (`header`, an AppShellHeader), the Body (`children`, padded\nMargin-Comfortable), the panes (`leadingPane`, `trailingPane`, AppShellPane), `progress`, `sidePanel` and\n`floatingActions`. Mobile (`mobileTop`): the TopNavigation, the band's `hero` or the `backdrop`, the Body, then the\n`bottomNavigation` or the `actionBar`. The Sidebar, the header, the panes and the bars stay in view while the page\nscrolls (the window or the frame around the shell).\n\n  <AppShell sidebar={<Sidebar … />} header={<AppShellHeader leading={<Breadcrumbs … />} actions={…} main={<PageHeader … />} />}>\n    …the page…\n  </AppShell>",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">",
       "props": [
+        {
+          "name": "pattern",
+          "type": "\"sidebar\" | \"list-detail\" | \"top-bar\" | \"workspace\" | \"docs\" | \"focus\"",
+          "required": false,
+          "default": "\"sidebar\"",
+          "description": "Figma Layout, the desktop structure (from 1024px: desktops and iPad landscape):\n- `sidebar` (default): Sidebar · header + page · docked side panel.\n- `list-detail`: the Sidebar's rail · `leadingPane` (a 360 list) · header + the selected item.\n- `top-bar`: no Sidebar; the header across, its sections or centre holding the navigation.\n- `workspace`: the header across the top · `leadingPane` · page · `trailingPane` (tools, properties).\n- `docs`: as workspace, the page a centred 720 column for reading, the panes on the Canvas.\n- `focus`: one task: the header across · `progress` · a 680 column with the `trailingPane` (a summary) beside it.",
+          "deprecated": null
+        },
+        {
+          "name": "collapse",
+          "type": "\"header\" | \"sidebar\" | \"none\"",
+          "required": false,
+          "default": "\"header\"",
+          "description": "Figma Collapse: where the Sidebar's collapse toggle sits. `header` (default): at the start of the header's top row ·\n`sidebar`: in the Sidebar's own header, for a trail that starts with a Master crumb (two icons in a row clash) ·\n`none`: no toggle (the rail follows `sidebarCollapsed` or `useAppShell().setSidebarCollapsed`).",
+          "deprecated": null
+        },
         {
           "name": "sidebar",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the\nshell's rail and drawer by itself, also when it is wrapped in a component of your own.",
+          "description": "Figma Sidebar: the app's navigation, a <Sidebar> (the `sidebar` and `list-detail` patterns). From 1024px it sits\nbeside the page, expanded or collapsed to its rail; narrower, it opens as a modal drawer from the header's menu\nbutton or `useAppShell().openNav()`. A Sidebar wrapped in a component of your own follows the shell too.",
           "deprecated": null
         },
         {
@@ -23,31 +39,47 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
+          "description": "Figma Header/AppShell: the page's header, an <AppShellHeader> (top row, Main row, Sections). Sticks to the top.",
           "deprecated": null
         },
         {
-          "name": "headerCenter",
+          "name": "leadingPane",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the\nleading content and the actions, e.g. a Search.",
+          "description": "Figma Leading-Pane: an <AppShellPane> before the page (`list-detail` 360; `workspace`, `docs` Sidebar/Default-Width).",
           "deprecated": null
         },
         {
-          "name": "sections",
+          "name": "trailingPane",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main),\na toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding\n(Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page.",
+          "description": "Figma Trailing-Pane: an <AppShellPane> after the page (`workspace`, `docs` Sidebar/Default-Width; `focus` 376).",
           "deprecated": null
         },
         {
-          "name": "headerActions",
+          "name": "sidePanel",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help),\nthen the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader.",
+          "description": "Figma Side-Panel: a right panel docked beside the page, usually <SidePanel type=\"standard\">. It docks while the page\nkeeps a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel.",
+          "deprecated": null
+        },
+        {
+          "name": "progress",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Progress (`focus`): the task's steps under the header, usually a horizontal <Stepper>, centred.",
+          "deprecated": null
+        },
+        {
+          "name": "floatingActions",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Floating-Actions: the page's floating buttons in the bottom-right corner, Margin-Comfortable from the edges.",
           "deprecated": null
         },
         {
@@ -55,47 +87,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "A full-width message strip above the whole shell, usually <AlertBanner> (trial ending, maintenance, offline). It stays in view while the page scrolls.",
-          "deprecated": null
-        },
-        {
-          "name": "aside",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type=\"standard\">. It docks while the\npage keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other\ncontent stacks under the page.",
-          "deprecated": null
-        },
-        {
-          "name": "floatingAction",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up.",
-          "deprecated": null
-        },
-        {
-          "name": "footer",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "A sticky bar at the bottom of the main column, e.g. an ActionBar.",
-          "deprecated": null
-        },
-        {
-          "name": "topNavigation",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma\nTop-Navigation/Mobile 12014:45167). With it, or `bottomNavigation`, a phone draws neither the top bar nor\n`sections`: the bar holds the page's title (its h1), Back on a child screen and at most three actions, mapped from the\ndesktop header (docs/component-usage-rules.md §17). The Sidebar stays reachable as the drawer\n(`useAppShell().openNav()`, e.g. from a BottomNavigation More). Tablets and desktops ignore it.",
-          "deprecated": null
-        },
-        {
-          "name": "bottomNavigation",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the\nfirst 4 + More). Pinned to the bottom under the footer; give it on root screens only. Tablets and desktops ignore it.",
+          "description": "A full-width message strip above the whole shell, usually <AlertBanner> (trial ending, maintenance, offline).",
           "deprecated": null
         },
         {
@@ -104,6 +96,62 @@
           "required": false,
           "default": "\"default\"",
           "description": "Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background=\"flat\").",
+          "deprecated": null
+        },
+        {
+          "name": "mobileTop",
+          "type": "\"bar\" | \"band\" | \"band-sheet\" | \"media\"",
+          "required": false,
+          "default": "\"bar\"",
+          "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait):\n- `bar` (default): the TopNavigation on Surface/Alt over the page.\n- `band`: a Support/Brand/Subtle band with the TopNavigation (transparent) and the `hero`, then the page.\n- `band-sheet`: the band fills the screen and the page rises over it as a sheet with 3XLarge top corners.\n- `media`: a `backdrop` (photo, video, map) behind a liquid-overlay TopNavigation, the page as a sheet over it.",
+          "deprecated": null
+        },
+        {
+          "name": "band",
+          "type": "\"subtle\" | \"pale\" | \"soft\" | \"accent\"",
+          "required": false,
+          "default": "\"subtle\"",
+          "description": "Mobile `band` / `band-sheet`: the band's fill (user, 2026-10-19). `subtle` Support/Brand/Subtle (default, the\npattern's own), `pale` Support/Brand/Pale, `soft` Support/Brand/Soft, `accent` Background/Accent/Solid. On `accent`\nthe TopNavigation takes `transparent-on-color` (unless it sets a type) and the hero's text takes `tone=\"on-accent\"`\n(content follows its Solid fill).",
+          "deprecated": null
+        },
+        {
+          "name": "topNavigation",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Mobile: the screen's <TopNavigation> (its h1, Back on a child screen, up to three actions). Its type follows `mobileTop` unless it sets one.",
+          "deprecated": null
+        },
+        {
+          "name": "hero",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Mobile Figma Hero (`band`, `band-sheet`): what the band shows under the TopNavigation (a balance, a profile, a summary).",
+          "deprecated": null
+        },
+        {
+          "name": "backdrop",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Mobile Figma Backdrop (`media`): the photo, video or map behind the top of the screen.",
+          "deprecated": null
+        },
+        {
+          "name": "bottomNavigation",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Mobile Figma Bottom Tab-Bar | Floating: the root navigation, a <BottomNavigation> (`floating-glass` floats over the page). Root screens only.",
+          "deprecated": null
+        },
+        {
+          "name": "actionBar",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an <ActionBar> (`surface=\"glass\"` over photos).",
           "deprecated": null
         },
         {
@@ -119,7 +167,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the\n Sidebar's `collapsed` moves the rail too.",
+          "description": "Rail state to start from, uncontrolled. Default: the Sidebar's own `collapsed`; `list-detail` starts on the rail.",
           "deprecated": null
         },
         {
@@ -127,15 +175,7 @@
           "type": "(collapsed: boolean) => void",
           "required": false,
           "default": null,
-          "description": "Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it (e.g. localStorage) to keep the choice between visits.",
-          "deprecated": null
-        },
-        {
-          "name": "sidebarToggle",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "The collapse toggle at the start of the top bar (Figma HR-Platform: icon-layout-left before the Breadcrumbs).\nDefault true: shown when the shell has a top bar (`header` or `headerActions`) and a Sidebar that can collapse.\nA Sidebar with its own `onCollapsedChange` keeps its header control instead.",
+          "description": "Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it to keep the choice between visits.",
           "deprecated": null
         },
         {
@@ -143,7 +183,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Drawer state when controlled (narrow shells).",
+          "description": "Drawer state when controlled (drawer and mobile layouts).",
           "deprecated": null
         },
         {
@@ -167,7 +207,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "Accessible name of the navigation drawer. Default: the locale's “Navigation”.",
+          "description": "Accessible name of the navigation drawer. Default: the localized \"Navigation\".",
           "deprecated": null
         },
         {
@@ -175,15 +215,15 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "id of <main>, the target of the \"Skip to content\" link. Default: a generated unique id.",
+          "description": "Id of the main element, the target of the skip link.",
           "deprecated": null
         },
         {
           "name": "layout",
-          "type": "\"auto\" | \"sidebar\" | \"drawer\" | \"phone\"",
+          "type": "\"auto\" | AppShellLayout",
           "required": false,
           "default": "\"auto\"",
-          "description": "Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer, and\nnarrower than 744px the phone chrome (`topNavigation` / `bottomNavigation`) when the shell has one. Force it only\nfor previews and tests.",
+          "description": "Which structure to draw: `auto` (default) follows the shell's own width (1024px and up desktop; narrower, `mobile`\nwhen a mobile part is given, else `drawer`), or force `desktop`, `drawer` or `mobile` (a design canvas, a preview).",
           "deprecated": null
         },
         {
@@ -191,7 +231,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The page.",
+          "description": "Figma Content: the page (the Body pads Margin-Comfortable; Spacing/Gap/XSmall on desktop, Layout-Mobile/Section-Gap on mobile).",
           "deprecated": null
         },
         {
@@ -199,7 +239,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: \"secondary\" }, Collapse: { appearance: \"main\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
+          "description": "Figma instance overrides, by layer (`{ Close: { level: \"secondary\" } }`). Written by Zen Studio; app code sets the props.",
           "deprecated": null
         },
         {
@@ -207,15 +247,153 @@
           "type": "Ref<HTMLDivElement>",
           "required": false,
           "default": null,
-          "description": "Ref to the shell's root `<div>`.",
+          "description": "The root `<div>` element.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AppShellHeader",
+      "file": "src/components/AppShell/AppShellHeader.tsx",
+      "description": "Figma Header/AppShell (16243:290461), the header of Pattern/AppShell/Desktop. The Main frame pads Margin-Comfortable\nabove and at the sides and Spacing/Padding/XSmall below, Spacing/Gap/Medium between its rows:\n- Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while\n  the AppShell has `collapse=\"header\"`) or, on a narrow shell, the menu button that opens the navigation drawer; then\n  Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart.\n- Main-Element: `main`, the page's own header.\nUnder the Main frame, Sections: `sections`. Pass it as the AppShell's `header`; on a phone the shell shows its\n`topNavigation` instead.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\">",
+      "props": [
+        {
+          "name": "leading",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-Elements › Leading-Slots: where the user is, usually `<Breadcrumbs size=\"sm\">`, or a Search. It grows.",
+          "deprecated": null
+        },
+        {
+          "name": "center",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Center-Slots: the row's middle, up to 400px and centred between `leading` and `actions`, e.g. a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "actions",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slots, Spacing/Gap/Small apart: a plan Badge, `AppShellAction` buttons (notifications, help), then\nthe account (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in `main`.",
+          "deprecated": null
+        },
+        {
+          "name": "main",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Main-Element (the Main row): the page's own header, usually `<PageHeader title=… />` with its actions.",
+          "deprecated": null
+        },
+        {
+          "name": "sections",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Sections: rows under the Main row, e.g. `<Tabs>` for the page's views or a toolbar of Search + filters.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides, by layer (`{ Collapse: { level: \"secondary\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<header>` element.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AppShellPane",
+      "file": "src/components/AppShell/AppShellPane.tsx",
+      "description": "Figma .Primitives/AppShell/Pane (16254:1099): a side pane of Pattern/AppShell/Desktop (List-Detail's list, Workspace's\nand Docs' leading and trailing panes, Focus' summary). Corner-Radius/XLarge; Pane-Header pads Margin-Compact at the\ntop and sides and Spacing/Padding/XSmall below, Spacing/Gap/XSmall between the title and the action; Pane-Content pads\nSpacing/Padding/XSmall with Spacing/Gap/XSmall between its rows. The AppShell sizes it (`leadingPane`, `trailingPane`).",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\" | \"children\">",
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Title (Heading/3, Content/Neutral/Strongest, one line, cut with \"…\"): the pane's heading and its region name.",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the title. Default 2: a pane sits beside the page's h1.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Action: one icon action at the end of the header, usually\n`<IconButton appearance=\"flat\" level=\"secondary\" size=\"sm\" …>` (a 20px glyph with a 32px hit area).",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"shadow\" | \"flat\" | \"border\" | \"pale\" | \"subtle\" | \"on-container\" | \"canvas\"",
+          "required": false,
+          "default": "\"shadow\"",
+          "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `flat` · `border`\nBorder/Neutral/Pale · `pale` Support/Neutral/Pale · `subtle` Support/Neutral/Subtle (both with the Overlay blur) ·\n`on-container` Surface/Flat, for a pane on a container · `canvas` no fill, for reading layouts (Docs).",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\" | \"flat\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Surface for the flat and border themes: `default` Surface/Default · `alt` Surface/Alt · `flat` Surface/Flat (border only).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Pane-Content: the pane's body (a List, a tree, filters, a summary).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides by layer. Written by Zen Studio; app code sets the props.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<section>` element.",
           "deprecated": null
         }
       ]
     },
     {
       "name": "AppShellAction",
-      "file": "src/components/AppShell/AppShell.tsx",
-      "description": "Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a top-bar icon action with an optional\nPrimitives/Notification-Dot (4116:21789). Dot 8px, Number Badge/Size/2XSmall high with Label/Small/Medium text, both on\nColor/Background/{Negative|Positive|Accent}/Solid with a 2px Color/Border/Inverse ring, at the button's top-right.\nIt forwards its ref and props to the button, so it can be a <Menu trigger>.",
+      "file": "src/components/AppShell/AppShellHeader.tsx",
+      "description": "Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a header icon action with an optional\nPrimitives/Notification-Dot (4116:21789). Dot 8px, Number Badge/Size/2XSmall high with Label/Small/Medium text, both on\nColor/Background/{Negative|Positive|Accent}/Solid with a 2px Color/Border/Inverse ring, at the button's top-right.\nIt forwards its ref and props to the button, so it can be a <Menu trigger>.",
       "deprecated": null,
       "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
       "props": [
@@ -295,8 +473,8 @@
     },
     {
       "name": "AppShellAccount",
-      "file": "src/components/AppShell/AppShell.tsx",
-      "description": "The account button at the end of the top bar: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a button. Put\nit in a Menu for the account actions: `<Menu align=\"end\" trigger={<AppShellAccount name=\"Ava Chen\" src={photo} />} items={…} />`.\nKeyboard focus shows the Avatar's own focus ring.",
+      "file": "src/components/AppShell/AppShellHeader.tsx",
+      "description": "The account button at the end of the header's top row: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a\nbutton. Put it in a Menu for the account actions: `<Menu align=\"end\" trigger={<AppShellAccount name=\"Ava Chen\" src={photo} />} items={…} />`.\nKeyboard focus shows the Avatar's own focus ring.",
       "deprecated": null,
       "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
       "props": [
@@ -352,6 +530,7 @@
     }
   ],
   "types": {
+    "AppShellLayout": "type AppShellLayout = \"desktop\" | \"drawer\" | \"mobile\"",
     "AvatarTheme": "type AvatarTheme = \"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\""
   }
 }

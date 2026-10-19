@@ -5,6 +5,10 @@ export function Good({ gap, stat }: { gap: string; stat: { value: string } }) {
       <Heading level={3} textStyle="Heading/4">Invoices</Heading>
       <Text as="span" textStyle="Heading/3">{stat.value}</Text>
       <Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} />
+      <Stack direction="row"><Avatar size="sm" shape="square" alt="">N</Avatar><Text as="span" textStyle="Heading/4">Northwind</Text></Stack>
+      <Brand initial="Z"><Text as="span" textStyle="Heading/4">Zen Docs</Text></Brand>
+      <Heading level={1}>Morning <Text as="span" textStyle="Heading/1" tone="light">Alexander</Text></Heading>
+      <Text textStyle="Heading/3">12 days</Text>
       <h3 className={typographyStyles["Heading/4"]}>Card title</h3>
       <h2 className="platform-main-component__title">Playground panel title (platform chrome)</h2>
       <p style={{ margin: 0, lineHeight: 1 }}>Tight</p>

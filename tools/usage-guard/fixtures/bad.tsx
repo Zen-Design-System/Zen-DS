@@ -63,15 +63,19 @@ export const Bad = () => <>
   {/* expect: dashboard-header/filters-are-chips */}
   <DashboardHeader search={<Search placeholder="Search leave requests" />} controls={<Button level="tertiary" onClick={openStatus}>Status</Button>} />
   {/* expect: app-shell/primary-in-top-bar */}
-  <AppShell sidebar={nav} headerActions={<Button level="primary" onClick={invite}>Invite member</Button>}><Container>{page}</Container></AppShell>
+  <AppShellHeader actions={<Button level="primary" onClick={invite}>Invite member</Button>} main={<PageHeader title="Members" />} />
   {/* expect: app-shell/nested */}
-  <AppShell sidebar={nav}><AppShell sidebar={nav}><Container>{page}</Container></AppShell></AppShell>
+  <AppShell sidebar={nav}><AppShell sidebar={nav}>{page}</AppShell></AppShell>
   {/* expect: app-shell/breadcrumbs-once */}
-  <AppShell sidebar={nav} header={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />}><PageHeader title="Invoices" breadcrumbs={<Breadcrumbs items={crumbs} onNavigate={go} />} /></AppShell>
-  {/* expect: app-shell/page-header-in-sections */}
-  <AppShell sidebar={nav} topNavigation={<TopNavigation title="Invoices" />}><Container><PageHeader title="Invoices" /></Container></AppShell>
+  <AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} main={<PageHeader title="Invoices" breadcrumbs={<Breadcrumbs items={crumbs} onNavigate={go} />} />} />
+  {/* expect: app-shell/page-header-in-main */}
+  <AppShell sidebar={nav} topNavigation={<TopNavigation title="Invoices" />}><PageHeader title="Invoices" /></AppShell>
   {/* expect: app-shell/top-navigation-title */}
-  <AppShell sidebar={nav} sections={<PageHeader title="Invoices" />} topNavigation={<TopNavigation title="Billing" />}><Container>{page}</Container></AppShell>
+  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Invoices" />} />} topNavigation={<TopNavigation title="Billing" />}>{page}</AppShell>
+  {/* expect: app-shell/collapse-beside-master-crumb */}
+  <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
+  {/* expect: app-shell/pattern-parts */}
+  <AppShell sidebar={nav} trailingPane={<AppShellPane title="Comments">{comments}</AppShellPane>}>{page}</AppShell>
   {/* expect: form/actions-order */}
   <FormActions><Button level="primary" type="submit">Save changes</Button><Button level="tertiary" onClick={cancel}>Cancel</Button></FormActions>
   {/* expect: form/submit-button */}
@@ -286,6 +290,8 @@ export const Bad = () => <>
   </Card></div>
   {/* expect: top-navigation/max-three-trailing */}
   <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
+  {/* expect: top-navigation/max-three-trailing */}
+  <TopNavigation title="Streaks" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, <Badge key="plan" theme="orange">Pro</Badge>, <Avatar key="me" name="Ava Chen" alt="" />]} />
   {/* expect: top-navigation/max-three-trailing */}
   <TopNavigation title="Files" largeTitle="Files" largeTitleAction={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
   {/* expect: bottom-navigation/destinations */}

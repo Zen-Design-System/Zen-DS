@@ -7,25 +7,31 @@
  *   fails, so the page opens on its error: a Negative InlineMessage whose Try again loads the projects.
  * - Filtered to nothing: Search and the Status and Lead chips narrow the table (on a phone the chips open Bottom
  *   Sheets); when nothing matches, its Empty State offers Clear filters (or Clear search).
- * - First use: the workspace switcher at the top of the Sidebar (or Bao's invite in Notifications) opens Đìzai Labs,
- *   which has no projects yet. Create project opens a validated ModalForm and the new project fills the table.
+ * - First use: the workspace switcher at the top of the Sidebar (on a phone, in the account sheet; or Bao's invite in
+ *   Notifications) opens Đìzai Labs, which has no projects yet. Create project opens a validated ModalForm and the new
+ *   project fills the table.
  * - Not found: a notification links to a project that was deleted since; the page says so and leads back to the list.
  * - A row opens its project in a Side Panel and stays selected while it is open; Notifications open in a Side Panel too.
  * - A button that replaces its own view (Try again, Clear filters, View all projects) hands focus to the list's Search.
+ * - The frame is AppShell's Sidebar pattern: the header's top row holds the trail and the utilities (Notifications, the
+ *   account menu) and its Main row the PageHeader. Under 1024px it draws the mobile pattern from the same parts: a
+ *   TopNavigation (the account, New project as "+", Notifications with a dot; Back on Not found) and the Sidebar's rows
+ *   as a BottomNavigation.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AppShell,
   AppShellAccount,
   AppShellAction,
+  AppShellHeader,
   Avatar,
   Badge,
   BottomSheet,
+  BottomNavigation,
   Box,
   Breadcrumbs,
   Button,
   Chip,
-  Container,
   DescriptionList,
   DockIcon,
   EmptyState,
@@ -50,17 +56,21 @@ import {
   TableMedia,
   TableText,
   Text,
+  TopNavigation,
   VisuallyHidden,
   plural,
+  useAppShell,
   useFormState,
   useToast,
   useZen,
   type AvatarTheme,
   type BadgeTheme,
+  type BottomNavigationItem,
   type DockIconTheme,
   type IconName,
   type SidebarSection,
   type TableColumn,
+  type TopNavigationAction,
 } from "@zen-ds/react";
 import alexPhoto from "./hr/assets/account-photo.jpg";
 
@@ -139,6 +149,14 @@ const nav: SidebarSection[] = [
     { id: "settings", label: "Settings", icon: "icon-settings-01-line" },
   ] },
 ];
+/** The same five rows on a phone: line icons, the current one solid. */
+const tabs: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
+  { id: "clients", label: "Clients", icon: "icon-briefcase-line", selectedIcon: "icon-briefcase-solid" },
+  { id: "reports", label: "Reports", icon: "icon-bar-chart-square-01-line", selectedIcon: "icon-bar-chart-square-01-solid" },
+  { id: "settings", label: "Settings", icon: "icon-settings-01-line", selectedIcon: "icon-settings-01-solid" },
+];
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 /** Avatar text: two initials ("Minh Anh Vo" → "MV"). */
@@ -176,6 +194,11 @@ const toggle = (list: string[], value: string) => (list.includes(value) ? list.f
 const kindIcon = (kind: Kind, size: "sm" | "md") => <DockIcon icon={kinds[kind].icon} theme={kinds[kind].theme} background="subtle" size={size} />;
 /** Medium in the table; Small beside a phone row's title, so the project name keeps its room. */
 const statusBadge = (status: Status, size: "sm" | "md" = "md") => <Badge size={size} theme={statusTheme[status]} background="subtle">{status}</Badge>;
+/** The PageHeader's description where the shell draws its mobile pattern: the TopNavigation shows the title only, so the
+ * description opens the page instead. */
+function MobileIntro({ children }: { children: ReactNode }) {
+  return useAppShell()?.layout === "mobile" ? <Text tone="base">{children}</Text> : null;
+}
 
 /* ── Table columns (most recently updated first); the loading rows mirror them, so the table keeps its shape ── */
 const columnWidths = { lead: "200px", status: "128px", due: "136px" };
@@ -218,9 +241,10 @@ export function EmptyErrorTemplate() {
   const [panel, setPanel] = useState<Panel>(null);
   const [unread, setUnread] = useState(notices.length);
   const [creating, setCreating] = useState(false);
-  const [navOpen, setNavOpen] = useState(false);
   /** The phone's filter sheet. */
   const [sheet, setSheet] = useState<"status" | "lead" | null>(null);
+  /** The phone's account sheet, which the TopNavigation's avatar opens (the desktop account menu and workspace switcher). */
+  const [accountOpen, setAccountOpen] = useState(false);
   // A button that replaces the view it sits in (Try again, Clear filters, View all projects) sets this, and focus moves
   // to the list's search field once the list shows, instead of falling back to the page.
   const searchRef = useRef<HTMLInputElement>(null);
@@ -261,7 +285,6 @@ export function EmptyErrorTemplate() {
   const openProject = (id: string) => { setMissing(null); setPanel({ kind: "project", id }); };
   /** Another workspace means another request: the page starts again from its loading state. */
   const switchWorkspace = (id: WorkspaceId) => {
-    setNavOpen(false);
     if (id === workspace) return;
     setWorkspace(id);
     setMissing(null);
@@ -390,10 +413,19 @@ export function EmptyErrorTemplate() {
     );
   }
 
+  // One Primary per page: first use and Not found carry their own next step.
+  const canCreate = missing === null && !firstUse;
+  const toggleInbox = () => { setUnread(0); setPanel((current) => (current?.kind === "inbox" ? null : { kind: "inbox" })); };
+  // Your router goes here: navigate(`/${id}`). The Sidebar and the phone's tab bar lead to the same places.
+  const go = (id: string, label: string) => { if (id === "projects") showList(); else notInDemo(label); };
+  // The phone bar's actions, in Figma's order: the page's Primary as "+", then Notifications (its count becomes a dot).
+  const phoneActions: TopNavigationAction[] = [
+    ...(canCreate ? [{ icon: "icon-plus-line", label: "New project", onClick: startCreate } satisfies TopNavigationAction] : []),
+    { icon: "icon-bell-01-line", label: unread ? `Notifications, ${unread} new` : "Notifications", dot: unread > 0, onClick: toggleInbox },
+  ];
+
   return (
     <AppShell
-      navOpen={navOpen}
-      onNavOpenChange={setNavOpen}
       sidebar={(
         <Sidebar
           variant="workspace"
@@ -401,28 +433,48 @@ export function EmptyErrorTemplate() {
             icon: <Avatar size="md" shape="square" theme={workspaces[id].theme} background="solid" alt="">{workspaces[id].initial}</Avatar> }))}
           sections={nav}
           selectedId="projects"
-          // Your router goes here: navigate(`/${item.id}`).
           onItemClick={(item) => {
             if (workspaceIds.includes(item.id as WorkspaceId)) switchWorkspace(item.id as WorkspaceId);
-            else if (item.id === "projects") showList();
-            else notInDemo(item.label);
+            else go(item.id, item.label);
           }}
         />
       )}
-      header={missing !== null
-        ? <Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: "missing", label: "Project not found" }]} onNavigate={(_item, event) => { event.preventDefault(); backToList(); }} />
-        : undefined}
-      headerActions={<>
-        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={panel?.kind === "inbox"}
-          onClick={() => { setUnread(0); setPanel((current) => (current?.kind === "inbox" ? null : { kind: "inbox" })); }} />
-        <Menu align="end" trigger={<AppShellAccount name={people[ME].name} src={alexPhoto} />} items={[
-          { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => notInDemo("Profile") },
-          { type: "separator" },
-          { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
-        ]} />
-      </>}
+      header={(
+        <AppShellHeader
+          // The top row: Not found's trail back to the list (the workspace Sidebar has no collapse toggle), then the
+          // utilities only: Notifications with its unread count, the account menu last.
+          leading={missing !== null
+            ? <Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: "missing", label: "Project not found" }]} onNavigate={(_item, event) => { event.preventDefault(); backToList(); }} />
+            : undefined}
+          actions={<>
+            <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={panel?.kind === "inbox"} onClick={toggleInbox} />
+            <Menu align="end" trigger={<AppShellAccount name={people[ME].name} src={alexPhoto} />} items={[
+              { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => notInDemo("Profile") },
+              { type: "separator" },
+              { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
+            ]} />
+          </>}
+          // The Main row: the page's own header and its one Primary.
+          main={(
+            <PageHeader title="Projects" description={workspaces[workspace].about}
+              actions={canCreate ? <Button level="primary" startIcon="icon-plus-line" onClick={startCreate}>New project</Button> : undefined} />
+          )}
+        />
+      )}
+      // Under 1024px the same parts as a phone screen. The list is a root: the account leads, the large title is the h1
+      // and the Sidebar's rows are the tab bar. Not found is a child: Back to the list, no tab bar.
+      topNavigation={missing !== null
+        ? <TopNavigation type="compact-alt" title="Projects" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />
+        : (
+          <TopNavigation title="Projects" largeTitle="Projects" trailing={phoneActions}
+            leading={<AppShellAccount name={people[ME].name} src={alexPhoto} aria-haspopup="dialog" aria-expanded={accountOpen} onClick={() => setAccountOpen(true)} />} />
+        )}
+      bottomNavigation={missing !== null ? undefined : (
+        <BottomNavigation aria-label={workspaces[workspace].name} items={tabs} value="projects" showLabels
+          onValueChange={(id) => go(id, tabs.find((tab) => tab.id === id)?.label ?? id)} />
+      )}
       // Keyed by kind: a notification that opens a project mounts a new panel, which takes focus as a modal panel does.
-      aside={panel?.kind === "inbox" ? (
+      sidePanel={panel?.kind === "inbox" ? (
         <SidePanel key="inbox" type="standard" title="Notifications" open onOpenChange={(open) => { if (!open) setPanel(null); }}>
           {/* The panel body scrolls with no top padding: sm above and below holds the first and last row's fill. */}
           <Box paddingY="sm">
@@ -445,17 +497,11 @@ export function EmptyErrorTemplate() {
         </SidePanel>
       ) : undefined}
     >
-      <Container maxWidth="full">
-        <Stack gap="lg" paddingY="sm">
-          <PageHeader
-            title="Projects"
-            description={workspaces[workspace].about}
-            // One Primary per page: first use and Not found carry their own next step.
-            actions={missing === null && !firstUse ? <Button level="primary" startIcon="icon-plus-line" onClick={startCreate}>New project</Button> : undefined}
-          />
-          {content}
-        </Stack>
-      </Container>
+      {/* The Body pads the page margins; the region under the header shows one state at a time. */}
+      <Stack gap="md">
+        <MobileIntro>{workspaces[workspace].about}</MobileIntro>
+        {content}
+      </Stack>
 
       <ModalForm open={creating} onOpenChange={setCreating} title="New project" onSubmit={form.handleSubmit}
         description={`Everyone in ${workspaces[workspace].name} can see it.`}
@@ -479,6 +525,19 @@ export function EmptyErrorTemplate() {
           </List>
         ) : null}
       </BottomSheet>
+
+      {/* Phone account sheet: the Sidebar's workspace switcher as a command, then the desktop account menu. */}
+      <BottomSheet type="action" title={people[ME].name} open={accountOpen} onOpenChange={setAccountOpen}
+        items={[
+          ...workspaceIds.filter((id) => id !== workspace).map((id) => ({ id, label: `Switch to ${workspaces[id].name}`,
+            icon: <Avatar size="xs" shape="square" theme={workspaces[id].theme} background="solid" alt="">{workspaces[id].initial}</Avatar> })),
+          { id: "profile", label: "Profile", icon: "icon-user-circle-line" },
+          { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line" },
+        ]}
+        onSelect={(item) => {
+          if (workspaceIds.includes(item.id as WorkspaceId)) switchWorkspace(item.id as WorkspaceId);
+          else notInDemo(item.id === "profile" ? "Profile" : "Signing out");
+        }} />
     </AppShell>
   );
 }

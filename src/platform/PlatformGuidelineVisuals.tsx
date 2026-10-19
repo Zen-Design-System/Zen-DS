@@ -6,6 +6,8 @@ import { typographyStyles } from "../tokens/typography.generated";
 import { Avatar, AvatarStack } from "../components/Avatar";
 import { Badge, BadgeCounter } from "../components/Badge";
 import { Breadcrumbs } from "../components/Breadcrumbs";
+import { AppShellAction, AppShellHeader } from "../components/AppShell";
+import { PageHeader } from "../components/PageHeader";
 import { Button, IconButton } from "../components/Button";
 import { Checkbox } from "../components/Checkbox";
 import { Chip } from "../components/Chip";
@@ -142,6 +144,13 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-field"><InputField label="Workspace ID" disabled value="zen-7f3k2" /></div>, caption: "Disabled text is faint, skipped by Tab and can't be copied: a value to read is Read-only." } },
     { do: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Enter a full address, like name@company.com" /></div>, caption: "Errors say how to fix the value." },
       dont: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Invalid input" /></div>, caption: "A generic error leaves users guessing." } },
+  ],
+  "app-shell": [
+    // User rule 2026-10-18 (Figma audit navigation/collapse-beside-master-crumb, harness app-shell/collapse-beside-master-crumb).
+    { do: { preview: <Row><IconButton appearance="flat" level="primary" size="sm" aria-label="Collapse sidebar" icon="icon-layout-left-line" /><Breadcrumbs master={false} items={[{ id: "leave", label: "Leave" }, { id: "requests", label: "Requests" }]} /></Row>, caption: "Beside the header's collapse toggle the trail starts at a Sub crumb: one icon at the start of the row." },
+      dont: { preview: <Row><IconButton appearance="flat" level="primary" size="sm" aria-label="Collapse sidebar" icon="icon-layout-left-line" /><Breadcrumbs items={[{ id: "home", label: "Đìzai Studio" }, { id: "requests", label: "Requests" }]} /></Row>, caption: "A Master crumb's home icon right after the toggle reads as two controls. Keep it only with collapse=\"sidebar\"." } },
+    { do: { preview: <div className="pgv-wide"><AppShellHeader leading={<Breadcrumbs master={false} items={[{ id: "people", label: "People" }]} />} actions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot />} main={<PageHeader title="People" actions={<Button level="primary" size="sm">Invite person</Button>} />} /></div>, caption: "The top row keeps utilities; the page's Primary sits in its PageHeader (the Main row)." },
+      dont: { preview: <div className="pgv-wide"><AppShellHeader leading={<Breadcrumbs master={false} items={[{ id: "people", label: "People" }]} />} actions={<><Button level="primary" size="sm">Invite person</Button><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot /></>} main={<PageHeader title="People" />} /></div>, caption: "A Primary in the top row competes with navigation and stays on every page." } },
   ],
   "dashboard-header": [
     { do: { preview: <div className="pgv-wide"><DashboardHeader search={<Search size="md" placeholder="Search leave requests" />} controls={<Chip variant="advanced" dropdown>Status</Chip>} actions={<Button level="primary" size="sm">Submit leave</Button>} /></div>, caption: "Filters are Chips beside the Search; the page's action sits at the end." },

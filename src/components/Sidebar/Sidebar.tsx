@@ -128,6 +128,14 @@ export interface SidebarProps {
   /** A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the
    *  page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it. */
   divider?: boolean;
+  /**
+   * Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes). Yes: the Surface/Default Sidebar
+   * takes Shadow/Bottom/Level-1 (a Canvas/Default page whose cards are shadowed). `shadow={false}` is Shadow=No:
+   * Surface/Default with no shadow (◇ Master-Layout · Example A2 · Tiles, 15904:2813, beside flat tiles). Unlike
+   * `background="flat"` (Surface/Flat, which is the page colour in dark mode), the Sidebar stays a Surface in both
+   * modes. Alt, Flat, the small density and the workspace panel carry no shadow either way.
+   */
+  shadow?: boolean;
   workspaceBrand?: ReactNode;
   workspaceItems?: SidebarItem[];
   workspaceFooter?: ReactNode;
@@ -588,7 +596,7 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
   return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
-export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedProp = false, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref }: SidebarProps) {
+export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedProp = false, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref }: SidebarProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   // Inside an AppShell (directly or wrapped in an app component) the shell owns the rail unless the Sidebar has its own
@@ -646,7 +654,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   }
 
   return (
-    <nav ref={navRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={requestedDensity ?? (variant === "small-density" ? "small" : "medium")} aria-label={ariaLabel ?? t.mainNavigation}>
+    <nav ref={navRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-shadow={shadow ? undefined : "false"} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={requestedDensity ?? (variant === "small-density" ? "small" : "medium")} aria-label={ariaLabel ?? t.mainNavigation}>
       <SidebarNavContext value={nav}>
         {nest.scope(<SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} searchCollapsed={searchCollapsed} collapsed={collapsed} onCollapsedChange={onCollapsedChange} expandRail={expandRail} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</SidebarPanel>)}
         {flyout}

@@ -120,8 +120,12 @@ const propLabels: Record<string, string> = {
 const componentPropLabels: Record<string, Record<string, string>> = {
   FormActions: { sticky: "Pin to bottom", inset: "Side inset" },
   TopNavigation: { sticky: "Pin to top" },
-  // Figma's names (◇ Master-Layout, Header/Dashboard, user 2026-10-16): the booleans where Figma has one, else the slot.
-  AppShell: { banner: "Banner", sidebar: "Sidebar", header: "Leading-Slots", headerCenter: "Nav-Center-Block", headerActions: "Nav-Trailing-Block", sections: "Sections", aside: "Side-Panel", floatingAction: "Floating-Actions", footer: "Footer" },
+  // Figma's names (◇ Master-Layout AppShell patterns, user 2026-10-16; rebuilt 2026-10-19): the property or the slot.
+  AppShell: { pattern: "Layout", collapse: "Collapse", banner: "Banner", sidebar: "Sidebar", header: "Header", leadingPane: "Leading-Pane", trailingPane: "Trailing-Pane", progress: "Progress", sidePanel: "Side-Panel", floatingActions: "Floating-Actions", mobileTop: "Top", topNavigation: "Top-Navigation", hero: "Hero", backdrop: "Backdrop", bottomNavigation: "Bottom-Navigation", actionBar: "Action-Bar" },
+  // Figma Header/AppShell (16243:290461).
+  AppShellHeader: { leading: "Leading-Slots", center: "Center-Slots", actions: "Trailing-Slots", main: "Main-Element", sections: "Sections" },
+  // Figma .Primitives/AppShell/Pane (16254:1099).
+  AppShellPane: { title: "Title", action: "Action", theme: "Theme", surface: "Surface", children: "Pane-Content" },
   // PageHeader is Figma's Primitives/Dashboard/Header Type=Main.
   PageHeader: { description: "Subheading", childTitle: "Child-Heading", actions: "Actions", trailing: "Nav-Trailing-Block" },
 };

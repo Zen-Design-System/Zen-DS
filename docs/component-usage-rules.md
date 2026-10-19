@@ -434,9 +434,9 @@ one to its place**. Nothing is dropped: every action the desktop header offers i
 
 | Layout | Width (`useZen().breakpoint`) | Chrome |
 | --- | --- | --- |
-| Desktop | ≥ 1024 | AppShell: Sidebar beside the page, the top bar, `sections` (Figma Header/Dashboard) |
-| Tablet | 744–1023 | The same AppShell; the Sidebar opens as a drawer from the Menu button |
-| Mobile | < 744 | AppShell `topNavigation` + `bottomNavigation` (Figma Top-Navigation/Mobile, Bottom-Navigation): they replace the top bar and `sections`; the Sidebar still opens as the drawer (`useAppShell().openNav()`) |
+| Desktop | ≥ 1024 | AppShell's `pattern` (Figma Pattern/AppShell/Desktop): the Sidebar, panes, `header={<AppShellHeader …/>}` (Figma Header/AppShell: the top row and the Main row) |
+| Mobile | < 1024 with mobile parts (an upright iPad too) | AppShell `topNavigation` + `bottomNavigation` or `actionBar` (Figma Pattern/AppShell/Mobile, Top-Navigation/Mobile, Bottom-Navigation, Action-Bar/Mobile): they replace the header; the Sidebar still opens as the drawer (`useAppShell().openNav()`) |
+| Drawer | < 1024 without mobile parts | The header; the Sidebar opens as a drawer from the Menu button |
 
 **The screen's kind picks the bar** (top-navigation-mobile-rules §1): a **root** (a Sidebar destination: no `back`,
 Breadcrumbs of one item or none) is `type="default"` with `largeTitle` and the BottomNavigation; a **child** (Breadcrumbs
@@ -458,8 +458,8 @@ a **modal or form** screen has Close and its Primary in an ActionBar footer.
 | Other `AppShellAction`s, the plan Badge | root: ⋯ More or the account sheet · child: none |
 | Account (`AppShellAccount` + Menu) | root: the avatar in `leading`, opening the account menu as an action BottomSheet · child: none (Back holds `leading`) · none when the BottomNavigation has a Profile tab |
 | Control-bar row: Search + filter Chips | `controlBar` Search; the Chips → a scrolling Chip row at the top of the content |
-| `floatingAction`, `footer` | stay (the floating action hides on scroll; ActionBar `lg`, full width) |
-| `aside` (SidePanel) | a pushed screen or a BottomSheet `size="max"` |
+| `floatingActions`, a task's ActionBar | stay: the floating actions hide on scroll; the ActionBar becomes AppShell `actionBar` (Figma Bottom=Actions) |
+| `sidePanel` (SidePanel) | a pushed screen or a BottomSheet `size="max"` |
 | `banner` | TopNavigation `banner` |
 
 Rules:
@@ -470,18 +470,22 @@ Rules:
 2. **Every desktop header action is reachable on the phone**: in the bar, More, the footer, the account sheet or the
    More tab. A part meant for one layout only is hidden on the other on purpose (Studio: Hide on mobile / desktop; code:
    the breakpoint from `useZen()`), never lost in the mapping.
-3. **One h1.** The page title lives in AppShell `sections` (never in the content), so the phone hides that PageHeader
-   and the TopNavigation title is the h1 (top-navigation-mobile-rules R12).
+3. **One h1.** The page title lives in the AppShellHeader's `main` (never in the content), so the phone hides that
+   PageHeader and the TopNavigation title is the h1 (top-navigation-mobile-rules R12).
 4. **Same words.** `title` / `largeTitle` = the PageHeader title; a root's title = its BottomNavigation label (R13); a
    trailing action's label = the desktop button's.
-5. **One way to create.** The Primary becomes "+" or the footer, never both; a `floatingAction` "+" counts as that way.
+5. **One way to create.** The Primary becomes "+" or the Action bar, never both; a `floatingActions` "+" counts as that way.
 
 ```tsx
 <AppShell
   sidebar={<Sidebar aria-label="Main" selectedId="expenses">…</Sidebar>}
-  header={<Search aria-label="Search" placeholder="Search expenses" />}
-  headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><Menu trigger={<AppShellAccount name="Khoa Dang" />} items={account} /></>}
-  sections={<PageHeader title="Expenses" actions={<Button level="primary">New expense</Button>} />}
+  header={
+    <AppShellHeader
+      leading={<Search aria-label="Search" placeholder="Search expenses" />}
+      actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><Menu trigger={<AppShellAccount name="Khoa Dang" />} items={account} /></>}
+      main={<PageHeader title="Expenses" actions={<Button level="primary">New expense</Button>} />}
+    />
+  }
   topNavigation={
     <TopNavigation title="Expenses" largeTitle="Expenses" leading={<AppShellAccount name="Khoa Dang" onClick={openAccount} />}
       trailing={[{ icon: "icon-plus-line", label: "New expense" }, { icon: "icon-bell-01-line", label: "Notifications", dot: true }]}
@@ -495,5 +499,5 @@ Rules:
 
 Zen Studio draws a Screen's phone parts from its desktop AppShell by this table: they stay linked to the desktop until
 you edit them on the phone (Reset to desktop links them again), and the export writes them as the AppShell's
-`topNavigation` / `bottomNavigation`. Harness: `app-shell/page-header-in-sections`, `app-shell/top-navigation-title`
+`topNavigation` / `bottomNavigation`. Harness: `app-shell/page-header-in-main`, `app-shell/top-navigation-title`
 and the TopNavigation rules (`top-navigation/*`).

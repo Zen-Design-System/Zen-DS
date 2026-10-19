@@ -179,6 +179,14 @@
           "deprecated": null
         },
         {
+          "name": "shadow",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes). Yes: the Surface/Default Sidebar\ntakes Shadow/Bottom/Level-1 (a Canvas/Default page whose cards are shadowed). `shadow={false}` is Shadow=No:\nSurface/Default with no shadow (◇ Master-Layout · Example A2 · Tiles, 15904:2813, beside flat tiles). Unlike\n`background=\"flat\"` (Surface/Flat, which is the page colour in dark mode), the Sidebar stays a Surface in both\nmodes. Alt, Flat, the small density and the workspace panel carry no shadow either way.",
+          "deprecated": null
+        },
+        {
           "name": "workspaceBrand",
           "type": "ReactNode",
           "required": false,

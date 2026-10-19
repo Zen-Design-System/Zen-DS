@@ -8,6 +8,7 @@ import { SearchShapeContext } from "../_shared/search-shape";
 import { useLiquidGlass } from "../_shared/liquid-glass";
 import { ProgressiveBlur } from "../_shared/progressive-blur";
 import { useZenLabels } from "../_shared/zen-context";
+import { VisuallyHidden } from "../VisuallyHidden";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./top-navigation.css";
 import "../Icon/core";
@@ -57,12 +58,20 @@ export interface TopNavigationProps {
   type?: TopNavigationType;
   margin?: TopNavigationMargin;
   /**
-   * Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title
-   * becomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in
-   * Body/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2. The identity title is the screen's
-   * heading like any bar title; with `onTitleClick` the heading wraps the identity button.
+   * Figma Heading-Text Type=Sub with Subheading (Top-Heading-Text 12014:44793, `.Primitives/Heading-Text/Basic`
+   * 4060:17984): a second line under the bar title, the title in Body/Extra/Bold over the subtitle in Caption/Regular
+   * (Content/Neutral/Light), Spacing/Gap/3XSmall (2) apart. As the Type=Sub variant draws it (Contents and Heading
+   * centred, Subheading text-align centre), the block stays centred in the bar — "Hi, Maya / Personal account" after an
+   * Avatar (◇ Master-Layout · Example C2 15921:8204), "Order #10428 / Placed Sep 30 · Online store" between Back and
+   * More (C5 15923:8404). With `titleLeading` the title becomes the conversation identity instead (see there). The title
+   * is the screen's heading like any bar title; with `onTitleClick` the heading wraps the title button.
    */
   subtitle?: ReactNode;
+  /**
+   * Figma Heading-Text Leading on (◆ Social conversation header 6353:69678): a 48px visual (Avatar / ChatAvatarGroup)
+   * before the title, Spacing/Gap/Small (12) apart, and the title and `subtitle` left-aligned after it, filling the bar
+   * between the leading and trailing slots (the Social header aligns Heading and Subheading to the start).
+   */
   titleLeading?: ReactNode;
   /** Makes the identity a button (open the profile / group info). */
   onTitleClick?: () => void;
@@ -86,6 +95,21 @@ export interface TopNavigationProps {
    */
   largeTitle?: ReactNode;
   /**
+   * Figma Expand-Heading › Main-Heading-Text Capline (`.Primitives/Heading-Text/Basic` 4060:17984, Capline on): a line
+   * above the large title — "Welcome home" over "Hi, Mai Anh" (◇ Master-Layout · Example F1 15991:10116), a brand over a
+   * device name (F3–F10), "GOOD MORNING" (D5 15952:9644). Body/Base/Regular in Content/Neutral/Light (On-Black-Overlay/Base
+   * on the overlay and on-colour types), Spacing/Gap/2XSmall (4) above the title, 3XSmall (2) at h3. It is not part of the
+   * heading's name: the title stays the h1, the capline and `largeTitleSubheading` sit beside it in an `<hgroup>`. It
+   * folds away with the large title. Ignored without `largeTitle`.
+   */
+  largeTitleCapline?: ReactNode;
+  /**
+   * Figma Expand-Heading › Main-Heading-Text Subheading (Subheading on): a line under the large title — "6 devices · 4 on"
+   * under "Living room" (F2), "Living room" under "HomePod mini" (F3), "One tap for many devices" under
+   * "Scenes" (F12). Same style, tone and gap as `largeTitleCapline`; it folds away with the large title.
+   */
+  largeTitleSubheading?: ReactNode;
+  /**
    * Level of the screen title — the large title while it shows, else the bar title. Default h1: the title names the
    * screen (match `document.title` to it). Use h2 / h3 only for a navigation stack nested inside another screen that
    * already has its h1. The large title's style follows the level (h1 Heading/1 · h2 Heading/2 · h3 Heading/3); the
@@ -94,22 +118,41 @@ export interface TopNavigationProps {
   headingLevel?: TopNavigationHeading;
   /** Figma Top-Leading: an action (usually Back) or a visual (e.g. an Avatar). */
   leading?: TopNavigationAction | ReactNode;
-  /** Figma Top-Trailing: up to three actions (its Trailing-Slot takes 3); more are not drawn. */
-  trailing?: TopNavigationAction[];
   /**
-   * Figma Expand-Trailing (Header-Trailing): one action, or a list of up to three, beside the large title. When the bar
-   * row folds into the large-title row (a root, see `topBar`) they sit first in the trailing slot, so they stay in place
-   * and in reach once the title folds; the bar still draws three actions in all.
+   * Figma Top-Trailing: up to three places (its Trailing-Slot takes 3); more are not drawn. A place is an action (a 44px
+   * Nav-Action), a pair of actions with the same `group` (one pill), or a visual drawn as it is — a Badge or an Avatar,
+   * as Figma puts them straight in the Trailing-Slot: an Orange "3" Badge (Medium, icon-zap-line) and a 48 Avatar
+   * (Medium) on D3 15950:9324, a 56 square Avatar (Large) on D4 15950:9696. The places stay
+   * Navigation-Mobile/Top/Action-Button-Gap (8) apart in the fixed Navigation-Mobile/Top/Bar-Size (64) row, so a 56
+   * Avatar overhangs the 8px padding instead of growing the bar. A visual is not a button: when it opens something (the
+   * account), pass an action, or make the node itself a labelled button. `null` / `false` items take no place.
    */
-  largeTitleAction?: TopNavigationAction | TopNavigationAction[];
+  trailing?: (TopNavigationAction | ReactNode)[];
+  /**
+   * Figma Expand-Trailing (Header-Trailing): one place, or a list of up to three, beside the large title — actions or
+   * visuals, as `trailing` (D3 and D5 15952:9644 put their Badge and Avatar here). When the bar row folds into the
+   * large-title row (a root, see `topBar`) they sit first in the trailing slot, so they stay in place and in reach once
+   * the title folds; the bar still draws three places in all.
+   */
+  largeTitleAction?: TopNavigationAction | ReactNode | (TopNavigationAction | ReactNode)[];
   /**
    * Figma Top-bar: the navigator-bar row. By default a root (a large title and no `leading`) hides it while the large title
    * shows, as Figma's root screens do (Top-bar=false): the trailing actions sit at the right of the large-title row, and
    * once the title folds the bar title shows in that same row, so the header keeps its height. `true` keeps the row
    * above the large title (the iOS layout); `false` hides it on any screen with a large title.
+   *
+   * `false` without a large title (Figma Top-bar=false with Expand-Heading off, ◇ Master-Layout · Example D2 15948:9920:
+   * a welcome screen under a brand band) draws no bar row at all: only the status-bar inset, then `controlBar` and
+   * `banner` if any; `leading`, `trailing` and `subtitle` are not drawn. A `title` stays the screen's heading
+   * (`headingLevel`) for screen readers only, so the screen keeps its one title; leave `title` out when the content
+   * draws the screen's h1. With nothing left to hold, the root is a plain `<div>`, not an empty `<header>` landmark.
    */
   topBar?: boolean;
-  /** Figma Control-Bar slot (48px): a Search, Segmented or Tabs under the heading. */
+  /**
+   * Figma Control-Bar slot (12014:44764): a Search, Segmented, Tabs or a Progress under the heading. The row hugs its
+   * control: the bar's side margin and Spacing/Padding/XSmall (8) above and below it (a 24px Progress makes a 40px row),
+   * none above and below a Tabs (its row is the bar). Several controls stack Spacing/Gap/XSmall apart.
+   */
   controlBar?: ReactNode;
   /**
    * A status that must stay in view while the screen scrolls (offline, syncing, read-only): a Small AlertBanner pinned
@@ -151,24 +194,37 @@ const MAX_ACTIONS = 3;
 const actionStyleFor = (type: TopNavigationType) =>
   type.startsWith("compact") ? "flat" : type === "liquid-glass" || type === "transparent-on-color" ? "glass" : type === "default-overlay" || type === "liquid-overlay" ? "glass-dark" : "default";
 
+/** An item of `trailing` / `largeTitleAction`: an action, or a visual drawn as it is (Badge, Avatar). */
+type TrailingItem = TopNavigationAction | ReactNode;
+/** One Trailing-Slot place: an action, a run of grouped actions (the dual Nav-Action pill), or a visual. */
+type TrailingPlace = { actions: TopNavigationAction[] } | { node: ReactNode };
+/** `null`, `false`, `undefined` and "" items (`cond && <Badge …/>`) take no place. */
+const isDrawn = (item: TrailingItem) => item !== null && item !== undefined && typeof item !== "boolean" && item !== "";
+const placeOf = (item: TrailingItem): TrailingPlace => (isAction(item) ? { actions: [item] } : { node: item });
+
 /**
- * The trailing slot in Figma Trailing-Slot terms (up to `slots` items): one action per item, or a run of actions next to
- * each other with the same `group` as one item, the dual Nav-Action (`firstTwo`: the deprecated `trailingGroup`, used
- * only when no action names a group). On a root the large-title actions (`lead`) come first. Flat (compact) actions
- * have no container, and Figma's Nav-Action/Icon-Flat no trailing icon, so they never pair (`pairs` false).
+ * The trailing slot in Figma Trailing-Slot terms (up to `slots` places): one action or one visual per place, or a run of
+ * actions next to each other with the same `group` as one place, the dual Nav-Action (`firstTwo`: the deprecated
+ * `trailingGroup`, used only when no action names a group). On a root the large-title items (`lead`) come first. Flat
+ * (compact) actions have no container, and Figma's Nav-Action/Icon-Flat no trailing icon, so they never pair (`pairs`
+ * false). A visual between two actions keeps them apart.
  */
-function trailingItems(lead: TopNavigationAction[], trailing: TopNavigationAction[], pairs: boolean, firstTwo: boolean, slots: number): TopNavigationAction[][] {
-  const own: TopNavigationAction[][] = [];
-  const named = trailing.some((action) => action.group);
-  trailing.forEach((action, index) => {
+function trailingItems(lead: TrailingItem[], trailing: TrailingItem[], pairs: boolean, firstTwo: boolean, slots: number): TrailingPlace[] {
+  const own: TrailingPlace[] = [];
+  const items = trailing.filter(isDrawn);
+  const named = items.some((item) => isAction(item) && Boolean(item.group));
+  items.forEach((item, index) => {
+    if (!isAction(item)) { own.push({ node: item }); return; }
     const last = own[own.length - 1];
-    const prev = trailing[index - 1];
-    const joins = pairs && last && (named ? Boolean(action.group) && action.group === prev?.group : firstTwo && index === 1);
-    if (joins) last.push(action);
-    else own.push([action]);
+    const prev = items[index - 1];
+    if (pairs && last && "actions" in last && isAction(prev) && (named ? Boolean(item.group) && item.group === prev.group : firstTwo && index === 1)) last.actions.push(item);
+    else own.push({ actions: [item] });
   });
-  return [...lead.map((action) => [action]), ...own].slice(0, slots);
+  return [...lead.filter(isDrawn).map(placeOf), ...own].slice(0, slots);
 }
+
+/** Figma D3 / D4: a visual in a Trailing-Slot place, as it is (a Badge, an Avatar), centred in the 64px row. */
+const TrailingVisual = ({ node }: { node: ReactNode }) => <span className="zen-top-nav__visual">{node}</span>;
 
 /** Figma Nav-Action (Icon-Main Tertiary · Flat · Liquid-Glass): a 44px circle with a 24px icon. */
 export function TopNavigationActionButton({ action, variant, className, state, ref }: {
@@ -200,16 +256,18 @@ export function TopNavigationActionButton({ action, variant, className, state, r
  * Outline: the screen always exposes exactly one title heading (`headingLevel`, h1 by default) — the large title
  * (Heading/1) while it shows, otherwise the bar title in its own Body/Extra/Bold style; never both.
  */
-/** Keeps the large-title row clear of the bar's trailing actions that sit over it on a root (Top-bar=false): an invisible
- *  copy of the trailing slot with one placeholder per action (a pair keeps its pill), so the title ellipsizes before it
- *  runs under them. */
-function ActionsRoom({ items, variant }: { items: TopNavigationAction[][]; variant: string }) {
+/** Keeps the large-title row clear of the bar's trailing places that sit over it on a root (Top-bar=false): an invisible
+ *  copy of the trailing slot with one placeholder per action (a pair keeps its pill) and an inert, hidden copy of each
+ *  visual (its own size), so the title ellipsizes before it runs under them. */
+function ActionsRoom({ items, variant }: { items: TrailingPlace[]; variant: string }) {
   if (!items.length) return null;
   return (
-    <span className="zen-top-nav__trailing zen-top-nav__trailing--room" aria-hidden="true">
-      {items.map((item, index) => item.length > 1
-        ? <span key={index} className="zen-top-nav__group" data-style={variant}>{item.map((_, half) => <span key={half} className="zen-top-nav__action" data-style="flat-group" />)}</span>
-        : <span key={index} className="zen-top-nav__action" data-style={variant} />)}
+    <span className="zen-top-nav__trailing zen-top-nav__trailing--room" aria-hidden="true" inert>
+      {items.map((item, index) => "node" in item
+        ? <TrailingVisual key={index} node={item.node} />
+        : item.actions.length > 1
+          ? <span key={index} className="zen-top-nav__group" data-style={variant}>{item.actions.map((_, half) => <span key={half} className="zen-top-nav__action" data-style="flat-group" />)}</span>
+          : <span key={index} className="zen-top-nav__action" data-style={variant} />)}
     </span>
   );
 }
@@ -284,7 +342,7 @@ function useScrollFold(scrollRef: TopNavigationProps["scrollRef"], linked: boole
   return state;
 }
 
-export function TopNavigation({ type = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleLabel, trailingGroup = false, title, largeTitle, headingLevel = "h1", leading, trailing = [], largeTitleAction, topBar, controlBar, banner, searchAction, scrollRef, collapsed: collapsedProp, sticky = false, "aria-label": ariaLabel, className, ref }: TopNavigationProps) {
+export function TopNavigation({ type = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleLabel, trailingGroup = false, title, largeTitle, largeTitleCapline, largeTitleSubheading, headingLevel = "h1", leading, trailing = [], largeTitleAction, topBar, controlBar, banner, searchAction, scrollRef, collapsed: collapsedProp, sticky = false, "aria-label": ariaLabel, className, ref }: TopNavigationProps) {
   const t = useZenLabels();
   const titleId = useId();
   const variant = actionStyleFor(type);
@@ -306,11 +364,38 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const showLarge = Boolean(largeTitle) && !collapsed;
   // The bar overlays the large-title row while that row is there (always when scroll-linked: the fold stays mounted).
   const barOverlay = barFolds && (linked || showLarge);
-  const titleActions = largeTitleAction === undefined ? [] : Array.isArray(largeTitleAction) ? largeTitleAction : [largeTitleAction];
+  const titleActions: TrailingItem[] = (largeTitleAction === undefined ? [] : Array.isArray(largeTitleAction) ? largeTitleAction : [largeTitleAction]).filter(isDrawn);
   const lead = barFolds ? titleActions : [];
   const pairs = variant !== "flat";
   // Each action object is passed on as it is (the Studio ties a rendered button to its item by identity).
-  const expandTrailing = titleActions.length ? <div className="zen-top-nav__expand-trailing">{titleActions.slice(0, MAX_ACTIONS).map((action, index) => <TopNavigationActionButton key={index} action={action} variant={variant} />)}</div> : null;
+  const expandTrailing = titleActions.length ? <div className="zen-top-nav__expand-trailing">{titleActions.slice(0, MAX_ACTIONS).map((item, index) => isAction(item) ? <TopNavigationActionButton key={index} action={item} variant={variant} /> : <TrailingVisual key={index} node={item} />)}</div> : null;
+  // Figma Top-bar=false with Expand-Heading off (D2): no navigator-bar row, only the status inset (and a control bar or
+  // banner). The title stays the screen's heading for screen readers; with nothing left the root is not a landmark.
+  const noBar = topBar === false && !largeTitle;
+  const hiddenTitle = noBar && Boolean(title);
+  const Root = noBar && !hiddenTitle && !controlBar && !banner ? "div" : "header";
+  // Figma Main-Heading-Text Capline / Subheading: the large title's lines, grouped with it (hgroup) while it shows.
+  const lines = Boolean(largeTitleCapline || largeTitleSubheading);
+  const largeHeading = (asHeading: boolean) => {
+    const heading = asHeading
+      ? <Heading className={`zen-top-nav__heading ${typographyStyles[headingStyle]}`} data-level={headingLevel}>{largeTitle}</Heading>
+      : <div className={`zen-top-nav__heading ${typographyStyles[headingStyle]}`} data-level={headingLevel} aria-hidden="true">{largeTitle}</div>;
+    if (!lines) return heading;
+    const Group = asHeading ? "hgroup" : "div";
+    return (
+      <Group className="zen-top-nav__heading-group" data-level={headingLevel} aria-hidden={asHeading ? undefined : true}>
+        {largeTitleCapline ? <p className={`zen-top-nav__capline ${typographyStyles["Body/Base/Regular"]}`}>{largeTitleCapline}</p> : null}
+        {heading}
+        {largeTitleSubheading ? <p className={`zen-top-nav__subheading ${typographyStyles["Body/Base/Regular"]}`}>{largeTitleSubheading}</p> : null}
+      </Group>
+    );
+  };
+  const renderPlace = (place: TrailingPlace, index: number) => "node" in place
+    ? <TrailingVisual key={index} node={place.node} />
+    : place.actions.length > 1
+      // The dual Nav-Action: one pill in the bar's action style, two halves that each keep their target and name.
+      ? <span key={index} ref={groupGlass} className="zen-top-nav__group" data-style={variant} role="group">{place.actions.map((action, half) => <TopNavigationActionButton key={half} action={action} variant="flat-group" />)}</span>
+      : <TopNavigationActionButton key={index} action={place.actions[0]} variant={variant} />;
   const barTitle = title ?? (collapsed ? largeTitle : undefined);
   // One title heading at all times: the large title while it shows, else the bar title (the copy under a large title is aria-hidden).
   const barIsTitle = Boolean(barTitle) && !showLarge;
@@ -323,9 +408,12 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const search = usePresence(foldsSearch && (linked ? scroll.folded : collapsed), 120);
   const searchButton: TopNavigationAction | null = searchAction ? { icon: searchAction.icon ?? "icon-search-medium-line", label: searchAction.label ?? t.search, onClick: searchAction.onClick } : null;
   return (
-    <header ref={headerRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={ariaLabel}>
+    <Root ref={headerRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={Root === "header" ? ariaLabel : undefined}>
       {progressive ? <ProgressiveBlur className="zen-top-nav__progressive" strong="top" /> : null}
-      <div ref={barRef} className="zen-top-nav__bar">
+      {hiddenTitle ? <VisuallyHidden as={headingLevel}>{title}</VisuallyHidden> : null}
+      {/* data-identity: the Heading-Text Type=Sub title block — centred as the variant draws it, or start-aligned after a
+          titleLeading visual (the Social conversation header). */}
+      {noBar ? null : <div ref={barRef} className="zen-top-nav__bar" data-identity={identity ? (titleLeading ? "start" : "center") : undefined}>
         <div className="zen-top-nav__leading">
           {isAction(leading) ? <TopNavigationActionButton action={leading} variant={variant} /> : leading}
         </div>
@@ -357,12 +445,9 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
         <div className="zen-top-nav__trailing">
           {search.mounted && searchButton ? <TopNavigationActionButton action={searchButton} variant={variant} className="zen-top-nav__search" state={search.phase} /> : null}
           {/* Keyed by position: a label that changes (a count clearing, Like → Unlike) must not remount the button and drop its focus. */}
-          {trailingItems(lead, trailing, pairs, trailingGroup, search.mounted && searchButton ? MAX_ACTIONS - 1 : MAX_ACTIONS).map((item, index) => item.length > 1
-            // The dual Nav-Action: one pill in the bar's action style, two halves that each keep their target and name.
-            ? <span key={index} ref={groupGlass} className="zen-top-nav__group" data-style={variant} role="group">{item.map((action, half) => <TopNavigationActionButton key={half} action={action} variant="flat-group" />)}</span>
-            : <TopNavigationActionButton key={index} action={item[0]} variant={variant} />)}
+          {trailingItems(lead, trailing, pairs, trailingGroup, search.mounted && searchButton ? MAX_ACTIONS - 1 : MAX_ACTIONS).map(renderPlace)}
         </div>
-      </div>
+      </div>}
       {linked ? (
         <>
           {/* Scroll-linked: the fold stays mounted and slides under the bar; a covered part is inert (no focus on what
@@ -370,10 +455,8 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
           {largeTitle || foldsSearch ? (
             <div ref={setFoldNode} className="zen-top-nav__fold">
               {largeTitle ? (
-                <div ref={expandRef} className="zen-top-nav__expand" inert={collapsed || undefined}>
-                  {showLarge
-                    ? <Heading className={`zen-top-nav__heading ${typographyStyles[headingStyle]}`} data-level={headingLevel}>{largeTitle}</Heading>
-                    : <div className={`zen-top-nav__heading ${typographyStyles[headingStyle]}`} data-level={headingLevel} aria-hidden="true">{largeTitle}</div>}
+                <div ref={expandRef} className="zen-top-nav__expand" data-lines={lines ? "true" : undefined} inert={collapsed || undefined}>
+                  {largeHeading(showLarge)}
                   {barFolds ? <ActionsRoom items={trailingItems(lead, trailing, pairs, trailingGroup, MAX_ACTIONS)} variant={variant} /> : expandTrailing}
                 </div>
               ) : null}
@@ -387,8 +470,8 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
       ) : (
         <>
           {showLarge ? (
-            <div className="zen-top-nav__expand">
-              <Heading className={`zen-top-nav__heading ${typographyStyles[headingStyle]}`} data-level={headingLevel}>{largeTitle}</Heading>
+            <div className="zen-top-nav__expand" data-lines={lines ? "true" : undefined}>
+              {largeHeading(true)}
               {barFolds ? <ActionsRoom items={trailingItems(lead, trailing, pairs, trailingGroup, MAX_ACTIONS)} variant={variant} /> : expandTrailing}
             </div>
           ) : null}
@@ -396,6 +479,6 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
           {banner ? <div className="zen-top-nav__banner">{banner}</div> : null}
         </>
       )}
-    </header>
+    </Root>
   );
 }

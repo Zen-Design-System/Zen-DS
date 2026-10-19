@@ -1020,10 +1020,11 @@ const innermost = (node) => (node.type === "INSTANCE" || node.children?.length !
  * An app frame as AppShell (AppShell.tsx; figma-push.mjs appShellNode, the other way): a row of the Sidebar (an instance,
  * or the composition that wraps one), a column whose first row is the Dashboard header Type=Navigation, and an optional
  * Side-Panel. Read from Figma's ◇ Master-Layout (Main-Container › Header/Dashboard › Sections; Body with its Content
- * and Floating-Actions) and from the push's frames (Column › Header, Sections, Main). The navigation row gives `header`
- * (its Leading-Slots without the toggle AppShell draws), `headerCenter` and `headerActions` (a named Avatar at their
- * end is the account); the other rows are `sections`; the page frame's layers the children (Body's padding kept in a
- * Stack); a layer pinned outside the auto layout the floating action; layers after the page the footer.
+ * and Floating-Actions) and from the push's frames (Column › Header, Sections, Main). The rows give `header`, an
+ * AppShellHeader: the navigation row its `leading` (Leading-Slots without the toggle AppShell draws), `center` and
+ * `actions` (a named Avatar at their end is the account); a PageHeader row its `main`, the other rows `sections`. The
+ * page frame's layers are the children (Body's padding kept in a Stack), then the layers after the page (an ActionBar);
+ * a layer pinned outside the auto layout is the floating action.
  */
 function appShellElement(node, ctx) {
   const layers = node.children ?? [];
@@ -1036,18 +1037,19 @@ function appShellElement(node, ctx) {
   const rows = headerNode ? rowsIn(headerNode) : [];
   if (!isNavigation(rows[0], ctx)) return null;
   const props = { sidebar: { kind: "element", node: convert(sidebarNode, ctx) } };
+  const headerProps = {};
   const nav = rows[0];
   const slotOf = (name) => (nav.slots ?? []).find((slot) => slot.name === name);
-  // Top bar: Leading-Slots without the toggle (AppShell draws it; a design without one says sidebarToggle={false}).
+  // Top bar: Leading-Slots without the toggle (AppShell draws it; a design without one says collapse="none").
   const leadingSlot = slotOf("Leading-Slots");
   const leading = (leadingSlot?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
   if (leading[0]?.name === "IconButton" && TOGGLE_ICON.test(leading[0].props.icon?.value ?? "")) leading.shift();
-  else props.sidebarToggle = literal(false);
+  else props.collapse = literal("none");
   const header = oneOf(leading, { name: "Leading-Slots", layout: leadingSlot?.layout, source: leadingSlot }, ctx);
-  if (header) props.header = { kind: "element", node: unpadded(header) };
+  if (header) headerProps.leading = { kind: "element", node: unpadded(header) };
   const centerSlot = nav.props?.["Nav-Center-Block"] === false ? null : slotOf("Center-Slots");
   const center = centerSlot ? oneOf((centerSlot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), { name: "Center-Slots", layout: centerSlot.layout, source: centerSlot }, ctx) : null;
-  if (center) props.headerCenter = { kind: "element", node: center };
+  if (center) headerProps.center = { kind: "element", node: center };
   const trailingSlot = slotOf("Trailing-Slots");
   const trailingNodes = trailingSlot?.children ?? [];
   const trailing = trailingNodes.map((child, index) => {
@@ -1062,13 +1064,17 @@ function appShellElement(node, ctx) {
     return element;
   }).filter(Boolean);
   const actions = oneOf(trailing, { name: "Trailing-Slots", layout: trailingSlot?.layout, source: trailingSlot }, ctx);
-  if (actions) props.headerActions = { kind: "element", node: actions };
+  if (actions) headerProps.actions = { kind: "element", node: actions };
   // Sections: Header/Dashboard's other rows, or the push's Sections frame.
   const sectionNodes = rows.slice(1);
   let after = rest;
   if (after[0]?.type === "FRAME" && after[0].name === "Sections") { sectionNodes.push(...(after[0].children ?? [])); after = after.slice(1); }
-  const sections = sectionNodes.map((row) => unpadded(convert(row, ctx))).filter(Boolean);
-  if (sections.length) props.sections = { kind: "element", node: sections.length === 1 ? sections[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: sections } };
+  const rowElements = sectionNodes.map((row) => unpadded(convert(row, ctx))).filter(Boolean);
+  // The Main row: the first PageHeader; the rows after it are the section rows.
+  const sections = rowElements[0]?.name === "PageHeader" ? rowElements.slice(1) : rowElements;
+  if (rowElements[0]?.name === "PageHeader") headerProps.main = { kind: "element", node: rowElements[0] };
+  if (sections.length) headerProps.sections = { kind: "element", node: sections.length === 1 ? sections[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: sections } };
+  if (Object.keys(headerProps).length) props.header = { kind: "element", node: { kind: "element", name: "AppShellHeader", props: headerProps, children: [] } };
   // The page: the next frame's layers (Body's padding kept in a Stack around them); pinned layers are the floating action.
   const pinned = [];
   let children = [];
@@ -1082,17 +1088,24 @@ function appShellElement(node, ctx) {
     const inside = bodyLayers.filter((child) => (child.absolute ? (pinned.push(child), false) : true));
     const elements = inside.map((child) => convert(child, ctx)).filter(Boolean);
     const padding = pageNode.layout?.padding ?? [];
-    children = padding.some(Boolean) ? [frameElement({ ...pageNode, children: inside }, elements, ctx)] : elements;
+    // AppShell's Body pads Margin-Comfortable and spaces the page Gap/XSmall (app-shell.css): a Body padded so keeps a
+    // Stack only for what else it does (its gap, its alignment), never the padding (the page would be padded twice).
+    const asBody = pageNode.layout?.paddingVar === "Margin-Comfortable";
+    const { padding: _padding, paddingVar: _paddingVar, paddingVars: _paddingVars, ...unpaddedLayout } = pageNode.layout ?? {};
+    const own = asBody ? { ...pageNode, layout: unpaddedLayout } : pageNode;
+    const bodyAsIs = asBody && (pageNode.layout?.gap ?? 0) === 8 && !["CENTER", "MAX"].includes(pageNode.layout?.counter);
+    children = padding.some(Boolean) && !bodyAsIs ? [frameElement({ ...own, children: inside }, elements, ctx)] : elements;
   }
   const footer = after.filter((part) => part !== pageNode && !(part.absolute && pinned.push(part)) && after.indexOf(part) > after.indexOf(pageNode)).map((part) => convert(part, ctx)).filter(Boolean);
-  if (footer.length) props.footer = { kind: "element", node: oneOf(footer, { name: "Footer", layout: { mode: "VERTICAL" } }, ctx) };
+  // A desktop task's ActionBar is the page's last child (AppShell has no footer).
+  children.push(...footer);
   if (pinned.length) {
     const { absolute, ...floating } = innermost(pinned[0]);
     const element = convert(floating, ctx);
-    if (element) props.floatingAction = { kind: "element", node: element };
+    if (element) props.floatingActions = { kind: "element", node: element };
     if (pinned.length > 1) ctx.notes.push(`AppShell "${node.name}": ${pinned.length} layers sit outside the auto layout; the first is the floating action, the others are left out`);
   }
-  if (asideNode) props.aside = { kind: "element", node: convert(asideNode, ctx) };
+  if (asideNode) props.sidePanel = { kind: "element", node: convert(asideNode, ctx) };
   return { kind: "element", name: "AppShell", props, children };
 }
 

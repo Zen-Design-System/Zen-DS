@@ -119,7 +119,9 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
     return () => observer.disconnect();
   }, [base, spec.width]);
   const frame = { width: spec.width, height: spec.height, transform: scale < 1 ? `scale(${scale})` : undefined };
-  const vars = { ...frame, "--zen-safe-area-top": `${spec.top}px`, "--zen-safe-area-bottom": `${spec.bottom}px`, "--platform-phone-header-height": `${headerHeight}px`, "--platform-phone-header-pinned": `${pinnedHeight}px` } as CSSProperties;
+  const vars = { ...frame, "--zen-safe-area-top": `${spec.top}px`, "--zen-safe-area-bottom": `${spec.bottom}px`, "--platform-phone-header-height": `${headerHeight}px`, "--platform-phone-header-pinned": `${pinnedHeight}px`,
+    // An AppShell anywhere in the screen (a template wraps it in its own provider) fills the screen and sticks its bars to it.
+    ...(header || footer ? {} : { "--zen-app-shell-height": `${spec.height}px` }) } as CSSProperties;
   return (
     <div ref={fitRef} className="platform-phone-fit" style={{ width: spec.width * scale, height: spec.height * scale, "--platform-phone-radius": `${spec.radius}px` } as CSSProperties}>
       {/* The bezel is its own layer, outside the screen's backdrop root (platform.css › PlatformPhone). */}

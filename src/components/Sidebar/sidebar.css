@@ -34,6 +34,9 @@
 /* The workspace avatar rail always sits on Surface/Default (never Alt), so the avatar tiles and their Border/Inverse ring read clearly. */
 .zen-sidebar[data-background="flat"] .zen-sidebar__surface,
 .zen-sidebar[data-background="flat"] .zen-sidebar__workspace-main { background: var(--zen-color-background-surface-flat, transparent); box-shadow: none; }
+/* shadow={false}: Figma Patterns/Sidebar/Density-Medium Shadow=No (7139:100816): Component/Side-Bar/Placeholder keeps its
+   Color/Background/Surface/Default fill and drops Shadow/Bottom/Level-1. */
+.zen-sidebar[data-shadow="false"] .zen-sidebar__surface { box-shadow: none; }
 /* divider: on a Canvas/Alt page an Alt or Flat Sidebar is separated from the page by a Pale line on its inner edge,
    the full height of the block (inside the Sidebar, so it moves and collapses with it). */
 .zen-sidebar[data-divider="true"] { position: relative; }
@@ -41,7 +44,9 @@
 .zen-sidebar[data-background="inverse"] .zen-sidebar__surface,
 .zen-sidebar[data-background="inverse"] .zen-sidebar__workspace-main { background: var(--zen-color-background-inverse-solid-default, #111); color: var(--zen-color-content-inverse-strongest, #fff); }
 
-.zen-sidebar__header { display: flex; min-height: 68px; align-items: center; box-sizing: border-box; padding: var(--zen-margin-compact, 20px); }
+/* Figma Header hugs its content between Margin-Compact paddings (68 with the 28px logo; 72 with A1's 32px workspace
+   Avatar, 15904:1616), so it never shrinks when the body has more rows than the Sidebar has height (the body scrolls). */
+.zen-sidebar__header { display: flex; min-height: 68px; flex-shrink: 0; align-items: center; box-sizing: border-box; padding: var(--zen-margin-compact, 20px); }
 .zen-sidebar__default-brand { display: flex; width: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* The logo slot takes the header height; its width follows the artwork (Figma Union 78.9×24). */
 .zen-sidebar__default-brand-expanded { display: inline-flex; height: 24px; flex: 0 0 auto; align-items: center; }
@@ -54,7 +59,9 @@
 .zen-sidebar__collapse:disabled { cursor: default; }
 .zen-sidebar__workspace-default-mark { display: inline-flex; width: var(--zen-image-size-medium, 40px); height: var(--zen-image-size-medium, 40px); align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-sidebar__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; padding: var(--zen-spacing-padding-xsmall, 8px); overflow-y: auto; }
-.zen-sidebar__items { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+/* Sections Spacing/Gap/XSmall (8) apart (◇ Master-Layout · Example A1–A4, 15904:1616: Sidebar-List gap 8 between General ·
+   Work · People · Insights; each section stacks its 32px Section-Title and 44px rows Spacing/Gap/3XSmall apart). */
+.zen-sidebar__items { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-sidebar__section { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-sidebar__section-items { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-sidebar__section-title { display: flex; min-height: 32px; align-items: center; box-sizing: border-box; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }

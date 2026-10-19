@@ -57,6 +57,12 @@
           "$ref": "#/$defs/components/AppShellAction"
         },
         {
+          "$ref": "#/$defs/components/AppShellHeader"
+        },
+        {
+          "$ref": "#/$defs/components/AppShellPane"
+        },
+        {
           "$ref": "#/$defs/components/AreaChart"
         },
         {
@@ -805,6 +811,7 @@
                     "enum": [
                       "default",
                       "alt",
+                      "glass",
                       "none"
                     ]
                   },
@@ -2187,6 +2194,39 @@
           "props": {
             "type": "object",
             "properties": {
+              "pattern": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "sidebar",
+                      "list-detail",
+                      "top-bar",
+                      "workspace",
+                      "docs",
+                      "focus"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Layout, the desktop structure (from 1024px: desktops and iPad landscape): - `sidebar` (default): Sidebar · header + page · docked side panel."
+              },
+              "collapse": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "header",
+                      "sidebar",
+                      "none"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Collapse: where the Sidebar's collapse toggle sits."
+              },
               "sidebar": {
                 "anyOf": [
                   {
@@ -2215,7 +2255,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Left navigation, usually <Sidebar>."
+                "description": "Figma Sidebar: the app's navigation, a <Sidebar> (the `sidebar` and `list-detail` patterns)."
               },
               "header": {
                 "anyOf": [
@@ -2245,9 +2285,9 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search."
+                "description": "Figma Header/AppShell: the page's header, an <AppShellHeader> (top row, Main row, Sections)."
               },
-              "headerCenter": {
+              "leadingPane": {
                 "anyOf": [
                   {
                     "anyOf": [
@@ -2275,9 +2315,9 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the leading content and the actions, e.g."
+                "description": "Figma Leading-Pane: an <AppShellPane> before the page (`list-detail` 360; `workspace`, `docs` Sidebar/Default-Width)."
               },
-              "sections": {
+              "trailingPane": {
                 "anyOf": [
                   {
                     "anyOf": [
@@ -2305,9 +2345,9 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main), a toolbar of Search + filters (Type=Control-Bar) or your ow"
+                "description": "Figma Trailing-Pane: an <AppShellPane> after the page (`workspace`, `docs` Sidebar/Default-Width; `focus` 376)."
               },
-              "headerActions": {
+              "sidePanel": {
                 "anyOf": [
                   {
                     "anyOf": [
@@ -2335,7 +2375,67 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help), then the account menu (`<Menu trigger={<AppShellAccount … />}>`)."
+                "description": "Figma Side-Panel: a right panel docked beside the page, usually <SidePanel type=\"standard\">."
+              },
+              "progress": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Progress (`focus`): the task's steps under the header, usually a horizontal <Stepper>, centred."
+              },
+              "floatingActions": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Floating-Actions: the page's floating buttons in the bottom-right corner, Margin-Comfortable from the edges."
               },
               "banner": {
                 "anyOf": [
@@ -2367,95 +2467,52 @@
                 ],
                 "description": "A full-width message strip above the whole shell, usually <AlertBanner> (trial ending, maintenance, offline)."
               },
-              "aside": {
+              "canvas": {
                 "anyOf": [
                   {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
-                      }
+                    "enum": [
+                      "default",
+                      "alt",
+                      "flat"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type=\"standard\">."
+                "description": "Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background=\"flat\")."
               },
-              "floatingAction": {
+              "mobileTop": {
                 "anyOf": [
                   {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
-                      }
+                    "enum": [
+                      "bar",
+                      "band",
+                      "band-sheet",
+                      "media"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g."
+                "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait): - `bar` (default): the TopNavigation on Surface/Alt over the page."
               },
-              "footer": {
+              "band": {
                 "anyOf": [
                   {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
-                      }
+                    "enum": [
+                      "subtle",
+                      "pale",
+                      "soft",
+                      "accent"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "A sticky bar at the bottom of the main column, e.g."
+                "description": "Mobile `band` / `band-sheet`: the band's fill (user, 2026-10-19)."
               },
               "topNavigation": {
                 "anyOf": [
@@ -2485,7 +2542,67 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma Top-Navigation/Mobile 12014:45167)."
+                "description": "Mobile: the screen's <TopNavigation> (its h1, Back on a child screen, up to three actions)."
+              },
+              "hero": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Mobile Figma Hero (`band`, `band-sheet`): what the band shows under the TopNavigation (a balance, a profile, a summary)."
+              },
+              "backdrop": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Mobile Figma Backdrop (`media`): the photo, video or map behind the top of the screen."
               },
               "bottomNavigation": {
                 "anyOf": [
@@ -2515,22 +2632,37 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the first 4 + More)."
+                "description": "Mobile Figma Bottom Tab-Bar | Floating: the root navigation, a <BottomNavigation> (`floating-glass` floats over the page)."
               },
-              "canvas": {
+              "actionBar": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "default",
-                      "alt",
-                      "flat"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background=\"flat\")."
+                "description": "Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an <ActionBar> (`surface=\"glass\"` over photos)."
               },
               "sidebarCollapsed": {
                 "anyOf": [
@@ -2552,7 +2684,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Initial rail state when uncontrolled."
+                "description": "Rail state to start from, uncontrolled."
               },
               "onSidebarCollapsedChange": {
                 "anyOf": [
@@ -2576,17 +2708,6 @@
                 ],
                 "description": "Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar."
               },
-              "sidebarToggle": {
-                "anyOf": [
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "$ref": "#/$defs/marker"
-                  }
-                ],
-                "description": "The collapse toggle at the start of the top bar (Figma HR-Platform: icon-layout-left before the Breadcrumbs)."
-              },
               "navOpen": {
                 "anyOf": [
                   {
@@ -2596,7 +2717,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Drawer state when controlled (narrow shells)."
+                "description": "Drawer state when controlled (drawer and mobile layouts)."
               },
               "defaultNavOpen": {
                 "anyOf": [
@@ -2649,23 +2770,23 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "id of <main>, the target of the \"Skip to content\" link."
+                "description": "Id of the main element, the target of the skip link."
               },
               "layout": {
                 "anyOf": [
                   {
                     "enum": [
                       "auto",
-                      "sidebar",
+                      "desktop",
                       "drawer",
-                      "phone"
+                      "mobile"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Force the layout."
+                "description": "Which structure to draw: `auto` (default) follows the shell's own width (1024px and up desktop; narrower, `mobile` when a mobile part is given, else `drawer`), or force `desktop`,"
               },
               "children": {
                 "anyOf": [
@@ -2695,7 +2816,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The page."
+                "description": "Figma Content: the page (the Body pads Margin-Comfortable; Spacing/Gap/XSmall on desktop, Layout-Mobile/Section-Gap on mobile)."
               },
               "aria-label": {
                 "anyOf": [
@@ -3092,6 +3213,417 @@
               "icon",
               "aria-label"
             ],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "AppShellHeader": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "AppShellHeader"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "leading": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Top-Elements › Leading-Slots: where the user is, usually `<Breadcrumbs size=\"sm\">`, or a Search."
+              },
+              "center": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Center-Slots: the row's middle, up to 400px and centred between `leading` and `actions`, e.g."
+              },
+              "actions": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Trailing-Slots, Spacing/Gap/Small apart: a plan Badge, `AppShellAction` buttons (notifications, help), then the account (`<Menu trigger={<AppShellAccount … />}>`)."
+              },
+              "main": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Main-Element (the Main row): the page's own header, usually `<PageHeader title=… />` with its actions."
+              },
+              "sections": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Sections: rows under the Main row, e.g."
+              },
+              "aria-label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-labelledby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-describedby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "AppShellPane": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "AppShellPane"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Title (Heading/3, Content/Neutral/Strongest, one line, cut with \"…\"): the pane's heading and its region name."
+              },
+              "headingLevel": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      2,
+                      3,
+                      4
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Heading level of the title."
+              },
+              "action": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Action: one icon action at the end of the header, usually `<IconButton appearance=\"flat\" level=\"secondary\" size=\"sm\" …>` (a 20px glyph with a 32px hit area)."
+              },
+              "theme": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "shadow",
+                      "flat",
+                      "border",
+                      "pale",
+                      "subtle",
+                      "on-container",
+                      "canvas"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `flat` · `border` Border/Neutral/Pale · `pale` Support/Neutral/Pale · `subtle` Support/Neu"
+              },
+              "surface": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "alt",
+                      "flat"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Surface for the flat and border themes: `default` Surface/Default · `alt` Surface/Alt · `flat` Surface/Flat (border only)."
+              },
+              "children": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Pane-Content: the pane's body (a List, a tree, filters, a summary)."
+              },
+              "aria-label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-labelledby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-describedby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              }
+            },
+            "required": [],
             "additionalProperties": false
           },
           "children": {
@@ -28075,6 +28607,17 @@
                 ],
                 "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the page on a Canvas/Alt (white) page."
               },
+              "shadow": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes)."
+              },
               "workspaceBrand": {
                 "anyOf": [
                   {
@@ -33933,7 +34476,9 @@
                       "liquid-overlay",
                       "compact",
                       "compact-alt",
-                      "compact-overlay"
+                      "compact-overlay",
+                      "transparent",
+                      "transparent-on-color"
                     ]
                   },
                   {
@@ -33982,7 +34527,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title becomes a left-aligned identity — a 48px `titleLeading` visual"
+                "description": "Figma Heading-Text Type=Sub with Subheading (Top-Heading-Text 12014:44793, `.Primitives/Heading-Text/Basic` 4060:17984): a second line under the bar title, the title in Body/Extra/"
               },
               "titleLeading": {
                 "anyOf": [
@@ -34011,7 +34556,8 @@
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Figma Heading-Text Leading on (◆ Social conversation header 6353:69678): a 48px visual (Avatar / ChatAvatarGroup) before the title, Spacing/Gap/Small (12) apart, and the title and"
               },
               "onTitleClick": {
                 "anyOf": [
@@ -34105,6 +34651,66 @@
                 ],
                 "description": "Figma Expand-Heading (Heading/1–3) under the navigator bar: a tab root's large title."
               },
+              "largeTitleCapline": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Expand-Heading › Main-Heading-Text Capline (`.Primitives/Heading-Text/Basic` 4060:17984, Capline on): a line above the large title — \"Welcome home\" over \"Hi, Mai Anh\" (◇ Mast"
+              },
+              "largeTitleSubheading": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Expand-Heading › Main-Heading-Text Subheading (Subheading on): a line under the large title — \"6 devices · 4 on\" under \"Living room\" (F2), \"Living room\" under \"HomePod mini\""
+              },
               "headingLevel": {
                 "anyOf": [
                   {
@@ -34161,28 +34767,46 @@
                 "anyOf": [
                   {
                     "type": "array",
-                    "items": {
-                      "$ref": "#/$defs/TopNavigationAction"
-                    }
+                    "items": {}
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Top-Trailing: up to three actions (its Trailing-Slot takes 3); more are not drawn."
+                "description": "Figma Top-Trailing: up to three places (its Trailing-Slot takes 3); more are not drawn."
               },
               "largeTitleAction": {
                 "anyOf": [
                   {
                     "anyOf": [
                       {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
+                      },
+                      {
                         "$ref": "#/$defs/TopNavigationAction"
                       },
                       {
                         "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/TopNavigationAction"
-                        }
+                        "items": {}
                       }
                     ]
                   },
@@ -34190,7 +34814,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Expand-Trailing (Header-Trailing): one action, or a list of up to three, beside the large title."
+                "description": "Figma Expand-Trailing (Header-Trailing): one place, or a list of up to three, beside the large title — actions or visuals, as `trailing` (D3 and D5 15952:9644 put their Badge and A"
               },
               "topBar": {
                 "anyOf": [
@@ -34231,7 +34855,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Control-Bar slot (48px): a Search, Segmented or Tabs under the heading."
+                "description": "Figma Control-Bar slot (12014:44764): a Search, Segmented, Tabs or a Progress under the heading."
               },
               "banner": {
                 "anyOf": [

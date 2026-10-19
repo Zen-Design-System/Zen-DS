@@ -6,12 +6,16 @@
       "reason": "{element} is the Menu's trigger, which Menu clones; resize the Menu instead."
     },
     "AppShell.sidebar": {
-      "why": "AppShell.tsx keeps the sidebar only when sidebar.type === Sidebar, then clones it with collapsed (inline) and collapsed: false (drawer).",
-      "reason": "{element} is the AppShell's sidebar, which AppShell checks by type and clones; change it in code."
+      "why": "AppShell.tsx reads the sidebar's collapse props only when sidebar.type === Sidebar (the rail it collapses and draws in the drawer).",
+      "reason": "{element} is the AppShell's sidebar, which AppShell checks by type; change it in code."
     },
-    "AppShell.aside": {
-      "why": "AppShell.tsx keeps the aside only when aside.type === SidePanel, then clones it with type \"modal\" when it does not dock.",
-      "reason": "{element} is the AppShell's aside, which AppShell checks by type and clones; change it in code."
+    "AppShell.sidePanel": {
+      "why": "AppShell.tsx keeps the side panel only when sidePanel.type === SidePanel, then clones it with type \"modal\" when it does not dock.",
+      "reason": "{element} is the AppShell's side panel, which AppShell checks by type and clones; change it in code."
+    },
+    "AppShell.topNavigation": {
+      "why": "AppShell.tsx clones a TopNavigation that sets no type with the type of the mobile Top (bar alt, band transparent, media liquid-overlay).",
+      "reason": "{element} is the AppShell's top navigation, which AppShell clones with its type; change it in code."
     }
   },
   "parents": {

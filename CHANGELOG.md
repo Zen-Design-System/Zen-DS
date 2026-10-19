@@ -16,7 +16,31 @@ How to maintain it:
 
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
-removed (four unused colour ramps were, see Removed).
+removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
+  làm lại từ đầu", "Phá hẳn, migrate hết": no deprecated aliases). Figma Pattern/AppShell/Desktop 16258:1857, Mobile
+  16261:136204, Header/AppShell 16243:290461, .Primitives/AppShell/Pane 16254:1099.
+  - `pattern`: sidebar (default) · list-detail · top-bar · workspace · docs · focus, with `leadingPane` /
+    `trailingPane` (new `AppShellPane`: Theme × Surface, Heading/3 title, Icon-Flat action) and `progress`.
+  - `collapse`: header (default) · sidebar · none.
+  - `header` takes a new `AppShellHeader`: `leading` / `center` / `actions` (the top row), `main` (the PageHeader) and
+    `sections`.
+  - The Body pads Margin-Comfortable with Gap/XSmall between children, so drop the margin `<Container>`.
+  - Under 1024px with mobile parts (`topNavigation`, `bottomNavigation` or the new `actionBar`, `mobileTop` bar · band ·
+    band-sheet · media, `hero`, `backdrop`) the shell draws Pattern/AppShell/Mobile; an upright iPad uses it too.
+    Otherwise the Sidebar opens as a drawer.
+  - Migration map: `header`/`headerCenter`/`headerActions`/`sections` → AppShellHeader `leading`/`center`/`actions`/
+    `main`/`sections`; `aside` → `sidePanel`; `floatingAction` → `floatingActions`; `footer` → an ActionBar at the end of
+    the page (phones: `actionBar`); `sidebarToggle={false}` → `collapse="none"`; `layout="sidebar" | "phone"` →
+    `"desktop" | "mobile"`.
+  - ActionBar takes `surface="glass"` (Action-Bar/Mobile Liquid Glass); TopNavigation takes `type="transparent"` and
+    `"transparent-on-color"`.
+  - Every template, platform example and the harness are migrated. Harness: `app-shell/primary-in-top-bar` reads the
+    AppShellHeader, `app-shell/page-header-in-main`, new `app-shell/collapse-beside-master-crumb` (error) and
+    `app-shell/pattern-parts` (warn).
+  - Zen Studio follows: the Screen section's parts live on the AppShell and its AppShellHeader. Saved pages move to the
+    new props as they load. The phone header is drawn from the AppShellHeader. Figma push and pull write the
+    AppShellHeader, and the Body keeps Figma's Margin-Comfortable padding instead of a padded Stack.
 - Zen Studio Layers like Figma (F1 of the same plan): on a page you made the front-most layer is on top, layers are
   named as Figma names them (Frame 1, Rectangle 2, a text by its words, an instance by its component) with Figma's
   icons, and the Screen is the frame's own row. Rename by double-click, ⌘R (Tab goes to the next name), ⌘R on several
@@ -24,6 +48,8 @@ removed (four unused colour ramps were, see Removed).
   in exported code and in Figma push / pull (frames, shapes, text). Lock with ⇧⌘L, the row's padlock or the menu
   (`data-locked`, never exported): the canvas skips locked layers (click, hover, marquee, ⌘-click, handles, arrows).
   Right-click a row for the canvas menu, ⌥-click a chevron for everything inside, ⌥L (Actions › Collapse layers).
+- Sidebar `shadow` (Figma Patterns/Sidebar Shadow, default on): `shadow={false}` keeps the Surface/Default Sidebar
+  without Shadow/Bottom/Level-1, so it stays a surface in dark mode where `background="flat"` meets the page colour.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.
@@ -706,6 +732,32 @@ removed (four unused colour ramps were, see Removed).
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- TopNavigation `subtitle` without `titleLeading` centres the title and its subtitle, as Figma Heading-Text Type=Sub
+  draws them (◇ Master-Layout · Example C2, C5); with `titleLeading` the conversation identity stays left-aligned.
+- TopNavigation `controlBar` hugs its control: the side margin and Spacing/Padding/XSmall above and below (a Progress
+  row is 40, not 48), no block padding around Tabs, several controls stacked Gap/XSmall apart (Figma Control-Bar).
+- BottomNavigation `floating-glass`: the selected tab is the light Active/Neutral/Subtle pill again (it rendered grey),
+  and the capsule and its action take Figma's Liquid-Glass/Normal glass and shadow.
+- AppShell `mobileTop="media"`: the sheet rises from the bottom as far as its content needs (a spacer that fills, at
+  least 252 under the bar), as Pattern/AppShell/Mobile Top=Media; the backdrop fills the stage from 744 wide; a Zen
+  `Image` backdrop covers it edge to edge with square corners, whatever the photo's ratio.
+- Sidebar sections sit Spacing/Gap/XSmall (8) apart, not 16, and the header no longer shrinks when the rows overflow
+  (◇ Master-Layout · Example A1–A4).
+- AppShell `band`: `"subtle"` (default) · `"pale"` · `"soft"` · `"accent"` fills the mobile Top=Band and Band-Sheet, as
+  Figma's examples override the band (E2 Pale, E1 Soft, D5 and E7 Accent/Solid). On `accent` the TopNavigation takes
+  `transparent-on-color` (user, 2026-10-19).
+- ActionBar side by side on a phone: the Primary keeps its whole label and the other button gives way (user,
+  2026-10-19, Figma C5 "Mark as shipped"). AppShell's floating clearance and a Transparent TopNavigation on Top=Bar (the
+  sticky row takes the page canvas, so the page no longer shows through when it scrolls) follow Figma too.
+- AppShell `band="accent"`: the band's controls (the bar's actions, the hero's) ring in Focus/Neutral/Solid, since an
+  Accent focus ring vanishes into the Accent fill; the sheet keeps the Accent ring.
+- MetricCard `type="tile"` passes `iconBackground` to its Dock-Icon (Solid by default; Figma F1, F2, E2 draw Subtle).
+- AppShell Focus: the progress Stepper hugs its steps at 200 each, as Figma's Stepper-Bar (600 for three, 800 for four).
+- Harness: `app-shell/primary-in-top-bar` lets a header without a Main row keep its Primary in the top row (Figma
+  Top-Bar, Workspace, Docs); `card/pale-on-canvas-default` reads a phone Band-Sheet or Media page as its white sheet.
+- The App Shell page shows Figma's ◇ Master-Layout · Example screen by screen (A1–F12, 41 screens: background
+  compositions, the six desktop patterns, the mobile patterns, expressive and consumer phones, a smart home), then six
+  behaviour examples (toggle in the Sidebar, task panel, selection bar, banner, narrow window, upright iPad).
 - Charts (2026-10-17, user: the Tooltip sat off the hover line in Zen Studio): the Tooltip of LineChart, BarChart,
   StackBarChart, GroupedBarChart and ComboChart is centred on the active period's rule, as in Figma, and the
   HeatmapChart cell Tooltip on its cell; it moves only by what it would cross the chart's edge (it used to slide by the
@@ -793,6 +845,14 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- TopNavigation `largeTitleCapline` and `largeTitleSubheading` (2026-10-19): Figma Main-Heading-Text's Capline and
+  Subheading, a Body/Base/Regular line above and below the large title ("Welcome home" / "Hi, Mai Anh", "Apple" /
+  "HomePod mini" / "Living room"), grouped with it in an hgroup; they fold away with it.
+- TopNavigation `topBar={false}` without a large title (2026-10-19): no bar row, only the status inset (Figma Top-bar=false,
+  ◇ Master-Layout · Example D2); `title` stays a screen-reader heading, and an empty header is no landmark.
+- TopNavigation `trailing` and `largeTitleAction` take visuals as well as actions (2026-10-19): a Badge or an Avatar
+  drawn as it is, one of the three places, as Figma's Trailing-Slot holds them (D3, D4); the bar stays 64 high with a 56
+  Avatar.
 - Zen Studio MCP M1 (2026-10-16, user: "làm M1 đi"): an AI client builds and edits the open page live, by layer id —
   `insert` (JSX in the page dialect), `replace`, `move`, `duplicate`, `delete`, `wrap` / `unwrap`, `batch` (several
   changes, one ⌘Z; refused part-way = nothing changed), `create_page`, `add_frame`, `select`, `focus`, `open_page`, and

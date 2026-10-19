@@ -38,9 +38,12 @@
 .zen-action-bar[data-direction="horizontal"] > .zen-action-bar__summary { flex: 1 1 12rem; }
 .zen-action-bar[data-direction="horizontal"] > .zen-action-bar__actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-inline-start: auto; }
 /* A horizontal bar narrower than 480px (a phone-width window or a panel): the summary takes the first row and the Large
-   buttons share the next one equally, Tertiary · Primary (Figma Bottom-Sheet dual footer). Labels too long for half the
-   width wrap to full-width rows; wrap-reverse keeps the Primary (last in the DOM) on top, as Dialog's vertical actions do. */
+   buttons share the next one equally, Tertiary · Primary (Figma Bottom-Sheet dual footer); wrap-reverse keeps the Primary
+   (last in the DOM) on top, as Dialog's vertical actions do, should a row ever wrap. */
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] { flex-direction: column; align-items: stretch; }
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__summary { flex: 0 0 auto; }
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions { flex-wrap: wrap-reverse; margin-inline-start: 0; }
-.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions > * { flex: 1 1 0; }
+.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions > * { min-width: 0; flex: 1 1 0; }
+/* The Primary keeps its whole label (user 2026-10-19, ◇ Master-Layout · Example C5 "Mark as shipped": "Primary rộng
+   hơn"): half the row while its words fit, wider when they need it; the other button gives way and truncates. */
+.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions > :last-child:not(:only-child) { min-width: max-content; }

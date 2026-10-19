@@ -54,8 +54,10 @@ const SOURCES = {
   ListBox: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
   TopNavigation: { tsx: ["TopNavigation/TopNavigation.tsx"], css: ["TopNavigation/top-navigation.css"] },
   Sidebar: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
-  // The top bar is a DashboardHeader type="navigation": its Leading-, Center- and Trailing-Slots hold the header parts.
-  AppShell: { tsx: ["AppShell/AppShell.tsx", "DashboardHeader/DashboardHeader.tsx"], css: ["AppShell/app-shell.css", "DashboardHeader/dashboard-header.css"] },
+  AppShell: { tsx: ["AppShell/AppShell.tsx"], css: ["AppShell/app-shell.css"] },
+  // Header/AppShell's top row is a DashboardHeader type="navigation": its Leading-, Center- and Trailing-Slots hold the parts.
+  AppShellHeader: { tsx: ["AppShell/AppShellHeader.tsx", "DashboardHeader/DashboardHeader.tsx"], css: ["AppShell/app-shell.css", "DashboardHeader/dashboard-header.css"] },
+  AppShellPane: { tsx: ["AppShell/AppShellPane.tsx"], css: ["AppShell/app-shell.css"] },
   SidebarMenuItem: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
   SidebarMenuSection: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
   PageHeader: { tsx: ["PageHeader/PageHeader.tsx"], css: ["PageHeader/page-header.css"] },
@@ -115,7 +117,9 @@ for (const [name, def] of Object.entries(CONTENT_SLOTS)) {
         || new RegExp(`\\?\\s*<>\\s*(?:<\\w+[^<>{}]*>\\s*)*${tail}`).test(tsx)
         || new RegExp(`\\{[^{}?]*\\b${slot.prop}\\b[^{}?]*\\?\\s*\\(\\s*${tail}`).test(tsx)
         // A fragment whose first element wraps something else (Metric: `{custom ? <><div …__body">{body}</div><div …__custom">`).
-        || new RegExp(`\\{${slot.prop} \\? <>[^\\n]*?${tail}`).test(tsx);
+        || new RegExp(`\\{${slot.prop} \\? <>[^\\n]*?${tail}`).test(tsx)
+        // Wrappers with attributes around it (AppShell: `floatingActions ? <div className="…__floating" data-hidden={…}><div className="…__floating-items">`).
+        || new RegExp(`\\b${slot.prop} \\?\\s*(?:<\\w+(?: [\\w-]+=(?:\\{[^{}<>]*\\}|"[^"]*"))*>\\s*)+${tail}`).test(tsx);
       check(`${id}: mountsWhenEmpty matches the source`, !conditional, slot.mountsWhenEmpty);
     }
     if (slot.gap === "md") check(`${id}: .${cls} has gap Medium`, /(^|;)\s*gap:\s*var\(--zen-spacing-gap-medium\b/.test(decls), true);
@@ -152,7 +156,8 @@ for (const [name, slots] of Object.entries(DATA_SLOTS)) {
 }
 // Figma's Trailing-Slot takes 3 (Top-Trailing and Header-Trailing): the component's MAX_ACTIONS and both data slots agree.
 check("TopNavigation draws MAX_ACTIONS = 3 trailing actions", /const MAX_ACTIONS = 3;/.test(read("TopNavigation/TopNavigation.tsx")) && /trailingItems\([^)]*search\.mounted && searchButton \? MAX_ACTIONS - 1 : MAX_ACTIONS\)/.test(read("TopNavigation/TopNavigation.tsx")), true);
-check("TopNavigation passes each action object itself", read("TopNavigation/TopNavigation.tsx").includes("titleActions.slice(0, MAX_ACTIONS).map((action, index) => <TopNavigationActionButton key={index} action={action}") && read("TopNavigation/TopNavigation.tsx").includes("<TopNavigationActionButton key={index} action={action}"), true);
+// Nodes (a Badge, an Avatar) sit beside the action items since 2026-10-19; an action item is still passed as it is.
+check("TopNavigation passes each action object itself", /titleActions\.slice\(0, MAX_ACTIONS\)\.map\(\((\w+), index\) => (?:isAction\(\1\) \? )?<TopNavigationActionButton key=\{index\} action=\{\1\}/.test(read("TopNavigation/TopNavigation.tsx")) && /<TopNavigationActionButton key=\{index\} action=\{(?:action|place\.actions\[0\])\}/.test(read("TopNavigation/TopNavigation.tsx")), true);
 check("dataSlotOf", [dataSlotOf("TopNavigation", "trailing")?.max, dataSlotOf("TopNavigation", "largeTitleAction")?.form, dataSlotOf("TopNavigation", "largeTitleAction")?.max, dataSlotOf("Card", "x")], [3, "list", 3, null]);
 check("itemTitle", [itemTitle(dataSlotOf("TopNavigation", "trailing"), [{ key: "label", kind: "string", value: " Bell " }], 0), itemTitle(dataSlotOf("TopNavigation", "trailing"), [{ key: "label", kind: "expression", value: "x" }], 1)], ["Bell", "Action 2"]);
 

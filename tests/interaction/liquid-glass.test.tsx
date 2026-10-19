@@ -36,17 +36,20 @@ describe("Liquid Glass", () => {
     expect((screen.container.querySelector(".zen-ai-field") as HTMLElement).style.backdropFilter).toBe("");
   });
 
-  it("puts Glass-Floating on the Floating-Glass bar and its CTA, Liquid-Glass/Normal on the selected item", async () => {
+  it("puts Liquid-Glass/Normal on the Floating-Glass bar and its CTA, and only the Active/Neutral/Subtle fill on the selected item", async () => {
     const screen = await render(
       <ZenProvider>
         <BottomNavigation type="floating-glass" value="home" onValueChange={() => {}} action={{ icon: "icon-plus-line", label: "New" }}
           items={[{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" }, { id: "profile", label: "Profile", icon: "icon-user-circle-line" }]} />
       </ZenProvider>,
     );
+    // Figma 9017:42211 Container and 9017:42216 Action: effect style Liquid-Glass/Normal.
     const pill = screen.container.querySelector(".zen-bottom-nav__pill")!;
-    await expect.poll(() => glassFilter(pill)?.querySelector("feGaussianBlur")?.getAttribute("stdDeviation")).toBe(String(glassStyles["glass-floating"].frost / 2));
+    await expect.poll(() => glassFilter(pill)?.querySelector("feGaussianBlur")?.getAttribute("stdDeviation")).toBe(String(glassStyles["liquid-glass-normal"].frost / 2));
     expect(glassFilter(screen.container.querySelector(".zen-bottom-nav__fab")!)).not.toBeNull();
-    expect(glassFilter(screen.container.querySelector('.zen-bottom-nav__item[data-selected="true"]')!)?.querySelector("feGaussianBlur")?.getAttribute("stdDeviation")).toBe(String(glassStyles["liquid-glass-normal"].frost / 2));
+    // The selected item's own lightless GLASS has nothing to bend inside the pill (its backdrop root): no filter, so the
+    // tab stays the light Active/Neutral/Subtle pill instead of a refracted grey one.
+    expect((screen.container.querySelector('.zen-bottom-nav__item[data-selected="true"]') as HTMLElement).style.backdropFilter).toBe("");
     expect((screen.container.querySelector('.zen-bottom-nav__item[data-selected="false"]') as HTMLElement).style.backdropFilter).toBe("");
   });
 

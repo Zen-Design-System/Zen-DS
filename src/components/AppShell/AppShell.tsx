@@ -30,6 +30,9 @@ export type AppShellCollapse = (typeof appShellCollapses)[number];
 /** Figma Pattern/AppShell/Mobile Top (16261:136204). */
 export const appShellMobileTops = ["bar", "band", "band-sheet", "media"] as const;
 export type AppShellMobileTop = (typeof appShellMobileTops)[number];
+/** The band's fill (Top=Band, Band-Sheet): Figma's Stage / Band fill on ◇ Master-Layout · Example (D1, E2, E1, D5). */
+export const appShellBands = ["subtle", "pale", "soft", "accent"] as const;
+export type AppShellBand = (typeof appShellBands)[number];
 
 export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   /**
@@ -81,6 +84,13 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
    * - `media`: a `backdrop` (photo, video, map) behind a liquid-overlay TopNavigation, the page as a sheet over it.
    */
   mobileTop?: AppShellMobileTop;
+  /**
+   * Mobile `band` / `band-sheet`: the band's fill (user, 2026-10-19). `subtle` Support/Brand/Subtle (default, the
+   * pattern's own), `pale` Support/Brand/Pale, `soft` Support/Brand/Soft, `accent` Background/Accent/Solid. On `accent`
+   * the TopNavigation takes `transparent-on-color` (unless it sets a type) and the hero's text takes `tone="on-accent"`
+   * (content follows its Solid fill).
+   */
+  band?: AppShellBand;
   /** Mobile: the screen's <TopNavigation> (its h1, Back on a child screen, up to three actions). Its type follows `mobileTop` unless it sets one. */
   topNavigation?: ReactNode;
   /** Mobile Figma Hero (`band`, `band-sheet`): what the band shows under the TopNavigation (a balance, a profile, a summary). */
@@ -214,6 +224,7 @@ export function AppShell({
   banner,
   canvas = "default",
   mobileTop = "bar",
+  band = "subtle",
   topNavigation,
   hero,
   backdrop,
@@ -294,7 +305,12 @@ export function AppShell({
   const [seenCollapsed, setSeenCollapsed] = useState(() => ({ known: Boolean(rail), collapsed: declaredCollapsed }));
   if (rail && (!seenCollapsed.known || declaredCollapsed !== seenCollapsed.collapsed)) {
     setSeenCollapsed({ known: true, collapsed: declaredCollapsed });
-    if (collapsedProp === undefined && seenCollapsed.known && declaredCollapsed !== undefined) setInnerCollapsed(Boolean(declaredCollapsed));
+    // A change to it moves the rail; a wrapped Sidebar first heard of after the first render sets where it starts,
+    // unless the shell has its own defaultSidebarCollapsed (or the Sidebar says nothing: the pattern's start stays).
+    if (collapsedProp === undefined) {
+      if (seenCollapsed.known) setInnerCollapsed(Boolean(declaredCollapsed));
+      else if (defaultSidebarCollapsed === undefined && declaredCollapsed !== undefined) setInnerCollapsed(declaredCollapsed);
+    }
   }
   const sidebarCollapsed = ownCollapse ? Boolean(declaredCollapsed) : Boolean(collapsedProp ?? innerCollapsed);
   const setSidebarCollapsed = useStableCallback((next: boolean) => {
@@ -384,7 +400,7 @@ export function AppShell({
     // Pattern/AppShell/Mobile: Top (Bar · Band · Band-Sheet · Media) over the Body, then the Bottom (Tab-Bar · Floating ·
     // Actions); the TopNavigation takes Figma's type for the Top unless it sets its own.
     const topNav = isValidElement<TopNavigationProps>(topNavigation) && topNavigation.props.type === undefined
-      ? cloneElement(topNavigation as ReactElement<TopNavigationProps>, { type: TOP_NAV_TYPE[mobileTop] })
+      ? cloneElement(topNavigation as ReactElement<TopNavigationProps>, { type: band === "accent" && (mobileTop === "band" || mobileTop === "band-sheet") ? "transparent-on-color" : TOP_NAV_TYPE[mobileTop] })
       : topNavigation;
     const top = topNav ? <div className="zen-app-shell__top-nav">{nest.slot(topNav)}</div> : null;
     const body = <main ref={mainRef} id={mainId} className="zen-app-shell__body" tabIndex={-1}>{nest.slot(children)}</main>;
@@ -409,7 +425,8 @@ export function AppShell({
       </div>
     ) : <>{top}{body}{bottom}</>;
   } else {
-    const headerPart = header ? nest.slot(header) : null;
+    // The header sticks to the top of the page (its own box, so a design canvas can find the slot).
+    const headerPart = header ? <div className="zen-app-shell__header">{nest.slot(header)}</div> : null;
     const body = (
       <main ref={mainRef} id={mainId} className="zen-app-shell__body" tabIndex={-1}>
         {pattern === "docs" || pattern === "focus" ? <div className="zen-app-shell__column">{nest.slot(children)}</div> : nest.slot(children)}
@@ -452,6 +469,7 @@ export function AppShell({
       <AppShellChromeContext value={chrome}>
         <div {...rest} ref={rootRef} className={["zen-app-shell", className].filter(Boolean).join(" ")} style={shellStyle}
           data-canvas={canvas} data-layout={layout} data-pattern={mobile ? undefined : pattern} data-top={mobile ? mobileTop : undefined}
+          data-band={mobile && (mobileTop === "band" || mobileTop === "band-sheet") && band !== "subtle" ? band : undefined}
           data-bottom={mobile ? (actionBar ? "actions" : bottomNavigation ? "navigation" : "none") : undefined} inert={open || undefined}>
           {skip}
           {bannerPart}
