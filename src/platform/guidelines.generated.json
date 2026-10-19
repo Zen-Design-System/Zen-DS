@@ -3303,6 +3303,7 @@
     "use": [
       "A decorative mark or illustration a designer drew in Zen Studio with R, O, L, ⇧L, Polygon or Star.",
       "A free-form curve or outline drawn with the Pen (P) or Pencil (⇧P): type=\"vector\" with its path d in its viewBox.",
+      "A cut-out or combined mark (a ticket stub, a ring with a notch): a boolean group of shapes (⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E in Zen Studio).",
       "A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.",
       "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets."
     ],
@@ -3317,7 +3318,12 @@
       [
         "Type",
         "type",
-        "rectangle (default) · ellipse · line · arrow · polygon · star · vector"
+        "rectangle (default) · ellipse · line · arrow · polygon · star · vector · boolean"
+      ],
+      [
+        "Boolean group",
+        "operation · children",
+        "union (default) · subtract · intersect · exclude of its shapes (children at their X / Y); Zen Studio writes the result as d"
       ],
       [
         "Path",

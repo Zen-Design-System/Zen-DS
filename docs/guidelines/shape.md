@@ -9,6 +9,7 @@ Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ri
 ## Use it for
 - A decorative mark or illustration a designer drew in Zen Studio with R, O, L, ⇧L, Polygon or Star.
 - A free-form curve or outline drawn with the Pen (P) or Pencil (⇧P): type="vector" with its path d in its viewBox.
+- A cut-out or combined mark (a ticket stub, a ring with a notch): a boolean group of shapes (⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E in Zen Studio).
 - A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.
 - A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position="absolute" with px insets.
 
@@ -22,7 +23,8 @@ Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ri
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Type | `type` | rectangle (default) · ellipse · line · arrow · polygon · star · vector |
+| Type | `type` | rectangle (default) · ellipse · line · arrow · polygon · star · vector · boolean |
+| Boolean group | `operation · children` | union (default) · subtract · intersect · exclude of its shapes (children at their X / Y); Zen Studio writes the result as d |
 | Path | `d / viewBox / fillRule` | a vector's path in absolute M / L / C / Q / Z commands, the box it is written in (it stretches to the size), nonzero (default) · evenodd |
 | Fill | `fill` | a Color/Background token by path (neutral-subtle · accent-solid · surface · support-blue-soft …) or none; default Background/Support/Neutral/Soft (Figma's #D9D9D9) |
 | Stroke | `stroke / strokeWeight / strokeAlign` | a Color/Border token by path or none · px · inside (default) · center · outside |
@@ -60,7 +62,9 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProp
 | `radiusTopRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`. |
 | `radiusBottomRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`. |
 | `radiusBottomLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`. |
-| `type` | `"rectangle" \| "ellipse" \| "line" \| "arrow" \| "polygon" \| "star" \| "vector"` | `"rectangle"` | The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc), `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end cap), `polygon` (REGULAR_POLYGON, `pointCount` corners), `star` (STAR, `pointCount` tips, `starRatio`) and `vector` (VECTOR: the path `d` in its `viewBox`, as the Pen draws it). |
+| `type` | `"rectangle" \| "ellipse" \| "line" \| "arrow" \| "polygon" \| "star" \| "vector" \| "boolean"` | `"rectangle"` | The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc), `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end cap), `polygon` (REGULAR_POLYGON, `pointCount` corners), `star` (STAR, `pointCount` tips, `starRatio`) and `vector` (VECTOR: the path `d` in its `viewBox`, as the Pen draws it) and `boolean` (BOOLEAN_OPERATION: its shapes, the children, combined by `operation`; Zen Studio writes the result as `d`). |
+| `operation` | `"union" \| "subtract" \| "intersect" \| "exclude"` | — | A boolean group's operation (`type="boolean"`): `union` (default), `subtract`, `intersect` or `exclude`, as Figma's. |
+| `children` | `ReactNode` | — | A boolean group's shapes (`type="boolean"`): placed at their X / Y inside it, not drawn themselves; their combined outline is. |
 | `d` | `string` | — | A vector's path (`type="vector"`): SVG path data in absolute M / L / C / Q / Z commands only (what Figma's vectorPaths take), in the coordinates of `viewBox`. Zen Studio's Pen and Pencil write it. |
 | `viewBox` | `string` | — | The box a vector's `d` is written in ("minX minY width height"); the path stretches from it to the shape's size, as Figma scales a vector. Default: the path's own bounds. |
 | `fillRule` | `"nonzero" \| "evenodd"` | — | How a vector's overlapping sub-paths fill (Figma's winding rule): `nonzero` (default) or `evenodd` (holes). |

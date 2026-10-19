@@ -7997,10 +7997,26 @@
         },
         {
           "name": "type",
-          "type": "\"rectangle\" | \"ellipse\" | \"line\" | \"arrow\" | \"polygon\" | \"star\" | \"vector\"",
+          "type": "\"rectangle\" | \"ellipse\" | \"line\" | \"arrow\" | \"polygon\" | \"star\" | \"vector\" | \"boolean\"",
           "required": false,
           "default": "\"rectangle\"",
-          "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),\n`line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's \"Line arrow\" end\ncap), `polygon` (REGULAR_POLYGON, `pointCount` corners), `star` (STAR, `pointCount` tips, `starRatio`) and `vector`\n(VECTOR: the path `d` in its `viewBox`, as the Pen draws it).",
+          "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),\n`line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's \"Line arrow\" end\ncap), `polygon` (REGULAR_POLYGON, `pointCount` corners), `star` (STAR, `pointCount` tips, `starRatio`) and `vector`\n(VECTOR: the path `d` in its `viewBox`, as the Pen draws it) and `boolean` (BOOLEAN_OPERATION: its shapes, the\nchildren, combined by `operation`; Zen Studio writes the result as `d`).",
+          "deprecated": null
+        },
+        {
+          "name": "operation",
+          "type": "\"union\" | \"subtract\" | \"intersect\" | \"exclude\"",
+          "required": false,
+          "default": null,
+          "description": "A boolean group's operation (`type=\"boolean\"`): `union` (default), `subtract`, `intersect` or `exclude`, as Figma's.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A boolean group's shapes (`type=\"boolean\"`): placed at their X / Y inside it, not drawn themselves; their combined outline is.",
           "deprecated": null
         },
         {

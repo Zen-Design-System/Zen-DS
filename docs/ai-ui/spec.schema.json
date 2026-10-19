@@ -27619,7 +27619,8 @@
                       "arrow",
                       "polygon",
                       "star",
-                      "vector"
+                      "vector",
+                      "boolean"
                     ]
                   },
                   {
@@ -27627,6 +27628,52 @@
                   }
                 ],
                 "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc), `line` (LINE: `width` is its length, `rotation` its angle, no h"
+              },
+              "operation": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "union",
+                      "subtract",
+                      "intersect",
+                      "exclude"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A boolean group's operation (`type=\"boolean\"`): `union` (default), `subtract`, `intersect` or `exclude`, as Figma's."
+              },
+              "children": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A boolean group's shapes (`type=\"boolean\"`): placed at their X / Y inside it, not drawn themselves; their combined outline is."
               },
               "d": {
                 "anyOf": [

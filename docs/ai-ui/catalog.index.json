@@ -623,7 +623,7 @@
       "name": "Shape",
       "status": "stable",
       "purpose": "Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon, Star and the Pen's Vector — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? type? d? viewBox? fillRule? fill? stroke? strokeWeight? strokeAlign? radius? arcStart? arcSweep? arcRatio? pointCount? starRatio? rotation? flip? opacity? label? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? type? operation? children? d? viewBox? fillRule? fill? stroke? strokeWeight? strokeAlign? radius? arcStart? arcSweep? arcRatio? pointCount? starRatio? rotation? flip? opacity? label? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "Sidebar",
