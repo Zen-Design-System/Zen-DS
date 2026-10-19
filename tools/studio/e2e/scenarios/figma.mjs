@@ -1396,4 +1396,69 @@ export const rows = [
       return headings.join(", ");
     },
   },
+  {
+    id: "FW-119", feature: "⌘G groups floating layers where they are (a Box group, Layers \"Group 1\"); ⇧⌘G ungroups", wp: "F3 2026-10-19 · decision 3", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyG");
+      await until(async () => /<Box position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{180\} height=\{80\} group>/.test((await pageText(page, id)) ?? ""), { message: "a group at 20, 20, 180 × 80" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)} · ${((await pageText(page, id)) ?? "").match(/<Box[^>]*group[^>]*>/)?.[0]}`); });
+      await showLeftTab(page, "layers");
+      await until(async () => (await page.locator(".studio-layers__tree [role='treeitem'] .studio-layers__name", { hasText: /^Group 1$/ }).count()) === 1, { message: "Layers: Group 1" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Shift+KeyG");
+      await until(async () => !/group>/.test((await pageText(page, id)) ?? ""), { message: "⇧⌘G ungroups" });
+      const shapes = shapeTags((await pageText(page, id)) ?? "");
+      if (shapes[0].x !== 20 || shapes[0].y !== 20 || shapes[1].x !== 140 || shapes[1].y !== 40) throw new Error(`after ungroup at ${shapes.map((shape) => `${shape.x}, ${shape.y}`).join(" · ")}`);
+      await undoTo(page, id, before, 4);
+      return "⌘G → Group 1 at 20, 20 · ⇧⌘G → back where they were · ⌘Z";
+    },
+  },
+  {
+    id: "FW-120", feature: "⇧H flips a shape (flip=\"horizontal\", again: none); with two floating layers they also swap places across their box", wp: "F2 2026-10-19 · F5a flipTurn", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyH");
+      await until(async () => /<Shape type="rectangle"[^>]*flip="horizontal"/.test((await pageText(page, id)) ?? ""), { message: "flip horizontal" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await page.keyboard.press("Shift+KeyH");
+      await until(async () => (await pageText(page, id)) === before, { message: "⇧H again: no flip" });
+      await deselect(page);
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyH");
+      await until(async () => { const shapes = shapeTags((await pageText(page, id)) ?? ""); return shapes[0].x === 120 && shapes[1].x === 20; }, { message: "the rectangle at X 120, the ellipse at X 20" }).catch(async (error) => { throw new Error(`${error.message} (${shapeTags((await pageText(page, id)) ?? "").map((shape) => shape.x).join(", ")})`); });
+      await undoTo(page, id, before, 4);
+      return "⇧H → flip · ⇧H → none · two layers: swapped across their box (120 · 20) · ⌘Z";
+    },
+  },
+  {
+    id: "FW-121", feature: "A rotate handle outside a corner turns the shape; ⇧ steps 15° (a quarter turn clockwise: rotation -90)", wp: "F2 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      const zone = await page.locator('[data-e2e="rotate-ne"]').boundingBox();
+      if (!zone) throw new Error("no rotate handle outside the top-right corner");
+      const shape = await clipShape(page, id, 0).boundingBox();
+      const centre = { x: shape.x + shape.width / 2, y: shape.y + shape.height / 2 };
+      const from = { x: zone.x + zone.width / 2, y: zone.y + zone.height / 2 };
+      const turn = (deg) => { const r = (deg * Math.PI) / 180; const dx = from.x - centre.x; const dy = from.y - centre.y; return { x: centre.x + dx * Math.cos(r) - dy * Math.sin(r), y: centre.y + dx * Math.sin(r) + dy * Math.cos(r) }; };
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      await page.keyboard.down("Shift");
+      for (const deg of [20, 45, 70, 88]) { const at = turn(deg); await page.mouse.move(at.x, at.y, { steps: 3 }); }
+      await page.mouse.up();
+      await page.keyboard.up("Shift");
+      await until(async () => /<Shape type="rectangle"[^>]*rotation=\{-90\}/.test((await pageText(page, id)) ?? ""), { message: "rotation -90" }).catch(async (error) => { throw new Error(`${error.message} (${((await pageText(page, id)) ?? "").match(/<Shape type="rectangle"[^>]*>/)?.[0]})`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return "NE handle → a quarter turn with ⇧ → rotation -90 · ⌘Z";
+    },
+  },
 ];
