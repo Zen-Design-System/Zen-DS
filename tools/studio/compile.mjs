@@ -15,7 +15,7 @@
 //   key)` names each); `media` lists them.
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
-import { PROPERTY_BINDINGS, SCREEN_CHROME, componentSets, eachElement, localComponents, parsePage, resolveInstance, screenLayout } from "./dialect.mjs";
+import { PROPERTY_BINDINGS, SCREEN_CHROME, componentSets, eachElement, localComponents, mainLayerPaths, parsePage, resolveInstance, screenLayout } from "./dialect.mjs";
 import { LOCKED_PROP } from "./layer-meta.mjs";
 import { literalProp, objectFields, opensItself, requiredFunctions, standInKind } from "./standins.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -259,19 +259,49 @@ export const propIdentifier = (name) => {
 };
 
 /** An instance's call of its component's function: its variant values and property values as props. */
+/** An instance's `overrides` (F7b) as layer path → literal props, or null. */
+function overridesOf(node) {
+  const value = node.props.overrides;
+  if (value?.kind !== "object") return null;
+  return Object.fromEntries(Object.entries(value.fields).flatMap(([path, layer]) => (layer.kind === "object"
+    ? [[path, Object.fromEntries(Object.entries(layer.fields).flatMap(([name, field]) => (field.kind === "literal" ? [[name, field.value]] : [])))]]
+    : [])));
+}
+
 function instanceCall(node, ctx) {
   const resolved = resolveInstance(ctx.page, node, ctx.model);
   const local = resolved ? ctx.locals?.get(resolved.set?.id ?? resolved.main.id) : null;
   if (!resolved || !local) return "{null}";
   ctx.localUsed.add(local.id);
+  // Its overrides (F7b): one of a layer bound to a property is that property's value (Figma sets the property); any
+  // other has no prop in the component's function, so it is noted in the tag for the developer.
+  const values = { ...resolved.values };
+  const given = new Set(Object.keys(node.props.props?.kind === "object" ? node.props.props.fields : {}));
+  const notes = [];
+  const overrides = overridesOf(node);
+  if (overrides) {
+    const main = ctx.model.mains.find((entry) => entry.id === resolved.main.id);
+    const byPath = new Map([...mainLayerPaths(main, ctx.model)].map(([layer, path]) => [path, layer]));
+    for (const [path, props] of Object.entries(overrides)) {
+      const layer = byPath.get(path);
+      for (const [name, value] of Object.entries(props)) {
+        const text = layer ? literalOf(layer, "data-prop-text") : undefined;
+        const visible = layer ? literalOf(layer, "data-prop-visible") : undefined;
+        if (name === "children" && typeof text === "string" && !given.has(text)) values[text] = String(value);
+        else if (name === "hidden" && typeof value === "boolean" && typeof visible === "string" && !given.has(visible)) values[visible] = !value;
+        else notes.push(`${path}: ${name}=${JSON.stringify(value)}`);
+      }
+    }
+  }
   const props = [];
   if (local.set) for (const axis of local.set.axes) props.push(`${propIdentifier(axis.name)}=${json(resolved.variant[axis.name] ?? axis.values[0])}`);
   for (const property of local.properties) {
     if (property.type === "slot") continue;
-    const value = resolved.values[property.name];
+    const value = values[property.name];
     if (value === undefined || value === property.default) continue;
     props.push(typeof value === "string" ? `${propIdentifier(property.name)}=${json(value)}` : `${propIdentifier(property.name)}={${json(value)}}`);
   }
+  if (notes.length) props.push(`/* Figma overrides of this instance (no prop in ${local.fn}): ${notes.join("; ").replace(/\*\//g, "* /")} */`);
   return `<${local.fn}${props.length ? ` ${props.join(" ")}` : ""} />`;
 }
 

@@ -14,7 +14,7 @@
 // draws it (a frame of Data-Rows, header and content cells) and pictures (`images`, filled by the caller: the plugin has
 // no network).
 import { docFromText } from "./doc.mjs";
-import { PROPERTY_BINDINGS, componentSets, localComponents, resolveInstance, variantName } from "./dialect.mjs";
+import { PROPERTY_BINDINGS, componentSets, localComponents, mainLayerPaths, resolveInstance, variantName } from "./dialect.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -472,6 +472,21 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const resolved = resolveInstance(doc.board, element, localModel);
       const local = resolved?.set?.id ?? String(code.of ?? "");
       node = { type: "INSTANCE", local, name: localNames.get(local) ?? "Instance", ...(resolved?.set ? { variant: resolved.variant } : {}), ...(resolved && Object.keys(resolved.values).length ? { props: resolved.values } : {}), ...(id ? { id } : {}), hugW: true, hugH: true };
+      // Its overrides of its main's layers (F7b): placed by the main's drawn layers once the frame is built (below).
+      const table = element.props.overrides?.kind === "object" ? element.props.overrides.fields : null;
+      const main = resolved ? localModel.mains.find((entry) => entry.id === resolved.main.id) : null;
+      if (table && main) {
+        const byPath = new Map([...mainLayerPaths(main, localModel)].map(([layer, path]) => [path, layer]));
+        const pending = [];
+        for (const [path, layer] of Object.entries(table)) {
+          const target = byPath.get(path);
+          const props = layer.kind === "object" ? Object.fromEntries(Object.entries(layer.fields).flatMap(([name, value]) => (value.kind === "literal" ? [[name, value.value]] : []))) : {};
+          if (target?.id) pending.push({ key: target.id, path, props, kind: target.name });
+          else notes.push(`${node.name}: its override of ${path} (a layer inside a nested layer) is not pushed yet`);
+        }
+        // On the node itself: the frame's assembly copies nodes ({ ...node, fillW }).
+        if (pending.length) node.layerPending = { main: main.id, pending };
+      }
     }
     else if (element.name === "Text" || element.name === "Heading") {
       const align = { center: "CENTER", end: "RIGHT", justify: "JUSTIFIED" }[code.align];
@@ -1929,6 +1944,46 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     (node.edits ?? []).forEach((edit) => (edit.append ?? []).forEach((child, index) => keyed(child, node.key, `${edit.layer}.${index}`)));
   };
   keyed(frame, "page", 0);
+  // An instance's overrides of its main's layers (F7b): each by the child indices that reach it in the main's drawn
+  // COMPONENT (an instance's layers mirror its main's), in Figma's fields — a text's characters and fill, a layer's
+  // visibility, a nested instance's variant and property values.
+  const mainsDrawn = new Map();
+  const withPending = [];
+  const findMains = (node) => {
+    if (node.type === "COMPONENT" && node.local) mainsDrawn.set(node.local, node);
+    if (node.layerPending) withPending.push(node);
+    (node.children ?? []).forEach(findMains);
+    (node.slots ?? []).forEach((slot) => slot.children.forEach(findMains));
+  };
+  findMains(frame);
+  if (withPending.length) {
+    const indexPath = (node, key, path = []) => {
+      if (node.key === key && path.length) return path;
+      for (const [index, child] of (node.children ?? []).entries()) { const found = indexPath(child, key, [...path, index]); if (found) return found; }
+      return null;
+    };
+    for (const instance of withPending) {
+      const { main, pending } = instance.layerPending;
+      delete instance.layerPending;
+      const drawn = mainsDrawn.get(main);
+      const out = [];
+      for (const { key, path, props, kind } of pending) {
+        const at = drawn ? indexPath(drawn, key) : null;
+        if (!at) { notes.push(`${instance.name}: its override of ${path} is not pushed (the layer is not drawn in its main)`); continue; }
+        const override = { at };
+        for (const [name, value] of Object.entries(props)) {
+          const nested = /^(variant|props)\.(.+)$/.exec(name);
+          if (nested && kind === "Use") (override[nested[1]] ??= {})[nested[2]] = value;
+          else if (name === "children" && (kind === "Text" || kind === "Heading")) override.characters = String(value);
+          else if (name === "hidden" && typeof value === "boolean") override.visible = !value;
+          else if (name === "tone" && (kind === "Text" || kind === "Heading") && typeof value === "string") override.fill = contentToneToken(value);
+          else notes.push(`${instance.name}: ${path} ${name} is not pushed (an override Figma has no field for here yet)`);
+        }
+        if (Object.keys(override).length > 1) out.push(override);
+      }
+      if (out.length) instance.layerOverrides = out;
+    }
+  }
   // An icon the code names plainly ("icon-chevron-right-line") is a cut in Figma ("…-medium", icons/generated/aliases.ts).
   const figmaIcon = (value) => (typeof value === "string" && iconAliases[value]) || value;
   const cutIcons = (node) => {

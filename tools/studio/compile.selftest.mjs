@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { compileReact, componentName } from "./compile.mjs";
 import { newPageText, validateDialect } from "./dialect.mjs";
+import { parseSource } from "./jsx-source.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "../..");
@@ -274,6 +275,7 @@ export default function Page() {
             </Component>
           </ComponentSet>
           <Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done", "Show icon": false }} />
+          <Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />
         </Stack>
       </Screen>
     </Board>
@@ -287,6 +289,11 @@ export default function Page() {
   ok("sets: bindings read the props", out.code.includes("{showIcon && (") && out.code.includes("name={icon}") && out.code.includes("{label}"));
   ok("sets: the instance passes its values", out.code.includes('<Chip size="Large" label="Done" showIcon={false} />'));
   ok("sets: no binding attributes, no set frame element", !/data-prop-|<ComponentSet\b/.test(out.code));
+  // F7b: an override of a bound layer is that property's value; another has no prop, so it is noted in the tag.
+  ok("overrides: bound words and visibility become props, the rest a note", out.code.includes('<Chip size="Small" label="Hi" showIcon={false} /* Figma overrides of this instance (no prop in Chip): Text: tone="accent" */ />'));
+  let parsed = true;
+  try { parseSource(out.code); } catch { parsed = false; }
+  ok("overrides: the export still parses", parsed);
 }
 
 if (failures.length) {
