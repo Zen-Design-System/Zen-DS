@@ -44,6 +44,15 @@
 :is(.zen-box, .zen-stack, .zen-grid)[data-surface="pale"] { background: var(--zen-color-background-neutral-pale-default); }
 /* zen-allow-canvas-layer: surface="canvas" is the page layer itself, for a whole screen or page area drawn inside something else (Box JSDoc). */
 :is(.zen-box, .zen-stack, .zen-grid)[data-surface="canvas"] { background: var(--zen-color-background-canvas-default); }
+/* An image fill (image prop, _shared/image-fill.ts): the picture over the fill, from the frame's outer edge (Figma
+   paints it under an inside stroke). After the fills: the same weight, so the picture's longhands win. */
+:is(.zen-box, .zen-stack, .zen-grid)[data-image] {
+  background-image: var(--zen-image-fill);
+  background-size: var(--zen-image-size);
+  background-position: var(--zen-image-position);
+  background-repeat: var(--zen-image-repeat);
+  background-origin: border-box;
+}
 :is(.zen-box, .zen-stack, .zen-grid)[data-border="pale"] { border: 1px solid var(--zen-color-border-neutral-pale-default); }
 /* zen-allow-subtle-static-box: border="subtle" is for actionable frames; the JSX rule box/border-matches-action checks each use. */
 :is(.zen-box, .zen-stack, .zen-grid)[data-border="subtle"] { border: 1px solid var(--zen-color-border-neutral-subtle-default); }
