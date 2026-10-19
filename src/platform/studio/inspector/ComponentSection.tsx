@@ -8,7 +8,7 @@ import { applyEdit, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { loadEngine, zenComponents } from "../builder/engine";
 import {
   addVariant, BINDING_OF, bindLayer, createInstance, detachInstance, goToMain, mainsOf, newProperty, renameComponent, renameVariantProperty,
-  selectInstances, setComponentProperties, setInstanceValues, setsOf, setVariantValues, swapInstance, objectCode,
+  selectInstances, setAbout, setComponentProperties, setInstanceValues, setsOf, setVariantValues, swapInstance, objectCode,
   type MainRef, type PropertyRef, type SetRef,
 } from "../edit/localComponents";
 import type { EditOp, StudioSelection } from "../types";
@@ -93,7 +93,7 @@ function useComponents(selection: NodeSelection): Found | null {
 }
 
 /** A text field that writes on Enter or blur (Esc puts the value back), as Figma's name fields. */
-function NameField({ label, value, disabled, onCommit, leading }: { label: string; value: string; disabled: boolean; onCommit: (next: string) => void; leading?: ReactNode }) {
+function NameField({ label, value, disabled, onCommit, leading, placeholder, allowEmpty = false }: { label: string; value: string; disabled: boolean; onCommit: (next: string) => void; leading?: ReactNode; placeholder?: string; allowEmpty?: boolean }) {
   const [draft, setDraft] = useState<string | null>(null);
   return (
     <InputField
@@ -101,11 +101,26 @@ function NameField({ label, value, disabled, onCommit, leading }: { label: strin
       aria-label={label}
       leading={leading}
       value={draft ?? value}
+      placeholder={placeholder}
       disabled={disabled}
       onValueChange={setDraft}
-      onBlur={() => { if (draft !== null && draft.trim() && draft !== value) onCommit(draft.trim()); setDraft(null); }}
+      onBlur={() => { if (draft !== null && (allowEmpty || draft.trim()) && draft.trim() !== value) onCommit(draft.trim()); setDraft(null); }}
       onKeyDown={(event) => { if (event.key === "Enter") (event.target as HTMLInputElement).blur(); if (event.key === "Escape") setDraft(null); }}
     />
+  );
+}
+
+/** Figma's Edit component: a main's or set's description and documentation link (Assets and the instance show them). */
+function AboutRows({ file, loc, description, link, disabled }: { file: string; loc: string; description?: string; link?: string; disabled: boolean }) {
+  return (
+    <>
+      <InspectorRow label="Description" name="component-description">
+        <NameField label="Description" value={description ?? ""} placeholder="What it is for" allowEmpty disabled={disabled} onCommit={(next) => void setAbout(file, loc, "description", next)} />
+      </InspectorRow>
+      <InspectorRow label="Link" name="component-link">
+        <NameField label="Link" value={link ?? ""} placeholder="https://" allowEmpty disabled={disabled} onCommit={(next) => void setAbout(file, loc, "link", next)} />
+      </InspectorRow>
+    </>
   );
 }
 
@@ -265,6 +280,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
     blocks.push(
       <InspectorSection key="set" title="Component set" className="studio-component-section">
         <NameField label="Component set name" value={set.name} leading={diamond} disabled={disabled} onCommit={(next) => void setName(set.file, set.loc, next)} />
+        <AboutRows file={set.file} loc={set.loc} description={set.description} link={set.link} disabled={disabled} />
         <div className="studio-component-section__actions">
           <Button size="sm" level="tertiary" startIcon="icon-plus-line" disabled={disabled} onClick={() => void addVariant(set)}>Add variant</Button>
         </div>
@@ -283,6 +299,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
         ))) : (
           <NameField label="Component name" value={main.name} leading={diamond} disabled={disabled} onCommit={(next) => void renameComponent(main, next)} />
         )}
+        {!set ? <AboutRows file={main.file} loc={main.componentLoc} description={main.description} link={main.link} disabled={disabled} /> : null}
         <div className="studio-component-section__actions">
           <Button size="sm" level="tertiary" disabled={disabled} onClick={() => void createInstance(main, selection)}>Create instance</Button>
           <Button size="sm" level="tertiary" disabled={!main.uses.length} onClick={() => selectInstances(main, selection)}>{main.uses.length ? `Select ${main.uses.length} instance${main.uses.length > 1 ? "s" : ""}` : "No instances"}</Button>

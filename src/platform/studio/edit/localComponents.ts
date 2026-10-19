@@ -33,9 +33,11 @@ export type MainRef = {
   /** Its properties (a variant's are its set's). */
   properties: PropertyRef[];
   description?: string;
+  /** Figma's documentation link. */
+  link?: string;
 };
 /** A page's component set (`<ComponentSet>`, Figma's Combine as variants). */
-export type SetRef = { id: string; name: string; loc: string; file: string; variants: string[]; axes: Array<{ name: string; values: string[] }>; properties: PropertyRef[]; uses: string[]; description?: string };
+export type SetRef = { id: string; name: string; loc: string; file: string; variants: string[]; axes: Array<{ name: string; values: string[] }>; properties: PropertyRef[]; uses: string[]; description?: string; link?: string };
 
 const fail = (message: string) => { announceEditStatus({ kind: "error", message, at: Date.now() }); return false; };
 
@@ -52,7 +54,7 @@ export async function mainsOf(file: string): Promise<MainRef[]> {
   });
   return engine.localComponents(tree).filter((main) => main.id && main.root).map((main) => ({
     id: main.id!, name: String(main.name ?? main.id), componentLoc: main.loc, rootLoc: main.root!.loc, file, uses: uses.get(main.id!) ?? [],
-    ...(main.set ? { set: main.set, variant: main.variant ?? {} } : {}), properties: main.properties ?? [], ...(main.description ? { description: main.description } : {}),
+    ...(main.set ? { set: main.set, variant: main.variant ?? {} } : {}), properties: main.properties ?? [], ...(main.description ? { description: main.description } : {}), ...(main.link ? { link: main.link } : {}),
   }));
 }
 
@@ -274,6 +276,16 @@ export async function renameComponent(main: MainRef, name: string): Promise<bool
   return response.ok;
 }
 
+/** A main's or set's description or documentation link (Figma's Edit component); empty removes it. One edit. */
+export async function setAbout(file: string, loc: string, field: "description" | "link", value: string): Promise<boolean> {
+  const trimmed = value.trim();
+  const element = await studioApi.element(file, loc);
+  if (!element) return fail("The component is no longer there — select it again");
+  const op = trimmed ? { op: "setProp", name: field, value: { kind: "string", value: trimmed } } : { op: "removeProp", name: field };
+  const response = await applyEdit({ file, loc, name: element.name, ops: [op as EditOp], hash: element.hash }, trimmed ? `${field === "link" ? "Link" : "Description"} of ${element.name}` : `Remove ${field}`);
+  return response.ok;
+}
+
 /** Swap instance (Figma's instance menu): the instance shows another main component of the page. */
 export async function swapInstance(selection: NodeSelection, to: Pick<MainRef, "id" | "name">): Promise<boolean> {
   const at = parseSrc(selection.src);
@@ -319,7 +331,7 @@ export async function setsOf(file: string): Promise<SetRef[]> {
   });
   return engine.componentSets(tree).filter((set) => set.id).map((set) => ({
     id: set.id!, name: String(set.name ?? set.id), loc: set.loc, file, variants: set.variants.flatMap((main) => (main.id ? [main.id] : [])), axes: set.axes,
-    properties: set.properties ?? [], uses: [...(uses.get(set.id!) ?? []), ...set.variants.flatMap((main) => uses.get(main.id ?? "") ?? [])], ...(set.description ? { description: set.description } : {}),
+    properties: set.properties ?? [], uses: [...(uses.get(set.id!) ?? []), ...set.variants.flatMap((main) => uses.get(main.id ?? "") ?? [])], ...(set.description ? { description: set.description } : {}), ...(set.link ? { link: set.link } : {}),
   }));
 }
 
