@@ -1,4 +1,6 @@
 import { redoEdit, undoEdit } from "../../api";
+import { openFind } from "../FindPanel";
+import { toggleViewOption } from "../../canvas/viewKeys";
 import { presentFrame } from "../../board/presentFrame";
 import { canvasApi, zoomIn, zoomOut } from "../../canvas/viewport";
 import { modKey, presentShortcut } from "../../shell/modKey";
@@ -107,6 +109,12 @@ export function commands(): Command[] {
     { id: "previous-frame", group: "View", label: "Zoom to previous frame", shortcut: "⇧N", disabled: state.localPage ? undefined : "Works on a page you made", run: () => { stepFrame(-1); } },
     { id: "present", group: "View", label: "Present", shortcut: presentShortcut, keywords: "full screen play", disabled: frameId ? undefined : "Select a frame or a layer in one", run: () => { if (frameId) presentFrame(frameId); } },
     { id: "panels", group: "View", label: "Show/Hide UI", shortcut: `${modKey}\\`, keywords: "side panels", run: toggleSidePanels },
+    { id: "find", group: "View", label: "Find and replace", shortcut: `${modKey}F`, keywords: "search text replace words", run: openFind },
+    // Figma's View options (F10, canvas/viewOptions.ts): each turns on or off.
+    { id: "pixel-grid", group: "View", label: "Pixel grid", shortcut: `${modKey}'`, keywords: "pixels 400%", run: () => toggleViewOption("pixelGrid") },
+    { id: "outlines", group: "View", label: "Outlines", shortcut: modKey === "⌘" ? "⌘Y" : undefined, keywords: "outline mode wireframe", run: () => toggleViewOption("outlines") },
+    { id: "rulers", group: "View", label: "Rulers", shortcut: "⇧R", keywords: "guides measure", run: () => toggleViewOption("rulers") },
+    { id: "layout-guides", group: "View", label: "Layout guides", shortcut: modKey === "⌘" ? "⌃G" : "Ctrl+Alt+G", keywords: "columns grid layout grid", run: () => toggleViewOption("layoutGuides") },
     { id: "theme", group: "View", label: state.chromeTheme === "dark" ? "Light mode" : "Dark mode", keywords: "theme dark light interface canvas mode", run: toggleStudioTheme },
     { id: "pages", group: "Panels", label: "Show pages", run: () => studioStore.setState({ leftTab: "pages" }) },
     { id: "variables", group: "Panels", label: "Local variables", keywords: "tokens variables colors modes collection open", run: openVariables },

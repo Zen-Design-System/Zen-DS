@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerFigma, headerProject, headerTitle, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
+import { headerFigma, headerLayoutGuides, withHeaderCanvas, headerProject, headerTitle, withHeaderGuides, withHeaderLayoutGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type CanvasBackground, type LayoutGuide, type PageGuide, type RevisionReason } from "./pageModel";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 
 /*
@@ -280,6 +280,40 @@ export async function setPageOs(id: string, os: "ios" | "android"): Promise<void
   if (!page) throw new Error("The page is gone");
   const text = withHeaderOs(page.text, os);
   if (text !== page.text) await putPage(id, text, { title: page.title, reason: "edit" });
+}
+
+/** The page's ruler guides (header `guides`, F10): written with the page, outside ⌘Z (as the page's OS and project). */
+export async function setPageGuides(id: string, guides: readonly PageGuide[]): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderGuides(page.text, guides);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  if (guides.length) header.guides = guides.map((guide) => ({ ...guide })); else delete header.guides;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
+}
+
+/** A frame's layout guides (header `layoutGuides`, F10): written with the page, outside ⌘Z (as its guides). */
+export async function setFrameLayoutGuides(id: string, frame: string, guides: readonly LayoutGuide[]): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderLayoutGuides(page.text, frame, guides);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  const all = headerLayoutGuides(text);
+  if (Object.keys(all).length) header.layoutGuides = all; else delete header.layoutGuides;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
+}
+
+/** The page's canvas background (header `canvas`, F10): written with the page, outside ⌘Z (as its OS). */
+export async function setPageCanvas(id: string, canvas: CanvasBackground): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderCanvas(page.text, canvas);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  if (canvas === "canvas") delete header.canvas; else header.canvas = canvas;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
 }
 
 /** Moves the page into a Studio project (header `project`; null: back to Drafts). The page's document keeps its

@@ -8,10 +8,15 @@ import type { StudioViewport } from "../types";
  * labels, the zoom percentage).
  */
 
+/** Figma's zoom range: 2 % … 25 600 % (F10). */
 export const MIN_ZOOM = 0.02;
-export const MAX_ZOOM = 4;
-/** Zoom in / out walk this ladder (Figma-like steps). */
-export const zoomSteps = [0.02, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4] as const;
+export const MAX_ZOOM = 256;
+/** Zoom to fit (⇧1, ⇧2, a frame) stops here: a small layer is not blown up past 400 %. */
+export const FIT_MAX_ZOOM = 4;
+/** Zoom in / out walk this ladder (Figma-like steps, doubling past 400 %). */
+export const zoomSteps = [0.02, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 8, 16, 32, 64, 128, 256] as const;
+/** Figma's pixel grid shows from this zoom (400 %): one line per world px. */
+export const PIXEL_GRID_FROM = 4;
 /**
  * The first visit of a page fits its first frame's width in the visible canvas, down to this zoom (below it text is too
  * small to read; a wider frame then runs off to the right, one pan away). At 1280 and 1024 the Playground fits at ~62%
@@ -33,6 +38,7 @@ const listeners = new Set<Listener>();
 let viewportEl: HTMLElement | null = null;
 let worldEl: HTMLElement | null = null;
 let gridEl: HTMLElement | null = null;
+let pixelEl: HTMLElement | null = null;
 let current: StudioViewport = { x: 48, y: 48, zoom: 1 };
 let animation = 0;
 /** Where the running animation ends. */
@@ -67,6 +73,16 @@ function paint() {
     gridEl.style.backgroundPosition = `${offset(x)}px ${offset(y)}px`;
     const hidden = zoom < GRID_HIDDEN_BELOW ? "true" : "false";
     if (gridEl.dataset.hidden !== hidden) gridEl.dataset.hidden = hidden;
+  }
+  if (pixelEl) {
+    // The pixel grid (F10): a line at every world px once a px is 4 screen px wide.
+    const hidden = zoom < PIXEL_GRID_FROM ? "true" : "false";
+    if (pixelEl.dataset.hidden !== hidden) pixelEl.dataset.hidden = hidden;
+    if (hidden === "false") {
+      const offset = (value: number) => ((value % zoom) + zoom) % zoom;
+      pixelEl.style.backgroundSize = `${zoom}px ${zoom}px`;
+      pixelEl.style.backgroundPosition = `${offset(x)}px ${offset(y)}px`;
+    }
   }
 }
 
@@ -203,7 +219,7 @@ export const canvasApi = {
   getViewportElement: (): HTMLElement | null => viewportEl,
   getWorldElement: (): HTMLElement | null => worldEl,
   zoomToRect: (rect: DOMRect, options?: { padding?: number; maxZoom?: number }): void => {
-    setViewportNow(viewportFor(toWorldRect(rect), options?.padding ?? 48, options?.maxZoom ?? MAX_ZOOM), { animate: true });
+    setViewportNow(viewportFor(toWorldRect(rect), options?.padding ?? 48, options?.maxZoom ?? FIT_MAX_ZOOM), { animate: true });
   },
   ensureVisible: (rect: DOMRect): void => {
     const client = viewportBox();
@@ -286,17 +302,18 @@ export const canvasApi = {
 };
 
 /** Called by StudioCanvas: the elements, where the viewport is saved, and what "zoom to fit" fits. */
-export function attachCanvas(elements: { viewport: HTMLElement; world: HTMLElement; grid: HTMLElement | null }, options: { persist: (viewport: StudioViewport) => void; bounds: () => Rect | null }) {
+export function attachCanvas(elements: { viewport: HTMLElement; world: HTMLElement; grid: HTMLElement | null; pixels?: HTMLElement | null }, options: { persist: (viewport: StudioViewport) => void; bounds: () => Rect | null }) {
   viewportEl = elements.viewport;
   worldEl = elements.world;
   gridEl = elements.grid;
+  pixelEl = elements.pixels ?? null;
   persist = options.persist;
   fitBounds = options.bounds;
   boxCache = null;
   paint();
   return () => {
     stopAnimation();
-    if (viewportEl === elements.viewport) { viewportEl = null; worldEl = null; gridEl = null; persist = null; fitBounds = null; boxCache = null; }
+    if (viewportEl === elements.viewport) { viewportEl = null; worldEl = null; gridEl = null; pixelEl = null; persist = null; fitBounds = null; boxCache = null; }
   };
 }
 

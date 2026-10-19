@@ -18,6 +18,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
   the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
   rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4); `tools/studio/figma-native.mjs` /
+  `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with the user.
+- **P2 · Layout guide column count by device — designer (2026-10-19, Studio F10, Session C):** Breakpoint & Grids has
+  Margin-Comfortable and Gutter but no column count; a new layout guide starts with 12 (desktop) · 8 (tablet) · 4
+  (phone) columns (`DEFAULT_GUIDE_COLUMNS`, builder/store/pageModel.ts). Should Zen add a Columns variable per mode
+  (then the guide reads it), or are these the counts? Also: a Figma push of layout guides waits on that answer.
   `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with the user. Same path, pictures
   (Session C, F8b, 2026-10-19): image fills (Shape / frame `image`) and pictured instances are noted, not pasted — the
   bytes must ride in the kiwi message (blobs + image hashes), verified against a Figma capture of a pasted image;

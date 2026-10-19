@@ -1,5 +1,6 @@
 import { LocalStyles } from "./LocalStyles";
 import { useEffect, useState } from "react";
+import { CanvasBackgroundField } from "../canvas/CanvasBackground";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
@@ -121,6 +122,8 @@ export function PagePanel() {
           <InspectorFields name="title" labels={["Name"]} fields={[<PageName key="name" id={localPage} title={builderPage.title} />]} />
           {/* One OS for the page (user, 2026-10-10): its phone and tablet Screens draw that OS's status and bottom bars. */}
           <InspectorFields name="os" labels={["Mobile OS"]} fields={[<PageOs key="os" id={localPage} text={builderPage.text} />]} />
+          {/* Figma's page Background: the canvas behind the frames, Zen background tokens (canvas/CanvasBackground.tsx, F10). */}
+          <InspectorFields name="canvas-background" labels={["Background"]} fields={[<CanvasBackgroundField key="background" id={localPage} text={builderPage.text} />]} />
           {/* Studio projects (2026-10-17): the page draws in its project's theme; Drafts keep Zen's. */}
           <InspectorFields name="project" labels={["Project"]} fields={[<PageProject key="project" id={localPage} />]}
             icon={project ? <IconButton icon="icon-palette-line" aria-label={`${project.name} theme`} tooltip="Project theme" appearance="flat" level="secondary" size="xs" onClick={() => openProjectSetup({ kind: "edit", id: project.id })} /> : null} />

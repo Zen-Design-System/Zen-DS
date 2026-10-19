@@ -1,0 +1,36 @@
+/* Figma's rulers and guides (Rulers.tsx, F10), in the viewport's px, above the selection layer (z 10): two 20px bands
+   along the canvas that shows between the panels (Popover fill, Pale rule, Caption labels in Light content), and
+   guides in Negative/Solid as Figma's red. */
+.studio-rulers { position: absolute; z-index: 20; inset: 0; pointer-events: none; }
+.studio-ruler, .studio-ruler__corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--zen-color-background-popover-default);
+  pointer-events: auto;
+  touch-action: none;
+}
+.studio-ruler[data-axis="x"] { height: 20px; border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); cursor: row-resize; }
+.studio-ruler[data-axis="y"] { width: 20px; border-right: 1px solid var(--zen-color-border-neutral-pale-default); cursor: col-resize; }
+.studio-ruler__corner { width: 20px; height: 20px; border-right: 1px solid var(--zen-color-border-neutral-pale-default); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); pointer-events: none; }
+.studio-ruler__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding-left: var(--zen-spacing-padding-3-xsmall, 2px);
+  color: var(--zen-color-content-neutral-light);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.studio-ruler[data-axis="x"] .studio-ruler__label { border-left: 1px solid var(--zen-color-border-neutral-subtle-default); height: 20px; }
+.studio-ruler[data-axis="y"] .studio-ruler__label { left: 0; top: 0; transform-origin: 0 0; translate: 0 0; border-left: 1px solid var(--zen-color-border-neutral-subtle-default); height: 20px; }
+
+.studio-guide { position: absolute; top: 0; left: 0; pointer-events: auto; touch-action: none; }
+.studio-guide[data-axis="x"] { width: 1px; border-left: 1px solid var(--zen-color-border-negative-solid-default); cursor: col-resize; }
+.studio-guide[data-axis="y"] { height: 1px; border-top: 1px solid var(--zen-color-border-negative-solid-default); cursor: row-resize; }
+/* A wider hit area than the 1px line. */
+.studio-guide::before { content: ""; position: absolute; inset: -3px; }
+.studio-guide[data-preview] { pointer-events: none; }
+.studio-guide[data-preview="remove"] { opacity: 0.4; }

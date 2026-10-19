@@ -380,9 +380,10 @@ export type EditOp =
   | { op: "replaceElement"; code: string; state?: StateDecl[] }
   /**
    * A multi-selection in one file, one edit: every element at `locs` removed, duplicated (each copy after it) or given
-   * the same setProp / removeProp `ops`. `hash` required. Answer: `removed`, `inserted.loc` (first copy) or `updated`.
-   * Duplicate also answers `inserted.locs` (each original's loc → its copy's) where the server has it; "moveTo" (a
-   * drag of several layers: `parent`, `before` / `after`, `copy` as op moveTo) answers `moved` / `inserted` { loc, locs }.
+   * the same setProp / removeProp `ops` (setText too: Replace all's words, F10). `hash` required. Answer: `removed`,
+   * `inserted.loc` (first copy) or `updated`. Duplicate also answers `inserted.locs` (each original's loc → its
+   * copy's) where the server has it; "moveTo" (a drag of several layers: `parent`, `before` / `after`, `copy` as op
+   * moveTo) answers `moved` / `inserted` { loc, locs }.
    */
   | { op: "many"; action: "remove" | "duplicate" | "setProps" | "move" | "moveTo"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]>; to?: "prev" | "next"; parent?: string; before?: string; after?: string; copy?: boolean }
   /** Figma "Delete contents": empty the host's `prop` slot (omitted: children); `hash` required. Answer: `cleared`. */

@@ -565,7 +565,8 @@ export function manyPlan(ctx, nodePath, op, h) {
   const outer = elements.filter((element) => !elements.some((other) => other !== element && other.start <= element.start && element.end <= other.end));
   outer.sort((a, b) => a.start - b.start);
   if (action === "setProps") {
-    // A layer's words too (setText): Push changes to main component writes an instance's text overrides into its main (F7b).
+    // setText too: Find and replace's Replace all (F10) rewrites the words of several layers in one edit, and Push changes
+    // to main component writes an instance's text overrides into its main (F7b).
     const propOps = (ops) => Array.isArray(ops) && ops.length > 0 && ops.every((inner) => inner?.op === "setProp" || inner?.op === "removeProp" || inner?.op === "setText");
     const byLoc = op.opsByLoc && typeof op.opsByLoc === "object" ? op.opsByLoc : null;
     if (byLoc ? !op.locs.every((loc) => propOps(byLoc[loc])) : !propOps(op.ops)) h.refuse("setProps takes `ops` (or `opsByLoc`, one list per loc): setProp / removeProp / setText only");
