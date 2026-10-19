@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerFigma, headerProject, headerTitle, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
+import { headerFigma, headerProject, headerTitle, withHeaderGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type PageGuide, type RevisionReason } from "./pageModel";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 
 /*
@@ -280,6 +280,17 @@ export async function setPageOs(id: string, os: "ios" | "android"): Promise<void
   if (!page) throw new Error("The page is gone");
   const text = withHeaderOs(page.text, os);
   if (text !== page.text) await putPage(id, text, { title: page.title, reason: "edit" });
+}
+
+/** The page's ruler guides (header `guides`, F10): written with the page, outside ⌘Z (as the page's OS and project). */
+export async function setPageGuides(id: string, guides: readonly PageGuide[]): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderGuides(page.text, guides);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  if (guides.length) header.guides = guides.map((guide) => ({ ...guide })); else delete header.guides;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
 }
 
 /** Moves the page into a Studio project (header `project`; null: back to Drafts). The page's document keeps its

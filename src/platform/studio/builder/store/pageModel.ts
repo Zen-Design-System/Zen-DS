@@ -120,6 +120,44 @@ export function withHeaderOs(text: string, os: "ios" | "android"): string {
   return `${match[1]}${JSON.stringify(os === "android" ? { ...rest, os } : rest)}${match[3]}${text.slice(match[0].length)}`;
 }
 
+/**
+ * A ruler guide (Figma's, F10): a vertical (`x`) or horizontal (`y`) line at `at` px, from a frame's top-left when it
+ * belongs to that frame (`frame`: its data-studio-frame id, "screen:home"), else from the canvas origin.
+ */
+export type PageGuide = { axis: "x" | "y"; at: number; frame?: string };
+
+const isGuide = (value: unknown): value is PageGuide => {
+  const guide = value as PageGuide;
+  return Boolean(guide) && (guide.axis === "x" || guide.axis === "y") && typeof guide.at === "number" && Number.isFinite(guide.at) && (guide.frame === undefined || typeof guide.frame === "string");
+};
+
+/** The page's ruler guides (header `guides`), none without a readable header. */
+export function headerGuides(text: string): PageGuide[] {
+  const match = HEADER.exec(text);
+  try {
+    const guides = match ? (JSON.parse(match[2]) as { guides?: unknown }).guides : null;
+    return Array.isArray(guides) ? guides.filter(isGuide) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** The text with the header's `guides` set (none: left out); unchanged without a readable header. */
+export function withHeaderGuides(text: string, guides: readonly PageGuide[]): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { guides: _old, ...rest } = value;
+  const kept = guides.filter(isGuide).map(({ axis, at, frame }) => ({ axis, at: Math.round(at * 100) / 100, ...(frame ? { frame } : {}) }));
+  return `${match[1]}${JSON.stringify(kept.length ? { ...rest, guides: kept } : rest)}${match[3]}${text.slice(match[0].length)}`;
+}
+
 /** A page id from a title or file name: "Checkout flow" → "checkout-flow" (Vietnamese marks dropped). */
 export function slugOf(value: string): string {
   return value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "page";

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useViewOptions } from "./viewOptions";
+import { Rulers } from "./Rulers";
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { FrameChrome } from "../board/FrameChrome";
 import { SelectionLayer } from "../select/SelectionLayer";
@@ -339,6 +340,8 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
       <ConstraintLayer viewport={viewport} world={world} />
       <EditLayer viewport={viewport} world={world} />
       <FrameChrome viewport={viewport} />
+      {/* Figma's rulers and guides (⇧R, F10). */}
+      <Rulers viewport={viewport} />
     </div>
   );
 }
