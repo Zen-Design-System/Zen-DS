@@ -1460,9 +1460,18 @@ export const rows = [
       await page.keyboard.press("Enter");
       await written(page, id, new RegExp(`<Stack\\b[^>]*gap="${key}"`), `gap="${key}"`);
       await until(async () => (await row.locator(".studio-scale").first().getAttribute("data-variable")) === "true", { message: "the variable pill" });
+      // A longer name in the pill reads whole beside its value ("Medium 16", never "Medi…").
+      await row.locator(".zen-select__trigger").first().focus();
+      await page.keyboard.type("16");
+      await page.keyboard.press("Enter");
+      await written(page, id, /<Stack\b[^>]*gap="md"/, 'gap="md"');
+      const pill = row.locator(".zen-select__trigger").first();
+      await until(async () => (await pill.innerText()).trim() === "Medium", { message: "the Medium pill" });
+      const cut = await pill.evaluate((el) => el.scrollWidth - el.clientWidth);
+      if (cut > 0.5) throw new Error(`the pill cuts "Medium" by ${cut}px`);
       await shot(page, "fw-57-variable-pill");
       await undoTo(page, id, before);
-      return `${typed} → ${name} (variable pill) → ⌘Z`;
+      return `${typed} → ${name} (variable pill) · 16 → Medium, whole → ⌘Z`;
     },
   },
   {
