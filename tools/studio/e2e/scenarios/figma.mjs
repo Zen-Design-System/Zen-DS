@@ -50,7 +50,6 @@ async function selectBody(page, id) {
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
-["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
   ["KeyK", "Scale"], ["KeyC", "Comment"],
   ["KeyI", "Pick color"], ["KeyS", "Slice"],
 ];
@@ -2849,6 +2848,70 @@ export const rows = [
         await undoTo(page, id, before, 6).catch(() => undefined);
       }
       return "⌘G → 180 × 80 · Ellipse ⇧↓ ×2 → the group 180 × 100, the Rectangle in place · ⌘Z";
+    },
+  },
+  {
+    id: "FW-125", feature: "⇧⌘C (Copy as PNG): the selected layer as a picture on the clipboard at 2x (Figma's), no 'not in Zen Studio yet' note; the canvas stays as it was", wp: "F3 2026-10-20", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = await pageText(page, id);
+      await selectShape(page, id, 0);
+      const box = await clipShape(page, id, 0).boundingBox();
+      const size = await clipShape(page, id, 0).evaluate((element) => [element.offsetWidth, element.offsetHeight]);
+      await page.evaluate(() => navigator.clipboard.writeText("before"));
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Shift+KeyC");
+      const read = () => page.evaluate(async () => {
+        for (const item of await navigator.clipboard.read()) {
+          if (!item.types.includes("image/png")) continue;
+          const bitmap = await createImageBitmap(await item.getType("image/png"));
+          return [bitmap.width, bitmap.height];
+        }
+        return null;
+      });
+      let picture = null;
+      await until(async () => Boolean(picture = await read().catch(() => null)), { timeout: 15_000, message: "a PNG on the clipboard" });
+      if (picture[0] !== size[0] * 2 || picture[1] !== size[1] * 2) throw new Error(`PNG ${picture.join(" × ")}, the layer is ${size.join(" × ")} (2x expected)`);
+      const status = (await page.locator(".studio-status, [role=status]").allInnerTexts().catch(() => [])).join(" | ");
+      if (/not in Zen Studio yet/i.test(status)) throw new Error(`⇧⌘C still says it is not here: ${status}`);
+      if ((await pageText(page, id)) !== before) throw new Error("⇧⌘C changed the page");
+      return `Rectangle ${size.join(" × ")} at ${Math.round(box.x)}, ${Math.round(box.y)} → PNG ${picture.join(" × ")} · ${status.split(" | ").find((text) => /PNG/.test(text)) ?? "no status"}`;
+    },
+  },
+  {
+    id: "FW-126", feature: "Copy as › Copy as SVG (the layer menu) and the frame menu's Copy as PNG: the layer's SVG markup as text at its size; the Screen as a picture at 2x its width", wp: "F3 2026-10-20", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      await selectShape(page, id, 0);
+      const size = await clipShape(page, id, 0).evaluate((element) => [element.offsetWidth, element.offsetHeight]);
+      const box = await clipShape(page, id, 0).boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+      const menu = page.getByRole("menu").last();
+      await menu.waitFor({ state: "visible", timeout: 5000 });
+      await menu.getByRole("menuitem", { name: /^Copy as\b/ }).first().click();
+      const list = page.getByRole("menu").last();
+      await list.getByRole("menuitem", { name: "Copy as SVG" }).waitFor({ state: "visible", timeout: 5000 });
+      await list.getByRole("menuitem", { name: "Copy as SVG" }).click();
+      let svg = "";
+      await until(async () => /^<svg\b/.test(svg = await page.evaluate(() => navigator.clipboard.readText()).catch(() => "")), { timeout: 15_000, message: "SVG markup on the clipboard" });
+      if (!new RegExp(`width="${size[0]}"`).test(svg) || !new RegExp(`height="${size[1]}"`).test(svg)) throw new Error(`SVG not at the layer's ${size.join(" × ")}: ${svg.slice(0, 200)}`);
+      // The Screen's frame menu: Copy as PNG of the frame's body.
+      const frame = page.locator('[data-studio-frame^="screen:"]').first();
+      const frameWidth = await frame.evaluate((element) => element.offsetWidth);
+      await deselect(page);
+      // The frame's name label above it opens the frame menu (FW-46).
+      await page.locator('.studio-frame-label[data-chrome-key^="label:screen:"]').first().click({ button: "right" });
+      const frameMenu = page.getByRole("menu").last();
+      await frameMenu.waitFor({ state: "visible", timeout: 5000 });
+      await page.evaluate(() => navigator.clipboard.writeText("before"));
+      await frameMenu.getByRole("menuitem", { name: "Copy as PNG" }).click();
+      let picture = null;
+      await until(async () => Boolean(picture = await page.evaluate(async () => {
+        for (const item of await navigator.clipboard.read()) if (item.types.includes("image/png")) { const bitmap = await createImageBitmap(await item.getType("image/png")); return [bitmap.width, bitmap.height]; }
+        return null;
+      }).catch(() => null)), { timeout: 20_000, message: "the frame's PNG on the clipboard" });
+      if (picture[0] !== frameWidth * 2) throw new Error(`frame PNG ${picture.join(" × ")}, the frame is ${frameWidth} wide (2x expected)`);
+      return `SVG ${svg.length} chars (${size.join(" × ")}) · Screen ${frameWidth} wide → PNG ${picture.join(" × ")}`;
     },
   },
   {

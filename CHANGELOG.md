@@ -21,6 +21,9 @@ removed (four unused colour ramps were, see Removed).
   inside its outline, turned and flipped as drawn. Zen Studio's Use as mask (⌃⌘M, the canvas menu, Quick actions)
   makes a Mask group of two or more floating layers, the bottom one the mask, and on a mask group removes it.
   Figma push / pull carry it as the group's bottom layer with isMask (Zen plugin updated).
+- Zen Studio's Copy as PNG (⇧⌘C) and Copy as SVG, as Figma's (the rest of F3 of the parity plan): the selected layer
+  or frame as a picture on the clipboard at 2x (or at its first export setting's scale), or as SVG markup; in the
+  layer menu's Copy as list, the frame menu and Quick actions. ⇧⌘C no longer says "not in Zen Studio yet".
 - Zen Studio's View and Find like Figma (F10 of the parity plan): zoom from 2 % to 25 600 % (zoom to fit still stops
   at 400 %), the pixel grid from 400 % (⌘'), Outlines (⌘Y), rulers (⇧R) with guides dragged onto a frame or the canvas
   (back onto the ruler deletes one), layout guides on a frame (right panel › Layout guide: Columns, Rows or Grid; margin

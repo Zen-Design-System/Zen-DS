@@ -10,7 +10,7 @@ import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } 
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
-import { copyAsCode, copyAsCss } from "../edit/copyAs";
+import { copyAsCode, copyAsCss, copyAsPng, copyAsPngShortcut, copyAsSvg } from "../edit/copyAs";
 import { groupSelection, inMaskGroup, maskSelection, ungroupSelection } from "../edit/groupLayers";
 import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../edit/pathOps";
 import { selectedFrames } from "../select/frameSelection";
@@ -162,6 +162,9 @@ export function CanvasMenu() {
   const copyAsItems: MenuEntry[] = selection ? [{ type: "group", id: "copy-as-list", label: "Copy as", items: [
     { id: "copy-as-code", label: "Copy as code", icon: "icon-code-02-line", onSelect: () => { void copyAsCode(selection); } },
     { id: "copy-as-css", label: "Copy as CSS", icon: "icon-code-02-line", onSelect: () => { void copyAsCss(selection); } },
+    // The layer as a picture (⇧⌘C) or as SVG markup, drawn as the Export section draws it (edit/copyAs.ts).
+    { id: "copy-as-png", label: "Copy as PNG", icon: "icon-image-line", shortcut: copyAsPngShortcut, onSelect: () => { void copyAsPng(selection); } },
+    { id: "copy-as-svg", label: "Copy as SVG", icon: "icon-code-02-line", onSelect: () => { void copyAsSvg(selection); } },
   ] }] : [];
   const editOff = canEdit() ? undefined : studioStore.getState().role === "admin" ? "Can't edit right now" : "View only";
   // Several layers: the edits that work on all of them at once (Figma's multi-selection menu), then the wrap items.
@@ -218,6 +221,9 @@ export function CanvasMenu() {
     // Figma's Paste here: the clipboard at the pointer, in the layout or frame under it (edit/clipboard.ts, F3).
     ...(menu ? [pasteHereItem({ x: menu.x, y: menu.y }), { type: "separator" as const, id: "frame-paste-separator" }] : []),
     { id: "frame-zoom", label: "Zoom to selection", icon: "icon-zoom-in-line", shortcut: "⇧2", onSelect: () => zoomToFrame(frame.element) },
+    // Figma's Copy as PNG / SVG of a frame: its body as a picture or as SVG markup (edit/copyAs.ts).
+    { id: "frame-copy-png", label: "Copy as PNG", icon: "icon-image-line" as const, shortcut: copyAsPngShortcut, onSelect: () => { void copyAsPng({ kind: "frame", frameId: frame.id }); } },
+    { id: "frame-copy-svg", label: "Copy as SVG", icon: "icon-code-02-line" as const, onSelect: () => { void copyAsSvg({ kind: "frame", frameId: frame.id }); } },
     // Present plays a page you made from this Screen (Figma's Present runs the prototype); an example frame is presented.
     ...(!section && (localPage || frame.id.startsWith("example:")) ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),
     // A frame of a page you made: its code and its Figma export on the clipboard (⌘V in the Zen plugin places it).
