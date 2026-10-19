@@ -1712,6 +1712,9 @@ export const rows = [
         await menu.getByRole("menuitem", { name: /^Combine as variants/ }).click();
         await written(page, id, /<ComponentSet id="[^"]+" name="[^"]+">\s*<Component id="tag-small" name="Tag small">[\s\S]*?<Component id="tag-large" name="Tag large">[\s\S]*?<\/ComponentSet>/, "one set around both mains").catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
         const name = /<ComponentSet id="[^"]+" name="([^"]+)">\s*<Component id="tag-small"/.exec((await pageText(page, id)) ?? "")[1];
+        // Selected, the set is named in the header and in Layers (which opens the way to the selection).
+        await deepSelect(page, page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-set-name="${name}"]`).first());
+        await until(async () => (await selectedName(page)) === name, { message: `the set ${name} selected` });
         await until(async () => (await page.locator("#studio-left .studio-layers__name").allInnerTexts()).some((row) => row.trim() === name), { message: `Layers names the set ${name}` });
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("ControlOrMeta+KeyZ");
@@ -1787,7 +1790,8 @@ export const rows = [
         await until(async () => (await selectedName(page)) === "Chip", { message: "the Chip instance selected" });
         await chooseIn(page, "instance-variant", "Large");
         await written(page, id, /<Use of="chip" variant=\{\{ Size: "Large" \}\} \/>/, "Size = Large");
-        await right(page).getByRole("button", { name: "Show icon", exact: true }).click();
+        // A boolean property is a switch (ToggleButton).
+        await right(page).getByRole("switch", { name: "Show icon", exact: true }).click();
         await written(page, id, /<Use of="chip" variant=\{\{ Size: "Large" \}\} props=\{\{ "Show icon": false \}\} \/>/, "Show icon off");
         await until(async () => (await instance.locator(".zen-icon").count()) === 0, { message: "the instance's icon hidden" });
         await typeText(page, "Label", "Done");
