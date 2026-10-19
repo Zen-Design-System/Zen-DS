@@ -171,6 +171,9 @@ removed (four unused colour ramps were, see Removed).
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Zen Studio Properties: a ProgressBar has Figma's Progress select (None 0, Low 20, Medium 40, Good 80, Done 100; another
+  number shows as itself) above its Value slider (2026-10-19, user: "thêm ô chọn Progress cho ProgressBar"). Number
+  props with a known range get their slider in Figma-grouped Properties too (Rating, Slider, ProgressCircle).
 - ProgressCircle's ring has no fill (2026-10-19, user: "Nền nó đang là trong suốt, trên studio là nền xám"): Figma's
   Progress-Circle/Icon Base is the 2px Support/Subtle ring only, so the grey Neutral/Subtle disc inside is gone.
 - BottomNavigation follows Figma (2026-10-19, user: "Update bottom navigation từ Figma lên Studio"): a Floating bar's
