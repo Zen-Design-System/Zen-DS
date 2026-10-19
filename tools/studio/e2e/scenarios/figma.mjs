@@ -1686,6 +1686,40 @@ export const rows = [
     },
   },
   {
+    id: "FW-87", feature: "Crop on the canvas: Image fit → Crop shows the whole picture faint; a corner scales it and a drag moves it (one edit each, the layer's size kept); Esc ends the crop", wp: "F8b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await freeFrame(page, id).boundingBox();
+        await page.mouse.click(box.x + 10, box.y + 10);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the picture placed" });
+        const size = (await pictureTag(page, id)).match(/width=\{\d+\} height=\{\d+\}/)?.[0];
+        await chooseFit(page, "crop", async () => /imageFit="crop"/.test(await pictureTag(page, id)));
+        await page.locator(".studio-crop__picture").waitFor({ state: "visible", timeout: 5000 });
+        const crop = async () => (await pictureTag(page, id)).match(/imageCrop=\{\{ x: ([\d.]+), y: ([\d.]+), width: ([\d.]+), height: ([\d.]+) \}\}/)?.slice(1).map(Number) ?? [];
+        const corner = await page.locator('.studio-crop__handle[data-corner="se"]').boundingBox();
+        await page.mouse.move(corner.x + 4, corner.y + 4);
+        await page.mouse.down();
+        await page.mouse.move(corner.x + 40, corner.y + 40, { steps: 5 });
+        await page.mouse.up();
+        await until(async () => ((await crop())[2] ?? 100) < 100, { message: "the corner scaled the picture" });
+        const [, , width] = await crop();
+        const layer = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"][data-image]`).first().boundingBox();
+        await page.mouse.move(layer.x + layer.width / 2, layer.y + layer.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(layer.x + layer.width / 2 - 20, layer.y + layer.height / 2 - 20, { steps: 5 });
+        await page.mouse.up();
+        await until(async () => ((await crop())[0] ?? 0) > 0, { message: "the drag moved the picture" });
+        const [x, y] = await crop();
+        if ((await pictureTag(page, id)).match(/width=\{\d+\} height=\{\d+\}/)?.[0] !== size) throw new Error("the layer's size changed");
+        await page.keyboard.press("Escape");
+        await until(async () => (await page.locator(".studio-crop__picture").count()) === 0, { message: "Esc ends the crop" });
+        return `corner → width ${width}%, drag → x ${x}%, y ${y}%; ${size} kept; Esc ends it`;
+      });
+    },
+  },
+  {
     id: "FW-113", feature: "Delete with two frames selected deletes both in one edit; one ⌘Z brings both back", wp: "F3 2026-10-19 · F4 removeFrames", timeout: 40_000,
     async run(ctx) {
       const { page } = await twoScreensPage(ctx);

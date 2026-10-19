@@ -2,7 +2,9 @@ import { IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { coverCrop, cropOf, imageFillMode, type ImageCrop } from "../../../components/_shared/image-fill";
 import { resolveMedia } from "../builder/library/media";
+import { startCrop } from "../draw/CropHandles";
 import { choosePictures, picturesOf } from "../draw/placeImage";
+import { studioStore } from "../store";
 import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
 import type { FieldApi } from "../inspector/fieldApi";
@@ -66,8 +68,11 @@ export function ImageFillRow({ api, specs, host }: { api: FieldApi; specs: PropS
     }
     if (next !== "crop" && api.valueFor("imageCrop").state !== "unset") ops.push({ op: "removeProp", name: "imageCrop" });
     if (next !== "tile" && api.valueFor("imageScale").state !== "unset") ops.push({ op: "removeProp", name: "imageScale" });
-    void api.apply(ops, `Image → ${next.charAt(0).toUpperCase()}${next.slice(1)}`);
+    const done = await api.apply(ops, `Image → ${next.charAt(0).toUpperCase()}${next.slice(1)}`);
+    // Crop starts the crop on the canvas (Figma's): drag the picture, scale it by a corner (draw/CropHandles.tsx).
+    if (done && next === "crop") crop();
   };
+  const crop = () => { const selection = studioStore.getState().selection; if (selection?.kind === "node") startCrop(selection.src); };
   const setScale = (value: number) => {
     const percent = Math.max(1, Math.round(value));
     void api.apply(percent === 100 ? [{ op: "removeProp", name: "imageScale" }] : [{ op: "setProp", name: "imageScale", value: { kind: "number", value: percent } }], `Tile scale → ${percent}%`);
@@ -77,6 +82,7 @@ export function ImageFillRow({ api, specs, host }: { api: FieldApi; specs: PropS
     <div className="studio-image-fill" data-prop="image-fill">
       <div className="studio-image-fill__picture">
         <PhotoControl label="Image" value={image} disabled={api.disabled} onSet={setImage} onClear={image ? remove : undefined} />
+        {image && mode === "crop" ? <IconButton icon="icon-crop-line" aria-label="Crop on the canvas" appearance="flat" level="primary" size="xs" disabled={api.disabled} onClick={crop} /> : null}
         <IconButton icon="icon-upload-01-line" aria-label="Upload image" appearance="flat" level="primary" size="xs" disabled={api.disabled} onClick={() => { void upload(); }} />
         {image ? <IconButton icon="icon-minus-line" aria-label="Remove image" appearance="flat" level="primary" size="xs" disabled={api.disabled} onClick={remove} /> : null}
       </div>
