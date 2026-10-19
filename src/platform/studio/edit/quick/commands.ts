@@ -16,6 +16,7 @@ import { canEdit, studioStore } from "../../store";
 import type { StudioSelection } from "../../types";
 import { stepLayer, type NodeSelection } from "../arrange";
 import { clipboardActions, clipboardShortcuts } from "../clipboard";
+import { copyAsPng, copyAsPngShortcut, copyAsSvg } from "../copyAs";
 import { duplicateLayers, removeLayers, stepLayers } from "../multi";
 import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
 import { multiSelection, selectedLayers } from "../../select/multiSelection";
@@ -50,6 +51,7 @@ export function commands(): Command[] {
   const selection: StudioSelection | null = state.selection;
   const node = selection?.kind === "node" && !selection.part ? (selection as NodeSelection) : null;
   const layerOff = node ? undefined : "Select a layer first";
+  const pictureOff = node || selection?.kind === "frame" ? undefined : "Select a layer or a frame first";
   const editOff = !canEdit(state) ? (state.role === "admin" ? "Can't edit right now" : "View only") : layerOff;
   const frameId = selection?.kind === "frame" ? selection.frameId : selection?.frameId ?? null;
   const wrap = node ? wrapCheck() : null;
@@ -68,6 +70,9 @@ export function commands(): Command[] {
     { id: "cut", group: "Edit", label: "Cut", shortcut: clipboardShortcuts.cut, disabled: editOff, run: () => { if (node) void clipboardActions.cut(node); } },
     { id: "paste", group: "Edit", label: "Paste", shortcut: clipboardShortcuts.paste, disabled: editOff, run: () => { void clipboardActions.paste(node ?? null); } },
     { id: "paste-replace", group: "Edit", label: "Paste to replace", shortcut: clipboardShortcuts.replace, disabled: editOff, run: () => { if (node) void clipboardActions.replace(node); } },
+    // Figma's Copy as PNG (⇧⌘C) / SVG: the layer or the frame as a picture or as SVG markup (edit/copyAs.ts).
+    { id: "copy-as-png", group: "Edit", label: "Copy as PNG", shortcut: copyAsPngShortcut, keywords: "picture image screenshot export", disabled: pictureOff, run: () => { void copyAsPng(selection ?? null); } },
+    { id: "copy-as-svg", group: "Edit", label: "Copy as SVG", keywords: "vector markup export", disabled: pictureOff, run: () => { void copyAsSvg(selection ?? null); } },
     { id: "copy-props", group: "Edit", label: "Copy properties", shortcut: clipboardShortcuts.copyProps, keywords: "style", disabled: layerOff, run: () => { if (node) void clipboardActions.copyProperties(node); } },
     { id: "paste-props", group: "Edit", label: "Paste properties", shortcut: clipboardShortcuts.pasteProps, keywords: "style", disabled: editOff ?? (clipboardActions.hasProperties() ? undefined : "Copy properties first"), run: () => { if (node) void clipboardActions.pasteProperties(node); } },
     { id: "duplicate", group: "Edit", label: "Duplicate", shortcut: duplicateShortcut, disabled: editOff, run: () => { if (multiSelection.get().length) void duplicateLayers(); else if (node) void duplicateSelection(node); } },
