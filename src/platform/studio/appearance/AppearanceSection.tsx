@@ -94,7 +94,7 @@ export function CornerRadiusField({ api, specs, host }: { api: FieldApi; specs: 
         onSet={(next) => send(uniformPick(w, String(next)), `Corner radius → ${next}`)}
         onReset={() => send(uniformClear(w), "Corner radius → default")}
         // Figma UI3's ⛶ beside the radius field, in the icon column (not a row of its own off the grid).
-        action={<IconButton icon="icon-scan-line" aria-label="Independent corners" tooltip="Independent corners" aria-pressed={open} appearance="flat" level={open ? "secondary" : "primary"} size="xs" onClick={() => setOpen((value) => !value)} />}
+        action={<IconButton icon="icon-maximize-02-line" aria-label="Independent corners" tooltip="Independent corners" aria-pressed={open} appearance="flat" level={open ? "secondary" : "primary"} size="xs" onClick={() => setOpen((value) => !value)} />}
       />
       {open ? CORNERS.map((corner: Corner) => (
         <PropField

@@ -120,6 +120,9 @@ removed (four unused colour ramps were, see Removed).
   in the panel (Reset all changes). Description and link on mains and sets. React export writes one function per set
   with typed props; Figma push makes a COMPONENT_SET with its properties and bound layers (Zen plugin), and pull reads
   them back.
+- Studio E2E: a retried row starts from the drafts and pages the row found (the runner puts them back), and a row that
+  fails twice reports its first error; the Studio's right panel keeps every field on its grid (shared Inline-Field), with
+  an E2E fit check.
 - Zen Studio instance overrides as in Figma (F7b): ⌘-click into an instance of a page's own component and change a
   layer's words, visibility, a nested instance's variant and properties or a nested component's properties for that
   instance only (`<Use overrides>`); Reset changes / Reset all changes; Push changes to main component; an instance's

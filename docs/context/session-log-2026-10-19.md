@@ -332,7 +332,6 @@ Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
   - every field is inside the panel and ends on a field-grid line;
   - a section's rows start on one left edge;
   - no select value or short input value is cut off.
-- FW-52 starts from no stroke: the walk page keeps its id across runs, and a stopped run had left one.
 - 27/27 of Session B's FW rows pass with `--no-retry`. A retry runs on the page the failed attempt left, which hid
   FW-54's real error.
 - More slips the shots showed, now fixed:
@@ -340,12 +339,17 @@ Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
     row's icon column (PropField takes an `action`).
   - Selection colors showed cut-off CSS names. Each colour is now a read-only field: swatch, the variable in Figma's
     words (`colourVariableName`) and a BadgeCounter, on the field grid (`.studio-inspector__wide-field`).
-- E2E runner (`tools/studio/e2e/run.mjs`, asked by Giám sát): when the retry fails too, the report leads with the first
-  try's error and adds `(retry: …)`.
-  - Cause: a retry opens a fresh tab, but the documents the first try changed stay as it left them.
-  - Not done here, too big for this change: resetting those documents before a retry. Rows cache their pages per run,
-    and a page file keeps its id while the Studio server's drafts outlive it, which is how FW-52's stroke survived a
-    stopped run. BACKLOG, for the user.
+- E2E runner (`tools/studio/e2e/run.mjs`; asked by Giám sát; the reset approved by the user 2026-10-19: "làm luôn
+  phần reset trang trước khi retry"):
+  - A retry used to open a fresh tab on the documents the first try had changed: a row's cached page kept its edits,
+    so the retry failed on that leftover and hid the cause. That is how FW-52's stroke "survived": attempt 1 added it,
+    the retry found it. Nothing survives across runs: the server empties its drafts and pages folder at every start.
+  - Before each row, the runner keeps every draft's text and the files of the pages folder. Before a retry it puts them
+    back: drafts discarded or rewritten, files rewritten.
+  - A scenario that exports `forgetPages()` (figma.mjs) has the pages its first try added removed, and seeds them again.
+  - A row that fails twice reports its first try's error, then `(retry: …)`.
+  - Proved with a temporary forced failure in FW-52: once on a page the row made, once on a page an earlier row made.
+    Both retries passed; the temporary code is out. FW-52's own leftover-stroke guard is gone too.
 
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 

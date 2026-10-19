@@ -520,6 +520,16 @@ async function typeText(page, name, value, index = 0) {
   await field.press("Enter");
 }
 
+/** Before a row's retry (run.mjs): the pages this module made are forgotten, so the retry seeds them again from scratch
+ *  (the runner removes the files the first try added). */
+export function forgetPages() {
+  made = null;
+  clipMade = null;
+  shapesMade = null;
+  twoMade = null;
+  setsMade = null;
+}
+
 export const rows = [
   {
     id: "FW-01", feature: "⌘K opens Actions (Figma's command search), Esc closes it", wp: "F0 2026-10-18",
@@ -2216,11 +2226,6 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
       await selectBody(page, id);
-      // From a Stack without a stroke: a run stopped half-way leaves one on the walk page (it keeps its id across runs).
-      if (await right(page).getByRole("button", { name: "Remove stroke", exact: true }).count()) {
-        await press(page, "Remove stroke");
-        await written(page, id, /<Stack\b[^>]*(border=|borderWeight=)/, "a stroke left by an earlier run removed", true);
-      }
       await press(page, "Add stroke");
       await written(page, id, /<Stack\b[^>]*border="pale"/, "border=\"pale\" on the Stack");
       await typeNumber(page, "Stroke weight", 2);
