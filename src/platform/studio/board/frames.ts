@@ -75,15 +75,20 @@ export function onFramesMoved(listener: () => void) {
 
 /**
  * Selects the frame `frameId` once the board shows it (a frame just added): selected before, the board's next render of
- * an earlier text (an edit that pinned the row first) would find it missing and clear the selection.
+ * an earlier text (an edit that pinned the row first) would find it missing and clear the selection. It waits for the
+ * frame to register (not for animation frames, which a busy or hidden tab slows: E2E B-20 missed a 2 s window in the
+ * full run), up to `timeout`.
  */
-export function selectFrameWhenShown(frameId: string, select: (frameId: string) => void, timeout = 2000) {
-  const until = Date.now() + timeout;
-  const look = () => {
-    if (frames.some((frame) => frame.id === frameId)) { select(frameId); return; }
-    if (Date.now() < until) requestAnimationFrame(look);
-  };
-  look();
+export function selectFrameWhenShown(frameId: string, select: (frameId: string) => void, timeout = 10_000) {
+  if (frames.some((frame) => frame.id === frameId)) { select(frameId); return; }
+  let done = false;
+  const stop = () => { done = true; unsubscribe(); window.clearTimeout(timer); };
+  const unsubscribe = subscribe(() => {
+    if (done || !frames.some((frame) => frame.id === frameId)) return;
+    stop();
+    select(frameId);
+  });
+  const timer = window.setTimeout(stop, timeout);
 }
 
 export function useStudioFrames() {

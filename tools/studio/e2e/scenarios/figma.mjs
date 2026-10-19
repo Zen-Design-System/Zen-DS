@@ -51,7 +51,7 @@ async function selectBody(page, id) {
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
 ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
-  ["Shift+KeyR", "Rulers"], ["KeyK", "Scale"], ["KeyC", "Comment"],
+  ["KeyK", "Scale"], ["KeyC", "Comment"],
   ["KeyI", "Pick color"], ["KeyS", "Slice"],
 ];
 
