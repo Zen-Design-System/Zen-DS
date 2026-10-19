@@ -136,6 +136,16 @@ Header/Dashboard, Patterns/Sidebar). Đo từ bản Figma tự copy của một 
 - Đọc ngay sau khi dán (use_figma, ảnh chụp server) có thể còn vị trí cũ (hàng thứ hai ở y 0, Container chưa lùi 24px)
   trong khi màn hình của user đã đúng; chụp lại sau.
 
+## 7c. Ảnh trong bản dán (2026-10-19, F8c, user chọn "Dán ảnh qua ⌘C→⌘V")
+
+Paint IMAGE ghi ảnh bằng SHA-1 của byte (`image` và `imageThumbnail` cùng hash). **Byte phải nằm trong `blobs` của
+message** (`Image.dataBlob` = chỉ số blob): Figma desktop nhận ảnh mới tinh gửi như vậy (PNG, JPEG, GIF; một PNG 275 KB).
+`meta.imageHashes` (hash → URL, như bản Figma tự copy) chỉ chạy với ảnh server Figma đã có: data: URL và http cục bộ
+không được tải (lần thử đầu tưởng data: URL chạy vì ảnh đó đã có sẵn theo hash). WebP không vào: Studio vẽ nó ra PNG
+bằng canvas (`figmaClipboard.ts`). Crop = `STRETCH` với `transform` [[w,0,x],[0,h,y]] (phân số), Tile = `scale`. `src`
+của Studio đi theo shared plugin data: Figma ghi nó là `pluginData` `{ pluginID: "", key: "zenstudio-image" }`.
+Ảnh riêng của component (Avatar, Image) còn mở: gói định nghĩa chưa ghi layer nào giữ image fill.
+
 ## 8. Còn mở
 
 Cách ghi slot ở cấp ngoài như Figma (nội dung "Contents" của List-Item, "Header-Text" của Header: bản dán ghi override vào

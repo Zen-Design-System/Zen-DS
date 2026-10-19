@@ -1,10 +1,11 @@
 // figma-native: a Studio export as Figma's own clipboard. Written cases with the pack's real ids (variants, props,
 // bound layers, slot contents, icons, grids, vectors), then the Expenses page (fixtures/figma-expenses.json, the export
 // the QA paste was checked against: 474 frames, 613 instances, 277 texts, 190 vectors like the plugin's import).
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { nativeMessage, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
+import { nativeMessage, nativePictures, pictureKind, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
 import { diffMessages } from "./native-diff.mjs";
 
@@ -207,6 +208,78 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   const back = await readFigmaClipboard(html);
   const read = back?.message.nodeChanges.find((n) => n.type === "TEXT" && n.textData?.characters === text.characters);
   check(read?.textData.styleOverrideTable?.length === 2 && read.textData.characterStyleIDs.length === text.characters.length, "the runs survive Figma's clipboard encoding");
+}
+
+// --- pictures (image fills, F8): Figma's IMAGE paint by SHA-1, the bytes as a data: URL in the meta ----------------
+{
+  const logoBytes = fs.readFileSync(path.join(root, "src/templates/hr/assets/workspace-logo.png"));
+  const photoBytes = fs.readFileSync(path.join(root, "src/templates/hr/assets/account-photo.jpg"));
+  const kindOf = (bytes) => pictureKind(new Uint8Array(bytes));
+  check(JSON.stringify(kindOf(logoBytes)) === JSON.stringify({ mime: "image/png", width: 369, height: 369 }), "a PNG's type and size from its header");
+  check(JSON.stringify(kindOf(photoBytes)) === JSON.stringify({ mime: "image/jpeg", width: 480, height: 480 }), "a JPEG's size from its start-of-frame segment");
+  // Header and logical screen descriptor (13 bytes): width, height, flags, background, aspect.
+  const gif = Uint8Array.from([..."GIF89a"].map((c) => c.charCodeAt(0)).concat([200, 0, 120, 0, 0, 0, 0]));
+  check(kindOf(gif)?.width === 200 && kindOf(gif)?.height === 120, "a GIF's width and height (little-endian)");
+  // A lossless WebP of 200 × 120: 14 bits each of width − 1 and height − 1 after the VP8L signature.
+  const webp = new Uint8Array(30);
+  webp.set([..."RIFF"].map((c) => c.charCodeAt(0)), 0); webp.set([..."WEBPVP8L"].map((c) => c.charCodeAt(0)), 8); webp.set([0x2f, 0xc7, 0xc0, 0x1d, 0x00], 20);
+  check(kindOf(webp)?.mime === "image/webp" && kindOf(webp)?.width === 200 && kindOf(webp)?.height === 120, `a WebP's size (${JSON.stringify(kindOf(webp))})`);
+  check(kindOf(Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'/>")) === null, "an SVG is no picture Figma's paint takes");
+
+  const logo = "/uploads/workspace-logo.png", photo = "/uploads/account%20photo.jpg";
+  const images = { [logo]: logoBytes.toString("base64"), [photo]: photoBytes.toString("base64"), "/uploads/mark.svg": Buffer.from("<svg/>").toString("base64"), "/uploads/later.png": null };
+  const pictures = await nativePictures(images);
+  const sha = crypto.createHash("sha1").update(logoBytes).digest("hex");
+  const shown = pictures.get(logo);
+  check(shown?.hex === sha && shown.hash.length === 20 && shown.name === "workspace-logo" && Buffer.from(shown.bytes).equals(logoBytes), "a picture's hash is the SHA-1 of its bytes, its name the file's");
+  check(pictures.get(photo)?.name === "account photo" && pictures.get("/uploads/mark.svg")?.reason && !pictures.has("/uploads/later.png"), "names decoded; an SVG has a reason; a picture without bytes is left out");
+  // Figma's paste takes PNG, JPEG and GIF bytes but not a WebP (its paint came out empty, 2026-10-19): the Studio's
+  // canvas turns a WebP into PNG; without one it has a reason. A GIF goes as it is.
+  const formats = { "/a.gif": Buffer.from(gif).toString("base64"), "/b.webp": Buffer.from(webp).toString("base64") };
+  const converted = await nativePictures(formats, { toPng: async () => new Uint8Array(logoBytes) });
+  check(Buffer.from(converted.get("/a.gif")?.bytes ?? []).equals(Buffer.from(gif)) && converted.get("/b.webp")?.hex === sha && converted.get("/b.webp").width === 369, "a GIF goes as it is, a WebP as the canvas's PNG (its hash and size)");
+  const unconverted = await nativePictures(formats, { toPng: async () => { throw new Error("no canvas"); } });
+  check(unconverted.get("/a.gif")?.hash && /a WebP \(Figma's paste takes PNG, JPEG and GIF/.test(unconverted.get("/b.webp")?.reason ?? ""), "without a canvas a WebP has a reason");
+
+  const rectangle = { type: "RECTANGLE", shape: true, name: "Rectangle", fill: "Color/Background/Neutral/Subtle/Default", imageFill: { src: logo, scaleMode: "FILL" }, radius: 12, radiusVar: "Corner-Radius/Base", rotation: 90, opacity: 0.5, fixedWidth: 200, fixedHeight: 100 };
+  const ellipse = { type: "ELLIPSE", shape: true, name: "Ellipse", stroke: "Color/Border/Accent/Solid/Default", strokeWeight: 2, strokeAlign: "OUTSIDE", arc: { start: 0, end: Math.PI, inner: 0 }, imageFill: { src: photo, scaleMode: "CROP", crop: { x: 0.1, y: 0.2, width: 0.5, height: 0.4 } }, fixedWidth: 80, fixedHeight: 80 };
+  const tiled = { type: "FRAME", name: "Tiled", layout: { mode: "VERTICAL" }, fixedWidth: 300, imageFill: { src: logo, scaleMode: "TILE", scale: 0.5 }, children: [] };
+  const lost = { type: "RECTANGLE", shape: true, name: "Lost", imageFill: { src: "/uploads/gone.png", scaleMode: "FILL" }, fixedWidth: 40, fixedHeight: 40 };
+  const vector = { type: "RECTANGLE", shape: true, name: "Mark", imageFill: { src: "/uploads/mark.svg", scaleMode: "FIT" }, fixedWidth: 40, fixedHeight: 40 };
+  const { message, notes } = nativeMessage(exportOf([rectangle, ellipse, tiled, lost, vector]), pack, pictures);
+  const named = (name) => message.nodeChanges.find((n) => n.name === name);
+  const rect = named("Rectangle");
+  const [solid, picture] = rect?.fillPaints ?? [];
+  check(rect?.type === "ROUNDED_RECTANGLE" && rect.size.x === 200 && rect.size.y === 100 && rect.opacity === 0.5, "a Shape rectangle is Figma's ROUNDED_RECTANGLE at its px size and opacity");
+  check(id(solid?.colorVar?.value.alias.guid) === pack.variables["Color/Background/Neutral/Subtle/Default"][0] && picture?.type === "IMAGE", "its colour variable under its picture");
+  check(picture?.imageScaleMode === "FILL" && picture.image.hash.join() === shown.hash.join() && picture.imageThumbnail.hash.join() === shown.hash.join() && picture.originalImageWidth === 369, "the IMAGE paint names the picture by hash, with its size");
+  check(rect?.pluginData?.some((entry) => entry.pluginID === "" && entry.key === "zenstudio-image" && entry.value === logo), "the Studio src rides as the importer's shared plugin data");
+  check(rect?.rectangleTopLeftCornerRadius === 12 && rect.parameterConsumptionMap?.entries.length === 4 && rect.parameterConsumptionMap.entries.every((entry) => id(entry.variableData.value.alias.guid) === pack.variables["Corner-Radius/Base"][0]), "corners on the Corner-Radius variable");
+  // Turned 90° about its centre: a 200 × 100 layer's centre (100, 50) stays where it was.
+  const t = rect?.transform ?? {};
+  const centre = [t.m00 * 100 + t.m01 * 50 + t.m02, t.m10 * 100 + t.m11 * 50 + t.m12];
+  check(Math.abs(t.m01 - 1) < 1e-9 && Math.abs(t.m10 + 1) < 1e-9 && Math.abs(centre[0] - 100) < 1e-9 && Math.abs(centre[1] - 50) < 1e-9, `rotation turns it about its centre (${centre.join(", ")})`);
+  const oval = named("Ellipse");
+  const cropped = oval?.fillPaints?.[0];
+  check(oval?.type === "ELLIPSE" && oval.arcData?.endingAngle === Math.PI && oval.strokeWeight === 2 && oval.strokeAlign === "OUTSIDE" && id(oval.strokePaints[0]?.colorVar.value.alias.guid) === pack.variables["Color/Border/Accent/Solid/Default"][0], "a Shape ellipse: its arc and its border variable");
+  check(oval?.fillPaints.length === 1 && cropped?.imageScaleMode === "STRETCH" && cropped.transform.m00 === 0.5 && cropped.transform.m02 === 0.1 && cropped.transform.m11 === 0.4 && cropped.transform.m12 === 0.2, "a crop is Figma's STRETCH with the shown part as its transform (no colour: none given)");
+  const tile = named("Tiled")?.fillPaints?.find((paint) => paint.type === "IMAGE");
+  check(tile?.imageScaleMode === "TILE" && tile.scale === 0.5, "a frame's tiled picture keeps its scale");
+  // The bytes ride in the message's blobs (Figma desktop placed fresh pictures sent so, never one named only by a URL in
+  // the meta): one blob per picture, which its paints' image and thumbnail name.
+  const blobOf = (paint) => message.blobs[paint?.image.dataBlob];
+  check(message.blobs.length === 2 && Buffer.from(blobOf(picture)?.bytes ?? []).equals(logoBytes) && picture.imageThumbnail.dataBlob === picture.image.dataBlob && tile?.image.dataBlob === picture.image.dataBlob && Buffer.from(blobOf(cropped)?.bytes ?? []).equals(photoBytes), `each picture's bytes in one blob (${message.blobs.length})`);
+  check(named("Lost")?.fillPaints.length === 0 && notes.some((note) => note.includes("Lost") && note.includes("not in the export")) && notes.some((note) => note.includes("Mark") && note.includes("PNG, JPEG, GIF or WebP")), `a picture without bytes or of another kind is named in a note (${notes.join("; ")})`);
+  check(notes.length === 2, `pictures: no other notes (${notes.join("; ")})`);
+  // A Shape kind the direct paste does not write yet is named, never an empty layer (a path drew a 0.01 px vector).
+  const pen = nativeMessage(exportOf([{ type: "VECTOR", shape: true, name: "Pen", vectorPaths: [{ windingRule: "NONZERO", data: "M 0 0 Q 5 10 10 0 Z" }], fixedWidth: 10, fixedHeight: 10 }]), pack);
+  check(!pen.message.nodeChanges.some((n) => n.name === "Pen") && pen.notes.some((note) => note.includes("a vector shape is not in a direct paste yet")), `a Shape path is named in a note (${pen.notes.join("; ")})`);
+  // The html: the picture's blob, its paint and the plugin data survive Figma's encoding.
+  const pkg = { ...exportOf([rectangle]), images: { [logo]: images[logo] } };
+  const back = await readFigmaClipboard((await figmaPasteHtml(pkg, pack)).html);
+  const read = back?.message.nodeChanges.find((n) => n.name === "Rectangle");
+  const readBlob = back?.message.blobs?.[read?.fillPaints?.[1]?.image.dataBlob];
+  check(read?.fillPaints?.[1]?.image.hash.length === 20 && Buffer.from(readBlob?.bytes ?? []).equals(logoBytes) && read.pluginData?.[0]?.key === "zenstudio-image", "the picture's bytes and its src survive the paste html");
 }
 
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------

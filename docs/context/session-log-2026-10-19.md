@@ -295,3 +295,20 @@ safety check) and pulled back with `figmaReadCode`. Bugs, each fixed at its owne
 - **B-20** failed only inside the full E2E run (twice; alone and with its builder group green): the new frame's
   selection waited 2 s of animation frames for the frame to register, which a busy run outlasts. `selectFrameWhenShown`
   now waits for the frames registry to announce it (10 s).
+
+## Studio F8c — pictures in the direct paste (Session C) — tier S, branch `zen/feat/studio-f8c-native-pictures-20261019`
+User picked "Dán ảnh qua ⌘C→⌘V" (the rest of F8). `tools/studio/figma-native.mjs`:
+- `nativePictures` (SHA-1 = Figma's image hash, size from the header), `imagePaint` (Fill · Fit · Crop = STRETCH with
+  the shown part as transform · Tile scale), the bytes as message blobs (`Image.dataBlob`), the Studio src as shared
+  plugin data (`pluginData` with no plugin id, key `zenstudio-image`, read from Figma's own copy of a probe layer).
+- A Shape rectangle / ellipse is Figma's ROUNDED_RECTANGLE / ELLIPSE (variables, Corner-Radius, arc, opacity, rotation
+  and flip about the centre); frames take their image fill. Bug met: a Shape path pasted as an empty 0.01 px VECTOR;
+  other Shape kinds are now a note (BACKLOG shapes item narrowed).
+- Live tests in the Zen file (QA page, each removed): data: and local http URLs in `meta.imageHashes` are never fetched
+  (the first "proof" used a hash Figma already had); blobs place fresh PNG, JPEG, GIF; WebP never → `figmaClipboard.ts`
+  draws it as PNG on a canvas (checked in Chromium). Final run through `figmaPasteHtml`: 4 fresh pictures, bytes and
+  hashes exact, crop / tile / rotation / radius variable / src as sent.
+- Slip, fixed: the first test paste landed in the user's "UI Foundations" file (Figma's front tab); found by name and
+  removed at once. The paste script now opens the Zen file and refuses to paste when Figma shows another file.
+- Selftest figma-native 85 (+ pictures, shapes, the path note). Open (BACKLOG): a component's own picture (Avatar,
+  Image) needs the pack to record its image layer.

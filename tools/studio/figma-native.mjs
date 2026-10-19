@@ -7,8 +7,8 @@
 // (docs/figma-contracts/native-pack.json). Variables bind by id, styles by their node id. Figma lays out auto layout and
 // text again when it pastes, so sizes here are first guesses.
 //
-//   nativeMessage(pkg, pack) → { message, root, notes }  the NODE_CHANGES message (pure, for selftests)
-//   figmaPasteHtml(pkg, pack) → { html, notes }           the text/html Figma pastes
+//   nativeMessage(pkg, pack, pictures?) → { message, root, notes }  the NODE_CHANGES message (pure, for selftests)
+//   figmaPasteHtml(pkg, pack, { toPng }) → { html, notes }  the text/html Figma pastes (pictures ride in it as blobs)
 
 import { decodeSchema, inflateRaw, bytesOf, base64Of, figmaClipboardHtml } from "./figma-kiwi.mjs";
 import { FIGMA_CLIPBOARD_SCHEMA } from "./figma-clipboard-schema.generated.mjs";
@@ -191,10 +191,102 @@ function matchLayers(index, from, to, rel) {
 const variantValues = (name) => Object.fromEntries(String(name).split(",").map((part) => part.split("=").map((s) => s.trim())).filter((pair) => pair.length === 2));
 const variantOf = (options, on) => options.find((option) => (on ? ["yes", "true", "on"] : ["no", "false", "off"]).includes(String(option).toLowerCase())) ?? null;
 
+// --- pictures (image fills, F8: tools/studio/figma-image.mjs) -------------------------------------------------------
+
+/** A picture file's type and pixel size from its header (PNG, JPEG, GIF, WebP: what Figma's image paint takes), or null. */
+export function pictureKind(bytes) {
+  const u16 = (at) => (bytes[at] << 8) | bytes[at + 1];
+  const u16le = (at) => bytes[at] | (bytes[at + 1] << 8);
+  const u24le = (at) => bytes[at] | (bytes[at + 1] << 8) | (bytes[at + 2] << 16);
+  const u32 = (at) => ((bytes[at] << 24) >>> 0) + (bytes[at + 1] << 16) + (bytes[at + 2] << 8) + bytes[at + 3];
+  const ascii = (at, length) => String.fromCharCode(...bytes.subarray(at, at + length));
+  if (bytes.length >= 24 && bytes[0] === 0x89 && ascii(1, 3) === "PNG") return { mime: "image/png", width: u32(16), height: u32(20) };
+  if (bytes.length >= 10 && ascii(0, 4) === "GIF8") return { mime: "image/gif", width: u16le(6), height: u16le(8) };
+  if (bytes.length >= 30 && ascii(0, 4) === "RIFF" && ascii(8, 4) === "WEBP") {
+    const chunk = ascii(12, 4);
+    if (chunk === "VP8X") return { mime: "image/webp", width: 1 + u24le(24), height: 1 + u24le(27) };
+    if (chunk === "VP8L") return { mime: "image/webp", width: 1 + (((bytes[22] & 0x3f) << 8) | bytes[21]), height: 1 + (((bytes[24] & 0x0f) << 10) | (bytes[23] << 2) | ((bytes[22] & 0xc0) >> 6)) };
+    return { mime: "image/webp", width: u16le(26) & 0x3fff, height: u16le(28) & 0x3fff };
+  }
+  if (bytes.length >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8) {
+    // The first start-of-frame segment (SOF0…SOF15 but DHT, JPG and DAC) holds the size.
+    for (let at = 2; at + 9 < bytes.length;) {
+      if (bytes[at] !== 0xff) break;
+      const marker = bytes[at + 1];
+      if (marker === 0xff) { at += 1; continue; }
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) return { mime: "image/jpeg", width: u16(at + 7), height: u16(at + 5) };
+      at += marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7) || marker === 0x01 ? 2 : 2 + u16(at + 2);
+    }
+    return { mime: "image/jpeg", width: 0, height: 0 };
+  }
+  return null;
+}
+
+/** A picture's layer name in Figma: its file name without the extension (Figma's own when a file is placed). */
+const pictureName = (src) => { const file = decodeURIComponent(String(src).split(/[?#]/)[0].split("/").pop() || ""); return file.replace(/\.[a-z0-9]+$/i, "") || "Image"; };
+
+/**
+ * The export's pictures (`pkg.images`: src → base64 bytes) as Figma names them: an image paint holds the SHA-1 of the
+ * bytes, and the bytes ride in the message's blobs (Image.dataBlob). Figma desktop placed fresh PNG, JPEG and GIF
+ * pictures sent so, never one named only by a URL in the meta (a data: or local http URL: test pastes, 2026-10-19), nor
+ * a WebP: `toPng` (the Studio's canvas) turns a WebP into PNG. A picture the paste cannot take has a reason.
+ */
+export async function nativePictures(images, { toPng = null } = {}) {
+  const out = new Map();
+  for (const [src, data] of Object.entries(images ?? {})) {
+    if (typeof data !== "string" || !data) continue;
+    let bytes = bytesOf(data);
+    let kind = pictureKind(bytes);
+    if (!kind) { out.set(src, { reason: "not a PNG, JPEG, GIF or WebP" }); continue; }
+    if (kind.mime === "image/webp") {
+      let png = null;
+      try { png = toPng ? await toPng(bytes, kind.mime) : null; } catch { png = null; }
+      if (!png || pictureKind(png)?.mime !== "image/png") { out.set(src, { reason: "a WebP (Figma's paste takes PNG, JPEG and GIF pictures)" }); continue; }
+      bytes = png;
+      kind = pictureKind(png);
+    }
+    const hash = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-1", bytes));
+    const hex = Array.from(hash, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    out.set(src, { hash: Array.from(hash), hex, name: pictureName(src), width: kind.width, height: kind.height, bytes });
+  }
+  return out;
+}
+
+/** figma-image.mjs scale modes → Figma's (its Crop is STRETCH with the shown part as the paint's transform). */
+const IMAGE_SCALE_MODES = { FILL: "FILL", FIT: "FIT", CROP: "STRETCH", TILE: "TILE" };
+/** An `imageFill` as Figma's IMAGE paint (the fields of Figma's own copy of a placed picture, 2026-10-19). */
+export function imagePaint(fill, picture) {
+  const mode = IMAGE_SCALE_MODES[fill.scaleMode] ?? "FILL";
+  const crop = mode === "STRETCH" && fill.crop ? fill.crop : null;
+  const unit = (value, fallback) => (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : fallback);
+  const ref = { hash: picture.hash, name: picture.name };
+  return {
+    type: "IMAGE", opacity: 1, visible: true, blendMode: "NORMAL",
+    // The plugin's imageTransform [[w, 0, x], [0, h, y]]: the part of the picture the layer shows, in fractions.
+    transform: crop ? { m00: unit(crop.width, 1) || 1, m01: 0, m02: unit(crop.x, 0), m10: 0, m11: unit(crop.height, 1) || 1, m12: unit(crop.y, 0) } : IDENTITY,
+    image: ref, imageThumbnail: { ...ref }, animationFrame: 0, imageScaleMode: mode, imageShouldColorManage: true, rotation: 0,
+    scale: mode === "TILE" && fill.scale > 0 ? fill.scale : 1,
+    ...(picture.width && picture.height ? { originalImageWidth: picture.width, originalImageHeight: picture.height } : {}),
+    thumbHash: [], altText: "",
+  };
+}
+
+/** A layer turned (degrees, counter-clockwise) and flipped about its centre at x, y, w, h: R(θ)·S (the importer's turnAboutCentre). */
+function turned(x, y, w, h, degrees, flip) {
+  const r = ((degrees || 0) * Math.PI) / 180, cos = Math.cos(r), sin = Math.sin(r);
+  const sx = flip === "horizontal" || flip === "both" ? -1 : 1, sy = flip === "vertical" || flip === "both" ? -1 : 1;
+  const a = cos * sx, c = sin * sy, b = -sin * sx, d = cos * sy;
+  const cx = x + w / 2, cy = y + h / 2;
+  return { m00: a, m01: c, m02: cx - (a * w / 2 + c * h / 2), m10: b, m11: d, m12: cy - (b * w / 2 + d * h / 2) };
+}
+
 class Writer {
-  constructor(pkg, index) {
+  constructor(pkg, index, pictures = new Map()) {
     this.pkg = pkg;
     this.index = index;
+    this.pictures = pictures;
+    /** The pictures this paste uses: hash → bytes (one message blob each). */
+    this.pictureBytes = new Map();
     this.notes = [];
     this.next = 1;
     this.scene = [];
@@ -260,10 +352,13 @@ class Writer {
   /** Every node of a spec under `parent` (a guid), at `index` among its siblings. */
   build(spec, parent, parentInfo) {
     const where = spec.name || spec.type;
-    // An image fill (F8, figma-image.mjs) needs the picture's bytes in Figma: Import from Studio brings it.
-    if (spec.imageFill) this.note(`${where}: its image fill is not in a direct paste yet (Import from Studio brings it)`);
     if (spec.type === "FRAME") return this.frame(spec, parent, parentInfo);
     if (spec.type === "TEXT") return this.text(spec, parent, parentInfo);
+    // A Studio Shape (figma-push shapeNode, `shape: true`) as Figma's own rectangle or ellipse; a chart mark's ELLIPSE
+    // (an arc painted with styles) below.
+    if (spec.shape && (spec.type === "RECTANGLE" || spec.type === "ELLIPSE")) return this.shape(spec, parent, parentInfo);
+    // Its other kinds (a line, polygon, star, path or boolean group) wait (BACKLOG): a Shape's path is no chart path.
+    if (spec.shape) { this.note(`${where}: a ${spec.type.toLowerCase().replace("_operation", "")} shape is not in a direct paste yet (Import from Studio places it)`); return null; }
     if (spec.type === "ELLIPSE") return this.ellipse(spec, parent, parentInfo);
     if (spec.type === "INSTANCE") return this.instance(spec, parent, parentInfo);
     if (spec.type === "VECTOR") return this.vector(spec, parent, parentInfo);
@@ -441,6 +536,7 @@ class Writer {
     if (typeof spec.strokeBottom === "number") { node.borderBottomWeight = spec.strokeBottom; node.borderTopWeight = 0; node.borderLeftWeight = 0; node.borderRightWeight = 0; node.borderStrokeWeightsIndependent = true; }
     Object.assign(node, this.bindings(vars));
     if (spec.fill) node.fillPaints = this.paint(spec.fill, spec.name);
+    this.imageFill(node, spec, spec.name || "Frame");
     this.push(node, parentInfo);
     const info = { mode, tracks, w: pos.w, h: pos.h, internal: parentInfo?.internal, hugW: mode !== "NONE" && sizing.w === "HUG", hugH: mode !== "NONE" && sizing.h === "HUG" };
     for (const child of spec.children ?? []) this.build(child, id, info);
@@ -534,6 +630,53 @@ class Writer {
     node.transform = { ...(node.transform ?? IDENTITY), m02: shape.minX, m12: shape.minY };
     delete node.fillGeometry;
     delete node.strokeGeometry;
+  }
+
+  /**
+   * A layer's picture (`imageFill`, figma-image.mjs) as Figma's IMAGE paint over its colour (the importer's
+   * applyImageFill), its bytes a blob of the message (nativeMessage gives `dataBlob` its index). The Studio src rides as the importer's shared plugin data
+   * ("zenstudio", "image") for the pull: Figma keeps shared data as an entry with no plugin id, keyed "namespace-key"
+   * (its own copy of such a layer, 2026-10-19).
+   */
+  imageFill(node, spec, where) {
+    const fill = spec.imageFill;
+    if (!fill?.src) return;
+    const picture = this.pictures.get(fill.src);
+    if (!picture?.hash) { this.note(`${where}: ${picture?.reason ? `its picture is ${picture.reason}` : `its picture was not in the export (${fill.src})`}`); return; }
+    this.pictureBytes.set(picture.hex, picture.bytes);
+    const paint = imagePaint(fill, picture);
+    paint.image.dataBlob = paint.imageThumbnail.dataBlob = { picture: picture.hex };
+    node.fillPaints = [...(node.fillPaints ?? []), paint];
+    // The paints are the layer's own now (setting fills detaches a fill style in Figma too).
+    delete node.styleIdForFill;
+    node.pluginData = [...(node.pluginData ?? []), { pluginID: "", key: "zenstudio-image", value: String(fill.src) }];
+  }
+
+  /**
+   * A Studio Shape's rectangle or ellipse (the importer's `spec.shape` branch): its px size, Color/Background and
+   * Color/Border variables, a rectangle's Corner-Radius variable, an ellipse's arc, opacity, rotation and flip about its
+   * centre, and its picture.
+   */
+  shape(spec, parent, parentInfo) {
+    const rect = spec.type === "RECTANGLE";
+    const name = spec.name || (rect ? "Rectangle" : "Ellipse");
+    const pos = this.position(spec, parentInfo, spec.fixedWidth ?? 100, spec.fixedHeight ?? 100);
+    const node = {
+      guid: this.fresh(), phase: "CREATED", parentIndex: { guid: parent, position: this.place(parent) }, type: rect ? "ROUNDED_RECTANGLE" : "ELLIPSE", name, visible: true,
+      opacity: typeof spec.opacity === "number" ? spec.opacity : 1, size: { x: pos.w, y: pos.h },
+      transform: (typeof spec.rotation === "number" && spec.rotation) || spec.flip ? turned(pos.x, pos.y, pos.w, pos.h, spec.rotation, spec.flip) : at(pos.x, pos.y),
+      strokeWeight: spec.stroke && typeof spec.strokeWeight === "number" ? spec.strokeWeight : 1, strokeAlign: (spec.stroke && spec.strokeAlign) || "INSIDE", strokeJoin: "MITER",
+      fillPaints: spec.fill ? this.paint(spec.fill, name) : [], strokePaints: spec.stroke ? this.paint(spec.stroke, name) : [],
+      ...this.childFields(spec, parentInfo),
+    };
+    if (rect && typeof spec.radius === "number") {
+      for (const corner of ["rectangleTopLeftCornerRadius", "rectangleTopRightCornerRadius", "rectangleBottomLeftCornerRadius", "rectangleBottomRightCornerRadius"]) node[corner] = spec.radius;
+      node.rectangleCornerRadiiIndependent = true;
+      if (spec.radiusVar) Object.assign(node, this.bindings(["RECTANGLE_TOP_LEFT_CORNER_RADIUS", "RECTANGLE_TOP_RIGHT_CORNER_RADIUS", "RECTANGLE_BOTTOM_LEFT_CORNER_RADIUS", "RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS"].map((field) => [field, spec.radiusVar])));
+    }
+    if (!rect && spec.arc) node.arcData = { startingAngle: spec.arc.start || 0, endingAngle: spec.arc.end || 0, innerRadius: spec.arc.inner || 0 };
+    this.imageFill(node, spec, name);
+    return this.push(node, parentInfo);
   }
 
   ellipse(spec, parent, parentInfo) {
@@ -1308,10 +1451,10 @@ function swappedPath(pathText, setName) {
   return segments.join("/");
 }
 
-/** The paste's NODE_CHANGES message for an export (pure). */
-export function nativeMessage(pkg, pack) {
+/** The paste's NODE_CHANGES message for an export (pure). `pictures`: the export's pictures by src (nativePictures). */
+export function nativeMessage(pkg, pack, pictures = new Map()) {
   if (!pkg || pkg.format !== "zen-studio-figma" || !pkg.frame) throw new Error("Not a Zen Studio export");
-  const writer = new Writer(pkg, indexPack(pack));
+  const writer = new Writer(pkg, indexPack(pack), pictures);
   const root = writer.frame(pkg.frame, PAGE, null, { root: true });
   writer.finishContents();
   const skeletons = writer.skeletons();
@@ -1333,15 +1476,22 @@ export function nativeMessage(pkg, pack) {
     if (node.vectorData?.vectorNetworkBlob?.blob !== undefined) node.vectorData.vectorNetworkBlob = blobIndex(node.vectorData.vectorNetworkBlob);
     for (const geometry of [...(node.fillGeometry ?? []), ...(node.strokeGeometry ?? [])]) if (geometry.commandsBlob?.blob !== undefined) geometry.commandsBlob = blobIndex(geometry.commandsBlob);
   }
+  // A picture's bytes: one blob, which its paints' image and thumbnail name.
+  const pictureBlobs = new Map();
+  const pictureBlob = (hex) => {
+    if (!pictureBlobs.has(hex)) { message.blobs.push({ bytes: writer.pictureBytes.get(hex) }); pictureBlobs.set(hex, message.blobs.length - 1); }
+    return pictureBlobs.get(hex);
+  };
+  for (const node of nodeChanges) for (const paint of node.fillPaints ?? []) for (const ref of [paint.image, paint.imageThumbnail]) if (ref?.dataBlob?.picture) ref.dataBlob = pictureBlob(ref.dataBlob.picture);
   return { message, root: root.guid, notes: writer.notes };
 }
 
 let schemaPromise = null;
-/** The text/html Figma pastes for an export. */
-export async function figmaPasteHtml(pkg, pack) {
+/** The text/html Figma pastes for an export; `toPng` turns a WebP picture into PNG bytes (nativePictures). */
+export async function figmaPasteHtml(pkg, pack, { toPng = null } = {}) {
   schemaPromise ??= (async () => { const deflated = bytesOf(FIGMA_CLIPBOARD_SCHEMA.deflated); return { deflated, schema: decodeSchema(await inflateRaw(deflated)) }; })();
   const { deflated, schema } = await schemaPromise;
-  const { message, root, notes } = nativeMessage(pkg, pack);
+  const { message, root, notes } = nativeMessage(pkg, pack, await nativePictures(pkg?.images, { toPng }));
   const html = await figmaClipboardHtml({ version: FIGMA_CLIPBOARD_SCHEMA.version, schemaDeflated: deflated, schema, message, meta: { fileKey: pack.file, pasteID: message.pasteID, selectedNodeData: `${key(root)}|4|0|0` } });
   return { html, notes };
 }
