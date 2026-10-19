@@ -339,3 +339,5 @@ User picked "Dán ảnh qua ⌘C→⌘V" (the rest of F8). `tools/studio/figma-n
 - Selftest figma-native 85 (+ pictures, shapes, the path note). Open (BACKLOG): a component's own picture (Avatar,
   Image) needs the pack to record its image layer. BACKLOG "Layout guide column count" removed: the user keeps
   12 / 8 / 4 (2026-10-19).
+- Gate finding met (usage:check ⚠ layer/popover-is-overlay, my F10 rulers.css): the rulers took Background/Popover;
+  they are canvas chrome like the panels, so Surface/Default now.
