@@ -179,6 +179,9 @@ Harness rules:
 - `content/lights-no-light-text` (error)
 - `content/title-is-strongest` (warn)
 - `content/colour-light-is-highlight` (warn)
+- `heading/h1-is-heading-1` (error): a content h1 (the title shown large) is at least Heading/1: Heading/1, or a larger
+  Display / Display-Extra style on an emphasis page (a home, a welcome), never a smaller style; only the TopNavigation
+  compact bar title keeps its bar style (Body/Extra/Bold).
 - `heading/title-not-light` (warn): h1–h3 titles never take Light; only a Body/Small/Bold group header uses Base.
 
 Details are in `docs/guidelines/content-colors.md`. The heading ladder (levels, styles, the h1 rule) is on the
@@ -304,6 +307,7 @@ picks the step, and the same relationship gets the same step on every screen:
 
 | Relationship | Stack / Grid `gap` | Token |
 | --- | --- | --- |
+| Two lines of one compact item: a name or value and the caption right under it (a stat over its label, a row's name over its meta line, a person's name over their email) | `3xs` | Gap/3XSmall 2 |
 | Pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags or Badges | `2xs` | Gap/2XSmall 4 |
 | A thing and its label or description (label → control, heading → supporting line, kicker → list); controls in one toolbar row (Chips, IconButtons, Search) | `xs` | Gap/XSmall 8 |
 | A group acting as one: text Buttons side by side, choices in a group | `sm` | Gap/Small 12 |
@@ -328,7 +332,8 @@ picks the step, and the same relationship gets the same step on every screen:
   rows 8, last row → rule 16.
 - Checked by the audit's `ladder` warning (`audit.mjs --quality`, run by `npm run qa`). It reads the rendered gaps of
   Stack, Grid and example markup and reports two things:
-  - a gap that is not one of the six steps of the current density (`3xs`, `2xl`, `3xl`, `giant`, padding tokens, px);
+  - a gap that is not one of the seven steps of the current density (`2xl`, `3xl`, `giant`, padding tokens, px; `3xs`
+    joined the ladder on 2026-10-19, the user: Figma spaces two lines of one compact item 2 apart);
   - peer groups laid out alike whose own gap is wider than the gap between them.
   A heading or toolbar above one group is a label → content relationship and is not compared.
 

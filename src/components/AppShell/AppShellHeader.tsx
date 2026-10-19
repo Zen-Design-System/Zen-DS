@@ -107,7 +107,8 @@ export function AppShellHeader({ leading, center, actions, main, sections, class
   ) : null;
   const hasTop = Boolean(toggle || shownLeading || center || actions);
   return (
-    <header {...rest} ref={headerRef} className={["zen-app-shell-header", className].filter(Boolean).join(" ")} data-stacked={stacked || undefined}>
+    <header {...rest} ref={headerRef} className={["zen-app-shell-header", className].filter(Boolean).join(" ")} data-stacked={stacked || undefined}
+      data-stack-center={chrome?.phone && center ? "true" : undefined} data-phone={chrome?.phone || undefined}>
       {hasTop || main ? (
         <div className="zen-app-shell-header__main">
           {hasTop ? (

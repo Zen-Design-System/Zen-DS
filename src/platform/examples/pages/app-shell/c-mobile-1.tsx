@@ -314,8 +314,9 @@ function MediaSheetPhone() {
         <Stack gap="md">
           <Stack direction="row" gap="xs" align="start">
             <Stack gap="3xs" width="fill">
-              {/* zen-allow-h1-style: the bar over the photo has no title, so the sheet's Heading-Text H3 (Figma) names the screen. */}
-              <Heading level={1} textStyle="Heading/3">Antelope Canyon photo tour</Heading>
+              {/* The bar over the photo has no title, so the sheet's title names the screen: the h1, in Heading/1 (Figma
+                  draws Heading-Text H3; an h1 is never smaller than Heading/1, the user 2026-10-19). */}
+              <Heading level={1}>Antelope Canyon photo tour</Heading>
               <Text tone="light">Page, Arizona · ★ 4.9 (1,284)</Text>
             </Stack>
             <IconButton level="tertiary" icon="icon-share-01-line" aria-label="Share tour" onClick={() => toast({ title: "Tour link copied" })} />
@@ -479,8 +480,8 @@ export const examples: ExampleDef[] = [
     <Stack gap="md">
       <Stack direction="row" gap="xs" align="start">
         <Stack gap="3xs" width="fill">
-          {/* zen-allow-h1-style: the bar over the photo has no title, so the sheet's title names the screen. */}
-          <Heading level={1} textStyle="Heading/3">Antelope Canyon photo tour</Heading>
+          {/* The bar over the photo has no title, so the sheet's title is the screen's h1. */}
+          <Heading level={1}>Antelope Canyon photo tour</Heading>
           <Text tone="light">Page, Arizona · ★ 4.9 (1,284)</Text>
         </Stack>
         <IconButton level="tertiary" icon="icon-share-01-line" aria-label="Share tour" onClick={share} />

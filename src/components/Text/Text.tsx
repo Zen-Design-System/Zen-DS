@@ -115,8 +115,8 @@ export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "
    *  → h3); going back up may jump (h4 → h2). Default 2. */
   level?: HeadingLevel;
   /** Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4
-   *  Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness:
-   *  heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always
+   *  Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) is Heading/1 or a larger Display /
+   *  Display-Extra style, never smaller (harness: heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always
    *  Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone "light". */
   textStyle?: TypographyStyleName;
   /** Colour role: a Color/Content token by its path, as on Text. Default strongest. */

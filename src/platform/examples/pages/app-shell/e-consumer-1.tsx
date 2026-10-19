@@ -26,6 +26,7 @@ import { TopNavigation } from "../../../../components/TopNavigation";
 import { platformMedia, type PlatformPhoto } from "../../../PlatformMedia";
 import { PlatformPhone } from "../../../PlatformPhone";
 import type { ExampleDef } from "../../types";
+import "./app-shell.css";
 
 // ——— Shared parts ————————————————————————————————————————————————————————————————————————————————————————————
 
@@ -42,13 +43,16 @@ function SectionHeader({ id, title, onSeeAll }: { id: string; title: string; onS
 }
 
 /** A shortcut tile (Figma: a 56 mark over its Body/Small label): the mark is the button, named by the label under it. */
+/** Figma shortcut tile: a Large mark (Dock Icon or Avatar, 56) over its Body/Small label. The whole tile is the button and
+ *  its visible label is the name (app-shell.css), so the mark keeps its 56px instead of sitting in a button's icon slot. */
 function ShortcutTile({ label, mark, onClick }: { label: string; mark: ReactNode; onClick: () => void }) {
   return (
-    <Stack as="li" gap="2xs" align="center">
-      {/* zen-allow-no-tooltip: the shortcut's visible label sits right under the button (Figma shortcut tiles). */}
-      <IconButton appearance="flat" level="primary" size="lg" icon={mark} aria-label={label} tooltip={false} onClick={onClick} />
-      <Text as="span" textStyle="Body/Small/Regular" aria-hidden="true">{label}</Text>
-    </Stack>
+    <li>
+      <button type="button" className="px-shell-shortcut" onClick={onClick}>
+        {mark}
+        <Text as="span" textStyle="Body/Small/Regular">{label}</Text>
+      </button>
+    </li>
   );
 }
 
@@ -144,7 +148,6 @@ function DeliveryHomePhone() {
         hero={(
           <Stack gap="md">
             <Stack direction="row" justify="between" align="center" gap="md">
-              {/* zen-allow-h1-style: the band's greeting is the screen's title in Display/2 (the Figma caption names it). */}
               <Heading level={1} textStyle="Display/2">Hi,<br />fellow!</Heading>
               {/* Figma Character: the 100 × 100 cut-out mascot (Fit), beside the greeting it illustrates. */}
               <Box width={100}>
@@ -320,7 +323,8 @@ function FeaturedBrand() {
       </Box>
       <Stack justify="between" height="fill">
         <Box padding="sm">
-          <Box surface="surface" radius="md" padding="xs">
+          {/* Concentric: the plate's corner is the Avatar's (Corner-Radius/Base 12) plus its 8 inset, XLarge 20. */}
+          <Box surface="surface" radius="xl" padding="xs">
             <Stack direction="row" gap="sm" align="center">
               <Avatar size="md" shape="square" theme="neutral" background="subtle" alt="">Ur</Avatar>
               <Stack gap="none" width="fill">
@@ -451,7 +455,6 @@ export const examples: ExampleDef[] = [
     hero={(
       <Stack gap="md">
         <Stack direction="row" justify="between" align="center" gap="md">
-          {/* zen-allow-h1-style: the band's greeting is the screen's title in Display/2. */}
           <Heading level={1} textStyle="Display/2">Hi,<br />fellow!</Heading>
           <Box width={100}><Image src={mascot.src} alt="" ratio="1:1" fit="contain" radius="none" loading="eager" /></Box>
         </Stack>
@@ -465,11 +468,13 @@ export const examples: ExampleDef[] = [
   >
     <Stack gap="xl">
       <Grid as="ul" columns={5} gap="none" rowGap="md" aria-label="Categories">
-        <Stack as="li" gap="2xs" align="center">
-          {/* zen-allow-no-tooltip: the visible label sits right under the button. */}
-          <IconButton appearance="flat" level="primary" size="lg" icon={<DockIcon theme="emoji" emoji="🍜" size="lg" />} aria-label="Food" tooltip={false} onClick={openFood} />
-          <Text as="span" textStyle="Body/Small/Regular" aria-hidden="true">Food</Text>
-        </Stack>
+        {/* The whole tile is the button; its visible label is the name. */}
+        <li>
+          <button type="button" className="shortcut" onClick={openFood}>
+            <DockIcon theme="emoji" emoji="🍜" size="lg" />
+            <Text as="span" textStyle="Body/Small/Regular">Food</Text>
+          </button>
+        </li>
         …Dessert · Market · Fruit · Pharmacy · Coupons · Drinks · Canteen · New here · Snacks
       </Grid>
       <Stack direction="row" gap="sm" fillChildren>
@@ -519,12 +524,13 @@ export const examples: ExampleDef[] = [
 >
   <Stack gap="xl">
     <Stack as="ul" direction="row" justify="between" align="start" gap="none" aria-label="Shortcuts">
-      <Stack as="li" gap="2xs" align="center">
-        {/* zen-allow-no-tooltip: the visible label sits right under the button. */}
-        <IconButton appearance="flat" level="primary" size="lg" aria-label="Great buy" tooltip={false} onClick={openGreatBuy}
-          icon={<DockIcon icon="icon-shopping-bag-02-line" theme="accent" background="subtle" size="lg" />} />
-        <Text as="span" textStyle="Body/Small/Regular" aria-hidden="true">Great buy</Text>
-      </Stack>
+      {/* The whole tile is the button; its visible label is the name. */}
+      <li>
+        <button type="button" className="shortcut" onClick={openGreatBuy}>
+          <DockIcon icon="icon-shopping-bag-02-line" theme="accent" background="subtle" size="lg" />
+          <Text as="span" textStyle="Body/Small/Regular">Great buy</Text>
+        </button>
+      </li>
       …Flash · Gifts · Coupons · VIP
     </Stack>
     <Stack direction="row" gap="sm" fillChildren>
@@ -587,7 +593,7 @@ export const examples: ExampleDef[] = [
       </Box>
       <Stack justify="between" height="fill">
         <Box padding="sm">
-          <Box surface="surface" radius="md" padding="xs">
+          <Box surface="surface" radius="xl" padding="xs">
             <Stack direction="row" gap="sm" align="center">
               <Avatar size="md" shape="square" theme="neutral" background="subtle" alt="">Ur</Avatar>
               <Stack gap="none" width="fill">

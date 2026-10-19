@@ -89,7 +89,6 @@ function DisplayHeroPhone() {
         hero={(
           <>
             <Text textStyle="Body/Extra/Regular" tone="base">Hello Alan,</Text>
-            {/* zen-allow-h1-style: Figma D1's signature is a Display/1 call to action as the screen's title (its caption names it). */}
             <Heading level={1} textStyle="Display/1">Continue French!</Heading>
             <Stack direction="row" gap="xs" wrap>
               <Badge theme="accent" leading="icon-zap-line">12-day streak</Badge>
@@ -185,7 +184,6 @@ function WelcomePhone() {
           <>
             {/* Figma's Brand frame pads 20 above the wordmark: the hero's Spacing/Padding/XSmall plus Padding/Small. */}
             <Stack align="center" style={{ paddingTop: "var(--zen-spacing-padding-small)" }}>
-              {/* zen-allow-h1-style: Figma D2's wordmark (Display-Extra/1, its caption names it) is the welcome screen's title. */}
               <Heading level={1} textStyle="Display-Extra/1">zenio</Heading>
             </Stack>
             <Box height={400} role="img" aria-label="Laughing, heart, thumbs-up, surprised and sad reactions around a speech bubble that says Hello">
@@ -321,7 +319,6 @@ export const examples: ExampleDef[] = [
     hero={(
       <>
         <Text textStyle="Body/Extra/Regular" tone="base">Hello Alan,</Text>
-        {/* zen-allow-h1-style: the Display/1 call to action is the screen's title. */}
         <Heading level={1} textStyle="Display/1">Continue French!</Heading>
         <Stack direction="row" gap="xs" wrap>
           <Badge theme="accent" leading="icon-zap-line">12-day streak</Badge>
@@ -388,7 +385,6 @@ export const examples: ExampleDef[] = [
     hero={(
       <>
         <Stack align="center" style={{ paddingTop: "var(--zen-spacing-padding-small)" }}>
-          {/* zen-allow-h1-style: the wordmark is the welcome screen's title. */}
           <Heading level={1} textStyle="Display-Extra/1">zenio</Heading>
         </Stack>
         <Box height={400} role="img" aria-label="Laughing, heart, thumbs-up, surprised and sad reactions around a speech bubble that says Hello">

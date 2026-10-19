@@ -587,11 +587,12 @@ function AppShellPlayground() {
           <Heading level={1}>Saola moodboard</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">{`Brand refresh · Saola Outdoor · ${plural(shots.length, "shot")} · ${plural(open.length, "open comment")}`}</Text>
         </Stack>
+        {/* Concentric: a Small Card's corner (16) less its 16 inset leaves the shot square-cornered. */}
         <Card theme={cardTheme} spacing="sm">
-          <Image src={shot.src} alt={shot.alt} ratio="16:9" />
+          <Image src={shot.src} alt={shot.alt} ratio="16:9" radius="none" />
         </Card>
       </Stack>,
-      `<Stack gap="md">\n  <Heading level={1}>Saola moodboard</Heading>\n  <Card${cardTheme === "shadow" ? "" : ` theme="${cardTheme}"`} spacing="sm"><Image src={shot.src} alt={shot.alt} ratio="16:9" /></Card>\n</Stack>`,
+      `<Stack gap="md">\n  <Heading level={1}>Saola moodboard</Heading>\n  <Card${cardTheme === "shadow" ? "" : ` theme="${cardTheme}"`} spacing="sm"><Image src={shot.src} alt={shot.alt} ratio="16:9" radius="none" /></Card>\n</Stack>`,
     );
     back = { label: "Back", icon: "icon-chevron-left-line-medium", run: "Back · onClick ran: the phone returns to Brand refresh", code: "back" };
     barActions = [{ action: { icon: "icon-share-01-line", label: "Share moodboard", onClick: () => report("Share · onClick ran: link copied") }, code: `{ icon: "icon-share-01-line", label: "Share moodboard", onClick: share }` }];
@@ -734,10 +735,12 @@ function AppShellPlayground() {
     `<BottomNavigation${bottom === "floating" ? ` type="floating-glass"` : ""} aria-label="${studio.name}" value=${navArea ? "{page}" : `"${area}"`} onValueChange={navigate}${bottom === "floating" ? "" : " showLabels"} items={roots} />`,
   );
   const actionBarPart = part(
-    <ActionBar direction="horizontal" surface={glass ? "glass" : undefined} summary={actionBar.summary}
+    // The summary is a status line in the Action Bar's own style (ActionBar examples: Body/Base/Medium, role="status").
+    <ActionBar direction="horizontal" surface={glass ? "glass" : undefined}
+      summary={actionBar.summary ? <Text as="span" role="status" textStyle="Body/Base/Medium">{actionBar.summary}</Text> : undefined}
       secondaryAction={actionBar.secondary ? { label: actionBar.secondary.label, onClick: actionBar.secondary.run } : undefined}
       primaryAction={actionBar.primary.submit ? { label: actionBar.primary.label, type: "submit", form: formId } : { label: actionBar.primary.label, onClick: actionBar.primary.run }} />,
-    `<ActionBar direction="horizontal"${glass ? ` surface="glass"` : ""}${actionBar.summary ? ` summary="${actionBar.summary}"` : ""}${actionBar.secondary ? ` secondaryAction={{ label: "${actionBar.secondary.label}", onClick: ${actionBar.secondary.code} }}` : ""} primaryAction={{ label: "${actionBar.primary.label}"${actionBar.primary.submit ? `, type: "submit", form: "invite"` : `, onClick: ${actionBar.primary.code}`} }} />`,
+    `<ActionBar direction="horizontal"${glass ? ` surface="glass"` : ""}${actionBar.summary ? ` summary={<Text as="span" role="status" textStyle="Body/Base/Medium">${actionBar.summary}</Text>}` : ""}${actionBar.secondary ? ` secondaryAction={{ label: "${actionBar.secondary.label}", onClick: ${actionBar.secondary.code} }}` : ""} primaryAction={{ label: "${actionBar.primary.label}"${actionBar.primary.submit ? `, type: "submit", form: "invite"` : `, onClick: ${actionBar.primary.code}`} }} />`,
   );
   const withHero = mobile && (mobileTop === "band" || mobileTop === "band-sheet");
   const withBackdrop = mobile && mobileTop === "media";

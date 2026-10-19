@@ -1337,20 +1337,22 @@ export const rules = [
     summary: "Theme=Emoji needs the emoji prop (otherwise a placeholder face renders).",
     check: ({ attrs }) => literal(attrs, "theme") === "emoji" && !present(attrs, "emoji") && "is theme emoji without an emoji." },
   { id: "heading/h1-is-heading-1", components: ["Heading", "Text", "h1"], severity: "error", allow: "h1-style", guideline: "docs/guidelines/text.md",
-    summary: "Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) uses Heading/1. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold).",
+    summary: "Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) is at least Heading/1: Heading/1, or a larger Display / Display-Extra style on an emphasis page (a home, a welcome; the user 2026-10-19), never a smaller style. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold).",
     check: ({ tag, attrs }) => {
       // The compact app bar title is the screen's h1 and keeps its bar style (D1, typography review 2026-09-29).
       if (/\bzen-top-nav__title\b/.test(attrs)) return null;
+      // Heading/1 or larger: the Display and Display-Extra styles (a home's or a welcome screen's title).
+      const large = (style) => /^(Heading\/1|heading-1|Display(-Extra)?\/\d|display-(extra-)?\d)$/.test(style);
       if (tag === "h1") {
         const n = attrs.match(/typographyStyles\[\s*["'`]([^"'`]+)["'`]\s*\]|zen-type-([\w-]+)/); const style = n && (n[1] ?? n[2]);
-        return style && !/^(Heading\/1|heading-1)$/.test(style) && `uses ${style} — a content h1 is Heading/1 (only the TopNavigation bar title keeps its bar style).`;
+        return style && !large(style) && `uses ${style} — a content h1 is Heading/1 or a larger Display style, never smaller (only the TopNavigation bar title keeps its bar style).`;
       }
       const h1 = tag === "Heading" ? headingLevelOf(attrs) === 1 : literal(attrs, "as") === "h1";
       if (!h1) return null;
       // <Text as="h1"> without textStyle renders its default, Body/Base/Regular.
       const style = literal(attrs, "textStyle");
       if (!style && tag === "Text" && !has(topLevel(attrs), "textStyle") && !opaque(attrs)) return "renders an h1 in Text's default Body/Base/Regular — a content h1 is Heading/1: use <Heading level={1}>.";
-      return style && style !== "Heading/1" && `is an h1 styled "${style}" — a content h1 is Heading/1; drop textStyle, or use level 2 for a section title.`;
+      return style && !large(style) && `is an h1 styled "${style}" — a content h1 is Heading/1 or a larger Display style, never smaller; drop textStyle, or use level 2 for a section title.`;
     } },
   { id: "heading/title-not-light", components: ["Heading", "Text"], severity: "warn", allow: "title-light", guideline: "docs/guidelines/text.md",
     summary: "Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03, Apple's 3:1 for bold text). Lower the level, not the colour.",

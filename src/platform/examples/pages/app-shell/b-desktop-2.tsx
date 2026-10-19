@@ -30,6 +30,7 @@ import { Stepper } from "../../../../components/Stepper";
 import { TabPanel, Tabs } from "../../../../components/Tabs";
 import { Heading, Text, plural } from "../../../../components/Text";
 import { useToast } from "../../../../components/Toast";
+import { VisuallyHidden } from "../../../../components/VisuallyHidden";
 import { DemoFieldDialog } from "../../../PlatformDemoActions";
 import { PreviewAppFrame } from "../../../PlatformFrames";
 import { platformMedia } from "../../../PlatformMedia";
@@ -80,11 +81,13 @@ const initialLayers: Record<LayerId, LayerProps> = {
 };
 const zoomLevels = ["50%", "100%", "200%"];
 
-/** One inspector group: a Body/Small label and its Inline-Field rows, Spacing/Gap/XSmall apart (Figma p 0/8, g 8). */
+/** One inspector group: a Body/Small label and its Inline-Field rows, Spacing/Gap/XSmall apart (Figma p 0/8, g 8). The
+ *  label is a kicker over its rows, not a heading (a 12px h2 would read below its 14px fields): it names the group. */
 function InspectorGroup({ title, children }: { title: string; children: ReactNode }) {
+  const id = useId();
   return (
-    <Stack gap="xs" paddingX="xs">
-      <Heading level={2} textStyle="Body/Small/Regular">{title}</Heading>
+    <Stack gap="xs" paddingX="xs" role="group" aria-labelledby={id}>
+      <Text id={id} textStyle="Body/Small/Regular">{title}</Text>
       {children}
     </Stack>
   );
@@ -119,8 +122,11 @@ function WorkspaceEditorApp() {
           <AppShellHeader
             leading={(
               <Brand initial="Z">
-                {/* zen-allow-h1-style: Figma B4 shows the file name in the compact bar as Body/Base/Bold; the artboard is the content. */}
-                <Heading level={1} textStyle="Body/Base/Bold">Checkout flow</Heading>
+                {/* Figma B4 shows the file name in the compact bar as a small Body/Base/Bold label; an h1 is never
+                    smaller than Heading/1 (the user 2026-10-19), so the screen's h1 is a hidden one that says the same
+                    and the label beside it is not read twice (as TopNavigation hides its bar copy). */}
+                <VisuallyHidden as="h1">Checkout flow</VisuallyHidden>
+                <Text as="span" textStyle="Body/Base/Bold" aria-hidden="true">Checkout flow</Text>
                 {published
                   ? <Badge size="sm" theme="green" background="subtle" leadingIcon={false}>Published</Badge>
                   : <Badge size="sm" theme="neutral" background="solid" leadingIcon={false}>Draft</Badge>}
@@ -356,7 +362,6 @@ function DocsApp() {
             onNavigate={(item) => open(item.id === "docs" ? "The docs home" : "Getting started")} />
           <Stack as="article" gap="lg">
             <Stack gap="sm">
-              {/* zen-allow-h1-style: Figma B5 sets the article title in Display/3 ("type does the layout"). */}
               <Heading level={1} textStyle="Display/3">Install Zen in a React app</Heading>
               <Text textStyle="Body/Extra/Regular" tone="base">Zen ships as one package with its tokens, fonts and icons. Five minutes from now your app renders Zen components in light and dark, in English and Vietnamese.</Text>
               <Stack direction="row" gap="xs" align="center">
@@ -486,8 +491,9 @@ function FocusFlowApp() {
           {step === 1 ? (
             <Form form={form} gap="lg">
               <Stack gap="2xs">
-                {/* zen-allow-h1-style: Figma B6 titles the step card in Heading/2 (the card sits in a 680 column). */}
-                <Heading level={1} textStyle="Heading/2">Shipping details</Heading>
+                {/* The step is the screen's title, so it is the h1 in Heading/1 (Figma B6 draws Heading/2; an h1 is never
+                    smaller than Heading/1, the user 2026-10-19). */}
+                <Heading level={1}>Shipping details</Heading>
                 <Text tone="light">We deliver in 2–4 business days. You can change the address until the parcel ships.</Text>
               </Stack>
               <Grid columns={2} gap="md">
@@ -520,8 +526,7 @@ function FocusFlowApp() {
           ) : (
             <Stack gap="lg">
               <Stack gap="2xs">
-                {/* zen-allow-h1-style: the next step's card keeps the Shipping card's Heading/2. */}
-                <Heading level={1} textStyle="Heading/2">Payment</Heading>
+                <Heading level={1}>Payment</Heading>
                 <Text tone="light">Card or bank</Text>
               </Stack>
               <DescriptionList items={[
@@ -554,8 +559,8 @@ export const examples: ExampleDef[] = [
   canvas="flat"
   header={
     <AppShellHeader
-      // zen-allow-h1-style: the file name in the compact bar (Figma B4)
-      leading={<><Avatar size="sm" shape="square" theme="neutral" alt="">Z</Avatar><Heading level={1} textStyle="Body/Base/Bold">Checkout flow</Heading><Badge size="sm" leadingIcon={false}>Draft</Badge></>}
+      // The file name is a small label; the screen's h1 is a hidden one that says the same.
+      leading={<><Avatar size="sm" shape="square" theme="neutral" alt="">Z</Avatar><VisuallyHidden as="h1">Checkout flow</VisuallyHidden><Text as="span" textStyle="Body/Base/Bold" aria-hidden="true">Checkout flow</Text><Badge size="sm" leadingIcon={false}>Draft</Badge></>}
       center={<Segmented aria-label="Mode" options={modes} value={mode} onValueChange={setMode} />}
       actions={<>
         <AvatarStack size="sm" background="subtle" items={editors} />
@@ -576,10 +581,13 @@ export const examples: ExampleDef[] = [
   trailingPane={
     <AppShellPane theme="border" aria-label="Inspector">
       <Tabs aria-label="Inspector" variant="subtle" size="sm" items={[{ id: "design", label: "Design" }, { id: "prototype", label: "Prototype" }]} value={tab} onValueChange={setTab} />
-      <Heading level={2} textStyle="Body/Small/Regular">Pay button</Heading>
-      <NumberField layout="inline" size="sm" label="W" value={326} onValueChange={setWidth} />
-      <NumberField layout="inline" size="sm" label="H" value={48} onValueChange={setHeight} />
-      <SelectField layout="inline" size="sm" label="Variant" options={variants} value="Primary · Large" onValueChange={setVariant} />
+      {/* Each group's Body/Small label names it (a kicker, not a heading over its 14px rows). */}
+      <Stack gap="xs" role="group" aria-labelledby="layer-title">
+        <Text id="layer-title" textStyle="Body/Small/Regular">Pay button</Text>
+        <NumberField layout="inline" size="sm" label="W" value={326} onValueChange={setWidth} />
+        <NumberField layout="inline" size="sm" label="H" value={48} onValueChange={setHeight} />
+        <SelectField layout="inline" size="sm" label="Variant" options={variants} value="Primary · Large" onValueChange={setVariant} />
+      </Stack>
       <Divider />
       …Auto layout, Fill (ColorSwatch), Typography (Style, Content)…
       <SliderField size="sm" label="Opacity" value={100} onValueChange={setOpacity} formatValue={(v) => \`\${v}%\`} />
@@ -636,7 +644,6 @@ export const examples: ExampleDef[] = [
 >
   <Breadcrumbs items={[{ id: "docs", label: "Docs" }, { id: "getting-started", label: "Getting started" }, { id: "installation", label: "Installation" }]} onNavigate={navigate} />
   <Stack as="article" gap="lg">
-    {/* zen-allow-h1-style: Figma B5 sets the article title in Display/3 */}
     <Heading level={1} textStyle="Display/3">Install Zen in a React app</Heading>
     <Text textStyle="Body/Extra/Regular" tone="base">Zen ships as one package with its tokens, fonts and icons. …</Text>
     <Divider />
@@ -682,8 +689,7 @@ export const examples: ExampleDef[] = [
 >
   <Card theme="shadow">
     <Form form={form} gap="lg">
-      {/* zen-allow-h1-style: Figma B6 titles the step card in Heading/2 */}
-      <Heading level={1} textStyle="Heading/2">Shipping details</Heading>
+      <Heading level={1}>Shipping details</Heading>
       <Grid columns={2} gap="md">
         <InputField label="First name" {...form.field("firstName")} />
         <InputField label="Last name" {...form.field("lastName")} />

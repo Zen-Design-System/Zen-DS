@@ -7762,8 +7762,8 @@
     "do": [
       "Give a readout that changes in place (a zoom %, \"3 of 12\", a quantity between − and +) tabularNumbers and a minWidth, so the controls beside it stay put; keep a time or amount beside a row on one line with wrap={false}.",
       "Colour emoji take the alpha of their text colour, so one in a light tone (Content/Neutral/Base or Light: captions, DescriptionList terms, muted text) renders faded: wrap the emoji alone in an opaque span, <Text as=\"span\" textStyle=… tone=\"strongest\">👋</Text>, and keep the words in the light tone (Zen has no Emoji component).",
-      "Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).",
-      "Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone \"base\" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).",
+      "Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title, or a larger Display / Display-Extra style on an emphasis page (a home, a welcome, a storefront), never a smaller style (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).",
+      "Follow the content hierarchy on the Typography page: page titles h1 Heading/1 (or larger: Display, Display-Extra); sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone \"base\" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).",
       "Step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Every page or screen starts at h1; a component's headings take their level from where it is placed (headingLevel); fixed regions (Sidebar, Drawer) keep their level on every page.",
       "Give the same kind of content the same style on a page, whatever its level, and mark up content that looks subordinate one level deeper.",
       "Separate a section from the cards under it with spacing and containment (the card surface), not with a bigger style.",
@@ -7773,7 +7773,7 @@
       "Pluralise counts with plural(): \"1 member\", \"12 members\" (harness: copy/plural-count)."
     ],
     "dont": [
-      "Don't pick a heading level for its size; set textStyle instead. A content h1 (the page title shown large) stays Heading/1.",
+      "Don't pick a heading level for its size; set textStyle instead. A content h1 (the page title shown large) is never smaller than Heading/1: Heading/1, or a Display / Display-Extra style on an emphasis page.",
       "Don't make a value (metric, price, count) a heading.",
       "Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.",
       "Don't colour body text with a colour family's Light token or a raw hex; use tone.",
@@ -7820,7 +7820,7 @@
       {
         "id": "heading/h1-is-heading-1",
         "severity": "error",
-        "summary": "Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) uses Heading/1. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold).",
+        "summary": "Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) is at least Heading/1: Heading/1, or a larger Display / Display-Extra style on an emphasis page (a home, a welcome; the user 2026-10-19), never a smaller style. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold).",
         "allow": "h1-style"
       },
       {

@@ -426,6 +426,9 @@ export const Bad = () => <>
   <VisuallyHidden as="a" href="#main">Skip to main content</VisuallyHidden>
   {/* expect: heading/h1-is-heading-1 */}
   <Heading level={1} textStyle="Heading/3">Billing</Heading>
+  {/* An h1 is never smaller than Heading/1 (Display styles may be larger): Heading/2 is a step below it. */}
+  {/* expect: heading/h1-is-heading-1 */}
+  <Text as="h1" textStyle="Heading/2">Shipping details</Text>
   {/* A content h1 in a bar style: only the TopNavigation bar title (.zen-top-nav__title) keeps Body/Extra/Bold. */}
   {/* expect: heading/h1-is-heading-1 */}
   <h1 className={typographyStyles["Body/Extra/Bold"]}>Order #1042</h1>

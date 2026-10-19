@@ -571,6 +571,8 @@ function TabletPortraitApp() {
           { id: "invoices", label: "Invoices", icon: "icon-receipt-line", selectedIcon: "icon-receipt-solid" },
         ]} />}
       >
+        {/* The grey phone screen (Surface/Alt, the shell's Canvas/Default) with the Tab-Bar: every box floats, Shadow
+            cards (as C1). */}
         <Grid as="ul" minColumnWidth={280} gap="md" aria-label="Projects">
           {projects.map((project) => (
             <Card as="li" key={project.id} theme="shadow">

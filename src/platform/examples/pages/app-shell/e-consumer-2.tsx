@@ -223,11 +223,14 @@ function DiscoverPhone() {
             trailing={<InputLeadingTrailing icon="icon-microphone-line" aria-label="Search by voice" onClick={() => toast({ title: "Listening…", children: "Say a name or a place." })} />} />
           <Stack as="section" gap="sm" aria-labelledby={intentsId}>
             <Heading level={2} id={intentsId} textStyle="Heading/4">What to explore?</Heading>
-            <Stack direction="row" gap="xs" align="stretch" fillChildren role="group" aria-labelledby={intentsId}>
+            {/* Figma's Intent tiles are 83 wide with 8px sides; a Small Card pads 16, so four do not fit 350 with their
+                two-line labels. The row scrolls sideways instead (as the Collections chips do), each tile as wide as
+                its longest line needs. */}
+            <Stack direction="row" gap="xs" align="stretch" scroll="x" paddingY="3xs" role="group" aria-labelledby={intentsId}>
               {intents.map((item) => {
                 const chosen = intent === item.id;
                 return (
-                  <Card key={item.id} theme={chosen ? "subtle" : "flat"} color={chosen ? "brand" : "neutral"} spacing="sm" aria-pressed={chosen} onClick={() => setIntent(item.id)}>
+                  <Card key={item.id} theme={chosen ? "subtle" : "flat"} color={chosen ? "brand" : "neutral"} spacing="sm" width={96} aria-pressed={chosen} onClick={() => setIntent(item.id)}>
                     <Stack gap="xs" align="center">
                       <Icon name={item.icon} tone={chosen ? "accent-base" : "base"} decorative />
                       <Text textStyle="Caption/Medium" tone={chosen ? "accent-base" : "strongest"} align="center" wrap={false}>{item.lines[0]}<br />{item.lines[1]}</Text>
@@ -298,7 +301,9 @@ function BigNumberPhone() {
   const updatesId = useId();
   return (
     <PlatformPhone label="Nutrition app" canvas="surface" statusBar="light" homeIndicator="dark">
-      {/* Band-Sheet on Accent/Solid: the week with today on White, a White-Overlay Segmented for the view, one
+      {/* Band-Sheet on Accent/Solid: the week with today on White, a Black-Overlay Segmented for the view (Figma E7
+          draws White-Overlay, whose unselected label is Content/On-Colors white: 1.96:1 and below its APCA pick on a
+          bright Accent; the Black-Overlay track keeps its light label readable on any brand), one
           Display-Extra number and three tiles on the band; the Surface sheet carries the day's updates (a Segmented and
           one Pale measurement card). The glass bar floats over the sheet. */}
       <AppShell mobileTop="band-sheet" band="accent"
@@ -316,7 +321,7 @@ function BigNumberPhone() {
                   </Box>
                 ))}
               </Stack>
-              <Segmented level="white-overlay" aria-label="View" value={view} onValueChange={(value) => setView(value as HeroView)}
+              <Segmented level="black-overlay" aria-label="View" value={view} onValueChange={(value) => setView(value as HeroView)}
                 options={[{ id: "nutrition", label: "Nutrition" }, { id: "activity", label: "Activity" }]} />
               <Stack gap="2xs" align="center">
                 <Text textStyle="Display-Extra/1" tone="on-accent" tabularNumbers>{hero.value}</Text>
@@ -450,14 +455,14 @@ export const examples: ExampleDef[] = [
       trailing={<InputLeadingTrailing icon="icon-microphone-line" aria-label="Search by voice" onClick={listen} />} />
     <Stack as="section" gap="sm" aria-labelledby="intents">
       <Heading level={2} id="intents" textStyle="Heading/4">What to explore?</Heading>
-      <Stack direction="row" gap="xs" align="stretch" fillChildren role="group" aria-labelledby="intents">
-        <Card theme="subtle" color="brand" spacing="sm" aria-pressed onClick={pick}>
+      <Stack direction="row" gap="xs" align="stretch" scroll="x" paddingY="3xs" role="group" aria-labelledby="intents">
+        <Card theme="subtle" color="brand" spacing="sm" width={96} aria-pressed onClick={pick}>
           <Stack gap="xs" align="center">
             <Icon name="icon-users-check-line" tone="accent-base" decorative />
             <Text textStyle="Caption/Medium" tone="accent-base" align="center" wrap={false}>Find<br />ancestors</Text>
           </Stack>
         </Card>
-        <Card theme="flat" spacing="sm" aria-pressed={false} onClick={pick}>…Explain<br />my DNA</Card>
+        <Card theme="flat" spacing="sm" width={96} aria-pressed={false} onClick={pick}>…Explain<br />my DNA</Card>
         …Find records · Family story
       </Stack>
     </Stack>
@@ -490,7 +495,7 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "E7 · Big number",
-    description: "One huge value on a Solid band: a Background/Accent/Solid band from the top edge with a week strip (today on White), a White + White Overlay Segmented for the view, one Display-Extra number and three tiles. A Surface sheet carries the day's updates: a Segmented and a Pale measurement card with range, last reading and status. Shell: AppShell/Mobile · Phone · Top=Band-Sheet · Bottom=Floating. Fits: Health / Nutrition, Fitness, Energy, Budget.",
+    description: "One huge value on a Solid band: a Background/Accent/Solid band from the top edge with a week strip (today on White), a White + Black Overlay Segmented for the view (its light label stays readable on any brand's Accent), one Display-Extra number and three tiles. A Surface sheet carries the day's updates: a Segmented and a Pale measurement card with range, last reading and status. Shell: AppShell/Mobile · Phone · Top=Band-Sheet · Bottom=Floating. Fits: Health / Nutrition, Fitness, Energy, Budget.",
     render: () => <BigNumberPhone />,
     code: `<PlatformPhone canvas="surface" statusBar="light" homeIndicator="dark">
   <AppShell
@@ -514,7 +519,7 @@ export const examples: ExampleDef[] = [
             </Box>
             …Thu 17 · Fri 18
           </Stack>
-          <Segmented level="white-overlay" aria-label="View" value={view} onValueChange={setView}
+          <Segmented level="black-overlay" aria-label="View" value={view} onValueChange={setView}
             options={[{ id: "nutrition", label: "Nutrition" }, { id: "activity", label: "Activity" }]} />
           <Stack gap="2xs" align="center">
             <Text textStyle="Display-Extra/1" tone="on-accent" tabularNumbers>1,644</Text>

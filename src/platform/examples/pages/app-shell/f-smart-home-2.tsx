@@ -283,7 +283,7 @@ function DoorLockPhone() {
         </List>
       </ListBox>
       <ListBox theme="shadow" as="section" aria-labelledby={historyId}
-        header={<Heading level={2} id={historyId} textStyle="Body/Base/Bold">Recent access</Heading>}>
+        header={<Heading level={2} id={historyId} textStyle="Heading/Subheading">Recent access</Heading>}>
         <List aria-labelledby={historyId}>
           {history.slice(0, 3).map((entry) => (
             <ListItem key={entry.id} title={entry.title} caption={entry.caption}
@@ -425,7 +425,7 @@ export const examples: ExampleDef[] = [
       leading={<DockIcon icon="icon-key-line" theme="neutral" background="subtle" />} />
   </List>
 </ListBox>
-<ListBox theme="shadow" as="section" aria-labelledby="access" header={<Heading level={2} id="access" textStyle="Body/Base/Bold">Recent access</Heading>}>
+<ListBox theme="shadow" as="section" aria-labelledby="access" header={<Heading level={2} id="access" textStyle="Heading/Subheading">Recent access</Heading>}>
   <List aria-labelledby="access">
     <ListItem title="Mai Anh unlocked" caption="Today 08:12 · Face ID" leading={<Avatar size="md" theme="photo" src={maiAnh.photo} alt="" />} />
   </List>

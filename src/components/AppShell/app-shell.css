@@ -135,6 +135,20 @@
 .zen-app-shell-header[data-stacked="true"] .zen-app-shell-header__leading { order: 3; flex-basis: 100%; }
 .zen-app-shell-header[data-stacked="true"] .zen-app-shell-header__bar > .zen-dashboard-header__trailing { margin-inline-start: auto; }
 .zen-app-shell-header[data-stacked="true"] .zen-app-shell-header__bar > .zen-dashboard-header__center { order: 4; flex-basis: 100%; }
+/* On a phone the centre (a Search) takes a row of its own under the brand and the actions: beside them it left the
+   actions no room (B1, B3 at 390 cut them off). */
+.zen-app-shell-header[data-stack-center="true"] .zen-app-shell-header__top { flex-wrap: wrap; row-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-app-shell-header[data-stack-center="true"] .zen-app-shell-header__bar { display: contents; }
+.zen-app-shell-header[data-stack-center="true"] .zen-app-shell-header__bar > .zen-dashboard-header__trailing { margin-inline-start: auto; }
+.zen-app-shell-header[data-stack-center="true"] .zen-app-shell-header__bar > .zen-dashboard-header__center { order: 4; flex-basis: 100%; }
+/* On a phone nothing in the top row is wider than the row: the actions and what they hold (a Search kept at its desktop
+   width) shrink into the room beside the toggle, the actions' own row when the trail stacks (B1, B3 at 390 cut off
+   the account). */
+.zen-app-shell-header[data-phone="true"] .zen-app-shell-header__bar > .zen-dashboard-header__trailing { min-width: 0; flex: 1 1 auto; }
+.zen-app-shell-header[data-phone="true"] .zen-app-shell-header__actions { flex: 0 1 auto; justify-content: flex-end; }
+.zen-app-shell-header[data-phone="true"] .zen-app-shell-header__actions > * { min-width: 0; }
+/* A fixed-width box there (Figma's 240 / 280 Search) gives way too: Layout pins fixed widths with flex-shrink 0. */
+.zen-app-shell-header[data-phone="true"] .zen-app-shell-header__actions > [data-w="fixed"] { flex-shrink: 1; }
 /* Main-Element: the page's own header, the row's full width. */
 .zen-app-shell-header__element { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-app-shell-header__element > * { min-width: 0; flex: 1 1 auto; }

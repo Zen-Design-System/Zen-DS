@@ -16,6 +16,7 @@
  *   counts      a Segmented with fewer than 2 or more than 5 items as rendered: segmented/option-count counts only options
  *               written out in the JSX, so options computed at run time (token modes, mapped data) reach this check
  *   sizes       a fixed-size visual (Avatar, Dock Icon, Icon) rendered off its declared size or out of square — stretched by a layout rule
+ *               (measured in its own CSS px: a transform that draws the preview smaller is divided out)
  *   edges       text closer than 8px (sides) / 4px (top, bottom) to the inner edge of the box that visibly holds it — missing padding
  *   outline     heading outline per example (Typography › Content hierarchy): more than one h1 on a page (each phone frame is
  *               its own screen), a skipped level going down (h1 → h3), or a heading larger than the heading it sits under
@@ -36,13 +37,13 @@
  * Build-QA checks (opt-in; tools/platform-audit/quality-checks.mjs, run by `npm run qa`):
  *   scale       (--quality) text that is no Zen text style; example markup with padding / gap / radius / colour off the tokens
  *   roles       (--quality, warn) example markup using a token in the wrong role (background token as text colour…)
- *   hierarchy   (--quality) a content h1 ≠ Heading/1 (bar title and overlay titles exempt), an h2/h3 Heading/* smaller than
+ *   hierarchy   (--quality) a content h1 smaller than Heading/1 (Heading/1 or a larger Display / Display-Extra style; bar title and overlay titles exempt), an h2/h3 Heading/* smaller than
  *               the body text under it, an overlay title styled Heading/1
  *   rhythm      (--quality, warn) flat title/description, title not Strongest, other headings smaller than their body
  *               text (group headers exempt), visual headings, > 7 text styles, non-concentric nested corners, list rows
  *               inset twice
  *   ladder      (--quality, warn) the spacing ladder (usage rules §13): a Stack / Grid / example-markup gap that is no
- *               2xs·xs·sm·md·lg·xl step, or a group whose own gap is wider than the gap between it and its siblings
+ *               3xs·2xs·xs·sm·md·lg·xl step, or a group whose own gap is wider than the gap between it and its siblings
  *   density     (--density) Zen elements outgrown by their content, and new overflow/size/edge errors, at Comfortable
  *   fit         (--quality) text wider than its own box with no ellipsis and no scroll: it runs into its neighbours or is
  *               cut off, even inside an `overflow: hidden` ancestor (which `overflow` skips). With --density also at
@@ -319,7 +320,10 @@ function pageChecks({ scopeSel, mobile }) {
   const casting = [...elevated].filter(([el]) => el.closest(".pe-card__stage, .platform-example-panel, .platform-guideline-visual") && visible(el)
     && !el.matches("button, a[href], input, [role='tab'], [role='option'], [role='menuitem'], .zen-bottom-nav__item")
     && !el.closest(`${FLOATING}, .platform-guideline-visual__dont, [data-verdict='dont'], [data-audit-skip-elevation]`) && castsShadow(getComputedStyle(el).boxShadow));
-  const onCanvasAlt = (host) => matchesAny(host, painters.canvas) || (Boolean(host.closest("[data-canvas='alt']")) && matchesAny(host, painters.shellCanvas));
+  // An AppShell paints --zen-app-shell-canvas from its own canvas prop: the nearest shell decides, not a phone frame's
+  // data-canvas around it, which is the phone's own scale (PlatformPhone canvas="alt" is Surface/Alt, grey). 2026-10-19:
+  // the iPad's Shadow cards on its grey Canvas/Default shell read as cards on a white page.
+  const onCanvasAlt = (host) => matchesAny(host, painters.canvas) || (host.closest(".zen-app-shell")?.getAttribute("data-canvas") === "alt" && matchesAny(host, painters.shellCanvas));
   for (const [el, p] of casting) {
     let host = el.parentElement;
     for (; host; host = host.parentElement) { const c = parse(getComputedStyle(host).backgroundColor); if (c && c.a > 0) break; }
@@ -381,8 +385,13 @@ function pageChecks({ scopeSel, mobile }) {
   for (const el of scope.querySelectorAll(".zen-avatar, .zen-dock-icon, svg.zen-icon, .zen-icon")) {
     if (!visible(el) || el.closest("[data-audit-skip-sizes]")) continue;
     const r = el.getBoundingClientRect(); if (r.width < 4 || r.height < 4) continue;
-    const k = el.closest(".platform-phone") ? el.closest(".platform-phone").getBoundingClientRect().width / el.closest(".platform-phone").offsetWidth : 1;
-    const w = r.width / k, h = r.height / k;
+    // Measured in the element's own CSS px: rendered size ÷ the scale it is drawn at, read on the nearest HTML box (an SVG
+    // icon has no offsetWidth) as AppShellHeader's useStackedRow does. A CSS transform around it (the builder's scaled
+    // desktop windows, a phone frame drawn smaller) is not a stretch.
+    let box = el; while (box && !(box instanceof HTMLElement && box.offsetWidth > 0 && box.offsetHeight > 0)) box = box.parentElement;
+    const br = box?.getBoundingClientRect();
+    const kx = box ? br.width / box.offsetWidth || 1 : 1, ky = box ? br.height / box.offsetHeight || 1 : 1;
+    const w = r.width / kx, h = r.height / ky;
     // Only a px size is a declared size; a percentage (Avatar filling a Popover leading slot) follows its slot.
     const rawSize = el.matches(".zen-avatar") ? getComputedStyle(el).getPropertyValue("--zen-avatar-size").trim() : "";
     const declared = /^[\d.]+px$/.test(rawSize) ? parseFloat(rawSize) : NaN;

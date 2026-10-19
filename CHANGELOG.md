@@ -41,6 +41,18 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   - Zen Studio follows: the Screen section's parts live on the AppShell and its AppShellHeader. Saved pages move to the
     new props as they load. The phone header is drawn from the AppShellHeader. Figma push and pull write the
     AppShellHeader, and the Body keeps Figma's Margin-Comfortable padding instead of a padded Stack.
+- **An h1 is never smaller than Heading/1** (2026-10-19, user): Heading/1, or a larger Display / Display-Extra style on
+  an emphasis page (a home, a welcome, a storefront). Harness `heading/h1-is-heading-1`, the audit's `hierarchy` check,
+  usage rules, the Text guideline and the Build-QA skill say so; the `zen-allow-h1-style` comments that excused a
+  Display title are gone.
+- **Gap/3XSmall (2) is a spacing-ladder step** (2026-10-19, user): two lines of one compact item (a stat over its label,
+  a name over its meta line), as Figma spaces them. The audit's `ladder` check, usage rules §13, the Build-QA docs and
+  the Figma screen rules list it.
+- Platform audit: `sizes` measures an Avatar, Dock Icon or Icon in its own CSS px, so a preview drawn smaller by a
+  transform (the App Shell builder's scaled windows) is no longer a stretch; `rhythm` knows wordmarks as the style-guard
+  does (the name after its Avatar / Icon / Dock Icon mark, or in a brand / logo wrapper) and leaves the navigation chrome
+  (Sidebar, TopNavigation compact bar) out of its text-style count; `surfaces` reads the canvas of the nearest AppShell,
+  not of a phone frame around it (a PlatformPhone's `canvas="alt"` is the grey Surface/Alt, not the white Canvas/Alt).
 removed (four unused colour ramps were, see Removed).
 - Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
   panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
@@ -815,6 +827,12 @@ removed (four unused colour ramps were, see Removed).
 - Sidebar: a long section or sub-menu label ellipsizes in its row instead of widening the column past the Sidebar.
 - Harness: a comment with an apostrophe inside a JSX attribute's expression no longer reads as an open string (it hid the
   rest of the tag and made `app-shell/nested` and `button/flat-level` fire on code that had neither).
+- AppShellHeader on a phone: a `center` Search takes a row of its own, and the actions (a Search kept there at its
+  desktop width too) shrink into the row instead of running past it.
+- Sidebar tells its AppShell `collapsed` only when it is set: a Sidebar wrapped in an app component kept List-Detail off
+  its rail.
+- Platform audit: contrast by APCA (a fill's APCA pick at Lc 45 or more passes, user 2026-10-19), an app window counts
+  as a desktop frame, and the outline starts after an AppShell's leading pane and Sidebar.
 - AppShellHeader puts the top row's trail on a row of its own when it only just fits (a trail that filled the row to the
   pixel wrapped inside it at 390).
 - SidePanel docked in an AppShell closes on Escape only from that app (the panel or its page), not from another app on

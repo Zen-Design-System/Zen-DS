@@ -41,7 +41,8 @@ import type { ExampleDef } from "../../types";
 /** The brand at the start of a top bar: Figma Brand = Avatar/Single Square Small Neutral Solid + the name in Heading/4. */
 function Brand({ initial, name }: { initial: string; name: string }) {
   return (
-    <Stack direction="row" gap="xs" align="center">
+    // Hug: the brand keeps its width beside the Tabs, which scroll when the row is short.
+    <Stack direction="row" gap="xs" align="center" width="hug">
       <Avatar size="sm" shape="square" theme="neutral" background="solid" alt="">{initial}</Avatar>
       <Text as="span" textStyle="Heading/4">{name}</Text>
     </Stack>
@@ -161,46 +162,50 @@ function StorefrontApp() {
           />
         )}
       >
-        {/* Catalogue: the filter rail (240) beside the results, 48 apart (Figma Catalogue gap 48). */}
-        <Stack direction="row" gap="3xl" align="start">
-          <Stack as="aside" width={240} gap="md" aria-label="Filters">
-            <Stack gap="2xs">
-              <Heading level={2} textStyle="Heading/Subheading">Filters</Heading>
-              <Text textStyle="Body/Small/Regular" tone="light">960 results</Text>
+        {/* The page title row comes first, so the outline starts at the h1 and the filter rail's h2 sits under it; then
+            the catalogue: the filter rail (240) beside the results, Gap/XLarge apart, one ladder step more than the
+            results' own Gap/Large (usage rules §13; Figma draws 48, no ladder step). In a narrow window the rail stacks
+            above the results and the grid keeps two columns. */}
+        <Stack gap="xl">
+          <Stack direction="row" gap="md" align="center" justify="between" wrap>
+            <Stack direction="row" gap="sm" align="center">
+              <Heading level={1} textStyle="Display/3">{title}</Heading>
+              {/* zen-allow-counter-cap: a result total, shown in full as Figma's 960 (not an unread count). */}
+              <BadgeCounter size="md" theme="neutral" background="solid" value={960} />
             </Stack>
-            <Stack gap="none">
-              {filterGroups.map((group) => (
-                <Accordion key={group.id} title={group.title} size="sm" theme="divider" contentWidth="full" defaultExpanded={group.id === "category"}>
-                  <Stack gap="sm">
-                    {group.options.map((option) => {
-                      const key = `${group.id}:${option}`;
-                      return <Checkbox key={key} label={option} checked={Boolean(ticked[key])} onCheckedChange={(checked) => setTicked((all) => ({ ...all, [key]: checked }))} />;
-                    })}
-                  </Stack>
-                </Accordion>
-              ))}
-            </Stack>
+            <Chip variant="advanced" level="secondary" size="md" popoverLabel="Sort by"
+              popoverItems={sorts.map((item) => ({ id: item.id, label: item.label, selected: item.id === sort }))}
+              onPopoverSelect={(item) => setSort(item.id)}>
+              {`Sort: ${sortLabel}`}
+            </Chip>
           </Stack>
-          <Stack width="fill" gap="lg">
-            <Stack direction="row" gap="md" align="center" justify="between">
-              <Stack direction="row" gap="sm" align="center">
-                {/* zen-allow-h1-style: Figma B1 sets the storefront title in Display/3 in the content (an image-first catalogue whose header title row is off). */}
-                <Heading level={1} textStyle="Display/3">{title}</Heading>
-                {/* zen-allow-counter-cap: a result total, shown in full as Figma's 960 (not an unread count). */}
-                <BadgeCounter size="md" theme="neutral" background="solid" value={960} />
+          <Grid columns="240px minmax(0, 1fr)" gap="xl" align="start" stackBelow={640}>
+            <Stack as="aside" gap="md" aria-label="Filters">
+              <Stack gap="2xs">
+                <Heading level={2} textStyle="Heading/Subheading">Filters</Heading>
+                <Text textStyle="Body/Small/Regular" tone="light">960 results</Text>
               </Stack>
-              <Chip variant="advanced" level="secondary" size="md" popoverLabel="Sort by"
-                popoverItems={sorts.map((item) => ({ id: item.id, label: item.label, selected: item.id === sort }))}
-                onPopoverSelect={(item) => setSort(item.id)}>
-                {`Sort: ${sortLabel}`}
-              </Chip>
+              <Stack gap="none">
+                {filterGroups.map((group) => (
+                  <Accordion key={group.id} title={group.title} size="sm" theme="divider" contentWidth="full" defaultExpanded={group.id === "category"}>
+                    <Stack gap="sm">
+                      {group.options.map((option) => {
+                        const key = `${group.id}:${option}`;
+                        return <Checkbox key={key} label={option} checked={Boolean(ticked[key])} onCheckedChange={(checked) => setTicked((all) => ({ ...all, [key]: checked }))} />;
+                      })}
+                    </Stack>
+                  </Accordion>
+                ))}
+              </Stack>
             </Stack>
-            <ChipGroup aria-label="Quick filters" size="md" level="secondary" options={quickFilters} value={quick} onValueChange={setQuick} />
-            {/* Product-Grid: 4 columns, 24 across and 32 down; products have no box, only a Pale image tile. */}
-            <Grid as="ul" columns={4} columnGap="lg" rowGap="xl" aria-label={`${title}, sorted by ${sortLabel.toLowerCase()}`}>
-              {shown.map((product) => <ProductTile key={product.id} product={product} />)}
-            </Grid>
-          </Stack>
+            <Stack gap="lg">
+              <ChipGroup aria-label="Quick filters" size="md" level="secondary" options={quickFilters} value={quick} onValueChange={setQuick} />
+              {/* Product-Grid: 4 columns (2 on a phone), 24 across and 32 down; products have no box, only a Pale image tile. */}
+              <Grid as="ul" columns={{ mobile: 2, desktop: 4 }} columnGap="lg" rowGap="xl" aria-label={`${title}, sorted by ${sortLabel.toLowerCase()}`}>
+                {shown.map((product) => <ProductTile key={product.id} product={product} />)}
+              </Grid>
+            </Stack>
+          </Grid>
         </Stack>
       </AppShell>
     </PreviewAppFrame>
@@ -497,7 +502,7 @@ function AnalyticsApp() {
         header={(
           <AppShellHeader
             leading={(
-              <Stack direction="row" gap="2xl" align="center">
+              <Stack direction="row" gap="xl" align="center">
                 <Brand initial="F" name="Finlytics" />
                 <Tabs size="lg" aria-label="Sections" value={section} onValueChange={setSection} items={sections} />
               </Stack>
@@ -554,7 +559,7 @@ function AnalyticsApp() {
 export const examples: ExampleDef[] = [
   {
     title: "B1 · Top-nav storefront",
-    description: "No sidebar: the catalogue is the navigation. The AppShell top bar holds the brand, a Subtle Tab-Bar, Search and the actions; its title row is off, so the Display/3 page title sits in the content beside a filter rail of Accordions and a 4-column product grid. Products have no box: Pale image tiles on a flat white canvas."
+    description: "No sidebar: the catalogue is the navigation. The AppShell top bar holds the brand, a Subtle Tab-Bar, Search and the actions; its title row is off, so the Display/3 page title heads the content, above a filter rail of Accordions beside a 4-column product grid (the rail stacks above two columns in a narrow window). Products have no box: Pale image tiles on a flat white canvas."
       + fits("AppShell/Desktop · Layout=Top-Bar", ["E-commerce", "Marketplace", "Booking", "Media catalogue"]),
     wide: true,
     screen: true,
@@ -582,51 +587,52 @@ export const examples: ExampleDef[] = [
     />
   }
 >
-  <Stack direction="row" gap="3xl" align="start">
-    <Stack as="aside" width={240} gap="md" aria-label="Filters">
-      <Stack gap="2xs">
-        <Heading level={2} textStyle="Heading/Subheading">Filters</Heading>
-        <Text textStyle="Body/Small/Regular" tone="light">960 results</Text>
+  <Stack gap="xl">
+    <Stack direction="row" gap="md" align="center" justify="between" wrap>
+      <Stack direction="row" gap="sm" align="center">
+        <Heading level={1} textStyle="Display/3">New arrivals</Heading>
+        {/* zen-allow-counter-cap: a result total, shown in full. */}
+        <BadgeCounter size="md" theme="neutral" background="solid" value={960} />
       </Stack>
-      <Stack gap="none">
-        <Accordion title="Category" size="sm" contentWidth="full" defaultExpanded>
-          <Stack gap="sm">
-            <Checkbox label="Sneakers" checked={sneakers} onCheckedChange={setSneakers} />
-            …Boots, Sandals, Slip-ons, Accessories
-          </Stack>
-        </Accordion>
-        <Accordion title="Size" size="sm" contentWidth="full">…</Accordion>
-        …Colour, Price, Rating
-      </Stack>
+      <Chip variant="advanced" level="secondary" size="md" popoverLabel="Sort by" popoverItems={sorts} onPopoverSelect={(item) => setSort(item.id)}>Sort: Newest</Chip>
     </Stack>
-    <Stack width="fill" gap="lg">
-      <Stack direction="row" gap="md" align="center" justify="between">
-        <Stack direction="row" gap="sm" align="center">
-          {/* zen-allow-h1-style: the storefront title is Display/3, in the content (the header has no title row). */}
-          <Heading level={1} textStyle="Display/3">New arrivals</Heading>
-          {/* zen-allow-counter-cap: a result total, shown in full. */}
-          <BadgeCounter size="md" theme="neutral" background="solid" value={960} />
+    <Grid columns="240px minmax(0, 1fr)" gap="xl" align="start" stackBelow={640}>
+      <Stack as="aside" gap="md" aria-label="Filters">
+        <Stack gap="2xs">
+          <Heading level={2} textStyle="Heading/Subheading">Filters</Heading>
+          <Text textStyle="Body/Small/Regular" tone="light">960 results</Text>
         </Stack>
-        <Chip variant="advanced" level="secondary" size="md" popoverLabel="Sort by" popoverItems={sorts} onPopoverSelect={(item) => setSort(item.id)}>Sort: Newest</Chip>
+        <Stack gap="none">
+          <Accordion title="Category" size="sm" contentWidth="full" defaultExpanded>
+            <Stack gap="sm">
+              <Checkbox label="Sneakers" checked={sneakers} onCheckedChange={setSneakers} />
+              …Boots, Sandals, Slip-ons, Accessories
+            </Stack>
+          </Accordion>
+          <Accordion title="Size" size="sm" contentWidth="full">…</Accordion>
+          …Colour, Price, Rating
+        </Stack>
       </Stack>
-      <ChipGroup aria-label="Quick filters" size="md" level="secondary" options={quickFilters} value={quick} onValueChange={setQuick} />
-      <Grid as="ul" columns={4} columnGap="lg" rowGap="xl" aria-label="New arrivals, sorted by newest">
-        {products.map((product) => (
-          <Stack as="li" key={product.id} gap="sm">
-            <Image src={product.photo.src} alt="" ratio="1:1" radius="lg" />
-            <Stack gap="2xs">
-              <Text textStyle="Body/Base/Medium">{product.name}</Text>
-              <Text textStyle="Body/Small/Regular" tone="light">{product.colour}</Text>
-              <Stack direction="row" gap="xs" align="center">
-                <Text as="span" textStyle="Body/Base/Bold">$42</Text>
-                <Text as="span" textStyle="Body/Small/Regular" tone="light"><VisuallyHidden>Was </VisuallyHidden><del>$49</del></Text>
-                <Badge size="xs" theme="red" background="solid" leadingIcon={false}>-15%</Badge>
+      <Stack gap="lg">
+        <ChipGroup aria-label="Quick filters" size="md" level="secondary" options={quickFilters} value={quick} onValueChange={setQuick} />
+        <Grid as="ul" columns={{ mobile: 2, desktop: 4 }} columnGap="lg" rowGap="xl" aria-label="New arrivals, sorted by newest">
+          {products.map((product) => (
+            <Stack as="li" key={product.id} gap="sm">
+              <Image src={product.photo.src} alt="" ratio="1:1" radius="lg" />
+              <Stack gap="2xs">
+                <Text textStyle="Body/Base/Medium">{product.name}</Text>
+                <Text textStyle="Body/Small/Regular" tone="light">{product.colour}</Text>
+                <Stack direction="row" gap="xs" align="center">
+                  <Text as="span" textStyle="Body/Base/Bold">$42</Text>
+                  <Text as="span" textStyle="Body/Small/Regular" tone="light"><VisuallyHidden>Was </VisuallyHidden><del>$49</del></Text>
+                  <Badge size="xs" theme="red" background="solid" leadingIcon={false}>-15%</Badge>
+                </Stack>
               </Stack>
             </Stack>
-          </Stack>
-        ))}
-      </Grid>
-    </Stack>
+          ))}
+        </Grid>
+      </Stack>
+    </Grid>
   </Stack>
 </AppShell>`,
   },
@@ -713,7 +719,7 @@ export const examples: ExampleDef[] = [
   header={
     <AppShellHeader
       leading={
-        <Stack direction="row" gap="2xl" align="center">
+        <Stack direction="row" gap="xl" align="center">
           <Stack direction="row" gap="xs" align="center">
             <Avatar size="sm" shape="square" theme="neutral" background="solid" alt="">F</Avatar>
             <Text as="span" textStyle="Heading/4">Finlytics</Text>

@@ -463,7 +463,8 @@ function DockedDetailsExample() {
           <AppShellHeader
             leading={<StudioLogo src={studio.logo} name={studio.name} />}
             actions={<HeaderUtilities />}
-            main={<PageHeader eyebrow="Loyalty app · Phin & Co" title="Files" description="Design files, specs and plans for the Phin & Co loyalty app."
+            // No eyebrow: the description already names the project (one style less on a calm page).
+            main={<PageHeader title="Files" description="Design files, specs and plans for the Phin & Co loyalty app."
               trailing={<IconButton level="tertiary" icon="icon-layout-right-line" aria-label={open ? "Hide details" : "Show details"} aria-pressed={open} onClick={() => setChoice(!open)} />} />}
             // Sections: the control bar over the list (on a phone the Search takes a line of its own).
             sections={(
@@ -759,7 +760,7 @@ const [open, setOpen] = useState(false);
     <AppShellHeader
       leading={<StudioLogo />}
       actions={<>{notifications}{account}</>}
-      main={<PageHeader eyebrow="Loyalty app · Phin & Co" title="Files"
+      main={<PageHeader title="Files" description="Design files, specs and plans for the Phin & Co loyalty app."
         trailing={<IconButton level="tertiary" icon="icon-layout-right-line" aria-label={open ? "Hide details" : "Show details"}
           aria-pressed={open} onClick={() => setChoice(!open)} />} />}
       sections={<DashboardHeader search={<Search size="md" placeholder="Search files" value={query} onValueChange={setQuery} />}

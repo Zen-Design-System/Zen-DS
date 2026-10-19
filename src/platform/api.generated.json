@@ -4443,7 +4443,7 @@
           "name": "collapsed",
           "type": "boolean",
           "required": false,
-          "default": "false",
+          "default": null,
           "description": "The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it\n from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps\n it (controlled).",
           "deprecated": null
         },
@@ -16708,7 +16708,7 @@
           "type": "keyof typeof typographyStyles",
           "required": false,
           "default": null,
-          "description": "Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4\n Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness:\n heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always\n Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone \"light\".",
+          "description": "Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4\n Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) is Heading/1 or a larger Display /\n Display-Extra style, never smaller (harness: heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always\n Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone \"light\".",
           "deprecated": null
         },
         {
@@ -16924,7 +16924,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an <ActionBar> (`surface=\"glass\"` over photos).",
+          "description": "Mobile Figma Bottom Actions: what the screen pins to the bottom: an <ActionBar> (`surface=\"glass\"` over photos), or\nthe screen's input bar in the same place (a chat's ChatComposer, an AI prompt field).",
           "deprecated": null
         },
         {

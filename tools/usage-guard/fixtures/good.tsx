@@ -256,6 +256,10 @@ export const Good = () => <>
   <VisuallyHidden as="a" href="#main" focusable>Skip to main content</VisuallyHidden>
   <VisuallyHidden>Actions</VisuallyHidden>
   <Heading level={1}>Billing</Heading>
+  {/* An emphasis page (a home, a welcome) may title itself larger than Heading/1: any Display / Display-Extra style. */}
+  <Heading level={1} textStyle="Display/3">New arrivals</Heading>
+  <Text as="h1" textStyle="Display-Extra/1">zenio</Text>
+  <h1 className={typographyStyles["Display/1"]}>Continue French!</h1>
   <Heading level={2} textStyle="Heading/4">Current plan</Heading>
   {/* The compact app bar title is the screen's h1 in its bar style; a list group header (kicker) may use Base. */}
   <Text as="h1" textStyle="Body/Extra/Bold" className="zen-top-nav__title">Order #1042</Text>

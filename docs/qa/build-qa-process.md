@@ -70,7 +70,7 @@ quả "chưa chuẩn" đến từ việc bỏ qua bước này. Có cần spec c
   token của một style (size + line height + tracking cùng một style, weight từ `--zen-emphasis-font-weight-*`). Không
   set font-size thô, không lấy nửa style, không `calc()` từ token chữ.
 - Mỗi trang hoặc màn hình có đúng một h1, luôn hiện diện, gọi tên trang và khớp `document.title`. Tiêu đề hiển thị lớn
-  (PageHeader, large title trên phone) là Heading/1; tiêu đề compact trên app bar là h1 và giữ style của thanh
+  (PageHeader, large title trên phone) là Heading/1, hoặc lớn hơn (Display / Display-Extra) trên trang nhấn mạnh như trang chủ, màn chào, không bao giờ nhỏ hơn; tiêu đề compact trên app bar là h1 và giữ style của thanh
   (Body/Extra/Bold). Section: h2 Heading/4 (kể cả bảng là một section riêng). Tiêu đề card/widget: thấp hơn heading gần
   nhất một cấp, luôn Heading/Subheading. Tiêu đề hàng: Body/Base/Bold; unread thêm dot hoặc Badge kèm chữ "Unread" ẩn.
   Header nhóm của list: thấp hơn một cấp, Body/Small/Bold, tone Base (kicker). Meta Body/Small tone Base, Caption tone
@@ -177,9 +177,9 @@ Các bước:
    | --- | --- | --- |
    | `scale` | lỗi | chữ không khớp text style Zen nào (size/line height/tracking/weight/family), ở bất kỳ đâu trong preview; markup example có padding, gap, radius hoặc màu ngoài token của mode hiện tại |
    | `roles` | cảnh báo | markup example dùng token sai role (token background làm màu chữ…) |
-   | `hierarchy` | lỗi | h1 nội dung không phải Heading/1 (thanh tiêu đề TopNavigation được miễn); heading họ Heading/* nhỏ hơn đoạn chữ ngay bên dưới (nhãn nhóm Body/Small/Bold được miễn); tiêu đề overlay dùng Heading/1 (h1 hay h2 đều được) |
+   | `hierarchy` | lỗi | h1 nội dung nhỏ hơn Heading/1 (Heading/1 hoặc Display / Display-Extra lớn hơn đều đạt; thanh tiêu đề TopNavigation được miễn); heading họ Heading/* nhỏ hơn đoạn chữ ngay bên dưới (nhãn nhóm Body/Small/Bold được miễn); tiêu đề overlay dùng Heading/1 (h1 hay h2 đều được) |
    | `rhythm` | cảnh báo | tiêu đề và mô tả giống hệt nhau; tiêu đề không Strongest; dòng mang style Heading mà không phải heading (và không phải con số); quá 7 text style trong một example; góc lồng nhau không đồng tâm; hàng list bị inset hai lần |
-   | `ladder` | cảnh báo | thang spacing (usage rules §13): gap của Stack, Grid hoặc markup example không phải một bậc 2xs·xs·sm·md·lg·xl của density hiện tại; hoặc các nhóm ngang hàng có gap bên trong rộng hơn gap giữa chúng |
+   | `ladder` | cảnh báo | thang spacing (usage rules §13): gap của Stack, Grid hoặc markup example không phải một bậc 3xs·2xs·xs·sm·md·lg·xl của density hiện tại; hoặc các nhóm ngang hàng có gap bên trong rộng hơn gap giữa chúng |
    | `density` | lỗi | phần tử Zen bị nội dung tràn ra khi chuyển Comfortable, và lỗi overflow/size/edge mới ở Comfortable |
    | `fit` | lỗi | chữ rộng hơn box của chính nó (label, nút, dòng chữ) mà không có ellipsis, không cuộn: chữ đè sang phần tử bên cạnh hoặc bị cắt ngang, kể cả khi tổ tiên có `overflow: hidden` (check `overflow` bỏ qua vùng đó). Chạy ở Compact và, với `--density`, ở Comfortable. Không báo: vùng cuộn, chữ có ellipsis, mép mờ (mask), chữ chỉ cho screen reader, `data-audit-skip-quality`. Sửa: cho item giữ bề rộng (`flex-shrink: 0`, `min-width: auto`), cho xuống dòng, ellipsis, hoặc cho hàng cuộn ngang |
    | `card-gap` | lỗi | MetricCard hoặc ChartCard bị hàng kéo cao mà nội dung dừng sớm, chừa một dải trống ≥ 12px ở đáy trong khi thẻ bên cạnh lấp đầy (2026-10-16). Sửa ở component: phần sau tiêu đề bám xuống đáy |

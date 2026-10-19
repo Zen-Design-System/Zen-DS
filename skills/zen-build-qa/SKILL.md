@@ -64,7 +64,8 @@ Whether you need a card, and for which elements, follows your tier (`AGENTS.md` 
   complete token set of one style (size + line height + tracking from the same style, weight from
   `--zen-emphasis-font-weight-*`). Never a raw size, a half style (size only), or a calc of a text token.
 - **Content hierarchy.** Exactly one h1 per page or screen, present at all times, naming it (= `document.title`): Heading/1
-  where the title is shown large (PageHeader, phone large title); a compact app bar title is the h1 in its bar style
+  where the title is shown large (PageHeader, phone large title), or a larger Display / Display-Extra style on an
+  emphasis page (a home, a welcome), never smaller; a compact app bar title is the h1 in its bar style
   (Body/Extra/Bold). Sections h2 Heading/4 (a table that is its own section too); card and widget titles one level below
   the nearest heading, always Heading/Subheading; row titles Body/Base/Bold (unread = dot or Badge + hidden "Unread");
   list group headers one level down, Body/Small/Bold, Base tone (kicker); meta Body/Small in Base, Caption in Light;
@@ -127,7 +128,7 @@ It prints ✗ / ⚠ per step and writes `.qa/reports/<stamp>.md`. Read the repor
 | style-guard / usage-guard ✗ | the CSS/TSX line; tokens and components as in §1 |
 | `scale` (runtime) | text without a Zen text style, example markup off the spacing/radius/colour tokens |
 | `hierarchy` / `rhythm` | heading level and style, title vs description, visual headings, concentric corners, double inset |
-| `ladder` (warn) | spacing ladder (usage rules §13): a Stack/Grid/markup gap off 2xs·xs·sm·md·lg·xl, or peer groups whose own gap is wider than the gap between them — pick the step by the relationship |
+| `ladder` (warn) | spacing ladder (usage rules §13): a Stack/Grid/markup gap off 3xs·2xs·xs·sm·md·lg·xl, or peer groups whose own gap is wider than the gap between them — pick the step by the relationship |
 | `density` | wrapper sized in px around a token-sized child |
 | `fit` | text wider than its own box, no ellipsis, no scroll (it runs into its neighbours even under `overflow: hidden`): let the item keep its width (`flex-shrink: 0` / `min-width: auto`), wrap, ellipsize, or scroll the row |
 | `edges`, `sizes`, `overflow`, `surfaces`, `outline`, `typography` | see `docs/qa/platform-audit.md` |
