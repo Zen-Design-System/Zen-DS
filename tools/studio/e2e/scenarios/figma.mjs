@@ -47,7 +47,7 @@ async function selectBody(page, id) {
 const NOT_YET = [
   ["ControlOrMeta+KeyG", "Group selection"],
   ["ControlOrMeta+KeyE", "Flatten"], ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
-  ["Shift+KeyR", "Rulers"], ["Shift+KeyS", "Section"], ["KeyP", "Pen"], ["KeyK", "Scale"], ["KeyC", "Comment"],
+  ["Shift+KeyR", "Rulers"], ["Shift+KeyS", "Section"], ["KeyK", "Scale"], ["KeyC", "Comment"],
   ["KeyI", "Pick color"], ["KeyN", "Next frame"], ["KeyS", "Slice"],
 ];
 
@@ -111,6 +111,21 @@ const shapeTags = (text) => [...text.matchAll(/<Shape\b[^>]*\/>/g)].map(([tag]) 
   return { type: value("type"), x: value("insetLeft"), y: value("insetTop"), width: value("width"), height: value("height"), fill: value("fill"), stroke: value("stroke"), strokeWeight: value("strokeWeight"), opacity: value("opacity") };
 });
 const clipShape = (page, id, index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index);
+
+
+/* ── F9 (vectors) ────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** The free frame of the clipboard page on the screen, and a point of its own px there. */
+async function freeFrame(page, id) {
+  const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).filter({ has: page.locator('[data-zen-name="Shape"]') }).first().boundingBox();
+  const scale = box.width / 358;
+  return { at: (x, y) => ({ x: box.x + x * scale, y: box.y + y * scale }), scale };
+}
+/** The page's vector tags: [{ d, viewBox, x, y, w, h }]. */
+const vectorTags = (text) => [...text.matchAll(/<Shape type="vector"[^>]*\/>/g)].map(([tag]) => ({
+  d: /\sd="([^"]*)"/.exec(tag)?.[1], viewBox: /viewBox="([^"]*)"/.exec(tag)?.[1],
+  x: Number(/insetLeft=\{(-?[\d.]+)\}/.exec(tag)?.[1]), y: Number(/insetTop=\{(-?[\d.]+)\}/.exec(tag)?.[1]), w: Number(/width=\{([\d.]+)\}/.exec(tag)?.[1]), h: Number(/height=\{([\d.]+)\}/.exec(tag)?.[1]),
+}));
 
 
 /* ── F2 (selection and transform) ───────────────────────────────────────────────────────────────────────────────── */
@@ -984,6 +999,108 @@ export const rows = [
       if (!/<Shape type="rectangle"/.test(code)) throw new Error(`code: ${code.slice(0, 160)}`);
       const tokens = (css.match(/var\(--zen-[\w-]+\)/g) ?? []).length;
       return `CSS ${css.split("\n").length - 2} declarations (${tokens} by variable: ${css.split("\n").slice(1).join(" ").slice(0, 400)}) · code <Shape …>`;
+    },
+  },
+  {
+    id: "FW-115", feature: "P (Pen): three clicks and a click on the first point draw a closed vector at its X / Y in the frame; the tool goes back to Move", wp: "F9 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("KeyP");
+      await until(async () => (await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Pen"]').getAttribute("aria-pressed")) === "true", { message: "the Pen" });
+      for (const [x, y] of [[220, 60], [320, 60], [270, 160], [220, 60]]) { const at = frame.at(x, y); await page.mouse.click(at.x, at.y); await sleep(120); }
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1, { message: "a vector" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const [vector] = vectorTags((await pageText(page, id)) ?? "");
+      const near = (a, b) => Math.abs(a - b) <= 2;
+      if (!/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+ L [\d.]+ [\d.]+ L [\d.]+ [\d.]+ Z$/.test(vector.d ?? "")) throw new Error(`d = ${vector.d}`);
+      if (!near(vector.x, 220) || !near(vector.y, 60) || !near(vector.w, 100) || !near(vector.h, 100)) throw new Error(`box ${vector.x}, ${vector.y}, ${vector.w} × ${vector.h} (want 220, 60, 100 × 100)`);
+      await until(async () => (await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Move"]').getAttribute("aria-pressed")) === "true", { message: "back to Move" });
+      await until(async () => (await selectedSrc(page)).length === 1, { message: "the vector selected" });
+      await undoTo(page, id, before);
+      return `${vector.d} · ${vector.w} × ${vector.h} at ${vector.x}, ${vector.y} · Move · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-116", feature: "Pen: a press-drag makes a smooth point (a curve), Enter ends the open path", wp: "F9 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("KeyP");
+      const a = frame.at(220, 120);
+      await page.mouse.click(a.x, a.y);
+      const b = frame.at(330, 120);
+      const drag = frame.at(330, 180);
+      await page.mouse.move(b.x, b.y);
+      await page.mouse.down();
+      await page.mouse.move(drag.x, drag.y, { steps: 6 });
+      await page.mouse.up();
+      await page.keyboard.press("Enter");
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1, { message: "a vector" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const [vector] = vectorTags((await pageText(page, id)) ?? "");
+      if (!/^M [\d.]+ [\d.]+ C /.test(vector.d ?? "") || /Z/.test(vector.d ?? "")) throw new Error(`d = ${vector.d} (want an open M … C curve)`);
+      await undoTo(page, id, before);
+      return `${vector.d} · open curve · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-117", feature: "Enter on a vector: vertex edit — drag a point, the path changes in one edit; Esc leaves", wp: "F9 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("KeyP");
+      for (const [x, y] of [[220, 60], [320, 60], [270, 160], [220, 60]]) { const at = frame.at(x, y); await page.mouse.click(at.x, at.y); await sleep(120); }
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1, { message: "a vector" });
+      const drawn = (await pageText(page, id)) ?? "";
+      await until(async () => (await selectedSrc(page)).length === 1, { message: "the vector selected" });
+      await sleep(300);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Enter");
+      const points = page.locator('[data-e2e="vector-edit"] .studio-vector__point');
+      await until(async () => (await points.count()) === 3, { message: "three points in vertex edit" });
+      // The bottom point (270, 160) dragged 20 px down.
+      const bottom = frame.at(270, 160);
+      await page.mouse.move(bottom.x, bottom.y);
+      await page.mouse.down();
+      await page.mouse.move(bottom.x, bottom.y + 20 * frame.scale, { steps: 5 });
+      await page.mouse.up();
+      await until(async () => { const [vector] = vectorTags((await pageText(page, id)) ?? ""); return Math.abs(vector.h - 120) <= 2; }, { message: "the vector 120 high" }).catch(async (error) => { throw new Error(`${error.message} (${JSON.stringify(vectorTags((await pageText(page, id)) ?? ""))}) · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await page.keyboard.press("Escape");
+      await until(async () => (await points.count()) === 0, { message: "Esc leaves vertex edit" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === drawn, { message: "one ⌘Z undoes the point's move" });
+      await undoTo(page, id, before);
+      return "Enter → 3 points · drag → 120 high · Esc · ⌘Z";
+    },
+  },
+  {
+    id: "FW-118", feature: "⇧P (Pencil): a drag draws a smoothed vector; the Pencil stays on, Esc goes back to Move", wp: "F9 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyP");
+      await until(async () => (await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Pencil"]').getAttribute("aria-pressed")) === "true", { message: "the Pencil" });
+      const start = frame.at(220, 150);
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      for (let k = 1; k <= 20; k++) { const at = frame.at(220 + k * 5, 150 - Math.sin((k / 20) * Math.PI) * 60); await page.mouse.move(at.x, at.y); await sleep(10); }
+      await page.mouse.up();
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1, { message: "a vector" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const [vector] = vectorTags((await pageText(page, id)) ?? "");
+      if (!/^M [\d.]+ [\d.]+ C /.test(vector.d ?? "")) throw new Error(`d = ${vector.d}`);
+      if ((await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Pencil"]').getAttribute("aria-pressed")) !== "true") throw new Error("the Pencil went off after a stroke");
+      await page.keyboard.press("Escape");
+      await until(async () => (await page.locator('[role="toolbar"][aria-label="Tools"] [aria-label="Move"]').getAttribute("aria-pressed")) === "true", { message: "Esc → Move" });
+      await undoTo(page, id, before);
+      return `${(vector.d.match(/C/g) ?? []).length} curves · ${vector.w} × ${vector.h} · Pencil stays · Esc → Move · ⌘Z`;
     },
   },
 ];
