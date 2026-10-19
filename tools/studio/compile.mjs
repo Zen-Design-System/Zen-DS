@@ -271,7 +271,6 @@ export const propIdentifier = (name) => {
   return /^[A-Za-z_$]/.test(id) ? id : `p${id}`;
 };
 
-/** An instance's call of its component's function: its variant values and property values as props. */
 /** An instance's `overrides` (F7b) as layer path → literal props, or null. */
 function overridesOf(node) {
   const value = node.props.overrides;
@@ -281,7 +280,62 @@ function overridesOf(node) {
     : [])));
 }
 
-function instanceCall(node, ctx, indent = "") {
+/** A literal as JSX attribute code: `name="text"`, `name={true}`. */
+const attrCode = (name, value) => (typeof value === "string" ? `${name}=${json(value)}` : `${name}={${json(value)}}`);
+
+/**
+ * The props the export makes for instance overrides that no component property carries (the user's choice,
+ * 2026-10-20: "cách 3"). An override of a layer of the main becomes a prop of the component's function, defaulting to
+ * the main's own value, and each instance passes its value. One prop per layer and kind: its words (`text`), its
+ * visibility (`showText`), one of its props (`textTone`), or a nested instance's variant or property value (`chipSize`).
+ * An override below a layer the main does not list (a library component's own layer, a nested instance's) stays a note.
+ * Returns local id → Map("<path>\u0000<key>" → { ident, path, key, kind, name, type }).
+ */
+function overrideProps(ctx) {
+  const out = new Map();
+  eachElement(ctx.page.board, (node) => {
+    if (node.name !== "Use") return;
+    const table = overridesOf(node);
+    if (!table) return;
+    const resolved = resolveInstance(ctx.page, node, ctx.model);
+    const localId = resolved?.set?.id ?? resolved?.main.id;
+    const main = resolved ? ctx.model.mains.find((entry) => entry.id === resolved.main.id) : null;
+    if (!localId || !main) return;
+    const byPath = new Map([...mainLayerPaths(main, ctx.model)].map(([layer, path]) => [path, layer]));
+    const given = new Set(Object.keys(node.props.props?.kind === "object" ? node.props.props.fields : {}));
+    const own = out.get(localId) ?? new Map();
+    for (const [path, props] of Object.entries(table)) {
+      const layer = byPath.get(path);
+      if (!layer) continue;
+      for (const [key, value] of Object.entries(props)) {
+        // A bound layer's override is its property's value (instanceCall): no prop of its own.
+        if (key === "children" && typeof literalOf(layer, "data-prop-text") === "string" && !given.has(literalOf(layer, "data-prop-text"))) continue;
+        if (key === "hidden" && typeof literalOf(layer, "data-prop-visible") === "string" && !given.has(literalOf(layer, "data-prop-visible"))) continue;
+        const nested = /^(variant|props)\.(.+)$/.exec(key);
+        if (nested && layer.name !== "Use") continue;
+        const kind = nested ? nested[1] : key === "children" ? "children" : key === "hidden" ? "hidden" : "prop";
+        const id = `${path}\u0000${key}`;
+        if (own.has(id)) continue;
+        const base = path.replace(/\[(\d+)\]/g, " $1").replace(/\//g, " ");
+        const words = kind === "children" ? base : kind === "hidden" ? `show ${base}` : kind === "prop" ? `${base} ${key}` : `${base} ${nested[2]}`;
+        own.set(id, { words, path, key, kind, name: nested ? nested[2] : key, type: kind === "hidden" ? "boolean" : typeof value === "number" ? "number" : typeof value === "boolean" ? "boolean" : "string" });
+      }
+    }
+    if (own.size) out.set(localId, own);
+  });
+  return out;
+}
+
+/** The main's own value of a generated prop at its layer: a Text's words, its visibility, a prop, a nested instance's value. */
+function generatedDefault(entry, layer, ctx) {
+  if (entry.kind === "children") { const text = layer.children.find((child) => child.kind === "text"); return text ? String(text.value).trim() : undefined; }
+  if (entry.kind === "hidden") return literalOf(layer, "hidden") !== true;
+  if (entry.kind === "prop") return literalOf(layer, entry.name);
+  const nested = resolveInstance(ctx.page, layer, ctx.model);
+  return entry.kind === "variant" ? nested?.variant?.[entry.name] : nested?.values?.[entry.name];
+}
+
+function instanceCall(node, ctx, indent = "", generatedValues = null) {
   const resolved = resolveInstance(ctx.page, node, ctx.model);
   const local = resolved ? ctx.locals?.get(resolved.set?.id ?? resolved.main.id) : null;
   if (!resolved || !local) return "{null}";
@@ -291,6 +345,8 @@ function instanceCall(node, ctx, indent = "") {
   const values = { ...resolved.values };
   const given = new Set(Object.keys(node.props.props?.kind === "object" ? node.props.props.fields : {}));
   const notes = [];
+  const generatedProps = [];
+  const generated = ctx.overrideProps?.get(local.id);
   const overrides = overridesOf(node);
   if (overrides) {
     const main = ctx.model.mains.find((entry) => entry.id === resolved.main.id);
@@ -300,20 +356,30 @@ function instanceCall(node, ctx, indent = "") {
       for (const [name, value] of Object.entries(props)) {
         const text = layer ? literalOf(layer, "data-prop-text") : undefined;
         const visible = layer ? literalOf(layer, "data-prop-visible") : undefined;
+        const made = generated?.get(`${path}\u0000${name}`);
         if (name === "children" && typeof text === "string" && !given.has(text)) values[text] = String(value);
         else if (name === "hidden" && typeof value === "boolean" && typeof visible === "string" && !given.has(visible)) values[visible] = !value;
+        else if (made) generatedProps.push(attrCode(made.ident, made.kind === "hidden" ? value !== true : value));
         else notes.push(`${path}: ${name}=${JSON.stringify(value)}`);
       }
     }
   }
   const props = [];
-  if (local.set) for (const axis of local.set.axes) props.push(`${propIdentifier(axis.name)}=${json(resolved.variant[axis.name] ?? axis.values[0])}`);
+  // A nested instance inside a component's function takes the outer function's generated props for its values.
+  const fromOuter = (kind, name) => generatedValues?.[kind]?.[name];
+  if (local.set) for (const axis of local.set.axes) {
+    const outer = fromOuter("variant", axis.name);
+    props.push(outer ? `${propIdentifier(axis.name)}={${outer}}` : `${propIdentifier(axis.name)}=${json(resolved.variant[axis.name] ?? axis.values[0])}`);
+  }
   for (const property of local.properties) {
     if (property.type === "slot") continue;
+    const outer = fromOuter("props", property.name);
+    if (outer) { props.push(`${propIdentifier(property.name)}={${outer}}`); continue; }
     const value = values[property.name];
     if (value === undefined || value === property.default) continue;
     props.push(typeof value === "string" ? `${propIdentifier(property.name)}=${json(value)}` : `${propIdentifier(property.name)}={${json(value)}}`);
   }
+  props.push(...generatedProps);
   // What it puts in its main's slots (F7b): the layers, as the slot prop.
   const slots = node.props.slots?.kind === "object" ? node.props.slots.fields : {};
   for (const property of local.properties) {
@@ -332,8 +398,15 @@ function elementCode(node, ctx, indent, extra = []) {
   // A page-local component (Figma's main, <Component>) and its instances (<Use>) are calls of its function (compileReact
   // writes one per main or set, named from its name); a component set's frame is the design's, not the app's.
   if (node.name === "ComponentSet") return `{/* ${String(literalOf(node, "name") ?? "Component set").replace(/\*\//g, "* /")}: its variants are one function */}`;
+  // Inside a component's function: this layer's generated props (overrideProps), by its path in the main.
+  const layerPath = ctx.layerPathOf?.get(node);
+  const made = layerPath !== undefined && ctx.generated ? [...ctx.generated.values()].filter((entry) => entry.path === layerPath) : [];
   if (node.name === "Component") return instanceCall({ ...node, props: { of: node.props.id } }, ctx, indent);
-  if (node.name === "Use") return instanceCall(node, ctx, indent);
+  if (node.name === "Use") {
+    const generatedValues = { variant: {}, props: {} };
+    for (const entry of made) if (entry.kind === "variant" || entry.kind === "props") generatedValues[entry.kind][entry.name] = entry.read;
+    return instanceCall(node, ctx, indent, made.length ? generatedValues : null);
+  }
   // Inside a component's function, a layer bound to a component property reads the function's prop (Figma's text,
   // boolean and instance swap properties); the binding attributes are the design's.
   const binding = ctx.bindings ? Object.fromEntries(Object.keys(PROPERTY_BINDINGS).flatMap((attr) => (typeof literalOf(node, attr) === "string" ? [[attr, literalOf(node, attr)]] : []))) : {};
@@ -348,6 +421,18 @@ function elementCode(node, ctx, indent, extra = []) {
   if (slot) node = { ...node, children: node.children.length ? [{ kind: "code", code: `{${slot} ?? <>` }, ...node.children, { kind: "code", code: "</>}" }] : [{ kind: "code", code: `{${slot}}` }] };
   const text = binding["data-prop-text"] ? ctx.bindings.get(binding["data-prop-text"]) : null;
   if (text) node = { ...node, children: [{ kind: "code", code: `{${text}}` }] };
+  // Generated props (instance overrides no property carries): the layer's words, one of its props, its visibility.
+  for (const entry of made) {
+    if (entry.kind === "children" && !text) node = { ...node, children: [{ kind: "code", code: `{${entry.read}}` }] };
+    else if (entry.kind === "prop") node = { ...node, props: { ...node.props, [entry.name]: { kind: "code", code: entry.read } } };
+  }
+  const shownByOverride = made.find((entry) => entry.kind === "hidden");
+  if (shownByOverride) {
+    const inner = elementCode({ ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => name !== "hidden")) }, { ...ctx, layerPathOf: null, atRoot: false }, indent + UNIT, extra);
+    // `show ?? true` in parentheses: JavaScript refuses ?? beside && or ?: without them.
+    const shown = shownByOverride.read.includes("??") ? `(${shownByOverride.read})` : shownByOverride.read;
+    return atRoot ? `${shown} ? (\n${indent}${UNIT}${inner}\n${indent}) : null` : `{${shown} && (\n${indent}${UNIT}${inner}\n${indent})}`;
+  }
   const shownIf = binding["data-prop-visible"] ? ctx.bindings.get(binding["data-prop-visible"]) : null;
   if (shownIf) {
     const inner = elementCode(node, ctx, indent + UNIT, extra);
@@ -462,6 +547,20 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     if (!main.id || !main.root || main.set) continue;
     ctx.locals.set(main.id, { id: main.id, fn: fnName(main.name), root: main.root, name: main.name, properties: main.properties });
   }
+  // Instance overrides no component property carries: props of the component's function (overrideProps), named before
+  // the frames are written (their instances pass them).
+  ctx.overrideProps = overrideProps(ctx);
+  for (const [localId, entries] of ctx.overrideProps) {
+    const local = ctx.locals.get(localId);
+    if (!local) continue;
+    const used = new Set([...(local.set?.axes ?? []).map((axis) => propIdentifier(axis.name)), ...local.properties.map((property) => propIdentifier(property.name))]);
+    for (const entry of entries.values()) {
+      let ident = propIdentifier(entry.words);
+      for (let n = 2; used.has(ident); n += 1) ident = `${propIdentifier(entry.words)}${n}`;
+      used.add(ident);
+      entry.ident = ident;
+    }
+  }
   const ids = [...new Set(screens.map((node) => String(literalOf(node, "id"))))];
   const states = [...new Set(screens.map((node) => literalOf(node, "state")).filter((state) => typeof state === "string"))];
   const hasMock = page.mock && Object.keys(page.mock).length > 0;
@@ -561,25 +660,45 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
         // A slot: the layers an instance puts there (its main's own when it gives none).
         ...slotProperties.map((property) => [propIdentifier(property.name), null, "ReactNode"]),
       ];
+      // Instance overrides as props (overrideProps): optional; the main's own value applies where none is passed.
+      const generated = ctx.overrideProps.get(id) ?? new Map();
+      for (const entry of generated.values()) params.push([entry.ident, null, entry.type]);
       const signature = params.length ? `{ ${params.map(([key, value]) => (value === null ? key : `${key} = ${value}`)).join(", ")} }: { ${params.map(([key, , type]) => `${key}?: ${type}`).join("; ")} }` : "";
+      /** One main's (a variant's) layer paths and each generated prop's read there: `prop ?? <the main's own value>`. */
+      const forMain = (main) => {
+        const byNode = mainLayerPaths(main, ctx.model);
+        const byPath = new Map([...byNode].map(([layer, path]) => [path, layer]));
+        ctx.layerPathOf = byNode;
+        ctx.generated = new Map([...generated].map(([key, entry]) => {
+          const layer = byPath.get(entry.path);
+          const fallback = layer ? generatedDefault(entry, layer, ctx) : undefined;
+          return [key, { ...entry, read: fallback === undefined ? entry.ident : `${entry.ident} ?? ${json(fallback)}` }];
+        }));
+      };
       const what = local.set ? "a component set of the design: its instances call it with their variant and properties" : "a component of the design: its instances call it";
       localLines.push(`/** ${local.name.replace(/\*\//g, "* /")} (${what}). */`, `function ${local.fn}(${signature}) {`);
       if (local.set) {
         // One return per variant, the first one last (the values no test matches).
         const [first, ...rest] = local.variants;
+        const mainOf = (variant) => ctx.model.mains.find((entry) => entry.id === variant.id) ?? variant;
         for (const main of rest) {
           const test = axes.map((axis) => `${propIdentifier(axis.name)} === ${json(main.variant?.[axis.name] ?? axis.values[0])}`).join(" && ");
+          forMain(mainOf(main));
           ctx.atRoot = true;
           localLines.push(`  if (${test}) return (`, `    ${elementCode(main.root, ctx, "    ")}`, "  );");
         }
+        forMain(mainOf(first));
         ctx.atRoot = true;
         localLines.push("  return (", `    ${elementCode(first.root, ctx, "    ")}`, "  );", "}", "");
       } else {
+        forMain(ctx.model.mains.find((entry) => entry.id === id));
         ctx.atRoot = true;
         localLines.push("  return (", `    ${elementCode(local.root, ctx, "    ")}`, "  );", "}", "");
       }
       ctx.bindings = null;
       ctx.slotBindings = null;
+      ctx.layerPathOf = null;
+      ctx.generated = null;
     }
   }
 

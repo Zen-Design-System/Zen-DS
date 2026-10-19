@@ -127,6 +127,11 @@ removed (four unused colour ramps were, see Removed).
 - Studio E2E: a retried row starts from the drafts and pages the row found (the runner puts them back), and a row that
   fails twice reports its first error; the Studio's right panel keeps every field on its grid (shared Inline-Field), with
   an E2E fit check.
+- Zen Studio's React export turns an instance override that no component property carries into a prop of the
+  component's function (the user's choice, 2026-10-20). The prop defaults to the main's own value, and the instance
+  passes its value: `<Card text="Hello" showIcon={false} chipSize="Large" />`. The prop can be a text's words, a
+  layer's visibility, one of its props, or a nested instance's variant or value. An override deeper than the main's
+  own layers stays a comment in the tag.
 - Zen Studio instance overrides as in Figma (F7b): ⌘-click into an instance of a page's own component and change a
   layer's words, visibility, a nested instance's variant and properties or a nested component's properties for that
   instance only (`<Use overrides>`); Reset changes / Reset all changes; Push changes to main component; an instance's
