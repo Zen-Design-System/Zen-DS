@@ -145,21 +145,22 @@ describe("TopNavigation trailing visuals (Figma Trailing-Slot with a Badge and a
     expect(badge).not.toBeNull();
     expect(avatar).not.toBeNull();
     expect(Math.round(box(avatar).left - box(badge).right)).toBe(8);
-    // Margin-Comfortable (20) after the last place; the Avatar is Image-Size/Medium (48 at Comfortable density).
+    // Margin-Comfortable (20) after the last place; the Avatar takes the action size, Navigation-Action/Size 44 (user
+    // 2026-10-19: "trên top nav mobile thì là 44").
     expect(Math.round(box(trailing).right - box(avatar).right)).toBe(20);
-    expect(Math.round(box(avatar).height)).toBe(48);
+    expect(Math.round(box(avatar).height)).toBe(44);
     expect(Math.round(header().querySelector<HTMLElement>(".zen-top-nav__bar")!.offsetHeight)).toBe(64);
     // A visual is not turned into a button.
     expect(header().querySelectorAll("button")).toHaveLength(1);
   });
 
-  it("keeps the bar 64 high with a 56 Avatar, centred (it overhangs the slot padding)", async () => {
+  it("draws any Avatar size at the action size, 44, centred in the 64 bar", async () => {
     await render(<ZenProvider><div style={{ width: 390 }}><TopNavigation type="alt" leading={back} title="Profile" trailing={[me("xl")]} /></div></ZenProvider>);
     const bar = header().querySelector<HTMLElement>(".zen-top-nav__bar")!;
     const avatar = bar.querySelector(".zen-avatar")!;
-    expect(Math.round(box(avatar).height)).toBe(56);
+    expect(Math.round(box(avatar).height)).toBe(44);
     expect(bar.offsetHeight).toBe(64);
-    expect(Math.round(box(avatar).top - box(bar).top)).toBe(4);
+    expect(Math.round(box(avatar).top - box(bar).top)).toBe(10);
   });
 
   it("counts a visual as one of the three places and skips empty items", async () => {

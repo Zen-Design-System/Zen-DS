@@ -806,6 +806,8 @@ removed (four unused colour ramps were, see Removed).
   sticky row takes the page canvas, so the page no longer shows through when it scrolls) follow Figma too.
 - AppShell `band="accent"`: the band's controls (the bar's actions, the hero's) ring in Focus/Neutral/Solid, since an
   Accent focus ring vanishes into the Accent fill; the sheet keeps the Accent ring.
+- TopNavigation: an Avatar in the bar or beside the large title is 44, the bar's action size (Figma Nav-Slot/Visual on
+  Navigation-Action/Size; user 2026-10-19: "trên top nav mobile thì là 44").
 - MetricCard `type="tile"` passes `iconBackground` to its Dock-Icon (Solid by default; Figma F1, F2, E2 draw Subtle).
 - AppShell Focus: the progress Stepper hugs its steps at 200 each, as Figma's Stepper-Bar (600 for three, 800 for four).
 - Harness: `app-shell/primary-in-top-bar` lets a header without a Main row keep its Primary in the top row (Figma

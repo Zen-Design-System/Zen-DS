@@ -102,6 +102,10 @@
 .zen-top-nav__heading-group[data-level="h2"] { padding-block: calc(var(--zen-navigation-mobile-top-bar-padding-h2, 12px) + var(--zen-spacing-padding-3-xsmall, 2px)); }
 .zen-top-nav__heading-group[data-level="h3"] { gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-block: var(--zen-navigation-mobile-top-bar-padding-h3, 16px); }
 .zen-top-nav__heading-group > .zen-top-nav__heading { flex: none; padding: 0; }
+/* An Avatar in the bar or beside the large title (a node in leading, trailing or largeTitleAction, the account) is the
+   size of the bar's actions: Figma Nav-Slot/Visual is bound to Navigation-Action/Size, 44 (user 2026-10-19: "trên top
+   nav mobile thì là 44"), whatever Avatar size it was given. */
+.zen-top-nav :is(.zen-top-nav__leading, .zen-top-nav__trailing, .zen-top-nav__expand-trailing) .zen-avatar[data-size] { --zen-avatar-size: var(--zen-navigation-action-size, 44px); }
 .zen-top-nav__capline, .zen-top-nav__subheading { overflow: hidden; margin: 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
 .zen-top-nav:is([data-type$="overlay"], [data-type="transparent-on-color"]) :is(.zen-top-nav__capline, .zen-top-nav__subheading) { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
 /* Control-Bar (Figma Control-Bar 12014:44764 › Control-Slot 12014:44786): no padding and no height of its own (it hugs
