@@ -1214,6 +1214,11 @@ export default function Page() {
   const back = pageFromFigma(pushedNames, { mapping }).text;
   check("round trip: the names come back as data-name, the lock and the instance's name do not", ['data-name="Price row"', 'data-name="Price"', 'data-name="Dot"', 'data-name="Main action"', "data-locked"].map((part) => back.includes(part)), [true, true, true, false, false]);
 
+  // F9: a vector goes as Figma's VECTOR (its path fitted to its size, stroke centred, no fill) and comes back the same.
+  const vectorPage = names.replace('<Shape type="ellipse" width={24} height={24} data-name="Dot" />', '<Shape type="vector" width={80} height={40} d="M 0 10 C 5 0 15 0 20 10 Z" viewBox="0 0 20 10" fillRule="evenodd" />');
+  const pushedVector = find(push(vectorPage).frame, (node) => node.type === "VECTOR");
+  check("push: a vector is a VECTOR with its path in the node's px, centred stroke, no fill", pushedVector && [pushedVector.shape, pushedVector.name, pushedVector.vectorPaths, pushedVector.strokeAlign, "fill" in pushedVector, pushedVector.fixedWidth, pushedVector.fixedHeight], [true, "Vector", [{ windingRule: "EVENODD", data: "M 0 40 C 20 0 60 0 80 40 Z" }], "CENTER", false, 80, 40]);
+
   // A pushed app page read back (fixtures/figma-shell.json): Figma's sample LOGO and Collapse are the Sidebar's own,
   // the crumbs' Sub level is `master` off, a Description List's rows their Term and Value, Type=Main a PageHeader.
   const shell = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-shell.json", import.meta.url), "utf8")).frame, { mapping });

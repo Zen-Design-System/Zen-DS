@@ -252,6 +252,25 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("shapes: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
+// F9: a Figma VECTOR comes back as Shape type="vector" (its vectorPaths in its box, its winding rule, a centred stroke
+// left out as the default); a path Zen cannot read is left out with a note.
+{
+  const vectors = {
+    type: "FRAME", name: "Vectors", width: 400, height: 300, layout: null,
+    children: [
+      { type: "FRAME", name: "Canvas", width: 400, height: 300, layout: null, children: [
+        { type: "VECTOR", name: "Wave", shape: { w: 80, h: 40, fill: null, stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 2, strokeAlign: "CENTER", rotation: 0, opacity: 1, paths: [{ windingRule: "EVENODD", data: "M 0 40 C 20 0 60 0 80 40 Z" }] }, absolute: { x: 10, y: 20, w: 80, h: 40, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
+        { type: "VECTOR", name: "Odd", shape: { w: 10, h: 10, fill: null, stroke: null, strokeWeight: 1, strokeAlign: "CENTER", rotation: 0, opacity: 1, paths: [{ windingRule: "NONZERO", data: "M 0 0 A 5 5 0 0 1 10 10" }] }, absolute: { x: 0, y: 0, w: 10, h: 10, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
+      ] },
+    ],
+  };
+  const pulled = pageFromFigma(vectors, { mapping });
+  const line = pulled.text.split("\n").find((each) => each.includes('type="vector"')) ?? "";
+  check("vectors: the path, its box and winding rule; stroke weight; no default stroke or align", [/d="M 0 40 C 20 0 60 0 80 40 Z"/.test(line), /viewBox="0 0 80 40"/.test(line), /fillRule="evenodd"/.test(line), /strokeWeight=\{2\}/.test(line), /stroke=|strokeAlign=|fill=/.test(line), /insetLeft=\{10\}/.test(line)], [true, true, true, true, false, true]);
+  check("vectors: an arc command is left out, noted", [pulled.text.split('type="vector"').length, pulled.notes.some((note) => /"Odd": its vector path/.test(note))], [2, true]);
+  check("vectors: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);

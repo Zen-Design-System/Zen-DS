@@ -22,7 +22,7 @@ import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFi
 import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
-import { arcData, normalizeArc, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
+import { arcData, fitVectorPath, normalizeArc, parseVectorPath, parseViewBox, STAR_RATIO, vectorBounds } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
 import { zenLabels } from "../../src/components/_shared/labels.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
@@ -32,8 +32,8 @@ import { tokens } from "../../src/tokens/generated.ts";
 /** A spacing step's Figma variable name: md → Medium ("Spacing/Gap/Medium"). */
 
 /** Shape type → Figma node type and layer name (Shape.tsx; Figma names a drawn layer by its tool). */
-const SHAPE_NODE = { rectangle: "RECTANGLE", ellipse: "ELLIPSE", line: "LINE", arrow: "LINE", polygon: "POLYGON", star: "STAR" };
-const SHAPE_LABEL = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star" };
+const SHAPE_NODE = { rectangle: "RECTANGLE", ellipse: "ELLIPSE", line: "LINE", arrow: "LINE", polygon: "POLYGON", star: "STAR", vector: "VECTOR" };
+const SHAPE_LABEL = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector" };
 const SHAPE_DEFAULT_SIZE = 100;
 /** A rectangle's Corner-Radius token → its Figma variable and px (Corner Radius, Rounded mode). */
 const SHAPE_RADIUS = { none: ["", 0], "2xs": ["Corner-Radius/2XSmall", 2], xs: ["Corner-Radius/XSmall", 4], sm: ["Corner-Radius/Small", 8], md: ["Corner-Radius/Base", 12], lg: ["Corner-Radius/Large", 16], xl: ["Corner-Radius/XLarge", 20], "2xl": ["Corner-Radius/2XLarge", 24], "3xl": ["Corner-Radius/3XLarge", 28], full: ["Corner-Radius/Rounded", 1000] };
@@ -495,8 +495,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   function shapeNode(code, id) {
     const kind = SHAPE_NODE[code.type] ? code.type : "rectangle";
     const line = kind === "line" || kind === "arrow";
-    const fill = code.fill ?? (line ? "none" : DEFAULT_SHAPE_FILL);
-    const stroke = code.stroke ?? (line ? DEFAULT_LINE_STROKE : "none");
+    const vector = kind === "vector";
+    const fill = code.fill ?? (line || vector ? "none" : DEFAULT_SHAPE_FILL);
+    const stroke = code.stroke ?? (line || vector ? DEFAULT_LINE_STROKE : "none");
     const width = typeof code.width === "number" ? code.width : SHAPE_DEFAULT_SIZE;
     const height = line ? 0 : typeof code.height === "number" ? code.height : SHAPE_DEFAULT_SIZE;
     const arc = kind === "ellipse" ? normalizeArc({ start: code.arcStart, sweep: code.arcSweep, ratio: code.arcRatio }) : null;
@@ -506,7 +507,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return {
       type: SHAPE_NODE[kind], shape: true, ...(id ? { id } : {}), name: SHAPE_LABEL[kind],
       ...(fill !== "none" && shapeFillTokens[fill] ? { fill: shapeFillTokens[fill] } : {}),
-      ...(stroke !== "none" && shapeStrokeTokens[stroke] ? { stroke: shapeStrokeTokens[stroke], strokeWeight: weight, strokeAlign: line ? "CENTER" : { center: "CENTER", outside: "OUTSIDE" }[code.strokeAlign] ?? "INSIDE" } : {}),
+      ...(stroke !== "none" && shapeStrokeTokens[stroke] ? { stroke: shapeStrokeTokens[stroke], strokeWeight: weight, strokeAlign: line ? "CENTER" : { center: "CENTER", outside: "OUTSIDE", inside: "INSIDE" }[code.strokeAlign] ?? (vector ? "CENTER" : "INSIDE") } : {}),
+      // A vector: its path in the node's px (Figma's vectorPaths), stretched from its viewBox to its size.
+      ...(vector ? vectorSpec(code, width, height) : {}),
       ...(kind === "arrow" ? { endCap: "ARROW_LINES" } : {}),
       ...(data ? { arc: { start: data.startingAngle, end: data.endingAngle, inner: data.innerRadius } } : {}),
       ...(kind === "polygon" || kind === "star" ? { pointCount: typeof code.pointCount === "number" ? code.pointCount : kind === "star" ? 5 : 3 } : {}),
@@ -517,6 +520,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       ...(code.width === "fill" ? { fillW: true } : { fixedWidth: width }),
       ...(code.height === "fill" && !line ? { fillH: true } : { fixedHeight: height }),
     };
+  }
+
+  /** A vector's Figma vectorPaths (`d` fitted to `width` × `height`, its winding rule), or none when its path is not one. */
+  function vectorSpec(code, width, height) {
+    const commands = parseVectorPath(typeof code.d === "string" ? code.d : "");
+    const box = commands ? parseViewBox(code.viewBox) ?? vectorBounds(commands) : null;
+    if (!commands || !box) return {};
+    return { vectorPaths: [{ windingRule: code.fillRule === "evenodd" ? "EVENODD" : "NONZERO", data: fitVectorPath(commands, box, width, height) }] };
   }
 
   /** A page margin's px on this Screen's device (Margin-Comfortable 24, 20 on a phone), or undefined for a ladder step. */
