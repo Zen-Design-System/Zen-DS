@@ -196,3 +196,14 @@ safety check) and pulled back with `figmaReadCode`. Bugs, each fixed at its owne
   Left for Session C (frames): a free frame (Box, every layer absolute) pushes as an auto layout frame and pulls back as
   a Stack without its size; the pull reads no FIXED size; figma-native ignores fixedHeight. Told C.
 - QA frames removed from the Zen file.
+
+## F4 follow-ups (Session C) — tier S, branch `zen/fix/figma-free-frame-none-20261019` (on A's 5fdf003c)
+- **Free frames ↔ Figma layoutMode NONE** (A found it in the live Zen file: a free frame pushed as a VERTICAL auto
+  layout and pulled back as `<Stack gap="none">` without its size): push writes NONE for a Box of a px size whose layers
+  all float (or none); the reader gives every child of a NONE frame its X / Y (not only shapes and groups) and the frame
+  `fixed: { w, h }`; the pull writes the Box with its size, a text or a component inside the Studio's float Box at its
+  px X / Y. figma-native sizes NONE frames and reads fixedHeight. Importer: asked Session B (layoutMode NONE, children
+  at their x / y without layoutPositioning). Selftest: figma-push +2 (round trip).
+- **B-20** failed only inside the full E2E run (twice; alone and with its builder group green): the new frame's
+  selection waited 2 s of animation frames for the frame to register, which a busy run outlasts. `selectFrameWhenShown`
+  now waits for the frames registry to announce it (10 s).

@@ -39,6 +39,8 @@ removed (four unused colour ramps were, see Removed).
   handles, a click on the first point closes, Enter ends) and the Pencil (⇧P, smoothed into curves) draw vectors into a
   frame; Enter or a double-click on a vector edits its points and handles (Delete removes a point). Layers names them
   "Vector N". Figma push / pull carry them as VECTOR nodes with their vectorPaths (Zen plugin updated).
+- Studio → Figma: a free frame (a Box of a px size whose layers float at their X / Y, or an empty frame from the Frame
+  tool) is Figma's frame without auto layout, and comes back from Figma as the same Box with its layers where they were.
 - Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
   panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
   first) and a preset makes an empty frame of that size beside the frames; a click on the canvas makes a 100 × 100 frame
