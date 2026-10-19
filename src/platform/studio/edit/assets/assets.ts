@@ -428,7 +428,8 @@ function shellAt(x: number, y: number): (DropTarget & { into: { x: number; y: nu
 /** Whether (x, y) is on a frame of the board (a Screen or an Overlay), not the board's empty space. */
 function overFrame(x: number, y: number) {
   const world = canvasApi.getWorldElement();
-  return document.elementsFromPoint(x, y).some((element) => world?.contains(element) && element !== world && Boolean(element.closest("[data-studio-frame]")));
+  // A Section (F4) is the board under the frames, not a frame to drop into.
+  return document.elementsFromPoint(x, y).some((element) => world?.contains(element) && element !== world && Boolean(element.closest("[data-studio-frame]:not([data-kind='section'])")));
 }
 
 function onUp() { stop(true); }

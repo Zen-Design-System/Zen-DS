@@ -8,6 +8,14 @@ import { createContext, useCallback, useRef } from "react";
 export const InlineOverlayContext = createContext(false);
 
 /**
+ * True in a static preview of an open overlay (Zen Studio's Main component draws every Dialog, Modal Form, Side Panel and
+ * Bottom Sheet variant open, side by side): the overlay draws in its frame (`[data-zen-overlay-root]`) but runs none of
+ * the modal behaviour, no focus move, Tab trap, Escape, scroll lock or inert outside, so the page around keeps its keys.
+ * Internal.
+ */
+export const OverlayPreviewContext = createContext(false);
+
+/**
  * Open state shared by the overlays (Dialog, ModalForm, SidePanel, BottomSheet). `open` + `onOpenChange` is the API;
  * `onClose` (MUI, Headless UI) and `isOpen` (Chakra, React Aria) are accepted too, because agents guess them.
  */

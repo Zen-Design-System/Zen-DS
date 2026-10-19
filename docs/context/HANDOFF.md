@@ -149,12 +149,15 @@ Last updated: 2026-10-19.
   (`edit/figmaNotYet.ts`); P is Pen, Present ⌥⌘↵. F1: layer names and locks are `data-name` / `data-locked`
   (`tools/studio/layer-meta.mjs`, client store `select/layerMeta.ts`, `edit/rename.ts`, `edit/lock.ts`); Layers of a page
   you made list front-first with automatic names, no folding, the Screen as the frame row. Guards: `words.selftest`
-  part 3, `layer-meta.selftest`, opt-in E2E `--only=figma` (FW-01…18, the plan's scoreboard). Next: F2.
-  Since 2026-10-19 three sessions build F1–F10 (A: F1–F3, F9; B: F5, F7; C: F4, F6, F8, F10; memory
-  "figma-parity-three-sessions"). **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides /
-  dash, corners, effect, opacity, rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame
-  with a fill is one Stack in code, push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed
-  values, variable pills, W / H math, ratio lock) and F5c next: spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
+  part 3, `layer-meta.selftest`, opt-in E2E `--only=figma` (FW-01…18, the plan's scoreboard). Since 2026-10-19 three
+  sessions build the rest (A: F2 → F3 → F9, B: F5 → F7, C: F4 → F6 → F8 → F10). F4 (C): Figma's frame presets in the
+  right panel (`builder/FramePresets.tsx`), a click = 100 × 100, frame handles + X / Y / W / H written in the page
+  (`board/FrameHandles.tsx`, `builder/FrameGeometry.tsx`), Sections `<Section>` beside the frames (membership by
+  place, `board/sections.ts`), N / ⇧N, Pages order + dividers (`builder/store/pageOrderStore.ts`); FW-40…49.
+  **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides / dash, corners, effect,
+  opacity, rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame with a fill is one Stack
+  in code, push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed values, variable pills,
+  W / H math, ratio lock) and F5c next: spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures

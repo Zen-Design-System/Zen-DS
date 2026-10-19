@@ -19,6 +19,8 @@
 .studio-selection__outline[data-component][data-kind="selected"] { box-shadow: 0 0 0 2px var(--zen-color-border-support-violet-solid); }
 .studio-selection__outline[data-component] > .studio-selection__tag { background: var(--zen-color-background-support-violet-solid); }
 .studio-selection__outline[data-kind="extra"] { box-shadow: 0 0 0 1px var(--zen-color-border-info-solid-default); }
+/* Several layers selected: Figma's one box around them all. */
+.studio-selection__outline[data-kind="union"] { box-shadow: 0 0 0 1px var(--zen-color-border-info-solid-default); }
 /* The other items selected with a data-slot item (Shift/⌘+click): outlined as the selection is. */
 .studio-selection__outline[data-kind="extra-item"] { box-shadow: 0 0 0 1px var(--zen-color-border-info-solid-default); }
 /* A selected part's owner: the component it belongs to, dashed (the context the deep select happens in). */

@@ -48,6 +48,9 @@
 .studio-drag__line { border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
 /* A free move's smart guides: Figma's red lines where an edge or centre meets another's. */
 .studio-drag__guide { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; background: var(--zen-color-border-negative-solid-default); }
+/* Figma's equal-spacing marks (edit/spacingModel.ts): a pink gap line with its px in a pink pill at its middle. */
+.studio-drag__spacing { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; background: var(--zen-color-border-support-pink-solid); }
+.studio-drag__spacing-label { position: absolute; top: 50%; left: 50%; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-support-pink-solid); color: var(--zen-color-content-on-colors); white-space: nowrap; translate: -50% -50%; }
 .studio-drag__label {
   position: absolute;
   top: 0;
@@ -108,3 +111,8 @@
   background: var(--zen-color-background-info-subtle-default);
   pointer-events: none;
 }
+
+/* Figma's align bar for several layers (AlignSelection, the multi-selection panel): six aligns, a divider, distribute
+   and tidy up in one row. */
+.studio-align-selection { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-align-selection__divider { width: 1px; height: 16px; margin: 0 var(--zen-spacing-gap-2-xsmall, 4px); background: var(--zen-color-border-neutral-subtle-default); }

@@ -1,18 +1,19 @@
 import { useEffect } from "react";
 import type { MenuEntry } from "../../../components/Menu";
 import { announceEditStatus, applyEdit, currentEditStatus, parseSrc, studioApi, subscribeStudioWrites } from "../api";
-import { canvasApi } from "../canvas/viewport";
+import { canvasApi, getViewportBox } from "../canvas/viewport";
 import { copyFrameForFigma, frameFigmaClip, writeFrameClip } from "../builder/export/figmaClipboard";
 import { openQuickInsert } from "../builder/library/quickInsertState";
+import { frameInView, rootSelection } from "../builder/library/target";
 import { nodeKind, propSpecs } from "../inspector/propSchema";
-import { findBySrc, isTypingTarget, parentHit, type FiberHit } from "../select/picker";
+import { annotatedAt, findBySrc, isTypingTarget, parentHit, rectOf, type FiberHit } from "../select/picker";
 import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
 import { canStructurallyEdit, insideWrap, pasteIntoSlot, pasteWarningIn, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, slotPasteWarning, studioWrapOf, swapSelection } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, EditValue, SourceElement, StateDecl, StudioSelection } from "../types";
 import type { NodeSelection } from "./arrange";
-import { isDropContainer } from "./drag";
+import { dropTargetAt, isDropContainer, type DropContext } from "./drag";
 import { codeOfLayers, removeLayers, statesRead } from "./multi";
 import { textEditSession } from "./textEdit";
 
@@ -162,7 +163,8 @@ async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cu
 
 /* ── where a paste goes ──────────────────────────────────────────────────────────────────────────────────────────── */
 
-type Spot = { parent: FiberHit; parentFile: string; after?: string; replace?: string; frameId: string | null; panelId: string | null };
+/** `at`: px in a frame without auto layout, where the pasted layers float (Paste here, ⌘V with nothing selected). */
+type Spot = { parent: FiberHit; parentFile: string; before?: string; after?: string; replace?: string; at?: { x: number; y: number }; frameId: string | null; panelId: string | null };
 
 function hitOf(selection: NodeSelection): FiberHit | null {
   const world = canvasApi.getWorldElement();
@@ -211,7 +213,7 @@ async function sourceParent(spot: Spot): Promise<Spot> {
 }
 
 /** Selects the layer a paste created once the canvas shows it; its undo goes back to `from` (the selection pasted at). */
-function follow(response: { file: string; after: string }, loc: string, name: string, spot: Spot, before: WeakSet<Element>, from: StudioSelection, wrapped = false) {
+function follow(response: { file: string; after: string }, loc: string, name: string, spot: Spot, before: WeakSet<Element>, from: StudioSelection | null, wrapped = false) {
   const at: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };
   // A wrapped component pasted with its wrap Stack: the component inside it is selected (the Stack when none is found).
   const next: StudioSelection = wrapped ? insideWrap(at, response.file, response.after, loc) : at;
@@ -295,6 +297,144 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
   }
 }
 
+/* ── pasting at a point: Paste here, ⌘V with nothing selected ─────────────────────────────────────────────────────── */
+
+const NO_DRAG: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false };
+/** Layers that float themselves; any other floats in a Box of its own (the server's floatAt). */
+const FLOATS = new Set(["Stack", "Grid", "Box", "Shape"]);
+const floats = (element: Element) => element instanceof HTMLElement && element.dataset.position === "absolute";
+
+/**
+ * The block a layer pasted into `host` floats in (Figma's frame without auto layout): a Box whose layers all float, or
+ * that has none (never a layer's own floating Box), or a Screen whose content's layers all float. Null: a layout's flow.
+ */
+function freeBlock(host: Element | undefined): HTMLElement | null {
+  if (!(host instanceof HTMLElement)) return null;
+  const screen = host.matches(".studio-builder-screen");
+  const box = screen ? host.querySelector<HTMLElement>(".studio-builder-screen__content") : host;
+  if (!box || (!screen && !box.matches(".zen-box"))) return null;
+  if (!screen && box.dataset.position === "absolute" && box.children.length === 1) return null;
+  const kids = Array.from(box.children);
+  if (!kids.every(floats) || (screen && !kids.length)) return null;
+  // The insets measure from the layers' containing block (a Box is one: position.css makes it relative).
+  const block = (kids[0] as HTMLElement | undefined)?.offsetParent;
+  return block instanceof HTMLElement ? block : box;
+}
+
+/** A client point in `block`'s own px (the canvas zoom undone), and its scale. */
+function localTo(block: HTMLElement, x: number, y: number) {
+  const outer = block.getBoundingClientRect();
+  const scale = block.offsetWidth ? outer.width / block.offsetWidth || 1 : 1;
+  return { x: (x - outer.left) / scale - block.clientLeft, y: (y - outer.top) / scale - block.clientTop, scale };
+}
+
+/** Paste here: the layout under the pointer (where a drop would go), at the pointer in a frame without auto layout. */
+function spotAtPoint(point: { x: number; y: number }): Spot | string {
+  const found = dropTargetAt(point.x, point.y, NO_DRAG);
+  const target = found.target;
+  if (!target) return found.reason ?? "Paste here pastes into a frame: right-click inside one";
+  const world = canvasApi.getWorldElement();
+  const hits = world ? findBySrc(world, target.parentSrc) : [];
+  const inside = (hit: FiberHit) => { const rect = rectOf(hit.hosts); return Boolean(rect && rect.left <= point.x && point.x <= rect.right && rect.top <= point.y && point.y <= rect.bottom); };
+  const parent = hits.find(inside) ?? hits[0];
+  const parsed = parent ? parseSrc(parent.src) : null;
+  if (!parent || !parsed) return "The layer under the pointer is no longer there";
+  const spot: Spot = { parent, parentFile: parsed.file, frameId: target.frameId, panelId: target.panelId };
+  const block = freeBlock(parent.hosts[0]);
+  if (block) {
+    const at = localTo(block, point.x, point.y);
+    spot.at = { x: Math.round(at.x), y: Math.round(at.y) };
+  } else if (target.before) spot.before = target.before;
+  else if (target.after) spot.after = target.after;
+  return spot;
+}
+
+/**
+ * ⌘V with nothing selected (or a frame): into the selected frame or the one most in view, as Figma pastes at the layer's
+ * place. A frame without auto layout takes it where the copied layer floats (its offsets in its own frame), else in the
+ * middle of what shows of it; a layout takes it as its last layer.
+ */
+function spotInView(frameId: string | null): Spot | string {
+  const world = canvasApi.getWorldElement();
+  const frame = frameId ? world?.querySelector(`[data-studio-frame="${CSS.escape(frameId)}"]`) ?? null : frameInView();
+  if (!frame || !/^(?:example|screen|overlay):/.test(frame.getAttribute("data-studio-frame") ?? "")) return "Nothing here takes a paste: bring a frame into view, or select a layer";
+  const screenHost = frame.querySelector(".studio-builder-screen");
+  const screen = screenHost && freeBlock(screenHost) ? annotatedAt(screenHost) : null;
+  const root = screen ? null : rootSelection(frame);
+  const parent = screen ?? (root && world ? findBySrc(world, root.src)[root.instance] ?? null : null);
+  const parsed = parent ? parseSrc(parent.src) : null;
+  if (!parent || !parsed) return "This frame has no layer to paste into yet";
+  const host = parent.hosts[0];
+  const frameOfHost = frame.getAttribute("data-studio-frame");
+  const spot: Spot = { parent, parentFile: parsed.file, frameId: frameOfHost, panelId: root?.panelId ?? null };
+  if (!isDropContainer(parent) && !screen) { spot.after = parent.src; return spot; }
+  const block = freeBlock(host);
+  if (!block) return spot;
+  // Where the copied layer floats (it is on the canvas still): the same offsets here.
+  const original = clip?.file && clip.loc && world ? findBySrc(world, `${clip.file}:${clip.loc}`)[0]?.hosts[0] : undefined;
+  if (original instanceof HTMLElement && floats(original) && original.offsetParent instanceof HTMLElement) {
+    const box = original.getBoundingClientRect();
+    const at = localTo(original.offsetParent, box.left, box.top);
+    spot.at = { x: Math.round(at.x), y: Math.round(at.y) };
+    return spot;
+  }
+  // Else in the middle of the part of the frame in view (its corner offset by half its size when it is on the canvas).
+  const view = getViewportBox();
+  const rect = block.getBoundingClientRect();
+  const left = Math.max(rect.left, view.left);
+  const top = Math.max(rect.top, view.top);
+  const right = Math.min(rect.right, view.left + view.width);
+  const bottom = Math.min(rect.bottom, view.top + view.height);
+  const centre = right > left && bottom > top ? { x: (left + right) / 2, y: (top + bottom) / 2 } : { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  const at = localTo(block, centre.x, centre.y);
+  const size = original ? original.getBoundingClientRect() : null;
+  spot.at = { x: Math.max(0, Math.round(at.x - (size ? size.width / at.scale / 2 : 0))), y: Math.max(0, Math.round(at.y - (size ? size.height / at.scale / 2 : 0))) };
+  return spot;
+}
+
+/* Plain text pasted with nothing selected: F6 (Session C, edit/textCreate.ts) makes Figma's text layer of it. */
+let plainTextPaste: ((text: string) => Promise<boolean>) | null = null;
+/** Lets the text tool make the layer a paste of plain text with nothing selected creates (null: a <Text> here). */
+export const setPlainTextPaste = (paste: ((text: string) => Promise<boolean>) | null) => { plainTextPaste = paste; };
+
+/** Pastes `text` (null: the Studio's own clip) at `point` (Paste here), or with nothing selected into the frame in view. */
+async function pasteOnCanvas(text: string | null, point: { x: number; y: number } | null): Promise<boolean> {
+  if (pasting) return false;
+  const own = clip && (text === null || text.trim() === clip.code.trim()) ? clip : null;
+  const raw = own ? own.code : text?.trim() ?? "";
+  if (!raw) { fail("The clipboard is empty — copy a layer first"); return false; }
+  if (!own && !point && !raw.startsWith("<") && plainTextPaste) return plainTextPaste(raw);
+  const code = raw.startsWith("<") ? raw : textLayer(raw);
+  const selection = studioStore.getState().selection;
+  const spot = point ? spotAtPoint(point) : spotInView(selection?.kind === "frame" ? selection.frameId : null);
+  if (typeof spot === "string") { fail(spot); return false; }
+  const into: NodeSelection = { kind: "node", src: spot.parent.src, name: spot.parent.name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };
+  const check = canStructurallyEdit(into);
+  if (!check.ok) { fail(check.reason); return false; }
+  pasting = true;
+  try {
+    const at = parseSrc(spot.parent.src)!;
+    const parent = await studioApi.element(at.file, at.loc);
+    if (!parent) { fail(`${spot.parent.name} is no longer there`); return false; }
+    const reads = own && own.file !== at.file ? own.state : undefined;
+    const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(reads?.length ? { state: reads.map((entry) => ({ ...entry })) } : {}), ...(spot.at ? { at: spot.at } : {}) };
+    if (spot.before) op.before = parseSrc(spot.before)?.loc;
+    else if (spot.after) op.after = parseSrc(spot.after)?.loc;
+    const root = /^<([\w.]+)/.exec(code)?.[1] ?? "layer";
+    const name = own?.wrapped ? own.name : root;
+    const warning = await pasteWarningIn(spot.parent, spot.frameId, spot.panelId, code);
+    const before = renderedNow(canvasApi.getWorldElement());
+    const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, point ? `Paste ${selectedName(name)} here` : `Paste ${selectedName(name)}`);
+    if (response.ok) notRecommended(warning);
+    // A layer that cannot float itself lands in its floating Box (the Box is the layer a click selects).
+    const boxed = Boolean(spot.at) && !FLOATS.has(selectedName(root));
+    if (response.ok && response.inserted) follow(response, response.inserted.loc, boxed ? "Box" : selectedName(name), spot, before, selection, !boxed && Boolean(own?.wrapped));
+    return response.ok;
+  } finally {
+    pasting = false;
+  }
+}
+
 /** "Not recommended: …" under the paste's outcome line (it pasted all the same, as an insert from the picker does). */
 /** Adds the host rules' "Not recommended" reason to the edit's status (the layer still lands). */
 export function notRecommended(reason: string | null) {
@@ -313,8 +453,11 @@ const swappable = (name: string) => /^[A-Z]/.test(name) && nodeKind(name) !== "p
 
 /* ── properties ──────────────────────────────────────────────────────────────────────────────────────────────────── */
 
-/** Props that carry content, identity or behaviour, never "how it looks": not copied by ⌥⌘C. */
-const NOT_STYLE = /^(key|ref|children|className|style|id|name|value|defaultValue|checked|defaultChecked|selected|open|defaultOpen|href|src|srcSet|alt|htmlFor|type|form|action|label|title|description|caption|placeholder|legend|heading|subtitle|content|text|tooltip|helperText|errorText|error|message|icon|leadingIcon|trailingIcon|data-.*|aria-.*|on[A-Z].*)$/;
+/**
+ * Figma's visual properties, the only ones ⌥⌘C copies (plan F3, walk §2): fill (`surface`, `fill`, a text's `tone`),
+ * stroke, effects, corner radius, opacity and a text's style. Never X / Y / W / H, layout, content or behaviour.
+ */
+const VISUAL = /^(surface|fill|tone|border|stroke|strokeWeight|strokeAlign|effectStyle|radius|radiusTopLeft|radiusTopRight|radiusBottomRight|radiusBottomLeft|opacity|textStyle)$/;
 
 function literalOf(attribute: SourceElement["attributes"][number]): EditValue | null {
   if (attribute.kind === "string") return { kind: "string", value: attribute.value ?? "" };
@@ -331,11 +474,11 @@ async function copyProperties(selection: NodeSelection) {
   const element = at ? await studioApi.element(at.file, at.loc) : null;
   if (!element) { fail(`${selection.name} could not be read`); return; }
   const values = element.attributes.flatMap((attribute) => {
-    if (NOT_STYLE.test(attribute.name)) return [];
+    if (!VISUAL.test(attribute.name)) return [];
     const value = literalOf(attribute);
     return value ? [{ name: attribute.name, value }] : [];
   });
-  if (!values.length) { fail(`${element.name} has no properties to copy (only values written in the code are copied)`); return; }
+  if (!values.length) { fail(`${element.name} has no fill, stroke, effect, radius, opacity or text style to copy (only values written in the code are copied)`); return; }
   propsClip = { name: element.name, values };
   done(`Copied ${values.length} propert${values.length === 1 ? "y" : "ies"} of ${element.name} · ${clipboardShortcuts.pasteProps} to paste`);
 }
@@ -351,6 +494,9 @@ async function pasteProperties(selection: NodeSelection) {
   const values = propsClip.values.filter((entry) => same || accepted.has(entry.name));
   const bound = new Set(element.attributes.filter((attribute) => attribute.kind === "expression" && !literalOf(attribute)).map((attribute) => attribute.name));
   const ops: EditOp[] = values.filter((entry) => !bound.has(entry.name)).map((entry) => ({ op: "setProp", name: entry.name, value: entry.value }));
+  // The same component looks the same after it, as in Figma: its own visual props the copy did not have go.
+  const copied = new Set(propsClip.values.map((entry) => entry.name));
+  if (same) for (const attribute of element.attributes) if (VISUAL.test(attribute.name) && !copied.has(attribute.name) && !bound.has(attribute.name)) ops.push({ op: "removeProp", name: attribute.name });
   if (!ops.length) { fail(`${element.name} takes none of the copied ${propsClip.name} properties`); return; }
   await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops, hash: element.hash }, `Paste properties on ${element.name}`);
 }
@@ -370,6 +516,12 @@ function onCanvas(target: EventTarget | null) {
  * dropped (E2E K-07).
  */
 const clipboardFocus = () => document.activeElement;
+
+/** ⌘V with nothing or a frame selected pastes into a frame (the select tool, not presenting, the selection no layer). */
+function pastesInView() {
+  const state = studioStore.getState();
+  return state.tool === "select" && !state.presenting && (!state.selection || state.selection.kind === "frame");
+}
 
 function ready_(): NodeSelection | null {
   const state = studioStore.getState();
@@ -398,10 +550,17 @@ export function useClipboard() {
       void copyLayer(selection, event.clipboardData, true).then((copied) => { if (copied) void removeSelection(selection); });
     };
     const onPaste = (event: ClipboardEvent) => {
+      if (!onCanvas(clipboardFocus())) return;
       const selection = ready_();
-      if (!selection || !onCanvas(clipboardFocus())) return;
+      if (selection) {
+        event.preventDefault();
+        void pasteAt(selection, event.clipboardData?.getData("text/plain") ?? null, false);
+        return;
+      }
+      // Nothing (or a frame) selected: into the frame, at the layer's place (Figma).
+      if (!pastesInView()) return;
       event.preventDefault();
-      void pasteAt(selection, event.clipboardData?.getData("text/plain") ?? null, false);
+      void pasteOnCanvas(event.clipboardData?.getData("text/plain") ?? null, null);
     };
     const onKey = (event: KeyboardEvent) => {
       const mod = event.metaKey || event.ctrlKey;
@@ -440,19 +599,31 @@ async function pasteFromMenu(selection: NodeSelection, replace: boolean) {
   return pasteAt(selection, text ?? "", replace);
 }
 
+/** Paste here (a canvas menu at `point`), or ⌘V's paste into the frame in view (null): the clip, else the clipboard's text. */
+export async function pasteHere(point: { x: number; y: number } | null) {
+  if (clip) return pasteOnCanvas(null, point);
+  const text = await navigator.clipboard?.readText().catch(() => null);
+  return pasteOnCanvas(text ?? "", point);
+}
+
 /** The clipboard actions for other entry points (Quick actions ⌘/). */
 export const clipboardActions = {
   copy: (selection: NodeSelection) => (multiSelection.get().length ? copyLayers(false) : copyLayer(selection, null, false)),
   cut: (selection: NodeSelection) => (multiSelection.get().length ? copyLayers(true) : copyLayer(selection, null, true).then((copied) => { if (copied) void removeSelection(selection); })),
-  paste: (selection: NodeSelection) => pasteFromMenu(selection, false),
+  paste: (selection: NodeSelection | null) => (selection ? pasteFromMenu(selection, false) : pasteHere(null)),
   replace: (selection: NodeSelection) => pasteFromMenu(selection, true),
   copyProperties,
   pasteProperties,
   hasProperties: () => Boolean(propsClip),
 };
 
-/** The canvas menu's clipboard group (shell/CanvasMenu.tsx). */
-export function clipboardMenuItems(selection: StudioSelection | null): MenuEntry[] {
+/** Figma's Paste here: the clipboard at the pointer that opened the menu (`point`), in the layout or frame under it. */
+export function pasteHereItem(point: { x: number; y: number }): MenuEntry {
+  return { id: "clip-paste-here", label: "Paste here", icon: "icon-clipboard-line", disabled: !canEdit(), onSelect: () => { void pasteHere(point); } };
+}
+
+/** The canvas menu's clipboard group (shell/CanvasMenu.tsx); `point`: where it opened (Paste here). */
+export function clipboardMenuItems(selection: StudioSelection | null, point?: { x: number; y: number } | null): MenuEntry[] {
   if (selection?.kind !== "node" || selection.part) return [];
   const node = selection as NodeSelection;
   const editable = canStructurallyEdit(node);
@@ -463,6 +634,7 @@ export function clipboardMenuItems(selection: StudioSelection | null): MenuEntry
     ...(screenOf(node) ? [{ id: "clip-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { const screen = screenOf(node)!; void copyFrameForFigma(screen.localPage, screen.frameId); } }] : []),
     { id: "clip-cut", label: "Cut", icon: "icon-scissors-line", shortcut: clipboardShortcuts.cut, disabled: !editable.ok, caption: reason, onSelect: () => { void copyLayer(node, null, true).then((copied) => { if (copied) void removeSelection(node); }); } },
     { id: "clip-paste", label: "Paste", icon: "icon-clipboard-line", shortcut: clipboardShortcuts.paste, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, false); } },
+    ...(point ? [pasteHereItem(point)] : []),
     { id: "clip-replace", label: "Paste to replace", icon: "icon-switch-horizontal-01-line", shortcut: clipboardShortcuts.replace, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, true); } },
     // Figma's Swap instance (GĐ4 M2): Quick insert in its Swap mode, for a component layer — never a drawn object (a
     // shape, a frame, text: user, 2026-10-17), as Figma offers it on instances only.

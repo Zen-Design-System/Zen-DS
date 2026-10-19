@@ -277,7 +277,8 @@ export function overlayTitleOf(node: PageNode): string | null {
 export type ProtoFrame = { kind: "screen" | "overlay"; id: string; state?: string; title: string; device: string; frameId: string };
 
 export function framesOf(tree: PageTree | null): ProtoFrame[] {
-  return (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element").map((node) => {
+  // A Section (F4) is an area of the board, not a frame the prototype goes to.
+  return (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && child.name !== "Section").map((node) => {
     const id = String(literalOf(node, "id") ?? "");
     if (node.name === "Overlay") return { kind: "overlay" as const, id, title: overlayTitleOf(node) ?? id, device: "desktop", frameId: `overlay:${id}` };
     const state = literalOf(node, "state");

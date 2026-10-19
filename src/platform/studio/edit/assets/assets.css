@@ -50,7 +50,7 @@ body[data-studio-asset-drag] * { cursor: grabbing !important; }
 .studio-assets__library-icon { display: inline-flex; width: var(--zen-button-size-small, 32px); height: var(--zen-button-size-small, 32px); flex: 0 0 auto; align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default); color: var(--zen-color-content-neutral-base); }
 .studio-assets__library-text { display: grid; min-width: 0; flex: 1 1 auto; }
 .studio-assets__source { overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
-.studio-assets__count { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-assets__count { flex: 0 0 auto; }
 
 /* A component group that folds (Figma: a library's pages): chevron, name, count. */
 .studio-assets__fold { display: flex; width: 100%; min-height: var(--zen-button-size-xsmall, 24px); box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-top: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; color: var(--zen-color-content-neutral-base); cursor: pointer; text-align: start; }
