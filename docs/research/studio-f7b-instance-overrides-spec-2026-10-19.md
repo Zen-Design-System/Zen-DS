@@ -18,9 +18,9 @@ Session B, plan `docs/research/studio-figma-design-parity-2026-10-18.md` §5 F7 
 
 | Thing | Written as |
 | --- | --- |
-| Overrides | `<Use of="chip" overrides={{ "Stack/Text": { children: "Done", tone: "accent" }, "Stack/Icon": { hidden: true } }} />`: the same table library components take (`src/components/_shared/nested.tsx`), literals only |
-| Layer path | From the main's root, one segment per layer: its given name (`data-name`) or its tag, `[i]` for the i-th (from 0) of the same segment among its siblings when there are several (`Stack/Text[1]`). The root's own props: path `""` is not used; the root is the instance, edited as the instance. |
-| A nested instance's values | `overrides={{ "Stack/Use": { variant: …, props: … } }}` is not literal-only. A nested instance's variant and property values are flattened: `{ "Stack/Badge": { "variant.Size": "Large", "props.Label": "New" } }` |
+| Overrides | `<Use of="chip" overrides={{ Text: { children: "Done", tone: "accent" }, Icon: { hidden: true } }} />`: the same table library components take (`src/components/_shared/nested.tsx`), literals only |
+| Layer path | `tools/studio/instance-paths.mjs`. One segment per layer below the main's root, which is the instance itself and has no path. A segment is the layer's given name (`data-name`), a nested instance's component name, or else its tag, with `[i]` (from 0) on every sibling that shares it (`Row/Text[1]`). Below a layer the main does not list (a component's own layers, a nested instance's), the path goes on into it (`Chip/Text`, `Badge/Dot`). |
+| A nested instance's values | Flattened as literals: `{ Chip: { "variant.Size": "Large", "props.Label": "New" } }` |
 | Slot content | `<Use of="panel" slots={{ Content: <>…</> }} />`: elements, so not inside `overrides` |
 
 The dialect checks that every override path names a layer of the main (else: "<Use> overrides no layer Stack/Text[3]

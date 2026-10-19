@@ -90,6 +90,11 @@ removed (four unused colour ramps were, see Removed).
   in the panel (Reset all changes). Description and link on mains and sets. React export writes one function per set
   with typed props; Figma push makes a COMPONENT_SET with its properties and bound layers (Zen plugin), and pull reads
   them back.
+- Zen Studio instance overrides as in Figma (F7b): ⌘-click into an instance of a page's own component and change a
+  layer's words, visibility, a nested instance's variant and properties or a nested component's properties for that
+  instance only (`<Use overrides>`); Reset changes / Reset all changes; Push changes to main component; an instance's
+  slot content (`<Use slots>`); Assets › Local components shows a set as one tile with its description. The React export
+  passes bound overrides and slots as props; the Figma push carries overrides and slot content (Zen plugin).
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

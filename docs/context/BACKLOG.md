@@ -35,9 +35,14 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P2 · Studio components v2 (2026-10-17):** v1 is built (⌥⌘K, instances, Go to main, Detach, swap, React export,
-  push to Figma). Open: instance overrides (text, visibility) + Reset all changes, component properties, variants, pull of
-  local components from Figma. Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §9.
+- **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
+  changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*). Open:
+  - Figma pull of an instance's overrides and slot content.
+  - The push of an override deeper than the main's own layers (inside a nested instance).
+  - Putting layers into an instance's slot from the canvas (drag-and-drop target; F7c, needs A's or C's drop code).
+  - **Question for the user:** an exported instance with overrides that no property carries is written with a comment
+    (`/* Figma overrides … */`). Should the React export inline such an instance instead?
+  Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
 - **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.

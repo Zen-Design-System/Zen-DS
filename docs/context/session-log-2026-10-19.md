@@ -187,6 +187,36 @@ Branch `zen/feat/studio-f7-components-20261019` (stacked on F5c). Spec card:
   waits for the gate slot.
 - F7b (own PR): overrides inside an instance, Push changes / Restore, nested exposed instances, Assets › Local.
 
+## Session B · Studio parity F7b: overrides inside an instance, Push changes, slots, Assets › Local
+
+Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
+`docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md`.
+
+- **Layer paths** (`tools/studio/instance-paths.mjs`, pure): a main's layers below its root by given name / nested
+  component name / tag, `[i]` on shared ones; dialect `mainLayerPaths`; `<Use overrides>` checked (a layer, or one inside a
+  leaf layer; literals). Selftest `instance-paths.selftest.mjs` (in studio:selftest).
+- **Canvas** (`renderPage.tsx`): instance layers drawn in `NestedContext` scopes named by their paths (so the existing
+  deep select reaches them as parts of the `<Use>`), `overrides` applied (props, `children` words, `variant.X` /
+  `props.X` on a nested instance), outer instances win; `<Use slots>` drawn in the main's `data-prop-slot` layer as page
+  layers.
+- **Panel**: `inspector/LocalPartPanel.tsx` (routed in Inspector.tsx for parts of a `<Use>`): Show layer, Text (a bound
+  text sets its property), a nested instance's variant and properties, a nested Zen component's properties
+  (OverrideProperties now takes the `<Use>`'s table and writer), Reset changes, Push changes to main. Instance panel:
+  Reset all changes also clears overrides; Push changes to main; canvas menu items on an instance.
+- **Edits** (`edit/localComponents.ts`): `resetInstance`, `pushChangesToMain` (one `many setProps` edit: setText /
+  setProp on the main's layers, a leaf layer's own `overrides`, the instance's leftovers kept), `localLayerAt`,
+  `setInstanceOverrides`. `arrange.mjs` many setProps admits `setText` (A told; C made the same change for F10 — the
+  second to land takes main's hunk).
+- **Export** (`compile.mjs`): overrides of bound layers become property values, others a comment in the tag; slot
+  properties are `ReactNode` props (`{content ?? <>default</>}`), instances pass their slot layers.
+- **Figma**: push `layerOverrides` (child indices into the drawn main, found after the frame is built; characters,
+  visible, fill, nested values) and `slots`; plugin `3106e91` (overrides) and `1785c37` (slots).
+- **Assets › Local** (C's area, OK'd): a set is one tile ("N variants"), the description in the tooltip.
+- Plugin for C (F6b/F8/F4 fix): `711e203` text runs, `0d55f95` image fills, `328c1d4` free frames (layout NONE).
+- Checks: instance-paths 8, dialect 48, doc 142, compile 70, push 313, plugin npm test; E2E FW-77…79, FW-95, FW-96
+  written (run waits for the gate slot). BACKLOG: pull of overrides/slots, deep override push, slot drop target (F7c),
+  the export question for the user.
+
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 
 Spec card `docs/research/studio-f9-vectors-spec-2026-10-19.md`; the user chose `pathkit-wasm` and live boolean groups
