@@ -69,3 +69,12 @@ export function resolveInstance(tree: unknown, use: unknown): { main: { id: stri
 export function variantName(values: Record<string, string> | null | undefined): string;
 /** Every element node of a parsed page's subtree (dialect.mjs eachElement). */
 export function eachElement(node: unknown, visit: (node: { name: string; loc: string; props: Record<string, { kind: string; value?: unknown }> }, parents: unknown[]) => void): void;
+
+/** Skia's PathOps (pathkit-wasm) as path-ops.mjs uses it: the Studio passes the instance it loaded (draw/pathKit.ts). */
+export type PathKit = unknown;
+type PlacedLayer = { x: number; y: number; width: number; height: number; d: string };
+export function booleanResult(kit: PathKit, operation: string, operands: Array<Record<string, unknown>>): { d: string; fillRule: "evenodd" | "nonzero" } | null;
+export function flattenResult(kit: PathKit, layers: Array<Record<string, unknown>>): PlacedLayer | null;
+export function outlineStrokeResult(kit: PathKit, props: Record<string, unknown>): PlacedLayer | null;
+export function planBooleans(kit: PathKit, text: string, options?: { components?: Set<string> }): Array<{ loc: string; name: "Shape"; ops: Array<{ op: "setProp"; name: string; value: { kind: "string"; value: string } } | { op: "removeProp"; name: string }> }>;
+export function planGroups(text: string, options?: { components?: Set<string> }): Array<{ loc: string; name: "Box"; ops: Array<{ op: "many"; action: "setProps"; locs: string[]; opsByLoc: Record<string, Array<{ op: "setProp"; name: string; value: { kind: "number"; value: number } }>> }> }>;

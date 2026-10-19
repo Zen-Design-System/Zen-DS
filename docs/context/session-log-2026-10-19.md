@@ -186,3 +186,64 @@ Branch `zen/feat/studio-f7-components-20261019` (stacked on F5c). Spec card:
 - Checks: dialect / compile / doc / push (307) / pull (83) selftests, studio:selftest, tsc. E2E FW-70…76 written; run
   waits for the gate slot.
 - F7b (own PR): overrides inside an instance, Push changes / Restore, nested exposed instances, Assets › Local.
+
+## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
+
+Spec card `docs/research/studio-f9-vectors-spec-2026-10-19.md`; the user chose `pathkit-wasm` and live boolean groups
+(both F9b).
+- Library: `Shape type="vector"` (`d` in absolute M / L / C / Q / Z, `viewBox`, `fillRule`); geometry.ts
+  `parseVectorPath`, `vectorPathData`, `parseViewBox`, `vectorBounds` (curve extremes), `fitVectorPath` (selftest 12);
+  defaults as Figma's Pen (no fill, Border/Neutral/Solid, centred stroke). Harness `shape/vector-path` (+2 bad, 1 good).
+  Guideline, docs/api, AI catalog, compile API, keywords regenerated; two examples (Pencil underline, Pen logo mark) and
+  the playground's vector.
+- Studio: `draw/penModel.ts` (pure, selftest 23: corners, smooth points, ⇧ 45°, Schneider curve fit for the Pencil,
+  sub-paths with handles, move point / handle (mirrored), remove point), `draw/penTool.ts` (P / ⇧P, overlay, one
+  `pasteCode` per vector; drawTool.ts now exports targetAt / localOf / screenOf / snapTargets), `select/VectorHandles.tsx`
+  (Enter / double-click vertex edit: live `d`, one write with the new bounds and the box moved; turned vectors keep
+  their box). Tool bar Pen split button, CanvasStatus hints, Shortcuts, figmaNotYet without Pen / Pencil.
+- Figma: push `VECTOR` + `vectorPaths` (fitted to the size); pull VECTOR → Shape vector (unreadable paths noted and left
+  out); plugin `studio-import.js` builds a Shape VECTOR (plugin commit fc18ba7, its test extended). Selftests: push 296,
+  pull 81, layer-meta 12.
+- E2E figma FW-115…118 (Pen closed, Pen curve, vertex edit, Pencil) written; run once the gate slot is free.
+
+## F2 / F3 leftovers on F5a — groups, flips, rotate handles (Session A, merged into the F9 branch)
+
+Built on main d145fd16 (B's F5a: `flipTurn` / `turnOps`, frame rotation / flip), branch
+`zen/feat/studio-group-flip-rotate-20261019`, then merged into `zen/feat/studio-f9-vectors-20261019` to ship with F9a
+in one gate (the slot queue is the bottleneck).
+- Box `group` (B handed it over: "a group renders no look"): Layout.tsx ignores surface / border / radius / effect /
+  padding / scroll / clip for a group, keeps opacity / rotation / flip; harness `box/group-no-look`; guideline row.
+- `edit/groupLayers.ts` `groupSelection` (⌘G, menu, floating via op group + `group`, auto layout via op group `flow`),
+  Layers "Group N" (layer-meta) and icon, ⇧⌘G "Ungroup" label; figmaNotYet without ⌘G / ⇧H / ⇧V.
+- `edit/flipLayers.ts` (⇧H / ⇧V: flipTurn per layer, several floating layers mirrored across their union via
+  alignLayers `moveOps`), Shape `flip` (CSS individual `rotate` / `scale`, as frames), `select/RotateHandles.tsx`
+  (zones just outside the corners, ⇧ 15°, Esc, one write through turnOps).
+- Figma: push Box group → frame `group: true` (plugin turns it into a GROUP of its layers; plugin 7bc4ddf), Shape flip
+  (plugin e9767da); pull GROUP → Box group with its layers at their X / Y inside it (reader: positions relative to the
+  group), free-frame px insets for frames too. Selftests push 302, pull 86, arrange 50, layer-meta 13, usage 218 rules.
+- E2E FW-119…121 written; run with F9a's when the slot is ours.
+
+## Studio F9b — path operations (Session A, worktree `../Zen-DS-f9b`, branch `zen/feat/studio-f9b-path-ops-20261019`, stacked on F9)
+
+- `pathkit-wasm` 1.0.0 (devDependency, the user's pick; the shared checkout needs `npm install` once merged).
+  `tools/studio/path-ops.mjs` (kit passed in): shape outlines (rectangles with Corner-Radius px, arcs, polygons, stars,
+  vectors), placed by insets / rotation / flip, boolean results (first shape the base; simplified, even-odd), Flatten,
+  Outline stroke (inside / outside cut by the fill), `planBooleans` (selftest 15 in Node with the wasm file).
+- Library: Shape `type="boolean"` + `operation` + children (drawn hidden in `.zen-shape__operands`), its result like a
+  vector. Live groups: `builder/localApi.ts` `withBooleans` re-plans every group after each edit of a page you made, in
+  the same write (as withPhoneSync), PathKit loaded from `draw/pathKit.ts` on the first page that has one.
+- Studio: `edit/pathOps.ts` (⌥⇧U/S/I/E, ⌘E, ⌥⌘O; menu for several shapes and for one; Actions), op group `tag:
+  "Shape"` (boolean) and `childless` (one vector in the layers' place). Layers "Union N" … with the intersect icon.
+- Figma: push BOOLEAN_OPERATION with its shapes (plugin 40d5bd6: built in a frame, then figma.union / subtract /
+  intersect / exclude, painted); pull BOOLEAN_OPERATION → Shape boolean, its result from `fillGeometry`.
+- Not built: Use as mask ⌃⌘M (a Box `mask`: Session B's Layout, one PR with B) — BACKLOG.
+- E2E: figma group 70/70 (FW-115…124; FW-122 selects the shapes with Enter, FW-123's vector regex takes any attribute
+  order, FW-37 gets 40 s).
+- Group fit (found while writing the BACKLOG line "a group's box does not follow its layers" — fixed instead, scope
+  lock): `tools/studio/group-fit.mjs` `planGroups` (pure, selftest 6) refits a Box group around its px layers after each
+  edit, in localApi's same write; token insets, Fill sizes and turned / flipped groups are left as they are. FW-124.
+- Lesson: a union merge dropped a `}` in figma-pull.selftest.mjs and a "✗" grep missed the SyntaxError — fixed in F9 and
+  F9b; memory "selftest-exit-code".
+- Gate (`--isolated`, 76 files): static, runtime audit (1512/390/320, dark), behaviour ✓; Studio E2E 335/336 — SP-09
+  ("Reports gone from the Screen", a starters row F9b does not touch) timed out under load, then passed alone and in
+  the whole starters group (24/24). Shape coverage ⚠ is the existing BACKLOG line (count updated to 9).
