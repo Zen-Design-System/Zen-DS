@@ -231,7 +231,8 @@ export const examples: ExampleDef[] = [
   </Box>
   <Stack gap="2xs">
     <Text textStyle="Body/Base/Bold">Santorini, 4 nights</Text>
-    <Text tone="base">From $1,280 · Oct 12 – 16</Text>
+    <Text tone="base">From $1,280</Text>
+    <Text tone="base">Oct 12–16</Text>
   </Stack>
 </Stack>`,
     render: () => (
@@ -242,7 +243,8 @@ export const examples: ExampleDef[] = [
         </Box>
         <Stack gap="2xs">
           <Text textStyle="Body/Base/Bold">Santorini, 4 nights</Text>
-          <Text tone="base">From $1,280 · Oct 12 – 16</Text>
+          <Text tone="base">From $1,280</Text>
+          <Text tone="base">Oct 12–16</Text>
         </Stack>
       </Stack>
     ),

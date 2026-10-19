@@ -59,3 +59,6 @@ before shipping; B's conventions: JSDoc cites Figma, tokens-only CSS, a guidelin
   so loadPathKit rejected before any status line and ⌥⇧S / ⌘E looked dead; main was fine. Fixed at the owner (778738d0):
   Union…/Flatten/Outline stroke say "… could not load the path engine: reload the page", and `withBooleans` keeps the
   edit and fits groups without PathKit (results stay as they are).
+- Gate (A's slot, 05:30, taken after 75 idle minutes without an answer from Giám sát): `qa --isolated` PASS: Studio E2E
+  336/0, Vitest 72, platform audit/dark/behaviour 0 new. figma rows alone FW-122/123/125/126/127 5/0. The 390 sheet showed the trip example's dates
+  wrapping ("Oct 12" / "– 16"): price and dates on their own lines; shape-only gate PASS, sheets re-checked.
