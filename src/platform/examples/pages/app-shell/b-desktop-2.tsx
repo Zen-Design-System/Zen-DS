@@ -2,7 +2,7 @@
    structures by domain" (15907:119279): B4 Workspace Editor (15916:6196), B5 Docs / Learning (15917:6719) and B6 Focus
    flow (15919:6907). Each screen follows its Pattern/AppShell/Desktop instance: the same parts, copy and data. */
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { AppShell, AppShellHeader, AppShellPane } from "../../../../components/AppShell";
+import { AppShell, AppShellHeader, AppShellPane, useAppShell } from "../../../../components/AppShell";
 import { Avatar, AvatarStack } from "../../../../components/Avatar";
 import { Badge } from "../../../../components/Badge";
 import { Breadcrumbs } from "../../../../components/Breadcrumbs";
@@ -21,6 +21,7 @@ import { InputField, NumberField, SelectField } from "../../../../components/Inp
 import { Box, Grid, Stack } from "../../../../components/Layout";
 import { Link } from "../../../../components/Link";
 import { List, ListItem } from "../../../../components/ListItem";
+import { Menu } from "../../../../components/Menu";
 import { RadioButton } from "../../../../components/RadioButton";
 import { Search } from "../../../../components/Search";
 import { Segmented } from "../../../../components/Segmented";
@@ -216,7 +217,7 @@ function WorkspaceEditorApp() {
           <Stack minHeight={862} align="center" justify="center" gap="xs" padding="md">
             <Text textStyle="Caption/Medium" tone="light">{text("frame")}  390 × 700</Text>
             {/* zen-allow-box-border: Figma Artboard stroke is Border/Neutral/Subtle, the frame edge of a design on the Pale work area. */}
-            <Box surface="surface" border="subtle" radius="xl" padding="xl" width={390} height={700} aria-label={`${text("frame")} artboard`} role="group">
+            <Box surface="surface" border="subtle" radius="xl" padding="xl" width="fill" maxWidth={390} height={700} aria-label={`${text("frame")} artboard`} role="group">
               <Stack gap="md" height="fill">
                 <Stack gap="2xs">
                   {/* zen-allow-visual-heading: the artboard is a picture of a design being edited, not a part of this page's outline. */}
@@ -246,6 +247,28 @@ function WorkspaceEditorApp() {
       <DemoFieldDialog open={sharing} onOpenChange={setSharing} title="Share Checkout flow" description="People you invite can view the file and comment."
         field={{ kind: "email", label: "Email", placeholder: "name@northwind.io" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />
     </PreviewAppFrame>
+  );
+}
+
+/** The docs' top-row links. On a wide window Changelog and Community sit beside Get started; once the shell is a drawer
+ *  (a phone, a narrow window) three labelled buttons no longer fit beside the brand, so the two links move into More. */
+function DocsActions({ onOpen, onGetStarted }: { onOpen: (label: string) => void; onGetStarted: () => void }) {
+  const wide = useAppShell()?.layout === "desktop";
+  return (
+    <>
+      {wide ? (
+        <>
+          <Button appearance="flat" level="primary" onClick={() => onOpen("The changelog")}>Changelog</Button>
+          <Button appearance="flat" level="primary" onClick={() => onOpen("Community")}>Community</Button>
+        </>
+      ) : (
+        <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" icon="icon-dots-horizontal-line" aria-label="More" />} items={[
+          { id: "changelog", label: "Changelog", icon: "icon-clock-rewind-line", onSelect: () => onOpen("The changelog") },
+          { id: "community", label: "Community", icon: "icon-users-line", onSelect: () => onOpen("Community") },
+        ]} />
+      )}
+      <Button level="primary" onClick={onGetStarted}>Get started</Button>
+    </>
   );
 }
 
@@ -313,11 +336,7 @@ function DocsApp() {
               </Brand>
             )}
             center={<Search placeholder="Search docs" aria-label="Search docs" shortcut="k" value={query} onValueChange={setQuery} />}
-            actions={<>
-              <Button appearance="flat" level="primary" onClick={() => open("The changelog")}>Changelog</Button>
-              <Button appearance="flat" level="primary" onClick={() => open("Community")}>Community</Button>
-              <Button level="primary" onClick={() => goToStep("add")}>Get started</Button>
-            </>}
+            actions={<DocsActions onOpen={open} onGetStarted={() => goToStep("add")} />}
           />
         )}
         leadingPane={(
@@ -614,18 +633,29 @@ export const examples: ExampleDef[] = [
     wide: true,
     screen: true,
     render: () => <DocsApp />,
-    code: `<AppShell
+    code: `// Inside the shell's header: on a wide window the links sit beside Get started; in the drawer layout they move into More.
+function DocsActions() {
+  const wide = useAppShell()?.layout === "desktop";
+  return <>
+    {wide ? <>
+      <Button appearance="flat" level="primary" onClick={openChangelog}>Changelog</Button>
+      <Button appearance="flat" level="primary" onClick={openCommunity}>Community</Button>
+    </> : (
+      <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" icon="icon-dots-horizontal-line" aria-label="More" />}
+        items={[{ id: "changelog", label: "Changelog", onSelect: openChangelog }, { id: "community", label: "Community", onSelect: openCommunity }]} />
+    )}
+    <Button level="primary" onClick={getStarted}>Get started</Button>
+  </>;
+}
+
+<AppShell
   pattern="docs"
   canvas="flat"
   header={
     <AppShellHeader
       leading={<><Avatar size="sm" shape="square" theme="neutral" alt="">Z</Avatar><Text as="span" textStyle="Heading/4">Zen Docs</Text><Badge size="sm" leadingIcon={false}>v0.4</Badge></>}
       center={<Search placeholder="Search docs" aria-label="Search docs" shortcut="k" value={query} onValueChange={setQuery} />}
-      actions={<>
-        <Button appearance="flat" level="primary" onClick={openChangelog}>Changelog</Button>
-        <Button appearance="flat" level="primary" onClick={openCommunity}>Community</Button>
-        <Button level="primary" onClick={getStarted}>Get started</Button>
-      </>}
+      actions={<DocsActions />}
     />
   }
   leadingPane={<AppShellPane theme="canvas" aria-label="Documentation"><SidebarSubMenu sections={docsNav} onItemClick={openPage} /></AppShellPane>}
