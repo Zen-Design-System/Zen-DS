@@ -168,3 +168,8 @@ in one gate (the slot queue is the bottleneck).
   intersect / exclude, painted); pull BOOLEAN_OPERATION → Shape boolean, its result from `fillGeometry`.
 - Not built: Use as mask ⌃⌘M (a Box `mask`: Session B's Layout, one PR with B) — BACKLOG.
 - E2E FW-122 (live Subtract), FW-123 (Flatten) written; run when the slot is ours.
+- Group fit (found while writing the BACKLOG line "a group's box does not follow its layers" — fixed instead, scope
+  lock): `tools/studio/group-fit.mjs` `planGroups` (pure, selftest 6) refits a Box group around its px layers after each
+  edit, in localApi's same write; token insets, Fill sizes and turned / flipped groups are left as they are. FW-124.
+- Lesson: a union merge dropped a `}` in figma-pull.selftest.mjs and a "✗" grep missed the SyntaxError — fixed in F9 and
+  F9b; memory "selftest-exit-code".

@@ -24,7 +24,8 @@ removed (four unused colour ramps were, see Removed).
   Skia's PathOps (`pathkit-wasm`, loaded on first use). Figma push / pull carry BOOLEAN_OPERATION nodes.
 - Groups, flips and rotation as in Figma (F2 / F3 of the same plan): Box `group` (Figma's Group: holds its layers at
   their X / Y, sized to them, no look of its own; harness `box/group-no-look`); Zen Studio ⌘G groups the selection
-  (floating layers where they are, layers in auto layout as one group in the flow), Layers names it "Group N", ⇧⌘G /
+  (floating layers where they are, layers in auto layout as one group in the flow) and keeps it hugging its layers as
+  they move or resize (same ⌘Z), Layers names it "Group N", ⇧⌘G /
   Ungroup puts them back; Figma push / pull carry groups as GROUP nodes. ⇧H / ⇧V flip the selection (several floating
   layers also swap places across their box); a rotate handle just outside each corner turns a frame or shape (⇧ 15°).
   Shape gains `flip`.
