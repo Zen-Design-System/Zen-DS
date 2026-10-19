@@ -322,6 +322,19 @@ Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
 - Main d56666ec (#148) merged: its reader's GROUP box sits beside F7's component reading. Push and pull selftests pass.
   Re-gated before shipping.
 - Two stacked PRs from the one gated tree, agreed with Giám sát: F5 (rest) = F5b + F5c, and F7 = F7a + F7b.
+- User 2026-10-19: no field in the tool's panel may jut out or step in, and the shared Inline-Field is used. The
+  re-gate was stopped and the panels were made to follow the rule:
+  - the component panels use `RowInputField` / `RowSelectField`;
+  - a component's name and an instance's component end where fields end (the icon column is kept);
+  - `.studio-shape__pair` is on the panel's three-column grid (Opacity was 16px past the column);
+  - Stroke's Sides is an inline select in the pair (it drew a nested row that ended 32px short).
+- E2E `panelFits` / `expectPanelFits` (figma.mjs) now checks, in FW-50/52/54/56/71/72/74/75/77/92/95:
+  - every field is inside the panel and ends on a field-grid line;
+  - a section's rows start on one left edge;
+  - no select value or short input value is cut off.
+- FW-52 starts from no stroke: the walk page keeps its id across runs, and a stopped run had left one.
+- 27/27 of Session B's FW rows pass with `--no-retry`. A retry runs on the page the failed attempt left, which hid
+  FW-54's real error.
 
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 

@@ -461,12 +461,12 @@ async function panelFits(page) {
       const rect = field.getBoundingClientRect();
       if (!rect.width) continue;
       if (rect.left < box.left - 0.5 || rect.right > box.right + 0.5) problems.push(`${name(field)} juts out of the panel`);
-      // A select's value is one word or token: never cut. A text input scrolls a long text by design, but its value
-      // area must still show some of it (an inline label can leave it no room).
+      // A select's value is one word or token, a short input value a number or a name: never cut. A long text scrolls
+      // in its input by design.
       const choice = field.querySelector(".zen-select__trigger");
       if (choice && choice.scrollWidth > choice.clientWidth + 1) problems.push(`${name(field)}: its value is cut off`);
       const input = field.querySelector("input.zen-input__native");
-      if (input && input.clientWidth < 40) problems.push(`${name(field)}: no room for its value (${input.clientWidth}px)`);
+      if (input && input.value && input.value.length <= 16 && input.scrollWidth > input.clientWidth + 1) problems.push(`${name(field)}: "${input.value}" is cut off`);
     }
     for (const section of panel.querySelectorAll(".studio-inspector__section")) {
       const body = section.querySelector(".studio-inspector__section-body");
@@ -2119,14 +2119,8 @@ export const rows = [
       await selectWalkFrame(page, id);
       await press(page, "Flip horizontal");
       await written(page, id, /<Box\b[^>]*flip="horizontal"/, "flip=\"horizontal\"");
-      const afterFlip = ((await pageText(page, id)) ?? "").match(/<Box\b[^>]*>/)?.[0];
-      const header = await selectedName(page);
       await press(page, "Rotate 90° right");
-      await sleep(1500);
-      const afterRotate = ((await pageText(page, id)) ?? "").match(/<Box\b[^>]*>/)?.[0];
-      const shapes = ((await pageText(page, id)) ?? "").match(/<Shape\b[^>]*>/g)?.join(" ");
-      if (!/rotation=\{-90\}/.test(afterRotate ?? "")) throw new Error(`after flip ${afterFlip} (selected ${header}) · after rotate ${afterRotate} · shapes ${shapes}`);
-      await written(page, id, /<Box\b[^>]*rotation=\{-90\}/, "rotation={-90}").catch(async (error) => { throw new Error(`${error.message} · ${((await pageText(page, id)) ?? "").match(/<Box\b[^>]*>/g)?.join(" ")} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await written(page, id, /<Box\b[^>]*rotation=\{-90\}/, "rotation={-90}");
       await shot(page, "fw-54-flipped-frame");
       await expectPanelFits(page, "the turned frame's panel");
       await press(page, "Flip horizontal");
