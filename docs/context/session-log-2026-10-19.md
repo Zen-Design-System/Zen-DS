@@ -467,3 +467,32 @@ safety check) and pulled back with `figmaReadCode`. Bugs, each fixed at its owne
   (gated 336 / 0) landed after the run started; `--only=figma` 93 / 1 — FW-05 still listed ⇧R as "Rulers isn't in Zen
   Studio yet", which F10 builds (expectation updated). On e3850527 (766f9871 merged + FW-05 updated): B-20 and FW-05
   green; tsc, studio:selftest, usage, style green. Giám sát: ship on this evidence.
+
+## Studio F8c — pictures in the direct paste (Session C) — tier S, branch `zen/feat/studio-f8c-native-pictures-20261019`
+User picked "Dán ảnh qua ⌘C→⌘V" (the rest of F8). `tools/studio/figma-native.mjs`:
+- `nativePictures` (SHA-1 = Figma's image hash, size from the header), `imagePaint` (Fill · Fit · Crop = STRETCH with
+  the shown part as transform · Tile scale), the bytes as message blobs (`Image.dataBlob`), the Studio src as shared
+  plugin data (`pluginData` with no plugin id, key `zenstudio-image`, read from Figma's own copy of a probe layer).
+- A Shape rectangle / ellipse is Figma's ROUNDED_RECTANGLE / ELLIPSE (variables, Corner-Radius, arc, opacity, rotation
+  and flip about the centre); frames take their image fill. Bug met: a Shape path pasted as an empty 0.01 px VECTOR;
+  other Shape kinds are now a note (BACKLOG shapes item narrowed).
+- Live tests in the Zen file (QA page, each removed): data: and local http URLs in `meta.imageHashes` are never fetched
+  (the first "proof" used a hash Figma already had); blobs place fresh PNG, JPEG, GIF; WebP never → `figmaClipboard.ts`
+  draws it as PNG on a canvas (checked in Chromium). Final run through `figmaPasteHtml`: 4 fresh pictures, bytes and
+  hashes exact, crop / tile / rotation / radius variable / src as sent.
+- Slip, fixed: the first test paste landed in the user's "UI Foundations" file (Figma's front tab); found by name and
+  removed at once. The paste script now opens the Zen file and refuses to paste when Figma shows another file.
+- Selftest figma-native 85 (+ pictures, shapes, the path note). Open (BACKLOG): a component's own picture (Avatar,
+  Image) needs the pack to record its image layer. BACKLOG "Layout guide column count" removed: the user keeps
+  12 / 8 / 4 (2026-10-19).
+- Gate finding met (usage:check ⚠ layer/popover-is-overlay, my F10 rulers.css): the rulers took Background/Popover;
+  they are canvas chrome like the panels, so Surface/Default now.
+- **A component's own picture** (user: "làm ảnh riêng của Avatar/Image luôn"; Image and Thumbnail have no Figma set,
+  so in practice Avatar/Single Theme=Photo and the table's Avatar-Cell / Photo-Cell): the pack records `img` (the fills)
+  on every layer with an IMAGE fill. `packFrom` writes it from a capture; `native-pack.mjs images-code` / `images` read
+  it with use_figma (3 parts, hashes of the answers checked) instead of a full re-capture: 671 layers (+114 KB). The
+  writer fills the first such layer after the nested edits (the variant shown), an override `fillPaints` with the
+  picture's blob. Live paste (QA page, removed): Avatar Large, Avatar-Cell (nested Avatar → Square Small Photo),
+  Photo-Cell show their fresh pictures, hashes exact. Selftest figma-native 90.
+- Gate (Giám sát's slot after B, on 1a18705f): `npm run qa -- --isolated --files=<11 files>` PASS — static ✓, Studio E2E
+  336 works · 0 broken (1577 s); report `.qa/reports/2026-10-19T16-58-37-ee53b0aa.md`.

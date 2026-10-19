@@ -12,11 +12,15 @@
 //                                                           then write the pack (needs Accessibility for the terminal app)
 //   node tools/studio/native-pack.mjs write --files=a.html,b.html   copies saved by hand → the pack
 //   node tools/studio/native-pack.mjs check                 sets the push writes that the pack lacks
+//   node tools/studio/native-pack.mjs images-code --part=N  use_figma code: the layers that show a picture in every
+//                                                           component (an Avatar's Image), without a full capture
+//   node tools/studio/native-pack.mjs images --files=a.txt,b.txt   its answers → the pack's `img` fields
 //
 // Pack (docs/figma-contracts/native-pack.json): `sets` {id: {name, props: [[name, type, id, initial]]}}, `symbols`
 // {id: {set?, name, w, h, mode?, bound? (its size fields bound to variables), defs: {setLevelPropId: ownPropId}, props? (a lone component's), nodes: [[id, parent, type, name, visible, w, h, x, y,
 // main, refs, more]]}} (parent: a row index, -1 for the symbol; refs: [[ownPropId, field]]; more: a slot's layout
-// fields, a grid's track ids, a frame's auto layout `mode`, a nested instance's own assignments and the overrides its component sets below it), `styles` {name: [id, type]}, `variables` {name: [id,
+// fields, a grid's track ids, a frame's auto layout `mode`, a nested instance's own assignments and the overrides its
+// component sets below it, `img`: the fills of a layer that shows a picture; a symbol's own `img` likewise), `styles` {name: [id, type]}, `variables` {name: [id,
 // type]}; a set lists its `variants` in layer order (the first is Figma's default). `contents` {id: [node…]} are the slot
 // contents a component sets on its nested instances, in full (a paste that edits one carries its own copy, as Figma
 // does); their style and variable refs are node ids, their vector data inline (`{blob: base64}`). The schema Figma wrote
@@ -58,6 +62,8 @@ function refsOf(node) {
   return out;
 }
 const isSlot = (node) => refsOf(node).some(([, field]) => field === "SLOT_CONTENT_ID");
+/** Whether a layer shows a picture (an IMAGE fill): a paste's `image` on its instance fills the first such layer. */
+const showsPicture = (node) => (node.fillPaints ?? []).some((paint) => paint.type === "IMAGE");
 const round = (value) => Math.round((value ?? 0) * 100) / 100;
 
 /** The use_figma code that adds part `part` of `ids` to the probe: frames of up to PROBE_FRAME_SIZE instances. */
@@ -224,6 +230,7 @@ export function packFrom(copies, { read }) {
         if (ovs.length) more = { ...(more || {}), ovs };
         const keep = child.type === "INSTANCE" ? keepOf(child) : null;
         if (keep) more = { ...(more || {}), keep };
+        if (child.type !== "INSTANCE" && showsPicture(child)) more = { ...(more || {}), img: localRefs(child.fillPaints) };
         // An instance's size variables and its property links as Figma keeps them (a PROP_REF: Icon-Src drives its swap).
         // Figma works out what a property swap keeps only for an instance whose definition carries that link.
         if (child.type === "INSTANCE") {
@@ -247,6 +254,7 @@ export function packFrom(copies, { read }) {
       w: round(node.size?.x), h: round(node.size?.y),
       ...(node.stackMode && node.stackMode !== "NONE" ? { mode: node.stackMode } : {}),
       ...(bound.length ? { bound } : {}),
+      ...(showsPicture(node) ? { img: localRefs(node.fillPaints) } : {}),
       defs: Object.fromEntries((node.componentPropDefs ?? []).filter((def) => def.parentPropDefId && !def.isDeleted).map((def) => [id(def.parentPropDefId), id(def.id)])),
       ...(parent?.isStateGroup ? {} : propsOf(node)),
       nodes: rows,
@@ -281,6 +289,69 @@ export function packFrom(copies, { read }) {
     read,
     sets: sortedKeys(sets), symbols: sortedKeys(symbols), styles: sortedKeys(styles), variables: sortedKeys(variables), contents: sortedKeys(contents),
   };
+}
+
+/**
+ * The use_figma code that lists, for part `part` of `ids` (sets and lone components), the layers of each component that
+ * show a picture (an IMAGE fill) and their fills: "symbol>layer=fills;" (layer "" for the component itself; fills
+ * omitted for the usual one, a visible Fill picture). Its own layers only: a nested instance's are its component's.
+ */
+export function imagesCode(ids, part, per = 100) {
+  const slice = ids.slice(part * per, (part + 1) * per);
+  return `
+// Zen Studio · native-pack images, part ${part + 1}/${Math.ceil(ids.length / per)} (read only).
+const ids = ${JSON.stringify(slice)};
+const fillsOf = (node) => ("fills" in node && Array.isArray(node.fills) ? node.fills : []);
+const usual = (fills) => fills.length === 1 && fills[0].type === "IMAGE" && fills[0].scaleMode === "FILL" && fills[0].visible !== false && (fills[0].opacity ?? 1) === 1;
+const brief = (paint) => paint.type === "IMAGE" ? { t: "IMAGE", m: paint.scaleMode, v: paint.visible !== false, o: paint.opacity ?? 1, x: paint.imageTransform, s: paint.scalingFactor } : paint.type === "SOLID" ? { t: "SOLID", c: paint.color, v: paint.visible !== false, o: paint.opacity ?? 1, var: paint.boundVariables?.color?.id ?? null } : { t: paint.type };
+let out = "";
+const visit = (symbol, node, own) => {
+  const fills = fillsOf(node);
+  if (fills.some((paint) => paint.type === "IMAGE")) out += symbol + ">" + (own ? "" : node.id) + (usual(fills) ? "" : "=" + JSON.stringify(fills.map(brief))) + ";";
+  if (node.type !== "INSTANCE" || own) for (const child of node.children ?? []) visit(symbol, child, false);
+};
+for (const id of ids) {
+  const node = await figma.getNodeByIdAsync(id);
+  if (!node) continue;
+  for (const component of node.type === "COMPONENT_SET" ? node.children.filter((child) => child.type === "COMPONENT") : [node]) visit(component.id, component, true);
+}
+return out;
+`.trim();
+}
+
+/** A use_figma paint brief (imagesCode) as Figma's clipboard paint: an IMAGE paint without its picture (a paste names its own), a SOLID one with its variable. */
+function paintFromBrief(brief) {
+  const base = { opacity: brief.o ?? 1, visible: brief.v !== false, blendMode: "NORMAL" };
+  if (brief.t === "IMAGE") {
+    const t = brief.x;
+    const mode = { FILL: "FILL", FIT: "FIT", CROP: "STRETCH", TILE: "TILE" }[brief.m] ?? "FILL";
+    return { type: "IMAGE", ...base, transform: Array.isArray(t) ? { m00: t[0][0], m01: t[0][1], m02: t[0][2], m10: t[1][0], m11: t[1][1], m12: t[1][2] } : { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 }, imageScaleMode: mode, scale: brief.s ?? 1 };
+  }
+  if (brief.t === "SOLID") {
+    const [a, b] = String(brief.var ?? "").replace(/^VariableID:/, "").split(":").map(Number);
+    return { type: "SOLID", ...base, color: { ...(brief.c ?? { r: 0, g: 0, b: 0 }), a: 1 }, ...(brief.var ? { colorVar: { value: { alias: { guid: { sessionID: a, localID: b } } }, dataType: "ALIAS", resolvedDataType: "COLOR" } } : {}) };
+  }
+  return null;
+}
+
+/** The pack with the picture layers of imagesCode's answers as `img` fields (the ones a full capture writes from Figma's copies). */
+export function withImages(pack, answers) {
+  const counts = { layers: 0, symbols: new Set(), skipped: [] };
+  for (const entry of answers.join("").split(";").filter(Boolean)) {
+    const [, symbolId, layerId, json] = /^([^>]+)>([^=]*)(?:=(.*))?$/.exec(entry) ?? [];
+    const symbol = pack.symbols[symbolId];
+    if (!symbol) { counts.skipped.push(`${symbolId} (not in the pack)`); continue; }
+    const paints = json ? JSON.parse(json).map(paintFromBrief) : [paintFromBrief({ t: "IMAGE", m: "FILL" })];
+    if (paints.some((paint) => !paint)) { counts.skipped.push(`${symbolId}>${layerId} (a fill other than a picture or a colour)`); continue; }
+    if (!layerId) { symbol.img = paints; counts.layers++; counts.symbols.add(symbolId); continue; }
+    const row = symbol.nodes.find((node) => node[0] === layerId);
+    if (!row) { counts.skipped.push(`${symbolId}>${layerId} (no such layer)`); continue; }
+    while (row.length < 12) row.push(0);
+    row[11] = { ...(row[11] || {}), img: paints };
+    counts.layers++;
+    counts.symbols.add(symbolId);
+  }
+  return { pack, layers: counts.layers, symbols: counts.symbols.size, skipped: counts.skipped };
 }
 
 /** A lone component's own property definitions (a set's live on the set). */
@@ -370,13 +441,24 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     for (const frame of option("frames").split(",")) { htmls.push(await copyFromFigma(frame)); console.log(`native-pack: copied ${frame} (${(htmls[htmls.length - 1].length / 1e6).toFixed(1)} MB)`); }
     await write(htmls);
   } else if (command === "write" && option("files")) await write(option("files").split(",").map((file) => fs.readFileSync(file, "utf8")));
+  else if (command === "images-code" || command === "images") {
+    const pack = JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8"));
+    // Sets and the components outside them, icons aside (an icon shows no picture).
+    const components = [...Object.keys(pack.sets), ...Object.entries(pack.symbols).filter(([, symbol]) => !symbol.set && !/^(icon|ic)-/.test(symbol.name)).map(([key]) => key)].sort();
+    if (command === "images-code") console.log(imagesCode(components, Number(option("part") ?? 0)));
+    else if (option("files")) {
+      const result = withImages(pack, option("files").split(",").map((file) => fs.readFileSync(file, "utf8").trim().replace(/^"|"$/g, "")));
+      fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(result.pack)}\n`);
+      console.log(`native-pack: ${result.layers} picture layers in ${result.symbols} components${result.skipped.length ? `; skipped: ${result.skipped.join(", ")}` : ""} (parts: ${Math.ceil(components.length / 100)})`);
+    } else { console.error("usage: native-pack.mjs images --files=<answers of images-code>"); process.exit(1); }
+  }
   else if (command === "check") {
     const pack = JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8"));
     const missing = ids.filter((key) => !pack.sets[key] && !pack.symbols[key]);
     if (missing.length) { console.error(`native-pack: ${missing.length} set(s) the push can write are not in the pack (${missing.join(", ")}): rebuild with probe-code + capture`); process.exit(1); }
     console.log(`native-pack: every set the push can write (${ids.length}) is in the pack (read ${pack.read})`);
   } else {
-    console.error("usage: native-pack.mjs probe-code --part=N | capture --frames=<ids> | write --files=<html files> | check");
+    console.error("usage: native-pack.mjs probe-code --part=N | capture --frames=<ids> | write --files=<html files> | check | images-code --part=N | images --files=<answers>");
     process.exit(1);
   }
 }
