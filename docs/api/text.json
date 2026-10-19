@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "text",
-  "import": "import { Text, Heading } from \"@zen-ds/react\";",
+  "import": "import { Text, Heading, TextRun } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Text",
@@ -297,6 +297,79 @@
           "required": false,
           "default": null,
           "description": "Ref to the rendered heading element (`<h1>`–`<h6>`).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TextRun",
+      "file": "src/components/Text/TextRun.tsx",
+      "description": "Words with a style of their own inside a Text or Heading (Figma's mixed styles: a range made bold, italic,\nunderlined, struck through, coloured or set in another text style). It renders a span that keeps everything else from\nthe text around it (font, size, line height, colour), so a line reads as one text. A link inside a text is a Link.\n\n  <Text>Your plan renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone=\"negative-base\">2 seats</TextRun> are unpaid.</Text>",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLSpanElement>, \"color\">",
+      "props": [
+        {
+          "name": "bold",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Bold words (Figma's Bold weight on a range, ⌘B): the Bold emphasis token over the text style around it.",
+          "deprecated": null
+        },
+        {
+          "name": "italic",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Italic words (Figma's Italic on a range, ⌘I).",
+          "deprecated": null
+        },
+        {
+          "name": "underline",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Underlined words (Figma's Decoration: Underline, ⌘U). A link is a Link, not an underlined run.",
+          "deprecated": null
+        },
+        {
+          "name": "strikethrough",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Struck-through words (Figma's Decoration: Strikethrough, ⇧⌘X): an old price, a done item.",
+          "deprecated": null
+        },
+        {
+          "name": "tone",
+          "type": "ContentTone",
+          "required": false,
+          "default": null,
+          "description": "The words' colour role (Figma's fill on a range): a Color/Content token by its path (\"accent-base\",\n\"negative-base\"). Unset keeps the Text's colour.",
+          "deprecated": null
+        },
+        {
+          "name": "textStyle",
+          "type": "keyof typeof typographyStyles",
+          "required": false,
+          "default": null,
+          "description": "Another Figma text style for these words (a range in Body/Base/Bold inside Body/Base/Regular, a Caption in a line).\nUnset keeps the Text's style; prefer `bold` for weight alone.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered span.",
           "deprecated": null
         }
       ]

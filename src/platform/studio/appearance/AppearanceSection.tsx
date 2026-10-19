@@ -16,6 +16,7 @@ import {
   effectLayers, effectStyleOf, effectWarnings, isMixed, RADIUS_STEPS, uniformClear, uniformPick, type Corner, type ManifestEffect,
   type WrittenRadius,
 } from "./appearanceModel";
+import { ImageFillRow } from "./ImageFillRow";
 import "./appearance.css";
 
 /*
@@ -28,7 +29,7 @@ import "./appearance.css";
  */
 
 /** A frame's look: what Appearance, Fill, Stroke and Effects show (Layout appearance.ts). */
-const FRAME_LOOK = ["opacity", "surface", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "effectStyle"];
+const FRAME_LOOK = ["opacity", "surface", "image", "imageFit", "imageCrop", "imageScale", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "effectStyle"];
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
 export const appearancePropNames: Readonly<Record<string, readonly string[]>> = {
   Box: FRAME_LOOK,
@@ -161,7 +162,7 @@ function LayerToggle({ shown, name, disabled, onAdd, onRemove }: { shown: boolea
 }
 
 /** Fill (Figma UI3): the frame's background layer as one fill, its variable named; "+" adds Surface, "−" removes it. */
-export function FillSection({ api, specs }: { api: FieldApi; specs: PropSpec[] }) {
+export function FillSection({ api, specs, host = null }: { api: FieldApi; specs: PropSpec[]; host?: HTMLElement | null }) {
   const spec = specs.find((candidate) => candidate.name === "surface");
   if (!spec) return null;
   const value = api.valueFor("surface");
@@ -169,6 +170,8 @@ export function FillSection({ api, specs }: { api: FieldApi; specs: PropSpec[] }
   return (
     <InspectorSection title="Fill" actions={<LayerToggle shown={shown} name="fill" disabled={api.disabled || boundOrSpread(value)} onAdd={() => api.setProp("surface", "surface")} onRemove={() => api.removeProp("surface")} />}>
       {shown ? <PropField spec={spec} label="Fill" value={value} disabled={api.disabled} resettable={false} onSet={(next) => (next === "none" ? api.removeProp("surface") : api.setProp("surface", next))} onReset={() => api.removeProp("surface")} /> : null}
+      {/* Figma's image fill on a frame (F8): over the fill colour. */}
+      <ImageFillRow api={api} specs={specs} host={host} />
     </InspectorSection>
   );
 }

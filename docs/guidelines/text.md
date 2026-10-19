@@ -2,9 +2,9 @@
 # Text & Heading
 
 **Figma:** Text styles (36) + Color/Content variables  
-**Import:** `import { Heading, Text, plural } from "@zen-ds/react";`
+**Import:** `import { Heading, Text, TextRun, plural } from "@zen-ds/react";`
 
-Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.
+Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).
 
 ## Use it for
 - Page and section titles (Heading level + an optional textStyle).
@@ -27,6 +27,8 @@ Copy in the Figma text styles and Zen content colours. Heading renders a real h1
 | — | `as · truncate · align` | Text element (p default, span inline, label…) · true = one line with ellipsis, n = clamp to n lines · start/center/end |
 | Line and digits | `wrap · tabularNumbers` | wrap={false}: one line as wide as its words, never cut (Figma Auto width; a time, a price beside a row) · tabularNumbers: every digit one width (Figma Numbers: Tabular), for values that change or line up |
 | Sizing (Figma resizing) | `width · minWidth · maxWidth · alignSelf` | as on Layout: "hug" · "fill" · a number (Fixed px); maxWidth caps a line length; alignSelf = the text's alignment in its Stack or Grid |
+| Line breaks | `children` | a \n in the words ({"First line\nSecond line"}) starts a new line (Figma's Enter in a text); with wrap={false} each line stays whole |
+| Mixed styles (a range) | `<TextRun bold italic underline strikethrough tone textStyle>` | words inside a Text or Heading with a style of their own: Bold weight, Italic, Underline / Strikethrough, a Color/Content tone, another text style; everything else comes from the text around them |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/text.json`.
@@ -82,6 +84,22 @@ Also accepts `Omit<HTMLAttributes<HTMLHeadingElement>, "color">, LayoutSizingPro
 | `children` | `ReactNode` | — |  |
 | `ref` | `Ref<HTMLHeadingElement>` | — | Ref to the rendered heading element (`<h1>`–`<h6>`). |
 
+### TextRun
+Words with a style of their own inside a Text or Heading (Figma's mixed styles: a range made bold, italic, underlined, struck through, coloured or set in another text style). It renders a span that keeps everything else from the text around it (font, size, line height, colour), so a line reads as one text. A link inside a text is a Link. `<Text>`Your plan renews on <TextRun bold>Nov 2`</TextRun>`. <TextRun tone="negative-base">2 seats`</TextRun>` are unpaid.`</Text>`
+
+Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "color">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `bold` | `boolean` | `false` | Bold words (Figma's Bold weight on a range, ⌘B): the Bold emphasis token over the text style around it. |
+| `italic` | `boolean` | `false` | Italic words (Figma's Italic on a range, ⌘I). |
+| `underline` | `boolean` | `false` | Underlined words (Figma's Decoration: Underline, ⌘U). A link is a Link, not an underlined run. |
+| `strikethrough` | `boolean` | `false` | Struck-through words (Figma's Decoration: Strikethrough, ⇧⌘X): an old price, a done item. |
+| `tone` | `ContentTone` | — | The words' colour role (Figma's fill on a range): a Color/Content token by its path ("accent-base", "negative-base"). Unset keeps the Text's colour. |
+| `textStyle` | `keyof typeof typographyStyles` | — | Another Figma text style for these words (a range in Body/Base/Bold inside Body/Base/Regular, a Caption in a line). Unset keeps the Text's style; prefer `bold` for weight alone. |
+| `children` | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Ref to the rendered span. |
+
 ### Types
 Object shapes the props above refer to.
 
@@ -101,6 +119,7 @@ type ContentTone = (typeof contentTones)[number]
 - Use tone="base" for secondary copy and Body/Small meta, and "light" only for tertiary meta (timestamps, hints); Caption is always "light".
 - Use Text as="span" inside a line of other text or a flex row; the default p is a block.
 - Pluralise counts with plural(): "1 member", "12 members" (harness: copy/plural-count).
+- Mark the few words that need weight or colour inside a sentence with TextRun (`<Text>`Renews on <TextRun bold>Nov 2`</TextRun>`</Text>), so the sentence stays one text for screen readers and translation; a link inside it is a Link.
 
 ## ❌ Don't
 - Don't pick a heading level for its size; set textStyle instead. A content h1 (the page title shown large) stays Heading/1.
@@ -108,6 +127,8 @@ type ContentTone = (typeof contentTones)[number]
 - Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.
 - Don't colour body text with a colour family's Light token or a raw hex; use tone.
 - Don't truncate essential information without another way to read it (a tooltip or detail view).
+- Don't use TextRun outside a Text or Heading, or to set a whole text's style (set the Text's textStyle and tone instead).
+- Don't underline words to make them look like a link; a link is a Link.
 
 ## Accessibility
 - Heading levels form the page outline screen readers navigate by; don't skip levels going down.
@@ -122,6 +143,7 @@ type ContentTone = (typeof contentTones)[number]
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `text-run/inside-text` | error | A TextRun styles some words of a Text or Heading (Figma's mixed styles), so it sits inside one (or inside a Link or another TextRun there). | `zen-allow-text-run-outside: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `content/lights-no-light-text` | error | Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. Checks CSS colours and the Text/Heading `tone`. | `zen-allow-lights-light-text: <reason>` |
 | `heading/h1-is-heading-1` | error | Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) uses Heading/1. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold). | `zen-allow-h1-style: <reason>` |
