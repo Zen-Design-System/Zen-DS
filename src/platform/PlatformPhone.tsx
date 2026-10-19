@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type Ref } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from "react";
+import { ZenContext, useZen } from "../components/_shared/zen-context";
 
 /** Device presets: CSS-pixel screen size and the system safe areas the Figma frames use. */
 export const platformDevices = {
@@ -80,6 +81,11 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
 }) {
   const spec = platformDevices[device];
   const presented = useContext(PlatformPhoneModesContext);
+  // The phone's modes for the components inside, not just its tokens (data-breakpoint): an AppShell measures before it
+  // knows its width, and guessed the docs page's desktop, then remounted its Body as mobile, which dropped the focus a
+  // screen switch had just set (usePhoneScreen().go landed on <body>).
+  const zen = useZen();
+  const phoneZen = useMemo(() => ({ ...zen, breakpoint: "mobile" as const, typography: presented.typography ?? typography, density: presented.density ?? density }), [zen, presented.typography, presented.density, typography, density]);
   const fitRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -127,9 +133,11 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
       {/* The bezel is its own layer, outside the screen's backdrop root (platform.css › PlatformPhone). */}
       <span className="platform-phone-fit__bezel" style={frame} aria-hidden="true" />
       <div className={["platform-phone", className].filter(Boolean).join(" ")} data-device={device} data-canvas={canvas} data-typography={presented.typography ?? typography} data-density={presented.density ?? density} data-breakpoint="mobile" data-footer={footer ? "true" : undefined} data-header-overlay={headerOverlay && header ? "true" : undefined} data-zen-overlay-root="" style={vars} role="group" aria-label={`${label} (${spec.label}, ${spec.width}×${spec.height})`}>
-        {header ? <div ref={headerRef} className="platform-phone__header">{header}</div> : null}
-        <div ref={screenRef} className="platform-phone__screen">{children}</div>
-        {footer ? <div className="platform-phone__footer">{footer}</div> : null}
+        <ZenContext value={phoneZen}>
+          {header ? <div ref={headerRef} className="platform-phone__header">{header}</div> : null}
+          <div ref={screenRef} className="platform-phone__screen">{children}</div>
+          {footer ? <div className="platform-phone__footer">{footer}</div> : null}
+        </ZenContext>
         <div className="platform-phone__status" data-tone={statusBar} data-device={device} aria-hidden="true">
           <span className="platform-phone__time">9:41</span>
           {spec.island ? <span className="platform-phone__island" /> : null}

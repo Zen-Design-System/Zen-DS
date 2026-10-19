@@ -1,21 +1,26 @@
-import { useRef, useState, type CSSProperties } from "react";
+import { useId, useRef, useState, type CSSProperties } from "react";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
 import { PlatformPhone } from "../../PlatformPhone";
 import { Accordion } from "../../../components/Accordion";
+import { ActionBar } from "../../../components/ActionBar";
+import { AppShell } from "../../../components/AppShell";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { ColorPicker, type ColorFormat } from "../../../components/ColorPicker";
 import { ColorSwatch } from "../../../components/ColorSwatch";
+import { DescriptionList } from "../../../components/DescriptionList";
 import { Divider } from "../../../components/Divider";
 import { Form, FormActions } from "../../../components/Form";
+import { InlineMessage } from "../../../components/InlineMessage";
 import { ColorField, InputField, SelectField } from "../../../components/Input";
 import { Box, Stack } from "../../../components/Layout";
-import { List, ListItem } from "../../../components/ListItem";
+import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Heading, Text } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { keepOnHotUpdate } from "../../hotData";
+import { me } from "../data";
 import "./color-picker.css";
 
 export const page: PlatformPage = "color-picker";
@@ -132,21 +137,79 @@ function StatesExample() {
 
 /* ───────────── 5. Mobile: a theme setting on a phone ───────────── */
 
+/** Contrast of white text on a hex colour (WCAG 2.2 relative luminance), so the screen can warn before ticket text
+ *  gets hard to read. */
+function contrastWithWhite(hex: string) {
+  const digits = hex.replace("#", "");
+  const full = digits.length === 3 ? digits.split("").map((digit) => digit + digit).join("") : digits;
+  const [r, g, b] = [0, 2, 4].map((at) => parseInt(full.slice(at, at + 2), 16) / 255)
+    .map((channel) => (channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4));
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return Number.isFinite(luminance) ? 1.05 / (luminance + 0.05) : 21;
+}
+/** Where the Hanoi Book Fair app paints the event's colour. */
+const themePlaces = [
+  { id: "ticket", title: "Ticket header", caption: "On every ticket and in Apple Wallet" },
+  { id: "schedule", title: "Schedule highlights", caption: "The talks a visitor saved" },
+  { id: "reminder", title: "Reminder banner", caption: "30 minutes before a saved talk" },
+];
+
 function PhoneThemeExample() {
+  const { toast } = useToast();
   const screenRef = useRef<HTMLDivElement>(null);
-  const [theme, setTheme] = useState("#2E9E4F");
+  const previewId = useId();
+  const placesId = useId();
+  const [saved, setSaved] = useState("#8E44C4");
+  const [theme, setTheme] = useState(saved);
+  const dirty = theme.toUpperCase() !== saved.toUpperCase();
+  const ratio = contrastWithWhite(theme);
   return (
-    <PlatformPhone label="Event theme" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="Event theme" scrollRef={screenRef} />}>
-      <Stack gap="lg" padding="lg">
+    // A settings screen pushed from the event: the compact bar with Back, the field and what it paints in flat white
+    // blocks on the grey Canvas, and Reset / Save theme pinned in the Action bar (Figma Bottom=Actions).
+    <PlatformPhone label="Event theme" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="Event theme" scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to Event settings", children: dirty ? "The new colour isn't saved yet." : "Hanoi Book Fair 2026" }) }} />}
+        actionBar={<ActionBar direction="horizontal"
+          summary={<Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{dirty ? "Not saved yet" : "Saved · visitors see this colour"}</Text>}
+          secondaryAction={{ label: "Reset", disabled: !dirty, onClick: () => setTheme(saved) }}
+          primaryAction={{ label: "Save theme", disabled: !dirty, onClick: () => { setSaved(theme); toast({ type: "positive", title: "Theme saved", children: "Tickets, the schedule and reminders use it now." }); } }} />}
+      >
         {/* On a phone the field is Medium or larger; the picker opens under it, 240 wide, inside the 390 screen. */}
-        <ColorField label="Theme colour" value={theme} onValueChange={setTheme} savedColors={brandPalette} size="lg" helpText="Tickets, the schedule and reminders take this colour." />
-        <List aria-label="Where it shows">
-          {["Ticket header", "Schedule highlights", "Reminder banner"].map((place) => (
-            <ListItem key={place} title={place} leading={<ColorSwatch color={theme} size="md" />} />
-          ))}
-        </List>
-      </Stack>
+        <ColorField label="Theme colour" value={theme} onValueChange={setTheme} savedColors={brandPalette} size="lg" helpText="Pick from the event palette or type a hex value." />
+        {ratio < 4.5 ? (
+          <InlineMessage theme="warning" title="White text is hard to read on this colour">
+            {`It reaches ${ratio.toFixed(1)}:1; ticket text needs 4.5:1. Try a darker shade.`}
+          </InlineMessage>
+        ) : null}
+        <Stack as="section" gap="xs" aria-labelledby={previewId}>
+          <Box paddingX="lg"><Heading level={2} id={previewId} textStyle="Body/Small/Bold" tone="light">Ticket preview</Heading></Box>
+          <Card theme="flat">
+            <Stack gap="md">
+              {/* The preview paints the picked value: the app's own colour, not a Zen token, so the token-scale audit skips it. */}
+              <div className="px-color-picker-brand" data-audit-skip-quality style={{ "--px-color-picker-brand": theme } as CSSProperties}>
+                <Text as="span" textStyle="Body/Base/Bold" tone="on-colors">Hanoi Book Fair 2026</Text>
+                <Text as="span" textStyle="Body/Small/Regular" tone="on-colors">Day pass · Thống Nhất Park</Text>
+              </div>
+              <DescriptionList items={[
+                { id: "date", term: "Date", description: "Sat, Oct 31, 2026" },
+                { id: "gate", term: "Gate", description: "B · opens 8:30 am" },
+                { id: "holder", term: "Holder", description: me.name },
+              ]} />
+            </Stack>
+          </Card>
+        </Stack>
+        <Stack as="section" gap="xs" aria-labelledby={placesId}>
+          <Box paddingX="lg"><Heading level={2} id={placesId} textStyle="Body/Small/Bold" tone="light">Where it shows</Heading></Box>
+          <ListBox theme="flat">
+            <List aria-labelledby={placesId}>
+              {themePlaces.map((place) => (
+                <ListItem key={place.id} title={place.title} caption={place.caption} leading={<ColorSwatch color={theme} size="md" />} />
+              ))}
+            </List>
+          </ListBox>
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -213,13 +276,30 @@ const [format, setFormat] = useState("hsl");
   },
   {
     title: "Theme colour on a phone",
-    description: "A Large ColorField in a phone settings screen; the picker opens under it at 240px. Swatches beside the places it applies show the change at once.",
+    description: "A Large ColorField on an event's theme screen in the AppShell's mobile Bar; the picker opens under it at 240px. The ticket preview and the swatches beside the places it applies follow every change, a warning names the contrast when white ticket text would get hard to read, and Reset / Save theme in the Action bar wake up once the colour changes.",
     render: () => <PhoneThemeExample />,
-    code: `<ColorField label="Theme colour" value={theme} onValueChange={setTheme} size="lg"
-  savedColors={palette} helpText="Tickets, the schedule and reminders take this colour." />
-<List aria-label="Where it shows">
-  {places.map((place) => <ListItem key={place} title={place} leading={<ColorSwatch color={theme} />} />)}
-</List>`,
-    screen: true,
+    code: `const dirty = theme !== saved;
+const ratio = contrastWithWhite(theme); // WCAG relative luminance
+
+<PlatformPhone canvas="default" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Event theme" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+    actionBar={<ActionBar direction="horizontal"
+      summary={<Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{dirty ? "Not saved yet" : "Saved"}</Text>}
+      secondaryAction={{ label: "Reset", disabled: !dirty, onClick: () => setTheme(saved) }}
+      primaryAction={{ label: "Save theme", disabled: !dirty, onClick: save }} />}
+  >
+    <ColorField label="Theme colour" value={theme} onValueChange={setTheme} size="lg"
+      savedColors={palette} helpText="Pick from the event palette or type a hex value." />
+    {ratio < 4.5 ? <InlineMessage theme="warning" title="White text is hard to read on this colour">…</InlineMessage> : null}
+    <Card theme="flat">{/* the ticket, painted with the theme colour */}</Card>
+    <ListBox theme="flat">
+      <List aria-label="Where it shows">
+        {places.map((place) => <ListItem key={place.id} title={place.title} caption={place.caption} leading={<ColorSwatch color={theme} size="md" />} />)}
+      </List>
+    </ListBox>
+  </AppShell>
+</PlatformPhone>`,
   },
 ]);
