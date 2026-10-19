@@ -40,9 +40,9 @@ export const rows = [
     id: "AP-03", feature: "Effects warn with a fix: a shadowed surface takes no border", wp: "WP-D",
     async run(ctx) {
       const page = await selectBox(ctx);
-      // Border: a segmented control (none · pale · subtle) when its options fit the field column, else a select.
-      if (await inspectorRow(page, "border").locator(".zen-segmented").count()) await inspectorRow(page, "border").getByRole("button", { name: "pale", exact: true }).click();
-      else await pickOption(page, "border", "pale");
+      // Stroke (Figma's): + adds the first stroke, Pale (F5a 2026-10-19; it was a Border select in Appearance).
+      if (await inspectorRow(page, "border").count()) await pickOption(page, "border", "Neutral / Pale");
+      else await page.locator("#studio-right").getByRole("button", { name: "Add stroke" }).click();
       await expectSource(ctx, "box", (el) => el.attr("border") === "pale", "border pale");
       await page.locator("#studio-right").getByRole("button", { name: "Add effect" }).click();
       await expectSource(ctx, "box", (el) => el.attr("effectStyle") !== undefined, "an effect");

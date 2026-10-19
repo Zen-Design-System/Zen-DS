@@ -251,6 +251,34 @@ async function twoScreensPage(ctx) {
 /** The frames shown selected (their outline). */
 const selectedFrameIds = (page) => page.locator('.studio-frame[data-selected="true"]').evaluateAll((frames) => frames.map((frame) => frame.querySelector("[data-studio-frame]")?.getAttribute("data-studio-frame") ?? frame.getAttribute("data-studio-frame")));
 
+/** The walk frame (the Box that holds the two shapes): ⌘-click its Rectangle, then Esc as Figma's Select parent. */
+async function selectWalkFrame(page, id) {
+  await clickNamed(page, id, "Shape");
+  await until(async () => /^(Rectangle|Shape)/.test(await selectedName(page)), { message: "the Rectangle selected" });
+  await page.keyboard.press("Escape");
+  await until(async () => /^(Frame|Box)/.test(await selectedName(page)), { message: "its frame selected" });
+}
+const right = (page) => page.locator("#studio-right");
+/** Clicks an Inspector button by its accessible name. */
+const press = (page, name) => right(page).getByRole("button", { name, exact: true }).first().click();
+/** Types a value into an Inspector number field (Figma's scrub fields) and commits it. */
+async function typeNumber(page, name, value) {
+  const field = right(page).getByRole("spinbutton", { name, exact: true }).first();
+  await field.click();
+  await field.fill(String(value));
+  await field.press("Enter");
+}
+/** Waits until the page's code matches (or, with `gone`, no longer matches) `pattern`. */
+const written = (page, id, pattern, message, gone = false) => until(async () => pattern.test((await pageText(page, id)) ?? "") !== gone, { timeout: 15_000, message });
+/** With ZEN_E2E_SHOTS=<dir>, the right panel as a PNG there (proof for a review; nothing is written otherwise). */
+async function shot(page, name) {
+  const dir = process.env.ZEN_E2E_SHOTS;
+  if (!dir) return;
+  await right(page).screenshot({ path: `${dir}/${name}.png` }).catch(() => {});
+}
+/** Section titles of the Design tab, in order. */
+const sections = async (page) => (await right(page).locator("h3").allInnerTexts()).map((text) => text.trim());
+
 export const rows = [
   {
     id: "FW-01", feature: "⌘K opens Actions (Figma's command search), Esc closes it", wp: "F0 2026-10-18",
@@ -1264,6 +1292,109 @@ export const rows = [
       if (!/<Shape type="rectangle"/.test(code)) throw new Error(`code: ${code.slice(0, 160)}`);
       const tokens = (css.match(/var\(--zen-[\w-]+\)/g) ?? []).length;
       return `CSS ${css.split("\n").length - 2} declarations (${tokens} by variable: ${css.split("\n").slice(1).join(" ").slice(0, 400)}) · code <Shape …>`;
+    },
+  },
+  // F5 · right panel parity (docs/research/studio-f5-right-panel-spec-2026-10-19.md).
+  {
+    id: "FW-50", feature: "An auto layout frame's Design tab is in Figma's order: Position, Auto layout, Appearance, Fill, Stroke, Effects", wp: "F5 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      const headings = await sections(page);
+      const want = ["Position", "Auto layout", "Appearance", "Fill", "Stroke", "Effects"];
+      const at = want.map((title) => headings.indexOf(title));
+      if (at.some((index) => index < 0) || at.some((index, n) => n && index < at[n - 1])) throw new Error(`sections ${headings.join(", ")}`);
+      await shot(page, "fw-50-auto-layout-frame");
+      return headings.join(", ");
+    },
+  },
+  {
+    id: "FW-51", feature: "Fill + on an auto layout frame writes Surface on the Stack itself (one layer, no Box around it); − removes it", wp: "F5 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      await press(page, "Add fill");
+      await written(page, id, /<Stack\b[^>]*surface="surface"/, "surface on the Stack");
+      if (/<Box surface=/.test((await pageText(page, id)) ?? "")) throw new Error("a Box around the Stack");
+      await press(page, "Remove fill");
+      await written(page, id, /<Stack\b[^>]*surface=/, "the fill removed", true);
+      return "+ → <Stack surface=\"surface\"> → − → no fill";
+    },
+  },
+  {
+    id: "FW-52", feature: "Stroke + adds Pale; weight 2 writes borderWeight; − removes the stroke and its weight in one change", wp: "F5 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      await press(page, "Add stroke");
+      await written(page, id, /<Stack\b[^>]*border="pale"/, "border=\"pale\" on the Stack");
+      await typeNumber(page, "Stroke weight", 2);
+      await written(page, id, /<Stack\b[^>]*borderWeight=\{2\}/, "borderWeight={2}");
+      await shot(page, "fw-52-stroke");
+      await press(page, "Remove stroke");
+      await written(page, id, /<Stack\b[^>]*(border=|borderWeight=)/, "stroke and weight removed", true);
+      return "+ → Pale → weight 2 → − (both gone)";
+    },
+  },
+  {
+    id: "FW-53", feature: "Appearance opacity is the layer's percentage (Figma's): 40 writes opacity={40}, 100 removes it", wp: "F5 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      await typeNumber(page, "Opacity", 40);
+      await written(page, id, /<Stack\b[^>]*opacity=\{40\}/, "opacity={40}");
+      await typeNumber(page, "Opacity", 100);
+      await written(page, id, /<Stack\b[^>]*opacity=/, "opacity removed at 100%", true);
+      return "40% → opacity={40} → 100% → removed";
+    },
+  },
+  {
+    id: "FW-54", feature: "Position's Flip horizontal and Rotate 90° on a frame: a flip negates the rotation, two flips are a half turn", wp: "F5 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectWalkFrame(page, id);
+      await press(page, "Flip horizontal");
+      await written(page, id, /<Box\b[^>]*flip="horizontal"/, "flip=\"horizontal\"");
+      await press(page, "Rotate 90° right");
+      await written(page, id, /<Box\b[^>]*rotation=\{-90\}/, "rotation={-90}");
+      await shot(page, "fw-54-flipped-frame");
+      await press(page, "Flip horizontal");
+      await written(page, id, /<Box\b[^>]*rotation=\{90\}/, "rotation={90}, the flip undone");
+      if (/<Box\b[^>]*flip=/.test((await pageText(page, id)) ?? "")) throw new Error("still flipped");
+      await press(page, "Rotate 90° right");
+      await written(page, id, /<Box\b[^>]*(rotation|flip)=/, "upright again", true);
+      return "flip → rotate −90° → flip (90°, no flip) → rotate (upright)";
+    },
+  },
+  {
+    id: "FW-55", feature: "⇧A on a frame with a fill makes one auto layout Stack that keeps the fill (no Box > Stack)", wp: "F5 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectWalkFrame(page, id);
+      await press(page, "Add fill");
+      await written(page, id, /<Box\b[^>]*surface="surface"/, "the frame filled");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyA");
+      await written(page, id, /<Stack\b[^>]*surface="surface"[^>]*>\s*<Shape/, "one Stack with the fill around the shapes");
+      if (/<Box\b[^>]*surface="surface"/.test((await pageText(page, id)) ?? "")) throw new Error("the Box kept the fill");
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await written(page, id, /<Box\b[^>]*surface="surface"/, "⌘Z: the filled frame again");
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await written(page, id, /surface="surface"/, "⌘Z: no fill", true);
+      return "fill → ⇧A → <Stack surface> → ⌘Z ⌘Z";
+    },
+  },
+  {
+    id: "FW-56", feature: "An instance's properties sit right under its header, above Position (Figma UI3)", wp: "F5 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const headings = await sections(page);
+      const position = headings.indexOf("Position");
+      if (position <= 0) throw new Error(`Position first or missing: ${headings.join(", ")}`);
+      await shot(page, "fw-56-instance");
+      return headings.join(", ");
     },
   },
 ];

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Box effects gating selftest (spec docs/research/studio-position-effects-radius-spec-2026-10-03.md §3.6): a CSS assertion
+// Frame (Box, Stack, Grid) effects gating selftest (spec docs/research/studio-position-effects-radius-spec-2026-10-03.md §3.6): a CSS assertion
 // that effects.css cannot paint a drop shadow on Subtle, Pale, Surface-Alt or no fill (component-usage-rules §9), that the
 // background blur needs a translucent fill, that every listed style has exactly one rule on generated --zen-style-* tokens,
 // and that `clip` is overflow: clip. Also checks effectStyleKey() against the generated .zen-effect-* class names.
@@ -40,7 +40,8 @@ for (const rule of effectRules) {
   // Every value is a generated effect-style token: no raw shadow, blur, offset or colour.
   const values = rule.body.split(";").map((d) => d.trim()).filter(Boolean).map((d) => d.slice(d.indexOf(":") + 1).trim());
   check(`${rule.selector}: token values only`, values.every((v) => /^var\(--zen-style-[\w-]+\)$/.test(v)), rule.body);
-  check(`${rule.selector}: is a .zen-box rule`, rule.selector.startsWith(".zen-box"));
+  // Every frame (Box, Stack, Grid: appearance.ts) takes the effect styles, and only frames do.
+  check(`${rule.selector}: is a frame rule (Box, Stack, Grid)`, rule.selector.startsWith(":is(.zen-box, .zen-stack, .zen-grid)"));
   if (isShadow) {
     // §9: a drop shadow only on the Surface fill, never Subtle / Pale / Surface-Alt, never without a fill.
     check(`${rule.selector}: gated on surface="surface" only`, surfaces.length === 1 && surfaces[0] === "surface", `surfaces ${JSON.stringify(surfaces)}`);

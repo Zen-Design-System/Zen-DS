@@ -104,6 +104,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `layout/opacity-percent` | error | opacity is a percentage, as Figma's layer opacity (0 … 100): write opacity={50}, not CSS's 0.5. | `zen-allow-opacity-fraction: <reason>` |
 | `shape/token-paint` | error | A Shape's fill and stroke are Zen token paths (fill: Color/Background, stroke: Color/Border, or "none"), never hex, rgb or a var(). | `zen-allow-raw-shape-colour: <reason>` |
 | `shape/px-offset-in-auto-layout` | warn | px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps. | `zen-allow-px-offset: <reason>` |
 | `shape/line-no-height` | warn | A line or arrow has no height (Figma's LINE): its length is width, its angle rotation, its weight strokeWeight. | `zen-allow-line-height: <reason>` |

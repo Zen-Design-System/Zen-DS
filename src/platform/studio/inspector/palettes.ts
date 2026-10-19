@@ -3,8 +3,9 @@ import { cssVarOf, shapeFills, shapeFillTokens, shapeStrokes, shapeStrokeTokens,
 
 /*
  * The colour lists the Inspector's swatch control offers (PropField SwatchControl, Figma's Inline-Field Type=Color with
- * its variable list): Text / Heading / Icon `tone` (Color/Content), and a Shape's `fill` (Color/Background) and `stroke`
- * (Color/Border). Every option is a token, named by its path; its swatch paints with that token.
+ * its variable list): Text / Heading / Icon `tone` (Color/Content), a Shape's `fill` (Color/Background) and `stroke`
+ * (Color/Border), and a frame's `surface` and `border`. Every option is a token, named by its path; its swatch paints with
+ * that token.
  */
 
 export type SwatchPalette = {
@@ -14,6 +15,8 @@ export type SwatchPalette = {
   colorOf: (option: string) => string | null;
   /** Its token path ("Color/Background/Support/Blue/Soft"), or what it means. */
   caption: (option: string) => string;
+  /** The name the field and the list show (Figma names a bound colour by its variable: "Neutral / Subtle"). */
+  label: (option: string) => string;
   /** The option it paints as (an alias resolved), for "selected". */
   resolve: (option: string) => string;
   /** Families in list order. */
@@ -25,6 +28,7 @@ export const tonePalette: SwatchPalette = {
   has: (option) => toneSet.has(option),
   colorOf: (option) => (toneSet.has(option) ? contentToneVar(option as ContentTone) : null),
   caption: (option) => contentToneToken(option as ContentTone) ?? "Parent's color",
+  label: (option) => option,
   resolve: (option) => resolveContentTone(option as ContentTone),
   groups: contentToneGroups.map(({ name, tones }) => ({ name, options: tones })),
 };
@@ -42,6 +46,9 @@ function paintPalette(options: readonly string[], variables: Readonly<Record<str
     colorOf: (option) => (variables[option] ? cssVarOf(variables[option]) : null),
     // Its Figma variable, as Figma's list names it.
     caption: (option) => variables[option] ?? "No color",
+    // The variable's name in its collection's groups, as Figma's fill row shows it: Color/Background/Neutral/Subtle/
+    // Default → "Neutral / Subtle", Color/Border/Support/Blue/Solid → "Support / Blue / Solid".
+    label: (option) => (variables[option] ? variables[option].replace(/^Color\/(Background|Border)\//, "").replace(/\/Default$/, "").split("/").join(" / ") : "None"),
     resolve: (option) => option,
     groups,
   };
@@ -68,6 +75,15 @@ export const fillPalette = paintPalette(shapeFills, shapeFillTokens, [...commonF
 /** A Shape's stroke: Color/Border tokens. */
 export const strokePalette = paintPalette(shapeStrokes, shapeStrokeTokens, [...commonFamilies, ...supportFamilies]);
 
+/** A frame's fill (Box, Stack, Grid `surface`): the background layers, by their Color/Background variable. */
+export const surfacePalette = paintPalette(["none", "surface", "surface-alt", "subtle", "pale", "canvas"], {
+  surface: "Color/Background/Surface/Default", "surface-alt": "Color/Background/Surface/Alt", subtle: "Color/Background/Neutral/Subtle/Default",
+  pale: "Color/Background/Neutral/Pale/Default", canvas: "Color/Background/Canvas/Default",
+}, [{ name: "None", test: (option) => option === "none" }, { name: "Surface", test: (option) => option.startsWith("surface") }, { name: "Neutral", test: (option) => option === "subtle" || option === "pale" }, { name: "Canvas", test: (option) => option === "canvas" }]);
+/** A frame's stroke (Box, Stack, Grid `border`): the closed borders, Pale (static) and Subtle (actionable). */
+export const borderPalette = paintPalette(["none", "pale", "subtle"], { pale: "Color/Border/Neutral/Pale/Default", subtle: "Color/Border/Neutral/Subtle/Default" },
+  [{ name: "None", test: (option) => option === "none" }, { name: "Neutral", test: (option) => option !== "none" }]);
+
 /** The swatch list a prop's options belong to, or null (a plain select). */
 export function paletteFor(prop: string, options: readonly string[]): SwatchPalette | null {
   if (!options.length) return null;
@@ -75,5 +91,7 @@ export function paletteFor(prop: string, options: readonly string[]): SwatchPale
   if (prop === "tone" && fits(tonePalette)) return tonePalette;
   if (prop === "fill" && fits(fillPalette)) return fillPalette;
   if (prop === "stroke" && fits(strokePalette)) return strokePalette;
+  if (prop === "surface" && fits(surfacePalette)) return surfacePalette;
+  if (prop === "border" && fits(borderPalette)) return borderPalette;
   return null;
 }

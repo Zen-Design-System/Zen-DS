@@ -128,3 +128,30 @@ export const Clip: Story = {
     </Stack>
   ),
 };
+/**
+ * Figma's auto layout frame with a fill is one Stack: surface, stroke, corners and effect on the frame that lays out its
+ * content; opacity, rotation and flip as Figma's layer fields; a one-sided and a dashed stroke.
+ */
+export const FrameAppearance: Story = {
+  render: () => (
+    <Stack direction="row" gap="lg" align="start" wrap>
+      <Stack surface="surface" radius="xl" effectStyle="Shadow/Bottom/Level-1" padding="lg" gap="xs" width={240}>
+        <Text textStyle="Body/Base/Bold">One frame</Text>
+        <Text textStyle="Body/Small/Regular" tone="base">Fill, corners and shadow on the Stack itself.</Text>
+      </Stack>
+      <Stack surface="surface" border="pale" borderSides="bottom" paddingX="md" paddingY="sm" direction="row" justify="between" width={240}>
+        <Text textStyle="Body/Small/Medium">Bottom rule</Text>
+        <Badge background="subtle">Stroke › Bottom</Badge>
+      </Stack>
+      <Stack border="subtle" borderStyle="dashed" radius="lg" padding="lg" align="center" width={240}>
+        <Text textStyle="Body/Small/Medium">Dashed stroke (Subtle)</Text>
+      </Stack>
+      <Grid columns={2} gap="xs" surface="subtle" radius="lg" padding="sm" opacity={60} width={240}>
+        <Box surface="surface" radius="sm" padding="xs"><Text textStyle="Caption/Regular">Opacity</Text></Box>
+        <Box surface="surface" radius="sm" padding="xs"><Text textStyle="Caption/Regular">60%</Text></Box>
+      </Grid>
+      <Box surface="surface" border="pale" radius="md" padding="md" rotation={8}><Text textStyle="Body/Small/Medium">Rotation 8°</Text></Box>
+      <Box surface="surface" border="pale" radius="md" padding="md" flip="horizontal"><Text textStyle="Body/Small/Medium">Flip horizontal</Text></Box>
+    </Stack>
+  ),
+};
