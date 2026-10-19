@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Box `mask` (Figma's mask): the box's first layer is the mask and draws nothing; the layers after it show only
+  inside its outline, turned and flipped as drawn. Zen Studio's Use as mask (⌃⌘M, the canvas menu, Quick actions)
+  makes a Mask group of two or more floating layers, the bottom one the mask, and on a mask group removes it.
+  Figma push / pull carry it as the group's bottom layer with isMask (Zen plugin updated).
 - Zen Studio's View and Find like Figma (F10 of the parity plan): zoom from 2 % to 25 600 % (zoom to fit still stops
   at 400 %), the pixel grid from 400 % (⌘'), Outlines (⌘Y), rulers (⇧R) with guides dragged onto a frame or the canvas
   (back onto the ruler deletes one), layout guides on a frame (right panel › Layout guide: Columns, Rows or Grid; margin

@@ -7,6 +7,7 @@ import { Heading, Text } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import type { PlatformPage } from "../../PlatformExamples";
 import { studio } from "../data";
+import santorini from "../../../assets/media/site-santorini.webp";
 import type { ExampleDef } from "../types";
 
 export const page: PlatformPage = "shape";
@@ -217,6 +218,32 @@ export const examples: ExampleDef[] = [
           <Shape type="vector" position="absolute" insetLeft={0} insetTop={0} width={40} height={40} d="M 20 0 C 31 0 40 9 40 20 C 40 31 31 40 20 40 C 9 40 0 31 0 20 C 0 9 9 0 20 0 Z M 20 10 L 30 20 L 20 30 L 10 20 Z" viewBox="0 0 40 40" fillRule="evenodd" fill="accent-solid" stroke="none" />
         </Box>
         <Text textStyle="Body/Base/Bold">{studio.name}</Text>
+      </Stack>
+    ),
+  },
+  {
+    title: "A trip photo in a star (Use as mask)",
+    description: "A mask group (⌃⌘M): the Star is the mask and the photo above it shows only inside the star; the star itself draws nothing. The price sits beside it in the frame.",
+    code: `<Stack direction="row" gap="md" align="center">
+  <Box group mask width={120} height={120} role="img" aria-label="Santorini">
+    <Shape type="star" position="absolute" insetLeft={0} insetTop={0} width={120} height={120} pointCount={8} starRatio={78} />
+    <Box image={photo} position="absolute" insetLeft={0} insetTop={0} width={120} height={120} />
+  </Box>
+  <Stack gap="2xs">
+    <Text textStyle="Body/Base/Bold">Santorini, 4 nights</Text>
+    <Text tone="base">From $1,280 · Oct 12 – 16</Text>
+  </Stack>
+</Stack>`,
+    render: () => (
+      <Stack direction="row" gap="md" align="center">
+        <Box group mask width={120} height={120} role="img" aria-label="Santorini">
+          <Shape type="star" position="absolute" insetLeft={0} insetTop={0} width={120} height={120} pointCount={8} starRatio={78} />
+          <Box image={santorini} position="absolute" insetLeft={0} insetTop={0} width={120} height={120} />
+        </Box>
+        <Stack gap="2xs">
+          <Text textStyle="Body/Base/Bold">Santorini, 4 nights</Text>
+          <Text tone="base">From $1,280 · Oct 12 – 16</Text>
+        </Stack>
       </Stack>
     ),
   },

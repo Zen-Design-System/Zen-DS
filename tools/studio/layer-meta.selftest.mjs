@@ -61,6 +61,8 @@ const code = compileReact(PAGE, { file: "names.zen.tsx" }).code;
 check("export keeps a layer's name, never its lock", [code.includes('data-name="Price row"'), code.includes("data-locked")], [true, false]);
 
 check("a Box marked as a group is Figma's Group", [autoNameBase({ name: "Box", props: { group: { kind: "literal", value: true } } }), autoNameBase({ name: "Box", props: {} })], ["Group", "Frame"]);
+// A mask group (⌃⌘M, Box group mask) is Figma's "Mask group", unnumbered, and that name is an automatic one.
+check("a mask group is Figma's Mask group, unnumbered", [autoNameBase({ name: "Box", props: { group: { kind: "literal", value: true }, mask: { kind: "literal", value: true } } }), isAutomaticName("Mask group", null)], ["Mask group", true]);
 check("batch rename: the current name, numbers up and down, padded", batchNames(["Card", "Card", "Card"], "$& $n · $NN"), ["Card 1 · 03", "Card 2 · 02", "Card 3 · 01"]);
 check("batch rename: start from", batchNames(["a", "b"], "Item $nnn", { start: 9 }), ["Item 009", "Item 010"]);
 check("batch rename: match replaces that part only", batchNames(["Button primary", "Button secondary"], "CTA", { match: "Button" }), ["CTA primary", "CTA secondary"]);

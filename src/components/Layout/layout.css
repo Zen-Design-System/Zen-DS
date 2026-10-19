@@ -31,6 +31,10 @@
 .zen-grid[data-align="end"] { align-items: end; }
 
 .zen-box { min-width: 0; padding-block: var(--zen-box-padding-block, 0); padding-inline: var(--zen-box-padding-inline, 0); border-radius: var(--zen-box-radius, 0); }
+/* mask (Figma's mask, mask.tsx): the first layer only shapes the clip (it draws nothing), the others show inside it. */
+.zen-box[data-mask="true"] { clip-path: var(--zen-box-mask, none); }
+.zen-box[data-mask="true"] > :first-child { visibility: hidden; }
+.zen-box__mask { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
 /* scroll (Figma Overflow scrolling): one axis scrolls inside the frame, and the scroll stays inside it. */
 :is(.zen-stack, .zen-box)[data-scroll="y"] { overflow-y: auto; overscroll-behavior: contain; }
 :is(.zen-stack, .zen-box)[data-scroll="x"] { overflow-x: auto; overscroll-behavior-x: contain; }

@@ -1334,6 +1334,10 @@ export default function Page() {
 `;
   const pushedGroup = find(push(groupPage).frame, (node) => node.group === true);
   check("push: a Box group is a frame marked group, named Group", pushedGroup && [pushedGroup.type, pushedGroup.name], ["FRAME", "Group"]);
+  // A mask group (⌃⌘M, Box group mask): marked mask, named as Figma names it; the importer sets isMask on its first layer.
+  const maskPage = groupPage.replace("<Box group position=", "<Box group mask position=");
+  const pushedMask = find(push(maskPage).frame, (node) => node.group === true);
+  check("push: a mask group is a group frame marked mask, named Mask group", pushedMask && [pushedMask.name, pushedMask.mask], ["Mask group", true]);
   // A free frame of a px size (Box width={200} height={100} in a column) keeps it: Fixed, not Fill (2026-10-19, the live
   // Zen file: a 560 × 240 free frame came out as tall as its layers).
   const freeFrame = find(push(groupPage).frame, (node) => node.type === "FRAME" && node.fixedWidth === 200);

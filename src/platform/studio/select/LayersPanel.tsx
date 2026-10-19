@@ -755,11 +755,19 @@ const componentOfRow = (node: LayerNode) => {
   return props?.["data-zen-main"] ? "main" : props?.["data-zen-instance"] ? "instance" : undefined;
 };
 
+/** The first layer of a Box with `mask` (its host element's first child): the mask, which draws nothing itself. */
+function isMaskLayer(node: LayerNode) {
+  const host = firstHostOf(node);
+  return host instanceof Element && host.parentElement?.matches('.zen-box[data-mask="true"]') === true && host.parentElement.firstElementChild === host;
+}
+
 function rowIcon(node: LayerNode, front: boolean): IconName {
   // A page you made: a frame is Figma's frame (#); a code page's frames are its sections.
   if (node.kind === "frame") return front ? (isSectionId(node.frameId) ? "icon-browser-line" : "icon-hash-01-line") : "icon-layout-alt-01-line";
   // Figma's layer icons (select/layerNames.ts): a component's ◇ (its main and its instances), a shape's own, a frame's
   // # (Box), auto layout by its direction (Stack), text's T.
+  // The mask of a mask group (Box mask: its first layer, ⌃⌘M): Figma's mask icon.
+  if (node.kind === "node" && isMaskLayer(node)) return "icon-contrast-01-line";
   const own = node.kind === "node" ? objectIcon(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : null;
   if (own) return own;
   if (node.kind === "panel") return node.frameId === MAIN_FRAME ? (node.isComponent ? "icon-cube-line" : "icon-grid-01-line") : "icon-sliders-04-line";
