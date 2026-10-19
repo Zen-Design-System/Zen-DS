@@ -251,6 +251,24 @@ async function twoScreensPage(ctx) {
 /** The frames shown selected (their outline). */
 const selectedFrameIds = (page) => page.locator('.studio-frame[data-selected="true"]').evaluateAll((frames) => frames.map((frame) => frame.querySelector("[data-studio-frame]")?.getAttribute("data-studio-frame") ?? frame.getAttribute("data-studio-frame")));
 
+/* ── F6 (text) helpers ──────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** The walk page's free frame (the Box holding two shapes) on the canvas. */
+const freeFrame = (page, id) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).first();
+/** Presses T and clicks (or drags to `to`) at `at` (screen px). */
+async function textTool(page, at, to = null) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("KeyT");
+  await page.mouse.move(at.x, at.y);
+  await page.mouse.down();
+  if (to) {
+    await page.mouse.move((at.x + to.x) / 2, (at.y + to.y) / 2, { steps: 4 });
+    await page.mouse.move(to.x, to.y, { steps: 4 });
+  }
+  await page.mouse.up();
+}
+const textEditing = (page) => page.locator("[data-studio-text-editing]").count();
+
 export const rows = [
   {
     id: "FW-01", feature: "⌘K opens Actions (Figma's command search), Esc closes it", wp: "F0 2026-10-18",
@@ -1264,6 +1282,140 @@ export const rows = [
       if (!/<Shape type="rectangle"/.test(code)) throw new Error(`code: ${code.slice(0, 160)}`);
       const tokens = (css.match(/var\(--zen-[\w-]+\)/g) ?? []).length;
       return `CSS ${css.split("\n").length - 2} declarations (${tokens} by variable: ${css.split("\n").slice(1).join(" ").slice(0, 400)}) · code <Shape …>`;
+    },
+  },
+  {
+    id: "FW-60", feature: "T, a click on a frame and typing at once: an Auto width text of the typed words at the click (Figma's Text tool); Esc leaves it selected; ⌘Z", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await freeFrame(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.7, y: box.y + box.height * 0.75 });
+        await page.keyboard.type("Hello", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => /<Text wrap=\{false\}>Hello<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "an Auto width text Hello" });
+        const text = (await pageText(page, id)) ?? "";
+        if (!/<Box position="absolute" insetLeft=\{\d+\} insetTop=\{\d+\}><Text wrap=\{false\}>Hello<\/Text><\/Box>/.test(text)) throw new Error("the text does not float at the click in the frame");
+        await until(async () => (await selectedName(page)) === "Text", { message: "the text selected" });
+        if (await textEditing(page)) throw new Error("the editor is still open after Esc");
+        return "T + click + Hello + Esc → <Text wrap={false}>Hello</Text> at the click, selected";
+      });
+    },
+  },
+  {
+    id: "FW-61", feature: "T and a drag: a text box of the dragged width (Auto height), typed at once", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await freeFrame(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.4, y: box.y + box.height * 0.7 }, { x: box.x + box.width * 0.9, y: box.y + box.height * 0.8 });
+        await page.keyboard.type("Wide", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => /<Text width=\{\d+\}>Wide<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "an Auto height text of the dragged width" });
+        return ((await pageText(page, id)) ?? "").match(/<Text width=\{\d+\}>Wide<\/Text>/)?.[0];
+      });
+    },
+  },
+  {
+    id: "FW-62", feature: "T, a click and Esc without typing: no text layer is left (Figma keeps no empty text)", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const box = await freeFrame(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.7, y: box.y + box.height * 0.75 });
+        await until(async () => (await textEditing(page)) > 0, { message: "the editor open" });
+        await page.keyboard.press("Escape");
+        await until(async () => (await pageText(page, id)) === before, { message: "the untouched text removed again" });
+        return "T + click + Esc → the page as before";
+      });
+    },
+  },
+  {
+    id: "FW-63", feature: "Enter in a text layer is a new line (Esc leaves): the text keeps its two lines in code and on the canvas", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await freeFrame(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.6, y: box.y + box.height * 0.6 });
+        await page.keyboard.type("First", { delay: 20 });
+        await page.keyboard.press("Enter");
+        await page.keyboard.type("Second", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => /<Text wrap=\{false\}>\{"First\\nSecond"\}<\/Text>/.test((await pageText(page, id)) ?? ""), { message: 'the text {"First\\nSecond"}' });
+        const lines = () => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Text"]`, { hasText: "Second" }).first().evaluate((element) => Math.round(element.offsetHeight / Number.parseFloat(getComputedStyle(element).lineHeight)));
+        await until(async () => (await lines()) === 2, { message: "two lines on the canvas" }).catch(async () => { throw new Error(`the canvas shows ${await lines()} line(s)`); });
+        return 'Enter → {"First\\nSecond"}, two lines on the canvas';
+      });
+    },
+  },
+  {
+    id: "FW-64", feature: "Emptying a text layer and leaving it deletes the layer (and its floating frame)", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await freeFrame(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.7, y: box.y + box.height * 0.75 });
+        await page.keyboard.type("Bye", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => />Bye<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Bye written" });
+        const made = (await pageText(page, id)) ?? "";
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Enter");
+        await until(async () => (await textEditing(page)) > 0, { message: "Enter edits the text" });
+        await page.keyboard.press("Backspace");
+        await page.keyboard.press("Escape");
+        await until(async () => !/Bye/.test((await pageText(page, id)) ?? ""), { message: "the emptied text deleted" });
+        const text = (await pageText(page, id)) ?? "";
+        if (/<Box position="absolute" insetLeft=\{\d+\} insetTop=\{\d+\}>\s*<\/Box>/.test(text) || (text.match(/<Box /g) ?? []).length !== (made.match(/<Box /g) ?? []).length - 1) throw new Error("its floating frame stayed");
+        return "Enter, ⌫, Esc → the text and its floating frame deleted";
+      });
+    },
+  },
+  {
+    id: "FW-65", feature: "T on the words of a text layer puts the caret there (no new text): typing goes in at the caret", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await freeFrame(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.6, y: box.y + box.height * 0.75 });
+        await page.keyboard.type("Hello", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => />Hello<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Hello written" });
+        const texts = ((await pageText(page, id)) ?? "").match(/<Text\b/g)?.length ?? 0;
+        const words = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Text"]`, { hasText: "Hello" }).first().boundingBox();
+        await textTool(page, { x: words.x + words.width - 1, y: words.y + words.height / 2 });
+        await until(async () => (await textEditing(page)) > 0, { message: "the words being edited" });
+        await page.keyboard.type("!", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => />Hello!<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Hello! written" });
+        if ((((await pageText(page, id)) ?? "").match(/<Text\b/g)?.length ?? 0) !== texts) throw new Error("T made another text");
+        return "T on Hello's end + ! → Hello!, no new text";
+      });
+    },
+  },
+  {
+    id: "FW-66", feature: "Typography › Resizing: Auto height writes the text's width, Fixed size its width and height, Auto width wrap={false} (one ⌘Z each)", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await freeFrame(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.6, y: box.y + box.height * 0.75 });
+        await page.keyboard.type("Size", { delay: 20 });
+        await page.keyboard.press("Escape");
+        const tag = async () => ((await pageText(page, id)) ?? "").match(/<Text [^>]*>Size<\/Text>/)?.[0] ?? "";
+        await until(async () => /wrap=\{false\}/.test(await tag()), { message: "Size written" });
+        const row = page.locator('#studio-right [data-prop="text-resizing"]');
+        await row.waitFor({ state: "visible", timeout: 5000 });
+        const pick = (name) => row.getByRole("radio", { name }).or(row.getByRole("button", { name })).first().click();
+        await pick("Auto height");
+        await until(async () => /^<Text width=\{\d+\}>/.test(await tag()), { message: "Auto height: a width" });
+        await pick("Fixed size");
+        await until(async () => /^<Text width=\{\d+\} height=\{\d+\}>/.test(await tag()), { message: "Fixed size: width and height" });
+        await pick("Auto width");
+        await until(async () => /^<Text wrap=\{false\}>/.test(await tag()), { message: "Auto width again" });
+        return "Auto height → width, Fixed size → width + height, Auto width → wrap={false}";
+      });
     },
   },
 ];

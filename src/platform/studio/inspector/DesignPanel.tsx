@@ -45,6 +45,7 @@ import { PositionSection, positionProps } from "../position";
 import { useFocusContentToken } from "./focusContent";
 import { ValueCell } from "./PartPanel";
 import { BoundValue, PropField, TextControl, TypographyControl } from "./PropField";
+import { TextResize } from "../edit/TextResize";
 import {
   attributeSpec, componentSlug, dataEditable, isLayoutProp, isSkippedProp, kindLabel, layoutComponents, literalOf, nodeKind, propLabel, propSpecs, requiredProps, textComponents, textProps, valueOf,
   type Literal, type PropSpec, type PropValue,
@@ -222,6 +223,8 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
             component={name}
           />
         ))}
+        {/* Figma's Auto width · Auto height · Fixed size on a Text or Heading (F6, edit/TextResize.tsx). */}
+        {name === "Text" || name === "Heading" ? <InspectorRow label="Resizing" name="text-resizing"><TextResize element={element} /></InspectorRow> : null}
         {classRows}
       </InspectorSection>
     );

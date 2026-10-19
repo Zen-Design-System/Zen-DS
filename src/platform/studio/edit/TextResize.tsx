@@ -3,7 +3,7 @@ import { applyEdit } from "../api";
 import { getViewport } from "../canvas/viewport";
 import { findBySrc } from "../select/picker";
 import { canEdit, useStudio } from "../store";
-import type { EditOp, SourceAttr, SourceElement, StudioSelection } from "../types";
+import type { EditOp, SourceAttr, SourceElement } from "../types";
 
 /*
  * Figma's text resizing (Typography › Auto width · Auto height · Fixed size, F6) for a Text or Heading layer, on the
@@ -43,15 +43,17 @@ const OPTIONS = [
   { id: "fixed", label: "", leading: "icon-square-line", "aria-label": "Fixed size" },
 ] as const;
 
-export function TextResize({ selection, element }: { selection: StudioSelection & { kind: "node" }; element: SourceElement }) {
+export function TextResize({ element }: { element: SourceElement }) {
   const editable = useStudio((state) => canEdit(state) && Boolean(state.localPage));
+  const selection = useStudio((state) => state.selection);
   if (element.name !== "Text" && element.name !== "Heading") return null;
   const current = textResizingOf(element.attributes);
   const onValueChange = (value: string) => {
     if (value === current) return;
     const world = document.querySelector(".studio-world");
-    const hits = world ? findBySrc(world, selection.src) : [];
-    const host = (hits[selection.instance] ?? hits[0])?.hosts[0];
+    const node = selection?.kind === "node" ? selection : null;
+    const hits = world && node ? findBySrc(world, node.src) : [];
+    const host = (hits[node?.instance ?? 0] ?? hits[0])?.hosts[0];
     const zoom = getViewport().zoom || 1;
     const rect = host?.getBoundingClientRect();
     const size = rect ? { width: rect.width / zoom, height: rect.height / zoom } : { width: 100, height: 20 };

@@ -4,7 +4,7 @@ import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { multiSelection } from "../select/multiSelection";
 import { rowOf } from "../inspector/detach";
-import { childHits, fiberOf, findBySrc, srcOf, type Fiber } from "../select/picker";
+import { childHits, fiberOf, findBySrc, onSourceUpdate, srcOf, type Fiber } from "../select/picker";
 import { canEdit, studioStore } from "../store";
 import { cellFieldOf, rowFieldsOf, tableCellOf } from "../table/tableCells";
 import { propSpecs } from "../inspector/propSchema";
@@ -432,7 +432,14 @@ if (typeof window !== "undefined") {
     elementCache.clear();
     prefetch(next);
   });
-  import.meta.hot?.dispose(stop);
+  // An edit of the selected layer (its words typed, F6) changes its source: read it again, or Enter would look for the
+  // words it had before and not edit it.
+  const offSource = onSourceUpdate(() => {
+    cachedFor = null;
+    elementCache.clear();
+    prefetch(studioStore.getState().selection);
+  });
+  import.meta.hot?.dispose(() => { stop(); offSource(); });
 }
 
 /** Enter: true when the selected layer is a text layer and its editor opens. */
