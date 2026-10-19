@@ -217,6 +217,31 @@ describe("AppShell mobile patterns", () => {
     expect(document.querySelector(".zen-app-shell__stage .zen-top-nav")?.getAttribute("data-type")).toBe("transparent-on-color");
   });
 
+  it("writes the bar's capline and title in On-Accent on the Accent band, each on one line", async () => {
+    await render(
+      <div style={{ width: 390 }}>
+        <ZenProvider>
+          <AppShell layout="mobile" mobileTop="band-sheet" band="accent"
+            topNavigation={<TopNavigation largeTitleCapline="GOOD MORNING, IT'S A BRIGHT WEDNESDAY IN HANOI" largeTitle="Madelyn Dias" />}
+            hero={<Text>Recent quiz</Text>}>
+            <p>Live quizzes</p>
+          </AppShell>
+        </ZenProvider>
+      </div>,
+    );
+    const shell = document.querySelector<HTMLElement>(".zen-app-shell")!;
+    const probe = document.createElement("span");
+    probe.style.color = "var(--zen-color-content-on-accent-default)";
+    shell.append(probe);
+    const onAccent = getComputedStyle(probe).color;
+    probe.remove();
+    const capline = document.querySelector<HTMLElement>(".zen-top-nav__capline")!;
+    expect(getComputedStyle(capline).color).toBe(onAccent);
+    expect(getComputedStyle(document.querySelector<HTMLElement>(".zen-top-nav__expand h1, .zen-top-nav h1")!).color).toBe(onAccent);
+    expect(getComputedStyle(capline).whiteSpace).toBe("nowrap");
+    expect(getComputedStyle(capline).textOverflow).toBe("ellipsis");
+  });
+
   it("keeps the band's own fill and bar on the default band", async () => {
     await render(<Responsive width={390} mobileTop="band" />);
     expect(document.querySelector(".zen-app-shell")?.hasAttribute("data-band")).toBe(false);

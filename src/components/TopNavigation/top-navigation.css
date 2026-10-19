@@ -38,7 +38,9 @@
 /* Transparent (Figma 12014:45167 Type=Transparent / Transparent-On-Color): no fill, for a bar that sits on a band of the page
    (AppShell mobileTop="band" | "band-sheet") or over a colour or photo; On-Color takes white content. */
 .zen-top-nav:is([data-type="transparent"], [data-type="transparent-on-color"]) { --zen-top-nav-fill: transparent; }
-.zen-top-nav[data-type="transparent-on-color"] { --zen-top-nav-content: var(--zen-color-content-on-black-overlay-strongest, #fff); }
+/* Transparent-On-Color: the bar over a colour fill. Its content is On-Black-Overlay unless the fill names its own
+   content colour (--zen-on-fill-content: AppShell band="accent" sets On-Accent, user 2026-10-19: Figma D5). */
+.zen-top-nav[data-type="transparent-on-color"] { --zen-top-nav-content: var(--zen-on-fill-content, var(--zen-color-content-on-black-overlay-strongest, #fff)); }
 
 /* Scroll-linked collapse (scrollRef). The fold (Expand-Heading, plus a Search Control-Bar that folds into searchAction)
    slides up by --zen-top-nav-fold with the content, 1:1, and is cut where it passes under the bar; a pinned Control-Bar
@@ -108,6 +110,7 @@
 .zen-top-nav :is(.zen-top-nav__leading, .zen-top-nav__trailing, .zen-top-nav__expand-trailing) .zen-avatar[data-size] { --zen-avatar-size: var(--zen-navigation-action-size, 44px); }
 .zen-top-nav__capline, .zen-top-nav__subheading { overflow: hidden; margin: 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
 .zen-top-nav:is([data-type$="overlay"], [data-type="transparent-on-color"]) :is(.zen-top-nav__capline, .zen-top-nav__subheading) { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
+.zen-top-nav[data-type="transparent-on-color"] :is(.zen-top-nav__capline, .zen-top-nav__subheading, .zen-top-nav__identity-subtitle) { color: var(--zen-on-fill-content, var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%))); }
 /* Control-Bar (Figma Control-Bar 12014:44764 › Control-Slot 12014:44786): no padding and no height of its own (it hugs
    its slot), the slot a column of controls Spacing/Gap/XSmall (8) apart; each Figma screen wraps its controls in a
    padded frame. This wrapper is that frame: the bar's side margin (Margin-Comfortable 20 · Margin-Compact 16, as

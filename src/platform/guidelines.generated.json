@@ -7924,7 +7924,7 @@
       [
         "Band",
         "band",
-        "subtle (default, Support/Brand/Subtle) · pale · soft · accent (Background/Accent/Solid): the fill of Top=Band and Band-Sheet, as Figma's screens override it; on accent the TopNavigation turns transparent-on-color and the hero's text takes tone=\"on-accent\""
+        "subtle (default, Support/Brand/Subtle) · pale · soft · accent (Background/Accent/Solid): the fill of Top=Band and Band-Sheet, as Figma's screens override it; on accent the TopNavigation turns transparent-on-color with its title, capline and subheading in On-Accent (one line each), and the hero's text takes tone=\"on-accent\""
       ],
       [
         "Mobile Bottom",

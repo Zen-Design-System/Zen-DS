@@ -186,6 +186,9 @@
 /* On the Accent/Solid band an Accent focus ring would vanish into the fill: the band's controls (the bar's actions, the
    hero's) ring in Focus/Neutral/Solid, as on any colour fill; the page's sheet keeps the Accent ring. */
 .zen-app-shell[data-band="accent"] :is(.zen-app-shell__band, .zen-app-shell__stage > :not(.zen-app-shell__body)) { --zen-color-focus-accent-solid: var(--zen-color-focus-neutral-solid); }
+/* Content on the Accent/Solid band is On-Accent (user 2026-10-19, Figma D5's Capline and title): the Transparent-On-Color
+   bar reads it (--zen-on-fill-content, top-navigation.css); its lines stay on one line with an ellipsis. */
+.zen-app-shell[data-band="accent"] :is(.zen-app-shell__band, .zen-app-shell__stage > :not(.zen-app-shell__body)) { --zen-on-fill-content: var(--zen-color-content-on-accent-default); }
 .zen-app-shell__band { flex: 0 0 auto; border-end-end-radius: var(--zen-corner-radius-2-xlarge, 24px); border-end-start-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-app-shell-band); }
 .zen-app-shell[data-top="band"] .zen-app-shell__top-nav, .zen-app-shell__stage .zen-app-shell__top-nav { position: relative; top: auto; }
 .zen-app-shell[data-layout="mobile"][data-top="band"] .zen-app-shell__body { padding-top: var(--zen-spacing-padding-xlarge, 24px); }

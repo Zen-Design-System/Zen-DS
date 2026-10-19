@@ -800,7 +800,8 @@ removed (four unused colour ramps were, see Removed).
   (◇ Master-Layout · Example A1–A4).
 - AppShell `band`: `"subtle"` (default) · `"pale"` · `"soft"` · `"accent"` fills the mobile Top=Band and Band-Sheet, as
   Figma's examples override the band (E2 Pale, E1 Soft, D5 and E7 Accent/Solid). On `accent` the TopNavigation takes
-  `transparent-on-color` (user, 2026-10-19).
+  `transparent-on-color` and writes its title, capline and subheading in On-Accent, each on one line with an ellipsis
+  (user, 2026-10-19); elsewhere a Transparent-On-Color bar keeps On-Black-Overlay.
 - ActionBar side by side on a phone: the Primary keeps its whole label and the other button gives way (user,
   2026-10-19, Figma C5 "Mark as shipped"). AppShell's floating clearance and a Transparent TopNavigation on Top=Bar (the
   sticky row takes the page canvas, so the page no longer shows through when it scrolls) follow Figma too.
