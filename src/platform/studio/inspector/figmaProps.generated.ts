@@ -1572,6 +1572,18 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       },
       {
+        "prop": "value",
+        "label": "Progress",
+        "type": "VARIANT",
+        "options": {
+          "None": "0",
+          "Low": "20",
+          "Medium": "40",
+          "Good": "80",
+          "Done": "100"
+        }
+      },
+      {
         "prop": "layout",
         "label": "Layout",
         "type": "VARIANT",
