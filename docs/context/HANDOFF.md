@@ -165,10 +165,31 @@ Last updated: 2026-10-19.
   right panel (`builder/FramePresets.tsx`), a click = 100 × 100, frame handles + X / Y / W / H written in the page
   (`board/FrameHandles.tsx`, `builder/FrameGeometry.tsx`), Sections `<Section>` beside the frames (membership by
   place, `board/sections.ts`), N / ⇧N, Pages order + dividers (`builder/store/pageOrderStore.ts`); FW-40…49.
+  **F6 + F8 (C, one PR):** the Text tool (T click / drag, typing at once; Enter is a new line only on pages you made),
+  `TextRun` mixed styles (⌘B ⌘I ⌘U ⇧⌘X; TEXT `segments` to and from Figma, `tools/studio/text-runs.mjs`), image fills
+  on Shape and frames (`image` / `imageFit` / `imageCrop` / `imageScale`, `_shared/image-fill.ts`), ⇧⌘K file dialog +
+  drop / paste pictures, Fill › Image, crop on the canvas (`draw/CropHandles.tsx`), `tools/studio/figma-image.mjs`;
+  FW-60…69, FW-80…87. **F10 (C):** zoom 2 %–25 600 %, pixel grid ⌘', Outlines ⌘Y, rulers ⇧R + guides, layout guides
+  ⌃G (right panel › Layout guide; Breakpoint & Grids margin / gutter), page canvas Background, Find and replace ⌘F
+  (`canvas/viewOptions.ts`, `canvas/Rulers.tsx`, `canvas/LayoutGuides.tsx`, `edit/FindPanel.tsx`); guides, layout
+  guides and the background live in the page header; FW-100…105. Free frames ↔ Figma layoutMode NONE: separate fix PR.
+  **F8c (C):** the direct ⌘C → ⌘V places pictures: image fills as Image paints with their bytes as message blobs
+  (meta URLs only work for pictures Figma already has; a WebP goes as PNG), Shape rectangles / ellipses as Figma's own
+  layers, an Avatar's photo and the table's Avatar / Photo cells through the pack's `img` layers
+  (`native-pack.mjs images-code` / `images`); research studio-native-paste §7c.
   **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides / dash, corners, effect,
   opacity, rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame with a fill is one Stack
-  in code, push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed values, variable pills,
-  W / H math, ratio lock) and F5c next: spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
+  in code, push / pull and the Zen plugin; the right panel is in Figma's order.
+  **F5b + F5c (B, #151):** typed values snap to variables (variable pills, W / H math, ratio lock, nearest colours),
+  Export, a text's Fill and style details, several frames at once, Selection colors, Local styles; spec
+  `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
+  **F7 (B, #152):** component sets and variants (`<ComponentSet>`, Combine as variants, Add variant), properties and
+  their bindings (`data-prop-*`), instance values, overrides inside an instance (`<Use overrides>`; layer paths in
+  `tools/studio/instance-paths.mjs`; ⌘-click into an instance, `inspector/LocalPartPanel.tsx`), Reset / Push changes
+  to main, slot content (`<Use slots>`), Assets › Local; React export, push / pull and the Zen plugin (`studio-import`
+  1785c37); specs `docs/research/studio-f7-components-spec-2026-10-19.md`, `…f7b-instance-overrides-spec-2026-10-19.md`.
+  Same PR: the right panel on one grid, using the shared Inline-Field (E2E `panelFits`), and E2E retries that start
+  from the documents the row found. Open: BACKLOG "Studio components, after F7a/F7b".
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures

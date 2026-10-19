@@ -14,7 +14,7 @@ import { PALETTE, PALETTE_GROUPS, type PaletteItem } from "../../slots/palette";
 import { useStudio } from "../../store";
 import { announceEditStatus, subscribeStudioWrites } from "../../api";
 import { pageFile } from "../../builder/store/pageStore";
-import { mainsOf, type MainRef } from "../localComponents";
+import { mainsOf, setsOf } from "../localComponents";
 import { altOf, removeUpload, UPLOAD_ACCEPT, uploadPhotos, useUploads } from "../../builder/assets/uploads";
 import { iconInsertable, insertAsset, insertItem, paletteInsertable, photoInsertable, pressAsset, uploadInsertable, type Insertable } from "./assets";
 import { AssetThumb } from "./AssetThumb";
@@ -109,41 +109,54 @@ export function AssetsPanel() {
 
 /* ── the libraries (no search) ───────────────────────────────────────────────────────────────────── */
 
-/** The open page's main components (Figma's Local components), read again after every write. */
-function useLocalComponents(): MainRef[] {
+/** A component of the open page as an asset (Figma's Local components): a set (one tile for its variants) or a lone main. */
+type LocalAsset = { id: string; name: string; description?: string; uses: number; variants: number | null };
+
+/** The open page's component sets and lone main components, read again after every write. */
+function useLocalComponents(): LocalAsset[] {
   const localPage = useStudio((state) => state.localPage);
-  const [mains, setMains] = useState<MainRef[]>([]);
+  const [assets, setAssets] = useState<LocalAsset[]>([]);
   useEffect(() => {
-    if (!localPage) { setMains([]); return undefined; }
+    if (!localPage) { setAssets([]); return undefined; }
     let alive = true;
-    const load = () => { void mainsOf(pageFile(localPage)).then((next) => { if (alive) setMains(next); }).catch(() => undefined); };
+    const load = () => {
+      const file = pageFile(localPage);
+      void Promise.all([mainsOf(file), setsOf(file)]).then(([mains, sets]) => {
+        if (!alive) return;
+        setAssets([
+          ...sets.map((set) => ({ id: set.id, name: set.name, description: set.description, uses: set.uses.length, variants: set.variants.length })),
+          ...mains.filter((main) => !main.set).map((main) => ({ id: main.id, name: main.name, description: main.description, uses: main.uses.length, variants: null })),
+        ]);
+      }).catch(() => undefined);
+    };
     load();
     const stop = subscribeStudioWrites(() => load());
     return () => { alive = false; stop(); };
   }, [localPage]);
-  return mains;
+  return assets;
 }
 
 /** An instance of a page's own component, as an asset: a click or a drag places `<Use of>` there. */
-const instanceInsertable = (main: MainRef): Insertable => ({ label: main.name, root: "Use", code: (file) => (file && /^local:/.test(file) ? `<Use of="${main.id}" />` : null), refusal: "Instances of a page's own components go on that page" });
+const instanceInsertable = (asset: LocalAsset): Insertable => ({ label: asset.name, root: "Use", code: (file) => (file && /^local:/.test(file) ? `<Use of="${asset.id}" />` : null), refusal: "Instances of a page's own components go on that page" });
 
-/** Figma's Assets › Local components: the page's main components, first. */
+/** Figma's Assets › Local components: the page's component sets (one tile each) and lone mains, first. Hover reads the
+ *  component's description (Figma's tooltip on an asset). */
 function LocalComponents() {
-  const mains = useLocalComponents();
-  if (!mains.length) return null;
+  const assets = useLocalComponents();
+  if (!assets.length) return null;
   return (
     <>
       <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Local components</p>
       <ul className="studio-assets__list" aria-label="Local components">
-        {mains.map((main) => (
-          <li key={main.id}>
-            <button type="button" className="studio-assets__library studio-assets__local" aria-label={`${main.name}, local component`} title={`${main.name} · ${main.uses.length} instance${main.uses.length === 1 ? "" : "s"} · click or drag for one more`} {...pressProps(instanceInsertable(main))}>
+        {assets.map((asset) => (
+          <li key={asset.id}>
+            <button type="button" className="studio-assets__library studio-assets__local" aria-label={`${asset.name}, ${asset.variants === null ? "local component" : "component set"}`} title={`${asset.name}${asset.description ? `: ${asset.description}` : ""} · ${asset.uses} instance${asset.uses === 1 ? "" : "s"} · click or drag for one more`} {...pressProps(instanceInsertable(asset))}>
               <span className="studio-assets__library-icon" data-component="main"><Icon name="icon-diamond-line" size="sm" decorative /></span>
               <span className="studio-assets__library-text">
-                <span className={`studio-assets__name ${typographyStyles["Body/Small/Medium"]}`}>{main.name}</span>
-                <span className={`studio-assets__source ${typographyStyles["Caption/Regular"]}`}>This page</span>
+                <span className={`studio-assets__name ${typographyStyles["Body/Small/Medium"]}`}>{asset.name}</span>
+                <span className={`studio-assets__source ${typographyStyles["Caption/Regular"]}`}>{asset.variants === null ? "This page" : `${asset.variants} variant${asset.variants === 1 ? "" : "s"}`}</span>
               </span>
-              <BadgeCounter className="studio-assets__count" value={main.uses.length} size="xs" theme="neutral" background="subtle" />
+              <BadgeCounter className="studio-assets__count" value={asset.uses} size="xs" theme="neutral" background="subtle" />
             </button>
           </li>
         ))}

@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { compileReact, componentName } from "./compile.mjs";
 import { newPageText, validateDialect } from "./dialect.mjs";
+import { parseSource } from "./jsx-source.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "../..");
@@ -244,6 +245,95 @@ export default function Page() {
   ok("components: two calls", (out.code.match(/<PriceCard \/>/g) ?? []).length === 2);
   ok("components: its layers' imports", /import \{ Card, Stack, Text \} from "@zen-ds\/react";/.test(out.code));
   ok("components: no builder names", !/<(Component|Use)\b/.test(out.code));
+}
+
+// A component set (Figma's Combine as variants) exports as one function: its variant properties and component properties
+// are its props, each variant one return; instances pass their values (F7, 2026-10-19).
+{
+  const page = `// @zen-page {"format":1,"title":"Chips"}
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Icon, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Chips">
+        <Stack>
+          <ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true }, Icon: { type: "swap", default: "icon-star-line" } }}>
+            <Component id="chip-small" variant={{ Size: "Small" }}>
+              <Stack direction="row">
+                <Icon name="icon-star-line" data-prop-visible="Show icon" data-prop-swap="Icon" />
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+            <Component id="chip-large" variant={{ Size: "Large" }}>
+              <Stack direction="row" gap="sm">
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+          </ComponentSet>
+          <Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done", "Show icon": false }} />
+          <Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const out = compileReact(page, { file: "chips.zen.tsx" });
+  ok("sets: no error", !out.error);
+  ok("sets: one function with variant and property props", out.code.includes('function Chip({ size = "Small", label = "Filter", showIcon = true, icon = "icon-star-line" }: { size?: "Small" | "Large"; label?: string; showIcon?: boolean; icon?: string })'));
+  ok("sets: a return per variant", out.code.includes('if (size === "Large") return ('));
+  ok("sets: bindings read the props", out.code.includes("{showIcon && (") && out.code.includes("name={icon}") && out.code.includes("{label}"));
+  ok("sets: the instance passes its values", out.code.includes('<Chip size="Large" label="Done" showIcon={false} />'));
+  ok("sets: no binding attributes, no set frame element", !/data-prop-|<ComponentSet\b/.test(out.code));
+  // F7b: an override of a bound layer is that property's value; another has no prop, so it is noted in the tag.
+  ok("overrides: bound words and visibility become props, the rest a note", out.code.includes('<Chip size="Small" label="Hi" showIcon={false} /* Figma overrides of this instance (no prop in Chip): Text: tone="accent" */ />'));
+  let parsed = true;
+  try { parseSource(out.code); } catch { parsed = false; }
+  ok("overrides: the export still parses", parsed);
+}
+
+// F7b: a slot property is a ReactNode prop; the main's slot layer shows it, else its own layers; an instance passes
+// the layers it puts there.
+{
+  const page = `// @zen-page {"format":1,"title":"Panels"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Panels">
+        <Stack>
+          <Component id="panel" name="Panel" properties={{ Content: { type: "slot" } }}>
+            <Stack padding="md">
+              <Stack data-prop-slot="Content">
+                <Text>Empty</Text>
+              </Stack>
+            </Stack>
+          </Component>
+          <Use of="panel" slots={{ Content: <Text>Filled</Text> }} />
+          <Use of="panel" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  ok("slots: a valid page", validateDialect(page).length === 0);
+  const out = compileReact(page, { file: "panels.zen.tsx" });
+  ok("slots: no error", !out.error);
+  ok("slots: a ReactNode prop", out.code.includes("function Panel({ content }: { content?: ReactNode })") && out.code.includes('import type { ReactNode } from "react";'));
+  ok("slots: the slot layer shows it, else its own layers", /\{content \?\? <>\s*<Text>Empty<\/Text>\s*<\/>\}/.test(out.code));
+  ok("slots: the instance passes its layers; the other none", out.code.includes("<Panel content={<Text>Filled</Text>} />") && out.code.includes("<Panel />"));
+  let parsed = true;
+  try { parseSource(out.code); } catch { parsed = false; }
+  ok("slots: the export parses", parsed);
 }
 
 if (failures.length) {

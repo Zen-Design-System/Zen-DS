@@ -35,9 +35,14 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P2 · Studio components v2 (2026-10-17):** v1 is built (⌥⌘K, instances, Go to main, Detach, swap, React export,
-  push to Figma). Open: instance overrides (text, visibility) + Reset all changes, component properties, variants, pull of
-  local components from Figma. Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §9.
+- **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
+  changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*). Open:
+  - Figma pull of an instance's overrides and slot content.
+  - The push of an override deeper than the main's own layers (inside a nested instance).
+  - Putting layers into an instance's slot from the canvas (drag-and-drop target; F7c, needs A's or C's drop code).
+  - **Question for the user:** an exported instance with overrides that no property carries is written with a comment
+    (`/* Figma overrides … */`). Should the React export inline such an instance instead?
+  Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
 - **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.
@@ -189,10 +194,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   in a Card. Align the old ones the same way? (a component property cannot reach slot content of a nested Card).
 - **P2 · Direct paste (⌘V on the canvas) outside the Zen file (2026-10-17):** it binds by node id, so only the Zen file
   takes it; other files need the published library and full component definitions in the paste (instances by
-  `componentKey`, as Figma's own copies carry). Also open: pictures in a direct paste, and the frame menu's Copy for Figma
-  (async write: Chromium rewrites the html, only the plugin reads it). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6.
+  `componentKey`, as Figma's own copies carry). Also open: the frame menu's Copy for Figma (async write: Chromium rewrites
+  the html, only the plugin reads it). Pictures go since 2026-10-19 (F8c). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6, §7c.
 - **P2 · Direct paste of Studio Shapes and page-local components (user approved 2026-10-17):** Writer.build() branches in
-  tools/studio/figma-native.mjs for RECTANGLE/ELLIPSE arc/LINE arrow/POLYGON/STAR and Component → COMPONENT, Use →
+  tools/studio/figma-native.mjs for LINE arrow/POLYGON/STAR/path/boolean (RECTANGLE and ELLIPSE with its arc went in
+  with F8c pictures, 2026-10-19; the others are named in a note) and Component → COMPONENT, Use →
   INSTANCE, after zen/feat/studio-components-20261017 merges (spec: figma-push.mjs shapeNode; reference: plugin
   studio-import.js 3ba73f9, ed9bec6).
 - **P2 · Figma library gaps the 438-page Studio → Figma test found (2026-10-18, questions for the designer):** (a)

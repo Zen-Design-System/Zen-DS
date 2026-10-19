@@ -34,12 +34,24 @@ export async function frameFigmaClip(localPage: string, frameId: string): Promis
 /** The definition pack, read once (a large module: only when a frame is first copied for Figma). */
 let pack: Promise<unknown> | null = null;
 
+/** A WebP picture as PNG bytes (drawn on a canvas): Figma's direct paste takes PNG, JPEG and GIF pictures, not WebP. */
+async function pictureAsPng(bytes: Uint8Array, mime: string): Promise<Uint8Array | null> {
+  const bitmap = await createImageBitmap(new Blob([bytes as BlobPart], { type: mime }));
+  try {
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    canvas.getContext("2d")?.drawImage(bitmap, 0, 0);
+    return new Uint8Array(await (await canvas.convertToBlob({ type: "image/png" })).arrayBuffer());
+  } finally {
+    bitmap.close();
+  }
+}
+
 /** Figma's own clipboard ahead of the plugin's span; without it (the pack or the writer failed) the plugin paste stands. */
 async function withNativePaste(pluginHtml: string, pkg: unknown, notes: string[]): Promise<string> {
   try {
     pack ??= import("../../../../../docs/figma-contracts/native-pack.json").then((module) => module.default);
     const [{ figmaPasteHtml }, definitions] = await Promise.all([import("../../../../../tools/studio/figma-native.mjs"), pack]);
-    const native = await figmaPasteHtml(pkg, definitions);
+    const native = await figmaPasteHtml(pkg, definitions, { toPng: pictureAsPng });
     for (const note of native.notes) notes.push(`direct paste: ${note}`);
     return native.html + pluginHtml.replace(/^<meta charset="utf-8">/, "");
   } catch (error) {

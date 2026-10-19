@@ -8,6 +8,7 @@ import { PropField } from "../inspector/PropField";
 import type { PropSpec, PropValue } from "../inspector/propSchema";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
 import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
+import { RowSelectField } from "../inspector/rowFields";
 import type { EditOp } from "../types";
 import { canHideSrc, hiddenValueAt, hideShortcut, subscribeHiddenLayers, toggleLayerHidden } from "../edit/visibility";
 import { tip } from "../shell/ShortcutTip";
@@ -16,6 +17,7 @@ import {
   effectLayers, effectStyleOf, effectWarnings, isMixed, RADIUS_STEPS, uniformClear, uniformPick, type Corner, type ManifestEffect,
   type WrittenRadius,
 } from "./appearanceModel";
+import { ImageFillRow } from "./ImageFillRow";
 import "./appearance.css";
 
 /*
@@ -28,7 +30,7 @@ import "./appearance.css";
  */
 
 /** A frame's look: what Appearance, Fill, Stroke and Effects show (Layout appearance.ts). */
-const FRAME_LOOK = ["opacity", "surface", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "effectStyle"];
+const FRAME_LOOK = ["opacity", "surface", "image", "imageFit", "imageCrop", "imageScale", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "effectStyle"];
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
 export const appearancePropNames: Readonly<Record<string, readonly string[]>> = {
   Box: FRAME_LOOK,
@@ -91,19 +93,9 @@ export function CornerRadiusField({ api, specs, host }: { api: FieldApi; specs: 
         hint={mixed ? `Mixed · ${px ?? "corners differ"}` : undefined}
         onSet={(next) => send(uniformPick(w, String(next)), `Corner radius → ${next}`)}
         onReset={() => send(uniformClear(w), "Corner radius → default")}
+        // Figma UI3's ⛶ beside the radius field, in the icon column (not a row of its own off the grid).
+        action={<IconButton icon="icon-maximize-02-line" aria-label="Independent corners" tooltip="Independent corners" aria-pressed={open} appearance="flat" level={open ? "secondary" : "primary"} size="xs" onClick={() => setOpen((value) => !value)} />}
       />
-      <InspectorRow label="" name="radius-corners" compact>
-        <Button
-          appearance="flat"
-          level="primary"
-          size="sm"
-          startIcon={<Icon name="icon-scan-line" decorative />}
-          aria-pressed={open}
-          onClick={() => setOpen((value) => !value)}
-        >
-          Independent corners
-        </Button>
-      </InspectorRow>
       {open ? CORNERS.map((corner: Corner) => (
         <PropField
           key={corner}
@@ -161,7 +153,7 @@ function LayerToggle({ shown, name, disabled, onAdd, onRemove }: { shown: boolea
 }
 
 /** Fill (Figma UI3): the frame's background layer as one fill, its variable named; "+" adds Surface, "−" removes it. */
-export function FillSection({ api, specs }: { api: FieldApi; specs: PropSpec[] }) {
+export function FillSection({ api, specs, host = null }: { api: FieldApi; specs: PropSpec[]; host?: HTMLElement | null }) {
   const spec = specs.find((candidate) => candidate.name === "surface");
   if (!spec) return null;
   const value = api.valueFor("surface");
@@ -169,11 +161,15 @@ export function FillSection({ api, specs }: { api: FieldApi; specs: PropSpec[] }
   return (
     <InspectorSection title="Fill" actions={<LayerToggle shown={shown} name="fill" disabled={api.disabled || boundOrSpread(value)} onAdd={() => api.setProp("surface", "surface")} onRemove={() => api.removeProp("surface")} />}>
       {shown ? <PropField spec={spec} label="Fill" value={value} disabled={api.disabled} resettable={false} onSet={(next) => (next === "none" ? api.removeProp("surface") : api.setProp("surface", next))} onReset={() => api.removeProp("surface")} /> : null}
+      {/* Figma's image fill on a frame (F8): over the fill colour. */}
+      <ImageFillRow api={api} specs={specs} host={host} />
     </InspectorSection>
   );
 }
 
 const SIDE_LABELS: Readonly<Record<string, string>> = { all: "All", top: "Top", right: "Right", bottom: "Bottom", left: "Left" };
+/** The stroke's sides as written (all when it names none). */
+const sideValue = (value: PropValue) => (value.state === "literal" && typeof value.value === "string" && value.value in SIDE_LABELS ? value.value : "all");
 
 /**
  * Stroke (Figma UI3): the frame's border as one stroke (Pale or Subtle, inside), its weight in px, which sides it draws
@@ -204,8 +200,10 @@ export function StrokeSection({ api, specs }: { api: FieldApi; specs: PropSpec[]
             <ScrubNumberField label={<Icon name="icon-line-height-line" size="sm" decorative />} name="Stroke weight" min={0} max={400} round={1} value={numberOf(weight) ?? 1}
               disabled={api.disabled || boundOrSpread(weight)} onCommit={setWeight} />
             {sides ? (
-              <PropField spec={{ ...sides, defaultValue: "all" }} label="Sides" value={api.valueFor("borderSides")} disabled={api.disabled} optionLabels={SIDE_LABELS}
-                onSet={(next) => (next === "all" ? api.removeProp("borderSides") : api.setProp("borderSides", next))} onReset={() => api.removeProp("borderSides")} />
+              // The pair's second field on the panel grid, as Inline-Field (the label inside), never a row of its own.
+              <RowSelectField size="sm" layout="inline" label="Sides" aria-label="Sides" disabled={api.disabled}
+                value={sideValue(api.valueFor("borderSides"))} options={Object.entries(SIDE_LABELS).map(([value, label]) => ({ value, label }))}
+                onValueChange={(next) => (next === "all" ? api.removeProp("borderSides") : api.setProp("borderSides", next))} />
             ) : null}
           </div>
           {dash ? (

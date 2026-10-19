@@ -22,6 +22,8 @@ import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-metric.mjs";
+import { runsFromSegments } from "./text-runs.mjs";
+import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { arcFromData, parseVectorPath, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
@@ -57,6 +59,10 @@ export function figmaReadCode(nodeId, { part = 0 } = {}) {
 figma.skipInvisibleInstanceChildren = false;
 const layerKey = ${layerKey.toString()};
 const variableName = async (id) => { if (!id) return null; const v = await figma.variables.getVariableByIdAsync(id); return v ? v.name : null; };
+${READ_IMAGE_FILL}
+const textStyles = new Map();
+const textStyleOf = async (id) => { if (!textStyles.has(id)) textStyles.set(id, await figma.getStyleByIdAsync(id)); return textStyles.get(id); };
+const fillVariable = async (fills) => { const paint = Array.isArray(fills) ? fills.find((fill) => fill.visible !== false) : null; return paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null; };
 const setOf = async (instance) => {
   const main = await instance.getMainComponentAsync();
   if (!main) return null;
@@ -234,26 +240,78 @@ const readInstance = async (instance) => {
 // What the Zen plugin's Import from Studio left on a layer (shared plugin data "zenstudio"): its Studio key (the element
 // id it draws), and on the frame the Studio page and the export it came from.
 const studioData = (node, name) => { try { return node.getSharedPluginData("zenstudio", name) || null; } catch (e) { return null; } };
+const ROOT_ID = ${JSON.stringify(nodeId)};
+// A component of the page itself (a main or set inside the frame read): its Studio id (the Zen plugin keeps it), else
+// its Figma id. A library component, or one elsewhere in the file: null.
+const pageOwn = (component) => { for (let at = component; at; at = at.parent) if (at.id === ROOT_ID) return studioData(component, "local") || component.id; return null; };
+const ownerOf = (main) => (main && main.parent && main.parent.type === "COMPONENT_SET" ? main.parent : main);
+// A swap's component: the page's own (its id) or another by name (an icon).
+const swapName = async (id) => {
+  const component = typeof id === "string" ? await figma.getNodeByIdAsync(id) : null;
+  return component ? pageOwn(ownerOf(component)) || component.name : id;
+};
+// An instance of the page's own main or set (figma-push Use): its variant and its text, boolean and swap values.
+const readLocalInstance = async (node, owner) => {
+  const out = { type: "INSTANCE", id: node.id, name: node.name, local: pageOwn(owner) };
+  const variant = {};
+  const props = {};
+  for (const [key, entry] of Object.entries(node.componentProperties || {})) {
+    const name = key.split("#")[0];
+    if (entry.type === "VARIANT") variant[name] = entry.value;
+    else if (entry.type === "INSTANCE_SWAP") props[name] = await swapName(entry.value);
+    else if (entry.type === "TEXT" || entry.type === "BOOLEAN") props[name] = entry.value;
+  }
+  if (Object.keys(variant).length) out.variant = variant;
+  if (Object.keys(props).length) out.props = props;
+  return out;
+};
 const read = async (node) => {
   const out = await readLayer(node);
   const key = out ? studioData(node, "key") : null;
   if (key) out.key = key;
+  // A layer bound to its main's component property: the property's name by field (figma-push propRefs).
+  let refs = null;
+  try { refs = out ? node.componentPropertyReferences : null; } catch (e) { refs = null; }
+  if (refs && Object.keys(refs).length) out.propRefs = Object.fromEntries(Object.entries(refs).map(([field, key]) => [field, String(key).split("#")[0]]));
   return out;
 };
 const readLayer = async (node) => {
   if (!node.visible) return null;
   if (node.type === "TEXT") {
-    const style = typeof node.textStyleId === "string" && node.textStyleId ? await figma.getStyleByIdAsync(node.textStyleId) : null;
+    // Words with styles of their own (Figma's mixed styles): the layer's style and colour are its longest segment's,
+    // the words that differ come as segments (Studio text-runs.mjs writes them as TextRun).
+    const parts = node.characters.length ? node.getStyledTextSegments(["fontName", "textDecoration", "fills", "textStyleId"]) : [];
+    const longest = parts.reduce((best, part) => (!best || part.end - part.start > best.end - best.start ? part : best), null);
+    const styleId = typeof node.textStyleId === "string" ? node.textStyleId : longest ? longest.textStyleId : "";
+    const style = typeof styleId === "string" && styleId ? await textStyleOf(styleId) : null;
     // The layer's name only when it is not its text (Figma names a text layer after its words).
     const align = node.textAlignHorizontal && node.textAlignHorizontal !== "LEFT" ? { align: node.textAlignHorizontal } : {};
     // Numbers: Tabular (Text tabularNumbers; a plugin can read it, not set it).
     const tabular = node.openTypeFeatures && node.openTypeFeatures.TNUM === true ? { tabular: true } : {};
     // Its colour: the Color/Content variable its fill is bound to (Text tone).
-    const paint = Array.isArray(node.fills) ? node.fills.find((fill) => fill.visible !== false) : null;
-    const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
-    return { type: "TEXT", id: node.id, ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align, ...tabular, ...(fill ? { fill } : {}) };
+    const fill = await fillVariable(Array.isArray(node.fills) ? node.fills : longest ? longest.fills : null);
+    const segments = [];
+    for (const part of parts.length > 1 ? parts : []) {
+      const own = typeof part.textStyleId === "string" && part.textStyleId ? await textStyleOf(part.textStyleId) : null;
+      const font = part.fontName && part.fontName.style ? part.fontName.style : "";
+      const styleFont = own && own.fontName && own.fontName.style ? own.fontName.style : style && !own && style.fontName ? style.fontName.style : "";
+      const segment = { start: part.start, end: part.end };
+      if (own && (!style || own.name !== style.name)) segment.textStyle = own.name;
+      // A word made bold or italic with its font (Figma's ⌘B / ⌘I) rather than with a text style.
+      if (/bold|black|heavy/i.test(font) && !/bold|black|heavy/i.test(styleFont)) segment.bold = true;
+      if (/italic|oblique/i.test(font) && !/italic|oblique/i.test(styleFont)) segment.italic = true;
+      if (part.textDecoration && part.textDecoration !== "NONE") segment.decoration = part.textDecoration;
+      const partFill = await fillVariable(part.fills);
+      if (partFill && partFill !== fill) segment.fill = partFill;
+      if (Object.keys(segment).length > 2) segments.push(segment);
+    }
+    return { type: "TEXT", id: node.id, ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align, ...tabular, ...(fill ? { fill } : {}), ...(segments.length ? { segments } : {}) };
   }
-  if (node.type === "INSTANCE") return readInstance(node);
+  if (node.type === "INSTANCE") {
+    const owner = ownerOf(await node.getMainComponentAsync());
+    if (owner && pageOwn(owner)) return readLocalInstance(node, owner);
+    return readInstance(node);
+  }
   return readFrame(node);
 };
 // Its auto layout without the values at Figma's defaults (none: null).
@@ -284,29 +342,34 @@ const SHAPE_READ = new Set(["RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "
 // A child that fills its auto-layout parent on an axis (Figma's Fill container), or one placed outside the auto layout
 // (Ignore auto layout): its constraints and its box in the parent's.
 const placed = (out, child, parent) => {
+  // A GROUP has no constraints (Figma throws on reading them): its edges are its layers', read as left / top.
+  const constraints = "constraints" in child ? child.constraints : { horizontal: "MIN", vertical: "MIN" };
   if (!("layoutMode" in parent) || parent.layoutMode === "NONE") {
     // A shape or a group in a frame without auto layout keeps its X / Y (a Zen Shape or Box group in a free frame: px
     // insets); a group's layers keep theirs inside it (Figma writes them in the group's parent's space).
     const inGroup = parent.type === "GROUP" || parent.type === "BOOLEAN_OPERATION";
     const w = out.shape ? out.shape.w : Math.round(child.width * 100) / 100;
     const h = out.shape ? out.shape.h : Math.round(child.height * 100) / 100;
-    if ((out.shape || out.type === "GROUP" || inGroup) && ("layoutMode" in parent || inGroup)) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints ? child.constraints.horizontal : "MIN", cy: child.constraints ? child.constraints.vertical : "MIN", free: true };
+    // Every layer of a frame without auto layout (Figma's free frame: shapes, frames, texts, instances) keeps its X / Y.
+    if ("layoutMode" in parent || inGroup) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: constraints.horizontal, cy: constraints.vertical, free: true };
     return out;
   }
   // A grid cell keeps its minimum width (figma-push: columns that fit, counted for the page's width).
+  const own = (key) => (key in child ? child[key] : undefined);
   if (parent.layoutMode === "GRID") {
-    if (child.minWidth) out.minW = child.minWidth;
+    if (own("minWidth")) out.minW = child.minWidth;
     return out;
   }
-  if (child.layoutPositioning === "ABSOLUTE") {
-    out.absolute = { x: Math.round(child.x), y: Math.round(child.y), w: Math.round(child.width), h: Math.round(child.height), pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints.horizontal, cy: child.constraints.vertical };
+  if (own("layoutPositioning") === "ABSOLUTE") {
+    // X / Y to the hundredth: a vector sits where its path starts (Figma moves it there, often between pixels).
+    out.absolute = { x: Math.round(child.x * 100) / 100, y: Math.round(child.y * 100) / 100, w: Math.round(child.width), h: Math.round(child.height), pw: Math.round(parent.width), ph: Math.round(parent.height), cx: constraints.horizontal, cy: constraints.vertical };
     return out;
   }
-  if (child.layoutSizingHorizontal === "FILL") out.fillW = true;
-  if (child.layoutSizingVertical === "FILL") out.fillH = true;
-  if (child.minWidth) out.minW = child.minWidth;
-  if (child.maxWidth) out.maxW = child.maxWidth;
-  if (child.maxHeight) out.maxH = child.maxHeight;
+  if (own("layoutSizingHorizontal") === "FILL") out.fillW = true;
+  if (own("layoutSizingVertical") === "FILL") out.fillH = true;
+  if (own("minWidth")) out.minW = child.minWidth;
+  if (own("maxWidth")) out.maxW = child.maxWidth;
+  if (own("maxHeight")) out.maxH = child.maxHeight;
   return out;
 };
 // A frame of the Table's rows (Primitives/Table/Data-Row instances, Figma's Table): one table, cell by cell. A row of
@@ -357,6 +420,9 @@ const frameOf = (node, root) => {
   return { ...(typeof figma.fileKey === "string" ? { file: figma.fileKey } : {}), width: Math.round(node.width), height: Math.round(node.height), ...studio };
 };
 const readFrame = async (node, root = false) => {
+  // A property this node type has, else undefined: Figma throws on reading one it lacks (pointCount on a VECTOR,
+  // clipsContent on a GROUP; the live Zen file 2026-10-19), where the mock returned undefined.
+  const own = (key) => (key in node ? node[key] : undefined);
   // Figma's own shapes come back as Zen Shapes (figma-push shapeNode, the other way): size, colour variables, arc,
   // count, ratio, corner variable, rotation, opacity. Vectors and boolean groups stay drawings.
   if (SHAPE_READ.has(node.type)) {
@@ -365,14 +431,19 @@ const readFrame = async (node, root = false) => {
     const strokePaint = solid(node.strokes);
     const boundId = (paint) => (paint && paint.boundVariables && paint.boundVariables.color ? paint.boundVariables.color.id : null);
     const radiusBinding = node.boundVariables && node.boundVariables.topLeftRadius ? node.boundVariables.topLeftRadius.id : null;
+    // A mirrored shape (Zen flip, ⇧H): Figma reports it as turned 180°; its transform says mirror and the real turn
+    // (as a frame's below; the live Zen file 2026-10-19 read a flipped Star back as rotation -180).
+    const m = node.relativeTransform;
+    const mirrored = Boolean(m) && m[0][0] * m[1][1] - m[0][1] * m[1][0] < 0;
+    const turn = mirrored ? Math.round((Math.atan2(m[1][0], -m[0][0]) * 180) / Math.PI * 100) / 100 : Math.round((node.rotation || 0) * 100) / 100;
     const read_ = { type: node.type, name: node.name, shape: {
       w: Math.round(node.width * 100) / 100, h: Math.round(node.height * 100) / 100,
       fill: fillPaint ? (await variableName(boundId(fillPaint))) || "unbound" : null,
       stroke: strokePaint ? (await variableName(boundId(strokePaint))) || "unbound" : null,
-      strokeWeight: typeof node.strokeWeight === "number" ? node.strokeWeight : 1, strokeAlign: node.strokeAlign, cap: typeof node.strokeCap === "string" ? node.strokeCap : null,
-      arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: node.pointCount, innerRadius: node.innerRadius,
-      radius: typeof node.cornerRadius === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
-      rotation: Math.round((node.rotation || 0) * 100) / 100, opacity: node.opacity,
+      strokeWeight: typeof own("strokeWeight") === "number" ? node.strokeWeight : 1, strokeAlign: own("strokeAlign"), cap: typeof own("strokeCap") === "string" ? node.strokeCap : null,
+      arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: own("pointCount"), innerRadius: own("innerRadius"),
+      radius: typeof own("cornerRadius") === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
+      rotation: turn, ...(mirrored ? { flip: "horizontal" } : {}), opacity: node.opacity, imageFill: readImageFill(node),
       // A vector's own paths; a boolean group's result (its fill geometry: Figma combined its shapes, F9b).
       paths: node.type === "VECTOR" && Array.isArray(node.vectorPaths) ? node.vectorPaths.map((path) => ({ windingRule: path.windingRule, data: path.data }))
         : node.type === "BOOLEAN_OPERATION" && Array.isArray(node.fillGeometry) ? node.fillGeometry.map((path) => ({ windingRule: path.windingRule, data: path.data })) : null,
@@ -398,30 +469,59 @@ const readFrame = async (node, root = false) => {
     if (sets.every((set) => set && set.name === "Primitives/Table/Data-Row")) return readTable(node, visible, root);
   }
   const out = { type: node.type, id: node.id, name: node.name, ...frameOf(node, root), children: [] };
+  // A page's own main or set (figma-push localModel): its Studio id, description and link; a variant's values, or the
+  // properties a set or lone main defines.
+  if (node.type === "COMPONENT" || node.type === "COMPONENT_SET") {
+    out.local = studioData(node, "local") || node.id;
+    if (node.description) out.description = node.description;
+    const link = Array.isArray(node.documentationLinks) && node.documentationLinks[0] ? node.documentationLinks[0].uri : null;
+    if (link) out.link = link;
+    let definitions = {};
+    try {
+      if (node.parent && node.parent.type === "COMPONENT_SET") out.variant = node.variantProperties || {};
+      else definitions = node.componentPropertyDefinitions || {};
+    } catch (e) { definitions = {}; }
+    const properties = [];
+    for (const [key, definition] of Object.entries(definitions)) {
+      if (definition.type === "VARIANT") continue;
+      const property = { name: key.split("#")[0], type: definition.type };
+      if (definition.type === "INSTANCE_SWAP") property.default = await swapName(definition.defaultValue);
+      else if (definition.type !== "SLOT") property.default = definition.defaultValue;
+      properties.push(property);
+    }
+    if (properties.length) out.properties = properties;
+  }
+  // A frame without auto layout (Figma's free frame): its own size, its layers at their X / Y (a Zen free Box).
+  if (!root && own("layoutMode") === "NONE") out.fixed = { w: Math.round(node.width * 100) / 100, h: Math.round(node.height * 100) / 100 };
+  // A GROUP's box (a Zen group's width and height; the live Zen file 2026-10-19 read none and the group came back NaN).
+  if (node.type === "GROUP") Object.assign(out, { width: Math.round(node.width * 100) / 100, height: Math.round(node.height * 100) / 100 });
   // Clip content: a frame inside the page that clips (the page frame itself is the screen, which always does).
-  if (!root && node.clipsContent === true) out.clip = true;
+  if (!root && own("clipsContent") === true) out.clip = true;
   // Overflow scrolling (Stack / Box scroll) and a background bound to a colour variable (a Box's surface).
-  if (!root && node.overflowDirection && node.overflowDirection !== "NONE") out.scroll = node.overflowDirection;
-  const paint = !root && Array.isArray(node.fills) ? node.fills.find((fill) => fill.visible !== false) : null;
+  if (!root && own("overflowDirection") && node.overflowDirection !== "NONE") out.scroll = node.overflowDirection;
+  const paint = !root && Array.isArray(own("fills")) ? node.fills.find((fill) => fill.visible !== false) : null;
   const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
   if (fill) out.fill = fill;
+  // An image fill (F8, figma-image.mjs): the picture back by its Studio src.
+  const imageFill = !root ? readImageFill(node) : null;
+  if (imageFill) out.imageFill = imageFill;
   // Its stroke (variable, weight per side, dash), corners and their variables, effect style, opacity, rotation and
   // mirror: one Zen frame (figma-push frameLook, the other way). The page frame itself is the Screen.
   if (!root) {
-    const strokePaint = Array.isArray(node.strokes) ? node.strokes.find((p) => p.visible !== false && p.type === "SOLID") : null;
+    const strokePaint = Array.isArray(own("strokes")) ? node.strokes.find((p) => p.visible !== false && p.type === "SOLID") : null;
     if (strokePaint) {
       out.stroke = (await variableName(strokePaint.boundVariables && strokePaint.boundVariables.color && strokePaint.boundVariables.color.id)) || "unbound";
-      const sides = [node.strokeTopWeight, node.strokeRightWeight, node.strokeBottomWeight, node.strokeLeftWeight];
-      out.strokeWeights = sides.every((v) => typeof v === "number") ? sides : [0, 1, 2, 3].map(() => (typeof node.strokeWeight === "number" ? node.strokeWeight : 1));
-      if (Array.isArray(node.dashPattern) && node.dashPattern.length) out.dash = node.dashPattern;
+      const sides = [own("strokeTopWeight"), own("strokeRightWeight"), own("strokeBottomWeight"), own("strokeLeftWeight")];
+      out.strokeWeights = sides.every((v) => typeof v === "number") ? sides : [0, 1, 2, 3].map(() => (typeof own("strokeWeight") === "number" ? node.strokeWeight : 1));
+      if (Array.isArray(own("dashPattern")) && node.dashPattern.length) out.dash = node.dashPattern;
     }
-    const corners = [node.topLeftRadius, node.topRightRadius, node.bottomRightRadius, node.bottomLeftRadius].map((v) => (typeof v === "number" ? v : 0));
+    const corners = [own("topLeftRadius"), own("topRightRadius"), own("bottomRightRadius"), own("bottomLeftRadius")].map((v) => (typeof v === "number" ? v : 0));
     if (corners.some((v) => v > 0)) {
       const bound = node.boundVariables || {};
       out.radii = corners;
       out.radiiVars = await Promise.all(["topLeftRadius", "topRightRadius", "bottomRightRadius", "bottomLeftRadius"].map((field) => variableName(bound[field] && bound[field].id)));
     }
-    if (typeof node.effectStyleId === "string" && node.effectStyleId) {
+    if (typeof own("effectStyleId") === "string" && node.effectStyleId) {
       const style = await figma.getStyleByIdAsync(node.effectStyleId);
       if (style) out.effectStyle = style.name;
     }
@@ -441,7 +541,7 @@ const readFrame = async (node, root = false) => {
     const read_ = await read(child);
     if (!read_) continue;
     // A grid's child: its cell (column and row from 0, its spans).
-    if (node.layoutMode === "GRID") read_.cell = { col: child.gridColumnAnchorIndex, row: child.gridRowAnchorIndex, span: child.gridColumnSpan, rowSpan: child.gridRowSpan };
+    if (own("layoutMode") === "GRID") read_.cell = { col: child.gridColumnAnchorIndex, row: child.gridRowAnchorIndex, span: child.gridColumnSpan, rowSpan: child.gridRowSpan };
     else placed(read_, child, node);
     out.children.push(read_);
   }
@@ -1232,8 +1332,17 @@ function givenName(element, node) {
 
 /** Each element's Figma layer: its parent reads its Fill container from it. */
 const SOURCE = new WeakMap();
+/** A layer bound to a component property (figma-push propRefs and slot, the other way): its data-prop-* attribute. */
+const BINDING_PROP = { characters: "data-prop-text", visible: "data-prop-visible", mainComponent: "data-prop-swap" };
+function bindings(element, node) {
+  if (element?.kind !== "element") return;
+  for (const [field, name] of Object.entries(node.propRefs ?? {})) if (BINDING_PROP[field]) element.props[BINDING_PROP[field]] = literal(name);
+  const slot = node.slot ?? (node.type === "SLOT" ? node.name : null);
+  if (slot) element.props["data-prop-slot"] = literal(slot);
+}
 function convert(node, ctx) {
   let element = convertNode(node, ctx);
+  bindings(element, node);
   if (element && !element.id) { const id = idOf(node, ctx); if (id) element.id = id; }
   if (element && node.absolute) element = positioned(element, node, ctx);
   if (element && !SOURCE.has(element)) SOURCE.set(element, node);
@@ -1248,12 +1357,17 @@ function positioned(element, node, ctx) {
   const box = node.absolute;
   // A Shape takes its own position props, in px: Figma's X / Y (its unrotated box, as Shape turns about its centre); so
   // does a group, or a frame placed in a frame without auto layout (free px insets, F3).
-  if (element.name === "Shape" || (box.free && ["Box", "Stack", "Grid"].includes(element.name))) {
+  // A Zen group pinned out of an auto layout (⌘G on floating layers) keeps px X / Y as well.
+  const group = element.name === "Box" && element.props.group?.value === true;
+  if (element.name === "Shape" || group || (box.free && ["Box", "Stack", "Grid"].includes(element.name))) {
     const shape = node.shape ?? {};
     const turn = ((shape.rotation ?? 0) * Math.PI) / 180;
     const w = shape.w ?? box.w;
     const h = element.props.type?.value === "line" || element.props.type?.value === "arrow" ? 0 : shape.h ?? box.h;
-    const centre = { x: box.x + Math.cos(turn) * (w / 2) + Math.sin(turn) * (h / 2), y: box.y - Math.sin(turn) * (w / 2) + Math.cos(turn) * (h / 2) };
+    // Figma's X / Y is where the turned (and mirrored, Zen flip) box's own corner lands: its centre is that corner plus
+    // the half box through the same transform.
+    const mirror = shape.flip === "horizontal" ? -1 : 1;
+    const centre = { x: box.x + mirror * Math.cos(turn) * (w / 2) + Math.sin(turn) * (h / 2), y: box.y - mirror * Math.sin(turn) * (w / 2) + Math.cos(turn) * (h / 2) };
     const left = Math.round((centre.x - w / 2) * 100) / 100;
     const top = Math.round((centre.y - h / 2) * 100) / 100;
     const cx = { MIN: "left", MAX: "right", CENTER: "center", STRETCH: "left-right", SCALE: "left-right" }[box.cx] ?? "left";
@@ -1267,6 +1381,16 @@ function positioned(element, node, ctx) {
   }
   const x = { MIN: "left", MAX: "right", CENTER: "center", STRETCH: "left-right", SCALE: "left-right" }[box.cx] ?? "left";
   const y = { MIN: "top", MAX: "bottom", CENTER: "center", STRETCH: "top-bottom", SCALE: "top-bottom" }[box.cy] ?? "top";
+  // A text or a component in a free frame: the Studio's float wrapper (position/float.ts), a Box at its px X / Y.
+  if (box.free) {
+    const wrap = { position: literal("absolute"), ...(x !== "left" ? { constraintX: literal(x) } : {}), ...(y !== "top" ? { constraintY: literal(y) } : {}) };
+    const round2 = (value) => Math.round(value * 100) / 100;
+    if (x === "left" || x === "left-right") wrap.insetLeft = literal(round2(box.x));
+    if (x === "right" || x === "left-right") wrap.insetRight = literal(round2(box.pw - box.x - box.w));
+    if (y === "top" || y === "top-bottom") wrap.insetTop = literal(round2(box.y));
+    if (y === "bottom" || y === "top-bottom") wrap.insetBottom = literal(round2(box.ph - box.y - box.h));
+    return { kind: "element", ...(idOf(node, ctx, "place") ? { id: idOf(node, ctx, "place") } : {}), name: "Box", props: wrap, children: [element] };
+  }
   const props = { position: literal("absolute"), constraintX: literal(x), constraintY: literal(y) };
   const far = [];
   const inset = (prop, px) => {
@@ -1400,7 +1524,11 @@ function shapeElement(node, ctx) {
     if (tone && tone !== fallback) props[prop] = literal(tone);
     else if (!tone) ctx.notes.push(`${where}: its ${prop} ${value === "unbound" ? "is no colour variable" : `variable ${value} is no Zen ${prop === "fill" ? "Background" : "Border"} colour`}; the default is kept`);
   };
-  paint("fill", line ? null : shape.fill, FILL_OF, line || (vector && !boolean) ? "none" : DEFAULT_SHAPE_FILL);
+  // An image fill (F8, figma-image.mjs): the picture back by its Studio src; a shape with one has no colour unless given.
+  const picture = line ? { props: {}, note: null } : imageFillProps(shape.imageFill, literal);
+  Object.assign(props, picture.props);
+  if (picture.note) ctx.notes.push(`${where}: ${picture.note}`);
+  paint("fill", line ? null : shape.fill, FILL_OF, line || (vector && !boolean) || shape.imageFill ? "none" : DEFAULT_SHAPE_FILL);
   paint("stroke", shape.stroke, STROKE_OF, line || (vector && !boolean) ? DEFAULT_LINE_STROKE : "none");
   if (shape.stroke && shape.strokeWeight !== 1) props.strokeWeight = literal(round2(shape.strokeWeight));
   if (shape.stroke && !line && shape.strokeAlign && shape.strokeAlign !== (vector && !boolean ? "CENTER" : "INSIDE")) props.strokeAlign = literal(shape.strokeAlign.toLowerCase());
@@ -1418,6 +1546,7 @@ function shapeElement(node, ctx) {
     else if (shape.radius) ctx.notes.push(`${where}: its corner radius ${shape.radius} px is no Corner-Radius variable; left square`);
   }
   if (shape.rotation) props.rotation = literal(shape.rotation);
+  if (shape.flip) props.flip = literal(shape.flip);
   if (typeof shape.opacity === "number" && shape.opacity < 1) props.opacity = literal(Math.round(shape.opacity * 100));
   const children = boolean ? (node.children ?? []).map((child) => convert(child, ctx)).filter((child) => child?.name === "Shape") : [];
   return { kind: "element", name: "Shape", props, children };
@@ -1431,6 +1560,10 @@ function convertNode(node, ctx) {
   if (master) { const shell = appShellElement(master, ctx); if (shell) return shell; }
   if (node.shape) return shapeElement(node, ctx);
   if (DRAWINGS.has(node.type)) { ctx.drawings.push(node.name); return null; }
+  // A page's own components (figma-push localModel, the other way): a set of variants, a main, an instance of either.
+  if (node.type === "COMPONENT_SET") return componentSetElement(node, ctx);
+  if (node.type === "COMPONENT") return componentElement(node, ctx);
+  if (node.type === "INSTANCE" && node.local) return useElement(node, ctx);
   if (node.type === "TABLE") return tableElement(node, ctx);
   if (node.type === "TEXT") {
     const props = {};
@@ -1454,6 +1587,15 @@ function convertNode(node, ctx) {
     }
     const tone = TONE_OF.get(String(node.fill ?? "").replace(/^Color\//, ""));
     if (tone && tone !== "strongest") props.tone = literal(tone);
+    // Words with styles of their own (Figma's mixed styles) are TextRuns inside the Text (text-runs.mjs).
+    if (Array.isArray(node.segments) && node.segments.length) {
+      const base = props.textStyle?.value ?? (level ? HEADING_STYLE[level] : "Body/Base/Regular");
+      const toneOf = (fill) => TONE_OF.get(String(fill).replace(/^Color\//, "")) ?? null;
+      const known = (style) => !mapping.textStyles || mapping.textStyles.has(style);
+      const runs = runsFromSegments(characters, node.segments, { base, baseFill: node.fill ?? null, toneOf, known });
+      runs.notes.forEach((note) => notes.push(`Text "${node.name ?? node.characters}": ${note}`));
+      return { kind: "element", name: level ? "Heading" : "Text", props, children: runs.children };
+    }
     return { kind: "element", name: level ? "Heading" : "Text", props, children: [{ kind: "text", value: characters }] };
   }
   if (node.type === "INSTANCE") {
@@ -1656,6 +1798,97 @@ function convertNode(node, ctx) {
   return frameElement(node, children, ctx);
 }
 
+/** Figma's component property types by the page's (figma-push PROPERTY_TYPE, the other way). */
+const PROPERTY_KIND = { TEXT: "text", BOOLEAN: "boolean", INSTANCE_SWAP: "swap", SLOT: "slot" };
+const valuesObject = (values) => ({ kind: "object", fields: Object.fromEntries(Object.entries(values).map(([name, value]) => [name, literal(value)])) });
+/** A Figma id or the Studio id a component came with → its id on the page; any other value as it is (an icon name). */
+const pageValue = (value, ctx) => (typeof value === "string" && ctx.local.ids.has(value) ? ctx.local.ids.get(value) : value);
+
+/**
+ * The page's components and sets (Figma's COMPONENT / COMPONENT_SET in the frame): their ids on the page (the Studio
+ * id a pushed one came with, else one from its name), their properties' defaults and each set's default variant.
+ */
+function localComponentsOf(frame) {
+  const ids = new Map();
+  const defaults = new Map();
+  const firstVariant = new Map();
+  const taken = new Set();
+  const walk = (node, set) => {
+    if (!node || typeof node !== "object") return;
+    if (node.type === "COMPONENT_SET" || node.type === "COMPONENT") {
+      const own = typeof node.local === "string" && node.local && !/^I?\d+:\d+/.test(node.local) ? node.local : null;
+      const id = uniqueId(own ?? slug(set ? `${set.name ?? ""} ${node.name ?? ""}` : node.name ?? "component"), taken);
+      for (const key of [node.local, node.id]) if (typeof key === "string" && key) ids.set(key, id);
+      if (node.type === "COMPONENT_SET") firstVariant.set(id, node.children?.find((child) => child.type === "COMPONENT") ?? null);
+      if (!set) defaults.set(id, Object.fromEntries((node.properties ?? []).filter((property) => property.default !== undefined).map((property) => [property.name, property.default])));
+    }
+    for (const child of node.children ?? []) walk(child, node.type === "COMPONENT_SET" ? node : null);
+    for (const slot of node.slots ?? []) for (const child of slot.children ?? []) walk(child, null);
+  };
+  walk(frame, null);
+  return { ids, defaults, firstVariant };
+}
+
+/** A main's or set's description and link. */
+const componentAbout = (node) => ({ ...(typeof node.description === "string" && node.description ? { description: literal(node.description) } : {}), ...(typeof node.link === "string" && node.link ? { link: literal(node.link) } : {}) });
+
+/** A set's or lone main's properties: `{ Label: { type: "text", default: "Save" } }`. */
+function propertiesValue(properties, ctx) {
+  const fields = {};
+  for (const property of properties ?? []) {
+    const type = PROPERTY_KIND[property.type];
+    if (!type) continue;
+    const own = { type: literal(type) };
+    if (property.default !== undefined) own.default = literal(pageValue(property.default, ctx));
+    if (property.preferred?.length) own.preferred = { kind: "array", items: property.preferred.map((value) => literal(pageValue(value, ctx))) };
+    fields[property.name] = { kind: "object", fields: own };
+  }
+  return Object.keys(fields).length ? { kind: "object", fields } : null;
+}
+
+const variantValues = (node) => node.variant ?? Object.fromEntries(String(node.name ?? "").split(",").map((pair) => pair.split("=").map((part) => part.trim())).filter((pair) => pair.length === 2 && pair[0]));
+
+/** Figma's component set: `<ComponentSet>` around its variants. */
+function componentSetElement(node, ctx) {
+  const id = pageValue(node.local ?? node.id, ctx);
+  const props = { id: literal(id), name: literal(node.name ?? id), ...componentAbout(node) };
+  const properties = propertiesValue(node.properties, ctx);
+  if (properties) props.properties = properties;
+  const children = (node.children ?? []).filter((child) => child.type === "COMPONENT").map((child) => convert({ ...child, variant: variantValues(child) }, ctx)).filter(Boolean);
+  return { kind: "element", name: "ComponentSet", props, children };
+}
+
+/** A main (a set's variant, or a lone one with its own properties): `<Component>` around its layer. */
+function componentElement(node, ctx) {
+  const id = pageValue(node.local ?? node.id, ctx);
+  const props = { id: literal(id) };
+  if (node.variant) props.variant = valuesObject(node.variant);
+  else {
+    props.name = literal(node.name ?? id);
+    const properties = propertiesValue(node.properties, ctx);
+    if (properties) props.properties = properties;
+  }
+  Object.assign(props, componentAbout(node));
+  // Its layer: the push's one layer in a bare component frame; else the component frame itself is the layer.
+  const bare = node.children?.length === 1 && !node.fill && !node.stroke && !node.layout?.padding?.some(Boolean);
+  const inner = bare ? convert(node.children[0], ctx) : frameElement({ ...node, type: "FRAME" }, (node.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), ctx);
+  return { kind: "element", name: "Component", props, children: inner ? [inner] : [] };
+}
+
+/** An instance of the page's own main or set: `<Use>` with the variant and values that differ from its defaults. */
+function useElement(node, ctx) {
+  const of = pageValue(node.local, ctx);
+  if (!ctx.local.ids.has(node.local)) { ctx.notes.push(`${node.name ?? "Instance"}: an instance of a component that is not on this page (left out)`); return null; }
+  const props = { of: literal(of) };
+  const first = ctx.local.firstVariant.get(of);
+  const variant = node.variant ?? {};
+  if (Object.keys(variant).length && (!first || Object.entries(variant).some(([name, value]) => variantValues(first)[name] !== value))) props.variant = valuesObject(variant);
+  const defaults = ctx.local.defaults.get(of) ?? {};
+  const values = Object.fromEntries(Object.entries(node.props ?? {}).map(([name, value]) => [name, pageValue(value, ctx)]).filter(([name, value]) => defaults[name] !== value));
+  if (Object.keys(values).length) props.props = valuesObject(values);
+  return { kind: "element", name: "Use", props, children: [] };
+}
+
 /** A frame (or a slot) as a Stack in its auto layout; Figma's grid layout as a Grid. */
 function frameElement(node, children, ctx) {
   // figma-push centres an AiChatBlock in a frame of its name: the block itself.
@@ -1672,6 +1905,12 @@ function frameElement(node, children, ctx) {
     return { kind: "element", name: "Grid", props: { ...(fitMin !== 240 ? { minColumnWidth: literal(fitMin) } : {}), ...(gap !== "md" ? { gap: literal(gap) } : {}) }, children };
   }
   const grid = layout?.mode === "GRID";
+  // A free frame (Figma's frame without auto layout): a Box of its px size, its layers at their X / Y (figma-push, the
+  // other way; positioned() gave them px insets).
+  if (!layout && node.fixed) {
+    const look = frameLookProps(node, ctx);
+    return { kind: "element", name: "Box", props: { width: literal(node.fixed.w), height: literal(node.fixed.h), ...look, ...(node.clip ? { clip: literal(true) } : {}) }, children };
+  }
   // A column of List-Items (figma-push draws List as one): a List, which spaces its rows itself (Gap/3XSmall).
   if (!grid && layout?.mode !== "HORIZONTAL" && children.length && children.every((child) => child.name === "ListItem") && !node.fill && !node.scroll) {
     return { kind: "element", name: "List", props: {}, children };
@@ -1775,6 +2014,10 @@ function frameLookProps(node, ctx) {
   const where = `Frame "${node.name}"`;
   const surface = SURFACE_OF[String(node.fill ?? "").replace(/^Color\//, "")];
   if (surface) props.surface = literal(surface);
+  // An image fill (F8, figma-image.mjs) over the fill.
+  const picture = imageFillProps(node.imageFill, literal);
+  Object.assign(props, picture.props);
+  if (picture.note) ctx.notes.push(`${where}: ${picture.note}`);
   else if (node.fill) ctx.notes.push(`${where}: its fill ${node.fill} is no Zen background layer (surface · surface-alt · subtle · pale · canvas); left without a fill`);
   if (node.stroke) {
     const border = BORDER_OF[String(node.stroke).replace(/^Color\//, "")];
@@ -2113,6 +2356,7 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   // A copy: the slots take their owner's key (slotKeys), and a push's frame read back here stays as it was.
   frame = frame ? JSON.parse(JSON.stringify(frame)) : frame;
   slotKeys(frame);
+  ctx.local = localComponentsOf(frame);
   // The Screen's own canvas and height, which figma-push writes on the page frame: Screen props, not a Box surface.
   const screenProps = {};
   const canvasFill = /^(?:Color\/)?Background\/Canvas\/(Default|Alt|Flat)$/.exec(String(frame?.fill ?? ""));

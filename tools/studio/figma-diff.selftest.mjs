@@ -136,6 +136,19 @@ check("ticking the conflict too gives Figma's theme", element(mergeFigma(current
   check("merged: row 2 rejected, its Badge red", [updated.props.rows.items[1].fields.status.value, updated.props.overrides.fields["Row[row-2]/status/Badge"].fields.theme.value], ["Rejected", "red"]);
 }
 
+// F6b. A word made bold in Figma (a styled segment): one text change, and the merge keeps the words and runs in order
+//      (TextRun is part of its Text, never a layer of its own).
+{
+  const text = (segments) => ({ type: "FRAME", id: "1:1", name: "Plan", width: 800, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] }, children: [{ type: "TEXT", id: "1:2", characters: "Renews on Nov 2 for 3 seats", textStyle: "Body/Base/Regular", ...(segments ? { segments } : {}) }] });
+  const plainDoc = pageDoc(text(null));
+  const boldDoc = pageDoc(text([{ start: 10, end: 15, textStyle: "Body/Base/Bold" }]));
+  const runChanges = figmaChanges({ base: plainDoc, current: JSON.parse(JSON.stringify(plainDoc)), incoming: boldDoc }).changes;
+  check("a bold word from Figma: one text change, named for its styles", runChanges.map((change) => [change.kind, change.label]), [["text", "Text: “Renews on Nov 2 for 3 seats” text styles"]]);
+  const mergedRuns = printPage(mergeFigma(JSON.parse(JSON.stringify(plainDoc)), boldDoc, runChanges).doc);
+  ok("merged: the words and the run in their order", mergedRuns.includes("<Text>Renews on <TextRun bold>Nov 2</TextRun> for 3 seats</Text>"));
+  check("a pull of the same runs again: no change", figmaChanges({ base: boldDoc, current: JSON.parse(JSON.stringify(boldDoc)), incoming: pageDoc(text([{ start: 10, end: 15, textStyle: "Body/Base/Bold" }])) }).changes.length, 0);
+}
+
 if (failures.length) {
   console.error(`✗ figma-diff selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- changes ---\n${changes.map((change) => `${change.key}${change.conflict ? " (conflict)" : ""}: ${change.label}`).join("\n")}`);
   process.exit(1);

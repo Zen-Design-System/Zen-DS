@@ -15,7 +15,7 @@
 //   key)` names each); `media` lists them.
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
-import { SCREEN_CHROME, eachElement, localComponents, parsePage, screenLayout } from "./dialect.mjs";
+import { PROPERTY_BINDINGS, SCREEN_CHROME, componentSets, eachElement, localComponents, mainLayerPaths, parsePage, resolveInstance, screenLayout } from "./dialect.mjs";
 import { LOCKED_PROP } from "./layer-meta.mjs";
 import { literalProp, objectFields, opensItself, requiredFunctions, standInKind } from "./standins.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -185,7 +185,21 @@ function attribute(name, value, ctx, indent, where) {
   return `${name}={${valueCode(value, ctx, indent, where)}}`;
 }
 
+const isRun = (child) => child.kind === "element" && child.name === "TextRun";
+const onlyWords = (node) => node.children.every((child) => child.kind === "text" || (isRun(child) && onlyWords(child)));
+const isRichText = (node) => node.children.some(isRun) && onlyWords(node);
+/** A rich text's children on one line: words (edge spaces kept) and TextRuns (edit/richText.ts runsCode). */
+function richCode(children, ctx) {
+  return children.map((child) => {
+    if (child.kind === "text") return /[\n\r{}<>]|&[A-Za-z#]|\s{2}/.test(child.value) ? `{${json(child.value)}}` : child.value;
+    ctx.components.add(child.name);
+    const props = Object.entries(child.props).map(([name, value]) => attribute(name, value, ctx, "", `<${child.name}> ${name}`));
+    return `<${child.name}${props.length ? ` ${props.join(" ")}` : ""}>${richCode(child.children, ctx)}</${child.name}>`;
+  }).join("");
+}
+
 function childCode(child, ctx, indent) {
+  if (child.kind === "code") return child.code;
   if (child.kind === "text") return PLAIN_TEXT.test(child.value) ? child.value : `{${json(child.value)}}`;
   if (child.kind === "ref") return `{${refCode(child)}}`;
   if (child.kind === "map") {
@@ -250,16 +264,94 @@ function knownFieldsOnly(node) {
   return { ...node, props };
 }
 
+/** A component property's or variant property's name as a prop of the exported function ("Show icon" → showIcon). */
+export const propIdentifier = (name) => {
+  const words = String(name).replace(/[^\p{L}\p{N}]+/gu, " ").trim().split(/\s+/).filter(Boolean);
+  const id = words.map((word, index) => (index ? word[0].toUpperCase() + word.slice(1) : word[0].toLowerCase() + word.slice(1))).join("");
+  return /^[A-Za-z_$]/.test(id) ? id : `p${id}`;
+};
+
+/** An instance's call of its component's function: its variant values and property values as props. */
+/** An instance's `overrides` (F7b) as layer path → literal props, or null. */
+function overridesOf(node) {
+  const value = node.props.overrides;
+  if (value?.kind !== "object") return null;
+  return Object.fromEntries(Object.entries(value.fields).flatMap(([path, layer]) => (layer.kind === "object"
+    ? [[path, Object.fromEntries(Object.entries(layer.fields).flatMap(([name, field]) => (field.kind === "literal" ? [[name, field.value]] : [])))]]
+    : [])));
+}
+
+function instanceCall(node, ctx, indent = "") {
+  const resolved = resolveInstance(ctx.page, node, ctx.model);
+  const local = resolved ? ctx.locals?.get(resolved.set?.id ?? resolved.main.id) : null;
+  if (!resolved || !local) return "{null}";
+  ctx.localUsed.add(local.id);
+  // Its overrides (F7b): one of a layer bound to a property is that property's value (Figma sets the property); any
+  // other has no prop in the component's function, so it is noted in the tag for the developer.
+  const values = { ...resolved.values };
+  const given = new Set(Object.keys(node.props.props?.kind === "object" ? node.props.props.fields : {}));
+  const notes = [];
+  const overrides = overridesOf(node);
+  if (overrides) {
+    const main = ctx.model.mains.find((entry) => entry.id === resolved.main.id);
+    const byPath = new Map([...mainLayerPaths(main, ctx.model)].map(([layer, path]) => [path, layer]));
+    for (const [path, props] of Object.entries(overrides)) {
+      const layer = byPath.get(path);
+      for (const [name, value] of Object.entries(props)) {
+        const text = layer ? literalOf(layer, "data-prop-text") : undefined;
+        const visible = layer ? literalOf(layer, "data-prop-visible") : undefined;
+        if (name === "children" && typeof text === "string" && !given.has(text)) values[text] = String(value);
+        else if (name === "hidden" && typeof value === "boolean" && typeof visible === "string" && !given.has(visible)) values[visible] = !value;
+        else notes.push(`${path}: ${name}=${JSON.stringify(value)}`);
+      }
+    }
+  }
+  const props = [];
+  if (local.set) for (const axis of local.set.axes) props.push(`${propIdentifier(axis.name)}=${json(resolved.variant[axis.name] ?? axis.values[0])}`);
+  for (const property of local.properties) {
+    if (property.type === "slot") continue;
+    const value = values[property.name];
+    if (value === undefined || value === property.default) continue;
+    props.push(typeof value === "string" ? `${propIdentifier(property.name)}=${json(value)}` : `${propIdentifier(property.name)}={${json(value)}}`);
+  }
+  // What it puts in its main's slots (F7b): the layers, as the slot prop.
+  const slots = node.props.slots?.kind === "object" ? node.props.slots.fields : {};
+  for (const property of local.properties) {
+    const content = property.type === "slot" ? slots[property.name] : undefined;
+    if (content && (content.kind === "element" || content.kind === "fragment")) props.push(`${propIdentifier(property.name)}={${valueCode(content, ctx, indent, `slots.${property.name}`)}}`);
+  }
+  if (notes.length) props.push(`/* Figma overrides of this instance (no prop in ${local.fn}): ${notes.join("; ").replace(/\*\//g, "* /")} */`);
+  return `<${local.fn}${props.length ? ` ${props.join(" ")}` : ""} />`;
+}
+
 /** An element; `extra`: [name, code] props written first (a list row's key, an overlay's open state). */
 function elementCode(node, ctx, indent, extra = []) {
+  // The root of a component's function: a binding that hides it is a ternary there, a `{… && …}` anywhere else.
+  const atRoot = ctx.atRoot;
+  ctx.atRoot = false;
   // A page-local component (Figma's main, <Component>) and its instances (<Use>) are calls of its function (compileReact
-  // writes one per main, named from its name).
-  if (node.name === "Component" || node.name === "Use") {
-    const id = String(literalOf(node, node.name === "Component" ? "id" : "of") ?? "");
-    const local = ctx.locals?.get(id);
-    if (!local) return "{null}";
-    ctx.localUsed.add(id);
-    return `<${local.fn} />`;
+  // writes one per main or set, named from its name); a component set's frame is the design's, not the app's.
+  if (node.name === "ComponentSet") return `{/* ${String(literalOf(node, "name") ?? "Component set").replace(/\*\//g, "* /")}: its variants are one function */}`;
+  if (node.name === "Component") return instanceCall({ ...node, props: { of: node.props.id } }, ctx, indent);
+  if (node.name === "Use") return instanceCall(node, ctx, indent);
+  // Inside a component's function, a layer bound to a component property reads the function's prop (Figma's text,
+  // boolean and instance swap properties); the binding attributes are the design's.
+  const binding = ctx.bindings ? Object.fromEntries(Object.keys(PROPERTY_BINDINGS).flatMap((attr) => (typeof literalOf(node, attr) === "string" ? [[attr, literalOf(node, attr)]] : []))) : {};
+  if (Object.keys(PROPERTY_BINDINGS).some((attr) => node.props[attr])) node = { ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => !(name in PROPERTY_BINDINGS))) };
+  const swap = binding["data-prop-swap"] ? ctx.bindings.get(binding["data-prop-swap"]) : null;
+  if (swap && node.name === "Icon") {
+    extra = [...extra, ["name", swap]];
+    node = { ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => name !== "name")) };
+  }
+  // A slot layer (Figma's slot): the instance's layers, else the main's own.
+  const slot = binding["data-prop-slot"] ? ctx.slotBindings?.get(binding["data-prop-slot"]) : null;
+  if (slot) node = { ...node, children: node.children.length ? [{ kind: "code", code: `{${slot} ?? <>` }, ...node.children, { kind: "code", code: "</>}" }] : [{ kind: "code", code: `{${slot}}` }] };
+  const text = binding["data-prop-text"] ? ctx.bindings.get(binding["data-prop-text"]) : null;
+  if (text) node = { ...node, children: [{ kind: "code", code: `{${text}}` }] };
+  const shownIf = binding["data-prop-visible"] ? ctx.bindings.get(binding["data-prop-visible"]) : null;
+  if (shownIf) {
+    const inner = elementCode(node, ctx, indent + UNIT, extra);
+    return atRoot ? `${shownIf} ? (\n${indent}${UNIT}${inner}\n${indent}) : null` : `{${shownIf} && (\n${indent}${UNIT}${inner}\n${indent})}`;
   }
   ctx.components.add(node.name.split(".")[0]);
   const inner = indent + UNIT;
@@ -286,8 +378,10 @@ function elementCode(node, ctx, indent, extra = []) {
   const oneLine = props.every((prop) => !prop.includes("\n")) && indent.length + node.name.length + 2 + props.join(" ").length <= WIDTH;
   const open = !props.length ? `<${node.name}` : oneLine ? `<${node.name} ${props.join(" ")}` : `<${node.name}\n${props.map((prop) => `${inner}${prop}`).join("\n")}\n${indent}`;
   if (!node.children.length) return oneLine ? `${open} />` : `${open}/>`;
+  // Words with styles of their own (TextRun) stay one line of words and runs, as a person writes them.
+  if (oneLine && isRichText(node)) return `${open}>${richCode(node.children, ctx)}</${node.name}>`;
   const kids = node.children.map((child) => childCode(child, ctx, inner));
-  if (oneLine && kids.length === 1 && (node.children[0].kind === "text" || node.children[0].kind === "ref") && indent.length + open.length + kids[0].length + node.name.length + 4 <= WIDTH) return `${open}>${kids[0]}</${node.name}>`;
+  if (oneLine && kids.length === 1 && (node.children[0].kind === "text" || node.children[0].kind === "ref" || node.children[0].kind === "code") && indent.length + open.length + kids[0].length + node.name.length + 4 <= WIDTH) return `${open}>${kids[0]}</${node.name}>`;
   return `${open}>\n${kids.map((kid) => `${inner}${kid}`).join("\n")}\n${indent}</${node.name}>`;
 }
 
@@ -350,13 +444,23 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   eachElement(page.board, (node) => taken.add(node.name.split(".")[0]));
   ctx.locals = new Map();
   ctx.localUsed = new Set();
-  for (const main of localComponents(page)) {
-    if (!main.id || !main.root) continue;
-    let fn = componentName(main.name);
+  ctx.page = page;
+  ctx.model = { mains: localComponents(page), sets: componentSets(page) };
+  const fnName = (title) => {
+    let fn = componentName(title);
     if (taken.has(fn)) fn = `${fn}Block`;
-    for (let n = 2; taken.has(fn); n += 1) fn = `${componentName(main.name)}${n}`;
+    for (let n = 2; taken.has(fn); n += 1) fn = `${componentName(title)}${n}`;
     taken.add(fn);
-    ctx.locals.set(main.id, { fn, root: main.root, name: main.name });
+    return fn;
+  };
+  // A component set is one function: its variant properties and component properties are its props.
+  for (const set of ctx.model.sets) {
+    if (!set.id || !set.variants.length) continue;
+    ctx.locals.set(set.id, { id: set.id, fn: fnName(set.name), name: set.name, set, properties: set.properties, variants: set.variants });
+  }
+  for (const main of ctx.model.mains) {
+    if (!main.id || !main.root || main.set) continue;
+    ctx.locals.set(main.id, { id: main.id, fn: fnName(main.name), root: main.root, name: main.name, properties: main.properties });
   }
   const ids = [...new Set(screens.map((node) => String(literalOf(node, "id"))))];
   const states = [...new Set(screens.map((node) => literalOf(node, "state")).filter((state) => typeof state === "string"))];
@@ -444,7 +548,38 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
       const local = ctx.locals.get(id);
       if (!local) continue;
       ctx.frame = `component:${id}`;
-      localLines.push(`/** ${local.name.replace(/\*\//g, "* /")} (a component of the design: its instances call it). */`, `function ${local.fn}() {`, "  return (", `    ${elementCode(local.root, ctx, "    ")}`, "  );", "}", "");
+      // Its props: the set's variant properties (each its values), then the component properties with their defaults.
+      const axes = local.set ? local.set.axes : [];
+      const properties = local.properties.filter((property) => property.type !== "slot");
+      const slotProperties = local.properties.filter((property) => property.type === "slot");
+      ctx.bindings = new Map(properties.map((property) => [property.name, propIdentifier(property.name)]));
+      ctx.slotBindings = new Map(slotProperties.map((property) => [property.name, propIdentifier(property.name)]));
+      if (slotProperties.length) ctx.uses.add("reactNode");
+      const params = [
+        ...axes.map((axis) => [propIdentifier(axis.name), json(axis.values[0]), axis.values.map(json).join(" | ")]),
+        ...properties.map((property) => [propIdentifier(property.name), json(property.default ?? (property.type === "boolean" ? false : "")), property.type === "boolean" ? "boolean" : "string"]),
+        // A slot: the layers an instance puts there (its main's own when it gives none).
+        ...slotProperties.map((property) => [propIdentifier(property.name), null, "ReactNode"]),
+      ];
+      const signature = params.length ? `{ ${params.map(([key, value]) => (value === null ? key : `${key} = ${value}`)).join(", ")} }: { ${params.map(([key, , type]) => `${key}?: ${type}`).join("; ")} }` : "";
+      const what = local.set ? "a component set of the design: its instances call it with their variant and properties" : "a component of the design: its instances call it";
+      localLines.push(`/** ${local.name.replace(/\*\//g, "* /")} (${what}). */`, `function ${local.fn}(${signature}) {`);
+      if (local.set) {
+        // One return per variant, the first one last (the values no test matches).
+        const [first, ...rest] = local.variants;
+        for (const main of rest) {
+          const test = axes.map((axis) => `${propIdentifier(axis.name)} === ${json(main.variant?.[axis.name] ?? axis.values[0])}`).join(" && ");
+          ctx.atRoot = true;
+          localLines.push(`  if (${test}) return (`, `    ${elementCode(main.root, ctx, "    ")}`, "  );");
+        }
+        ctx.atRoot = true;
+        localLines.push("  return (", `    ${elementCode(first.root, ctx, "    ")}`, "  );", "}", "");
+      } else {
+        ctx.atRoot = true;
+        localLines.push("  return (", `    ${elementCode(local.root, ctx, "    ")}`, "  );", "}", "");
+      }
+      ctx.bindings = null;
+      ctx.slotBindings = null;
     }
   }
 
@@ -457,8 +592,9 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   lines.push(`// Generated by Zen Studio from ${file ?? `${name}.zen.tsx`}. Edit the design, then export again.`);
   const typesProps = hasMock && ctx.typed.size > 0;
   const reactHooks = [...(ctx.uses.has("effect") ? ["useEffect"] : []), ...(usesState ? ["useState"] : [])];
-  if (reactHooks.length) lines.push(`import { ${reactHooks.join(", ")}${typesProps ? ", type ComponentProps" : ""} } from "react";`);
-  else if (typesProps) lines.push(`import type { ComponentProps } from "react";`);
+  const reactTypes = [...(typesProps ? ["ComponentProps"] : []), ...(ctx.uses.has("reactNode") ? ["ReactNode"] : [])];
+  if (reactHooks.length) lines.push(`import { ${[...reactHooks, ...reactTypes.map((type) => `type ${type}`)].join(", ")} } from "react";`);
+  else if (reactTypes.length) lines.push(`import type { ${reactTypes.join(", ")} } from "react";`);
   const zen = [...ctx.components, ...(ctx.uses.has("toast") ? ["useToast"] : [])].sort((a, b) => a.localeCompare(b));
   lines.push(`import { ${zen.join(", ")} } from "@zen-ds/react";`);
   for (const entry of ctx.media.values()) lines.push(`import ${entry.name} from "./assets/${entry.file}";`);

@@ -54,6 +54,38 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (Sidebar, TopNavigation compact bar) out of its text-style count; `surfaces` reads the canvas of the nearest AppShell,
   not of a phone frame around it (a PlatformPhone's `canvas="alt"` is the grey Surface/Alt, not the white Canvas/Alt).
 removed (four unused colour ramps were, see Removed).
+- Zen Studio's View and Find like Figma (F10 of the parity plan): zoom from 2 % to 25 600 % (zoom to fit still stops
+  at 400 %), the pixel grid from 400 % (⌘'), Outlines (⌘Y), rulers (⇧R) with guides dragged onto a frame or the canvas
+  (back onto the ruler deletes one), layout guides on a frame (right panel › Layout guide: Columns, Rows or Grid; margin
+  and gutter from Breakpoint & Grids; ⌃G shows or hides them), a page's canvas Background (Zen background tokens), and
+  Find and replace (⌘F: step through the matching text layers, Replace all in one edit). Guides, layout guides and the
+  background are the page's (its header); the view options are this browser's.
+- Figma push / pull, tested in the live Zen file: a free frame keeps its px width and height (it used to hug its layers);
+  Pull reads vectors, groups and boolean groups again (it stopped on the first property a node type lacks), brings a
+  mirrored shape back flipped at its own place, and keeps a group's size and px X / Y when it sits outside an auto
+  layout. The Zen plugin places groups, boolean groups and vectors where the Studio draws them.
+- Text keeps line breaks written in its words (`{"First line\nSecond line"}`): they show as lines, and with
+  `wrap={false}` each line stays whole (Figma's Enter in a text).
+- Image fills (Figma's Image paint) on Shape and on frames (Box, Stack, Grid): `image`, `imageFit` (fill · fit · crop ·
+  tile), `imageCrop`, `imageScale`. In Zen Studio (F8a, pages you made) ⇧⌘K opens the file dialog and a click places the
+  picture as a Rectangle with the image fill (its own size, fitted to the frame; a drag sets the width, the ratio kept);
+  picture files dropped on a frame or pasted go in at once; Fill › Image picks, uploads, replaces or removes the picture
+  and sets how it fills. Studio → Figma gives the layer an Image paint, and pulling brings it back. Crop on the canvas
+  (F8b): with Image fit Crop the whole picture shows faint around the layer; drag it to move what shows, drag a corner
+  to scale it (Esc or Enter ends the crop).
+- Studio → Figma direct paste (⌘C on a frame, ⌘V on the Zen file's canvas, no plugin) brings pictures too (F8c): a
+  Shape's or frame's image fill lands as Figma's Image paint (Fill, Fit, Crop, Tile), PNG, JPEG and GIF as they are, a
+  WebP as PNG; an Avatar's photo and a table's Avatar or Photo cell show their picture. A Shape rectangle or ellipse now
+  lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
+- `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
+  another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
+  (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer
+  named by all its words. Studio → Figma (plugin import and ⌘C → ⌘V) gives the words their styles, and pulling from
+  Figma writes a styled range back as a TextRun.
+- Zen Studio's Text tool as Figma's (F6a of the parity plan, pages you made): T and a click makes an Auto width text at
+  the click, T and a drag a text box of that width, and the typing goes into it at once; Enter is a new line, Esc leaves;
+  a new text left untouched, or any text layer emptied, is deleted; T on the words of a text puts the caret there.
+  Typography › Resizing has Figma's Auto width · Auto height · Fixed size.
 - Boolean groups, Flatten and Outline stroke (F9b of the same plan): Shape `type="boolean"` (`operation` union /
   subtract / intersect / exclude, its shapes as children, its result `d`); Zen Studio ⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E make a
   live boolean group of the selected shapes (its result follows every edit of its shapes in the same ⌘Z), ⌘E flattens
@@ -72,6 +104,8 @@ removed (four unused colour ramps were, see Removed).
   handles, a click on the first point closes, Enter ends) and the Pencil (⇧P, smoothed into curves) draw vectors into a
   frame; Enter or a double-click on a vector edits its points and handles (Delete removes a point). Layers names them
   "Vector N". Figma push / pull carry them as VECTOR nodes with their vectorPaths (Zen plugin updated).
+- Studio → Figma: a free frame (a Box of a px size whose layers float at their X / Y, or an empty frame from the Frame
+  tool) is Figma's frame without auto layout, and comes back from Figma as the same Box with its layers where they were.
 - Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
   panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
   first) and a preset makes an empty frame of that size beside the frames; a click on the canvas makes a 100 × 100 frame
@@ -114,6 +148,29 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio right panel in Figma's order (F5a): an instance's properties under its header, then Position (with
   Rotate 90°, Flip horizontal, Flip vertical), Layout, Appearance (opacity, corner radius), Fill, Stroke (weight, sides,
   dash), Effects on every frame. Add auto layout (⇧A) on a filled frame makes one Stack that keeps the fill.
+- Zen Studio typed values (F5b, decision 1): a number typed into a gap, padding or corner field snaps to the nearest
+  variable, which the field shows as Figma's variable pill; W / H take Figma's arithmetic ("120+24", "*2") and a
+  Constrain proportions lock; in a frame without auto layout an offset has Detach variable (px) and Apply variable; a
+  hex typed into a colour list offers the nearest colour variables and Create variable… (Local variables).
+- Zen Studio right panel, the rest of F5 (F5c): Export on every layer and frame (scale × format: PNG, JPG, SVG; files
+  named as Figma names them), a text's colour as its Fill and its text style's details read-only, several frames'
+  Appearance / Fill / Stroke / Effects at once, Selection colors, and Local styles (text, color, effect) with nothing
+  selected.
+- Zen Studio component sets and properties as in Figma (F7a): Combine as variants (right-click or ⌘K) wraps main
+  components in a `<ComponentSet>` (Property 1 = Default, Variant2…), Add variant copies the last one; a set or a lone
+  main defines text, boolean, instance swap and slot properties with defaults, and a layer of a main binds to one
+  (Apply component property, or Create … property… in one step); an instance switches its variant and property values
+  in the panel (Reset all changes). Description and link on mains and sets. React export writes one function per set
+  with typed props; Figma push makes a COMPONENT_SET with its properties and bound layers (Zen plugin), and pull reads
+  them back.
+- Studio E2E: a retried row starts from the drafts and pages the row found (the runner puts them back), and a row that
+  fails twice reports its first error; the Studio's right panel keeps every field on its grid (shared Inline-Field), with
+  an E2E fit check.
+- Zen Studio instance overrides as in Figma (F7b): ⌘-click into an instance of a page's own component and change a
+  layer's words, visibility, a nested instance's variant and properties or a nested component's properties for that
+  instance only (`<Use overrides>`); Reset changes / Reset all changes; Push changes to main component; an instance's
+  slot content (`<Use slots>`); Assets › Local components shows a set as one tile with its description. The React export
+  passes bound overrides and slots as props; the Figma push carries overrides and slot content (Zen plugin).
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

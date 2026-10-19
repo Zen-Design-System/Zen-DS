@@ -1128,6 +1128,60 @@ export default function Looks() {
   check("frame look: one side, dash, rotation, flip", [rule.stroke, rule.strokeSides, rule.dash, rule.rotation, rule.flip], ["Border/Neutral/Subtle/Default", "bottom", [2, 2], 15, "horizontal"]);
   check("frame look: a Box keeps its look", [box.fill, box.radius], ["Background/Neutral/Subtle/Default", 12]);
   check("round trip: frame looks come back on the same elements", shape(pageFromFigma(push(looks).frame, { mapping }).text), shape(looks));
+  // A component set (F7): COMPONENT_SET of variants named by their values, its properties defined on it, a bound layer's
+  // references, an instance's variant and property values.
+  const chips = `// @zen-page {"format":1,"title":"Chips"}
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Icon, Stack, Text } from "@zen-ds/react";
+
+export default function Chips() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Chips" device="desktop">
+        <Stack gap="lg" padding="xl">
+          <ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true } }}>
+            <Component id="chip-small" variant={{ Size: "Small" }}>
+              <Stack direction="row">
+                <Icon name="icon-star-01-line" data-prop-visible="Show icon" />
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+            <Component id="chip-large" variant={{ Size: "Large" }}>
+              <Stack direction="row" gap="sm">
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+          </ComponentSet>
+          <Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />
+          <Component id="panel" name="Panel" link="https://zen.example/panel" properties={{ Content: { type: "slot" }, Icon: { type: "swap", default: "icon-star-01-line" } }}>
+            <Stack data-prop-slot="Content">
+              <Icon name="icon-star-01-line" data-prop-swap="Icon" />
+            </Stack>
+          </Component>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const [setNode, instanceNode, panelNode] = push(chips).frame.children;
+  check("set: COMPONENT_SET of named variants", [setNode.type, setNode.local, setNode.children.map((variant) => [variant.type, variant.name])], ["COMPONENT_SET", "chip", [["COMPONENT", "Size=Small"], ["COMPONENT", "Size=Large"]]]);
+  check("set: its properties", setNode.properties, [{ name: "Label", type: "TEXT", default: "Filter" }, { name: "Show icon", type: "BOOLEAN", default: true }]);
+  const bound = find(setNode.children[0], (node) => node.type === "TEXT");
+  const hidden = find(setNode.children[0], (node) => node.propRefs?.visible);
+  check("set: bound layers", [bound?.propRefs, hidden?.propRefs], [{ characters: "Label" }, { visible: "Show icon" }]);
+  check("main: its link, a slot and a swap property", [panelNode.link, panelNode.properties], ["https://zen.example/panel", [{ name: "Content", type: "SLOT" }, { name: "Icon", type: "INSTANCE_SWAP", default: "icon-star-01-line" }]]);
+  check("main: the slot layer and the swapped icon", [panelNode.children[0]?.slot, find(panelNode, (node) => node.propRefs?.mainComponent)?.propRefs], ["Content", { mainComponent: "Icon" }]);
+  check("round trip: sets, mains, bound layers and instances come back", shape(pageFromFigma(push(chips).frame, { mapping }).text), shape(chips));
+  // F7b: an instance's overrides of its main's layers, by the child indices that reach them in the drawn main.
+  const overridden = push(chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />'));
+  const overriddenInstance = overridden.frame.children.find((node) => node.type === "INSTANCE" && node.local === "chip");
+  check("overrides: placed by index in the main, in Figma's fields", overriddenInstance?.layerOverrides, [{ at: [0, 1], characters: "Hi", fill: "Content/Accent/Base" }, { at: [0, 0], visible: false }]);
+  // F7b: an instance's slot content, by the slot's name.
+  const filledPanel = push(chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="panel" slots={{ Content: <Text>Filled</Text> }} />'));
+  const filledInstance = filledPanel.frame.children.find((node) => node.type === "INSTANCE" && node.local === "panel");
+  check("slots: an instance's slot content by name", filledInstance?.slots?.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.characters])]), [["Content", [["TEXT", "Filled"]]]]);
+  check("set: an instance's variant and values", [instanceNode.type, instanceNode.local, instanceNode.variant, instanceNode.props], ["INSTANCE", "chip", { Size: "Large" }, { Label: "Done", "Show icon": true }]);
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
 import { Board, Screen } from "@zen-ds/react/builder";
 import { Grid, Stack, Text } from "@zen-ds/react";
@@ -1283,6 +1337,10 @@ export default function Page() {
 `;
   const pushedGroup = find(push(groupPage).frame, (node) => node.group === true);
   check("push: a Box group is a frame marked group, named Group", pushedGroup && [pushedGroup.type, pushedGroup.name], ["FRAME", "Group"]);
+  // A free frame of a px size (Box width={200} height={100} in a column) keeps it: Fixed, not Fill (2026-10-19, the live
+  // Zen file: a 560 × 240 free frame came out as tall as its layers).
+  const freeFrame = find(push(groupPage).frame, (node) => node.type === "FRAME" && node.fixedWidth === 200);
+  check("push: a free frame's px width and height are its Fixed size", freeFrame && [freeFrame.fixedWidth, freeFrame.fixedHeight, freeFrame.fillW ?? false], [200, 100, false]);
   check("push: a Shape's flip", find(push(groupPage).frame, (node) => node.shape === true)?.flip, "horizontal");
 
   // F9b: a boolean group is pushed as Figma's BOOLEAN_OPERATION holding its shapes.
@@ -1797,6 +1855,122 @@ export default function Page() {
     const token = all.get(name);
     check(`margin: ${name} px by device match the tokens`, MARGIN_PX[key], { desktop: resolve(token.valuesByMode.Desktop, "Desktop"), tablet: resolve(token.valuesByMode.Tablet, "Tablet"), phone: resolve(token.valuesByMode.Mobile, "Mobile") });
   }
+}
+
+// F6b. Mixed styles (TextRun, Figma's styled segments; text-runs.mjs): a Text's styled words go up as segments of its
+//      TEXT layer (bold as the text style's Bold sibling, a tone as its Color/Content variable) and come back as the
+//      same TextRuns; Figma's own ⌘B (a Bold font, no text style) and a non-Zen style come down as bold and a note.
+{
+  const runsPage = `// @zen-page {"format":1,"title":"Runs"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Heading, Stack, Text, TextRun } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Runs" device="desktop">
+        <Stack gap="lg">
+          <Text>Renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base" underline>2 seats</TextRun> are <TextRun italic>unpaid</TextRun>.</Text>
+          <Heading level={2}>Plan <TextRun bold>Pro</TextRun></Heading>
+          <Text>Plain words</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(runsPage);
+  const [renews, heading, plainText] = frame.children;
+  check("TextRun: segments of the TEXT layer, bold as Body/Base/Bold, tone as its variable", renews.segments, [
+    { start: 10, end: 15, textStyle: "Body/Base/Bold" },
+    { start: 17, end: 24, decoration: "UNDERLINE", fill: "Content/Negative/Base" },
+    { start: 29, end: 35, italic: true },
+  ]);
+  check("TextRun: a Heading's style has no Bold sibling: the font's Bold", heading.segments, [{ start: 5, end: 8, bold: true }]);
+  check("TextRun: a plain Text has no segments", plainText.segments, undefined);
+  check("TextRun round trip: the same runs come back", shape(pageFromFigma(frame, { mapping }).text), shape(runsPage));
+  const figmaBold = { type: "FRAME", name: "Runs", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] }, children: [
+    { type: "TEXT", characters: "Due Nov 2 in Mono", textStyle: "Body/Base/Regular", segments: [{ start: 4, end: 9, bold: true }, { start: 13, end: 17, textStyle: "Brand/Mono" }] },
+  ] };
+  const pulled = pageFromFigma(figmaBold, { mapping });
+  ok("Figma ⌘B (a Bold font) comes down as TextRun bold", pulled.text.includes("Due <TextRun bold>Nov 2</TextRun>"));
+  const { compileReact } = await import("./compile.mjs");
+  const exported = compileReact(runsPage, { file: "runs.zen.tsx" }).code;
+  ok("TextRun: the React export writes the runs on one line, as the page does", exported.includes('<Text>Renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base" underline>2 seats</TextRun> are <TextRun italic>unpaid</TextRun>.</Text>') && /import \{[^}]*\bTextRun\b[^}]*\} from "@zen-ds\/react"/.test(exported));
+  ok("a range in a style Zen has not: its words stay, with a note", pulled.text.includes("in Mono") && !pulled.text.includes("Brand/Mono") && pulled.notes.some((note) => /"Brand\/Mono" on "Mono"/.test(note)));
+}
+
+// F8. Image fills (figma-image.mjs): a Shape's and a frame's picture go up as `imageFill` (Crop in fractions, Tile's
+//      scale) with the picture's bytes asked for in `images`; a Shape with a picture has no colour unless it is given.
+{
+  const picturesPage = `// @zen-page {"format":1,"title":"Pictures"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Pictures" device="desktop">
+        <Stack gap="lg">
+          <Shape image="zen-asset:bridge-1a2b3c4d.webp" imageFit="crop" imageCrop={{ x: 10, y: 0, width: 80, height: 100 }} label="Bridge" width={200} height={100} />
+          <Shape type="ellipse" image="zen-media:site-cafe" fill="neutral-subtle" imageFit="fit" width={80} height={80} />
+          <Box image="zen-media:site-cafe" imageFit="tile" imageScale={50} width={300} height={120} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, images } = push(picturesPage);
+  const [bridge, cafe, tiled] = frame.children;
+  check("image fill: a cropped Shape", [bridge.imageFill, bridge.fill], [{ src: "zen-asset:bridge-1a2b3c4d.webp", scaleMode: "CROP", crop: { x: 0.1, y: 0, width: 0.8, height: 1 } }, undefined]);
+  check("image fill: Fit over a given colour", [cafe.imageFill?.scaleMode, Boolean(cafe.fill)], ["FIT", true]);
+  check("image fill: a frame's tile", tiled.imageFill, { src: "zen-media:site-cafe", scaleMode: "TILE", scale: 0.5 });
+  check("image fill: the pictures' bytes are asked for", [...(images ?? [])].sort(), ["zen-asset:bridge-1a2b3c4d.webp", "zen-media:site-cafe"]);
+}
+
+// F4 fix (A found it in the live Zen file, 2026-10-19): a free frame (a Box of a px size whose layers all float) is
+// Figma's frame without auto layout, layoutMode NONE; pulled back it is the same Box, its layers at their X / Y.
+{
+  const freePage = `// @zen-page {"format":1,"title":"Free"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Free" device="desktop">
+        <Stack>
+          <Box width={560} height={240} surface="surface">
+            <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={30} width={80} height={60} />
+            <Box position="absolute" insetLeft={140} insetTop={40}><Text wrap={false}>Label</Text></Box>
+          </Box>
+          <Box width={200} height={120} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(freePage);
+  const [free, empty] = frame.children;
+  check("free frame: layoutMode NONE with its px size", [free.layout?.mode, free.fixedWidth, free.fixedHeight, empty.layout?.mode], ["NONE", 560, 240, "NONE"]);
+  // The pull reads it as figmaReadCode does: no layout, its size, every layer at its X / Y.
+  const read = { type: "FRAME", name: "Free", width: 1440, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: [
+    { type: "FRAME", name: "Box", layout: null, fixed: { w: 560, h: 240 }, fill: "Color/Background/Surface/Default", children: [
+      { type: "RECTANGLE", name: "Rectangle", shape: { w: 80, h: 60, fill: "Color/Background/Support/Neutral/Soft", stroke: null, strokeWeight: 1, rotation: 0, opacity: 1 }, absolute: { x: 20, y: 30, w: 80, h: 60, pw: 560, ph: 240, cx: "MIN", cy: "MIN", free: true } },
+      { type: "TEXT", characters: "Label", textStyle: "Body/Base/Regular", absolute: { x: 140, y: 40, w: 40, h: 20, pw: 560, ph: 240, cx: "MIN", cy: "MIN", free: true } },
+    ] },
+  ] };
+  const back = pageFromFigma(read, { mapping }).text;
+  ok("free frame pulled: a Box of its size, the shape at its px X / Y, the text in a float Box at its px X / Y",
+    /<Box width=\{560\} height=\{240\} surface="surface">/.test(back) && /<Shape [^>]*position="absolute" insetLeft=\{20\} insetTop=\{30\}/.test(back) && /<Box position="absolute" insetLeft=\{140\} insetTop=\{40\}>\s*<Text[^>]*>Label<\/Text>/.test(back) && !/no auto layout/.test(pageFromFigma(read, { mapping }).notes.join(" ")));
 }
 
 if (failures.length) {

@@ -1,4 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useViewOptions } from "./viewOptions";
+import { Rulers } from "./Rulers";
+import { FindPanel } from "../edit/FindPanel";
+import { CanvasBackgroundSync } from "./CanvasBackground";
+import { LayoutGuides } from "./LayoutGuides";
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { FrameChrome } from "../board/FrameChrome";
 import { SelectionLayer } from "../select/SelectionLayer";
@@ -75,6 +80,9 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
   const [viewport, setViewportElement] = useState<HTMLDivElement | null>(null);
   const [world, setWorld] = useState<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const pixelRef = useRef<HTMLDivElement>(null);
+  // Figma's View options (F10): pixel grid, outlines, rulers, layout guides (canvas/viewOptions.ts).
+  const view = useViewOptions();
   const keyRef = useRef(viewKey);
   const spaceRef = useRef(false);
 
@@ -82,7 +90,7 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
   useLayoutEffect(() => {
     if (!viewport || !world) return undefined;
     let timer = 0;
-    const detach = attachCanvas({ viewport, world, grid: gridRef.current }, {
+    const detach = attachCanvas({ viewport, world, grid: gridRef.current, pixels: pixelRef.current }, {
       persist: (next: StudioViewport) => {
         const key = keyRef.current;
         window.clearTimeout(timer);
@@ -311,17 +319,38 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
   }, [viewport, world, tool]);
 
   return (
-    <div ref={setViewportElement} className="studio-viewport" role="application" aria-roledescription="canvas" aria-label={label} aria-describedby={CANVAS_STATUS_ID} tabIndex={0} data-tool={tool}>
+    <div
+      ref={setViewportElement}
+      className="studio-viewport"
+      role="application"
+      aria-roledescription="canvas"
+      aria-label={label}
+      aria-describedby={CANVAS_STATUS_ID}
+      tabIndex={0}
+      data-tool={tool}
+      data-outlines={view.outlines || undefined}
+      data-pixel-grid={view.pixelGrid || undefined}
+      data-layout-guides={view.layoutGuides || undefined}
+    >
       <div ref={gridRef} className="studio-grid" aria-hidden="true" />
       <div ref={setWorld} className="studio-world" {...previewAttributes(preview, brand)}>
         <PlatformTypographyContext value={preview.typography}>{children}</PlatformTypographyContext>
       </div>
+      <div ref={pixelRef} className="studio-pixel-grid" data-hidden="true" aria-hidden="true" />
+      {/* Figma's layout guides over the frames (⌃G, F10). */}
+      <LayoutGuides viewport={viewport} />
       <SelectionLayer viewport={viewport} world={world} />
       <VariantOutline world={world} />
       <SlotLayer viewport={viewport} world={world} />
       <ConstraintLayer viewport={viewport} world={world} />
       <EditLayer viewport={viewport} world={world} />
       <FrameChrome viewport={viewport} />
+      {/* A page's canvas Background (F10). */}
+      <CanvasBackgroundSync viewport={viewport} />
+      {/* Figma's Find and replace (⌘F, F10). */}
+      <FindPanel />
+      {/* Figma's rulers and guides (⇧R, F10). */}
+      <Rulers viewport={viewport} />
     </div>
   );
 }

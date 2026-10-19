@@ -1,4 +1,6 @@
 import { redoEdit, undoEdit } from "../../api";
+import { openFind } from "../FindPanel";
+import { toggleViewOption } from "../../canvas/viewKeys";
 import { presentFrame } from "../../board/presentFrame";
 import { canvasApi, zoomIn, zoomOut } from "../../canvas/viewport";
 import { modKey, presentShortcut } from "../../shell/modKey";
@@ -24,7 +26,7 @@ import { renameShortcut, startRename } from "../rename";
 import { startTextEditOnSelection } from "../textEdit";
 import { stepFrame } from "../../board/frameOrder";
 import { wrapInSection } from "../../builder/proto/addFrame";
-import { createComponentOfLayers, createComponents } from "../localComponents";
+import { combineAsVariants, createComponentOfLayers, createComponents } from "../localComponents";
 import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../pathOps";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
@@ -82,6 +84,7 @@ export function commands(): Command[] {
     { id: "lock", group: "Edit", label: isSelectionLocked(selection) ? "Unlock" : "Lock", shortcut: lockShortcut, keywords: "lock unlock freeze", disabled: editOff ?? (state.localPage ? (selection ? undefined : "Select a layer first") : "Works on a page you made"), run: () => { void toggleLockSelection(); } },
     // Figma's Create component (⌥⌘K: one, of every selected layer) and Create multiple components, on a page you made (F3).
     { id: "create-component", group: "Edit", label: "Create component", shortcut: `⌥${modKey}K`, keywords: "main component symbol make", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void createComponentOfLayers(); } },
+    { id: "combine-variants", group: "Edit", label: "Combine as variants", keywords: "component set variants merge", disabled: editOff ?? (!state.localPage ? "Works on a page you made" : selectedLayers().length > 1 ? undefined : "Select several main components"), run: () => { void combineAsVariants(); } },
     { id: "create-components", group: "Edit", label: "Create multiple components", keywords: "main components symbols make each", disabled: editOff ?? (!state.localPage ? "Works on a page you made" : selectedLayers().length > 1 ? undefined : "Select several layers"), run: () => { void createComponents(); } },
     // Figma's boolean groups, Flatten and Outline stroke on shapes of a page you made (edit/pathOps.ts, F9b).
     ...(["union", "subtract", "intersect", "exclude"] as const).map((operation) => ({ id: `boolean-${operation}`, group: "Edit", label: `${operation[0].toUpperCase()}${operation.slice(1)} selection`, shortcut: `⌥⇧${operation === "union" ? "U" : operation === "subtract" ? "S" : operation === "intersect" ? "I" : "E"}`, keywords: "boolean shapes combine", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void booleanSelection(operation); } })),
@@ -106,6 +109,12 @@ export function commands(): Command[] {
     { id: "previous-frame", group: "View", label: "Zoom to previous frame", shortcut: "⇧N", disabled: state.localPage ? undefined : "Works on a page you made", run: () => { stepFrame(-1); } },
     { id: "present", group: "View", label: "Present", shortcut: presentShortcut, keywords: "full screen play", disabled: frameId ? undefined : "Select a frame or a layer in one", run: () => { if (frameId) presentFrame(frameId); } },
     { id: "panels", group: "View", label: "Show/Hide UI", shortcut: `${modKey}\\`, keywords: "side panels", run: toggleSidePanels },
+    { id: "find", group: "View", label: "Find and replace", shortcut: `${modKey}F`, keywords: "search text replace words", run: openFind },
+    // Figma's View options (F10, canvas/viewOptions.ts): each turns on or off.
+    { id: "pixel-grid", group: "View", label: "Pixel grid", shortcut: `${modKey}'`, keywords: "pixels 400%", run: () => toggleViewOption("pixelGrid") },
+    { id: "outlines", group: "View", label: "Outlines", shortcut: modKey === "⌘" ? "⌘Y" : undefined, keywords: "outline mode wireframe", run: () => toggleViewOption("outlines") },
+    { id: "rulers", group: "View", label: "Rulers", shortcut: "⇧R", keywords: "guides measure", run: () => toggleViewOption("rulers") },
+    { id: "layout-guides", group: "View", label: "Layout guides", shortcut: modKey === "⌘" ? "⌃G" : "Ctrl+Alt+G", keywords: "columns grid layout grid", run: () => toggleViewOption("layoutGuides") },
     { id: "theme", group: "View", label: state.chromeTheme === "dark" ? "Light mode" : "Dark mode", keywords: "theme dark light interface canvas mode", run: toggleStudioTheme },
     { id: "pages", group: "Panels", label: "Show pages", run: () => studioStore.setState({ leftTab: "pages" }) },
     { id: "variables", group: "Panels", label: "Local variables", keywords: "tokens variables colors modes collection open", run: openVariables },

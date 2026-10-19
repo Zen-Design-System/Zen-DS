@@ -46,13 +46,14 @@ export default function Page() {
 
 const page = parsePage(PAGE, { components: new Set(["Button", "Shape", "Stack", "Text"]) });
 check("the page is valid dialect (an instance carries a data-name and a lock)", page.errors, []);
-check("validateDialect refuses other props on <Use>", validateDialect(PAGE.replace('<Use of="tag" data-name="Hot tag" data-locked />', '<Use of="tag" title="x" />'), { components: new Set(["Button", "Shape", "Stack", "Text"]) }).map((error) => error.message), ["<Use> takes of and overrides only, not title"]);
+check("validateDialect refuses other props on <Use>", validateDialect(PAGE.replace('<Use of="tag" data-name="Hot tag" data-locked />', '<Use of="tag" title="x" />'), { components: new Set(["Button", "Shape", "Stack", "Text"]) }).map((error) => error.message), ["<Use> takes of, variant, props, overrides and slots only, not title"]);
 const names = [...autoLayerNames(page.board).values()];
 check("automatic names: frames and shapes numbered per kind in page order, text by its words", names, ["Frame 1", "Welcome back, Alex", "Frame 2", "Ellipse 1", "Rectangle 1", "Ellipse 2", "Frame 3", "New"]);
 const row = page.board.children[0].children[0].children.find((child) => child.kind === "element" && child.props["data-name"]);
 check("a layer's given name and lock", [givenNameOf(row), isLockedValue(row.props["data-locked"])], ["Price row", true]);
 check("no given name: blank or missing", [givenNameOf({ props: { "data-name": { kind: "literal", value: "  " } } }), givenNameOf({ props: {} })], [null, null]);
 check("lock values", [isLockedValue(true), isLockedValue("true"), isLockedValue({ kind: "literal", value: true }), isLockedValue(false), isLockedValue(undefined)], [true, true, true, false, false]);
+check("text words: a TextRun's words in their place (F6b)", textWordsOf({ children: [{ kind: "text", value: "Renews on " }, { kind: "element", name: "TextRun", props: {}, children: [{ kind: "text", value: "Nov 2" }] }, { kind: "text", value: "." }] }), "Renews on Nov 2.");
 check("text words: one line, cut with …", [textWordsOf({ children: [{ kind: "text", value: "  Hello\n  world " }] }), textWordsOf({ children: [{ kind: "text", value: "x".repeat(70) }] })?.length, textWordsOf({ children: [] })], ["Hello world", 60, null]);
 check("automatic names Figma and the Studio give", [isAutomaticName("Frame 12", { name: "Stack" }), isAutomaticName("Rectangle", { name: "Shape" }), isAutomaticName("Hello", { name: "Text", children: [{ kind: "text", value: "Hello" }] }), isAutomaticName("Hero", { name: "Stack" }), isAutomaticName("", { name: "Stack" })], [true, true, true, false, true]);
 

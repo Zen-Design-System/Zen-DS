@@ -22,11 +22,17 @@ import { fileName, inspectorStatus, saveShortcut } from "./status";
 import {
   alignSelfLiteral, alignSelfOps, alignSelfOptions, axisLetter, axisName, axisTooltip, axisView, editLabel, effectiveAlign, fillCaption,
   fillChildrenOps, holdValues, holds, hugCaption, limitOps, limitProps, limitSuffix, limitText, limitValue, limitsOf, optimisticOf, parseLimit,
-  parseSizingInput, releaseValues, scrubbed, settleValues, sizingOps, stepBase, stepped,
+  parseSizingInput, releaseValues, scrubbed, settleValues, sizingOps, stepBase, stepped, withRatio,
   type AlignSelfValue, type AxisView, type HeldValue, type LimitProp, type LiveSizing, type ParentLayout, type SizingAxis, type SizingInput,
 } from "./sizingModel";
 import "./sizing.css";
 import { srcAttr } from "../select/srcIds";
+import { IconButton } from "../../../components/Button";
+import { evaluateNumber } from "./controls/numberMath";
+import { tip } from "../shell/ShortcutTip";
+
+/** Layers whose W / H are locked to their ratio (Figma's Constrain proportions), by src, for the session. */
+const ratioLocked = new Set<string>();
 
 /*
  * The Design tab's Size group (spec: docs/research/studio-inspector-redesign-2026-10-03.md, "SIZE" and the control
@@ -287,6 +293,17 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
   /** Min / max pairs the person added from the menu (shown, prefilled, nothing written until committed). */
   const [added, setAdded] = useState<Set<SizingAxis>>(() => new Set());
   const [focusLimit, setFocusLimit] = useState<{ prop: LimitProp; at: number } | null>(null);
+  // Figma's Constrain proportions: a Fixed W also fixes H at the ratio shown, and back (sizingModel withRatio).
+  const [locked, setLocked] = useState(() => Boolean(src && ratioLocked.has(src)));
+  useEffect(() => { setLocked(Boolean(src && ratioLocked.has(src))); }, [src]);
+  const toggleLock = () => {
+    if (!src) return;
+    const next = !locked;
+    if (next) ratioLocked.add(src);
+    else ratioLocked.delete(src);
+    setLocked(next);
+  };
+  const writeSize = (ops: EditOp[] | null) => send(locked ? withRatio(ops, info.size) : ops);
 
   if (!axes.length) return null;
   const values = Object.fromEntries(limitProps.map((prop) => [prop, read(prop)])) as Record<LimitProp, PropValue>;
@@ -333,12 +350,27 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
               limits={limitSuffix(limitPx(min), limitPx(max))}
               disabled={disabled}
               align={axis === "width" ? "start" : "end"}
-              onWrite={send}
+              onWrite={writeSize}
               limitItems={limitItems(axis)}
               onLimit={onLimit}
             />
           );
         })}
+        {axes.length === 2 ? (
+          <span className="studio-sizing__slot">
+            {/* zen-allow-secondary: the pressed state of a toggle (Constrain proportions on), as Position's Ignore auto layout. */}
+            <IconButton
+              icon={locked ? "icon-link-03-line" : "icon-link-broken-01-line"}
+              aria-label="Constrain proportions"
+              aria-pressed={locked}
+              tooltip={tip("Constrain proportions")}
+              level={locked ? "secondary" : "tertiary"}
+              size="xs"
+              disabled={disabled || !src}
+              onClick={toggleLock}
+            />
+          </span>
+        ) : null}
       </div>
 
       {axes.filter(pairShown).map((axis) => (
@@ -433,7 +465,8 @@ export function SizeField({ view, measured, parent, limits, disabled, align, onW
   const commitDraft = () => {
     if (draft === null) return;
     setDraft(null);
-    if (draft.trim() !== view.text) commit(parseSizingInput(draft, axis));
+    // Figma's arithmetic ("120+24", "*2") on the value the field shows.
+    if (draft.trim() !== view.text) commit(parseSizingInput(draft, axis, (text) => evaluateNumber(text, stepBase(view, measured))));
   };
   const commitPending = () => {
     const px = pendingRef.current;

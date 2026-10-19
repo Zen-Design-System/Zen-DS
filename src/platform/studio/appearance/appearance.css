@@ -31,4 +31,10 @@
 .studio-effect__settings-note { color: var(--zen-color-content-neutral-light); }
 
 /* A shape's fields two to a row (ShapeSections), as Figma's Arc and Stroke rows. */
-.studio-shape__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Two half fields on the panel's grid (inspector.css .studio-inspector__row): the icon column stays reserved, so a pair
+   lines up with X / Y and W / H above it (user 2026-10-19: the tool's UI never juts out or steps in). */
+.studio-shape__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* Fill › Image (ImageFillRow.tsx, F8): the picture's field with Upload and − beside it, then Image fit and a tile's scale. */
+.studio-image-fill { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-image-fill__picture { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); grid-auto-flow: column; grid-auto-columns: auto; align-items: center; column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }

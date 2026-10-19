@@ -396,6 +396,9 @@ function spotInView(frameId: string | null): Spot | string {
 let plainTextPaste: ((text: string) => Promise<boolean>) | null = null;
 /** Lets the text tool make the layer a paste of plain text with nothing selected creates (null: a <Text> here). */
 export const setPlainTextPaste = (paste: ((text: string) => Promise<boolean>) | null) => { plainTextPaste = paste; };
+/** Pictures on the clipboard (a copied image, a screenshot) with no layer copied: Figma places them (F8, canvas/fileDrop.ts). */
+let imagePaste: ((files: File[]) => boolean) | null = null;
+export const setImagePaste = (paste: ((files: File[]) => boolean) | null) => { imagePaste = paste; };
 
 /** Pastes `text` (null: the Studio's own clip) at `point` (Paste here), or with nothing selected into the frame in view. */
 async function pasteOnCanvas(text: string | null, point: { x: number; y: number } | null): Promise<boolean> {
@@ -551,6 +554,9 @@ export function useClipboard() {
     };
     const onPaste = (event: ClipboardEvent) => {
       if (!onCanvas(clipboardFocus())) return;
+      // Pictures and no layer copied (no text): placed as Figma places them (F8).
+      const files = [...(event.clipboardData?.files ?? [])].filter((file) => file.type.startsWith("image/"));
+      if (files.length && !event.clipboardData?.getData("text/plain") && imagePaste?.(files)) { event.preventDefault(); return; }
       const selection = ready_();
       if (selection) {
         event.preventDefault();

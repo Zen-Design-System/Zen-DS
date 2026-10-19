@@ -326,7 +326,7 @@ export type EditOp =
    * `with`: the opening-tag locs of more layers of the same JSX parent, wrapped together in source order (Frame selection /
    * Add auto layout on a multi-selection; tools/studio/README.md "Wrap several layers").
    */
-  | { op: "wrap"; tag: "Box" | "Stack" | "Grid" | "SidebarMenuSection" | "Component"; props: Record<string, EditValue>; with?: string[] }
+  | { op: "wrap"; tag: "Box" | "Stack" | "Grid" | "SidebarMenuSection" | "Component" | "ComponentSet"; props: Record<string, EditValue>; with?: string[] }
   /**
    * A one-layer wrap undone (the Studio's Ignore auto layout off on a Box it made float): the Box, Stack or Grid that
    * holds exactly one element is replaced by it, the wrapper's props going with it (its `key` back onto the element). Must
@@ -380,9 +380,10 @@ export type EditOp =
   | { op: "replaceElement"; code: string; state?: StateDecl[] }
   /**
    * A multi-selection in one file, one edit: every element at `locs` removed, duplicated (each copy after it) or given
-   * the same setProp / removeProp `ops`. `hash` required. Answer: `removed`, `inserted.loc` (first copy) or `updated`.
-   * Duplicate also answers `inserted.locs` (each original's loc → its copy's) where the server has it; "moveTo" (a
-   * drag of several layers: `parent`, `before` / `after`, `copy` as op moveTo) answers `moved` / `inserted` { loc, locs }.
+   * the same setProp / removeProp `ops` (setText too: Replace all's words, F10). `hash` required. Answer: `removed`,
+   * `inserted.loc` (first copy) or `updated`. Duplicate also answers `inserted.locs` (each original's loc → its
+   * copy's) where the server has it; "moveTo" (a drag of several layers: `parent`, `before` / `after`, `copy` as op
+   * moveTo) answers `moved` / `inserted` { loc, locs }.
    */
   | { op: "many"; action: "remove" | "duplicate" | "setProps" | "move" | "moveTo"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]>; to?: "prev" | "next"; parent?: string; before?: string; after?: string; copy?: boolean }
   /** Figma "Delete contents": empty the host's `prop` slot (omitted: children); `hash` required. Answer: `cleared`. */

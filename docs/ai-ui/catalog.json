@@ -2641,6 +2641,48 @@
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
         },
+        "image": {
+          "type": "string",
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
+        },
+        "imageFit": {
+          "enum": [
+            "fill",
+            "fit",
+            "crop",
+            "tile"
+          ],
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, s"
+        },
+        "imageCrop": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "additionalProperties": false,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g."
+        },
+        "imageScale": {
+          "type": "number",
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
+        },
         "surface": {
           "enum": [
             "none",
@@ -8220,6 +8262,48 @@
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
         },
+        "image": {
+          "type": "string",
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
+        },
+        "imageFit": {
+          "enum": [
+            "fill",
+            "fit",
+            "crop",
+            "tile"
+          ],
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, s"
+        },
+        "imageCrop": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "additionalProperties": false,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g."
+        },
+        "imageScale": {
+          "type": "number",
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
+        },
         "surface": {
           "enum": [
             "none",
@@ -8625,8 +8709,8 @@
       "slug": "text",
       "folder": "Text",
       "status": "stable",
-      "import": "import { Text, Heading } from \"@zen-ds/react\";",
-      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.",
+      "import": "import { Text, Heading, TextRun } from \"@zen-ds/react\";",
+      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).",
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
         "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
@@ -13405,7 +13489,8 @@
         "A free-form curve or outline drawn with the Pen (P) or Pencil (⇧P): type=\"vector\" with its path d in its viewBox.",
         "A cut-out or combined mark (a ticket stub, a ring with a notch): a boolean group of shapes (⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E in Zen Studio).",
         "A ring or pie built from an ellipse's arc (Start, Sweep, Ratio) where no chart component fits.",
-        "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets."
+        "A layer at Figma's X / Y in a free frame (a Box or Screen without auto layout): position=\"absolute\" with px insets.",
+        "A picture placed in Zen Studio (⇧⌘K, a dropped or pasted file): a Rectangle with an image fill, as Figma places it."
       ],
       "avoid": [
         "Data charts → Chart components (DonutChart, RadialChart, ProgressBar…): they carry labels, legends and accessible values.",
@@ -13721,6 +13806,48 @@
             "full"
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+        },
+        "image": {
+          "type": "string",
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
+        },
+        "imageFit": {
+          "enum": [
+            "fill",
+            "fit",
+            "crop",
+            "tile"
+          ],
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, s"
+        },
+        "imageCrop": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "additionalProperties": false,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g."
+        },
+        "imageScale": {
+          "type": "number",
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
         },
         "type": {
           "enum": [
@@ -15292,6 +15419,48 @@
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
         },
+        "image": {
+          "type": "string",
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
+        },
+        "imageFit": {
+          "enum": [
+            "fill",
+            "fit",
+            "crop",
+            "tile"
+          ],
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, s"
+        },
+        "imageCrop": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "additionalProperties": false,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g."
+        },
+        "imageScale": {
+          "type": "number",
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
+        },
         "surface": {
           "enum": [
             "none",
@@ -16214,8 +16383,8 @@
       "slug": "text",
       "folder": "Text",
       "status": "stable",
-      "import": "import { Text, Heading } from \"@zen-ds/react\";",
-      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.",
+      "import": "import { Text, Heading, TextRun } from \"@zen-ds/react\";",
+      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).",
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
         "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
@@ -16733,6 +16902,214 @@
         "state (not for a generated UI)",
         "className (not for a generated UI)",
         "overrides (not for a generated UI)"
+      ]
+    },
+    "TextRun": {
+      "name": "TextRun",
+      "slug": "text",
+      "folder": "Text",
+      "status": "stable",
+      "import": "import { Text, Heading, TextRun } from \"@zen-ds/react\";",
+      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).",
+      "use": [
+        "Page and section titles (Heading level + an optional textStyle).",
+        "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
+        "Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).",
+        "Counts in copy: plural(n, \"file\")."
+      ],
+      "avoid": [
+        "A title inside a component that has its own title prop (Dialog, Card header, EmptyState, TopNavigation) → use that prop.",
+        "A link → Link.",
+        "A label for a form field → the field's label prop.",
+        "Long-form rich content → your content renderer, styled with the tokens."
+      ],
+      "description": "Words with a style of their own inside a Text or Heading (Figma's mixed styles: a range made bold, italic, underlined, struck through, coloured or set in another text style).",
+      "props": {
+        "bold": {
+          "type": "boolean",
+          "default": false,
+          "description": "Bold words (Figma's Bold weight on a range, ⌘B): the Bold emphasis token over the text style around it."
+        },
+        "italic": {
+          "type": "boolean",
+          "default": false,
+          "description": "Italic words (Figma's Italic on a range, ⌘I)."
+        },
+        "underline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Underlined words (Figma's Decoration: Underline, ⌘U)."
+        },
+        "strikethrough": {
+          "type": "boolean",
+          "default": false,
+          "description": "Struck-through words (Figma's Decoration: Strikethrough, ⇧⌘X): an old price, a done item."
+        },
+        "tone": {
+          "enum": [
+            "strongest",
+            "base",
+            "light",
+            "accent-strongest",
+            "accent-base",
+            "accent-light",
+            "info-strongest",
+            "info-base",
+            "info-light",
+            "positive-strongest",
+            "positive-base",
+            "positive-light",
+            "negative-strongest",
+            "negative-base",
+            "negative-light",
+            "warning-strongest",
+            "warning-base",
+            "warning-light",
+            "support-blue-strongest",
+            "support-blue-base",
+            "support-blue-light",
+            "support-bronze-strongest",
+            "support-bronze-base",
+            "support-bronze-light",
+            "support-brown-strongest",
+            "support-brown-base",
+            "support-brown-light",
+            "support-crimson-strongest",
+            "support-crimson-base",
+            "support-crimson-light",
+            "support-cyan-strongest",
+            "support-cyan-base",
+            "support-cyan-light",
+            "support-golden-strongest",
+            "support-golden-base",
+            "support-golden-light",
+            "support-green-strongest",
+            "support-green-base",
+            "support-green-light",
+            "support-indigo-strongest",
+            "support-indigo-base",
+            "support-indigo-light",
+            "support-mint-strongest",
+            "support-mint-base",
+            "support-mint-light",
+            "support-orange-strongest",
+            "support-orange-base",
+            "support-orange-light",
+            "support-pink-strongest",
+            "support-pink-base",
+            "support-pink-light",
+            "support-plum-strongest",
+            "support-plum-base",
+            "support-plum-light",
+            "support-purple-strongest",
+            "support-purple-base",
+            "support-purple-light",
+            "support-red-strongest",
+            "support-red-base",
+            "support-red-light",
+            "support-sky-strongest",
+            "support-sky-base",
+            "support-sky-light",
+            "support-teal-strongest",
+            "support-teal-base",
+            "support-teal-light",
+            "support-violet-strongest",
+            "support-violet-base",
+            "support-violet-light",
+            "support-yellow-strongest",
+            "support-yellow-base",
+            "support-yellow-light",
+            "inverse-strongest",
+            "inverse-base",
+            "inverse-light",
+            "on-black-overlay-strongest",
+            "on-black-overlay-base",
+            "on-black-overlay-light",
+            "on-white-overlay-strongest",
+            "on-white-overlay-base",
+            "on-white-overlay-light",
+            "on-colors",
+            "on-brights",
+            "on-accent",
+            "hyperlink",
+            "disabled",
+            "inherit",
+            "primary",
+            "secondary",
+            "tertiary",
+            "neutral-strongest",
+            "neutral-base",
+            "neutral-light",
+            "accent",
+            "info",
+            "positive",
+            "negative",
+            "warning",
+            "inverse"
+          ],
+          "description": "The words' colour role (Figma's fill on a range): a Color/Content token by its path (\"accent-base\", \"negative-base\")."
+        },
+        "textStyle": {
+          "enum": [
+            "Display-Extra/1",
+            "Display-Extra/2",
+            "Display-Extra/3",
+            "Display/1",
+            "Display/2",
+            "Display/3",
+            "Display/4",
+            "Heading/1",
+            "Heading/2",
+            "Heading/3",
+            "Heading/4",
+            "Heading/Subheading",
+            "Body/Extra/Regular",
+            "Body/Extra/Medium",
+            "Body/Extra/Bold",
+            "Body/Base/Regular",
+            "Body/Base/Medium",
+            "Body/Base/Bold",
+            "Body/Small/Regular",
+            "Body/Small/Medium",
+            "Body/Small/Bold",
+            "Body/Code/Regular",
+            "Body/Code/Bold",
+            "Caption/Regular",
+            "Caption/Medium",
+            "Caption/Bold",
+            "Label/Small/Medium",
+            "Label/Small/Bold",
+            "Button-Label/XL",
+            "Button-Label/L",
+            "Button-Label/M",
+            "Button-Label/S",
+            "Button-Label/XS",
+            "All-Caps/M",
+            "All-Caps/M-BOLD",
+            "All-Caps/S"
+          ],
+          "description": "Another Figma text style for these words (a range in Body/Base/Bold inside Body/Base/Regular, a Caption in a line)."
+        },
+        "children": {
+          "x-kind": "node"
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
       ]
     },
     "Thumbnail": {
@@ -18680,6 +19057,7 @@
         "Don't draw charts, progress or ratings from shapes: use the components that carry values and labels.",
         "Don't use a Shape as a card or section background: use Box surface or Card.",
         "Don't pass hex or rgb colours: fill and stroke take Zen token paths only.",
+        "Don't use an image fill for a picture in the content (an article photo, a product shot): use Image (alt, ratio, caption).",
         "Don't write a vector's d with relative commands, arcs or H / V: Zen Studio and Figma read absolute M / L / C / Q / Z."
       ],
       "rules": [
@@ -19510,16 +19888,20 @@
         "Emphasise inside a level with weight (Regular → Medium → Bold) and quiet secondary text with tone (light → base). Sizes stay as they are (a Zen rule; Apple also allows size). When weight carries a state (unread, new), say it in text too.",
         "Use tone=\"base\" for secondary copy and Body/Small meta, and \"light\" only for tertiary meta (timestamps, hints); Caption is always \"light\".",
         "Use Text as=\"span\" inside a line of other text or a flex row; the default p is a block.",
-        "Pluralise counts with plural(): \"1 member\", \"12 members\" (harness: copy/plural-count)."
+        "Pluralise counts with plural(): \"1 member\", \"12 members\" (harness: copy/plural-count).",
+        "Mark the few words that need weight or colour inside a sentence with TextRun (<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>), so the sentence stays one text for screen readers and translation; a link inside it is a Link."
       ],
       "dont": [
         "Don't pick a heading level for its size; set textStyle instead. A content h1 (the page title shown large) is never smaller than Heading/1: Heading/1, or a Display / Display-Extra style on an emphasis page.",
         "Don't make a value (metric, price, count) a heading.",
         "Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.",
         "Don't colour body text with a colour family's Light token or a raw hex; use tone.",
-        "Don't truncate essential information without another way to read it (a tooltip or detail view)."
+        "Don't truncate essential information without another way to read it (a tooltip or detail view).",
+        "Don't use TextRun outside a Text or Heading, or to set a whole text's style (set the Text's textStyle and tone instead).",
+        "Don't underline words to make them look like a link; a link is a Link."
       ],
       "rules": [
+        "text-run/inside-text",
         "flag/no-emoji-flag",
         "content/lights-no-light-text",
         "heading/h1-is-heading-1",

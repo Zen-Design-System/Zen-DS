@@ -14,6 +14,7 @@
 // draws it (a frame of Data-Rows, header and content cells) and pictures (`images`, filled by the caller: the plugin has
 // no network).
 import { docFromText } from "./doc.mjs";
+import { PROPERTY_BINDINGS, componentSets, localComponents, mainLayerPaths, resolveInstance, variantName } from "./dialect.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -22,6 +23,8 @@ import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFi
 import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
+import { textSegments } from "./text-runs.mjs";
+import { imageFillOf } from "./figma-image.mjs";
 import { arcData, fitVectorPath, normalizeArc, parseVectorPath, parseViewBox, STAR_RATIO, vectorBounds } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
 import { zenLabels } from "../../src/components/_shared/labels.ts";
@@ -398,14 +401,27 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const localNames = new Map();
   const collect = (node) => {
     if (!node || node.kind !== "element") return;
-    if (node.name === "Component" && node.props.id?.kind === "literal") localNames.set(String(node.props.id.value), String(node.props.name?.value ?? node.props.id.value));
+    if ((node.name === "Component" || node.name === "ComponentSet") && node.props.id?.kind === "literal") localNames.set(String(node.props.id.value), String(node.props.name?.value ?? node.props.id.value));
     for (const value of Object.values(node.props)) if (value?.kind === "element") collect(value.node);
     for (const child of node.children ?? []) collect(child.kind === "map" ? child.node : child);
   };
   collect(doc.board);
+  // The page's components and sets (dialect.mjs): a variant's name and values, a set's properties, an instance's values.
+  const localModel = { mains: localComponents(doc.board), sets: componentSets(doc.board) };
+  /** Figma's component property types by the page's (dialect.mjs COMPONENT_PROPERTY_TYPES). */
+  const PROPERTY_TYPE = { text: "TEXT", boolean: "BOOLEAN", swap: "INSTANCE_SWAP", slot: "SLOT" };
+  const figmaProperties = (properties) => properties.map((property) => ({ name: property.name, type: PROPERTY_TYPE[property.type], ...(property.default !== undefined ? { default: property.default } : {}), ...(property.preferred ? { preferred: property.preferred } : {}) }));
+  /** A layer of a main bound to a component property: Figma's componentPropertyReferences by the property's name. */
+  const REFERENCE = { "data-prop-text": "characters", "data-prop-visible": "visible", "data-prop-swap": "mainComponent" };
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
+    if (node && element.kind === "element") {
+      const refs = Object.fromEntries(Object.keys(PROPERTY_BINDINGS).flatMap((attr) => (element.props[attr]?.kind === "literal" && REFERENCE[attr] ? [[REFERENCE[attr], String(element.props[attr].value)]] : [])));
+      if (Object.keys(refs).length) node.propRefs = refs;
+      // A layer an instance fills: Figma's slot in its main (the importer's createSlot), named as its property.
+      if (element.props["data-prop-slot"]?.kind === "literal") node.slot = String(element.props["data-prop-slot"].value);
+    }
     // The name the person gave a frame, shape or text (data-name, layer-meta.mjs) is its Figma name.
     const given = element.kind === "element" && FIGMA_NAMED.has(element.name) ? givenNameOf(element) : null;
     if (node && given) node.name = given;
@@ -442,12 +458,49 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "Shape") node = shapeNode(code, id, element);
     // A page's own component: its main as Figma's COMPONENT around its layer, each instance an INSTANCE of it (the
     // importer makes the main first, then the instances; `local` is the page's component id).
-    else if (element.name === "Component") {
+    else if (element.name === "ComponentSet") {
+      // Figma's component set: its variants side by side in a wrapping row (the set frame), its properties defined on it.
+      const set = localModel.sets.find((entry) => entry.node === element);
+      const variants = element.children.filter((child) => child.kind === "element" && child.name === "Component").map((child) => convert(child, { direction: "row", stretch: false, width: null })).filter(Boolean);
+      node = { type: "COMPONENT_SET", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component set"), ...(id ? { id } : {}), ...(typeof code.description === "string" ? { description: code.description } : {}), ...(typeof code.link === "string" ? { link: code.link } : {}), properties: figmaProperties(set?.properties ?? []), layout: { mode: "HORIZONTAL", wrap: true, gap: 24, rowGap: 24, padding: [24, 24, 24, 24], counter: "MIN", primary: "MIN" }, children: variants, hugW: true, hugH: true };
+    } else if (element.name === "Component") {
       const root = element.children.find((child) => child.kind === "element");
       const inner = root ? convert(root, parent) : null;
+      const main = localModel.mains.find((entry) => entry.node === element);
+      // A variant is named by its values ("Size=Small"), as Figma names one; a lone main carries its own properties.
+      const named = main?.set ? { name: variantName(main.variant), variant: main.variant } : { name: String(code.name ?? code.id ?? "Component"), ...(main?.properties.length ? { properties: figmaProperties(main.properties) } : {}) };
       // The main hugs its layer (Figma's component frame around one layer); the layer keeps its own sizing inside.
-      node = { type: "COMPONENT", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component"), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
-    } else if (element.name === "Use") node = { type: "INSTANCE", local: String(code.of ?? ""), name: localNames.get(String(code.of ?? "")) ?? "Instance", ...(id ? { id } : {}), hugW: true, hugH: true };
+      node = { type: "COMPONENT", local: String(code.id ?? ""), ...named, ...(typeof code.description === "string" ? { description: code.description } : {}), ...(typeof code.link === "string" ? { link: code.link } : {}), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
+    } else if (element.name === "Use") {
+      // An instance of a set or a main, with its variant values and its property values (setProperties in the importer).
+      const resolved = resolveInstance(doc.board, element, localModel);
+      const local = resolved?.set?.id ?? String(code.of ?? "");
+      node = { type: "INSTANCE", local, name: localNames.get(local) ?? "Instance", ...(resolved?.set ? { variant: resolved.variant } : {}), ...(resolved && Object.keys(resolved.values).length ? { props: resolved.values } : {}), ...(id ? { id } : {}), hugW: true, hugH: true };
+      // What it puts in its main's slots (F7b): Figma's slot content, by the slot's name (the importer fills it).
+      const fills = element.props.slots?.kind === "object" ? element.props.slots.fields : null;
+      if (fills) {
+        const slots = Object.entries(fills).map(([name, content]) => {
+          const layers = content.kind === "element" ? [content.node] : content.kind === "fragment" ? content.children.filter((child) => child.kind === "element") : [];
+          return { name, children: layers.map((layer) => convert(layer, { direction: "column", stretch: false, width: null })).filter(Boolean) };
+        }).filter((slot) => slot.children.length);
+        if (slots.length) node.slots = slots;
+      }
+      // Its overrides of its main's layers (F7b): placed by the main's drawn layers once the frame is built (below).
+      const table = element.props.overrides?.kind === "object" ? element.props.overrides.fields : null;
+      const main = resolved ? localModel.mains.find((entry) => entry.id === resolved.main.id) : null;
+      if (table && main) {
+        const byPath = new Map([...mainLayerPaths(main, localModel)].map(([layer, path]) => [path, layer]));
+        const pending = [];
+        for (const [path, layer] of Object.entries(table)) {
+          const target = byPath.get(path);
+          const props = layer.kind === "object" ? Object.fromEntries(Object.entries(layer.fields).flatMap(([name, value]) => (value.kind === "literal" ? [[name, value.value]] : []))) : {};
+          if (target?.id) pending.push({ key: target.id, path, props, kind: target.name });
+          else notes.push(`${node.name}: its override of ${path} (a layer inside a nested layer) is not pushed yet`);
+        }
+        // On the node itself: the frame's assembly copies nodes ({ ...node, fillW }).
+        if (pending.length) node.layerPending = { main: main.id, pending };
+      }
+    }
     else if (element.name === "Text" || element.name === "Heading") {
       const align = { center: "CENTER", end: "RIGHT", justify: "JUSTIFIED" }[code.align];
       // Text.tsx's defaults: Body/Base/Regular in Neutral Strongest; a tone paints with its Color/Content variable.
@@ -457,7 +510,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       if (code.tabularNumbers === true) tabular.push(id ?? element.name);
       // A Heading's layer is named for its level ("Heading 2"): Figma has no heading level, and the pull reads it back.
       const name = element.name === "Heading" ? `Heading ${code.level ?? 2}` : null;
-      node = { type: "TEXT", ...(id ? { id } : {}), ...(name ? { name } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}), ...(code.wrap === false ? { autoWidth: true } : {}) };
+      // Words with styles of their own (TextRun): ranges the importer styles with setRange… (text-runs.mjs).
+      const segments = textSegments(element, textStyle, contentToneToken);
+      node = { type: "TEXT", ...(id ? { id } : {}), ...(name ? { name } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(segments ? { segments } : {}), ...(align ? { align } : {}), ...(code.wrap === false ? { autoWidth: true } : {}) };
     } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {}, ...iconSizing(code.size) };
     // FileIcon: Figma's icon-media-file by Format; Flag: Figma's Flag by Name (both on 🍑 Iconography), sized as the code.
     else if (element.name === "FileIcon" && typeof code.format === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.title === "string" ? code.title : `${code.format} file`, set: SETS.fileIcon, props: { Format: FILE_FORMAT[code.format] ?? code.format }, ...iconSizing(code.size) };
@@ -506,7 +561,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const kind = SHAPE_NODE[code.type] ? code.type : "rectangle";
     const line = kind === "line" || kind === "arrow";
     const vector = kind === "vector";
-    const fill = code.fill ?? (line || vector ? "none" : DEFAULT_SHAPE_FILL);
+    // An image fill (F8, figma-image.mjs): the importer's IMAGE paint over the colour; a shape with one has no colour unless given.
+    const picture = line ? null : imageFillOf(code, element);
+    if (picture) images.add(picture.src);
+    const fill = code.fill ?? (line || vector || picture ? "none" : DEFAULT_SHAPE_FILL);
     const stroke = code.stroke ?? (line || vector ? DEFAULT_LINE_STROKE : "none");
     const width = typeof code.width === "number" ? code.width : SHAPE_DEFAULT_SIZE;
     const height = line ? 0 : typeof code.height === "number" ? code.height : SHAPE_DEFAULT_SIZE;
@@ -517,6 +575,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return {
       type: SHAPE_NODE[kind], shape: true, ...(id ? { id } : {}), name: SHAPE_LABEL[kind],
       ...(fill !== "none" && shapeFillTokens[fill] ? { fill: shapeFillTokens[fill] } : {}),
+      ...(picture ? { imageFill: picture } : {}),
       ...(stroke !== "none" && shapeStrokeTokens[stroke] ? { stroke: shapeStrokeTokens[stroke], strokeWeight: weight, strokeAlign: line ? "CENTER" : { center: "CENTER", outside: "OUTSIDE", inside: "INSIDE" }[code.strokeAlign] ?? (vector ? "CENTER" : "INSIDE") } : {}),
       // A vector: its path in the node's px (Figma's vectorPaths), stretched from its viewBox to its size.
       ...(vector && kind !== "boolean" ? vectorSpec(code, width, height) : {}),
@@ -1260,10 +1319,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
    * `radiiVars` TL TR BR BL when they differ), the effect style by name, opacity 0–1, rotation (degrees,
    * counter-clockwise) and flip. Only what the code writes; Figma's defaults are left out.
    */
-  function frameLook(code) {
+  function frameLook(code, element = null) {
     const look = {};
     const fill = BOX_SURFACE[code.surface];
     if (fill) look.fill = fill;
+    // An image fill (F8, figma-image.mjs) over the frame's fill.
+    const picture = imageFillOf(code, element);
+    if (picture) { look.imageFill = picture; images.add(picture.src); }
     const stroke = FRAME_STROKE[code.border];
     if (stroke) {
       look.stroke = stroke;
@@ -1360,7 +1422,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // wide, 2026-10-16). It fills; one with a surface keeps hugging (its background would spread).
       const holdsWrap = !row && !own.width && wrapsText(node);
       const wide = (fillW && !oneLine) || shareW || holdsWrap || (node.type === "TEXT" && !row && !node.autoWidth) || (row && child.name === "Divider");
-      return { ...node, ...(wide ? { fillW: true } : {}), ...(fillH || shareH ? { fillH: true } : {}) };
+      // A frame of a px width / height keeps it (CSS: a set width wins over a column's stretch).
+      const ownW = node.type === "FRAME" && node.fixedWidth !== undefined;
+      const ownH = node.type === "FRAME" && node.fixedHeight !== undefined;
+      return { ...node, ...(wide && !ownW ? { fillW: true } : {}), ...((fillH || shareH) && !ownH ? { fillH: true } : {}) };
     }).filter(Boolean);
     if (grid && !fit) {
       layout.grid = { columns: columns.count, rows: Math.max(1, Math.ceil(children.length / columns.count)), ...(columns.sizes ? { sizes: columns.sizes } : {}) };
@@ -1376,7 +1441,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // fill, stroke, corners, effect, opacity, rotation and flip: one Figma frame (frameLook).
     // A Box group (⌘G): Figma's GROUP (the importer turns the frame into one once its layers sit where they go).
     const group = element.name === "Box" && code.group === true;
-    return { type: "FRAME", ...(id ? { id } : {}), name: group ? "Group" : element.name, ...(group ? { group: true } : {}), layout, children, ...frameLook(code), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
+    // A width / height in px (a free frame drawn in the Studio, Stack width={480}): Figma's Fixed size; the importer
+    // hugged it before (2026-10-19, a 560 × 240 free frame came out as tall as its layers in the flow).
+    const px = (value) => (/^\d+(\.\d+)?(px)?$/.test(String(value ?? "")) ? Number.parseFloat(String(value)) : null);
+    const fixedWidth = px(code.width);
+    const fixedHeight = px(code.height);
+    // A free frame (a Box of a px size whose layers all float at their X / Y, or none: the Frame tool's): Figma's frame
+    // without auto layout (layoutMode NONE), its layers at their X / Y (F4, A found it 2026-10-19).
+    const layers = element.children.filter((child) => child.kind === "element");
+    const free = element.name === "Box" && !group && fixedWidth !== null && fixedHeight !== null && layers.every((child) => literalOf(child.props.position) === "absolute");
+    return { type: "FRAME", ...(id ? { id } : {}), name: group ? "Group" : element.name, ...(group ? { group: true } : {}), layout: free ? { mode: "NONE" } : layout, children, ...frameLook(code, element), ...(fixedWidth !== null ? { fixedWidth } : {}), ...(fixedHeight !== null ? { fixedHeight } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */
@@ -1937,6 +2011,46 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     (node.edits ?? []).forEach((edit) => (edit.append ?? []).forEach((child, index) => keyed(child, node.key, `${edit.layer}.${index}`)));
   };
   keyed(frame, "page", 0);
+  // An instance's overrides of its main's layers (F7b): each by the child indices that reach it in the main's drawn
+  // COMPONENT (an instance's layers mirror its main's), in Figma's fields — a text's characters and fill, a layer's
+  // visibility, a nested instance's variant and property values.
+  const mainsDrawn = new Map();
+  const withPending = [];
+  const findMains = (node) => {
+    if (node.type === "COMPONENT" && node.local) mainsDrawn.set(node.local, node);
+    if (node.layerPending) withPending.push(node);
+    (node.children ?? []).forEach(findMains);
+    (node.slots ?? []).forEach((slot) => slot.children.forEach(findMains));
+  };
+  findMains(frame);
+  if (withPending.length) {
+    const indexPath = (node, key, path = []) => {
+      if (node.key === key && path.length) return path;
+      for (const [index, child] of (node.children ?? []).entries()) { const found = indexPath(child, key, [...path, index]); if (found) return found; }
+      return null;
+    };
+    for (const instance of withPending) {
+      const { main, pending } = instance.layerPending;
+      delete instance.layerPending;
+      const drawn = mainsDrawn.get(main);
+      const out = [];
+      for (const { key, path, props, kind } of pending) {
+        const at = drawn ? indexPath(drawn, key) : null;
+        if (!at) { notes.push(`${instance.name}: its override of ${path} is not pushed (the layer is not drawn in its main)`); continue; }
+        const override = { at };
+        for (const [name, value] of Object.entries(props)) {
+          const nested = /^(variant|props)\.(.+)$/.exec(name);
+          if (nested && kind === "Use") (override[nested[1]] ??= {})[nested[2]] = value;
+          else if (name === "children" && (kind === "Text" || kind === "Heading")) override.characters = String(value);
+          else if (name === "hidden" && typeof value === "boolean") override.visible = !value;
+          else if (name === "tone" && (kind === "Text" || kind === "Heading") && typeof value === "string") override.fill = contentToneToken(value);
+          else notes.push(`${instance.name}: ${path} ${name} is not pushed (an override Figma has no field for here yet)`);
+        }
+        if (Object.keys(override).length > 1) out.push(override);
+      }
+      if (out.length) instance.layerOverrides = out;
+    }
+  }
   // An icon the code names plainly ("icon-chevron-right-line") is a cut in Figma ("…-medium", icons/generated/aliases.ts).
   const figmaIcon = (value) => (typeof value === "string" && iconAliases[value]) || value;
   const cutIcons = (node) => {

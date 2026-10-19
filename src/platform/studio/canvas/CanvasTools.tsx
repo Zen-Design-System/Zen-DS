@@ -1,4 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
+import { placeImages } from "../draw/placeImage";
+import { installFileDrop } from "./fileDrop";
 import { IconButton } from "../../../components/Button";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Menu } from "../../../components/Menu";
@@ -172,8 +174,10 @@ function PenTools({ tool, off }: { tool: StudioTool; off: boolean }) {
  * Floating toolbar, bottom-centre of the canvas (Figma UI3's): Move and Hand; Frame and Section (a page you made: drag a
  * box for a frame of that size, a click for Figma's 100 × 100 one, the right panel's presets; inside a Screen, a frame
  * there: draw/drawTool.ts; Section ⇧S draws a named board area the frames under it belong to: builder/frameMove.ts);
- * the shape tools (draw/drawTool.ts: Rectangle R, Line L, Arrow ⇧L, Ellipse O, Polygon, Star); Stack, Text and Image,
- * placed with the pointer (edit/place.ts: the insertion line shows where, a click places it, then Move again); Assets
+ * the shape tools (draw/drawTool.ts: Rectangle R, Line L, Arrow ⇧L, Ellipse O, Polygon, Star); Text T (a page you
+ * made: Figma's, a click for Auto width text or a drag for a text box, typing at once; example pages: placed with the
+ * pointer); Stack and Image, placed with the pointer (edit/place.ts: the insertion line shows where, a click places it,
+ * then Move again); Assets
  * (⇧I, Quick insert: components, icons, photos); Interact.
  */
 export function CanvasTools() {
@@ -185,6 +189,12 @@ export function CanvasTools() {
       if (!armFrameDraw(localPage, tool)) studioStore.setState({ tool: "select" });
     } else if (isShapeTool(tool) && localPage) {
       if (!armDraw(tool)) studioStore.setState({ tool: "select" });
+    } else if (tool === "text" && localPage) {
+      // Figma's Text tool on a page you made (F6): a click or a drag at the pointer, then typing (draw/drawTool.ts).
+      if (!armDraw("text")) studioStore.setState({ tool: "select" });
+    } else if (tool === "image" && localPage) {
+      // Figma's Place image on a page you made (F8): the file dialog, then a click per picture (draw/placeImage.ts).
+      void placeImages(() => armDraw("image"));
     } else if (isPenTool(tool) && localPage) {
       if (!armPen(tool)) studioStore.setState({ tool: "select" });
     } else if (tool === "stack" || tool === "text" || tool === "image") {
@@ -196,6 +206,8 @@ export function CanvasTools() {
     }
     return () => { disarmPlacement(); disarmFrameDraw(); disarmDraw(); disarmPen(); };
   }, [tool, localPage]);
+  // Pictures dropped from the computer onto a frame (F8: canvas/fileDrop.ts).
+  useEffect(() => installFileDrop(localPage), [localPage]);
   return (
     <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools">
       {canvasToolGroups.map((group, index) => {

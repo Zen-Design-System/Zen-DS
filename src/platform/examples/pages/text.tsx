@@ -23,7 +23,7 @@ import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { SidePanel } from "../../../components/SidePanel";
 import { Sidebar, SidebarMenuItem, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
-import { Heading, Text, plural } from "../../../components/Text";
+import { Heading, Text, TextRun, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
@@ -496,6 +496,37 @@ function PhoneHeadings() {
   );
 }
 
+// ——— 6. Mixed styles: TextRun gives a few words weight or colour inside one sentence ——————————————————————————
+function PlanRenewal() {
+  const { toast } = useToast();
+  const [unpaid, setUnpaid] = useState(2);
+  const titleId = useId();
+  return (
+    <Card as="section" theme="flat" aria-labelledby={titleId}>
+      <Stack gap="md">
+        <Stack gap="xs">
+          <Heading level={2} id={titleId} textStyle="Heading/Subheading">Pro plan</Heading>
+          {/* One sentence, read as one: the date and the price are bold, the unpaid seats take the Negative tone. */}
+          <Text role="status">
+            Your plan renews on <TextRun bold>{formatDate(daysFromToday(33))}</TextRun> for <TextRun bold>$48</TextRun> a month
+            {unpaid ? ". " : ", every seat paid."}
+            {unpaid ? <TextRun tone="negative-base">{plural(unpaid, "seat")}</TextRun> : null}
+            {unpaid ? ` ${unpaid === 1 ? "is" : "are"} unpaid.` : null}
+          </Text>
+          <Text textStyle="Body/Small/Regular" tone="base">
+            Was <TextRun strikethrough>$60</TextRun>: the yearly discount applies from your next bill.
+          </Text>
+        </Stack>
+        {unpaid ? (
+          <Button level="primary" onClick={() => { setUnpaid(0); toast({ type: "positive", title: `${plural(unpaid, "seat")} paid` }); }}>
+            {`Pay for ${plural(unpaid, "seat")}`}
+          </Button>
+        ) : null}
+      </Stack>
+    </Card>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Page outline",
@@ -572,6 +603,18 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 <FormActions>
   <Button level="primary" type="submit">{chosen.length ? \`Send \${plural(chosen.length, "file")}\` : "Send files"}</Button>
 </FormActions>`,
+  },
+  {
+    title: "Mixed styles in a sentence",
+    description: "TextRun gives a few words a style of their own inside one Text (Figma's mixed styles): the renewal date and the price in Bold, the unpaid seats in the Negative tone, an old price struck through. The sentence stays one text, so it is read and translated whole. Paying the seats rewrites it.",
+    render: () => <PlanRenewal />,
+    code: `<Text role="status">
+  Your plan renews on <TextRun bold>{renewal}</TextRun> for <TextRun bold>$48</TextRun> a month.{" "}
+  <TextRun tone="negative-base">{plural(unpaid, "seat")}</TextRun> are unpaid.
+</Text>
+<Text textStyle="Body/Small/Regular" tone="base">
+  Was <TextRun strikethrough>$60</TextRun>: the yearly discount applies from your next bill.
+</Text>`,
   },
   {
     title: "Headings on a phone",

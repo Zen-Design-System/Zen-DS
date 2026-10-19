@@ -84,6 +84,94 @@ User: "làm tiếp phần còn thiếu của main component" · "Bug UI của st
   variants) → progress.css background transparent. Done=No pies differ per theme sample (20–85%); Accent/Neutral keep 80.
   The user's Studio (:5174, Vite from 2026-10-16 in the shared checkout) serves the new code: a reload shows it.
 
+## Studio Text tool — F6a (Session C; user: "F6a trước, F6b sau", rich text API "Component mới TextRun") — tier M, branch `zen/feat/studio-f6-text-20261019`
+
+Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a new inline `TextRun` component (next PR).
+- **T tool on a page you made** (`draw/drawModel.ts` kind "text", `draw/drawTool.ts`, new `edit/textCreate.ts`): a click
+  makes `<Text wrap={false}>` (Auto width), a drag `<Text width={…}>` (Auto height); in a frame without auto layout it
+  floats in a Box at the point (the Ignore auto layout wrapper, as other layers). The keys typed from the release on are
+  held (`textEdit.holdKeysForText`) and replace the new words when the editor opens (a ref keeps them across React's dev
+  double effect, which lost the first key). T on the words of a Text / Heading edits them at the caret (`editTextAt`).
+  Example pages keep the placement tool.
+- **Editor:** in a Text layer of a page you made Enter is a new line (Esc / Tab / a click outside leave); elsewhere
+  (example pages, other texts) Enter leaves as before. The first gate found K-08 / DA-01 (example pages: Enter commits)
+  broken by a newline everywhere; the newline is now for pages you made only.
+  A text the Text tool made and left untouched, or any Text / Heading emptied, is deleted with its float Box
+  (`removeEmptyText`). Found while testing: after an edit, Enter did not edit the same text again (the selection's source
+  cache kept the old words); it now reads again on each source update.
+- **Library:** Text sets `data-breaks` when a string child holds "\n"; text.css `white-space: pre-line` (`pre` with
+  `wrap={false}`). Only texts with a line break change.
+- **Resizing** (`edit/TextResize.tsx`, mounted in DesignPanel's Typography for Text / Heading; Session B was not running,
+  so the one-row mount is mine): Auto width = wrap={false}, Auto height = width, Fixed size = width + height, from the
+  rendered size, one edit.
+- Paste of plain text with nothing selected already makes a `<Text>` in the frame in view (F3, Session A); not changed.
+- **Tests:** drawModel selftest +2; Figma walk FW-60…66.
+
+## Studio rich text — F6b (Session C; user: rich text API "Component mới TextRun") — tier M, branch `zen/feat/studio-f6b-textrun-20261019` (stacked on F6a)
+
+- **Library:** `TextRun` (`src/components/Text/TextRun.tsx`): a span with `data-bold` / `data-italic` /
+  `data-decoration` / `data-tone` and a text style class; bold is `--zen-emphasis-font-weight-bold`. Guideline rows (Line
+  breaks, Mixed styles), harness `text-run/inside-text` (+ fixtures), platform example "Mixed styles in a sentence", story.
+- **Canvas** (`edit/richText.ts` pure runs + selftest, `edit/richTextEdit.ts`, `edit/RichTextEditor.tsx`): ⌘B ⌘I ⌘U ⇧⌘X
+  toggle a style over the selected words (all have it → off, else on); the plain editor hands over to the rich one at
+  the first format key; a Text with runs opens in the rich editor. Leaving writes the Text again with its runs (one
+  `replaceElement`, one ⌘Z); emptied → deleted. TextRun is transparent to the picker and skipped in Layers; a text layer
+  with runs is named by all its words (`layer-meta.textWordsOf`). Found while testing: Layers listed the run as a
+  "span" layer and named the text by its first words only — both fixed.
+- **Figma** (`tools/studio/text-runs.mjs`): push gives TEXT `segments` ({start, end, textStyle, bold, italic,
+  decoration, fill}; bold = the style's Bold sibling, font Bold only for a Heading); the pull reader reads
+  `getStyledTextSegments` and writes TextRuns; native ⌘C → ⌘V writes `characterStyleIDs` + `styleOverrideTable`; the
+  Zen plugin's importer applies segments (Session B, `studio-import.js applySegments`). `figma-diff` keeps TextRuns as
+  part of their Text (a text change carries the runs, in order; before, a merge put the words first and the runs last).
+  `doc.mjs` / `compile.mjs` write a text with runs on one line as a person writes it.
+- Enter in the rich editor: a new line on a page you made, else it leaves (as F6a's plain editor after K-08 / DA-01).
+  Plugin importer: Session B's `711e203` (feat(studio-import): a text's runs from Zen Studio).
+- **Tests:** richText selftest 12; figma-push +7 (round trip, React export), figma-native +5, figma-diff +3,
+  layer-meta +1; Figma walk FW-67…69.
+
+## Studio images — F8a (Session C, decision 8; split as F6: F8b = canvas crop editing + direct ⌘C→⌘V of pictures) — tier M, branch `zen/feat/studio-f8-images-20261019` (stacked on F6b)
+
+- **Library** (`src/components/_shared/image-fill.ts` + selftest 17): `image` / `imageFit` (fill · fit · crop · tile) /
+  `imageCrop` (% of the picture) / `imageScale` (tile %) on Shape (rectangle: CSS background; ellipse / polygon / star:
+  an SVG pattern) and on Box / Stack / Grid (Layout `appearance.ts`, its own `data-image`; Session B agreed the Layout
+  edit). A Shape with a picture has no colour unless given. Stories, guideline rows (Shape, Layout), docs regenerated.
+- **Studio:** ⇧⌘K on a page you made → the file dialog → `draw/placeImage.ts` queues the pictures → drawTool kind
+  "image": a click places the picture at its own size, fitted to the frame and moved inside it; a drag sets the width
+  with the picture's ratio; each further picture waits for its click (status line), Esc puts the rest away. Written as
+  `<Shape image="zen-asset:…" label="…" data-name="<file>" …/>`. `canvas/fileDrop.ts`: files dropped on a frame go in
+  at the point (window listeners: the viewport may mount after the toolbar), pasted pictures in the middle of the
+  selected frame or the frame that shows most (clipboard.ts `setImagePaste`, Session A agreed). Fill › Image
+  (`appearance/ImageFillRow.tsx`, Shape and frames): the photo picker + Upload + −, Image fit, Tile scale; Crop starts
+  from Fill's visible part (`coverCrop`). Layers: a rectangle with a picture shows the image icon.
+- **Figma** (`tools/studio/figma-image.mjs`): push `imageFill` {src, scaleMode, crop, scale} + bytes in `images`; the
+  pull reader reads the IMAGE paint (crop from imageTransform, src from shared plugin data "zenstudio"/"image"); a
+  picture made in Figma is noted. Importer: Session B's plugin `0d55f95` (applyImageFill; re-import replaces or removes
+  only the picture it placed). Direct paste notes image fills (F8b).
+- Found while testing: a picture placed near a frame's edge was cut off (now moved inside); the drop listener on the
+  viewport element was never attached (now on the window).
+- **Tests:** image-fill selftest 17; drawModel +2; figma-push +4, figma-pull +4; Figma walk FW-80…86.
+
+## Studio crop on the canvas — F8b (Session C) — tier S, branch `zen/feat/studio-f8b-crop-20261019` (stacked on F8a)
+
+- `draw/CropHandles.tsx` (mounted beside ArcHandles in SelectionLayer) + pure `draw/cropModel.ts` (selftest 6): crop
+  mode on a rectangle Shape or frame whose image fill is Crop starts with Image fit → Crop or the row's Crop button;
+  the whole picture shows faint around the layer, a drag moves it, a corner scales it (opposite corner still, ratio
+  kept, always covering the layer), live through the layer's own CSS variables; a release writes `imageCrop` (one
+  edit). Esc / Enter / another selection end it; the layer's resize handles step aside meanwhile (found while testing:
+  they sat on the picture's corners and resized the layer instead).
+- Not done (BACKLOG, native clipboard item): pictures in the direct ⌘C → ⌘V (kiwi blobs + image hashes, needs a Figma
+  capture). Rotated / flipped layers and SVG shapes keep the panel's crop only.
+- **Tests:** cropModel selftest 6; Figma walk FW-87.
+
+### F6–F8 ship (Session C; Giám sát: one gate on the stack top, one PR)
+- Gate on 968e589b: every step green but Studio E2E, which hit tools/qa/run.mjs's 40-min cap at the nested group (no
+  row broken by then). Then main 17bc4c43 (A's F9) merged: Shape keeps vector / boolean / flip and takes the image
+  fill, Box groups take no picture, F9's `freeFrame` helper stays (the F6/F8 walk frame is `walkBox`). On the merged
+  tree: tsc, studio:selftest, usage, guidelines, ai-ui, style, vitest 71/71; Studio E2E uncapped 335 / 1 (B-20, twice in
+  the full run; alone and with its whole builder group 45/45 green — order-dependent, cause not found), `--only=figma`
+  87 / 1 (FW-03 still expected ⇧⌘K to arm the tool without the file dialog: updated, green).
+- The reader's `readImageFill` reads fills behind `"fills" in node` (A: Figma throws on a property a node type lacks).
+
 ## Session B · Studio parity F5a: one Figma frame is one element, the right panel in Figma's order
 
 Plan `docs/research/studio-figma-design-parity-2026-10-18.md` F5 (decisions 1–2, approved 2026-10-18); spec card
@@ -117,6 +205,152 @@ and variable pills, F5c typography, multi-selection, nothing selected, Export, L
   `flipTurn` / `turnOps`, for A's ⇧H / ⇧V). ⇧A on a filled Box → one Stack keeping the paint (autoLayoutPlan; matrix
   12,569 cases, 0 findings). E2E Figma walk FW-50…56.
 - Left: BACKLOG P2 — figma-native.mjs / native-pack (⌘C → ⌘V) do not map a frame's look (no owner session).
+
+## Session B · Studio parity F5b: typed values and variables (decision 1)
+
+Branch `zen/feat/studio-f5b-typed-values-20261019` (worktree `../Zen-DS-f5b`, stacked on F5a). Spec card §1 of
+`docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
+
+- **Token fields** (ScaleField: gap, padding, radius, corners): a digit or operator starts typing; Enter evaluates
+  (controls/numberMath) on the shown value and snaps to the nearest step (`scale.ts nearestStep`, a tie the smaller);
+  the status names the snap. A written step reads as Figma's variable pill (`data-variable`, pale capsule) with the
+  variable's path as its tooltip.
+- **W / H**: `parseSizingInput(text, axis, evaluate)` takes Figma's arithmetic; Constrain proportions (session state per
+  layer, Figma keeps it in the file) writes the other axis at the shown ratio in the same change (`sizingModel withRatio`).
+- **Offsets in a free frame** (Box without auto layout, where Zen takes px): Detach variable → the step's px, Apply
+  variable → the nearest step.
+- **Colours**: a hex typed into a colour list's search lists the three nearest variables (`controls/colorMatch.ts`,
+  rendered colours read through a 1-px canvas) and Create variable… (opens Local variables).
+- Selftests: sizingModel 105, scale 18, colorMatch 8 (new, in studio:selftest). E2E FW-57…59, FW-90 (F5 also takes
+  FW-90…99, told A and C).
+- Gate 1 (2026-10-19): static pass; Studio E2E 335/336, PT-15 (Present simulator) a click timeout under load, passes
+  alone. The E2E shots showed the variable pill cutting "Medium 16" to "Medi…" (its padding took the name's width):
+  fixed with a negative margin as wide as the padding (controls.css), and FW-57 now types 16 and checks "Medium" whole.
+
+## Session B · Studio parity F5c: Export, typography details, several frames, selection colors, local styles
+
+Branch `zen/feat/studio-f5c-panel-export-20261019` (worktree `../Zen-DS-f5c`, stacked on F5b).
+
+- **Export** (`inspector/ExportSection.tsx`, Figma UI3's last section on layers and frames): settings scale × format per
+  layer (session), "Export <layer>" downloads `<layer>[@Nx].png|jpg|svg`. Drawn by `htmlExport.ts layerPicture`: the
+  layer's export copy alone at its layout size inside its ZenProvider's attributes, fonts and photos as data URLs,
+  through `screenshot.ts` (now `pictureSvg` + `drawPng` with JPG on white). SVG = the HTML in a foreignObject (opens in
+  browsers, not vector paths); PDF listed as not yet.
+- **Text**: `tone` leaves Typography for a Fill section (Figma: a text's colour is its fill); Typography's Style details
+  (`TextStyleDetails.tsx`): font, size and line height as rendered, letter and paragraph spacing, case, decoration, all
+  read-only ("Edit text styles in Figma").
+- **Several frames** (`MultiFrameLook.tsx`): Appearance (opacity), Fill, Stroke, Effects with Mixed, one edit for all
+  (edit/multi setPropsOnLayers); MixedProperties leaves those props to it. **Selection colors** (`SelectionColors.tsx`):
+  the colours a frame / selection and its layers paint with (partInfo coloursOf), by variable, with counts; read-only.
+- **Nothing selected**: Local styles (`LocalStyles.tsx`): text, color, effect styles from the style manifest, folded.
+- Moved to F10 (Session C, agreed): Layout guide and the page background.
+- E2E FW-91…94.
+
+## Session B · Studio parity F7a: component sets, variants, properties
+
+Branch `zen/feat/studio-f7-components-20261019` (stacked on F5c). Spec card:
+`docs/research/studio-f7-components-spec-2026-10-19.md`.
+
+- **Dialect** (`dialect.mjs`): `<ComponentSet id name properties? description? link?>` around `<Component variant={{…}}>`;
+  `properties={{ Name: { type: text|boolean|swap|slot, default?, preferred? } }}`; bindings `data-prop-text`,
+  `-visible`, `-swap`, `-slot`; `<Use of variant props>`. Variants without values get Figma's positional names
+  (Property 1 = Default, Variant2…). `localComponents`, `componentSets`, `resolveInstance`, checks with messages.
+- **Canvas** (`renderPage.tsx`): a set renders as Figma's set frame (wrap row, `data-zen-set`), each variant marked,
+  instances resolve their variant and values (text, visibility, swap), nested instances with a cycle guard.
+- **Studio** (`edit/localComponents.ts`, `inspector/ComponentSection.tsx`): Combine as variants (siblings, one edit),
+  Add variant, variant values and axis rename, Properties (+ Text / Boolean / Instance swap / Slot, rename, default,
+  −), Apply component property on a main's layer (None / a property / Create …), instance panel (variant selects,
+  values, Reset all changes), swap lists sets and mains (drops variant / props), description and link rows. Layers
+  names a set and gives it the component icon (`select/layerNames.ts`, `layerMeta.ts`, told A).
+- **Export** (`compile.mjs`): one function per set or main, typed destructured props, variants by if-chains, bindings.
+- **Figma**: push COMPONENT_SET (variants named by values, properties, `propRefs`, `slot`, link), INSTANCE with
+  variant / props; pull reads sets, mains, instances and bindings back (round trip in figma-push.selftest); the
+  reader marks a page's own component by its place inside the frame read. Zen plugin (only committer for F7):
+  `dc882cd` (combineAsVariants, add/edit/deleteComponentProperty, componentPropertyReferences, createSlot, instances
+  on their variant with setProperties, stand-ins settled async) and `34fe7b4` (mains and sets keep their Studio id);
+  full `npm test` before each build, dist backed up.
+- Fixed on the way: a new swap property defaulted to `icon-star-line`, which no icon has (now `icon-star-01-line`);
+  layer-meta selftest's `<Use>` message.
+- Checks: dialect / compile / doc / push (307) / pull (83) selftests, studio:selftest, tsc. E2E FW-70…76 written; run
+  waits for the gate slot.
+- F7b (own PR): overrides inside an instance, Push changes / Restore, nested exposed instances, Assets › Local.
+
+## Session B · Studio parity F7b: overrides inside an instance, Push changes, slots, Assets › Local
+
+Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
+`docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md`.
+
+- **Layer paths** (`tools/studio/instance-paths.mjs`, pure): a main's layers below its root by given name / nested
+  component name / tag, `[i]` on shared ones; dialect `mainLayerPaths`; `<Use overrides>` checked (a layer, or one inside a
+  leaf layer; literals). Selftest `instance-paths.selftest.mjs` (in studio:selftest).
+- **Canvas** (`renderPage.tsx`): instance layers drawn in `NestedContext` scopes named by their paths (so the existing
+  deep select reaches them as parts of the `<Use>`), `overrides` applied (props, `children` words, `variant.X` /
+  `props.X` on a nested instance), outer instances win; `<Use slots>` drawn in the main's `data-prop-slot` layer as page
+  layers.
+- **Panel**: `inspector/LocalPartPanel.tsx` (routed in Inspector.tsx for parts of a `<Use>`): Show layer, Text (a bound
+  text sets its property), a nested instance's variant and properties, a nested Zen component's properties
+  (OverrideProperties now takes the `<Use>`'s table and writer), Reset changes, Push changes to main. Instance panel:
+  Reset all changes also clears overrides; Push changes to main; canvas menu items on an instance.
+- **Edits** (`edit/localComponents.ts`): `resetInstance`, `pushChangesToMain` (one `many setProps` edit: setText /
+  setProp on the main's layers, a leaf layer's own `overrides`, the instance's leftovers kept), `localLayerAt`,
+  `setInstanceOverrides`. `arrange.mjs` many setProps admits `setText` (A told; C made the same change for F10 — the
+  second to land takes main's hunk).
+- **Export** (`compile.mjs`): overrides of bound layers become property values, others a comment in the tag; slot
+  properties are `ReactNode` props (`{content ?? <>default</>}`), instances pass their slot layers.
+- **Figma**: push `layerOverrides` (child indices into the drawn main, found after the frame is built; characters,
+  visible, fill, nested values) and `slots`; plugin `3106e91` (overrides) and `1785c37` (slots).
+- **Assets › Local** (C's area, OK'd): a set is one tile ("N variants"), the description in the tooltip.
+- Plugin for C (F6b/F8/F4 fix): `711e203` text runs, `0d55f95` image fills, `328c1d4` free frames (layout NONE).
+- Checks: instance-paths 8, dialect 48, doc 142, compile 70, push 313, plugin npm test; E2E FW-77…79, FW-95, FW-96
+  written (run waits for the gate slot). BACKLOG: pull of overrides/slots, deep override push, slot drop target (F7c),
+  the export question for the user.
+- First E2E run of F7a/F7b (20 rows, slot of 2026-10-19 evening): 15/20, then fixed and 20/20 (93 s).
+  - Add variant sliced the variant's code by lines from a character range, so the paste was refused. It now slices by
+    offsets, as edit/clipboard.ts does.
+  - ⌘-click on a text inside an instance selects its DOM node. Its layer path is now taken from the Text component on the
+    same element; parentLayerOf starts above that element.
+  - A layer hidden in an instance stays selected by its last path, as in Figma.
+  - An instance of a main without properties now shows Properties when it changed layers inside it, so Reset all changes
+    is reachable.
+  - FW-70 counts several selected layers by the header.
+- Gate on F7b's top (F5b + F5c + F7a + F7b, main d8505fe9): PASS. All static steps passed; Studio E2E 336/336. Report
+  `.qa/reports/2026-10-19T14-03-08-ce247a8f.md`.
+- The E2E shots then showed three panel slips, now fixed:
+  - a set's variant property row was not on its properties' grid;
+  - the header said "Local component" for an instance and a set, where Figma says "Instance" and "Component set";
+  - an instance showed a Typography section.
+- Main d56666ec (#148) merged: its reader's GROUP box sits beside F7's component reading. Push and pull selftests pass.
+  Re-gated before shipping.
+- Two stacked PRs from the one gated tree, agreed with Giám sát: F5 (rest) = F5b + F5c, and F7 = F7a + F7b.
+- User 2026-10-19: no field in the tool's panel may jut out or step in, and the shared Inline-Field is used. The
+  re-gate was stopped and the panels were made to follow the rule:
+  - the component panels use `RowInputField` / `RowSelectField`;
+  - a component's name and an instance's component end where fields end (the icon column is kept);
+  - `.studio-shape__pair` is on the panel's three-column grid (Opacity was 16px past the column);
+  - Stroke's Sides is an inline select in the pair (it drew a nested row that ended 32px short).
+- E2E `panelFits` / `expectPanelFits` (figma.mjs) now checks, in FW-50/52/54/56/71/72/74/75/77/92/95:
+  - every field is inside the panel and ends on a field-grid line;
+  - a section's rows start on one left edge;
+  - no select value or short input value is cut off.
+- 27/27 of Session B's FW rows pass with `--no-retry`. A retry runs on the page the failed attempt left, which hid
+  FW-54's real error.
+- More slips the shots showed, now fixed:
+  - Corner radius' Independent corners was a button in an empty-label row, mid-panel. It is now an icon in the radius
+    row's icon column (PropField takes an `action`).
+  - Selection colors showed cut-off CSS names. Each colour is now a read-only field: swatch, the variable in Figma's
+    words (`colourVariableName`) and a BadgeCounter, on the field grid (`.studio-inspector__wide-field`).
+- E2E runner (`tools/studio/e2e/run.mjs`; asked by Giám sát; the reset approved by the user 2026-10-19: "làm luôn
+  phần reset trang trước khi retry"):
+  - A retry used to open a fresh tab on the documents the first try had changed: a row's cached page kept its edits,
+    so the retry failed on that leftover and hid the cause. That is how FW-52's stroke "survived": attempt 1 added it,
+    the retry found it. Nothing survives across runs: the server empties its drafts and pages folder at every start.
+  - Before each row, the runner keeps every draft's text and the files of the pages folder. Before a retry it puts them
+    back: drafts discarded or rewritten, files rewritten.
+  - A scenario that exports `forgetPages()` (figma.mjs) has the pages its first try added removed, and seeds them again.
+  - A row that fails twice reports its first try's error, then `(retry: …)`.
+  - Proved with a temporary forced failure in FW-52: once on a page the row made, once on a page an earlier row made.
+    Both retries passed; the temporary code is out. FW-52's own leftover-stroke guard is gone too.
+
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 
 Spec card `docs/research/studio-f9-vectors-spec-2026-10-19.md`; the user chose `pathkit-wasm` and live boolean groups
@@ -177,6 +411,91 @@ in one gate (the slot queue is the bottleneck).
 - Gate (`--isolated`, 76 files): static, runtime audit (1512/390/320, dark), behaviour ✓; Studio E2E 335/336 — SP-09
   ("Reports gone from the Screen", a starters row F9b does not touch) timed out under load, then passed alone and in
   the whole starters group (24/24). Shape coverage ⚠ is the existing BACKLOG line (count updated to 9).
+
+## F9 in the live Zen file (Session A, worktree `../Zen-DS-f9b`, branch `zen/fix/figma-push-frame-size-20261019`)
+
+The user asked to test F9 in real Figma after #146. A Studio page (Pen logo, Pencil underline, a group with a flipped
+star, a Subtract ticket stub in a 560 × 240 free frame) pushed through the real importer (`studio-import.js`, a trimmed
+copy in one `use_figma` call on "Studio exports — QA"; storing code in the file and evaluating it was refused by the
+safety check) and pulled back with `figmaReadCode`. Bugs, each fixed at its owner:
+- Plugin (fbbc407, local + `studio-import`): GROUP / BOOLEAN_OPERATION landed in the auto layout flow at 0, 0 (keepPlace);
+  a boolean group's shapes sat at 0, 0 in their holder (placeAbsolute without layoutPositioning); a vector was resized to
+  its Zen box after its path, stretching the curve (Figma sizes a vector to its path: pathOffsets); fixedHeight ignored.
+- Push: a frame's px width / height was never sent (free frames hugged): `fixedWidth` / `fixedHeight`, no Fill over them.
+- Pull reader: Figma throws on a property a node type lacks (pointCount on VECTOR, clipsContent / constraints / layoutMode
+  on GROUP), so any page with shapes failed in the live file; reads now ask first (`own`). A mirrored shape read as
+  rotation -180: decoded as flip like frames, centre through the mirror. GROUP size was missing (NaN); a group pinned out
+  of an auto layout took token insets in a wrapper Stack: px X / Y now; absolute X / Y to the hundredth.
+- Round trip after the fixes: vectors, group, flipped star and Subtract come back as drawn, no notes, dialect clean.
+  Left for Session C (frames): a free frame (Box, every layer absolute) pushes as an auto layout frame and pulls back as
+  a Stack without its size; the pull reads no FIXED size; figma-native ignores fixedHeight. Told C.
+- QA frames removed from the Zen file.
+
+## F4 follow-ups (Session C) — tier S, branch `zen/fix/figma-free-frame-none-20261019` (on A's 5fdf003c)
+- **Free frames ↔ Figma layoutMode NONE** (A found it in the live Zen file: a free frame pushed as a VERTICAL auto
+  layout and pulled back as `<Stack gap="none">` without its size): push writes NONE for a Box of a px size whose layers
+  all float (or none); the reader gives every child of a NONE frame its X / Y (not only shapes and groups) and the frame
+  `fixed: { w, h }`; the pull writes the Box with its size, a text or a component inside the Studio's float Box at its
+  px X / Y. figma-native sizes NONE frames and reads fixedHeight. Importer: Session B's plugin `328c1d4` (NONE frame
+  sized before its children, children placed without layoutPositioning). Selftest: figma-push +2 (round trip).
+- **B-20** failed only inside the full E2E run (twice; alone and with its builder group green): the new frame's
+  selection waited 2 s of animation frames for the frame to register, which a busy run outlasts. `selectFrameWhenShown`
+  now waits for the frames registry to announce it (10 s).
+## Studio View and Find — F10 (Session C) — tier M, branch `zen/feat/studio-f10-view-20261019` (from main, not stacked)
+
+- **View options** (`canvas/viewOptions.ts`, this browser's, localStorage): Pixel grid ⌘' (on), Outlines ⌘Y (Mac;
+  Ctrl+Y stays Redo elsewhere), Rulers ⇧R, Layout guides ⌃G (Ctrl+Alt+G elsewhere) — `canvas/viewKeys.ts`, Actions
+  rows, Shortcuts rows; the four leave figmaNotYet. Zoom 2 %–25 600 % (`MAX_ZOOM` 256, steps double past 400 %;
+  `FIT_MAX_ZOOM` 4 keeps zoom-to-fit as before); the pixel grid (a hairline per world px) from 400 %. Outlines: CSS on
+  the frames' layers (Border/Neutral/Solid hairlines, fills / shadows / pictures off).
+- **Rulers and guides** (`canvas/Rulers.tsx`): rulers along the canvas between the panels, in the board's coordinates
+  (the frames' X / Y; 0 at the selected frame's top-left); a guide dragged from a ruler belongs to the frame it lands on
+  (else the canvas), moves by dragging, goes when dropped on its ruler. Page header `guides` (outside ⌘Z, as the
+  page's OS). Found while testing: the selection layer's capture sat above the rulers (now z 20) and the world's 0 is
+  not the board's (offset of the frames' container).
+- **Layout guides** (`canvas/LayoutGuides.tsx`, `canvas/LayoutGuidePanel.tsx` in FramePanel for Screens): Columns /
+  Rows / Grid; columns and rows between the frame's own `--zen-margin-comfortable` with `--zen-gutter` (its device's
+  Breakpoint & Grids mode); header `layoutGuides` by frame. Default counts 12 / 8 / 4 → BACKLOG (designer).
+- **Canvas Background** (`canvas/CanvasBackground.tsx`, Page panel with nothing selected): Canvas · Canvas Alt · Canvas
+  Flat · Surface · Neutral · Dark (Neutral/Solid; Inverse/Solid is white in light mode); frame names read in Inverse
+  content on Dark. Header `canvas`.
+- **Find and replace** (`edit/FindPanel.tsx`, pure `edit/findModel.ts` + selftest 4): ⌘F on any page (pages you made
+  search their layers), Enter / ⇧Enter step and select, Replace all = one `many` setProps edit with `setText` ops (one
+  line in arrange.mjs, Session A agreed).
+- **Tests:** findModel selftest 4; Figma walk FW-100…105.
+- **Ship:** gate on da5f7936 (main d56666ec): every step green but Studio E2E 335 / 1 — B-20, because #149's fix
+  (gated 336 / 0) landed after the run started; `--only=figma` 93 / 1 — FW-05 still listed ⇧R as "Rulers isn't in Zen
+  Studio yet", which F10 builds (expectation updated). On e3850527 (766f9871 merged + FW-05 updated): B-20 and FW-05
+  green; tsc, studio:selftest, usage, style green. Giám sát: ship on this evidence.
+
+## Studio F8c — pictures in the direct paste (Session C) — tier S, branch `zen/feat/studio-f8c-native-pictures-20261019`
+User picked "Dán ảnh qua ⌘C→⌘V" (the rest of F8). `tools/studio/figma-native.mjs`:
+- `nativePictures` (SHA-1 = Figma's image hash, size from the header), `imagePaint` (Fill · Fit · Crop = STRETCH with
+  the shown part as transform · Tile scale), the bytes as message blobs (`Image.dataBlob`), the Studio src as shared
+  plugin data (`pluginData` with no plugin id, key `zenstudio-image`, read from Figma's own copy of a probe layer).
+- A Shape rectangle / ellipse is Figma's ROUNDED_RECTANGLE / ELLIPSE (variables, Corner-Radius, arc, opacity, rotation
+  and flip about the centre); frames take their image fill. Bug met: a Shape path pasted as an empty 0.01 px VECTOR;
+  other Shape kinds are now a note (BACKLOG shapes item narrowed).
+- Live tests in the Zen file (QA page, each removed): data: and local http URLs in `meta.imageHashes` are never fetched
+  (the first "proof" used a hash Figma already had); blobs place fresh PNG, JPEG, GIF; WebP never → `figmaClipboard.ts`
+  draws it as PNG on a canvas (checked in Chromium). Final run through `figmaPasteHtml`: 4 fresh pictures, bytes and
+  hashes exact, crop / tile / rotation / radius variable / src as sent.
+- Slip, fixed: the first test paste landed in the user's "UI Foundations" file (Figma's front tab); found by name and
+  removed at once. The paste script now opens the Zen file and refuses to paste when Figma shows another file.
+- Selftest figma-native 85 (+ pictures, shapes, the path note). Open (BACKLOG): a component's own picture (Avatar,
+  Image) needs the pack to record its image layer. BACKLOG "Layout guide column count" removed: the user keeps
+  12 / 8 / 4 (2026-10-19).
+- Gate finding met (usage:check ⚠ layer/popover-is-overlay, my F10 rulers.css): the rulers took Background/Popover;
+  they are canvas chrome like the panels, so Surface/Default now.
+- **A component's own picture** (user: "làm ảnh riêng của Avatar/Image luôn"; Image and Thumbnail have no Figma set,
+  so in practice Avatar/Single Theme=Photo and the table's Avatar-Cell / Photo-Cell): the pack records `img` (the fills)
+  on every layer with an IMAGE fill. `packFrom` writes it from a capture; `native-pack.mjs images-code` / `images` read
+  it with use_figma (3 parts, hashes of the answers checked) instead of a full re-capture: 671 layers (+114 KB). The
+  writer fills the first such layer after the nested edits (the variant shown), an override `fillPaints` with the
+  picture's blob. Live paste (QA page, removed): Avatar Large, Avatar-Cell (nested Avatar → Square Small Photo),
+  Photo-Cell show their fresh pictures, hashes exact. Selftest figma-native 90.
+- Gate (Giám sát's slot after B, on 1a18705f): `npm run qa -- --isolated --files=<11 files>` PASS — static ✓, Studio E2E
+  336 works · 0 broken (1577 s); report `.qa/reports/2026-10-19T16-58-37-ee53b0aa.md`.
 ## AppShell rebuilt from scratch on Figma's AppShell patterns (tier L, branch zen/feat/appshell-patterns-20261019)
 
 User: "đập appshell hiện có ra làm lại từ đầu"; answers "Phá hẳn, migrate hết" (no aliases) and "Màn hình + templates".

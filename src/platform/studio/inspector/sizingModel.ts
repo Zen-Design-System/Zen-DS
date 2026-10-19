@@ -113,12 +113,14 @@ export type SizingInput =
 const startsWord = (text: string, ...words: string[]) => words.some((word) => word.startsWith(text));
 
 /** Typing: a number = Fixed (px, "px" allowed), h / hug = Hug, f / fill = Fill, fix / fixed = Fixed at the current size, a / auto = reset. */
-export function parseSizingInput(text: string, axis: SizingAxis = "width"): SizingInput {
+export function parseSizingInput(text: string, axis: SizingAxis = "width", evaluate?: (text: string) => number | null): SizingInput {
   const value = text.trim().toLowerCase();
   if (!value) return { kind: "revert" };
   const number = /^(\d+(?:[.,]\d+)?)\s*(?:px)?$/.exec(value);
-  if (number) {
-    const px = Math.round(Number(number[1].replace(",", ".")));
+  // Figma's arithmetic: "120+24", "*2", "/3", "(24+8)*2" (controls/numberMath.ts evaluateNumber on the current value).
+  const computed = !number && evaluate && /^[\d\s.,+\-*/×÷()]+(?:px)?$/.test(value) && /[+\-*/×÷]/.test(value) ? evaluate(value) : null;
+  if (number || (computed !== null && Number.isFinite(computed))) {
+    const px = Math.round(number ? Number(number[1].replace(",", ".")) : (computed as number));
     return px >= 1 ? { kind: "fixed", px } : { kind: "invalid", message: `${axisName[axis]} needs at least 1 px` };
   }
   if (/^fix/.test(value) && startsWord(value, "fixed")) return { kind: "fixed-current" };
@@ -362,4 +364,18 @@ export function settleValues(held: Record<string, HeldValue>, valueOf: (name: st
     else changed = true;
   }
   return changed ? next : held;
+}
+
+/**
+ * Figma's Constrain proportions (the lock beside W and H): a Fixed size typed on one axis also fixes the other at the
+ * ratio the layer shows now (`size`, measured), in one write. Hug, Fill and limits pass through unchanged.
+ */
+export function withRatio(ops: EditOp[] | null, size: { width: number | null; height: number | null }): EditOp[] | null {
+  if (!ops || !size.width || !size.height) return ops;
+  const fixed = ops.find((op): op is Extract<EditOp, { op: "setProp" }> => op.op === "setProp" && (op.name === "width" || op.name === "height") && op.value.kind === "number");
+  if (!fixed || fixed.value.kind !== "number") return ops;
+  const other = fixed.name === "width" ? "height" : "width";
+  if (ops.some((op) => "name" in op && op.name === other)) return ops;
+  const ratio = fixed.name === "width" ? size.height / size.width : size.width / size.height;
+  return [...ops, set(other, Math.max(1, Math.round(fixed.value.value * ratio)))];
 }

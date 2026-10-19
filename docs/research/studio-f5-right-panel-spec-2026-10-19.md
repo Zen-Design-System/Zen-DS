@@ -8,7 +8,7 @@ Plan: `studio-figma-design-parity-2026-10-18.md` §5 F5, decisions 1 and 2 (§4,
 | --- | --- |
 | **F5a** | Decision 2: Stack and Grid take Box's appearance; Box, Stack and Grid take opacity, rotation, flip, stroke sides, dash and weight. Figma push / pull (+ the Zen plugin's importer). Inspector in Figma's order with Appearance · Fill · Stroke · Effects on every frame; Rotate 90° / Flip buttons in Position; ⇧A keeps one element. |
 | **F5b** | Decision 1: typed values snap to tokens, the variable pill with Apply / Detach variable; W / H arithmetic ("120+24") and the ratio lock (taken over from F2, agreed with Session A). |
-| **F5c** | Typography details (style picker + read-only style details, Paragraph, Case, Decoration), text colour in Fill, multi-selection common props + Selection colors, nothing selected (page background, Local variables, Local styles, Export), per-layer Export, Layout guide. |
+| **F5c** | Typography details (style picker + read-only style details: font, size, line height, letter and paragraph spacing, case, decoration), text colour in Fill, several frames' Appearance / Fill / Stroke / Effects + Selection colors (read-only), nothing selected (Local variables, Local styles, Export), per-layer Export (PNG, JPG, SVG; PDF not yet). **Moved:** Layout guide (section, canvas overlay, ⌃G) and the page background (canvas colour) → F10, Session C (agreed 2026-10-19). |
 
 ## 1. Source
 
