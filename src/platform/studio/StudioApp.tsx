@@ -39,7 +39,8 @@ import { startProjects } from "./project/projectStore";
 import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { VariablesWindow } from "./variables/VariablesWindow";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
-import { removeFrame } from "./builder/proto/addFrame";
+import { removeFrames } from "./builder/proto/addFrame";
+import { selectedFrames } from "./select/frameSelection";
 import { stepFrame } from "./board/frameOrder";
 import { startPageMirror } from "./builder/store/mirrors";
 import { cachedPage } from "./builder/store/pageStore";
@@ -467,7 +468,7 @@ export function StudioApp() {
         if ((event.key === "Backspace" || event.key === "Delete") && !doc && !event.repeat && !event.shiftKey && state.localPage && state.tool === "select"
           && state.selection?.kind === "frame" && state.selection.frameId.startsWith("section:") && canEdit(state)) {
           event.preventDefault();
-          void removeFrame(state.localPage, state.selection.frameId, { keepContents: true });
+          void removeFrames(state.localPage, selectedFrames(), { keepContents: true });
         }
         return;
       }
@@ -498,8 +499,9 @@ export function StudioApp() {
         if (!doc && !event.repeat && !event.shiftKey && onFrame && state.tool === "select" && selection?.kind === "frame" && state.localPage
           && /^(screen|overlay|section):/.test(selection.frameId) && canEdit(state)) {
           event.preventDefault();
-          // A Section goes with its frames (⌘⌫ keeps them: the ⌘ keys above).
-          void removeFrame(state.localPage, selection.frameId);
+          // Every selected frame in one edit (F2c's several frames); a Section goes with its frames (⌘⌫ keeps them: the
+          // ⌘ keys above).
+          void removeFrames(state.localPage, selectedFrames());
           return;
         }
         if (doc || event.repeat || event.shiftKey || !here || state.tool !== "select" || selection?.kind !== "node") return;
