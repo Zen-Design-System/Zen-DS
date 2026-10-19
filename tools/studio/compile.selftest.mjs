@@ -8,7 +8,10 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { compileReact, componentName } from "./compile.mjs";
 import { newPageText, validateDialect } from "./dialect.mjs";
-import { parseSource } from "./jsx-source.mjs";
+import { parse as babelParse } from "@babel/parser";
+
+/** The export as TypeScript + JSX, no error recovery: a syntax slip (?? beside && without parentheses) fails it. */
+const strictParse = (code) => babelParse(code, { sourceType: "module", plugins: ["jsx", "typescript"] });
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "../..");
@@ -284,15 +287,16 @@ export default function Page() {
 `;
   const out = compileReact(page, { file: "chips.zen.tsx" });
   ok("sets: no error", !out.error);
-  ok("sets: one function with variant and property props", out.code.includes('function Chip({ size = "Small", label = "Filter", showIcon = true, icon = "icon-star-line" }: { size?: "Small" | "Large"; label?: string; showIcon?: boolean; icon?: string })'));
+  ok("sets: one function with variant and property props", out.code.includes('function Chip({ size = "Small", label = "Filter", showIcon = true, icon = "icon-star-line", textTone }: { size?: "Small" | "Large"; label?: string; showIcon?: boolean; icon?: string; textTone?: string })'));
   ok("sets: a return per variant", out.code.includes('if (size === "Large") return ('));
   ok("sets: bindings read the props", out.code.includes("{showIcon && (") && out.code.includes("name={icon}") && out.code.includes("{label}"));
   ok("sets: the instance passes its values", out.code.includes('<Chip size="Large" label="Done" showIcon={false} />'));
   ok("sets: no binding attributes, no set frame element", !/data-prop-|<ComponentSet\b/.test(out.code));
-  // F7b: an override of a bound layer is that property's value; another has no prop, so it is noted in the tag.
-  ok("overrides: bound words and visibility become props, the rest a note", out.code.includes('<Chip size="Small" label="Hi" showIcon={false} /* Figma overrides of this instance (no prop in Chip): Text: tone="accent" */ />'));
+  // F7b: an override of a bound layer is that property's value; another becomes a prop of its own (the user's
+  // choice, 2026-10-20), which the layer reads.
+  ok("overrides: bound words and visibility become property values, a tone its own prop", out.code.includes('<Chip size="Small" label="Hi" showIcon={false} textTone="accent" />') && out.code.includes("<Text tone={textTone}>{label}</Text>"));
   let parsed = true;
-  try { parseSource(out.code); } catch { parsed = false; }
+  try { strictParse(out.code); } catch { parsed = false; }
   ok("overrides: the export still parses", parsed);
 }
 
@@ -332,8 +336,57 @@ export default function Page() {
   ok("slots: the slot layer shows it, else its own layers", /\{content \?\? <>\s*<Text>Empty<\/Text>\s*<\/>\}/.test(out.code));
   ok("slots: the instance passes its layers; the other none", out.code.includes("<Panel content={<Text>Filled</Text>} />") && out.code.includes("<Panel />"));
   let parsed = true;
-  try { parseSource(out.code); } catch { parsed = false; }
+  try { strictParse(out.code); } catch { parsed = false; }
   ok("slots: the export parses", parsed);
+}
+
+// Instance overrides no property carries become props of the component's function, defaulting to the main's own value
+// (the user's choice, 2026-10-20): a text's words, a layer's visibility, a nested instance's variant. An override below a
+// layer the main does not list (a nested instance's own layer) stays a note in the tag.
+{
+  const page = `// @zen-page {"format":1,"title":"Cards"}
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Icon, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Cards">
+        <Stack>
+          <ComponentSet id="chip" name="Chip">
+            <Component id="chip-small" variant={{ Size: "Small" }}>
+              <Stack direction="row"><Text>Chip</Text></Stack>
+            </Component>
+            <Component id="chip-large" variant={{ Size: "Large" }}>
+              <Stack direction="row" gap="sm"><Text>Chip</Text></Stack>
+            </Component>
+          </ComponentSet>
+          <Component id="card" name="Card">
+            <Stack>
+              <Text>Title</Text>
+              <Icon name="icon-star-01-line" />
+              <Use of="chip" />
+            </Stack>
+          </Component>
+          <Use of="card" overrides={{ Text: { children: "Hello" }, Icon: { hidden: true }, Chip: { "variant.Size": "Large" }, "Chip/Text": { children: "Deep" } }} />
+          <Use of="card" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  ok("generated props: a valid page", validateDialect(page).length === 0);
+  const out = compileReact(page, { file: "cards.zen.tsx" });
+  ok("generated props: no error", !out.error);
+  ok("generated props: the function takes them, optional", out.code.includes("function Card({ text, showIcon, chipSize }: { text?: string; showIcon?: boolean; chipSize?: string })"));
+  ok("generated props: the layers read them, with the main's own value", out.code.includes('<Text>{text ?? "Title"}</Text>') && out.code.includes("{(showIcon ?? true) && (") && out.code.includes('<Chip size={chipSize ?? "Small"} />'));
+  ok("generated props: the instance passes its values; the deep override stays a note", out.code.includes('<Card text="Hello" showIcon={false} chipSize="Large" /* Figma overrides of this instance (no prop in Card): Chip/Text: children="Deep" */ />') && out.code.includes("<Card />"));
+  let parsed = true;
+  try { strictParse(out.code); } catch { parsed = false; }
+  ok("generated props: the export parses", parsed);
 }
 
 if (failures.length) {
