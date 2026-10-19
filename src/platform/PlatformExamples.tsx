@@ -2229,8 +2229,12 @@ ${code}`} />
     const arcs: Record<string, { arcStart?: number; arcSweep?: number; arcRatio?: number }> = { full: {}, pie: { arcSweep: 75 }, ring: { arcRatio: 60 }, segment: { arcStart: 180, arcSweep: 50, arcRatio: 60 } };
     const arc = type === "ellipse" ? arcs[shapeArc ?? "pie"] ?? {} : {};
     const line = type === "line" || type === "arrow";
-    const attrs = [`type="${type}"`, ...Object.entries(arc).map(([name, value]) => `${name}={${value}}`), line ? "width={160}" : "width={120} height={120}", line ? "rotation={20}" : `fill="accent-solid"`];
-    return <ExamplePage page="shape" eyebrow="Components / Shape" title="Shape" description="Figma's own shapes in code — Rectangle, Ellipse with its arc, Line, Arrow, Polygon and Star — for decoration and marks drawn in Zen Studio, coloured with tokens only.">
+    // A vector: a wave drawn with the Pen (its path in its own box, stretched to the size), stroked and unfilled.
+    const wave = { d: "M 0 20 C 13 0 27 0 40 20 C 53 40 67 40 80 20", viewBox: "0 0 80 40" };
+    const attrs = type === "vector"
+      ? [`type="vector"`, "width={160} height={80}", `d="${wave.d}"`, `viewBox="${wave.viewBox}"`, "strokeWeight={3}", `stroke="accent-solid"`]
+      : [`type="${type}"`, ...Object.entries(arc).map(([name, value]) => `${name}={${value}}`), line ? "width={160}" : "width={120} height={120}", line ? "rotation={20}" : `fill="accent-solid"`];
+    return <ExamplePage page="shape" eyebrow="Components / Shape" title="Shape" description="Figma's own shapes in code — Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star and the Pen's Vector — for decoration and marks drawn in Zen Studio, coloured with tokens only.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Shape</h2>
         <PlaygroundControls aria-label="Shape playground controls">
@@ -2238,7 +2242,8 @@ ${code}`} />
           {type === "ellipse" ? <PlaygroundFilterChip label="Arc" value={shapeArc} onChange={(value) => setShapeArc(String(value) || undefined)} options={["full", "pie", "ring", "segment"].map((id) => ({ id, label: id }))} /> : null}
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-shape-preview">
-          {line ? <Shape type={type} width={160} rotation={20} /> : <Shape type={type} width={120} height={120} fill="accent-solid" {...arc} />}
+          {type === "vector" ? <Shape type="vector" width={160} height={80} d={wave.d} viewBox={wave.viewBox} strokeWeight={3} stroke="accent-solid" />
+            : line ? <Shape type={type} width={160} rotation={20} /> : <Shape type={type} width={120} height={120} fill="accent-solid" {...arc} />}
         </div>
         <PlatformCode code={`import { Shape } from "@zen-ds/react";
 

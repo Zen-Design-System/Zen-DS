@@ -231,6 +231,12 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
   paddingY?: ZenPadding;
   /** Figma "Overflow scrolling": `"y"` scrolls vertically, `"x"` sideways, inside the box (the scroll stays inside). */
   scroll?: LayoutScroll;
+  /**
+   * Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them
+   * (Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are
+   * ignored. It moves, turns, flips and fades (opacity) as one.
+   */
+  group?: boolean;
   as?: LayoutElement;
   children?: ReactNode;
   /** Ref to the rendered DOM element (the `as` element when set). */
@@ -242,25 +248,28 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
  * around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,
  * which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
  */
-export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, rotation, flip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
+export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, rotation, flip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
-  const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  // A group (Figma's) has no look of its own: only its opacity, rotation and flip.
+  const look = group ? frameAppearance({ opacity, rotation, flip }) : frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const pad = group ? {} : { block: paddingY ?? padding, inline: paddingX ?? padding };
   return (
     <Element
       {...rest}
       ref={ref as never}
       className={["zen-box", className].filter(Boolean).join(" ")}
-      data-scroll={scroll}
-      data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
+      data-group={group ? "true" : undefined}
+      data-scroll={group ? undefined : scroll}
+      data-padded={pad.inline && pad.inline !== "none" ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}
       {...look.attributes}
-      {...boxEffects({ effectStyle, clip })}
+      {...(group ? {} : boxEffects({ effectStyle, clip }))}
       style={withVars(style, {
-        "--zen-box-padding-block": own(paddingValue(paddingY ?? padding)),
-        "--zen-box-padding-inline": own(paddingValue(paddingX ?? padding)),
-        "--zen-box-radius": own(cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft })),
+        "--zen-box-padding-block": own(paddingValue(pad.block)),
+        "--zen-box-padding-inline": own(paddingValue(pad.inline)),
+        "--zen-box-radius": group ? undefined : own(cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft })),
         ...sizing.vars,
         ...placed.vars,
         ...look.vars,

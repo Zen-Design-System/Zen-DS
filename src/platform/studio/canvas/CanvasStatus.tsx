@@ -22,6 +22,8 @@ const hints: Record<StudioTool, string> = {
   arrow: "Arrow ⇧L · drag · ⇧ 45° steps · ⌥ from center · Space to move",
   polygon: "Polygon · drag, or click for 100 × 100 · ⇧ equal sides · ⌥ from center",
   star: "Star · drag, or click for 100 × 100 · ⇧ equal sides · ⌥ from center",
+  pen: "Pen P · click for corners, drag for curves · ⇧ 45° · ⌥ breaks handles · click the first point to close · Enter to finish",
+  pencil: "Pencil ⇧P · drag to draw · Esc for Move",
   stack: "Auto layout frame · click where it goes",
   text: "Text T · click where it goes",
   image: "Image · click where it goes",
