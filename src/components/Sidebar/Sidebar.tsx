@@ -547,10 +547,14 @@ function SidebarPanel({ className, brand, brandSlots, sections, children, footer
     <SidebarRowsContext value={{ collapsed, openItems, setOpenItems, onItemClick }}>
       <div className={className}>
         {/* A custom brand is the expanded header, followed by the collapse control (backlog batch 6, user 2026-10-07); the
-            rail shows logoCollapsed in its place. */}
-        <div className="zen-sidebar__header">{brand && !(collapsed && brandSlots?.logoCollapsed)
-          ? <>{nest.slot(brand)}{onCollapsedChange ? <SidebarCollapseButton collapsed={collapsed} onCollapsedChange={onCollapsedChange} /> : null}</>
-          : <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} onCollapsedChange={onCollapsedChange} />}</div>
+            rail shows logoCollapsed in its place. The control stays the header's second child in both states, so React
+            keeps the same button: focus stays on it and its aria-expanded flips (behaviour apg, 2026-10-20). */}
+        <div className="zen-sidebar__header">
+          {!brand ? <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} onCollapsedChange={onCollapsedChange} />
+            : collapsed && brandSlots?.logoCollapsed ? <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} />
+            : nest.slot(brand)}
+          {brand && onCollapsedChange ? <SidebarCollapseButton collapsed={collapsed} onCollapsedChange={onCollapsedChange} /> : null}
+        </div>
         {search ? <div className="zen-sidebar__search">{collapsed
           // Figma collapsed rail: Search becomes Button/Icon-Main Small Tertiary; activating it expands the panel.
           ? nest.slot(searchCollapsed) ?? nest("Search", <IconButton appearance="main" level="tertiary" size="sm" aria-label={t.search} icon={<Icon name="icon-search-medium-line" />} onClick={expandRail} />)

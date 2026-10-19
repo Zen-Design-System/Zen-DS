@@ -168,7 +168,10 @@ function ProjectPeople() {
                           {member.guest ? <Badge size="sm" theme="neutral" background="subtle" leadingIcon={false}>Guest</Badge> : null}
                           {member.invited ? <Badge size="sm" theme="yellow" background="subtle" leadingIcon={false}>Invited</Badge> : null}
                           <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" size="md" icon="icon-dots-vertical-line" aria-label={`More for ${member.name}`} />} items={[
-                            { id: "message", label: `Message ${member.name.split(" ")[0]}`, icon: "icon-message-chat-circle-line", disabled: member.id === me.id, onSelect: () => toast({ title: `Message to ${member.name}`, children: banking.name }) },
+                            // Your own row offers your profile, not a message to yourself: a menu whose items are all disabled reaches nothing.
+                            member.id === me.id
+                              ? { id: "profile", label: "Edit your profile", icon: "icon-user-edit-line", onSelect: () => toast({ title: "Profile", children: "Name, photo and role in Đìzai Studio" }) }
+                              : { id: "message", label: `Message ${member.name.split(" ")[0]}`, icon: "icon-message-chat-circle-line", onSelect: () => toast({ title: `Message to ${member.name}`, children: banking.name }) },
                             { type: "separator" },
                             { id: "remove", label: "Remove from project", icon: "icon-user-minus-line", danger: true, disabled: lead, onSelect: () => remove(member) },
                           ]} />

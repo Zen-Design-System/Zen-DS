@@ -67,6 +67,28 @@ describe("AppShell collapse", () => {
     expect(document.querySelector(".zen-app-shell-header__top .zen-breadcrumbs, .zen-app-shell-header__top nav")).toBeTruthy();
   });
 
+  it("keeps the same Sidebar toggle, and focus on it, when a custom brand gives way to its rail mark (collapse=sidebar)", async () => {
+    await render(
+      <ZenProvider>
+        <AppShell layout="desktop" collapse="sidebar" mainId="test-main"
+          sidebar={<Sidebar sections={sections} selectedId="home" brand={<Text as="span">Northwind</Text>} logoCollapsed={<Avatar size="xs" alt="Northwind">N</Avatar>} />}
+          header={<AppShellHeader main={<PageHeader title="Home" />} />}>
+          <p>Page</p>
+        </AppShell>
+      </ZenProvider>,
+    );
+    const toggle = document.querySelector<HTMLButtonElement>(".zen-sidebar__collapse")!;
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    toggle.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect.poll(() => document.querySelector(".zen-sidebar")?.getAttribute("data-collapsed")).toBe("true");
+    expect(document.querySelector(".zen-sidebar__collapse")).toBe(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(toggle);
+    await userEvent.keyboard("{Enter}");
+    await expect.poll(() => toggle.getAttribute("aria-expanded")).toBe("true");
+  });
+
   it("draws no toggle at all with collapse=none", async () => {
     await render(<Shell layout="desktop" collapse="none" />);
     expect(document.querySelector(".zen-app-shell-header__toggle")).toBeNull();
