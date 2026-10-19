@@ -1125,6 +1125,60 @@ export default function Looks() {
   check("frame look: one side, dash, rotation, flip", [rule.stroke, rule.strokeSides, rule.dash, rule.rotation, rule.flip], ["Border/Neutral/Subtle/Default", "bottom", [2, 2], 15, "horizontal"]);
   check("frame look: a Box keeps its look", [box.fill, box.radius], ["Background/Neutral/Subtle/Default", 12]);
   check("round trip: frame looks come back on the same elements", shape(pageFromFigma(push(looks).frame, { mapping }).text), shape(looks));
+  // A component set (F7): COMPONENT_SET of variants named by their values, its properties defined on it, a bound layer's
+  // references, an instance's variant and property values.
+  const chips = `// @zen-page {"format":1,"title":"Chips"}
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Icon, Stack, Text } from "@zen-ds/react";
+
+export default function Chips() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Chips" device="desktop">
+        <Stack gap="lg" padding="xl">
+          <ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true } }}>
+            <Component id="chip-small" variant={{ Size: "Small" }}>
+              <Stack direction="row">
+                <Icon name="icon-star-01-line" data-prop-visible="Show icon" />
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+            <Component id="chip-large" variant={{ Size: "Large" }}>
+              <Stack direction="row" gap="sm">
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+          </ComponentSet>
+          <Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />
+          <Component id="panel" name="Panel" link="https://zen.example/panel" properties={{ Content: { type: "slot" }, Icon: { type: "swap", default: "icon-star-01-line" } }}>
+            <Stack data-prop-slot="Content">
+              <Icon name="icon-star-01-line" data-prop-swap="Icon" />
+            </Stack>
+          </Component>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const [setNode, instanceNode, panelNode] = push(chips).frame.children;
+  check("set: COMPONENT_SET of named variants", [setNode.type, setNode.local, setNode.children.map((variant) => [variant.type, variant.name])], ["COMPONENT_SET", "chip", [["COMPONENT", "Size=Small"], ["COMPONENT", "Size=Large"]]]);
+  check("set: its properties", setNode.properties, [{ name: "Label", type: "TEXT", default: "Filter" }, { name: "Show icon", type: "BOOLEAN", default: true }]);
+  const bound = find(setNode.children[0], (node) => node.type === "TEXT");
+  const hidden = find(setNode.children[0], (node) => node.propRefs?.visible);
+  check("set: bound layers", [bound?.propRefs, hidden?.propRefs], [{ characters: "Label" }, { visible: "Show icon" }]);
+  check("main: its link, a slot and a swap property", [panelNode.link, panelNode.properties], ["https://zen.example/panel", [{ name: "Content", type: "SLOT" }, { name: "Icon", type: "INSTANCE_SWAP", default: "icon-star-01-line" }]]);
+  check("main: the slot layer and the swapped icon", [panelNode.children[0]?.slot, find(panelNode, (node) => node.propRefs?.mainComponent)?.propRefs], ["Content", { mainComponent: "Icon" }]);
+  check("round trip: sets, mains, bound layers and instances come back", shape(pageFromFigma(push(chips).frame, { mapping }).text), shape(chips));
+  // F7b: an instance's overrides of its main's layers, by the child indices that reach them in the drawn main.
+  const overridden = push(chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />'));
+  const overriddenInstance = overridden.frame.children.find((node) => node.type === "INSTANCE" && node.local === "chip");
+  check("overrides: placed by index in the main, in Figma's fields", overriddenInstance?.layerOverrides, [{ at: [0, 1], characters: "Hi", fill: "Content/Accent/Base" }, { at: [0, 0], visible: false }]);
+  // F7b: an instance's slot content, by the slot's name.
+  const filledPanel = push(chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="panel" slots={{ Content: <Text>Filled</Text> }} />'));
+  const filledInstance = filledPanel.frame.children.find((node) => node.type === "INSTANCE" && node.local === "panel");
+  check("slots: an instance's slot content by name", filledInstance?.slots?.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.characters])]), [["Content", [["TEXT", "Filled"]]]]);
+  check("set: an instance's variant and values", [instanceNode.type, instanceNode.local, instanceNode.variant, instanceNode.props], ["INSTANCE", "chip", { Size: "Large" }, { Label: "Done", "Show icon": true }]);
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
 import { Board, Screen } from "@zen-ds/react/builder";
 import { Grid, Stack, Text } from "@zen-ds/react";

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Self-test of the builder page dialect (tools/studio/dialect.mjs). Run: node tools/studio/dialect.selftest.mjs
-import { boardFrames, boardSections, jsxText, localComponents, newPageText, pageHeader, parsePage, sectionCode, validateDialect } from "./dialect.mjs";
+import { boardFrames, boardSections, componentSets, jsxText, localComponents, newPageText, pageHeader, parsePage, resolveInstance, sectionCode, validateDialect } from "./dialect.mjs";
 
 const failures = [];
 let passed = 0;
@@ -93,8 +93,8 @@ check("jsxText", [jsxText("\n   a  \n  b\n"), jsxText("  lead"), jsxText("a\tb")
 
 // Page-local components (Figma's main components and instances, 2026-10-17).
 const withComponents = (body) => `// @zen-page {"format":1,"title":"x"}
-import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
-import { Button, Stack, Text } from "@zen-ds/react";
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Button, Icon, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -118,6 +118,33 @@ check("components: two layers in a main", /exactly one layer/.test(first(withCom
 check("components: a repeated id", /share the id/.test(first(withComponents('<Component id="a" name="A"><Text>a</Text></Component><Component id="a" name="B"><Text>b</Text></Component>'))), true);
 check("components: an instance inside its main", /inside its own component/.test(first(withComponents('<Component id="a" name="A"><Stack><Use of="a" /></Stack></Component>'))), true);
 check("components: a bad id", /needs an id/.test(first(withComponents('<Component id="A b" name="A"><Text>a</Text></Component>'))), true);
+// F7: sets, variants, properties and their bindings, instances with variant and props (Figma's component sets).
+{
+  const set = `<ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true }, Icon: { type: "swap", default: "icon-star-line" } }}>
+            <Component id="chip-small" variant={{ Size: "Small", State: "Default" }}><Stack direction="row"><Icon name="icon-star-line" data-prop-visible="Show icon" data-prop-swap="Icon" /><Text data-prop-text="Label">Filter</Text></Stack></Component>
+            <Component id="chip-large" variant={{ Size: "Large", State: "Default" }}><Stack direction="row"><Text data-prop-text="Label">Filter</Text></Stack></Component>
+          </ComponentSet>`;
+  const page = withComponents(`${set}\n          <Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done", "Show icon": false }} />`);
+  const tree = parsePage(page, { components });
+  check("sets: a valid page", tree.errors.map((error) => error.message), []);
+  const [chip] = componentSets(tree);
+  check("sets: axes and variants", [chip.axes, chip.variants.map((main) => main.name)], [[{ name: "Size", values: ["Small", "Large"] }, { name: "State", values: ["Default"] }], ["Size=Small, State=Default", "Size=Large, State=Default"]]);
+  check("sets: properties", chip.properties.map((property) => `${property.name}:${property.type}:${property.default}`), ["Label:text:Filter", "Show icon:boolean:true", "Icon:swap:icon-star-line"]);
+  let use = null;
+  (function find(node) { if (!node || node.kind !== "element") return; if (node.name === "Use") use = node; node.children.forEach(find); })(tree.board);
+  const resolved = resolveInstance(tree, use);
+  check("instance: its variant and values", [resolved.main.id, resolved.values], ["chip-large", { Label: "Done", "Show icon": false, Icon: "icon-star-line" }]);
+  const errorOf = (body) => first(withComponents(body));
+  check("sets: a bad binding", /names no property/.test(errorOf(set.replace('data-prop-text="Label"', 'data-prop-text="Title"'))), true);
+  check("sets: a binding of the wrong kind", /is a text property/.test(errorOf(set.replace('data-prop-visible="Show icon"', 'data-prop-visible="Label"'))), true);
+  check("sets: two equal variants", /are both/.test(errorOf(set.replace('variant={{ Size: "Large", State: "Default" }}', 'variant={{ Size: "Small", State: "Default" }}'))), true);
+  check("instance: an unknown variant value", /not Huge/.test(errorOf(`${set}\n          <Use of="chip" variant={{ Size: "Huge" }} />`)), true);
+  check("instance: an unknown property", /no property Title/.test(errorOf(`${set}\n          <Use of="chip" props={{ Title: "x" }} />`)), true);
+  check("instance: a boolean takes true or false", /true or false/.test(errorOf(`${set}\n          <Use of="chip" props={{ "Show icon": "yes" }} />`)), true);
+  check("sets: variants without values take Figma's defaults by place", componentSets(parsePage(withComponents('<ComponentSet id="tag" name="Tag"><Component id="tag-a"><Text>a</Text></Component><Component id="tag-b"><Text>b</Text></Component></ComponentSet>'), { components }))[0].variants.map((main) => main.name), ["Property 1=Default", "Property 1=Variant2"]);
+  check("components: variant outside a set", /put the component in a <ComponentSet>/.test(errorOf('<Component id="a" name="A" variant={{ Size: "S" }}><Text>a</Text></Component>')), true);
+  check("components: a lone main's properties", localComponents(parsePage(withComponents('<Component id="a" name="A" properties={{ On: { type: "boolean", default: false } }}><Text data-prop-visible="On">a</Text></Component>'), { components }))[0].properties, [{ name: "On", type: "boolean", default: false }]);
+}
 
 // Sections (Figma's, F4): a named board area beside the frames.
 const withSection = (section) => `// @zen-page {"format":1,"title":"Sections"}

@@ -109,6 +109,29 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio right panel in Figma's order (F5a): an instance's properties under its header, then Position (with
   Rotate 90°, Flip horizontal, Flip vertical), Layout, Appearance (opacity, corner radius), Fill, Stroke (weight, sides,
   dash), Effects on every frame. Add auto layout (⇧A) on a filled frame makes one Stack that keeps the fill.
+- Zen Studio typed values (F5b, decision 1): a number typed into a gap, padding or corner field snaps to the nearest
+  variable, which the field shows as Figma's variable pill; W / H take Figma's arithmetic ("120+24", "*2") and a
+  Constrain proportions lock; in a frame without auto layout an offset has Detach variable (px) and Apply variable; a
+  hex typed into a colour list offers the nearest colour variables and Create variable… (Local variables).
+- Zen Studio right panel, the rest of F5 (F5c): Export on every layer and frame (scale × format: PNG, JPG, SVG; files
+  named as Figma names them), a text's colour as its Fill and its text style's details read-only, several frames'
+  Appearance / Fill / Stroke / Effects at once, Selection colors, and Local styles (text, color, effect) with nothing
+  selected.
+- Zen Studio component sets and properties as in Figma (F7a): Combine as variants (right-click or ⌘K) wraps main
+  components in a `<ComponentSet>` (Property 1 = Default, Variant2…), Add variant copies the last one; a set or a lone
+  main defines text, boolean, instance swap and slot properties with defaults, and a layer of a main binds to one
+  (Apply component property, or Create … property… in one step); an instance switches its variant and property values
+  in the panel (Reset all changes). Description and link on mains and sets. React export writes one function per set
+  with typed props; Figma push makes a COMPONENT_SET with its properties and bound layers (Zen plugin), and pull reads
+  them back.
+- Studio E2E: a retried row starts from the drafts and pages the row found (the runner puts them back), and a row that
+  fails twice reports its first error; the Studio's right panel keeps every field on its grid (shared Inline-Field), with
+  an E2E fit check.
+- Zen Studio instance overrides as in Figma (F7b): ⌘-click into an instance of a page's own component and change a
+  layer's words, visibility, a nested instance's variant and properties or a nested component's properties for that
+  instance only (`<Use overrides>`); Reset changes / Reset all changes; Push changes to main component; an instance's
+  slot content (`<Use slots>`); Assets › Local components shows a set as one tile with its description. The React export
+  passes bound overrides and slots as props; the Figma push carries overrides and slot content (Zen plugin).
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

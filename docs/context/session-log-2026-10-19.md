@@ -205,6 +205,152 @@ and variable pills, F5c typography, multi-selection, nothing selected, Export, L
   `flipTurn` / `turnOps`, for A's ⇧H / ⇧V). ⇧A on a filled Box → one Stack keeping the paint (autoLayoutPlan; matrix
   12,569 cases, 0 findings). E2E Figma walk FW-50…56.
 - Left: BACKLOG P2 — figma-native.mjs / native-pack (⌘C → ⌘V) do not map a frame's look (no owner session).
+
+## Session B · Studio parity F5b: typed values and variables (decision 1)
+
+Branch `zen/feat/studio-f5b-typed-values-20261019` (worktree `../Zen-DS-f5b`, stacked on F5a). Spec card §1 of
+`docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
+
+- **Token fields** (ScaleField: gap, padding, radius, corners): a digit or operator starts typing; Enter evaluates
+  (controls/numberMath) on the shown value and snaps to the nearest step (`scale.ts nearestStep`, a tie the smaller);
+  the status names the snap. A written step reads as Figma's variable pill (`data-variable`, pale capsule) with the
+  variable's path as its tooltip.
+- **W / H**: `parseSizingInput(text, axis, evaluate)` takes Figma's arithmetic; Constrain proportions (session state per
+  layer, Figma keeps it in the file) writes the other axis at the shown ratio in the same change (`sizingModel withRatio`).
+- **Offsets in a free frame** (Box without auto layout, where Zen takes px): Detach variable → the step's px, Apply
+  variable → the nearest step.
+- **Colours**: a hex typed into a colour list's search lists the three nearest variables (`controls/colorMatch.ts`,
+  rendered colours read through a 1-px canvas) and Create variable… (opens Local variables).
+- Selftests: sizingModel 105, scale 18, colorMatch 8 (new, in studio:selftest). E2E FW-57…59, FW-90 (F5 also takes
+  FW-90…99, told A and C).
+- Gate 1 (2026-10-19): static pass; Studio E2E 335/336, PT-15 (Present simulator) a click timeout under load, passes
+  alone. The E2E shots showed the variable pill cutting "Medium 16" to "Medi…" (its padding took the name's width):
+  fixed with a negative margin as wide as the padding (controls.css), and FW-57 now types 16 and checks "Medium" whole.
+
+## Session B · Studio parity F5c: Export, typography details, several frames, selection colors, local styles
+
+Branch `zen/feat/studio-f5c-panel-export-20261019` (worktree `../Zen-DS-f5c`, stacked on F5b).
+
+- **Export** (`inspector/ExportSection.tsx`, Figma UI3's last section on layers and frames): settings scale × format per
+  layer (session), "Export <layer>" downloads `<layer>[@Nx].png|jpg|svg`. Drawn by `htmlExport.ts layerPicture`: the
+  layer's export copy alone at its layout size inside its ZenProvider's attributes, fonts and photos as data URLs,
+  through `screenshot.ts` (now `pictureSvg` + `drawPng` with JPG on white). SVG = the HTML in a foreignObject (opens in
+  browsers, not vector paths); PDF listed as not yet.
+- **Text**: `tone` leaves Typography for a Fill section (Figma: a text's colour is its fill); Typography's Style details
+  (`TextStyleDetails.tsx`): font, size and line height as rendered, letter and paragraph spacing, case, decoration, all
+  read-only ("Edit text styles in Figma").
+- **Several frames** (`MultiFrameLook.tsx`): Appearance (opacity), Fill, Stroke, Effects with Mixed, one edit for all
+  (edit/multi setPropsOnLayers); MixedProperties leaves those props to it. **Selection colors** (`SelectionColors.tsx`):
+  the colours a frame / selection and its layers paint with (partInfo coloursOf), by variable, with counts; read-only.
+- **Nothing selected**: Local styles (`LocalStyles.tsx`): text, color, effect styles from the style manifest, folded.
+- Moved to F10 (Session C, agreed): Layout guide and the page background.
+- E2E FW-91…94.
+
+## Session B · Studio parity F7a: component sets, variants, properties
+
+Branch `zen/feat/studio-f7-components-20261019` (stacked on F5c). Spec card:
+`docs/research/studio-f7-components-spec-2026-10-19.md`.
+
+- **Dialect** (`dialect.mjs`): `<ComponentSet id name properties? description? link?>` around `<Component variant={{…}}>`;
+  `properties={{ Name: { type: text|boolean|swap|slot, default?, preferred? } }}`; bindings `data-prop-text`,
+  `-visible`, `-swap`, `-slot`; `<Use of variant props>`. Variants without values get Figma's positional names
+  (Property 1 = Default, Variant2…). `localComponents`, `componentSets`, `resolveInstance`, checks with messages.
+- **Canvas** (`renderPage.tsx`): a set renders as Figma's set frame (wrap row, `data-zen-set`), each variant marked,
+  instances resolve their variant and values (text, visibility, swap), nested instances with a cycle guard.
+- **Studio** (`edit/localComponents.ts`, `inspector/ComponentSection.tsx`): Combine as variants (siblings, one edit),
+  Add variant, variant values and axis rename, Properties (+ Text / Boolean / Instance swap / Slot, rename, default,
+  −), Apply component property on a main's layer (None / a property / Create …), instance panel (variant selects,
+  values, Reset all changes), swap lists sets and mains (drops variant / props), description and link rows. Layers
+  names a set and gives it the component icon (`select/layerNames.ts`, `layerMeta.ts`, told A).
+- **Export** (`compile.mjs`): one function per set or main, typed destructured props, variants by if-chains, bindings.
+- **Figma**: push COMPONENT_SET (variants named by values, properties, `propRefs`, `slot`, link), INSTANCE with
+  variant / props; pull reads sets, mains, instances and bindings back (round trip in figma-push.selftest); the
+  reader marks a page's own component by its place inside the frame read. Zen plugin (only committer for F7):
+  `dc882cd` (combineAsVariants, add/edit/deleteComponentProperty, componentPropertyReferences, createSlot, instances
+  on their variant with setProperties, stand-ins settled async) and `34fe7b4` (mains and sets keep their Studio id);
+  full `npm test` before each build, dist backed up.
+- Fixed on the way: a new swap property defaulted to `icon-star-line`, which no icon has (now `icon-star-01-line`);
+  layer-meta selftest's `<Use>` message.
+- Checks: dialect / compile / doc / push (307) / pull (83) selftests, studio:selftest, tsc. E2E FW-70…76 written; run
+  waits for the gate slot.
+- F7b (own PR): overrides inside an instance, Push changes / Restore, nested exposed instances, Assets › Local.
+
+## Session B · Studio parity F7b: overrides inside an instance, Push changes, slots, Assets › Local
+
+Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
+`docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md`.
+
+- **Layer paths** (`tools/studio/instance-paths.mjs`, pure): a main's layers below its root by given name / nested
+  component name / tag, `[i]` on shared ones; dialect `mainLayerPaths`; `<Use overrides>` checked (a layer, or one inside a
+  leaf layer; literals). Selftest `instance-paths.selftest.mjs` (in studio:selftest).
+- **Canvas** (`renderPage.tsx`): instance layers drawn in `NestedContext` scopes named by their paths (so the existing
+  deep select reaches them as parts of the `<Use>`), `overrides` applied (props, `children` words, `variant.X` /
+  `props.X` on a nested instance), outer instances win; `<Use slots>` drawn in the main's `data-prop-slot` layer as page
+  layers.
+- **Panel**: `inspector/LocalPartPanel.tsx` (routed in Inspector.tsx for parts of a `<Use>`): Show layer, Text (a bound
+  text sets its property), a nested instance's variant and properties, a nested Zen component's properties
+  (OverrideProperties now takes the `<Use>`'s table and writer), Reset changes, Push changes to main. Instance panel:
+  Reset all changes also clears overrides; Push changes to main; canvas menu items on an instance.
+- **Edits** (`edit/localComponents.ts`): `resetInstance`, `pushChangesToMain` (one `many setProps` edit: setText /
+  setProp on the main's layers, a leaf layer's own `overrides`, the instance's leftovers kept), `localLayerAt`,
+  `setInstanceOverrides`. `arrange.mjs` many setProps admits `setText` (A told; C made the same change for F10 — the
+  second to land takes main's hunk).
+- **Export** (`compile.mjs`): overrides of bound layers become property values, others a comment in the tag; slot
+  properties are `ReactNode` props (`{content ?? <>default</>}`), instances pass their slot layers.
+- **Figma**: push `layerOverrides` (child indices into the drawn main, found after the frame is built; characters,
+  visible, fill, nested values) and `slots`; plugin `3106e91` (overrides) and `1785c37` (slots).
+- **Assets › Local** (C's area, OK'd): a set is one tile ("N variants"), the description in the tooltip.
+- Plugin for C (F6b/F8/F4 fix): `711e203` text runs, `0d55f95` image fills, `328c1d4` free frames (layout NONE).
+- Checks: instance-paths 8, dialect 48, doc 142, compile 70, push 313, plugin npm test; E2E FW-77…79, FW-95, FW-96
+  written (run waits for the gate slot). BACKLOG: pull of overrides/slots, deep override push, slot drop target (F7c),
+  the export question for the user.
+- First E2E run of F7a/F7b (20 rows, slot of 2026-10-19 evening): 15/20, then fixed and 20/20 (93 s).
+  - Add variant sliced the variant's code by lines from a character range, so the paste was refused. It now slices by
+    offsets, as edit/clipboard.ts does.
+  - ⌘-click on a text inside an instance selects its DOM node. Its layer path is now taken from the Text component on the
+    same element; parentLayerOf starts above that element.
+  - A layer hidden in an instance stays selected by its last path, as in Figma.
+  - An instance of a main without properties now shows Properties when it changed layers inside it, so Reset all changes
+    is reachable.
+  - FW-70 counts several selected layers by the header.
+- Gate on F7b's top (F5b + F5c + F7a + F7b, main d8505fe9): PASS. All static steps passed; Studio E2E 336/336. Report
+  `.qa/reports/2026-10-19T14-03-08-ce247a8f.md`.
+- The E2E shots then showed three panel slips, now fixed:
+  - a set's variant property row was not on its properties' grid;
+  - the header said "Local component" for an instance and a set, where Figma says "Instance" and "Component set";
+  - an instance showed a Typography section.
+- Main d56666ec (#148) merged: its reader's GROUP box sits beside F7's component reading. Push and pull selftests pass.
+  Re-gated before shipping.
+- Two stacked PRs from the one gated tree, agreed with Giám sát: F5 (rest) = F5b + F5c, and F7 = F7a + F7b.
+- User 2026-10-19: no field in the tool's panel may jut out or step in, and the shared Inline-Field is used. The
+  re-gate was stopped and the panels were made to follow the rule:
+  - the component panels use `RowInputField` / `RowSelectField`;
+  - a component's name and an instance's component end where fields end (the icon column is kept);
+  - `.studio-shape__pair` is on the panel's three-column grid (Opacity was 16px past the column);
+  - Stroke's Sides is an inline select in the pair (it drew a nested row that ended 32px short).
+- E2E `panelFits` / `expectPanelFits` (figma.mjs) now checks, in FW-50/52/54/56/71/72/74/75/77/92/95:
+  - every field is inside the panel and ends on a field-grid line;
+  - a section's rows start on one left edge;
+  - no select value or short input value is cut off.
+- 27/27 of Session B's FW rows pass with `--no-retry`. A retry runs on the page the failed attempt left, which hid
+  FW-54's real error.
+- More slips the shots showed, now fixed:
+  - Corner radius' Independent corners was a button in an empty-label row, mid-panel. It is now an icon in the radius
+    row's icon column (PropField takes an `action`).
+  - Selection colors showed cut-off CSS names. Each colour is now a read-only field: swatch, the variable in Figma's
+    words (`colourVariableName`) and a BadgeCounter, on the field grid (`.studio-inspector__wide-field`).
+- E2E runner (`tools/studio/e2e/run.mjs`; asked by Giám sát; the reset approved by the user 2026-10-19: "làm luôn
+  phần reset trang trước khi retry"):
+  - A retry used to open a fresh tab on the documents the first try had changed: a row's cached page kept its edits,
+    so the retry failed on that leftover and hid the cause. That is how FW-52's stroke "survived": attempt 1 added it,
+    the retry found it. Nothing survives across runs: the server empties its drafts and pages folder at every start.
+  - Before each row, the runner keeps every draft's text and the files of the pages folder. Before a retry it puts them
+    back: drafts discarded or rewritten, files rewritten.
+  - A scenario that exports `forgetPages()` (figma.mjs) has the pages its first try added removed, and seeds them again.
+  - A row that fails twice reports its first try's error, then `(retry: …)`.
+  - Proved with a temporary forced failure in FW-52: once on a page the row made, once on a page an earlier row made.
+    Both retries passed; the temporary code is out. FW-52's own leftover-stroke guard is gone too.
+
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 
 Spec card `docs/research/studio-f9-vectors-spec-2026-10-19.md`; the user chose `pathkit-wasm` and live boolean groups

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import { Icon } from "../../../../components/Icon";
-import { SelectField } from "../../../../components/Input";
+import { InputField, SelectField } from "../../../../components/Input";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import type { IconName } from "../../../../icons/generated/names";
 import { radiusValue, type ZenCornerRadius } from "../../../../components/_shared/scale";
@@ -9,7 +9,9 @@ import { spacingHover } from "../../select/spacingHover";
 import { matchOption } from "../propSchema";
 import { useInlineLabel } from "../Section";
 import { InspectorHostContext, InspectorSrcContext } from "./hostContext";
-import { isMarginKey, pxText, scaleStep, stepKey, type TokenScale } from "./scale";
+import { isMarginKey, MARGIN_TOKENS, nearestStep, pxText, scaleStep, stepKey, tokenName, type TokenScale } from "./scale";
+import { evaluateNumber } from "./numberMath";
+import { inspectorStatus } from "../status";
 import "./controls.css";
 
 /*
@@ -18,10 +20,19 @@ import "./controls.css";
  * rows read "md … 16px" (the pixels it measures where the layer renders), the field "md" with its 16 beside the chevron.
  * Only Zen's ladder is offered; the code keeps the token. Unset, it shows the effective default in the placeholder tone. ↑/↓ step the ladder while it is closed and write once when the
  * key is released (or focus leaves), so holding a key is one edit and one undo step; ⌫ / Delete resets a written value.
- * Typeahead and scrub are later phases. Hovered or focused (the field, or a step of its open list under the pointer or
- * the keyboard), it names its layer, prop and step on the spacing hover bus (select/spacingHover.ts), so the canvas
- * emphasises the areas the prop sets (2026-10-08).
+ * Typing a number (or Figma's arithmetic, "+4", "*2") into the focused field snaps it to the nearest step and writes that
+ * variable (decision 1 of docs/research/studio-figma-design-parity-2026-10-18.md: Zen keeps spacing and radius on
+ * variables), and a written step reads as Figma's variable pill. Hovered or focused (the field, or a step of its open list
+ * under the pointer or the keyboard), it names its layer, prop and step on the spacing hover bus (select/spacingHover.ts),
+ * so the canvas emphasises the areas the prop sets (2026-10-08).
  */
+
+/** The Figma variable a step is ("Spacing/Gap/Small", "Corner-Radius/Base", "Margin-Comfortable"). */
+function variablePath(key: string, scale: TokenScale, prop: string): string {
+  if (isMarginKey(key)) return MARGIN_TOKENS[key];
+  if (scale === "radius") return `Corner-Radius/${tokenName(key, "radius")}`;
+  return `Spacing/${scale === "gap" || /gap/i.test(prop) ? "Gap" : "Padding"}/${tokenName(key, scale)}`;
+}
 
 /** What `key` measures on `host` in CSS px (null: unknown, or `full`). */
 function measure(host: Element | null, scale: TokenScale, key: string): number | null {
@@ -98,6 +109,12 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   const open = useRef(false);
   const [listOpen, setListOpen] = useState(false);
   const [engaged, setEngaged] = useState({ pointer: false, focus: false });
+  /** What is being typed into the field (null: the select shows). */
+  const [typed, setTypedState] = useState<string | null>(null);
+  // The latest typed text, so Enter and the blur that follows it write once.
+  const typedRef = useRef<string | null>(null);
+  const setTyped = (next: string | null) => { typedRef.current = next; setTypedState(next); };
+  const wrapRef = useRef<HTMLDivElement>(null);
   const rowKey = useRef<string | null>(null);
   const extra = extras.find((item) => item.key === value);
   const matched = value === undefined ? undefined : extra ? extra.key : matchOption(value, options);
@@ -149,6 +166,20 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   // The value beside the chevron: what the shown step measures ("16"), the field's own one-line "token + value".
   const shownPx = shownKey && !extras.some((item) => item.key === shownKey) ? measure(host, scale, shownKey) : null;
 
+  const focusTrigger = () => requestAnimationFrame(() => wrapRef.current?.querySelector<HTMLElement>(".zen-select__trigger")?.focus());
+  /** A typed value: evaluated on the value shown, snapped to the nearest step, written as that variable. */
+  const commitTyped = () => {
+    const text = typedRef.current;
+    setTyped(null);
+    if (text === null || !text.trim()) return;
+    const current = shownKey && !extras.some((item) => item.key === shownKey) ? measure(host, scale, shownKey) : null;
+    const px = evaluateNumber(text, current);
+    if (px === null) { inspectorStatus.set("neutral", `${label} takes a number`); return; }
+    const snap = nearestStep(steps.map((key) => ({ key, px: measure(host, scale, key) })), Math.max(0, px));
+    if (!snap) return;
+    if (snap.key !== matched) onSet(snap.key);
+    if (Math.abs(snap.px - px) >= 0.5) inspectorStatus.set("neutral", `${pxText(px)} → ${tokenName(snap.key, scale)} · ${pxText(snap.px)}, the nearest variable`);
+  };
   const commit = () => {
     if (pending === null) return;
     const next = pending;
@@ -156,7 +187,15 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
     if (next !== matched) onSet(next);
   };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (open.current || disabled || event.altKey || event.metaKey || event.ctrlKey) return;
+    if (typed !== null || open.current || disabled || event.altKey || event.metaKey || event.ctrlKey) return;
+    // A digit, a point or an operator starts typing a value, as in Figma's number fields.
+    if (/^[0-9.+\-*/(]$/.test(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      setPending(null);
+      setTyped(event.key);
+      return;
+    }
     if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       // Captured before the select opens its list, and kept from the canvas's arrow keys (reorder, nudge).
       event.preventDefault();
@@ -177,9 +216,13 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
       setEngaged((now) => ({ ...now, focus: false }));
     }
   };
+  const variable = matched !== undefined && !extra ? variablePath(matched, scale, prop) : undefined;
   return (
     <div
+      ref={wrapRef}
       className="studio-enum studio-scale"
+      data-variable={variable ? "true" : undefined}
+      title={variable && !listOpen ? variable : undefined}
       onKeyDownCapture={onKeyDown}
       onKeyUpCapture={(event) => { if (event.key === "ArrowUp" || event.key === "ArrowDown") commit(); }}
       onBlur={onBlur}
@@ -188,6 +231,25 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
       onPointerLeave={() => setEngaged((now) => ({ ...now, pointer: false }))}
     >
       {/* In a label-left row: Figma's Inline-Field, the label inside instead of the glyph. */}
+      {typed !== null ? (
+        <InputField
+          size="sm"
+          aria-label={label}
+          autoFocus
+          autoComplete="off"
+          spellCheck={false}
+          layout={inlineLabel ? "inline" : undefined}
+          label={inlineLabel ?? undefined}
+          leading={inlineLabel ? undefined : leading}
+          value={typed}
+          onValueChange={setTyped}
+          onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+            if (event.key === "Enter") { event.preventDefault(); commitTyped(); focusTrigger(); }
+            else if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setTyped(null); focusTrigger(); }
+          }}
+          onBlur={commitTyped}
+        />
+      ) : (
       <SelectField
         aria-label={label}
         size="sm"
@@ -207,6 +269,7 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
         }}
         options={[...actions.map((item) => ({ value: item.key, label: item.label })), ...extras.map((item) => ({ value: item.key, label: item.label })), ...[...steps, ...margins].map((key) => ({ value: key, ...step(key) }))]}
       />
+      )}
     </div>
   );
 }

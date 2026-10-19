@@ -13,7 +13,7 @@ import { frameOf, literalOf, type PageFrame } from "../render/frames";
 import { componentsOf, renderFrame, type PageNode, type PageTree } from "../render/renderPage";
 import { pageKey, studioStore } from "../../store";
 import { designNames, guidelineNotes, handoffMarkdown, type FocusStop, type GuidelineNotes, type HandoffFrame } from "./handoff";
-import { drawPng, undrawable } from "./screenshot";
+import { drawPng, pictureSvg, undrawable } from "./screenshot";
 import { previewForPage } from "../../project/activeProject";
 
 /*
@@ -632,4 +632,50 @@ export async function prepareHandoff({ id, title, text }: { id: string; title: s
   } finally {
     rendered.dispose();
   }
+}
+
+/** Formats of Figma's per-layer Export the Studio draws (PDF is not one yet). */
+export type LayerExportFormat = "png" | "jpg" | "svg";
+
+/**
+ * Figma's per-layer Export (Design tab › Export, F5c of docs/research/studio-figma-design-parity-2026-10-18.md): one
+ * layer as it renders on the canvas, alone at its own size, `scale`× (PNG, JPG on white) or as an SVG document (the
+ * layer's HTML in a foreignObject: it opens in browsers, not as vector paths). Drawn as the handoff draws its pictures
+ * (screenshot.ts), inside its ZenProvider's modes so its tokens paint as on the canvas; fonts and photos travel as data
+ * URLs. What it cannot draw goes to `notes`.
+ */
+export async function layerPicture(host: HTMLElement, { format, scale }: { format: LayerExportFormat; scale: number }): Promise<{ blob: Blob; width: number; height: number; notes: string[] } | { error: string }> {
+  const box = host.getBoundingClientRect();
+  // Its layout size (the canvas zoom is a transform on the board, which offsetWidth ignores); an SVG layer has none.
+  const zoom = host.offsetWidth ? box.width / host.offsetWidth : 1;
+  const width = Math.max(1, Math.round(host.offsetWidth || box.width / (zoom || 1)));
+  const height = Math.max(1, Math.round(host.offsetHeight || box.height / (zoom || 1)));
+  const notes = undrawable(host).map((note) => `${note} (not in the picture)`);
+  const photos = new Map<string, string>();
+  for (const image of host.querySelectorAll("img")) {
+    const url = absolute(image.currentSrc || image.src);
+    if (!url || photos.has(url) || url.startsWith("data:")) continue;
+    const file = await fetchFile(url);
+    if (file) photos.set(url, file.dataUrl);
+    else notes.push(`a photo did not load (${url})`);
+  }
+  const copy = exportCopy(host, (url) => photos.get(absolute(url)) ?? absolute(url));
+  for (const image of copy.querySelectorAll("img, source")) { image.removeAttribute("srcset"); image.removeAttribute("sizes"); }
+  // The layer alone at its size: its place in the frame goes.
+  for (const [name, value] of [["position", "static"], ["inset", "auto"], ["margin", "0"], ["width", `${width}px`], ["height", `${height}px`], ["max-width", "none"], ["rotate", "none"], ["scale", "none"]]) copy.style.setProperty(name, value);
+  // Its ZenProvider's modes (light or dark, density, radius, the project's brand) around it.
+  const provider = host.closest(".zen-provider");
+  const frame = document.createElement("div");
+  if (provider) for (const name of provider.getAttributeNames()) if (name === "class" || name === "style" || name.startsWith("data-")) frame.setAttribute(name, provider.getAttribute(name) ?? "");
+  frame.append(copy);
+  const assets: Assets = new Map();
+  let css = libraryCss([host], "Layer", assets);
+  await Promise.all([...assets.values()].filter((asset) => asset.path.startsWith("fonts/")).map(async (asset) => {
+    const file = await fetchFile(asset.url);
+    if (file) css = css.split(asset.path).join(file.dataUrl);
+  }));
+  css += `\n*, *::before, *::after { animation: none !important; transition: none !important; }\n.zen-provider { min-height: 0 !important; width: ${width}px; height: ${height}px; }`;
+  if (format === "svg") return { blob: new Blob([pictureSvg(frame, css, { width, height })], { type: "image/svg+xml" }), width, height, notes };
+  const blob = await drawPng(frame, css, { width, height, scale, type: format === "jpg" ? "image/jpeg" : "image/png" });
+  return blob ? { blob, width, height, notes } : { error: "The browser could not draw this layer" };
 }

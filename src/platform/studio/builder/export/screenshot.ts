@@ -18,11 +18,8 @@ export function undrawable(root: Element): string[] {
   return notes;
 }
 
-/**
- * `element` (an exported copy, its photos already data URLs) drawn at `width` × `height` CSS px with `css`, `scale`×
- * (2: a Retina picture); null when the browser cannot draw it.
- */
-export async function drawPng(element: Element, css: string, { width, height, scale = 2 }: { width: number; height: number; scale?: number }): Promise<Blob | null> {
+/** `element` (an exported copy, its photos already data URLs) with `css` as one SVG document at `width` × `height`. */
+export function pictureSvg(element: Element, css: string, { width, height }: { width: number; height: number }): string {
   const wrapper = document.createElement("div");
   wrapper.style.cssText = `width:${width}px;height:${height}px;overflow:hidden;`;
   const style = document.createElement("style");
@@ -30,7 +27,15 @@ export async function drawPng(element: Element, css: string, { width, height, sc
   wrapper.append(style, element);
   // XML syntax (void elements closed, the XHTML namespace): an SVG image is parsed as XML.
   const xhtml = new XMLSerializer().serializeToString(wrapper);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject x="0" y="0" width="${width}" height="${height}">${xhtml}</foreignObject></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject x="0" y="0" width="${width}" height="${height}">${xhtml}</foreignObject></svg>`;
+}
+
+/**
+ * `element` (an exported copy, its photos already data URLs) drawn at `width` × `height` CSS px with `css`, `scale`×
+ * (2: a Retina picture), as PNG or (`type: "image/jpeg"`, on white) JPG; null when the browser cannot draw it.
+ */
+export async function drawPng(element: Element, css: string, { width, height, scale = 2, type = "image/png" }: { width: number; height: number; scale?: number; type?: "image/png" | "image/jpeg" }): Promise<Blob | null> {
+  const svg = pictureSvg(element, css, { width, height });
   const image = new Image();
   image.width = width;
   image.height = height;
@@ -48,6 +53,8 @@ export async function drawPng(element: Element, css: string, { width, height, sc
   const context = canvas.getContext("2d");
   if (!context) return null;
   context.scale(scale, scale);
+  // JPG has no transparency: it is drawn on white, as Figma exports it.
+  if (type === "image/jpeg") { context.fillStyle = "#fff"; context.fillRect(0, 0, width, height); }
   context.drawImage(image, 0, 0, width, height);
-  return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
+  return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), type, type === "image/jpeg" ? 0.92 : undefined));
 }

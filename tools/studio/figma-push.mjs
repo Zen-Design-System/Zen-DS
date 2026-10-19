@@ -14,6 +14,7 @@
 // draws it (a frame of Data-Rows, header and content cells) and pictures (`images`, filled by the caller: the plugin has
 // no network).
 import { docFromText } from "./doc.mjs";
+import { PROPERTY_BINDINGS, componentSets, localComponents, mainLayerPaths, resolveInstance, variantName } from "./dialect.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -400,14 +401,27 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const localNames = new Map();
   const collect = (node) => {
     if (!node || node.kind !== "element") return;
-    if (node.name === "Component" && node.props.id?.kind === "literal") localNames.set(String(node.props.id.value), String(node.props.name?.value ?? node.props.id.value));
+    if ((node.name === "Component" || node.name === "ComponentSet") && node.props.id?.kind === "literal") localNames.set(String(node.props.id.value), String(node.props.name?.value ?? node.props.id.value));
     for (const value of Object.values(node.props)) if (value?.kind === "element") collect(value.node);
     for (const child of node.children ?? []) collect(child.kind === "map" ? child.node : child);
   };
   collect(doc.board);
+  // The page's components and sets (dialect.mjs): a variant's name and values, a set's properties, an instance's values.
+  const localModel = { mains: localComponents(doc.board), sets: componentSets(doc.board) };
+  /** Figma's component property types by the page's (dialect.mjs COMPONENT_PROPERTY_TYPES). */
+  const PROPERTY_TYPE = { text: "TEXT", boolean: "BOOLEAN", swap: "INSTANCE_SWAP", slot: "SLOT" };
+  const figmaProperties = (properties) => properties.map((property) => ({ name: property.name, type: PROPERTY_TYPE[property.type], ...(property.default !== undefined ? { default: property.default } : {}), ...(property.preferred ? { preferred: property.preferred } : {}) }));
+  /** A layer of a main bound to a component property: Figma's componentPropertyReferences by the property's name. */
+  const REFERENCE = { "data-prop-text": "characters", "data-prop-visible": "visible", "data-prop-swap": "mainComponent" };
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
+    if (node && element.kind === "element") {
+      const refs = Object.fromEntries(Object.keys(PROPERTY_BINDINGS).flatMap((attr) => (element.props[attr]?.kind === "literal" && REFERENCE[attr] ? [[REFERENCE[attr], String(element.props[attr].value)]] : [])));
+      if (Object.keys(refs).length) node.propRefs = refs;
+      // A layer an instance fills: Figma's slot in its main (the importer's createSlot), named as its property.
+      if (element.props["data-prop-slot"]?.kind === "literal") node.slot = String(element.props["data-prop-slot"].value);
+    }
     // The name the person gave a frame, shape or text (data-name, layer-meta.mjs) is its Figma name.
     const given = element.kind === "element" && FIGMA_NAMED.has(element.name) ? givenNameOf(element) : null;
     if (node && given) node.name = given;
@@ -444,12 +458,49 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "Shape") node = shapeNode(code, id, element);
     // A page's own component: its main as Figma's COMPONENT around its layer, each instance an INSTANCE of it (the
     // importer makes the main first, then the instances; `local` is the page's component id).
-    else if (element.name === "Component") {
+    else if (element.name === "ComponentSet") {
+      // Figma's component set: its variants side by side in a wrapping row (the set frame), its properties defined on it.
+      const set = localModel.sets.find((entry) => entry.node === element);
+      const variants = element.children.filter((child) => child.kind === "element" && child.name === "Component").map((child) => convert(child, { direction: "row", stretch: false, width: null })).filter(Boolean);
+      node = { type: "COMPONENT_SET", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component set"), ...(id ? { id } : {}), ...(typeof code.description === "string" ? { description: code.description } : {}), ...(typeof code.link === "string" ? { link: code.link } : {}), properties: figmaProperties(set?.properties ?? []), layout: { mode: "HORIZONTAL", wrap: true, gap: 24, rowGap: 24, padding: [24, 24, 24, 24], counter: "MIN", primary: "MIN" }, children: variants, hugW: true, hugH: true };
+    } else if (element.name === "Component") {
       const root = element.children.find((child) => child.kind === "element");
       const inner = root ? convert(root, parent) : null;
+      const main = localModel.mains.find((entry) => entry.node === element);
+      // A variant is named by its values ("Size=Small"), as Figma names one; a lone main carries its own properties.
+      const named = main?.set ? { name: variantName(main.variant), variant: main.variant } : { name: String(code.name ?? code.id ?? "Component"), ...(main?.properties.length ? { properties: figmaProperties(main.properties) } : {}) };
       // The main hugs its layer (Figma's component frame around one layer); the layer keeps its own sizing inside.
-      node = { type: "COMPONENT", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component"), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
-    } else if (element.name === "Use") node = { type: "INSTANCE", local: String(code.of ?? ""), name: localNames.get(String(code.of ?? "")) ?? "Instance", ...(id ? { id } : {}), hugW: true, hugH: true };
+      node = { type: "COMPONENT", local: String(code.id ?? ""), ...named, ...(typeof code.description === "string" ? { description: code.description } : {}), ...(typeof code.link === "string" ? { link: code.link } : {}), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
+    } else if (element.name === "Use") {
+      // An instance of a set or a main, with its variant values and its property values (setProperties in the importer).
+      const resolved = resolveInstance(doc.board, element, localModel);
+      const local = resolved?.set?.id ?? String(code.of ?? "");
+      node = { type: "INSTANCE", local, name: localNames.get(local) ?? "Instance", ...(resolved?.set ? { variant: resolved.variant } : {}), ...(resolved && Object.keys(resolved.values).length ? { props: resolved.values } : {}), ...(id ? { id } : {}), hugW: true, hugH: true };
+      // What it puts in its main's slots (F7b): Figma's slot content, by the slot's name (the importer fills it).
+      const fills = element.props.slots?.kind === "object" ? element.props.slots.fields : null;
+      if (fills) {
+        const slots = Object.entries(fills).map(([name, content]) => {
+          const layers = content.kind === "element" ? [content.node] : content.kind === "fragment" ? content.children.filter((child) => child.kind === "element") : [];
+          return { name, children: layers.map((layer) => convert(layer, { direction: "column", stretch: false, width: null })).filter(Boolean) };
+        }).filter((slot) => slot.children.length);
+        if (slots.length) node.slots = slots;
+      }
+      // Its overrides of its main's layers (F7b): placed by the main's drawn layers once the frame is built (below).
+      const table = element.props.overrides?.kind === "object" ? element.props.overrides.fields : null;
+      const main = resolved ? localModel.mains.find((entry) => entry.id === resolved.main.id) : null;
+      if (table && main) {
+        const byPath = new Map([...mainLayerPaths(main, localModel)].map(([layer, path]) => [path, layer]));
+        const pending = [];
+        for (const [path, layer] of Object.entries(table)) {
+          const target = byPath.get(path);
+          const props = layer.kind === "object" ? Object.fromEntries(Object.entries(layer.fields).flatMap(([name, value]) => (value.kind === "literal" ? [[name, value.value]] : []))) : {};
+          if (target?.id) pending.push({ key: target.id, path, props, kind: target.name });
+          else notes.push(`${node.name}: its override of ${path} (a layer inside a nested layer) is not pushed yet`);
+        }
+        // On the node itself: the frame's assembly copies nodes ({ ...node, fillW }).
+        if (pending.length) node.layerPending = { main: main.id, pending };
+      }
+    }
     else if (element.name === "Text" || element.name === "Heading") {
       const align = { center: "CENTER", end: "RIGHT", justify: "JUSTIFIED" }[code.align];
       // Text.tsx's defaults: Body/Base/Regular in Neutral Strongest; a tone paints with its Color/Content variable.
@@ -1951,6 +2002,46 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     (node.edits ?? []).forEach((edit) => (edit.append ?? []).forEach((child, index) => keyed(child, node.key, `${edit.layer}.${index}`)));
   };
   keyed(frame, "page", 0);
+  // An instance's overrides of its main's layers (F7b): each by the child indices that reach it in the main's drawn
+  // COMPONENT (an instance's layers mirror its main's), in Figma's fields — a text's characters and fill, a layer's
+  // visibility, a nested instance's variant and property values.
+  const mainsDrawn = new Map();
+  const withPending = [];
+  const findMains = (node) => {
+    if (node.type === "COMPONENT" && node.local) mainsDrawn.set(node.local, node);
+    if (node.layerPending) withPending.push(node);
+    (node.children ?? []).forEach(findMains);
+    (node.slots ?? []).forEach((slot) => slot.children.forEach(findMains));
+  };
+  findMains(frame);
+  if (withPending.length) {
+    const indexPath = (node, key, path = []) => {
+      if (node.key === key && path.length) return path;
+      for (const [index, child] of (node.children ?? []).entries()) { const found = indexPath(child, key, [...path, index]); if (found) return found; }
+      return null;
+    };
+    for (const instance of withPending) {
+      const { main, pending } = instance.layerPending;
+      delete instance.layerPending;
+      const drawn = mainsDrawn.get(main);
+      const out = [];
+      for (const { key, path, props, kind } of pending) {
+        const at = drawn ? indexPath(drawn, key) : null;
+        if (!at) { notes.push(`${instance.name}: its override of ${path} is not pushed (the layer is not drawn in its main)`); continue; }
+        const override = { at };
+        for (const [name, value] of Object.entries(props)) {
+          const nested = /^(variant|props)\.(.+)$/.exec(name);
+          if (nested && kind === "Use") (override[nested[1]] ??= {})[nested[2]] = value;
+          else if (name === "children" && (kind === "Text" || kind === "Heading")) override.characters = String(value);
+          else if (name === "hidden" && typeof value === "boolean") override.visible = !value;
+          else if (name === "tone" && (kind === "Text" || kind === "Heading") && typeof value === "string") override.fill = contentToneToken(value);
+          else notes.push(`${instance.name}: ${path} ${name} is not pushed (an override Figma has no field for here yet)`);
+        }
+        if (Object.keys(override).length > 1) out.push(override);
+      }
+      if (out.length) instance.layerOverrides = out;
+    }
+  }
   // An icon the code names plainly ("icon-chevron-right-line") is a cut in Figma ("…-medium", icons/generated/aliases.ts).
   const figmaIcon = (value) => (typeof value === "string" && iconAliases[value]) || value;
   const cutIcons = (node) => {

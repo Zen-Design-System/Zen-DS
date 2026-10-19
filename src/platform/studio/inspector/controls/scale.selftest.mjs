@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Self-test of the ScaleField model (./scale.ts, imported directly: Node strips the types).
 // Run: node src/platform/studio/inspector/controls/scale.selftest.mjs
-import { optionLabel, isMarginKey, scaleOfType, scaleStep, stepKey } from "./scale.ts";
+import { nearestStep, optionLabel, isMarginKey, scaleOfType, scaleStep, stepKey } from "./scale.ts";
 
 const failures = [];
 let passed = 0;
@@ -34,6 +34,16 @@ check("margins are not steps", [isMarginKey("margin-compact"), isMarginKey("xl")
 
 // Options without a Figma name read in Figma's style (UX writing audit 2026-10-18).
 check("option labels", ["surface-alt", "2xs", "inside", "danger-secondary", "div", "md", "Primary", "1fr"].map(optionLabel), ["Surface alt", "2XSmall", "Inside", "Danger secondary", "div", "Medium", "Primary", "1fr"]);
+
+// Typed values snap to the nearest variable (decision 1, F5b): 13 → sm 12, a tie the smaller, unmeasured steps skipped.
+{
+  const gap = [{ key: "none", px: 0 }, { key: "xs", px: 8 }, { key: "sm", px: 12 }, { key: "md", px: 16 }, { key: "lg", px: 24 }, { key: "full", px: null }];
+  check("snap: 13 → sm", nearestStep(gap, 13), { key: "sm", px: 12 });
+  check("snap: 14 → sm (a tie takes the smaller)", nearestStep(gap, 14), { key: "sm", px: 12 });
+  check("snap: 100 → lg", nearestStep(gap, 100), { key: "lg", px: 24 });
+  check("snap: 0 → none", nearestStep(gap, 0)?.key, "none");
+  check("snap: nothing measured", nearestStep([{ key: "md", px: null }], 4), null);
+}
 
 if (failures.length) {
   console.error(`ScaleField selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

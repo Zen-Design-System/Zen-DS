@@ -240,10 +240,39 @@ const readInstance = async (instance) => {
 // What the Zen plugin's Import from Studio left on a layer (shared plugin data "zenstudio"): its Studio key (the element
 // id it draws), and on the frame the Studio page and the export it came from.
 const studioData = (node, name) => { try { return node.getSharedPluginData("zenstudio", name) || null; } catch (e) { return null; } };
+const ROOT_ID = ${JSON.stringify(nodeId)};
+// A component of the page itself (a main or set inside the frame read): its Studio id (the Zen plugin keeps it), else
+// its Figma id. A library component, or one elsewhere in the file: null.
+const pageOwn = (component) => { for (let at = component; at; at = at.parent) if (at.id === ROOT_ID) return studioData(component, "local") || component.id; return null; };
+const ownerOf = (main) => (main && main.parent && main.parent.type === "COMPONENT_SET" ? main.parent : main);
+// A swap's component: the page's own (its id) or another by name (an icon).
+const swapName = async (id) => {
+  const component = typeof id === "string" ? await figma.getNodeByIdAsync(id) : null;
+  return component ? pageOwn(ownerOf(component)) || component.name : id;
+};
+// An instance of the page's own main or set (figma-push Use): its variant and its text, boolean and swap values.
+const readLocalInstance = async (node, owner) => {
+  const out = { type: "INSTANCE", id: node.id, name: node.name, local: pageOwn(owner) };
+  const variant = {};
+  const props = {};
+  for (const [key, entry] of Object.entries(node.componentProperties || {})) {
+    const name = key.split("#")[0];
+    if (entry.type === "VARIANT") variant[name] = entry.value;
+    else if (entry.type === "INSTANCE_SWAP") props[name] = await swapName(entry.value);
+    else if (entry.type === "TEXT" || entry.type === "BOOLEAN") props[name] = entry.value;
+  }
+  if (Object.keys(variant).length) out.variant = variant;
+  if (Object.keys(props).length) out.props = props;
+  return out;
+};
 const read = async (node) => {
   const out = await readLayer(node);
   const key = out ? studioData(node, "key") : null;
   if (key) out.key = key;
+  // A layer bound to its main's component property: the property's name by field (figma-push propRefs).
+  let refs = null;
+  try { refs = out ? node.componentPropertyReferences : null; } catch (e) { refs = null; }
+  if (refs && Object.keys(refs).length) out.propRefs = Object.fromEntries(Object.entries(refs).map(([field, key]) => [field, String(key).split("#")[0]]));
   return out;
 };
 const readLayer = async (node) => {
@@ -278,7 +307,11 @@ const readLayer = async (node) => {
     }
     return { type: "TEXT", id: node.id, ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align, ...tabular, ...(fill ? { fill } : {}), ...(segments.length ? { segments } : {}) };
   }
-  if (node.type === "INSTANCE") return readInstance(node);
+  if (node.type === "INSTANCE") {
+    const owner = ownerOf(await node.getMainComponentAsync());
+    if (owner && pageOwn(owner)) return readLocalInstance(node, owner);
+    return readInstance(node);
+  }
   return readFrame(node);
 };
 // Its auto layout without the values at Figma's defaults (none: null).
@@ -436,6 +469,28 @@ const readFrame = async (node, root = false) => {
     if (sets.every((set) => set && set.name === "Primitives/Table/Data-Row")) return readTable(node, visible, root);
   }
   const out = { type: node.type, id: node.id, name: node.name, ...frameOf(node, root), children: [] };
+  // A page's own main or set (figma-push localModel): its Studio id, description and link; a variant's values, or the
+  // properties a set or lone main defines.
+  if (node.type === "COMPONENT" || node.type === "COMPONENT_SET") {
+    out.local = studioData(node, "local") || node.id;
+    if (node.description) out.description = node.description;
+    const link = Array.isArray(node.documentationLinks) && node.documentationLinks[0] ? node.documentationLinks[0].uri : null;
+    if (link) out.link = link;
+    let definitions = {};
+    try {
+      if (node.parent && node.parent.type === "COMPONENT_SET") out.variant = node.variantProperties || {};
+      else definitions = node.componentPropertyDefinitions || {};
+    } catch (e) { definitions = {}; }
+    const properties = [];
+    for (const [key, definition] of Object.entries(definitions)) {
+      if (definition.type === "VARIANT") continue;
+      const property = { name: key.split("#")[0], type: definition.type };
+      if (definition.type === "INSTANCE_SWAP") property.default = await swapName(definition.defaultValue);
+      else if (definition.type !== "SLOT") property.default = definition.defaultValue;
+      properties.push(property);
+    }
+    if (properties.length) out.properties = properties;
+  }
   // A frame without auto layout (Figma's free frame): its own size, its layers at their X / Y (a Zen free Box).
   if (!root && own("layoutMode") === "NONE") out.fixed = { w: Math.round(node.width * 100) / 100, h: Math.round(node.height * 100) / 100 };
   // A GROUP's box (a Zen group's width and height; the live Zen file 2026-10-19 read none and the group came back NaN).
@@ -1264,8 +1319,17 @@ function givenName(element, node) {
 
 /** Each element's Figma layer: its parent reads its Fill container from it. */
 const SOURCE = new WeakMap();
+/** A layer bound to a component property (figma-push propRefs and slot, the other way): its data-prop-* attribute. */
+const BINDING_PROP = { characters: "data-prop-text", visible: "data-prop-visible", mainComponent: "data-prop-swap" };
+function bindings(element, node) {
+  if (element?.kind !== "element") return;
+  for (const [field, name] of Object.entries(node.propRefs ?? {})) if (BINDING_PROP[field]) element.props[BINDING_PROP[field]] = literal(name);
+  const slot = node.slot ?? (node.type === "SLOT" ? node.name : null);
+  if (slot) element.props["data-prop-slot"] = literal(slot);
+}
 function convert(node, ctx) {
   let element = convertNode(node, ctx);
+  bindings(element, node);
   if (element && !element.id) { const id = idOf(node, ctx); if (id) element.id = id; }
   if (element && node.absolute) element = positioned(element, node, ctx);
   if (element && !SOURCE.has(element)) SOURCE.set(element, node);
@@ -1483,6 +1547,10 @@ function convertNode(node, ctx) {
   if (master) { const shell = appShellElement(master, ctx); if (shell) return shell; }
   if (node.shape) return shapeElement(node, ctx);
   if (DRAWINGS.has(node.type)) { ctx.drawings.push(node.name); return null; }
+  // A page's own components (figma-push localModel, the other way): a set of variants, a main, an instance of either.
+  if (node.type === "COMPONENT_SET") return componentSetElement(node, ctx);
+  if (node.type === "COMPONENT") return componentElement(node, ctx);
+  if (node.type === "INSTANCE" && node.local) return useElement(node, ctx);
   if (node.type === "TABLE") return tableElement(node, ctx);
   if (node.type === "TEXT") {
     const props = {};
@@ -1715,6 +1783,97 @@ function convertNode(node, ctx) {
     return { kind: "element", name: "Box", props: { group: literal(true), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
   }
   return frameElement(node, children, ctx);
+}
+
+/** Figma's component property types by the page's (figma-push PROPERTY_TYPE, the other way). */
+const PROPERTY_KIND = { TEXT: "text", BOOLEAN: "boolean", INSTANCE_SWAP: "swap", SLOT: "slot" };
+const valuesObject = (values) => ({ kind: "object", fields: Object.fromEntries(Object.entries(values).map(([name, value]) => [name, literal(value)])) });
+/** A Figma id or the Studio id a component came with → its id on the page; any other value as it is (an icon name). */
+const pageValue = (value, ctx) => (typeof value === "string" && ctx.local.ids.has(value) ? ctx.local.ids.get(value) : value);
+
+/**
+ * The page's components and sets (Figma's COMPONENT / COMPONENT_SET in the frame): their ids on the page (the Studio
+ * id a pushed one came with, else one from its name), their properties' defaults and each set's default variant.
+ */
+function localComponentsOf(frame) {
+  const ids = new Map();
+  const defaults = new Map();
+  const firstVariant = new Map();
+  const taken = new Set();
+  const walk = (node, set) => {
+    if (!node || typeof node !== "object") return;
+    if (node.type === "COMPONENT_SET" || node.type === "COMPONENT") {
+      const own = typeof node.local === "string" && node.local && !/^I?\d+:\d+/.test(node.local) ? node.local : null;
+      const id = uniqueId(own ?? slug(set ? `${set.name ?? ""} ${node.name ?? ""}` : node.name ?? "component"), taken);
+      for (const key of [node.local, node.id]) if (typeof key === "string" && key) ids.set(key, id);
+      if (node.type === "COMPONENT_SET") firstVariant.set(id, node.children?.find((child) => child.type === "COMPONENT") ?? null);
+      if (!set) defaults.set(id, Object.fromEntries((node.properties ?? []).filter((property) => property.default !== undefined).map((property) => [property.name, property.default])));
+    }
+    for (const child of node.children ?? []) walk(child, node.type === "COMPONENT_SET" ? node : null);
+    for (const slot of node.slots ?? []) for (const child of slot.children ?? []) walk(child, null);
+  };
+  walk(frame, null);
+  return { ids, defaults, firstVariant };
+}
+
+/** A main's or set's description and link. */
+const componentAbout = (node) => ({ ...(typeof node.description === "string" && node.description ? { description: literal(node.description) } : {}), ...(typeof node.link === "string" && node.link ? { link: literal(node.link) } : {}) });
+
+/** A set's or lone main's properties: `{ Label: { type: "text", default: "Save" } }`. */
+function propertiesValue(properties, ctx) {
+  const fields = {};
+  for (const property of properties ?? []) {
+    const type = PROPERTY_KIND[property.type];
+    if (!type) continue;
+    const own = { type: literal(type) };
+    if (property.default !== undefined) own.default = literal(pageValue(property.default, ctx));
+    if (property.preferred?.length) own.preferred = { kind: "array", items: property.preferred.map((value) => literal(pageValue(value, ctx))) };
+    fields[property.name] = { kind: "object", fields: own };
+  }
+  return Object.keys(fields).length ? { kind: "object", fields } : null;
+}
+
+const variantValues = (node) => node.variant ?? Object.fromEntries(String(node.name ?? "").split(",").map((pair) => pair.split("=").map((part) => part.trim())).filter((pair) => pair.length === 2 && pair[0]));
+
+/** Figma's component set: `<ComponentSet>` around its variants. */
+function componentSetElement(node, ctx) {
+  const id = pageValue(node.local ?? node.id, ctx);
+  const props = { id: literal(id), name: literal(node.name ?? id), ...componentAbout(node) };
+  const properties = propertiesValue(node.properties, ctx);
+  if (properties) props.properties = properties;
+  const children = (node.children ?? []).filter((child) => child.type === "COMPONENT").map((child) => convert({ ...child, variant: variantValues(child) }, ctx)).filter(Boolean);
+  return { kind: "element", name: "ComponentSet", props, children };
+}
+
+/** A main (a set's variant, or a lone one with its own properties): `<Component>` around its layer. */
+function componentElement(node, ctx) {
+  const id = pageValue(node.local ?? node.id, ctx);
+  const props = { id: literal(id) };
+  if (node.variant) props.variant = valuesObject(node.variant);
+  else {
+    props.name = literal(node.name ?? id);
+    const properties = propertiesValue(node.properties, ctx);
+    if (properties) props.properties = properties;
+  }
+  Object.assign(props, componentAbout(node));
+  // Its layer: the push's one layer in a bare component frame; else the component frame itself is the layer.
+  const bare = node.children?.length === 1 && !node.fill && !node.stroke && !node.layout?.padding?.some(Boolean);
+  const inner = bare ? convert(node.children[0], ctx) : frameElement({ ...node, type: "FRAME" }, (node.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), ctx);
+  return { kind: "element", name: "Component", props, children: inner ? [inner] : [] };
+}
+
+/** An instance of the page's own main or set: `<Use>` with the variant and values that differ from its defaults. */
+function useElement(node, ctx) {
+  const of = pageValue(node.local, ctx);
+  if (!ctx.local.ids.has(node.local)) { ctx.notes.push(`${node.name ?? "Instance"}: an instance of a component that is not on this page (left out)`); return null; }
+  const props = { of: literal(of) };
+  const first = ctx.local.firstVariant.get(of);
+  const variant = node.variant ?? {};
+  if (Object.keys(variant).length && (!first || Object.entries(variant).some(([name, value]) => variantValues(first)[name] !== value))) props.variant = valuesObject(variant);
+  const defaults = ctx.local.defaults.get(of) ?? {};
+  const values = Object.fromEntries(Object.entries(node.props ?? {}).map(([name, value]) => [name, pageValue(value, ctx)]).filter(([name, value]) => defaults[name] !== value));
+  if (Object.keys(values).length) props.props = valuesObject(values);
+  return { kind: "element", name: "Use", props, children: [] };
 }
 
 /** A frame (or a slot) as a Stack in its auto layout; Figma's grid layout as a Grid. */
@@ -2184,6 +2343,7 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   // A copy: the slots take their owner's key (slotKeys), and a push's frame read back here stays as it was.
   frame = frame ? JSON.parse(JSON.stringify(frame)) : frame;
   slotKeys(frame);
+  ctx.local = localComponentsOf(frame);
   // The Screen's own canvas and height, which figma-push writes on the page frame: Screen props, not a Box surface.
   const screenProps = {};
   const canvasFill = /^(?:Color\/)?Background\/Canvas\/(Default|Alt|Flat)$/.exec(String(frame?.fill ?? ""));

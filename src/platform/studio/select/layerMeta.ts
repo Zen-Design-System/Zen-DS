@@ -109,7 +109,7 @@ export function displayName(name: string, props: Record<string, unknown> | null 
   const given = givenNameOf({ props: { [NAME_PROP]: props?.[NAME_PROP] } });
   if (given) return given;
   // An instance of a page's component reads as its component (Figma), never as its main root's frame number.
-  if (typeof props?.["data-zen-instance-name"] === "string" || typeof props?.["data-zen-main-name"] === "string") return layerName(name, props);
+  if (typeof props?.["data-zen-instance-name"] === "string" || typeof props?.["data-zen-main-name"] === "string" || typeof props?.["data-zen-set-name"] === "string") return layerName(name, props);
   return autoNameOf(src) ?? layerName(name, props);
 }
 
