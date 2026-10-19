@@ -202,8 +202,8 @@ safety check) and pulled back with `figmaReadCode`. Bugs, each fixed at its owne
   layout and pulled back as `<Stack gap="none">` without its size): push writes NONE for a Box of a px size whose layers
   all float (or none); the reader gives every child of a NONE frame its X / Y (not only shapes and groups) and the frame
   `fixed: { w, h }`; the pull writes the Box with its size, a text or a component inside the Studio's float Box at its
-  px X / Y. figma-native sizes NONE frames and reads fixedHeight. Importer: asked Session B (layoutMode NONE, children
-  at their x / y without layoutPositioning). Selftest: figma-push +2 (round trip).
+  px X / Y. figma-native sizes NONE frames and reads fixedHeight. Importer: Session B's plugin `328c1d4` (NONE frame
+  sized before its children, children placed without layoutPositioning). Selftest: figma-push +2 (round trip).
 - **B-20** failed only inside the full E2E run (twice; alone and with its builder group green): the new frame's
   selection waited 2 s of animation frames for the frame to register, which a busy run outlasts. `selectFrameWhenShown`
   now waits for the frames registry to announce it (10 s).
