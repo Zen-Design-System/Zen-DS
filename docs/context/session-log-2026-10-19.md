@@ -151,6 +151,18 @@ Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a ne
   viewport element was never attached (now on the window).
 - **Tests:** image-fill selftest 17; drawModel +2; figma-push +4, figma-pull +4; Figma walk FW-80…86.
 
+## Studio crop on the canvas — F8b (Session C) — tier S, branch `zen/feat/studio-f8b-crop-20261019` (stacked on F8a)
+
+- `draw/CropHandles.tsx` (mounted beside ArcHandles in SelectionLayer) + pure `draw/cropModel.ts` (selftest 6): crop
+  mode on a rectangle Shape or frame whose image fill is Crop starts with Image fit → Crop or the row's Crop button;
+  the whole picture shows faint around the layer, a drag moves it, a corner scales it (opposite corner still, ratio
+  kept, always covering the layer), live through the layer's own CSS variables; a release writes `imageCrop` (one
+  edit). Esc / Enter / another selection end it; the layer's resize handles step aside meanwhile (found while testing:
+  they sat on the picture's corners and resized the layer instead).
+- Not done (BACKLOG, native clipboard item): pictures in the direct ⌘C → ⌘V (kiwi blobs + image hashes, needs a Figma
+  capture). Rotated / flipped layers and SVG shapes keep the panel's crop only.
+- **Tests:** cropModel selftest 6; Figma walk FW-87.
+
 ## Session B · Studio parity F5a: one Figma frame is one element, the right panel in Figma's order
 
 Plan `docs/research/studio-figma-design-parity-2026-10-18.md` F5 (decisions 1–2, approved 2026-10-18); spec card

@@ -23,7 +23,9 @@ removed (four unused colour ramps were, see Removed).
   tile), `imageCrop`, `imageScale`. In Zen Studio (F8a, pages you made) ⇧⌘K opens the file dialog and a click places the
   picture as a Rectangle with the image fill (its own size, fitted to the frame; a drag sets the width, the ratio kept);
   picture files dropped on a frame or pasted go in at once; Fill › Image picks, uploads, replaces or removes the picture
-  and sets how it fills. Studio → Figma gives the layer an Image paint, and pulling brings it back.
+  and sets how it fills. Studio → Figma gives the layer an Image paint, and pulling brings it back. Crop on the canvas
+  (F8b): with Image fit Crop the whole picture shows faint around the layer; drag it to move what shows, drag a corner
+  to scale it (Esc or Enter ends the crop).
 - `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
   another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
   (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer
