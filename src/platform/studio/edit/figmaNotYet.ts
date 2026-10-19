@@ -22,11 +22,7 @@ type NotYet = { code: string; keys: Keys; name: string; macOnly?: boolean };
 export const FIGMA_NOT_YET: readonly NotYet[] = [
   { code: "KeyM", keys: { mod: true, ctrl: true }, name: "Use as mask" },
   { code: "KeyA", keys: { mod: true, alt: true }, name: "Select matching layers" },
-  // Ctrl+Y redoes elsewhere: Outline view is the Mac's ⌘Y only.
-  { code: "KeyY", keys: { mod: true }, name: "Outline view", macOnly: true },
   { code: "KeyC", keys: { mod: true, shift: true }, name: "Copy as PNG" },
-  { code: "KeyG", keys: { ctrl: true }, name: "Layout guides", macOnly: true },
-  { code: "KeyR", keys: { shift: true }, name: "Rulers" },
   { code: "KeyK", keys: {}, name: "Scale" },
   { code: "KeyS", keys: {}, name: "Slice" },
   { code: "KeyC", keys: {}, name: "Comment" },
