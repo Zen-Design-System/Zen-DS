@@ -176,7 +176,10 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   // panel reads as Figma's instance panel (user, 2026-10-17: "chưa giống 100% component trên figma"); content and state
   // stay here, a boolean's own value while its boolean is on.
   const codeOnly: PropEntry[] = leftover.filter((name) => !toggleOf.has(name) && isCodeProp(name));
-  const after: PropEntry[] = [...groups.after, ...leftover.filter((name) => !codeOnly.includes(name)).map((name): PropEntry => {
+  // A number Figma names in steps (Progress-Bar Progress) is a select among the variants; the number keeps its own field
+  // here, for a value between the steps (user 2026-10-19: "thêm ô chọn Progress cho ProgressBar").
+  const stepped = groups.own.filter((entry) => entryOptions(entry) && specOf(entryProp(entry))?.editor.kind === "number").map(entryProp);
+  const after: PropEntry[] = [...groups.after, ...stepped, ...leftover.filter((name) => !codeOnly.includes(name)).map((name): PropEntry => {
     const toggle = toggleOf.get(name);
     return toggle ? { prop: name, when: [...(toggle.when ?? []), { prop: name, set: true }] } : name;
   })];
@@ -209,6 +212,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
               label={labels.get(spec.name) ?? propLabel(spec.name, component)}
               optionLabels={optionNames.get(spec.name)}
               defaultIcon={defaultIcons.get(spec.name)}
+              component={component}
               value={api.valueFor(spec.name)}
               disabled={api.disabled}
               boundHint={api.boundHint}
