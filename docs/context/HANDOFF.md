@@ -178,7 +178,9 @@ Last updated: 2026-10-19.
   to main, slot content (`<Use slots>`), Assets › Local; React export, push / pull and the Zen plugin (`studio-import`
   1785c37); specs `docs/research/studio-f7-components-spec-2026-10-19.md`, `…f7b-instance-overrides-spec-2026-10-19.md`.
   Same PR: the right panel on one grid, using the shared Inline-Field (E2E `panelFits`), and E2E retries that start
-  from the documents the row found. Open: BACKLOG "Studio components, after F7a/F7b".
+  from the documents the row found. Since 2026-10-20: the React export turns overrides no property carries into props
+  (#155), and the Figma pull brings overrides and slot content back (live fixture `figma-overrides.json`). Open:
+  BACKLOG "Studio components, after F7a/F7b".
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures

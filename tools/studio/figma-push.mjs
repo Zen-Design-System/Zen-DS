@@ -14,7 +14,7 @@
 // draws it (a frame of Data-Rows, header and content cells) and pictures (`images`, filled by the caller: the plugin has
 // no network).
 import { docFromText } from "./doc.mjs";
-import { PROPERTY_BINDINGS, componentSets, localComponents, mainLayerPaths, resolveInstance, variantName } from "./dialect.mjs";
+import { PROPERTY_BINDINGS, componentSets, layerChain, localComponents, resolveInstance, variantName } from "./dialect.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -489,16 +489,17 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const table = element.props.overrides?.kind === "object" ? element.props.overrides.fields : null;
       const main = resolved ? localModel.mains.find((entry) => entry.id === resolved.main.id) : null;
       if (table && main) {
-        const byPath = new Map([...mainLayerPaths(main, localModel)].map(([layer, path]) => [path, layer]));
+        const plain = Object.fromEntries(Object.entries(table).map(([path, layer]) => [path, layer.kind === "object" ? Object.fromEntries(Object.entries(layer.fields).flatMap(([name, value]) => (value.kind === "literal" ? [[name, value.value]] : []))) : {}]));
         const pending = [];
-        for (const [path, layer] of Object.entries(table)) {
-          const target = byPath.get(path);
-          const props = layer.kind === "object" ? Object.fromEntries(Object.entries(layer.fields).flatMap(([name, value]) => (value.kind === "literal" ? [[name, value.value]] : []))) : {};
-          if (target?.id) pending.push({ key: target.id, path, props, kind: target.name });
-          else notes.push(`${node.name}: its override of ${path} (a layer inside a nested layer) is not pushed yet`);
+        for (const [path, props] of Object.entries(plain)) {
+          // The layer, through the nested instances of the page's own components it is in (Chip/Text): one step each,
+          // in the main that draws it.
+          const steps = layerChain(doc.board, main, path, localModel, plain);
+          if (steps?.every((step) => step.layer.id)) pending.push({ steps: steps.map((step) => ({ main: step.main.id, key: step.layer.id })), path, props, kind: steps.at(-1).layer.name });
+          else notes.push(`${node.name}: its override of ${path} (a layer inside a Zen component) is not pushed yet`);
         }
         // On the node itself: the frame's assembly copies nodes ({ ...node, fillW }).
-        if (pending.length) node.layerPending = { main: main.id, pending };
+        if (pending.length) node.layerPending = { pending };
       }
     }
     else if (element.name === "Text" || element.name === "Heading") {
@@ -2023,12 +2024,18 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       return null;
     };
     for (const instance of withPending) {
-      const { main, pending } = instance.layerPending;
+      const { pending } = instance.layerPending;
       delete instance.layerPending;
-      const drawn = mainsDrawn.get(main);
       const out = [];
-      for (const { key, path, props, kind } of pending) {
-        const at = drawn ? indexPath(drawn, key) : null;
+      for (const { steps, path, props, kind } of pending) {
+        // The indices to the nested instance in its main, then on inside it (its layers mirror its own main's).
+        let at = [];
+        for (const step of steps) {
+          const drawn = mainsDrawn.get(step.main);
+          const part = drawn ? indexPath(drawn, step.key) : null;
+          if (!part) { at = null; break; }
+          at.push(...part);
+        }
         if (!at) { notes.push(`${instance.name}: its override of ${path} is not pushed (the layer is not drawn in its main)`); continue; }
         const override = { at };
         for (const [name, value] of Object.entries(props)) {
@@ -2041,6 +2048,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
         }
         if (Object.keys(override).length > 1) out.push(override);
       }
+      // A nested instance's variant first, then the layers inside it (they are the variant's: Figma swaps them).
+      out.sort((a, b) => a.at.length - b.at.length);
       if (out.length) instance.layerOverrides = out;
     }
   }
