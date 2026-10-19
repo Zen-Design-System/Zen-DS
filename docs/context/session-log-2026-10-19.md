@@ -163,6 +163,15 @@ Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a ne
   capture). Rotated / flipped layers and SVG shapes keep the panel's crop only.
 - **Tests:** cropModel selftest 6; Figma walk FW-87.
 
+### F6–F8 ship (Session C; Giám sát: one gate on the stack top, one PR)
+- Gate on 968e589b: every step green but Studio E2E, which hit tools/qa/run.mjs's 40-min cap at the nested group (no
+  row broken by then). Then main 17bc4c43 (A's F9) merged: Shape keeps vector / boolean / flip and takes the image
+  fill, Box groups take no picture, F9's `freeFrame` helper stays (the F6/F8 walk frame is `walkBox`). On the merged
+  tree: tsc, studio:selftest, usage, guidelines, ai-ui, style, vitest 71/71; Studio E2E uncapped 335 / 1 (B-20, twice in
+  the full run; alone and with its whole builder group 45/45 green — order-dependent, cause not found), `--only=figma`
+  87 / 1 (FW-03 still expected ⇧⌘K to arm the tool without the file dialog: updated, green).
+- The reader's `readImageFill` reads fills behind `"fills" in node` (A: Figma throws on a property a node type lacks).
+
 ## Session B · Studio parity F5a: one Figma frame is one element, the right panel in Figma's order
 
 Plan `docs/research/studio-figma-design-parity-2026-10-18.md` F5 (decisions 1–2, approved 2026-10-18); spec card

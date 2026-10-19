@@ -380,16 +380,19 @@ export const rows = [
     },
   },
   {
-    id: "FW-03", feature: "⇧⌘K is Place image/video (the Image tool); V goes back to Move", wp: "F0 2026-10-18",
+    id: "FW-03", feature: "⇧⌘K is Place image/video: the file dialog opens (F8), the Image tool is on meanwhile; V goes back to Move", wp: "F0 2026-10-18 · F8 file dialog",
     async run(ctx) {
       const { page } = await walkPage(ctx);
+      // A page you made opens the file dialog (draw/placeImage.ts); unanswered, the tool stays on until V.
+      const chooser = page.waitForEvent("filechooser", { timeout: 8000 });
       await page.keyboard.press("ControlOrMeta+Shift+KeyK");
+      await chooser;
       await until(async () => (await pressedTool(page)) === "Place image/video", { message: "Place image/video armed" });
       await page.keyboard.press("Escape");
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("KeyV");
       await until(async () => (await pressedTool(page)) === "Move", { message: "Move again" });
-      return "⇧⌘K → Place image/video → V → Move";
+      return "⇧⌘K → the file dialog, Place image/video on → V → Move";
     },
   },
   {

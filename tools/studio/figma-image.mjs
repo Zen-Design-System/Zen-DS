@@ -64,11 +64,14 @@ export function imageFillProps(fill, literal) {
 
 /**
  * The reader's lines (figma-pull figmaReadCode, run in Figma): a node's first visible IMAGE paint as `imageFill`, its
- * crop from the paint's imageTransform ([[w, 0, x], [0, h, y]]: the part of the picture the layer shows).
+ * crop from the paint's imageTransform ([[w, 0, x], [0, h, y]]: the part of the picture the layer shows). Every property
+ * is read behind `in` (Figma throws on one a node type lacks).
  */
 export const READ_IMAGE_FILL = `
 const readImageFill = (node) => {
-  const paint = Array.isArray(node.fills) ? node.fills.find((fill) => fill.type === "IMAGE" && fill.visible !== false) : null;
+  // Only a node type that has fills: Figma throws on a property its type lacks (a GROUP's fills).
+  const fills = "fills" in node ? node.fills : null;
+  const paint = Array.isArray(fills) ? fills.find((fill) => fill.type === "IMAGE" && fill.visible !== false) : null;
   if (!paint) return null;
   let src = null;
   try { src = node.getSharedPluginData("zenstudio", "image") || null; } catch (e) { src = null; }
