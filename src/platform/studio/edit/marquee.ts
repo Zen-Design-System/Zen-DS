@@ -1,3 +1,4 @@
+import { frameSelection, selectedFrames, selectFrames } from "../select/frameSelection";
 import { isLockedSrc } from "../select/layerMeta";
 import { useSyncExternalStore } from "react";
 import { canvasApi } from "../canvas/viewport";
@@ -10,7 +11,8 @@ import { studioStore } from "../store";
  * dragging empty canvas selects, Space / Hand / scroll pan). Drag from empty canvas or a frame's background: the
  * rectangle selects, in the example it covers most, the layers it touches one level inside the deepest layer that holds
  * the whole rectangle (the example's root layers when none does); ⌘/Ctrl held: the deepest layers fully inside it.
- * ⇧ adds to the selection. A click without dragging does what the press did before (select the frame / clear).
+ * ⇧ adds to the selection. A click without dragging does what the press did before (select the frame / clear). From the
+ * empty canvas the marquee selects the frames it touches instead (Figma's; select/frameSelection.ts).
  */
 
 type Rect = { x: number; y: number; w: number; h: number };
@@ -20,7 +22,8 @@ const listeners = new Set<() => void>();
 const publish = (next: Rect | null) => { rect = next; listeners.forEach((listener) => listener()); };
 export const useMarquee = () => useSyncExternalStore((listener) => { listeners.add(listener); return () => { listeners.delete(listener); }; }, () => rect, () => null);
 
-type Session = { start: { x: number; y: number }; dragging: boolean; additive: boolean; base: ExtraLayer[]; onClick: () => void };
+/** `board`: started on the empty canvas, the marquee selects frames (Figma's), else layers in the frame it covers. */
+type Session = { start: { x: number; y: number }; dragging: boolean; additive: boolean; base: ExtraLayer[]; baseFrames: string[]; board: boolean; onClick: () => void };
 let session: Session | null = null;
 
 const intersects = (a: DOMRect, b: DOMRect) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
@@ -80,7 +83,32 @@ function pickableIn(box: DOMRect, deep: boolean): FiberHit[] {
   return level.filter((hit) => { const r = rectOf(hit.hosts); return Boolean(r && (r.width || r.height) && intersects(box, r)); });
 }
 
+/** The frames (and sections) a marquee on the empty canvas touches, in board order. */
+function framesIn(box: DOMRect): string[] {
+  const out: string[] = [];
+  for (const frame of canvasApi.getWorldElement()?.querySelectorAll("[data-studio-frame]") ?? []) {
+    const id = frame.getAttribute("data-studio-frame");
+    // A frame inside another (a playground panel's) is not a top-level frame.
+    if (!id || frame.parentElement?.closest("[data-studio-frame]")) continue;
+    if (intersects(box, frame.getBoundingClientRect())) out.push(id);
+  }
+  return out;
+}
+
+function applyFrames(current: Session, box: DOMRect) {
+  const touched = framesIn(box);
+  const all = current.additive ? [...current.baseFrames, ...touched.filter((id) => !current.baseFrames.includes(id))] : touched;
+  if (!all.length) {
+    frameSelection.clear();
+    if (!current.additive) studioStore.setState({ selection: null });
+    return;
+  }
+  multiSelection.clear();
+  selectFrames(all[0], all.slice(1));
+}
+
 function apply(current: Session, box: DOMRect, deep: boolean) {
+  if (current.board) { applyFrames(current, box); return; }
   const world = canvasApi.getWorldElement();
   const hits = layersIn(box, deep);
   const layers = hits.map((hit) => layerOfHit(hit, world));
@@ -132,7 +160,8 @@ function onKey(event: KeyboardEvent) {
   const current = session;
   end(false);
   // Esc gives back the selection the drag started from.
-  if (current.base.length) selectLayers(current.base[0], current.base.slice(1));
+  if (current.baseFrames.length) selectFrames(current.baseFrames[0], current.baseFrames.slice(1));
+  else if (current.base.length) selectLayers(current.base[0], current.base.slice(1));
   else { multiSelection.clear(); studioStore.setState({ selection: null }); }
 }
 
@@ -140,11 +169,11 @@ function onKey(event: KeyboardEvent) {
  * A press on empty canvas or a frame's background in the Select tool (SelectionLayer). Takes the press: a drag draws
  * the marquee, a click runs `onClick` (what the press did before).
  */
-export function startMarquee(event: PointerEvent, onClick: () => void): boolean {
+export function startMarquee(event: PointerEvent, onClick: () => void, from: "board" | "frame" = "frame"): boolean {
   if (event.button !== 0 || event.detail > 1 || session) return false;
   const state = studioStore.getState();
   if (state.tool !== "select" || state.presenting) return false;
-  session = { start: { x: event.clientX, y: event.clientY }, dragging: false, additive: event.shiftKey, base: selectedLayers(), onClick };
+  session = { start: { x: event.clientX, y: event.clientY }, dragging: false, additive: event.shiftKey, base: selectedLayers(), baseFrames: selectedFrames(), board: from === "board", onClick };
   window.addEventListener("pointermove", onMove, true);
   window.addEventListener("pointerup", onUp, true);
   window.addEventListener("pointercancel", onCancel, true);

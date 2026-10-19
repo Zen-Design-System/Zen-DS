@@ -23,6 +23,7 @@ import { renameShortcut, startRename } from "../rename";
 import { startTextEditOnSelection } from "../textEdit";
 import { stepFrame } from "../../board/frameOrder";
 import { wrapInSection } from "../../builder/proto/addFrame";
+import { createComponentOfLayers, createComponents } from "../localComponents";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
 /*
@@ -61,7 +62,7 @@ export function commands(): Command[] {
     { id: "edit-text", group: "Edit", label: "Edit text", shortcut: "Enter", keywords: "type content copy", disabled: editOff, run: () => { if (!startTextEditOnSelection()) press({ key: "Enter", code: "Enter" }); } },
     { id: "copy", group: "Edit", label: "Copy", shortcut: clipboardShortcuts.copy, disabled: layerOff, run: () => { if (node) void clipboardActions.copy(node); } },
     { id: "cut", group: "Edit", label: "Cut", shortcut: clipboardShortcuts.cut, disabled: editOff, run: () => { if (node) void clipboardActions.cut(node); } },
-    { id: "paste", group: "Edit", label: "Paste", shortcut: clipboardShortcuts.paste, disabled: editOff, run: () => { if (node) void clipboardActions.paste(node); } },
+    { id: "paste", group: "Edit", label: "Paste", shortcut: clipboardShortcuts.paste, disabled: editOff, run: () => { void clipboardActions.paste(node ?? null); } },
     { id: "paste-replace", group: "Edit", label: "Paste to replace", shortcut: clipboardShortcuts.replace, disabled: editOff, run: () => { if (node) void clipboardActions.replace(node); } },
     { id: "copy-props", group: "Edit", label: "Copy properties", shortcut: clipboardShortcuts.copyProps, keywords: "style", disabled: layerOff, run: () => { if (node) void clipboardActions.copyProperties(node); } },
     { id: "paste-props", group: "Edit", label: "Paste properties", shortcut: clipboardShortcuts.pasteProps, keywords: "style", disabled: editOff ?? (clipboardActions.hasProperties() ? undefined : "Copy properties first"), run: () => { if (node) void clipboardActions.pasteProperties(node); } },
@@ -77,6 +78,9 @@ export function commands(): Command[] {
     // Figma's Rename (⌘R; several layers: Rename layers) and Lock / Unlock (⇧⌘L), on a page you made (F1).
     { id: "rename", group: "Edit", label: selectedLayers().length > 1 ? "Rename layers" : "Rename", shortcut: renameShortcut, keywords: "name layer batch", disabled: editOff ?? (state.localPage ? (selection ? undefined : "Select a layer first") : "Works on a page you made"), run: () => startRename() },
     { id: "lock", group: "Edit", label: isSelectionLocked(selection) ? "Unlock" : "Lock", shortcut: lockShortcut, keywords: "lock unlock freeze", disabled: editOff ?? (state.localPage ? (selection ? undefined : "Select a layer first") : "Works on a page you made"), run: () => { void toggleLockSelection(); } },
+    // Figma's Create component (⌥⌘K: one, of every selected layer) and Create multiple components, on a page you made (F3).
+    { id: "create-component", group: "Edit", label: "Create component", shortcut: `⌥${modKey}K`, keywords: "main component symbol make", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void createComponentOfLayers(); } },
+    { id: "create-components", group: "Edit", label: "Create multiple components", keywords: "main components symbols make each", disabled: editOff ?? (!state.localPage ? "Works on a page you made" : selectedLayers().length > 1 ? undefined : "Select several layers"), run: () => { void createComponents(); } },
     { id: "detach", group: "Edit", label: "Detach instance", shortcut: detachShortcut, disabled: editOff ?? (node && !offersDetach(node.name) ? "Select an instance" : undefined), run: () => { if (node) void detachSelection(node); } },
     { id: "undo", group: "Edit", label: "Undo", shortcut: `${modKey}Z`, disabled: state.undo.length ? undefined : "Nothing to undo", run: () => { void undoEdit(); } },
     { id: "redo", group: "Edit", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: state.redo.length ? undefined : "Nothing to redo", run: () => { void redoEdit(); } },

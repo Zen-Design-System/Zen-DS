@@ -17,7 +17,8 @@ export type BottomNavigationType = "default" | "floating" | "floating-glass";
 export type BottomNavigationTheme = "neutral" | "accent";
 /** Floating item selection style (Figma Theme Neutral · Neutral-Surface · Neutral-Solid, and the Accent equivalents). */
 export type BottomNavigationSelection = "subtle" | "surface" | "solid";
-/** Figma .Primitives/Bottom-Navigation Theme for the floating action (Default · Primary · Accent; Glass on Floating-Glass). */
+/** Figma .Primitives/Bottom-Navigation Theme for the floating action (Default · Primary · Accent; Glass on Floating-Glass).
+ *  Unset: Primary, except on Floating-Glass, where "default" is Figma's Glass action. */
 export type BottomNavigationActionTheme = "default" | "primary" | "accent";
 
 export interface BottomNavigationItem {
@@ -98,7 +99,9 @@ export function BottomNavigation({ items: itemsProp, children, value, onValueCha
   // Figma defaults: Floating selects on Surface (Neutral-Surface), Floating-Glass on Active/Subtle (Neutral).
   const selection = selectionProp ?? (type === "floating-glass" ? "subtle" : "surface");
   const floating = type !== "default";
-  const actionTheme = action?.theme ?? (floating ? "default" : "primary");
+  // Figma's defaults: Floating's Action is Theme=Primary, Floating-Glass's the Glass one ("default" here), the Default
+  // bar's action Primary (user 2026-10-19: "Update bottom navigation từ Figma lên Studio").
+  const actionTheme = action?.theme ?? (type === "floating-glass" ? "default" : "primary");
   // Figma Floating-Glass (9017:42257): the container and the CTA are Glass-Floating, the selected item Liquid-Glass/Normal
   // (GLASS: frost, refraction, dispersion; _shared/liquid-glass.ts).
   const glassy = type === "floating-glass";

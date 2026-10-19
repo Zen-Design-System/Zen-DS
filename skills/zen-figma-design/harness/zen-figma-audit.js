@@ -63,6 +63,7 @@
 //                                     Content/On-Accent (Metric-Tile On-Accent); Yellow, Sky, Mint, Golden, Warning →
 //                                     Content/On-Brights (Metric-Tile On-Bright); any other Support, Positive, Negative, Info solid →
 //                                     Content/On-Colors (Metric-Tile On-Color); chips on a colour solid are On-Color
+//   badge/count-uses-counter error    a Badge whose label is a number (a count): counts are Badge-Counter, the round pill
 //   navigation/back-chevron  error    a left arrow (icon-arrow-left-*, icon-arrow-narrow-left-*) as Back in a Top-Navigation,
 //                                     Nav-Action or Button on a phone or tablet screen: Back is icon-chevron-left-line-medium
 //   button/one-primary       error    two Primary Button/Main or Icon-Main side by side (one parent); warning when a screen
@@ -556,6 +557,17 @@ async function checkModeOverrides(root) {
     }
     if ("children" in node) stack.push(...node.children);
   }
+}
+
+// A count is a Badge-Counter, never a Badge holding a number (component-usage-rules §18, code harness
+// badge/count-uses-counter; user 2026-10-18: "Luôn ghi vào harness và rule là các badge dùng số đếm luôn dùng badge counter").
+async function checkBadgeCount(node) {
+  const main = await node.getMainComponentAsync();
+  const set = main && main.parent && main.parent.type === "COMPONENT_SET" ? main.parent.name : main && main.name;
+  if (set !== "Badge") return;
+  const label = node.findOne((child) => child.type === "TEXT" && child.visible !== false);
+  const text = label ? label.characters.trim() : "";
+  if (/^\d+\+?$/.test(text)) report("badge/count-uses-counter", ERROR, node, `Badge shows a count (“${text}”): use Badge-Counter (Size, Theme and Background as this Badge), the round pill whose width starts at its height`);
 }
 
 // Back on a phone or tablet is the left chevron, never a left arrow (component-usage-rules §10, code harness
@@ -1100,6 +1112,7 @@ async function walk(node, instanceRoot, isRoot) {
     if (!inInstance && /^ic(on)?-/i.test(node.name)) { await checkOnWhiteSolid(node); await checkOnSolid(node); }
     if (!inInstance) await checkSolidPairing(node);
     if (!inInstance && footerActionHugs(node)) report("list-box/footer-action-hug", ERROR, node, "the footer Button hugs on a desktop or tablet screen: set its width to Fill (Hug only on mobile)");
+    if (!inInstance) await checkBadgeCount(node);
   } else if (!inInstance && node.type !== "COMPONENT_SET") {
     // A component set's own frame (its dashed stroke, padding and corner) is Figma's documentation chrome, not design.
     checkPaints(node);

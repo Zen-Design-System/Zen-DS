@@ -87,7 +87,7 @@
     {
       "name": "ProgressCircle",
       "file": "src/components/Progress/Progress.tsx",
-      "description": "Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on\nNeutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc (it covers the ring) + 12px\nicon-check-solid.",
+      "description": "Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border, no\nfill) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc (it covers the ring) + 12px\nicon-check-solid.",
       "deprecated": null,
       "extends": null,
       "props": [

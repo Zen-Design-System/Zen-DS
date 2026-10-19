@@ -1,3 +1,4 @@
+import { useFrameSelection } from "../select/frameSelection";
 import { Fragment, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { usePortalContainer, ZenPortalProvider } from "../../../components/Portal";
 import { pageKey, useStudio } from "../store";
@@ -20,7 +21,9 @@ import "./board.css";
 export function StudioFrame({ id, kind, label, width, example, children }: { id: string; kind: StudioFrameKind; label: string; width: number; example?: StudioExample; children: ReactNode }) {
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[id]);
-  const selected = useStudio((state) => state.selection?.kind === "frame" && state.selection.frameId === id);
+  const primary = useStudio((state) => state.selection?.kind === "frame" && state.selection.frameId === id);
+  // One of several selected frames (select/frameSelection.ts) is outlined as the primary is.
+  const selected = useFrameSelection().includes(id) || primary;
   // An initial-state edit remounts the content (./remount), so it starts from the new state.
   const epoch = useFrameEpoch(id);
   const ref = useRef<HTMLDivElement>(null);

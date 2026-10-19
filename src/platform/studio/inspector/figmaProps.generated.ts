@@ -2297,7 +2297,25 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "CTA",
+        "prop": "action",
+        "on": {
+          "code": "{ icon: \"icon-plus-line\", label: \"New\" }"
+        },
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "floating",
+              "floating-glass"
+            ],
+            "default": "default"
+          }
+        ]
+      }
+    ]
   },
   "ChatComposer": {
     "figma": "6182:56819",

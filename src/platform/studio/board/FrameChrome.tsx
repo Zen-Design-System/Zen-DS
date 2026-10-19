@@ -1,3 +1,4 @@
+import { selectFrames, toggleFrame, useFrameSelection } from "../select/frameSelection";
 import { RenameField } from "../builder/RenameField";
 import { renameFrame } from "../edit/rename";
 import { tip } from "../shell/ShortcutTip";
@@ -74,6 +75,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
   const sections = useStudioSections();
   const selectedFrame = useStudio((state) => (state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.kind === "node" ? state.selection.frameId : null));
   const frameSelected = useStudio((state) => state.selection?.kind === "frame");
+  const extraFrames = useFrameSelection();
   const localPage = useStudio((state) => state.localPage);
   const editable = useStudio((state) => canEdit(state));
   const [renamingFrame, setRenamingFrame] = useState<string | null>(null);
@@ -409,14 +411,15 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           className={`studio-frame-label ${typographyStyles[frame.kind === "section" ? "Body/Small/Bold" : "Caption/Medium"]}`}
           data-chrome-key={`label:${frame.id}`}
           data-kind={frame.kind === "section" ? "section" : undefined}
-          data-selected={selectedFrame === frame.id ? "true" : undefined}
-          aria-pressed={frameSelected && selectedFrame === frame.id}
+          data-selected={selectedFrame === frame.id || extraFrames.includes(frame.id) ? "true" : undefined}
+          aria-pressed={frameSelected && (selectedFrame === frame.id || extraFrames.includes(frame.id))}
           title={frame.label}
-          onClick={() => studioStore.setState({ selection: { kind: "frame", frameId: frame.id } })}
-          // Right-click a frame's name: it is selected and its menu opens (Figma's), as on its empty area.
+          // ⇧-click adds the frame to the frames selected (Figma's), or takes it out.
+          onClick={(event) => { if (event.shiftKey) toggleFrame(frame.id); else selectFrames(frame.id, []); }}
+          // Right-click a frame's name: its menu opens (Figma's), as on its empty area; a frame not selected yet is.
           onContextMenu={(event) => {
             event.preventDefault();
-            studioStore.setState({ selection: { kind: "frame", frameId: frame.id } });
+            if (selectedFrame !== frame.id && !extraFrames.includes(frame.id)) selectFrames(frame.id, []);
             openFrameMenu(event.clientX, event.clientY, frame.id);
           }}
           // A frame on a page you made moves by its name (⌥ drops a copy; builder/frameMove.ts); a click still selects.

@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { createComponent, createInstance, deleteMain, detachInstance, mainOfSelection } from "./edit/localComponents";
+import { createComponent, createComponentOfLayers, createInstance, deleteMain, detachInstance, mainOfSelection } from "./edit/localComponents";
 import { addAutoLayoutToSelection, removeAutoLayoutFromSelection } from "./edit/autoLayout";
 import { ZenPortalProvider } from "../../components/Portal";
 import { TabPanel, Tabs } from "../../components/Tabs";
@@ -405,8 +405,10 @@ export function StudioApp() {
         const selection = state.selection;
         if (doc || inExample) return;
         event.preventDefault();
-        if (event.repeat || state.tool !== "select" || selection?.kind !== "node" || selection.part || !state.localPage || multiSelection.get().length) return;
-        void createComponent(selection);
+        if (event.repeat || state.tool !== "select" || selection?.kind !== "node" || selection.part || !state.localPage) return;
+        // Several layers: one component of them all (Figma's ⌥⌘K on a multi-selection).
+        if (multiSelection.get().length) void createComponentOfLayers();
+        else void createComponent(selection);
         return;
       }
       // ⌥⌘↵ / Ctrl+Alt+Enter: Figma's Present. A page you made plays from the selected Screen (else its first: the

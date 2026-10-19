@@ -11,6 +11,7 @@ import { useSlotServer } from "../slots/actions";
 import { autoLayoutKeys, autoLayoutShortcut, frameSelectionKeys, frameSelectionShortcut, useWrapRunning, wrapCheck, wrapSelection } from "../select/wrapSelection";
 import { canEdit, useStudio } from "../store";
 import { MixedProperties } from "../edit/MixedProperties";
+import { AlignSelection } from "../edit/AlignSelection";
 import { InspectorItem, InspectorSection } from "./Section";
 import { undoShortcut } from "./status";
 
@@ -48,6 +49,8 @@ export function SelectionActions() {
           <Badge size="sm" theme="neutral" background="subtle" leadingIcon={false}>Selection</Badge>
         </div>
       </header>
+
+      <AlignSelection />
 
       {check.ok || !check.hidden ? (
         <InspectorSection title="Frame" note="Add auto layout keeps how the layers sit now (direction, gap, alignment); Frame selection puts them in a frame.">

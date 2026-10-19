@@ -395,3 +395,57 @@ Spec card (plan §5 F1, decision 4; Figma help checked: Lock and unlock layers, 
 - **Bug found and fixed (shell.css):** the canvas menu's list was capped at 100vh − 16px, so a menu as tall as the window
   (24 items after F0 / F1) had a surface taller than the room and flipped above the window (HO-12, y −974): the cap is
   100vh − 64px now and the list scrolls.
+
+## Studio several layers — F2a (plan split, user 2026-10-19: "ok") — Session A, worktree `../Zen-DS-f2`, branch `zen/feat/studio-f2-transform-20261019`
+
+The plan now runs in three sessions (A: F2 → F3 → F9; B: F5 → F7; C: F4 → F6 → F8 → F10; memory "figma-parity-three-sessions").
+F2 splits in two: F2a (several layers) here, F2b (rotate / flip on Session B's `rotation` / `flip` props, resize ⌥ / ⇧,
+equal-spacing guides, several frames: ⌘A, marquee) next. W / H arithmetic and the ratio lock went to F5 (Session B).
+- `edit/arrangeModel.ts` (pure, selftest 11): align to the selection's box, distribute (3+, ends stay), tidy up (row,
+  column or grid by y-overlap rows, median gaps). `edit/alignLayers.ts`: floating items (own float or the float Box
+  around a layer; locked or in-auto-layout refused with a reason), moves as one `op many setProps` (align / distribute /
+  tidy write X / Y; nudge and drag keep each pinned edge).
+- Keys: ⌥A… with several layers (figmaKeys), ⌃⌥H / ⌃⌥V / ⌃⌥T (off figmaNotYet), arrows nudge several floating layers
+  (arrange.ts). Drag: `armGroup` / `followGroup` in drag.ts (snapBox against the shared free frame, ⇧ axis, ⌘ no snap).
+- UI: union outline (SelectionLayer `data-kind="union"`); `edit/AlignSelection.tsx` in the multi-selection panel (2 lines
+  in inspector/SelectionActions.tsx, agreed with Session B).
+- E2E `--only=figma` FW-20…26: 7 / 7 on the first run.
+- F2b part 1: `select/ResizeLayer.tsx` ⌥ from the centre (free-frame floats; the release passed no ⌥ before), ⇧ on an
+  edge keeps the ratio (replaces the 8 px edge snap: no test read it), a Shape resizes as a float (its left / top edge
+  moved only the size before — a gap found while testing). `edit/spacingModel.ts` (pure, selftest 6): equal spacing to
+  the neighbours' gap or the middle; drag.ts `snapAndSpace` keeps the nearer of the edge snap (red) and the spacing snap
+  (pink marks with px, DragLayer). FW-27…29 pass; the `draw` group 15 / 15.
+- F2c (split agreed with Session C: C moves several frames in frameMove.ts and adds `removeFrames` + Sections; A owns the
+  selection): `select/frameSelection.ts` (primary = the store's frame selection, extras here, cleared by any other
+  selection), marquee from the empty canvas selects frames (`startMarquee(…, "board")`), ⌘A with no layer selected
+  selects every top-level frame, ⇧-click on a frame name / row toggles, StudioFrame / FrameChrome labels / Layers rows
+  show the extras selected. Delete still removes the primary frame until C's `removeFrames` lands. FW-30…32 pass.
+
+## Studio structure and clipboard — F3 (2026-10-19) — Session A, worktree `../Zen-DS-f3`, branch `zen/feat/studio-f3-structure-20261019` (stacked on F2)
+
+- Delete: `runRemove` / `removeLayers` select nothing (Figma); the undo memory (`LastSlotEdit`) takes null on either
+  side, so ⌘Z still selects the removed layer and a paste with nothing selected undoes to nothing. The 700 ms held-⌫
+  guard and `parentSelectionOf` went (nothing is selected to remove twice).
+- Copy / Paste properties: `VISUAL` allow-list (surface, fill, a text's tone, border / stroke / weight / align,
+  effectStyle, radius ×5, opacity, textStyle) instead of the NOT_STYLE deny-list that let X / Y / W / H and layout
+  through (walk §2); the same component also loses visual props the copy did not have.
+- Paste at a point: server `pasteCode { at }` → `floatAt` (arrange.mjs: the group's corner at the point, offsets kept,
+  constraints and other insets gone, a non-floating root in a float Box). Client `pasteOnCanvas`: Paste here = the drop
+  target under the pointer (`dropTargetAt`), at the pointer in a frame without auto layout (`freeBlock`: a Box whose
+  layers all float, or a Screen whose content does); ⌘V with nothing / a frame selected = the selected frame or the one
+  most in view, at the copied layer's offsets when it floated (else the middle of what shows).
+- ⌘D: `duplicateElement { offset }` shifts the copy's px insets (slots.mjs `shiftedSource`); `edit/duplicateOffset.ts`
+  remembers the copy and where its original floated, so ⌘D on a moved copy repeats the move.
+- Groups / frames: slot ops `group { with, box, kids, props?, component? }` (the layers into one floating Box where the
+  frontmost was, each with its new insets; ids travel with the code) and `ungroup { kids? }` (a frame's layers in its
+  place, floating at `kids` or into the parent's flow). `edit/groupLayers.ts`: Frame selection on floating layers
+  (found while testing: the plain wrap made an in-flow Box of height 0 measured from its corner — fixed here), ⇧⌘G /
+  menu "Remove frame". ⌘G waits for Session B's answer on a `group` marker on Box (decision 3).
+- Components: ⌥⌘K on several layers = one component (floating: group + `component`, one edit; in auto layout: Add auto
+  layout, then the component — two edits); Create multiple components = `many { action: "components", names }` (the
+  import first, then the wraps bottom-up). Menu (several layers) and Quick actions.
+- Copy as › code / CSS (`edit/copyAs.ts`; CSS values by the Zen variable of the property's family when one matches).
+  PNG / SVG wait for Session B's `layerPicture` (F5c) to reach main.
+- E2E figma FW-33…39, FW-110…112 (A also takes FW-110…129): 12 / 12. Selftests: arrange 50, slots 1961, doc 135.
+- Open: Detach on every instance contradicts the user's 2026-10-03 rule (interactive components never detach) — asked
+  the user. ⌘G after B's answer; ⇧⌘C after B's F5c.

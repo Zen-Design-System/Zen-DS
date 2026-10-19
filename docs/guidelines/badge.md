@@ -60,7 +60,7 @@ Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "removeLabel" | "leading"
 - Map status to semantic themes consistently (green = success, red = failure, yellow = attention).
 - Use Subtle backgrounds in dense tables and Solid for emphasis.
 - Cap counters at "99+" and hide them at zero.
-- Show counts (unread, items, filters applied) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height; keep Badge for words and statuses (harness: badge/count-uses-counter).
+- Show counts (unread, items, filters applied, a section's or folder's item count) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height — never a Badge holding a number nor bare text beside a label; keep Badge for words and statuses (harness: badge/count-uses-counter, badge/count-text-uses-counter; component-usage-rules §18).
 - Make counts agree with their noun — "1 file" / "3 files" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count).
 
 ## ❌ Don't
@@ -81,7 +81,8 @@ Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "removeLabel" | "leading"
 | `removable/needs-handler` | error | A remove affordance must be wired to onRemove. | `zen-allow-remove-handler: <reason>` |
 | `badge-counter/cap` | warn | Counters cap at 99+. | `zen-allow-counter-cap: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
-| `badge/count-uses-counter` | warn | A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height. | `zen-allow-badge-count: <reason>` |
+| `badge/count-uses-counter` | error | A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height. | `zen-allow-badge-count: <reason>` |
+| `badge/count-text-uses-counter` | error | A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something. | `zen-allow-count-text: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
