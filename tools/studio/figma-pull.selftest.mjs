@@ -269,6 +269,48 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("vectors: the path, its box and winding rule; stroke weight; no default stroke or align", [/d="M 0 40 C 20 0 60 0 80 40 Z"/.test(line), /viewBox="0 0 80 40"/.test(line), /fillRule="evenodd"/.test(line), /strokeWeight=\{2\}/.test(line), /stroke=|strokeAlign=|fill=/.test(line), /insetLeft=\{10\}/.test(line)], [true, true, true, true, false, true]);
   check("vectors: an arc command is left out, noted", [pulled.text.split('type="vector"').length, pulled.notes.some((note) => /"Odd": its vector path/.test(note))], [2, true]);
   check("vectors: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+// Frames as figmaReadCode reads them (stroke weight per side, four corners, effect style, opacity, rotation, mirror):
+// one Stack or Grid with its look (decision 2, plan 2026-10-18); a value Zen has no token for is noted.
+{
+  const text = (value) => ({ type: "TEXT", name: value, characters: value, textStyle: "Body/Base/Regular" });
+  const column = { mode: "VERTICAL", gap: 12, gapVar: "Spacing/Gap/Small", padding: [16, 16, 16, 16], paddingVar: "Spacing/Padding/Medium" };
+  const looks = {
+    type: "FRAME", name: "Looks", width: 400, height: 600, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] },
+    children: [
+      { type: "FRAME", name: "Card", fill: "Color/Background/Surface/Default", stroke: "Color/Border/Neutral/Pale/Default", strokeWeights: [0, 0, 1, 0], radii: [16, 16, 16, 16], radiiVars: ["Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/Large"], opacity: 0.5, rotation: 30, layout: column, children: [text("One"), text("Two")] },
+      { type: "FRAME", name: "Mirrored", fill: "Background/Neutral/Subtle/Default", effectStyle: "Effect/Overlay", flip: "horizontal", stroke: "Border/Neutral/Subtle/Default", strokeWeights: [2, 2, 2, 2], dash: [2, 2], radii: [20, 20, 4, 20], radiiVars: ["Corner-Radius/XLarge", "Corner-Radius/XLarge", "Corner-Radius/XSmall", "Corner-Radius/XLarge"], layout: column, children: [text("Three"), text("Four")] },
+      { type: "FRAME", name: "Odd", fill: "Background/Accent/Solid/Default", stroke: "unbound", strokeWeights: [1, 1, 1, 1], radii: [13, 13, 13, 13], radiiVars: [null, null, null, null], effectStyle: "Effect/Popover", layout: column, children: [text("Five"), text("Six")] },
+    ],
+  };
+  const pulled = pageFromFigma(looks, { mapping });
+  const line = (name) => pulled.text.split("\n").find((candidate) => candidate.includes("<Stack") && candidate.includes(name)) ?? "";
+  const lines = pulled.text.split("\n").filter((candidate) => /<(Stack|Box|Grid)\b/.test(candidate));
+  check("frame looks: three Stacks, no Box around them", [lines.filter((candidate) => candidate.includes("<Stack")).length >= 3, lines.some((candidate) => candidate.includes("<Box"))], [true, false]);
+  check("frame looks: fill, one-sided stroke, corners, opacity, rotation", /surface="surface"/.test(line("opacity")) && /border="pale"/.test(line("opacity")) && /borderSides="bottom"/.test(line("opacity")) && /radius="lg"/.test(line("opacity")) && /opacity=\{50\}/.test(line("opacity")) && /rotation=\{30\}/.test(line("opacity")), true);
+  check("frame looks: blur, dashed subtle stroke 2px, a differing corner, flip", /surface="subtle"/.test(line("flip")) && /effectStyle="Effect\/Overlay"/.test(line("flip")) && /borderStyle="dashed"/.test(line("flip")) && /borderWeight=\{2\}/.test(line("flip")) && /radius="xl"/.test(line("flip")) && /radiusBottomRight="xs"/.test(line("flip")) && /flip="horizontal"/.test(line("flip")), true);
+  check("frame looks: no token → noted, left out", [/Frame "Odd": its fill/.test(pulled.notes.join("\n")), /Frame "Odd": its stroke is no colour variable/.test(pulled.notes.join("\n")), /Frame "Odd": a corner radius/.test(pulled.notes.join("\n")), /Frame "Odd": its effect style Effect\/Popover/.test(pulled.notes.join("\n"))], [true, true, true, true]);
+  check("frame looks: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+}
+
+// A Figma GROUP comes back as a Zen group (Box group) at its X / Y, its layers at theirs inside it (the reader wrote
+// them relative to the group), its opacity kept.
+{
+  const grouped = {
+    type: "FRAME", name: "Groups", width: 400, height: 300, layout: null,
+    children: [
+      { type: "FRAME", name: "Canvas", width: 400, height: 300, layout: null, children: [
+        { type: "GROUP", name: "Group 1", width: 120, height: 60, layout: null, opacity: 0.5, absolute: { x: 20, y: 30, w: 120, h: 60, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true }, children: [
+          { type: "ELLIPSE", name: "Ellipse", shape: { w: 40, h: 40, fill: "Color/Background/Accent/Solid/Default", stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", rotation: 0, opacity: 1 }, absolute: { x: 0, y: 0, w: 40, h: 40, pw: 120, ph: 60, cx: "MIN", cy: "MIN", free: true } },
+          { type: "ELLIPSE", name: "Ellipse", shape: { w: 40, h: 40, fill: "Color/Background/Accent/Solid/Default", stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", rotation: 0, opacity: 1 }, absolute: { x: 80, y: 20, w: 40, h: 40, pw: 120, ph: 60, cx: "MIN", cy: "MIN", free: true } },
+        ] },
+      ] },
+    ],
+  };
+  const pulled = pageFromFigma(grouped, { mapping });
+  const box = pulled.text.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? "";
+  check("groups: a Box group at its X / Y, sized, its opacity", [/position="absolute"/.test(box), /insetLeft=\{20\}/.test(box), /insetTop=\{30\}/.test(box), /width=\{120\}/.test(box), /height=\{60\}/.test(box)], [true, true, true, true, true]);
+  check("groups: its layers at their X / Y inside it", pulled.text.split("\n").filter((line) => /type="ellipse"/.test(line)).map((line) => [/insetLeft=\{(\d+)\}/.exec(line)?.[1], /insetTop=\{(\d+)\}/.exec(line)?.[1]]), [["0", "0"], ["80", "20"]]);
+  check("groups: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
 if (failures.length) {

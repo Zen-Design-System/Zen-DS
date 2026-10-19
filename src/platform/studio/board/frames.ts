@@ -73,6 +73,19 @@ export function onFramesMoved(listener: () => void) {
   return () => { moveListeners.delete(listener); };
 }
 
+/**
+ * Selects the frame `frameId` once the board shows it (a frame just added): selected before, the board's next render of
+ * an earlier text (an edit that pinned the row first) would find it missing and clear the selection.
+ */
+export function selectFrameWhenShown(frameId: string, select: (frameId: string) => void, timeout = 2000) {
+  const until = Date.now() + timeout;
+  const look = () => {
+    if (frames.some((frame) => frame.id === frameId)) { select(frameId); return; }
+    if (Date.now() < until) requestAnimationFrame(look);
+  };
+  look();
+}
+
 export function useStudioFrames() {
   return useSyncExternalStore(subscribe, getStudioFrames, getStudioFrames);
 }

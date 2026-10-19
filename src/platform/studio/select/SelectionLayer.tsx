@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useSyncExternalStore } from "react";
 import { ArcHandles } from "./ArcHandles";
 import { startVectorEdit, VectorHandles, vectorEditing } from "./VectorHandles";
+import { RotateHandles } from "./RotateHandles";
 import { layerIcon, layerName } from "./layerNames";
 import { displayName } from "./layerMeta";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -1084,6 +1085,13 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       />
       {/* Figma's vertex edit on a vector (Enter): its points and handles, the resize handles away meanwhile. */}
       <VectorHandles hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null} viewport={viewport} />
+      {/* Figma's rotate handles, just outside the corners of a selected frame or shape (⇧ 15° steps). */}
+      <RotateHandles
+        box={overlay.selected}
+        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
+        interactive={tool === "select" && !presenting}
+        viewport={viewport}
+      />
       <ResizeLayer
         box={overlay.selected}
         // One element: parts (deep select) are read-only and a Shift multi-selection has no one size.

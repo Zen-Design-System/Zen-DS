@@ -675,22 +675,21 @@ function StudioEvents() {
             <img className="px-layout-media" src={event.photo.src} alt={event.photo.alt} />
           </Box>
           {/* Written after the photo, so it paints above it. Docked to the bottom edge (Left & right / Bottom): only the
-              top corners round, to 3xl, and Shadow/Top/Level-2 casts upward onto the photo. */}
-          <Box position="absolute" constraintX="left-right" constraintY="bottom" surface="surface"
-            radiusTopLeft="3xl" radiusTopRight="3xl" effectStyle="Shadow/Top/Level-2" padding="lg">
-            <Stack gap="md">
-              <Stack gap="xs">
-                {/* The bar carries no title over the photo, so this heading is the screen's h1. */}
-                <Heading level={1}>{event.name}</Heading>
-                <Text textStyle="Body/Small/Regular" tone="base">{eventDates(event)}</Text>
-              </Stack>
-              <Text>{event.about}</Text>
-              <List aria-label="Organiser">
-                <ListItem title={event.organiser.name} caption={`Organiser · ${event.organiser.role}`}
-                  leading={<Avatar size="md" {...avatarOf(event.organiser)} />} />
-              </List>
+              top corners round, to 3xl, and Shadow/Top/Level-2 casts upward onto the photo. One auto layout frame with
+              a fill, as in Figma: the Stack carries the surface, corners and shadow itself. */}
+          <Stack position="absolute" constraintX="left-right" constraintY="bottom" surface="surface"
+            radiusTopLeft="3xl" radiusTopRight="3xl" effectStyle="Shadow/Top/Level-2" padding="lg" gap="md">
+            <Stack gap="xs">
+              {/* The bar carries no title over the photo, so this heading is the screen's h1. */}
+              <Heading level={1}>{event.name}</Heading>
+              <Text textStyle="Body/Small/Regular" tone="base">{eventDates(event)}</Text>
             </Stack>
-          </Box>
+            <Text>{event.about}</Text>
+            <List aria-label="Organiser">
+              <ListItem title={event.organiser.name} caption={`Organiser · ${event.organiser.role}`}
+                leading={<Avatar size="md" {...avatarOf(event.organiser)} />} />
+            </List>
+          </Stack>
         </Box>
       </PlatformPhone>
     );
@@ -975,7 +974,7 @@ function SettingsSection({ id, title, description, children }) {
   },
   {
     title: "Layers over photos",
-    description: "In the Events feed each photo is a frame that clips to 3xl: Save pins to its top-right corner, sm in from both edges (Right / Top), and the caption bar stretches between sm insets along the bottom edge (Left & right / Bottom). An event opens on a media screen: its photo comes first as background media (Left & right × Top & bottom) under the overlay bar, and the details sheet docks to the bottom (Left & right / Bottom) with only its top corners rounded and Shadow/Top/Level-2 casting upward. Back returns to the event you opened, and the toast can undo a save or an RSVP.",
+    description: "In the Events feed each photo is a frame that clips to 3xl: Save pins to its top-right corner, sm in from both edges (Right / Top), and the caption bar stretches between sm insets along the bottom edge (Left & right / Bottom). An event opens on a media screen: its photo comes first as background media (Left & right × Top & bottom) under the overlay bar, and the details sheet, one auto layout frame with a fill (a Stack with surface, corners and effect), docks to the bottom (Left & right / Bottom) with only its top corners rounded and Shadow/Top/Level-2 casting upward. Back returns to the event you opened, and the toast can undo a save or an RSVP.",
     render: () => <StudioEvents />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 const [openId, setOpenId] = useState<string | null>(null);
@@ -1036,21 +1035,20 @@ const rsvp = (event, next) => {
     <Box position="absolute" constraintX="left-right" constraintY="top-bottom">
       <img src={event.photo.src} alt={event.photo.alt} /> {/* display: block; width: 100%; height: 100%; object-fit: cover */}
     </Box>
-    {/* Docked to the bottom edge (Left & right / Bottom): only the top corners round; the shadow casts upward */}
-    <Box position="absolute" constraintX="left-right" constraintY="bottom" surface="surface"
-      radiusTopLeft="3xl" radiusTopRight="3xl" effectStyle="Shadow/Top/Level-2" padding="lg">
-      <Stack gap="md">
-        <Stack gap="xs">
-          {/* The bar has no title over the photo: this is the screen's h1 */}
-          <Heading level={1}>Studio retreat in Đà Lạt</Heading>
-          <Text textStyle="Body/Small/Regular" tone="base">Nov 6 – Nov 8, 2026</Text>
-        </Stack>
-        <Text>Three days in the pine hills with the whole studio: the 2027 roadmap, a design jam and the night market.</Text>
-        <List aria-label="Organiser">
-          <ListItem title="Minh Anh Vo" caption="Organiser · People Ops Manager" leading={<Avatar size="md" {...avatarOf(minhAnh)} />} />
-        </List>
+    {/* Docked to the bottom edge (Left & right / Bottom): only the top corners round; the shadow casts upward.
+        One auto layout frame with a fill: the Stack carries the surface, corners and shadow. */}
+    <Stack position="absolute" constraintX="left-right" constraintY="bottom" surface="surface"
+      radiusTopLeft="3xl" radiusTopRight="3xl" effectStyle="Shadow/Top/Level-2" padding="lg" gap="md">
+      <Stack gap="xs">
+        {/* The bar has no title over the photo: this is the screen's h1 */}
+        <Heading level={1}>Studio retreat in Đà Lạt</Heading>
+        <Text textStyle="Body/Small/Regular" tone="base">Nov 6 – Nov 8, 2026</Text>
       </Stack>
-    </Box>
+      <Text>Three days in the pine hills with the whole studio: the 2027 roadmap, a design jam and the night market.</Text>
+      <List aria-label="Organiser">
+        <ListItem title="Minh Anh Vo" caption="Organiser · People Ops Manager" leading={<Avatar size="md" {...avatarOf(minhAnh)} />} />
+      </List>
+    </Stack>
   </Box>
 </PlatformPhone>`,
   },

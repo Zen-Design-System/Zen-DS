@@ -11,7 +11,8 @@ import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, 
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
 import { copyAsCode, copyAsCss } from "../edit/copyAs";
-import { ungroupSelection } from "../edit/groupLayers";
+import { groupSelection, ungroupSelection } from "../edit/groupLayers";
+import { findBySrc } from "../select/picker";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { visibilityMenuItems } from "../edit/visibility";
@@ -26,7 +27,7 @@ import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
 import { modKey, presentShortcut } from "./modKey";
 import { createComponent, createComponentOfLayers, createComponents } from "../edit/localComponents";
-import { removeFrame } from "../builder/proto/addFrame";
+import { removeFrame, wrapInSection } from "../builder/proto/addFrame";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
 import type { StudioSelection } from "../types";
@@ -79,8 +80,9 @@ export function openEmptyCanvasMenu(x: number, y: number) {
   set({ x, y, target: { kind: "canvas" }, at: Date.now() });
 }
 
-/** A Figma item Zen Studio has no feature for yet: in Figma's place in the menu, off, saying so (edit/figmaNotYet.ts). */
-const notYet = (id: string, label: string, shortcut: string, icon: MenuItemData["icon"]): MenuItemData => ({ id: `not-yet-${id}`, label, icon, shortcut, disabled: true, caption: "Not in Zen Studio yet", onSelect: () => {} });
+/** Whether the selected layer is a group (Box group, ⌘G): ⇧⌘G says Ungroup for it, Remove frame for a frame. */
+const selectedIsGroup = (selection: NodeSelection) => Boolean(findBySrc(canvasApi.getWorldElement() ?? document.body, selection.src)[selection.instance]?.props.group);
+
 
 export function CanvasMenu() {
   const menu = useSyncExternalStore(subscribe, () => state, () => null);
@@ -130,10 +132,10 @@ export function CanvasMenu() {
     // layout, and wraps anything else in an auto layout frame; Frame selection wraps in a frame.
     { id: "wrap-stack", label: "Add auto layout", icon: "icon-rows-01-line", shortcut: autoLayoutShortcut, caption: wrap.ok || frameAlone ? undefined : wrap.reason, disabled: !wrap.ok && !frameAlone, onSelect: () => { void addAutoLayoutToSelection(); } },
     ...(autoLayoutAlone ? [{ id: "remove-auto-layout", label: "Remove auto layout", icon: "icon-square-line" as const, shortcut: removeAutoLayoutShortcut, onSelect: () => { void removeAutoLayoutFromSelection(); } }] : []),
-    notYet("group", "Group selection", `${modKey}G`, "icon-layers-three-01-line"),
+    { id: "group", label: "Group selection", icon: "icon-layers-two-01-line" as const, shortcut: `${modKey}G`, disabled: !wrap.ok, onSelect: () => { void groupSelection(); } },
     { id: "wrap-box", label: "Frame selection", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
     // ⇧⌘G on one frame: its layers take its place and keep theirs (edit/groupLayers.ts, F3).
-    ...(selection && !several && /^(Box|Stack|Grid)$/.test(selection.name.slice(selection.name.lastIndexOf(".") + 1)) ? [{ id: "remove-frame", label: "Remove frame", icon: "icon-square-line" as const, shortcut: modKey === "⌘" ? "⇧⌘G" : "Ctrl+Shift+G", disabled: !canEdit(), onSelect: () => { void ungroupSelection(selection); } }] : []),
+    ...(selection && !several && /^(Box|Stack|Grid)$/.test(selection.name.slice(selection.name.lastIndexOf(".") + 1)) ? [{ id: "remove-frame", label: selectedIsGroup(selection) ? "Ungroup" : "Remove frame", icon: "icon-square-line" as const, shortcut: modKey === "⌘" ? "⇧⌘G" : "Ctrl+Shift+G", disabled: !canEdit(), onSelect: () => { void ungroupSelection(selection); } }] : []),
   ] : [];
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
   // Show / Hide, Lock / Unlock and Rename, as Figma's layer menu (edit/visibility.ts, edit/lock.ts, edit/rename.ts).
@@ -178,21 +180,25 @@ export function CanvasMenu() {
   ] : [];
   const frame = menu?.target.kind === "frame" ? findFrame(menu.target.frameId) : null;
   const localPage = studioStore.getState().localPage;
+  // A Section of a page you made (F4) is a board area: no Present, no Copy for Figma of its own.
+  const section = Boolean(frame?.id.startsWith("section:"));
   const frameItems: MenuEntry[] = frame ? [
     // Figma's Paste here: the clipboard at the pointer, in the layout or frame under it (edit/clipboard.ts, F3).
     ...(menu ? [pasteHereItem({ x: menu.x, y: menu.y }), { type: "separator" as const, id: "frame-paste-separator" }] : []),
     { id: "frame-zoom", label: "Zoom to selection", icon: "icon-zoom-in-line", shortcut: "⇧2", onSelect: () => zoomToFrame(frame.element) },
     // Present plays a page you made from this Screen (Figma's Present runs the prototype); an example frame is presented.
-    ...(localPage || frame.id.startsWith("example:") ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),
+    ...(!section && (localPage || frame.id.startsWith("example:")) ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),
     // A frame of a page you made: its code and its Figma export on the clipboard (⌘V in the Zen plugin places it).
-    ...(localPage ? [{ id: "frame-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { void copyFrameForFigma(localPage, frame.id); } }] : []),
+    ...(localPage && !section ? [{ id: "frame-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { void copyFrameForFigma(localPage, frame.id); } }] : []),
     // A builder page that starts as this example or template (GĐ3b): kept in this browser, so it needs no dev server.
     ...(frame.id.startsWith("example:") ? [{ id: "frame-new-page", label: "New page from this frame", icon: "icon-file-plus-line" as const, onSelect: () => { void newPageFromFrame(frame); } }] : []),
     { type: "separator", id: "frame-separator" },
     { id: "frame-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
-    // A Screen or Overlay of a page you made deletes as one edit (Figma deletes a frame from its menu too).
-    ...(localPage && /^(screen|overlay):/.test(frame.id) ? [
+    // A Screen, Overlay or Section of a page you made deletes as one edit (Figma deletes a frame from its menu too); a
+    // frame can be wrapped in a new Section (Figma's Wrap in new section).
+    ...(localPage && /^(screen|overlay|section):/.test(frame.id) ? [
       { type: "separator" as const, id: "frame-name-separator" },
+      ...(!section ? [{ id: "frame-wrap-section", label: "Wrap in new section", icon: "icon-browser-line" as const, disabled: Boolean(editOff), onSelect: () => { void wrapInSection(localPage, [frame.id]); } }] : []),
       ...lockMenuItems({ kind: "frame", frameId: frame.id }),
       renameItem("Rename"),
       { type: "separator" as const, id: "frame-delete-separator" },

@@ -4,13 +4,14 @@
 **Figma:** Auto layout + Spacing/Gap, Spacing/Padding, Corner-Radius variables  
 **Import:** `import { Box, Container, Grid, Stack } from "@zen-ds/react";`
 
-Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.
+Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.
 
 ## Use it for
 - Stacking sections, fields or cards (Stack, gap md–lg).
 - Toolbars and button rows (Stack direction="row", align center, justify between).
 - Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).
 - Wells and plain panels (Box surface + padding).
+- A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.
 - Page content width with the breakpoint margin (Container).
 
 ## Use something else for
@@ -22,22 +23,25 @@ Token-based layout primitives: Stack (one direction), Grid (columns), Box (paddi
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Group (Box) | `group` | Figma's Group (Zen Studio ⌘G): holds its layers at their X / Y, sized to them; no fill, stroke, corners, effect, padding (ignored); moves, turns, flips and fades as one |
 | Gap (Spacing/Gap) | `gap · rowGap · columnGap` | none · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 (default) · lg 24 · xl 32 · 2xl 40 · 3xl 48 · giant 64 · xgiant 88 · 2xgiant 144 (long names like small also work) |
 | Padding (Spacing/Padding) | `padding · paddingX · paddingY` | 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; or a page margin that follows the breakpoint (Figma Breakpoint & Grids): margin-comfortable 24 (20 on a phone) for a page or screen body, margin-compact 20 (16 on a phone) |
 | Direction / alignment | `direction · align · justify · wrap` | column (default) or row; start · center · end · stretch · baseline; between · around |
 | Columns | `columns · minColumnWidth · stackBelow` | a number, a track list for unequal columns ("2fr 1fr"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default); stackBelow={640}: one column while the Grid itself is narrower than 640px (a side column in a narrow card or window), whatever the breakpoint |
-| Background layer | `surface (Box)` | surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card) |
+| Background layer (Figma Fill) | `surface (Box, Stack, Grid)` | surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card) |
 | Overflow scrolling | `scroll (Stack, Box)` | "y" scrolls vertically, "x" sideways, inside the frame (Figma Overflow scrolling; it clips, and the scroll stays inside): give a "y" frame a height ("fill" in a set-height column) or a maxHeight |
-| Border | `border (Box)` | pale (static) · subtle (actionable) |
-| Corner-Radius | `radius (Box)` | 2xs · xs · sm · md · lg · xl · 2xl · 3xl · full (follows the radius mode) |
+| Border (Figma Stroke) | `border · borderWeight · borderSides · borderStyle (Box, Stack, Grid)` | pale (static) · subtle (actionable), inside the frame; borderWeight in px (default 1); borderSides all (default) · top · right · bottom · left; borderStyle dashed only with border subtle (harness: box/dashed-is-subtle) |
+| Corner-Radius | `radius (Box, Stack, Grid)` | 2xs · xs · sm · md · lg · xl · 2xl · 3xl · full (follows the radius mode) |
 | Width | `maxWidth (Container)` | sm 640 · md 960 · lg 1280 (default) · xl 1440 · full; gutter = page margin token |
 | Sizing (Figma resizing) | `width · height · minWidth · maxWidth · minHeight · maxHeight · alignSelf (Stack, Grid, Box) · fillChildren (Stack)` | "hug" (Hug contents) · "fill" (Fill container: grows along the parent Stack's direction, stretches across it, 100% in a Grid cell or block) · a number = Fixed px; min/max in px; alignSelf start · center · end · stretch = the child's alignment in its Stack or Grid; fillChildren = every child takes an equal share (a column only when it has a height). Sizes include padding (border-box). maxWidth here is px; Container's maxWidth is a token width. Unset changes nothing |
 | Position (Figma Ignore auto layout) | `position (Stack, Grid, Box)` | static (default, in flow) · absolute = out of the parent's flow, pinned to the parent Stack, Grid, Box or Card; siblings, gap and the parent's Hug ignore it, a later in-flow sibling paints above it |
 | Constraints | `constraintX · constraintY` | read only with position="absolute": left (default) · right · left-right (stretches between the two insets, width ignored) · center (exact centre) × top (default) · bottom · top-bottom · center; Scale is not offered (it needs percentages) |
 | Insets (Spacing/Padding) | `insetTop · insetRight · insetBottom · insetLeft` | none (default, flush) · 3xs 2 … 4xl 48, each read only on an edge its constraint pins; no negative insets (overhangs belong to components) |
-| Effect style (Box) | `effectStyle` | the Figma effect style, one per box: Shadow/Bottom/Level-1…4 · Shadow/Top/Level-1…4 (drop shadows, only on surface="surface", no border; Level-1 = the Card and Sidebar elevation; Top casts upward for bottom-pinned bars) · Effect/Overlay (background blur, only on surface subtle or pale) |
-| Clip content (Box) | `clip` | true clips children to the box and its corners (Figma Clip content), e.g. full-bleed absolute media in a radiused Box |
-| Corner-Radius per corner | `radiusTopLeft · radiusTopRight · radiusBottomRight · radiusBottomLeft (Box, Image)` | the radius scale per corner, following the radius mode; a set corner wins over radius; write radius plus only the corners that differ (Image's radius defaults to md) |
+| Effect style (Box, Stack, Grid) | `effectStyle` | the Figma effect style, one per box: Shadow/Bottom/Level-1…4 · Shadow/Top/Level-1…4 (drop shadows, only on surface="surface", no border; Level-1 = the Card and Sidebar elevation; Top casts upward for bottom-pinned bars) · Effect/Overlay (background blur, only on surface subtle or pale) |
+| Clip content (Box, Stack, Grid) | `clip` | true clips children to the frame and its corners (Figma Clip content), e.g. full-bleed absolute media in a radiused Box |
+| Opacity | `opacity (Box, Stack, Grid)` | 0 … 100, a percentage as Figma's layer opacity (default 100), never CSS's 0–1 (harness: layout/opacity-percent) |
+| Rotation and flip | `rotation · flip (Box, Stack, Grid)` | rotation in degrees, counter-clockwise as Figma's field; flip horizontal · vertical · both (Figma ⇧H / ⇧V). Visual only: the frame keeps its place in the layout |
+| Corner-Radius per corner | `radiusTopLeft · radiusTopRight · radiusBottomRight · radiusBottomLeft (Box, Stack, Grid, Image)` | the radius scale per corner, following the radius mode; a set corner wins over radius; write radius plus only the corners that differ (Image's radius defaults to md) |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/layout.json`.
@@ -45,7 +49,7 @@ Generated from the TypeScript source; full JSON in `docs/api/layout.json`.
 ### Stack
 One-dimensional layout with token spacing. Use it instead of hand-written flex CSS. <Stack gap="lg">…sections…`</Stack>` <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…`</Stack>`
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -63,6 +67,20 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `insetRight` | `ZenPadding \| number` | — | Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none. |
 | `insetBottom` | `ZenPadding \| number` | — | Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none. |
 | `insetLeft` | `ZenPadding \| number` | — | Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none. |
+| `radiusTopLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins over `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius="full" radiusBottomRight="xs"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit the box and the small one renders square. Use a finite radius (a chat tail: `radius="xl" radiusBottomRight="xs"`); `full` mixes only with `none`. |
+| `radiusTopRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`. |
+| `radiusBottomRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`. |
+| `radiusBottomLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`. |
+| `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable. `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none. |
+| `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's Inside stroke. Default none. |
+| `borderWeight` | `number` | — | Stroke weight in px (Figma strokeWeight), read with `border`. Default 1. |
+| `borderSides` | `"all" \| "top" \| "right" \| "bottom" \| "left"` | — | Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g. `bottom` for a bar's rule. |
+| `borderStyle` | `"solid" \| "dashed"` | — | Figma's Stroke › Dash: `dashed` draws only with `border="subtle"` (dashed borders are always Subtle). Default solid. |
+| `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. |
+| `opacity` | `number` | — | Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers. Default 100. |
+| `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its place in the layout stays (the rotated frame may overlap its neighbours, as in Figma). |
+| `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
+| `effectStyle` | `"Shadow/Bottom/Level-1" \| "Shadow/Bottom/Level-2" \| "Shadow/Bottom/Level-3" \| "Shadow/Bottom/Level-4" \| "Shadow/Top/Level-1" \| "Shadow/Top/Level-2" \| "Shadow/Top/Level-3" \| "Shadow/Top/Level-4" \| "Effect/Overlay"` | — | Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows (`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface="surface"`, never on Subtle, Pale or Surface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows the Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels cast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background blur behind a translucent fill and renders only on `surface="subtle"` or `"pale"`. The shadows use the spread tokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow. |
 | `direction` | `"column" \| "row"` | `"column"` | column (default) stacks top to bottom; row lays items side by side. |
 | `gap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | `"md"` | Space between items (Figma Spacing/Gap). Default md (16px). |
 | `align` | `"start" \| "center" \| "end" \| "stretch" \| "baseline"` | — | Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width while buttons, chips, badges, tags and avatars keep their own width (pass `align="stretch"` to stretch those too, e.g. full-width buttons in a mobile footer). |
@@ -81,7 +99,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 ### Grid
 Two-dimensional layout for cards, tiles and form columns. <Grid minColumnWidth={280}>…cards…`</Grid>` <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…`</Grid>` <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…`</Grid>`
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -99,6 +117,20 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `insetRight` | `ZenPadding \| number` | — | Offset from the parent's right edge on Spacing/Padding, or px in a free frame. Read only when `constraintX` is `right` or `left-right`. Default none. |
 | `insetBottom` | `ZenPadding \| number` | — | Offset from the parent's bottom edge on Spacing/Padding, or px in a free frame. Read only when `constraintY` is `bottom` or `top-bottom`. Default none. |
 | `insetLeft` | `ZenPadding \| number` | — | Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none. |
+| `radiusTopLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins over `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius="full" radiusBottomRight="xs"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit the box and the small one renders square. Use a finite radius (a chat tail: `radius="xl" radiusBottomRight="xs"`); `full` mixes only with `none`. |
+| `radiusTopRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`. |
+| `radiusBottomRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`. |
+| `radiusBottomLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`. |
+| `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable. `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none. |
+| `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's Inside stroke. Default none. |
+| `borderWeight` | `number` | — | Stroke weight in px (Figma strokeWeight), read with `border`. Default 1. |
+| `borderSides` | `"all" \| "top" \| "right" \| "bottom" \| "left"` | — | Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g. `bottom` for a bar's rule. |
+| `borderStyle` | `"solid" \| "dashed"` | — | Figma's Stroke › Dash: `dashed` draws only with `border="subtle"` (dashed borders are always Subtle). Default solid. |
+| `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. |
+| `opacity` | `number` | — | Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers. Default 100. |
+| `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its place in the layout stays (the rotated frame may overlap its neighbours, as in Figma). |
+| `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
+| `effectStyle` | `"Shadow/Bottom/Level-1" \| "Shadow/Bottom/Level-2" \| "Shadow/Bottom/Level-3" \| "Shadow/Bottom/Level-4" \| "Shadow/Top/Level-1" \| "Shadow/Top/Level-2" \| "Shadow/Top/Level-3" \| "Shadow/Top/Level-4" \| "Effect/Overlay"` | — | Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows (`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface="surface"`, never on Subtle, Pale or Surface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows the Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels cast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background blur behind a translucent fill and renders only on `surface="subtle"` or `"pale"`. The shadows use the spread tokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow. |
 | `columns` | `GridTracks \| { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }` | — | Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's breakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: "2fr 1fr" }` puts a main column next to an aside. Omit it to fit as many `minColumnWidth` columns as the width allows. |
 | `minColumnWidth` | `number \| string` | `240` | Responsive auto-fill: every column is at least this wide (px or CSS length). Default 240. |
 | `gap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | `"md"` | Space between cells. Default md (16px). |
@@ -113,9 +145,9 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
 
 ### Box
-A plain container with token padding, background layer, border and radius. For clickable or selectable tiles use Card; for page width use Container.
+A frame without auto layout (Figma's Frame): token padding, fill (background layer), stroke, corner radius and effect around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid, which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, CornerRadiusProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -139,13 +171,20 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `radiusTopRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`. |
 | `radiusBottomRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`. |
 | `radiusBottomLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`. |
+| `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable. `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none. |
+| `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's Inside stroke. Default none. |
+| `borderWeight` | `number` | — | Stroke weight in px (Figma strokeWeight), read with `border`. Default 1. |
+| `borderSides` | `"all" \| "top" \| "right" \| "bottom" \| "left"` | — | Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g. `bottom` for a bar's rule. |
+| `borderStyle` | `"solid" \| "dashed"` | — | Figma's Stroke › Dash: `dashed` draws only with `border="subtle"` (dashed borders are always Subtle). Default solid. |
+| `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. |
+| `opacity` | `number` | — | Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers. Default 100. |
+| `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its place in the layout stays (the rotated frame may overlap its neighbours, as in Figma). |
+| `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
 | `padding` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
 | `paddingX` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
 | `paddingY` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
-| `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). |
 | `scroll` | `"x" \| "y"` | — | Figma "Overflow scrolling": `"y"` scrolls vertically, `"x"` sideways, inside the box (the scroll stays inside). |
-| `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md). |
-| `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. |
+| `group` | `boolean` | — | Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them (Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are ignored. It moves, turns, flips and fades (opacity) as one. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
 | `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
@@ -182,7 +221,8 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 - Use Grid minColumnWidth for card grids so they reflow from phone to desktop.
 - Put a main column next to an aside with Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} align="start"; on phones the aside moves under the main column.
 - Put page content in a Container so its margin follows the breakpoint.
-- Give a Box a surface only when it really is a separate layer; a Surface box on a white (Alt) canvas needs border="pale".
+- Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border="pale".
+- Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface="surface" padding="lg" gap="md" radius="lg">, not a Box around a Stack.
 - Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons goes in a Box width="fill", since Search has no sizing props), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.
 - Pin a media overlay with position="absolute" and a constraint on token insets: a corner action on a photo is constraintX="right" insetRight="sm" constraintY="top" insetTop="sm"; a caption bar is constraintX="left-right" constraintY="bottom".
 - Put background media first and the content after it: the media is absolute (left-right × top-bottom), and the later in-flow content paints above it (Figma auto layout "Last on top").
@@ -209,7 +249,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `box/border-matches-action` | warn | A Box border follows the border rule: subtle only when the box is actionable (onClick, href, role=button), pale when it is static. | `zen-allow-box-border: <reason>` |
+| `box/border-matches-action` | warn | A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static; a dashed border is always subtle (box/dashed-is-subtle). | `zen-allow-box-border: <reason>` |
 | `layout/constraint-needs-absolute` | warn | constraintX, constraintY and insetTop/Right/Bottom/Left are read only with position="absolute" (Figma: constraints apply once a layer ignores auto layout). | `zen-allow-constraint-in-flow: <reason>` |
 | `layout/inset-not-read` | warn | An inset offsets only an edge its constraint pins: insetLeft with left or left-right, insetRight with right or left-right, insetTop with top or top-bottom, insetBottom with bottom or top-bottom (center reads none). | `zen-allow-inset-not-read: <reason>` |
 | `layout/absolute-fill` | error | An absolute layer has no Fill: stretch it by pinning both edges (constraintX="left-right", constraintY="top-bottom"). | `zen-allow-absolute-fill: <reason>` |
@@ -218,7 +258,10 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 | `layout/absolute-parent` | warn | An absolute layer sits right inside a Stack, Grid, Box or Card, the frame its constraints measure from. | `zen-allow-absolute-parent: <reason>` |
 | `box/effect-needs-surface` | error | A Shadow/Bottom|Top/Level-N effect style renders only on surface="surface": never on Subtle, Pale or Surface-Alt (§9), and a box without a fill has nothing to cast it. | `zen-allow-tinted-shadow: <reason>` |
 | `box/blur-needs-tint` | warn | Effect/Overlay (background blur) shows only through a translucent fill: surface="subtle" or "pale". | `zen-allow-blur-on-opaque: <reason>` |
-| `box/shadow-no-border` | warn | Elevation follows the Sidebar: a Box with a drop-shadow effect style takes no border (a bordered box takes no shadow). | `zen-allow-elevation: <reason>` |
+| `box/shadow-no-border` | warn | Elevation follows the Sidebar: a frame (Box, Stack, Grid) with a drop-shadow effect style takes no border (a bordered frame takes no shadow). | `zen-allow-elevation: <reason>` |
+| `box/dashed-is-subtle` | warn | borderStyle="dashed" draws only with border="subtle": dashed borders are always Subtle (a drop zone, an empty slot). | `zen-allow-dashed-border: <reason>` |
+| `box/group-no-look` | warn | A group (Box group, Figma's Group) only holds its layers together: no fill, stroke, corners, effect, padding, scroll or clip — they are ignored. | `zen-allow-group-look: <reason>` |
+| `layout/opacity-percent` | error | opacity is a percentage, as Figma's layer opacity (0 … 100): write opacity={50}, not CSS's 0.5. | `zen-allow-opacity-fraction: <reason>` |
 | `radius/redundant-corners` | warn | Write radius alone when the corners match, and set radiusTopLeft/TopRight/BottomRight/BottomLeft only where they differ from radius (Image's radius defaults to md). | `zen-allow-redundant-corners: <reason>` |
 | `radius/full-mixed` | warn | radius="full" takes no finite corner (radiusTopLeft/TopRight/BottomRight/BottomLeft other than full or none): use one token for all corners, or a finite radius with corner overrides. | `zen-allow-full-mixed: <reason>` |
 | `shape/px-offset-in-auto-layout` | warn | px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps. | `zen-allow-px-offset: <reason>` |

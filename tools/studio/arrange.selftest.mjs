@@ -361,6 +361,9 @@ test("group (F3 Frame selection / ⌘G): floating layers into one floating Box, 
   const tail = applySlotOp(code, ellipse, "Shape", { op: "group", with: [star], box: { x: 140, y: 10, width: 208, height: 90 }, kids: { [ellipse]: { x: 0, y: 30 }, [star]: { x: 168, y: 0 } } }, { file: FILE, hash: sha1(code) });
   assert.ok(!tail.error, tail.error);
   assert.match(tail.code, /insetTop=\{20\} width=\{80\} height=\{60\} \/>\n {6}<Box position="absolute" insetLeft=\{140\} insetTop=\{10\} width=\{208\} height=\{90\}>\n {8}<Shape position="absolute" insetLeft=\{0\} insetTop=\{30\} type="ellipse"[^\n]*\n {8}<Shape position="absolute" insetLeft=\{168\} insetTop=\{0\} type="star" width=\{40\} height=\{40\} \/>\n {6}<\/Box>\n {4}<\/Box>/);
+  const flow = applySlotOp(code, rect, "Shape", { op: "group", with: [ellipse], flow: true, box: { x: 0, y: 0, width: 180, height: 80 }, kids: { [rect]: { x: 0, y: 0 }, [ellipse]: { x: 120, y: 20 } }, props: { group: { kind: "boolean", value: true } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!flow.error, flow.error);
+  assert.match(flow.code, /<Box width=\{180\} height=\{80\} group>/, "in auto layout: no position of its own; group as a bare prop");
   const missing = applySlotOp(code, rect, "Shape", { op: "group", with: [ellipse], box: { x: 0, y: 0, width: 1, height: 1 }, kids: { [rect]: { x: 0, y: 0 } } }, { file: FILE, hash: sha1(code) });
   assert.match(missing.error, /no place/);
 });

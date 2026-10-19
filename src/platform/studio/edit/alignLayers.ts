@@ -78,7 +78,7 @@ export function floatingItems(layers: ExtraLayer[] = selectedLayers()): Floating
   return items;
 }
 
-type Attributes = Array<{ kind: string; name: string; value?: string }>;
+export type Attributes = Array<{ kind: string; name: string; value?: string }>;
 
 /** The px an inset is written as (`insetLeft={40}`), or null (a token step, a binding, or none). */
 function writtenPx(attributes: Attributes, prop: string): number | null {
@@ -92,7 +92,7 @@ function writtenPx(attributes: Attributes, prop: string): number | null {
  * keeps constraints); align / distribute / tidy write X / Y (a layer pinned elsewhere is pinned left / top again, as
  * Figma's align writes X / Y). A centred axis has no offset: it is pinned left / top to move.
  */
-function moveOps(item: FloatingItem, move: Move, attributes: Attributes, keepPins: boolean): EditOp[] {
+export function moveOps(item: FloatingItem, move: Move, attributes: Attributes, keepPins: boolean): EditOp[] {
   const ops: EditOp[] = [];
   const written = new Set(attributes.map((attr) => attr.name));
   const remove = (name: string) => { if (written.has(name)) ops.push({ op: "removeProp", name }); };

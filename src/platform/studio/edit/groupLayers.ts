@@ -1,7 +1,7 @@
 import { applyEdit, parseSrc, studioApi } from "../api";
-import { canvasApi } from "../canvas/viewport";
+import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
-import { multiSelection, selectLayers, sourceOrder, type ExtraLayer } from "../select/multiSelection";
+import { multiSelection, selectedLayers, selectLayers, sourceOrder, type ExtraLayer } from "../select/multiSelection";
 import { childHits, findBySrc, rectOf } from "../select/picker";
 import { canStructurallyEdit } from "../slots/actions";
 import { expectRender, renderedNow } from "../select/remap";
@@ -31,7 +31,10 @@ export function floatingGroup(layers: ExtraLayer[]): FloatingItem[] | null {
  * Puts floating `items` in one floating Box with `props` (one edit) and selects it; `label` names the undo step.
  * `component`: the Box is a new main component's layer (Create component on several layers, a page you made).
  */
-export async function boxFloating(items: FloatingItem[], props: Record<string, EditValue>, label: string, done: string, component?: { id: string; name: string }): Promise<boolean> {
+/** A layer as a group or frame takes it: the element written, its offset in its frame's px and its size. */
+type Part = { target: ExtraLayer; offset: { left: number; top: number }; box: { width: number; height: number } };
+
+export async function boxFloating(items: Part[], props: Record<string, EditValue>, label: string, done: string, component?: { id: string; name: string }, flow = false): Promise<boolean> {
   const ordered = [...items].sort((a, b) => sourceOrder(a.target, b.target));
   const left = Math.min(...ordered.map((item) => item.offset.left));
   const top = Math.min(...ordered.map((item) => item.offset.top));
@@ -54,6 +57,7 @@ export async function boxFloating(items: FloatingItem[], props: Record<string, E
     box: { x: Math.round(left), y: Math.round(top), width: Math.round(right - left), height: Math.round(bottom - top) },
     kids,
     ...(component ? { component } : {}),
+    ...(flow ? { flow: true } : {}),
   } as unknown as EditOp;
   const before = renderedNow(canvasApi.getWorldElement());
   const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [op], hash: element.hash }, label);
@@ -116,4 +120,34 @@ export async function ungroupSelection(selection: NodeSelection): Promise<boolea
   flushStudioStore();
   inspectorStatus.set("positive", `Ungrouped ${selection.name}: its layers stay where they are`);
   return true;
+}
+
+/**
+ * ⌘G (Figma's Group selection): the selected layers into a group (Box group, no look of its own). Floating layers group
+ * where they are; layers in auto layout become one group in the flow, sized to them, each at its place inside it.
+ */
+export async function groupSelection(layers: ExtraLayer[] = selectedLayers()): Promise<boolean> {
+  if (!layers.length) return false;
+  for (const layer of layers) {
+    const check = canStructurallyEdit({ kind: "node", ...layer });
+    if (!check.ok) { inspectorStatus.set("neutral", check.reason); return false; }
+  }
+  const props = { group: { kind: "boolean", value: true } as EditValue };
+  const count = layers.length === 1 ? layers[0].name : `${layers.length} layers`;
+  const floating = floatingGroup(layers);
+  if (floating) return boxFloating(floating, props, `Group ${count}`, `Grouped ${count} · ⇧⌘G ungroups`);
+  // In auto layout: their boxes as drawn (unscaled px), one group where the first of them was.
+  const world = canvasApi.getWorldElement();
+  const zoom = getViewport().zoom || 1;
+  const parts: Part[] = [];
+  let parent: Element | null | undefined;
+  for (const layer of layers) {
+    const host = world ? findBySrc(world, layer.src)[layer.instance]?.hosts[0] : undefined;
+    const rect = host?.getBoundingClientRect();
+    if (!host || !rect) { inspectorStatus.set("neutral", `${layer.name} is not on the canvas right now`); return false; }
+    if (parent !== undefined && host.parentElement !== parent) { inspectorStatus.set("neutral", "Select layers that share one parent to group them"); return false; }
+    parent = host.parentElement;
+    parts.push({ target: layer, offset: { left: rect.left / zoom, top: rect.top / zoom }, box: { width: rect.width / zoom, height: rect.height / zoom } });
+  }
+  return boxFloating(parts, props, `Group ${count}`, `Grouped ${count} · ⇧⌘G ungroups`, undefined, true);
 }

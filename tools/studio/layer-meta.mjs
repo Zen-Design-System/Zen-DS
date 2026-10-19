@@ -49,6 +49,8 @@ export function textWordsOf(node, max = 60) {
 
 /** The kind an automatic name counts in ("Frame", "Rectangle"…), or null for layers named otherwise. */
 export function autoNameBase(node) {
+  // A Box marked as a group (Figma's Group, ⌘G) counts as "Group N".
+  if (node.name === "Box" && literalOf(node.props?.group) === true) return "Group";
   if (FRAME_COMPONENTS.has(node.name)) return "Frame";
   if (node.name === "Shape") return SHAPE_NAMES[String(literalOf(node.props?.type) ?? "rectangle")] ?? "Rectangle";
   return null;

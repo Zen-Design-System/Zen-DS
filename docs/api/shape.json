@@ -275,6 +275,14 @@
           "deprecated": null
         },
         {
+          "name": "flip",
+          "type": "\"horizontal\" | \"vertical\" | \"both\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre.",
+          "deprecated": null
+        },
+        {
           "name": "opacity",
           "type": "number",
           "required": false,

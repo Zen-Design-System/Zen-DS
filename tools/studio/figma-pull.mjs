@@ -285,8 +285,12 @@ const SHAPE_READ = new Set(["RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "
 // (Ignore auto layout): its constraints and its box in the parent's.
 const placed = (out, child, parent) => {
   if (!("layoutMode" in parent) || parent.layoutMode === "NONE") {
-    // A shape in a frame without auto layout keeps its X / Y (a Zen Shape in a free frame: px insets).
-    if (out.shape && "layoutMode" in parent) out.absolute = { x: Math.round(child.x * 100) / 100, y: Math.round(child.y * 100) / 100, w: out.shape.w, h: out.shape.h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints ? child.constraints.horizontal : "MIN", cy: child.constraints ? child.constraints.vertical : "MIN", free: true };
+    // A shape or a group in a frame without auto layout keeps its X / Y (a Zen Shape or Box group in a free frame: px
+    // insets); a group's layers keep theirs inside it (Figma writes them in the group's parent's space).
+    const inGroup = parent.type === "GROUP";
+    const w = out.shape ? out.shape.w : Math.round(child.width * 100) / 100;
+    const h = out.shape ? out.shape.h : Math.round(child.height * 100) / 100;
+    if ((out.shape || out.type === "GROUP" || inGroup) && ("layoutMode" in parent || inGroup)) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints ? child.constraints.horizontal : "MIN", cy: child.constraints ? child.constraints.vertical : "MIN", free: true };
     return out;
   }
   // A grid cell keeps its minimum width (figma-push: columns that fit, counted for the page's width).
@@ -386,6 +390,36 @@ const readFrame = async (node, root = false) => {
   const paint = !root && Array.isArray(node.fills) ? node.fills.find((fill) => fill.visible !== false) : null;
   const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
   if (fill) out.fill = fill;
+  // Its stroke (variable, weight per side, dash), corners and their variables, effect style, opacity, rotation and
+  // mirror: one Zen frame (figma-push frameLook, the other way). The page frame itself is the Screen.
+  if (!root) {
+    const strokePaint = Array.isArray(node.strokes) ? node.strokes.find((p) => p.visible !== false && p.type === "SOLID") : null;
+    if (strokePaint) {
+      out.stroke = (await variableName(strokePaint.boundVariables && strokePaint.boundVariables.color && strokePaint.boundVariables.color.id)) || "unbound";
+      const sides = [node.strokeTopWeight, node.strokeRightWeight, node.strokeBottomWeight, node.strokeLeftWeight];
+      out.strokeWeights = sides.every((v) => typeof v === "number") ? sides : [0, 1, 2, 3].map(() => (typeof node.strokeWeight === "number" ? node.strokeWeight : 1));
+      if (Array.isArray(node.dashPattern) && node.dashPattern.length) out.dash = node.dashPattern;
+    }
+    const corners = [node.topLeftRadius, node.topRightRadius, node.bottomRightRadius, node.bottomLeftRadius].map((v) => (typeof v === "number" ? v : 0));
+    if (corners.some((v) => v > 0)) {
+      const bound = node.boundVariables || {};
+      out.radii = corners;
+      out.radiiVars = await Promise.all(["topLeftRadius", "topRightRadius", "bottomRightRadius", "bottomLeftRadius"].map((field) => variableName(bound[field] && bound[field].id)));
+    }
+    if (typeof node.effectStyleId === "string" && node.effectStyleId) {
+      const style = await figma.getStyleByIdAsync(node.effectStyleId);
+      if (style) out.effectStyle = style.name;
+    }
+    if (typeof node.opacity === "number" && node.opacity < 1) out.opacity = node.opacity;
+    // relativeTransform [[a, c, x], [b, d, y]] = R(θ)·S: a mirror (negative determinant) reads as a horizontal flip.
+    const t = node.relativeTransform;
+    if (t) {
+      const mirrored = t[0][0] * t[1][1] - t[0][1] * t[1][0] < 0;
+      const degrees = Math.round((Math.atan2(mirrored ? t[1][0] : -t[1][0], mirrored ? -t[0][0] : t[0][0]) * 180) / Math.PI * 100) / 100;
+      if (mirrored) out.flip = "horizontal";
+      if (degrees % 360 !== 0) out.rotation = degrees;
+    }
+  }
   const layout = await layoutOf(node);
   if (layout) out.layout = layout;
   for (const child of node.children || []) {
@@ -1161,6 +1195,9 @@ function givenName(element, node) {
   if (node.type === "TEXT" && element.name !== "Text") return;
   const name = typeof node.name === "string" ? node.name.trim() : "";
   if (!name || name === element.name || name === node.set?.name || isAutomaticName(name, element)) return;
+  // A frame the push named by its code (Box, Stack, Grid) may come back as another of them (a filled frame that lays its
+  // layers out is one Stack, decision 2): still its automatic name.
+  if (LAYOUT_FRAMES.has(element.name) && LAYOUT_FRAMES.has(name)) return;
   if (Object.values(element.props).some((value) => value?.kind === "literal" && value.value === name)) return;
   element.props[NAME_PROP] = { kind: "literal", value: name };
 }
@@ -1181,8 +1218,9 @@ function convert(node, ctx) {
  */
 function positioned(element, node, ctx) {
   const box = node.absolute;
-  // A Shape takes its own position props, in px: Figma's X / Y (its unrotated box, as Shape turns about its centre).
-  if (element.name === "Shape") {
+  // A Shape takes its own position props, in px: Figma's X / Y (its unrotated box, as Shape turns about its centre); so
+  // does a group, or a frame placed in a frame without auto layout (free px insets, F3).
+  if (element.name === "Shape" || (box.free && ["Box", "Stack", "Grid"].includes(element.name))) {
     const shape = node.shape ?? {};
     const turn = ((shape.rotation ?? 0) * Math.PI) / 180;
     const w = shape.w ?? box.w;
@@ -1578,6 +1616,11 @@ function convertNode(node, ctx) {
   const children = layers.map((child) => convert(child, ctx)).filter(Boolean);
   // A frame whose layers were all left out (a drawing's wrapper) is left out with them.
   if (node.children?.length && !children.length) return null;
+  // Figma's GROUP: a Zen group (Box group) of its layers at their X / Y inside it, sized to them (figma-push, the other way).
+  if (node.type === "GROUP") {
+    const { opacity } = frameLookProps(node, ctx);
+    return { kind: "element", name: "Box", props: { group: literal(true), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
+  }
   return frameElement(node, children, ctx);
 }
 
@@ -1669,20 +1712,82 @@ function frameElement(node, children, ctx) {
   const scroll = { VERTICAL: "y", HORIZONTAL: "x", BOTH: "y" }[node.scroll];
   if (node.scroll === "BOTH") ctx.notes.push(`Frame "${node.name}" scrolls both ways in Figma; the page scrolls it vertically`);
   if (node.clip && !scroll) props.clip = literal(true);
-  // A background on a Box surface's variable (figma-push BOX_SURFACE): a Box, around the Stack or Grid when the frame
-  // lays its layers out more than a Box does (a Box takes padding, not gap or alignment).
-  const surface = SURFACE_OF[String(node.fill ?? "").replace(/^Color\//, "")];
-  if (!surface) {
-    if (scroll && !grid) props.scroll = literal(scroll);
-    const frame = { kind: "element", name: grid ? "Grid" : "Stack", props, children };
-    return scroll && grid ? { kind: "element", name: "Box", props: { scroll: literal(scroll) }, children: [frame] } : frame;
+  // Its fill, stroke, corners, effect, opacity, rotation and flip (figma-push frameLook): Box, Stack and Grid take them
+  // alike, so a Figma auto layout frame with a fill is one Stack or Grid (decision 2, plan 2026-10-18). A painted frame
+  // that lays nothing out (one layer, or blocks with no gap and no alignment) stays a Box, as the push wrote it.
+  const look = frameLookProps(node, ctx);
+  if (scroll && grid) {
+    // Grid has no Overflow scrolling: a Box scrolls around it and carries the frame's look.
+    return { kind: "element", name: "Box", props: { scroll: literal(scroll), ...look }, children: [{ kind: "element", name: "Grid", props, children }] };
   }
-  const BOX = new Set(["padding", "paddingX", "paddingY", "clip"]);
-  const boxProps = { surface: literal(surface), ...Object.fromEntries(Object.entries(props).filter(([name]) => BOX.has(name))), ...(scroll ? { scroll: literal(scroll) } : {}) };
-  const rest = Object.fromEntries(Object.entries(props).filter(([name]) => !BOX.has(name)));
-  const plain = !grid && !Object.keys(rest).some((name) => name !== "gap") && (children.length <= 1 || rest.gap?.value === "none");
-  return { kind: "element", name: "Box", props: boxProps, children: plain ? children : [{ kind: "element", name: grid ? "Grid" : "Stack", props: rest, children }] };
+  if (scroll) props.scroll = literal(scroll);
+  const plain = !grid && Boolean(look.surface || look.border) && !Object.keys(props).some((name) => !BOX_PROPS.has(name) && name !== "gap") && (children.length <= 1 || props.gap?.value === "none");
+  if (plain) {
+    const { gap, ...boxProps } = props;
+    return { kind: "element", name: "Box", props: { ...look, ...boxProps }, children };
+  }
+  return { kind: "element", name: grid ? "Grid" : "Stack", props: { ...props, ...look }, children };
 }
+/** Props a Box takes besides the look: a painted frame with only these is a Box. */
+const BOX_PROPS = new Set(["padding", "paddingX", "paddingY", "clip", "scroll"]);
+/** A Border variable → the frame border it draws (figma-push FRAME_STROKE, the other way). */
+const BORDER_OF = { "Border/Neutral/Pale/Default": "pale", "Border/Neutral/Subtle/Default": "subtle" };
+
+/**
+ * A frame's look (figma-push frameLook, the other way) as Box / Stack / Grid props: surface, border with its weight,
+ * one side and dash, the corners on Corner-Radius (radius plus only the corners that differ), effect style, opacity
+ * (percent), rotation and flip. A value Zen has no token for is left out and noted.
+ */
+function frameLookProps(node, ctx) {
+  const props = {};
+  const where = `Frame "${node.name}"`;
+  const surface = SURFACE_OF[String(node.fill ?? "").replace(/^Color\//, "")];
+  if (surface) props.surface = literal(surface);
+  else if (node.fill) ctx.notes.push(`${where}: its fill ${node.fill} is no Zen background layer (surface · surface-alt · subtle · pale · canvas); left without a fill`);
+  if (node.stroke) {
+    const border = BORDER_OF[String(node.stroke).replace(/^Color\//, "")];
+    // The read gives a weight per side; the push's own JSON (the round trip) its weight and one side.
+    const one = typeof node.strokeWeight === "number" ? node.strokeWeight : 1;
+    const weights = node.strokeWeights ?? ["top", "right", "bottom", "left"].map((side) => (!node.strokeSides || node.strokeSides === side ? one : 0));
+    const drawn = weights.map((weight, index) => (weight > 0 ? index : -1)).filter((index) => index >= 0);
+    if (!border) ctx.notes.push(`${where}: its stroke ${node.stroke === "unbound" ? "is no colour variable" : node.stroke} is no Zen frame border (Border/Neutral/Pale or Subtle); left without a stroke`);
+    else if (drawn.length) {
+      props.border = literal(border);
+      const weight = Math.max(...drawn.map((index) => weights[index]));
+      if (weight !== 1) props.borderWeight = literal(Math.round(weight * 100) / 100);
+      if (drawn.length === 1) props.borderSides = literal(["top", "right", "bottom", "left"][drawn[0]]);
+      else if (drawn.length < 4) ctx.notes.push(`${where}: its stroke draws ${drawn.length} sides; Zen draws all four or one`);
+      if (Array.isArray(node.dash) && node.dash.length) {
+        if (border === "subtle") props.borderStyle = literal("dashed");
+        else ctx.notes.push(`${where}: a dashed Pale stroke; dashed borders are Subtle in Zen, so it is solid`);
+      }
+    }
+  }
+  // The read gives four corners; the push's own JSON one radius when they match.
+  const radii = Array.isArray(node.radii) ? node.radii : typeof node.radius === "number" && node.radius > 0 ? [0, 1, 2, 3].map(() => node.radius) : null;
+  const radiiVars = Array.isArray(node.radiiVars) ? node.radiiVars : [0, 1, 2, 3].map(() => node.radiusVar ?? null);
+  if (radii) {
+    const steps = radii.map((px, index) => (px > 0 ? RADIUS_OF[radiiVars[index] ?? ""] ?? null : "none"));
+    if (steps.some((step) => step === null)) ctx.notes.push(`${where}: a corner radius (${radii.join(" / ")} px) is no Corner-Radius variable; left square`);
+    else {
+      // radius = the most common corner, then only the corners that differ (corners.ts canonical form).
+      const counts = steps.reduce((map, step) => map.set(step, (map.get(step) ?? 0) + 1), new Map());
+      const radius = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+      if (radius !== "none") props.radius = literal(radius);
+      ["radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft"].forEach((name, index) => { if (steps[index] !== radius) props[name] = literal(steps[index]); });
+    }
+  }
+  if (node.effectStyle) {
+    if (FRAME_EFFECT_STYLES.has(node.effectStyle)) props.effectStyle = literal(node.effectStyle);
+    else ctx.notes.push(`${where}: its effect style ${node.effectStyle} is not one a frame takes; left out`);
+  }
+  if (typeof node.opacity === "number" && node.opacity < 1) props.opacity = literal(Math.round(node.opacity * 100));
+  if (node.rotation) props.rotation = literal(node.rotation);
+  if (node.flip) props.flip = literal(node.flip);
+  return props;
+}
+/** The effect styles a frame takes (Layout effects.ts boxEffectStyles). */
+const FRAME_EFFECT_STYLES = new Set(["Shadow/Bottom/Level-1", "Shadow/Bottom/Level-2", "Shadow/Bottom/Level-3", "Shadow/Bottom/Level-4", "Shadow/Top/Level-1", "Shadow/Top/Level-2", "Shadow/Top/Level-3", "Shadow/Top/Level-4", "Effect/Overlay"]);
 /** A Color/Background variable → the Box surface it paints (figma-push BOX_SURFACE, the other way). */
 const SURFACE_OF = Object.fromEntries(Object.entries(BOX_SURFACE).map(([surface, variable]) => [variable, surface]));
 

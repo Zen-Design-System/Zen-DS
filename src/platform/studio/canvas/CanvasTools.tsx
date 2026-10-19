@@ -30,6 +30,13 @@ export const shapeTools: ReadonlyArray<ToolEntry & { id: StudioShapeTool }> = [
 ];
 const isShapeTool = (tool: StudioTool): tool is StudioShapeTool => shapeTools.some((entry) => entry.id === tool);
 
+/** Figma UI3's Frame button and its menu: Frame F and Section ⇧S (Slice S is not in Zen Studio yet). */
+export const frameTools: ReadonlyArray<ToolEntry & { id: "frame" | "section" }> = [
+  { id: "frame", label: "Frame", key: "F", icon: "icon-layout-alt-01-line" },
+  { id: "section", label: "Section", key: "⇧S", icon: "icon-browser-line" },
+];
+const isFrameTool = (tool: StudioTool): tool is "frame" | "section" => tool === "frame" || tool === "section";
+
 /** Figma's Pen tools (UI3: the Pen button's menu), F9: draw/penTool.ts. */
 export const penTools: ReadonlyArray<ToolEntry & { id: StudioPenTool }> = [
   { id: "pen", label: "Pen", key: "P", icon: "icon-pen-tool-01-line" },
@@ -43,7 +50,7 @@ const isPenTool = (tool: StudioTool): tool is StudioPenTool => penTools.some((en
  */
 export const canvasToolGroups: ReadonlyArray<ReadonlyArray<ToolEntry>> = [
   [{ id: "select", label: "Move", key: "V", icon: "icon-cursor-line" }, { id: "hand", label: "Hand", key: "H", icon: "icon-hand-line" }],
-  [{ id: "frame", label: "Frame", key: "F", icon: "icon-layout-alt-01-line" }],
+  frameTools,
   shapeTools,
   penTools,
   [{ id: "stack", label: "Stack", icon: "icon-rows-01-line" }, { id: "text", label: "Text", key: "T", icon: "icon-type-01-line" }, { id: "image", label: "Place image/video", key: `⇧${modKey}K`, icon: "icon-image-line" }],
@@ -63,6 +70,37 @@ function placed(tool: StudioTool): Insertable | null {
 
 /** The shape tool the toolbar shows: the one in use, else the last one used (Figma keeps the last). */
 let lastShape: StudioShapeTool = "rectangle";
+let lastFrame: "frame" | "section" = "frame";
+
+/** Figma UI3's Frame button: the last of Frame / Section, and a chevron that lists both with their keys. */
+function FrameTools({ tool, off }: { tool: StudioTool; off: boolean }) {
+  const [shown, setShown] = useState<"frame" | "section">(isFrameTool(tool) ? tool : lastFrame);
+  useEffect(() => { if (isFrameTool(tool)) { lastFrame = tool; setShown(tool); } }, [tool]);
+  const entry = frameTools.find((item) => item.id === shown) ?? frameTools[0];
+  const pick = (id: "frame" | "section") => { lastFrame = id; setShown(id); studioStore.setState({ tool: id }); };
+  return (
+    <span className="studio-canvas-tools__split">
+      <IconButton
+        appearance={isFrameTool(tool) ? "main" : "flat"}
+        level="primary"
+        size="sm"
+        aria-label={entry.label}
+        aria-pressed={tool === entry.id}
+        aria-keyshortcuts={ariaKeys(entry.key)}
+        disabled={off}
+        tooltip={off ? `${entry.label} works on a page you made` : tip(entry.label, entry.key)}
+        icon={<Icon name={entry.icon} />}
+        onClick={() => pick(entry.id)}
+      />
+      <Menu
+        aria-label="Frame tools"
+        items={frameTools.map((item) => ({ id: item.id, label: item.label, icon: item.icon, shortcut: item.key, onSelect: () => pick(item.id) }))}
+        // zen-allow-no-action: the Menu's trigger (Menu wires its click and keys).
+        trigger={<IconButton className="studio-canvas-tools__more" appearance="flat" level="primary" size="sm" aria-label="Frame tools" disabled={off} tooltip="Frame tools" icon={<Icon name="icon-chevron-down-line" />} />}
+      />
+    </span>
+  );
+}
 
 /**
  * Figma UI3's shape button: the last shape tool, and a chevron that lists all six with their keys. Off (the reason in
@@ -131,8 +169,9 @@ function PenTools({ tool, off }: { tool: StudioTool; off: boolean }) {
 }
 
 /**
- * Floating toolbar, bottom-centre of the canvas (Figma UI3's): Move and Hand; Frame (a page you made: drag a box for a
- * Screen of that size, or click for one on the page's device there; inside a Screen, a frame there: draw/drawTool.ts);
+ * Floating toolbar, bottom-centre of the canvas (Figma UI3's): Move and Hand; Frame and Section (a page you made: drag a
+ * box for a frame of that size, a click for Figma's 100 × 100 one, the right panel's presets; inside a Screen, a frame
+ * there: draw/drawTool.ts; Section ⇧S draws a named board area the frames under it belong to: builder/frameMove.ts);
  * the shape tools (draw/drawTool.ts: Rectangle R, Line L, Arrow ⇧L, Ellipse O, Polygon, Star); Stack, Text and Image,
  * placed with the pointer (edit/place.ts: the insertion line shows where, a click places it, then Move again); Assets
  * (⇧I, Quick insert: components, icons, photos); Interact.
@@ -142,8 +181,8 @@ export function CanvasTools() {
   const localPage = useStudio((state) => state.localPage);
   // A placement or drawing tool arms the pointer; any other tool, or leaving the page, puts it away.
   useEffect(() => {
-    if (tool === "frame" && localPage) {
-      if (!armFrameDraw(localPage)) studioStore.setState({ tool: "select" });
+    if (isFrameTool(tool) && localPage) {
+      if (!armFrameDraw(localPage, tool)) studioStore.setState({ tool: "select" });
     } else if (isShapeTool(tool) && localPage) {
       if (!armDraw(tool)) studioStore.setState({ tool: "select" });
     } else if (isPenTool(tool) && localPage) {
@@ -151,7 +190,7 @@ export function CanvasTools() {
     } else if (tool === "stack" || tool === "text" || tool === "image") {
       const item = placed(tool);
       if (!item || !armPlacement({ label: item.label, item })) studioStore.setState({ tool: "select" });
-    } else if (tool === "frame" || isShapeTool(tool) || isPenTool(tool) || !canvasTools.some((entry) => entry.id === tool)) {
+    } else if (isFrameTool(tool) || isShapeTool(tool) || isPenTool(tool) || !canvasTools.some((entry) => entry.id === tool)) {
       // No page you made here, or a tool this Studio no longer has (a session kept from before): Move.
       studioStore.setState({ tool: "select" });
     }
@@ -167,9 +206,7 @@ export function CanvasTools() {
         return (
         <Fragment key={group[0].id}>
           {index ? <span className="studio-canvas-tools__divider" aria-hidden="true" /> : null}
-          {group === shapeTools ? <ShapeTools tool={tool} off={!localPage} /> : group === penTools ? <PenTools tool={tool} off={!localPage} /> : items.map((item) => {
-            const off = item.id === "frame" && !localPage;
-            return (
+          {group === shapeTools ? <ShapeTools tool={tool} off={!localPage} /> : group === frameTools ? <FrameTools tool={tool} off={!localPage} /> : group === penTools ? <PenTools tool={tool} off={!localPage} /> : items.map((item) => (
               <IconButton
                 key={item.id}
                 appearance={tool === item.id ? "main" : "flat"}
@@ -178,13 +215,11 @@ export function CanvasTools() {
                 aria-label={item.label}
                 aria-pressed={tool === item.id}
                 aria-keyshortcuts={ariaKeys(item.key)}
-                disabled={off}
-                tooltip={off ? "Frame works on a page you made" : tip(item.label, item.key)}
+                tooltip={tip(item.label, item.key)}
                 icon={<Icon name={item.icon} />}
                 onClick={() => studioStore.setState({ tool: item.id })}
               />
-            );
-          })}
+          ))}
           {index === 3 ? (
             <IconButton appearance="flat" level="primary" size="sm" aria-label="Assets" aria-keyshortcuts="Shift+I" tooltip={tip("Assets", "⇧I")} icon={<Icon name="icon-cube-line" />} onClick={() => openQuickInsert()} />
           ) : null}

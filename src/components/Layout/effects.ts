@@ -26,7 +26,8 @@ export type BoxEffectStyle = (typeof boxEffectStyles)[number];
 export const effectStyleKey = (style?: BoxEffectStyle | string): string | undefined =>
   style && (boxEffectStyles as readonly string[]).includes(style) ? style.toLowerCase().replace(/\//g, "-") : undefined;
 
-export interface BoxEffectProps {
+/** The effect style a frame takes (Box, Stack, Grid). */
+export interface FrameEffectProps {
   /**
    * Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows
    * (`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface="surface"`, never on Subtle, Pale or
@@ -37,6 +38,9 @@ export interface BoxEffectProps {
    * tokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow.
    */
   effectStyle?: BoxEffectStyle;
+}
+
+export interface BoxEffectProps extends FrameEffectProps {
   /**
    * Figma "Clip content" (frame clipsContent): children are clipped to the box's padding box and its corner radius, so
    * full-bleed media or an absolute layer keeps the box's rounded corners. Uses `overflow: clip`, which makes no scroll

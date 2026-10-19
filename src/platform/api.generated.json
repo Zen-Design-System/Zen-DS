@@ -8116,6 +8116,14 @@
           "deprecated": null
         },
         {
+          "name": "flip",
+          "type": "\"horizontal\" | \"vertical\" | \"both\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre.",
+          "deprecated": null
+        },
+        {
           "name": "opacity",
           "type": "number",
           "required": false,
@@ -15477,7 +15485,7 @@
   "layout": [
     {
       "name": "Stack",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps",
       "props": [
         {
           "name": "width",
@@ -15589,6 +15597,118 @@
           "required": false,
           "default": null,
           "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 ·\nxl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins\nover `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius=\"full\"\nradiusBottomRight=\"xs\"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit\nthe box and the small one renders square. Use a finite radius (a chat tail: `radius=\"xl\" radiusBottomRight=\"xs\"`);\n`full` mixes only with `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.\n`surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)\ncanvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself:\nonly for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card.\nNever Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "border",
+          "type": "\"none\" | \"pale\" | \"subtle\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale`\n(Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's\nInside stroke. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "borderWeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Stroke weight in px (Figma strokeWeight), read with `border`. Default 1.",
+          "deprecated": null
+        },
+        {
+          "name": "borderSides",
+          "type": "\"all\" | \"top\" | \"right\" | \"bottom\" | \"left\"",
+          "required": false,
+          "default": null,
+          "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g. `bottom` for a bar's rule.",
+          "deprecated": null
+        },
+        {
+          "name": "borderStyle",
+          "type": "\"solid\" | \"dashed\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle). Default solid.",
+          "deprecated": null
+        },
+        {
+          "name": "radius",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners.",
+          "deprecated": null
+        },
+        {
+          "name": "opacity",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers. Default 100.",
+          "deprecated": null
+        },
+        {
+          "name": "rotation",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its\nplace in the layout stays (the rotated frame may overlap its neighbours, as in Figma).",
+          "deprecated": null
+        },
+        {
+          "name": "flip",
+          "type": "\"horizontal\" | \"vertical\" | \"both\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept.",
+          "deprecated": null
+        },
+        {
+          "name": "effectStyle",
+          "type": "\"Shadow/Bottom/Level-1\" | \"Shadow/Bottom/Level-2\" | \"Shadow/Bottom/Level-3\" | \"Shadow/Bottom/Level-4\" | \"Shadow/Top/Level-1\" | \"Shadow/Top/Level-2\" | \"Shadow/Top/Level-3\" | \"Shadow/Top/Level-4\" | \"Effect/Overlay\"",
+          "required": false,
+          "default": null,
+          "description": "Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows\n(`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface=\"surface\"`, never on Subtle, Pale or\nSurface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows\nthe Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels\ncast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background\nblur behind a translucent fill and renders only on `surface=\"subtle\"` or `\"pale\"`. The shadows use the spread\ntokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow.",
           "deprecated": null
         },
         {
@@ -15707,7 +15827,7 @@
     },
     {
       "name": "Grid",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps",
       "props": [
         {
           "name": "width",
@@ -15822,6 +15942,118 @@
           "deprecated": null
         },
         {
+          "name": "radiusTopLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 ·\nxl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins\nover `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius=\"full\"\nradiusBottomRight=\"xs\"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit\nthe box and the small one renders square. Use a finite radius (a chat tail: `radius=\"xl\" radiusBottomRight=\"xs\"`);\n`full` mixes only with `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.\n`surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)\ncanvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself:\nonly for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card.\nNever Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "border",
+          "type": "\"none\" | \"pale\" | \"subtle\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale`\n(Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's\nInside stroke. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "borderWeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Stroke weight in px (Figma strokeWeight), read with `border`. Default 1.",
+          "deprecated": null
+        },
+        {
+          "name": "borderSides",
+          "type": "\"all\" | \"top\" | \"right\" | \"bottom\" | \"left\"",
+          "required": false,
+          "default": null,
+          "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g. `bottom` for a bar's rule.",
+          "deprecated": null
+        },
+        {
+          "name": "borderStyle",
+          "type": "\"solid\" | \"dashed\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle). Default solid.",
+          "deprecated": null
+        },
+        {
+          "name": "radius",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners.",
+          "deprecated": null
+        },
+        {
+          "name": "opacity",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers. Default 100.",
+          "deprecated": null
+        },
+        {
+          "name": "rotation",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its\nplace in the layout stays (the rotated frame may overlap its neighbours, as in Figma).",
+          "deprecated": null
+        },
+        {
+          "name": "flip",
+          "type": "\"horizontal\" | \"vertical\" | \"both\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept.",
+          "deprecated": null
+        },
+        {
+          "name": "effectStyle",
+          "type": "\"Shadow/Bottom/Level-1\" | \"Shadow/Bottom/Level-2\" | \"Shadow/Bottom/Level-3\" | \"Shadow/Bottom/Level-4\" | \"Shadow/Top/Level-1\" | \"Shadow/Top/Level-2\" | \"Shadow/Top/Level-3\" | \"Shadow/Top/Level-4\" | \"Effect/Overlay\"",
+          "required": false,
+          "default": null,
+          "description": "Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows\n(`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface=\"surface\"`, never on Subtle, Pale or\nSurface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows\nthe Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels\ncast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background\nblur behind a translucent fill and renders only on `surface=\"subtle\"` or `\"pale\"`. The shadows use the spread\ntokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow.",
+          "deprecated": null
+        },
+        {
           "name": "columns",
           "type": "GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
           "required": false,
@@ -15921,7 +16153,7 @@
     },
     {
       "name": "Box",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, CornerRadiusProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps",
       "props": [
         {
           "name": "width",
@@ -16084,6 +16316,78 @@
           "deprecated": null
         },
         {
+          "name": "surface",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.\n`surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)\ncanvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself:\nonly for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card.\nNever Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "border",
+          "type": "\"none\" | \"pale\" | \"subtle\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale`\n(Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's\nInside stroke. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "borderWeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Stroke weight in px (Figma strokeWeight), read with `border`. Default 1.",
+          "deprecated": null
+        },
+        {
+          "name": "borderSides",
+          "type": "\"all\" | \"top\" | \"right\" | \"bottom\" | \"left\"",
+          "required": false,
+          "default": null,
+          "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g. `bottom` for a bar's rule.",
+          "deprecated": null
+        },
+        {
+          "name": "borderStyle",
+          "type": "\"solid\" | \"dashed\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle). Default solid.",
+          "deprecated": null
+        },
+        {
+          "name": "radius",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners.",
+          "deprecated": null
+        },
+        {
+          "name": "opacity",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers. Default 100.",
+          "deprecated": null
+        },
+        {
+          "name": "rotation",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its\nplace in the layout stays (the rotated frame may overlap its neighbours, as in Figma).",
+          "deprecated": null
+        },
+        {
+          "name": "flip",
+          "type": "\"horizontal\" | \"vertical\" | \"both\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept.",
+          "deprecated": null
+        },
+        {
           "name": "padding",
           "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
@@ -16108,14 +16412,6 @@
           "deprecated": null
         },
         {
-          "name": "surface",
-          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
-          "required": false,
-          "default": "\"none\"",
-          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the\npage itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never\nfor a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet).",
-          "deprecated": null
-        },
-        {
           "name": "scroll",
           "type": "\"x\" | \"y\"",
           "required": false,
@@ -16124,19 +16420,11 @@
           "deprecated": null
         },
         {
-          "name": "border",
-          "type": "\"none\" | \"pale\" | \"subtle\"",
-          "required": false,
-          "default": "\"none\"",
-          "description": "Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md).",
-          "deprecated": null
-        },
-        {
-          "name": "radius",
-          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "name": "group",
+          "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners.",
+          "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them\n(Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are\nignored. It moves, turns, flips and fades (opacity) as one.",
           "deprecated": null
         },
         {

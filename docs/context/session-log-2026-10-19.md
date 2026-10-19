@@ -1,3 +1,53 @@
+# Session log 2026-10-19
+
+## Studio frames, presets, sections — F4 (Session C of the parity plan; user: "chia session làm có nhanh hơn không?" → "ok") — tier M, worktree `.claude/worktrees/compassionate-hertz-fda2db`, branch `zen/feat/studio-f4-frames-20261019`
+
+Plan `docs/research/studio-figma-design-parity-2026-10-18.md` §5 F4, built on the AppShell session's frame picker and
+device simulator (#134) and on F1 (#139).
+- **User's answers (2026-10-19):** the Frame tool behaves as Figma's ("Như Figma": a click makes a 100 × 100 frame at
+  once, the presets live in the right panel; the click menu of 2026-10-18 is gone) and the presets are Figma's whole
+  list ("Đủ nhóm Figma": Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices first in their
+  group, a Zen device that shares a Figma name takes Figma's name of its size: Desktop 1512 × 982 = MacBook Pro 14").
+- **Presets:** `screen-devices.mjs FRAME_PRESET_GROUPS`; `builder/FramePresets.tsx` (Disclosure groups, the Inspector's
+  Design tab while the Frame tool is on); a preset frame goes beside the selected frame, else right of the right-most
+  frame (top-aligned), else in the middle of the view (`frameMove.placeInView`), then into view (`revealFrame`). Drawn
+  and sized frames are named "Frame N" (the Prototype panel's Add screen keeps "Screen N").
+- **Resize and fields:** `board/FrameHandles.tsx` (8 handles on a selected Screen or Section of a page you made, ⇧
+  ratio, ⌥ from the center, ⌘ no snapping, live size pill, Esc; only the changed fields are written, one edit) and
+  `builder/FrameGeometry.tsx` (Position X / Y, Layout W / H with Figma's number fields; an Overlay's W / H read only),
+  both writing through `frameEdit.setFrameBoxes`. The view-only Width (Inspector › Frame, the toolbar's width menu, the
+  right-edge drag) stays for example frames only. A Screen's H is the least it takes (content may keep it taller).
+- **Sections (decision: beside the frames, not around them):** `<Section id title x y width height />` is a Board
+  child (dialect `SECTION_SIZE`, `boardSections`, `sectionCode`; runtime `Section` renders nothing outside the Studio),
+  drawn first (behind) by `builder/SectionFrame.tsx` as a frame of kind "section" (`data-studio-frame="section:<id>"`),
+  so selection, Delete, ⇧2 and the name label come from the frame code. What a Section holds is read from the board
+  (`board/sections.ts`: the smallest Section a frame's middle lies in) — a frame dragged in or out needs no write.
+  ⇧S / the Frame button's menu (Frame F · Section ⇧S) draws one (a click: 400 × 400); dragging its name moves its
+  frames along (one edit); Delete takes them (`removeFrames`, one edit), ⌘⌫ keeps them; right-click a frame › Wrap in
+  new section (80 px around); its name is a pill inside its top-left corner, renamed by double-click (`title`). Figma
+  push sends one Screen, so Sections are noted "not pushed". Not yet: ⌥-drag copy of a Section with its frames.
+- **N / ⇧N:** `board/frameOrder.ts` (reading order: rows by top, each left to right), select + zoom, wrapping.
+- **Pages order and dividers:** `builder/store/pageOrderStore.ts` (IndexedDB settings "pageOrder", one order per list:
+  a folder, or the pages in no folder of a project / Drafts); pages the order does not name come after, oldest first
+  (the list no longer follows the last edit); `StudioFolders.tsx PageList` drags rows (another list: the page moves to
+  that folder), Add divider in a page's menu, Delete divider in the divider's.
+- **Keys / words:** ⇧S, N, ⇧N out of `figmaNotYet`; Shortcuts (Section, Zoom to next / previous frame, ⌘⌫); Actions
+  (Frame, Section, Wrap in new section, Zoom to next / previous frame). Words lint ✓.
+- **Shared-file edits (announced):** Inspector.tsx (presets mount), FramePanel.tsx (Section panel route, X / Y / W / H,
+  Width for examples only), FrameChrome.tsx (Section labels, handles, no width menu on page frames), layerMeta.ts and
+  rename.ts (`section:` frames), marquee.ts (a Section is no marquee frame), StudioApp.tsx, CanvasMenu.tsx, CanvasTools.tsx.
+- **Tests:** `board/sections.selftest.mjs` (12), dialect selftest +7 (Section), `studio:selftest` ✓, tsc ✓. E2E: B-20,
+  B-45, B-46, PT-15 moved to the presets; Figma walk FW-40…49 (presets, click, handles, fields, Section draw / move /
+  delete / wrap, N / ⇧N, Frame button menu, Pages order + divider after a reload).
+- **Runs (after merging main 5918b309: F2, F3, Bug):** full Studio E2E 336 / 336; `--only=figma` 51 / 51; CI quick steps
+  (usage, guidelines, ai-ui, mcp, style) ✓; gate `npm run qa -- --isolated --files=…` PASS (third run). The first two
+  gate runs caught B-20, both fixed: a frame just added was selected before the board showed it, and the board's next
+  render of the row-pinned text cleared the selection (now `board/frames.ts selectFrameWhenShown`, for addFrame,
+  addSection and copyFrame); the row now reads the Screen tags exactly. FW-49 once lost the page order on an instant
+  reload: the order is now written before it shows.
+- **Seen, not F4 (main has it too):** the builder / prototype / starters / main / device E2E groups log 19× "[Unhandled
+  error] ResizeObserver loop completed with undelivered notifications" (Vite forwards it; every row passes); same count
+  on main 5918b309. Told Giám sát.
 
 ## Main component for every component + count rule + Code properties (tier L, session "Bug")
 
@@ -34,6 +84,39 @@ User: "làm tiếp phần còn thiếu của main component" · "Bug UI của st
   variants) → progress.css background transparent. Done=No pies differ per theme sample (20–85%); Accent/Neutral keep 80.
   The user's Studio (:5174, Vite from 2026-10-16 in the shared checkout) serves the new code: a reload shows it.
 
+## Session B · Studio parity F5a: one Figma frame is one element, the right panel in Figma's order
+
+Plan `docs/research/studio-figma-design-parity-2026-10-18.md` F5 (decisions 1–2, approved 2026-10-18); spec card
+`docs/research/studio-f5-right-panel-spec-2026-10-19.md` (F5 split in three PRs: F5a API + panel order, F5b typed values
+and variable pills, F5c typography, multi-selection, nothing selected, Export, Layout guide). Branch
+`zen/feat/studio-f5-right-panel-20261019`. Tier L.
+
+- **Library (Layout):** `appearance.ts` (new): `FrameAppearanceProps` (surface, border, borderWeight, borderSides,
+  borderStyle, radius + corners, opacity) and `FrameTransformProps` (rotation, flip) on Box, Stack and Grid;
+  `FrameEffectProps` (effectStyle) split from `BoxEffectProps` so Stack / Grid's props docs list it. CSS: one rule set for
+  the three frames (layout.css, effects.css); Stack / Grid corners through `data-corners` + `--zen-layout-radius`
+  (`data-radius` is the radius *mode* attribute in tokens.css — not reusable); rotation / flip as CSS individual
+  transforms (`rotate`, `scale`) so they compose with position.css and leave the layout box alone; dashed only on
+  Subtle. Unset props render nothing (existing pages' DOM unchanged).
+- **Harness:** box/border-matches-action, effect-needs-surface, blur-needs-tint, shadow-no-border, radius/redundant-corners,
+  radius/full-mixed cover Stack and Grid; new `layout/opacity-percent` (error: 0 < opacity < 1) and `box/dashed-is-subtle`;
+  a dashed frame skips border-matches-action. Fixtures bad/good; selftest 215 rules.
+- **Docs:** guidelines source (layout: api rows, use, do), regenerated; story `FrameAppearance`; Layout page's "Layers
+  over photos" sheet is one Stack with surface, corners and shadow.
+- **Figma:** push `frameLook` (fill on every frame, stroke Border/Neutral/*, weight, one side, dash 2/2 = the Input's,
+  radius or per-corner radii + vars, effect style, opacity, rotation, flip); pull reads them in figmaReadCode (per-side
+  weights, corners + bound vars, `effectStyleId` → name, opacity, mirror from `relativeTransform`) and `frameLookProps`
+  writes them on the Stack / Grid itself (a painted frame that lays nothing out stays a Box; a scrolling Grid keeps a
+  Box). Selftests: push 297 (round trip of every look), pull 81 (read format, notes for values without a token).
+  `library-keys` packages now carry effect and paint style keys. Zen plugin (`~/Documents/zen-ds-figma-plugin-main`,
+  commit f6969ca, dist rebuilt, backup in backups/): `applyFrameLook` + `turnAboutCentre`; test on the mock.
+- **Studio:** DesignPanel in Figma UI3's order (instance properties under the header; Position → Layout → Appearance →
+  Typography → Fill → Stroke → Effects; a frame's code-only properties and layers at the end). AppearanceSection: opacity
+  + corners + the header eye (Show / Hide ⇧⌘H); FillSection, StrokeSection (weight, Sides, Dash) for Box / Stack / Grid;
+  palettes `surfacePalette` / `borderPalette`; Position: Rotate 90° right, Flip horizontal / vertical (positionModel
+  `flipTurn` / `turnOps`, for A's ⇧H / ⇧V). ⇧A on a filled Box → one Stack keeping the paint (autoLayoutPlan; matrix
+  12,569 cases, 0 findings). E2E Figma walk FW-50…56.
+- Left: BACKLOG P2 — figma-native.mjs / native-pack (⌘C → ⌘V) do not map a frame's look (no owner session).
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 
 Spec card `docs/research/studio-f9-vectors-spec-2026-10-19.md`; the user chose `pathkit-wasm` and live boolean groups

@@ -23,6 +23,14 @@ removed (four unused colour ramps were, see Removed).
   handles, a click on the first point closes, Enter ends) and the Pencil (⇧P, smoothed into curves) draw vectors into a
   frame; Enter or a double-click on a vector edits its points and handles (Delete removes a point). Layers names them
   "Vector N". Figma push / pull carry them as VECTOR nodes with their vectorPaths (Zen plugin updated).
+- Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
+  panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
+  first) and a preset makes an empty frame of that size beside the frames; a click on the canvas makes a 100 × 100 frame
+  at once (no menu). A selected frame of a page you made resizes by its handles (⇧ ratio, ⌥ from the center, snapping)
+  and by the right panel's X / Y / W / H, written in the page. Sections ⇧S (`<Section>` on the Board: a named area; the
+  frames inside it move with it, Delete takes them, ⌘⌫ keeps them, right-click › Wrap in new section, rename by
+  double-clicking its name), N / ⇧N zoom to the next / previous frame, and the Pages list keeps the order you drag pages
+  into, with dividers (Add divider).
 - Zen Studio structure and clipboard as in Figma (F3 of the same plan): Delete leaves nothing selected (⌘Z selects the
   layer again); Copy / Paste properties carry fill, stroke, effects, radius, opacity and text style only, never X / Y /
   W / H; ⌘V with nothing (or a frame) selected pastes into the frame in view at the layer's place; Paste here (layer
@@ -45,6 +53,14 @@ removed (four unused colour ramps were, see Removed).
   in exported code and in Figma push / pull (frames, shapes, text). Lock with ⇧⌘L, the row's padlock or the menu
   (`data-locked`, never exported): the canvas skips locked layers (click, hover, marquee, ⌘-click, handles, arrows).
   Right-click a row for the canvas menu, ⌥-click a chevron for everything inside, ⌥L (Actions › Collapse layers).
+- Stack and Grid take Box's look, so a Figma auto layout frame with a fill is one element (2026-10-19, plan decision 2):
+  `surface`, `border`, `radius` and the per-corner radii, `effectStyle`. Box, Stack and Grid also take Figma's
+  `opacity` (percent), `rotation`, `flip`, and stroke `borderWeight`, `borderSides` (one side) and `borderStyle="dashed"`
+  (Subtle only). Harness: the Box look rules cover Stack and Grid; new `layout/opacity-percent` and
+  `box/dashed-is-subtle`. Figma push / pull and the Zen plugin's import carry every one.
+- Zen Studio right panel in Figma's order (F5a): an instance's properties under its header, then Position (with
+  Rotate 90°, Flip horizontal, Flip vertical), Layout, Appearance (opacity, corner radius), Fill, Stroke (weight, sides,
+  dash), Effects on every frame. Add auto layout (⇧A) on a filled frame makes one Stack that keeps the fill.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

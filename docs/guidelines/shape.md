@@ -75,6 +75,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProp
 | `pointCount` | `number` | — | Polygon corners or star tips (Figma Count, 3 … 60). Default 3 for a polygon, 5 for a star. |
 | `starRatio` | `number` | — | Star inner radius in percent of the outer one (Figma Ratio). Default 38.2. |
 | `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the shape about its centre. |
+| `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre. |
 | `opacity` | `number` | — | Layer opacity in percent (Figma's layer opacity, 0 … 100). Default 100. |
 | `label` | `string` | — | Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech. |
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the shape's root element. |
@@ -111,6 +112,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `layout/opacity-percent` | error | opacity is a percentage, as Figma's layer opacity (0 … 100): write opacity={50}, not CSS's 0.5. | `zen-allow-opacity-fraction: <reason>` |
 | `shape/token-paint` | error | A Shape's fill and stroke are Zen token paths (fill: Color/Background, stroke: Color/Border, or "none"), never hex, rgb or a var(). | `zen-allow-raw-shape-colour: <reason>` |
 | `shape/px-offset-in-auto-layout` | warn | px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps. | `zen-allow-px-offset: <reason>` |
 | `shape/line-no-height` | warn | A line or arrow has no height (Figma's LINE): its length is width, its angle rotation, its weight strokeWeight. | `zen-allow-line-height: <reason>` |
