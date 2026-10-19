@@ -12,6 +12,15 @@
   overscroll-behavior: none;
 }
 .studio-viewport:focus-visible:not([data-pointer-focus="true"]) { box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
+/* A page's canvas Background (CanvasBackground.tsx, F10): Zen background tokens only. */
+.studio-viewport[data-canvas-background="canvas-alt"] { background: var(--zen-color-background-canvas-alt); }
+.studio-viewport[data-canvas-background="canvas-flat"] { background: var(--zen-color-background-canvas-flat); }
+.studio-viewport[data-canvas-background="surface"] { background: var(--zen-color-background-surface-default); }
+.studio-viewport[data-canvas-background="neutral"] { background: var(--zen-color-background-neutral-subtle-default); }
+.studio-viewport[data-canvas-background="dark"] { background: var(--zen-color-background-neutral-solid-default); }
+/* On a dark canvas a frame's name reads in Inverse content (a label in its pill or a Section's keeps its own). */
+.studio-viewport[data-canvas-background="dark"] .studio-frame-label:not([data-place="inside"], [data-kind="section"], [data-selected="true"]) { color: var(--zen-color-content-inverse-base); }
+.studio-viewport[data-canvas-background="dark"] .studio-frame-label:not([data-place="inside"], [data-kind="section"], [data-selected="true"]):hover { color: var(--zen-color-content-inverse-strongest); }
 
 /* Spacing and offset are set inline by the viewport controller (24px at 100%, doubling while denser than 12px). */
 .studio-grid {
@@ -22,6 +31,40 @@
   transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
 }
 .studio-grid[data-hidden="true"] { opacity: 0; }
+
+/* Figma's pixel grid (F10, ⌘'): a hairline at every world px from 400 % (size and offset set inline by the viewport
+   controller), over the layers, under the selection. */
+.studio-pixel-grid {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--zen-color-border-neutral-pale-default) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--zen-color-border-neutral-pale-default) 1px, transparent 1px);
+}
+.studio-pixel-grid[data-hidden="true"], .studio-viewport:not([data-pixel-grid]) .studio-pixel-grid { display: none; }
+
+/* Figma's Outlines (F10, ⌘Y): every layer of the frames as a thin outline (Border/Neutral/Solid), no fills, shadows or
+   pictures; text in the Strongest content colour. A view of the canvas: nothing in the page changes. */
+.studio-viewport[data-outlines] .studio-world [data-studio-frame] :is(*, *::before, *::after) {
+  background: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  color: var(--zen-color-content-neutral-strongest) !important;
+  outline: calc(1px / var(--studio-zoom, 1)) solid var(--zen-color-border-neutral-solid-default) !important;
+  outline-offset: calc(-1px / var(--studio-zoom, 1)) !important;
+}
+.studio-viewport[data-outlines] .studio-world [data-studio-frame] :is(img, video, image) { opacity: 0 !important; }
+.studio-viewport[data-outlines] .studio-world [data-studio-frame] svg :is(path, rect, circle, ellipse, line, polygon, polyline) {
+  fill: none !important;
+  stroke: var(--zen-color-border-neutral-solid-default) !important;
+  stroke-width: calc(1px / var(--studio-zoom, 1)) !important;
+  vector-effect: non-scaling-stroke;
+}
 
 .studio-world {
   position: absolute;

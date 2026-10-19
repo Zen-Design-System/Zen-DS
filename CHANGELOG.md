@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio's View and Find like Figma (F10 of the parity plan): zoom from 2 % to 25 600 % (zoom to fit still stops
+  at 400 %), the pixel grid from 400 % (⌘'), Outlines (⌘Y), rulers (⇧R) with guides dragged onto a frame or the canvas
+  (back onto the ruler deletes one), layout guides on a frame (right panel › Layout guide: Columns, Rows or Grid; margin
+  and gutter from Breakpoint & Grids; ⌃G shows or hides them), a page's canvas Background (Zen background tokens), and
+  Find and replace (⌘F: step through the matching text layers, Replace all in one edit). Guides, layout guides and the
+  background are the page's (its header); the view options are this browser's.
 - Figma push / pull, tested in the live Zen file: a free frame keeps its px width and height (it used to hug its layers);
   Pull reads vectors, groups and boolean groups again (it stopped on the first property a node type lacks), brings a
   mirrored shape back flipped at its own place, and keeps a group's size and px X / Y when it sits outside an auto

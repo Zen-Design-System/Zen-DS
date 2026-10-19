@@ -1,0 +1,51 @@
+/* Figma's Find and replace (FindPanel.tsx, F10): a Popover card at the top of the canvas, above the selection layer
+   (z 10) and the rulers (z 20); fields as the right panel's (Neutral/Subtle fill), results as list rows. */
+.studio-find {
+  position: absolute;
+  z-index: 25;
+  top: var(--zen-spacing-gap-xsmall, 8px);
+  left: 50%;
+  display: grid;
+  width: min(360px, calc(100% - var(--zen-spacing-gap-medium, 16px) * 2));
+  box-sizing: border-box;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  translate: -50% 0;
+}
+.studio-find__row { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-find__input {
+  min-width: 0;
+  height: 28px;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  padding: 0 var(--zen-spacing-padding-xsmall, 8px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-small, 8px);
+  background: var(--zen-color-background-neutral-subtle-default);
+  color: var(--zen-color-content-neutral-strongest);
+}
+.studio-find__input:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid, #121212); outline-offset: 0; }
+.studio-find__count { flex: none; min-width: 4ch; color: var(--zen-color-content-neutral-light); text-align: right; }
+.studio-find__results { display: grid; max-height: 240px; margin: 0; padding: 0; overflow: auto; list-style: none; }
+.studio-find__result {
+  display: grid;
+  width: 100%;
+  gap: 0;
+  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-small, 8px);
+  background: none;
+  color: var(--zen-color-content-neutral-strongest);
+  text-align: left;
+  cursor: pointer;
+}
+.studio-find__result:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-find__result[aria-current="true"] { background: var(--zen-color-background-info-subtle-default); }
+.studio-find__result:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid, #121212); outline-offset: -2px; }
+.studio-find__name { color: var(--zen-color-content-neutral-light); }
+.studio-find__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-find__empty { margin: 0; color: var(--zen-color-content-neutral-light); }

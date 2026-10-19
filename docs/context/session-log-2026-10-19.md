@@ -336,3 +336,29 @@ safety check) and pulled back with `figmaReadCode`. Bugs, each fixed at its owne
 - **B-20** failed only inside the full E2E run (twice; alone and with its builder group green): the new frame's
   selection waited 2 s of animation frames for the frame to register, which a busy run outlasts. `selectFrameWhenShown`
   now waits for the frames registry to announce it (10 s).
+## Studio View and Find — F10 (Session C) — tier M, branch `zen/feat/studio-f10-view-20261019` (from main, not stacked)
+
+- **View options** (`canvas/viewOptions.ts`, this browser's, localStorage): Pixel grid ⌘' (on), Outlines ⌘Y (Mac;
+  Ctrl+Y stays Redo elsewhere), Rulers ⇧R, Layout guides ⌃G (Ctrl+Alt+G elsewhere) — `canvas/viewKeys.ts`, Actions
+  rows, Shortcuts rows; the four leave figmaNotYet. Zoom 2 %–25 600 % (`MAX_ZOOM` 256, steps double past 400 %;
+  `FIT_MAX_ZOOM` 4 keeps zoom-to-fit as before); the pixel grid (a hairline per world px) from 400 %. Outlines: CSS on
+  the frames' layers (Border/Neutral/Solid hairlines, fills / shadows / pictures off).
+- **Rulers and guides** (`canvas/Rulers.tsx`): rulers along the canvas between the panels, in the board's coordinates
+  (the frames' X / Y; 0 at the selected frame's top-left); a guide dragged from a ruler belongs to the frame it lands on
+  (else the canvas), moves by dragging, goes when dropped on its ruler. Page header `guides` (outside ⌘Z, as the
+  page's OS). Found while testing: the selection layer's capture sat above the rulers (now z 20) and the world's 0 is
+  not the board's (offset of the frames' container).
+- **Layout guides** (`canvas/LayoutGuides.tsx`, `canvas/LayoutGuidePanel.tsx` in FramePanel for Screens): Columns /
+  Rows / Grid; columns and rows between the frame's own `--zen-margin-comfortable` with `--zen-gutter` (its device's
+  Breakpoint & Grids mode); header `layoutGuides` by frame. Default counts 12 / 8 / 4 → BACKLOG (designer).
+- **Canvas Background** (`canvas/CanvasBackground.tsx`, Page panel with nothing selected): Canvas · Canvas Alt · Canvas
+  Flat · Surface · Neutral · Dark (Neutral/Solid; Inverse/Solid is white in light mode); frame names read in Inverse
+  content on Dark. Header `canvas`.
+- **Find and replace** (`edit/FindPanel.tsx`, pure `edit/findModel.ts` + selftest 4): ⌘F on any page (pages you made
+  search their layers), Enter / ⇧Enter step and select, Replace all = one `many` setProps edit with `setText` ops (one
+  line in arrange.mjs, Session A agreed).
+- **Tests:** findModel selftest 4; Figma walk FW-100…105.
+- **Ship:** gate on da5f7936 (main d56666ec): every step green but Studio E2E 335 / 1 — B-20, because #149's fix
+  (gated 336 / 0) landed after the run started; `--only=figma` 93 / 1 — FW-05 still listed ⇧R as "Rulers isn't in Zen
+  Studio yet", which F10 builds (expectation updated). On e3850527 (766f9871 merged + FW-05 updated): B-20 and FW-05
+  green; tsc, studio:selftest, usage, style green. Giám sát: ship on this evidence.
