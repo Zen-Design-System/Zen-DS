@@ -162,6 +162,10 @@ Last updated: 2026-10-19.
   ⌃G (right panel › Layout guide; Breakpoint & Grids margin / gutter), page canvas Background, Find and replace ⌘F
   (`canvas/viewOptions.ts`, `canvas/Rulers.tsx`, `canvas/LayoutGuides.tsx`, `edit/FindPanel.tsx`); guides, layout
   guides and the background live in the page header; FW-100…105. Free frames ↔ Figma layoutMode NONE: separate fix PR.
+  **F8c (C):** the direct ⌘C → ⌘V places pictures: image fills as Image paints with their bytes as message blobs
+  (meta URLs only work for pictures Figma already has; a WebP goes as PNG), Shape rectangles / ellipses as Figma's own
+  layers, an Avatar's photo and the table's Avatar / Photo cells through the pack's `img` layers
+  (`native-pack.mjs images-code` / `images`); research studio-native-paste §7c.
   **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides / dash, corners, effect,
   opacity, rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame with a fill is one Stack
   in code, push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed values, variable pills,
