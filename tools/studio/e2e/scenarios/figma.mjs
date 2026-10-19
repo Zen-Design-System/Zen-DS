@@ -179,7 +179,7 @@ async function freeFrame(page, id) {
   return { at: (x, y) => ({ x: box.x + x * scale, y: box.y + y * scale }), scale };
 }
 /** The page's vector tags: [{ d, viewBox, x, y, w, h }]. */
-const vectorTags = (text) => [...text.matchAll(/<Shape type="vector"[^>]*\/>/g)].map(([tag]) => ({
+const vectorTags = (text) => [...text.matchAll(/<Shape\b[^>]*\btype="vector"[^>]*\/>/g)].map(([tag]) => ({
   d: /\sd="([^"]*)"/.exec(tag)?.[1], viewBox: /viewBox="([^"]*)"/.exec(tag)?.[1],
   x: Number(/insetLeft=\{(-?[\d.]+)\}/.exec(tag)?.[1]), y: Number(/insetTop=\{(-?[\d.]+)\}/.exec(tag)?.[1]), w: Number(/width=\{([\d.]+)\}/.exec(tag)?.[1]), h: Number(/height=\{([\d.]+)\}/.exec(tag)?.[1]),
 }));
@@ -1637,18 +1637,22 @@ export const rows = [
       await page.keyboard.press("Alt+Shift+KeyS");
       await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; return /type="boolean" operation="subtract"[^>]*d="M/.test(boolean()); }, { timeout: 20_000, message: "a Subtract group with its result" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 160)} · ${boolean()}`); });
       const first = /\sd="([^"]+)"/.exec(boolean())?.[1];
-      await showLeftTab(page, "layers");
-      await until(async () => (await page.locator(".studio-layers__tree [role='treeitem'] .studio-layers__name", { hasText: /^Subtract 1$/ }).count()) === 1, { message: "Layers: Subtract 1" });
-      // The Ellipse inside it, nudged: the group's result follows in the same edit.
-      await page.locator(".studio-layers__tree [role='treeitem']", { has: page.locator(".studio-layers__name", { hasText: /^Ellipse/ }) }).first().click();
-      await page.locator(".studio-viewport").focus();
-      await page.keyboard.press("Shift+ArrowLeft");
-      await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; const d = /\sd="([^"]+)"/.exec(boolean())?.[1]; return Boolean(d) && d !== first; }, { timeout: 20_000, message: "the result follows the Ellipse" });
-      await page.locator(".studio-viewport").focus();
-      await page.keyboard.press("ControlOrMeta+KeyZ");
-      await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; return /\sd="([^"]+)"/.exec(boolean())?.[1] === first; }, { message: "one ⌘Z: the move and its result" });
-      await undoTo(page, id, before, 4);
-      return "⌥⇧S → Subtract 1 with its d · nudge the Ellipse → d follows · one ⌘Z";
+      try {
+        await showLeftTab(page, "layers");
+        await until(async () => (await page.locator(".studio-layers__tree [role='treeitem'] .studio-layers__name", { hasText: /^Subtract 1$/ }).count()) === 1, { message: "Layers: Subtract 1" });
+        // Its shapes (Enter: Figma's Select children), nudged: the group's result follows in the same edit.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Enter");
+        await until(async () => (await selectedSrc(page)).length === 2, { message: "Enter: its two shapes" });
+        await page.keyboard.press("Shift+ArrowLeft");
+        await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; const d = /\sd="([^"]+)"/.exec(boolean())?.[1]; return Boolean(d) && d !== first; }, { timeout: 20_000, message: "the result follows its shapes" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; return /\sd="([^"]+)"/.exec(boolean())?.[1] === first; }, { message: "one ⌘Z: the move and its result" });
+      } finally {
+        await undoTo(page, id, before, 6).catch(() => undefined);
+      }
+      return "⌥⇧S → Subtract 1 with its d · Enter, nudge its shapes → d follows · one ⌘Z";
     },
   },
   {
@@ -1665,7 +1669,7 @@ export const rows = [
       if ((vector.d.match(/M/g) ?? []).length < 2) throw new Error(`one outline only: ${vector.d.slice(0, 80)}`);
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");
-      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" }).catch(async (error) => { await undoTo(page, id, before, 4).catch(() => undefined); throw error; });
       return `vector 180 × 80 at 20, 20 · ${(vector.d.match(/M/g) ?? []).length} outlines · ⌘Z`;
     },
   },
@@ -1679,14 +1683,19 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyG");
       await until(async () => /width=\{180\} height=\{80\} group>/.test((await pageText(page, id)) ?? ""), { message: "a group 180 × 80" });
       const rect = await clipShape(page, id, 0).boundingBox();
-      await showLeftTab(page, "layers");
-      await page.locator(".studio-layers__tree [role='treeitem']", { has: page.locator(".studio-layers__name", { hasText: /^Ellipse/ }) }).first().click();
-      await page.locator(".studio-viewport").focus();
-      for (let k = 0; k < 2; k++) { await page.keyboard.press("Shift+ArrowDown"); await sleep(400); }
-      await until(async () => /width=\{180\} height=\{100\} group>/.test((await pageText(page, id)) ?? ""), { message: "the group grows to 100 high" }).catch(async (error) => { throw new Error(`${error.message} (${((await pageText(page, id)) ?? "").match(/<Box[^>]*group>/)?.[0]})`); });
-      const still = await clipShape(page, id, 0).boundingBox();
-      if (Math.abs(still.x - rect.x) > 1 || Math.abs(still.y - rect.y) > 1) throw new Error("the Rectangle moved on the canvas");
-      await undoTo(page, id, before, 6);
+      try {
+        // The Ellipse inside the group (⌘-click: Figma's deep select), nudged down twice.
+        await deselect(page);
+        await selectShape(page, id, 1);
+        await until(async () => (await selectedSrc(page)).length === 1, { message: "the Ellipse selected" });
+        await page.locator(".studio-viewport").focus();
+        for (let k = 0; k < 2; k++) { await page.keyboard.press("Shift+ArrowDown"); await sleep(400); }
+        await until(async () => /width=\{180\} height=\{100\} group>/.test((await pageText(page, id)) ?? ""), { message: "the group grows to 100 high" }).catch(async (error) => { throw new Error(`${error.message} (${((await pageText(page, id)) ?? "").match(/<Box[^>]*group>/)?.[0]})`); });
+        const still = await clipShape(page, id, 0).boundingBox();
+        if (Math.abs(still.x - rect.x) > 1 || Math.abs(still.y - rect.y) > 1) throw new Error("the Rectangle moved on the canvas");
+      } finally {
+        await undoTo(page, id, before, 6).catch(() => undefined);
+      }
       return "⌘G → 180 × 80 · Ellipse ⇧↓ ×2 → the group 180 × 100, the Rectangle in place · ⌘Z";
     },
   },
