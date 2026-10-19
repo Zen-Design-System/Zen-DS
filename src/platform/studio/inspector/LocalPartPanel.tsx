@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { InputField, SelectField } from "../../../components/Input";
 import { Heading } from "../../../components/Text";
 import { ToggleButton } from "../../../components/Toggle";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -13,6 +12,7 @@ import type { StudioSelection } from "../types";
 import { OverrideProperties } from "./OverrideProperties";
 import { withoutLayer, withOverride, type OverrideTable } from "./overrides";
 import { InspectorRow, InspectorSection } from "./Section";
+import { RowInputField, RowSelectField } from "./rowFields";
 
 /*
  * A layer inside an instance of a page's own component (F7b, spec docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md):
@@ -64,7 +64,7 @@ function useLocalLayer(selection: PartSelection, path: string | null) {
 function WordsField({ label, value, disabled, onCommit }: { label: string; value: string; disabled: boolean; onCommit: (next: string) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
   return (
-    <InputField
+    <RowInputField
       size="sm"
       aria-label={label}
       value={draft ?? value}
@@ -154,7 +154,7 @@ export function LocalPartPanel({ selection }: { selection: PartSelection }) {
             <InspectorSection title="Instance">
               {(nestedSet?.axes ?? []).map((axis) => (
                 <InspectorRow key={`axis-${axis.name}`} label={axis.name} name="local-nested-variant">
-                  <SelectField size="sm" aria-label={axis.name} disabled={disabled} value={nested.variant[axis.name] ?? axis.values[0]} options={axis.values.map((value) => ({ value, label: value }))} onValueChange={(next) => set(`variant.${axis.name}`, next, `${instanceName} › ${path}: ${axis.name} → ${next}`)} />
+                  <RowSelectField size="sm" aria-label={axis.name} disabled={disabled} value={nested.variant[axis.name] ?? axis.values[0]} options={axis.values.map((value) => ({ value, label: value }))} onValueChange={(next) => set(`variant.${axis.name}`, next, `${instanceName} › ${path}: ${axis.name} → ${next}`)} />
                 </InspectorRow>
               ))}
               {nestedProperties.filter((property) => property.type === "text" || property.type === "boolean").map((property) => (

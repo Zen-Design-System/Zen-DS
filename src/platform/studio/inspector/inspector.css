@@ -354,6 +354,9 @@
 
 /* A page's own component (ComponentSection): its name or the component an instance shows, then two quiet actions. */
 .studio-component-section__actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* A component's name or an instance's component on the panel's grid: it ends where every field ends, the icon column
+   kept (no field reaches past the others; user 2026-10-19: the tool's UI never juts out). */
+.studio-component-section__field { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); column-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-component-section .zen-input-field__leading, .studio-component-section .zen-select__leading { color: var(--zen-color-content-support-violet-base); }
 /* A section that is only its header (Figma's "Auto layout +" on a frame without auto layout). */
 .studio-inspector__section--head-only .studio-inspector__section-body { display: none; }

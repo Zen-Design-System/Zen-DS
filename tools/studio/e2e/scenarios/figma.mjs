@@ -447,6 +447,62 @@ async function chooseIn(page, prop, option, index = 0) {
   await right(page).locator(`[data-prop="${prop}"]`).nth(index).locator("button").first().click();
   await page.getByRole("option", { name: option, exact: true }).click();
 }
+/**
+ * The right panel's fields as drawn (user, 2026-10-19: the tool's UI never juts out or steps in; Inline-Field is the
+ * shared field): every field inside the panel, its value or placeholder not cut off, and in each section every field and
+ * button that starts a row on one left edge. Returns what is wrong, empty when it fits.
+ */
+async function panelFits(page) {
+  return right(page).evaluate((panel) => {
+    const problems = [];
+    const box = panel.getBoundingClientRect();
+    const name = (field) => field.querySelector("input, button")?.getAttribute("aria-label") || field.textContent?.trim().slice(0, 24) || "a field";
+    for (const field of panel.querySelectorAll(".zen-input-field")) {
+      const rect = field.getBoundingClientRect();
+      if (!rect.width) continue;
+      if (rect.left < box.left - 0.5 || rect.right > box.right + 0.5) problems.push(`${name(field)} juts out of the panel`);
+      // A select's value is one word or token: never cut. A text input scrolls a long text by design, but its value
+      // area must still show some of it (an inline label can leave it no room).
+      const choice = field.querySelector(".zen-select__trigger");
+      if (choice && choice.scrollWidth > choice.clientWidth + 1) problems.push(`${name(field)}: its value is cut off`);
+      const input = field.querySelector("input.zen-input__native");
+      if (input && input.clientWidth < 40) problems.push(`${name(field)}: no room for its value (${input.clientWidth}px)`);
+    }
+    for (const section of panel.querySelectorAll(".studio-inspector__section")) {
+      const body = section.querySelector(".studio-inspector__section-body");
+      if (!body) continue;
+      const lefts = [];
+      for (const row of body.children) {
+        const first = row.matches(".zen-input-field, .zen-button, .zen-select") ? row : row.querySelector(":scope > .studio-inspector__row-control > .zen-input-field, :scope > .zen-input-field, :scope > .zen-button, :scope .studio-component-section__actions > .zen-button");
+        const label = row.querySelector(":scope > .studio-inspector__row-label");
+        const shown = label && getComputedStyle(label).display !== "none" ? null : first;
+        if (shown && shown.getBoundingClientRect().width) lefts.push(Math.round(shown.getBoundingClientRect().left));
+      }
+      if (new Set(lefts).size > 1) problems.push(`${section.querySelector("h3")?.textContent ?? "a section"}: fields start at ${[...new Set(lefts)].join(", ")}`);
+      // …and end on the panel grid's field lines (inspector.css: two equal field columns, then the 24px icon column that
+      // no field reaches into): the end of the first column or of the second. A property grid row is its own grid.
+      const inner = body.getBoundingClientRect();
+      const gap = 8;
+      const column = (inner.width - 24 - 2 * gap) / 2;
+      const lines = [inner.left + column, inner.left + 2 * column + gap];
+      const off = new Set();
+      for (const row of body.children) {
+        if (row.matches(".studio-component-property")) continue;
+        for (const field of row.querySelectorAll(".zen-input-field")) {
+          const rect = field.getBoundingClientRect();
+          if (rect.width && !lines.some((line) => Math.abs(rect.right - line) <= 1)) off.add(`${name(field)} ends at ${Math.round(rect.right - inner.left)} of ${Math.round(inner.width)}`);
+        }
+      }
+      if (off.size) problems.push(`${section.querySelector("h3")?.textContent ?? "a section"}: off the field grid: ${[...off].join(", ")}`);
+    }
+    return problems;
+  });
+}
+/** Throws when the right panel's fields do not fit (panelFits). */
+async function expectPanelFits(page, where) {
+  const problems = await panelFits(page);
+  if (problems.length) throw new Error(`${where}: ${problems.join(" · ")}`);
+}
 /** ⌘-click (Figma's deep select) at the middle of `layer`: a layer inside an instance. */
 async function deepInto(page, layer) {
   const box = await layer.boundingBox();
@@ -2006,6 +2062,7 @@ export const rows = [
       const at = want.map((title) => headings.indexOf(title));
       if (at.some((index) => index < 0) || at.some((index, n) => n && index < at[n - 1])) throw new Error(`sections ${headings.join(", ")}`);
       await shot(page, "fw-50-auto-layout-frame");
+      await expectPanelFits(page, "an auto layout frame's panel");
       return headings.join(", ");
     },
   },
@@ -2027,11 +2084,17 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
       await selectBody(page, id);
+      // From a Stack without a stroke: a run stopped half-way leaves one on the walk page (it keeps its id across runs).
+      if (await right(page).getByRole("button", { name: "Remove stroke", exact: true }).count()) {
+        await press(page, "Remove stroke");
+        await written(page, id, /<Stack\b[^>]*(border=|borderWeight=)/, "a stroke left by an earlier run removed", true);
+      }
       await press(page, "Add stroke");
       await written(page, id, /<Stack\b[^>]*border="pale"/, "border=\"pale\" on the Stack");
       await typeNumber(page, "Stroke weight", 2);
       await written(page, id, /<Stack\b[^>]*borderWeight=\{2\}/, "borderWeight={2}");
       await shot(page, "fw-52-stroke");
+      await expectPanelFits(page, "the stroke");
       await press(page, "Remove stroke");
       await written(page, id, /<Stack\b[^>]*(border=|borderWeight=)/, "stroke and weight removed", true);
       return "+ → Pale → weight 2 → − (both gone)";
@@ -2056,9 +2119,16 @@ export const rows = [
       await selectWalkFrame(page, id);
       await press(page, "Flip horizontal");
       await written(page, id, /<Box\b[^>]*flip="horizontal"/, "flip=\"horizontal\"");
+      const afterFlip = ((await pageText(page, id)) ?? "").match(/<Box\b[^>]*>/)?.[0];
+      const header = await selectedName(page);
       await press(page, "Rotate 90° right");
-      await written(page, id, /<Box\b[^>]*rotation=\{-90\}/, "rotation={-90}");
+      await sleep(1500);
+      const afterRotate = ((await pageText(page, id)) ?? "").match(/<Box\b[^>]*>/)?.[0];
+      const shapes = ((await pageText(page, id)) ?? "").match(/<Shape\b[^>]*>/g)?.join(" ");
+      if (!/rotation=\{-90\}/.test(afterRotate ?? "")) throw new Error(`after flip ${afterFlip} (selected ${header}) · after rotate ${afterRotate} · shapes ${shapes}`);
+      await written(page, id, /<Box\b[^>]*rotation=\{-90\}/, "rotation={-90}").catch(async (error) => { throw new Error(`${error.message} · ${((await pageText(page, id)) ?? "").match(/<Box\b[^>]*>/g)?.join(" ")} · status: ${(await statusText(page)).slice(0, 120)}`); });
       await shot(page, "fw-54-flipped-frame");
+      await expectPanelFits(page, "the turned frame's panel");
       await press(page, "Flip horizontal");
       await written(page, id, /<Box\b[^>]*rotation=\{90\}/, "rotation={90}, the flip undone");
       if (/<Box\b[^>]*flip=/.test((await pageText(page, id)) ?? "")) throw new Error("still flipped");
@@ -2095,6 +2165,7 @@ export const rows = [
       const position = headings.indexOf("Position");
       if (position <= 0) throw new Error(`Position first or missing: ${headings.join(", ")}`);
       await shot(page, "fw-56-instance");
+      await expectPanelFits(page, "a Zen instance's panel");
       return headings.join(", ");
     },
   },
@@ -2226,6 +2297,7 @@ export const rows = [
       const value = await font.inputValue();
       if (!(await font.getAttribute("readonly") !== null)) throw new Error("the style's font is editable");
       await shot(page, "fw-92-text-style-details");
+      await expectPanelFits(page, "a text's panel");
       return `${headings.join(", ")} · Font ${value}`;
     },
   },
@@ -2295,6 +2367,7 @@ export const rows = [
         await until(async () => (await selectedName(page)) === "Chip", { message: "the Chip set selected" });
         await until(async () => (await sections(page)).includes("Component set"), { message: "the Component set section" });
         await shot(page, "fw-71-set");
+        await expectPanelFits(page, "the set's panel");
         await right(page).getByRole("button", { name: "Add variant", exact: true }).click();
         await written(page, id, /<Component id="[^"]+" variant=\{\{ Size: "Variant3" \}\}>\s*<Stack direction="row" gap="sm" padding="md">/, "a third variant, a copy of Large").catch(async (error) => { const text = (await pageText(page, id)) ?? ""; const set = text.slice(text.indexOf("<ComponentSet"), text.indexOf("</ComponentSet>")).replace(/\s+/g, " "); throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 100)} · ${set.slice(-700)}`); });
         await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-variant]`).count()) === 3, { message: "three variants on the canvas" });
@@ -2318,6 +2391,7 @@ export const rows = [
         await typeText(page, "Boolean property name", "Shadow", 1);
         await written(page, id, /"Show icon": \{ type: "boolean", default: true \}, Shadow: \{ type: "boolean", default: true \}/, "renamed Shadow");
         await shot(page, "fw-72-properties");
+        await expectPanelFits(page, "the set's properties");
         return "Chip › + Boolean: Property 3 → Shadow";
       });
     },
@@ -2360,6 +2434,7 @@ export const rows = [
         await written(page, id, /props=\{\{ "Show icon": false, Label: "Done" \}\}/, "Label = Done");
         await until(async () => /Done/.test(await instance.innerText()), { message: "the instance reads Done" });
         await shot(page, "fw-74-instance");
+        await expectPanelFits(page, "the instance's panel");
         await right(page).getByRole("button", { name: "Reset all changes", exact: true }).click();
         await written(page, id, /<Use of="chip" \/>/, "all changes reset");
         return "Size › Large · Show icon off (icon hidden) · Label Done · Reset all changes";
@@ -2377,6 +2452,8 @@ export const rows = [
         await written(page, id, /<Component id="tag-small" name="Tag small" description="A small tag">/, "its description");
         await typeText(page, "Link", "https://zen.example/tag");
         await written(page, id, /description="A small tag" link="https:\/\/zen.example\/tag">/, "its link");
+        await shot(page, "fw-75-about");
+        await expectPanelFits(page, "the main's panel");
         await typeText(page, "Description", "");
         await written(page, id, /<Component id="tag-small" name="Tag small" link="https:\/\/zen.example\/tag">/, "the description gone");
         return "description, link, description emptied";
@@ -2414,6 +2491,7 @@ export const rows = [
         await deepInto(page, instance.getByText("Small", { exact: true }));
         await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected (Layer section)" }).catch(async (error) => { throw new Error(`${error.message} · header ${await selectedName(page)} · sections ${(await sections(page)).join(", ")} · selected ${JSON.stringify(await selectedSrc(page))}`); });
         await shot(page, "fw-77-layer-in-instance");
+        await expectPanelFits(page, "the layer's panel");
         await typeText(page, "Text", "Hey");
         await written(page, id, /<Use of="tag-small" overrides=\{\{ Text: \{ children: "Hey" \} \}\} \/>/, "the instance's override of its Text");
         await until(async () => (await instance.innerText()).trim() === "Hey", { message: "the instance reads Hey" });
@@ -2476,6 +2554,7 @@ export const rows = [
         await chooseIn(page, "local-nested-variant", "Large");
         await written(page, id, /<Use of="toolbar" overrides=\{\{ Chip: \{ "variant\.Size": "Large" \} \}\} \/>/, "the nested Chip's Size in this Toolbar only");
         await shot(page, "fw-95-nested-instance");
+        await expectPanelFits(page, "the nested instance's panel");
         return "Toolbar › Chip: Size Large as an override of this Toolbar";
       });
     },

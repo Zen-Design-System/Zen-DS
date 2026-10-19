@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { InputField, SelectField } from "../../../components/Input";
 import { Menu } from "../../../components/Menu";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { ToggleButton } from "../../../components/Toggle";
@@ -14,6 +13,7 @@ import {
 } from "../edit/localComponents";
 import type { EditOp, StudioSelection } from "../types";
 import { InspectorRow, InspectorSection } from "./Section";
+import { RowInputField, RowSelectField } from "./rowFields";
 import { inspectorStatus } from "./status";
 
 /*
@@ -97,7 +97,7 @@ function useComponents(selection: NodeSelection): Found | null {
 function NameField({ label, value, disabled, onCommit, leading, placeholder, allowEmpty = false }: { label: string; value: string; disabled: boolean; onCommit: (next: string) => void; leading?: ReactNode; placeholder?: string; allowEmpty?: boolean }) {
   const [draft, setDraft] = useState<string | null>(null);
   return (
-    <InputField
+    <RowInputField
       size="sm"
       aria-label={label}
       leading={leading}
@@ -219,7 +219,7 @@ function ApplyPropertySection({ selection, found, disabled }: { selection: NodeS
         const current = found.bound[type] ?? "";
         return (
           <InspectorRow key={type} label={label[type]} name={`bind-${type}`}>
-            <SelectField
+            <RowSelectField
               size="sm"
               aria-label={`${label[type]} property`}
               disabled={disabled}
@@ -264,7 +264,7 @@ function InstancePropertiesSection({ selection, instance, found, disabled }: { s
     >
       {(set?.axes ?? []).map((axis) => (
         <InspectorRow key={`axis-${axis.name}`} label={axis.name} name="instance-variant">
-          <SelectField size="sm" aria-label={axis.name} disabled={disabled} value={instance.variant[axis.name] ?? axis.values[0]} options={axis.values.map((value) => ({ value, label: value }))} onValueChange={(next) => setVariant(axis.name, next)} />
+          <RowSelectField size="sm" aria-label={axis.name} disabled={disabled} value={instance.variant[axis.name] ?? axis.values[0]} options={axis.values.map((value) => ({ value, label: value }))} onValueChange={(next) => setVariant(axis.name, next)} />
         </InspectorRow>
       ))}
       {properties.filter((property) => property.type !== "slot").map((property) => (
@@ -288,7 +288,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
     const set = found.set;
     blocks.push(
       <InspectorSection key="set" title="Component set" className="studio-component-section">
-        <NameField label="Component set name" value={set.name} leading={diamond} disabled={disabled} onCommit={(next) => void setName(set.file, set.loc, next)} />
+        <div className="studio-component-section__field"><NameField label="Component set name" value={set.name} leading={diamond} disabled={disabled} onCommit={(next) => void setName(set.file, set.loc, next)} /></div>
         <AboutRows file={set.file} loc={set.loc} description={set.description} link={set.link} disabled={disabled} />
         <div className="studio-component-section__actions">
           <Button size="sm" level="tertiary" startIcon="icon-plus-line" disabled={disabled} onClick={() => void addVariant(set)}>Add variant</Button>
@@ -306,7 +306,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
             <NameField label={`${axis.name} of this variant`} value={main.variant?.[axis.name] ?? ""} disabled={disabled} onCommit={(next) => void setVariantValues(main, { ...(main.variant ?? {}), [axis.name]: next })} />
           </InspectorRow>
         ))) : (
-          <NameField label="Component name" value={main.name} leading={diamond} disabled={disabled} onCommit={(next) => void renameComponent(main, next)} />
+          <div className="studio-component-section__field"><NameField label="Component name" value={main.name} leading={diamond} disabled={disabled} onCommit={(next) => void renameComponent(main, next)} /></div>
         )}
         {!set ? <AboutRows file={main.file} loc={main.componentLoc} description={main.description} link={main.link} disabled={disabled} /> : null}
         <div className="studio-component-section__actions">
@@ -323,7 +323,8 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
     const shown = instance.setId ?? instance.mainId;
     blocks.push(
       <InspectorSection key="instance" title="Instance" className="studio-component-section">
-        <SelectField
+        <div className="studio-component-section__field">
+        <RowSelectField
           size="sm"
           aria-label="Component"
           leading={diamond}
@@ -336,6 +337,7 @@ export function ComponentSection({ selection, disabled }: { selection: NodeSelec
             if (to) void swapInstance(selection, to);
           }}
         />
+        </div>
         <div className="studio-component-section__actions">
           <Button size="sm" level="tertiary" onClick={() => void goToMain(selection)}>Go to main component</Button>
           {instance.own.overrides ? <Button size="sm" level="tertiary" disabled={disabled} onClick={() => void pushChangesToMain(selection)}>Push changes to main</Button> : null}
