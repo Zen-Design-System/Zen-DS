@@ -1,10 +1,13 @@
-import { type HTMLAttributes, type ReactNode, type Ref } from "react";
+import { useContext, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import { Heading, Text } from "../Text";
 import "./page-header.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { phoneTrail } from "../_shared/trail-back";
+import { useZen } from "../_shared/zen-context";
+import { AppShellChromeContext } from "../AppShell/context";
 
 export interface PageHeaderBack {
   /** Where Back goes, named (e.g. "Projects"). */
@@ -57,6 +60,13 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
  */
 export function PageHeader({ title, childTitle, description, breadcrumbs, eyebrow, actions, meta, trailing, tabs, back, headingLevel = 1, className, overrides, ref, ...rest }: PageHeaderProps) {
   const nest = useNested(overrides);
+  // On a phone the trail gives way (§17; user 2026-10-19: "Trên mobile có thể cân nhắc bỏ Breadcrumb"): Back to the
+  // parent crumb on a child page, nothing on a root, nothing beside a `back` of the page's own. A phone is the
+  // AppShell's drawer layout under 744, or the provider's mobile breakpoint outside a shell.
+  const chrome = useContext(AppShellChromeContext);
+  const breakpoint = useZen()?.breakpoint;
+  const phone = chrome ? chrome.phone : breakpoint === "mobile";
+  const trail = !phone ? breadcrumbs : back ? null : phoneTrail(breadcrumbs);
   return (
     <header {...rest} ref={ref} className={["zen-page-header", className].filter(Boolean).join(" ")}>
       {back ? (
@@ -64,7 +74,7 @@ export function PageHeader({ title, childTitle, description, breadcrumbs, eyebro
           {nest("Back", <Button appearance="flat" level="primary" size="sm" startIcon={<Icon name="icon-chevron-left-line-medium" decorative />} onClick={back.onClick}>{back.label}</Button>)}
         </div>
       ) : null}
-      {breadcrumbs ? <div className="zen-page-header__breadcrumbs">{nest.slot(breadcrumbs)}</div> : eyebrow ? <Text className="zen-page-header__eyebrow" textStyle="Body/Small/Medium" tone="base">{eyebrow}</Text> : null}
+      {trail ? <div className="zen-page-header__breadcrumbs">{nest.slot(trail)}</div> : eyebrow ? <Text className="zen-page-header__eyebrow" textStyle="Body/Small/Medium" tone="base">{eyebrow}</Text> : null}
       <div className="zen-page-header__row">
         <div className="zen-page-header__titles">
           {/* h1 = Heading/1 (Figma ◇ Master-Layout page title), h2 = Heading/4 (the house ladder's h2, backlog batch 6). */}

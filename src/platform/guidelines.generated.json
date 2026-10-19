@@ -2372,6 +2372,7 @@
       ]
     ],
     "do": [
+      "On a phone (under 744) the trail gives way by itself in AppShellHeader and PageHeader: a Back to the parent crumb on a child page, nothing on a root (component-usage-rules §17). Keep passing the full trail; don't hide it yourself.",
       "Make the last item the current page (not a link).",
       "Collapse long paths with maxItems.",
       "Use the same labels as page titles.",

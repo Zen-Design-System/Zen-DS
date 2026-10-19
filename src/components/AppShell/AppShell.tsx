@@ -367,7 +367,8 @@ export function AppShell({
     navOpen: open,
     openNav: () => setNavOpen(true),
     registerHeader: setHeaderEl,
-  }), [toggle, sidebarCollapsed, setSidebarCollapsed, sidebarId, open, setNavOpen]);
+    phone: layout === "drawer" && shellWidth > 0 && shellWidth < TABLET_MIN_WIDTH,
+  }), [toggle, sidebarCollapsed, setSidebarCollapsed, sidebarId, open, setNavOpen, layout, shellWidth]);
   // Sidebar reads these through SidebarShellContext, so a Sidebar wrapped in an app component follows the rail too. The
   // drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
   const inlineShell = useMemo<SidebarShellState>(() => ({

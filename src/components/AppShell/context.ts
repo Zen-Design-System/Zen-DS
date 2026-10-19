@@ -41,6 +41,8 @@ export interface AppShellChrome {
   navOpen: boolean;
   openNav: () => void;
   registerHeader: (element: HTMLElement | null) => void;
+  /** The drawer layout on a phone (the shell narrower than 744): the header's trail gives way to Back (§17). */
+  phone: boolean;
 }
 
 export const AppShellChromeContext = createContext<AppShellChrome | null>(null);

@@ -289,6 +289,52 @@ function Pattern({ pattern }: { pattern: AppShellPattern }) {
 }
 const panes = () => [...document.querySelectorAll(".zen-app-shell__pane")].map((pane) => pane.getAttribute("data-side"));
 
+describe("AppShell trail on a phone (§17; user 2026-10-19: drop the Breadcrumbs on mobile)", () => {
+  const shell = (width: number, items: { id: string; label: string }[], onNavigate?: () => void) => (
+    <div style={{ width }}>
+      <ZenProvider>
+        <AppShell sidebar={<Sidebar sections={sections} selectedId="members" />}
+          header={<AppShellHeader leading={<Breadcrumbs master={false} items={items} onNavigate={onNavigate} />} actions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" />}
+            main={<PageHeader title={items.at(-1)!.label} />} />}>
+          <p>Page</p>
+        </AppShell>
+      </ZenProvider>
+    </div>
+  );
+
+  it("a child page shows Back to the parent crumb instead of the trail", async () => {
+    const go = vi.fn();
+    await render(shell(390, [{ id: "settings", label: "Settings" }, { id: "workspace", label: "Workspace" }], go));
+    expect(document.querySelector(".zen-app-shell-header .zen-breadcrumbs")).toBeNull();
+    const back = document.querySelector<HTMLButtonElement>('.zen-app-shell-header__leading button[aria-label="Back: Settings"]')!;
+    expect(back.textContent).toBe("Settings");
+    back.click();
+    expect(go).toHaveBeenCalledWith(expect.objectContaining({ id: "settings" }), expect.anything());
+  });
+
+  it("a root page shows no trail at all", async () => {
+    await render(shell(390, [{ id: "members", label: "Members" }]));
+    expect(document.querySelector(".zen-app-shell-header__leading")).toBeNull();
+  });
+
+  it("keeps the trail from 744 up (tablet drawer and desktop)", async () => {
+    await render(shell(800, [{ id: "settings", label: "Settings" }, { id: "workspace", label: "Workspace" }]));
+    expect(document.querySelector(".zen-app-shell-header .zen-breadcrumbs")).not.toBeNull();
+  });
+
+  it("a PageHeader's own trail gives way on a phone too", async () => {
+    await render(
+      <div style={{ width: 390 }}>
+        <ZenProvider breakpoint="mobile">
+          <PageHeader title="INV-1024" breadcrumbs={<Breadcrumbs master={false} items={[{ id: "invoices", label: "Invoices" }, { id: "x", label: "INV-1024" }]} />} />
+        </ZenProvider>
+      </div>,
+    );
+    expect(document.querySelector(".zen-page-header .zen-breadcrumbs")).toBeNull();
+    expect(document.querySelector('.zen-page-header button[aria-label="Back: Invoices"]')).not.toBeNull();
+  });
+});
+
 describe("AppShell desktop patterns", () => {
   it("List-Detail: the Sidebar starts on its rail and the leading pane sits beside it", async () => {
     await render(<Pattern pattern="list-detail" />);

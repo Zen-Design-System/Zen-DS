@@ -447,7 +447,7 @@ a **modal or form** screen has Close and its Primary in an ActionBar footer.
 | --- | --- |
 | Sidebar items | BottomNavigation from the top-level rows in order (group titles and sub-rows skipped): up to 5 map one to one; more than 5 → the first 4 + More (the full list in a sheet) |
 | Sidebar brand, footer rows (Settings), collapse toggle | the account sheet or More, never the bar |
-| Breadcrumbs | root: none · child: Back chevron to the parent crumb (§10) |
+| Breadcrumbs | root: none · child: Back chevron to the parent crumb (§10). AppShellHeader's top row and PageHeader do this themselves under 744 (the drawer layout, or a mobile breakpoint) |
 | PageHeader `title` | root: `largeTitle` and `title` (the folded bar) · child: `title` |
 | PageHeader `description`, `meta` | the first block of the content |
 | PageHeader `tabs` | `controlBar`: Tabs or Segmented `fullWidth` |

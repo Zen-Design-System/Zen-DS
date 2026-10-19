@@ -8,6 +8,7 @@ import { NotificationDot } from "../_shared/notification-dot";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { phoneTrail } from "../_shared/trail-back";
 import { useZenLabels } from "../_shared/zen-context";
 import { AppShellChromeContext } from "./context";
 import "../Icon/core";
@@ -82,6 +83,8 @@ export function AppShellHeader({ leading, center, actions, main, sections, class
   const t = useZenLabels();
   const nest = useNested(overrides);
   const chrome = useContext(AppShellChromeContext);
+  // On a phone the top row's trail gives way: Back to the parent crumb on a child page, nothing on a root (§17).
+  const shownLeading = chrome?.phone ? phoneTrail(leading) : leading;
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null);
   const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
   const [toggleEl, setToggleEl] = useState<HTMLSpanElement | null>(null);
@@ -90,7 +93,7 @@ export function AppShellHeader({ leading, center, actions, main, sections, class
   const headerRef = useMergedRefs(ref, setHeaderEl);
   // The shell measures its header (the panes and the Sidebar stick under it).
   useIsomorphicLayoutEffect(() => chrome?.registerHeader(headerEl), [chrome, headerEl]);
-  const stacked = useStackedRow(rowEl, leading ? contentEl : null, toggleEl, actions ? actionsEl : null);
+  const stacked = useStackedRow(rowEl, shownLeading ? contentEl : null, toggleEl, actions ? actionsEl : null);
   const toggleKind = chrome?.toggle ?? null;
   const toggle = toggleKind ? (
     <span ref={setToggleEl} className="zen-app-shell-header__toggle">
@@ -102,7 +105,7 @@ export function AppShellHeader({ leading, center, actions, main, sections, class
       )}
     </span>
   ) : null;
-  const hasTop = Boolean(toggle || leading || center || actions);
+  const hasTop = Boolean(toggle || shownLeading || center || actions);
   return (
     <header {...rest} ref={headerRef} className={["zen-app-shell-header", className].filter(Boolean).join(" ")} data-stacked={stacked || undefined}>
       {hasTop || main ? (
@@ -114,7 +117,7 @@ export function AppShellHeader({ leading, center, actions, main, sections, class
               <DashboardHeader
                 type="navigation"
                 className="zen-app-shell-header__bar"
-                leading={leading ? <div ref={setContentEl} className="zen-app-shell-header__leading">{nest.slot(leading)}</div> : undefined}
+                leading={shownLeading ? <div ref={setContentEl} className="zen-app-shell-header__leading">{nest.slot(shownLeading)}</div> : undefined}
                 center={center ? nest.slot(center) : undefined}
                 trailing={actions ? <div ref={setActionsEl} className="zen-app-shell-header__actions">{nest.slot(actions)}</div> : undefined}
               />
