@@ -18410,6 +18410,7 @@
       "title": "Breadcrumbs",
       "file": "docs/guidelines/breadcrumbs.md",
       "do": [
+        "On a phone (under 744) the trail gives way by itself in AppShellHeader and PageHeader: a Back to the parent crumb on a child page, nothing on a root (component-usage-rules §17). Keep passing the full trail; don't hide it yourself.",
         "Make the last item the current page (not a link).",
         "Collapse long paths with maxItems.",
         "Use the same labels as page titles.",
@@ -19186,6 +19187,7 @@
       "title": "Top Navigation",
       "file": "docs/guidelines/top-navigation.md",
       "do": [
+        "An Avatar in the bar or beside the large title (the account, a profile photo) is drawn at the action size, Navigation-Action/Size 44, whatever Avatar size you pass (user 2026-10-19).",
         "Give the bar the colour of the screen under it (user rule 2026-10-08): on Canvas/Default or Surface/Alt (the same colour in light and dark; a phone screen by default) use alt, compact-alt or alt-blurring; on a white Surface screen default, compact or default-blurring; an overlay type only on media.",
         "Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.",
         "Use a large title only on top-level screens (tab roots); a pushed screen with Back uses the bar title alone.",
