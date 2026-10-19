@@ -165,6 +165,11 @@ export const Good = () => <>
   {/* The Master crumb stays when the toggle moves into the Sidebar; each pattern gets the panes it draws. */}
   <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
   <AppShell pattern="workspace" header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />} leadingPane={<AppShellPane title="Files">{fileList}</AppShellPane>} trailingPane={<AppShellPane title="Comments">{comments}</AppShellPane>}>{page}</AppShell>
+  {/* A comment with an apostrophe inside an attribute's expression is no string: the tag still reads as one AppShell. */}
+  <AppShell sidebar={(
+    // the studio's own navigation
+    <Sidebar sections={sections} />
+  )}>{page}</AppShell>
   {/* Two actions and an Avatar node: three trailing places. */}
   <TopNavigation title="Home" trailing={[{ icon: "icon-bell-01-line", label: "Notifications", onClick: invite }, { icon: "icon-plus-line", label: "Add", onClick: invite }, <Avatar key="me" name="Ava Chen" alt="" />]} />
   {/* A phone Band-Sheet page sits on a white Surface sheet: a Pale card is fine there. */}

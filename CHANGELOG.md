@@ -809,6 +809,9 @@ removed (four unused colour ramps were, see Removed).
   Accent focus ring vanishes into the Accent fill; the sheet keeps the Accent ring.
 - TopNavigation: an Avatar in the bar or beside the large title is 44, the bar's action size (Figma Nav-Slot/Visual on
   Navigation-Action/Size; user 2026-10-19: "trên top nav mobile thì là 44").
+- Sidebar: a long section or sub-menu label ellipsizes in its row instead of widening the column past the Sidebar.
+- Harness: a comment with an apostrophe inside a JSX attribute's expression no longer reads as an open string (it hid the
+  rest of the tag and made `app-shell/nested` and `button/flat-level` fire on code that had neither).
 - AppShellHeader puts the top row's trail on a row of its own when it only just fits (a trail that filled the row to the
   pixel wrapped inside it at 390).
 - SidePanel docked in an AppShell closes on Escape only from that app (the panel or its page), not from another app on

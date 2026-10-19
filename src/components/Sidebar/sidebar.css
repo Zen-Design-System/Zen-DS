@@ -63,7 +63,8 @@
    Work · People · Insights; each section stacks its 32px Section-Title and 44px rows Spacing/Gap/3XSmall apart). */
 .zen-sidebar__items { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-sidebar__section { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
-.zen-sidebar__section-items { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* minmax(0, 1fr): a long label ellipsizes in its row instead of widening the track past the Sidebar. */
+.zen-sidebar__section-items { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-sidebar__section-title { display: flex; min-height: 32px; align-items: center; box-sizing: border-box; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
 .zen-sidebar__section-item { min-height: 32px; height: 32px; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-base, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: default; font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0); }
 .zen-sidebar__section-item:hover { background: transparent; }
@@ -74,9 +75,9 @@
 .zen-sidebar__section-action { display: inline-flex; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 var(--zen-element-size-popular-small, 16px); align-items: center; justify-content: center; }
 .zen-sidebar__section-action > * { flex: 0 0 auto; }
 .zen-sidebar__section-action .zen-button--icon-only { --zen-button-icon-size: var(--zen-element-size-popular-small, 16px); }
-.zen-sidebar__item-group { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-sidebar__item-group { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 /* Figma Menu-Item Level=Child: 12px inset, a 16px Tree-Line column with a 2px line at x=9 inside it, then the item (x = 28). */
-.zen-sidebar__sub-menu { position: relative; display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-left: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-element-size-popular-small, 16px)); }
+.zen-sidebar__sub-menu { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-left: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-element-size-popular-small, 16px)); }
 .zen-sidebar__sub-menu::before { position: absolute; top: 0; bottom: 0; left: calc(var(--zen-spacing-padding-small, 12px) + 9px); width: 2px; background: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); content: ""; }
 
 /* The fallbacks are the .zen-sidebar defaults: a SidebarMenuItem placed outside a Sidebar (a page's Stack, a flyout)
