@@ -47,4 +47,6 @@ BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studi
   the frame, and under load the pin-row edit's older text can render after the preset frame's; the row waited 6 s for
   the selection where the app waits 10 s. Fix (`zen/fix/studio-new-frame-selection-20261020`, folded in here): a frame
   the Studio just added keeps its selection a few seconds (`arrivingFor`, board/frames.ts), then the check runs again;
-  B-20 waits 12 s for it.
+  B-20 waits 12 s for it. B confirmed the failing step: "Timed out waiting for the new frame selected" (the 6 s until,
+  after every earlier check passed; both tries of the row; alone 8 s and the builder group 45/45 pass): the selection, as
+  both leads say.
