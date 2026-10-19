@@ -335,6 +335,17 @@ Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
 - FW-52 starts from no stroke: the walk page keeps its id across runs, and a stopped run had left one.
 - 27/27 of Session B's FW rows pass with `--no-retry`. A retry runs on the page the failed attempt left, which hid
   FW-54's real error.
+- More slips the shots showed, now fixed:
+  - Corner radius' Independent corners was a button in an empty-label row, mid-panel. It is now an icon in the radius
+    row's icon column (PropField takes an `action`).
+  - Selection colors showed cut-off CSS names. Each colour is now a read-only field: swatch, the variable in Figma's
+    words (`colourVariableName`) and a BadgeCounter, on the field grid (`.studio-inspector__wide-field`).
+- E2E runner (`tools/studio/e2e/run.mjs`, asked by Giám sát): when the retry fails too, the report leads with the first
+  try's error and adds `(retry: …)`.
+  - Cause: a retry opens a fresh tab, but the documents the first try changed stay as it left them.
+  - Not done here, too big for this change: resetting those documents before a retry. Rows cache their pages per run,
+    and a page file keeps its id while the Studio server's drafts outlive it, which is how FW-52's stroke survived a
+    stopped run. BACKLOG, for the user.
 
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 

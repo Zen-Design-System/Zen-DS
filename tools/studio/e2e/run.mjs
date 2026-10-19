@@ -258,6 +258,9 @@ try {
           }),
         ]).finally(() => clearTimeout(timer));
       };
+      // The first try's error, kept: a retry runs in a fresh tab but on the documents the first try changed (a row's
+      // cached page keeps its edits), so a retry that fails too usually fails on that leftover, not on the cause.
+      let firstError = null;
       try {
         try {
           evidence = await attempt();
@@ -265,14 +268,17 @@ try {
           // Peers edit the same source tree, and a hot update of a Studio file mid-row can break it: one retry on a fresh
           // page. A pass on retry is marked in the evidence, so a real race still shows (--no-retry turns this off).
           if (has("no-retry")) throw first;
+          firstError = String(first?.message ?? first).split("\n")[0];
           await ctx.studio({ fresh: true });
           evidence = await attempt();
-          evidence = `${evidence ?? ""} (passed on retry; first try: ${String(first?.message ?? first).split("\n")[0].slice(0, 80)})`;
+          evidence = `${evidence ?? ""} (passed on retry; first try: ${firstError.slice(0, 80)})`;
         }
         if (evidence && typeof evidence === "object" && evidence.skip) { status = "skip"; evidence = evidence.skip; }
       } catch (caught) {
         status = "broken";
-        error = String(caught?.message ?? caught).split("\n")[0];
+        // The first try's error leads (the cause); the retry's follows it.
+        const last = String(caught?.message ?? caught).split("\n")[0];
+        error = firstError && firstError !== last ? `${firstError} (retry: ${last})` : last;
         if (session?.page && !session.page.isClosed()) {
           const shot = path.join(outDir, stamp, `${row.id}.png`);
           fs.mkdirSync(path.dirname(shot), { recursive: true });

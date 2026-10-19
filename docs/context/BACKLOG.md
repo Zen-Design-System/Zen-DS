@@ -38,6 +38,14 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
+- **P2 · Studio E2E: a retry reruns on the first try's leftovers (2026-10-19, Session B; for the user, the runner
+  is shared):**
+  - A failed row is retried in a fresh tab, but the documents it changed are not reset.
+  - Rows cache their pages per run, and a page file keeps its id across runs while the Studio server's drafts outlive
+    it: FW-52's stroke survived a stopped run.
+  - Since 2026-10-19 the report leads with the first try's error.
+  - Open: snapshot and restore the E2E pages and drafts around each row. Pointer: `tools/studio/e2e/run.mjs`
+    `attempt()`.
 - **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
   changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*). Open:
   - Figma pull of an instance's overrides and slot content.
