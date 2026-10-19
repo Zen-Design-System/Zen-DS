@@ -1303,6 +1303,40 @@ export default function Page() {
   const back = pageFromFigma(pushedNames, { mapping }).text;
   check("round trip: the names come back as data-name, the lock and the instance's name do not", ['data-name="Price row"', 'data-name="Price"', 'data-name="Dot"', 'data-name="Main action"', "data-locked"].map((part) => back.includes(part)), [true, true, true, false, false]);
 
+  // F9: a vector goes as Figma's VECTOR (its path fitted to its size, stroke centred, no fill) and comes back the same.
+  const vectorPage = names.replace('<Shape type="ellipse" width={24} height={24} data-name="Dot" />', '<Shape type="vector" width={80} height={40} d="M 0 10 C 5 0 15 0 20 10 Z" viewBox="0 0 20 10" fillRule="evenodd" />');
+  const pushedVector = find(push(vectorPage).frame, (node) => node.type === "VECTOR");
+  check("push: a vector is a VECTOR with its path in the node's px, centred stroke, no fill", pushedVector && [pushedVector.shape, pushedVector.name, pushedVector.vectorPaths, pushedVector.strokeAlign, "fill" in pushedVector, pushedVector.fixedWidth, pushedVector.fixedHeight], [true, "Vector", [{ windingRule: "EVENODD", data: "M 0 40 C 20 0 60 0 80 40 Z" }], "CENTER", false, 80, 40]);
+  // F3: a Box group is pushed as a frame the importer turns into Figma's GROUP; a Shape's flip goes along.
+  const groupPage = `// @zen-page {"format":1,"title":"Groups"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Groups" device="desktop">
+        <Stack>
+          <Box width={200} height={100}>
+            <Box group position="absolute" insetLeft={10} insetTop={10} width={60} height={24}><Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={24} height={24} flip="horizontal" /></Box>
+          </Box>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const pushedGroup = find(push(groupPage).frame, (node) => node.group === true);
+  check("push: a Box group is a frame marked group, named Group", pushedGroup && [pushedGroup.type, pushedGroup.name], ["FRAME", "Group"]);
+  check("push: a Shape's flip", find(push(groupPage).frame, (node) => node.shape === true)?.flip, "horizontal");
+
+  // F9b: a boolean group is pushed as Figma's BOOLEAN_OPERATION holding its shapes.
+  const booleanPage = groupPage.replace('<Box group position="absolute" insetLeft={10} insetTop={10} width={60} height={24}><Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={24} height={24} flip="horizontal" /></Box>', '<Shape type="boolean" operation="subtract" position="absolute" insetLeft={10} insetTop={10} width={60} height={24} d="M 0 0 L 60 0 L 60 24 L 0 24 Z" viewBox="0 0 60 24"><Shape type="rectangle" position="absolute" insetLeft={0} insetTop={0} width={60} height={24} /><Shape type="ellipse" position="absolute" insetLeft={40} insetTop={0} width={24} height={24} /></Shape>');
+  const pushedBoolean = find(push(booleanPage).frame, (node) => node.type === "BOOLEAN_OPERATION");
+  check("push: a boolean group is a BOOLEAN_OPERATION of its shapes", pushedBoolean && [pushedBoolean.name, pushedBoolean.booleanOperation, pushedBoolean.children.map((child) => child.type), "vectorPaths" in pushedBoolean], ["Subtract", "SUBTRACT", ["RECTANGLE", "ELLIPSE"], false]);
+
   // A pushed app page read back (fixtures/figma-shell.json): Figma's sample LOGO and Collapse are the Sidebar's own,
   // the crumbs' Sub level is `master` off, a Description List's rows their Term and Value, Type=Main a PageHeader.
   const shell = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-shell.json", import.meta.url), "utf8")).frame, { mapping });

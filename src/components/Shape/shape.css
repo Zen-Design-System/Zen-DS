@@ -29,3 +29,6 @@
 
 /* Line and arrow: no height (Figma's LINE); the stroke straddles the line, drawn past the 0-high box. */
 .zen-shape:is([data-type="line"], [data-type="arrow"]) { height: 0; min-height: 0; }
+
+/* A boolean group's shapes (type="boolean"): placed inside it to be combined, never drawn themselves (its result is). */
+.zen-shape__operands { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }

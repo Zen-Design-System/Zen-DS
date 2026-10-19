@@ -1,0 +1,17 @@
+/* Vertex edit on a vector (VectorHandles.tsx): each point a small square (the picked one filled), each handle a round
+   knob on a thin line, in Figma's selection blue, over the canvas in its viewport's px. */
+.studio-vector { position: absolute; top: 0; left: 0; z-index: 4; pointer-events: none; }
+.studio-vector__lines { position: absolute; top: 0; left: 0; overflow: visible; }
+.studio-vector__lines line { stroke: var(--zen-color-border-info-solid-default); stroke-width: 1px; }
+.studio-vector__point, .studio-vector__knob {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--zen-color-border-info-solid-default);
+  background: var(--zen-color-background-surface-default);
+  pointer-events: auto;
+  cursor: default;
+  translate: -50% -50%;
+}
+.studio-vector__point { width: 8px; height: 8px; }
+.studio-vector__point[data-picked] { background: var(--zen-color-background-info-solid-default); }
+.studio-vector__knob { width: 7px; height: 7px; border-radius: var(--zen-corner-radius-full, 999px); }

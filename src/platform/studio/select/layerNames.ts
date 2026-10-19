@@ -8,7 +8,7 @@ import type { IconName } from "../../../icons/generated/names";
  * do người dùng") — only a component the person made (⌥⌘K) or a Zen component instance reads as one.
  */
 
-const SHAPE_LABELS: Readonly<Record<string, string>> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star" };
+const SHAPE_LABELS: Readonly<Record<string, string>> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector" };
 
 /** `name` as the layer shows it, given its props (a Shape's `type`). */
 export function layerName(name: string, props: Record<string, unknown> | null | undefined): string {
@@ -17,11 +17,15 @@ export function layerName(name: string, props: Record<string, unknown> | null | 
   if (typeof props?.["data-zen-instance-name"] === "string") return props["data-zen-instance-name"] as string;
   // A component set (F7: <ComponentSet>, Figma's set of variants): its name.
   if (typeof props?.["data-zen-set-name"] === "string") return props["data-zen-set-name"] as string;
+  if (name === "Shape" && props?.type === "boolean") return BOOLEAN_LABELS[String(props.operation ?? "union")] ?? "Union";
   if (name === "Shape") return SHAPE_LABELS[String(props?.type ?? "rectangle")] ?? "Rectangle";
   return name;
 }
 
-const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-square-line", ellipse: "icon-circle-line", line: "icon-minus-line", arrow: "icon-arrow-up-right-line", polygon: "icon-triangle-line", star: "icon-star-01-line" };
+/** A boolean group reads as its operation (Figma's Union, Subtract, Intersect, Exclude). */
+const BOOLEAN_LABELS: Readonly<Record<string, string>> = { union: "Union", subtract: "Subtract", intersect: "Intersect", exclude: "Exclude" };
+
+const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-square-line", ellipse: "icon-circle-line", line: "icon-minus-line", arrow: "icon-arrow-up-right-line", polygon: "icon-triangle-line", star: "icon-star-01-line", vector: "icon-pen-tool-01-line", boolean: "icon-intersect-square-line" };
 
 /**
  * A layer's own icon, as Figma's layers show it: a page-local component's ◇ (its main and its instances), a shape's
@@ -31,7 +35,8 @@ const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-squar
 export function objectIcon(name: string, props: Record<string, unknown> | null | undefined): IconName | null {
   if (props?.["data-zen-main"] || props?.["data-zen-instance"] || props?.["data-zen-set"]) return "icon-diamond-line";
   if (name === "Shape") return SHAPE_ICONS[String(props?.type ?? "rectangle")] ?? "icon-square-line";
-  if (name === "Box") return "icon-hash-01-line";
+  // A group (Box group, ⌘G): Figma's group icon; any other Box is a frame's #.
+  if (name === "Box") return props?.group ? "icon-layers-two-01-line" : "icon-hash-01-line";
   if (name === "Stack") return props?.direction === "row" ? "icon-columns-01-line" : "icon-rows-01-line";
   if (name === "Grid") return "icon-grid-01-line";
   if (name === "Text" || name === "Heading") return "icon-type-01-line";
