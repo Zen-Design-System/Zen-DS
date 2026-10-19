@@ -1253,6 +1253,31 @@ export default function Page() {
   const back = pageFromFigma(pushedNames, { mapping }).text;
   check("round trip: the names come back as data-name, the lock and the instance's name do not", ['data-name="Price row"', 'data-name="Price"', 'data-name="Dot"', 'data-name="Main action"', "data-locked"].map((part) => back.includes(part)), [true, true, true, false, false]);
 
+  // F3: a Box group is pushed as a frame the importer turns into Figma's GROUP; a Shape's flip goes along.
+  const groupPage = `// @zen-page {"format":1,"title":"Groups"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Groups" device="desktop">
+        <Stack>
+          <Box width={200} height={100}>
+            <Box group position="absolute" insetLeft={10} insetTop={10} width={60} height={24}><Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={24} height={24} flip="horizontal" /></Box>
+          </Box>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const pushedGroup = find(push(groupPage).frame, (node) => node.group === true);
+  check("push: a Box group is a frame marked group, named Group", pushedGroup && [pushedGroup.type, pushedGroup.name], ["FRAME", "Group"]);
+  check("push: a Shape's flip", find(push(groupPage).frame, (node) => node.shape === true)?.flip, "horizontal");
+
   // A pushed app page read back (fixtures/figma-shell.json): Figma's sample LOGO and Collapse are the Sidebar's own,
   // the crumbs' Sub level is `master` off, a Description List's rows their Term and Value, Type=Main a PageHeader.
   const shell = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-shell.json", import.meta.url), "utf8")).frame, { mapping });

@@ -1342,7 +1342,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const scroll = { x: "HORIZONTAL", y: "VERTICAL" }[code.scroll];
     // Only a frame with `clip` (Box, Stack or Grid) cuts what overflows it: the importer clips that frame alone. Its
     // fill, stroke, corners, effect, opacity, rotation and flip: one Figma frame (frameLook).
-    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children, ...frameLook(code), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
+    // A Box group (⌘G): Figma's GROUP (the importer turns the frame into one once its layers sit where they go).
+    const group = element.name === "Box" && code.group === true;
+    return { type: "FRAME", ...(id ? { id } : {}), name: group ? "Group" : element.name, ...(group ? { group: true } : {}), layout, children, ...frameLook(code), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */

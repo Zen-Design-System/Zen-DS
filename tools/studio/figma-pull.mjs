@@ -285,8 +285,12 @@ const SHAPE_READ = new Set(["RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON"]);
 // (Ignore auto layout): its constraints and its box in the parent's.
 const placed = (out, child, parent) => {
   if (!("layoutMode" in parent) || parent.layoutMode === "NONE") {
-    // A shape in a frame without auto layout keeps its X / Y (a Zen Shape in a free frame: px insets).
-    if (out.shape && "layoutMode" in parent) out.absolute = { x: Math.round(child.x * 100) / 100, y: Math.round(child.y * 100) / 100, w: out.shape.w, h: out.shape.h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints ? child.constraints.horizontal : "MIN", cy: child.constraints ? child.constraints.vertical : "MIN", free: true };
+    // A shape or a group in a frame without auto layout keeps its X / Y (a Zen Shape or Box group in a free frame: px
+    // insets); a group's layers keep theirs inside it (Figma writes them in the group's parent's space).
+    const inGroup = parent.type === "GROUP";
+    const w = out.shape ? out.shape.w : Math.round(child.width * 100) / 100;
+    const h = out.shape ? out.shape.h : Math.round(child.height * 100) / 100;
+    if ((out.shape || out.type === "GROUP" || inGroup) && ("layoutMode" in parent || inGroup)) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints ? child.constraints.horizontal : "MIN", cy: child.constraints ? child.constraints.vertical : "MIN", free: true };
     return out;
   }
   // A grid cell keeps its minimum width (figma-push: columns that fit, counted for the page's width).
@@ -1213,8 +1217,9 @@ function convert(node, ctx) {
  */
 function positioned(element, node, ctx) {
   const box = node.absolute;
-  // A Shape takes its own position props, in px: Figma's X / Y (its unrotated box, as Shape turns about its centre).
-  if (element.name === "Shape") {
+  // A Shape takes its own position props, in px: Figma's X / Y (its unrotated box, as Shape turns about its centre); so
+  // does a group, or a frame placed in a frame without auto layout (free px insets, F3).
+  if (element.name === "Shape" || (box.free && ["Box", "Stack", "Grid"].includes(element.name))) {
     const shape = node.shape ?? {};
     const turn = ((shape.rotation ?? 0) * Math.PI) / 180;
     const w = shape.w ?? box.w;
@@ -1601,6 +1606,11 @@ function convertNode(node, ctx) {
   const children = layers.map((child) => convert(child, ctx)).filter(Boolean);
   // A frame whose layers were all left out (a drawing's wrapper) is left out with them.
   if (node.children?.length && !children.length) return null;
+  // Figma's GROUP: a Zen group (Box group) of its layers at their X / Y inside it, sized to them (figma-push, the other way).
+  if (node.type === "GROUP") {
+    const { opacity } = frameLookProps(node, ctx);
+    return { kind: "element", name: "Box", props: { group: literal(true), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
+  }
   return frameElement(node, children, ctx);
 }
 

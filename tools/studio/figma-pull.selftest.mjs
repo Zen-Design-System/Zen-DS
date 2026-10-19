@@ -275,6 +275,27 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("frame looks: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
+// A Figma GROUP comes back as a Zen group (Box group) at its X / Y, its layers at theirs inside it (the reader wrote
+// them relative to the group), its opacity kept.
+{
+  const grouped = {
+    type: "FRAME", name: "Groups", width: 400, height: 300, layout: null,
+    children: [
+      { type: "FRAME", name: "Canvas", width: 400, height: 300, layout: null, children: [
+        { type: "GROUP", name: "Group 1", width: 120, height: 60, layout: null, opacity: 0.5, absolute: { x: 20, y: 30, w: 120, h: 60, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true }, children: [
+          { type: "ELLIPSE", name: "Ellipse", shape: { w: 40, h: 40, fill: "Color/Background/Accent/Solid/Default", stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", rotation: 0, opacity: 1 }, absolute: { x: 0, y: 0, w: 40, h: 40, pw: 120, ph: 60, cx: "MIN", cy: "MIN", free: true } },
+          { type: "ELLIPSE", name: "Ellipse", shape: { w: 40, h: 40, fill: "Color/Background/Accent/Solid/Default", stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", rotation: 0, opacity: 1 }, absolute: { x: 80, y: 20, w: 40, h: 40, pw: 120, ph: 60, cx: "MIN", cy: "MIN", free: true } },
+        ] },
+      ] },
+    ],
+  };
+  const pulled = pageFromFigma(grouped, { mapping });
+  const box = pulled.text.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? "";
+  check("groups: a Box group at its X / Y, sized, its opacity", [/position="absolute"/.test(box), /insetLeft=\{20\}/.test(box), /insetTop=\{30\}/.test(box), /width=\{120\}/.test(box), /height=\{60\}/.test(box)], [true, true, true, true, true]);
+  check("groups: its layers at their X / Y inside it", pulled.text.split("\n").filter((line) => /type="ellipse"/.test(line)).map((line) => [/insetLeft=\{(\d+)\}/.exec(line)?.[1], /insetTop=\{(\d+)\}/.exec(line)?.[1]]), [["0", "0"], ["80", "20"]]);
+  check("groups: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);
