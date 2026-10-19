@@ -154,6 +154,10 @@ Last updated: 2026-10-19.
   right panel (`builder/FramePresets.tsx`), a click = 100 × 100, frame handles + X / Y / W / H written in the page
   (`board/FrameHandles.tsx`, `builder/FrameGeometry.tsx`), Sections `<Section>` beside the frames (membership by
   place, `board/sections.ts`), N / ⇧N, Pages order + dividers (`builder/store/pageOrderStore.ts`); FW-40…49.
+  **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides / dash, corners, effect,
+  opacity, rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame with a fill is one Stack
+  in code, push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed values, variable pills,
+  W / H math, ratio lock) and F5c next: spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures

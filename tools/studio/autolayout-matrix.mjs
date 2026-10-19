@@ -5,8 +5,9 @@
 //   1. Plans on generated arrangements: rows and columns, aligned on an edge, a centre or not, equal or uneven gaps,
 //      shuffled source order, overlaps, 0–6 layers. Judged by what the arrangement was made as (direction, order,
 //      gap and padding steps, alignment), never by the plan's own arithmetic.
-//   2. Every Assets item in a frame: floating in a Frame (Add), in flow in a Frame (Add), in a painted Frame (Add: Box >
-//      Stack), in a Stack (Remove), then Remove → Add back (the Stack it was, same direction, gap, padding, order).
+//   2. Every Assets item in a frame: floating in a Frame (Add), in flow in a Frame (Add), in a painted Frame (Add: one
+//      Stack that keeps the paint), in a Stack (Remove), then Remove → Add back (the Stack it was, same direction, gap,
+//      padding, order).
 //      Judged: a valid page, no layer lost or doubled, no X / Y left in auto layout, every layer floating after Remove.
 // Run: node tools/studio/autolayout-matrix.mjs (npm run studio:dnd runs it after dnd-matrix.mjs).
 import path from "node:path";
@@ -162,18 +163,17 @@ for (const item of items.filter((one) => one.code)) {
       else if (!FLOATS.has(rootName) && kids(node)[0].props.position && kids(frame)[0].props.position?.value !== kids(node)[0].props.position.value) fail("add-own-position-lost", `${item.id}`);
     }
   }
-  // C: in a painted Frame → Add auto layout keeps the Box (its fill) and lays the layers out in a Stack inside.
+  // C: in a painted Frame → Add auto layout makes it one Stack that keeps its fill and corners (decision 2, 2026-10-18).
   {
     cases += 1;
     const { text, node } = framed(`<Box surface="surface" radius="md" width={360} height={260}>\n${floatingCode(item.code, rootName, 24, 24)}\n</Box>`);
-    const { plan } = addPlan(kids(node).map((kid) => ({ box: { x: 24, y: 24, w: 200, h: 120 }, name: kid.name, floatWrapper: kid.name === "Box" && !FLOATS.has(rootName) })), keyOf, true);
+    const { plan } = addPlan(kids(node).map((kid) => ({ box: { x: 24, y: 24, w: 200, h: 120 }, name: kid.name, floatWrapper: kid.name === "Box" && !FLOATS.has(rootName) })), keyOf);
     const out = relayout(text, node, plan);
     if (out.error) fail("add-painted-refused", `${item.id}: ${out.error}`);
     else {
       const frame = lastLayer(out.text);
-      const stack = kids(frame)[0];
       if (validateDialect(out.text, { components }).length) fail("add-invalid-page", `${item.id} (painted)`);
-      else if (frame.name !== "Box" || frame.props.surface?.value !== "surface" || stack?.name !== "Stack" || kids(stack)[0]?.name !== rootName || "width" in frame.props) fail("add-painted", `${item.id}: ${frame.name}(${Object.keys(frame.props)}) > ${stack?.name} > ${kids(stack)[0]?.name}`);
+      else if (frame.name !== "Stack" || frame.props.surface?.value !== "surface" || frame.props.radius?.value !== "md" || kids(frame)[0]?.name !== rootName || "width" in frame.props) fail("add-painted", `${item.id}: ${frame.name}(${Object.keys(frame.props)}) > ${kids(frame)[0]?.name}`);
       else if (frame.props.padding?.value !== "lg") fail("add-painted-padding", `${item.id}: ${frame.props.padding?.value}`);
     }
   }

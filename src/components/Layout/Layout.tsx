@@ -3,15 +3,17 @@ import { gapValue, paddingValue, type ZenCornerRadius, type ZenGap, type ZenMarg
 import "./layout.css";
 import { layoutSizing, type LayoutSizingProps } from "./sizing";
 import { layoutPosition, type LayoutPositionProps } from "./position";
-import { boxEffects, type BoxEffectProps } from "./effects";
-import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
+import { boxEffects, type BoxEffectProps, type FrameEffectProps } from "./effects";
+import { frameAppearance, frameCorners, type FrameAppearanceProps, type FrameTransformProps } from "./appearance";
+import { cornerRadiusValue } from "../_shared/corners";
 import { useMergedRefs } from "../_shared/merge-refs";
 
 export type { ZenCornerRadius, ZenGap, ZenMargin, ZenPadding };
 export { layoutAlignSelfValues, type LayoutAlignSelf, type LayoutSizing, type LayoutSizingProps, type LayoutWidthProps } from "./sizing";
 export { layoutConstraintsX, layoutConstraintsY, layoutPositions, positionPropNames, type LayoutConstraintX, type LayoutConstraintY, type LayoutPosition, type LayoutPositionProps } from "./position";
-export { boxEffectStyles, effectPropNames, type BoxEffectProps, type BoxEffectStyle } from "./effects";
+export { boxEffectStyles, effectPropNames, type BoxEffectProps, type BoxEffectStyle, type FrameEffectProps } from "./effects";
 export { cornerRadiusPropNames, radiusPropNames, type CornerRadiusProps } from "../_shared/corners";
+export { boxSurfaces, frameAppearancePropNames, frameBorders, frameBorderSides, frameBorderStyles, frameFlips, type BoxSurface, type FrameAppearanceProps, type FrameBorder, type FrameBorderSide, type FrameBorderStyle, type FrameFlip, type FrameTransformProps } from "./appearance";
 
 export const layoutElements = ["div", "section", "article", "aside", "header", "footer", "main", "nav", "form", "fieldset", "ul", "ol", "li"] as const;
 /** Figma "Overflow scrolling": the frame scrolls along one axis and keeps the scroll inside it. */
@@ -27,7 +29,7 @@ const withVars = (style: CSSProperties | undefined, vars: Record<`--${string}`, 
 
 /* ───────────── Stack ───────────── */
 
-export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps {
+export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps {
   /** column (default) stacks top to bottom; row lays items side by side. */
   direction?: "column" | "row";
   /** Space between items (Figma Spacing/Gap). Default md (16px). */
@@ -80,9 +82,11 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack gap="lg">…sections…</Stack>
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
-export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: StackProps) {
+export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, rotation, flip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: StackProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
+  const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const corners = frameCorners(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft });
   return (
     <Element
       {...rest}
@@ -93,12 +97,14 @@ export function Stack({ direction = "column", gap = "md", align, justify, wrap =
       data-justify={justify}
       data-wrap={wrap ? "true" : undefined}
       data-fill-children={fillChildren ? "true" : undefined}
-      data-clip={clip ? "true" : undefined}
       data-scroll={scroll}
       data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}
-      style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)), ...sizing.vars, ...placed.vars })}
+      {...look.attributes}
+      {...corners.attributes}
+      {...boxEffects({ effectStyle, clip })}
+      style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)), ...sizing.vars, ...placed.vars, ...look.vars, ...corners.vars })}
     >
       {children}
     </Element>
@@ -111,7 +117,7 @@ export function Stack({ direction = "column", gap = "md", align, justify, wrap =
 export type GridTracks = number | string;
 export type GridColumns = GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks };
 
-export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps {
+export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps {
   /**
    * Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's
    * breakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: "2fr 1fr" }` puts a main column
@@ -175,7 +181,7 @@ function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement> | 
  *   <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…</Grid>
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
-export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: GridProps) {
+export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, rotation, flip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: GridProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   const perBreakpoint = typeof columns === "object" ? columns : undefined;
@@ -183,6 +189,8 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
   const desktop = tracks(fixed ?? perBreakpoint?.desktop ?? perBreakpoint?.tablet ?? perBreakpoint?.mobile);
   const min = typeof minColumnWidth === "number" ? `${minColumnWidth}px` : minColumnWidth;
   const { stacked, measure } = useStackBelow(stackBelow, ref);
+  const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const corners = frameCorners(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft });
   return (
     <Element
       {...rest}
@@ -191,9 +199,11 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
       data-mode={desktop === undefined ? "fill" : perBreakpoint ? "responsive" : "fixed"}
       data-stacked={stacked ? "true" : undefined}
       data-align={align}
-      data-clip={clip ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}
+      {...look.attributes}
+      {...corners.attributes}
+      {...boxEffects({ effectStyle, clip })}
       style={withVars(style, {
         "--zen-grid-min": min,
         "--zen-grid-cols": desktop,
@@ -204,6 +214,8 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
         "--zen-grid-padding": own(paddingValue(padding)),
         ...sizing.vars,
         ...placed.vars,
+        ...look.vars,
+        ...corners.vars,
       })}
     >
       {children}
@@ -213,26 +225,12 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
 
 /* ───────────── Box ───────────── */
 
-export const boxSurfaces = ["none", "surface", "surface-alt", "subtle", "pale", "canvas"] as const;
-export type BoxSurface = (typeof boxSurfaces)[number];
-
-export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, CornerRadiusProps {
+export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps {
   padding?: ZenPadding;
   paddingX?: ZenPadding;
   paddingY?: ZenPadding;
-  /**
-   * Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,
-   * `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the
-   * page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never
-   * for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet).
-   */
-  surface?: BoxSurface;
   /** Figma "Overflow scrolling": `"y"` scrolls vertically, `"x"` sideways, inside the box (the scroll stays inside). */
   scroll?: LayoutScroll;
-  /** Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md). */
-  border?: "none" | "pale" | "subtle";
-  /** Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. */
-  radius?: ZenCornerRadius;
   as?: LayoutElement;
   children?: ReactNode;
   /** Ref to the rendered DOM element (the `as` element when set). */
@@ -240,23 +238,24 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
 }
 
 /**
- * A plain container with token padding, background layer, border and radius. For clickable or selectable tiles use
- * Card; for page width use Container.
+ * A frame without auto layout (Figma's Frame): token padding, fill (background layer), stroke, corner radius and effect
+ * around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,
+ * which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
  */
-export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", scroll, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
+export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, rotation, flip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
+  const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
   return (
     <Element
       {...rest}
       ref={ref as never}
       className={["zen-box", className].filter(Boolean).join(" ")}
-      data-surface={surface === "none" ? undefined : surface}
-      data-border={border === "none" ? undefined : border}
       data-scroll={scroll}
       data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}
+      {...look.attributes}
       {...boxEffects({ effectStyle, clip })}
       style={withVars(style, {
         "--zen-box-padding-block": own(paddingValue(paddingY ?? padding)),
@@ -264,6 +263,7 @@ export function Box({ padding, paddingX, paddingY, surface = "none", border = "n
         "--zen-box-radius": own(cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft })),
         ...sizing.vars,
         ...placed.vars,
+        ...look.vars,
       })}
     >
       {children}

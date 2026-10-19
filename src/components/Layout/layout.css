@@ -31,18 +31,39 @@
 .zen-grid[data-align="end"] { align-items: end; }
 
 .zen-box { min-width: 0; padding-block: var(--zen-box-padding-block, 0); padding-inline: var(--zen-box-padding-inline, 0); border-radius: var(--zen-box-radius, 0); }
-.zen-box[data-surface="surface"] { background: var(--zen-color-background-surface-default, #fff); }
-.zen-box[data-surface="surface-alt"] { background: var(--zen-color-background-surface-alt); }
-.zen-box[data-surface="subtle"] { background: var(--zen-color-background-neutral-subtle-default); }
-.zen-box[data-surface="pale"] { background: var(--zen-color-background-neutral-pale-default); }
-/* zen-allow-canvas-layer: surface="canvas" is the page layer itself, for a whole screen or page area drawn inside something else (Box JSDoc). */
-.zen-box[data-surface="canvas"] { background: var(--zen-color-background-canvas-default); }
 /* scroll (Figma Overflow scrolling): one axis scrolls inside the frame, and the scroll stays inside it. */
 :is(.zen-stack, .zen-box)[data-scroll="y"] { overflow-y: auto; overscroll-behavior: contain; }
 :is(.zen-stack, .zen-box)[data-scroll="x"] { overflow-x: auto; overscroll-behavior-x: contain; }
-.zen-box[data-border="pale"] { border: 1px solid var(--zen-color-border-neutral-pale-default); }
-/* zen-allow-subtle-static-box: border="subtle" is for actionable boxes; the JSX rule box/border-matches-action checks each use. */
-.zen-box[data-border="subtle"] { border: 1px solid var(--zen-color-border-neutral-subtle-default); }
+
+/* ───────────── Frame appearance (appearance.ts): Box, Stack and Grid alike, Figma's frame fill / stroke / corners ─────────────
+   A Figma auto layout frame with a fill is one element (decision 2, docs/research/studio-figma-design-parity-2026-10-18.md).
+   Every custom property is read only next to its own attribute, so a nested frame never inherits its parent's. */
+:is(.zen-box, .zen-stack, .zen-grid)[data-surface="surface"] { background: var(--zen-color-background-surface-default, #fff); }
+:is(.zen-box, .zen-stack, .zen-grid)[data-surface="surface-alt"] { background: var(--zen-color-background-surface-alt); }
+:is(.zen-box, .zen-stack, .zen-grid)[data-surface="subtle"] { background: var(--zen-color-background-neutral-subtle-default); }
+:is(.zen-box, .zen-stack, .zen-grid)[data-surface="pale"] { background: var(--zen-color-background-neutral-pale-default); }
+/* zen-allow-canvas-layer: surface="canvas" is the page layer itself, for a whole screen or page area drawn inside something else (Box JSDoc). */
+:is(.zen-box, .zen-stack, .zen-grid)[data-surface="canvas"] { background: var(--zen-color-background-canvas-default); }
+:is(.zen-box, .zen-stack, .zen-grid)[data-border="pale"] { border: 1px solid var(--zen-color-border-neutral-pale-default); }
+/* zen-allow-subtle-static-box: border="subtle" is for actionable frames; the JSX rule box/border-matches-action checks each use. */
+:is(.zen-box, .zen-stack, .zen-grid)[data-border="subtle"] { border: 1px solid var(--zen-color-border-neutral-subtle-default); }
+/* Figma's stroke weight and sides: the weight first, then the sides the stroke leaves out. */
+:is(.zen-box, .zen-stack, .zen-grid)[data-border][data-border-weight] { border-width: var(--zen-layout-border-weight); }
+:is(.zen-box, .zen-stack, .zen-grid)[data-border][data-border-sides="top"] { border-right-width: 0; border-bottom-width: 0; border-left-width: 0; }
+:is(.zen-box, .zen-stack, .zen-grid)[data-border][data-border-sides="right"] { border-top-width: 0; border-bottom-width: 0; border-left-width: 0; }
+:is(.zen-box, .zen-stack, .zen-grid)[data-border][data-border-sides="bottom"] { border-top-width: 0; border-right-width: 0; border-left-width: 0; }
+:is(.zen-box, .zen-stack, .zen-grid)[data-border][data-border-sides="left"] { border-top-width: 0; border-right-width: 0; border-bottom-width: 0; }
+/* Dashed borders are always Subtle: a dashed Pale stroke stays solid (the JSX rule box/dashed-is-subtle says why). */
+:is(.zen-box, .zen-stack, .zen-grid)[data-border="subtle"][data-border-style="dashed"] { border-style: dashed; }
+/* Stack and Grid corners (Box keeps --zen-box-radius above). */
+:is(.zen-stack, .zen-grid)[data-corners] { border-radius: var(--zen-layout-radius); }
+/* Figma's layer opacity, rotation (counter-clockwise, about the centre) and flip. Individual transforms compose with any
+   transform of the element and leave its box in the layout. */
+:is(.zen-box, .zen-stack, .zen-grid)[data-opacity] { opacity: var(--zen-layout-opacity); }
+:is(.zen-box, .zen-stack, .zen-grid)[data-rotation] { rotate: var(--zen-layout-rotation); }
+:is(.zen-box, .zen-stack, .zen-grid)[data-flip="horizontal"] { scale: -1 1; }
+:is(.zen-box, .zen-stack, .zen-grid)[data-flip="vertical"] { scale: 1 -1; }
+:is(.zen-box, .zen-stack, .zen-grid)[data-flip="both"] { scale: -1 -1; }
 
 /* Content-box: max-width is the content width and the page margin (gutter) sits outside it. */
 .zen-container { --zen-container-gutter: 0px; box-sizing: content-box; max-width: var(--zen-container-max, none); margin-inline: auto; padding-inline: var(--zen-container-gutter); }

@@ -53,6 +53,14 @@ removed (four unused colour ramps were, see Removed).
   in exported code and in Figma push / pull (frames, shapes, text). Lock with ⇧⌘L, the row's padlock or the menu
   (`data-locked`, never exported): the canvas skips locked layers (click, hover, marquee, ⌘-click, handles, arrows).
   Right-click a row for the canvas menu, ⌥-click a chevron for everything inside, ⌥L (Actions › Collapse layers).
+- Stack and Grid take Box's look, so a Figma auto layout frame with a fill is one element (2026-10-19, plan decision 2):
+  `surface`, `border`, `radius` and the per-corner radii, `effectStyle`. Box, Stack and Grid also take Figma's
+  `opacity` (percent), `rotation`, `flip`, and stroke `borderWeight`, `borderSides` (one side) and `borderStyle="dashed"`
+  (Subtle only). Harness: the Box look rules cover Stack and Grid; new `layout/opacity-percent` and
+  `box/dashed-is-subtle`. Figma push / pull and the Zen plugin's import carry every one.
+- Zen Studio right panel in Figma's order (F5a): an instance's properties under its header, then Position (with
+  Rotate 90°, Flip horizontal, Flip vertical), Layout, Appearance (opacity, corner radius), Fill, Stroke (weight, sides,
+  dash), Effects on every frame. Add auto layout (⇧A) on a filled frame makes one Stack that keeps the fill.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

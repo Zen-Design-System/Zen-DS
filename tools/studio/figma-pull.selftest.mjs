@@ -252,6 +252,29 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("shapes: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
+// Frames as figmaReadCode reads them (stroke weight per side, four corners, effect style, opacity, rotation, mirror):
+// one Stack or Grid with its look (decision 2, plan 2026-10-18); a value Zen has no token for is noted.
+{
+  const text = (value) => ({ type: "TEXT", name: value, characters: value, textStyle: "Body/Base/Regular" });
+  const column = { mode: "VERTICAL", gap: 12, gapVar: "Spacing/Gap/Small", padding: [16, 16, 16, 16], paddingVar: "Spacing/Padding/Medium" };
+  const looks = {
+    type: "FRAME", name: "Looks", width: 400, height: 600, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] },
+    children: [
+      { type: "FRAME", name: "Card", fill: "Color/Background/Surface/Default", stroke: "Color/Border/Neutral/Pale/Default", strokeWeights: [0, 0, 1, 0], radii: [16, 16, 16, 16], radiiVars: ["Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/Large"], opacity: 0.5, rotation: 30, layout: column, children: [text("One"), text("Two")] },
+      { type: "FRAME", name: "Mirrored", fill: "Background/Neutral/Subtle/Default", effectStyle: "Effect/Overlay", flip: "horizontal", stroke: "Border/Neutral/Subtle/Default", strokeWeights: [2, 2, 2, 2], dash: [2, 2], radii: [20, 20, 4, 20], radiiVars: ["Corner-Radius/XLarge", "Corner-Radius/XLarge", "Corner-Radius/XSmall", "Corner-Radius/XLarge"], layout: column, children: [text("Three"), text("Four")] },
+      { type: "FRAME", name: "Odd", fill: "Background/Accent/Solid/Default", stroke: "unbound", strokeWeights: [1, 1, 1, 1], radii: [13, 13, 13, 13], radiiVars: [null, null, null, null], effectStyle: "Effect/Popover", layout: column, children: [text("Five"), text("Six")] },
+    ],
+  };
+  const pulled = pageFromFigma(looks, { mapping });
+  const line = (name) => pulled.text.split("\n").find((candidate) => candidate.includes("<Stack") && candidate.includes(name)) ?? "";
+  const lines = pulled.text.split("\n").filter((candidate) => /<(Stack|Box|Grid)\b/.test(candidate));
+  check("frame looks: three Stacks, no Box around them", [lines.filter((candidate) => candidate.includes("<Stack")).length >= 3, lines.some((candidate) => candidate.includes("<Box"))], [true, false]);
+  check("frame looks: fill, one-sided stroke, corners, opacity, rotation", /surface="surface"/.test(line("opacity")) && /border="pale"/.test(line("opacity")) && /borderSides="bottom"/.test(line("opacity")) && /radius="lg"/.test(line("opacity")) && /opacity=\{50\}/.test(line("opacity")) && /rotation=\{30\}/.test(line("opacity")), true);
+  check("frame looks: blur, dashed subtle stroke 2px, a differing corner, flip", /surface="subtle"/.test(line("flip")) && /effectStyle="Effect\/Overlay"/.test(line("flip")) && /borderStyle="dashed"/.test(line("flip")) && /borderWeight=\{2\}/.test(line("flip")) && /radius="xl"/.test(line("flip")) && /radiusBottomRight="xs"/.test(line("flip")) && /flip="horizontal"/.test(line("flip")), true);
+  check("frame looks: no token → noted, left out", [/Frame "Odd": its fill/.test(pulled.notes.join("\n")), /Frame "Odd": its stroke is no colour variable/.test(pulled.notes.join("\n")), /Frame "Odd": a corner radius/.test(pulled.notes.join("\n")), /Frame "Odd": its effect style Effect\/Popover/.test(pulled.notes.join("\n"))], [true, true, true, true]);
+  check("frame looks: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);
