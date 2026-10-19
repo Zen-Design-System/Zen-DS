@@ -5,7 +5,7 @@
 // element went (locs / locMap), so a selection follows its element. Run: node tools/studio/doc.selftest.mjs
 import fs from "node:fs";
 import { dataFieldEdit } from "./data-source.mjs";
-import { newPageText, parsePage } from "./dialect.mjs";
+import { newPageText, parsePage, validateDialect } from "./dialect.mjs";
 import { docFromText, editDoc, locMap, locsOf, printPage, withoutIds } from "./doc.mjs";
 import { applyOps, sha1 } from "./jsx-source.mjs";
 
@@ -324,6 +324,42 @@ export default function Page() {
   if (!copied.error) check("duplicate: three layers in the slot", byName(copied.doc, "ListItem", 1).props.trailing.children.map((child) => child.name), ["Badge", "Badge", "Button"]);
   const moved = edit("move a layer within its slot", "Button", 0, [{ op: "moveElement", to: "prev" }]);
   if (!moved.error) check("move: the Button goes first", byName(moved.doc, "ListItem", 1).props.trailing.children.map((child) => child.name), ["Button", "Badge"]);
+}
+
+/* ── a page's components import from the builder ──────────────────────────────────────────────────────────────── */
+
+// 2026-10-20: printPage put Component, ComponentSet and Use in the "@zen-ds/react" import, which the dev server's
+// dialect check refuses ("Component is not a Zen component"): a page pulled from Figma with its own components failed.
+{
+  const sets = `// @zen-page {"format":1,"title":"Sets"}
+import { Board, Component, ComponentSet, Screen, Use, proto } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Sets" device="desktop">
+        <Stack>
+          <ComponentSet id="chip" name="Chip">
+            <Component id="chip-small" variant={{ Size: "Small" }}>
+              <Text>Filter</Text>
+            </Component>
+          </ComponentSet>
+          <Use of="chip" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const printed = printPage(docFromText(sets).doc);
+  check("components: Component, ComponentSet and Use import from the builder", printed.split("\n").filter((line) => line.startsWith("import ")), [
+    'import { Board, Component, ComponentSet, Screen, Use, proto } from "@zen-ds/react/builder";',
+    'import { Stack, Text } from "@zen-ds/react";',
+  ]);
+  check("components: the print passes the dialect check with the Zen components", validateDialect(printed, { components: new Set(["Stack", "Text"]) }), []);
 }
 
 if (failures.length) {

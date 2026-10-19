@@ -1171,14 +1171,40 @@ export default function Chips() {
   check("main: the slot layer and the swapped icon", [panelNode.children[0]?.slot, find(panelNode, (node) => node.propRefs?.mainComponent)?.propRefs], ["Content", { mainComponent: "Icon" }]);
   check("round trip: sets, mains, bound layers and instances come back", shape(pageFromFigma(push(chips).frame, { mapping }).text), shape(chips));
   // F7b: an instance's overrides of its main's layers, by the child indices that reach them in the drawn main.
-  const overridden = push(chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />'));
+  const overriddenPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />');
+  const overridden = push(overriddenPage);
   const overriddenInstance = overridden.frame.children.find((node) => node.type === "INSTANCE" && node.local === "chip");
   check("overrides: placed by index in the main, in Figma's fields", overriddenInstance?.layerOverrides, [{ at: [0, 1], characters: "Hi", fill: "Content/Accent/Base" }, { at: [0, 0], visible: false }]);
+  // …and pulled back to the same overrides by the Studio's layer paths (2026-10-20).
+  // (tone "accent" comes back as its canonical name, "accent-base", as a Text's own tone does.)
+  check("round trip: an instance's overrides come back by layer path", shape(pageFromFigma(overridden.frame, { mapping }).text), shape(overriddenPage.replace('tone: "accent"', 'tone: "accent-base"')));
   // F7b: an instance's slot content, by the slot's name.
-  const filledPanel = push(chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="panel" slots={{ Content: <Text>Filled</Text> }} />'));
+  const filledPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="panel" slots={{ Content: <Text>Filled</Text> }} />');
+  const filledPanel = push(filledPage);
   const filledInstance = filledPanel.frame.children.find((node) => node.type === "INSTANCE" && node.local === "panel");
   check("slots: an instance's slot content by name", filledInstance?.slots?.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.characters])]), [["Content", [["TEXT", "Filled"]]]]);
+  check("round trip: an instance's slot content comes back", shape(pageFromFigma(filledPanel.frame, { mapping }).text), shape(filledPage));
   check("set: an instance's variant and values", [instanceNode.type, instanceNode.local, instanceNode.variant, instanceNode.props], ["INSTANCE", "chip", { Size: "Large" }, { Label: "Done", "Show icon": true }]);
+  // A layer inside a nested instance (2026-10-20): the nested Chip's place in the Toolbar main, then its Text's in the
+  // Chip variant the override shows (Large), the variant first; and back by the same path.
+  const toolbar = `          <Component id="toolbar" name="Toolbar">
+            <Stack direction="row" gap="sm">
+              <Use of="chip" variant={{ Size: "Small" }} />
+              <Text>Tools</Text>
+            </Stack>
+          </Component>
+`;
+  const deepPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', `${toolbar.trim()}\n          <Use of="toolbar" overrides={{ "Chip/Text": { children: "Deep" }, Chip: { "variant.Size": "Large" } }} />`);
+  const deep = push(deepPage);
+  const deepInstance = deep.frame.children.find((node) => node.type === "INSTANCE" && node.local === "toolbar");
+  check("deep overrides: the nested instance's variant, then its layer by the indices through it", deepInstance?.layerOverrides, [{ at: [0, 0], variant: { Size: "Large" } }, { at: [0, 0, 0, 0], characters: "Deep" }]);
+  check("deep overrides: no note", deep.notes.filter((note) => note.includes("override")), []);
+  check("round trip: an override inside a nested instance comes back by its path", shape(pageFromFigma(deep.frame, { mapping }).text), shape(deepPage.replace('<Use of="chip" variant={{ Size: "Small" }} />', '<Use of="chip" />')));
+  // In the Small variant the Text is the second layer (after the Icon): the indices follow the variant shown.
+  const smallPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', `${toolbar.trim()}\n          <Use of="toolbar" overrides={{ "Chip/Text": { children: "Small" } }} />`);
+  check("deep overrides: in the nested instance's own variant", push(smallPage).frame.children.find((node) => node.type === "INSTANCE" && node.local === "toolbar")?.layerOverrides, [{ at: [0, 0, 0, 1], characters: "Small" }]);
+  const libraryPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="tag-chip" overrides={{ "Badge/Dot": { hidden: true } }} />\n          <Component id="tag-chip" name="Tag chip"><Stack><Badge>New</Badge></Stack></Component>').replace("import { Icon, Stack, Text }", "import { Badge, Icon, Stack, Text }");
+  check("deep overrides: a Zen component's own layer is noted, not pushed", push(libraryPage).notes.filter((note) => note.includes("Badge/Dot")).length, 1);
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
 import { Board, Screen } from "@zen-ds/react/builder";
 import { Grid, Stack, Text } from "@zen-ds/react";
