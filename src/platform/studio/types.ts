@@ -354,7 +354,7 @@ export type EditOp =
   /** Remove the element (its lines, the attribute that holds it, or the `&&` around it); `hash` required. Answer: `removed`. */
   | { op: "removeElement" }
   /** The element's source again right after it; the answer's `inserted.loc` is the copy. */
-  | { op: "duplicateElement" }
+  | { op: "duplicateElement"; /** px the copy's insets move by (⌘D repeating the last offset, F3). */ offset?: { dx: number; dy: number } }
   /** Swap with the previous / next element sibling in the same JSX parent; the answer's `moved.loc` is where it is now. */
   | { op: "moveElement"; to: "prev" | "next" }
   /**
@@ -369,7 +369,7 @@ export type EditOp =
    * the names of `state` (an Assets item: declared as insertChild does). `hash` required. Answer: `inserted.loc`
    * (tools/studio/arrange.mjs).
    */
-  | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[] }
+  | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[]; /** px in the frame without auto layout it lands in: the layers float there (Paste here). */ at?: { x: number; y: number } }
   /**
    * Swap instance (GĐ4 M2): `code`, one JSX element, takes the place of the element at loc wherever it is written (a
    * child, a prop's value, a .map row); its key stays; Zen components are imported, the ones left unused go. `hash`

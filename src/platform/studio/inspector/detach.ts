@@ -501,7 +501,9 @@ export async function detachSelection(selection: NodeSelection): Promise<boolean
       return false;
     }
     if (!isDetachableType(element.name)) {
-      fail(`${element.name} can't be detached. Detach works on ${detachableList()}.`);
+      // Figma detaches any instance; Zen keeps its controls (the user's rule, 2026-10-03, kept 2026-10-19): the plan says why.
+      const plan = await studioApi.detachPlan(parsed.file, parsed.loc, element.name).catch(() => null);
+      fail(plan && !plan.ok ? plan.reason : `${element.name} stays an instance: Detach instance works on ${detachableList()}.`);
       return false;
     }
     const plan = withRowCheck(await studioApi.detachPlan(parsed.file, parsed.loc, element.name, renderCount(selection) || undefined), selection);

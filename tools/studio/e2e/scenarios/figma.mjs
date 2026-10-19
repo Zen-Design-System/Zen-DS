@@ -45,7 +45,7 @@ async function selectBody(page, id) {
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
-  ["ControlOrMeta+KeyG", "Group selection"], ["ControlOrMeta+Shift+KeyG", "Ungroup"],
+  ["ControlOrMeta+KeyG", "Group selection"],
   ["ControlOrMeta+KeyE", "Flatten"], ["ControlOrMeta+Shift+KeyC", "Copy as PNG"],
   ["Shift+KeyR", "Rulers"], ["Shift+KeyS", "Section"], ["KeyP", "Pen"], ["KeyK", "Scale"], ["KeyC", "Comment"],
   ["KeyI", "Pick color"], ["KeyN", "Next frame"], ["KeyS", "Slice"],
@@ -78,6 +78,39 @@ async function undoTo(page, id, text, tries = 3) {
   }
   if ((await pageText(page, id)) !== text) throw new Error("⌘Z did not bring the page back");
 }
+
+
+/* ── F3 (structure and clipboard) ───────────────────────────────────────────────────────────────────────────────── */
+
+/** A phone page with a free frame: a filled, stroked Rectangle and a plain Ellipse. */
+const clipText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={220}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} fill="support-teal-solid" stroke="accent-solid" strokeWeight={2} opacity={80} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n</Box>');
+let clipMade = null;
+async function clipPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!clipMade) {
+    const seeded = await seededPage(ctx, clipText, /type="ellipse"/);
+    clipMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${clipMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${clipMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await showLeftTab(page, "layers");
+  await deselect(page);
+  return { page, id: clipMade };
+}
+/** Escape until nothing is selected (Layers shows no selected row). */
+async function deselect(page) {
+  await page.locator(".studio-viewport").focus();
+  for (let k = 0; k < 6 && (await selectedSrc(page)).length; k++) { await page.keyboard.press("Escape"); await sleep(150); }
+  if ((await selectedSrc(page)).length) throw new Error("Escape left a layer selected");
+}
+/** Every Shape tag's props in page order: [{ type, x, y, fill, stroke, ... }] (any attribute order). */
+const shapeTags = (text) => [...text.matchAll(/<Shape\b[^>]*\/>/g)].map(([tag]) => {
+  const value = (name) => { const match = new RegExp(`\\b${name}=(?:"([^"]*)"|\\{(-?[\\d.]+)\\})`).exec(tag); return match ? match[1] ?? Number(match[2]) : undefined; };
+  return { type: value("type"), x: value("insetLeft"), y: value("insetTop"), width: value("width"), height: value("height"), fill: value("fill"), stroke: value("stroke"), strokeWeight: value("strokeWeight"), opacity: value("opacity") };
+});
+const clipShape = (page, id, index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index);
 
 
 /* ── F2 (selection and transform) ───────────────────────────────────────────────────────────────────────────────── */
@@ -731,6 +764,226 @@ export const rows = [
       await until(async () => (await page.locator('.studio-layers__tree [data-kind="frame"][aria-selected="true"]').count()) === 2, { message: "both frame rows selected" });
       await until(async () => (await page.locator('.studio-frame[data-selected="true"]').count()) === 2, { message: "both frames outlined" });
       return "2 frame rows selected";
+    },
+  },
+  {
+    id: "FW-33", feature: "Delete leaves nothing selected (Figma); ⌘Z brings the layer back selected", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 1);
+      await until(async () => (await selectedSrc(page)).length === 1, { message: "the Ellipse selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Backspace");
+      await until(async () => !/type="ellipse"/.test((await pageText(page, id)) ?? ""), { message: "the Ellipse removed" });
+      await sleep(400);
+      const left = await selectedSrc(page);
+      if (left.length) throw new Error(`still selected after Delete: ${left.join(", ")}`);
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
+      await until(async () => (await selectedName(page)) === "Shape" || (await selectedSrc(page)).length === 1, { timeout: 4000, message: "⌘Z selects it again" });
+      return "Delete → no selection · ⌘Z → back, selected";
+    },
+  },
+  {
+    id: "FW-34", feature: "Copy / Paste properties carry fill, stroke and opacity only — never X / Y / W / H", wp: "F3 2026-10-19 · walk §2",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const [rectangle, ellipse] = shapeTags(before);
+      await selectShape(page, id, 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyC");
+      await until(async () => /Copied 4 properties/.test(await statusText(page)), { message: '"Copied 4 properties"' });
+      await deselect(page);
+      await selectShape(page, id, 1);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyV");
+      await until(async () => shapeTags((await pageText(page, id)) ?? "")[1]?.fill === rectangle.fill, { message: "the Ellipse takes the fill" });
+      const now = shapeTags((await pageText(page, id)) ?? "")[1];
+      const wrong = ["stroke", "strokeWeight", "opacity"].filter((key) => now[key] !== rectangle[key]);
+      const moved = ["x", "y", "width", "height"].filter((key) => now[key] !== ellipse[key]);
+      if (wrong.length) throw new Error(`not pasted: ${wrong.join(", ")}`);
+      if (moved.length) throw new Error(`X / Y / W / H pasted: ${moved.map((key) => `${key} ${ellipse[key]} → ${now[key]}`).join(", ")}`);
+      await undoTo(page, id, before);
+      return "fill, stroke, weight, opacity pasted · X / Y / W / H kept · ⌘Z";
+    },
+  },
+  {
+    id: "FW-35", feature: "⌘V with nothing selected pastes into the frame in view, at the copied layer's place", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 3000, message: '"Copied"' });
+      await deselect(page);
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      await until(async () => shapeTags((await pageText(page, id)) ?? "").length === 3, { message: "a third Shape" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const pasted = shapeTags((await pageText(page, id)) ?? "")[2];
+      if (pasted.type !== "rectangle" || pasted.x !== 20 || pasted.y !== 20) throw new Error(`pasted ${pasted.type} at ${pasted.x}, ${pasted.y} (want the rectangle at 20, 20)`);
+      await until(async () => (await selectedSrc(page)).length === 1, { message: "the pasted layer selected" });
+      await undoTo(page, id, before);
+      return "nothing selected · ⌘V → the Rectangle at 20, 20 in the frame, selected · ⌘Z";
+    },
+  },
+  {
+    id: "FW-36", feature: "Paste here (right-click in a frame without auto layout) pastes at the pointer", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 1);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 3000, message: '"Copied"' });
+      const frame = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).filter({ has: page.locator('[data-zen-name="Shape"]') }).first().boundingBox();
+      const scale = frame.width / 358;
+      await page.mouse.click(frame.x + 250 * scale, frame.y + 150 * scale, { button: "right" });
+      const menu = page.getByRole("menu").last();
+      await menu.waitFor({ state: "visible", timeout: 5000 });
+      await menu.getByRole("menuitem", { name: /^Paste here/ }).click();
+      await until(async () => shapeTags((await pageText(page, id)) ?? "").length === 3, { message: "a third Shape" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const pasted = shapeTags((await pageText(page, id)) ?? "")[2];
+      if (pasted.type !== "ellipse" || Math.abs(pasted.x - 250) > 2 || Math.abs(pasted.y - 150) > 2) throw new Error(`pasted ${pasted.type} at ${pasted.x}, ${pasted.y} (want the ellipse at 250, 150)`);
+      await undoTo(page, id, before);
+      return `the Ellipse at ${pasted.x}, ${pasted.y} (pointer 250, 150) · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-37", feature: "⌘D on a moved copy repeats its offset (Figma's smart duplicate)", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 1);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => shapeTags((await pageText(page, id)) ?? "").length === 3, { message: "⌘D: a copy" });
+      const copy = shapeTags((await pageText(page, id)) ?? "")[2];
+      if (copy.x !== 140 || copy.y !== 40) throw new Error(`the copy at ${copy.x}, ${copy.y}: not on the original`);
+      await page.keyboard.press("Shift+ArrowRight");
+      await until(async () => shapeTags((await pageText(page, id)) ?? "")[2]?.x === 150, { message: "⇧→ moves the copy 10 px" });
+      await page.keyboard.press("Shift+ArrowDown");
+      await until(async () => shapeTags((await pageText(page, id)) ?? "")[2]?.y === 50, { message: "⇧↓ moves the copy 10 px" });
+      await sleep(300);
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => shapeTags((await pageText(page, id)) ?? "").length === 4, { message: "⌘D again: a fourth" });
+      const next = shapeTags((await pageText(page, id)) ?? "")[3];
+      if (next.x !== 160 || next.y !== 60) throw new Error(`the next copy at ${next.x}, ${next.y} (want 160, 60: the offset repeated)`);
+      await undoTo(page, id, before, 5);
+      return "copy at 140, 40 · moved +10, +10 · ⌘D → 160, 60 · ⌘Z";
+    },
+  },
+  {
+    id: "FW-38", feature: "Frame selection (⌥⌘G) on floating layers: a Box at the box around them, each layer kept where it was", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const where = async () => Promise.all([0, 1].map(async (k) => { const box = await clipShape(page, id, k).boundingBox(); return { x: Math.round(box.x), y: Math.round(box.y) }; }));
+      const start = await where();
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyG");
+      await until(async () => /<Box position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{180\} height=\{80\}>/.test((await pageText(page, id)) ?? ""), { message: "a Box at 20, 20, 180 × 80" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)} · ${((await pageText(page, id)) ?? "").match(/<Box[^>]*position[^>]*>/)?.[0]}`); });
+      const kids = shapeTags((await pageText(page, id)) ?? "");
+      if (kids[0].x !== 0 || kids[0].y !== 0 || kids[1].x !== 120 || kids[1].y !== 20) throw new Error(`the layers' offsets in the Box: ${kids.map((kid) => `${kid.x}, ${kid.y}`).join(" · ")}`);
+      await sleep(400);
+      const now = await where();
+      const moved = now.filter((point, k) => Math.abs(point.x - start[k].x) > 1 || Math.abs(point.y - start[k].y) > 1);
+      if (moved.length) throw new Error(`moved on the canvas: ${JSON.stringify(start)} → ${JSON.stringify(now)}`);
+      await until(async () => (await selectedName(page)) === "Box" || /^Frame/.test(await selectedName(page)), { timeout: 4000, message: "the Box selected" }).catch(() => undefined);
+      await undoTo(page, id, before);
+      return "Box 20, 20, 180 × 80 · offsets 0, 0 and 120, 20 · nothing moved · ⌘Z";
+    },
+  },
+  {
+    id: "FW-39", feature: "⇧⌘G on a frame floating in a frame without auto layout: its layers take its place where they were, selected", wp: "F3 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const where = async () => Promise.all([0, 1].map(async (k) => { const box = await clipShape(page, id, k).boundingBox(); return { x: Math.round(box.x), y: Math.round(box.y) }; }));
+      const start = await where();
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyG");
+      await until(async () => /<Box position="absolute" insetLeft=\{20\}/.test((await pageText(page, id)) ?? ""), { message: "framed" });
+      const framed = (await pageText(page, id)) ?? "";
+      await sleep(400);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Shift+KeyG");
+      await until(async () => !/<Box position="absolute"/.test((await pageText(page, id)) ?? ""), { message: "the frame removed" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const shapes = shapeTags((await pageText(page, id)) ?? "");
+      if (shapes[0].x !== 20 || shapes[0].y !== 20 || shapes[1].x !== 140 || shapes[1].y !== 40) throw new Error(`the layers at ${shapes.map((shape) => `${shape.x}, ${shape.y}`).join(" · ")} (want 20, 20 · 140, 40)`);
+      await sleep(400);
+      const now = await where();
+      if (now.some((point, k) => Math.abs(point.x - start[k].x) > 1 || Math.abs(point.y - start[k].y) > 1)) throw new Error(`moved on the canvas: ${JSON.stringify(start)} → ${JSON.stringify(now)}`);
+      await until(async () => (await selectedSrc(page)).length === 2, { timeout: 4000, message: "both layers selected" });
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === framed, { message: "⌘Z: framed again" });
+      await undoTo(page, id, before);
+      return "⌥⌘G → ⇧⌘G: back at 20, 20 · 140, 40, nothing moved, both selected · ⌘Z ×2";
+    },
+  },
+  {
+    id: "FW-110", feature: "⌥⌘K on two floating layers: one component of them both (a Box keeping their places), one ⌘Z", wp: "F3 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+KeyK");
+      await until(async () => /<Component id="component-1" name="Component 1">\s*<Box position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{180\} height=\{80\}>/.test((await pageText(page, id)) ?? ""), { message: "Component 1 around a Box at 20, 20" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return "Component 1 › Box 20, 20, 180 × 80 › 2 shapes · one ⌘Z";
+    },
+  },
+  {
+    id: "FW-111", feature: "Create multiple components (menu): each selected layer its own component, all selected after", wp: "F3 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      const box = await clipShape(page, id, 1).boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+      const menu = page.getByRole("menu").last();
+      await menu.waitFor({ state: "visible", timeout: 5000 });
+      await menu.getByRole("menuitem", { name: /^Create multiple components/ }).click();
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Component id=/g)?.length === 2, { message: "two components" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const names = [...text.matchAll(/<Component id="([^"]+)" name="([^"]+)">/g)].map((match) => match[2]);
+      await until(async () => (await selectedSrc(page)).length === 2, { timeout: 4000, message: "both selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return `${names.join(" · ")} · both selected · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-112", feature: "Copy as › Copy as CSS / Copy as code (the layer menu): its declarations by Zen variable, its JSX", wp: "F3 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const copyAs = async (item) => {
+        await selectShape(page, id, 0);
+        const box = await clipShape(page, id, 0).boundingBox();
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+        const menu = page.getByRole("menu").last();
+        await menu.waitFor({ state: "visible", timeout: 5000 });
+        await menu.getByRole("menuitem", { name: /^Copy as\b/ }).first().click();
+        const list = page.getByRole("menu").last();
+        await list.getByRole("menuitem", { name: item }).waitFor({ state: "visible", timeout: 5000 });
+        await list.getByRole("menuitem", { name: item }).click();
+        await sleep(400);
+        return page.evaluate(() => navigator.clipboard.readText());
+      };
+      const css = await copyAs("Copy as CSS");
+      const missing = [/^\/\* Rectangle/, /width: 80px;/, /height: 60px;/, /opacity: 0\.8;/].filter((pattern) => !pattern.test(css) && !new RegExp(pattern.source, "m").test(css));
+      if (missing.length) throw new Error(`CSS without ${missing.join(", ")}: ${css.slice(0, 300)}`);
+      const code = await copyAs("Copy as code");
+      if (!/<Shape type="rectangle"/.test(code)) throw new Error(`code: ${code.slice(0, 160)}`);
+      const tokens = (css.match(/var\(--zen-[\w-]+\)/g) ?? []).length;
+      return `CSS ${css.split("\n").length - 2} declarations (${tokens} by variable: ${css.split("\n").slice(1).join(" ").slice(0, 400)}) · code <Shape …>`;
     },
   },
 ];

@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio structure and clipboard as in Figma (F3 of the same plan): Delete leaves nothing selected (⌘Z selects the
+  layer again); Copy / Paste properties carry fill, stroke, effects, radius, opacity and text style only, never X / Y /
+  W / H; ⌘V with nothing (or a frame) selected pastes into the frame in view at the layer's place; Paste here (layer
+  and frame menus) pastes at the pointer; ⌘D on a moved copy repeats its offset. Frame selection on floating layers
+  frames them where they are (it collapsed them into an empty Box before); ⇧⌘G / Remove frame puts a frame's layers in
+  its place, each kept where it was. ⌥⌘K on several layers makes one component of them, Create multiple components
+  (menu, Actions) one each. Copy as › code / CSS in the layer menu.
 - Zen Studio, several layers as in Figma (F2a of the same plan): one box around a multi-selection; floating layers
   (a frame without auto layout) move together by the px when dragged (snapping to their frame and its other layers, ⌘
   no snapping, ⇧ one axis) and nudge together with the arrows; ⌥A ⌥D ⌥W ⌥S ⌥H ⌥V align several layers to the box

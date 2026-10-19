@@ -63,7 +63,8 @@ const localName = (name) => name.slice(name.lastIndexOf(".") + 1);
 function notDetachable(name) {
   if (!/^[A-Z]/.test(name)) return `<${name}> is plain markup already; only Zen components detach.`;
   if (PRIMITIVES.has(name)) return `<${name}> is a layout primitive already.`;
-  if (INTERACTIVE.has(name)) return `<${name}> is interactive; only presentational components detach (${DETACHABLE.join(", ")}).`;
+  // The user's rule (2026-10-03, kept 2026-10-19): a control stays an instance — detached, it would stop working.
+  if (INTERACTIVE.has(name)) return `${name} stays an instance: an interactive component stops working when detached. Change its properties or use Swap instance.`;
   return `<${name}> has no detach recipe; detach works on ${DETACHABLE.join(", ")}.`;
 }
 

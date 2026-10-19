@@ -420,3 +420,32 @@ equal-spacing guides, several frames: ⌘A, marquee) next. W / H arithmetic and 
   selection), marquee from the empty canvas selects frames (`startMarquee(…, "board")`), ⌘A with no layer selected
   selects every top-level frame, ⇧-click on a frame name / row toggles, StudioFrame / FrameChrome labels / Layers rows
   show the extras selected. Delete still removes the primary frame until C's `removeFrames` lands. FW-30…32 pass.
+
+## Studio structure and clipboard — F3 (2026-10-19) — Session A, worktree `../Zen-DS-f3`, branch `zen/feat/studio-f3-structure-20261019` (stacked on F2)
+
+- Delete: `runRemove` / `removeLayers` select nothing (Figma); the undo memory (`LastSlotEdit`) takes null on either
+  side, so ⌘Z still selects the removed layer and a paste with nothing selected undoes to nothing. The 700 ms held-⌫
+  guard and `parentSelectionOf` went (nothing is selected to remove twice).
+- Copy / Paste properties: `VISUAL` allow-list (surface, fill, a text's tone, border / stroke / weight / align,
+  effectStyle, radius ×5, opacity, textStyle) instead of the NOT_STYLE deny-list that let X / Y / W / H and layout
+  through (walk §2); the same component also loses visual props the copy did not have.
+- Paste at a point: server `pasteCode { at }` → `floatAt` (arrange.mjs: the group's corner at the point, offsets kept,
+  constraints and other insets gone, a non-floating root in a float Box). Client `pasteOnCanvas`: Paste here = the drop
+  target under the pointer (`dropTargetAt`), at the pointer in a frame without auto layout (`freeBlock`: a Box whose
+  layers all float, or a Screen whose content does); ⌘V with nothing / a frame selected = the selected frame or the one
+  most in view, at the copied layer's offsets when it floated (else the middle of what shows).
+- ⌘D: `duplicateElement { offset }` shifts the copy's px insets (slots.mjs `shiftedSource`); `edit/duplicateOffset.ts`
+  remembers the copy and where its original floated, so ⌘D on a moved copy repeats the move.
+- Groups / frames: slot ops `group { with, box, kids, props?, component? }` (the layers into one floating Box where the
+  frontmost was, each with its new insets; ids travel with the code) and `ungroup { kids? }` (a frame's layers in its
+  place, floating at `kids` or into the parent's flow). `edit/groupLayers.ts`: Frame selection on floating layers
+  (found while testing: the plain wrap made an in-flow Box of height 0 measured from its corner — fixed here), ⇧⌘G /
+  menu "Remove frame". ⌘G waits for Session B's answer on a `group` marker on Box (decision 3).
+- Components: ⌥⌘K on several layers = one component (floating: group + `component`, one edit; in auto layout: Add auto
+  layout, then the component — two edits); Create multiple components = `many { action: "components", names }` (the
+  import first, then the wraps bottom-up). Menu (several layers) and Quick actions.
+- Copy as › code / CSS (`edit/copyAs.ts`; CSS values by the Zen variable of the property's family when one matches).
+  PNG / SVG wait for Session B's `layerPicture` (F5c) to reach main.
+- E2E figma FW-33…39, FW-110…112 (A also takes FW-110…129): 12 / 12. Selftests: arrange 50, slots 1961, doc 135.
+- Open: Detach on every instance contradicts the user's 2026-10-03 rule (interactive components never detach) — asked
+  the user. ⌘G after B's answer; ⇧⌘C after B's F5c.
