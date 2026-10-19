@@ -185,6 +185,19 @@ function attribute(name, value, ctx, indent, where) {
   return `${name}={${valueCode(value, ctx, indent, where)}}`;
 }
 
+const isRun = (child) => child.kind === "element" && child.name === "TextRun";
+const onlyWords = (node) => node.children.every((child) => child.kind === "text" || (isRun(child) && onlyWords(child)));
+const isRichText = (node) => node.children.some(isRun) && onlyWords(node);
+/** A rich text's children on one line: words (edge spaces kept) and TextRuns (edit/richText.ts runsCode). */
+function richCode(children, ctx) {
+  return children.map((child) => {
+    if (child.kind === "text") return /[\n\r{}<>]|&[A-Za-z#]|\s{2}/.test(child.value) ? `{${json(child.value)}}` : child.value;
+    ctx.components.add(child.name);
+    const props = Object.entries(child.props).map(([name, value]) => attribute(name, value, ctx, "", `<${child.name}> ${name}`));
+    return `<${child.name}${props.length ? ` ${props.join(" ")}` : ""}>${richCode(child.children, ctx)}</${child.name}>`;
+  }).join("");
+}
+
 function childCode(child, ctx, indent) {
   if (child.kind === "code") return child.code;
   if (child.kind === "text") return PLAIN_TEXT.test(child.value) ? child.value : `{${json(child.value)}}`;
@@ -365,6 +378,8 @@ function elementCode(node, ctx, indent, extra = []) {
   const oneLine = props.every((prop) => !prop.includes("\n")) && indent.length + node.name.length + 2 + props.join(" ").length <= WIDTH;
   const open = !props.length ? `<${node.name}` : oneLine ? `<${node.name} ${props.join(" ")}` : `<${node.name}\n${props.map((prop) => `${inner}${prop}`).join("\n")}\n${indent}`;
   if (!node.children.length) return oneLine ? `${open} />` : `${open}/>`;
+  // Words with styles of their own (TextRun) stay one line of words and runs, as a person writes them.
+  if (oneLine && isRichText(node)) return `${open}>${richCode(node.children, ctx)}</${node.name}>`;
   const kids = node.children.map((child) => childCode(child, ctx, inner));
   if (oneLine && kids.length === 1 && (node.children[0].kind === "text" || node.children[0].kind === "ref" || node.children[0].kind === "code") && indent.length + open.length + kids[0].length + node.name.length + 4 <= WIDTH) return `${open}>${kids[0]}</${node.name}>`;
   return `${open}>\n${kids.map((kid) => `${inner}${kid}`).join("\n")}\n${indent}</${node.name}>`;

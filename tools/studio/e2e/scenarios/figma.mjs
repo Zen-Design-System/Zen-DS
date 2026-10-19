@@ -1,6 +1,8 @@
 // Figma walk (plan docs/research/studio-figma-design-parity-2026-10-18.md §6): a Figma user's gestures on a page made in
 // the Studio, each asserted as Figma answers them (selection, Layers, Inspector and menu words, the status line). Opt-in:
 // npm run studio:e2e -- --only=figma. Each phase of the plan moves rows here from ❌ / 🟡 to ✅; F0 (words and keys) first.
+import fs from "node:fs";
+import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
 import { inspectorRow, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
@@ -265,6 +267,65 @@ async function twoScreensPage(ctx) {
 /** The frames shown selected (their outline). */
 const selectedFrameIds = (page) => page.locator('.studio-frame[data-selected="true"]').evaluateAll((frames) => frames.map((frame) => frame.querySelector("[data-studio-frame]")?.getAttribute("data-studio-frame") ?? frame.getAttribute("data-studio-frame")));
 
+/* ── F6 (text) helpers ──────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** The walk page's free frame (the Box holding two shapes) on the canvas (F9's freeFrame is the clipboard page's). */
+const walkBox = (page, id) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).first();
+/** Presses T and clicks (or drags to `to`) at `at` (screen px). */
+async function textTool(page, at, to = null) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("KeyT");
+  await page.mouse.move(at.x, at.y);
+  await page.mouse.down();
+  if (to) {
+    await page.mouse.move((at.x + to.x) / 2, (at.y + to.y) / 2, { steps: 4 });
+    await page.mouse.move(to.x, to.y, { steps: 4 });
+  }
+  await page.mouse.up();
+}
+const textEditing = (page) => page.locator("[data-studio-text-editing]").count();
+/** The test picture (a library photo's file), as a dropped / chosen file named `name`. */
+const PICTURE = (ctx) => fs.readFileSync(path.join(ctx.root, "src/assets/media/site-bridge.webp"));
+/** ⇧⌘K and the file dialog answered with the test picture: the Image tool waits for a click. */
+async function pickPicture(page, ctx, name = "Bridge.webp") {
+  await page.locator(".studio-viewport").focus();
+  const chooser = page.waitForEvent("filechooser", { timeout: 10_000 });
+  await page.keyboard.press("ControlOrMeta+Shift+KeyK");
+  await (await chooser).setFiles({ name, mimeType: "image/webp", buffer: PICTURE(ctx) });
+  await until(async () => /Click to place Bridge/.test(await statusText(page)), { message: "the Image tool waits for a click" });
+}
+/** The placed picture's Shape tag in the page. */
+const pictureTag = async (page, id) => ((await pageText(page, id)) ?? "").match(/<Shape image="zen-asset:bridge-[^"]+"[^>]*\/>/)?.[0] ?? "";
+const num = (tag, name) => Number(new RegExp(`\\b${name}=\\{(-?[\\d.]+)\\}`).exec(tag)?.[1]);
+/** Fill › Image fit set to `label`, tried again while the panel re-renders under the click, until `done()`. */
+async function chooseFit(page, label, done) {
+  const row = page.locator('#studio-right [data-prop="image-fill"]');
+  await row.waitFor({ state: "visible", timeout: 8000 });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await row.getByRole("combobox", { name: /Image fit/ }).or(row.getByRole("button", { name: /Image fit/ })).first().click();
+    const name = new RegExp(`^${label}$`, "i");
+    const option = page.getByRole("option", { name }).or(page.getByRole("menuitemradio", { name })).first();
+    if (await option.isVisible().catch(() => false) || await option.waitFor({ state: "visible", timeout: 1500 }).then(() => true, () => false)) await option.click();
+    if (await until(done, { timeout: 2500, message: label }).then(() => true, () => false)) return;
+    await page.keyboard.press("Escape").catch(() => undefined);
+  }
+  throw new Error(`Image fit → ${label} was not written`);
+}
+/** The picture's own ratio (height ÷ width), read in the page. */
+const ownRatio = (page, ctx) => page.evaluate(async (bytes) => {
+  const bitmap = await createImageBitmap(new Blob([new Uint8Array(bytes)], { type: "image/webp" }));
+  return bitmap.height / bitmap.width;
+}, [...PICTURE(ctx)]);
+
+/** T on the walk frame, `words` typed, the last `select` characters selected (⇧←) and `keys` pressed, then Esc. */
+async function richText(page, id, words, select, keys) {
+  const box = await walkBox(page, id).boundingBox();
+  await textTool(page, { x: box.x + box.width * 0.55, y: box.y + box.height * 0.7 });
+  await page.keyboard.type(words, { delay: 20 });
+  for (let k = 0; k < select; k++) await page.keyboard.press("Shift+ArrowLeft");
+  for (const key of keys) await page.keyboard.press(key);
+  await page.keyboard.press("Escape");
+}
 /** The walk frame (the Box that holds the two shapes): ⌘-click its Rectangle, then Esc as Figma's Select parent. */
 async function selectWalkFrame(page, id) {
   await clickNamed(page, id, "Shape");
@@ -429,16 +490,19 @@ export const rows = [
     },
   },
   {
-    id: "FW-03", feature: "⇧⌘K is Place image/video (the Image tool); V goes back to Move", wp: "F0 2026-10-18",
+    id: "FW-03", feature: "⇧⌘K is Place image/video: the file dialog opens (F8), the Image tool is on meanwhile; V goes back to Move", wp: "F0 2026-10-18 · F8 file dialog",
     async run(ctx) {
       const { page } = await walkPage(ctx);
+      // A page you made opens the file dialog (draw/placeImage.ts); unanswered, the tool stays on until V.
+      const chooser = page.waitForEvent("filechooser", { timeout: 8000 });
       await page.keyboard.press("ControlOrMeta+Shift+KeyK");
+      await chooser;
       await until(async () => (await pressedTool(page)) === "Place image/video", { message: "Place image/video armed" });
       await page.keyboard.press("Escape");
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("KeyV");
       await until(async () => (await pressedTool(page)) === "Move", { message: "Move again" });
-      return "⇧⌘K → Place image/video → V → Move";
+      return "⇧⌘K → the file dialog, Place image/video on → V → Move";
     },
   },
   {
@@ -1416,6 +1480,370 @@ export const rows = [
       if (!/<Shape type="rectangle"/.test(code)) throw new Error(`code: ${code.slice(0, 160)}`);
       const tokens = (css.match(/var\(--zen-[\w-]+\)/g) ?? []).length;
       return `CSS ${css.split("\n").length - 2} declarations (${tokens} by variable: ${css.split("\n").slice(1).join(" ").slice(0, 400)}) · code <Shape …>`;
+    },
+  },
+  {
+    id: "FW-60", feature: "T, a click on a frame and typing at once: an Auto width text of the typed words at the click (Figma's Text tool); Esc leaves it selected; ⌘Z", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await walkBox(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.7, y: box.y + box.height * 0.75 });
+        await page.keyboard.type("Hello", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => /<Text wrap=\{false\}>Hello<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "an Auto width text Hello" });
+        const text = (await pageText(page, id)) ?? "";
+        if (!/<Box position="absolute" insetLeft=\{\d+\} insetTop=\{\d+\}><Text wrap=\{false\}>Hello<\/Text><\/Box>/.test(text)) throw new Error("the text does not float at the click in the frame");
+        await until(async () => (await selectedName(page)) === "Text", { message: "the text selected" });
+        if (await textEditing(page)) throw new Error("the editor is still open after Esc");
+        return "T + click + Hello + Esc → <Text wrap={false}>Hello</Text> at the click, selected";
+      });
+    },
+  },
+  {
+    id: "FW-61", feature: "T and a drag: a text box of the dragged width (Auto height), typed at once", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await walkBox(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.4, y: box.y + box.height * 0.7 }, { x: box.x + box.width * 0.9, y: box.y + box.height * 0.8 });
+        await page.keyboard.type("Wide", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => /<Text width=\{\d+\}>Wide<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "an Auto height text of the dragged width" });
+        return ((await pageText(page, id)) ?? "").match(/<Text width=\{\d+\}>Wide<\/Text>/)?.[0];
+      });
+    },
+  },
+  {
+    id: "FW-62", feature: "T, a click and Esc without typing: no text layer is left (Figma keeps no empty text)", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const box = await walkBox(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.7, y: box.y + box.height * 0.75 });
+        await until(async () => (await textEditing(page)) > 0, { message: "the editor open" });
+        await page.keyboard.press("Escape");
+        await until(async () => (await pageText(page, id)) === before, { message: "the untouched text removed again" });
+        return "T + click + Esc → the page as before";
+      });
+    },
+  },
+  {
+    id: "FW-63", feature: "Enter in a text layer is a new line (Esc leaves): the text keeps its two lines in code and on the canvas", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await walkBox(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.6, y: box.y + box.height * 0.6 });
+        await page.keyboard.type("First", { delay: 20 });
+        await page.keyboard.press("Enter");
+        await page.keyboard.type("Second", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => /<Text wrap=\{false\}>\{"First\\nSecond"\}<\/Text>/.test((await pageText(page, id)) ?? ""), { message: 'the text {"First\\nSecond"}' });
+        const lines = () => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Text"]`, { hasText: "Second" }).first().evaluate((element) => Math.round(element.offsetHeight / Number.parseFloat(getComputedStyle(element).lineHeight)));
+        await until(async () => (await lines()) === 2, { message: "two lines on the canvas" }).catch(async () => { throw new Error(`the canvas shows ${await lines()} line(s)`); });
+        return 'Enter → {"First\\nSecond"}, two lines on the canvas';
+      });
+    },
+  },
+  {
+    id: "FW-64", feature: "Emptying a text layer and leaving it deletes the layer (and its floating frame)", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await walkBox(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.7, y: box.y + box.height * 0.75 });
+        await page.keyboard.type("Bye", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => />Bye<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Bye written" });
+        const made = (await pageText(page, id)) ?? "";
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Enter");
+        await until(async () => (await textEditing(page)) > 0, { message: "Enter edits the text" });
+        await page.keyboard.press("Backspace");
+        await page.keyboard.press("Escape");
+        await until(async () => !/Bye/.test((await pageText(page, id)) ?? ""), { message: "the emptied text deleted" });
+        const text = (await pageText(page, id)) ?? "";
+        if (/<Box position="absolute" insetLeft=\{\d+\} insetTop=\{\d+\}>\s*<\/Box>/.test(text) || (text.match(/<Box /g) ?? []).length !== (made.match(/<Box /g) ?? []).length - 1) throw new Error("its floating frame stayed");
+        return "Enter, ⌫, Esc → the text and its floating frame deleted";
+      });
+    },
+  },
+  {
+    id: "FW-65", feature: "T on the words of a text layer puts the caret there (no new text): typing goes in at the caret", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await walkBox(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.6, y: box.y + box.height * 0.75 });
+        await page.keyboard.type("Hello", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => />Hello<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Hello written" });
+        const texts = ((await pageText(page, id)) ?? "").match(/<Text\b/g)?.length ?? 0;
+        const words = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Text"]`, { hasText: "Hello" }).first().boundingBox();
+        await textTool(page, { x: words.x + words.width - 1, y: words.y + words.height / 2 });
+        await until(async () => (await textEditing(page)) > 0, { message: "the words being edited" });
+        await page.keyboard.type("!", { delay: 20 });
+        await page.keyboard.press("Escape");
+        await until(async () => />Hello!<\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Hello! written" });
+        if ((((await pageText(page, id)) ?? "").match(/<Text\b/g)?.length ?? 0) !== texts) throw new Error("T made another text");
+        return "T on Hello's end + ! → Hello!, no new text";
+      });
+    },
+  },
+  {
+    id: "FW-66", feature: "Typography › Resizing: Auto height writes the text's width, Fixed size its width and height, Auto width wrap={false} (one ⌘Z each)", wp: "F6 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await walkBox(page, id).boundingBox();
+        await textTool(page, { x: box.x + box.width * 0.6, y: box.y + box.height * 0.75 });
+        await page.keyboard.type("Size", { delay: 20 });
+        await page.keyboard.press("Escape");
+        const tag = async () => ((await pageText(page, id)) ?? "").match(/<Text [^>]*>Size<\/Text>/)?.[0] ?? "";
+        await until(async () => /wrap=\{false\}/.test(await tag()), { message: "Size written" });
+        const row = page.locator('#studio-right [data-prop="text-resizing"]');
+        await row.waitFor({ state: "visible", timeout: 5000 });
+        const pick = (name) => row.getByRole("radio", { name }).or(row.getByRole("button", { name })).first().click();
+        await pick("Auto height");
+        await until(async () => /^<Text width=\{\d+\}>/.test(await tag()), { message: "Auto height: a width" });
+        await pick("Fixed size");
+        await until(async () => /^<Text width=\{\d+\} height=\{\d+\}>/.test(await tag()), { message: "Fixed size: width and height" });
+        await pick("Auto width");
+        await until(async () => /^<Text wrap=\{false\}>/.test(await tag()), { message: "Auto width again" });
+        return "Auto height → width, Fixed size → width + height, Auto width → wrap={false}";
+      });
+    },
+  },
+  {
+    id: "FW-67", feature: "⌘B on selected words while typing: a TextRun bold inside the Text (Figma's mixed styles); Layers keeps one text layer named by all its words", wp: "F6b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await richText(page, id, "Renews on Nov 2", 5, ["ControlOrMeta+KeyB"]);
+        await until(async () => /<Text wrap=\{false\}>Renews on <TextRun bold>Nov 2<\/TextRun><\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Renews on <TextRun bold>Nov 2</TextRun>" });
+        const weight = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"] .zen-text-run`, { hasText: "Nov 2" }).first().evaluate((element) => Number(getComputedStyle(element).fontWeight));
+        if (!(weight >= 500)) throw new Error(`the run is drawn at weight ${weight}`);
+        await showLeftTab(page, "layers");
+        await until(async () => (await layerRows(page)).some((row) => row.name === "Renews on Nov 2"), { message: "a text layer named Renews on Nov 2" });
+        const rows = await layerRows(page);
+        const text = rows.find((row) => row.name === "Renews on Nov 2");
+        if (text.expanded !== null || rows.some((row) => row.name === "span" || row.name === "Nov 2" || row.name === "TextRun")) throw new Error(`the run is a layer of its own: ${rows.map((row) => `${row.level}:${row.name}`).join(" | ")}`);
+        return `⇧←×5 + ⌘B → Renews on <TextRun bold>Nov 2</TextRun> (weight ${weight}); one layer "Renews on Nov 2"`;
+      });
+    },
+  },
+  {
+    id: "FW-68", feature: "Enter on a text with runs edits it with its styles: ⌘A ⌘I makes every word italic, the bold run stays bold; one ⌘Z undoes it", wp: "F6b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await richText(page, id, "Renews on Nov 2", 5, ["ControlOrMeta+KeyB"]);
+        const bold = /<Text wrap=\{false\}>Renews on <TextRun bold>Nov 2<\/TextRun><\/Text>/;
+        await until(async () => bold.test((await pageText(page, id)) ?? ""), { message: "the bold run written" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Enter");
+        await until(async () => (await textEditing(page)) > 0, { message: "Enter edits the text" });
+        await page.keyboard.press("ControlOrMeta+KeyA");
+        await page.keyboard.press("ControlOrMeta+KeyI");
+        await page.keyboard.press("Escape");
+        await until(async () => /<TextRun italic>Renews on <\/TextRun><TextRun bold italic>Nov 2<\/TextRun><\/Text>/.test((await pageText(page, id)) ?? ""), { message: "every word italic, Nov 2 bold italic" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => bold.test((await pageText(page, id)) ?? ""), { message: "one ⌘Z: the bold run only" });
+        return "Enter, ⌘A, ⌘I, Esc → <TextRun italic>Renews on </TextRun><TextRun bold italic>Nov 2</TextRun>; ⌘Z → as before";
+      });
+    },
+  },
+  {
+    id: "FW-69", feature: "⌘U and ⇧⌘X style the selected words; the same key again takes its style off (Figma's toggles)", wp: "F6b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await richText(page, id, "Due today", 5, ["ControlOrMeta+KeyU", "ControlOrMeta+Shift+KeyX", "ControlOrMeta+KeyU"]);
+        await until(async () => /<Text wrap=\{false\}>Due <TextRun strikethrough>today<\/TextRun><\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Due <TextRun strikethrough>today</TextRun>" });
+        const line = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"] .zen-text-run`, { hasText: "today" }).first().evaluate((element) => getComputedStyle(element).textDecorationLine);
+        if (!/line-through/.test(line) || /underline/.test(line)) throw new Error(`the run is drawn with ${line}`);
+        return `⌘U, ⇧⌘X, ⌘U on "today" → <TextRun strikethrough>today</TextRun> (${line})`;
+      });
+    },
+  },
+  {
+    id: "FW-80", feature: "⇧⌘K opens the file dialog; a click on a frame places the picture as a Rectangle with the image fill, at its own size made to fit the frame (Figma's Place image)", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await walkBox(page, id).boundingBox();
+        await page.mouse.click(box.x + 20, box.y + 20);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "a Shape with the picture written" });
+        const tag = await pictureTag(page, id);
+        if (!/label="Bridge"/.test(tag) || !/data-name="Bridge"/.test(tag) || !/position="absolute"/.test(tag)) throw new Error(`the Shape: ${tag}`);
+        const zoom = await page.evaluate(() => Number(getComputedStyle(document.querySelector(".studio-world")).getPropertyValue("--studio-zoom")) || 1).catch(() => 1);
+        const [width, height] = [num(tag, "width"), num(tag, "height")];
+        const ratio = await ownRatio(page, ctx);
+        if (Math.abs(height / width - ratio) > 0.02) throw new Error(`ratio ${height / width} ≠ the picture's ${ratio}`);
+        const frameWidth = await walkBox(page, id).evaluate((element) => element.clientWidth);
+        if (width > frameWidth + 1) throw new Error(`${width} px wide in a ${frameWidth} px frame`);
+        const painted = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"][data-image]`).first().evaluate((element) => getComputedStyle(element).backgroundImage);
+        if (!/url\("?blob:/.test(painted)) throw new Error(`the canvas paints ${painted}`);
+        await until(async () => (await page.evaluate(() => document.querySelector(".studio-viewport")?.getAttribute("data-studio-drawing"))) === null, { message: "back to Move" });
+        return `⇧⌘K + click → ${tag.slice(0, 120)}… (${width} × ${height}, zoom ${zoom})`;
+      });
+    },
+  },
+  {
+    id: "FW-81", feature: "Place image by dragging: the picture at the dragged width, its own ratio kept", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await walkBox(page, id).boundingBox();
+        await page.mouse.move(box.x + 10, box.y + 10);
+        await page.mouse.down();
+        await page.mouse.move(box.x + 60, box.y + 30, { steps: 4 });
+        await page.mouse.move(box.x + 110, box.y + 40, { steps: 4 });
+        await page.mouse.up();
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the dragged picture written" });
+        const tag = await pictureTag(page, id);
+        const ratio = await ownRatio(page, ctx);
+        const [width, height] = [num(tag, "width"), num(tag, "height")];
+        if (Math.abs(height - width * ratio) > 1.5) throw new Error(`${width} × ${height}: not the picture's ratio ${ratio}`);
+        return `drag → ${width} × ${height}`;
+      });
+    },
+  },
+  {
+    id: "FW-82", feature: "A picture file dropped on a frame goes in where it fell (a free frame: at the point)", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const box = await walkBox(page, id).boundingBox();
+        const at = { x: Math.round(box.x + 30), y: Math.round(box.y + 25) };
+        await page.evaluate(({ bytes, at }) => {
+          const transfer = new DataTransfer();
+          transfer.items.add(new File([new Uint8Array(bytes)], "Bridge.webp", { type: "image/webp" }));
+          const target = document.elementFromPoint(at.x, at.y);
+          for (const type of ["dragenter", "dragover", "drop"]) target.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, clientX: at.x, clientY: at.y, dataTransfer: transfer }));
+        }, { bytes: [...PICTURE(ctx)], at });
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the dropped picture written" });
+        // At the drop point, moved in where it would stick out of the frame (drawModel pictureBox).
+        const placed = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"][data-image]`).first().boundingBox();
+        const inside = placed.x >= box.x - 1 && placed.y >= box.y - 1 && placed.x + placed.width <= box.x + box.width + 1 && placed.y + placed.height <= box.y + box.height + 1;
+        const holds = at.x >= placed.x - 1 && at.x <= placed.x + placed.width + 1 && at.y >= placed.y - 1 && at.y <= placed.y + placed.height + 1;
+        if (!inside || !holds || Math.abs(placed.x - at.x) > 3) throw new Error(`placed at ${placed.x}, ${placed.y} (${placed.width} × ${placed.height}), dropped at ${at.x}, ${at.y} in ${box.x}, ${box.y}`);
+        return `drop → ${(await pictureTag(page, id)).slice(0, 100)}…`;
+      });
+    },
+  },
+  {
+    id: "FW-83", feature: "⌘V with a picture on the clipboard (no layer copied) places it in the middle of the frame in view", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = ((await pageText(page, id)) ?? "").match(/<Shape /g)?.length ?? 0;
+        await page.locator(".studio-viewport").focus();
+        await page.evaluate((bytes) => {
+          const transfer = new DataTransfer();
+          transfer.items.add(new File([new Uint8Array(bytes)], "Bridge.webp", { type: "image/webp" }));
+          (document.activeElement ?? document).dispatchEvent(new ClipboardEvent("paste", { clipboardData: transfer, bubbles: true, cancelable: true }));
+        }, [...PICTURE(ctx)]);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the pasted picture written" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+        const after = ((await pageText(page, id)) ?? "").match(/<Shape /g)?.length ?? 0;
+        if (after !== before + 1) throw new Error(`${after - before} Shapes added`);
+        return `⌘V picture → ${(await pictureTag(page, id)).slice(0, 100)}…`;
+      });
+    },
+  },
+  {
+    id: "FW-84", feature: "Fill › Image fit: Fit, Crop (Fill's visible part written as the crop) and Tile write the image fill's mode, one ⌘Z each", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await walkBox(page, id).boundingBox();
+        await page.mouse.click(box.x + 20, box.y + 20);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the picture placed" });
+        await chooseFit(page, "fit", async () => /imageFit="fit"/.test(await pictureTag(page, id)));
+        await chooseFit(page, "crop", async () => /imageFit="crop" imageCrop=\{\{ x: [\d.]+, y: [\d.]+, width: [\d.]+, height: [\d.]+ \}\}/.test(await pictureTag(page, id)));
+        await chooseFit(page, "tile", async () => /imageFit="tile"/.test(await pictureTag(page, id)) && !/imageCrop/.test(await pictureTag(page, id)));
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => /imageFit="crop"/.test(await pictureTag(page, id)), { message: "one ⌘Z: Crop again" });
+        return "Fit → Crop (crop written) → Tile; ⌘Z → Crop";
+      });
+    },
+  },
+  {
+    id: "FW-85", feature: "Fill › Image: picking another picture replaces it and keeps how it fills (Figma's Replace image)", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await walkBox(page, id).boundingBox();
+        await page.mouse.click(box.x + 20, box.y + 20);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the picture placed" });
+        await chooseFit(page, "fit", async () => /imageFit="fit"/.test(await pictureTag(page, id)));
+        const row = page.locator('#studio-right [data-prop="image-fill"]');
+        await row.getByRole("button", { name: /^Image:/ }).click();
+        const library = page.locator('[data-photo-group="library"] [role="option"], [data-photo-group="library"] [role="menuitem"], [data-photo-group="library"] button').first();
+        await library.waitFor({ state: "visible", timeout: 5000 });
+        await library.click();
+        const tag = () => pageText(page, id).then((text) => (text ?? "").match(/<Shape image="zen-media:[^"]+"[^>]*data-name="Bridge"[^>]*\/>/)?.[0] ?? "");
+        await until(async () => /imageFit="fit"/.test(await tag()), { message: "a library picture, still Fit" });
+        return `replaced → ${(await tag()).slice(0, 90)}…`;
+      });
+    },
+  },
+  {
+    id: "FW-86", feature: "Fill › − on the image removes the picture and its settings in one edit", wp: "F8 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await walkBox(page, id).boundingBox();
+        await page.mouse.click(box.x + 20, box.y + 20);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the picture placed" });
+        const before = ((await pageText(page, id)) ?? "").match(/<Shape [^>]*data-name="Bridge"[^>]*\/>/)?.[0];
+        await page.locator('#studio-right [data-prop="image-fill"]').getByRole("button", { name: "Remove image" }).click();
+        await until(async () => !/image=/.test(((await pageText(page, id)) ?? "").match(/<Shape [^>]*data-name="Bridge"[^>]*\/>/)?.[0] ?? "image="), { message: "the picture removed" });
+        return `${before?.slice(0, 60)}… → no image`;
+      });
+    },
+  },
+  {
+    id: "FW-87", feature: "Crop on the canvas: Image fit → Crop shows the whole picture faint; a corner scales it and a drag moves it (one edit each, the layer's size kept); Esc ends the crop", wp: "F8b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await pickPicture(page, ctx);
+        const box = await walkBox(page, id).boundingBox();
+        await page.mouse.click(box.x + 10, box.y + 10);
+        await until(async () => Boolean(await pictureTag(page, id)), { message: "the picture placed" });
+        const size = (await pictureTag(page, id)).match(/width=\{\d+\} height=\{\d+\}/)?.[0];
+        await chooseFit(page, "crop", async () => /imageFit="crop"/.test(await pictureTag(page, id)));
+        await page.locator(".studio-crop__picture").waitFor({ state: "visible", timeout: 5000 });
+        const crop = async () => (await pictureTag(page, id)).match(/imageCrop=\{\{ x: ([\d.]+), y: ([\d.]+), width: ([\d.]+), height: ([\d.]+) \}\}/)?.slice(1).map(Number) ?? [];
+        const corner = await page.locator('.studio-crop__handle[data-corner="se"]').boundingBox();
+        await page.mouse.move(corner.x + 4, corner.y + 4);
+        await page.mouse.down();
+        await page.mouse.move(corner.x + 40, corner.y + 40, { steps: 5 });
+        await page.mouse.up();
+        await until(async () => ((await crop())[2] ?? 100) < 100, { message: "the corner scaled the picture" });
+        const [, , width] = await crop();
+        const layer = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"][data-image]`).first().boundingBox();
+        await page.mouse.move(layer.x + layer.width / 2, layer.y + layer.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(layer.x + layer.width / 2 - 20, layer.y + layer.height / 2 - 20, { steps: 5 });
+        await page.mouse.up();
+        await until(async () => ((await crop())[0] ?? 0) > 0, { message: "the drag moved the picture" });
+        const [x, y] = await crop();
+        if ((await pictureTag(page, id)).match(/width=\{\d+\} height=\{\d+\}/)?.[0] !== size) throw new Error("the layer's size changed");
+        await page.keyboard.press("Escape");
+        await until(async () => (await page.locator(".studio-crop__picture").count()) === 0, { message: "Esc ends the crop" });
+        return `corner → width ${width}%, drag → x ${x}%, y ${y}%; ${size} kept; Esc ends it`;
+      });
     },
   },
   {

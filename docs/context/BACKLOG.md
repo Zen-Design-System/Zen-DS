@@ -18,7 +18,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
   the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
   rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4); `tools/studio/figma-native.mjs` /
-  `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with the user.
+  `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with the user. Same path, pictures
+  (Session C, F8b, 2026-10-19): image fills (Shape / frame `image`) and pictured instances are noted, not pasted — the
+  bytes must ride in the kiwi message (blobs + image hashes), verified against a Figma capture of a pasted image;
+  Import from Studio carries them today (plugin 0d55f95).
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast

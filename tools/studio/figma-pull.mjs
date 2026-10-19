@@ -22,6 +22,8 @@ import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-metric.mjs";
+import { runsFromSegments } from "./text-runs.mjs";
+import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { arcFromData, parseVectorPath, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
@@ -57,6 +59,10 @@ export function figmaReadCode(nodeId, { part = 0 } = {}) {
 figma.skipInvisibleInstanceChildren = false;
 const layerKey = ${layerKey.toString()};
 const variableName = async (id) => { if (!id) return null; const v = await figma.variables.getVariableByIdAsync(id); return v ? v.name : null; };
+${READ_IMAGE_FILL}
+const textStyles = new Map();
+const textStyleOf = async (id) => { if (!textStyles.has(id)) textStyles.set(id, await figma.getStyleByIdAsync(id)); return textStyles.get(id); };
+const fillVariable = async (fills) => { const paint = Array.isArray(fills) ? fills.find((fill) => fill.visible !== false) : null; return paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null; };
 const setOf = async (instance) => {
   const main = await instance.getMainComponentAsync();
   if (!main) return null;
@@ -272,15 +278,34 @@ const read = async (node) => {
 const readLayer = async (node) => {
   if (!node.visible) return null;
   if (node.type === "TEXT") {
-    const style = typeof node.textStyleId === "string" && node.textStyleId ? await figma.getStyleByIdAsync(node.textStyleId) : null;
+    // Words with styles of their own (Figma's mixed styles): the layer's style and colour are its longest segment's,
+    // the words that differ come as segments (Studio text-runs.mjs writes them as TextRun).
+    const parts = node.characters.length ? node.getStyledTextSegments(["fontName", "textDecoration", "fills", "textStyleId"]) : [];
+    const longest = parts.reduce((best, part) => (!best || part.end - part.start > best.end - best.start ? part : best), null);
+    const styleId = typeof node.textStyleId === "string" ? node.textStyleId : longest ? longest.textStyleId : "";
+    const style = typeof styleId === "string" && styleId ? await textStyleOf(styleId) : null;
     // The layer's name only when it is not its text (Figma names a text layer after its words).
     const align = node.textAlignHorizontal && node.textAlignHorizontal !== "LEFT" ? { align: node.textAlignHorizontal } : {};
     // Numbers: Tabular (Text tabularNumbers; a plugin can read it, not set it).
     const tabular = node.openTypeFeatures && node.openTypeFeatures.TNUM === true ? { tabular: true } : {};
     // Its colour: the Color/Content variable its fill is bound to (Text tone).
-    const paint = Array.isArray(node.fills) ? node.fills.find((fill) => fill.visible !== false) : null;
-    const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
-    return { type: "TEXT", id: node.id, ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align, ...tabular, ...(fill ? { fill } : {}) };
+    const fill = await fillVariable(Array.isArray(node.fills) ? node.fills : longest ? longest.fills : null);
+    const segments = [];
+    for (const part of parts.length > 1 ? parts : []) {
+      const own = typeof part.textStyleId === "string" && part.textStyleId ? await textStyleOf(part.textStyleId) : null;
+      const font = part.fontName && part.fontName.style ? part.fontName.style : "";
+      const styleFont = own && own.fontName && own.fontName.style ? own.fontName.style : style && !own && style.fontName ? style.fontName.style : "";
+      const segment = { start: part.start, end: part.end };
+      if (own && (!style || own.name !== style.name)) segment.textStyle = own.name;
+      // A word made bold or italic with its font (Figma's ⌘B / ⌘I) rather than with a text style.
+      if (/bold|black|heavy/i.test(font) && !/bold|black|heavy/i.test(styleFont)) segment.bold = true;
+      if (/italic|oblique/i.test(font) && !/italic|oblique/i.test(styleFont)) segment.italic = true;
+      if (part.textDecoration && part.textDecoration !== "NONE") segment.decoration = part.textDecoration;
+      const partFill = await fillVariable(part.fills);
+      if (partFill && partFill !== fill) segment.fill = partFill;
+      if (Object.keys(segment).length > 2) segments.push(segment);
+    }
+    return { type: "TEXT", id: node.id, ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align, ...tabular, ...(fill ? { fill } : {}), ...(segments.length ? { segments } : {}) };
   }
   if (node.type === "INSTANCE") {
     const owner = ownerOf(await node.getMainComponentAsync());
@@ -405,7 +430,7 @@ const readFrame = async (node, root = false) => {
       strokeWeight: typeof node.strokeWeight === "number" ? node.strokeWeight : 1, strokeAlign: node.strokeAlign, cap: typeof node.strokeCap === "string" ? node.strokeCap : null,
       arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: node.pointCount, innerRadius: node.innerRadius,
       radius: typeof node.cornerRadius === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
-      rotation: Math.round((node.rotation || 0) * 100) / 100, opacity: node.opacity,
+      rotation: Math.round((node.rotation || 0) * 100) / 100, opacity: node.opacity, imageFill: readImageFill(node),
       // A vector's own paths; a boolean group's result (its fill geometry: Figma combined its shapes, F9b).
       paths: node.type === "VECTOR" && Array.isArray(node.vectorPaths) ? node.vectorPaths.map((path) => ({ windingRule: path.windingRule, data: path.data }))
         : node.type === "BOOLEAN_OPERATION" && Array.isArray(node.fillGeometry) ? node.fillGeometry.map((path) => ({ windingRule: path.windingRule, data: path.data })) : null,
@@ -460,6 +485,9 @@ const readFrame = async (node, root = false) => {
   const paint = !root && Array.isArray(node.fills) ? node.fills.find((fill) => fill.visible !== false) : null;
   const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
   if (fill) out.fill = fill;
+  // An image fill (F8, figma-image.mjs): the picture back by its Studio src.
+  const imageFill = !root ? readImageFill(node) : null;
+  if (imageFill) out.imageFill = imageFill;
   // Its stroke (variable, weight per side, dash), corners and their variables, effect style, opacity, rotation and
   // mirror: one Zen frame (figma-push frameLook, the other way). The page frame itself is the Screen.
   if (!root) {
@@ -1451,7 +1479,11 @@ function shapeElement(node, ctx) {
     if (tone && tone !== fallback) props[prop] = literal(tone);
     else if (!tone) ctx.notes.push(`${where}: its ${prop} ${value === "unbound" ? "is no colour variable" : `variable ${value} is no Zen ${prop === "fill" ? "Background" : "Border"} colour`}; the default is kept`);
   };
-  paint("fill", line ? null : shape.fill, FILL_OF, line || (vector && !boolean) ? "none" : DEFAULT_SHAPE_FILL);
+  // An image fill (F8, figma-image.mjs): the picture back by its Studio src; a shape with one has no colour unless given.
+  const picture = line ? { props: {}, note: null } : imageFillProps(shape.imageFill, literal);
+  Object.assign(props, picture.props);
+  if (picture.note) ctx.notes.push(`${where}: ${picture.note}`);
+  paint("fill", line ? null : shape.fill, FILL_OF, line || (vector && !boolean) || shape.imageFill ? "none" : DEFAULT_SHAPE_FILL);
   paint("stroke", shape.stroke, STROKE_OF, line || (vector && !boolean) ? DEFAULT_LINE_STROKE : "none");
   if (shape.stroke && shape.strokeWeight !== 1) props.strokeWeight = literal(round2(shape.strokeWeight));
   if (shape.stroke && !line && shape.strokeAlign && shape.strokeAlign !== (vector && !boolean ? "CENTER" : "INSIDE")) props.strokeAlign = literal(shape.strokeAlign.toLowerCase());
@@ -1509,6 +1541,15 @@ function convertNode(node, ctx) {
     }
     const tone = TONE_OF.get(String(node.fill ?? "").replace(/^Color\//, ""));
     if (tone && tone !== "strongest") props.tone = literal(tone);
+    // Words with styles of their own (Figma's mixed styles) are TextRuns inside the Text (text-runs.mjs).
+    if (Array.isArray(node.segments) && node.segments.length) {
+      const base = props.textStyle?.value ?? (level ? HEADING_STYLE[level] : "Body/Base/Regular");
+      const toneOf = (fill) => TONE_OF.get(String(fill).replace(/^Color\//, "")) ?? null;
+      const known = (style) => !mapping.textStyles || mapping.textStyles.has(style);
+      const runs = runsFromSegments(characters, node.segments, { base, baseFill: node.fill ?? null, toneOf, known });
+      runs.notes.forEach((note) => notes.push(`Text "${node.name ?? node.characters}": ${note}`));
+      return { kind: "element", name: level ? "Heading" : "Text", props, children: runs.children };
+    }
     return { kind: "element", name: level ? "Heading" : "Text", props, children: [{ kind: "text", value: characters }] };
   }
   if (node.type === "INSTANCE") {
@@ -1921,6 +1962,10 @@ function frameLookProps(node, ctx) {
   const where = `Frame "${node.name}"`;
   const surface = SURFACE_OF[String(node.fill ?? "").replace(/^Color\//, "")];
   if (surface) props.surface = literal(surface);
+  // An image fill (F8, figma-image.mjs) over the fill.
+  const picture = imageFillProps(node.imageFill, literal);
+  Object.assign(props, picture.props);
+  if (picture.note) ctx.notes.push(`${where}: ${picture.note}`);
   else if (node.fill) ctx.notes.push(`${where}: its fill ${node.fill} is no Zen background layer (surface · surface-alt · subtle · pale · canvas); left without a fill`);
   if (node.stroke) {
     const border = BORDER_OF[String(node.stroke).replace(/^Color\//, "")];

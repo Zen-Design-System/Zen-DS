@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useSyncExternalStore } from "react";
+import { CropHandles, useCropActive } from "../draw/CropHandles";
 import { ArcHandles } from "./ArcHandles";
 import { startVectorEdit, VectorHandles, vectorEditing } from "./VectorHandles";
 import { RotateHandles } from "./RotateHandles";
@@ -148,6 +149,7 @@ function itemExtras(part: PartHit | null): PartHit[] {
 export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | null; world: HTMLElement | null }) {
   const tool = useStudio((state) => state.tool);
   const presenting = useStudio((state) => state.presenting);
+  const cropActive = useCropActive();
   const selection = useStudio((state) => state.selection);
   // Shift multi-selection (select/multiSelection.ts): the other selected layers, outlined as extras.
   const extraLayers = useExtraSelection();
@@ -1076,6 +1078,13 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         onPassDoubleClick={onDoubleClick}
         onPassContextMenu={onContextMenu}
       />
+      {/* Figma's crop on a selected layer whose image fill is in Crop mode (F8b, draw/CropHandles.tsx). */}
+      <CropHandles
+        box={overlay.selected}
+        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
+        interactive={tool === "select" && !presenting}
+        viewport={viewport}
+      />
       {/* Figma's arc handles on a selected ellipse (Sweep, Start, Ratio), above the resize handles. */}
       <ArcHandles
         box={overlay.selected}
@@ -1096,7 +1105,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         box={overlay.selected}
         // One element: parts (deep select) are read-only and a Shift multi-selection has no one size.
         hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src && vectorEdit?.src !== overlay.selected.src ? selectedRef.current : null}
-        interactive={tool === "select" && !presenting}
+        // Crop mode (F8b) has its own corners where these are.
+        interactive={tool === "select" && !presenting && !cropActive}
         viewport={viewport}
       />
       {overlay.instances.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="instance" style={style(box)} />)}

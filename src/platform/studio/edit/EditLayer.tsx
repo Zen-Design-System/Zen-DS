@@ -8,6 +8,7 @@ import { MeasureLayer } from "./MeasureLayer";
 import { useNavigateKeys } from "./navigate";
 import { QuickActions } from "./quick/QuickActions";
 import { TextEditor } from "./TextEditor";
+import { RichTextEditor } from "./RichTextEditor";
 import "./edit.css";
 
 /*
@@ -27,6 +28,7 @@ export function EditLayer({ viewport }: { viewport: HTMLElement | null; world: H
       <MeasureLayer viewport={viewport} />
       <DragLayer viewport={viewport} />
       <TextEditor viewport={viewport} />
+      <RichTextEditor viewport={viewport} />
       <QuickActions />
     </div>
   );
