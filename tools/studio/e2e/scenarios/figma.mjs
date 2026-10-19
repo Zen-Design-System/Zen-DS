@@ -1625,4 +1625,48 @@ export const rows = [
       return "NE handle → a quarter turn with ⇧ → rotation -90 · ⌘Z";
     },
   },
+  {
+    id: "FW-122", feature: "⌥⇧S (Subtract selection): a live boolean group of two shapes; moving a shape inside it redraws the result in the same edit", wp: "F9b 2026-10-19", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const boolean = () => /<Shape position="absolute"[^>]*type="boolean"[^>]*>/.exec((pageTextNow ?? ""))?.[0] ?? "";
+      let pageTextNow = "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+Shift+KeyS");
+      await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; return /type="boolean" operation="subtract"[^>]*d="M/.test(boolean()); }, { timeout: 20_000, message: "a Subtract group with its result" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 160)} · ${boolean()}`); });
+      const first = /\sd="([^"]+)"/.exec(boolean())?.[1];
+      await showLeftTab(page, "layers");
+      await until(async () => (await page.locator(".studio-layers__tree [role='treeitem'] .studio-layers__name", { hasText: /^Subtract 1$/ }).count()) === 1, { message: "Layers: Subtract 1" });
+      // The Ellipse inside it, nudged: the group's result follows in the same edit.
+      await page.locator(".studio-layers__tree [role='treeitem']", { has: page.locator(".studio-layers__name", { hasText: /^Ellipse/ }) }).first().click();
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+ArrowLeft");
+      await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; const d = /\sd="([^"]+)"/.exec(boolean())?.[1]; return Boolean(d) && d !== first; }, { timeout: 20_000, message: "the result follows the Ellipse" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => { pageTextNow = (await pageText(page, id)) ?? ""; return /\sd="([^"]+)"/.exec(boolean())?.[1] === first; }, { message: "one ⌘Z: the move and its result" });
+      await undoTo(page, id, before, 4);
+      return "⌥⇧S → Subtract 1 with its d · nudge the Ellipse → d follows · one ⌘Z";
+    },
+  },
+  {
+    id: "FW-123", feature: "⌘E (Flatten) on two shapes: one vector with both outlines, at their box", wp: "F9b 2026-10-19", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyE");
+      await until(async () => vectorTags((await pageText(page, id)) ?? "").length === 1 && !/type="(rectangle|ellipse)"/.test((await pageText(page, id)) ?? ""), { timeout: 20_000, message: "one vector instead of the two shapes" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 160)}`); });
+      const [vector] = vectorTags((await pageText(page, id)) ?? "");
+      if (Math.abs(vector.x - 20) > 1 || Math.abs(vector.y - 20) > 1 || Math.abs(vector.w - 180) > 1 || Math.abs(vector.h - 80) > 1) throw new Error(`the vector at ${vector.x}, ${vector.y}, ${vector.w} × ${vector.h} (want 20, 20, 180 × 80)`);
+      if ((vector.d.match(/M/g) ?? []).length < 2) throw new Error(`one outline only: ${vector.d.slice(0, 80)}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return `vector 180 × 80 at 20, 20 · ${(vector.d.match(/M/g) ?? []).length} outlines · ⌘Z`;
+    },
+  },
 ];

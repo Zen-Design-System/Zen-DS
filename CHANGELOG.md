@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Boolean groups, Flatten and Outline stroke (F9b of the same plan): Shape `type="boolean"` (`operation` union /
+  subtract / intersect / exclude, its shapes as children, its result `d`); Zen Studio ⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E make a
+  live boolean group of the selected shapes (its result follows every edit of its shapes in the same ⌘Z), ⌘E flattens
+  shapes into one vector, ⌥⌘O turns a stroke into a filled vector; Layers names groups by operation. Computed with
+  Skia's PathOps (`pathkit-wasm`, loaded on first use). Figma push / pull carry BOOLEAN_OPERATION nodes.
 - Groups, flips and rotation as in Figma (F2 / F3 of the same plan): Box `group` (Figma's Group: holds its layers at
   their X / Y, sized to them, no look of its own; harness `box/group-no-look`); Zen Studio ⌘G groups the selection
   (floating layers where they are, layers in auto layout as one group in the flow), Layers names it "Group N", ⇧⌘G /

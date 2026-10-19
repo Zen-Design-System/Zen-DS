@@ -152,3 +152,19 @@ in one gate (the slot queue is the bottleneck).
   (plugin e9767da); pull GROUP → Box group with its layers at their X / Y inside it (reader: positions relative to the
   group), free-frame px insets for frames too. Selftests push 302, pull 86, arrange 50, layer-meta 13, usage 218 rules.
 - E2E FW-119…121 written; run with F9a's when the slot is ours.
+
+## Studio F9b — path operations (Session A, worktree `../Zen-DS-f9b`, branch `zen/feat/studio-f9b-path-ops-20261019`, stacked on F9)
+
+- `pathkit-wasm` 1.0.0 (devDependency, the user's pick; the shared checkout needs `npm install` once merged).
+  `tools/studio/path-ops.mjs` (kit passed in): shape outlines (rectangles with Corner-Radius px, arcs, polygons, stars,
+  vectors), placed by insets / rotation / flip, boolean results (first shape the base; simplified, even-odd), Flatten,
+  Outline stroke (inside / outside cut by the fill), `planBooleans` (selftest 15 in Node with the wasm file).
+- Library: Shape `type="boolean"` + `operation` + children (drawn hidden in `.zen-shape__operands`), its result like a
+  vector. Live groups: `builder/localApi.ts` `withBooleans` re-plans every group after each edit of a page you made, in
+  the same write (as withPhoneSync), PathKit loaded from `draw/pathKit.ts` on the first page that has one.
+- Studio: `edit/pathOps.ts` (⌥⇧U/S/I/E, ⌘E, ⌥⌘O; menu for several shapes and for one; Actions), op group `tag:
+  "Shape"` (boolean) and `childless` (one vector in the layers' place). Layers "Union N" … with the intersect icon.
+- Figma: push BOOLEAN_OPERATION with its shapes (plugin 40d5bd6: built in a frame, then figma.union / subtract /
+  intersect / exclude, painted); pull BOOLEAN_OPERATION → Shape boolean, its result from `fillGeometry`.
+- Not built: Use as mask ⌃⌘M (a Box `mask`: Session B's Layout, one PR with B) — BACKLOG.
+- E2E FW-122 (live Subtract), FW-123 (Flatten) written; run when the slot is ours.
