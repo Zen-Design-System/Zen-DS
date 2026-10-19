@@ -16,6 +16,7 @@ const GAP = 64;
 const SECTION_GAP = 128;
 const DOCS_WIDTH = 880;
 const near = (a, b) => Math.abs(a - b) <= 1;
+const api = JSON.parse(fs.readFileSync(path.join(root, "src/platform/api.generated.json"), "utf8"));
 
 /** One page's board in world px (the board's own coordinates, zoom divided out). */
 function measure() {
@@ -34,7 +35,8 @@ function measure() {
     frames: [...section.querySelectorAll(":scope > .studio-section__frames > [data-studio-frame]")].map((frame) => ({ id: frame.getAttribute("data-studio-frame"), ...box(frame) })),
   }));
   const cells = [...board.querySelectorAll('[data-studio-frame="main-component"] [data-mc-cell]')].map((cell) => {
-    const child = cell.querySelector(".studio-mc__stage > *");
+    // A modal overlay's cell holds the overlay's <template> anchor first, then the overlay drawn in it.
+    const child = cell.querySelector(".studio-mc__stage > :not(template)");
     const rect = child?.getBoundingClientRect();
     return { component: cell.getAttribute("data-mc-component"), set: cell.getAttribute("data-mc-set"), name: cell.getAttribute("data-mc-name"), w: rect ? rect.width / scale : 0, h: rect ? rect.height / scale : 0, empty: !child };
   });
@@ -103,9 +105,13 @@ async function boards(ctx) {
   const measured = new Map();
   for (const id of PAGES) {
     url.searchParams.set("page", id);
-    await page.goto(url.href, { waitUntil: "domcontentloaded" });
-    // A document page (Overviews, Templates…) is one Document frame, not a component board: left out.
-    const first = await page.waitForSelector('[data-studio-frame="playground"], [data-studio-frame="document"]', { timeout: 30_000 }).catch(() => null);
+    // A document page (Overviews, Templates…) is one Document frame, not a component board: left out. A page whose
+    // first open meets a dependency re-optimization (Vite reloads it, the wait loses its context) is opened once more.
+    let first = null;
+    for (let attempt = 0; attempt < 2 && !first; attempt++) {
+      await page.goto(url.href, { waitUntil: "domcontentloaded" }).catch(() => undefined);
+      first = await page.waitForSelector('[data-studio-frame="playground"], [data-studio-frame="document"]', { timeout: 30_000 }).catch(() => null);
+    }
     if (!first) { measured.set(id, null); continue; }
     if ((await first.getAttribute("data-studio-frame")) === "document") continue;
     // The Main component draws its cells after the Assets code parses (only pages that have one wait for them); the
@@ -136,19 +142,25 @@ export const rows = [
     },
   },
   {
-    id: "BL-02", feature: "Every Main component variant on every component page draws something (no empty or collapsed cell)", wp: "board layout 2026-10-18",
+    id: "BL-02", feature: "Every component with Figma variant sets is in its page's Main component (modal overlays drawn open in a screen), and every variant draws something (no empty or collapsed cell)", wp: "board layout 2026-10-18",
     timeout: 360_000,
     async run(ctx) {
       const all = await boards(ctx);
+      const { VARIANT_SETS } = await import("../../../../src/platform/studio/mainComponent/variantSets.generated.ts");
       const bad = [];
       let cells = 0;
       for (const [page, board] of all) {
+        if (!board) continue;
+        // User 2026-10-18 "làm tiếp phần còn thiếu của main component": a component the page documents and Figma has sets
+        // for is drawn (samples.ts or its Assets item).
+        const drawn = new Set(board.cells.map((cell) => cell.component));
+        for (const { name } of api[page] ?? []) if (VARIANT_SETS[name] && !drawn.has(name)) bad.push(`${page} ${name}: not drawn`);
         for (const cell of board?.cells ?? []) {
           cells += 1;
           if (cell.empty || cell.w < 2 || cell.h < 1) bad.push(`${page} ${cell.set} ${cell.name}: ${cell.empty ? "empty" : `${Math.round(cell.w)}×${Math.round(cell.h)}`}`);
         }
       }
-      if (bad.length) throw new Error(`${bad.length} cell(s) draw nothing: ${bad.slice(0, 8).join("; ")}`);
+      if (bad.length) throw new Error(`${bad.length} problem(s): ${bad.slice(0, 10).join("; ")}`);
       return `${cells} variants drawn on ${[...all.values()].filter((board) => board?.cells.length).length} pages`;
     },
   },

@@ -1315,7 +1315,7 @@
       "Map status to semantic themes consistently (green = success, red = failure, yellow = attention).",
       "Use Subtle backgrounds in dense tables and Solid for emphasis.",
       "Cap counters at \"99+\" and hide them at zero.",
-      "Show counts (unread, items, filters applied) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height; keep Badge for words and statuses (harness: badge/count-uses-counter).",
+      "Show counts (unread, items, filters applied, a section's or folder's item count) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height — never a Badge holding a number nor bare text beside a label; keep Badge for words and statuses (harness: badge/count-uses-counter, badge/count-text-uses-counter; component-usage-rules §18).",
       "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count)."
     ],
     "dont": [
@@ -1362,9 +1362,15 @@
       },
       {
         "id": "badge/count-uses-counter",
-        "severity": "warn",
+        "severity": "error",
         "summary": "A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height.",
         "allow": "badge-count"
+      },
+      {
+        "id": "badge/count-text-uses-counter",
+        "severity": "error",
+        "summary": "A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something.",
+        "allow": "count-text"
       },
       {
         "id": "api/deprecated-prop",
@@ -7783,6 +7789,12 @@
         "severity": "warn",
         "summary": "A table that is its own page section is titled by a <Heading level={2} textStyle=\"Heading/4\"> right above it (the Table points to it with aria-labelledby); a table inside a widget Card is titled by the widget title, <Heading textStyle=\"Heading/Subheading\"> (every widget title is Subheading); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading.",
         "allow": "table-title"
+      },
+      {
+        "id": "badge/count-text-uses-counter",
+        "severity": "error",
+        "summary": "A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something.",
+        "allow": "count-text"
       },
       {
         "id": "text/use-text",

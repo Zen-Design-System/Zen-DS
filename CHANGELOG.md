@@ -49,6 +49,27 @@ removed (four unused colour ramps were, see Removed).
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- ProgressCircle's ring has no fill (2026-10-19, user: "Nền nó đang là trong suốt, trên studio là nền xám"): Figma's
+  Progress-Circle/Icon Base is the 2px Support/Subtle ring only, so the grey Neutral/Subtle disc inside is gone.
+- BottomNavigation follows Figma (2026-10-19, user: "Update bottom navigation từ Figma lên Studio"): a Floating bar's
+  action is Primary by default (Figma's Floating Action Theme=Primary; Floating-Glass keeps its Glass action). Studio:
+  the Figma CTA boolean is the action (on by default), the bars draw at Figma's 390 in the Main component with four
+  tabs, the selected one solid; Figma booleans that write an object (actions, saved colours) now draw in the Main
+  component too.
+- Zen Studio Main component draws every component (2026-10-19, user: "làm tiếp phần còn thiếu của main component"):
+  Dialog, Modal Form, Side Panel, Bottom Sheet and the date sheet open in a screen of their own per variant; Popover,
+  Toast, the calendar, the chat parts, Uploader rows, Control-Bar items, Badge-Counter, Toggle-Button, Heading field,
+  Skeleton shapes and the Opinion scale from Main component samples; List-Item Default/Selected, the conversation's call
+  rows, one cell for sets without an axis; Dashboard header rows at Figma's 1232 width, stacked. E2E BL-02 fails a
+  component with Figma sets that is not drawn (1202 variants on 42 pages).
+- Overlays: an internal OverlayPreviewContext lets a static preview (Studio's Main component) draw an open Dialog, Modal
+  Form, Side Panel or Bottom Sheet without the modal behaviour (focus, Tab trap, Escape, scroll lock); apps are unchanged.
+- Counts are BadgeCounters (2026-10-19, user: "Luôn ghi vào harness và rule là các badge dùng số đếm luôn dùng badge
+  counter"): harness `badge/count-uses-counter` is an error and `badge/count-text-uses-counter` (a count shown as text
+  beside a label) is new; component-usage-rules §18; the Figma audit flags a Badge holding a number. Studio's folder,
+  Assets, Variables and Code properties counts are BadgeCounters now.
+- Zen Studio Inspector: Code properties of a frame, text or shape line up with the other sections (12 in, rows 8 apart);
+  user 2026-10-19 "Bug UI của studio".
 - Segmented follows the live Figma (2026-10-18, user: "Update tokens Component Size của segmented … từ Figma lên Studio"):
   Medium segments pad 8 in Compact (was 10; Comfortable stays 10) and Small ones 8 in Comfortable (was 6; Compact stays
   6). `level="primary"` now sits on the same Neutral/Subtle track as Secondary, without the 2px ring, as Figma's Primary

@@ -242,7 +242,8 @@ export const FIGMA_PROPS = {
       Trailing: { toggle: "trailing", on: "slot" },
       Contents: skip("content slot (Slots section)"),
       Leading: { toggle: "leading", on: "slot" },
-      State: skip("selected / hover come from the row's interaction and `selected`"),
+      // Hover and Pressed come from the pointer; the Main component draws Default and Selected.
+      State: { ...skip("selected / hover come from the row's interaction and `selected`"), main: { prop: "selected", values: { Default: "false", Selected: "true" } } },
       Interactive: skip("a row is interactive when it has onClick or href"),
     },
   },
@@ -419,7 +420,9 @@ export const FIGMA_PROPS = {
   BottomNavigation: {
     sets: { "Bottom-Navigation/Mobile/Default": "default", "Bottom-Navigation/Mobile/Floating": "floating", "Bottom-Navigation/Mobile/Floating-Glass": "floating-glass" },
     setProp: "type",
-    props: { "Nav-Items": skip("data slot (items list)"), "Nav-Item": skip("data slot (items list)"), CTA: skip("the action object") },
+    // CTA (Floating, Floating-Glass; on in Figma): the action button beside the capsule, a "New" plus (user 2026-10-19:
+    // "Update bottom navigation từ Figma lên Studio").
+    props: { "Nav-Items": skip("data slot (items list)"), "Nav-Item": skip("data slot (items list)"), CTA: { toggle: "action", on: { code: '{ icon: "icon-plus-line", label: "New" }' } } },
   },
   ChatComposer: { sets: { "Chat-Control": null }, props: { Device: "device", State: skip("preview state: typing is interaction") } },
   ChatAvatarGroup: { sets: { "Chat/Avatar-Group": null }, props: { Size: "size" } },
@@ -454,7 +457,7 @@ export const FIGMA_PROPS = {
   },
   // The phone date picker (a Bottom-Sheet around the calendar): Variant follows selectionMode and whether a range is
   // chosen (figma-push datePickerSheetNode), the title is its heading's text.
-  DatePickerSheet: { sets: { "Date-Picker/Mobile": null }, props: { Variant: skip("selectionMode, and a chosen range (Multiple-Selected)") } },
+  DatePickerSheet: { sets: { "Date-Picker/Mobile": null }, props: { Variant: { ...skip("selectionMode, and a chosen range (Multiple-Selected)"), main: { prop: "selectionMode", values: { Single: "single", "Multiple-Default": "range" } } } } },
   Stepper: {
     sets: { "Stepper-Bar/Horizontal": "horizontal", "Stepper-Bar/Vertical": "vertical" },
     setProp: "orientation",
@@ -506,7 +509,7 @@ export const FIGMA_PROPS = {
   },
   ChatConversationItem: {
     sets: { "Chat/Conversation-List/List-Item/Content": null },
-    props: { State: skip("a call row is the call prop (Text: none)"), Unread: { prop: "unread", bool: true } },
+    props: { State: { ...skip("a call row is the call prop (Text: none)"), main: { prop: "call", values: { Text: "", "Audio Missed Call": "missed-audio", "Audio Out-Call": "outgoing", "Audio In-Call": "incoming", "Video Missed Call": "missed-video", "Ongoing-Call": "ongoing" } } }, Unread: { prop: "unread", bool: true } },
   },
   AiChatBubble: {
     sets: { "AI/Chat-Bubble": null },

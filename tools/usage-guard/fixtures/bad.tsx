@@ -346,6 +346,8 @@ export const Bad = () => <>
   <FileUpload label="Avatar" caption="PNG or JPG. Max 2 MB" accept="image/*" files={files} onReplace={() => {}} />
   {/* expect: badge/count-uses-counter */}
   <Badge size="small">12</Badge>
+  {/* expect: badge/count-text-uses-counter */}
+  <span className="panel__count">{items.length}</span>
   {/* expect: button/filter-is-chip */}
   <Button level="tertiary" size="sm" startIcon={<Icon name="icon-filter-lines-line" decorative />} onClick={openFilters}>All filters</Button>
   {/* expect: progress/quota-scale */}

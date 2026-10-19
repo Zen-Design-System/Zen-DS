@@ -9,8 +9,10 @@ import type { PageNode, PageValue } from "../builder/render/renderPage";
 import { PALETTE, type PaletteItem } from "../slots/palette";
 import { useStudio } from "../store";
 import { cellKey, MAIN_FRAME, variantLabel } from "./model";
+import { OverlayPreviewContext } from "../../../components/_shared/overlay";
+import { MAIN_SAMPLES } from "./samples";
 import { filterStore, setsOf, toggleOn } from "./sets";
-import type { VariantSet } from "./variantSets.generated";
+import type { VariantAxis, VariantSet } from "./variantSets.generated";
 import "./mainComponent.css";
 
 /*
@@ -21,10 +23,19 @@ import "./mainComponent.css";
  */
 
 const pageComponents = (page: PlatformPage) => ((api as Record<string, ReadonlyArray<{ name: string }>>)[page] ?? []).map((entry) => entry.name);
-/** Overlays open over the whole canvas: their variants are not drawn in the frame (yet). */
-const OVERLAYS = new Set(["Dialog", "ModalForm", "SidePanel", "BottomSheet", "Toast"]);
-/** The Assets item a component is drawn from: its own, else the first one that uses it (Tabs in "Tabs"' Stack). */
-const paletteFor = (component: string): PaletteItem | null => (OVERLAYS.has(component) ? null : PALETTE.find((item) => item.root === component) ?? PALETTE.find((item) => item.components.includes(component)) ?? null);
+/** Modal overlays, drawn open in a screen of their own (px): the cell is their `[data-zen-overlay-root]` frame and an
+ *  OverlayPreviewContext, so each draws contained and runs none of its modal behaviour (focus, Tab trap, Escape, scroll
+ *  lock), which would take the Studio's keys. */
+const OVERLAY_SCREENS: Readonly<Record<string, { width: number; height: number }>> = {
+  Dialog: { width: 640, height: 400 },
+  ModalForm: { width: 1040, height: 720 },
+  SidePanel: { width: 640, height: 600 },
+  BottomSheet: { width: 390, height: 560 },
+  DatePickerSheet: { width: 390, height: 720 },
+};
+/** The code a component is drawn from: its Main component sample (samples.ts), else its own Assets item, else the first
+ *  one that uses it (Tabs in "Tabs"' Stack). */
+const paletteFor = (component: string): PaletteItem | null => MAIN_SAMPLES[component] ?? (OVERLAY_SCREENS[component] ? null : PALETTE.find((item) => item.root === component) ?? PALETTE.find((item) => item.components.includes(component)) ?? null);
 /** The component's own node in the item (the item itself, or the first of its kind inside it). */
 function nodeOf(node: PageNode | null | undefined, component: string): PageNode | null | undefined {
   if (!node) return node;
@@ -49,10 +60,18 @@ const codeValue = (value: string, values: readonly string[]) => (values.every((i
 /** The cell's node: the Assets node with this variant's props (and the set's toggles as filtered). */
 function cellNode(base: PageNode, set: VariantSet, variant: Readonly<Record<string, string>>, filters: Readonly<Record<string, string>>): PageNode {
   const props: Record<string, PageValue> = { ...base.props };
+  // An overlay's variant is drawn open (the Assets preview closes them).
+  if (OVERLAY_SCREENS[base.name]) props.open = literal(true);
   for (const [prop, value] of Object.entries(set.fixed)) props[prop] = literal(value);
-  for (const axis of set.axes) if (variant[axis.prop] !== undefined) props[axis.prop] = literal(codeValue(variant[axis.prop], axis.values));
+  for (const axis of set.axes) {
+    if (variant[axis.prop] === undefined) continue;
+    // "" is a variant without the prop (ChatConversationItem State=Text: no call).
+    if (variant[axis.prop] === "") delete props[axis.prop];
+    else props[axis.prop] = literal(codeValue(variant[axis.prop], axis.values));
+  }
   for (const toggle of set.toggles) {
-    if (toggleOn(toggle, filters)) props[toggle.prop] = literal(toggle.on);
+    // On keeps the sample's own value (a Bottom Sheet's "Sort by" title), else Figma's placeholder for the layer.
+    if (toggleOn(toggle, filters)) { if (!(toggle.prop in base.props)) props[toggle.prop] = literal(toggle.on); }
     else delete props[toggle.prop];
   }
   return { ...base, props };
@@ -64,16 +83,31 @@ const FILL_WIDTHS: Readonly<Record<string, number | ((variant: Readonly<Record<s
   "Rating/NPS-Scale": (variant) => (variant.scale === "5" ? 212 : 392),
   "Primitives/Dashboard/Header": 1232,
 };
+/** Sets of full-width rows (Figma FIXED 1232: a Dashboard header's Navigation, Main, Control-Bar and Custom rows): every
+ *  cell takes that width, and the first variant property runs down the rows as Figma stacks them. */
+const ROW_SETS: Readonly<Record<string, number | undefined>> = { "Primitives/Dashboard/Header": 1232 };
+/** Sets drawn at their Figma width (FIXED there, the code fills its container): a phone's bottom bar is 390
+ *  (Bottom-Navigation width = Viewport-Width). */
+const FIXED_WIDTHS: Readonly<Record<string, number | undefined>> = {
+  "Bottom-Navigation/Mobile/Default": 390,
+  "Bottom-Navigation/Mobile/Floating": 390,
+  "Bottom-Navigation/Mobile/Floating-Glass": 390,
+};
+/** The grid's axes: columns, rows, then the filters (a row set puts its first property on the rows). */
+const gridAxes = (set: VariantSet): [VariantAxis | undefined, VariantAxis | undefined, ...VariantAxis[]] =>
+  ROW_SETS[set.name] ? [undefined, set.axes[0], ...set.axes.slice(1)] : [set.axes[0], set.axes[1], ...set.axes.slice(2)];
+
 /** A component that fills its container would collapse in the cell (it sizes to its content, as in Figma): it takes
  *  its set's Figma width, else 360, so no variant ever draws as an empty cell. */
 const FILL_FALLBACK = 360;
 
-function Stage({ set, variant, children }: { set: string; variant: Readonly<Record<string, string>>; children: ReactNode }) {
+function Stage({ component, set, variant, children }: { component: string; set: string; variant: Readonly<Record<string, string>>; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [fill, setFill] = useState(false);
+  const screen = OVERLAY_SCREENS[component];
   useLayoutEffect(() => {
     const stage = ref.current;
-    if (!stage || fill) return undefined;
+    if (!stage || fill || screen) return undefined;
     const check = () => {
       const child = stage.firstElementChild as HTMLElement | null;
       if (child && child.offsetWidth < 2) setFill(true);
@@ -82,10 +116,18 @@ function Stage({ set, variant, children }: { set: string; variant: Readonly<Reco
     const observer = new ResizeObserver(check);
     observer.observe(stage);
     return () => observer.disconnect();
-  }, [fill, children]);
-  const width = FILL_WIDTHS[set];
-  const style = fill ? ({ "--studio-mc-fill": `${typeof width === "function" ? width(variant) : width ?? FILL_FALLBACK}px` } as CSSProperties) : undefined;
-  return <div ref={ref} className="studio-mc__stage" data-fill={fill || undefined} style={style}>{children}</div>;
+  }, [fill, children, screen]);
+  if (screen) {
+    return (
+      <div ref={ref} className="studio-mc__stage studio-mc__screen" data-zen-overlay-root="" style={{ "--studio-mc-screen-width": `${screen.width}px`, "--studio-mc-screen-height": `${screen.height}px` } as CSSProperties}>
+        <OverlayPreviewContext.Provider value>{children}</OverlayPreviewContext.Provider>
+      </div>
+    );
+  }
+  const fixed = ROW_SETS[set] ?? FIXED_WIDTHS[set];
+  const width = fixed ?? FILL_WIDTHS[set];
+  const style = fill || fixed ? ({ "--studio-mc-fill": `${typeof width === "function" ? width(variant) : width ?? FILL_FALLBACK}px` } as CSSProperties) : undefined;
+  return <div ref={ref} className="studio-mc__stage" data-fill={fill || fixed ? true : undefined} style={style}>{children}</div>;
 }
 
 export function MainComponentFrame({ page }: { page: PlatformPage }) {
@@ -131,7 +173,7 @@ function ComponentSets({ component }: { component: string }) {
 function SetGrid({ component, set, base, portal }: { component: string; set: VariantSet; base: PageNode | null | undefined; portal: HTMLDivElement | null }) {
   const filters = useSyncExternalStore(filterStore.subscribe, () => filterStore.get(set.name), () => filterStore.get(set.name));
   const selection = useStudio((state) => state.selection);
-  const [columns, rows, ...rest] = set.axes;
+  const [columns, rows, ...rest] = gridAxes(set);
   const rowValues = rows ? rows.values : [null];
   const fixedRest = Object.fromEntries(rest.map((axis) => [axis.prop, filters[axis.prop] ?? axis.default]));
   const selectedCell = selection?.kind === "variant" && selection.component === component && selection.set === set.name ? cellKey(component, set.name, selection.variant) : null;
@@ -159,7 +201,7 @@ function RowCells({ component, set, base, portal, rowLabel, rowValue, fixedRest,
   component: string; set: VariantSet; base: PageNode | null | undefined; portal: HTMLDivElement | null; rowLabel: string; rowValue: string | null;
   fixedRest: Record<string, string>; filters: Readonly<Record<string, string>>; selectedCell: string | null;
 }) {
-  const [columns, rows] = set.axes;
+  const [columns, rows] = gridAxes(set);
   const columnValues = columns ? columns.values : [null];
   return (
     <>
@@ -172,7 +214,7 @@ function RowCells({ component, set, base, portal, rowLabel, rowValue, fixedRest,
         const name = variantLabel(variant, set.axes);
         return (
           <div key={key} className="studio-mc__cell" data-mc-cell={key} data-mc-component={component} data-mc-set={set.name} data-mc-variant={JSON.stringify(variant)} data-mc-name={name} data-selected={selectedCell === key || undefined} aria-label={name}>
-            <Stage set={set.name} variant={variant}>
+            <Stage component={component} set={set.name} variant={variant}>
               {base && portal ? renderInert(cellNode(base, set, variant, filters), portal) : base === null ? <Text as="span" textStyle="Caption/Regular" tone="light">—</Text> : null}
             </Stage>
           </div>
