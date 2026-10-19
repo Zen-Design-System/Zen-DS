@@ -337,4 +337,5 @@ User picked "Dán ảnh qua ⌘C→⌘V" (the rest of F8). `tools/studio/figma-n
 - Slip, fixed: the first test paste landed in the user's "UI Foundations" file (Figma's front tab); found by name and
   removed at once. The paste script now opens the Zen file and refuses to paste when Figma shows another file.
 - Selftest figma-native 85 (+ pictures, shapes, the path note). Open (BACKLOG): a component's own picture (Avatar,
-  Image) needs the pack to record its image layer.
+  Image) needs the pack to record its image layer. BACKLOG "Layout guide column count" removed: the user keeps
+  12 / 8 / 4 (2026-10-19).
