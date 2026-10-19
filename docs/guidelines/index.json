@@ -821,7 +821,7 @@
         "Map status to semantic themes consistently (green = success, red = failure, yellow = attention).",
         "Use Subtle backgrounds in dense tables and Solid for emphasis.",
         "Cap counters at \"99+\" and hide them at zero.",
-        "Show counts (unread, items, filters applied) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height; keep Badge for words and statuses (harness: badge/count-uses-counter).",
+        "Show counts (unread, items, filters applied, a section's or folder's item count) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height — never a Badge holding a number nor bare text beside a label; keep Badge for words and statuses (harness: badge/count-uses-counter, badge/count-text-uses-counter; component-usage-rules §18).",
         "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count)."
       ],
       "dont": [
@@ -835,6 +835,7 @@
         "badge-counter/cap",
         "flag/no-emoji-flag",
         "badge/count-uses-counter",
+        "badge/count-text-uses-counter",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "copy/plural-count",
@@ -4466,6 +4467,7 @@
         "heading/h1-is-heading-1",
         "heading/title-not-light",
         "table/title-heading-4",
+        "badge/count-text-uses-counter",
         "text/use-text",
         "copy/plural-count",
         "interaction/no-noop-handler"

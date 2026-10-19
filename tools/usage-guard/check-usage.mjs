@@ -1351,9 +1351,18 @@ export const rules = [
   { id: "popover/bulk-action-limit", components: ["PopoverBulkAction", "PopoverBunkAction"], severity: "warn", allow: "bulk-action", guideline: "docs/guidelines/popover.md",
     summary: "Popover/Bulk-Action is a named toolbar (aria-label) of at most 6 Button/Icon-Flat Medium actions — more belongs in a context menu or side panel.",
     check: ({ attrs, children }) => { if (!has(topLevel(attrs), "aria-label")) return "has no aria-label — name the selection toolbar (\"Selection actions\", \"Actions for 3 files\")."; const n = ((children ?? "").match(/<IconButton\b/g) ?? []).length; return n > 6 && `has ${n} actions — keep Bulk-Action to 6 and move the rest into a context menu.`; } },
-  { id: "badge/count-uses-counter", components: ["Badge"], severity: "warn", allow: "badge-count", guideline: "docs/guidelines/badge.md",
+  // User 2026-10-18: "Luôn ghi vào harness và rule là các badge dùng số đếm luôn dùng badge counter" (error since then).
+  { id: "badge/count-uses-counter", components: ["Badge"], severity: "error", allow: "badge-count", guideline: "docs/guidelines/badge.md",
     summary: "A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height.",
     check: ({ children }) => { const c = (children ?? "").trim(); const numeric = /^\d+\+?$/.test(c) || /^\{\s*(String\()?[\w.$]*(count|length|total|unread|countIn)\b[^}]*\}$/i.test(c); return numeric && `shows a count (\`${c.slice(0, 40)}\`) — use <BadgeCounter value={…} />.`; } },
+  { id: "badge/count-text-uses-counter", components: ["span", "Text"], severity: "error", allow: "count-text", guideline: "docs/guidelines/badge.md",
+    summary: "A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something.",
+    check: ({ attrs, children }) => {
+      const c = (children ?? "").trim();
+      const lone = /^\d+\+?$/.test(c) || /^\{\s*(String\()?[\w.$]*(count|length|total|unread|size)\b[^}]*\}$/i.test(c);
+      const countClass = /className=\{?["'`][^"'`]*count\b/i.test(attrs ?? "");
+      return lone && countClass && `shows a count (\`${c.slice(0, 40)}\`) as text — use <BadgeCounter value={…} theme="neutral" background="subtle" />.`;
+    } },
   { id: "table/media-size-by-subtext", components: ["TableMedia"], severity: "warn", allow: "table-media-size", guideline: "docs/guidelines/table.md",
     summary: "TableMedia follows the Figma cell primitives: with a caption (Subtext=Yes) Avatar/Photo is Small 32px and a basic Icon lg 28px; without one Avatar is XSmall 24px and Icon base 20px; Dock Icon follows Avatar (XSmall 24px → Small 32px with a caption).",
     check: ({ attrs }) => {

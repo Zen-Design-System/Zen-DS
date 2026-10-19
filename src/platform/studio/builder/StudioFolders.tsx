@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { BadgeCounter } from "../../../components/Badge";
 import { Dialog, ModalForm } from "../../../components/Dialog";
 import { IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
@@ -94,7 +95,7 @@ function FolderGroup({ folder, pages, open, onToggle, onNewPage, tabStop, rowTab
             <Icon name={open ? "icon-chevron-down-line" : "icon-chevron-right-line"} size="sm" decorative />
             <Icon name="icon-folder-line" size="sm" decorative />
             <span className={`studio-pages__name ${typographyStyles["Body/Small/Medium"]}`}>{folder.name}</span>
-            <Text as="span" textStyle="Caption/Regular" tone="light" className="studio-folder__count">{pages.length}</Text>
+            <BadgeCounter className="studio-folder__count" value={pages.length} size="xs" theme="neutral" background="subtle" />
           </button>
         )}
         <span className="studio-pages__actions">
