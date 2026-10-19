@@ -2265,7 +2265,8 @@ export const rows = [
       return restoring(page, id, async () => {
         await deepSelect(page, marked(page, id, "data-zen-main", "tag-small"));
         await deepSelect(page, marked(page, id, "data-zen-main", "tag-large"), true);
-        await until(async () => (await selectedSrc(page)).length === 2, { message: "both mains selected" });
+        // Several layers: the header says how many, the second one has the extra outline (selectedSrc is the first's).
+        await until(async () => (await selectedName(page)) === "2 layers" || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 1, { message: "both mains selected" }).catch(async (error) => { throw new Error(`${error.message} · header ${await selectedName(page)}`); });
         const box = await marked(page, id, "data-zen-main", "tag-large").boundingBox();
         await page.mouse.click(box.x + 4, box.y + 4, { button: "right" });
         const menu = page.getByRole("menu").last();
@@ -2295,7 +2296,7 @@ export const rows = [
         await until(async () => (await sections(page)).includes("Component set"), { message: "the Component set section" });
         await shot(page, "fw-71-set");
         await right(page).getByRole("button", { name: "Add variant", exact: true }).click();
-        await written(page, id, /<Component id="[^"]+" variant=\{\{ Size: "Variant3" \}\}>\s*<Stack direction="row" gap="sm" padding="md">/, "a third variant, a copy of Large");
+        await written(page, id, /<Component id="[^"]+" variant=\{\{ Size: "Variant3" \}\}>\s*<Stack direction="row" gap="sm" padding="md">/, "a third variant, a copy of Large").catch(async (error) => { const text = (await pageText(page, id)) ?? ""; const set = text.slice(text.indexOf("<ComponentSet"), text.indexOf("</ComponentSet>")).replace(/\s+/g, " "); throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 100)} · ${set.slice(-700)}`); });
         await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-variant]`).count()) === 3, { message: "three variants on the canvas" });
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("ControlOrMeta+KeyZ");
@@ -2411,7 +2412,7 @@ export const rows = [
       return restoring(page, id, async () => {
         const instance = marked(page, id, "data-zen-instance", "tag-small");
         await deepInto(page, instance.getByText("Small", { exact: true }));
-        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected (Layer section)" });
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected (Layer section)" }).catch(async (error) => { throw new Error(`${error.message} · header ${await selectedName(page)} · sections ${(await sections(page)).join(", ")} · selected ${JSON.stringify(await selectedSrc(page))}`); });
         await shot(page, "fw-77-layer-in-instance");
         await typeText(page, "Text", "Hey");
         await written(page, id, /<Use of="tag-small" overrides=\{\{ Text: \{ children: "Hey" \} \}\} \/>/, "the instance's override of its Text");
@@ -2430,12 +2431,13 @@ export const rows = [
         const instance = marked(page, id, "data-zen-instance", "tag-small");
         await deepInto(page, instance.getByText("Small", { exact: true }));
         await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected" });
-        await right(page).getByRole("switch", { name: "Show layer", exact: true }).click();
+        const panel = async () => `header ${await selectedName(page)} · sections ${(await sections(page)).join(", ")} · buttons ${(await right(page).getByRole("button").allInnerTexts()).map((text) => text.trim()).filter(Boolean).slice(0, 8).join(" | ")}`;
+        await right(page).getByRole("switch", { name: "Show layer", exact: true }).click({ timeout: 5000 }).catch(async (error) => { throw new Error(`Show layer: ${error.message.split("\n")[0]} · ${await panel()}`); });
         await written(page, id, /<Use of="tag-small" overrides=\{\{ Text: \{ hidden: true \} \}\} \/>/, "the layer hidden in this instance");
         await until(async () => (await instance.getByText("Small", { exact: true }).count()) === 0, { message: "the instance draws no text" });
-        await right(page).getByRole("button", { name: "Select Tag small", exact: true }).click();
+        await right(page).getByRole("button", { name: "Select Tag small", exact: true }).click({ timeout: 5000 }).catch(async (error) => { throw new Error(`Select Tag small: ${error.message.split("\n")[0]} · ${await panel()}`); });
         await until(async () => (await selectedName(page)) === "Tag small", { message: "the instance selected again" });
-        await right(page).getByRole("button", { name: "Reset all changes", exact: true }).click();
+        await right(page).getByRole("button", { name: "Reset all changes", exact: true }).click({ timeout: 5000 }).catch(async (error) => { throw new Error(`Reset all changes: ${error.message.split("\n")[0]} · ${await panel()} · ${((await pageText(page, id)) ?? "").match(/<Use of="tag-small"[^\n]*/)?.[0]}`); });
         await written(page, id, /<Use of="tag-small" \/>/, "Reset all changes");
         return "Show layer off → hidden override · Select Tag small · Reset all changes";
       });

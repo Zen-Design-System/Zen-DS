@@ -392,8 +392,9 @@ export async function addVariant(set: SetRef): Promise<boolean> {
   const element = await studioApi.element(set.file, last.componentLoc);
   const source = await studioApi.source(set.file);
   if (!element?.range) return fail("The variant is no longer there — select the set again");
-  const lines = source.content.split("\n");
-  const code = lines.slice(element.range.start - 1, element.range.end).join("\n").trim();
+  // Its code as written (range: character offsets, after a byte-order mark if the file has one; edit/clipboard.ts).
+  const offset = source.content.charCodeAt(0) === 0xfeff ? 1 : 0;
+  const code = source.content.slice(element.range.start + offset, element.range.end + offset).trim();
   const axis = set.axes[0]?.name ?? "Property 1";
   const taken = new Set(set.axes[0]?.values ?? []);
   let n = variants.length + 1;

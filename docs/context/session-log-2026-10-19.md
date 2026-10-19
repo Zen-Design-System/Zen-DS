@@ -304,6 +304,15 @@ Branch `zen/feat/studio-f7b-overrides-20261019` (stacked on F7a). Spec card:
 - Checks: instance-paths 8, dialect 48, doc 142, compile 70, push 313, plugin npm test; E2E FW-77…79, FW-95, FW-96
   written (run waits for the gate slot). BACKLOG: pull of overrides/slots, deep override push, slot drop target (F7c),
   the export question for the user.
+- First E2E run of F7a/F7b (20 rows, slot of 2026-10-19 evening): 15/20, then fixed and 20/20 (93 s).
+  - Add variant sliced the variant's code by lines from a character range, so the paste was refused. It now slices by
+    offsets, as edit/clipboard.ts does.
+  - ⌘-click on a text inside an instance selects its DOM node. Its layer path is now taken from the Text component on the
+    same element; parentLayerOf starts above that element.
+  - A layer hidden in an instance stays selected by its last path, as in Figma.
+  - An instance of a main without properties now shows Properties when it changed layers inside it, so Reset all changes
+    is reachable.
+  - FW-70 counts several selected layers by the header.
 
 ## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
 

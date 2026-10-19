@@ -248,11 +248,14 @@ function InstancePropertiesSection({ selection, instance, found, disabled }: { s
   };
   // Figma's changed instance: its own values and the layers inside it it changed (F7b overrides).
   const changed = Object.keys(instance.own.variant).length + Object.keys(instance.own.props).length + instance.own.overrides;
-  if (!set?.axes.length && !properties.length) return null;
+  // A main without properties: the section only for an instance that changed layers inside it (its Reset all changes).
+  const plain = !set?.axes.length && !properties.length;
+  if (plain && !changed) return null;
   return (
     <InspectorSection
       title="Properties"
       actions={changed ? <IconButton icon="icon-reverse-left-line" aria-label="Reset all changes" tooltip="Reset all changes" appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => void resetInstance(selection)} /> : undefined}
+      note={plain ? `${instance.own.overrides} layer${instance.own.overrides === 1 ? "" : "s"} changed in this instance` : undefined}
     >
       {(set?.axes ?? []).map((axis) => (
         <InspectorRow key={`axis-${axis.name}`} label={axis.name} name="instance-variant">

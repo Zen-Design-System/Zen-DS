@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { InputField, SelectField } from "../../../components/Input";
@@ -7,7 +7,7 @@ import { ToggleButton } from "../../../components/Toggle";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc, subscribeStudioWrites } from "../api";
 import { localLayerAt, mainsOf, pushChangesToMain, setInstanceOverrides, setInstanceValues, setsOf, type LocalLayer, type MainRef, type SetRef } from "../edit/localComponents";
-import { nestedPathOf, parentLayerOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { nestedPathOf, parentLayerOf, partChain, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
 import { canEdit, studioStore } from "../store";
 import type { StudioSelection } from "../types";
 import { OverrideProperties } from "./OverrideProperties";
@@ -25,9 +25,18 @@ import { InspectorRow, InspectorSection } from "./Section";
 type PartSelection = Extract<StudioSelection, { kind: "node" }>;
 type Literal = string | number | boolean;
 
-/** The part's layer path inside the instance: its own, or the nearest layer above it that has one (a Text's DOM node). */
+/**
+ * The part's layer path inside the instance: its own, or that of the nearest component part at or above its element (a
+ * Text's DOM node is the Text's: the same element, so parentLayerOf, which starts above it, would skip it).
+ */
 function layerPathOf(part: PartHit | null): string | null {
-  for (let at: PartHit | null = part, depth = 0; at && depth < 12; at = parentLayerOf(at), depth++) {
+  if (!part) return null;
+  if (part.isComponent) { const own = nestedPathOf(part); if (own) return own; }
+  for (const candidate of partChain(part.owner, part.element)) {
+    const path = candidate.isComponent ? nestedPathOf(candidate) : null;
+    if (path) return path;
+  }
+  for (let at = parentLayerOf(part), depth = 0; at && depth < 12; at = parentLayerOf(at), depth++) {
     const path = at.isComponent ? nestedPathOf(at) : null;
     if (path) return path;
   }
@@ -70,7 +79,11 @@ function WordsField({ label, value, disabled, onCommit }: { label: string; value
 export function LocalPartPanel({ selection }: { selection: PartSelection }) {
   const part = useSyncExternalStore(selectedPartStore.subscribe, selectedPartStore.get, selectedPartStore.get);
   const resolved = part && part.owner.src === selection.src && part.element.isConnected ? part : null;
-  const path = layerPathOf(resolved);
+  // A layer the instance hides is no longer drawn: it stays selected (as in Figma), by the path it had.
+  const lastPath = useRef<string | null>(null);
+  const livePath = layerPathOf(resolved);
+  if (livePath) lastPath.current = livePath;
+  const path = livePath ?? lastPath.current;
   const loaded = useLocalLayer(selection, path);
   const layer = loaded?.layer ?? null;
   const disabled = !canEdit();
