@@ -1413,7 +1413,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // wide, 2026-10-16). It fills; one with a surface keeps hugging (its background would spread).
       const holdsWrap = !row && !own.width && wrapsText(node);
       const wide = (fillW && !oneLine) || shareW || holdsWrap || (node.type === "TEXT" && !row && !node.autoWidth) || (row && child.name === "Divider");
-      return { ...node, ...(wide ? { fillW: true } : {}), ...(fillH || shareH ? { fillH: true } : {}) };
+      // A frame of a px width / height keeps it (CSS: a set width wins over a column's stretch).
+      const ownW = node.type === "FRAME" && node.fixedWidth !== undefined;
+      const ownH = node.type === "FRAME" && node.fixedHeight !== undefined;
+      return { ...node, ...(wide && !ownW ? { fillW: true } : {}), ...((fillH || shareH) && !ownH ? { fillH: true } : {}) };
     }).filter(Boolean);
     if (grid && !fit) {
       layout.grid = { columns: columns.count, rows: Math.max(1, Math.ceil(children.length / columns.count)), ...(columns.sizes ? { sizes: columns.sizes } : {}) };
@@ -1429,7 +1432,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // fill, stroke, corners, effect, opacity, rotation and flip: one Figma frame (frameLook).
     // A Box group (⌘G): Figma's GROUP (the importer turns the frame into one once its layers sit where they go).
     const group = element.name === "Box" && code.group === true;
-    return { type: "FRAME", ...(id ? { id } : {}), name: group ? "Group" : element.name, ...(group ? { group: true } : {}), layout, children, ...frameLook(code, element), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
+    // A width / height in px (a free frame drawn in the Studio, Stack width={480}): Figma's Fixed size; the importer
+    // hugged it before (2026-10-19, a 560 × 240 free frame came out as tall as its layers in the flow).
+    const px = (value) => (/^\d+(\.\d+)?(px)?$/.test(String(value ?? "")) ? Number.parseFloat(String(value)) : null);
+    const fixedWidth = px(code.width);
+    const fixedHeight = px(code.height);
+    return { type: "FRAME", ...(id ? { id } : {}), name: group ? "Group" : element.name, ...(group ? { group: true } : {}), layout, children, ...frameLook(code, element), ...(fixedWidth !== null ? { fixedWidth } : {}), ...(fixedHeight !== null ? { fixedHeight } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */

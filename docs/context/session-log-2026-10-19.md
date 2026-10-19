@@ -374,3 +374,22 @@ in one gate (the slot queue is the bottleneck).
 - Gate (`--isolated`, 76 files): static, runtime audit (1512/390/320, dark), behaviour ✓; Studio E2E 335/336 — SP-09
   ("Reports gone from the Screen", a starters row F9b does not touch) timed out under load, then passed alone and in
   the whole starters group (24/24). Shape coverage ⚠ is the existing BACKLOG line (count updated to 9).
+
+## F9 in the live Zen file (Session A, worktree `../Zen-DS-f9b`, branch `zen/fix/figma-push-frame-size-20261019`)
+
+The user asked to test F9 in real Figma after #146. A Studio page (Pen logo, Pencil underline, a group with a flipped
+star, a Subtract ticket stub in a 560 × 240 free frame) pushed through the real importer (`studio-import.js`, a trimmed
+copy in one `use_figma` call on "Studio exports — QA"; storing code in the file and evaluating it was refused by the
+safety check) and pulled back with `figmaReadCode`. Bugs, each fixed at its owner:
+- Plugin (fbbc407, local + `studio-import`): GROUP / BOOLEAN_OPERATION landed in the auto layout flow at 0, 0 (keepPlace);
+  a boolean group's shapes sat at 0, 0 in their holder (placeAbsolute without layoutPositioning); a vector was resized to
+  its Zen box after its path, stretching the curve (Figma sizes a vector to its path: pathOffsets); fixedHeight ignored.
+- Push: a frame's px width / height was never sent (free frames hugged): `fixedWidth` / `fixedHeight`, no Fill over them.
+- Pull reader: Figma throws on a property a node type lacks (pointCount on VECTOR, clipsContent / constraints / layoutMode
+  on GROUP), so any page with shapes failed in the live file; reads now ask first (`own`). A mirrored shape read as
+  rotation -180: decoded as flip like frames, centre through the mirror. GROUP size was missing (NaN); a group pinned out
+  of an auto layout took token insets in a wrapper Stack: px X / Y now; absolute X / Y to the hundredth.
+- Round trip after the fixes: vectors, group, flipped star and Subtract come back as drawn, no notes, dialect clean.
+  Left for Session C (frames): a free frame (Box, every layer absolute) pushes as an auto layout frame and pulls back as
+  a Stack without its size; the pull reads no FIXED size; figma-native ignores fixedHeight. Told C.
+- QA frames removed from the Zen file.

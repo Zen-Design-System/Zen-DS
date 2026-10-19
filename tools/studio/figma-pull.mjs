@@ -342,29 +342,33 @@ const SHAPE_READ = new Set(["RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "
 // A child that fills its auto-layout parent on an axis (Figma's Fill container), or one placed outside the auto layout
 // (Ignore auto layout): its constraints and its box in the parent's.
 const placed = (out, child, parent) => {
+  // A GROUP has no constraints (Figma throws on reading them): its edges are its layers', read as left / top.
+  const constraints = "constraints" in child ? child.constraints : { horizontal: "MIN", vertical: "MIN" };
   if (!("layoutMode" in parent) || parent.layoutMode === "NONE") {
     // A shape or a group in a frame without auto layout keeps its X / Y (a Zen Shape or Box group in a free frame: px
     // insets); a group's layers keep theirs inside it (Figma writes them in the group's parent's space).
     const inGroup = parent.type === "GROUP" || parent.type === "BOOLEAN_OPERATION";
     const w = out.shape ? out.shape.w : Math.round(child.width * 100) / 100;
     const h = out.shape ? out.shape.h : Math.round(child.height * 100) / 100;
-    if ((out.shape || out.type === "GROUP" || inGroup) && ("layoutMode" in parent || inGroup)) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints ? child.constraints.horizontal : "MIN", cy: child.constraints ? child.constraints.vertical : "MIN", free: true };
+    if ((out.shape || out.type === "GROUP" || inGroup) && ("layoutMode" in parent || inGroup)) out.absolute = { x: Math.round((child.x - (inGroup ? parent.x : 0)) * 100) / 100, y: Math.round((child.y - (inGroup ? parent.y : 0)) * 100) / 100, w, h, pw: Math.round(parent.width), ph: Math.round(parent.height), cx: constraints.horizontal, cy: constraints.vertical, free: true };
     return out;
   }
   // A grid cell keeps its minimum width (figma-push: columns that fit, counted for the page's width).
+  const own = (key) => (key in child ? child[key] : undefined);
   if (parent.layoutMode === "GRID") {
-    if (child.minWidth) out.minW = child.minWidth;
+    if (own("minWidth")) out.minW = child.minWidth;
     return out;
   }
-  if (child.layoutPositioning === "ABSOLUTE") {
-    out.absolute = { x: Math.round(child.x), y: Math.round(child.y), w: Math.round(child.width), h: Math.round(child.height), pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints.horizontal, cy: child.constraints.vertical };
+  if (own("layoutPositioning") === "ABSOLUTE") {
+    // X / Y to the hundredth: a vector sits where its path starts (Figma moves it there, often between pixels).
+    out.absolute = { x: Math.round(child.x * 100) / 100, y: Math.round(child.y * 100) / 100, w: Math.round(child.width), h: Math.round(child.height), pw: Math.round(parent.width), ph: Math.round(parent.height), cx: constraints.horizontal, cy: constraints.vertical };
     return out;
   }
-  if (child.layoutSizingHorizontal === "FILL") out.fillW = true;
-  if (child.layoutSizingVertical === "FILL") out.fillH = true;
-  if (child.minWidth) out.minW = child.minWidth;
-  if (child.maxWidth) out.maxW = child.maxWidth;
-  if (child.maxHeight) out.maxH = child.maxHeight;
+  if (own("layoutSizingHorizontal") === "FILL") out.fillW = true;
+  if (own("layoutSizingVertical") === "FILL") out.fillH = true;
+  if (own("minWidth")) out.minW = child.minWidth;
+  if (own("maxWidth")) out.maxW = child.maxWidth;
+  if (own("maxHeight")) out.maxH = child.maxHeight;
   return out;
 };
 // A frame of the Table's rows (Primitives/Table/Data-Row instances, Figma's Table): one table, cell by cell. A row of
@@ -415,6 +419,9 @@ const frameOf = (node, root) => {
   return { ...(typeof figma.fileKey === "string" ? { file: figma.fileKey } : {}), width: Math.round(node.width), height: Math.round(node.height), ...studio };
 };
 const readFrame = async (node, root = false) => {
+  // A property this node type has, else undefined: Figma throws on reading one it lacks (pointCount on a VECTOR,
+  // clipsContent on a GROUP; the live Zen file 2026-10-19), where the mock returned undefined.
+  const own = (key) => (key in node ? node[key] : undefined);
   // Figma's own shapes come back as Zen Shapes (figma-push shapeNode, the other way): size, colour variables, arc,
   // count, ratio, corner variable, rotation, opacity. Vectors and boolean groups stay drawings.
   if (SHAPE_READ.has(node.type)) {
@@ -423,14 +430,19 @@ const readFrame = async (node, root = false) => {
     const strokePaint = solid(node.strokes);
     const boundId = (paint) => (paint && paint.boundVariables && paint.boundVariables.color ? paint.boundVariables.color.id : null);
     const radiusBinding = node.boundVariables && node.boundVariables.topLeftRadius ? node.boundVariables.topLeftRadius.id : null;
+    // A mirrored shape (Zen flip, ⇧H): Figma reports it as turned 180°; its transform says mirror and the real turn
+    // (as a frame's below; the live Zen file 2026-10-19 read a flipped Star back as rotation -180).
+    const m = node.relativeTransform;
+    const mirrored = Boolean(m) && m[0][0] * m[1][1] - m[0][1] * m[1][0] < 0;
+    const turn = mirrored ? Math.round((Math.atan2(m[1][0], -m[0][0]) * 180) / Math.PI * 100) / 100 : Math.round((node.rotation || 0) * 100) / 100;
     const read_ = { type: node.type, name: node.name, shape: {
       w: Math.round(node.width * 100) / 100, h: Math.round(node.height * 100) / 100,
       fill: fillPaint ? (await variableName(boundId(fillPaint))) || "unbound" : null,
       stroke: strokePaint ? (await variableName(boundId(strokePaint))) || "unbound" : null,
-      strokeWeight: typeof node.strokeWeight === "number" ? node.strokeWeight : 1, strokeAlign: node.strokeAlign, cap: typeof node.strokeCap === "string" ? node.strokeCap : null,
-      arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: node.pointCount, innerRadius: node.innerRadius,
-      radius: typeof node.cornerRadius === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
-      rotation: Math.round((node.rotation || 0) * 100) / 100, opacity: node.opacity, imageFill: readImageFill(node),
+      strokeWeight: typeof own("strokeWeight") === "number" ? node.strokeWeight : 1, strokeAlign: own("strokeAlign"), cap: typeof own("strokeCap") === "string" ? node.strokeCap : null,
+      arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: own("pointCount"), innerRadius: own("innerRadius"),
+      radius: typeof own("cornerRadius") === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
+      rotation: turn, ...(mirrored ? { flip: "horizontal" } : {}), opacity: node.opacity, imageFill: readImageFill(node),
       // A vector's own paths; a boolean group's result (its fill geometry: Figma combined its shapes, F9b).
       paths: node.type === "VECTOR" && Array.isArray(node.vectorPaths) ? node.vectorPaths.map((path) => ({ windingRule: path.windingRule, data: path.data }))
         : node.type === "BOOLEAN_OPERATION" && Array.isArray(node.fillGeometry) ? node.fillGeometry.map((path) => ({ windingRule: path.windingRule, data: path.data })) : null,
@@ -478,11 +490,14 @@ const readFrame = async (node, root = false) => {
     }
     if (properties.length) out.properties = properties;
   }
+
+  // A GROUP's box (a Zen group's width and height; the live Zen file 2026-10-19 read none and the group came back NaN).
+  if (node.type === "GROUP") Object.assign(out, { width: Math.round(node.width * 100) / 100, height: Math.round(node.height * 100) / 100 });
   // Clip content: a frame inside the page that clips (the page frame itself is the screen, which always does).
-  if (!root && node.clipsContent === true) out.clip = true;
+  if (!root && own("clipsContent") === true) out.clip = true;
   // Overflow scrolling (Stack / Box scroll) and a background bound to a colour variable (a Box's surface).
-  if (!root && node.overflowDirection && node.overflowDirection !== "NONE") out.scroll = node.overflowDirection;
-  const paint = !root && Array.isArray(node.fills) ? node.fills.find((fill) => fill.visible !== false) : null;
+  if (!root && own("overflowDirection") && node.overflowDirection !== "NONE") out.scroll = node.overflowDirection;
+  const paint = !root && Array.isArray(own("fills")) ? node.fills.find((fill) => fill.visible !== false) : null;
   const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
   if (fill) out.fill = fill;
   // An image fill (F8, figma-image.mjs): the picture back by its Studio src.
@@ -491,20 +506,20 @@ const readFrame = async (node, root = false) => {
   // Its stroke (variable, weight per side, dash), corners and their variables, effect style, opacity, rotation and
   // mirror: one Zen frame (figma-push frameLook, the other way). The page frame itself is the Screen.
   if (!root) {
-    const strokePaint = Array.isArray(node.strokes) ? node.strokes.find((p) => p.visible !== false && p.type === "SOLID") : null;
+    const strokePaint = Array.isArray(own("strokes")) ? node.strokes.find((p) => p.visible !== false && p.type === "SOLID") : null;
     if (strokePaint) {
       out.stroke = (await variableName(strokePaint.boundVariables && strokePaint.boundVariables.color && strokePaint.boundVariables.color.id)) || "unbound";
-      const sides = [node.strokeTopWeight, node.strokeRightWeight, node.strokeBottomWeight, node.strokeLeftWeight];
-      out.strokeWeights = sides.every((v) => typeof v === "number") ? sides : [0, 1, 2, 3].map(() => (typeof node.strokeWeight === "number" ? node.strokeWeight : 1));
-      if (Array.isArray(node.dashPattern) && node.dashPattern.length) out.dash = node.dashPattern;
+      const sides = [own("strokeTopWeight"), own("strokeRightWeight"), own("strokeBottomWeight"), own("strokeLeftWeight")];
+      out.strokeWeights = sides.every((v) => typeof v === "number") ? sides : [0, 1, 2, 3].map(() => (typeof own("strokeWeight") === "number" ? node.strokeWeight : 1));
+      if (Array.isArray(own("dashPattern")) && node.dashPattern.length) out.dash = node.dashPattern;
     }
-    const corners = [node.topLeftRadius, node.topRightRadius, node.bottomRightRadius, node.bottomLeftRadius].map((v) => (typeof v === "number" ? v : 0));
+    const corners = [own("topLeftRadius"), own("topRightRadius"), own("bottomRightRadius"), own("bottomLeftRadius")].map((v) => (typeof v === "number" ? v : 0));
     if (corners.some((v) => v > 0)) {
       const bound = node.boundVariables || {};
       out.radii = corners;
       out.radiiVars = await Promise.all(["topLeftRadius", "topRightRadius", "bottomRightRadius", "bottomLeftRadius"].map((field) => variableName(bound[field] && bound[field].id)));
     }
-    if (typeof node.effectStyleId === "string" && node.effectStyleId) {
+    if (typeof own("effectStyleId") === "string" && node.effectStyleId) {
       const style = await figma.getStyleByIdAsync(node.effectStyleId);
       if (style) out.effectStyle = style.name;
     }
@@ -524,7 +539,7 @@ const readFrame = async (node, root = false) => {
     const read_ = await read(child);
     if (!read_) continue;
     // A grid's child: its cell (column and row from 0, its spans).
-    if (node.layoutMode === "GRID") read_.cell = { col: child.gridColumnAnchorIndex, row: child.gridRowAnchorIndex, span: child.gridColumnSpan, rowSpan: child.gridRowSpan };
+    if (own("layoutMode") === "GRID") read_.cell = { col: child.gridColumnAnchorIndex, row: child.gridRowAnchorIndex, span: child.gridColumnSpan, rowSpan: child.gridRowSpan };
     else placed(read_, child, node);
     out.children.push(read_);
   }
@@ -1327,12 +1342,17 @@ function positioned(element, node, ctx) {
   const box = node.absolute;
   // A Shape takes its own position props, in px: Figma's X / Y (its unrotated box, as Shape turns about its centre); so
   // does a group, or a frame placed in a frame without auto layout (free px insets, F3).
-  if (element.name === "Shape" || (box.free && ["Box", "Stack", "Grid"].includes(element.name))) {
+  // A Zen group pinned out of an auto layout (⌘G on floating layers) keeps px X / Y as well.
+  const group = element.name === "Box" && element.props.group?.value === true;
+  if (element.name === "Shape" || group || (box.free && ["Box", "Stack", "Grid"].includes(element.name))) {
     const shape = node.shape ?? {};
     const turn = ((shape.rotation ?? 0) * Math.PI) / 180;
     const w = shape.w ?? box.w;
     const h = element.props.type?.value === "line" || element.props.type?.value === "arrow" ? 0 : shape.h ?? box.h;
-    const centre = { x: box.x + Math.cos(turn) * (w / 2) + Math.sin(turn) * (h / 2), y: box.y - Math.sin(turn) * (w / 2) + Math.cos(turn) * (h / 2) };
+    // Figma's X / Y is where the turned (and mirrored, Zen flip) box's own corner lands: its centre is that corner plus
+    // the half box through the same transform.
+    const mirror = shape.flip === "horizontal" ? -1 : 1;
+    const centre = { x: box.x + mirror * Math.cos(turn) * (w / 2) + Math.sin(turn) * (h / 2), y: box.y - mirror * Math.sin(turn) * (w / 2) + Math.cos(turn) * (h / 2) };
     const left = Math.round((centre.x - w / 2) * 100) / 100;
     const top = Math.round((centre.y - h / 2) * 100) / 100;
     const cx = { MIN: "left", MAX: "right", CENTER: "center", STRETCH: "left-right", SCALE: "left-right" }[box.cx] ?? "left";
@@ -1501,6 +1521,7 @@ function shapeElement(node, ctx) {
     else if (shape.radius) ctx.notes.push(`${where}: its corner radius ${shape.radius} px is no Corner-Radius variable; left square`);
   }
   if (shape.rotation) props.rotation = literal(shape.rotation);
+  if (shape.flip) props.flip = literal(shape.flip);
   if (typeof shape.opacity === "number" && shape.opacity < 1) props.opacity = literal(Math.round(shape.opacity * 100));
   const children = boolean ? (node.children ?? []).map((child) => convert(child, ctx)).filter((child) => child?.name === "Shape") : [];
   return { kind: "element", name: "Shape", props, children };
