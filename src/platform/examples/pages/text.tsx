@@ -1,10 +1,15 @@
 /* Text & Heading examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio, signed in as Alex
    Duong, Wednesday Sep 30, 2026, 10:30 am. Each example teaches one copy decision: the heading level follows the page
    outline while the style follows the kind of content, status text pairs its colour with an icon and words, long copy
-   clamps and opens in place, counts agree with their noun, and a phone's h1 is its large or compact bar title. */
-import { useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+   clamps and opens in place, counts agree with their noun, and a phone's h1 is its large or compact bar title. The two
+   screens sit in the new AppShell (2026-10-19): the PageHeader is the header's Main row on desktop, the TopNavigation
+   names the phone screen. */
+import { useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
@@ -12,19 +17,22 @@ import { DescriptionList } from "../../../components/DescriptionList";
 import { Dialog } from "../../../components/Dialog";
 import { Form, FormActions, FormFieldset } from "../../../components/Form";
 import { Icon, type IconName } from "../../../components/Icon";
-import { Box, Container, Grid, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { SidePanel } from "../../../components/SidePanel";
+import { Sidebar, SidebarMenuItem, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
-  TODAY, daysFromToday, formatBytes, formatDate, formatDue, formatRelative, initials, people, priorityTheme, projectById, taskStatusTheme,
-  tasks, type Person, type PersonId, type Task,
+  TODAY, activity, daysFromToday, formatBytes, formatDate, formatDue, formatRelative, initials, me, people, priorityTheme, projectById, studio,
+  taskStatusTheme, tasks, type Person, type PersonId, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -38,6 +46,73 @@ const avatarOf = (person: Person) => person.photo
   : { theme: person.theme, alt: "", children: initials(person.name) };
 const minutesAgo = (minutes: number) => new Date(TODAY.getTime() - minutes * 60_000);
 
+/** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows text and headings." });
+}
+
+// ——— The studio's desktop app ———————————————————————————————————————————————————————————————————————
+/* Đìzai Studio's navigation: the same Sidebar on every page, its current page selected. */
+const studioNav: SidebarSection[] = [
+  { items: [
+    { id: "home", label: "Home", icon: "icon-home-03-line" },
+    { id: "projects", label: "Projects", icon: "icon-folder-line" },
+    { id: "clients", label: "Clients", icon: "icon-briefcase-line" },
+    { id: "people", label: "People", icon: "icon-users-line" },
+  ] },
+  { label: "Finance", items: [
+    { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+    { id: "expenses", label: "Expenses", icon: "icon-wallet-02-line" },
+  ] },
+];
+const unreadActivity = activity.filter((item) => item.unread);
+
+/**
+ * One page of the studio's app: AppShell Layout=Sidebar in a desktop window, the trail and the utilities in the header's
+ * top row and the page's PageHeader, its one h1, as the Main row. The Body pads the page margins itself.
+ */
+function StudioApp({ here, leading, main, children }: { here: string; leading?: ReactNode; main: ReactNode; children: ReactNode }) {
+  const { toast } = useToast();
+  const notHere = useNotHere();
+  const [unread, setUnread] = useState(unreadActivity.length);
+  const first = unreadActivity[0];
+  return (
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            sections={studioNav} selectedId={here} onItemClick={(item: SidebarItem) => { if (item.id !== here) notHere(item.label); }}
+            footer={<>
+              <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
+              <SidebarMenuItem id="help" label="Help" icon="icon-help-circle-line" />
+            </>} />
+        )}
+        header={(
+          <AppShellHeader leading={leading}
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                toast(unread
+                  ? { title: plural(unread, "new notification"), children: `${people[first.actor].name} ${first.verb} “${first.object}”.` }
+                  : { title: "No new notifications", children: "You’re all caught up." });
+                setUnread(0);
+              }} />
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.email}` }) },
+                { type: "separator" },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out", children: `See you soon, ${me.name.split(" ")[0]}.` }) },
+              ]} />
+            </>}
+            main={main}
+          />
+        )}
+      >
+        {children}
+      </AppShell>
+    </PreviewAppFrame>
+  );
+}
+
 // ——— 1. Page outline: one h1, h2 sections, h3 card titles ——————————————————————————————————————————
 type Milestone = { id: string; name: string; done: number; total: number; date: Date; finished?: boolean };
 const milestones: Milestone[] = [
@@ -47,7 +122,11 @@ const milestones: Milestone[] = [
 ];
 const loyaltyTasks = tasks.filter((task) => task.project === "phin-loyalty" && task.status !== "Done");
 
+const loyalty = projectById("phin-loyalty");
+
 function ProjectPage() {
+  const { toast } = useToast();
+  const notHere = useNotHere();
   const [open, setOpen] = useState(loyaltyTasks);
   const [creating, setCreating] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -58,19 +137,22 @@ function ProjectPage() {
     id: `new-${list.length}`, key: `PHIN-${230 + list.length}`, title, project: "phin-loyalty", assignee: "alex", status: "To do", priority: "Medium", due: daysFromToday(7), comments: 0,
   }]);
   return (
-    <Container maxWidth="lg">
-      <Stack paddingY="xl" gap="xl">
-        {/* The page title: PageHeader renders the screen's one h1 in Heading/1. */}
-        <PageHeader title="Loyalty app" description={`Phin & Co · Led by ${people.chi.name} · Due ${formatDate(daysFromToday(33))}`}
-          actions={<>
-            <Button level="tertiary" startIcon="icon-share-01-line" onClick={() => setSharing(true)}>Share</Button>
-            <Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>New task</Button>
-          </>} />
+    <StudioApp here="projects"
+      leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: loyalty.id, label: loyalty.name }]}
+        onNavigate={(item, event) => { event.preventDefault(); notHere(String(item.label)); }} />}
+      // The page title: PageHeader renders the screen's one h1 in Heading/1, in the header's Main row.
+      main={<PageHeader title={loyalty.name} description={`${loyalty.client} · Led by ${people[loyalty.lead].name} · Due ${formatDate(loyalty.due)}`}
+        actions={<>
+          <Button level="tertiary" startIcon="icon-share-01-line" onClick={() => setSharing(true)}>Share</Button>
+          <Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>New task</Button>
+        </>} />}>
+      {/* Sections of the page, xl apart: each an h2 in Heading/4. Beside the Sidebar every box takes its elevation (Shadow). */}
+      <Stack gap="xl">
         <Stack as="section" gap="md" aria-labelledby={`${baseId}-milestones`}>
           <Heading level={2} id={`${baseId}-milestones`} textStyle="Heading/4">Milestones</Heading>
           <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
             {milestones.map((milestone) => (
-              <Card key={milestone.id} as="section" theme="flat" aria-labelledby={`${baseId}-${milestone.id}`}>
+              <Card key={milestone.id} as="section" theme="shadow" aria-labelledby={`${baseId}-${milestone.id}`}>
                 {/* Card titles sit one level below the section (h3) and are always Heading/Subheading; the lines under
                     them step down in tone, not in size. */}
                 <Stack gap="xs">
@@ -82,22 +164,36 @@ function ProjectPage() {
             ))}
           </Grid>
         </Stack>
-        <Stack as="section" gap="md" aria-labelledby={`${baseId}-tasks`}>
-          <Heading level={2} id={`${baseId}-tasks`} textStyle="Heading/4">Open tasks</Heading>
-          <ListBox>
-            <List aria-labelledby={`${baseId}-tasks`}>
-              {open.map((task) => (
-                // No leading visual: the title keeps the room to wrap beside the status, even on a narrow screen. The
-                // whole row opens the task.
-                <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${people[task.assignee].name} · ${formatDue(task.due)}`}
-                  trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} onClick={() => setOpenId(task.id)} />
-              ))}
-            </List>
-          </ListBox>
-        </Stack>
+        <Grid columns="minmax(0, 2fr) minmax(0, 1fr)" stackBelow={880} gap="xl" align="start">
+          <Stack as="section" gap="md" aria-labelledby={`${baseId}-tasks`}>
+            <Heading level={2} id={`${baseId}-tasks`} textStyle="Heading/4">Open tasks</Heading>
+            <ListBox theme="shadow">
+              <List aria-labelledby={`${baseId}-tasks`}>
+                {open.map((task) => (
+                  // No leading visual: the title keeps the room to wrap beside the status, even on a narrow screen. The
+                  // whole row opens the task.
+                  <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${people[task.assignee].name} · ${formatDue(task.due)}`}
+                    trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} onClick={() => setOpenId(task.id)} />
+                ))}
+              </List>
+            </ListBox>
+          </Stack>
+          <Stack as="section" gap="md" aria-labelledby={`${baseId}-team`}>
+            <Heading level={2} id={`${baseId}-team`} textStyle="Heading/4">Team</Heading>
+            <ListBox theme="shadow">
+              <List aria-labelledby={`${baseId}-team`}>
+                {loyalty.members.map((id) => (
+                  <ListItem key={id} title={people[id].name} caption={id === loyalty.lead ? `${people[id].role} · Project lead` : people[id].role}
+                    leading={<Avatar size="md" {...avatarOf(people[id])} />}
+                    onClick={() => toast({ title: people[id].name, children: `${people[id].role} · ${people[id].email}` })} />
+                ))}
+              </List>
+            </ListBox>
+          </Stack>
+        </Grid>
       </Stack>
       <SidePanel type="modal" size="small" open={Boolean(opened)} onOpenChange={(next) => { if (!next) setOpenId(null); }}
-        title={opened?.title ?? ""} description={opened ? `${opened.key} · Loyalty app` : undefined}>
+        title={opened?.title ?? ""} description={opened ? `${opened.key} · ${loyalty.name}` : undefined}>
         {opened ? (
           <DescriptionList divider items={[
             { id: "status", term: "Status", description: <Badge theme={taskStatusTheme[opened.status]} background="subtle">{opened.status}</Badge> },
@@ -113,7 +209,7 @@ function ProjectPage() {
       <DemoFieldDialog open={sharing} onOpenChange={setSharing} title="Share Loyalty app" description="They can view the project and its open tasks."
         field={{ kind: "email", label: "Email", placeholder: "name@phinco.vn" }} submitLabel="Share project"
         confirm={(email) => `Project shared with ${email}`} />
-    </Container>
+    </StudioApp>
   );
 }
 
@@ -311,41 +407,69 @@ const historyOf = (task: Task) => [
   ...(task.status === "In review" || task.status === "Done" ? [{ id: "status", who: task.assignee, text: `Moved it to ${task.status}`, at: daysFromToday(-1, 17, 25) }] : []),
 ].reverse();
 
+/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
+const phoneRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
+  { id: "inbox", label: "Inbox", icon: "icon-message-chat-circle-line", selectedIcon: "icon-message-chat-circle-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+const openCount = followed.filter((task) => task.status !== "Done").length;
+/** The list's two groups: open work, soonest due first, then what is done. */
+const taskGroups = [
+  { id: "open", title: "Open", rows: followed.filter((task) => task.status !== "Done") },
+  { id: "done", title: "Done", rows: followed.filter((task) => task.status === "Done") },
+];
+
 function PhoneHeadings() {
+  const notHere = useNotHere();
   const screen = usePhoneScreen();
   const screenRef = useRef<HTMLDivElement>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const groupId = useId();
   const activityId = useId();
   const task = followed.find((item) => item.id === openId);
   if (!task) {
     return (
-      // A tab root: the large title is the screen's h1 (Heading/1) and folds into the bar as the list scrolls.
-      <PlatformPhone key="tasks" label="Zen tasks" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
-        {screen.anchor}
-        {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
-        <Box paddingX="lg" paddingY="xs">
-          <List aria-label="Tasks">
-            {followed.map((item) => (
-              <ListItem key={item.id} data-task={item.id} title={item.title} titleLines={1} caption={`${item.key} · ${dueLine(item)}`}
-                leading={<Avatar size="md" {...avatarOf(people[item.assignee])} />}
-                onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
-            ))}
-          </List>
-        </Box>
+      // A tab root: the large title is the screen's h1 (Heading/1) and folds into the bar as the list scrolls; the groups
+      // under it are h2 kickers. The bottom bar casts a shadow, so each group's block takes the same Shadow elevation.
+      <PlatformPhone key="tasks" label="Zen tasks" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="Tasks" largeTitle="Tasks" largeTitleSubheading={`${plural(openCount, "open task")} you follow`} scrollRef={screenRef} />}
+          bottomNavigation={<BottomNavigation aria-label={studio.name} showLabels items={phoneRoots} value="tasks"
+            onValueChange={(id) => { if (id !== "tasks") notHere(phoneRoots.find((item) => item.id === id)?.label ?? id); }} />}
+        >
+          {screen.anchor}
+          {taskGroups.map((group) => (
+            <Stack key={group.id} as="section" gap="xs" aria-labelledby={`${groupId}-${group.id}`}>
+              <Box paddingX="lg"><Heading level={2} id={`${groupId}-${group.id}`} textStyle="Body/Small/Bold" tone="light">{group.title}</Heading></Box>
+              <ListBox theme="shadow">
+                <List aria-labelledby={`${groupId}-${group.id}`}>
+                  {group.rows.map((item) => (
+                    <ListItem key={item.id} data-task={item.id} title={item.title} titleLines={2} caption={`${item.key} · ${dueLine(item)}`}
+                      leading={<Avatar size="md" {...avatarOf(people[item.assignee])} />}
+                      onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
+                  ))}
+                </List>
+              </ListBox>
+            </Stack>
+          ))}
+        </AppShell>
       </PlatformPhone>
     );
   }
   const project = projectById(task.project);
   return (
-    // A pushed screen: the compact bar title is its h1 in the bar's own style, so the content starts at h2.
-    <PlatformPhone key={task.id} label="Zen tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
-        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-task="${task.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
-      {screen.anchor}
-      <Stack gap="lg" paddingY="lg">
-        <Stack gap="lg" paddingX="lg">
-          {/* The task's name leads the screen as bold text, not as a second h1. */}
+    // A pushed screen: the compact bar title is its h1 in the bar's own style, so the content starts at h2. No bottom bar.
+    <PlatformPhone key={task.id} label="Zen tasks" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-task="${task.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
+      >
+        {screen.anchor}
+        {/* The task's name leads the screen as bold text, not as a second h1; the Body spaces the sections
+            Layout-Mobile/Section-Gap apart. */}
+        <Stack gap="lg">
           <Stack gap="xs">
             <Text textStyle="Body/Extra/Bold">{task.title}</Text>
             <Text textStyle="Body/Small/Regular" tone="base">{`${project.name} · ${project.client}`}</Text>
@@ -358,7 +482,7 @@ function PhoneHeadings() {
             ...(task.status === "Done" ? [] : [{ id: "due", term: "Due", description: formatDate(task.due) }]),
           ]} />
         </Stack>
-        <Stack as="section" gap="xs" paddingX="lg" aria-labelledby={activityId}>
+        <Stack as="section" gap="xs" aria-labelledby={activityId}>
           <Heading level={2} id={activityId} textStyle="Body/Small/Bold" tone="light">Activity</Heading>
           <List aria-labelledby={activityId}>
             {historyOf(task).map((event) => (
@@ -367,7 +491,7 @@ function PhoneHeadings() {
             ))}
           </List>
         </Stack>
-      </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -376,26 +500,36 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Page outline",
     screen: true,
-    description: "One h1 names the page (PageHeader, Heading/1). Sections are h2 in Heading/4 and the cards under them h3 in Heading/Subheading: the level follows the outline, the style follows the kind of content. Under each title, tone steps down from Base to Light while the size stays.",
+    description: "The Loyalty app's project page in the studio's app. One h1 names the page: the PageHeader (Heading/1) in the shell's header. Sections are h2 in Heading/4 and the cards under them h3 in Heading/Subheading: the level follows the outline, the style follows the kind of content. Under each title, tone steps down from Base to Light while the size stays.",
     render: () => <ProjectPage />,
-    code: `<PageHeader title="Loyalty app" description="Phin & Co · Led by Chi Tran · Due Nov 2, 2026"
-  actions={<>
-    <Button level="tertiary" startIcon="icon-share-01-line" onClick={share}>Share</Button>
-    <Button level="primary" startIcon="icon-plus-line" onClick={newTask}>New task</Button>
-  </>} />
-
-<Stack as="section" gap="md" aria-labelledby="milestones">
-  <Heading level={2} id="milestones" textStyle="Heading/4">Milestones</Heading>
-  <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-    <Card as="section" theme="flat" aria-labelledby="rewards">
-      <Stack gap="xs">
-        <Heading level={3} id="rewards" textStyle="Heading/Subheading">Points and rewards</Heading>
-        <Text textStyle="Body/Small/Regular" tone="base">{\`6 of \${plural(9, "task")} done\`}</Text>
-        <Text textStyle="Caption/Regular" tone="light">Due Oct 9, 2026</Text>
-      </Stack>
-    </Card>
-  </Grid>
-</Stack>`,
+    code: `<AppShell
+  sidebar={<Sidebar logo={logo} sections={studioNav} selectedId="projects" onItemClick={navigate} />}
+  header={
+    <AppShellHeader
+      leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: "phin-loyalty", label: "Loyalty app" }]} onNavigate={go} />}
+      actions={<>{notifications}{account}</>}
+      main={<PageHeader title="Loyalty app" description="Phin & Co · Led by Chi Tran · Due Nov 2, 2026"
+        actions={<>
+          <Button level="tertiary" startIcon="icon-share-01-line" onClick={share}>Share</Button>
+          <Button level="primary" startIcon="icon-plus-line" onClick={newTask}>New task</Button>
+        </>} />}
+    />
+  }
+>
+  <Stack as="section" gap="md" aria-labelledby="milestones">
+    <Heading level={2} id="milestones" textStyle="Heading/4">Milestones</Heading>
+    <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
+      <Card as="section" theme="shadow" aria-labelledby="rewards">
+        <Stack gap="xs">
+          <Heading level={3} id="rewards" textStyle="Heading/Subheading">Points and rewards</Heading>
+          <Text textStyle="Body/Small/Regular" tone="base">{\`6 of \${plural(9, "task")} done\`}</Text>
+          <Text textStyle="Caption/Regular" tone="light">Due Oct 9, 2026</Text>
+        </Stack>
+      </Card>
+    </Grid>
+  </Stack>
+  {/* Open tasks and Team: two more h2 sections */}
+</AppShell>`,
   },
   {
     title: "Status text",
@@ -441,33 +575,41 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Headings on a phone",
-    description: "On a tab root the large title is the screen's h1 (Heading/1) and folds into the bar as the list scrolls. A pushed screen's compact bar title is its h1 in the bar's style, so the content starts at h2: the task's name is bold text and Activity is a kicker. PlatformPhone sets the mobile type scale; no component changes.",
+    description: "In the studio's phone app, the Tasks root's large title is the screen's h1 (Heading/1) and folds into the bar as the list scrolls; its groups are h2 kickers. A pushed screen's compact bar title is its h1 in the bar's style, so the content starts at h2: the task's name is bold text and Activity is a kicker. PlatformPhone sets the mobile type scale; no component changes.",
     render: () => <PhoneHeadings />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-{/* Tab root: the large title is the h1 */}
-<PlatformPhone key="tasks" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
-  <Box paddingX="lg" paddingY="xs"><List aria-label="Tasks">…</List></Box> {/* rows in the screen margin (20px), Padding/XSmall above and below */}
+{/* Tab root: the large title is the h1, the groups are h2 kickers */}
+<PlatformPhone key="tasks" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation title="Tasks" largeTitle="Tasks" largeTitleSubheading="12 open tasks you follow" scrollRef={screenRef} />}
+    bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" showLabels items={roots} value="tasks" onValueChange={go} />}
+  >
+    <Stack as="section" gap="xs" aria-labelledby="open">
+      <Box paddingX="lg"><Heading level={2} id="open" textStyle="Body/Small/Bold" tone="light">Open</Heading></Box>
+      <ListBox theme="shadow"><List aria-labelledby="open">…</List></ListBox>
+    </Stack>
+  </AppShell>
 </PlatformPhone>
 
 {/* Pushed screen: the compact bar title is the h1, the content starts at h2 */}
-<PlatformPhone key={task.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
-    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}>
-  <Stack gap="lg" paddingY="lg">
-    <Stack gap="lg" paddingX="lg">
+<PlatformPhone key={task.id} screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+  >
+    <Stack gap="lg">
       <Stack gap="xs">
         <Text textStyle="Body/Extra/Bold">{task.title}</Text>
         <Text textStyle="Body/Small/Regular" tone="base">{\`\${project.name} · \${project.client}\`}</Text>
       </Stack>
       <DescriptionList items={details} />
     </Stack>
-    <Stack as="section" gap="xs" paddingX="lg" aria-labelledby="activity">
+    <Stack as="section" gap="xs" aria-labelledby="activity">
       <Heading level={2} id="activity" textStyle="Body/Small/Bold" tone="light">Activity</Heading>
       <List aria-labelledby="activity">…</List>
     </Stack>
-  </Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);
