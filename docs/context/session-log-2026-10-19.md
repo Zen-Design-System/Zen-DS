@@ -83,3 +83,24 @@ User: "làm tiếp phần còn thiếu của main component" · "Bug UI của st
   nền xám"): #128 had the Studio side; the live Progress-Circle/Icon Base now has no fill (2px ring only, all 14
   variants) → progress.css background transparent. Done=No pies differ per theme sample (20–85%); Accent/Neutral keep 80.
   The user's Studio (:5174, Vite from 2026-10-16 in the shared checkout) serves the new code: a reload shows it.
+
+## Studio Text tool — F6a (Session C; user: "F6a trước, F6b sau", rich text API "Component mới TextRun") — tier M, branch `zen/feat/studio-f6-text-20261019`
+
+Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a new inline `TextRun` component (next PR).
+- **T tool on a page you made** (`draw/drawModel.ts` kind "text", `draw/drawTool.ts`, new `edit/textCreate.ts`): a click
+  makes `<Text wrap={false}>` (Auto width), a drag `<Text width={…}>` (Auto height); in a frame without auto layout it
+  floats in a Box at the point (the Ignore auto layout wrapper, as other layers). The keys typed from the release on are
+  held (`textEdit.holdKeysForText`) and replace the new words when the editor opens (a ref keeps them across React's dev
+  double effect, which lost the first key). T on the words of a Text / Heading edits them at the caret (`editTextAt`).
+  Example pages keep the placement tool.
+- **Editor:** in a Text layer Enter is a new line (Esc / Tab / a click outside leave); elsewhere Enter leaves as before.
+  A text the Text tool made and left untouched, or any Text / Heading emptied, is deleted with its float Box
+  (`removeEmptyText`). Found while testing: after an edit, Enter did not edit the same text again (the selection's source
+  cache kept the old words); it now reads again on each source update.
+- **Library:** Text sets `data-breaks` when a string child holds "\n"; text.css `white-space: pre-line` (`pre` with
+  `wrap={false}`). Only texts with a line break change.
+- **Resizing** (`edit/TextResize.tsx`, mounted in DesignPanel's Typography for Text / Heading; Session B was not running,
+  so the one-row mount is mine): Auto width = wrap={false}, Auto height = width, Fixed size = width + height, from the
+  rendered size, one edit.
+- Paste of plain text with nothing selected already makes a `<Text>` in the frame in view (F3, Session A); not changed.
+- **Tests:** drawModel selftest +2; Figma walk FW-60…66.

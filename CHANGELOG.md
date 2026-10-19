@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Text keeps line breaks written in its words (`{"First line\nSecond line"}`): they show as lines, and with
+  `wrap={false}` each line stays whole (Figma's Enter in a text).
+- Zen Studio's Text tool as Figma's (F6a of the parity plan, pages you made): T and a click makes an Auto width text at
+  the click, T and a drag a text box of that width, and the typing goes into it at once; Enter is a new line, Esc leaves;
+  a new text left untouched, or any text layer emptied, is deleted; T on the words of a text puts the caret there.
+  Typography › Resizing has Figma's Auto width · Auto height · Fixed size.
 - Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
   panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
   first) and a preset makes an empty frame of that size beside the frames; a click on the canvas makes a 100 × 100 frame
