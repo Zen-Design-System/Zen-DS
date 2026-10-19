@@ -23,6 +23,10 @@ removed (four unused colour ramps were, see Removed).
   and gutter from Breakpoint & Grids; ⌃G shows or hides them), a page's canvas Background (Zen background tokens), and
   Find and replace (⌘F: step through the matching text layers, Replace all in one edit). Guides, layout guides and the
   background are the page's (its header); the view options are this browser's.
+- Figma push / pull, tested in the live Zen file: a free frame keeps its px width and height (it used to hug its layers);
+  Pull reads vectors, groups and boolean groups again (it stopped on the first property a node type lacks), brings a
+  mirrored shape back flipped at its own place, and keeps a group's size and px X / Y when it sits outside an auto
+  layout. The Zen plugin places groups, boolean groups and vectors where the Studio draws them.
 - Text keeps line breaks written in its words (`{"First line\nSecond line"}`): they show as lines, and with
   `wrap={false}` each line stays whole (Figma's Enter in a text).
 - Image fills (Figma's Image paint) on Shape and on frames (Box, Stack, Grid): `image`, `imageFit` (fill · fit · crop ·

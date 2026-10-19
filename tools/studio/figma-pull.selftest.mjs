@@ -149,7 +149,11 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   const page = unnamed(pulledClip);
   ok("Clip content: a clipping frame is a Stack with clip, the page's Stack has none", /<Stack direction="row" gap="xs" align="start" clip>/.test(page) && /<Screen[^>]*>\s*<Stack>/.test(page));
   ok("a frame's own name comes back, a text named by its words does not (layer-meta.mjs)", pulledClip.includes('data-name="Strip"') && !/data-name="[AB]"/.test(pulledClip));
-  ok("Clip content: figmaReadCode reads clipsContent, never on the page frame", /if \(!root && node\.clipsContent === true\) out\.clip = true;/.test(figmaReadCode("1:2")));
+  ok("Clip content: figmaReadCode reads clipsContent, never on the page frame", /if \(!root && own\("clipsContent"\) === true\) out\.clip = true;/.test(figmaReadCode("1:2")));
+  // Figma throws on a property a node type lacks (pointCount on a VECTOR, clipsContent or constraints on a GROUP; the
+  // live Zen file 2026-10-19): the reader asks first.
+  const readCode = figmaReadCode("1:2");
+  ok("figmaReadCode reads shape and group properties only where the node has them", /pointCount: own\("pointCount"\)/.test(readCode) && /"constraints" in child/.test(readCode) && !/node\.pointCount|child\.constraints\.horizontal/.test(readCode));
 }
 {
   // figma-push draws `selectable` as a first checkbox column, the sorted column's direction in its Sort glyph and an
@@ -332,6 +336,21 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("groups: a Box group at its X / Y, sized, its opacity", [/position="absolute"/.test(box), /insetLeft=\{20\}/.test(box), /insetTop=\{30\}/.test(box), /width=\{120\}/.test(box), /height=\{60\}/.test(box)], [true, true, true, true, true]);
   check("groups: its layers at their X / Y inside it", pulled.text.split("\n").filter((line) => /type="ellipse"/.test(line)).map((line) => [/insetLeft=\{(\d+)\}/.exec(line)?.[1], /insetTop=\{(\d+)\}/.exec(line)?.[1]]), [["0", "0"], ["80", "20"]]);
   check("groups: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+  // A mirrored Star (Zen flip, ⇧H) as the reader writes it from the live file (2026-10-19): its X is the mirrored box's
+  // own corner, its right edge; it comes back flipped at its unflipped box.
+  const flipped = structuredClone(grouped);
+  flipped.children[0].children[0].children[1] = { type: "STAR", name: "Star", shape: { w: 48, h: 48, fill: "Color/Background/Accent/Solid/Default", stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", pointCount: 5, innerRadius: 0.382, rotation: 0, flip: "horizontal", opacity: 1 }, absolute: { x: 120, y: 0, w: 48, h: 48, pw: 120, ph: 60, cx: "MIN", cy: "MIN", free: true } };
+  const star = pageFromFigma(flipped, { mapping }).text.split("\n").find((line) => /type="star"/.test(line)) ?? "";
+  check("groups: a mirrored shape comes back flipped at its own box", [/flip="horizontal"/.test(star), /insetLeft=\{72\}/.test(star), /insetTop=\{0\}/.test(star), /rotation=/.test(star)], [true, true, true, false]);
+  // A group pinned out of an auto layout (Ignore auto layout, the live Zen file 2026-10-19): px X / Y, not the nearest
+  // spacing step in a wrapper Stack.
+  const pinned = structuredClone(grouped);
+  pinned.children[0].layout = { mode: "VERTICAL" };
+  pinned.children[0].children[0].absolute = { x: 16, y: 80, w: 120, h: 60, pw: 400, ph: 300, cx: "MIN", cy: "MIN" };
+  const pinnedText = pageFromFigma(pinned, { mapping }).text;
+  const pinnedBox = pinnedText.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? "";
+  check("groups: a group out of an auto layout keeps px X / Y", [/insetLeft=\{16\}/.test(pinnedBox), /insetTop=\{80\}/.test(pinnedBox), /constraintX|insetLeft="/.test(pinnedText)], [true, true, false]);
+  check("figmaReadCode writes a GROUP's width and height", /if \(node\.type === "GROUP"\) Object\.assign\(out, \{ width:/.test(figmaReadCode("1:2")), true);
 }
 
 // F9b: a Figma BOOLEAN_OPERATION comes back as a Zen boolean group: its result (fill geometry) as d, its operation,
