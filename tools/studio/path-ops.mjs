@@ -23,6 +23,59 @@ const num = (value) => (typeof value === "number" && Number.isFinite(value) ? va
 const round = (value) => Math.round(value * 1000) / 1000;
 const round2 = (value) => Math.round(value * 100) / 100;
 
+/**
+ * Path data with its elliptical arcs (A, axis-aligned as geometry.ts writes them) turned into cubic Béziers, a quarter
+ * turn at most each: PathOps would cut an arc into hundreds of tiny quadratics, which a page's `d` must not carry.
+ */
+export function arcsToCubics(d) {
+  const tokens = String(d).match(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi) ?? [];
+  const out = [];
+  let pen = { x: 0, y: 0 };
+  let start = pen;
+  let command = "";
+  const nums = (count) => { const values = tokens.splice(0, count).map(Number); return values; };
+  while (tokens.length) {
+    if (/^[A-Za-z]$/.test(tokens[0])) command = tokens.shift();
+    if (command === "M") { const [x, y] = nums(2); pen = start = { x, y }; out.push(`M ${round(x)} ${round(y)}`); command = "L"; }
+    else if (command === "L") { const [x, y] = nums(2); pen = { x, y }; out.push(`L ${round(x)} ${round(y)}`); }
+    else if (command === "C") { const v = nums(6); pen = { x: v[4], y: v[5] }; out.push(`C ${v.map(round).join(" ")}`); }
+    else if (command === "Q") { const v = nums(4); pen = { x: v[2], y: v[3] }; out.push(`Q ${v.map(round).join(" ")}`); }
+    else if (command === "Z" || command === "z") { out.push("Z"); pen = start; command = ""; }
+    else if (command === "A") {
+      let [rx, ry, , large, sweep, x, y] = nums(7);
+      rx = Math.abs(rx); ry = Math.abs(ry);
+      if (!rx || !ry || (pen.x === x && pen.y === y)) { out.push(`L ${round(x)} ${round(y)}`); pen = { x, y }; continue; }
+      // SVG's endpoint → centre parameterisation (no rotation).
+      const hx = (pen.x - x) / 2;
+      const hy = (pen.y - y) / 2;
+      const scale = hx * hx / (rx * rx) + hy * hy / (ry * ry);
+      if (scale > 1) { rx *= Math.sqrt(scale); ry *= Math.sqrt(scale); }
+      const sign = Boolean(large) === Boolean(sweep) ? -1 : 1;
+      const num_ = rx * rx * ry * ry - rx * rx * hy * hy - ry * ry * hx * hx;
+      const coef = sign * Math.sqrt(Math.max(0, num_ / (rx * rx * hy * hy + ry * ry * hx * hx)));
+      const cx = coef * (rx * hy) / ry + (pen.x + x) / 2;
+      const cy = coef * -(ry * hx) / rx + (pen.y + y) / 2;
+      const t1 = Math.atan2((pen.y - cy) / ry, (pen.x - cx) / rx);
+      let delta = Math.atan2((y - cy) / ry, (x - cx) / rx) - t1;
+      if (sweep && delta < 0) delta += 2 * Math.PI;
+      if (!sweep && delta > 0) delta -= 2 * Math.PI;
+      const parts = Math.max(1, Math.ceil(Math.abs(delta) / (Math.PI / 2) - 1e-9));
+      const step = delta / parts;
+      const k = (4 / 3) * Math.tan(step / 4);
+      for (let i = 0; i < parts; i++) {
+        const a = t1 + step * i;
+        const b = a + step;
+        const p3 = i === parts - 1 ? { x, y } : { x: cx + rx * Math.cos(b), y: cy + ry * Math.sin(b) };
+        const c1 = { x: cx + rx * Math.cos(a) - k * rx * Math.sin(a), y: cy + ry * Math.sin(a) + k * ry * Math.cos(a) };
+        const c2 = { x: cx + rx * Math.cos(b) + k * rx * Math.sin(b), y: cy + ry * Math.sin(b) - k * ry * Math.cos(b) };
+        out.push(`C ${[c1.x, c1.y, c2.x, c2.y, p3.x, p3.y].map(round).join(" ")}`);
+      }
+      pen = { x, y };
+    } else break;
+  }
+  return out.join(" ");
+}
+
 /** A Shape's fill outline in its own box (0,0 … w,h) as path data; null for a line, an arrow or an unknown size. */
 export function shapeOutline(props) {
   const type = props.type ?? "rectangle";
@@ -70,7 +123,7 @@ function placement(props) {
 export function placedPath(kit, props) {
   const outline = shapeOutline(props);
   if (!outline) return null;
-  const path = kit.FromSVGString(outline);
+  const path = kit.FromSVGString(arcsToCubics(outline));
   if (!path) return null;
   if ((props.type === "vector" || props.type === "boolean") && props.fillRule === "evenodd") path.setFillType(kit.FillType.EVENODD);
   const [a, b, c, d, e, f] = placement(props);
@@ -138,7 +191,7 @@ export function outlineStrokeResult(kit, props) {
   const align = line ? "center" : props.strokeAlign ?? (props.type === "vector" ? "center" : "inside");
   const placed = { ...props, height: line ? 0 : props.height };
   const [a, b, c, d, e, f] = placement(placed);
-  const base = kit.FromSVGString(source);
+  const base = kit.FromSVGString(arcsToCubics(source));
   const stroke = base.copy().stroke({ width: align === "center" ? weight : weight * 2, join: kit.StrokeJoin.MITER, cap: kit.StrokeCap.BUTT });
   if (align === "inside") stroke.op(base, kit.PathOp.INTERSECT);
   else if (align === "outside") stroke.op(base, kit.PathOp.DIFFERENCE);

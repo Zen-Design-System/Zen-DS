@@ -61,7 +61,8 @@ function withPhoneSync(engine: Engine, before: string | null, edited: Edited, fi
  * boolean group.
  */
 async function withBooleans(engine: Engine, edited: Edited, file: string, options: Record<string, unknown>): Promise<Edited> {
-  const hasGroups = edited.text.includes(" group>") || edited.text.includes(" group ");
+  // A Box group's bare `group` prop, wherever the tag breaks its lines.
+  const hasGroups = /\sgroup[\s/>]/.test(edited.text);
   const hasBooleans = edited.text.includes('type="boolean"');
   if (!hasGroups && !hasBooleans) return edited;
   const kit = hasBooleans ? await loadPathKit() : null;

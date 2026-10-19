@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import { applyOps } from "./jsx-source.mjs";
-import { booleanResult, flattenResult, outlineStrokeResult, placedPath, planBooleans, shapeOutline } from "./path-ops.mjs";
+import { arcsToCubics, booleanResult, flattenResult, outlineStrokeResult, placedPath, planBooleans, shapeOutline } from "./path-ops.mjs";
 
 const require = createRequire(import.meta.url);
 const { default: PathKitInit } = await import("pathkit-wasm/bin/pathkit.js");
@@ -28,6 +28,11 @@ const placed = placedPath(kit, { ...square(10, 20, 50), rotation: 90 });
 const pb = placed.computeTightBounds();
 check("placed: at its insets, turned about its centre", [pb.fLeft, pb.fTop, pb.fRight, pb.fBottom].map((v) => Math.round(v)), [10, 20, 60, 70]);
 placed.delete();
+
+check("arcs to cubics: a full circle is four quarter cubics, a quarter one", [(arcsToCubics(shapeOutline({ type: "ellipse", width: 100, height: 100 })).match(/C/g) ?? []).length, arcsToCubics("M 10 0 A 10 10 0 0 1 20 10")], [4, "M 10 0 C 15.523 0 20 4.477 20 10"]);
+// A ticket stub: a rounded rectangle minus two half circles — compact cubics, not hundreds of quadratics.
+const ticket = booleanResult(kit, "subtract", [{ type: "rectangle", insetLeft: 0, insetTop: 0, width: 240, height: 96, radius: "md" }, { type: "ellipse", insetLeft: -12, insetTop: 36, width: 24, height: 24 }, { type: "ellipse", insetLeft: 228, insetTop: 36, width: 24, height: 24 }]);
+check("a boolean of rounded shapes stays short (cubics)", [ticket.d.length < 600, /Q/.test(ticket.d), boundsOf(ticket.d)], [true, false, [0, 0, 240, 96]]);
 
 const two = [square(0, 0), square(50, 50)];
 check("union: the box around both", boundsOf(booleanResult(kit, "union", two).d), [0, 0, 150, 150]);
