@@ -271,15 +271,61 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(message.blobs.length === 2 && Buffer.from(blobOf(picture)?.bytes ?? []).equals(logoBytes) && picture.imageThumbnail.dataBlob === picture.image.dataBlob && tile?.image.dataBlob === picture.image.dataBlob && Buffer.from(blobOf(cropped)?.bytes ?? []).equals(photoBytes), `each picture's bytes in one blob (${message.blobs.length})`);
   check(named("Lost")?.fillPaints.length === 0 && notes.some((note) => note.includes("Lost") && note.includes("not in the export")) && notes.some((note) => note.includes("Mark") && note.includes("PNG, JPEG, GIF or WebP")), `a picture without bytes or of another kind is named in a note (${notes.join("; ")})`);
   check(notes.length === 2, `pictures: no other notes (${notes.join("; ")})`);
-  // A Shape kind the direct paste does not write yet is named, never an empty layer (a path drew a 0.01 px vector).
-  const pen = nativeMessage(exportOf([{ type: "VECTOR", shape: true, name: "Pen", vectorPaths: [{ windingRule: "NONZERO", data: "M 0 0 Q 5 10 10 0 Z" }], fixedWidth: 10, fixedHeight: 10 }]), pack);
-  check(!pen.message.nodeChanges.some((n) => n.name === "Pen") && pen.notes.some((note) => note.includes("a vector shape is not in a direct paste yet")), `a Shape path is named in a note (${pen.notes.join("; ")})`);
+
   // The html: the picture's blob, its paint and the plugin data survive Figma's encoding.
   const pkg = { ...exportOf([rectangle]), images: { [logo]: images[logo] } };
   const back = await readFigmaClipboard((await figmaPasteHtml(pkg, pack)).html);
   const read = back?.message.nodeChanges.find((n) => n.name === "Rectangle");
   const readBlob = back?.message.blobs?.[read?.fillPaints?.[1]?.image.dataBlob];
   check(read?.fillPaints?.[1]?.image.hash.length === 20 && Buffer.from(readBlob?.bytes ?? []).equals(logoBytes) && read.pluginData?.[0]?.key === "zenstudio-image", "the picture's bytes and its src survive the paste html");
+}
+
+// --- Shapes as Figma's own layers (its copy of the importer's layers, 2026-10-20) -----------------------------------
+{
+  const border = "Color/Border/Accent/Solid/Default", fill = "Color/Background/Neutral/Subtle/Default";
+  const abs = (left, top) => ({ cx: "MIN", cy: "MIN", left, top, right: 0, bottom: 0 });
+  const specs = [
+    { type: "LINE", shape: true, name: "Line", stroke: border, strokeWeight: 2, strokeAlign: "CENTER", fixedWidth: 120, fixedHeight: 0, rotation: 90, absolute: abs(20, 40) },
+    { type: "LINE", shape: true, name: "Arrow", stroke: border, strokeWeight: 2, strokeAlign: "CENTER", endCap: "ARROW_LINES", fixedWidth: 120, fixedHeight: 0, absolute: abs(20, 100) },
+    { type: "POLYGON", shape: true, name: "Polygon", fill, pointCount: 5, fixedWidth: 100, fixedHeight: 100, absolute: abs(170, 20) },
+    { type: "STAR", shape: true, name: "Star", fill, stroke: border, strokeWeight: 1, strokeAlign: "INSIDE", pointCount: 6, innerRadius: 0.38, fixedWidth: 100, fixedHeight: 100, absolute: abs(300, 20) },
+    // Figma's probe path: a quadratic top and a square hole, even-odd (its copy: 8 vertices, 8 segments, 1 region of 2 loops).
+    { type: "VECTOR", shape: true, name: "Vector", fill, vectorPaths: [{ windingRule: "EVENODD", data: "M 0 50 Q 50 0 100 50 L 100 100 L 0 100 Z M 30 60 L 70 60 L 70 90 L 30 90 Z" }], fixedWidth: 100, fixedHeight: 100, absolute: abs(430, 20) },
+    { type: "BOOLEAN_OPERATION", shape: true, name: "Subtract", booleanOperation: "SUBTRACT", fill, fixedWidth: 100, fixedHeight: 100, absolute: abs(560, 20), children: [
+      { type: "RECTANGLE", shape: true, name: "Rectangle", fill, fixedWidth: 100, fixedHeight: 100, absolute: abs(0, 0) },
+      { type: "ELLIPSE", shape: true, name: "Ellipse", fill, fixedWidth: 60, fixedHeight: 60, absolute: abs(40, 40) },
+    ] },
+    { type: "BOOLEAN_OPERATION", shape: true, name: "Exclude", booleanOperation: "EXCLUDE", fixedWidth: 10, fixedHeight: 10, absolute: abs(700, 20), children: [] },
+  ];
+  const free = { type: "FRAME", name: "Shapes", fixedWidth: 900, fixedHeight: 200, layout: { mode: "NONE" }, children: specs };
+  const { message, notes } = nativeMessage(exportOf([free]), pack);
+  check(notes.length === 0, `shapes: no notes (${notes.join("; ")})`);
+  const named = (name) => message.nodeChanges.find((n) => n.name === name);
+  const varOf = (paints) => id(paints?.[0]?.colorVar?.value.alias.guid);
+  const lineNode = named("Line"), arrow = named("Arrow");
+  // A 120 px line from (20, 40) turned 90° (counter-clockwise) about its centre (80, 40): it runs from (80, 100) up to (80, -20).
+  const t = lineNode?.transform ?? {};
+  check(lineNode?.type === "LINE" && lineNode.size.x === 120 && lineNode.size.y === 0 && lineNode.strokeAlign === "CENTER" && lineNode.strokeWeight === 2 && varOf(lineNode.strokePaints) === pack.variables[border][0] && !lineNode.strokeCap, "a line: Figma's LINE, its length, a centred border stroke");
+  check(Math.abs(t.m02 - 80) < 1e-9 && Math.abs(t.m12 - 100) < 1e-9 && Math.abs(t.m01 - 1) < 1e-9, `a line turns about its centre (${t.m02}, ${t.m12})`);
+  check(arrow?.strokeCap === "ARROW_LINES", "an arrow is a LINE with Figma's ARROW_LINES cap");
+  const polygon = named("Polygon"), star = named("Star");
+  check(polygon?.type === "REGULAR_POLYGON" && polygon.count === 5 && varOf(polygon.fillPaints) === pack.variables[fill][0] && polygon.strokePaints.length === 0, "a polygon: REGULAR_POLYGON with its count");
+  check(star?.type === "STAR" && star.count === 6 && star.starInnerScale === 0.38 && varOf(star.strokePaints) === pack.variables[border][0] && star.strokeAlign === "INSIDE", "a star: its count, inner scale and border");
+  const vector = named("Vector");
+  const blob = message.blobs[vector?.vectorData?.vectorNetworkBlob];
+  const view = blob ? new DataView(Uint8Array.from(blob.bytes).buffer) : null;
+  // The quadratic's cubic tangent from its start (0, 25 in the layer): Figma's own (33.33, -33.33).
+  check(vector?.type === "VECTOR" && vector.size.x === 100 && vector.size.y === 75 && vector.transform.m02 === 430 && vector.transform.m12 === 45 && vector.strokeAlign === "CENTER", `a path sits at its curve's bounds in the Studio box (${vector?.size.x} × ${vector?.size.y} at ${vector?.transform.m02}, ${vector?.transform.m12})`);
+  check(view && view.getUint32(0, true) === 8 && view.getUint32(4, true) === 8 && view.getUint32(8, true) === 1 && Math.abs(view.getFloat32(12 + 8 * 12 + 8, true) - 100 / 3) < 1e-4 && Math.abs(view.getFloat32(12 + 8 * 12 + 12, true) + 100 / 3) < 1e-4, "its network as Figma's: 8 vertices, 8 segments, the quadratic as a cubic");
+  const region = view ? 12 + 8 * 12 + 8 * 28 : 0;
+  check(view && view.getUint32(region, true) === 0 && view.getUint32(region + 4, true) === 2, "even-odd: one region of two loops, style 0 (Figma's)");
+  const subtract = named("Subtract");
+  const parts = message.nodeChanges.filter((n) => n.parentIndex && id(n.parentIndex.guid) === id(subtract?.guid));
+  check(subtract?.type === "BOOLEAN_OPERATION" && subtract.booleanOperation === "SUBTRACT" && subtract.vectorOperationVersion === 1 && varOf(subtract.fillPaints) === pack.variables[fill][0], "a boolean group: Figma's operation and its fill");
+  check(parts.length === 2 && parts[0].type === "ROUNDED_RECTANGLE" && parts[1].type === "ELLIPSE" && parts[1].transform.m02 === 40 && parts[1].transform.m12 === 40 && parts[0].parentIndex.position < parts[1].parentIndex.position, "its shapes inside it, in order, at their X / Y");
+  check(named("Exclude")?.booleanOperation === "XOR", "Exclude is Figma's XOR");
+  const back = await readFigmaClipboard((await figmaPasteHtml(exportOf([free]), pack)).html);
+  check(back?.message.nodeChanges.filter((n) => ["LINE", "REGULAR_POLYGON", "STAR", "VECTOR", "BOOLEAN_OPERATION"].includes(n.type)).length === 7, "the shapes survive Figma's clipboard encoding");
 }
 
 // --- a component's own picture (an Avatar's photo, a table cell's): the first layer that shows one (pack `img`) ------
