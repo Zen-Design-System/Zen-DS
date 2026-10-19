@@ -14,7 +14,8 @@ import { DescriptionList } from "../../../../components/DescriptionList";
 import { DockIcon } from "../../../../components/DockIcon";
 import { Icon, type IconName } from "../../../../components/Icon";
 import { DateField, InputField, SelectField } from "../../../../components/Input";
-import { Box, Stack } from "../../../../components/Layout";
+import { Thumbnail } from "../../../../components/Image";
+import { Stack } from "../../../../components/Layout";
 import { Link } from "../../../../components/Link";
 import { List, ListBox, ListItem } from "../../../../components/ListItem";
 import { ProgressBar } from "../../../../components/Progress";
@@ -22,14 +23,15 @@ import { Segmented } from "../../../../components/Segmented";
 import { Heading, Text } from "../../../../components/Text";
 import { useToast } from "../../../../components/Toast";
 import { TopNavigation } from "../../../../components/TopNavigation";
+import { platformMedia } from "../../../PlatformMedia";
 import { PlatformPhone } from "../../../PlatformPhone";
 import { TODAY, me } from "../../data";
 import type { ExampleDef } from "../../types";
 
 // ——— C5 · Stack detail + Action bar (Top=Bar, Bottom=Actions; Pale on Canvas/Alt) ——————————————————————————————
 const orderLines = [
-  { id: "urbas", name: "Urbas Love+ Slip On", variant: "Offwhite · EU 39", price: "$42.00" },
-  { id: "vintas", name: "Vintas Soda Pop High", variant: "Red Violet · EU 39", price: "$58.00" },
+  { id: "urbas", name: "Urbas Love+ Slip On", variant: "Offwhite · EU 39", price: "$42.00", photo: platformMedia.products.offwhite },
+  { id: "vintas", name: "Vintas Soda Pop High", variant: "Red Violet · EU 39", price: "$58.00", photo: platformMedia.products.redViolet },
 ];
 const orderActivity: { id: string; title: string; caption: string; icon: IconName }[] = [
   { id: "ready", title: "Packed, ready to ship", caption: "Sep 30 · 16:40 · Warehouse Hanoi", icon: "icon-package-line" },
@@ -37,17 +39,6 @@ const orderActivity: { id: string; title: string; caption: string; icon: IconNam
   { id: "placed", title: "Order placed", caption: "Sep 30 · 14:05 · Online store", icon: "icon-shopping-bag-01-line" },
 ];
 type OrderTab = "details" | "items" | "activity";
-
-/** Figma Thumb: a 48 Surface tile with Corner-Radius/Base (the product photo in Figma; no product photos ship here). */
-function ProductThumb() {
-  return (
-    <Box surface="surface" radius="md" width={48} height={48}>
-      <Stack align="center" justify="center" height="fill">
-        <Icon name="icon-shopping-bag-01-line" size="lg" tone="light" decorative />
-      </Stack>
-    </Box>
-  );
-}
 
 function OrderItemsCard() {
   const titleId = useId();
@@ -57,7 +48,8 @@ function OrderItemsCard() {
         <Text id={titleId} textStyle="All-Caps/S" tone="light">Items</Text>
         {orderLines.map((line) => (
           <Stack key={line.id} direction="row" gap="sm" align="center">
-            <ProductThumb />
+            {/* Figma Thumb: the product photo, 48 with Corner-Radius/Base (Image-Size/Large). */}
+            <Thumbnail src={line.photo.src} alt="" size="lg" />
             <Stack gap="3xs" width="fill">
               <Text textStyle="Body/Base/Medium" truncate>{line.name}</Text>
               <Text textStyle="Body/Small/Regular" tone="light">{line.variant}</Text>
@@ -333,7 +325,7 @@ export const examples: ExampleDef[] = [
           <Text id="items" textStyle="All-Caps/S" tone="light">Items</Text>
           {lines.map((line) => (
             <Stack key={line.id} direction="row" gap="sm" align="center">
-              <ProductThumb />
+              <Thumbnail src={line.photo} alt="" size="lg" />
               <Stack gap="3xs" width="fill">
                 <Text textStyle="Body/Base/Medium">{line.name}</Text>
                 <Text textStyle="Body/Small/Regular" tone="light">{line.variant}</Text>

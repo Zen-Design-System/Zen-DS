@@ -12,10 +12,10 @@ import { Chip } from "../../../../components/Chip";
 import { ColorSwatch } from "../../../../components/ColorSwatch";
 import { DescriptionList } from "../../../../components/DescriptionList";
 import { Divider } from "../../../../components/Divider";
-import { DockIcon } from "../../../../components/DockIcon";
 import { EmptyState } from "../../../../components/EmptyState";
 import { Form, FormActions, FormFieldset, useFormState } from "../../../../components/Form";
 import type { IconName } from "../../../../components/Icon";
+import { Thumbnail } from "../../../../components/Image";
 import { InlineMessage } from "../../../../components/InlineMessage";
 import { InputField, NumberField, SelectField } from "../../../../components/Input";
 import { Box, Grid, Stack } from "../../../../components/Layout";
@@ -32,6 +32,7 @@ import { Heading, Text, plural } from "../../../../components/Text";
 import { useToast } from "../../../../components/Toast";
 import { DemoFieldDialog } from "../../../PlatformDemoActions";
 import { PreviewAppFrame } from "../../../PlatformFrames";
+import { platformMedia } from "../../../PlatformMedia";
 import { people } from "../../data";
 import type { ExampleDef } from "../../types";
 
@@ -401,9 +402,10 @@ const checkoutSteps = [
   { id: "payment", title: "Payment", caption: "Card or bank" },
   { id: "review", title: "Review", caption: "Place order" },
 ];
+/* Figma B6's Thumb: the product photo in a 56 Pale frame (Image-Size/XLarge, Corner-Radius/Base). */
 const orderItems = [
-  { id: "urbas", name: "Urbas Love+ Slip On", variant: "Offwhite · EU 39", price: 42 },
-  { id: "vintas", name: "Vintas Soda Pop High", variant: "Red Violet · EU 39", price: 58 },
+  { id: "urbas", name: "Urbas Love+ Slip On", variant: "Offwhite · EU 39", price: 42, photo: platformMedia.products.offwhite },
+  { id: "vintas", name: "Vintas Soda Pop High", variant: "Red Violet · EU 39", price: 58, photo: platformMedia.products.redViolet },
 ];
 const usd = (amount: number) => amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
 const countries = options(["Vietnam", "Singapore", "Thailand", "Malaysia"]);
@@ -455,7 +457,7 @@ function FocusFlowApp() {
                 <List aria-label="Items in your order">
                   {orderItems.map((item) => (
                     <ListItem key={item.id} title={item.name} caption={item.variant} value={usd(item.price)}
-                      leading={<DockIcon size="xl" theme="neutral" background="subtle" icon="icon-shopping-bag-01-line" />} />
+                      leading={<Thumbnail src={item.photo.src} alt="" size="xl" />} />
                   ))}
                 </List>
                 <Divider />
@@ -668,8 +670,8 @@ export const examples: ExampleDef[] = [
       <Heading level={2} textStyle="Heading/4">Order summary</Heading>
       <Badge size="sm" leadingIcon={false}>2 items</Badge>
       <List aria-label="Items in your order">
-        <ListItem title="Urbas Love+ Slip On" caption="Offwhite · EU 39" value="$42.00" leading={thumbnail} />
-        <ListItem title="Vintas Soda Pop High" caption="Red Violet · EU 39" value="$58.00" leading={thumbnail} />
+        <ListItem title="Urbas Love+ Slip On" caption="Offwhite · EU 39" value="$42.00" leading={<Thumbnail src={urbas.photo} alt="" size="xl" />} />
+        <ListItem title="Vintas Soda Pop High" caption="Red Violet · EU 39" value="$58.00" leading={<Thumbnail src={vintas.photo} alt="" size="xl" />} />
       </List>
       <DescriptionList items={[{ term: "Subtotal", description: "$100.00" }, { term: "Shipping", description: "Free" }, { term: "VAT (10%)", description: "$10.00" }]} />
       <Text textStyle="Body/Base/Bold">Total</Text> <Text textStyle="Heading/3">$110.00</Text>

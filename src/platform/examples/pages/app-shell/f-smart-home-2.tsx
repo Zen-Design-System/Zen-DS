@@ -23,13 +23,10 @@ import { Heading, Text } from "../../../../components/Text";
 import { useToast } from "../../../../components/Toast";
 import { ToggleButton } from "../../../../components/Toggle";
 import { TopNavigation } from "../../../../components/TopNavigation";
+import { platformMedia } from "../../../PlatformMedia";
 import { PlatformPhone } from "../../../PlatformPhone";
 import { people } from "../../data";
 import type { ExampleDef } from "../../types";
-
-/* The platform has no product or camera photos: an empty data URL fails at once, so the picture shows the Image's own
-   placeholder (Neutral/Pale with the image icon), as a device whose photo is missing would. */
-const photoMissing = "data:,";
 
 type Device = { brand: string; name: string; room: string };
 type Toast = ReturnType<typeof useToast>["toast"];
@@ -107,7 +104,7 @@ function LightPhone() {
       status={<DeviceStatus device={ceilingLight} on={on} onPowerChange={(next) => { setOn(next); toast({ title: next ? "Ceiling light on" : "Ceiling light off", children: next ? `${brightness}% · ${warmthLabel} white` : "Living room" }); }}
         icon="icon-sun-line" value={on ? `${brightness}%` : "Off"} caption={on ? `Brightness · ${warmthLabel} white` : "Turned off from the app"} />}>
       {/* The lamp photo leads (Figma Device, Corner-Radius/3XLarge), then the controls in the order they are used. */}
-      <Image src={photoMissing} alt="Round ceiling light glowing warm white" ratio={350 / 240} radius="3xl" />
+      <Image src={platformMedia.devices.ceilingLight.src} alt={platformMedia.devices.ceilingLight.alt} ratio={350 / 240} radius="3xl" />
       <SliderField label="Brightness" theme="accent" min={1} value={brightness} formatValue={(value) => `${value}%`}
         onValueChange={(value) => { setBrightness(value); setScene(undefined); setOn(true); }} />
       <Stack gap="xs">
@@ -203,7 +200,7 @@ function CameraPhone() {
         value={on ? "Live" : "Off"} caption={on ? "1080p · motion 2 min ago" : "Privacy mode · not recording"} />}>
       {/* The live porch view (Figma Live-View, Corner-Radius/3XLarge) with the LIVE Badge in its padded corner Wrapper. */}
       <Box>
-        <Image src={photoMissing} alt="Live view of the porch and the front door" ratio={350 / 180} radius="3xl" />
+        <Image src={platformMedia.devices.porchCamera.src} alt="Live view of the porch and the front door" ratio={350 / 180} radius="3xl" />
         {on ? (
           <Box position="absolute" padding="sm">
             <Badge size="sm" theme="red">LIVE</Badge>

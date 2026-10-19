@@ -31,7 +31,7 @@ import { people } from "../../data";
 import type { ExampleDef } from "../../types";
 
 // ——— The family-history app of E5 and E6 ————————————————————————————————————————————————————————————————————————
-/** The Figma photos, mapped to the closest people photos the platform ships (src/assets/media). */
+/** The people's small Avatars: the platform's people photos (src/assets/media), one per relative. */
 const photos = { maiAnh: people.emi.photo, bao: people.bao.photo, hoa: people.ava.photo, khoi: people.duy.photo, ha: people.chi.photo, minh: people.finn.photo };
 const familyRoots: BottomNavigationItem[] = [
   { id: "home", label: "Home", icon: "icon-home-02-line", selectedIcon: "icon-home-02-solid" },
@@ -158,9 +158,10 @@ const kinds: { value: DiscoveryKind; label: string }[] = [
 ];
 type Discovery = { id: string; kind: DiscoveryKind; name: string; place: string; match: string; photo?: string };
 const discoveries: Discovery[] = [
-  { id: "khoi-1968", kind: "records", name: "Khôi Nguyễn", place: "Hội An, Quảng Nam", match: "Matched to Khôi Nguyễn", photo: photos.khoi },
-  { id: "hoa-1951", kind: "records", name: "Hoa Trần", place: "Huế, Thừa Thiên", match: "Matched to Hoa Trần", photo: photos.hoa },
-  { id: "bao-1959", kind: "records", name: "Bảo Nguyễn", place: "Nam Định", match: "Matched to Bảo Nguyễn", photo: photos.bao },
+  /* Figma E6's three records, with the 72 photos the Figma results hold. */
+  { id: "khoi-1968", kind: "records", name: "Khôi Nguyễn", place: "Hội An, Quảng Nam", match: "Matched to Khôi Nguyễn", photo: platformMedia.portraits.smile.src },
+  { id: "hoa-1951", kind: "records", name: "Hoa Trần", place: "Huế, Thừa Thiên", match: "Matched to Hoa Trần", photo: platformMedia.portraits.window.src },
+  { id: "bao-1959", kind: "records", name: "Bảo Nguyễn", place: "Nam Định", match: "Matched to Bảo Nguyễn", photo: platformMedia.portraits.blazer.src },
   { id: "minh-dna", kind: "dna", name: "Minh Trần", place: "Đà Nẵng · 212 cM shared", match: "Matched to Hoa Trần", photo: photos.minh },
   { id: "old-town", kind: "photos", name: "Hội An old town, 1968", place: "Hội An, Quảng Nam", match: "Matched to Khôi Nguyễn", photo: platformMedia.site[2].src },
   { id: "cafe", kind: "stories", name: "The family café", place: "Huế, Thừa Thiên", match: "Matched to Hoa Trần", photo: platformMedia.site[5].src },
@@ -468,7 +469,7 @@ export const examples: ExampleDef[] = [
       <Card theme="shadow">
         <Stack as="ul" gap="md" aria-labelledby="results">
           <Stack as="li" direction="row" gap="sm" align="start">
-            <Box width={72}><Image src={khoi.photo} alt="" ratio={1} radius="lg" /></Box>
+            <Box width={72}><Image src={khoiRecord.photo} alt="" ratio={1} radius="lg" /></Box>
             <Stack gap="2xs" width="fill">
               <Text textStyle="Body/Base/Bold">Khôi Nguyễn</Text>
               <Text textStyle="Body/Small/Regular" tone="base">Hội An, Quảng Nam</Text>

@@ -146,8 +146,8 @@ function BlindsPhone() {
           <Text as="p" textStyle="Display/3" tabularNumbers>{level}%</Text>
           <Text textStyle="Body/Small/Regular" tone="base" aria-live="polite">{blindsStatus(level, sunrise, sunset)}</Text>
         </Stack>
-        {/* Figma's photo is a white window with the roller blind; the platform's closest picture is a window seat. */}
-        <Image src={platformMedia.site[5].src} alt="Daylight through a large window beside a wooden table" ratio={350 / 168} radius="3xl" />
+        {/* Figma Device: the bedroom window with its roller blind, 350 × 168 with Corner-Radius/3XLarge. */}
+        <Image src={platformMedia.devices.rollerBlind.src} alt={platformMedia.devices.rollerBlind.alt} ratio={350 / 168} radius="3xl" />
         <SliderField label="Open level" theme="accent" value={level} onValueChange={setLevel} step={5} formatValue={(value) => `${value}%`} />
         <Stack direction="row" gap="sm" fillChildren>
           <Button level="tertiary" onClick={() => move(100, "opening")}>Open</Button>

@@ -33,6 +33,7 @@ import { useToast } from "../../../../components/Toast";
 import { VisuallyHidden } from "../../../../components/VisuallyHidden";
 import { useChatDemo } from "../../../chatDemo";
 import { PreviewAppFrame, StudioLogo } from "../../../PlatformFrames";
+import { platformMedia, type PlatformPhoto } from "../../../PlatformMedia";
 import { formatCompactMoney, formatMoney, me, studio } from "../../data";
 import type { ExampleDef } from "../../types";
 
@@ -63,17 +64,18 @@ function AccountMenu() {
 const fits = (shell: string, domains: string[]) => ` Shell: ${shell}. Fits: ${domains.join(", ")}.`;
 
 // ——— B1 · Top-nav storefront (Layout=Top-Bar, Canvas/Flat) ——————————————————————————————————————————————————————
-type Product = { id: string; name: string; colour: string; price: number; was?: number; off?: string; tags: string[] };
-/* Figma B1's grid, in its order (Sort: Newest). */
+type Product = { id: string; name: string; colour: string; price: number; was?: number; off?: string; tags: string[]; photo: PlatformPhoto };
+const shoes = platformMedia.products;
+/* Figma B1's grid, in its order (Sort: Newest), with the photo each Figma tile holds. */
 const products: Product[] = [
-  { id: "urbas-offwhite", name: "Urbas Love+ Slip On", colour: "Offwhite", price: 42, was: 49, off: "-15%", tags: ["lifestyle", "vegan"] },
-  { id: "urbas-sand", name: "Urbas Love+ Slip On", colour: "Warm Sand", price: 49, tags: ["lifestyle", "vegan"] },
-  { id: "vintas-soda", name: "Vintas Soda Pop High", colour: "Red Violet", price: 58, tags: ["high-tops", "lifestyle"] },
-  { id: "track-classic", name: "Track 6 Classic Low", colour: "Blue Ash", price: 62, was: 72, off: "-14%", tags: ["running"] },
-  { id: "pattas-olive", name: "Pattas Polka Low", colour: "Olive", price: 45, tags: ["lifestyle", "vegan"] },
-  { id: "basas-gum", name: "Basas Bumper Gum", colour: "Black Gum", price: 39, tags: ["lifestyle"] },
-  { id: "vintas-mister", name: "Vintas Mister Hi", colour: "Ivory", price: 54, tags: ["high-tops"] },
-  { id: "track-earth", name: "Track 6 Earth", colour: "Mud Brown", price: 66, tags: ["running", "vegan"] },
+  { id: "urbas-offwhite", name: "Urbas Love+ Slip On", colour: "Offwhite", price: 42, was: 49, off: "-15%", tags: ["lifestyle", "vegan"], photo: shoes.offwhite },
+  { id: "urbas-sand", name: "Urbas Love+ Slip On", colour: "Warm Sand", price: 49, tags: ["lifestyle", "vegan"], photo: shoes.sand },
+  { id: "vintas-soda", name: "Vintas Soda Pop High", colour: "Red Violet", price: 58, tags: ["high-tops", "lifestyle"], photo: shoes.redViolet },
+  { id: "track-classic", name: "Track 6 Classic Low", colour: "Blue Ash", price: 62, was: 72, off: "-14%", tags: ["running"], photo: shoes.silver },
+  { id: "pattas-olive", name: "Pattas Polka Low", colour: "Olive", price: 45, tags: ["lifestyle", "vegan"], photo: shoes.olive },
+  { id: "basas-gum", name: "Basas Bumper Gum", colour: "Black Gum", price: 39, tags: ["lifestyle"], photo: shoes.black },
+  { id: "vintas-mister", name: "Vintas Mister Hi", colour: "Ivory", price: 54, tags: ["high-tops"], photo: shoes.navy },
+  { id: "track-earth", name: "Track 6 Earth", colour: "Mud Brown", price: 66, tags: ["running", "vegan"], photo: shoes.cap },
 ];
 const departments = [
   { id: "new", label: "New in", title: "New arrivals" },
@@ -103,15 +105,12 @@ const filterGroups = [
   { id: "price", title: "Price", options: ["Under $50", "$50 – $80", "Over $80"] },
   { id: "rating", title: "Rating", options: ["4 stars and up", "3 stars and up"] },
 ];
-/* The platform has no product photos yet: an empty data URL fails at once, so each tile shows the Image's own
-   placeholder (Neutral/Pale with the image icon), as a product whose photo is missing would. */
-const photoMissing = "data:,";
 const dollars = (amount: number) => `$${amount}`;
 
 function ProductTile({ product }: { product: Product }) {
   return (
     <Stack as="li" gap="sm">
-      <Image src={photoMissing} alt="" ratio="1:1" radius="lg" />
+      <Image src={product.photo.src} alt="" ratio="1:1" radius="lg" />
       <Stack gap="2xs">
         <Text textStyle="Body/Base/Medium">{product.name}</Text>
         <Text textStyle="Body/Small/Regular" tone="light">{product.colour}</Text>
@@ -614,7 +613,7 @@ export const examples: ExampleDef[] = [
       <Grid as="ul" columns={4} columnGap="lg" rowGap="xl" aria-label="New arrivals, sorted by newest">
         {products.map((product) => (
           <Stack as="li" key={product.id} gap="sm">
-            <Image src={product.photo} alt="" ratio="1:1" radius="lg" />
+            <Image src={product.photo.src} alt="" ratio="1:1" radius="lg" />
             <Stack gap="2xs">
               <Text textStyle="Body/Base/Medium">{product.name}</Text>
               <Text textStyle="Body/Small/Regular" tone="light">{product.colour}</Text>

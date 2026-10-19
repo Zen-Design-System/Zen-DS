@@ -1,8 +1,7 @@
 /* App Shell examples · e-consumer-1: built from Figma ◇ Master-Layout · Example (15902:109717), section
    "E · Consumer apps" (15991:9672): E1 · Delivery home (15991:9673), E2 · Shop home (15991:9731), E3 · Product list
    (15991:9787) and E4 · Onboarding (15991:9843). Each phone is one Pattern/AppShell/Mobile instance; the copy, numbers and
-   component variants are the ones the Figma screens hold. platformMedia has no food, product or mascot photos: those
-   frames are Surface / Pale image tiles here (an emoji stands in for E1's 3D mascot). */
+   component variants are the ones the Figma screens hold, and so are the pictures (platformMedia, exported from Figma). */
 import { type ReactNode, useId, useState } from "react";
 import { AppShell } from "../../../../components/AppShell";
 import { Avatar } from "../../../../components/Avatar";
@@ -24,23 +23,11 @@ import { Search } from "../../../../components/Search";
 import { Heading, Text } from "../../../../components/Text";
 import { useToast } from "../../../../components/Toast";
 import { TopNavigation } from "../../../../components/TopNavigation";
-import { platformMedia } from "../../../PlatformMedia";
+import { platformMedia, type PlatformPhoto } from "../../../PlatformMedia";
 import { PlatformPhone } from "../../../PlatformPhone";
-import { people } from "../../data";
 import type { ExampleDef } from "../../types";
 
 // ——— Shared parts ————————————————————————————————————————————————————————————————————————————————————————————
-
-/** A picture frame with no photo to show: the tile's layer and an image glyph (Figma: a photo on that tile). */
-function PhotoTile({ surface, radius, height, icon = "icon-image-line" }: { surface: "surface" | "pale"; radius: "md" | "lg" | "2xl"; height: number; icon?: IconName }) {
-  return (
-    <Box surface={surface} radius={radius} height={height}>
-      <Stack align="center" justify="center" height="fill">
-        <Icon name={icon} size="xl" tone="light" decorative />
-      </Stack>
-    </Box>
-  );
-}
 
 /** Figma Section-Header: the Heading/4 title and its See all (a Link: Zen's rule, Figma draws a Flat button). */
 function SectionHeader({ id, title, onSeeAll }: { id: string; title: string; onSeeAll: () => void }) {
@@ -65,18 +52,16 @@ function ShortcutTile({ label, mark, onClick }: { label: string; mark: ReactNode
   );
 }
 
-type Product = { id: string; name: string; detail: string; price: string; tags: string[]; badge?: string };
+type Product = { id: string; name: string; detail: string; price: string; tags: string[]; badge?: string; photo: PlatformPhoto };
 
-/** Figma Product: the 140 photo tile (Corner-Radius/2XLarge) with the White overlay heart, then name, colour and price. */
+/** Figma Product: the 169 × 140 photo (Corner-Radius/2XLarge) with the White overlay heart, then name, colour and price. */
 function ProductTile({ product, priceStyle }: { product: Product; priceStyle: "Body/Base/Bold" | "Body/Extra/Bold" }) {
   const { toast } = useToast();
   const [saved, setSaved] = useState(false);
   return (
     <Stack as="li" gap="2xs">
-      <Box surface="surface" radius="2xl" height={140}>
-        <Stack align="center" justify="center" height="fill">
-          <Icon name="icon-shopping-bag-02-line" size="xl" tone="light" decorative />
-        </Stack>
+      <Box>
+        <Image src={product.photo.src} alt="" ratio={169 / 140} radius="2xl" />
         {product.badge ? (
           <Box position="absolute" insetTop="xs" insetLeft="xs">
             <Badge size="sm" theme="accent">{product.badge}</Badge>
@@ -127,8 +112,8 @@ const categories = [
   { id: "snacks", label: "Snacks", emoji: "🍿" },
 ];
 const deals = [
-  { id: "lunch-box", shelf: "Canteen", name: "Lunch box", price: "$8.60" },
-  { id: "hot-pot", shelf: "Deals", name: "Hot pot for two", price: "$16.90" },
+  { id: "lunch-box", shelf: "Canteen", name: "Lunch box", price: "$8.60", photo: platformMedia.food.bento },
+  { id: "hot-pot", shelf: "Deals", name: "Hot pot for two", price: "$16.90", photo: platformMedia.food.hotpot },
 ];
 const storeFilters: { id: string; label: string; leading?: IconName }[] = [
   { id: "free", label: "Free delivery", leading: "icon-truck-line" },
@@ -161,7 +146,10 @@ function DeliveryHomePhone() {
             <Stack direction="row" justify="between" align="center" gap="md">
               {/* zen-allow-h1-style: the band's greeting is the screen's title in Display/2 (the Figma caption names it). */}
               <Heading level={1} textStyle="Display/2">Hi,<br />fellow!</Heading>
-              <DockIcon theme="emoji" emoji="🍔" size="2xl" />
+              {/* Figma Character: the 100 × 100 cut-out mascot (Fit), beside the greeting it illustrates. */}
+              <Box width={100}>
+                <Image src={platformMedia.food.mascot.src} alt="" ratio="1:1" fit="contain" radius="none" loading="eager" />
+              </Box>
             </Stack>
             <Search placeholder="Burgers, bubble tea, phở…" aria-label="Search food and stores" value={query} onValueChange={setQuery}
               onKeyDown={(event) => { if (event.key === "Enter" && query) toast({ title: `Searching “${query}”`, children: `Near ${campusLabel}` }); }} />
@@ -182,7 +170,7 @@ function DeliveryHomePhone() {
                 onClick={() => toast({ title: `${deal.name} · ${deal.price}`, children: `From ${deal.shelf}`, action: { label: "Add", onClick: () => setCart((count) => count + 1) } })}>
                 <Stack gap="xs">
                   <Text textStyle="Body/Base/Bold">{deal.shelf}</Text>
-                  <PhotoTile surface="pale" radius="lg" height={88} />
+                  <Image src={deal.photo.src} alt="" ratio={129 / 88} radius="lg" />
                   <Stack gap="2xs">
                     <Text textStyle="Body/Small/Regular">{deal.name}</Text>
                     <Text textStyle="Body/Base/Bold" tone="accent-base" tabularNumbers>{deal.price}</Text>
@@ -233,8 +221,8 @@ const shopCollections = [
   { value: "new", label: "New in" },
 ];
 const shopProducts: Product[] = [
-  { id: "urbas-love", name: "Urbas Love+ Slip On", detail: "Off white · 3 colours", price: "$42", tags: ["best", "new"], badge: "New" },
-  { id: "vintas-soda", name: "Vintas Soda Pop High", detail: "Pink · 2 colours", price: "$58", tags: ["promo"] },
+  { id: "urbas-love", name: "Urbas Love+ Slip On", detail: "Off white · 3 colours", price: "$42", tags: ["best", "new"], badge: "New", photo: platformMedia.products.offwhite },
+  { id: "vintas-soda", name: "Vintas Soda Pop High", detail: "Pink · 2 colours", price: "$58", tags: ["promo"], photo: platformMedia.products.redViolet },
 ];
 
 function ShopHomePhone() {
@@ -306,10 +294,18 @@ const listCollections = [
   { value: "basics", label: "Basics" },
 ];
 const listProducts: Product[] = [
-  { id: "basas-bumper", name: "Basas Bumper Gum", detail: "Colour · Navy", price: "$39", tags: ["basics", "best"] },
-  { id: "earth-cap", name: "Track 6 Earth Cap", detail: "Colour · White", price: "$66", tags: ["promo"] },
-  { id: "vintas-mider", name: "Vintas Mider I-II", detail: "Colour · Blue", price: "$54", tags: ["best"] },
-  { id: "classic-low", name: "Track 6 Classic Low", detail: "Colour · Silver", price: "$62", tags: ["basics", "promo"] },
+  { id: "basas-bumper", name: "Basas Bumper Gum", detail: "Colour · Navy", price: "$39", tags: ["basics", "best"], photo: platformMedia.products.black },
+  { id: "earth-cap", name: "Track 6 Earth Cap", detail: "Colour · White", price: "$66", tags: ["promo"], photo: platformMedia.products.cap },
+  { id: "vintas-mider", name: "Vintas Mider I-II", detail: "Colour · Blue", price: "$54", tags: ["best"], photo: platformMedia.products.navy },
+  { id: "classic-low", name: "Track 6 Classic Low", detail: "Colour · Silver", price: "$62", tags: ["basics", "promo"], photo: platformMedia.products.silver },
+];
+/** The five best sellers at the foot of Figma's Featured-Brand, with the photo each Figma thumb holds. */
+const bestSellers = [
+  { name: "Love+ Slip On", photo: platformMedia.products.offwhite },
+  { name: "Corluray Mix", photo: platformMedia.products.sand },
+  { name: "Pattas Tomo", photo: platformMedia.products.redViolet },
+  { name: "Vintas Jazico", photo: platformMedia.products.silver },
+  { name: "Basas Workaday", photo: platformMedia.products.olive },
 ];
 
 function FeaturedBrand() {
@@ -320,7 +316,7 @@ function FeaturedBrand() {
     // Figma Featured-Brand: a 2XLarge photo frame; the brand row on a Surface plate at the top, five thumbnails at the foot.
     <Box as="section" radius="2xl" clip height={262} aria-labelledby={titleId}>
       <Box position="absolute" constraintX="left-right" constraintY="top-bottom">
-        <Image src={platformMedia.feed[5].src} alt={platformMedia.feed[5].alt} ratio={350 / 262} radius="none" />
+        <Image src={platformMedia.campaign.src} alt={platformMedia.campaign.alt} ratio={350 / 262} radius="none" />
       </Box>
       <Stack justify="between" height="fill">
         <Box padding="sm">
@@ -337,11 +333,9 @@ function FeaturedBrand() {
           </Box>
         </Box>
         <Stack as="ul" direction="row" gap="xs" padding="sm" aria-label="Urbas Studio best sellers">
-          {["Love+ Slip On", "Corluray Mix", "Pattas Tomo", "Vintas Jazico", "Basas Workaday"].map((name) => (
-            <Box as="li" key={name} surface="surface" radius="md" width={52} height={52} aria-label={name}>
-              <Stack align="center" justify="center" height="fill">
-                <Icon name="icon-shopping-bag-02-line" size="md" tone="light" decorative />
-              </Stack>
+          {bestSellers.map((item) => (
+            <Box as="li" key={item.name} width={52}>
+              <Image src={item.photo.src} alt={item.name} ratio="1:1" radius="md" />
             </Box>
           ))}
         </Stack>
@@ -391,11 +385,11 @@ function ProductListPhone() {
 /** Figma Collage (390 × 330, no auto layout): five portraits in Corner-Radius/Giant frames with a 4px Surface ring, fanned
  *  out at these X / Y, and the Small Tertiary "+" under them. X is scaled to the hero's 350 inner width. */
 const portraits = [
-  { person: people.chi, x: 9, y: 64, width: 96, height: 128 },
-  { person: people.ava, x: 66, y: 30, width: 104, height: 140 },
-  { person: people.bao, x: 119, y: 96, width: 124, height: 168 },
-  { person: people.emi, x: 185, y: 44, width: 104, height: 140 },
-  { person: people.finn, x: 253, y: 76, width: 96, height: 128 },
+  { photo: platformMedia.portraits.redHair, x: 9, y: 64, width: 96, height: 128 },
+  { photo: platformMedia.portraits.shortHair, x: 66, y: 30, width: 104, height: 140 },
+  { photo: platformMedia.portraits.curlyHoodie, x: 119, y: 96, width: 124, height: 168 },
+  { photo: platformMedia.portraits.curlyHair, x: 185, y: 44, width: 104, height: 140 },
+  { photo: platformMedia.portraits.smile, x: 253, y: 76, width: 96, height: 128 },
 ];
 
 function OnboardingPhone() {
@@ -413,9 +407,9 @@ function OnboardingPhone() {
         )} />}
         hero={(
           <Box height={330}>
-            {portraits.map(({ person, x, y, width, height }) => (
-              <Box key={person.id} position="absolute" insetLeft={x} insetTop={y} width={width} height={height} surface="surface" radius="3xl" padding="2xs">
-                <Image src={person.photo} alt={person.name} ratio={(width - 8) / (height - 8)} radius="2xl" loading="eager" />
+            {portraits.map(({ photo, x, y, width, height }) => (
+              <Box key={photo.src} position="absolute" insetLeft={x} insetTop={y} width={width} height={height} surface="surface" radius="3xl" padding="2xs">
+                <Image src={photo.src} alt={photo.alt} ratio={(width - 8) / (height - 8)} radius="2xl" loading="eager" />
               </Box>
             ))}
             <Box position="absolute" constraintX="center" insetTop={274}>
@@ -459,7 +453,7 @@ export const examples: ExampleDef[] = [
         <Stack direction="row" justify="between" align="center" gap="md">
           {/* zen-allow-h1-style: the band's greeting is the screen's title in Display/2. */}
           <Heading level={1} textStyle="Display/2">Hi,<br />fellow!</Heading>
-          <DockIcon theme="emoji" emoji="🍔" size="2xl" />
+          <Box width={100}><Image src={mascot.src} alt="" ratio="1:1" fit="contain" radius="none" loading="eager" /></Box>
         </Stack>
         <Search placeholder="Burgers, bubble tea, phở…" aria-label="Search food and stores" value={query} onValueChange={setQuery} />
       </Stack>
@@ -482,7 +476,7 @@ export const examples: ExampleDef[] = [
         <Card theme="shadow" aria-label="Canteen: Lunch box, $8.60" onClick={openDeal}>
           <Stack gap="xs">
             <Text textStyle="Body/Base/Bold">Canteen</Text>
-            <Image src={lunchBox.photo} alt="Lunch box" ratio={129 / 88} radius="lg" />
+            <Image src={lunchBox.photo} alt="" ratio={129 / 88} radius="lg" />
             <Stack gap="2xs">
               <Text textStyle="Body/Small/Regular">Lunch box</Text>
               <Text textStyle="Body/Base/Bold" tone="accent-base">$8.60</Text>
@@ -509,7 +503,7 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "E2 · Shop home",
-    description: "A Support/Brand/Pale band from the top edge holds a two-line greeting and the bell and cart actions (the cart with a dot), then the search. Five Accent Subtle shortcuts (one hue, never five), two wallet tiles, round brand Avatars and the product grid with Chips. Product photos sit on Surface tiles with a heart action. Shell: AppShell/Mobile · Phone · Top=Band · Bottom=Tab-Bar. Fits: Fashion, Marketplace, Loyalty, Sneakers.",
+    description: "A Support/Brand/Pale band from the top edge holds a two-line greeting and the bell and cart actions (the cart with a dot), then the search. Five Accent Subtle shortcuts (one hue, never five), two wallet tiles, round brand Avatars and the product grid with Chips. Each product photo carries a heart action. Shell: AppShell/Mobile · Phone · Top=Band · Bottom=Tab-Bar. Fits: Fashion, Marketplace, Loyalty, Sneakers.",
     render: () => <ShopHomePhone />,
     code: `<AppShell
   mobileTop="band"
@@ -549,8 +543,8 @@ export const examples: ExampleDef[] = [
       </Stack>
       <Grid as="ul" columns={2} gap="sm" aria-labelledby="popular">
         <Stack as="li" gap="2xs">
-          <Box surface="surface" radius="2xl" height={140}>
-            <Image src={urbasLove.photo} alt="Urbas Love+ Slip On, off white" ratio={169 / 140} radius="2xl" />
+          <Box>
+            <Image src={urbasLove.photo} alt="" ratio={169 / 140} radius="2xl" />
             <Box position="absolute" insetTop="xs" insetLeft="xs"><Badge size="sm" theme="accent">New</Badge></Box>
             <Box position="absolute" constraintX="right" insetTop="xs" insetRight="xs">
               <IconButton appearance="overlay" level="white" size="sm" icon="icon-heart-line" aria-label="Save Urbas Love+ Slip On" aria-pressed={saved} onClick={toggleSaved} />
@@ -605,7 +599,8 @@ export const examples: ExampleDef[] = [
           </Box>
         </Box>
         <Stack as="ul" direction="row" gap="xs" padding="sm" aria-label="Urbas Studio best sellers">
-          …five 52 × 52 Surface thumbnails (Corner-Radius/Base)
+          <Box as="li" width={52}><Image src={loveSlipOn.photo} alt="Love+ Slip On" ratio="1:1" radius="md" /></Box>
+          …Corluray Mix · Pattas Tomo · Vintas Jazico · Basas Workaday
         </Stack>
       </Stack>
     </Box>
@@ -633,7 +628,7 @@ export const examples: ExampleDef[] = [
     hero={(
       <Box height={330}>
         <Box position="absolute" insetLeft={9} insetTop={64} width={96} height={128} surface="surface" radius="3xl" padding="2xs">
-          <Image src={chi.photo} alt="Chi Tran" ratio={88 / 120} radius="2xl" loading="eager" />
+          <Image src={redHair.src} alt="Young woman with long red hair" ratio={88 / 120} radius="2xl" loading="eager" />
         </Box>
         …four more portraits fanned out (104 × 140 · 124 × 168 · 104 × 140 · 96 × 128)
         <Box position="absolute" constraintX="center" insetTop={274}>

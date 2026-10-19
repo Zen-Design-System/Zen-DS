@@ -206,7 +206,7 @@ const posts: Post[] = [
   {
     id: "track-6", author: "Maya Thompson", initials: "MT", theme: "pink", meta: "2h · Public",
     text: "First wear of the Track 6 in olive. Gum sole is softer than it looks. Sizing runs half a size big.",
-    photo: platformMedia.feed[6], likes: "1.2k", comments: "86", tabs: ["for-you", "following", "drops"],
+    photo: platformMedia.products.olive, likes: "1.2k", comments: "86", tabs: ["for-you", "following", "drops"],
   },
   {
     id: "meet-up", author: "Đìzai Studio", initials: "DS", theme: "blue", meta: "5h · Public",
@@ -303,7 +303,7 @@ function MediaSheetPhone() {
       {/* Media + Actions: the photo is the backdrop, the Liquid-Glass actions float on it, and one Surface sheet rises
           over it with the title, highlights and facts (no cards inside it); the booking actions sit in the Action bar. */}
       <AppShell mobileTop="media"
-        backdrop={<Image src={platformMedia.canyonPortrait.poster} alt="Layered canyon walls under a cloudy sky" radius="none" loading="eager" />}
+        backdrop={<Image src={platformMedia.antelopeCanyon.src} alt={platformMedia.antelopeCanyon.alt} radius="none" loading="eager" />}
         topNavigation={<TopNavigation aria-label="Antelope Canyon photo tour" topBar
           leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to Page, Arizona" }) }}
           trailing={[{ icon: saved ? "icon-heart-solid" : "icon-heart-line", label: saved ? "Saved" : "Save tour", onClick: () => setSaved((value) => !value) }]} />}
@@ -468,7 +468,7 @@ export const examples: ExampleDef[] = [
     code: `<PlatformPhone canvas="surface" statusBar="light">
   <AppShell
     mobileTop="media"
-    backdrop={<Image src={tour.photo} alt="Layered canyon walls under a cloudy sky" radius="none" loading="eager" />}
+    backdrop={<Image src={tour.photo} alt="Sky seen through the curved red walls of Antelope Canyon" radius="none" loading="eager" />}
     topNavigation={<TopNavigation aria-label="Antelope Canyon photo tour" topBar
       leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }}
       trailing={[{ icon: "icon-heart-line", label: "Save tour", onClick: save }]} />}

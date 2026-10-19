@@ -13,6 +13,7 @@ import { Card } from "../../../../components/Card";
 import { ChipGroup } from "../../../../components/ChipGroup";
 import { DockIcon } from "../../../../components/DockIcon";
 import { Icon, type IconName } from "../../../../components/Icon";
+import { Image } from "../../../../components/Image";
 import { Box, Grid, Stack } from "../../../../components/Layout";
 import { List, ListBox, ToggleListItem } from "../../../../components/ListItem";
 import { MetricCard } from "../../../../components/MetricWidget";
@@ -22,17 +23,19 @@ import { Text } from "../../../../components/Text";
 import { useToast } from "../../../../components/Toast";
 import { ToggleButton } from "../../../../components/Toggle";
 import { TopNavigation } from "../../../../components/TopNavigation";
+import { platformMedia, type PlatformPhoto } from "../../../PlatformMedia";
 import { PlatformPhone } from "../../../PlatformPhone";
 import { people } from "../../data";
 import type { ExampleDef } from "../../types";
 
 // ——— Shared parts ——————————————————————————————————————————————————————————————————————————————————————————————————
 
-/** Figma Picture / Device: a product cut-out photo. platformMedia ships no product photos, so a Neutral/Pale frame
- *  (Corner-Radius/Large, Figma's own height) shows the device's glyph in its place. */
-function DevicePicture({ icon, height }: { icon: IconName; height: number }) {
+/** Figma Picture: the device's cut-out photo, 129 × 108 with Corner-Radius/Large (Fill). The kitchen's smart plugs,
+ *  which no Figma screen shows, keep their glyph on a Neutral/Pale tile of the same height. */
+function DevicePicture({ photo, icon }: { photo?: PlatformPhoto; icon: IconName }) {
+  if (photo) return <Image src={photo.src} alt="" ratio={129 / 108} radius="lg" />;
   return (
-    <Box surface="pale" radius="lg" height={height}>
+    <Box surface="pale" radius="lg" height={108}>
       <Stack align="center" justify="center" height="fill">
         <Icon name={icon} size="3xl" tone="light" decorative />
       </Stack>
@@ -70,21 +73,21 @@ const homeRooms = [
   { value: "bedroom", label: "Bedroom" },
 ];
 /** `small`: the state in Caption/Regular, as Figma sets it for the longer states (HomePod mini, Robot vacuum). */
-type HomeDevice = { id: string; brand: string; name: string; icon: IconName; onState: string; offState: string; on: boolean; small?: boolean };
+type HomeDevice = { id: string; brand: string; name: string; icon: IconName; photo?: PlatformPhoto; onState: string; offState: string; on: boolean; small?: boolean };
 /** Living room is Figma F1's grid; the kitchen's smart plugs (F11) and the bedroom blinds (F10) fill the other chips. */
 const homeDevices: Record<string, HomeDevice[]> = {
   living: [
-    { id: "ceiling-light", brand: "Philips", name: "Ceiling light", icon: "icon-lightbulb-line", onState: "70%", offState: "Off", on: true },
-    { id: "air-conditioner", brand: "Daikin", name: "Air conditioner", icon: "icon-snowflake-01-line", onState: "Cool · 24°", offState: "Off", on: true },
-    { id: "homepod", brand: "Apple", name: "HomePod mini", icon: "icon-speaker-01-line", onState: "Playing", offState: "Off", on: true, small: true },
-    { id: "vacuum", brand: "Xiaomi", name: "Robot vacuum", icon: "icon-disc-line", onState: "Cleaning · 38%", offState: "Docked · 38%", on: false, small: true },
+    { id: "ceiling-light", brand: "Philips", name: "Ceiling light", icon: "icon-lightbulb-line", photo: platformMedia.devices.ceilingLight, onState: "70%", offState: "Off", on: true },
+    { id: "air-conditioner", brand: "Daikin", name: "Air conditioner", icon: "icon-snowflake-01-line", photo: platformMedia.devices.airConditioner, onState: "Cool · 24°", offState: "Off", on: true },
+    { id: "homepod", brand: "Apple", name: "HomePod mini", icon: "icon-speaker-01-line", photo: platformMedia.devices.smartSpeaker, onState: "Playing", offState: "Off", on: true, small: true },
+    { id: "vacuum", brand: "Xiaomi", name: "Robot vacuum", icon: "icon-disc-line", photo: platformMedia.devices.robotVacuum, onState: "Cleaning · 38%", offState: "Docked · 38%", on: false, small: true },
   ],
   kitchen: [
     { id: "fridge", brand: "Smart plug", name: "Fridge", icon: "icon-zap-line", onState: "120 W now", offState: "Off", on: true },
     { id: "washer", brand: "Smart plug", name: "Washing machine", icon: "icon-zap-line", onState: "1,240 W now", offState: "Off", on: true, small: true },
   ],
   bedroom: [
-    { id: "blinds", brand: "Somfy", name: "Bedroom blinds", icon: "icon-rows-01-line", onState: "Open · 80%", offState: "Closed", on: true },
+    { id: "blinds", brand: "Somfy", name: "Bedroom blinds", icon: "icon-rows-01-line", photo: platformMedia.devices.rollerBlind, onState: "Open · 80%", offState: "Closed", on: true },
   ],
 };
 const allHomeDevices = Object.values(homeDevices).flat();
@@ -101,7 +104,7 @@ function DeviceCard({ device, on, onToggle }: { device: HomeDevice; on: boolean;
           <Text textStyle="Caption/Regular" tone="base">{device.brand}</Text>
           <Text textStyle="Body/Base/Bold" truncate>{device.name}</Text>
         </Stack>
-        <DevicePicture icon={device.icon} height={108} />
+        <DevicePicture photo={device.photo} icon={device.icon} />
         <Stack direction="row" justify="between" align="center" gap="xs">
           <Text textStyle={device.small ? "Caption/Regular" : "Body/Small/Regular"} tone={on ? "strongest" : "base"} truncate>{on ? device.onState : device.offState}</Text>
           {/* zen-allow-secondary: a pressed toggle — Figma's power button is Button/Icon-Main Secondary while the device is on. */}
@@ -265,7 +268,8 @@ function SpeakerPhone() {
         <Stack gap="xl">
           <PowerStatus device="HomePod mini" on={on} battery="98%" caption="Battery"
             onPowerChange={(next) => { setOn(next); setPlaying(next); toast({ title: next ? "HomePod mini is on" : "HomePod mini is off" }); }} />
-          <DevicePicture icon="icon-speaker-01-line" height={240} />
+          {/* Figma Device: the speaker's photo, 350 × 240 with Corner-Radius/3XLarge. */}
+          <Image src={platformMedia.devices.smartSpeaker.src} alt="" ratio={350 / 240} radius="3xl" />
           <SliderField label="Volume" theme="accent" value={volume} onValueChange={setVolume} formatValue={(value) => `${value}%`} />
           <Card theme="shadow" as="section" aria-label="Now playing">
             <Stack gap="md">
@@ -331,7 +335,8 @@ function RobotVacuumPhone() {
         <Stack gap="xl">
           <PowerStatus device="Robot vacuum" on={on} battery="38%" caption="Needs charging soon"
             onPowerChange={(next) => { setOn(next); if (!next) setCleaning(false); }} />
-          <DevicePicture icon="icon-disc-line" height={240} />
+          {/* Figma Device: the vacuum's photo, 350 × 240 with Corner-Radius/3XLarge. */}
+          <Image src={platformMedia.devices.robotVacuum.src} alt="" ratio={350 / 240} radius="3xl" />
           <Stack as="ul" direction="row" gap="sm" fillChildren aria-label="Modes">
             {modes.map((mode) => (
               <Stack as="li" key={mode.id} gap="xs" align="center">
@@ -401,7 +406,7 @@ export const examples: ExampleDef[] = [
               <Text textStyle="Caption/Regular" tone="base">Philips</Text>
               <Text textStyle="Body/Base/Bold" truncate>Ceiling light</Text>
             </Stack>
-            <Image src={ceilingLight.photo} alt="" ratio={129 / 108} radius="lg" fit="contain" />
+            <Image src={ceilingLight.photo} alt="" ratio={129 / 108} radius="lg" />
             <Stack direction="row" justify="between" align="center" gap="xs">
               <Text textStyle="Body/Small/Regular" truncate>70%</Text>
               {/* zen-allow-secondary: a pressed toggle, Secondary while the device is on. */}
@@ -474,7 +479,7 @@ export const examples: ExampleDef[] = [
           <Text textStyle="Body/Small/Regular" tone="base">Battery</Text>
         </Stack>
       </Stack>
-      <Image src={homepod.photo} alt="" ratio={350 / 240} fit="contain" />
+      <Image src={homepod.photo} alt="" ratio={350 / 240} radius="3xl" />
       <SliderField label="Volume" theme="accent" value={volume} onValueChange={setVolume} formatValue={(value) => \`\${value}%\`} />
       <Card theme="shadow" as="section" aria-label="Now playing">
         <Stack gap="md">
@@ -522,7 +527,7 @@ export const examples: ExampleDef[] = [
           <Text textStyle="Body/Small/Regular" tone="base">Needs charging soon</Text>
         </Stack>
       </Stack>
-      <Image src={vacuum.photo} alt="" ratio={350 / 240} fit="contain" />
+      <Image src={vacuum.photo} alt="" ratio={350 / 240} radius="3xl" />
       <Stack as="ul" direction="row" gap="sm" fillChildren aria-label="Modes">
         <Stack as="li" gap="xs" align="center">
           {/* zen-allow-no-tooltip: the mode's visible label sits right under the button. */}
