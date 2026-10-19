@@ -37,3 +37,9 @@ before shipping; B's conventions: JSDoc cites Figma, tokens-only CSS, a guidelin
 - Figma: push marks the group frame `mask` (named Mask group); plugin 3f0cf52 sets isMask on its first layer (and takes
   it off a Zen frame without mask); pull `maskOf` reads isMask, `maskProps` gives the Box `mask` when the bottom layer
   is the mask, and notes a mask higher up. Selftests push 328, pull 103, layer-meta 15. E2E FW-127.
+- B's review (OK to ship after two fixes, done in 805661b2): the mask box is `position: relative` (`:where`, an absolute box
+  stays absolute) and the clip adds its border (clientLeft / Top); the ResizeObserver follows a new first layer after a
+  reorder; pull notes a mask in an auto layout frame. Vitest box-mask 4, pull selftest 104.
+- Live Zen file (B's item 4): the real importer placed "Mask group" (GROUP, the Star isMask, the Rectangle and Ellipse
+  clipped to it, screenshot checked) and the reader brought it back as `<Box group mask>` with the same layers, no notes;
+  the QA frame removed. Plugin 3f0cf52 is on studio-import.
