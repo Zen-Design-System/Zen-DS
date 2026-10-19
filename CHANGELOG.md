@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio's Copy as PNG (⇧⌘C) and Copy as SVG, as Figma's (the rest of F3 of the parity plan): the selected layer
+  or frame as a picture on the clipboard at 2x (or at its first export setting's scale), or as SVG markup; in the
+  layer menu's Copy as list, the frame menu and Quick actions. ⇧⌘C no longer says "not in Zen Studio yet".
 - Zen Studio's View and Find like Figma (F10 of the parity plan): zoom from 2 % to 25 600 % (zoom to fit still stops
   at 400 %), the pixel grid from 400 % (⌘'), Outlines (⌘Y), rulers (⇧R) with guides dragged onto a frame or the canvas
   (back onto the ruler deletes one), layout guides on a frame (right panel › Layout guide: Columns, Rows or Grid; margin
