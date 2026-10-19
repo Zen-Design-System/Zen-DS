@@ -142,3 +142,71 @@ export function pencilCommands(trail: readonly Point[], error = 2, closed = fals
   if (closed) out.push({ command: "Z", points: [] });
   return out;
 }
+
+/* ── Vertex edit: a vector's path as points with handles (Enter on a vector, select/VectorHandles.tsx) ─────────── */
+
+/** One sub-path of a vector (an M … run): its points and whether it closes. */
+export type Subpath = { points: PenPoint[]; closed: boolean };
+/** A point of a vector: its sub-path and its place in it. */
+export type PointRef = { path: number; index: number };
+
+const lerp = (a: Point, b: Point, t: number): Point => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+
+/**
+ * A vector's commands as sub-paths of points with handles: L joins corners, C gives the previous point its out handle
+ * and the new one its in handle (a handle on its point is none), Q is raised to the cubic it draws, Z closes (a last
+ * point on the first one is that point).
+ */
+export function subpathsOf(commands: readonly PathCommand[]): Subpath[] {
+  const out: Subpath[] = [];
+  let current: Subpath | null = null;
+  for (const entry of commands) {
+    if (entry.command === "M") { current = { points: [{ at: entry.points[0], in: null, out: null }], closed: false }; out.push(current); continue; }
+    if (!current) continue;
+    const prev = current.points[current.points.length - 1];
+    if (entry.command === "Z") {
+      current.closed = true;
+      const first = current.points[0];
+      const last = current.points[current.points.length - 1];
+      if (current.points.length > 1 && same(first.at, last.at)) { first.in = last.in; current.points.pop(); }
+      continue;
+    }
+    if (entry.command === "L") { current.points.push({ at: entry.points[0], in: null, out: null }); continue; }
+    const [c1, c2, end] = entry.command === "C" ? entry.points : [lerp(prev.at, entry.points[0], 2 / 3), lerp(entry.points[1], entry.points[0], 2 / 3), entry.points[1]];
+    prev.out = same(c1, prev.at) ? null : c1;
+    current.points.push({ at: end, in: same(c2, end) ? null : c2, out: null });
+  }
+  return out.filter((path) => path.points.length > 0);
+}
+
+/** Sub-paths back to commands (each its own M … run). */
+export const subpathCommands = (paths: readonly Subpath[]): PathCommand[] => paths.flatMap((path) => penCommands(path.points, path.closed));
+
+const update = (paths: readonly Subpath[], ref: PointRef, change: (point: PenPoint) => PenPoint): Subpath[] =>
+  paths.map((path, k) => (k !== ref.path ? path : { ...path, points: path.points.map((point, i) => (i === ref.index ? change(point) : point)) }));
+const shift = (point: Point | null, by: Point) => (point ? { x: point.x + by.x, y: point.y + by.y } : null);
+
+/** A point moved by `by`, its handles with it (Figma's vertex drag). */
+export const movePoint = (paths: readonly Subpath[], ref: PointRef, by: Point): Subpath[] =>
+  update(paths, ref, (point) => ({ at: shift(point.at, by)!, in: shift(point.in, by), out: shift(point.out, by) }));
+
+/** A handle dragged to `to`; `mirror`: the other handle turns with it, keeping its length (a smooth point). */
+export function moveHandle(paths: readonly Subpath[], ref: PointRef, side: "in" | "out", to: Point, mirror: boolean): Subpath[] {
+  return update(paths, ref, (point) => {
+    const other = side === "in" ? point.out : point.in;
+    let turned = other;
+    if (mirror && other) {
+      const length = Math.hypot(other.x - point.at.x, other.y - point.at.y);
+      const away = Math.hypot(to.x - point.at.x, to.y - point.at.y) || 1;
+      turned = { x: point.at.x - ((to.x - point.at.x) / away) * length, y: point.at.y - ((to.y - point.at.y) / away) * length };
+    }
+    return side === "in" ? { ...point, in: to, out: turned } : { ...point, out: to, in: turned };
+  });
+}
+
+/** A point taken out (Delete in vertex edit); a sub-path left with fewer than two points goes. */
+export function removePoint(paths: readonly Subpath[], ref: PointRef): Subpath[] {
+  return paths
+    .map((path, k) => (k !== ref.path ? path : { points: path.points.filter((_, i) => i !== ref.index), closed: path.closed && path.points.length > 3 }))
+    .filter((path) => path.points.length > 1);
+}
