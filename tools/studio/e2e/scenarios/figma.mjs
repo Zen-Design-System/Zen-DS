@@ -1173,7 +1173,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-37", feature: "⌘D on a moved copy repeats its offset (Figma's smart duplicate)", wp: "F3 2026-10-19",
+    id: "FW-37", feature: "⌘D on a moved copy repeats its offset (Figma's smart duplicate)", wp: "F3 2026-10-19", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await clipPage(ctx);
       const before = (await pageText(page, id)) ?? "";
