@@ -1,5 +1,5 @@
 /* Figma's rulers and guides (Rulers.tsx, F10), in the viewport's px, above the selection layer (z 10): two 20px bands
-   along the canvas that shows between the panels (Popover fill, Pale rule, Caption labels in Light content), and
+   along the canvas that shows between the panels (Surface fill as the panels, Pale rule, Caption labels in Light content), and
    guides in Negative/Solid as Figma's red. */
 .studio-rulers { position: absolute; z-index: 20; inset: 0; pointer-events: none; }
 .studio-ruler, .studio-ruler__corner {
@@ -8,7 +8,7 @@
   left: 0;
   box-sizing: border-box;
   overflow: hidden;
-  background: var(--zen-color-background-popover-default);
+  background: var(--zen-color-background-surface-default);
   pointer-events: auto;
   touch-action: none;
 }
