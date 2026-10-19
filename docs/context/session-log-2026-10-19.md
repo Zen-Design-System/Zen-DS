@@ -83,6 +83,13 @@ User: "làm tiếp phần còn thiếu của main component" · "Bug UI của st
   nền xám"): #128 had the Studio side; the live Progress-Circle/Icon Base now has no fill (2px ring only, all 14
   variants) → progress.css background transparent. Done=No pies differ per theme sample (20–85%); Accent/Neutral keep 80.
   The user's Studio (:5174, Vite from 2026-10-16 in the shared checkout) serves the new code: a reload shows it.
+- Progress select (user: "ok, thêm ô chọn Progress cho ProgressBar"): map Progress → `{ prop: "value", values: { None:
+  "0" … Done: "100" } }` (was skip + main; variant sets unchanged); PropField `NumberStepsControl` for a number row with
+  Figma names (a value between steps shows as "86%"); GroupedProperties keeps the number's own row in `after`, and now
+  passes `component` to PropField: Figma-grouped panels never got their numberRanges slider (plain number field). Probe on
+  an isolated server (card page, value 86 → Medium): select 40, slider 40%, aria-valuenow 40. 2026-10-20 on main 7db4c184
+  (after #151): the select is the shared RowSelectField (B's note: Inline-Field on the panel grid); figma.mjs panelFits
+  finds nothing on the ProgressBar panel before or after (inline, value not cut).
 
 ## Studio Text tool — F6a (Session C; user: "F6a trước, F6b sau", rich text API "Component mới TextRun") — tier M, branch `zen/feat/studio-f6-text-20261019`
 
