@@ -17,6 +17,24 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Text keeps line breaks written in its words (`{"First line\nSecond line"}`): they show as lines, and with
+  `wrap={false}` each line stays whole (Figma's Enter in a text).
+- Image fills (Figma's Image paint) on Shape and on frames (Box, Stack, Grid): `image`, `imageFit` (fill · fit · crop ·
+  tile), `imageCrop`, `imageScale`. In Zen Studio (F8a, pages you made) ⇧⌘K opens the file dialog and a click places the
+  picture as a Rectangle with the image fill (its own size, fitted to the frame; a drag sets the width, the ratio kept);
+  picture files dropped on a frame or pasted go in at once; Fill › Image picks, uploads, replaces or removes the picture
+  and sets how it fills. Studio → Figma gives the layer an Image paint, and pulling brings it back. Crop on the canvas
+  (F8b): with Image fit Crop the whole picture shows faint around the layer; drag it to move what shows, drag a corner
+  to scale it (Esc or Enter ends the crop).
+- `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
+  another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
+  (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer
+  named by all its words. Studio → Figma (plugin import and ⌘C → ⌘V) gives the words their styles, and pulling from
+  Figma writes a styled range back as a TextRun.
+- Zen Studio's Text tool as Figma's (F6a of the parity plan, pages you made): T and a click makes an Auto width text at
+  the click, T and a drag a text box of that width, and the typing goes into it at once; Enter is a new line, Esc leaves;
+  a new text left untouched, or any text layer emptied, is deleted; T on the words of a text puts the caret there.
+  Typography › Resizing has Figma's Auto width · Auto height · Fixed size.
 - Boolean groups, Flatten and Outline stroke (F9b of the same plan): Shape `type="boolean"` (`operation` union /
   subtract / intersect / exclude, its shapes as children, its result `d`); Zen Studio ⌥⇧U / ⌥⇧S / ⌥⇧I / ⌥⇧E make a
   live boolean group of the selected shapes (its result follows every edit of its shapes in the same ⌘Z), ⌘E flattens

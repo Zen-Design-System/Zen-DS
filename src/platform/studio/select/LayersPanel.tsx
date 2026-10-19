@@ -158,6 +158,8 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean, local =
         visit(current.child, group, inherited, frame, depth + 1);
         continue;
       }
+      // A TextRun is some words of its Text with a style of their own (Figma's mixed styles): part of the text layer.
+      if (typeof current.type === "function" && nameOf(current) === "TextRun") continue;
       const src = srcOf(current);
       if (src && src !== inherited) {
         const instance = counts.get(src) ?? 0;

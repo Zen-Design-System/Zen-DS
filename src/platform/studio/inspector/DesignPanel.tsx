@@ -45,6 +45,7 @@ import { PositionSection, positionProps } from "../position";
 import { useFocusContentToken } from "./focusContent";
 import { ValueCell } from "./PartPanel";
 import { BoundValue, PropField, TextControl, TypographyControl } from "./PropField";
+import { TextResize } from "../edit/TextResize";
 import {
   attributeSpec, componentSlug, dataEditable, isLayoutProp, isSkippedProp, kindLabel, layoutComponents, literalOf, nodeKind, propLabel, propSpecs, requiredProps, textComponents, textProps, valueOf,
   type Literal, type PropSpec, type PropValue,
@@ -222,6 +223,8 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
             component={name}
           />
         ))}
+        {/* Figma's Auto width · Auto height · Fixed size on a Text or Heading (F6, edit/TextResize.tsx). */}
+        {name === "Text" || name === "Heading" ? <InspectorRow label="Resizing" name="text-resizing"><TextResize element={element} /></InspectorRow> : null}
         {classRows}
       </InspectorSection>
     );
@@ -977,7 +980,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} layer={{ src: selection.src, name: element.name }} /> : null}
       {element && shapeSpecs.length ? <ShapeSections api={api} specs={shapeSpecs} host={sourceHost(selection)} /> : null}
       {textFirst ? null : textSection}
-      {element && isFrameLook(name) ? <FillSection api={api} specs={appearanceSpecs} /> : null}
+      {element && isFrameLook(name) ? <FillSection api={api} specs={appearanceSpecs} host={sourceHost(selection)} /> : null}
       {element && isFrameLook(name) ? <StrokeSection api={api} specs={appearanceSpecs} /> : null}
       {element && isFrameLook(name) ? <EffectsSection api={api} src={selection.src} /> : null}
       {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}

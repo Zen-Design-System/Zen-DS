@@ -8,6 +8,8 @@ export const Bad = () => <>
   <Button level="accent" onClick={save}>Save</Button>
   {/* expect: button/destructive-is-danger */}
   <Button level="primary" onClick={remove}>Delete project</Button>
+  {/* expect: text-run/inside-text */}
+  <TextRun bold>Nov 2</TextRun>
   {/* expect: icon-button/needs-name */}
   <IconButton onClick={act} level="tertiary" icon={<Icon name="icon-plus-line" />} />
   {/* expect: input/no-disabled */}

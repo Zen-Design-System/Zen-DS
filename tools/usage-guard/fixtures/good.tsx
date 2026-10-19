@@ -310,6 +310,7 @@ export const Good = () => <>
   <Stack opacity={40} rotation={15} flip="horizontal">Faded, turned and mirrored</Stack>
   <Shape type="ellipse" opacity={60} width={24} height={24} />
   <Text tone="support-blue-strongest">Your files sync across every device you sign in on.</Text>
+  <Text>Your plan renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base">2 seats</TextRun> are unpaid.</Text>
   <Text textStyle="Body/Small/Bold" tone="positive-light">Saved</Text>
   <Text textStyle="Body/Small/Regular" tone="negative-light">Enter an email address like name@company.com.</Text>
   <Icon name="icon-check-circle-line" tone="accent-light" />
