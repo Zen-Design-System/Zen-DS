@@ -137,6 +137,10 @@ removed (four unused colour ramps were, see Removed).
   instance only (`<Use overrides>`); Reset changes / Reset all changes; Push changes to main component; an instance's
   slot content (`<Use slots>`); Assets › Local components shows a set as one tile with its description. The React export
   passes bound overrides and slots as props; the Figma push carries overrides and slot content (Zen plugin).
+- Zen Studio's Figma pull brings an instance's overrides and slot content back: a layer's words, visibility and
+  colour, a nested instance switched to another variant or given other values, and what it puts in its main's slots
+  (`<Use overrides>`, `<Use slots>`). A page with its own components now imports `Component`, `ComponentSet` and
+  `Use` from `@zen-ds/react/builder` when the Studio prints it; before, a pulled page with them failed the dialect check.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

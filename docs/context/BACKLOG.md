@@ -36,8 +36,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
 - **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
-  changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*). Open:
-  - Figma pull of an instance's overrides and slot content.
+  changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*); Figma pull of overrides and
+  slot content since 2026-10-20. Open:
   - The push of an override deeper than the main's own layers (inside a nested instance).
   - Putting layers into an instance's slot from the canvas (drag-and-drop target; F7c, needs A's or C's drop code).
   Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
