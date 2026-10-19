@@ -2,6 +2,8 @@ import { useCallback, useLayoutEffect, useRef, type KeyboardEvent as ReactKeyboa
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { usePendingDraft } from "../inspector/drafts";
 import { commitTextEdit, endTextEdit, restoreText, takeTypedAhead, useTextEditSession, zoomOf, type TextTarget } from "./textEdit";
+import { toggleStyle, type ToggleKey } from "./richText";
+import { startRichTextEdit } from "./richTextEdit";
 
 /*
  * The in-place text editor (Figma's text edit mode). It sits over the rendered text with the same font, size, weight,
@@ -151,6 +153,27 @@ function Editor({ target, viewport }: { target: TextTarget; viewport: HTMLElemen
     // The canvas shortcuts (Delete, arrows, V/H/I…) stay out while typing; ⌘S and ⌘K listen in the capture phase.
     event.stopPropagation();
     if (event.nativeEvent.isComposing || event.keyCode === 229) return;
+    // ⌘B / ⌘I / ⌘U / ⇧⌘X on a text layer's own words: they get a style of their own (Figma's mixed styles, F6b), and
+    // the rich editor takes over with the words typed so far and the same selection.
+    const mod = event.metaKey || event.ctrlKey;
+    const format: ToggleKey | null = mod && !event.altKey ? (event.shiftKey ? (event.code === "KeyX" ? "strikethrough" : null) : ({ KeyB: "bold", KeyI: "italic", KeyU: "underline" } as Record<string, ToggleKey>)[event.code] ?? null) : null;
+    if (format) {
+      event.preventDefault();
+      const editor = editorRef.current;
+      const own = target.op.kind === "text" && (target.element.name === "Text" || target.element.name === "Heading") && target.element.children.every((child) => child.kind === "text");
+      const selection = window.getSelection();
+      if (!editor || !own || !selection?.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      const offset = (container: Node, at: number) => { const probe = document.createRange(); probe.selectNodeContents(editor); probe.setEnd(container, at); return probe.toString().length; };
+      const start = offset(range.startContainer, range.startOffset);
+      const end = offset(range.endContainer, range.endOffset);
+      const runs = toggleStyle([{ text: editor.textContent ?? "" }], start, end, format);
+      doneRef.current = true;
+      restoreText(target);
+      endTextEdit();
+      void startRichTextEdit(target.src, target.host, { runs, selection: { start, end } });
+      return;
+    }
     // A text layer keeps line breaks (Figma: Enter is a new line, Esc leaves); elsewhere ⇧Enter is one where the text
     // keeps them, Enter leaves.
     if (event.key === "Enter" && target.multiline) return;

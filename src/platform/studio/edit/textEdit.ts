@@ -9,6 +9,7 @@ import { canEdit, studioStore } from "../store";
 import { cellFieldOf, rowFieldsOf, tableCellOf } from "../table/tableCells";
 import { propSpecs } from "../inspector/propSchema";
 import { removeEmptyText, takeFreshText } from "./textCreate";
+import { isRichSource, startRichTextEdit } from "./richTextEdit";
 import type { AttrShape, DataSource, EditOp, ShapeField, SourceAttr, SourceElement, StudioSelection } from "../types";
 
 /*
@@ -399,6 +400,16 @@ export function tryStartTextEdit(x: number, y: number, ownerSrc: string): boolea
   if (!node) return false;
   const chain = annotatedChain(node, 6);
   const at = chain.findIndex((entry) => entry.src === ownerSrc);
+  // Words of a selected Text with styles of their own (TextRun, F6b): the rich editor, the caret where the double-click is.
+  const owner = at === 0 ? node.parentElement?.closest(".zen-text") : null;
+  if (owner instanceof HTMLElement && owner.querySelector(".zen-text-run")) {
+    const probe = document.createRange();
+    probe.selectNodeContents(owner);
+    probe.setEnd(node, offsetAt(node, x, y));
+    const offset = probe.toString().length;
+    void startRichTextEdit(ownerSrc, owner, { selection: { start: offset, end: offset } });
+    return true;
+  }
   // The text must belong to the element itself, not to a child layer of it (that one is selected first).
   if (at !== 0) return false;
   void open(node, chain, offsetAt(node, x, y), focusContent);
@@ -449,6 +460,14 @@ export function startTextEditOnSelection(): boolean {
   // The source, read when the layer was selected; until it arrives, the rendered tree decides (no annotated child layer,
   // only text) and the editor opens once the source confirms it.
   const element = elementCache.get(selection.src);
+  // Words with styles of their own (TextRun, F6b): the rich editor.
+  const world0 = document.querySelector(".studio-world");
+  const shown = world0 ? findBySrc(world0, selection.src)[selection.instance] ?? findBySrc(world0, selection.src)[0] : null;
+  const host0 = shown?.hosts[0];
+  if (host0 instanceof HTMLElement && /^(Text|Heading)$/.test(selection.name.slice(selection.name.lastIndexOf(".") + 1)) && host0.querySelector(":scope .zen-text-run") && (!element || isRichSource(element))) {
+    void startRichTextEdit(selection.src, host0);
+    return true;
+  }
   if (element && element.children.some((child) => child.kind !== "text")) return false;
   const texts = element ? element.children.filter((child) => child.kind === "text" && normalizeText(child.value)) : null;
   if (texts && !texts.length) return false;
