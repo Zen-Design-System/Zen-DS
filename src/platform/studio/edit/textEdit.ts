@@ -378,8 +378,9 @@ async function open(node: Text, chain: Array<{ src: string }>, caret: TextTarget
     original,
     // A row's data (a .map row, a Table cell) is one place, however many rows the source line draws.
     instances: found.op.kind === "data" && (found.op.row !== undefined || found.op.field) ? 1 : world ? Math.max(1, findBySrc(world, src).length) : 1,
-    // A Text layer's own words take line breaks (Text keeps them, F6); other texts where their box keeps them.
-    multiline: preservesBreaks(host) || (found.element.name === "Text" && found.op.kind === "text" && host.classList.contains("zen-text")),
+    // On a page you made a Text layer's own words take line breaks (Figma's Enter, F6: Text keeps them); elsewhere a
+    // text takes them where its box keeps them, and Enter leaves as before.
+    multiline: preservesBreaks(host) || (found.element.file.startsWith("local:") && found.element.name === "Text" && found.op.kind === "text" && host.classList.contains("zen-text")),
     fresh: takeFreshText(src),
     caret,
   };

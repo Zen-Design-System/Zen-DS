@@ -93,7 +93,9 @@ Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a ne
   held (`textEdit.holdKeysForText`) and replace the new words when the editor opens (a ref keeps them across React's dev
   double effect, which lost the first key). T on the words of a Text / Heading edits them at the caret (`editTextAt`).
   Example pages keep the placement tool.
-- **Editor:** in a Text layer Enter is a new line (Esc / Tab / a click outside leave); elsewhere Enter leaves as before.
+- **Editor:** in a Text layer of a page you made Enter is a new line (Esc / Tab / a click outside leave); elsewhere
+  (example pages, other texts) Enter leaves as before. The first gate found K-08 / DA-01 (example pages: Enter commits)
+  broken by a newline everywhere; the newline is now for pages you made only.
   A text the Text tool made and left untouched, or any Text / Heading emptied, is deleted with its float Box
   (`removeEmptyText`). Found while testing: after an edit, Enter did not edit the same text again (the selection's source
   cache kept the old words); it now reads again on each source update.
