@@ -214,8 +214,11 @@ export async function copyAsSvg(selection: StudioSelection | null): Promise<bool
   if (!target) { fail("Select a layer or a frame to copy as SVG"); return false; }
   const result = await layerPicture(target.host, { format: "svg", scale: 1 });
   if ("error" in result) { fail(`Couldn't copy ${target.name} as SVG. ${result.error}`); return false; }
+  // A layer without text needs none of the fonts the drawing embeds (a Rectangle's SVG was 1.7 MB with them).
+  const markup = await result.blob.text();
+  const text = target.host.textContent?.trim() ? markup : markup.replace(/@font-face\s*\{[^}]*\}/g, "");
   try {
-    await navigator.clipboard.writeText(await result.blob.text());
+    await navigator.clipboard.writeText(text);
   } catch {
     fail("The browser did not let the Studio write to the clipboard");
     return false;
