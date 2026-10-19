@@ -1,3 +1,4 @@
+import { selectFrames } from "../select/frameSelection";
 import { useEffect } from "react";
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { canvasApi, zoomIn, zoomOut } from "../canvas/viewport";
@@ -6,19 +7,23 @@ import { layerOfHit, multiSelection, selectLayers } from "../select/multiSelecti
 import { childHits, findBySrc, isTypingTarget, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
 import { canEdit, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
+import { alignLayers, distributeLayers, tidyUpLayers } from "./alignLayers";
 import { stepLayer } from "./arrange";
 import { textEditSession } from "./textEdit";
 
 /*
  * Figma's canvas keys the Studio did not have (research docs/research/studio-figma-native-parity-2026-10-17.md P3; the
  * browser's own meaning of ⌘[ ⌘] and ⌘A no longer gets through on the canvas):
- *   ⌘A            select all layers of the selected layer's parent (Figma: Select all)
+ *   ⌘A            select all layers of the selected layer's parent (Figma: Select all); with no layer selected, every
+ *                 top-level frame (select/frameSelection.ts)
  *   ⌘] / ⌘[       bring forward / send backward one place (Zen: later layers paint on top, as Figma's)
  *   ⌥⌘] / ⌥⌘[     bring to front / send to back
  *   \             select the parent (as ⇧Enter)
  *   + / −         zoom in / out (no ⌘)
  *   1 … 9, 0      a shape's opacity 10 … 90 %, 100 % (two digits typed quickly: 55 %)
- *   ⌥A ⌥D ⌥W ⌥S   align a floating layer to its frame's left / right / top / bottom edge, ⌥H ⌥V its centre
+ *   ⌥A ⌥D ⌥W ⌥S   align a floating layer to its frame's left / right / top / bottom edge, ⌥H ⌥V its centre;
+ *                 several layers to the box around them all (edit/alignLayers.ts)
+ *   ⌃⌥H ⌃⌥V ⌃⌥T   distribute horizontal / vertical spacing, tidy up (several floating layers)
  * Every change is one edit, one ⌘Z.
  */
 
@@ -45,6 +50,17 @@ function selectAll(selection: NodeSelection) {
   const [first, ...others] = layers;
   if (!first) return;
   selectLayers(first, others);
+}
+
+/** ⌘A with no layer selected: the board's top-level frames (and sections), in board order. */
+function selectAllFrames() {
+  const ids = [...(canvasApi.getWorldElement()?.querySelectorAll("[data-studio-frame]") ?? [])]
+    .filter((frame) => !frame.parentElement?.closest("[data-studio-frame]"))
+    .map((frame) => frame.getAttribute("data-studio-frame"))
+    .filter((id): id is string => Boolean(id));
+  if (!ids.length) return;
+  multiSelection.clear();
+  selectFrames(ids[0], ids.slice(1));
 }
 
 /** ⌥⌘] / ⌥⌘[ (Bring to front / Send to back): the layer to the end (front) or the start (back) of its parent's layers. */
@@ -109,6 +125,7 @@ async function align(selection: NodeSelection, edge: "left" | "right" | "top" | 
 }
 
 const ALIGN_KEYS: Record<string, "left" | "right" | "top" | "bottom" | "hcenter" | "vcenter"> = { KeyA: "left", KeyD: "right", KeyW: "top", KeyS: "bottom", KeyH: "hcenter", KeyV: "vcenter" };
+const ARRANGE_KEYS: Record<string, "x" | "y" | "tidy"> = { KeyH: "x", KeyV: "y", KeyT: "tidy" };
 
 export function useFigmaKeys() {
   useEffect(() => {
@@ -128,6 +145,12 @@ export function useFigmaKeys() {
         if (event.key === "+" || event.key === "=") zoomIn(); else zoomOut();
         return;
       }
+      // ⌘A with no layer selected (nothing, or frames): every top-level frame and section (Figma's Select all).
+      if (mod && !event.altKey && !event.shiftKey && event.code === "KeyA" && state.tool === "select" && (!state.selection || state.selection.kind === "frame")) {
+        event.preventDefault();
+        selectAllFrames();
+        return;
+      }
       const selection = state.selection;
       if (selection?.kind !== "node" || selection.part || state.tool !== "select") return;
       // \: the parent (as ⇧Enter).
@@ -141,8 +164,15 @@ export function useFigmaKeys() {
         return;
       }
       if (mod && !event.altKey && !event.shiftKey && event.code === "KeyA") { event.preventDefault(); selectAll(selection); return; }
+      // ⌃⌥H / ⌃⌥V distribute, ⌃⌥T tidy up (Figma's; several layers: edit/alignLayers.ts).
+      const arrange = event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey ? ARRANGE_KEYS[event.code] : undefined;
       if (!canEdit(state) || running) {
-        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code])) event.preventDefault();
+        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange) event.preventDefault();
+        return;
+      }
+      if (arrange) {
+        event.preventDefault();
+        run(arrange === "tidy" ? tidyUpLayers() : distributeLayers(arrange));
         return;
       }
       if (mod && !event.shiftKey && (event.code === "BracketRight" || event.code === "BracketLeft")) {
@@ -153,7 +183,8 @@ export function useFigmaKeys() {
       }
       if (event.altKey && !mod && !event.shiftKey && ALIGN_KEYS[event.code]) {
         event.preventDefault();
-        run(align(selection, ALIGN_KEYS[event.code]));
+        // One layer aligns to its frame; several to the box around them all (Figma's).
+        run(multiSelection.get().length ? alignLayers(ALIGN_KEYS[event.code]) : align(selection, ALIGN_KEYS[event.code]));
         return;
       }
       if (!mod && !event.altKey && !event.shiftKey && /^Digit[0-9]$/.test(event.code) && selection.name === "Shape") {

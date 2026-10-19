@@ -2,6 +2,7 @@ import { tip } from "../shell/ShortcutTip";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, startTransition } from "react";
 import { layerIcon, objectIcon } from "./layerNames";
 import { COLLAPSE_LAYERS_EVENT, displayName, isLockedFrame, isOwnLock, useLayerMeta } from "./layerMeta";
+import { toggleFrame, useFrameSelection } from "./frameSelection";
 import { useIconTooltip } from "../../../components/Tooltip";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
@@ -769,7 +770,8 @@ export function LayersPanel() {
   const collection = useStudio((state) => state.collection);
   const selection = useStudio((state) => state.selection);
   const extras = useExtraSelection();
-  const extraIds = useMemo(() => new Set(extras.map((layer) => `${layer.src}#${layer.instance}`)), [extras]);
+  const extraFrames = useFrameSelection();
+  const extraIds = useMemo(() => new Set([...extras.map((layer) => `${layer.src}#${layer.instance}`), ...extraFrames.map((frameId) => `frame:${frameId}`)]), [extras, extraFrames]);
   const itemSet = useItemSelection();
   const [tree, setTree] = useState<Tree>(emptyTree);
   const [ready, setReady] = useState(false);
@@ -1002,6 +1004,8 @@ export function LayersPanel() {
   /** Click / Enter / Space on a row: select it; the "Parts" folder opens or closes instead. */
   const activate = (node: LayerNode, event?: MouseEvent) => {
     const target = node.stand ?? node;
+    // ⇧ / ⌘-click a frame's row: it joins the frames selected, or leaves them (select/frameSelection.ts).
+    if (event && (event.shiftKey || event.metaKey || event.ctrlKey) && node.kind === "frame") { toggleFrame(node.frameId); return; }
     const layer = layerOf(node);
     // Items of one data slot (Sidebar Menu-Items): with an item of that slot selected, ⌘/Ctrl+click adds one, Shift+click
     // the range from it (user, 2026-10-10: "Chưa chọn được nhiều item add stack được").

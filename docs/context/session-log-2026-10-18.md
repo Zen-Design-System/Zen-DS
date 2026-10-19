@@ -395,3 +395,28 @@ Spec card (plan §5 F1, decision 4; Figma help checked: Lock and unlock layers, 
 - **Bug found and fixed (shell.css):** the canvas menu's list was capped at 100vh − 16px, so a menu as tall as the window
   (24 items after F0 / F1) had a surface taller than the room and flipped above the window (HO-12, y −974): the cap is
   100vh − 64px now and the list scrolls.
+
+## Studio several layers — F2a (plan split, user 2026-10-19: "ok") — Session A, worktree `../Zen-DS-f2`, branch `zen/feat/studio-f2-transform-20261019`
+
+The plan now runs in three sessions (A: F2 → F3 → F9; B: F5 → F7; C: F4 → F6 → F8 → F10; memory "figma-parity-three-sessions").
+F2 splits in two: F2a (several layers) here, F2b (rotate / flip on Session B's `rotation` / `flip` props, resize ⌥ / ⇧,
+equal-spacing guides, several frames: ⌘A, marquee) next. W / H arithmetic and the ratio lock went to F5 (Session B).
+- `edit/arrangeModel.ts` (pure, selftest 11): align to the selection's box, distribute (3+, ends stay), tidy up (row,
+  column or grid by y-overlap rows, median gaps). `edit/alignLayers.ts`: floating items (own float or the float Box
+  around a layer; locked or in-auto-layout refused with a reason), moves as one `op many setProps` (align / distribute /
+  tidy write X / Y; nudge and drag keep each pinned edge).
+- Keys: ⌥A… with several layers (figmaKeys), ⌃⌥H / ⌃⌥V / ⌃⌥T (off figmaNotYet), arrows nudge several floating layers
+  (arrange.ts). Drag: `armGroup` / `followGroup` in drag.ts (snapBox against the shared free frame, ⇧ axis, ⌘ no snap).
+- UI: union outline (SelectionLayer `data-kind="union"`); `edit/AlignSelection.tsx` in the multi-selection panel (2 lines
+  in inspector/SelectionActions.tsx, agreed with Session B).
+- E2E `--only=figma` FW-20…26: 7 / 7 on the first run.
+- F2b part 1: `select/ResizeLayer.tsx` ⌥ from the centre (free-frame floats; the release passed no ⌥ before), ⇧ on an
+  edge keeps the ratio (replaces the 8 px edge snap: no test read it), a Shape resizes as a float (its left / top edge
+  moved only the size before — a gap found while testing). `edit/spacingModel.ts` (pure, selftest 6): equal spacing to
+  the neighbours' gap or the middle; drag.ts `snapAndSpace` keeps the nearer of the edge snap (red) and the spacing snap
+  (pink marks with px, DragLayer). FW-27…29 pass; the `draw` group 15 / 15.
+- F2c (split agreed with Session C: C moves several frames in frameMove.ts and adds `removeFrames` + Sections; A owns the
+  selection): `select/frameSelection.ts` (primary = the store's frame selection, extras here, cleared by any other
+  selection), marquee from the empty canvas selects frames (`startMarquee(…, "board")`), ⌘A with no layer selected
+  selects every top-level frame, ⇧-click on a frame name / row toggles, StudioFrame / FrameChrome labels / Layers rows
+  show the extras selected. Delete still removes the primary frame until C's `removeFrames` lands. FW-30…32 pass.

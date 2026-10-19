@@ -29,9 +29,6 @@ export const FIGMA_NOT_YET: readonly NotYet[] = [
   // Ctrl+Y redoes elsewhere: Outline view is the Mac's ⌘Y only.
   { code: "KeyY", keys: { mod: true }, name: "Outline view", macOnly: true },
   { code: "KeyC", keys: { mod: true, shift: true }, name: "Copy as PNG" },
-  { code: "KeyT", keys: { ctrl: true, alt: true }, name: "Tidy up" },
-  { code: "KeyH", keys: { ctrl: true, alt: true }, name: "Distribute horizontal spacing" },
-  { code: "KeyV", keys: { ctrl: true, alt: true }, name: "Distribute vertical spacing" },
   { code: "KeyG", keys: { ctrl: true }, name: "Layout guides", macOnly: true },
   { code: "KeyR", keys: { shift: true }, name: "Rulers" },
   { code: "KeyS", keys: { shift: true }, name: "Section" },
