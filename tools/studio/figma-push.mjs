@@ -521,6 +521,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       ...(kind === "star" ? { innerRadius: (typeof code.starRatio === "number" ? code.starRatio : STAR_RATIO) / 100 } : {}),
       ...(radius && radius[1] ? { radius: radius[1], radiusVar: radius[0] } : {}),
       ...(typeof code.rotation === "number" && code.rotation % 360 ? { rotation: code.rotation } : {}),
+      ...(["horizontal", "vertical", "both"].includes(code.flip) ? { flip: code.flip } : {}),
       ...(typeof code.opacity === "number" && code.opacity < 100 ? { opacity: Math.max(0, code.opacity) / 100 } : {}),
       ...(code.width === "fill" ? { fillW: true } : { fixedWidth: width }),
       ...(code.height === "fill" && !line ? { fillH: true } : { fixedHeight: height }),

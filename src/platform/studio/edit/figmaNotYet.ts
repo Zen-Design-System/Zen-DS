@@ -31,8 +31,6 @@ export const FIGMA_NOT_YET: readonly NotYet[] = [
   { code: "KeyG", keys: { ctrl: true }, name: "Layout guides", macOnly: true },
   { code: "KeyR", keys: { shift: true }, name: "Rulers" },
   { code: "KeyP", keys: { shift: true }, name: "Pencil" },
-  { code: "KeyH", keys: { shift: true }, name: "Flip horizontal" },
-  { code: "KeyV", keys: { shift: true }, name: "Flip vertical" },
   { code: "KeyK", keys: {}, name: "Scale" },
   { code: "KeyS", keys: {}, name: "Slice" },
   { code: "KeyP", keys: {}, name: "Pen" },

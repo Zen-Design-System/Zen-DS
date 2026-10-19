@@ -9,6 +9,7 @@ import { canEdit, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
 import { alignLayers, distributeLayers, tidyUpLayers } from "./alignLayers";
 import { stepLayer } from "./arrange";
+import { flipLayers } from "./flipLayers";
 import { ungroupSelection } from "./groupLayers";
 import { textEditSession } from "./textEdit";
 
@@ -168,8 +169,15 @@ export function useFigmaKeys() {
       // ⌃⌥H / ⌃⌥V distribute, ⌃⌥T tidy up (Figma's; several layers: edit/alignLayers.ts).
       const arrange = event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey ? ARRANGE_KEYS[event.code] : undefined;
       const ungroup = mod && event.shiftKey && !event.altKey && event.code === "KeyG";
+      // ⇧H / ⇧V: Figma's Flip horizontal / vertical (edit/flipLayers.ts).
+      const flip = event.shiftKey && !mod && !event.altKey && (event.code === "KeyH" || event.code === "KeyV") ? (event.code === "KeyH" ? "horizontal" : "vertical") : null;
       if (!canEdit(state) || running) {
-        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange || ungroup) event.preventDefault();
+        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange || ungroup || flip) event.preventDefault();
+        return;
+      }
+      if (flip) {
+        event.preventDefault();
+        run(flipLayers(flip));
         return;
       }
       // ⇧⌘G: Ungroup / Remove frame — the layers take its place and keep theirs (edit/groupLayers.ts).

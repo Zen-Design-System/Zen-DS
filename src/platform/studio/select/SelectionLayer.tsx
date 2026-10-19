@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { ArcHandles } from "./ArcHandles";
+import { RotateHandles } from "./RotateHandles";
 import { layerIcon, layerName } from "./layerNames";
 import { displayName } from "./layerMeta";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -1070,6 +1071,13 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       />
       {/* Figma's arc handles on a selected ellipse (Sweep, Start, Ratio), above the resize handles. */}
       <ArcHandles
+        box={overlay.selected}
+        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
+        interactive={tool === "select" && !presenting}
+        viewport={viewport}
+      />
+      {/* Figma's rotate handles, just outside the corners of a selected frame or shape (⇧ 15° steps). */}
+      <RotateHandles
         box={overlay.selected}
         hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
         interactive={tool === "select" && !presenting}

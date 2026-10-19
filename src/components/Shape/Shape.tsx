@@ -1,4 +1,5 @@
 import { useId, useRef, useState, type CSSProperties, type HTMLAttributes, type Ref } from "react";
+import { frameFlips, type FrameFlip } from "../Layout/appearance";
 import { layoutPosition, type LayoutPositionProps } from "../Layout/position";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
 import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
@@ -51,6 +52,8 @@ export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "childr
   starRatio?: number;
   /** Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the shape about its centre. */
   rotation?: number;
+  /** Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre. */
+  flip?: FrameFlip;
   /** Layer opacity in percent (Figma's layer opacity, 0 … 100). Default 100. */
   opacity?: number;
   /** Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech. */
@@ -108,6 +111,7 @@ export function Shape({
   pointCount,
   starRatio,
   rotation,
+  flip,
   opacity,
   label,
   width,
@@ -150,7 +154,9 @@ export function Shape({
     "--zen-shape-radius": kind === "rectangle" ? cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft }) : undefined,
     "--zen-shape-default-width": finite(width) ? undefined : `${SHAPE_DEFAULT_SIZE}px`,
     opacity: finite(opacity) ? Math.min(100, Math.max(0, opacity)) / 100 : undefined,
-    transform: finite(rotation) && rotation % 360 !== 0 ? `rotate(${-rotation}deg)` : undefined,
+    // CSS's individual transforms (as Box, Stack and Grid turn and flip): CSS turns clockwise, Figma counter-clockwise.
+    rotate: finite(rotation) && rotation % 360 !== 0 ? `${-rotation}deg` : undefined,
+    scale: flip === "horizontal" ? "-1 1" : flip === "vertical" ? "1 -1" : flip === "both" ? "-1 -1" : undefined,
   };
   const shown = Object.fromEntries(Object.entries(vars).filter(([, value]) => value !== undefined)) as CSSProperties;
   const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true as const };
@@ -215,6 +221,7 @@ export function Shape({
       ref={merged}
       className={["zen-shape", className].filter(Boolean).join(" ")}
       data-type={kind}
+      data-flip={flip && (frameFlips as readonly string[]).includes(flip) ? flip : undefined}
       data-stroke-align={strokeColor && weight ? align : undefined}
       {...sizing.attributes}
       {...placed.attributes}
