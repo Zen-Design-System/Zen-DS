@@ -19,14 +19,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
   rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4); `tools/studio/figma-native.mjs` /
   `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with the user.
-- **P2 · Layout guide column count by device — designer (2026-10-19, Studio F10, Session C):** Breakpoint & Grids has
-  Margin-Comfortable and Gutter but no column count; a new layout guide starts with 12 (desktop) · 8 (tablet) · 4
-  (phone) columns (`DEFAULT_GUIDE_COLUMNS`, builder/store/pageModel.ts). Should Zen add a Columns variable per mode
-  (then the guide reads it), or are these the counts? Also: a Figma push of layout guides waits on that answer.
-  `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with the user. Same path, pictures
-  (Session C, F8b, 2026-10-19): image fills (Shape / frame `image`) and pictured instances are noted, not pasted — the
-  bytes must ride in the kiwi message (blobs + image hashes), verified against a Figma capture of a pasted image;
-  Import from Studio carries them today (plugin 0d55f95).
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
@@ -200,10 +192,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   in a Card. Align the old ones the same way? (a component property cannot reach slot content of a nested Card).
 - **P2 · Direct paste (⌘V on the canvas) outside the Zen file (2026-10-17):** it binds by node id, so only the Zen file
   takes it; other files need the published library and full component definitions in the paste (instances by
-  `componentKey`, as Figma's own copies carry). Also open: pictures in a direct paste, and the frame menu's Copy for Figma
-  (async write: Chromium rewrites the html, only the plugin reads it). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6.
+  `componentKey`, as Figma's own copies carry). Also open: the frame menu's Copy for Figma (async write: Chromium rewrites
+  the html, only the plugin reads it). Pictures go since 2026-10-19 (F8c). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6, §7c.
 - **P2 · Direct paste of Studio Shapes and page-local components (user approved 2026-10-17):** Writer.build() branches in
-  tools/studio/figma-native.mjs for RECTANGLE/ELLIPSE arc/LINE arrow/POLYGON/STAR and Component → COMPONENT, Use →
+  tools/studio/figma-native.mjs for LINE arrow/POLYGON/STAR/path/boolean (RECTANGLE and ELLIPSE with its arc went in
+  with F8c pictures, 2026-10-19; the others are named in a note) and Component → COMPONENT, Use →
   INSTANCE, after zen/feat/studio-components-20261017 merges (spec: figma-push.mjs shapeNode; reference: plugin
   studio-import.js 3ba73f9, ed9bec6).
 - **P2 · Figma library gaps the 438-page Studio → Figma test found (2026-10-18, questions for the designer):** (a)

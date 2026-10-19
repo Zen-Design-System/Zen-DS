@@ -36,6 +36,10 @@ removed (four unused colour ramps were, see Removed).
   and sets how it fills. Studio → Figma gives the layer an Image paint, and pulling brings it back. Crop on the canvas
   (F8b): with Image fit Crop the whole picture shows faint around the layer; drag it to move what shows, drag a corner
   to scale it (Esc or Enter ends the crop).
+- Studio → Figma direct paste (⌘C on a frame, ⌘V on the Zen file's canvas, no plugin) brings pictures too (F8c): a
+  Shape's or frame's image fill lands as Figma's Image paint (Fill, Fit, Crop, Tile), PNG, JPEG and GIF as they are, a
+  WebP as PNG; an Avatar's photo and a table's Avatar or Photo cell show their picture. A Shape rectangle or ellipse now
+  lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
   another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
   (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer
