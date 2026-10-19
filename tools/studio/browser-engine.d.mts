@@ -67,5 +67,7 @@ export function componentSets(tree: unknown): Array<{ id: string | null; name: s
 export function resolveInstance(tree: unknown, use: unknown): { main: { id: string | null; name: string | null }; set: { id: string | null; name: string | null } | null; variant: Record<string, string>; values: Record<string, unknown> } | null;
 /** A variant's name as Figma writes it ("Size=Small, State=Default"). */
 export function variantName(values: Record<string, string> | null | undefined): string;
+/** A main's layers by their path inside an instance of it (dialect.mjs mainLayerPaths, instance-paths.mjs): node → "Text", "Row/Text[1]". */
+export function mainLayerPaths(main: { root: unknown } | null | undefined, model: { mains: unknown[]; sets: unknown[] }): Map<{ loc: string; name: string; props: Record<string, unknown> }, string>;
 /** Every element node of a parsed page's subtree (dialect.mjs eachElement). */
 export function eachElement(node: unknown, visit: (node: { name: string; loc: string; props: Record<string, { kind: string; value?: unknown }> }, parents: unknown[]) => void): void;

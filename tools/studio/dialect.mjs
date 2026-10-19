@@ -17,6 +17,7 @@
 //       Child = Node | { kind: "text", value } | { kind: "ref", root, path } | { kind: "map", source, item, node }
 import { jsxName, parseSource } from "./jsx-source.mjs";
 import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenFrameCode, screenLayout } from "./screen-chrome.mjs";
+import { instanceLayerPaths } from "./instance-paths.mjs";
 
 export { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout };
 
@@ -702,7 +703,41 @@ function checkComponents(board, errors) {
       else if (property.type === "boolean" && typeof value !== "boolean") at(node, `${key} is on or off: true or false`);
       else if ((property.type === "text" || property.type === "swap") && typeof value !== "string") at(node, `${key} takes text`);
     }
+    // Its overrides (F7b): each names a layer of its main by its path, or a layer inside one (a nested component's own,
+    // a nested instance's), with literal values.
+    const overrides = node.props.overrides;
+    if (overrides !== undefined) {
+      if (overrides.kind !== "object") at(node, "overrides is an object: overrides={{ Text: { children: \"Done\" } }}");
+      else {
+        // A path below a layer is only one of a layer the main does not list itself: a component's own (a Badge's dot) or
+        // a nested instance's (its main's layers).
+        const layers = [...mainLayerPaths(resolved.main, model)].map(([layer, path]) => ({ path, leaf: !layer.children.some((child) => child.kind === "element") }));
+        const owner = set?.name ?? resolved.main.name;
+        for (const [path, layer] of Object.entries(overrides.fields)) {
+          if (!layers.some((known) => path === known.path || (known.leaf && path.startsWith(`${known.path}/`)))) at(node, `<Use> overrides no layer ${path} of ${owner}`);
+          if (layer.kind !== "object" || Object.values(layer.fields).some((value) => value.kind !== "literal")) at(node, `overrides of ${path} take literal values`);
+        }
+      }
+    }
   });
+}
+
+/** The name a nested instance's layer takes inside an outer instance: its set's name, else its main's. */
+function useNameOf(use, model) {
+  const of = literalProp(use, "of");
+  const set = model.sets.find((entry) => entry.id === of);
+  if (set) return set.name;
+  const main = model.mains.find((entry) => entry.id === of);
+  if (!main) return null;
+  return (main.set ? model.sets.find((entry) => entry.id === main.set)?.name : null) ?? main.name;
+}
+
+/**
+ * The layers of a main by their paths inside an instance of it (F7b; instance-paths.mjs): node → path. `model`:
+ * `{ mains, sets }` of the page (localComponents, componentSets).
+ */
+export function mainLayerPaths(main, model) {
+  return instanceLayerPaths(main?.root ?? null, (use) => useNameOf(use, model));
 }
 
 /** The dialect errors of a page text (empty: the text is a valid page). */
