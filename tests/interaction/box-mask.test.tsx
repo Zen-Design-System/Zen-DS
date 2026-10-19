@@ -48,6 +48,34 @@ describe("Box mask", () => {
     expect(clip.getAttribute("d")).toMatch(/^M \d+(\.\d+)? 0 L .* A /);
   });
 
+  it("measures from the mask box itself: in-flow layers in a padded box, a bordered free frame inside an offset parent", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <div style={{ position: "relative", padding: 30 }}>
+          <Box mask padding="md" width={200} data-testid="flow">
+            <Box surface="subtle" width={50} height={50} radius="md" />
+            <Box surface="pale" width={120} height={40} />
+          </Box>
+          <Box mask border="subtle" width={120} height={80} data-testid="framed">
+            <Shape type="ellipse" position="absolute" insetLeft={20} insetTop={10} width={60} height={40} />
+            <Box surface="subtle" position="absolute" insetLeft={0} insetTop={0} width={120} height={80} />
+          </Box>
+        </div>
+      </ZenProvider>,
+    );
+    await frame();
+    const flow = screen.getByTestId("flow").element() as HTMLElement;
+    const padding = parseFloat(getComputedStyle(flow).paddingLeft);
+    expect(getComputedStyle(flow).position).toBe("relative");
+    // The first layer sits at the box's padding, not at the wrapper's 30px.
+    expect(flow.querySelector("clipPath path")!.getAttribute("transform")).toBe(`translate(${padding} ${padding})`);
+    const framed = screen.getByTestId("framed").element() as HTMLElement;
+    const border = parseFloat(getComputedStyle(framed).borderLeftWidth);
+    expect(border).toBeGreaterThan(0);
+    // userSpaceOnUse starts at the border edge, the insets inside the border.
+    expect(framed.querySelector("clipPath path")!.getAttribute("transform")).toBe(`translate(${20 + border} ${10 + border})`);
+  });
+
   it("draws no clip without mask", async () => {
     const screen = await render(
       <ZenProvider>

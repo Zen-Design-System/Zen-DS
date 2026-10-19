@@ -27,8 +27,12 @@ function roundedRect(w: number, h: number, [tl, tr, br, bl]: number[]): string {
   ].filter(Boolean).join(" ");
 }
 
-/** The mask layer's outline in the box's own px: its path, placed at its X / Y, turned and flipped about its centre. */
-export function maskOutlineOf(layer: HTMLElement): MaskOutline | null {
+/**
+ * The mask layer's outline in the box's own px: its path, placed at its X / Y, turned and flipped about its centre.
+ * The box is the layer's offsetParent (layout.css makes a mask box relative); the clip starts at the box's border edge,
+ * its offsets inside the border, so the border's width is added.
+ */
+export function maskOutlineOf(layer: HTMLElement, box: HTMLElement): MaskOutline | null {
   const w = layer.offsetWidth;
   const h = layer.offsetHeight;
   if (!w && !h) return null;
@@ -42,7 +46,7 @@ export function maskOutlineOf(layer: HTMLElement): MaskOutline | null {
   const [sx = 1, sy = sx] = style.scale && style.scale !== "none" ? style.scale.split(/\s+/).map(Number) : [];
   const cx = round(w / 2);
   const cy = round(h / 2);
-  const steps = [`translate(${layer.offsetLeft} ${layer.offsetTop})`];
+  const steps = [`translate(${round(layer.offsetLeft + box.clientLeft)} ${round(layer.offsetTop + box.clientTop)})`];
   if (turn || sx !== 1 || sy !== 1) steps.push(`translate(${cx} ${cy})`, turn ? `rotate(${turn})` : "", sx !== 1 || sy !== 1 ? `scale(${sx} ${sy})` : "", `translate(${-cx} ${-cy})`);
   return { d, rule, transform: steps.filter(Boolean).join(" ") };
 }
@@ -54,20 +58,27 @@ export function maskOutlineOf(layer: HTMLElement): MaskOutline | null {
 export function useBoxMask(enabled: boolean): { ref: (node: HTMLElement | null) => void; vars: Record<`--${string}`, string | undefined>; defs: ReactNode } {
   const id = `zen-mask-${useId().replace(/[^\w-]/g, "")}`;
   const box = useRef<HTMLElement | null>(null);
+  // The layer the ResizeObserver watches: the first one, which a reorder (Bring to front, Send to back) can change.
+  const watched = useRef<{ layer: Element; observer: ResizeObserver } | null>(null);
   const [outline, setOutline] = useState<MaskOutline | null>(null);
   const measure = useCallback(() => {
     const layer = box.current?.firstElementChild;
-    const next = enabled && layer instanceof HTMLElement ? maskOutlineOf(layer) : null;
+    const next = enabled && box.current && layer instanceof HTMLElement ? maskOutlineOf(layer, box.current) : null;
     setOutline((current) => (current?.d === next?.d && current?.transform === next?.transform && current?.rule === next?.rule ? current : next));
   }, [enabled]);
-  useIsomorphicLayoutEffect(measure);
   useIsomorphicLayoutEffect(() => {
-    const layer = box.current?.firstElementChild;
-    if (!enabled || !(layer instanceof HTMLElement) || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(layer);
-    return () => observer.disconnect();
-  }, [enabled, measure]);
+    measure();
+    const layer = enabled ? box.current?.firstElementChild ?? null : null;
+    if (watched.current?.layer === layer) return;
+    watched.current?.observer.disconnect();
+    watched.current = null;
+    if (layer instanceof HTMLElement && typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(measure);
+      observer.observe(layer);
+      watched.current = { layer, observer };
+    }
+  });
+  useIsomorphicLayoutEffect(() => () => { watched.current?.observer.disconnect(); watched.current = null; }, []);
   const ref = useCallback((node: HTMLElement | null) => { box.current = node; }, []);
   if (!enabled) return { ref, vars: {}, defs: null };
   return {
