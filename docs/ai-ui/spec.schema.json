@@ -6458,6 +6458,17 @@
                 ],
                 "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside)."
               },
+              "group": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them (Zen Studio writes its box)."
+              },
               "as": {
                 "anyOf": [
                   {
@@ -28139,7 +28150,9 @@
                       "line",
                       "arrow",
                       "polygon",
-                      "star"
+                      "star",
+                      "vector",
+                      "boolean"
                     ]
                   },
                   {
@@ -28147,6 +28160,88 @@
                   }
                 ],
                 "description": "The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc), `line` (LINE: `width` is its length, `rotation` its angle, no h"
+              },
+              "operation": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "union",
+                      "subtract",
+                      "intersect",
+                      "exclude"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A boolean group's operation (`type=\"boolean\"`): `union` (default), `subtract`, `intersect` or `exclude`, as Figma's."
+              },
+              "children": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A boolean group's shapes (`type=\"boolean\"`): placed at their X / Y inside it, not drawn themselves; their combined outline is."
+              },
+              "d": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A vector's path (`type=\"vector\"`): SVG path data in absolute M / L / C / Q / Z commands only (what Figma's vectorPaths take), in the coordinates of `viewBox`."
+              },
+              "viewBox": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The box a vector's `d` is written in (\"minX minY width height\"); the path stretches from it to the shape's size, as Figma scales a vector."
+              },
+              "fillRule": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "nonzero",
+                      "evenodd"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How a vector's overlapping sub-paths fill (Figma's winding rule): `nonzero` (default) or `evenodd` (holes)."
               },
               "fill": {
                 "anyOf": [
@@ -28378,7 +28473,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Stroke: a Color/Border token by its path (\"neutral-solid\", \"accent-subtle\", \"support-teal-solid\"; `shapeStrokes`), or \"none\" (default; a line or arrow takes Border/Neutral/Solid)."
+                "description": "Stroke: a Color/Border token by its path (\"neutral-solid\", \"accent-subtle\", \"support-teal-solid\"; `shapeStrokes`), or \"none\" (default; a line, arrow or vector takes Border/Neutral/"
               },
               "strokeWeight": {
                 "anyOf": [
@@ -28404,7 +28499,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's) or `outside`."
+                "description": "Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's and a vector's) or `outside`."
               },
               "radius": {
                 "anyOf": [
@@ -28501,6 +28596,21 @@
                   }
                 ],
                 "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
+              },
+              "flip": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "horizontal",
+                      "vertical",
+                      "both"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre."
               },
               "opacity": {
                 "anyOf": [

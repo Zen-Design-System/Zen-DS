@@ -1,0 +1,25 @@
+/* Figma's rotate handles (RotateHandles.tsx), in the selection layer's px: an invisible zone just outside each corner
+   of the selected layer that shows the rotate cursor; the angle pill follows the pointer while it turns. */
+.studio-rotate__zone {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  pointer-events: auto;
+  touch-action: none;
+  /* zen-allow-raw-colour: the cursor is drawn by the system (a data URI cannot read tokens); Figma's black curved arrow. */
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M5 13a7 7 0 0 1 9-8.5' fill='none' stroke='white' stroke-width='4'/><path d='M5 13a7 7 0 0 1 9-8.5' fill='none' stroke='black' stroke-width='1.5'/><path d='M12 2l4 2.5-3.5 3z' fill='black' stroke='white'/></svg>") 10 10, crosshair;
+}
+.studio-rotate__pill {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-default);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+}
