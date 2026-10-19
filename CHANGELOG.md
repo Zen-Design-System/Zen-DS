@@ -40,6 +40,8 @@ removed (four unused colour ramps were, see Removed).
   Shape's or frame's image fill lands as Figma's Image paint (Fill, Fit, Crop, Tile), PNG, JPEG and GIF as they are, a
   WebP as PNG; an Avatar's photo and a table's Avatar or Photo cell show their picture. A Shape rectangle or ellipse now
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
+- The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
+  and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
 - `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
   another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
   (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer

@@ -196,11 +196,14 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   takes it; other files need the published library and full component definitions in the paste (instances by
   `componentKey`, as Figma's own copies carry). Also open: the frame menu's Copy for Figma (async write: Chromium rewrites
   the html, only the plugin reads it). Pictures go since 2026-10-19 (F8c). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6, §7c.
-- **P2 · Direct paste of Studio Shapes and page-local components (user approved 2026-10-17):** Writer.build() branches in
-  tools/studio/figma-native.mjs for LINE arrow/POLYGON/STAR/path/boolean (RECTANGLE and ELLIPSE with its arc went in
-  with F8c pictures, 2026-10-19; the others are named in a note) and Component → COMPONENT, Use →
-  INSTANCE, after zen/feat/studio-components-20261017 merges (spec: figma-push.mjs shapeNode; reference: plugin
-  studio-import.js 3ba73f9, ed9bec6).
+- **P2 · Direct paste of page-local components (user approved 2026-10-17):** Writer.build() in
+  tools/studio/figma-native.mjs: Component → COMPONENT, Use → INSTANCE (reference: plugin studio-import.js 3ba73f9,
+  ed9bec6). Every Studio Shape kind goes since 2026-10-20 (branch zen/feat/studio-native-shapes-20261020).
+- **P2 · An arrow gets a head at both ends in Figma (2026-10-20, found by Session C; plugin import and direct paste):**
+  the Studio draws one head at the line's end (Shape.tsx arrowHeadPath), Figma's LINE with `strokeCap` ARROW_LINES
+  draws two. Figma's one-ended arrow encoding is unknown: a paste of a LINE whose vector network caps only its end
+  vertex was dropped. Needs a Figma copy of an arrow drawn with ⇧L (any file; Session C reads it), then the importer
+  (Session B), figma-native and the pull (`cap`) follow it.
 - **P2 · Figma library gaps the 438-page Studio → Figma test found (2026-10-18, questions for the designer):** (a)
   Accordion/Text has no content slot, so an open Accordion's content cannot be drawn (the push notes it); (b) Dock-Icon
   has Theme=Emoji only at Medium and Large (the HR templates use XSmall in table cells: the default variant shows);
