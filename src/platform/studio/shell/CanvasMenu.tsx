@@ -5,13 +5,14 @@ import { ZenPortalProvider } from "../../../components/Portal";
 import type { IconName } from "../../../icons/generated/names";
 import { parseSrc, studioApi, type DetachPlanReply } from "../api";
 import { detachSelection, detachShortcut, offersDetach, renderCount, withRowCheck } from "../inspector/detach";
-import { useExtraSelection } from "../select/multiSelection";
+import { selectedLayers, useExtraSelection } from "../select/multiSelection";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../select/wrapSelection";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
 import { copyAsCode, copyAsCss } from "../edit/copyAs";
 import { groupSelection, ungroupSelection } from "../edit/groupLayers";
+import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../edit/pathOps";
 import { selectedFrames } from "../select/frameSelection";
 import { findBySrc } from "../select/picker";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
@@ -80,6 +81,9 @@ export function openFrameMenu(x: number, y: number, frameId: string) {
 export function openEmptyCanvasMenu(x: number, y: number) {
   set({ x, y, target: { kind: "canvas" }, at: Date.now() });
 }
+
+/** Whether every selected layer is a shape (boolean groups and Flatten take shapes only). */
+const extraShapes = () => selectedLayers().every((layer) => layer.name.slice(layer.name.lastIndexOf(".") + 1) === "Shape");
 
 /** Whether the selected layer is a group (Box group, ⌘G): ⇧⌘G says Ungroup for it, Remove frame for a frame. */
 const selectedIsGroup = (selection: NodeSelection) => Boolean(findBySrc(canvasApi.getWorldElement() ?? document.body, selection.src)[selection.instance]?.props.group);
@@ -170,6 +174,15 @@ export function CanvasMenu() {
     { id: "multi-float", label: "Ignore auto layout", icon: "icon-transform-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void toggleIgnoreAutoLayout(); } },
     ...lockMenuItems(selection),
     ...(studioStore.getState().localPage ? [renameItem("Rename…")] : []),
+    // Figma's boolean groups and Flatten on several shapes of a page you made (edit/pathOps.ts, F9b).
+    ...(studioStore.getState().localPage && extraShapes() ? [
+      { type: "separator" as const, id: "multi-boolean-separator" },
+      { id: "multi-union", label: "Union selection", icon: "icon-intersect-square-line" as const, shortcut: "⌥⇧U", disabled: Boolean(editOff), onSelect: () => { void booleanSelection("union"); } },
+      { id: "multi-subtract", label: "Subtract selection", icon: "icon-intersect-square-line" as const, shortcut: "⌥⇧S", disabled: Boolean(editOff), onSelect: () => { void booleanSelection("subtract"); } },
+      { id: "multi-intersect", label: "Intersect selection", icon: "icon-intersect-square-line" as const, shortcut: "⌥⇧I", disabled: Boolean(editOff), onSelect: () => { void booleanSelection("intersect"); } },
+      { id: "multi-exclude", label: "Exclude selection", icon: "icon-intersect-square-line" as const, shortcut: "⌥⇧E", disabled: Boolean(editOff), onSelect: () => { void booleanSelection("exclude"); } },
+      { id: "multi-flatten", label: "Flatten", icon: "icon-pen-tool-01-line" as const, shortcut: `${modKey}E`, disabled: Boolean(editOff), onSelect: () => { void flattenSelection(); } },
+    ] : []),
     // Figma's Create component (one of them all) and Create multiple components, on a page you made (edit/localComponents.ts).
     ...(studioStore.getState().localPage ? [
       { id: "multi-create-component", label: "Create component", icon: "icon-diamond-line" as const, shortcut: `⌥${modKey}K`, disabled: Boolean(editOff), onSelect: () => { void createComponentOfLayers(); } },
@@ -177,6 +190,11 @@ export function CanvasMenu() {
     ] : []),
     { type: "separator", id: "multi-remove-separator" },
     { id: "multi-remove", label: "Delete", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void removeLayers(); } },
+  ] : [];
+  // Flatten and Outline stroke on one shape of a page you made (edit/pathOps.ts, F9b).
+  const shapeItems: MenuEntry[] = selection && !selection.part && selection.name === "Shape" && studioStore.getState().localPage ? [
+    { id: "flatten", label: "Flatten", icon: "icon-pen-tool-01-line" as const, shortcut: `${modKey}E`, disabled: Boolean(editOff), onSelect: () => { void flattenSelection(); } },
+    { id: "outline-stroke", label: "Outline stroke", icon: "icon-pen-tool-01-line" as const, shortcut: `⌥${modKey}O`, disabled: Boolean(editOff), onSelect: () => { void outlineStrokeSelection(); } },
   ] : [];
   // Figma's Create component (⌥⌘K) on one layer of a page you made (edit/localComponents.ts).
   const componentItems: MenuEntry[] = selection && !selection.part && selection.name !== "Use" && studioStore.getState().localPage ? [
@@ -229,7 +247,7 @@ export function CanvasMenu() {
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
+        : [...selectLayer, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...shapeItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 

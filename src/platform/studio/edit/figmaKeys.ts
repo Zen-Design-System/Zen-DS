@@ -11,6 +11,7 @@ import { alignLayers, distributeLayers, tidyUpLayers } from "./alignLayers";
 import { stepLayer } from "./arrange";
 import { flipLayers } from "./flipLayers";
 import { groupSelection, ungroupSelection } from "./groupLayers";
+import { booleanSelection, flattenSelection, outlineStrokeSelection, type BooleanOperation } from "./pathOps";
 import { textEditSession } from "./textEdit";
 
 /*
@@ -128,6 +129,7 @@ async function align(selection: NodeSelection, edge: "left" | "right" | "top" | 
 
 const ALIGN_KEYS: Record<string, "left" | "right" | "top" | "bottom" | "hcenter" | "vcenter"> = { KeyA: "left", KeyD: "right", KeyW: "top", KeyS: "bottom", KeyH: "hcenter", KeyV: "vcenter" };
 const ARRANGE_KEYS: Record<string, "x" | "y" | "tidy"> = { KeyH: "x", KeyV: "y", KeyT: "tidy" };
+const BOOLEAN_KEYS: Record<string, BooleanOperation> = { KeyU: "union", KeyS: "subtract", KeyI: "intersect", KeyE: "exclude" };
 
 export function useFigmaKeys() {
   useEffect(() => {
@@ -171,10 +173,14 @@ export function useFigmaKeys() {
       const ungroup = mod && event.shiftKey && !event.altKey && event.code === "KeyG";
       // ⌘G: Figma's Group selection (edit/groupLayers.ts).
       const group = mod && !event.shiftKey && !event.altKey && event.code === "KeyG";
+      // ⌥⇧U / S / I / E: Union, Subtract, Intersect, Exclude selection; ⌘E Flatten; ⌥⌘O Outline stroke (edit/pathOps.ts).
+      const booleanKey = event.altKey && event.shiftKey && !mod ? BOOLEAN_KEYS[event.code] : undefined;
+      const flatten = mod && !event.altKey && !event.shiftKey && event.code === "KeyE";
+      const outline = mod && event.altKey && !event.shiftKey && event.code === "KeyO";
       // ⇧H / ⇧V: Figma's Flip horizontal / vertical (edit/flipLayers.ts).
       const flip = event.shiftKey && !mod && !event.altKey && (event.code === "KeyH" || event.code === "KeyV") ? (event.code === "KeyH" ? "horizontal" : "vertical") : null;
       if (!canEdit(state) || running) {
-        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange || ungroup || group || flip) event.preventDefault();
+        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange || ungroup || group || flip || booleanKey || flatten || outline) event.preventDefault();
         return;
       }
       if (flip) {
@@ -185,6 +191,11 @@ export function useFigmaKeys() {
       if (group) {
         event.preventDefault();
         run(groupSelection());
+        return;
+      }
+      if (booleanKey || flatten || outline) {
+        event.preventDefault();
+        run(booleanKey ? booleanSelection(booleanKey) : flatten ? flattenSelection() : outlineStrokeSelection());
         return;
       }
       // ⇧⌘G: Ungroup / Remove frame — the layers take its place and keep theirs (edit/groupLayers.ts).

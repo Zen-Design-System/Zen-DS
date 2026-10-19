@@ -32,9 +32,9 @@ export function floatingGroup(layers: ExtraLayer[]): FloatingItem[] | null {
  * `component`: the Box is a new main component's layer (Create component on several layers, a page you made).
  */
 /** A layer as a group or frame takes it: the element written, its offset in its frame's px and its size. */
-type Part = { target: ExtraLayer; offset: { left: number; top: number }; box: { width: number; height: number } };
+export type Part = { target: ExtraLayer; offset: { left: number; top: number }; box: { width: number; height: number } };
 
-export async function boxFloating(items: Part[], props: Record<string, EditValue>, label: string, done: string, component?: { id: string; name: string }, flow = false): Promise<boolean> {
+export async function boxFloating(items: Part[], props: Record<string, EditValue>, label: string, done: string, component?: { id: string; name: string }, flow = false, tag: "Box" | "Shape" = "Box"): Promise<boolean> {
   const ordered = [...items].sort((a, b) => sourceOrder(a.target, b.target));
   const left = Math.min(...ordered.map((item) => item.offset.left));
   const top = Math.min(...ordered.map((item) => item.offset.top));
@@ -58,11 +58,12 @@ export async function boxFloating(items: Part[], props: Record<string, EditValue
     kids,
     ...(component ? { component } : {}),
     ...(flow ? { flow: true } : {}),
+    ...(tag !== "Box" ? { tag } : {}),
   } as unknown as EditOp;
   const before = renderedNow(canvasApi.getWorldElement());
   const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [op], hash: element.hash }, label);
   if (!response.ok || !response.inserted) return false;
-  const box: NodeSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: "Box", frameId: first.target.frameId, panelId: first.target.panelId, instance: 0 };
+  const box: NodeSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: tag, frameId: first.target.frameId, panelId: first.target.panelId, instance: 0 };
   multiSelection.clear();
   expectRender(box, before, () => undefined, 1500);
   studioStore.setState({ selection: box });

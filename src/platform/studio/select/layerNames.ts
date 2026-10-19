@@ -15,11 +15,15 @@ export function layerName(name: string, props: Record<string, unknown> | null | 
   // A page-local component (renderPage marks its main's root and its instances): its name, as Figma lists them.
   if (typeof props?.["data-zen-main-name"] === "string") return props["data-zen-main-name"] as string;
   if (typeof props?.["data-zen-instance-name"] === "string") return props["data-zen-instance-name"] as string;
+  if (name === "Shape" && props?.type === "boolean") return BOOLEAN_LABELS[String(props.operation ?? "union")] ?? "Union";
   if (name === "Shape") return SHAPE_LABELS[String(props?.type ?? "rectangle")] ?? "Rectangle";
   return name;
 }
 
-const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-square-line", ellipse: "icon-circle-line", line: "icon-minus-line", arrow: "icon-arrow-up-right-line", polygon: "icon-triangle-line", star: "icon-star-01-line", vector: "icon-pen-tool-01-line" };
+/** A boolean group reads as its operation (Figma's Union, Subtract, Intersect, Exclude). */
+const BOOLEAN_LABELS: Readonly<Record<string, string>> = { union: "Union", subtract: "Subtract", intersect: "Intersect", exclude: "Exclude" };
+
+const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-square-line", ellipse: "icon-circle-line", line: "icon-minus-line", arrow: "icon-arrow-up-right-line", polygon: "icon-triangle-line", star: "icon-star-01-line", vector: "icon-pen-tool-01-line", boolean: "icon-intersect-square-line" };
 
 /**
  * A layer's own icon, as Figma's layers show it: a page-local component's ◇ (its main and its instances), a shape's
