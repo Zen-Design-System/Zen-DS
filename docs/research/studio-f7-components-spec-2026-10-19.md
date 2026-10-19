@@ -52,8 +52,9 @@ Push: ComponentSet → COMPONENT_SET of COMPONENTs named "Size=Small, State=Defa
 | Assets › Local | `edit/assets/**` (Session C's) | asked of C, or C's OK for a small mount |
 
 Ships as F7a (dialect, canvas, export, push / pull, properties and variants, instance panel, Combine / Add variant /
-Create multiple) and F7b (overrides inside an instance, Push changes / Restore, nested exposed instances, Assets ›
-Local), each its own PR.
+Create multiple, description and link) and F7b (overrides inside an instance and what an instance puts in a slot,
+Push changes / Restore, nested exposed instances, Assets › Local), each its own PR. A slot property is defined and bound
+in F7a (push makes Figma's slot); filling it from an instance is content inside the instance, so it goes with overrides.
 
 ## 3. Checks
 
