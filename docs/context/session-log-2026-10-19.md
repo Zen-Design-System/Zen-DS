@@ -510,3 +510,7 @@ BACKLOG item the user approved 2026-10-17 ("Direct paste of Studio Shapes"), pic
 - Found: an arrow gets a head at both ends in Figma (plugin import too); the Studio draws one. A LINE with a per-vertex
   cap network was dropped by the paste; BACKLOG asks for a Figma copy of a ⇧L arrow. Experiments stopped once the user
   was active in Figma.
+- Page-local components (same BACKLOG item): a probe capture gave Figma's set / variant / property / instance
+  encoding; the writer is parked on `zen/wip/studio-native-local-components-20261020` (set and properties pasted right,
+  instances unlinked from their pasted main). Later pastes, even a known-good one, stopped landing while the user
+  worked in Figma: experiments stopped, every test node removed, BACKLOG says what to try next.

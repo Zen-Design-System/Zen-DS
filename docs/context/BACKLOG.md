@@ -196,9 +196,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   takes it; other files need the published library and full component definitions in the paste (instances by
   `componentKey`, as Figma's own copies carry). Also open: the frame menu's Copy for Figma (async write: Chromium rewrites
   the html, only the plugin reads it). Pictures go since 2026-10-19 (F8c). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6, §7c.
-- **P2 · Direct paste of page-local components (user approved 2026-10-17):** Writer.build() in
-  tools/studio/figma-native.mjs: Component → COMPONENT, Use → INSTANCE (reference: plugin studio-import.js 3ba73f9,
-  ed9bec6). Every Studio Shape kind goes since 2026-10-20 (branch zen/feat/studio-native-shapes-20261020).
+- **P2 · Direct paste of page-local components (user approved 2026-10-17; Session C, WIP 2026-10-20):** branch
+  `zen/wip/studio-native-local-components-20261020` writes sets (state group, VARIANT + BOOL/TEXT definitions, value
+  orders), variants (own definitions, variantPropSpecs), lone mains and bound layers as Figma's copy of a probe does;
+  a live paste brought the set and its properties right, but each instance of a pasted main had no main (symbolID not
+  linked). Next: paste Figma's own copy of main + instances into a page without the originals and see whether Figma
+  links them (pastes stopped landing while the user worked in Figma, 2026-10-20 ~01:30). Slots and swap properties
+  are notes there. Every Studio Shape kind goes since 2026-10-20 (branch zen/feat/studio-native-shapes-20261020).
 - **P2 · An arrow gets a head at both ends in Figma (2026-10-20, found by Session C; plugin import and direct paste):**
   the Studio draws one head at the line's end (Shape.tsx arrowHeadPath), Figma's LINE with `strokeCap` ARROW_LINES
   draws two. Figma's one-ended arrow encoding is unknown: a paste of a LINE whose vector network caps only its end
