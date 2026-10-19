@@ -27,6 +27,8 @@ test("line box: right to left is 180°", () => assert.equal(lineBox({ x: 100, y:
 test("free code", () => assert.equal(drawCode("ellipse", { x: 10.4, y: 20.6, width: 80, height: 40 }, { mode: "free", x: 10.4, y: 20.6 }), '<Shape type="ellipse" position="absolute" insetLeft={10} insetTop={21} width={80} height={40} />'));
 test("flow code", () => assert.equal(drawCode("rectangle", { x: 0, y: 0, width: 100, height: 100 }, { mode: "flow" }), '<Shape type="rectangle" width={100} height={100} />'));
 test("line code has its rotation, no height", () => assert.equal(drawCode("line", { x: 0, y: 0, width: 141.42, height: 0 }, { mode: "flow" }, -45), '<Shape type="line" width={141} rotation={-45} />'));
+test("text click: Auto width at the point", () => assert.equal(drawCode("text", clickBox("text", { x: 12, y: 30 }), { mode: "free", x: 12, y: 30 }), '<Box position="absolute" insetLeft={12} insetTop={30}><Text wrap={false}>Text</Text></Box>'));
+test("text drag: Auto height of the dragged width", () => assert.equal(drawCode("text", { x: 0, y: 0, width: 240.4, height: 18 }, { mode: "flow" }), "<Text width={240}>Text</Text>"));
 test("frame code is a Surface Box", () => assert.equal(drawCode("frame", { x: 0, y: 0, width: 200, height: 120 }, { mode: "free", x: 4, y: 8 }), '<Box position="absolute" insetLeft={4} insetTop={8} width={200} height={120} surface="surface" />'));
 
 // Shape geometry (src/components/Shape/geometry.ts)

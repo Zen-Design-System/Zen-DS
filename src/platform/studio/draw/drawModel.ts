@@ -9,12 +9,14 @@
  *   Space held moves what is being drawn (the caller moves the start point);
  * - the new layer goes into the top-most frame under the start point: in a frame without auto layout it sits at the
  *   point (Figma's X / Y, px); in an auto layout frame it joins the flow where the pointer is;
- * - names: Rectangle, Ellipse, Line, Arrow, Polygon, Star, Frame.
+ * - names: Rectangle, Ellipse, Line, Arrow, Polygon, Star, Frame, Text.
+ * - the Text tool (T, F6): a click makes an Auto width text at the point, a drag a text box of the dragged width (Auto
+ *   height); the person types at once (edit/textCreate.ts).
  */
 
-export const drawKinds = ["rectangle", "ellipse", "line", "arrow", "polygon", "star", "frame"] as const;
+export const drawKinds = ["rectangle", "ellipse", "line", "arrow", "polygon", "star", "frame", "text"] as const;
 export type DrawKind = (typeof drawKinds)[number];
-export type ShapeKind = Exclude<DrawKind, "frame">;
+export type ShapeKind = Exclude<DrawKind, "frame" | "text">;
 
 export type Point = { x: number; y: number };
 export type Box = { x: number; y: number; width: number; height: number };
@@ -28,7 +30,10 @@ export const CLICK_TRAVEL = 3;
 export const isLineKind = (kind: DrawKind): kind is "line" | "arrow" => kind === "line" || kind === "arrow";
 
 /** The layer name Figma gives what each tool draws (Layers panel, the size tag, the undo label). */
-export const drawLabels: Record<DrawKind, string> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", frame: "Frame" };
+export const drawLabels: Record<DrawKind, string> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", frame: "Frame", text: "Text" };
+
+/** The words a new text layer holds until the person types (selected, so the first key replaces them). */
+export const NEW_TEXT = "Text";
 
 const round = (value: number) => Math.round(value);
 
@@ -74,8 +79,10 @@ export function lineBox(from: Point, to: Point): { box: Box; rotation: number } 
   return { box: { x: mid.x - length / 2, y: mid.y, width: length, height: 0 }, rotation: rotation || 0 };
 }
 
-/** What a click places: Figma's 100 × 100 with its top-left at the point (a line: 100 long, from the point to the right). */
+/** What a click places: Figma's 100 × 100 with its top-left at the point (a line: 100 long, from the point to the right;
+ *  a text: no box, it is as wide as its words). */
 export function clickBox(kind: DrawKind, at: Point): Box {
+  if (kind === "text") return { x: at.x, y: at.y, width: 0, height: 0 };
   return isLineKind(kind) ? { x: at.x, y: at.y, width: CLICK_SIZE, height: 0 } : { x: at.x, y: at.y, width: CLICK_SIZE, height: CLICK_SIZE };
 }
 
@@ -92,6 +99,13 @@ export function drawCode(kind: DrawKind, box: Box, placement: DrawPlacement, rot
   const width = Math.max(1, round(box.width));
   const height = Math.max(1, round(box.height));
   const placed = placement.mode === "free" ? ["position=\"absolute\"", attr("insetLeft", round(placement.x)), attr("insetTop", round(placement.y))] : [];
+  // Text: Auto width (a click: one line as wide as its words, Text wrap={false}) or Auto height (a drag: that width). A
+  // Text has no position props: in a free frame it floats in a Box at the point (Ignore auto layout's wrapper,
+  // position/float.ts), which Layers and the canvas treat as the text itself.
+  if (kind === "text") {
+    const text = `<Text ${box.width >= 1 ? attr("width", width) : "wrap={false}"}>${NEW_TEXT}</Text>`;
+    return placement.mode === "free" ? `<Box ${placed.join(" ")}>${text}</Box>` : text;
+  }
   if (kind === "frame") return `<Box ${[...placed, attr("width", width), attr("height", height), "surface=\"surface\""].join(" ")} />`;
   const size = isLineKind(kind) ? [attr("width", width)] : [attr("width", width), attr("height", height)];
   const turn = rotation ? [attr("rotation", Math.round(rotation * 100) / 100)] : [];

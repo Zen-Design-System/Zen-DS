@@ -13,6 +13,8 @@ import { canStructurallyEdit } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
 import { CLICK_TRAVEL, clickBox, drawBox, drawCode, drawLabels, drawLine, isLineKind, lineBox, type Box, type DrawKind, type DrawPlacement, type Point } from "./drawModel";
+import { editNewText, editTextAt } from "../edit/textCreate";
+import { holdKeysForText } from "../edit/textEdit";
 import "./draw.css";
 
 /*
@@ -208,7 +210,7 @@ function edgePan(pointer: () => Point, follow: () => void) {
 const fail = (message: string) => announceEditStatus({ kind: "error", message, at: Date.now() });
 
 /** Writes what was drawn into `target` (one edit, labelled "Draw <shape>") and selects it. */
-async function write(kind: DrawKind, target: DrawTarget, code: string) {
+async function write(kind: DrawKind, target: DrawTarget, code: string, keys?: ReturnType<typeof holdKeysForText>) {
   const from = target.flow ? target.flow.parentSrc : target.parent.src;
   const at = parseSrc(from);
   if (!at) return;
@@ -218,10 +220,12 @@ async function write(kind: DrawKind, target: DrawTarget, code: string) {
   if (target.flow?.before) op.before = parseSrc(target.flow.before)?.loc;
   else if (target.flow?.after) op.after = parseSrc(target.flow.after)?.loc;
   const before = renderedNow(canvasApi.getWorldElement());
-  const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, `Draw ${drawLabels[kind].toLowerCase()}`);
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, kind === "text" ? "Add text" : `Draw ${drawLabels[kind].toLowerCase()}`);
   if (!response.ok || !response.inserted) return;
   const frameId = target.flow?.frameId ?? target.frameId;
   const panelId = target.flow?.panelId ?? target.panelId;
+  // The Text tool: the new Text is edited at once (edit/textCreate.ts).
+  if (kind === "text") { void editNewText(response.file, response.inserted.loc, target.mode === "free", { frameId, panelId }, before, keys); return; }
   const next: StudioSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: kind === "frame" ? "Box" : "Shape", frameId, panelId, instance: 0 };
   multiSelection.clear();
   expectRender(next, before, () => undefined, 1500);
@@ -238,8 +242,9 @@ export function disarmDraw() {
 }
 
 /**
- * Arms a drawing tool: `kind` a shape (Rectangle, Ellipse, Line, Arrow, Polygon, Star) or "frame" (a frame drawn inside
- * a Screen: builder/frameMove.ts hands the press over with `startDraw`). False, with the reason said, when the Studio
+ * Arms a drawing tool: `kind` a shape (Rectangle, Ellipse, Line, Arrow, Polygon, Star), "text" (Figma's Text tool T: a
+ * click for Auto width text, a drag for a text box of that width, then typing; F6) or "frame" (a frame drawn inside a
+ * Screen: builder/frameMove.ts hands the press over with `startDraw`). False, with the reason said, when the Studio
  * cannot edit.
  */
 export function armDraw(kind: Exclude<DrawKind, "frame">): boolean {
@@ -255,7 +260,9 @@ export function armDraw(kind: Exclude<DrawKind, "frame">): boolean {
     if (event.button !== 0 || !(event.target instanceof Element) || !viewport?.contains(event.target) || event.target.closest(CHROME)) return;
     event.preventDefault();
     event.stopPropagation();
-    if (!startDraw(kind, event)) fail("Draw inside a frame · F draws a frame");
+    // The Text tool on the words of a text layer edits them there (Figma's), instead of making a new text.
+    if (kind === "text" && editTextAt(event.clientX, event.clientY)) return;
+    if (!startDraw(kind, event)) fail(kind === "text" ? "Type inside a frame · F draws a frame" : "Draw inside a frame · F draws a frame");
   };
   const onKey = (event: KeyboardEvent) => {
     if (event.key !== "Escape") return;
@@ -351,9 +358,11 @@ export function startDraw(kind: DrawKind, event: PointerEvent): boolean {
     let drawn = box;
     if (!dragged) drawn = clickBox(kind, start);
     else if (isLineKind(kind) && ends) ({ box: drawn, rotation } = lineBox(ends.from, ends.to));
-    if (!isLineKind(kind) && (drawn.width < 1 || drawn.height < 1)) drawn = { ...drawn, width: Math.max(1, drawn.width), height: Math.max(1, drawn.height) };
+    if (!isLineKind(kind) && kind !== "text" && (drawn.width < 1 || drawn.height < 1)) drawn = { ...drawn, width: Math.max(1, drawn.width), height: Math.max(1, drawn.height) };
     const placement: DrawPlacement = target.mode === "free" ? { mode: "free", x: drawn.x, y: drawn.y } : { mode: "flow" };
-    void write(kind, target, drawCode(kind, drawn, placement, rotation));
+    // The Text tool: what is typed from now on goes into the new text (Figma's typing at once).
+    const keys = kind === "text" ? holdKeysForText() : undefined;
+    void write(kind, target, drawCode(kind, drawn, placement, rotation), keys);
   };
   const onKey = (key: KeyboardEvent) => {
     if (key.key === "Escape" && key.type === "keydown") {

@@ -8,6 +8,7 @@ import { childHits, fiberOf, findBySrc, srcOf, type Fiber } from "../select/pick
 import { canEdit, studioStore } from "../store";
 import { cellFieldOf, rowFieldsOf, tableCellOf } from "../table/tableCells";
 import { propSpecs } from "../inspector/propSchema";
+import { removeEmptyText, takeFreshText } from "./textCreate";
 import type { AttrShape, DataSource, EditOp, ShapeField, SourceAttr, SourceElement, StudioSelection } from "../types";
 
 /*
@@ -48,6 +49,8 @@ export type TextTarget = {
   multiline: boolean;
   /** Where the caret starts: an offset in the text, or the whole text selected. */
   caret: number | "all";
+  /** Made by the Text tool just now (edit/textCreate.ts): left as it came or emptied, it is removed. */
+  fresh?: boolean;
 };
 
 /* ── session store (one editor at a time) ─────────────────────────────────────────────────────────────────────────── */
@@ -296,6 +299,21 @@ let starting = 0;
  */
 let pendingStart = false;
 let typedAhead = "";
+/** A hold the Text tool started (holdKeysForText): until then the keys typed are kept for its new text. */
+let hold: { until: number; cancelled: boolean } | null = null;
+
+/**
+ * Keeps the keys typed from now until a text editor opens (the Text tool, F6: the person types at once, before the new
+ * text has rendered). Escape before that gives up, which the caller reads back (`cancelled`). Ends by itself after `ms`.
+ */
+export function holdKeysForText(ms = 3000): { cancelled: () => boolean } {
+  const own = { until: Date.now() + ms, cancelled: false };
+  hold = own;
+  pendingStart = true;
+  typedAhead = "";
+  window.setTimeout(() => { if (hold === own) { hold = null; if (!session) { pendingStart = false; typedAhead = ""; } } }, ms);
+  return { cancelled: () => own.cancelled };
+}
 
 /** The characters typed while the editor was opening (once). */
 export function takeTypedAhead(): string {
@@ -311,6 +329,7 @@ if (typeof window !== "undefined") {
       starting += 1;
       pendingStart = false;
       typedAhead = "";
+      if (hold) { hold.cancelled = true; hold = null; }
     } else if (event.key.length === 1 && !event.altKey) typedAhead += event.key;
     else if (event.key === "Backspace") typedAhead = typedAhead.slice(0, -1);
     event.preventDefault();
@@ -329,7 +348,9 @@ async function open(node: Text, chain: Array<{ src: string }>, caret: TextTarget
   const run = ++starting;
   const original = node.nodeValue ?? "";
   pendingStart = true;
-  typedAhead = "";
+  // The keys typed since the Text tool's click stay (holdKeysForText); any other start begins empty.
+  if (!hold) typedAhead = "";
+  hold = null;
   let found: Awaited<ReturnType<typeof sourceOf>>;
   try {
     found = await sourceOf(chain, original, node);
@@ -357,7 +378,9 @@ async function open(node: Text, chain: Array<{ src: string }>, caret: TextTarget
     original,
     // A row's data (a .map row, a Table cell) is one place, however many rows the source line draws.
     instances: found.op.kind === "data" && (found.op.row !== undefined || found.op.field) ? 1 : world ? Math.max(1, findBySrc(world, src).length) : 1,
-    multiline: preservesBreaks(host),
+    // A Text layer's own words take line breaks (Text keeps them, F6); other texts where their box keeps them.
+    multiline: preservesBreaks(host) || (found.element.name === "Text" && found.op.kind === "text" && host.classList.contains("zen-text")),
+    fresh: takeFreshText(src),
     caret,
   };
   emit();
@@ -485,6 +508,13 @@ export function restoreText(target: TextTarget) {
 export function commitTextEdit(target: TextTarget, raw: string): void {
   if (session === target) endTextEdit();
   const value = target.multiline ? raw.replace(/^\s+|\s+$/g, "") : raw.replace(/\s*\n\s*/g, " ").trim();
+  // A new text left as the Text tool made it, or any text layer emptied, is deleted (Figma keeps no empty text).
+  const own = target.op.kind === "text" && (target.element.name === "Text" || target.element.name === "Heading") && target.element.children.every((child) => child.kind === "text");
+  if ((target.fresh && value.trim() === target.original.trim()) || (!normalizeText(value) && own)) {
+    restoreText(target);
+    void removeEmptyText(target.src);
+    return;
+  }
   if (normalizeText(value) === normalizeText(target.original) && value.trim() === target.original.trim()) {
     restoreText(target);
     return;
