@@ -1295,6 +1295,138 @@ export const rows = [
     },
   },
   {
+    id: "FW-100", feature: "Zoom reaches Figma's 25600 %; the pixel grid shows from 400 % and ⌘' turns it off", wp: "F10 2026-10-19",
+    async run(ctx) {
+      const { page } = await newPage(ctx);
+      const viewport = page.locator(".studio-viewport");
+      await viewport.focus();
+      await page.keyboard.press("Shift+Digit0");
+      await sleep(300);
+      const grid = () => page.locator(".studio-pixel-grid").getAttribute("data-hidden");
+      if ((await grid()) !== "true") throw new Error("the pixel grid shows at 100 %");
+      for (let step = 0; step < 14; step += 1) { await page.keyboard.press("Equal"); await sleep(80); }
+      await until(async () => /25600%|25 600%/.test(await page.locator("#studio-right").innerText()), { message: "25600 % in the zoom menu" }).catch(() => undefined);
+      const zoom = await page.evaluate(() => Number(getComputedStyle(document.querySelector(".studio-world")).getPropertyValue("--studio-zoom")));
+      if (zoom < 128) throw new Error(`zoom stops at ${zoom}`);
+      await until(async () => (await grid()) === "false", { message: "the pixel grid at high zoom" });
+      await page.keyboard.press("ControlOrMeta+Quote");
+      await until(async () => (await viewport.getAttribute("data-pixel-grid")) === null, { message: "⌘' turns it off" });
+      await page.keyboard.press("ControlOrMeta+Quote");
+      await page.keyboard.press("Shift+Digit1");
+      return `zoom ${Math.round(zoom * 100)} %, pixel grid from 400 %, ⌘' off/on`;
+    },
+  },
+  {
+    id: "FW-101", feature: "⌘Y Outlines: every layer of the frames as a thin outline, fills gone; ⌘Y again restores", wp: "F10 2026-10-19",
+    async run(ctx) {
+      const { page } = await newPage(ctx);
+      const viewport = page.locator(".studio-viewport");
+      await viewport.focus();
+      await page.keyboard.press("ControlOrMeta+KeyY");
+      await until(async () => (await viewport.getAttribute("data-outlines")) === "true", { message: "Outlines on" });
+      const look = await page.locator('[data-studio-frame^="screen:"] .zen-text').first().evaluate((element) => ({ outline: getComputedStyle(element).outlineStyle, background: getComputedStyle(element.closest(".studio-builder-screen") ?? element).backgroundImage + getComputedStyle(element.closest(".studio-builder-screen") ?? element).backgroundColor }));
+      if (look.outline !== "solid" || !/none.*rgba\(0, 0, 0, 0\)|^none(rgba\(0, 0, 0, 0\)|transparent)/.test(look.background)) throw new Error(`outlines: ${JSON.stringify(look)}`);
+      await page.keyboard.press("ControlOrMeta+KeyY");
+      await until(async () => (await viewport.getAttribute("data-outlines")) === null, { message: "Outlines off" });
+      return "⌘Y → outlines, no fills; ⌘Y → back";
+    },
+  },
+  {
+    id: "FW-102", feature: "⇧R rulers: 0 at the selected frame's top-left; a guide dragged from a ruler onto the frame is the frame's; back onto the ruler deletes it", wp: "F10 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      const header = async () => ((await pageText(page, id)) ?? "").split("\n")[0];
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit1");
+      await sleep(300);
+      await page.locator(".studio-frame-label").first().click();
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyR");
+      const top = page.locator('.studio-ruler[data-axis="x"]');
+      await top.waitFor({ state: "visible", timeout: 5000 });
+      const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+      const zero = await top.locator(".studio-ruler__label", { hasText: /^0$/ }).first().boundingBox();
+      if (!zero || Math.abs(zero.x - frame.x) > 2) throw new Error(`the ruler's 0 at ${zero?.x}, the frame at ${frame.x}`);
+      const ruler = await top.boundingBox();
+      await page.mouse.move(frame.x + 80, ruler.y + 10);
+      await page.mouse.down();
+      await page.mouse.move(frame.x + 80, frame.y + 120, { steps: 6 });
+      await page.mouse.up();
+      await until(async () => /"guides":\[\{"axis":"y","at":\d+,"frame":"screen:screen-1"\}\]/.test(await header()), { message: "a frame guide in the page" });
+      const guide = await page.locator('.studio-guide[data-axis="y"]').first().boundingBox();
+      await page.mouse.move(guide.x + 40, guide.y + 0.5);
+      await page.mouse.down();
+      await page.mouse.move(guide.x + 40, ruler.y + 8, { steps: 6 });
+      await page.mouse.up();
+      await until(async () => !/"guides"/.test(await header()), { message: "the guide deleted" });
+      await page.keyboard.press("Shift+KeyR");
+      return "0 at the frame's left; a guide added in the frame and deleted on the ruler";
+    },
+  },
+  {
+    id: "FW-103", feature: "Layout guide: + on a frame adds its device's columns (margin and gutter from Breakpoint & Grids); ⌃G hides them", wp: "F10 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "phone" });
+      const header = async () => ((await pageText(page, id)) ?? "").split("\n")[0];
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit1");
+      await sleep(300);
+      await page.locator(".studio-frame-label").first().click();
+      await page.getByRole("button", { name: "Add layout guide" }).click();
+      await until(async () => /"layoutGuides":\{"screen:screen-1":\[\{"type":"columns","count":4\}\]\}/.test(await header()), { message: "a phone's 4 columns in the page" });
+      await until(async () => (await page.locator(".studio-layout-guide__track").count()) === 4, { message: "4 columns over the frame" });
+      const frame = await page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen').boundingBox();
+      const first = await page.locator(".studio-layout-guide__track").first().boundingBox();
+      const margin = await page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen').evaluate((element) => Number.parseFloat(getComputedStyle(element).getPropertyValue("--zen-margin-comfortable")));
+      const zoom = await page.evaluate(() => Number(getComputedStyle(document.querySelector(".studio-world")).getPropertyValue("--studio-zoom")) || 1);
+      if (Math.abs(first.x - frame.x - margin * zoom) > 2) throw new Error(`the first column at ${first.x - frame.x}, margin ${margin} × ${zoom}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press(process.platform === "darwin" ? "Control+KeyG" : "Control+Alt+KeyG");
+      await until(async () => (await page.locator(".studio-layout-guides").count()) === 0, { message: "⌃G hides them" });
+      await page.keyboard.press(process.platform === "darwin" ? "Control+KeyG" : "Control+Alt+KeyG");
+      return `4 columns from margin ${margin}; ⌃G hides`;
+    },
+  },
+  {
+    id: "FW-104", feature: "Page › Background: the canvas takes a Zen background token (Dark: Neutral/Solid), written in the page", wp: "F10 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.getByRole("combobox", { name: "Canvas background" }).or(page.getByRole("button", { name: /Canvas background/ })).first().click();
+      await page.getByRole("option", { name: "Dark", exact: true }).first().click();
+      await until(async () => /"canvas":"dark"/.test(((await pageText(page, id)) ?? "").split("\n")[0]), { message: "the page's canvas dark" });
+      const background = await page.locator(".studio-viewport").evaluate((element) => getComputedStyle(element).backgroundColor);
+      const token = await page.evaluate(() => { const probe = document.createElement("div"); probe.style.background = "var(--zen-color-background-neutral-solid-default)"; document.querySelector(".studio-viewport").append(probe); const value = getComputedStyle(probe).backgroundColor; probe.remove(); return value; });
+      if (background !== token) throw new Error(`the canvas is ${background}, Neutral/Solid is ${token}`);
+      return `Background Dark → ${background}`;
+    },
+  },
+  {
+    id: "FW-105", feature: "⌘F Find and replace: the matches counted, Enter selects the next, Replace all writes every match in one edit (one ⌘Z)", wp: "F10 2026-10-19",
+    async run(ctx) {
+      const body = '<Stack gap="sm">\n<Text>Invoice due tomorrow</Text>\n<Text>Two invoices are late</Text>\n<Button>Pay invoice</Button>\n</Stack>';
+      const { page, id } = await seededPage(ctx, (title) => grow(newPageText({ title, device: "desktop", chrome: false }), "Stack", body), /Pay invoice/);
+      const source = async () => (await pageText(page, id)) ?? "";
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyF");
+      const input = page.getByRole("searchbox", { name: "Find", exact: true });
+      await input.waitFor({ state: "visible", timeout: 5000 });
+      await input.fill("invoice");
+      await until(async () => /\/ 3$/.test((await page.locator(".studio-find__count").textContent()) ?? ""), { message: "3 matches" });
+      await input.press("Enter");
+      await until(async () => (await selectedName(page)) === "Text", { message: "the first match selected" });
+      await page.getByRole("textbox", { name: "Replace with" }).fill("bill");
+      await page.getByRole("button", { name: "Replace all" }).click();
+      await until(async () => /Pay bill/.test(await source()) && /Two bills/.test(await source()) && /bill due/.test(await source()), { message: "every match replaced" });
+      await page.keyboard.press("Escape");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => /Pay invoice/.test(await source()) && /Two invoices/.test(await source()), { message: "one ⌘Z brings them back" });
+      return "3 matches, Enter selects, Replace all → bill (one edit), ⌘Z → invoice";
+    },
+  },
+  {
     id: "FW-113", feature: "Delete with two frames selected deletes both in one edit; one ⌘Z brings both back", wp: "F3 2026-10-19 · F4 removeFrames", timeout: 40_000,
     async run(ctx) {
       const { page } = await twoScreensPage(ctx);

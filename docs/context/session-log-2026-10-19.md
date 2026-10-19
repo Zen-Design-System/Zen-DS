@@ -117,3 +117,26 @@ and variable pills, F5c typography, multi-selection, nothing selected, Export, L
   `flipTurn` / `turnOps`, for A's ⇧H / ⇧V). ⇧A on a filled Box → one Stack keeping the paint (autoLayoutPlan; matrix
   12,569 cases, 0 findings). E2E Figma walk FW-50…56.
 - Left: BACKLOG P2 — figma-native.mjs / native-pack (⌘C → ⌘V) do not map a frame's look (no owner session).
+
+## Studio View and Find — F10 (Session C) — tier M, branch `zen/feat/studio-f10-view-20261019` (from main, not stacked)
+
+- **View options** (`canvas/viewOptions.ts`, this browser's, localStorage): Pixel grid ⌘' (on), Outlines ⌘Y (Mac;
+  Ctrl+Y stays Redo elsewhere), Rulers ⇧R, Layout guides ⌃G (Ctrl+Alt+G elsewhere) — `canvas/viewKeys.ts`, Actions
+  rows, Shortcuts rows; the four leave figmaNotYet. Zoom 2 %–25 600 % (`MAX_ZOOM` 256, steps double past 400 %;
+  `FIT_MAX_ZOOM` 4 keeps zoom-to-fit as before); the pixel grid (a hairline per world px) from 400 %. Outlines: CSS on
+  the frames' layers (Border/Neutral/Solid hairlines, fills / shadows / pictures off).
+- **Rulers and guides** (`canvas/Rulers.tsx`): rulers along the canvas between the panels, in the board's coordinates
+  (the frames' X / Y; 0 at the selected frame's top-left); a guide dragged from a ruler belongs to the frame it lands on
+  (else the canvas), moves by dragging, goes when dropped on its ruler. Page header `guides` (outside ⌘Z, as the
+  page's OS). Found while testing: the selection layer's capture sat above the rulers (now z 20) and the world's 0 is
+  not the board's (offset of the frames' container).
+- **Layout guides** (`canvas/LayoutGuides.tsx`, `canvas/LayoutGuidePanel.tsx` in FramePanel for Screens): Columns /
+  Rows / Grid; columns and rows between the frame's own `--zen-margin-comfortable` with `--zen-gutter` (its device's
+  Breakpoint & Grids mode); header `layoutGuides` by frame. Default counts 12 / 8 / 4 → BACKLOG (designer).
+- **Canvas Background** (`canvas/CanvasBackground.tsx`, Page panel with nothing selected): Canvas · Canvas Alt · Canvas
+  Flat · Surface · Neutral · Dark (Neutral/Solid; Inverse/Solid is white in light mode); frame names read in Inverse
+  content on Dark. Header `canvas`.
+- **Find and replace** (`edit/FindPanel.tsx`, pure `edit/findModel.ts` + selftest 4): ⌘F on any page (pages you made
+  search their layers), Enter / ⇧Enter step and select, Replace all = one `many` setProps edit with `setText` ops (one
+  line in arrange.mjs, Session A agreed).
+- **Tests:** findModel selftest 4; Figma walk FW-100…105.

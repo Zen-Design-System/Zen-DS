@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio's View and Find like Figma (F10 of the parity plan): zoom from 2 % to 25 600 % (zoom to fit still stops
+  at 400 %), the pixel grid from 400 % (⌘'), Outlines (⌘Y), rulers (⇧R) with guides dragged onto a frame or the canvas
+  (back onto the ruler deletes one), layout guides on a frame (right panel › Layout guide: Columns, Rows or Grid; margin
+  and gutter from Breakpoint & Grids; ⌃G shows or hides them), a page's canvas Background (Zen background tokens), and
+  Find and replace (⌘F: step through the matching text layers, Replace all in one edit). Guides, layout guides and the
+  background are the page's (its header); the view options are this browser's.
 - Zen Studio frames, presets and sections like Figma (F4 of the parity plan): with the Frame tool (F / A) the right
   panel lists Figma's frame presets (Phone, Tablet, Desktop, Presentation, Watch, Paper, Social media; Zen's devices
   first) and a preset makes an empty frame of that size beside the frames; a click on the canvas makes a 100 × 100 frame

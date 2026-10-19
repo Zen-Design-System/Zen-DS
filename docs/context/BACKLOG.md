@@ -18,6 +18,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
   rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4); `tools/studio/figma-native.mjs` /
   `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with the user.
+- **P2 · Layout guide column count by device — designer (2026-10-19, Studio F10, Session C):** Breakpoint & Grids has
+  Margin-Comfortable and Gutter but no column count; a new layout guide starts with 12 (desktop) · 8 (tablet) · 4
+  (phone) columns (`DEFAULT_GUIDE_COLUMNS`, builder/store/pageModel.ts). Should Zen add a Columns variable per mode
+  (then the guide reads it), or are these the counts? Also: a Figma push of layout guides waits on that answer.
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
