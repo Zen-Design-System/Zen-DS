@@ -57,3 +57,29 @@ The user (through the progress session): layerPicture is on main (#151), build �
   as list, the frame menu and Quick actions; ShortcutsDialog row; "Copy as PNG" out of FIGMA_NOT_YET and the E2E list.
 - E2E FW-125 (⇧⌘C → PNG at 2x the layer, page unchanged), FW-126 (Copy as SVG at the layer's size; the frame menu's Copy
   as PNG at 2x the Screen's width).
+
+## Session B · Overrides inside nested instances, push and pull (user, 2026-10-20: "tiếp tục", item 2 after "làm mục 1 trước")
+
+Branch `zen/feat/studio-deep-overrides-20261020`, stacked on `zen/feat/studio-pull-overrides-20261020`.
+
+- `dialect.mjs` `layerChain`: resolves a layer path through the nested instances of the page's own components
+  ("Chip/Text"), one step per instance.
+  - It returns `{ main, layer }` per step.
+  - A nested instance resolves in the variant its own values and the outer overrides pick, as the canvas draws it.
+- Push: `figma-push.mjs` builds layerOverrides from the indices to the nested instance in its main, followed by the
+  indices inside its own main.
+  - Overrides are ordered so a nested variant switch comes before the layers inside it.
+  - A Zen component's own layer (`Badge/Dot`) is still a note: it would need NESTED_LAYERS.
+- Pull: `pathAt` follows the indices into a nested page-own instance and continues in its main, in the variant the
+  overrides show.
+  - The reader now also compares nested instances inside nested ones (only slot content is skipped).
+- Panel: `localLayerAt` resolved a layer inside a nested instance in that instance's own variant, while the canvas
+  drew the variant the outer override picked. It now uses the overridden variant.
+- E2E FW-97 (new): ⌘-click through the Toolbar into its Tag's text, type Deep, check `"Tag small/Text"` is written for
+  this Toolbar only. The seed's Toolbar main now also holds a `<Use of="tag-small" />`.
+- Live Zen file test:
+  - The real importer placed the Pill / Tag / Toolbar page (Pill switched to Bold with its Text, Tag's Text and hidden
+    Icon, Pill's Text in Plain), with no notes; the screenshot matched.
+  - The reader read the same indices back, and the converter gave the same overrides.
+  - The QA frame was removed. Fixture `tools/studio/fixtures/figma-deep-overrides.json`.
+- Selftests: push 334, pull 106; studio:selftest passes; tsc is clean.

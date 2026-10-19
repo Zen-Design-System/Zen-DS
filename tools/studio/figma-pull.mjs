@@ -313,10 +313,10 @@ const readLocalInstance = async (node, owner) => {
   // The main's layer at the same child indices (an instance's layers mirror its main's).
   const counterpart = (at) => { let theirs = main; for (const index of at) theirs = theirs && "children" in theirs ? theirs.children[index] : null; return theirs; };
   for (const layer of node.findAll((each) => each.type === "INSTANCE")) {
-    // Its own layers only: not a slot's content, nor a layer of another nested instance (a deeper override).
-    let inner = false;
-    for (let up = layer.parent; up && up.id !== node.id && !inner; up = up.parent) inner = up.type === "SLOT" || up.type === "INSTANCE";
-    if (inner || !pageOwn(ownerOf(await layer.getMainComponentAsync()))) continue;
+    // Not a slot's content (the instance's own layers, below); a nested instance inside a nested one counts (Chip/Icon).
+    let inSlot = false;
+    for (let up = layer.parent; up && up.id !== node.id && !inSlot; up = up.parent) inSlot = up.type === "SLOT";
+    if (inSlot || !pageOwn(ownerOf(await layer.getMainComponentAsync()))) continue;
     const at = indexPath(layer, node);
     const theirs = at ? counterpart(at) : null;
     if (!theirs || theirs.type !== "INSTANCE") continue;
@@ -1988,10 +1988,36 @@ function shownSpec(of, values, ctx) {
 }
 
 /**
+ * The Studio's layer path (instance-paths.mjs) of the layer the child indices `at` reach in the drawn main `spec`, on
+ * through the nested instances of the page's own components it passes ("Chip/Text": the Chip in this main, then the
+ * Text in the Chip's main, in the variant the instance's overrides show: `variantAt` by the nested instance's indices).
+ * Undefined: not a layer of a main on the page.
+ */
+function pathAt(spec, at, ctx, variantAt) {
+  const component = ctx.innerOf.get(spec);
+  const root = component?.children?.find((child) => child.kind === "element");
+  if (!root) return undefined;
+  const paths = instanceLayerPaths(root, (use) => ctx.local.names.get(use.props.of?.value) ?? null);
+  let target = spec;
+  for (let step = 0; step < at.length; step++) {
+    target = target?.children?.[at[step]];
+    if (!target) return undefined;
+    if (target.type === "INSTANCE" && step < at.length - 1) {
+      const prefix = paths.get(ctx.innerOf.get(target));
+      const outer = at.slice(0, step + 1);
+      const inner = prefix === undefined ? null : shownSpec(target.local, { ...(target.variant ?? {}), ...(variantAt(outer) ?? {}) }, ctx);
+      const rest = inner ? pathAt(inner, at.slice(step + 1), ctx, (deeper) => variantAt([...outer, ...deeper])) : undefined;
+      return rest === undefined ? undefined : `${prefix}/${rest}`;
+    }
+  }
+  return paths.get(ctx.innerOf.get(target));
+}
+
+/**
  * Each instance's overrides of its main's layers (figma-push layerOverrides, the reader's instance.overrides), as
- * `<Use overrides>` by the Studio's layer paths (instance-paths.mjs): the child indices lead to the main's drawn layer,
- * whose element has the path. Characters → its words, visible → hidden, a Content colour → tone, a nested instance's
- * values → variant.X / props.X. An override of a layer the main does not draw (left out of the page) is a note.
+ * `<Use overrides>` by the Studio's layer paths (pathAt; through nested instances: "Chip/Text"). Characters → its
+ * words, visible → hidden, a Content colour → tone, a nested instance's values → variant.X / props.X. An override of a
+ * layer the main does not draw (left out of the page) is a note.
  */
 function settleOverrides(ctx) {
   for (const { element, node, of } of ctx.pendingOverrides ?? []) {
@@ -1999,13 +2025,11 @@ function settleOverrides(ctx) {
     const component = spec ? ctx.innerOf.get(spec) : null;
     const root = component?.children?.find((child) => child.kind === "element");
     if (!root) { ctx.notes.push(`${node.name ?? "Instance"}: its overrides are left out (its main is not on the page)`); continue; }
-    const paths = instanceLayerPaths(root, (use) => ctx.local.names.get(use.props.of?.value) ?? null);
+    // A nested instance's variant as this instance overrides it: the layers inside it are that variant's.
+    const variantAt = (at) => node.layerOverrides.find((override) => (override.at ?? []).join(".") === at.join("."))?.variant ?? null;
     const table = {};
     for (const override of node.layerOverrides) {
-      let target = spec;
-      for (const index of override.at ?? []) target = target?.children?.[index];
-      const layer = target ? ctx.innerOf.get(target) : null;
-      const path = layer ? paths.get(layer) : undefined;
+      const path = pathAt(spec, override.at ?? [], ctx, variantAt);
       if (path === undefined) { ctx.notes.push(`${node.name ?? "Instance"}: an override of a layer at ${(override.at ?? []).join(".")} is left out (not a layer of its main on the page)`); continue; }
       const fields = { ...(table[path]?.fields ?? {}) };
       if (typeof override.characters === "string") fields.children = literal(override.characters);

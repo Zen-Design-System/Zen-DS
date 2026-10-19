@@ -398,6 +398,21 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("overrides (live): no notes", pulled.notes, []);
 }
 
+// The live read (2026-10-20): overrides inside nested instances of the page's own components (figma-push layerOverrides
+// through them), read back by Figma's child indices: the layers inside a nested instance switched to another variant
+// are that variant's (Pill/Text in Bold), in its own variant otherwise (Pill/Text in Plain).
+{
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-deep-overrides.json", import.meta.url), "utf8"));
+  const pulled = pageFromFigma(live.frame, { mapping });
+  const uses = pulled.text.split("\n").map((line) => line.trim()).filter((line) => line.startsWith('<Use of="toolbar"'));
+  check("deep overrides (live): paths through the nested instances, in the variant they show", uses, [
+    '<Use of="toolbar" overrides={{ "Pill/Text": { children: "Bolder" }, "Tag/Icon": { hidden: true }, "Tag/Text": { children: "Inner" }, Pill: { "variant.Tone": "Bold" } }} />',
+    '<Use of="toolbar" overrides={{ "Pill/Text": { children: "Plainer" } }} />',
+    '<Use of="toolbar" />',
+  ]);
+  check("deep overrides (live): no notes, valid dialect", [pulled.notes, validateDialect(pulled.text, { components: new Set(["Icon", "Stack", "Text"]) })], [[], []]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);
