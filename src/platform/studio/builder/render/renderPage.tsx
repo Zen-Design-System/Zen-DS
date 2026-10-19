@@ -339,8 +339,10 @@ function renderComponentNode(node: PageNode, scope: Scope, ctx: RenderContext, k
   // The instance's own layer name and lock (layer-meta.mjs) stand for its root, not the main root's.
   const own: Record<string, unknown> = {};
   for (const prop of [NAME_PROP, LOCKED_PROP]) if (node.props[prop]?.kind === "literal") own[prop] = (node.props[prop] as { value: unknown }).value;
-  // A nested instance inside an instance is part of it (one layer to the first click), as Figma's.
-  const mark = ctx.instance ? {} : { "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": drawn.id, "data-zen-instance-name": drawn.main.name };
+  // A nested instance inside an instance is part of it (one layer to the first click), as Figma's. An instance of a set
+  // is named after the set ("Chip"), never its variant ("Size=Small").
+  const owner = drawn.main.set ? ctx.components?.get(drawn.main.set) : undefined;
+  const mark = ctx.instance ? {} : { "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": drawn.id, "data-zen-instance-name": owner?.kind === "set" ? owner.name : drawn.main.name };
   return renderNode(drawn.main.root, scope, { ...ctx, instance: true, values: drawn.values, chain: [...(ctx.chain ?? []), drawn.id] }, key, { ...extra, ...own, ...mark });
 }
 
