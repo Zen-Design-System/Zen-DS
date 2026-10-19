@@ -2935,4 +2935,35 @@ export const rows = [
       return `SVG ${svg.length} chars (${size.join(" × ")}) · Screen ${frameWidth} wide → PNG ${picture.join(" × ")}`;
     },
   },
+  {
+    id: "FW-127", feature: "⌃⌘M (Use as mask) on two floating shapes: one mask group (Box group mask) whose bottom shape masks the other — the mask draws nothing, the rest is clipped to it — named Mask group in Layers; ⌃⌘M on it removes the mask; ⌘Z", wp: "F9 2026-10-20 · decision 6", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const maskKey = process.platform === "darwin" ? "Control+Meta+KeyM" : "Control+Alt+KeyM";
+      const maskTag = (text) => (text.match(/<Box\b[^>]*\bgroup\b[^>]*>/g) ?? []).find((tag) => /\bmask\b/.test(tag)) ?? null;
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      try {
+        await page.keyboard.press(maskKey);
+        await until(async () => Boolean(maskTag((await pageText(page, id)) ?? "")), { message: "a mask group in the page" });
+        const drawn = await page.evaluate(() => {
+          const box = document.querySelector('.zen-box[data-mask="true"]');
+          const first = box?.firstElementChild;
+          return box ? { clip: getComputedStyle(box).clipPath, mask: first ? getComputedStyle(first).visibility : null, path: Boolean(box.querySelector("clipPath path")?.getAttribute("d")) } : null;
+        });
+        if (!drawn || !/^url\(/.test(drawn.clip) || drawn.mask !== "hidden" || !drawn.path) throw new Error(`the mask is not drawn: ${JSON.stringify(drawn)}`);
+        await showLeftTab(page, "layers");
+        await until(async () => (await page.locator(".studio-layers__tree [role='treeitem']", { hasText: /^\s*Mask group\s*$/ }).count()) > 0 || (await page.locator(".studio-layers__tree").innerText()).includes("Mask group"), { message: "Mask group in Layers" });
+        // Again on the mask group: the mask goes, the layers stay a group.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press(maskKey);
+        await until(async () => { const text = (await pageText(page, id)) ?? ""; return !maskTag(text) && /<Box\b[^>]*\bgroup\b/.test(text); }, { message: "the mask removed, the group kept" });
+      } finally {
+        await undoTo(page, id, before, 6).catch(() => undefined);
+      }
+      if (((await pageText(page, id)) ?? "") !== before) throw new Error("⌘Z did not bring the page back");
+      return `⌃⌘M → ${maskTag(before) ? "?" : "<Box group mask>"} · clip-path url(#…) · the mask hidden · Mask group in Layers · ⌃⌘M again → group · ⌘Z`;
+    },
+  },
 ];

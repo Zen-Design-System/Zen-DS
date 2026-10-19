@@ -11,7 +11,7 @@ import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, 
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem } from "../edit/clipboard";
 import { copyAsCode, copyAsCss, copyAsPng, copyAsPngShortcut, copyAsSvg } from "../edit/copyAs";
-import { groupSelection, ungroupSelection } from "../edit/groupLayers";
+import { groupSelection, inMaskGroup, maskSelection, ungroupSelection } from "../edit/groupLayers";
 import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../edit/pathOps";
 import { selectedFrames } from "../select/frameSelection";
 import { findBySrc } from "../select/picker";
@@ -27,7 +27,7 @@ import { presentFrame, zoomToFrame } from "../board/presentFrame";
 import { canvasApi } from "../canvas/viewport";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
-import { modKey, presentShortcut } from "./modKey";
+import { maskShortcut, modKey, presentShortcut } from "./modKey";
 import { combineAsVariants, createComponent, createComponentOfLayers, createComponents, pushChangesToMain, resetInstance } from "../edit/localComponents";
 import { removeFrames, wrapInSection } from "../builder/proto/addFrame";
 import { canEdit, studioStore } from "../store";
@@ -141,8 +141,12 @@ export function CanvasMenu() {
     { id: "wrap-stack", label: "Add auto layout", icon: "icon-rows-01-line", shortcut: autoLayoutShortcut, caption: wrap.ok || frameAlone ? undefined : wrap.reason, disabled: !wrap.ok && !frameAlone, onSelect: () => { void addAutoLayoutToSelection(); } },
     ...(autoLayoutAlone ? [{ id: "remove-auto-layout", label: "Remove auto layout", icon: "icon-square-line" as const, shortcut: removeAutoLayoutShortcut, onSelect: () => { void removeAutoLayoutFromSelection(); } }] : []),
     { id: "group", label: "Group selection", icon: "icon-layers-two-01-line" as const, shortcut: `${modKey}G`, disabled: !wrap.ok, onSelect: () => { void groupSelection(); } },
+    // ⌃⌘M: the bottom layer masks the others, in a mask group (edit/groupLayers.ts maskSelection).
+    ...(several ? [{ id: "use-as-mask", label: "Use as mask", icon: "icon-contrast-01-line" as const, shortcut: maskShortcut, disabled: !wrap.ok, onSelect: () => { void maskSelection(); } }] : []),
     { id: "wrap-box", label: "Frame selection", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
     // ⇧⌘G on one frame: its layers take its place and keep theirs (edit/groupLayers.ts, F3).
+    // A mask group or its mask: Figma's Use as mask toggles it off (the layers stay a group).
+    ...(selection && !several && !selection.part && inMaskGroup(selection) ? [{ id: "remove-mask", label: "Remove mask", icon: "icon-contrast-01-line" as const, shortcut: maskShortcut, disabled: !canEdit(), onSelect: () => { void maskSelection([selection]); } }] : []),
     ...(selection && !several && /^(Box|Stack|Grid)$/.test(selection.name.slice(selection.name.lastIndexOf(".") + 1)) ? [{ id: "remove-frame", label: selectedIsGroup(selection) ? "Ungroup" : "Remove frame", icon: "icon-square-line" as const, shortcut: modKey === "⌘" ? "⇧⌘G" : "Ctrl+Shift+G", disabled: !canEdit(), onSelect: () => { void ungroupSelection(selection); } }] : []),
   ] : [];
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).

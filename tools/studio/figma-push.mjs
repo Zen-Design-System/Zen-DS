@@ -1433,6 +1433,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // fill, stroke, corners, effect, opacity, rotation and flip: one Figma frame (frameLook).
     // A Box group (⌘G): Figma's GROUP (the importer turns the frame into one once its layers sit where they go).
     const group = element.name === "Box" && code.group === true;
+    // A mask (Box mask, ⌃⌘M): the importer makes the first layer Figma's mask (isMask) once the layers are placed.
+    const mask = element.name === "Box" && code.mask === true;
     // A width / height in px (a free frame drawn in the Studio, Stack width={480}): Figma's Fixed size; the importer
     // hugged it before (2026-10-19, a 560 × 240 free frame came out as tall as its layers in the flow).
     const px = (value) => (/^\d+(\.\d+)?(px)?$/.test(String(value ?? "")) ? Number.parseFloat(String(value)) : null);
@@ -1442,7 +1444,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // without auto layout (layoutMode NONE), its layers at their X / Y (F4, A found it 2026-10-19).
     const layers = element.children.filter((child) => child.kind === "element");
     const free = element.name === "Box" && !group && fixedWidth !== null && fixedHeight !== null && layers.every((child) => literalOf(child.props.position) === "absolute");
-    return { type: "FRAME", ...(id ? { id } : {}), name: group ? "Group" : element.name, ...(group ? { group: true } : {}), layout: free ? { mode: "NONE" } : layout, children, ...frameLook(code, element), ...(fixedWidth !== null ? { fixedWidth } : {}), ...(fixedHeight !== null ? { fixedHeight } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
+    return { type: "FRAME", ...(id ? { id } : {}), name: group ? (mask ? "Mask group" : "Group") : element.name, ...(group ? { group: true } : {}), ...(mask ? { mask: true } : {}), layout: free ? { mode: "NONE" } : layout, children, ...frameLook(code, element), ...(fixedWidth !== null ? { fixedWidth } : {}), ...(fixedHeight !== null ? { fixedHeight } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */

@@ -3,7 +3,7 @@ import { openFind } from "../FindPanel";
 import { toggleViewOption } from "../../canvas/viewKeys";
 import { presentFrame } from "../../board/presentFrame";
 import { canvasApi, zoomIn, zoomOut } from "../../canvas/viewport";
-import { modKey, presentShortcut } from "../../shell/modKey";
+import { maskShortcut, modKey, presentShortcut } from "../../shell/modKey";
 import { detachSelection, detachShortcut, offersDetach } from "../../inspector/detach";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../../select/wrapSelection";
 import { openShortcuts } from "../../shell/shortcutsOpen";
@@ -29,6 +29,7 @@ import { stepFrame } from "../../board/frameOrder";
 import { wrapInSection } from "../../builder/proto/addFrame";
 import { combineAsVariants, createComponentOfLayers, createComponents } from "../localComponents";
 import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../pathOps";
+import { maskSelection } from "../groupLayers";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
 /*
@@ -94,6 +95,7 @@ export function commands(): Command[] {
     // Figma's boolean groups, Flatten and Outline stroke on shapes of a page you made (edit/pathOps.ts, F9b).
     ...(["union", "subtract", "intersect", "exclude"] as const).map((operation) => ({ id: `boolean-${operation}`, group: "Edit", label: `${operation[0].toUpperCase()}${operation.slice(1)} selection`, shortcut: `⌥⇧${operation === "union" ? "U" : operation === "subtract" ? "S" : operation === "intersect" ? "I" : "E"}`, keywords: "boolean shapes combine", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void booleanSelection(operation); } })),
     { id: "flatten", group: "Edit", label: "Flatten", shortcut: `${modKey}E`, keywords: "vector merge shapes", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void flattenSelection(); } },
+    { id: "use-as-mask", group: "Edit", label: "Use as mask", shortcut: maskShortcut, keywords: "mask clip crop shape group", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void maskSelection(); } },
     { id: "outline-stroke", group: "Edit", label: "Outline stroke", shortcut: `⌥${modKey}O`, keywords: "vector stroke fill", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void outlineStrokeSelection(); } },
     { id: "detach", group: "Edit", label: "Detach instance", shortcut: detachShortcut, disabled: editOff ?? (node && !offersDetach(node.name) ? "Select an instance" : undefined), run: () => { if (node) void detachSelection(node); } },
     { id: "undo", group: "Edit", label: "Undo", shortcut: `${modKey}Z`, disabled: state.undo.length ? undefined : "Nothing to undo", run: () => { void undoEdit(); } },

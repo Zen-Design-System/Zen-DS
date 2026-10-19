@@ -350,6 +350,20 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   const pinnedText = pageFromFigma(pinned, { mapping }).text;
   const pinnedBox = pinnedText.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? "";
   check("groups: a group out of an auto layout keeps px X / Y", [/insetLeft=\{16\}/.test(pinnedBox), /insetTop=\{80\}/.test(pinnedBox), /constraintX|insetLeft="/.test(pinnedText)], [true, true, false]);
+  // Figma's mask (isMask on the group's bottom layer, read by maskOf): a Zen mask group; a mask higher up is noted.
+  const masked = structuredClone(grouped);
+  masked.children[0].children[0].children[0].isMask = true;
+  const maskBox = pageFromFigma(masked, { mapping }).text.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? "";
+  check("groups: a GROUP whose bottom layer is a mask is a Box group mask", /\bmask\b/.test(maskBox), true);
+  const high = structuredClone(grouped);
+  high.children[0].children[0].children[1].isMask = true;
+  const highPull = pageFromFigma(high, { mapping });
+  check("groups: a mask that is not the bottom layer is left unmasked, with a note", [/\bmask\b/.test(highPull.text.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? ""), highPull.notes.some((note) => /mask is not its bottom layer/.test(note))], [false, true]);
+  const inFlow = structuredClone(grouped);
+  inFlow.children[0].layout = { mode: "VERTICAL" };
+  inFlow.children[0].children = [{ type: "FRAME", name: "Row", layout: { mode: "HORIZONTAL" }, children: [{ ...grouped.children[0].children[0].children[0], isMask: true, absolute: undefined }, { ...grouped.children[0].children[0].children[1], absolute: undefined }] }];
+  check("groups: a mask in an auto layout frame is noted", pageFromFigma(inFlow, { mapping }).notes.some((note) => /mask in an auto layout frame/.test(note)), true);
+  check("figmaReadCode reads isMask in its own function", /const maskOf = \(out, child\) =>/.test(figmaReadCode("1:2")) && /maskOf\(read_, child\)/.test(figmaReadCode("1:2")), true);
   check("figmaReadCode writes a GROUP's width and height", /if \(node\.type === "GROUP"\) Object\.assign\(out, \{ width:/.test(figmaReadCode("1:2")), true);
 }
 

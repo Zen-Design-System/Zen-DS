@@ -420,6 +420,11 @@ const DRAWING = new Set(["VECTOR", "RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLY
 const SHAPE_READ = new Set(["RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "VECTOR", "BOOLEAN_OPERATION"]);
 // A child that fills its auto-layout parent on an axis (Figma's Fill container), or one placed outside the auto layout
 // (Ignore auto layout): its constraints and its box in the parent's.
+// Figma's mask (isMask, Use as mask): the layer masks the ones above it in its parent (Zen Box mask, its first layer).
+const maskOf = (out, child) => {
+  if ("isMask" in child && child.isMask === true) out.isMask = true;
+  return out;
+};
 const placed = (out, child, parent) => {
   // A GROUP has no constraints (Figma throws on reading them): its edges are its layers', read as left / top.
   const constraints = "constraints" in child ? child.constraints : { horizontal: "MIN", vertical: "MIN" };
@@ -622,6 +627,7 @@ const readFrame = async (node, root = false) => {
     // A grid's child: its cell (column and row from 0, its spans).
     if (own("layoutMode") === "GRID") read_.cell = { col: child.gridColumnAnchorIndex, row: child.gridRowAnchorIndex, span: child.gridColumnSpan, rowSpan: child.gridRowSpan };
     else placed(read_, child, node);
+    maskOf(read_, child);
     out.children.push(read_);
   }
   return out;
@@ -1861,7 +1867,7 @@ function convertNode(node, ctx) {
   // Figma's GROUP: a Zen group (Box group) of its layers at their X / Y inside it, sized to them (figma-push, the other way).
   if (node.type === "GROUP") {
     const { opacity } = frameLookProps(node, ctx);
-    return { kind: "element", name: "Box", props: { group: literal(true), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
+    return { kind: "element", name: "Box", props: { group: literal(true), ...maskProps(node, ctx), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
   }
   return frameElement(node, children, ctx);
 }
@@ -2044,12 +2050,25 @@ function settleOverrides(ctx) {
   }
 }
 
+/**
+ * Figma's mask (the reader's isMask): a group or free frame whose bottom layer masks the others is a Zen Box with
+ * `mask` (its first layer is the mask). A mask higher up masks only the layers above it, which Box mask cannot say: noted.
+ */
+function maskProps(node, ctx) {
+  const index = (node.children ?? []).findIndex((child) => child.isMask);
+  if (index < 0) return {};
+  if (index > 0) { ctx.notes.push(`"${node.name}": its mask is not its bottom layer; left unmasked (Use as mask on the layers it masks)`); return {}; }
+  return { mask: literal(true) };
+}
+
 /** A frame (or a slot) as a Stack in its auto layout; Figma's grid layout as a Grid. */
 function frameElement(node, children, ctx) {
   // figma-push centres an AiChatBlock in a frame of its name: the block itself.
   if (node.name === "AiChatBlock" && children.length === 1 && children[0].name === "AiChatBlock") return children[0];
   const props = {};
   const layout = node.layout;
+  // A mask in an auto layout frame (a plugin can make one): Box mask holds it only in a group or a free frame.
+  if ((layout || !node.fixed) && (node.children ?? []).some((child) => child.isMask)) ctx.notes.push(`"${node.name}": a mask in an auto layout frame is left out; its mask layer draws (Use as mask on a group)`);
   // A wrapping row whose layers all fill it, or a grid whose cells all keep, the same minimum width: a Grid of columns
   // that fit (figma-push draws one so, a grid where it knows the page's width; minColumnWidth).
   const cells = children.map((child) => SOURCE.get(child));
@@ -2064,7 +2083,7 @@ function frameElement(node, children, ctx) {
   // other way; positioned() gave them px insets).
   if (!layout && node.fixed) {
     const look = frameLookProps(node, ctx);
-    return { kind: "element", name: "Box", props: { width: literal(node.fixed.w), height: literal(node.fixed.h), ...look, ...(node.clip ? { clip: literal(true) } : {}) }, children };
+    return { kind: "element", name: "Box", props: { ...maskProps(node, ctx), width: literal(node.fixed.w), height: literal(node.fixed.h), ...look, ...(node.clip ? { clip: literal(true) } : {}) }, children };
   }
   // A column of List-Items (figma-push draws List as one): a List, which spaces its rows itself (Gap/3XSmall).
   if (!grid && layout?.mode !== "HORIZONTAL" && children.length && children.every((child) => child.name === "ListItem") && !node.fill && !node.scroll) {

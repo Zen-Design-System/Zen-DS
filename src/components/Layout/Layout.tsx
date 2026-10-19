@@ -8,6 +8,7 @@ import { frameAppearance, frameCorners, type FrameAppearanceProps, type FrameTra
 import { useImageFill } from "../_shared/image-fill";
 import { cornerRadiusValue } from "../_shared/corners";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { useBoxMask } from "./mask";
 
 export type { ZenCornerRadius, ZenGap, ZenMargin, ZenPadding };
 export { layoutAlignSelfValues, type LayoutAlignSelf, type LayoutSizing, type LayoutSizingProps, type LayoutWidthProps } from "./sizing";
@@ -242,6 +243,12 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
    * ignored. It moves, turns, flips and fades (opacity) as one.
    */
   group?: boolean;
+  /**
+   * Figma's mask (Zen Studio ⌃⌘M "Use as mask", Figma `isMask` on the group's bottom layer): the box's first layer is
+   * the mask and the layers after it show only inside its outline (a Shape's outline, or a layer's box with its
+   * corners, turned and flipped as drawn). The mask layer itself draws nothing. Mostly on a `group`.
+   */
+  mask?: boolean;
   as?: LayoutElement;
   children?: ReactNode;
   /** Ref to the rendered DOM element (the `as` element when set). */
@@ -253,7 +260,7 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
  * around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,
  * which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
  */
-export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
+export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   // A group (Figma's) has no look of its own: only its opacity, rotation and flip.
@@ -261,12 +268,16 @@ export function Box({ padding, paddingX, paddingY, surface = "none", border = "n
   const pad = group ? {} : { block: paddingY ?? padding, inline: paddingX ?? padding };
   // A group (Figma's) has no fill: no picture either.
   const picture = useImageFill(group ? {} : { image, imageFit, imageCrop, imageScale });
+  // A mask (Figma's): the first layer's outline clips the rest (mask.tsx).
+  const masked = useBoxMask(Boolean(mask));
+  const merged = useMergedRefs(masked.ref, ref);
   return (
     <Element
       {...rest}
-      ref={ref as never}
+      ref={merged as never}
       className={["zen-box", className].filter(Boolean).join(" ")}
       data-group={group ? "true" : undefined}
+      data-mask={mask ? "true" : undefined}
       data-scroll={group ? undefined : scroll}
       data-padded={pad.inline && pad.inline !== "none" ? "true" : undefined}
       {...sizing.attributes}
@@ -281,9 +292,11 @@ export function Box({ padding, paddingX, paddingY, surface = "none", border = "n
         ...sizing.vars,
         ...placed.vars,
         ...look.vars, ...picture.vars,
+        ...masked.vars,
       })}
     >
       {children}
+      {masked.defs}
     </Element>
   );
 }

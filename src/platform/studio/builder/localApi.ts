@@ -65,7 +65,8 @@ async function withBooleans(engine: Engine, edited: Edited, file: string, option
   const hasGroups = /\sgroup[\s/>]/.test(edited.text);
   const hasBooleans = edited.text.includes('type="boolean"');
   if (!hasGroups && !hasBooleans) return edited;
-  const kit = hasBooleans ? await loadPathKit() : null;
+  // PathKit not loaded (offline, a missing install): the edit still goes in and groups still fit; results stay as they are.
+  const kit = hasBooleans ? await loadPathKit().catch(() => null) : null;
   const components = new Set(zenComponents);
   let current = edited;
   for (let round = 0; round < 24; round++) {
