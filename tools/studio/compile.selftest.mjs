@@ -246,6 +246,49 @@ export default function Page() {
   ok("components: no builder names", !/<(Component|Use)\b/.test(out.code));
 }
 
+// A component set (Figma's Combine as variants) exports as one function: its variant properties and component properties
+// are its props, each variant one return; instances pass their values (F7, 2026-10-19).
+{
+  const page = `// @zen-page {"format":1,"title":"Chips"}
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Icon, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Chips">
+        <Stack>
+          <ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true }, Icon: { type: "swap", default: "icon-star-line" } }}>
+            <Component id="chip-small" variant={{ Size: "Small" }}>
+              <Stack direction="row">
+                <Icon name="icon-star-line" data-prop-visible="Show icon" data-prop-swap="Icon" />
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+            <Component id="chip-large" variant={{ Size: "Large" }}>
+              <Stack direction="row" gap="sm">
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+          </ComponentSet>
+          <Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done", "Show icon": false }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const out = compileReact(page, { file: "chips.zen.tsx" });
+  ok("sets: no error", !out.error);
+  ok("sets: one function with variant and property props", out.code.includes('function Chip({ size = "Small", label = "Filter", showIcon = true, icon = "icon-star-line" }: { size?: "Small" | "Large"; label?: string; showIcon?: boolean; icon?: string })'));
+  ok("sets: a return per variant", out.code.includes('if (size === "Large") return ('));
+  ok("sets: bindings read the props", out.code.includes("{showIcon && (") && out.code.includes("name={icon}") && out.code.includes("{label}"));
+  ok("sets: the instance passes its values", out.code.includes('<Chip size="Large" label="Done" showIcon={false} />'));
+  ok("sets: no binding attributes, no set frame element", !/data-prop-|<ComponentSet\b/.test(out.code));
+}
+
 if (failures.length) {
   console.error(`✗ compile selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

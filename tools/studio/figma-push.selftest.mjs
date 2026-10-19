@@ -1125,6 +1125,44 @@ export default function Looks() {
   check("frame look: one side, dash, rotation, flip", [rule.stroke, rule.strokeSides, rule.dash, rule.rotation, rule.flip], ["Border/Neutral/Subtle/Default", "bottom", [2, 2], 15, "horizontal"]);
   check("frame look: a Box keeps its look", [box.fill, box.radius], ["Background/Neutral/Subtle/Default", 12]);
   check("round trip: frame looks come back on the same elements", shape(pageFromFigma(push(looks).frame, { mapping }).text), shape(looks));
+  // A component set (F7): COMPONENT_SET of variants named by their values, its properties defined on it, a bound layer's
+  // references, an instance's variant and property values.
+  const chips = `// @zen-page {"format":1,"title":"Chips"}
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Icon, Stack, Text } from "@zen-ds/react";
+
+export default function Chips() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Chips" device="desktop">
+        <Stack gap="lg" padding="xl">
+          <ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true } }}>
+            <Component id="chip-small" variant={{ Size: "Small" }}>
+              <Stack direction="row">
+                <Icon name="icon-star-line" data-prop-visible="Show icon" />
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+            <Component id="chip-large" variant={{ Size: "Large" }}>
+              <Stack direction="row" gap="sm">
+                <Text data-prop-text="Label">Filter</Text>
+              </Stack>
+            </Component>
+          </ComponentSet>
+          <Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const [setNode, instanceNode] = push(chips).frame.children;
+  check("set: COMPONENT_SET of named variants", [setNode.type, setNode.local, setNode.children.map((variant) => [variant.type, variant.name])], ["COMPONENT_SET", "chip", [["COMPONENT", "Size=Small"], ["COMPONENT", "Size=Large"]]]);
+  check("set: its properties", setNode.properties, [{ name: "Label", type: "TEXT", default: "Filter" }, { name: "Show icon", type: "BOOLEAN", default: true }]);
+  const bound = find(setNode.children[0], (node) => node.type === "TEXT");
+  const hidden = find(setNode.children[0], (node) => node.propRefs?.visible);
+  check("set: bound layers", [bound?.propRefs, hidden?.propRefs], [{ characters: "Label" }, { visible: "Show icon" }]);
+  check("set: an instance's variant and values", [instanceNode.type, instanceNode.local, instanceNode.variant, instanceNode.props], ["INSTANCE", "chip", { Size: "Large" }, { Label: "Done", "Show icon": true }]);
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
 import { Board, Screen } from "@zen-ds/react/builder";
 import { Grid, Stack, Text } from "@zen-ds/react";

@@ -14,6 +14,7 @@
 // draws it (a frame of Data-Rows, header and content cells) and pictures (`images`, filled by the caller: the plugin has
 // no network).
 import { docFromText } from "./doc.mjs";
+import { PROPERTY_BINDINGS, componentSets, localComponents, resolveInstance, variantName } from "./dialect.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -396,14 +397,25 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const localNames = new Map();
   const collect = (node) => {
     if (!node || node.kind !== "element") return;
-    if (node.name === "Component" && node.props.id?.kind === "literal") localNames.set(String(node.props.id.value), String(node.props.name?.value ?? node.props.id.value));
+    if ((node.name === "Component" || node.name === "ComponentSet") && node.props.id?.kind === "literal") localNames.set(String(node.props.id.value), String(node.props.name?.value ?? node.props.id.value));
     for (const value of Object.values(node.props)) if (value?.kind === "element") collect(value.node);
     for (const child of node.children ?? []) collect(child.kind === "map" ? child.node : child);
   };
   collect(doc.board);
+  // The page's components and sets (dialect.mjs): a variant's name and values, a set's properties, an instance's values.
+  const localModel = { mains: localComponents(doc.board), sets: componentSets(doc.board) };
+  /** Figma's component property types by the page's (dialect.mjs COMPONENT_PROPERTY_TYPES). */
+  const PROPERTY_TYPE = { text: "TEXT", boolean: "BOOLEAN", swap: "INSTANCE_SWAP", slot: "SLOT" };
+  const figmaProperties = (properties) => properties.map((property) => ({ name: property.name, type: PROPERTY_TYPE[property.type], ...(property.default !== undefined ? { default: property.default } : {}), ...(property.preferred ? { preferred: property.preferred } : {}) }));
+  /** A layer of a main bound to a component property: Figma's componentPropertyReferences by the property's name. */
+  const REFERENCE = { "data-prop-text": "characters", "data-prop-visible": "visible", "data-prop-swap": "mainComponent" };
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
+    if (node && element.kind === "element") {
+      const refs = Object.fromEntries(Object.keys(PROPERTY_BINDINGS).flatMap((attr) => (element.props[attr]?.kind === "literal" && REFERENCE[attr] ? [[REFERENCE[attr], String(element.props[attr].value)]] : [])));
+      if (Object.keys(refs).length) node.propRefs = refs;
+    }
     // The name the person gave a frame, shape or text (data-name, layer-meta.mjs) is its Figma name.
     const given = element.kind === "element" && FIGMA_NAMED.has(element.name) ? givenNameOf(element) : null;
     if (node && given) node.name = given;
@@ -440,12 +452,25 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "Shape") node = shapeNode(code, id);
     // A page's own component: its main as Figma's COMPONENT around its layer, each instance an INSTANCE of it (the
     // importer makes the main first, then the instances; `local` is the page's component id).
-    else if (element.name === "Component") {
+    else if (element.name === "ComponentSet") {
+      // Figma's component set: its variants side by side in a wrapping row (the set frame), its properties defined on it.
+      const set = localModel.sets.find((entry) => entry.node === element);
+      const variants = element.children.filter((child) => child.kind === "element" && child.name === "Component").map((child) => convert(child, { direction: "row", stretch: false, width: null })).filter(Boolean);
+      node = { type: "COMPONENT_SET", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component set"), ...(id ? { id } : {}), ...(typeof code.description === "string" ? { description: code.description } : {}), properties: figmaProperties(set?.properties ?? []), layout: { mode: "HORIZONTAL", wrap: true, gap: 24, rowGap: 24, padding: [24, 24, 24, 24], counter: "MIN", primary: "MIN" }, children: variants, hugW: true, hugH: true };
+    } else if (element.name === "Component") {
       const root = element.children.find((child) => child.kind === "element");
       const inner = root ? convert(root, parent) : null;
+      const main = localModel.mains.find((entry) => entry.node === element);
+      // A variant is named by its values ("Size=Small"), as Figma names one; a lone main carries its own properties.
+      const named = main?.set ? { name: variantName(main.variant), variant: main.variant } : { name: String(code.name ?? code.id ?? "Component"), ...(main?.properties.length ? { properties: figmaProperties(main.properties) } : {}) };
       // The main hugs its layer (Figma's component frame around one layer); the layer keeps its own sizing inside.
-      node = { type: "COMPONENT", local: String(code.id ?? ""), name: String(code.name ?? code.id ?? "Component"), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
-    } else if (element.name === "Use") node = { type: "INSTANCE", local: String(code.of ?? ""), name: localNames.get(String(code.of ?? "")) ?? "Instance", ...(id ? { id } : {}), hugW: true, hugH: true };
+      node = { type: "COMPONENT", local: String(code.id ?? ""), ...named, ...(typeof code.description === "string" ? { description: code.description } : {}), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
+    } else if (element.name === "Use") {
+      // An instance of a set or a main, with its variant values and its property values (setProperties in the importer).
+      const resolved = resolveInstance(doc.board, element, localModel);
+      const local = resolved?.set?.id ?? String(code.of ?? "");
+      node = { type: "INSTANCE", local, name: localNames.get(local) ?? "Instance", ...(resolved?.set ? { variant: resolved.variant } : {}), ...(resolved && Object.keys(resolved.values).length ? { props: resolved.values } : {}), ...(id ? { id } : {}), hugW: true, hugH: true };
+    }
     else if (element.name === "Text" || element.name === "Heading") {
       const align = { center: "CENTER", end: "RIGHT", justify: "JUSTIFIED" }[code.align];
       // Text.tsx's defaults: Body/Base/Regular in Neutral Strongest; a tone paints with its Color/Content variable.

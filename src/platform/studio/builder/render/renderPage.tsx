@@ -53,12 +53,27 @@ export type RenderContext = {
   /** The layout of the frame being drawn (a Screen's device and `layout`): a layer `hidden="mobile"` is left out on a
    *  mobile Screen only (tools/studio/visibility.mjs). Overlays have none: only `hidden` alone hides there. */
   layout?: "mobile" | "desktop";
-  /** The page's main components by id: each one's root layer and name (`<Component>`), for its instances (`<Use>`). */
-  components?: ReadonlyMap<string, { root: PageNode; name: string }>;
+  /** The page's main components and component sets by id (`<Component>`, `<ComponentSet>`), for their instances (`<Use>`). */
+  components?: LocalComponents;
   /** Drawing an instance's layers: they carry no mark of their own (the instance is one layer, its root carries the
    *  `<Use>`'s), so a click anywhere on it selects the instance, as Figma's first click does. */
   instance?: boolean;
+  /** The drawn instance's component property values (Figma's text, boolean and instance swap properties) by name. */
+  values?: Readonly<Record<string, unknown>>;
+  /** The mains being drawn, outermost first: an instance of one of them inside itself draws nothing (no endless loop). */
+  chain?: readonly string[];
 };
+
+/** A component property of a page's component (tools/studio/dialect.mjs COMPONENT_PROPERTY_TYPES). */
+export type LocalProperty = { name: string; type: "text" | "boolean" | "swap" | "slot"; default?: unknown };
+/** A page's main component (`<Component>`): its layer, name, set and variant values, and its properties. */
+export type LocalMain = { kind: "main"; root: PageNode; name: string; set?: string; variant?: Readonly<Record<string, string>>; properties: readonly LocalProperty[] };
+/** A page's component set (`<ComponentSet>`, Figma's Combine as variants): its variants' ids in order and its properties. */
+export type LocalSet = { kind: "set"; name: string; variants: readonly string[]; properties: readonly LocalProperty[] };
+export type LocalComponents = ReadonlyMap<string, LocalMain | LocalSet>;
+
+/** The layer attributes that bind a main's layer to a component property (dialect.mjs PROPERTY_BINDINGS). */
+const BINDINGS = { text: "data-prop-text", visible: "data-prop-visible", swap: "data-prop-swap" } as const;
 
 type Scope = Record<string, unknown>;
 
@@ -223,55 +238,121 @@ export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key
   return element;
 }
 
-/** The page's main components (`<Component id name>` around one layer) by id, for renderFrame's context. */
-export function componentsOf(board: PageNode | null): Map<string, { root: PageNode; name: string }> {
-  const out = new Map<string, { root: PageNode; name: string }>();
-  const visit = (node: PageNode) => {
-    if (node.name === "Component") {
-      const id = node.props.id?.kind === "literal" ? String(node.props.id.value) : "";
-      const name = node.props.name?.kind === "literal" ? String(node.props.name.value) : id;
-      const root = node.children.find((child): child is PageNode => child.kind === "element");
-      if (id && root) out.set(id, { root, name });
+const literalOf = (value: PageValue | undefined) => (value?.kind === "literal" ? value.value : undefined);
+/** A `properties={{ … }}` prop as LocalProperty[] (malformed entries left out: the dialect names them). */
+function propertiesOf(node: PageNode | undefined): LocalProperty[] {
+  const value = node?.props.properties;
+  if (value?.kind !== "object") return [];
+  return Object.entries(value.fields).flatMap(([name, field]) => {
+    if (field.kind !== "object") return [];
+    const type = literalOf(field.fields.type);
+    if (type !== "text" && type !== "boolean" && type !== "swap" && type !== "slot") return [];
+    return [{ name, type, default: literalOf(field.fields.default) }];
+  });
+}
+/** An object prop of literals (`variant={{ Size: "Small" }}`) as a plain object. */
+function literalsOf(value: PageValue | undefined): Record<string, unknown> {
+  if (value?.kind !== "object") return {};
+  return Object.fromEntries(Object.entries(value.fields).flatMap(([key, field]) => (field.kind === "literal" ? [[key, field.value]] : [])));
+}
+
+/** The page's main components and component sets by id, for renderFrame's context. */
+export function componentsOf(board: PageNode | null): Map<string, LocalMain | LocalSet> {
+  const out = new Map<string, LocalMain | LocalSet>();
+  const visit = (node: PageNode, set: PageNode | null) => {
+    if (node.name === "ComponentSet") {
+      const id = String(literalOf(node.props.id) ?? "");
+      const variants = node.children.flatMap((child) => (child.kind === "element" && child.name === "Component" ? [String(literalOf(child.props.id) ?? "")] : [])).filter(Boolean);
+      if (id) out.set(id, { kind: "set", name: String(literalOf(node.props.name) ?? id), variants, properties: propertiesOf(node) });
     }
-    for (const value of Object.values(node.props)) if (value.kind === "element") visit(value.node);
+    if (node.name === "Component") {
+      const id = String(literalOf(node.props.id) ?? "");
+      // A variant that writes no values takes Figma's Combine as variants names by its place (dialect.mjs defaultVariant).
+      const place = set ? set.children.filter((child) => child.kind === "element" && child.name === "Component").indexOf(node) : -1;
+      const variant = set ? (node.props.variant ? literalsOf(node.props.variant) as Record<string, string> : { "Property 1": place === 0 ? "Default" : `Variant${place + 1}` }) : undefined;
+      const name = variant ? Object.entries(variant).map(([key, value]) => `${key}=${value}`).join(", ") : literalOf(node.props.name) ?? id;
+      const root = node.children.find((child): child is PageNode => child.kind === "element");
+      if (id && root) out.set(id, { kind: "main", root, name: String(name), ...(set ? { set: String(literalOf(set.props.id) ?? ""), variant } : {}), properties: propertiesOf(set ?? node) });
+    }
+    for (const value of Object.values(node.props)) if (value.kind === "element") visit(value.node, null);
     for (const child of node.children) {
-      if (child.kind === "element") visit(child);
-      else if (child.kind === "map") visit(child.node);
+      if (child.kind === "element") visit(child, node.name === "ComponentSet" ? node : null);
+      else if (child.kind === "map") visit(child.node, null);
     }
   };
-  if (board) visit(board);
+  if (board) visit(board, null);
   return out;
 }
 
 /** What the page's main components say, as one short string: a render cache's env takes it, so an edit of a main draws
  *  its instances again (they are drawn from the main, which their own nodes do not show). */
-export function componentsKey(components: ReadonlyMap<string, { root: PageNode; name: string }>, ids?: ReadonlyMap<string, string>): string {
-  return [...components].map(([id, main]) => `${id}:${main.name}:${signatureOf(main.root, ids)}`).join("|");
+export function componentsKey(components: LocalComponents, ids?: ReadonlyMap<string, string>): string {
+  return [...components].map(([id, entry]) => (entry.kind === "set"
+    ? `${id}:set:${entry.name}:${entry.variants.join(",")}:${JSON.stringify(entry.properties)}`
+    : `${id}:${entry.name}:${JSON.stringify(entry.variant ?? null)}:${JSON.stringify(entry.properties)}:${signatureOf(entry.root, ids)}`)).join("|");
+}
+
+/**
+ * The main an instance draws and its property values (dialect.mjs resolveInstance, on the render's map): the main `of`
+ * names, or its set's first variant, with `variant` values over it (the variant matching most of them); each property's
+ * default, then `props`.
+ */
+export function instanceOf(components: LocalComponents | undefined, use: PageNode): { id: string; main: LocalMain; values: Record<string, unknown> } | null {
+  const of = String(literalOf(use.props.of) ?? "");
+  const entry = components?.get(of);
+  if (!entry) return null;
+  const setId = entry.kind === "set" ? of : entry.set;
+  const set = setId ? components?.get(setId) : undefined;
+  const pool = (set?.kind === "set" ? set.variants : [of]).flatMap((id) => { const main = components?.get(id); return main?.kind === "main" ? [{ id, main }] : []; });
+  if (!pool.length) return null;
+  const start = entry.kind === "main" ? { id: of, main: entry } : pool[0];
+  const wanted = { ...(start.main.variant ?? {}), ...literalsOf(use.props.variant) };
+  const score = (candidate: { main: LocalMain }) => Object.entries(wanted).filter(([key, value]) => candidate.main.variant?.[key] === value).length;
+  const chosen = pool.reduce((best, candidate) => (score(candidate) > score(best) ? candidate : best), start);
+  const given = literalsOf(use.props.props);
+  const values = Object.fromEntries(chosen.main.properties.map((property) => [property.name, Object.prototype.hasOwnProperty.call(given, property.name) ? given[property.name] : property.default]));
+  return { ...chosen, values };
 }
 
 /**
  * Figma's main component (`<Component>`) is its layer: no element of its own, its root layer is marked as the main
  * (◇ in Layers, the purple outline); an instance (`<Use of>`) draws its main's layers again, marked as the instance
- * (one layer: its root carries the `<Use>`'s mark and name). An edit of the main shows in every instance at once.
+ * (one layer: its root carries the `<Use>`'s mark and name), with its variant and property values. A component set
+ * (`<ComponentSet>`) is Figma's set frame: its variants side by side. An edit of the main shows in every instance at once.
  */
 function renderComponentNode(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
+  if (node.name === "ComponentSet") {
+    const id = String(literalOf(node.props.id) ?? "");
+    const name = String(literalOf(node.props.name) ?? id);
+    return createElement(Zen.Stack, { key, direction: "row", wrap: true, gap: "lg", padding: "lg", align: "start", "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "ComponentSet", "data-zen-set": id, "data-zen-set-name": name, ...extra } as never, ...renderChildren(node.children, scope, ctx));
+  }
   if (node.name === "Component") {
     const root = node.children.find((child): child is PageNode => child.kind === "element");
-    const id = node.props.id?.kind === "literal" ? String(node.props.id.value) : "";
-    const name = node.props.name?.kind === "literal" ? String(node.props.name.value) : id;
-    return root ? renderNode(root, scope, ctx, key, { ...extra, "data-zen-main": id, "data-zen-main-name": name }) : null;
+    const id = String(literalOf(node.props.id) ?? "");
+    const entry = ctx.components?.get(id);
+    const name = entry?.kind === "main" ? entry.name : String(literalOf(node.props.name) ?? id);
+    return root ? renderNode(root, scope, ctx, key, { ...extra, "data-zen-main": id, "data-zen-main-name": name, ...(entry?.kind === "main" && entry.set ? { "data-zen-variant": name } : {}) }) : null;
   }
-  const of = node.props.of?.kind === "literal" ? String(node.props.of.value) : "";
-  const main = ctx.components?.get(of);
-  if (!main || ctx.instance) return null;
+  const drawn = instanceOf(ctx.components, node);
+  // An instance of a main being drawn (directly or through another instance) would draw itself forever.
+  if (!drawn || ctx.chain?.includes(drawn.id)) return null;
   // The instance's own layer name and lock (layer-meta.mjs) stand for its root, not the main root's.
   const own: Record<string, unknown> = {};
   for (const prop of [NAME_PROP, LOCKED_PROP]) if (node.props[prop]?.kind === "literal") own[prop] = (node.props[prop] as { value: unknown }).value;
-  return renderNode(main.root, scope, { ...ctx, instance: true }, key, { ...extra, ...own, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": of, "data-zen-instance-name": main.name });
+  // A nested instance inside an instance is part of it (one layer to the first click), as Figma's.
+  const mark = ctx.instance ? {} : { "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": drawn.id, "data-zen-instance-name": drawn.main.name };
+  return renderNode(drawn.main.root, scope, { ...ctx, instance: true, values: drawn.values, chain: [...(ctx.chain ?? []), drawn.id] }, key, { ...extra, ...own, ...mark });
 }
 
 function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
-  if (node.name === "Component" || node.name === "Use") return renderComponentNode(node, scope, ctx, key, extra);
+  // In an instance, a layer bound to a component property follows its value (Figma: a boolean shows or hides it, a text
+  // property is its text, an instance swap its icon or nested instance).
+  const bound = ctx.values ? { text: literalOf(node.props[BINDINGS.text]), visible: literalOf(node.props[BINDINGS.visible]), swap: literalOf(node.props[BINDINGS.swap]) } : null;
+  if (bound && typeof bound.visible === "string" && ctx.values?.[bound.visible] === false) return null;
+  if (bound && typeof bound.swap === "string" && node.name === "Use" && typeof ctx.values?.[bound.swap] === "string") {
+    node = { ...node, props: { ...node.props, of: { kind: "literal", value: ctx.values[bound.swap] } } };
+  }
+  if (node.name === "Component" || node.name === "ComponentSet" || node.name === "Use") return renderComponentNode(node, scope, ctx, key, extra);
   const component = componentOf(node.name);
   if (!component) return null;
   // A hidden layer (Figma's eye; on one layout only with "mobile" / "desktop") is not drawn: the page keeps it and Layers
@@ -290,6 +371,12 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   }
   prototypeProps(node, props, ctx);
   withStandIns(node.name, props);
+  if (bound && typeof bound.swap === "string" && node.name === "Icon" && typeof ctx.values?.[bound.swap] === "string") props.name = ctx.values[bound.swap];
+  if (bound && typeof bound.text === "string" && ctx.values?.[bound.text] !== undefined) {
+    const initial = initialStateOf(props);
+    if (initial) props.key = `${key ?? ""}~${initial}`;
+    return createElement(component as never, props, String(ctx.values[bound.text]));
+  }
   // A component reads its initial state once, when it mounts (Table defaultSelectedIds, Checkbox defaultChecked, a chart's
   // initialIndex, a nested layer's default in `overrides`): an edit of one starts that component again, so the canvas
   // shows the new state at once instead of after a reload (user, 2026-10-11).

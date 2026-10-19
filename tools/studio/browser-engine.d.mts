@@ -57,7 +57,15 @@ export function relayoutCode(text: string, range: { start: number; end: number }
   wrap?: { tag: string; set?: Record<string, string | number | true | { code: string } | undefined> };
 }): string;
 
-/** A page's main components (dialect.mjs localComponents): `<Component id name>` and the one layer it holds. */
-export function localComponents(tree: unknown): Array<{ id: string | null; name: string | null; loc: string; node: { loc: string; props: Record<string, unknown> }; root: { loc: string; name: string } | null }>;
+/** A page's component property (dialect.mjs COMPONENT_PROPERTY_TYPES). */
+export type LocalProperty = { name: string; type: "text" | "boolean" | "swap" | "slot"; default?: unknown; preferred?: unknown[] };
+/** A page's main components (dialect.mjs localComponents): `<Component id name>` and the one layer it holds; a variant's set and values. */
+export function localComponents(tree: unknown): Array<{ id: string | null; name: string | null; loc: string; node: { loc: string; props: Record<string, unknown> }; root: { loc: string; name: string } | null; set: string | null; variant: Record<string, string> | null; properties: LocalProperty[]; description?: string; link?: string }>;
+/** A page's component sets (dialect.mjs componentSets): `<ComponentSet>`, its variants, variant properties (axes) and properties. */
+export function componentSets(tree: unknown): Array<{ id: string | null; name: string | null; loc: string; node: { loc: string; props: Record<string, unknown> }; variants: Array<{ id: string | null; loc: string; name: string | null; variant: Record<string, string> | null }>; axes: Array<{ name: string; values: string[] }>; properties: LocalProperty[]; description?: string; link?: string }>;
+/** What an instance draws (dialect.mjs resolveInstance): its main, set, variant values and property values. */
+export function resolveInstance(tree: unknown, use: unknown): { main: { id: string | null; name: string | null }; set: { id: string | null; name: string | null } | null; variant: Record<string, string>; values: Record<string, unknown> } | null;
+/** A variant's name as Figma writes it ("Size=Small, State=Default"). */
+export function variantName(values: Record<string, string> | null | undefined): string;
 /** Every element node of a parsed page's subtree (dialect.mjs eachElement). */
 export function eachElement(node: unknown, visit: (node: { name: string; loc: string; props: Record<string, { kind: string; value?: unknown }> }, parents: unknown[]) => void): void;
