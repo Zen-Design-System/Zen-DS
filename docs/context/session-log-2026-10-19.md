@@ -317,3 +317,7 @@ safety check) and pulled back with `figmaReadCode`. Bugs, each fixed at its owne
   search their layers), Enter / ⇧Enter step and select, Replace all = one `many` setProps edit with `setText` ops (one
   line in arrange.mjs, Session A agreed).
 - **Tests:** findModel selftest 4; Figma walk FW-100…105.
+- **Ship:** gate on da5f7936 (main d56666ec): every step green but Studio E2E 335 / 1 — B-20, because #149's fix
+  (gated 336 / 0) landed after the run started; `--only=figma` 93 / 1 — FW-05 still listed ⇧R as "Rulers isn't in Zen
+  Studio yet", which F10 builds (expectation updated). On e3850527 (766f9871 merged + FW-05 updated): B-20 and FW-05
+  green; tsc, studio:selftest, usage, style green. Giám sát: ship on this evidence.
