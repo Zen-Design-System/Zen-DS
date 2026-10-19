@@ -22,6 +22,7 @@ import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFi
 import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
+import { textSegments } from "./text-runs.mjs";
 import { arcData, normalizeArc, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
 import { zenLabels } from "../../src/components/_shared/labels.ts";
@@ -455,7 +456,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       if (code.tabularNumbers === true) tabular.push(id ?? element.name);
       // A Heading's layer is named for its level ("Heading 2"): Figma has no heading level, and the pull reads it back.
       const name = element.name === "Heading" ? `Heading ${code.level ?? 2}` : null;
-      node = { type: "TEXT", ...(id ? { id } : {}), ...(name ? { name } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}), ...(code.wrap === false ? { autoWidth: true } : {}) };
+      // Words with styles of their own (TextRun): ranges the importer styles with setRange… (text-runs.mjs).
+      const segments = textSegments(element, textStyle, contentToneToken);
+      node = { type: "TEXT", ...(id ? { id } : {}), ...(name ? { name } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(segments ? { segments } : {}), ...(align ? { align } : {}), ...(code.wrap === false ? { autoWidth: true } : {}) };
     } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {}, ...iconSizing(code.size) };
     // FileIcon: Figma's icon-media-file by Format; Flag: Figma's Flag by Name (both on 🍑 Iconography), sized as the code.
     else if (element.name === "FileIcon" && typeof code.format === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.title === "string" ? code.title : `${code.format} file`, set: SETS.fileIcon, props: { Format: FILE_FORMAT[code.format] ?? code.format }, ...iconSizing(code.size) };

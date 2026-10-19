@@ -1762,6 +1762,51 @@ export default function Page() {
   }
 }
 
+// F6b. Mixed styles (TextRun, Figma's styled segments; text-runs.mjs): a Text's styled words go up as segments of its
+//      TEXT layer (bold as the text style's Bold sibling, a tone as its Color/Content variable) and come back as the
+//      same TextRuns; Figma's own ⌘B (a Bold font, no text style) and a non-Zen style come down as bold and a note.
+{
+  const runsPage = `// @zen-page {"format":1,"title":"Runs"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Heading, Stack, Text, TextRun } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Runs" device="desktop">
+        <Stack gap="lg">
+          <Text>Renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base" underline>2 seats</TextRun> are <TextRun italic>unpaid</TextRun>.</Text>
+          <Heading level={2}>Plan <TextRun bold>Pro</TextRun></Heading>
+          <Text>Plain words</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(runsPage);
+  const [renews, heading, plainText] = frame.children;
+  check("TextRun: segments of the TEXT layer, bold as Body/Base/Bold, tone as its variable", renews.segments, [
+    { start: 10, end: 15, textStyle: "Body/Base/Bold" },
+    { start: 17, end: 24, decoration: "UNDERLINE", fill: "Content/Negative/Base" },
+    { start: 29, end: 35, italic: true },
+  ]);
+  check("TextRun: a Heading's style has no Bold sibling: the font's Bold", heading.segments, [{ start: 5, end: 8, bold: true }]);
+  check("TextRun: a plain Text has no segments", plainText.segments, undefined);
+  check("TextRun round trip: the same runs come back", shape(pageFromFigma(frame, { mapping }).text), shape(runsPage));
+  const figmaBold = { type: "FRAME", name: "Runs", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] }, children: [
+    { type: "TEXT", characters: "Due Nov 2 in Mono", textStyle: "Body/Base/Regular", segments: [{ start: 4, end: 9, bold: true }, { start: 13, end: 17, textStyle: "Brand/Mono" }] },
+  ] };
+  const pulled = pageFromFigma(figmaBold, { mapping });
+  ok("Figma ⌘B (a Bold font) comes down as TextRun bold", pulled.text.includes("Due <TextRun bold>Nov 2</TextRun>"));
+  const { compileReact } = await import("./compile.mjs");
+  const exported = compileReact(runsPage, { file: "runs.zen.tsx" }).code;
+  ok("TextRun: the React export writes the runs on one line, as the page does", exported.includes('<Text>Renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base" underline>2 seats</TextRun> are <TextRun italic>unpaid</TextRun>.</Text>') && /import \{[^}]*\bTextRun\b[^}]*\} from "@zen-ds\/react"/.test(exported));
+  ok("a range in a style Zen has not: its words stay, with a note", pulled.text.includes("in Mono") && !pulled.text.includes("Brand/Mono") && pulled.notes.some((note) => /"Brand\/Mono" on "Mono"/.test(note)));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

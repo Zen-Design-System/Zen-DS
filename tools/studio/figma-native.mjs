@@ -461,7 +461,39 @@ class Writer {
       ...this.childFields(spec, parentInfo),
     };
     if (style) node.styleIdForText = { guid: guid(style[0]) };
+    const runs = this.textRuns(spec, font, characters);
+    if (runs) node.textData = { ...node.textData, ...runs };
     return this.push(node, parentInfo);
+  }
+
+  /**
+   * Words with styles of their own (TextRun; figma-push `segments`, text-runs.mjs) as Figma keeps them: a style id per
+   * character and the table of what each id changes (a text style, the font for bold / italic, a decoration, a colour
+   * variable). Bold is the font of Zen's Bold text styles (Inter Semi Bold), as TextRun's emphasis weight.
+   */
+  textRuns(spec, base, characters) {
+    if (!Array.isArray(spec.segments) || !spec.segments.length) return null;
+    const ids = new Array(characters.length).fill(0);
+    const table = [];
+    const emphasis = this.index.styles["Body/Base/Bold"]?.[2]?.fontName?.style ?? "Semi Bold";
+    spec.segments.forEach((segment, index) => {
+      const styleID = index + 1;
+      const own = segment.textStyle ? this.style(segment.textStyle, `Text "${characters}"`) : null;
+      const fields = own ? { styleIdForText: { guid: guid(own[0]) }, ...structuredClone(own[2]) } : {};
+      const font = fields.fontName ?? base.fontName;
+      let weight = font.style.replace(/\s*Italic$/i, "") || "Regular";
+      if (weight === "Italic") weight = "Regular";
+      if (segment.bold && !/bold|black|heavy/i.test(weight)) weight = emphasis;
+      const italic = segment.italic || /italic/i.test(font.style);
+      const fontStyle = italic ? (weight === "Regular" ? "Italic" : `${weight} Italic`) : weight;
+      if (fontStyle !== font.style) fields.fontName = { family: font.family, style: fontStyle, postscript: `${font.family.replace(/\s+/g, "")}-${fontStyle.replace(/\s+/g, "")}` };
+      if (segment.decoration) fields.textDecoration = segment.decoration;
+      if (segment.fill) fields.fillPaints = this.paint(segment.fill, `Text "${characters}"`);
+      if (!Object.keys(fields).length) return;
+      table.push({ styleID, ...fields });
+      for (let at = Math.max(0, segment.start); at < Math.min(characters.length, segment.end); at += 1) ids[at] = styleID;
+    });
+    return table.length ? { characterStyleIDs: ids, styleOverrideTable: table } : null;
   }
 
   /** Paint style fields: the style's id and its paints (Figma shows the paints; the id keeps them bound). */

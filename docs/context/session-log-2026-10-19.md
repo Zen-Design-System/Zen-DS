@@ -105,6 +105,26 @@ Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a ne
 - Paste of plain text with nothing selected already makes a `<Text>` in the frame in view (F3, Session A); not changed.
 - **Tests:** drawModel selftest +2; Figma walk FW-60…66.
 
+## Studio rich text — F6b (Session C; user: rich text API "Component mới TextRun") — tier M, branch `zen/feat/studio-f6b-textrun-20261019` (stacked on F6a)
+
+- **Library:** `TextRun` (`src/components/Text/TextRun.tsx`): a span with `data-bold` / `data-italic` /
+  `data-decoration` / `data-tone` and a text style class; bold is `--zen-emphasis-font-weight-bold`. Guideline rows (Line
+  breaks, Mixed styles), harness `text-run/inside-text` (+ fixtures), platform example "Mixed styles in a sentence", story.
+- **Canvas** (`edit/richText.ts` pure runs + selftest, `edit/richTextEdit.ts`, `edit/RichTextEditor.tsx`): ⌘B ⌘I ⌘U ⇧⌘X
+  toggle a style over the selected words (all have it → off, else on); the plain editor hands over to the rich one at
+  the first format key; a Text with runs opens in the rich editor. Leaving writes the Text again with its runs (one
+  `replaceElement`, one ⌘Z); emptied → deleted. TextRun is transparent to the picker and skipped in Layers; a text layer
+  with runs is named by all its words (`layer-meta.textWordsOf`). Found while testing: Layers listed the run as a
+  "span" layer and named the text by its first words only — both fixed.
+- **Figma** (`tools/studio/text-runs.mjs`): push gives TEXT `segments` ({start, end, textStyle, bold, italic,
+  decoration, fill}; bold = the style's Bold sibling, font Bold only for a Heading); the pull reader reads
+  `getStyledTextSegments` and writes TextRuns; native ⌘C → ⌘V writes `characterStyleIDs` + `styleOverrideTable`; the
+  Zen plugin's importer applies segments (Session B, `studio-import.js applySegments`). `figma-diff` keeps TextRuns as
+  part of their Text (a text change carries the runs, in order; before, a merge put the words first and the runs last).
+  `doc.mjs` / `compile.mjs` write a text with runs on one line as a person writes it.
+- **Tests:** richText selftest 12; figma-push +7 (round trip, React export), figma-native +5, figma-diff +3,
+  layer-meta +1; Figma walk FW-67…69.
+
 ## Session B · Studio parity F5a: one Figma frame is one element, the right panel in Figma's order
 
 Plan `docs/research/studio-figma-design-parity-2026-10-18.md` F5 (decisions 1–2, approved 2026-10-18); spec card

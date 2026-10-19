@@ -268,6 +268,15 @@ async function textTool(page, at, to = null) {
   await page.mouse.up();
 }
 const textEditing = (page) => page.locator("[data-studio-text-editing]").count();
+/** T on the walk frame, `words` typed, the last `select` characters selected (⇧←) and `keys` pressed, then Esc. */
+async function richText(page, id, words, select, keys) {
+  const box = await freeFrame(page, id).boundingBox();
+  await textTool(page, { x: box.x + box.width * 0.55, y: box.y + box.height * 0.7 });
+  await page.keyboard.type(words, { delay: 20 });
+  for (let k = 0; k < select; k++) await page.keyboard.press("Shift+ArrowLeft");
+  for (const key of keys) await page.keyboard.press(key);
+  await page.keyboard.press("Escape");
+}
 /** The walk frame (the Box that holds the two shapes): ⌘-click its Rectangle, then Esc as Figma's Select parent. */
 async function selectWalkFrame(page, id) {
   await clickNamed(page, id, "Shape");
@@ -1442,6 +1451,59 @@ export const rows = [
         await pick("Auto width");
         await until(async () => /^<Text wrap=\{false\}>/.test(await tag()), { message: "Auto width again" });
         return "Auto height → width, Fixed size → width + height, Auto width → wrap={false}";
+      });
+    },
+  },
+  {
+    id: "FW-67", feature: "⌘B on selected words while typing: a TextRun bold inside the Text (Figma's mixed styles); Layers keeps one text layer named by all its words", wp: "F6b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await richText(page, id, "Renews on Nov 2", 5, ["ControlOrMeta+KeyB"]);
+        await until(async () => /<Text wrap=\{false\}>Renews on <TextRun bold>Nov 2<\/TextRun><\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Renews on <TextRun bold>Nov 2</TextRun>" });
+        const weight = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"] .zen-text-run`, { hasText: "Nov 2" }).first().evaluate((element) => Number(getComputedStyle(element).fontWeight));
+        if (!(weight >= 500)) throw new Error(`the run is drawn at weight ${weight}`);
+        await showLeftTab(page, "layers");
+        await until(async () => (await layerRows(page)).some((row) => row.name === "Renews on Nov 2"), { message: "a text layer named Renews on Nov 2" });
+        const rows = await layerRows(page);
+        const text = rows.find((row) => row.name === "Renews on Nov 2");
+        if (text.expanded !== null || rows.some((row) => row.name === "span" || row.name === "Nov 2" || row.name === "TextRun")) throw new Error(`the run is a layer of its own: ${rows.map((row) => `${row.level}:${row.name}`).join(" | ")}`);
+        return `⇧←×5 + ⌘B → Renews on <TextRun bold>Nov 2</TextRun> (weight ${weight}); one layer "Renews on Nov 2"`;
+      });
+    },
+  },
+  {
+    id: "FW-68", feature: "Enter on a text with runs edits it with its styles: ⌘A ⌘I makes every word italic, the bold run stays bold; one ⌘Z undoes it", wp: "F6b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await richText(page, id, "Renews on Nov 2", 5, ["ControlOrMeta+KeyB"]);
+        const bold = /<Text wrap=\{false\}>Renews on <TextRun bold>Nov 2<\/TextRun><\/Text>/;
+        await until(async () => bold.test((await pageText(page, id)) ?? ""), { message: "the bold run written" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Enter");
+        await until(async () => (await textEditing(page)) > 0, { message: "Enter edits the text" });
+        await page.keyboard.press("ControlOrMeta+KeyA");
+        await page.keyboard.press("ControlOrMeta+KeyI");
+        await page.keyboard.press("Escape");
+        await until(async () => /<TextRun italic>Renews on <\/TextRun><TextRun bold italic>Nov 2<\/TextRun><\/Text>/.test((await pageText(page, id)) ?? ""), { message: "every word italic, Nov 2 bold italic" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => bold.test((await pageText(page, id)) ?? ""), { message: "one ⌘Z: the bold run only" });
+        return "Enter, ⌘A, ⌘I, Esc → <TextRun italic>Renews on </TextRun><TextRun bold italic>Nov 2</TextRun>; ⌘Z → as before";
+      });
+    },
+  },
+  {
+    id: "FW-69", feature: "⌘U and ⇧⌘X style the selected words; the same key again takes its style off (Figma's toggles)", wp: "F6b 2026-10-19",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await richText(page, id, "Due today", 5, ["ControlOrMeta+KeyU", "ControlOrMeta+Shift+KeyX", "ControlOrMeta+KeyU"]);
+        await until(async () => /<Text wrap=\{false\}>Due <TextRun strikethrough>today<\/TextRun><\/Text>/.test((await pageText(page, id)) ?? ""), { message: "Due <TextRun strikethrough>today</TextRun>" });
+        const line = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"] .zen-text-run`, { hasText: "today" }).first().evaluate((element) => getComputedStyle(element).textDecorationLine);
+        if (!/line-through/.test(line) || /underline/.test(line)) throw new Error(`the run is drawn with ${line}`);
+        return `⌘U, ⇧⌘X, ⌘U on "today" → <TextRun strikethrough>today</TextRun> (${line})`;
       });
     },
   },

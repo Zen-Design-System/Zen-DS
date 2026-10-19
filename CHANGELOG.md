@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 - Text keeps line breaks written in its words (`{"First line\nSecond line"}`): they show as lines, and with
   `wrap={false}` each line stays whole (Figma's Enter in a text).
+- `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
+  another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
+  (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer
+  named by all its words. Studio → Figma (plugin import and ⌘C → ⌘V) gives the words their styles, and pulling from
+  Figma writes a styled range back as a TextRun.
 - Zen Studio's Text tool as Figma's (F6a of the parity plan, pages you made): T and a click makes an Auto width text at
   the click, T and a drag a text box of that width, and the typing goes into it at once; Enter is a new line, Esc leaves;
   a new text left untouched, or any text layer emptied, is deleted; T on the words of a text puts the caret there.

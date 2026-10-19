@@ -40,9 +40,14 @@ export const FIGMA_NAMED = new Set([...FRAME_COMPONENTS, "Shape", "Text"]);
 /** A Shape's Figma node name by its type, as Figma's tools name what they draw. */
 export const SHAPE_NAMES = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star" };
 
+const isRun = (child) => child.kind === "element" && child.name === "TextRun";
+/** A text's words with its TextRuns' (words with styles of their own, part of the text) in their place. */
+const runWords = (node) => node.children.map((child) => (child.kind === "text" ? child.value : isRun(child) ? runWords(child) : " ")).join("");
+
 /** The words of a text layer (its literal text, one line), as Figma names a text layer; null when it has none. */
 export function textWordsOf(node, max = 60) {
-  const words = (node?.children ?? []).filter((child) => child.kind === "text").map((child) => child.value).join(" ").replace(/\s+/g, " ").trim();
+  const children = node?.children ?? [];
+  const words = (children.some(isRun) ? runWords(node) : children.filter((child) => child.kind === "text").map((child) => child.value).join(" ")).replace(/\s+/g, " ").trim();
   if (!words) return null;
   return words.length > max ? `${words.slice(0, max - 1).trimEnd()}…` : words;
 }
