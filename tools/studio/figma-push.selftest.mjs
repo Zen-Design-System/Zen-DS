@@ -1800,6 +1800,82 @@ export default function Page() {
   }
 }
 
+// F6b. Mixed styles (TextRun, Figma's styled segments; text-runs.mjs): a Text's styled words go up as segments of its
+//      TEXT layer (bold as the text style's Bold sibling, a tone as its Color/Content variable) and come back as the
+//      same TextRuns; Figma's own ⌘B (a Bold font, no text style) and a non-Zen style come down as bold and a note.
+{
+  const runsPage = `// @zen-page {"format":1,"title":"Runs"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Heading, Stack, Text, TextRun } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Runs" device="desktop">
+        <Stack gap="lg">
+          <Text>Renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base" underline>2 seats</TextRun> are <TextRun italic>unpaid</TextRun>.</Text>
+          <Heading level={2}>Plan <TextRun bold>Pro</TextRun></Heading>
+          <Text>Plain words</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(runsPage);
+  const [renews, heading, plainText] = frame.children;
+  check("TextRun: segments of the TEXT layer, bold as Body/Base/Bold, tone as its variable", renews.segments, [
+    { start: 10, end: 15, textStyle: "Body/Base/Bold" },
+    { start: 17, end: 24, decoration: "UNDERLINE", fill: "Content/Negative/Base" },
+    { start: 29, end: 35, italic: true },
+  ]);
+  check("TextRun: a Heading's style has no Bold sibling: the font's Bold", heading.segments, [{ start: 5, end: 8, bold: true }]);
+  check("TextRun: a plain Text has no segments", plainText.segments, undefined);
+  check("TextRun round trip: the same runs come back", shape(pageFromFigma(frame, { mapping }).text), shape(runsPage));
+  const figmaBold = { type: "FRAME", name: "Runs", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] }, children: [
+    { type: "TEXT", characters: "Due Nov 2 in Mono", textStyle: "Body/Base/Regular", segments: [{ start: 4, end: 9, bold: true }, { start: 13, end: 17, textStyle: "Brand/Mono" }] },
+  ] };
+  const pulled = pageFromFigma(figmaBold, { mapping });
+  ok("Figma ⌘B (a Bold font) comes down as TextRun bold", pulled.text.includes("Due <TextRun bold>Nov 2</TextRun>"));
+  const { compileReact } = await import("./compile.mjs");
+  const exported = compileReact(runsPage, { file: "runs.zen.tsx" }).code;
+  ok("TextRun: the React export writes the runs on one line, as the page does", exported.includes('<Text>Renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base" underline>2 seats</TextRun> are <TextRun italic>unpaid</TextRun>.</Text>') && /import \{[^}]*\bTextRun\b[^}]*\} from "@zen-ds\/react"/.test(exported));
+  ok("a range in a style Zen has not: its words stay, with a note", pulled.text.includes("in Mono") && !pulled.text.includes("Brand/Mono") && pulled.notes.some((note) => /"Brand\/Mono" on "Mono"/.test(note)));
+}
+
+// F8. Image fills (figma-image.mjs): a Shape's and a frame's picture go up as `imageFill` (Crop in fractions, Tile's
+//      scale) with the picture's bytes asked for in `images`; a Shape with a picture has no colour unless it is given.
+{
+  const picturesPage = `// @zen-page {"format":1,"title":"Pictures"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Pictures" device="desktop">
+        <Stack gap="lg">
+          <Shape image="zen-asset:bridge-1a2b3c4d.webp" imageFit="crop" imageCrop={{ x: 10, y: 0, width: 80, height: 100 }} label="Bridge" width={200} height={100} />
+          <Shape type="ellipse" image="zen-media:site-cafe" fill="neutral-subtle" imageFit="fit" width={80} height={80} />
+          <Box image="zen-media:site-cafe" imageFit="tile" imageScale={50} width={300} height={120} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, images } = push(picturesPage);
+  const [bridge, cafe, tiled] = frame.children;
+  check("image fill: a cropped Shape", [bridge.imageFill, bridge.fill], [{ src: "zen-asset:bridge-1a2b3c4d.webp", scaleMode: "CROP", crop: { x: 0.1, y: 0, width: 0.8, height: 1 } }, undefined]);
+  check("image fill: Fit over a given colour", [cafe.imageFill?.scaleMode, Boolean(cafe.fill)], ["FIT", true]);
+  check("image fill: a frame's tile", tiled.imageFill, { src: "zen-media:site-cafe", scaleMode: "TILE", scale: 0.5 });
+  check("image fill: the pictures' bytes are asked for", [...(images ?? [])].sort(), ["zen-asset:bridge-1a2b3c4d.webp", "zen-media:site-cafe"]);
+}
+
 // F4 fix (A found it in the live Zen file, 2026-10-19): a free frame (a Box of a px size whose layers all float) is
 // Figma's frame without auto layout, layoutMode NONE; pulled back it is the same Box, its layers at their X / Y.
 {

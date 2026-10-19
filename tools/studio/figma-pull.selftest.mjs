@@ -256,6 +256,25 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("shapes: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
+// F8. Image fills as figmaReadCode reads them (figma-image.mjs): a shape's and a frame's picture come back by the src
+// the push kept in plugin data, with Crop / Tile; a picture made in Figma (no src) is noted, and its shape stays colourless.
+{
+  const frame = {
+    type: "FRAME", name: "Pictures", width: 400, height: 300, layout: null,
+    children: [
+      { type: "RECTANGLE", name: "Bridge", shape: { w: 200, h: 100, fill: null, stroke: null, strokeWeight: 1, rotation: 0, opacity: 1, imageFill: { src: "zen-asset:bridge-1a2b3c4d.webp", scaleMode: "CROP", crop: { x: 0.1, y: 0, width: 0.8, height: 1 } } }, absolute: { x: 10, y: 10, w: 200, h: 100, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
+      { type: "ELLIPSE", name: "Figma photo", shape: { w: 80, h: 80, fill: null, stroke: null, strokeWeight: 1, rotation: 0, opacity: 1, imageFill: { scaleMode: "FILL" } }, absolute: { x: 220, y: 10, w: 80, h: 80, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
+      { type: "FRAME", name: "Hero", width: 300, height: 120, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, imageFill: { src: "zen-media:site-cafe", scaleMode: "TILE", scale: 0.5 }, children: [{ type: "TEXT", name: "Title", characters: "Hello" }] },
+    ],
+  };
+  const pulled = pageFromFigma(frame, { mapping });
+  const lines = pulled.text.split("\n");
+  ok("image fill: a shape's crop comes back, no fill colour", lines.some((line) => /<Shape [^>]*image="zen-asset:bridge-1a2b3c4d\.webp" imageFit="crop" imageCrop=\{\{ x: 10, y: 0, width: 80, height: 100 \}\}/.test(line) && !/fill=/.test(line)));
+  ok("image fill: a picture made in Figma is noted, its shape stays without a colour", pulled.notes.some((note) => /"Figma photo": its image fill was made in Figma/.test(note)) && lines.some((line) => /type="ellipse"/.test(line) && !/fill=|image=/.test(line)));
+  ok("image fill: a frame's tiled picture comes back on the Stack", /<Stack [^>]*image="zen-media:site-cafe" imageFit="tile" imageScale=\{50\}/.test(pulled.text));
+  check("image fill: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+}
+
 // F9: a Figma VECTOR comes back as Shape type="vector" (its vectorPaths in its box, its winding rule, a centred stroke
 // left out as the default); a path Zen cannot read is left out with a note.
 {

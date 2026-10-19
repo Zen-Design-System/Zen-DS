@@ -2,14 +2,16 @@ import { useCallback, useLayoutEffect, useRef, type KeyboardEvent as ReactKeyboa
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { usePendingDraft } from "../inspector/drafts";
 import { commitTextEdit, endTextEdit, restoreText, takeTypedAhead, useTextEditSession, zoomOf, type TextTarget } from "./textEdit";
+import { toggleStyle, type ToggleKey } from "./richText";
+import { startRichTextEdit } from "./richTextEdit";
 
 /*
  * The in-place text editor (Figma's text edit mode). It sits over the rendered text with the same font, size, weight,
  * line height, letter spacing, colour and wrap width, scaled with the canvas zoom; the rendered text itself is hidden
  * (data-studio-text-editing) but takes every keystroke, so the frame reflows live and the editor follows it each frame.
  *
- * Keys (Figma): Enter, Esc and Tab leave the editor and keep the text (⇧Enter is a line break where the text keeps
- * line breaks); a click outside keeps it too; ⌘Z inside undoes typing, after leaving it undoes the whole edit; ⌘S
+ * Keys (Figma): Esc and Tab leave the editor and keep the text; in a text layer (a Text) Enter is a new line, in any
+ * other text Enter leaves too (⇧Enter is a line break where the text keeps line breaks); a click outside keeps it; ⌘Z inside undoes typing, after leaving it undoes the whole edit; ⌘S
  * commits the text first, then saves. An IME composition (Vietnamese Telex, CJK) is never cut short by Enter.
  */
 
@@ -56,6 +58,7 @@ function placeCaret(editor: HTMLElement, caret: TextTarget["caret"]) {
 function Editor({ target, viewport }: { target: TextTarget; viewport: HTMLElement }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLSpanElement>(null);
+  const typedRef = useRef<string | null>(null);
   const doneRef = useRef(false);
 
   const finish = useCallback((keep: boolean) => {
@@ -122,9 +125,10 @@ function Editor({ target, viewport }: { target: TextTarget; viewport: HTMLElemen
     place();
     editor.focus({ preventScroll: true });
     placeCaret(editor, target.caret);
-    // Keys typed while the editor was opening replace the selection (or go in at the caret), as typing would.
-    const typed = takeTypedAhead();
-    if (typed) document.execCommand("insertText", false, typed);
+    // Keys typed while the editor was opening replace the selection (or go in at the caret), as typing would. Taken once
+    // (an effect that runs again, React's dev double run, types them again over the same selection, not lost).
+    typedRef.current ??= takeTypedAhead();
+    if (typedRef.current) document.execCommand("insertText", false, typedRef.current);
     return () => {
       cancelAnimationFrame(frame);
       host.removeAttribute("data-studio-text-editing");
@@ -149,7 +153,30 @@ function Editor({ target, viewport }: { target: TextTarget; viewport: HTMLElemen
     // The canvas shortcuts (Delete, arrows, V/H/I…) stay out while typing; ⌘S and ⌘K listen in the capture phase.
     event.stopPropagation();
     if (event.nativeEvent.isComposing || event.keyCode === 229) return;
-    if (event.key === "Enter" && event.shiftKey && target.multiline) return;
+    // ⌘B / ⌘I / ⌘U / ⇧⌘X on a text layer's own words: they get a style of their own (Figma's mixed styles, F6b), and
+    // the rich editor takes over with the words typed so far and the same selection.
+    const mod = event.metaKey || event.ctrlKey;
+    const format: ToggleKey | null = mod && !event.altKey ? (event.shiftKey ? (event.code === "KeyX" ? "strikethrough" : null) : ({ KeyB: "bold", KeyI: "italic", KeyU: "underline" } as Record<string, ToggleKey>)[event.code] ?? null) : null;
+    if (format) {
+      event.preventDefault();
+      const editor = editorRef.current;
+      const own = target.op.kind === "text" && (target.element.name === "Text" || target.element.name === "Heading") && target.element.children.every((child) => child.kind === "text");
+      const selection = window.getSelection();
+      if (!editor || !own || !selection?.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      const offset = (container: Node, at: number) => { const probe = document.createRange(); probe.selectNodeContents(editor); probe.setEnd(container, at); return probe.toString().length; };
+      const start = offset(range.startContainer, range.startOffset);
+      const end = offset(range.endContainer, range.endOffset);
+      const runs = toggleStyle([{ text: editor.textContent ?? "" }], start, end, format);
+      doneRef.current = true;
+      restoreText(target);
+      endTextEdit();
+      void startRichTextEdit(target.src, target.host, { runs, selection: { start, end } });
+      return;
+    }
+    // A text layer keeps line breaks (Figma: Enter is a new line, Esc leaves); elsewhere ⇧Enter is one where the text
+    // keeps them, Enter leaves.
+    if (event.key === "Enter" && target.multiline) return;
     if (event.key === "Enter" || event.key === "Escape" || event.key === "Tab") {
       event.preventDefault();
       finish(true);

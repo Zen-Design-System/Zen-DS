@@ -4,10 +4,12 @@ import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { multiSelection } from "../select/multiSelection";
 import { rowOf } from "../inspector/detach";
-import { childHits, fiberOf, findBySrc, srcOf, type Fiber } from "../select/picker";
+import { childHits, fiberOf, findBySrc, onSourceUpdate, srcOf, type Fiber } from "../select/picker";
 import { canEdit, studioStore } from "../store";
 import { cellFieldOf, rowFieldsOf, tableCellOf } from "../table/tableCells";
 import { propSpecs } from "../inspector/propSchema";
+import { removeEmptyText, takeFreshText } from "./textCreate";
+import { isRichSource, startRichTextEdit } from "./richTextEdit";
 import type { AttrShape, DataSource, EditOp, ShapeField, SourceAttr, SourceElement, StudioSelection } from "../types";
 
 /*
@@ -48,6 +50,8 @@ export type TextTarget = {
   multiline: boolean;
   /** Where the caret starts: an offset in the text, or the whole text selected. */
   caret: number | "all";
+  /** Made by the Text tool just now (edit/textCreate.ts): left as it came or emptied, it is removed. */
+  fresh?: boolean;
 };
 
 /* ── session store (one editor at a time) ─────────────────────────────────────────────────────────────────────────── */
@@ -296,6 +300,21 @@ let starting = 0;
  */
 let pendingStart = false;
 let typedAhead = "";
+/** A hold the Text tool started (holdKeysForText): until then the keys typed are kept for its new text. */
+let hold: { until: number; cancelled: boolean } | null = null;
+
+/**
+ * Keeps the keys typed from now until a text editor opens (the Text tool, F6: the person types at once, before the new
+ * text has rendered). Escape before that gives up, which the caller reads back (`cancelled`). Ends by itself after `ms`.
+ */
+export function holdKeysForText(ms = 3000): { cancelled: () => boolean } {
+  const own = { until: Date.now() + ms, cancelled: false };
+  hold = own;
+  pendingStart = true;
+  typedAhead = "";
+  window.setTimeout(() => { if (hold === own) { hold = null; if (!session) { pendingStart = false; typedAhead = ""; } } }, ms);
+  return { cancelled: () => own.cancelled };
+}
 
 /** The characters typed while the editor was opening (once). */
 export function takeTypedAhead(): string {
@@ -311,6 +330,7 @@ if (typeof window !== "undefined") {
       starting += 1;
       pendingStart = false;
       typedAhead = "";
+      if (hold) { hold.cancelled = true; hold = null; }
     } else if (event.key.length === 1 && !event.altKey) typedAhead += event.key;
     else if (event.key === "Backspace") typedAhead = typedAhead.slice(0, -1);
     event.preventDefault();
@@ -329,7 +349,9 @@ async function open(node: Text, chain: Array<{ src: string }>, caret: TextTarget
   const run = ++starting;
   const original = node.nodeValue ?? "";
   pendingStart = true;
-  typedAhead = "";
+  // The keys typed since the Text tool's click stay (holdKeysForText); any other start begins empty.
+  if (!hold) typedAhead = "";
+  hold = null;
   let found: Awaited<ReturnType<typeof sourceOf>>;
   try {
     found = await sourceOf(chain, original, node);
@@ -357,7 +379,10 @@ async function open(node: Text, chain: Array<{ src: string }>, caret: TextTarget
     original,
     // A row's data (a .map row, a Table cell) is one place, however many rows the source line draws.
     instances: found.op.kind === "data" && (found.op.row !== undefined || found.op.field) ? 1 : world ? Math.max(1, findBySrc(world, src).length) : 1,
-    multiline: preservesBreaks(host),
+    // On a page you made a Text layer's own words take line breaks (Figma's Enter, F6: Text keeps them); elsewhere a
+    // text takes them where its box keeps them, and Enter leaves as before.
+    multiline: preservesBreaks(host) || (found.element.file.startsWith("local:") && found.element.name === "Text" && found.op.kind === "text" && host.classList.contains("zen-text")),
+    fresh: takeFreshText(src),
     caret,
   };
   emit();
@@ -376,6 +401,16 @@ export function tryStartTextEdit(x: number, y: number, ownerSrc: string): boolea
   if (!node) return false;
   const chain = annotatedChain(node, 6);
   const at = chain.findIndex((entry) => entry.src === ownerSrc);
+  // Words of a selected Text with styles of their own (TextRun, F6b): the rich editor, the caret where the double-click is.
+  const owner = at === 0 ? node.parentElement?.closest(".zen-text") : null;
+  if (owner instanceof HTMLElement && owner.querySelector(".zen-text-run")) {
+    const probe = document.createRange();
+    probe.selectNodeContents(owner);
+    probe.setEnd(node, offsetAt(node, x, y));
+    const offset = probe.toString().length;
+    void startRichTextEdit(ownerSrc, owner, { selection: { start: offset, end: offset } });
+    return true;
+  }
   // The text must belong to the element itself, not to a child layer of it (that one is selected first).
   if (at !== 0) return false;
   void open(node, chain, offsetAt(node, x, y), focusContent);
@@ -409,7 +444,14 @@ if (typeof window !== "undefined") {
     elementCache.clear();
     prefetch(next);
   });
-  import.meta.hot?.dispose(stop);
+  // An edit of the selected layer (its words typed, F6) changes its source: read it again, or Enter would look for the
+  // words it had before and not edit it.
+  const offSource = onSourceUpdate(() => {
+    cachedFor = null;
+    elementCache.clear();
+    prefetch(studioStore.getState().selection);
+  });
+  import.meta.hot?.dispose(() => { stop(); offSource(); });
 }
 
 /** Enter: true when the selected layer is a text layer and its editor opens. */
@@ -419,6 +461,14 @@ export function startTextEditOnSelection(): boolean {
   // The source, read when the layer was selected; until it arrives, the rendered tree decides (no annotated child layer,
   // only text) and the editor opens once the source confirms it.
   const element = elementCache.get(selection.src);
+  // Words with styles of their own (TextRun, F6b): the rich editor.
+  const world0 = document.querySelector(".studio-world");
+  const shown = world0 ? findBySrc(world0, selection.src)[selection.instance] ?? findBySrc(world0, selection.src)[0] : null;
+  const host0 = shown?.hosts[0];
+  if (host0 instanceof HTMLElement && /^(Text|Heading)$/.test(selection.name.slice(selection.name.lastIndexOf(".") + 1)) && host0.querySelector(":scope .zen-text-run") && (!element || isRichSource(element))) {
+    void startRichTextEdit(selection.src, host0);
+    return true;
+  }
   if (element && element.children.some((child) => child.kind !== "text")) return false;
   const texts = element ? element.children.filter((child) => child.kind === "text" && normalizeText(child.value)) : null;
   if (texts && !texts.length) return false;
@@ -485,6 +535,13 @@ export function restoreText(target: TextTarget) {
 export function commitTextEdit(target: TextTarget, raw: string): void {
   if (session === target) endTextEdit();
   const value = target.multiline ? raw.replace(/^\s+|\s+$/g, "") : raw.replace(/\s*\n\s*/g, " ").trim();
+  // A new text left as the Text tool made it, or any text layer emptied, is deleted (Figma keeps no empty text).
+  const own = target.op.kind === "text" && (target.element.name === "Text" || target.element.name === "Heading") && target.element.children.every((child) => child.kind === "text");
+  if ((target.fresh && value.trim() === target.original.trim()) || (!normalizeText(value) && own)) {
+    restoreText(target);
+    void removeEmptyText(target.src);
+    return;
+  }
   if (normalizeText(value) === normalizeText(target.original) && value.trim() === target.original.trim()) {
     restoreText(target);
     return;
