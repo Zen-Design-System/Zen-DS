@@ -2,10 +2,13 @@
    Wednesday Sep 30, 2026, 10:30 am. Each example teaches one Form decision: a create page checks each field as you leave
    it and, on submit, moves focus to the first problem; the server's answer lands on the field or in an Inline Message
    with Try again; FormField and FormFieldset name controls that have no label of their own; FormActions keeps a
-   destructive action apart; and on a phone the footer Action Bar submits the form by its id. */
-import { useEffect, useId, useRef, useState } from "react";
+   destructive action apart; and on a phone the shell's Action Bar submits the form by its id. */
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ActionBar } from "../../../components/ActionBar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Badge, type BadgeTheme } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
@@ -15,10 +18,13 @@ import { EmptyState } from "../../../components/EmptyState";
 import { Form, FormActions, FormField, FormFieldset, useFormState } from "../../../components/Form";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { DateField, InputField, NumberField, SelectField, TextAreaField } from "../../../components/Input";
-import { Box, Container, Grid, Stack } from "../../../components/Layout";
-import { List, ListItem } from "../../../components/ListItem";
+import { Box, Grid, Stack } from "../../../components/Layout";
+import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { RadioButton } from "../../../components/RadioButton";
+import { Search } from "../../../components/Search";
+import { Sidebar, SidebarMenuItem, type SidebarSection } from "../../../components/Sidebar";
 import { Slider } from "../../../components/Slider";
 import { Table, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
@@ -26,8 +32,8 @@ import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
-import { PreviewPage } from "../../PlatformFrames";
-import { TODAY, daysFromToday, formatDay, formatMoney, formatTime, people, projectById, type PersonId } from "../data";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
+import { TODAY, activity, daysFromToday, formatDay, formatMoney, formatRelative, formatTime, me, people, projectById, studio, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 
@@ -86,12 +92,74 @@ const clientColumns: TableColumn<Client>[] = [
   { id: "terms", header: "Payment terms", width: "150px", cell: (client) => <TableText>{termsLabel(client.terms)}</TableText> },
 ];
 
+// ——— The studio app's chrome (Add a client) ——————————————————————————————————————————————————————————————
+const studioPlaces: SidebarSection[] = [{ items: [
+  { id: "home", label: "Home", icon: "icon-home-03-line" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  { id: "clients", label: "Clients", icon: "icon-briefcase-line" },
+  { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+  { id: "people", label: "People", icon: "icon-users-line" },
+] }];
+const unreadActivity = activity.filter((item) => item.unread);
+
+/** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This screen shows the form." });
+}
+
+/** The studio's Sidebar on the page it shows; the other places toast that they are not drawn here. */
+function StudioSidebar({ selectedId }: { selectedId: string }) {
+  const notHere = useNotHere();
+  return (
+    <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+      sections={studioPlaces} selectedId={selectedId} onItemClick={(item) => { if (item.id !== selectedId) notHere(item.label); }}
+      footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+  );
+}
+
+/** The top row's utilities: notifications (the unread count clears once read) and the account menu, last. */
+function StudioActions() {
+  const { toast } = useToast();
+  const [unread, setUnread] = useState(unreadActivity.length);
+  const latest = unreadActivity[0];
+  return (
+    <>
+      <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+        setUnread(0);
+        toast({ title: unread ? plural(unread, "new notification") : "You're all caught up", children: `${people[latest.actor].name} ${latest.verb} ${latest.object} · ${formatRelative(latest.at)}` });
+      }} />
+      <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+        { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+        { id: "settings", label: "Settings", icon: "icon-settings-01-line", onSelect: () => toast({ title: "Settings", children: "Workspace, notifications and billing." }) },
+        { type: "separator" },
+        { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+      ]} />
+    </>
+  );
+}
+
+/** A group of the form: its title and what it is for on the left, its fields on a Shadow card on the right (one column
+ *  on a narrow window). */
+function FormGroup({ id, title, description, children }: { id: string; title: string; description: string; children: ReactNode }) {
+  return (
+    <Grid as="section" aria-labelledby={id} columns={{ mobile: 1, tablet: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} rowGap="md" columnGap="xl" align="start">
+      <Stack gap="2xs">
+        <Heading level={2} id={id} textStyle="Heading/4">{title}</Heading>
+        <Text textStyle="Body/Small/Regular" tone="base">{description}</Text>
+      </Stack>
+      <Card theme="shadow"><Stack gap="md">{children}</Stack></Card>
+    </Grid>
+  );
+}
+
 function NewClientExample() {
   const { toast } = useToast();
-  const rootRef = useRef<HTMLElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const newButton = useRef<HTMLButtonElement>(null);
   const [clients, setClients] = useState(studioClients);
   const [screen, setScreen] = useState<"new" | "list">("new");
+  const [query, setQuery] = useState("");
   const [confirming, setConfirming] = useState(false);
   const companyId = useId();
   const billingId = useId();
@@ -130,34 +198,56 @@ function NewClientExample() {
   const cancel = () => (form.isDirty ? setConfirming(true) : show("list"));
   const discard = () => { setConfirming(false); form.reset(); show("list"); };
 
+  const q = query.trim().toLowerCase();
+  const shown = clients.filter((client) => !q || `${client.name} ${client.contact} ${client.email} ${client.country}`.toLowerCase().includes(q));
+  const list = screen === "list";
+
   return (
-    // The screen card stretches its direct child: the Box paints the app's Canvas (the page layer) and holds the
-    // Container that keeps the form at a readable width.
-    <PreviewPage ref={rootRef} fill><Container maxWidth={screen === "new" ? "md" : "full"}>
-      {screen === "list" ? (
-        <Stack paddingY="xl" gap="xl">
-          <PageHeader title="Clients" description={`${plural(clients.length, "company", "companies")} the studio invoices.`}
-            actions={<Button ref={newButton} level="primary" startIcon="icon-plus-line" onClick={() => show("new")}>New client</Button>} />
-          {/* The table is the page's content: it lies on the page, no Card. */}
-          <Table aria-label="Clients" columns={clientColumns} rows={clients} />
-        </Stack>
-      ) : (
-        <Stack paddingY="xl" gap="xl">
-          <PageHeader back={{ label: "Clients", onClick: cancel }} title="New client"
-            description="Invoices go to the billing contact. You can change these details later." />
-          {/* Form spaces its groups lg; fields inside a group are md apart. Enter in any field submits. */}
-          <Form form={form}>
-            <Stack as="section" gap="md" aria-labelledby={companyId}>
-              <Heading level={2} id={companyId} textStyle="Heading/4">Company</Heading>
+    // A page of the studio app: one AppShell (pattern sidebar) with the studio's Sidebar on Clients. The header's top row
+    // holds the trail (or the list's Search) and the utilities; the page's title and its one Primary sit in the Main row.
+    // The Body pads the page, so neither screen needs a Container for the margins.
+    <PreviewAppFrame frameRef={rootRef} height={{ min: 640, max: 820 }}>
+      <AppShell
+        sidebar={<StudioSidebar selectedId="clients" />}
+        header={(
+          <AppShellHeader
+            // The list: a Search narrows the clients. New client: the trail, Clients first (it cancels, as Cancel does).
+            leading={list ? (
+              <Box width={320}><Search placeholder="Search clients" aria-label="Search clients" value={query} onValueChange={setQuery} clearable /></Box>
+            ) : (
+              <Breadcrumbs master={false} items={[{ id: "clients", label: "Clients" }, { id: "new", label: "New client" }]}
+                onNavigate={(item, event) => { event.preventDefault(); if (item.id === "clients") cancel(); }} />
+            )}
+            actions={<StudioActions />}
+            main={list ? (
+              <PageHeader title="Clients" description={`${plural(clients.length, "company", "companies")} the studio invoices.`}
+                actions={<Button ref={newButton} level="primary" startIcon="icon-plus-line" onClick={() => show("new")}>New client</Button>} />
+            ) : (
+              <PageHeader title="New client" description="Invoices go to the billing contact. You can change these details later." />
+            )}
+          />
+        )}
+      >
+        {list ? (
+          // The table is the page's content: it lies on the page, no Card.
+          shown.length ? <Table aria-label="Clients" columns={clientColumns} rows={shown} /> : (
+            <EmptyState headingLevel={2} icon="icon-search-medium-line" title="No clients match" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>
+              No company, contact or email has “{query.trim()}” in it.
+            </EmptyState>
+          )
+        ) : (
+          // Two groups, each its title and why it matters beside its fields on a Shadow card (the Sidebar's elevation).
+          // Fields inside a group are md apart. Enter in any field submits.
+          <Form form={form} gap="xl">
+            <FormGroup id={companyId} title="Company" description="The client as it appears on invoices and contracts.">
               <Grid columns={{ mobile: 1, desktop: 2 }} rowGap="md" columnGap="lg">
                 <InputField label="Company name" autoComplete="organization" {...form.field("name")} />
                 <SelectField label="Country" options={countryOptions} {...form.selectField("country")} />
                 <InputField label="Website" labelOptional inputMode="url" placeholder="company.vn" {...form.field("website")} />
                 <InputField label="Tax ID" labelOptional inputMode="numeric" helpText="Printed on every invoice" {...form.field("taxId")} />
               </Grid>
-            </Stack>
-            <Stack as="section" gap="md" aria-labelledby={billingId}>
-              <Heading level={2} id={billingId} textStyle="Heading/4">Billing</Heading>
+            </FormGroup>
+            <FormGroup id={billingId} title="Billing" description="Who receives the invoices, and how long they have to pay.">
               <Grid columns={{ mobile: 1, desktop: 2 }} rowGap="md" columnGap="lg">
                 <InputField label="Billing contact" autoComplete="name" {...form.field("contact")} />
                 <InputField label="Billing email" type="email" autoComplete="email" placeholder="finance@company.com" {...form.field("email")} />
@@ -165,19 +255,19 @@ function NewClientExample() {
               <FormFieldset kind="radio" legend="Payment terms" direction="row" helpText="Days the client has to pay each invoice">
                 {termsOptions.map((option) => <RadioButton key={option.value} label={option.label} {...form.radioField("terms", option.value)} />)}
               </FormFieldset>
-            </Stack>
+            </FormGroup>
             <FormActions>
               <Button level="tertiary" disabled={form.isSubmitting} onClick={cancel}>Cancel</Button>
               <Button level="primary" type="submit">{form.isSubmitting ? "Adding…" : "Add client"}</Button>
             </FormActions>
           </Form>
-        </Stack>
-      )}
-      <Dialog open={confirming} onOpenChange={setConfirming} theme="warning" title="Discard this client?"
-        description="The details you entered are lost."
-        primaryAction={{ label: "Discard client", level: "danger", onClick: discard }}
-        secondaryAction={{ label: "Keep editing", autoFocus: true }} />
-    </Container></PreviewPage>
+        )}
+        <Dialog open={confirming} onOpenChange={setConfirming} theme="warning" title="Discard this client?"
+          description="The details you entered are lost."
+          primaryAction={{ label: "Discard client", level: "danger", onClick: discard }}
+          secondaryAction={{ label: "Keep editing", autoFocus: true }} />
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -393,7 +483,7 @@ function DraftInvoiceExample() {
   );
 }
 
-// ——— 5. On a phone: a form screen whose footer Action Bar submits it ——————————————————————————————————————
+// ——— 5. On a phone: a form screen whose pinned Action Bar submits it ——————————————————————————————————————
 // The Mekong Freight app, signed in as Phin & Co's roastery, which ships beans to its stores.
 type ShipmentStatus = "Booked" | "In transit" | "Customs hold" | "Delivered";
 const shipmentTheme: Record<ShipmentStatus, BadgeTheme> = { Booked: "neutral", "In transit": "blue", "Customs hold": "orange", Delivered: "green" };
@@ -411,12 +501,29 @@ type PickupValues = { to: string; day: string; window: "" | "morning" | "afterno
 const blankPickup: PickupValues = { to: "Phin Da Nang", day: "", window: "", parcels: 1, note: "" };
 /** $4 for the first parcel, $1.50 for each one after it. */
 const pickupFee = (parcels: number) => 4 + 1.5 * Math.max(parcels - 1, 0);
+/** The Mekong Freight app's roots. */
+const mekongRoots: BottomNavigationItem[] = [
+  { id: "shipments", label: "Shipments", icon: "icon-package-line", selectedIcon: "icon-package-solid" },
+  { id: "track", label: "Track", icon: "icon-marker-pin-01-line", selectedIcon: "icon-marker-pin-01-solid" },
+  { id: "invoices", label: "Invoices", icon: "icon-receipt-line", selectedIcon: "icon-receipt-solid" },
+  { id: "account", label: "Account", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+/** The tab bar on the Shipments root: the other roots are not drawn here, so a toast says so and the bar keeps Shipments. */
+function MekongRoots() {
+  const { toast } = useToast();
+  return (
+    <BottomNavigation aria-label="Mekong Freight" showLabels items={mekongRoots} value="shipments"
+      onValueChange={(id) => { if (id !== "shipments") toast({ title: `${mekongRoots.find((item) => item.id === id)?.label} isn't part of this example`, children: "This screen shows the form." }); }} />
+  );
+}
 
 function PhonePickupExample() {
   const { toast } = useToast();
   const screen = usePhoneScreen();
   const screenRef = useRef<HTMLDivElement>(null);
   const formId = useId();
+  const wayId = useId();
+  const deliveredId = useId();
   const [list, setList] = useState(shipments);
   // The example opens on the form, the screen it teaches; Close leads to the shipments, New pickup back here.
   const [creating, setCreating] = useState(true);
@@ -447,38 +554,56 @@ function PhonePickupExample() {
   const parcels = form.values.parcels ?? 0;
 
   if (!creating) {
+    const groups = [
+      { id: wayId, title: "On the way", rows: list.filter((shipment) => shipment.status !== "Delivered") },
+      { id: deliveredId, title: "Delivered", rows: list.filter((shipment) => shipment.status === "Delivered") },
+    ].filter((group) => group.rows.length);
     return (
-      <PlatformPhone key="root" label="Shipments" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="Shipments" largeTitle="Shipments" scrollRef={screenRef}
-          trailing={[{ icon: "icon-plus-line", label: "New pickup", onClick: () => screen.go('.zen-top-nav__action[aria-label="Close"]', () => setCreating(true)) }]} />}>
-        {screen.anchor}
-        {/* The shipments only show their status (Interactive=No rows, no side padding of their own): the page margin (lg)
-            insets the List, so their text lines up with the large title; sm sets the first row off the bar. */}
-        <Box paddingX="lg" paddingY="xs">
-          <List aria-label="Shipments">
-            {list.map((shipment) => (
-              <ListItem key={shipment.id} title={`To ${shipment.to}`} caption={`${shipment.id} · ${plural(shipment.parcels, "parcel")} · ${formatDay(shipment.day)}`}
-                leading={<DockIcon icon="icon-package-line" theme="neutral" background="subtle" />}
-                trailing={<Badge theme={shipmentTheme[shipment.status]} background="subtle">{shipment.status}</Badge>} />
-            ))}
-          </List>
-        </Box>
+      // A tab root of the Mekong Freight app: the large title folds as the shipments scroll under the bar, New pickup is
+      // its one action, and the tab bar holds the app's roots. The tab bar casts a shadow, so the lists take the same
+      // Shadow elevation.
+      <PlatformPhone key="root" label="Shipments" canvas="default" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="Shipments" largeTitle="Shipments" largeTitleSubheading="Phin roastery · Thu Duc" scrollRef={screenRef}
+            trailing={[{ icon: "icon-plus-line", label: "New pickup", onClick: () => screen.go('.zen-top-nav__action[aria-label="Close"]', () => setCreating(true)) }]} />}
+          bottomNavigation={<MekongRoots />}
+        >
+          {screen.anchor}
+          {groups.map((group) => (
+            // The shipments only show their status (Interactive=No rows); the group title lines up with the row text.
+            <Stack key={group.id} as="section" gap="xs" aria-labelledby={group.id}>
+              <Box paddingX="lg"><Heading level={2} id={group.id} textStyle="Body/Small/Bold" tone="light">{group.title}</Heading></Box>
+              <ListBox theme="shadow">
+                <List aria-labelledby={group.id}>
+                  {group.rows.map((shipment) => (
+                    <ListItem key={shipment.id} title={`To ${shipment.to}`} caption={`${shipment.id} · ${plural(shipment.parcels, "parcel")} · ${formatDay(shipment.day)}`}
+                      leading={<DockIcon icon="icon-package-line" theme="neutral" background="subtle" />}
+                      trailing={<Badge theme={shipmentTheme[shipment.status]} background="subtle">{shipment.status}</Badge>} />
+                  ))}
+                </List>
+              </ListBox>
+            </Stack>
+          ))}
+        </AppShell>
       </PlatformPhone>
     );
   }
   return (
-    <PlatformPhone key="new" label="New pickup" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
-        leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
-      // The footer sits outside the form, so its submit names the form by id. The summary follows the parcel count.
-      footer={<ActionBar position="static"
-        summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{`${plural(parcels, "parcel")} · ${formatMoney(pickupFee(parcels), true)}`}</Text>}
-        primaryAction={{ label: form.isSubmitting ? "Booking…" : "Book pickup", type: "submit", form: formId }} />}>
-      {screen.anchor}
-      <Form id={formId} form={form} aria-label="New pickup">
+    // A task screen: the compact bar with Close (it asks before dropping what was entered) and the booking's one action
+    // in the Action bar the shell pins to the bottom (Figma Bottom=Actions), no tab bar.
+    <PlatformPhone key="new" label="New pickup" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
+          leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
+        // The bar sits outside the form, so its submit names the form by id. The summary follows the parcel count.
+        actionBar={<ActionBar
+          summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{`${plural(parcels, "parcel")} · ${formatMoney(pickupFee(parcels), true)}`}</Text>}
+          primaryAction={{ label: form.isSubmitting ? "Booking…" : "Book pickup", type: "submit", form: formId }} />}
+      >
+        {screen.anchor}
         {/* Stacked fields are md apart, every one of them: the day and its time slot read as neighbours. Most fields are
-            required, so only the optional note is marked. */}
-        <Stack padding="lg" gap="md">
+            required, so only the optional note is marked. The Body pads the screen, so the form needs no padding. */}
+        <Form id={formId} form={form} gap="md" aria-label="New pickup">
           <InputField label="Pick up from" readOnly value="Phin roastery · 12 Le Van Viet, Thu Duc" />
           <SelectField label="Deliver to" helpText="Your last pickup went here" options={stores.map((store) => ({ value: store, label: store }))} {...form.selectField("to")} />
           <DateField label="Pickup day" today={TODAY} minDate={startOfToday} {...form.dateField("day")} />
@@ -490,12 +615,12 @@ function PhonePickupExample() {
           </FormFieldset>
           <NumberField label="Parcels" min={1} max={20} helpText="Up to 25 kg each" align="center" {...form.numberField("parcels")} />
           <TextAreaField label="Note for the driver" labelOptional rows={3} placeholder="Ring the bell at the side gate" {...form.field("note")} />
-        </Stack>
-      </Form>
-      <Dialog open={confirming} onOpenChange={setConfirming} theme="warning" title="Discard this pickup?"
-        description="What you entered is lost." actionsDirection="vertical"
-        primaryAction={{ label: "Discard pickup", level: "danger", onClick: leave }}
-        secondaryAction={{ label: "Keep editing", autoFocus: true }} />
+        </Form>
+        <Dialog open={confirming} onOpenChange={setConfirming} theme="warning" title="Discard this pickup?"
+          description="What you entered is lost." actionsDirection="vertical"
+          primaryAction={{ label: "Discard pickup", level: "danger", onClick: leave }}
+          secondaryAction={{ label: "Keep editing", autoFocus: true }} />
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -504,7 +629,7 @@ function PhonePickupExample() {
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Add a client",
-    description: "A create page: useFormState binds every field in one spread and checks a field when you leave it. Add client (or Enter) checks them all, moves focus to the first problem and announces how many need attention; Cancel asks before it drops what you typed.",
+    description: "A create page in the studio app: useFormState binds every field in one spread and checks a field when you leave it. Add client (or Enter) checks them all, moves focus to the first problem and announces how many need attention; Cancel, or Clients in the trail, asks before it drops what you typed. The new client joins the Clients table, which the top row's Search narrows.",
     wide: true,
     screen: true,
     render: () => <NewClientExample />,
@@ -517,29 +642,41 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   onSubmit: async (values, { reset }) => { await createClient(values); reset(); toast({ type: "positive", title: "Client added" }); },
 });
 
-<PageHeader back={{ label: "Clients", onClick: cancel }} title="New client" description="Invoices go to the billing contact." />
-<Form form={form}> {/* groups lg apart; fields md apart */}
-  <Stack as="section" gap="md" aria-labelledby="company">
-    <Heading level={2} id="company" textStyle="Heading/4">Company</Heading>
-    <Grid columns={{ mobile: 1, desktop: 2 }} rowGap="md" columnGap="lg">
-      <InputField label="Company name" autoComplete="organization" {...form.field("name")} />
-      <SelectField label="Country" options={countries} {...form.selectField("country")} />
-      <InputField label="Website" labelOptional {...form.field("website")} />
-      <InputField label="Tax ID" labelOptional helpText="Printed on every invoice" {...form.field("taxId")} />
+<AppShell
+  sidebar={<Sidebar logo={studioLogo} sections={studioPlaces} selectedId="clients" />}
+  header={<AppShellHeader
+    leading={<Breadcrumbs master={false} items={[{ id: "clients", label: "Clients" }, { id: "new", label: "New client" }]} onNavigate={cancel} />}
+    actions={<>{notifications}{accountMenu}</>}
+    main={<PageHeader title="New client" description="Invoices go to the billing contact. You can change these details later." />} />}
+>
+  {/* The Body pads the page. Groups xl apart: the title beside its fields on a Shadow card; fields md apart. */}
+  <Form form={form} gap="xl">
+    <Grid as="section" aria-labelledby="company" columns={{ mobile: 1, tablet: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} rowGap="md" columnGap="xl" align="start">
+      <Stack gap="2xs">
+        <Heading level={2} id="company" textStyle="Heading/4">Company</Heading>
+        <Text textStyle="Body/Small/Regular" tone="base">The client as it appears on invoices and contracts.</Text>
+      </Stack>
+      <Card theme="shadow">
+        <Grid columns={{ mobile: 1, desktop: 2 }} rowGap="md" columnGap="lg">
+          <InputField label="Company name" autoComplete="organization" {...form.field("name")} />
+          <SelectField label="Country" options={countries} {...form.selectField("country")} />
+          <InputField label="Website" labelOptional {...form.field("website")} />
+          <InputField label="Tax ID" labelOptional helpText="Printed on every invoice" {...form.field("taxId")} />
+        </Grid>
+      </Card>
     </Grid>
-  </Stack>
-  <Stack as="section" gap="md" aria-labelledby="billing">
-    <Heading level={2} id="billing" textStyle="Heading/4">Billing</Heading>
-    …
-    <FormFieldset kind="radio" legend="Payment terms" direction="row">
-      {terms.map((t) => <RadioButton key={t.value} label={t.label} {...form.radioField("terms", t.value)} />)}
-    </FormFieldset>
-  </Stack>
-  <FormActions>
-    <Button level="tertiary" onClick={cancel}>Cancel</Button>
-    <Button level="primary" type="submit">{form.isSubmitting ? "Adding…" : "Add client"}</Button>
-  </FormActions>
-</Form>`,
+    <Grid as="section" aria-labelledby="billing" …>
+      …
+      <FormFieldset kind="radio" legend="Payment terms" direction="row">
+        {terms.map((t) => <RadioButton key={t.value} label={t.label} {...form.radioField("terms", t.value)} />)}
+      </FormFieldset>
+    </Grid>
+    <FormActions>
+      <Button level="tertiary" onClick={cancel}>Cancel</Button>
+      <Button level="primary" type="submit">{form.isSubmitting ? "Adding…" : "Add client"}</Button>
+    </FormActions>
+  </Form>
+</AppShell>`,
   },
   {
     title: "Server errors",
@@ -595,19 +732,21 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Form screen on a phone",
-    description: "A pickup booking in the Mekong Freight app: the footer Action Bar sits outside the form, so its submit names the form by id, and its summary follows the parcels. Close asks before it drops what was entered; a booked pickup joins the shipments.",
+    description: "A pickup booking in the Mekong Freight app: the Action bar the shell pins to the bottom sits outside the form, so its submit names the form by id, and its summary follows the parcels. Close asks before it drops what was entered; a booked pickup joins the shipments under On the way, on the app's tab root.",
     render: () => <PhonePickupExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 const formId = useId();
 
-<PlatformPhone key="new" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
-    leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
-  footer={<ActionBar position="static"
-    summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{\`\${plural(parcels, "parcel")} · \${formatMoney(fee, true)}\`}</Text>}
-    primaryAction={{ label: form.isSubmitting ? "Booking…" : "Book pickup", type: "submit", form: formId }} />}>
-  <Form id={formId} form={form} aria-label="New pickup">
-    <Stack padding="lg" gap="md"> {/* stacked fields: md apart */}
+<PlatformPhone key="new" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
+      leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
+    actionBar={<ActionBar
+      summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{\`\${plural(parcels, "parcel")} · \${formatMoney(fee, true)}\`}</Text>}
+      primaryAction={{ label: form.isSubmitting ? "Booking…" : "Book pickup", type: "submit", form: formId }} />}
+  >
+    {/* The Body pads the screen; stacked fields md apart */}
+    <Form id={formId} form={form} gap="md" aria-label="New pickup">
       <SelectField label="Deliver to" options={stores} {...form.selectField("to")} />
       <DateField label="Pickup day" today={TODAY} minDate={TODAY} {...form.dateField("day")} />
       <FormFieldset kind="radio" legend="Pickup time" error={form.fieldError("window")}>
@@ -617,8 +756,8 @@ const formId = useId();
         </Stack>
       </FormFieldset>
       <NumberField label="Parcels" min={1} max={20} {...form.numberField("parcels")} />
-    </Stack>
-  </Form>
+    </Form>
+  </AppShell>
 </PlatformPhone>`,
   },
   {

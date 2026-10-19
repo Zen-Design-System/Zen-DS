@@ -151,7 +151,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an <ActionBar> (`surface=\"glass\"` over photos).",
+          "description": "Mobile Figma Bottom Actions: what the screen pins to the bottom: an <ActionBar> (`surface=\"glass\"` over photos), or\nthe screen's input bar in the same place (a chat's ChatComposer, an AI prompt field).",
           "deprecated": null
         },
         {

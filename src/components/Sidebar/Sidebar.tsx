@@ -596,7 +596,10 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
   return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
-export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedProp = false, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref }: SidebarProps) {
+export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedArg, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref }: SidebarProps) {
+  // Unset is not "expanded": an AppShell's pattern decides where the rail starts (List-Detail on the rail), so the
+  // shell hears `collapsed` only when it was given.
+  const collapsedProp = collapsedArg ?? false;
   const nest = useNested(overrides);
   const t = useZenLabels();
   // Inside an AppShell (directly or wrapped in an app component) the shell owns the rail unless the Sidebar has its own
@@ -617,7 +620,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   const register = shell?.register;
   const ownsRail = Boolean(onCollapsedChangeProp);
   const requestCollapse = useStableCallback(onCollapsedChangeProp);
-  useIsomorphicLayoutEffect(() => register?.({ canCollapse: variant !== "workspace", collapsed: collapsedProp, owns: ownsRail, request: requestCollapse }), [register, variant, collapsedProp, ownsRail, requestCollapse]);
+  useIsomorphicLayoutEffect(() => register?.({ canCollapse: variant !== "workspace", collapsed: collapsedArg, owns: ownsRail, request: requestCollapse }), [register, variant, collapsedArg, ownsRail, requestCollapse]);
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const rootClassName = ["zen-sidebar", className].filter(Boolean).join(" ");
   const nav = { selectedId, linkAs };

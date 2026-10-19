@@ -336,6 +336,24 @@ describe("AppShell trail on a phone (§17; user 2026-10-19: drop the Breadcrumbs
 });
 
 describe("AppShell desktop patterns", () => {
+  it("List-Detail: a Sidebar wrapped in an app component starts on the rail too", async () => {
+    function StudioNav() {
+      return <Sidebar sections={sections} selectedId="members" />;
+    }
+    await render(
+      <div style={{ width: 1440 }}>
+        <ZenProvider>
+          <AppShell layout="desktop" pattern="list-detail" sidebar={<StudioNav />}
+            leadingPane={<AppShellPane title="Members"><p>List</p></AppShellPane>}
+            header={<AppShellHeader main={<PageHeader title="Ava Chen" />} />}>
+            <p>Detail</p>
+          </AppShell>
+        </ZenProvider>
+      </div>,
+    );
+    await expect.poll(() => document.querySelector(".zen-sidebar")?.getAttribute("data-collapsed")).toBe("true");
+  });
+
   it("List-Detail: the Sidebar starts on its rail and the leading pane sits beside it", async () => {
     await render(<Pattern pattern="list-detail" />);
     await expect.poll(() => document.querySelector(".zen-sidebar")?.getAttribute("data-collapsed")).toBe("true");

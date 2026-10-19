@@ -99,7 +99,10 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   backdrop?: ReactNode;
   /** Mobile Figma Bottom Tab-Bar | Floating: the root navigation, a <BottomNavigation> (`floating-glass` floats over the page). Root screens only. */
   bottomNavigation?: ReactNode;
-  /** Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an <ActionBar> (`surface="glass"` over photos). */
+  /**
+   * Mobile Figma Bottom Actions: what the screen pins to the bottom: an <ActionBar> (`surface="glass"` over photos), or
+   * the screen's input bar in the same place (a chat's ChatComposer, an AI prompt field).
+   */
   actionBar?: ReactNode;
   /** Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. */
   sidebarCollapsed?: boolean;

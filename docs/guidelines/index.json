@@ -1036,7 +1036,7 @@
         "Sidebar": [
           "variant?: basic|workspace|small-density",
           "density?: medium|small",
-          "collapsed?: boolean = false",
+          "collapsed?: boolean",
           "onCollapsedChange?: (collapsed: boolean) => void",
           "brand?: ReactNode",
           "logo?: ReactNode",

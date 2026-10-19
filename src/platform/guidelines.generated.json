@@ -7930,7 +7930,7 @@
       [
         "Mobile Bottom",
         "bottomNavigation · actionBar",
-        "Tab-Bar = BottomNavigation (default); Floating = BottomNavigation type=\"floating-glass\" over the page; Actions = <ActionBar> (surface=\"glass\" over a photo); none = the home indicator only"
+        "Tab-Bar = BottomNavigation (default); Floating = BottomNavigation type=\"floating-glass\" over the page; Actions = <ActionBar> (surface=\"glass\" over a photo), or the screen's input bar pinned the same way (a chat's ChatComposer, an AI prompt field); none = the home indicator only"
       ],
       [
         "Banner · Canvas",

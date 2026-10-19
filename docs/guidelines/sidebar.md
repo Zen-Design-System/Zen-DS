@@ -33,7 +33,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | --- | --- | --- | --- |
 | `variant` | `"basic" \| "workspace" \| "small-density"` | — |  |
 | `density` | `"medium" \| "small"` | — | Compatibility alias for the earlier component API. |
-| `collapsed` | `boolean` | `false` | The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps it (controlled). |
+| `collapsed` | `boolean` | — | The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps it (controlled). |
 | `onCollapsedChange` | `(collapsed: boolean) => void` | — | Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is not rendered. Ignored by `variant="workspace"`, which has no collapsed state. |
 | `brand` | `ReactNode` | — | Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and hides the rest visually. |
 | `logo` | `ReactNode` | — | Header logo while expanded (Figma LOGO / Union). Sized to the header height (24px; 20px in Small-Density). |

@@ -31,7 +31,7 @@ The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, 
 | Floating-Actions | `floatingActions` | floating buttons bottom-right, Margin-Comfortable from the edges, Spacing/Gap/Large apart; on phones they hide while scrolling down |
 | Mobile Top | `mobileTop · topNavigation · hero · backdrop` | bar (default; TopNavigation type alt) · band (Support/Brand/Subtle band with the TopNavigation transparent and the hero) · band-sheet (the band fills the screen, the page rises as a 3XLarge sheet) · media (a 520 backdrop behind a liquid-overlay TopNavigation, the page as a sheet); the TopNavigation keeps a type it sets |
 | Band | `band` | subtle (default, Support/Brand/Subtle) · pale · soft · accent (Background/Accent/Solid): the fill of Top=Band and Band-Sheet, as Figma's screens override it; on accent the TopNavigation turns transparent-on-color with its title, capline and subheading in On-Accent (one line each), and the hero's text takes tone="on-accent" |
-| Mobile Bottom | `bottomNavigation · actionBar` | Tab-Bar = BottomNavigation (default); Floating = BottomNavigation type="floating-glass" over the page; Actions = <ActionBar> (surface="glass" over a photo); none = the home indicator only |
+| Mobile Bottom | `bottomNavigation · actionBar` | Tab-Bar = BottomNavigation (default); Floating = BottomNavigation type="floating-glass" over the page; Actions = <ActionBar> (surface="glass" over a photo), or the screen's input bar pinned the same way (a chat's ChatComposer, an AI prompt field); none = the home indicator only |
 | Banner · Canvas | `banner · canvas` | a full-width AlertBanner above the shell that stays in view · default · alt (white) · flat |
 | Breakpoint | `layout` | auto (the shell's own width: ≥ 1024 desktop; narrower mobile with mobile parts, else drawer) · desktop · drawer · mobile (previews and tests only) |
 | — | `navOpen · onNavOpenChange · navLabel · mainId · useAppShell()` | controlled drawer · its name · the skip-link target · the layout and navigation state for your own controls |
@@ -63,7 +63,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `hero` | `ReactNode` | — | Mobile Figma Hero (`band`, `band-sheet`): what the band shows under the TopNavigation (a balance, a profile, a summary). |
 | `backdrop` | `ReactNode` | — | Mobile Figma Backdrop (`media`): the photo, video or map behind the top of the screen. |
 | `bottomNavigation` | `ReactNode` | — | Mobile Figma Bottom Tab-Bar \| Floating: the root navigation, a `<BottomNavigation>` (`floating-glass` floats over the page). Root screens only. |
-| `actionBar` | `ReactNode` | — | Mobile Figma Bottom Actions: the screen's actions pinned to the bottom, an `<ActionBar>` (`surface="glass"` over photos). |
+| `actionBar` | `ReactNode` | — | Mobile Figma Bottom Actions: what the screen pins to the bottom: an `<ActionBar>` (`surface="glass"` over photos), or the screen's input bar in the same place (a chat's ChatComposer, an AI prompt field). |
 | `sidebarCollapsed` | `boolean` | — | Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. |
 | `defaultSidebarCollapsed` | `boolean` | — | Rail state to start from, uncontrolled. Default: the Sidebar's own `collapsed`; `list-detail` starts on the rail. |
 | `onSidebarCollapsedChange` | `(collapsed: boolean) => void` | — | Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it to keep the choice between visits. |

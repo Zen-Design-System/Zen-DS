@@ -1,39 +1,27 @@
 /* AI UI examples (examples/pages/ai-ui.tsx). */
 
-/* The assistant screen (PreviewWindow) and the phone screen keep their Canvas (the user, 2026-10-15: no page gradient);
-   the AI shows itself in the Liquid Glass field and the working-state ring below. */
-.px-ai-ui-screen, .px-ai-ui-phone-flow { position: relative; z-index: 0; }
+/* The assistant screen (AppShell top-bar) and the phone screen keep their Canvas (the user, 2026-10-15: no page
+   gradient); the AI shows itself in the Liquid Glass field and the working-state ring below. */
 
-/* Desktop: the bar on top, then the conversation scrolls while the field stays docked at the bottom of the scroll
-   (sticky), so the bubbles pass under the glass. Padding is the page margin at the sides (Margin/Comfortable), as the
-   AI Chat page's screen; the thread grows to push the dock down when the conversation is short. */
-.px-ai-ui-screen { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 100%; height: 100%; }
-.px-ai-ui-screen__bar { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) 0; }
-.px-ai-ui-screen__flow { display: flex; min-height: 100%; flex-direction: column; }
-.px-ai-ui-screen__thread { flex: 1 0 auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xlarge, 24px); }
-.px-ai-ui-screen__dock { position: sticky; z-index: 1; bottom: 0; padding: 0 var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); }
+/* Desktop: the Body pads the page and scrolls under the header; the thread grows to push the dock down when the
+   conversation is short, and the field docks at the bottom of the window (sticky), so the bubbles pass under the glass.
+   The dock keeps the page margin below the field in place of the Body's. */
+.px-ai-ui-desk__thread { flex: 1 0 auto; padding-block-end: var(--zen-spacing-padding-xlarge, 24px); }
+.px-ai-ui-dock { position: sticky; z-index: 3; bottom: 0; margin-block-end: calc(-1 * var(--zen-margin-comfortable, 24px)); padding-block-end: var(--zen-margin-comfortable, 24px); }
 /* The field lines up with the conversation column (AiChatThread: max 800, centred). */
 .px-ai-ui-column { width: 100%; max-width: 800px; margin-inline: auto; }
 
 /* A new bubble, and the answer replacing its thinking dots, fade in (opacity only). */
 .px-ai-ui-enter, .px-ai-ui-enter .zen-ai-bubble__content { animation: px-ai-ui-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
 
-/* The panel (what the conversation sees) lies over the screen's right edge, so the conversation keeps its width at any
-   window size; a Surface Box with Shadow/Bottom/Level-3, its own scroll, the screen's margin at the sides; it fades in. */
-.px-ai-ui-aside { position: absolute; z-index: 2; top: 0; right: 0; bottom: 0; width: min(320px, 100%); box-sizing: border-box; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); animation: px-ai-ui-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
-
-/* Phone: the same flow inside the phone's scrolling screen. The thread keeps the screen margin (Margin/Comfortable, 20
-   on phones); the docked field is a strip whose bottom clears the home indicator, as the AI Chat page's phone. */
-.px-ai-ui-phone-flow { display: flex; min-height: 100%; flex-direction: column; }
-.px-ai-ui-phone-body { flex: 1 0 auto; padding: var(--zen-margin-comfortable, 20px); }
-/* The composer phone: the greeting fills the screen inside the margin (as the AI Chat phone's home), the composer sits at
-   the end of the flow (in flow, not sticky: the card above the field pushes the greeting up and the screen follows). */
-.px-ai-ui-phone-home { display: flex; flex: 1 0 auto; box-sizing: border-box; align-items: center; padding: var(--zen-margin-comfortable, 20px); }
-.px-ai-ui-phone-composer { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
-.px-ai-ui-phone-dock { position: sticky; z-index: 1; bottom: 0; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
-/* PlatformPhone pads a screen without a footer by the safe area; the dock already clears the home indicator, so that
-   padding floated the field twice as high (the user, 2026-10-15: "chat box nằm hơi cao trên mobile"). */
-.platform-phone:has(> .platform-phone__screen > .px-ai-ui-phone-flow) > .platform-phone__screen { padding-bottom: 0; }
+/* Phone (AppShell mobile): the Body pads the thread (Margin-Comfortable at the sides); the docked field is a strip at the
+   bottom of the shell whose bottom clears the home indicator, as the AI Chat page's phone. */
+.px-ai-ui-phone-dock { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
+/* The composer phone: the greeting fills the free screen, the composer ends the Body in flow (the card above the field
+   pushes the greeting up and the screen follows). With the Body's bottom padding, its field ends Padding/XSmall above the
+   home indicator, as the docked field does. */
+.px-ai-ui-phone-home { display: flex; min-height: 0; flex: 1 1 auto; align-items: center; }
+.px-ai-ui-phone-composer { padding-block-end: max(0px, calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px) - var(--zen-spacing-padding-large, 20px))); }
 
 /* The composer card (docs/research/ai-ui-live-composer-ux-2026-10-15.md §4): the guess card and each new guess fade
    in (opacity only, so reduced motion needs no fallback). A height transition would need a settled state before the
