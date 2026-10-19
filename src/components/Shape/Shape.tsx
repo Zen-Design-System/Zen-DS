@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type CSSProperties, type HTMLAttributes, type Ref } from "react";
+import { useId, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { frameFlips, type FrameFlip } from "../Layout/appearance";
 import { layoutPosition, type LayoutPositionProps } from "../Layout/position";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
@@ -11,11 +11,15 @@ import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, fillPaint, strokePaint, type S
 import "./shape.css";
 
 /** Figma's shape tools: Rectangle (R), Ellipse (O), Line (L), Arrow (⇧L), Polygon, Star, and the Pen's Vector (P). */
-export const shapeTypes = ["rectangle", "ellipse", "line", "arrow", "polygon", "star", "vector"] as const;
+export const shapeTypes = ["rectangle", "ellipse", "line", "arrow", "polygon", "star", "vector", "boolean"] as const;
 export type ShapeType = (typeof shapeTypes)[number];
 /** Figma strokeAlign INSIDE | CENTER | OUTSIDE. */
 export const shapeStrokeAligns = ["inside", "center", "outside"] as const;
 export type ShapeStrokeAlign = (typeof shapeStrokeAligns)[number];
+
+/** Figma's boolean groups: Union, Subtract (the first shape minus the others), Intersect, Exclude. */
+export const shapeBooleanOperations = ["union", "subtract", "intersect", "exclude"] as const;
+export type ShapeBooleanOperation = (typeof shapeBooleanOperations)[number];
 
 /** Figma's default size for a shape placed with a click (100 × 100). */
 export const SHAPE_DEFAULT_SIZE = 100;
@@ -25,9 +29,14 @@ export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "childr
    * The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),
    * `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end
    * cap), `polygon` (REGULAR_POLYGON, `pointCount` corners), `star` (STAR, `pointCount` tips, `starRatio`) and `vector`
-   * (VECTOR: the path `d` in its `viewBox`, as the Pen draws it).
+   * (VECTOR: the path `d` in its `viewBox`, as the Pen draws it) and `boolean` (BOOLEAN_OPERATION: its shapes, the
+   * children, combined by `operation`; Zen Studio writes the result as `d`).
    */
   type?: ShapeType;
+  /** A boolean group's operation (`type="boolean"`): `union` (default), `subtract`, `intersect` or `exclude`, as Figma's. */
+  operation?: ShapeBooleanOperation;
+  /** A boolean group's shapes (`type="boolean"`): placed at their X / Y inside it, not drawn themselves; their combined outline is. */
+  children?: ReactNode;
   /**
    * A vector's path (`type="vector"`): SVG path data in absolute M / L / C / Q / Z commands only (what Figma's vectorPaths
    * take), in the coordinates of `viewBox`. Zen Studio's Pen and Pencil write it.
@@ -106,6 +115,8 @@ function useShapeSize(element: { current: HTMLDivElement | null }, width: unknow
  */
 export function Shape({
   type = "rectangle",
+  operation,
+  children,
   d: path,
   viewBox,
   fillRule,
@@ -154,12 +165,14 @@ export function Shape({
   const id = safeId(useId());
   const sizing = layoutSizing({ width, height: line ? undefined : height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
-  const vector = kind === "vector";
+  // A boolean group draws its result as a vector does: its path in its viewBox (Zen Studio computes it from its shapes).
+  const vector = kind === "vector" || kind === "boolean";
+  const boolean = kind === "boolean";
   // Figma's Pen draws a stroke and no fill, centred on the path (as a line).
-  const fillColor = fillPaint(fill ?? (line || vector ? "none" : DEFAULT_SHAPE_FILL));
-  const strokeColor = strokePaint(stroke ?? (line || vector ? DEFAULT_LINE_STROKE : "none"));
+  const fillColor = fillPaint(fill ?? (line || (vector && !boolean) ? "none" : DEFAULT_SHAPE_FILL));
+  const strokeColor = strokePaint(stroke ?? (line || (vector && !boolean) ? DEFAULT_LINE_STROKE : "none"));
   const weight = finite(strokeWeight) ? Math.max(0, strokeWeight) : 1;
-  const align: ShapeStrokeAlign = line ? "center" : strokeAlign && (shapeStrokeAligns as readonly string[]).includes(strokeAlign) ? strokeAlign : vector ? "center" : "inside";
+  const align: ShapeStrokeAlign = line ? "center" : strokeAlign && (shapeStrokeAligns as readonly string[]).includes(strokeAlign) ? strokeAlign : vector && !boolean ? "center" : "inside";
   const vars: Record<string, string | number | undefined> = {
     ...sizing.vars,
     ...placed.vars,
@@ -248,6 +261,7 @@ export function Shape({
       style={withSizingVars(style, shown as Record<`--${string}`, string>)}
     >
       {drawing}
+      {boolean && children ? <div className="zen-shape__operands" data-operation={operation && (shapeBooleanOperations as readonly string[]).includes(operation) ? operation : "union"} aria-hidden="true">{children}</div> : null}
     </div>
   );
 }

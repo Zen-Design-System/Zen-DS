@@ -405,6 +405,19 @@ test("components (F3, a page you made): Create component of several floating lay
   assert.match(applySlotOp(code, rect, "Shape", { op: "many", action: "components", locs: [rect, ellipse], names: { [rect]: { id: "r", name: "R" } } }, { file: PAGE, hash: sha1(code) }).error, /names/);
 });
 
+test("group as a boolean group (F9b) and as one vector (Flatten / Outline stroke)", () => {
+  const code = ['import { Box } from "../../../components/Layout";', 'import { Shape } from "../../../components/Shape";', "export function Demo() {", "  return (", "    <Box width={358} height={220}>", '      <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />', '      <Shape type="ellipse" position="absolute" insetLeft={60} insetTop={40} width={60} height={60} />', "    </Box>", "  );", "}", ""].join("\n");
+  const rect = locOf(code, '<Shape type="rectangle"');
+  const ellipse = locOf(code, '<Shape type="ellipse"');
+  const boolean = applySlotOp(code, rect, "Shape", { op: "group", tag: "Shape", with: [ellipse], box: { x: 20, y: 20, width: 100, height: 80 }, kids: { [rect]: { x: 0, y: 0 }, [ellipse]: { x: 40, y: 20 } }, props: { type: { kind: "string", value: "boolean" }, operation: { kind: "string", value: "subtract" } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!boolean.error, boolean.error);
+  assert.match(boolean.code, /<Shape position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{100\} height=\{80\} type="boolean" operation="subtract">\n {8}<Shape position="absolute" insetLeft=\{0\} insetTop=\{0\} type="rectangle"[^\n]*\n {8}<Shape position="absolute" insetLeft=\{40\} insetTop=\{20\} type="ellipse"[^\n]*\n {6}<\/Shape>/);
+  const flat = applySlotOp(code, rect, "Shape", { op: "group", tag: "Shape", childless: true, with: [ellipse], box: { x: 20, y: 20, width: 100, height: 80 }, props: { type: { kind: "string", value: "vector" }, d: { kind: "string", value: "M 0 0 L 10 0 Z" }, viewBox: { kind: "string", value: "0 0 100 80" } } }, { file: FILE, hash: sha1(code) });
+  assert.ok(!flat.error, flat.error);
+  assert.match(flat.code, /<Box width=\{358\} height=\{220\}>\n {6}<Shape position="absolute" insetLeft=\{20\} insetTop=\{20\} width=\{100\} height=\{80\} type="vector" d="M 0 0 L 10 0 Z" viewBox="0 0 100 80" \/>\n {4}<\/Box>/);
+  assert.match(applySlotOp(code, rect, "Shape", { op: "group", tag: "Shape", with: [ellipse], box: { x: 0, y: 0, width: 1, height: 1 }, kids: {} }, { file: FILE, hash: sha1(code) }).error, /boolean group or one vector/);
+});
+
 const many = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "many", ...op }, { file: FILE, hash: sha1(code) });
 
 test("many remove: several layers in one edit, a nested one goes with its parent", () => {

@@ -799,15 +799,18 @@ function attributeOf(name, value) {
 export function groupPlan(ctx, nodePath, op, h) {
   const { ast, text, eol } = ctx;
   const tag = op.tag ?? "Box";
-  if (tag !== "Box") h.refuse("group puts the layers in a Box");
+  // A boolean group (F9b) is a Shape holding its shapes; Flatten and Outline stroke (`childless`) put one vector in
+  // the layers' place.
+  const shape = tag === "Shape" && (op.childless || op.props?.type?.value === "boolean");
+  if (tag !== "Box" && !shape) h.refuse("group puts the layers in a Box, a boolean group or one vector");
   const box = op.box;
   if (!box || !["x", "y", "width", "height"].every((key) => Number.isFinite(box[key]))) h.refuse("group needs `box`: { x, y, width, height } in px");
-  if (!op.kids || typeof op.kids !== "object") h.refuse("group needs `kids`: each layer's { x, y } in the new Box, by its loc");
+  if (!op.childless && (!op.kids || typeof op.kids !== "object")) h.refuse("group needs `kids`: each layer's { x, y } in the new Box, by its loc");
   const locs = [locOfElement(ctx.element), ...(Array.isArray(op.with) ? op.with : [])];
   const elements = [...new Set(locs)].map((loc) => {
     const element = typeof loc === "string" && parseLoc(loc) ? findElement(ast, parseLoc(loc)) : null;
     if (!element) h.refuse(`No element starts at ${loc}; select the layers again`, "stale");
-    const kid = op.kids[loc];
+    const kid = op.childless ? { x: 0, y: 0 } : op.kids[loc];
     if (!kid || !Number.isFinite(kid.x) || !Number.isFinite(kid.y)) h.refuse(`group has no place for the layer at ${loc}`);
     return { element, kid };
   }).sort((a, b) => a.element.start - b.element.start);
@@ -824,7 +827,7 @@ export function groupPlan(ctx, nodePath, op, h) {
   // In auto layout (`flow`) the Box takes the layers' place in the flow, sized to them; else it floats at `box`.
   const placed = op.flow ? [] : [`position="absolute"`, `insetLeft={${Math.round(box.x)}}`, `insetTop={${Math.round(box.y)}}`];
   const attrs = [...placed, `width={${Math.round(box.width)}}`, `height={${Math.round(box.height)}}`, ...extra].join(" ");
-  let boxText = `<${tag} ${attrs}>${eol}${blocks.join(eol)}${eol}${base}</${tag}>`;
+  let boxText = op.childless ? `<${tag} ${attrs} />` : `<${tag} ${attrs}>${eol}${blocks.join(eol)}${eol}${base}</${tag}>`;
   // Create component on several layers (a page you made): the Box is the main component's one layer.
   const component = op.component;
   if (component !== undefined && !(h.LOCAL_PAGE.test(ctx.file ?? "") && typeof component?.id === "string" && typeof component?.name === "string")) h.refuse("group `component` needs { id, name }, on a page you made");

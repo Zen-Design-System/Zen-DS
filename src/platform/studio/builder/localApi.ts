@@ -2,6 +2,7 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import type { DetachPlan, EditRequest, EditResponse, SourceElement, SourceFile, WriteRequest, WriteResponse } from "../types";
 import { engineOptions, loadDetach, loadEngine, zenComponents } from "./engine";
 import { getPage, pageFile, pageIdOf, putPage, setPageDoc } from "./store/pageStore";
+import { loadPathKit } from "../draw/pathKit";
 import type { PageDoc } from "../../../../tools/studio/browser-engine.mjs";
 import { LEGACY_FRAME } from "../../../../tools/studio/screen-chrome.mjs";
 
@@ -44,6 +45,27 @@ function withPhoneSync(engine: Engine, before: string | null, edited: Edited, fi
   // up to three (each new part alone, then the rest), a page seldom has more than a few Screens.
   for (let round = 0; round < 24; round++) {
     const [plan] = engine.planPhoneSync(before, current.text, { components });
+    if (!plan) break;
+    const next = engine.editDoc(current.doc, current.text, { file, loc: plan.loc, name: plan.name, ops: plan.ops }, { components, applyOps: engine.applyOps, dataFieldEdit: engine.dataFieldEdit, sha1: engine.sha1, options: { ...options, hash: engine.sha1(current.text) } });
+    if ("error" in next) break;
+    const locs = current.locs && next.locs ? Object.fromEntries(Object.entries(current.locs).map(([from, at]) => [from, at === null ? null : next.locs![at] ?? at])) : current.locs ?? next.locs;
+    current = { doc: next.doc, text: next.text, locs };
+  }
+  return current;
+}
+
+/**
+ * A page's boolean groups follow the edit (one ⌘Z with it; plan F9b): each group's result (`d`) is its shapes combined
+ * now, written by tools/studio/path-ops.mjs planBooleans, one group per round. Skia's PathOps load on the first page
+ * that has a group.
+ */
+async function withBooleans(engine: Engine, edited: Edited, file: string, options: Record<string, unknown>): Promise<Edited> {
+  if (!edited.text.includes('type="boolean"')) return edited;
+  const kit = await loadPathKit();
+  const components = new Set(zenComponents);
+  let current = edited;
+  for (let round = 0; round < 24; round++) {
+    const [plan] = engine.planBooleans(kit, current.text, { components });
     if (!plan) break;
     const next = engine.editDoc(current.doc, current.text, { file, loc: plan.loc, name: plan.name, ops: plan.ops }, { components, applyOps: engine.applyOps, dataFieldEdit: engine.dataFieldEdit, sha1: engine.sha1, options: { ...options, hash: engine.sha1(current.text) } });
     if ("error" in next) break;
@@ -189,7 +211,9 @@ export async function localEdit(request: EditRequest): Promise<EditResponse> {
   if ("error" in edited) return { ok: false, code: edited.code === "stale" || edited.code === "not-found" || edited.code === "forbidden" ? edited.code : "invalid", error: edited.error };
   // The Screens' linked phone parts follow the edit (one ⌘Z with it).
   const synced = withPhoneSync(engine, before, { doc: edited.doc, text: edited.text, locs: edited.locs }, request.file, options);
-  const result = { ...edited, ...synced };
+  // Boolean groups follow their shapes in the same edit (F9b).
+  const settled = await withBooleans(engine, synced, request.file, options);
+  const result = { ...edited, ...settled };
   const after = result.text;
   if (after !== before) {
     remember(hashBefore, doc);
