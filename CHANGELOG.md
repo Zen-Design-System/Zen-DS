@@ -58,6 +58,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   On colours; High Contrast mode raises every pair.
 - **No Breadcrumbs on a phone** (2026-10-19, user): under 744px, AppShellHeader's top row and PageHeader turn a
   Breadcrumbs into a Back to the parent crumb on a child page and drop it on a root. Pass the full trail.
+- Zen Studio's Copy as PNG (⇧⌘C) and Copy as SVG, as Figma's (the rest of F3 of the parity plan): the selected layer
+  or frame as a picture on the clipboard at 2x (or at its first export setting's scale), or as SVG markup; in the
+  layer menu's Copy as list, the frame menu and Quick actions. ⇧⌘C no longer says "not in Zen Studio yet".
 - Zen Studio's View and Find like Figma (F10 of the parity plan): zoom from 2 % to 25 600 % (zoom to fit still stops
   at 400 %), the pixel grid from 400 % (⌘'), Outlines (⌘Y), rulers (⇧R) with guides dragged onto a frame or the canvas
   (back onto the ruler deletes one), layout guides on a frame (right panel › Layout guide: Columns, Rows or Grid; margin
@@ -81,6 +84,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Shape's or frame's image fill lands as Figma's Image paint (Fill, Fit, Crop, Tile), PNG, JPEG and GIF as they are, a
   WebP as PNG; an Avatar's photo and a table's Avatar or Photo cell show their picture. A Shape rectangle or ellipse now
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
+- The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
+  and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
 - `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
   another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
   (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer

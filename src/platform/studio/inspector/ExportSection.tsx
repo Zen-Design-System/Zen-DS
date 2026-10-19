@@ -17,6 +17,8 @@ import { inspectorStatus } from "./status";
 type ExportSetting = { scale: number; format: LayerExportFormat };
 
 const settingsByLayer = new Map<string, ExportSetting[]>();
+/** A layer's export settings this session (`src`, or `frame:<page key>:<frame id>`): ⇧⌘C copies at the first one's scale. */
+export const exportSettingsOf = (src: string): readonly ExportSetting[] => settingsByLayer.get(src) ?? [];
 const SCALES = [0.5, 0.75, 1, 1.5, 2, 3, 4];
 const FORMATS: ReadonlyArray<{ value: LayerExportFormat | "pdf"; label: string; disabled?: boolean }> = [
   { value: "png", label: "PNG" },
