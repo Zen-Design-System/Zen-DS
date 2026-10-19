@@ -11,6 +11,7 @@
  */
 import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
 import type { ZenCornerRadius } from "../_shared/scale";
+import { imageFillPropNames, type ImageFillProps } from "../_shared/image-fill";
 
 /** The background layers a frame may paint (docs/guidelines/background-layers.md). */
 export const boxSurfaces = ["none", "surface", "surface-alt", "subtle", "pale", "canvas"] as const;
@@ -28,7 +29,7 @@ export type FrameBorderStyle = (typeof frameBorderStyles)[number];
 export const frameFlips = ["horizontal", "vertical", "both"] as const;
 export type FrameFlip = (typeof frameFlips)[number];
 
-export interface FrameAppearanceProps extends CornerRadiusProps {
+export interface FrameAppearanceProps extends CornerRadiusProps, ImageFillProps {
   /**
    * Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.
    * `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)
@@ -66,7 +67,7 @@ export interface FrameTransformProps {
 }
 
 /** Prop names the Studio's Appearance, Fill and Stroke sections own (filtered out of Properties). */
-export const frameAppearancePropNames: ReadonlySet<string> = new Set(["surface", "border", "borderWeight", "borderSides", "borderStyle", "opacity"]);
+export const frameAppearancePropNames: ReadonlySet<string> = new Set(["surface", "border", "borderWeight", "borderSides", "borderStyle", "opacity", ...imageFillPropNames]);
 
 type Attributes = Record<`data-${string}`, string | undefined>;
 type Vars = Record<`--${string}`, string | undefined>;

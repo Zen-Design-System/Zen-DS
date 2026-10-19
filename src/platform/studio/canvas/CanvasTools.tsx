@@ -1,4 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
+import { placeImages } from "../draw/placeImage";
+import { installFileDrop } from "./fileDrop";
 import { IconButton } from "../../../components/Button";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Menu } from "../../../components/Menu";
@@ -13,7 +15,8 @@ import { modKey } from "../shell/modKey";
 import { tip } from "../shell/ShortcutTip";
 import { PALETTE } from "../slots/palette";
 import { studioStore, useStudio } from "../store";
-import type { StudioShapeTool, StudioTool } from "../types";
+import type { StudioPenTool, StudioShapeTool, StudioTool } from "../types";
+import { armPen, disarmPen } from "../draw/penTool";
 import "./canvas.css";
 
 type ToolEntry = { id: StudioTool; label: string; key?: string; icon: IconName };
@@ -36,6 +39,13 @@ export const frameTools: ReadonlyArray<ToolEntry & { id: "frame" | "section" }> 
 ];
 const isFrameTool = (tool: StudioTool): tool is "frame" | "section" => tool === "frame" || tool === "section";
 
+/** Figma's Pen tools (UI3: the Pen button's menu), F9: draw/penTool.ts. */
+export const penTools: ReadonlyArray<ToolEntry & { id: StudioPenTool }> = [
+  { id: "pen", label: "Pen", key: "P", icon: "icon-pen-tool-01-line" },
+  { id: "pencil", label: "Pencil", key: "⇧P", icon: "icon-pencil-line" },
+];
+const isPenTool = (tool: StudioTool): tool is StudioPenTool => penTools.some((entry) => entry.id === tool);
+
 /**
  * The tools in Figma UI3's order and groups: Move · Hand | Frame | Shapes | Text · Image | (Assets); example pages also
  * have Stack (placed in a layout) and Interact (use the examples).
@@ -44,6 +54,7 @@ export const canvasToolGroups: ReadonlyArray<ReadonlyArray<ToolEntry>> = [
   [{ id: "select", label: "Move", key: "V", icon: "icon-cursor-line" }, { id: "hand", label: "Hand", key: "H", icon: "icon-hand-line" }],
   frameTools,
   shapeTools,
+  penTools,
   [{ id: "stack", label: "Stack", icon: "icon-rows-01-line" }, { id: "text", label: "Text", key: "T", icon: "icon-type-01-line" }, { id: "image", label: "Place image/video", key: `⇧${modKey}K`, icon: "icon-image-line" }],
   [{ id: "interact", label: "Interact", key: "I", icon: "icon-cursor-click-line" }],
 ];
@@ -126,12 +137,47 @@ function ShapeTools({ tool, off }: { tool: StudioTool; off: boolean }) {
   );
 }
 
+/** The pen tool the toolbar shows: the one in use, else the last one used. */
+let lastPen: StudioPenTool = "pen";
+
+/** Figma UI3's Pen button: the last pen tool, and a chevron that lists Pen and Pencil with their keys (a page you made). */
+function PenTools({ tool, off }: { tool: StudioTool; off: boolean }) {
+  const [shown, setShown] = useState<StudioPenTool>(isPenTool(tool) ? tool : lastPen);
+  useEffect(() => { if (isPenTool(tool)) { lastPen = tool; setShown(tool); } }, [tool]);
+  const entry = penTools.find((item) => item.id === shown) ?? penTools[0];
+  const pick = (id: StudioPenTool) => { lastPen = id; setShown(id); studioStore.setState({ tool: id }); };
+  return (
+    <span className="studio-canvas-tools__split">
+      <IconButton
+        appearance={isPenTool(tool) ? "main" : "flat"}
+        level="primary"
+        size="sm"
+        aria-label={entry.label}
+        aria-pressed={tool === entry.id}
+        aria-keyshortcuts={ariaKeys(entry.key)}
+        disabled={off}
+        tooltip={off ? "The Pen works on a page you made" : tip(entry.label, entry.key)}
+        icon={<Icon name={entry.icon} />}
+        onClick={() => pick(entry.id)}
+      />
+      <Menu
+        aria-label="Pen tools"
+        items={penTools.map((item) => ({ id: item.id, label: item.label, icon: item.icon, shortcut: item.key, onSelect: () => pick(item.id) }))}
+        // zen-allow-no-action: the Menu's trigger (Menu wires its click and keys).
+        trigger={<IconButton className="studio-canvas-tools__more" appearance="flat" level="primary" size="sm" aria-label="Pen tools" disabled={off} tooltip="Pen tools" icon={<Icon name="icon-chevron-down-line" />} />}
+      />
+    </span>
+  );
+}
+
 /**
  * Floating toolbar, bottom-centre of the canvas (Figma UI3's): Move and Hand; Frame and Section (a page you made: drag a
  * box for a frame of that size, a click for Figma's 100 × 100 one, the right panel's presets; inside a Screen, a frame
  * there: draw/drawTool.ts; Section ⇧S draws a named board area the frames under it belong to: builder/frameMove.ts);
- * the shape tools (draw/drawTool.ts: Rectangle R, Line L, Arrow ⇧L, Ellipse O, Polygon, Star); Stack, Text and Image,
- * placed with the pointer (edit/place.ts: the insertion line shows where, a click places it, then Move again); Assets
+ * the shape tools (draw/drawTool.ts: Rectangle R, Line L, Arrow ⇧L, Ellipse O, Polygon, Star); Text T (a page you
+ * made: Figma's, a click for Auto width text or a drag for a text box, typing at once; example pages: placed with the
+ * pointer); Stack and Image, placed with the pointer (edit/place.ts: the insertion line shows where, a click places it,
+ * then Move again); Assets
  * (⇧I, Quick insert: components, icons, photos); Interact.
  */
 export function CanvasTools() {
@@ -143,15 +189,25 @@ export function CanvasTools() {
       if (!armFrameDraw(localPage, tool)) studioStore.setState({ tool: "select" });
     } else if (isShapeTool(tool) && localPage) {
       if (!armDraw(tool)) studioStore.setState({ tool: "select" });
+    } else if (tool === "text" && localPage) {
+      // Figma's Text tool on a page you made (F6): a click or a drag at the pointer, then typing (draw/drawTool.ts).
+      if (!armDraw("text")) studioStore.setState({ tool: "select" });
+    } else if (tool === "image" && localPage) {
+      // Figma's Place image on a page you made (F8): the file dialog, then a click per picture (draw/placeImage.ts).
+      void placeImages(() => armDraw("image"));
+    } else if (isPenTool(tool) && localPage) {
+      if (!armPen(tool)) studioStore.setState({ tool: "select" });
     } else if (tool === "stack" || tool === "text" || tool === "image") {
       const item = placed(tool);
       if (!item || !armPlacement({ label: item.label, item })) studioStore.setState({ tool: "select" });
-    } else if (isFrameTool(tool) || isShapeTool(tool) || !canvasTools.some((entry) => entry.id === tool)) {
+    } else if (isFrameTool(tool) || isShapeTool(tool) || isPenTool(tool) || !canvasTools.some((entry) => entry.id === tool)) {
       // No page you made here, or a tool this Studio no longer has (a session kept from before): Move.
       studioStore.setState({ tool: "select" });
     }
-    return () => { disarmPlacement(); disarmFrameDraw(); disarmDraw(); };
+    return () => { disarmPlacement(); disarmFrameDraw(); disarmDraw(); disarmPen(); };
   }, [tool, localPage]);
+  // Pictures dropped from the computer onto a frame (F8: canvas/fileDrop.ts).
+  useEffect(() => installFileDrop(localPage), [localPage]);
   return (
     <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools">
       {canvasToolGroups.map((group, index) => {
@@ -162,7 +218,7 @@ export function CanvasTools() {
         return (
         <Fragment key={group[0].id}>
           {index ? <span className="studio-canvas-tools__divider" aria-hidden="true" /> : null}
-          {group === shapeTools ? <ShapeTools tool={tool} off={!localPage} /> : group === frameTools ? <FrameTools tool={tool} off={!localPage} /> : items.map((item) => (
+          {group === shapeTools ? <ShapeTools tool={tool} off={!localPage} /> : group === frameTools ? <FrameTools tool={tool} off={!localPage} /> : group === penTools ? <PenTools tool={tool} off={!localPage} /> : items.map((item) => (
               <IconButton
                 key={item.id}
                 appearance={tool === item.id ? "main" : "flat"}

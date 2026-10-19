@@ -11,7 +11,7 @@ import type { ExampleDef } from "../types";
 
 export const page: PlatformPage = "shape";
 
-/* Shapes as a Zen Studio designer draws them with R, O, L, ⇧L, Polygon and Star: decoration and marks in a free frame
+/* Shapes as a Zen Studio designer draws them with R, O, L, ⇧L, Polygon, Star, the Pen and the Pencil: decoration and marks in a free frame
    (a Box with a size: each Shape at its X / Y, px insets), coloured with tokens only. Data stays in the components that
    carry values (charts, progress, rating). */
 
@@ -164,6 +164,60 @@ export const examples: ExampleDef[] = [
           </Stack>
         </Stack>
       </Card>
+    ),
+  },
+  {
+    title: "Hand-drawn underline (Pencil)",
+    description: "A Pencil (⇧P) stroke under a headline: a vector whose path is drawn in its own box (viewBox) and stretched to its width, stroked with a token and no fill, as Figma's Pencil draws it.",
+    code: `<Stack gap="2xs">
+  <Heading level={3} textStyle="Heading/4">Brew the perfect phin</Heading>
+  <Shape type="vector" width={220} height={12} d="M 0 8 C 40 2 80 2 120 6 C 150 9 185 10 220 4" viewBox="0 0 220 12" strokeWeight={3} stroke="accent-solid" />
+</Stack>`,
+    render: () => (
+      <Stack gap="2xs">
+        <Heading level={3} textStyle="Heading/4">Brew the perfect phin</Heading>
+        <Shape type="vector" width={220} height={12} d="M 0 8 C 40 2 80 2 120 6 C 150 9 185 10 220 4" viewBox="0 0 220 12" strokeWeight={3} stroke="accent-solid" />
+      </Stack>
+    ),
+  },
+  {
+    title: "A ticket stub (Subtract)",
+    description: "A boolean group (⌥⇧S): a rounded rectangle minus two circles at its edges. The shapes stay editable inside it; Zen Studio writes their combined outline as its d, which the page draws. The text sits beside it in the frame.",
+    code: `<Box width={240} height={96}>
+  <Shape type="boolean" operation="subtract" position="absolute" insetLeft={0} insetTop={0} width={240} height={96} d="M 228 0 L 12 0 C 5.373 0 0 5.373 0 12 L 0 36 C 6.627 36 12 41.373 12 48 C 12 54.627 6.627 60 0 60 L 0 84 C 0 90.627 5.373 96 12 96 L 228 96 C 234.627 96 240 90.627 240 84 L 240 60 C 233.373 60 228 54.627 228 48 C 228 41.373 233.373 36 240 36 L 240 12 C 240 5.373 234.627 0 228 0 Z" viewBox="0 0 240 96" fillRule="evenodd" fill="support-orange-subtle">
+    <Shape type="rectangle" position="absolute" insetLeft={0} insetTop={0} width={240} height={96} radius="md" />
+    <Shape type="ellipse" position="absolute" insetLeft={-12} insetTop={36} width={24} height={24} />
+    <Shape type="ellipse" position="absolute" insetLeft={228} insetTop={36} width={24} height={24} />
+  </Shape>
+  <Box position="absolute" insetLeft={24} insetTop={20}><Stack gap="2xs"><Text textStyle="Body/Small/Bold">Phin & Co tasting</Text><Text tone="base">Sat, Nov 2 · 10:00</Text></Stack></Box>
+</Box>`,
+    render: () => (
+      <Box width={240} height={96}>
+        <Shape type="boolean" operation="subtract" position="absolute" insetLeft={0} insetTop={0} width={240} height={96} d="M 228 0 L 12 0 C 5.373 0 0 5.373 0 12 L 0 36 C 6.627 36 12 41.373 12 48 C 12 54.627 6.627 60 0 60 L 0 84 C 0 90.627 5.373 96 12 96 L 228 96 C 234.627 96 240 90.627 240 84 L 240 60 C 233.373 60 228 54.627 228 48 C 228 41.373 233.373 36 240 36 L 240 12 C 240 5.373 234.627 0 228 0 Z" viewBox="0 0 240 96" fillRule="evenodd" fill="support-orange-subtle">
+          <Shape type="rectangle" position="absolute" insetLeft={0} insetTop={0} width={240} height={96} radius="md" />
+          <Shape type="ellipse" position="absolute" insetLeft={-12} insetTop={36} width={24} height={24} />
+          <Shape type="ellipse" position="absolute" insetLeft={228} insetTop={36} width={24} height={24} />
+        </Shape>
+        <Box position="absolute" insetLeft={24} insetTop={20}><Stack gap="2xs"><Text textStyle="Body/Small/Bold">Phin & Co tasting</Text><Text tone="base">Sat, Nov 2 · 10:00</Text></Stack></Box>
+      </Box>
+    ),
+  },
+  {
+    title: "A logo mark drawn with the Pen",
+    description: "A closed Pen path with a hole (fillRule evenodd): a filled vector at its X / Y in a free frame, beside the studio's name.",
+    code: `<Stack direction="row" gap="sm" align="center">
+  <Box width={40} height={40}>
+    <Shape type="vector" position="absolute" insetLeft={0} insetTop={0} width={40} height={40} d="M 20 0 C 31 0 40 9 40 20 C 40 31 31 40 20 40 C 9 40 0 31 0 20 C 0 9 9 0 20 0 Z M 20 10 L 30 20 L 20 30 L 10 20 Z" viewBox="0 0 40 40" fillRule="evenodd" fill="accent-solid" stroke="none" />
+  </Box>
+  <Text textStyle="Body/Base/Bold">{studio.name}</Text>
+</Stack>`,
+    render: () => (
+      <Stack direction="row" gap="sm" align="center">
+        <Box width={40} height={40}>
+          <Shape type="vector" position="absolute" insetLeft={0} insetTop={0} width={40} height={40} d="M 20 0 C 31 0 40 9 40 20 C 40 31 31 40 20 40 C 9 40 0 31 0 20 C 0 9 9 0 20 0 Z M 20 10 L 30 20 L 20 30 L 10 20 Z" viewBox="0 0 40 40" fillRule="evenodd" fill="accent-solid" stroke="none" />
+        </Box>
+        <Text textStyle="Body/Base/Bold">{studio.name}</Text>
+      </Stack>
     ),
   },
 ];

@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useSyncExternalStore } from "react";
+import { CropHandles, useCropActive } from "../draw/CropHandles";
 import { ArcHandles } from "./ArcHandles";
+import { startVectorEdit, VectorHandles, vectorEditing } from "./VectorHandles";
+import { RotateHandles } from "./RotateHandles";
 import { layerIcon, layerName } from "./layerNames";
 import { displayName } from "./layerMeta";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -146,9 +149,12 @@ function itemExtras(part: PartHit | null): PartHit[] {
 export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | null; world: HTMLElement | null }) {
   const tool = useStudio((state) => state.tool);
   const presenting = useStudio((state) => state.presenting);
+  const cropActive = useCropActive();
   const selection = useStudio((state) => state.selection);
   // Shift multi-selection (select/multiSelection.ts): the other selected layers, outlined as extras.
   const extraLayers = useExtraSelection();
+  // A vector in vertex edit (VectorHandles.tsx): its resize handles step aside.
+  const vectorEdit = useSyncExternalStore(vectorEditing.subscribe, vectorEditing.get, () => null);
   const rootRef = useRef<HTMLDivElement>(null);
   const captureRef = useRef<HTMLDivElement>(null);
   const [overlay, setOverlay] = useState<Overlay>(emptyOverlay);
@@ -836,6 +842,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       return;
     }
     if (picked.kind !== "node" || event.shiftKey) return;
+    // A double-click on the selected vector edits its points (Figma's).
+    if (selectedRef.current && picked.hit.src === selectedRef.current.src && startVectorEdit(selectedRef.current)) return;
     // A resize handle's double-click (Hug) is ResizeLayer's.
     if (event.target instanceof Element && event.target.closest(".studio-resize__handle, .studio-resize__cover")) return;
     // Figma's double-click: one level in, from the selected layer to its child under the pointer. Landing on a text
@@ -1000,6 +1008,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       } else if (event.key === "Enter") {
         const target = event.target instanceof Element ? event.target : null;
         if (target?.closest("button, a[href], [role='button'], [role='tab'], [role='treeitem'], [role='radio'], [role='option'], [role='menuitem']")) return;
+        // A vector: Enter edits its points (Figma's vertex edit, VectorHandles.tsx).
+        if (!partRef.current && startVectorEdit(selectedRef.current)) { event.preventDefault(); return; }
         // A text layer (its source holds only text): Enter edits it, text selected (Figma).
         if (!partRef.current && startTextEditOnSelection()) { event.preventDefault(); return; }
         // A text layer inside an instance (its owner's prop or text child): Enter edits it in place too.
@@ -1068,8 +1078,24 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         onPassDoubleClick={onDoubleClick}
         onPassContextMenu={onContextMenu}
       />
+      {/* Figma's crop on a selected layer whose image fill is in Crop mode (F8b, draw/CropHandles.tsx). */}
+      <CropHandles
+        box={overlay.selected}
+        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
+        interactive={tool === "select" && !presenting}
+        viewport={viewport}
+      />
       {/* Figma's arc handles on a selected ellipse (Sweep, Start, Ratio), above the resize handles. */}
       <ArcHandles
+        box={overlay.selected}
+        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
+        interactive={tool === "select" && !presenting}
+        viewport={viewport}
+      />
+      {/* Figma's vertex edit on a vector (Enter): its points and handles, the resize handles away meanwhile. */}
+      <VectorHandles hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null} viewport={viewport} />
+      {/* Figma's rotate handles, just outside the corners of a selected frame or shape (⇧ 15° steps). */}
+      <RotateHandles
         box={overlay.selected}
         hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
         interactive={tool === "select" && !presenting}
@@ -1078,8 +1104,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       <ResizeLayer
         box={overlay.selected}
         // One element: parts (deep select) are read-only and a Shift multi-selection has no one size.
-        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
-        interactive={tool === "select" && !presenting}
+        hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src && vectorEdit?.src !== overlay.selected.src ? selectedRef.current : null}
+        // Crop mode (F8b) has its own corners where these are.
+        interactive={tool === "select" && !presenting && !cropActive}
         viewport={viewport}
       />
       {overlay.instances.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="instance" style={style(box)} />)}

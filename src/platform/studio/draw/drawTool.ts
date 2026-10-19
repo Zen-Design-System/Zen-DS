@@ -12,7 +12,10 @@ import { expectRender, renderedNow } from "../select/remap";
 import { canStructurallyEdit } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
-import { CLICK_TRAVEL, clickBox, drawBox, drawCode, drawLabels, drawLine, isLineKind, lineBox, type Box, type DrawKind, type DrawPlacement, type Point } from "./drawModel";
+import { CLICK_TRAVEL, clickBox, drawBox, drawCode, drawLabels, drawLine, isLineKind, lineBox, pictureBox, pictureCode, pictureDragBox, type Box, type DrawKind, type DrawPlacement, type PlacedPicture, type Point } from "./drawModel";
+import { dropPictures, nextPicture, picturesLeft, placingHint, tookPicture } from "./placeImage";
+import { editNewText, editTextAt } from "../edit/textCreate";
+import { holdKeysForText } from "../edit/textEdit";
 import "./draw.css";
 
 /*
@@ -31,7 +34,7 @@ const EDGE = 32;
 /** Props a Box that only floats one layer has (position/float.ts): such a Box is a layer's wrapper, not a frame. */
 const FLOAT_PROPS = new Set(["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft", "children", "key"]);
 
-type DrawTarget = {
+export type DrawTarget = {
   mode: "free" | "flow";
   /** The frame the layer goes into. */
   parent: FiberHit;
@@ -53,7 +56,7 @@ function floatsOneLayer(hit: FiberHit): boolean {
 }
 
 /** The frame a draw starting at (x, y) goes into, a reason it cannot, or null (no Screen there). */
-function targetAt(x: number, y: number): DrawTarget | string | null {
+export function targetAt(x: number, y: number): DrawTarget | string | null {
   const world = canvasApi.getWorldElement();
   let hit: FiberHit | null = null;
   for (const element of document.elementsFromPoint(x, y)) {
@@ -85,13 +88,13 @@ function targetAt(x: number, y: number): DrawTarget | string | null {
 }
 
 /** A point on the screen in the frame's own px (from its padding box's top-left, its scroll included). */
-function localOf(host: HTMLElement, client: Point): Point {
+export function localOf(host: HTMLElement, client: Point): Point {
   const rect = host.getBoundingClientRect();
   const { zoom } = getViewport();
   return { x: (client.x - rect.left) / zoom - host.clientLeft + host.scrollLeft, y: (client.y - rect.top) / zoom - host.clientTop + host.scrollTop };
 }
 /** The frame's own px back on the screen, relative to the canvas viewport's top-left. */
-function screenOf(host: HTMLElement, local: Point): Point {
+export function screenOf(host: HTMLElement, local: Point): Point {
   const rect = host.getBoundingClientRect();
   const view = getViewportBox();
   const { zoom } = getViewport();
@@ -99,7 +102,7 @@ function screenOf(host: HTMLElement, local: Point): Point {
 }
 
 /** The frame's box and its layers' boxes in its own px: what a drawn corner snaps to (Figma's smart guides). */
-function snapTargets(host: HTMLElement): FrameBox[] {
+export function snapTargets(host: HTMLElement): FrameBox[] {
   const own: FrameBox = { x: 0, y: 0, width: host.clientWidth, height: host.clientHeight };
   const { zoom } = getViewport();
   const origin = host.getBoundingClientRect();
@@ -208,7 +211,7 @@ function edgePan(pointer: () => Point, follow: () => void) {
 const fail = (message: string) => announceEditStatus({ kind: "error", message, at: Date.now() });
 
 /** Writes what was drawn into `target` (one edit, labelled "Draw <shape>") and selects it. */
-async function write(kind: DrawKind, target: DrawTarget, code: string) {
+async function write(kind: DrawKind, target: DrawTarget, code: string, keys?: ReturnType<typeof holdKeysForText>) {
   const from = target.flow ? target.flow.parentSrc : target.parent.src;
   const at = parseSrc(from);
   if (!at) return;
@@ -218,10 +221,12 @@ async function write(kind: DrawKind, target: DrawTarget, code: string) {
   if (target.flow?.before) op.before = parseSrc(target.flow.before)?.loc;
   else if (target.flow?.after) op.after = parseSrc(target.flow.after)?.loc;
   const before = renderedNow(canvasApi.getWorldElement());
-  const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, `Draw ${drawLabels[kind].toLowerCase()}`);
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, kind === "text" ? "Add text" : kind === "image" ? "Place image" : `Draw ${drawLabels[kind].toLowerCase()}`);
   if (!response.ok || !response.inserted) return;
   const frameId = target.flow?.frameId ?? target.frameId;
   const panelId = target.flow?.panelId ?? target.panelId;
+  // The Text tool: the new Text is edited at once (edit/textCreate.ts).
+  if (kind === "text") { void editNewText(response.file, response.inserted.loc, target.mode === "free", { frameId, panelId }, before, keys); return; }
   const next: StudioSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: kind === "frame" ? "Box" : "Shape", frameId, panelId, instance: 0 };
   multiSelection.clear();
   expectRender(next, before, () => undefined, 1500);
@@ -238,8 +243,9 @@ export function disarmDraw() {
 }
 
 /**
- * Arms a drawing tool: `kind` a shape (Rectangle, Ellipse, Line, Arrow, Polygon, Star) or "frame" (a frame drawn inside
- * a Screen: builder/frameMove.ts hands the press over with `startDraw`). False, with the reason said, when the Studio
+ * Arms a drawing tool: `kind` a shape (Rectangle, Ellipse, Line, Arrow, Polygon, Star), "text" (Figma's Text tool T: a
+ * click for Auto width text, a drag for a text box of that width, then typing; F6) or "frame" (a frame drawn inside a
+ * Screen: builder/frameMove.ts hands the press over with `startDraw`). False, with the reason said, when the Studio
  * cannot edit.
  */
 export function armDraw(kind: Exclude<DrawKind, "frame">): boolean {
@@ -255,7 +261,9 @@ export function armDraw(kind: Exclude<DrawKind, "frame">): boolean {
     if (event.button !== 0 || !(event.target instanceof Element) || !viewport?.contains(event.target) || event.target.closest(CHROME)) return;
     event.preventDefault();
     event.stopPropagation();
-    if (!startDraw(kind, event)) fail("Draw inside a frame · F draws a frame");
+    // The Text tool on the words of a text layer edits them there (Figma's), instead of making a new text.
+    if (kind === "text" && editTextAt(event.clientX, event.clientY)) return;
+    if (!startDraw(kind, event)) fail(kind === "text" ? "Type inside a frame · F draws a frame" : kind === "image" ? "Place it inside a frame · F draws a frame" : "Draw inside a frame · F draws a frame");
   };
   const onKey = (event: KeyboardEvent) => {
     if (event.key !== "Escape") return;
@@ -270,6 +278,8 @@ export function armDraw(kind: Exclude<DrawKind, "frame">): boolean {
     stop: () => {
       window.removeEventListener("pointerdown", onDown, true);
       window.removeEventListener("keydown", onKey, true);
+      // The pictures not placed are put away (they stay in Assets › Photos).
+      if (kind === "image") dropPictures();
       viewport?.removeAttribute("data-studio-placing");
       viewport?.removeAttribute("data-studio-drawing");
     },
@@ -288,16 +298,21 @@ export function startDraw(kind: DrawKind, event: PointerEvent): boolean {
   if (typeof found === "string") { fail(found); return true; }
   const target = found;
   const { host } = target;
+  // Place image: the picture waiting for this click (draw/placeImage.ts), sized to fit the frame.
+  const picture = kind === "image" ? nextPicture() : null;
+  if (kind === "image" && !picture) { studioStore.setState({ tool: "select" }); return true; }
+  const limit = { width: host.clientWidth, height: host.clientHeight };
+  const clicked = (at: Point) => (picture ? pictureBox(picture, at, limit) : clickBox(kind, at));
   const startClient = { x: event.clientX, y: event.clientY };
   let start = localOf(host, startClient);
   let pointer = startClient;
   let keys = { shift: event.shiftKey, alt: event.altKey, mod: event.metaKey || event.ctrlKey };
   let dragged = false;
   let moving: Point | null = null;
-  let box: Box = clickBox(kind, start);
+  let box: Box = clicked(start);
   let ends: { from: Point; to: Point } | null = null;
   const others = target.mode === "free" ? snapTargets(host) : [];
-  const ghost = new Ghost(kind);
+  const ghost = new Ghost(kind === "image" ? "rectangle" : kind);
   ghost.root.hidden = true;
 
   const update = () => {
@@ -312,8 +327,8 @@ export function startDraw(kind: DrawKind, event: PointerEvent): boolean {
       ends = drawLine(start, at, keys);
       box = lineBox(ends.from, ends.to).box;
     } else {
-      box = drawBox(start, at, keys);
-      if (!keys.mod && !keys.shift && !keys.alt && others.length) {
+      box = picture ? pictureDragBox(start, at, picture, keys) : drawBox(start, at, keys);
+      if (!picture && !keys.mod && !keys.shift && !keys.alt && others.length) {
         // The corner under the pointer snaps to the frame's and its layers' edges and centres.
         const dx = at.x - start.x;
         const dy = at.y - start.y;
@@ -346,14 +361,19 @@ export function startDraw(kind: DrawKind, event: PointerEvent): boolean {
     const swallow = (click: MouseEvent) => { click.stopPropagation(); click.preventDefault(); };
     window.addEventListener("click", swallow, { capture: true, once: true });
     window.setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 0);
-    studioStore.setState({ tool: "select" });
+    // Place image: the next picture waits for its click (Figma places several one by one); the last one ends the tool.
+    if (picture) tookPicture();
+    if (picture && picturesLeft()) announceEditStatus({ kind: "unchanged", message: placingHint(), at: Date.now() });
+    else studioStore.setState({ tool: "select" });
     let rotation = 0;
     let drawn = box;
-    if (!dragged) drawn = clickBox(kind, start);
+    if (!dragged) drawn = clicked(start);
     else if (isLineKind(kind) && ends) ({ box: drawn, rotation } = lineBox(ends.from, ends.to));
-    if (!isLineKind(kind) && (drawn.width < 1 || drawn.height < 1)) drawn = { ...drawn, width: Math.max(1, drawn.width), height: Math.max(1, drawn.height) };
+    if (!isLineKind(kind) && kind !== "text" && (drawn.width < 1 || drawn.height < 1)) drawn = { ...drawn, width: Math.max(1, drawn.width), height: Math.max(1, drawn.height) };
     const placement: DrawPlacement = target.mode === "free" ? { mode: "free", x: drawn.x, y: drawn.y } : { mode: "flow" };
-    void write(kind, target, drawCode(kind, drawn, placement, rotation));
+    // The Text tool: what is typed from now on goes into the new text (Figma's typing at once).
+    const keys = kind === "text" ? holdKeysForText() : undefined;
+    void write(kind, target, picture ? pictureCode(picture, drawn, placement) : drawCode(kind, drawn, placement, rotation), keys);
   };
   const onKey = (key: KeyboardEvent) => {
     if (key.key === "Escape" && key.type === "keydown") {
@@ -393,5 +413,19 @@ export function startDraw(kind: DrawKind, event: PointerEvent): boolean {
   window.addEventListener("keydown", onKey, true);
   window.addEventListener("keyup", onKey, true);
   window.addEventListener("blur", cancel);
+  return true;
+}
+
+/**
+ * Places `picture` at a point on the screen at once (a file dropped there, or pasted: `center` puts its middle at the
+ * point), in the frame there as a click of the Image tool would: true when a frame took it (or said why not).
+ */
+export async function placePictureAt(picture: PlacedPicture, client: Point, center = false): Promise<boolean> {
+  const found = targetAt(client.x, client.y);
+  if (found === null) return false;
+  if (typeof found === "string") { fail(found); return true; }
+  const box = pictureBox(picture, localOf(found.host, client), { width: found.host.clientWidth, height: found.host.clientHeight }, center);
+  const placement: DrawPlacement = found.mode === "free" ? { mode: "free", x: box.x, y: box.y } : { mode: "flow" };
+  await write("image", found, pictureCode(picture, box, placement));
   return true;
 }

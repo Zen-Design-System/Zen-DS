@@ -568,6 +568,8 @@ export function StudioApp() {
         if (event.code === "KeyS" && !event.repeat && state.localPage) { event.preventDefault(); studioStore.setState({ tool: "section" }); return; }
         // ⇧L: Figma's Arrow tool (a page you made).
         if (event.code === "KeyL" && !event.repeat && state.localPage) { event.preventDefault(); studioStore.setState({ tool: "arrow" }); return; }
+        // ⇧P: Figma's Pencil (a page you made; draw/penTool.ts).
+        if (event.code === "KeyP" && !event.repeat && state.localPage) { event.preventDefault(); studioStore.setState({ tool: "pencil" }); return; }
         // ⇧I opens Quick insert (Figma's): search the library, Enter adds the item (builder/library/QuickInsert.tsx).
         if (event.code === "KeyI" && !event.repeat && !inExample) { event.preventDefault(); openQuickInsert(); return; }
         if (event.code === "Digit0") { event.preventDefault(); canvasApi.setZoom(1); return; }
@@ -586,6 +588,8 @@ export function StudioApp() {
       else if (key === "n" && state.localPage) stepFrame(1);
       // Figma's shape tools, on a page you made (draw/drawTool.ts): R rectangle, O ellipse, L line (⇧L arrow, above).
       else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
+      // P: Figma's Pen, on a page you made (draw/penTool.ts).
+      else if (key === "p" && state.localPage) studioStore.setState({ tool: "pen" });
       else if (key === "f") {
         // Figma's F: the Frame tool, on a page you made (user, 2026-10-15; Present moved to ⌥⌘↵).
         if (state.localPage) studioStore.setState({ tool: "frame" });

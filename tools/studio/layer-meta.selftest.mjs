@@ -4,7 +4,7 @@
 // Run: node tools/studio/layer-meta.selftest.mjs
 import { compileReact } from "./compile.mjs";
 import { parsePage, validateDialect } from "./dialect.mjs";
-import { autoLayerNames, batchNames, givenNameOf, isAutomaticName, isLockedValue, textWordsOf } from "./layer-meta.mjs";
+import { autoLayerNames, batchNames, givenNameOf, isAutomaticName, isLockedValue, textWordsOf, autoNameBase } from "./layer-meta.mjs";
 
 const failures = [];
 let passed = 0;
@@ -53,12 +53,14 @@ const row = page.board.children[0].children[0].children.find((child) => child.ki
 check("a layer's given name and lock", [givenNameOf(row), isLockedValue(row.props["data-locked"])], ["Price row", true]);
 check("no given name: blank or missing", [givenNameOf({ props: { "data-name": { kind: "literal", value: "  " } } }), givenNameOf({ props: {} })], [null, null]);
 check("lock values", [isLockedValue(true), isLockedValue("true"), isLockedValue({ kind: "literal", value: true }), isLockedValue(false), isLockedValue(undefined)], [true, true, true, false, false]);
+check("text words: a TextRun's words in their place (F6b)", textWordsOf({ children: [{ kind: "text", value: "Renews on " }, { kind: "element", name: "TextRun", props: {}, children: [{ kind: "text", value: "Nov 2" }] }, { kind: "text", value: "." }] }), "Renews on Nov 2.");
 check("text words: one line, cut with …", [textWordsOf({ children: [{ kind: "text", value: "  Hello\n  world " }] }), textWordsOf({ children: [{ kind: "text", value: "x".repeat(70) }] })?.length, textWordsOf({ children: [] })], ["Hello world", 60, null]);
 check("automatic names Figma and the Studio give", [isAutomaticName("Frame 12", { name: "Stack" }), isAutomaticName("Rectangle", { name: "Shape" }), isAutomaticName("Hello", { name: "Text", children: [{ kind: "text", value: "Hello" }] }), isAutomaticName("Hero", { name: "Stack" }), isAutomaticName("", { name: "Stack" })], [true, true, true, false, true]);
 
 const code = compileReact(PAGE, { file: "names.zen.tsx" }).code;
 check("export keeps a layer's name, never its lock", [code.includes('data-name="Price row"'), code.includes("data-locked")], [true, false]);
 
+check("a Box marked as a group is Figma's Group", [autoNameBase({ name: "Box", props: { group: { kind: "literal", value: true } } }), autoNameBase({ name: "Box", props: {} })], ["Group", "Frame"]);
 check("batch rename: the current name, numbers up and down, padded", batchNames(["Card", "Card", "Card"], "$& $n · $NN"), ["Card 1 · 03", "Card 2 · 02", "Card 3 · 01"]);
 check("batch rename: start from", batchNames(["a", "b"], "Item $nnn", { start: 9 }), ["Item 009", "Item 010"]);
 check("batch rename: match replaces that part only", batchNames(["Button primary", "Button secondary"], "CTA", { match: "Button" }), ["CTA primary", "CTA secondary"]);

@@ -752,6 +752,9 @@ export const rules = [
   { id: "button/destructive-is-danger", components: ["Button"], severity: "warn", allow: "destructive", guideline: "docs/guidelines/button.md",
     summary: "Irreversible actions (Delete, Remove, Discard) use Danger or Danger-Subtle.",
     check: ({ attrs, children }) => /^(delete|remove|discard|destroy)\b/i.test(text(children)) && !/danger/.test(value(attrs, "level") ?? "") && `"${text(children)}" is destructive — use level danger (or danger-subtle).` },
+  { id: "text-run/inside-text", components: ["TextRun"], severity: "error", allow: "text-run-outside", guideline: "docs/guidelines/text.md",
+    summary: "A TextRun styles some words of a Text or Heading (Figma's mixed styles), so it sits inside one (or inside a Link or another TextRun there).",
+    check: ({ parent }) => (["Text", "Heading", "TextRun", "Link"].includes(parent()?.tag ?? "") ? null : "is not inside a Text or Heading — put the sentence in a <Text>, or set the Text's own textStyle / tone for the whole text.") },
   { id: "icon-button/needs-name", components: ["IconButton"], severity: "error", allow: "unnamed", guideline: "docs/guidelines/button.md",
     summary: "Icon-only buttons need an aria-label.",
     check: ({ attrs }) => !named(attrs) && "has no aria-label." },
@@ -933,6 +936,14 @@ export const rules = [
       const border = fixedProp(own, "border");
       if (border === null || (border === undefined && opaque(attrs)) || border === "subtle") return null;
       return border === undefined || border === "none" ? 'borderStyle="dashed" without a border draws nothing; add border="subtle".' : `borderStyle="dashed" with border="${border}" draws a solid line: dashed borders are Subtle. Use border="subtle".`;
+    } },
+  { id: "box/group-no-look", components: ["Box"], severity: "warn", allow: "group-look", guideline: "docs/guidelines/layout.md",
+    summary: "A group (Box group, Figma's Group) only holds its layers together: no fill, stroke, corners, effect, padding, scroll or clip — they are ignored.",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs);
+      if (!own.has("group") || fixedProp(own, "group") === false) return null;
+      const look = ["surface", "border", "borderWeight", "borderSides", "borderStyle", "radius", "radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft", "effectStyle", "padding", "paddingX", "paddingY", "scroll", "clip"].find((prop) => own.has(prop));
+      return look && `is a group with ${look} — a group has no look of its own (ignored); use a frame (a Box without group) for a fill, stroke or padding.`;
     } },
   { id: "layout/opacity-percent", components: ["Box", "Stack", "Grid", "Shape"], severity: "error", allow: "opacity-fraction", guideline: "docs/guidelines/layout.md",
     summary: "opacity is a percentage, as Figma's layer opacity (0 … 100): write opacity={50}, not CSS's 0.5.",
@@ -1172,6 +1183,17 @@ export const rules = [
   { id: "shape/line-no-height", components: ["Shape"], severity: "warn", allow: "line-height", guideline: "docs/guidelines/shape.md",
     summary: "A line or arrow has no height (Figma's LINE): its length is width, its angle rotation, its weight strokeWeight.",
     check: ({ attrs }) => { const own = topAttrs(attrs); const type = fixedProp(own, "type"); return (type === "line" || type === "arrow") && own.has("height") && `a ${type} has no height — set its length with width, its angle with rotation and its weight with strokeWeight.`; } },
+  { id: "shape/vector-path", components: ["Shape"], severity: "error", allow: "vector-path", guideline: "docs/guidelines/shape.md",
+    summary: "A vector (type=\"vector\") carries its path d in absolute M / L / C / Q / Z commands — what Zen Studio and Figma's vectorPaths read.",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs);
+      if (fixedProp(own, "type") !== "vector") return null;
+      if (!own.has("d")) return "is a vector without d — it draws nothing; give it its path (Zen Studio's Pen writes it).";
+      const path = fixedProp(own, "d");
+      if (typeof path !== "string") return null;
+      const bad = (path.replace(/\d[eE][-+]?\d/g, "0").match(/[A-Za-z]/g) ?? []).find((letter) => !"MLCQZ".includes(letter));
+      return bad && `d uses "${bad}" — write absolute M / L / C / Q / Z commands only (no relative, arc or H / V commands).`;
+    } },
   { id: "inline-message/needs-content", components: ["InlineMessage"], severity: "error", allow: "empty-message", guideline: "docs/guidelines/inline-message.md",
     summary: "An Inline Message says something: a title, a caption, or both.",
     check: ({ attrs, children }) => !present(attrs, "title") && !text(children) && !opaque(attrs) && "has neither title nor caption." },

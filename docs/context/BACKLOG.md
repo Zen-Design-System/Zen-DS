@@ -9,8 +9,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 ## Open items
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0, F1 and F4 shipped):**
   `docs/research/studio-figma-design-parity-2026-10-18.md` — next F2 (selection and transform), then F3–F10 in the plan's
-  order. Left: the Code properties rows move to the Code tab (§3a "Properties", structural); Group selection / Ungroup
-  (F3, decision 3) are menu items saying "Not in Zen Studio yet"; Present (⌥⌘↵) from a selected Overlay frame, as Figma
+  order. Left: the Code properties rows move to the Code tab (§3a "Properties", structural); Use as mask ⌃⌘M (F9,
+  decision 6: a Box `mask` in Session B's Layout, one PR with B; groups, booleans, Flatten, Outline stroke are built);
+  Present (⌥⌘↵) from a selected Overlay frame, as Figma
   presents any frame (needs `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); ⌥-drag / ⌘D
   of a Section with its frames (F4 moves, resizes, deletes and wraps them; a copy is not built); an instance's data-name stays in
   the page (its Figma name is its component's or carries content, which pull reads as such).
@@ -22,6 +23,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Margin-Comfortable and Gutter but no column count; a new layout guide starts with 12 (desktop) · 8 (tablet) · 4
   (phone) columns (`DEFAULT_GUIDE_COLUMNS`, builder/store/pageModel.ts). Should Zen add a Columns variable per mode
   (then the guide reads it), or are these the counts? Also: a Figma push of layout guides waits on that answer.
+  `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with the user. Same path, pictures
+  (Session C, F8b, 2026-10-19): image fills (Shape / frame `image`) and pictured instances are noted, not pasted — the
+  bytes must ride in the kiwi message (blobs + image hashes), verified against a Figma capture of a pasted image;
+  Import from Studio carries them today (plugin 0d55f95).
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
@@ -41,7 +46,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Studio components v2 (2026-10-17):** v1 is built (⌥⌘K, instances, Go to main, Detach, swap, React export,
   push to Figma). Open: instance overrides (text, visibility) + Reset all changes, component properties, variants, pull of
   local components from Figma. Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §9.
-- **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 5 examples; not covered yet: states,
+- **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.
 - **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,

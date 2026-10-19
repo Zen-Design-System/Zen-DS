@@ -153,3 +153,117 @@ export function lineFromEnds(from: Point, to: Point): { x: number; y: number; wi
   const rotation = round(dx === 0 && dy === 0 ? 0 : (-Math.atan2(dy, dx) * 180) / Math.PI);
   return { x: round(mid.x - width / 2), y: round(mid.y), width: round(width), rotation: rotation === -180 ? 180 : rotation || 0 };
 }
+
+/* ── vectors (Figma's VECTOR; plan F9) ───────────────────────────────────────────────────────────────────────────── */
+
+/** The box a vector's `d` is written in (SVG viewBox "minX minY width height"). */
+export type ViewBox = { x: number; y: number; width: number; height: number };
+/** One command of a vector's path: absolute M (move), L (line), C (cubic), Q (quadratic) or Z (close), with its points. */
+export type PathCommand = { command: "M" | "L" | "C" | "Q" | "Z"; points: Point[] };
+
+const ARITY: Readonly<Record<PathCommand["command"], number>> = { M: 1, L: 1, C: 3, Q: 2, Z: 0 };
+const NUMBER = /^-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?$/i;
+const TOKENS = /[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi;
+
+/**
+ * A vector's `d` as commands, or null when it holds anything but absolute M / L / C / Q / Z (relative commands, arcs,
+ * H / V, S / T): the commands Figma's vectorPaths take, so a vector travels to and from Figma as written. Numbers after a
+ * command repeat it (after M they are lines), as in SVG.
+ */
+export function parseVectorPath(d: string | undefined): PathCommand[] | null {
+  if (typeof d !== "string" || !d.trim()) return null;
+  if (d.replace(TOKENS, "").replace(/[\s,]/g, "")) return null;
+  const tokens = d.match(TOKENS) ?? [];
+  const out: PathCommand[] = [];
+  let current: PathCommand["command"] | null = null;
+  for (let i = 0; i < tokens.length; ) {
+    if (!NUMBER.test(tokens[i])) {
+      if (!(tokens[i] in ARITY)) return null;
+      current = tokens[i] as PathCommand["command"];
+      i += 1;
+      if (current === "Z") { out.push({ command: "Z", points: [] }); continue; }
+    } else if (!current || current === "Z") return null;
+    const count = ARITY[current] * 2;
+    const values = tokens.slice(i, i + count);
+    if (values.length < count || values.some((value) => !NUMBER.test(value))) return null;
+    const points: Point[] = [];
+    for (let k = 0; k < count; k += 2) points.push({ x: Number(values[k]), y: Number(values[k + 1]) });
+    out.push({ command: current, points });
+    i += count;
+    if (current === "M") current = "L";
+  }
+  return out.length && out[0].command === "M" ? out : null;
+}
+
+/** Commands back to `d` (numbers rounded to 3 places). */
+export const vectorPathData = (commands: readonly PathCommand[]) =>
+  commands.map((entry) => (entry.command === "Z" ? "Z" : `${entry.command} ${entry.points.map(at).join(" ")}`)).join(" ");
+
+/** "minX minY width height" as a box, or null. */
+export function parseViewBox(viewBox: string | undefined): ViewBox | null {
+  const values = typeof viewBox === "string" ? viewBox.trim().split(/[\s,]+/).map(Number) : [];
+  if (values.length !== 4 || values.some((value) => !Number.isFinite(value)) || values[2] < 0 || values[3] < 0) return null;
+  return { x: values[0], y: values[1], width: values[2], height: values[3] };
+}
+
+/** The extremes of one coordinate of a cubic (p0 … p3) or quadratic (p0 … p2) segment, its ends included. */
+function curveRange(values: readonly number[]): [number, number] {
+  const valueAt = (t: number) => {
+    if (values.length === 3) return (1 - t) ** 2 * values[0] + 2 * (1 - t) * t * values[1] + t ** 2 * values[2];
+    return (1 - t) ** 3 * values[0] + 3 * (1 - t) ** 2 * t * values[1] + 3 * (1 - t) * t ** 2 * values[2] + t ** 3 * values[3];
+  };
+  const ts = [0, 1];
+  if (values.length === 3) {
+    const denominator = values[0] - 2 * values[1] + values[2];
+    if (denominator) ts.push((values[0] - values[1]) / denominator);
+  } else {
+    // The derivative's roots: a t² + b t + c = 0.
+    const a = -values[0] + 3 * values[1] - 3 * values[2] + values[3];
+    const b = 2 * (values[0] - 2 * values[1] + values[2]);
+    const c = values[1] - values[0];
+    if (Math.abs(a) < 1e-12) { if (b) ts.push(-c / b); }
+    else {
+      const disc = b * b - 4 * a * c;
+      if (disc >= 0) ts.push((-b + Math.sqrt(disc)) / (2 * a), (-b - Math.sqrt(disc)) / (2 * a));
+    }
+  }
+  const found = ts.filter((t) => t >= 0 && t <= 1).map(valueAt);
+  return [Math.min(...found), Math.max(...found)];
+}
+
+/** The box around a path as drawn (curves by their extremes, not their control points), or null for an empty path. */
+export function vectorBounds(commands: readonly PathCommand[]): ViewBox | null {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let pen: Point | null = null;
+  let start: Point | null = null;
+  const take = (x: [number, number], y: [number, number]) => {
+    minX = Math.min(minX, x[0]); maxX = Math.max(maxX, x[1]);
+    minY = Math.min(minY, y[0]); maxY = Math.max(maxY, y[1]);
+  };
+  for (const entry of commands) {
+    if (entry.command === "Z") { pen = start; continue; }
+    const end = entry.points[entry.points.length - 1];
+    if (entry.command === "M") { start = end; take([end.x, end.x], [end.y, end.y]); }
+    else if (entry.command === "L" || !pen) take([end.x, end.x], [end.y, end.y]);
+    else {
+      const from = pen;
+      const all = [from, ...entry.points];
+      take(curveRange(all.map((point) => point.x)), curveRange(all.map((point) => point.y)));
+    }
+    pen = end;
+  }
+  return Number.isFinite(minX) ? { x: round(minX), y: round(minY), width: round(maxX - minX), height: round(maxY - minY) } : null;
+}
+
+/**
+ * A vector's path drawn in a `width` × `height` box: `d` from its viewBox, stretched as Figma scales a vector network
+ * (a box with no width or height keeps that axis's scale 1).
+ */
+export function fitVectorPath(commands: readonly PathCommand[], box: ViewBox, width: number, height: number): string {
+  const sx = box.width ? width / box.width : 1;
+  const sy = box.height ? height / box.height : 1;
+  return vectorPathData(commands.map((entry) => ({ command: entry.command, points: entry.points.map((point) => ({ x: (point.x - box.x) * sx, y: (point.y - box.y) * sy })) })));
+}

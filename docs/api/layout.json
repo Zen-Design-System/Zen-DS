@@ -155,6 +155,38 @@
           "deprecated": null
         },
         {
+          "name": "image",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture\nthat means something needs an accessible name on its layer; without one it is decoration. A picture in the content\n(an article photo, a product shot) is an Image (alt, ratio, caption), not a fill.",
+          "deprecated": null
+        },
+        {
+          "name": "imageFit",
+          "type": "\"fill\" | \"fit\" | \"crop\" | \"tile\"",
+          "required": false,
+          "default": null,
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows,\n`fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at\n`imageScale`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageCrop",
+          "type": "{ x: number; y: number; width: number; height: number }",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageScale",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
@@ -497,6 +529,38 @@
           "required": false,
           "default": null,
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "image",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture\nthat means something needs an accessible name on its layer; without one it is decoration. A picture in the content\n(an article photo, a product shot) is an Image (alt, ratio, caption), not a fill.",
+          "deprecated": null
+        },
+        {
+          "name": "imageFit",
+          "type": "\"fill\" | \"fit\" | \"crop\" | \"tile\"",
+          "required": false,
+          "default": null,
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows,\n`fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at\n`imageScale`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageCrop",
+          "type": "{ x: number; y: number; width: number; height: number }",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageScale",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
           "deprecated": null
         },
         {
@@ -845,6 +909,38 @@
           "deprecated": null
         },
         {
+          "name": "image",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture\nthat means something needs an accessible name on its layer; without one it is decoration. A picture in the content\n(an article photo, a product shot) is an Image (alt, ratio, caption), not a fill.",
+          "deprecated": null
+        },
+        {
+          "name": "imageFit",
+          "type": "\"fill\" | \"fit\" | \"crop\" | \"tile\"",
+          "required": false,
+          "default": null,
+          "description": "How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows,\n`fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at\n`imageScale`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageCrop",
+          "type": "{ x: number; y: number; width: number; height: number }",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"crop\"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`.",
+          "deprecated": null
+        },
+        {
+          "name": "imageScale",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
@@ -946,6 +1042,14 @@
           "required": false,
           "default": null,
           "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside).",
+          "deprecated": null
+        },
+        {
+          "name": "group",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them\n(Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are\nignored. It moves, turns, flips and fades (opacity) as one.",
           "deprecated": null
         },
         {

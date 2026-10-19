@@ -86,6 +86,11 @@ export const Good = () => <>
   <Box width={160} height={120}>
     <Shape type="ellipse" position="absolute" insetLeft={24} insetTop={8} width={96} height={96} arcRatio={60} fill="accent-solid" />
     <Shape type="line" position="absolute" insetLeft={8} insetTop={110} width={140} rotation={10} stroke="neutral-subtle" />
+    <Shape type="vector" position="absolute" insetLeft={8} insetTop={4} d="M 0 20 C 13 0 27 0 40 20 C 53 40 67 40 80 20" viewBox="0 0 80 40" width={80} height={40} stroke="accent-solid" strokeWeight={2} />
+    <Box group position="absolute" insetLeft={100} insetTop={4} width={48} height={20} opacity={80}>
+      <Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={20} height={20} fill="accent-solid" />
+      <Shape type="ellipse" position="absolute" insetLeft={28} insetTop={0} width={20} height={20} fill="support-yellow-solid" />
+    </Box>
   </Box>
   <InlineMessage theme="info" title="Invites expire after 7 days">Resend the invite from Members.</InlineMessage>
   <InlineMessage theme="custom" icon={<Avatar size="small" alt="">AC</Avatar>} title="Ava shared a file" />
@@ -305,6 +310,7 @@ export const Good = () => <>
   <Stack opacity={40} rotation={15} flip="horizontal">Faded, turned and mirrored</Stack>
   <Shape type="ellipse" opacity={60} width={24} height={24} />
   <Text tone="support-blue-strongest">Your files sync across every device you sign in on.</Text>
+  <Text>Your plan renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base">2 seats</TextRun> are unpaid.</Text>
   <Text textStyle="Body/Small/Bold" tone="positive-light">Saved</Text>
   <Text textStyle="Body/Small/Regular" tone="negative-light">Enter an email address like name@company.com.</Text>
   <Icon name="icon-check-circle-line" tone="accent-light" />

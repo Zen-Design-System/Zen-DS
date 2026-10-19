@@ -27,6 +27,7 @@ import { startTextEditOnSelection } from "../textEdit";
 import { stepFrame } from "../../board/frameOrder";
 import { wrapInSection } from "../../builder/proto/addFrame";
 import { createComponentOfLayers, createComponents } from "../localComponents";
+import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../pathOps";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
 /*
@@ -84,6 +85,10 @@ export function commands(): Command[] {
     // Figma's Create component (⌥⌘K: one, of every selected layer) and Create multiple components, on a page you made (F3).
     { id: "create-component", group: "Edit", label: "Create component", shortcut: `⌥${modKey}K`, keywords: "main component symbol make", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void createComponentOfLayers(); } },
     { id: "create-components", group: "Edit", label: "Create multiple components", keywords: "main components symbols make each", disabled: editOff ?? (!state.localPage ? "Works on a page you made" : selectedLayers().length > 1 ? undefined : "Select several layers"), run: () => { void createComponents(); } },
+    // Figma's boolean groups, Flatten and Outline stroke on shapes of a page you made (edit/pathOps.ts, F9b).
+    ...(["union", "subtract", "intersect", "exclude"] as const).map((operation) => ({ id: `boolean-${operation}`, group: "Edit", label: `${operation[0].toUpperCase()}${operation.slice(1)} selection`, shortcut: `⌥⇧${operation === "union" ? "U" : operation === "subtract" ? "S" : operation === "intersect" ? "I" : "E"}`, keywords: "boolean shapes combine", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void booleanSelection(operation); } })),
+    { id: "flatten", group: "Edit", label: "Flatten", shortcut: `${modKey}E`, keywords: "vector merge shapes", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void flattenSelection(); } },
+    { id: "outline-stroke", group: "Edit", label: "Outline stroke", shortcut: `⌥${modKey}O`, keywords: "vector stroke fill", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void outlineStrokeSelection(); } },
     { id: "detach", group: "Edit", label: "Detach instance", shortcut: detachShortcut, disabled: editOff ?? (node && !offersDetach(node.name) ? "Select an instance" : undefined), run: () => { if (node) void detachSelection(node); } },
     { id: "undo", group: "Edit", label: "Undo", shortcut: `${modKey}Z`, disabled: state.undo.length ? undefined : "Nothing to undo", run: () => { void undoEdit(); } },
     { id: "redo", group: "Edit", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: state.redo.length ? undefined : "Nothing to redo", run: () => { void redoEdit(); } },

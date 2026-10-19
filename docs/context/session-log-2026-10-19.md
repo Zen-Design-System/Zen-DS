@@ -84,6 +84,94 @@ User: "làm tiếp phần còn thiếu của main component" · "Bug UI của st
   variants) → progress.css background transparent. Done=No pies differ per theme sample (20–85%); Accent/Neutral keep 80.
   The user's Studio (:5174, Vite from 2026-10-16 in the shared checkout) serves the new code: a reload shows it.
 
+## Studio Text tool — F6a (Session C; user: "F6a trước, F6b sau", rich text API "Component mới TextRun") — tier M, branch `zen/feat/studio-f6-text-20261019`
+
+Plan §5 F6 split by the user: F6a the Text tool (this), F6b rich text with a new inline `TextRun` component (next PR).
+- **T tool on a page you made** (`draw/drawModel.ts` kind "text", `draw/drawTool.ts`, new `edit/textCreate.ts`): a click
+  makes `<Text wrap={false}>` (Auto width), a drag `<Text width={…}>` (Auto height); in a frame without auto layout it
+  floats in a Box at the point (the Ignore auto layout wrapper, as other layers). The keys typed from the release on are
+  held (`textEdit.holdKeysForText`) and replace the new words when the editor opens (a ref keeps them across React's dev
+  double effect, which lost the first key). T on the words of a Text / Heading edits them at the caret (`editTextAt`).
+  Example pages keep the placement tool.
+- **Editor:** in a Text layer of a page you made Enter is a new line (Esc / Tab / a click outside leave); elsewhere
+  (example pages, other texts) Enter leaves as before. The first gate found K-08 / DA-01 (example pages: Enter commits)
+  broken by a newline everywhere; the newline is now for pages you made only.
+  A text the Text tool made and left untouched, or any Text / Heading emptied, is deleted with its float Box
+  (`removeEmptyText`). Found while testing: after an edit, Enter did not edit the same text again (the selection's source
+  cache kept the old words); it now reads again on each source update.
+- **Library:** Text sets `data-breaks` when a string child holds "\n"; text.css `white-space: pre-line` (`pre` with
+  `wrap={false}`). Only texts with a line break change.
+- **Resizing** (`edit/TextResize.tsx`, mounted in DesignPanel's Typography for Text / Heading; Session B was not running,
+  so the one-row mount is mine): Auto width = wrap={false}, Auto height = width, Fixed size = width + height, from the
+  rendered size, one edit.
+- Paste of plain text with nothing selected already makes a `<Text>` in the frame in view (F3, Session A); not changed.
+- **Tests:** drawModel selftest +2; Figma walk FW-60…66.
+
+## Studio rich text — F6b (Session C; user: rich text API "Component mới TextRun") — tier M, branch `zen/feat/studio-f6b-textrun-20261019` (stacked on F6a)
+
+- **Library:** `TextRun` (`src/components/Text/TextRun.tsx`): a span with `data-bold` / `data-italic` /
+  `data-decoration` / `data-tone` and a text style class; bold is `--zen-emphasis-font-weight-bold`. Guideline rows (Line
+  breaks, Mixed styles), harness `text-run/inside-text` (+ fixtures), platform example "Mixed styles in a sentence", story.
+- **Canvas** (`edit/richText.ts` pure runs + selftest, `edit/richTextEdit.ts`, `edit/RichTextEditor.tsx`): ⌘B ⌘I ⌘U ⇧⌘X
+  toggle a style over the selected words (all have it → off, else on); the plain editor hands over to the rich one at
+  the first format key; a Text with runs opens in the rich editor. Leaving writes the Text again with its runs (one
+  `replaceElement`, one ⌘Z); emptied → deleted. TextRun is transparent to the picker and skipped in Layers; a text layer
+  with runs is named by all its words (`layer-meta.textWordsOf`). Found while testing: Layers listed the run as a
+  "span" layer and named the text by its first words only — both fixed.
+- **Figma** (`tools/studio/text-runs.mjs`): push gives TEXT `segments` ({start, end, textStyle, bold, italic,
+  decoration, fill}; bold = the style's Bold sibling, font Bold only for a Heading); the pull reader reads
+  `getStyledTextSegments` and writes TextRuns; native ⌘C → ⌘V writes `characterStyleIDs` + `styleOverrideTable`; the
+  Zen plugin's importer applies segments (Session B, `studio-import.js applySegments`). `figma-diff` keeps TextRuns as
+  part of their Text (a text change carries the runs, in order; before, a merge put the words first and the runs last).
+  `doc.mjs` / `compile.mjs` write a text with runs on one line as a person writes it.
+- Enter in the rich editor: a new line on a page you made, else it leaves (as F6a's plain editor after K-08 / DA-01).
+  Plugin importer: Session B's `711e203` (feat(studio-import): a text's runs from Zen Studio).
+- **Tests:** richText selftest 12; figma-push +7 (round trip, React export), figma-native +5, figma-diff +3,
+  layer-meta +1; Figma walk FW-67…69.
+
+## Studio images — F8a (Session C, decision 8; split as F6: F8b = canvas crop editing + direct ⌘C→⌘V of pictures) — tier M, branch `zen/feat/studio-f8-images-20261019` (stacked on F6b)
+
+- **Library** (`src/components/_shared/image-fill.ts` + selftest 17): `image` / `imageFit` (fill · fit · crop · tile) /
+  `imageCrop` (% of the picture) / `imageScale` (tile %) on Shape (rectangle: CSS background; ellipse / polygon / star:
+  an SVG pattern) and on Box / Stack / Grid (Layout `appearance.ts`, its own `data-image`; Session B agreed the Layout
+  edit). A Shape with a picture has no colour unless given. Stories, guideline rows (Shape, Layout), docs regenerated.
+- **Studio:** ⇧⌘K on a page you made → the file dialog → `draw/placeImage.ts` queues the pictures → drawTool kind
+  "image": a click places the picture at its own size, fitted to the frame and moved inside it; a drag sets the width
+  with the picture's ratio; each further picture waits for its click (status line), Esc puts the rest away. Written as
+  `<Shape image="zen-asset:…" label="…" data-name="<file>" …/>`. `canvas/fileDrop.ts`: files dropped on a frame go in
+  at the point (window listeners: the viewport may mount after the toolbar), pasted pictures in the middle of the
+  selected frame or the frame that shows most (clipboard.ts `setImagePaste`, Session A agreed). Fill › Image
+  (`appearance/ImageFillRow.tsx`, Shape and frames): the photo picker + Upload + −, Image fit, Tile scale; Crop starts
+  from Fill's visible part (`coverCrop`). Layers: a rectangle with a picture shows the image icon.
+- **Figma** (`tools/studio/figma-image.mjs`): push `imageFill` {src, scaleMode, crop, scale} + bytes in `images`; the
+  pull reader reads the IMAGE paint (crop from imageTransform, src from shared plugin data "zenstudio"/"image"); a
+  picture made in Figma is noted. Importer: Session B's plugin `0d55f95` (applyImageFill; re-import replaces or removes
+  only the picture it placed). Direct paste notes image fills (F8b).
+- Found while testing: a picture placed near a frame's edge was cut off (now moved inside); the drop listener on the
+  viewport element was never attached (now on the window).
+- **Tests:** image-fill selftest 17; drawModel +2; figma-push +4, figma-pull +4; Figma walk FW-80…86.
+
+## Studio crop on the canvas — F8b (Session C) — tier S, branch `zen/feat/studio-f8b-crop-20261019` (stacked on F8a)
+
+- `draw/CropHandles.tsx` (mounted beside ArcHandles in SelectionLayer) + pure `draw/cropModel.ts` (selftest 6): crop
+  mode on a rectangle Shape or frame whose image fill is Crop starts with Image fit → Crop or the row's Crop button;
+  the whole picture shows faint around the layer, a drag moves it, a corner scales it (opposite corner still, ratio
+  kept, always covering the layer), live through the layer's own CSS variables; a release writes `imageCrop` (one
+  edit). Esc / Enter / another selection end it; the layer's resize handles step aside meanwhile (found while testing:
+  they sat on the picture's corners and resized the layer instead).
+- Not done (BACKLOG, native clipboard item): pictures in the direct ⌘C → ⌘V (kiwi blobs + image hashes, needs a Figma
+  capture). Rotated / flipped layers and SVG shapes keep the panel's crop only.
+- **Tests:** cropModel selftest 6; Figma walk FW-87.
+
+### F6–F8 ship (Session C; Giám sát: one gate on the stack top, one PR)
+- Gate on 968e589b: every step green but Studio E2E, which hit tools/qa/run.mjs's 40-min cap at the nested group (no
+  row broken by then). Then main 17bc4c43 (A's F9) merged: Shape keeps vector / boolean / flip and takes the image
+  fill, Box groups take no picture, F9's `freeFrame` helper stays (the F6/F8 walk frame is `walkBox`). On the merged
+  tree: tsc, studio:selftest, usage, guidelines, ai-ui, style, vitest 71/71; Studio E2E uncapped 335 / 1 (B-20, twice in
+  the full run; alone and with its whole builder group 45/45 green — order-dependent, cause not found), `--only=figma`
+  87 / 1 (FW-03 still expected ⇧⌘K to arm the tool without the file dialog: updated, green).
+- The reader's `readImageFill` reads fills behind `"fills" in node` (A: Figma throws on a property a node type lacks).
+
 ## Session B · Studio parity F5a: one Figma frame is one element, the right panel in Figma's order
 
 Plan `docs/research/studio-figma-design-parity-2026-10-18.md` F5 (decisions 1–2, approved 2026-10-18); spec card
@@ -117,6 +205,66 @@ and variable pills, F5c typography, multi-selection, nothing selected, Export, L
   `flipTurn` / `turnOps`, for A's ⇧H / ⇧V). ⇧A on a filled Box → one Stack keeping the paint (autoLayoutPlan; matrix
   12,569 cases, 0 findings). E2E Figma walk FW-50…56.
 - Left: BACKLOG P2 — figma-native.mjs / native-pack (⌘C → ⌘V) do not map a frame's look (no owner session).
+## Studio F9a — vectors (Session A, worktree `../Zen-DS-f9`, branch `zen/feat/studio-f9-vectors-20261019`)
+
+Spec card `docs/research/studio-f9-vectors-spec-2026-10-19.md`; the user chose `pathkit-wasm` and live boolean groups
+(both F9b).
+- Library: `Shape type="vector"` (`d` in absolute M / L / C / Q / Z, `viewBox`, `fillRule`); geometry.ts
+  `parseVectorPath`, `vectorPathData`, `parseViewBox`, `vectorBounds` (curve extremes), `fitVectorPath` (selftest 12);
+  defaults as Figma's Pen (no fill, Border/Neutral/Solid, centred stroke). Harness `shape/vector-path` (+2 bad, 1 good).
+  Guideline, docs/api, AI catalog, compile API, keywords regenerated; two examples (Pencil underline, Pen logo mark) and
+  the playground's vector.
+- Studio: `draw/penModel.ts` (pure, selftest 23: corners, smooth points, ⇧ 45°, Schneider curve fit for the Pencil,
+  sub-paths with handles, move point / handle (mirrored), remove point), `draw/penTool.ts` (P / ⇧P, overlay, one
+  `pasteCode` per vector; drawTool.ts now exports targetAt / localOf / screenOf / snapTargets), `select/VectorHandles.tsx`
+  (Enter / double-click vertex edit: live `d`, one write with the new bounds and the box moved; turned vectors keep
+  their box). Tool bar Pen split button, CanvasStatus hints, Shortcuts, figmaNotYet without Pen / Pencil.
+- Figma: push `VECTOR` + `vectorPaths` (fitted to the size); pull VECTOR → Shape vector (unreadable paths noted and left
+  out); plugin `studio-import.js` builds a Shape VECTOR (plugin commit fc18ba7, its test extended). Selftests: push 296,
+  pull 81, layer-meta 12.
+- E2E figma FW-115…118 (Pen closed, Pen curve, vertex edit, Pencil) written; run once the gate slot is free.
+
+## F2 / F3 leftovers on F5a — groups, flips, rotate handles (Session A, merged into the F9 branch)
+
+Built on main d145fd16 (B's F5a: `flipTurn` / `turnOps`, frame rotation / flip), branch
+`zen/feat/studio-group-flip-rotate-20261019`, then merged into `zen/feat/studio-f9-vectors-20261019` to ship with F9a
+in one gate (the slot queue is the bottleneck).
+- Box `group` (B handed it over: "a group renders no look"): Layout.tsx ignores surface / border / radius / effect /
+  padding / scroll / clip for a group, keeps opacity / rotation / flip; harness `box/group-no-look`; guideline row.
+- `edit/groupLayers.ts` `groupSelection` (⌘G, menu, floating via op group + `group`, auto layout via op group `flow`),
+  Layers "Group N" (layer-meta) and icon, ⇧⌘G "Ungroup" label; figmaNotYet without ⌘G / ⇧H / ⇧V.
+- `edit/flipLayers.ts` (⇧H / ⇧V: flipTurn per layer, several floating layers mirrored across their union via
+  alignLayers `moveOps`), Shape `flip` (CSS individual `rotate` / `scale`, as frames), `select/RotateHandles.tsx`
+  (zones just outside the corners, ⇧ 15°, Esc, one write through turnOps).
+- Figma: push Box group → frame `group: true` (plugin turns it into a GROUP of its layers; plugin 7bc4ddf), Shape flip
+  (plugin e9767da); pull GROUP → Box group with its layers at their X / Y inside it (reader: positions relative to the
+  group), free-frame px insets for frames too. Selftests push 302, pull 86, arrange 50, layer-meta 13, usage 218 rules.
+- E2E FW-119…121 written; run with F9a's when the slot is ours.
+
+## Studio F9b — path operations (Session A, worktree `../Zen-DS-f9b`, branch `zen/feat/studio-f9b-path-ops-20261019`, stacked on F9)
+
+- `pathkit-wasm` 1.0.0 (devDependency, the user's pick; the shared checkout needs `npm install` once merged).
+  `tools/studio/path-ops.mjs` (kit passed in): shape outlines (rectangles with Corner-Radius px, arcs, polygons, stars,
+  vectors), placed by insets / rotation / flip, boolean results (first shape the base; simplified, even-odd), Flatten,
+  Outline stroke (inside / outside cut by the fill), `planBooleans` (selftest 15 in Node with the wasm file).
+- Library: Shape `type="boolean"` + `operation` + children (drawn hidden in `.zen-shape__operands`), its result like a
+  vector. Live groups: `builder/localApi.ts` `withBooleans` re-plans every group after each edit of a page you made, in
+  the same write (as withPhoneSync), PathKit loaded from `draw/pathKit.ts` on the first page that has one.
+- Studio: `edit/pathOps.ts` (⌥⇧U/S/I/E, ⌘E, ⌥⌘O; menu for several shapes and for one; Actions), op group `tag:
+  "Shape"` (boolean) and `childless` (one vector in the layers' place). Layers "Union N" … with the intersect icon.
+- Figma: push BOOLEAN_OPERATION with its shapes (plugin 40d5bd6: built in a frame, then figma.union / subtract /
+  intersect / exclude, painted); pull BOOLEAN_OPERATION → Shape boolean, its result from `fillGeometry`.
+- Not built: Use as mask ⌃⌘M (a Box `mask`: Session B's Layout, one PR with B) — BACKLOG.
+- E2E: figma group 70/70 (FW-115…124; FW-122 selects the shapes with Enter, FW-123's vector regex takes any attribute
+  order, FW-37 gets 40 s).
+- Group fit (found while writing the BACKLOG line "a group's box does not follow its layers" — fixed instead, scope
+  lock): `tools/studio/group-fit.mjs` `planGroups` (pure, selftest 6) refits a Box group around its px layers after each
+  edit, in localApi's same write; token insets, Fill sizes and turned / flipped groups are left as they are. FW-124.
+- Lesson: a union merge dropped a `}` in figma-pull.selftest.mjs and a "✗" grep missed the SyntaxError — fixed in F9 and
+  F9b; memory "selftest-exit-code".
+- Gate (`--isolated`, 76 files): static, runtime audit (1512/390/320, dark), behaviour ✓; Studio E2E 335/336 — SP-09
+  ("Reports gone from the Screen", a starters row F9b does not touch) timed out under load, then passed alone and in
+  the whole starters group (24/24). Shape coverage ⚠ is the existing BACKLOG line (count updated to 9).
 
 ## Studio View and Find — F10 (Session C) — tier M, branch `zen/feat/studio-f10-view-20261019` (from main, not stacked)
 
