@@ -322,6 +322,14 @@ const setsText = (title) => [
   "            </Component>",
   "          </ComponentSet>",
   '          <Use of="chip" />',
+  // F7b: an instance of a lone main (its words are no property: an override), and a main that holds an instance of the set.
+  '          <Use of="tag-small" />',
+  '          <Component id="toolbar" name="Toolbar">',
+  '            <Stack direction="row" gap="sm" padding="sm">',
+  '              <Use of="chip" />',
+  "            </Stack>",
+  "          </Component>",
+  '          <Use of="toolbar" />',
   "        </Stack>",
   "      </Screen>",
   "    </Board>",
@@ -363,6 +371,15 @@ async function deepSelect(page, layer, add = false) {
 async function chooseIn(page, prop, option, index = 0) {
   await right(page).locator(`[data-prop="${prop}"]`).nth(index).locator("button").first().click();
   await page.getByRole("option", { name: option, exact: true }).click();
+}
+/** ⌘-click (Figma's deep select) at the middle of `layer`: a layer inside an instance. */
+async function deepInto(page, layer) {
+  const box = await layer.boundingBox();
+  if (!box) throw new Error("the layer has no box on the canvas");
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("ControlOrMeta");
+  await sleep(300);
 }
 /** Types into an Inspector text field by its name and commits it (Enter). */
 async function typeText(page, name, value, index = 0) {
@@ -1839,6 +1856,101 @@ export const rows = [
         await page.getByRole("option", { name: "Tag large", exact: true }).click();
         await written(page, id, /<Use of="tag-large" \/>/, "the instance of Tag large, no variant");
         return `Swap lists ${options.join(", ")} · Chip (Large) → Tag large`;
+      });
+    },
+  },
+  // F7b · overrides inside an instance.
+  {
+    id: "FW-77", feature: "⌘-click into an instance selects a layer inside it; its words change for this instance only (an override)", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const instance = marked(page, id, "data-zen-instance", "tag-small");
+        await deepInto(page, instance.getByText("Small", { exact: true }));
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected (Layer section)" });
+        await shot(page, "fw-77-layer-in-instance");
+        await typeText(page, "Text", "Hey");
+        await written(page, id, /<Use of="tag-small" overrides=\{\{ Text: \{ children: "Hey" \} \}\} \/>/, "the instance's override of its Text");
+        await until(async () => (await instance.innerText()).trim() === "Hey", { message: "the instance reads Hey" });
+        const main = (await marked(page, id, "data-zen-main", "tag-small").innerText()).trim();
+        if (main !== "Small") throw new Error(`the main reads ${main}`);
+        return "⌘-click Small → Text Hey: override on this instance, main still Small";
+      });
+    },
+  },
+  {
+    id: "FW-78", feature: "Hiding a layer inside an instance is an override; the instance's Reset all changes brings it back", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const instance = marked(page, id, "data-zen-instance", "tag-small");
+        await deepInto(page, instance.getByText("Small", { exact: true }));
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected" });
+        await right(page).getByRole("switch", { name: "Show layer", exact: true }).click();
+        await written(page, id, /<Use of="tag-small" overrides=\{\{ Text: \{ hidden: true \} \}\} \/>/, "the layer hidden in this instance");
+        await until(async () => (await instance.getByText("Small", { exact: true }).count()) === 0, { message: "the instance draws no text" });
+        await right(page).getByRole("button", { name: "Select Tag small", exact: true }).click();
+        await until(async () => (await selectedName(page)) === "Tag small", { message: "the instance selected again" });
+        await right(page).getByRole("button", { name: "Reset all changes", exact: true }).click();
+        await written(page, id, /<Use of="tag-small" \/>/, "Reset all changes");
+        return "Show layer off → hidden override · Select Tag small · Reset all changes";
+      });
+    },
+  },
+  {
+    id: "FW-79", feature: "Push changes to main component: the main takes the instance's change, every instance shows it, the instance keeps none", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const instance = marked(page, id, "data-zen-instance", "tag-small");
+        await deepInto(page, instance.getByText("Small", { exact: true }));
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the instance selected" });
+        await typeText(page, "Text", "Big");
+        await written(page, id, /overrides=\{\{ Text: \{ children: "Big" \} \}\}/, "the override");
+        await right(page).getByRole("button", { name: "Push changes to main", exact: true }).click();
+        await written(page, id, /<Component id="tag-small" name="Tag small">\s*<Stack[^>]*>\s*<Text>Big<\/Text>[\s\S]*<Use of="tag-small" \/>/, "the main says Big, the instance keeps no override");
+        await until(async () => (await marked(page, id, "data-zen-main", "tag-small").innerText()).trim() === "Big", { message: "the main reads Big" });
+        return "Text Big (override) → Push changes to main: main Big, instance plain";
+      });
+    },
+  },
+  {
+    id: "FW-95", feature: "A nested instance inside an instance: its variant changes for the outer instance only", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const toolbar = marked(page, id, "data-zen-instance", "toolbar");
+        // The nested Chip's own frame, in its padding: the nested instance, not a layer inside it.
+        const chip = toolbar.locator(".zen-stack").first();
+        const box = await chip.boundingBox();
+        await page.keyboard.down("ControlOrMeta");
+        await page.mouse.click(box.x + 3, box.y + 3);
+        await page.keyboard.up("ControlOrMeta");
+        await until(async () => (await sections(page)).includes("Instance"), { message: "the nested instance selected (its Instance section)" });
+        await chooseIn(page, "local-nested-variant", "Large");
+        await written(page, id, /<Use of="toolbar" overrides=\{\{ Chip: \{ "variant\.Size": "Large" \} \}\} \/>/, "the nested Chip's Size in this Toolbar only");
+        await shot(page, "fw-95-nested-instance");
+        return "Toolbar › Chip: Size Large as an override of this Toolbar";
+      });
+    },
+  },
+  {
+    id: "FW-96", feature: "Assets › Local components shows a component set as one tile; a click adds an instance of the set", wp: "F7b 2026-10-19", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const stack = await page.locator('[data-studio-frame="screen:screen-1"] .zen-stack').first().boundingBox();
+        await page.mouse.click(stack.x + stack.width - 6, stack.y + stack.height - 6);
+        await page.locator("#studio-left").getByRole("tab", { name: "Assets" }).click();
+        const tiles = page.locator("#studio-left").getByRole("list", { name: "Local components" }).getByRole("button");
+        await tiles.first().waitFor({ state: "visible", timeout: 5000 });
+        const names = (await tiles.evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-label")))).filter(Boolean);
+        if (!names.includes("Chip, component set") || names.some((name) => /^Size=/.test(name))) throw new Error(`Local components: ${names.join(" · ")}`);
+        const before = (((await pageText(page, id)) ?? "").match(/<Use of="chip" \/>/g) ?? []).length;
+        await page.locator("#studio-left").getByRole("button", { name: "Chip, component set", exact: true }).click();
+        await until(async () => ((((await pageText(page, id)) ?? "").match(/<Use of="chip" \/>/g) ?? []).length) === before + 1, { message: "one more instance of the set" });
+        await showLeftTab(page, "layers");
+        return names.join(" · ");
       });
     },
   },
