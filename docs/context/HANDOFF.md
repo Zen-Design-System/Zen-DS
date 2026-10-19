@@ -74,9 +74,11 @@ Last updated: 2026-10-19.
   - New API: `pattern`, `collapse`, AppShellHeader, AppShellPane, the mobile pattern; no aliases. Spec:
     `docs/research/appshell-rebuild-2026-10-19.md`.
   - Templates, HR, appLayer, the harness and Studio are migrated (all studio:selftest steps pass).
-  - The platform page `app-shell` is being rebuilt as Figma ◇ Master-Layout · Example sections A–F (41 screens) in
-    `src/platform/examples/pages/app-shell/*`. A and C are done, B is in progress, D–F come after the component parity
-    fixes.
+  - The platform page `app-shell` is Figma ◇ Master-Layout · Example sections A–F (41 screens, Figma's own photos) in
+    `src/platform/examples/pages/app-shell/*`, plus six behaviour examples.
+  - Phase 3 is done for 26 platform pages; the screen and phone app examples run on the new shell. The conversation
+    group (chat, ai-*, action-bar, form, menu) is still running.
+  - The gate and Studio E2E wait for a slot from Giám sát.
   - Detail in session-log-2026-10-19.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:

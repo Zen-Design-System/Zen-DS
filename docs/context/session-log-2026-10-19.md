@@ -163,9 +163,25 @@ Then "Các example Appshell nên build như trong Figma ◇ Master-Layout · Exa
   - A stale Studio admin draft of app-shell.tsx on :5262 was serving old code. Discarded; the lesson is in memory and
     in the agents' brief.
   - Checks: `npx vitest run` 1098 passed, all studio selftests, usage:selftest.
+- **Evening: user answers, photos, phase 3:**
+  - TopNavigation capline / subheading, `topBar={false}` and trailing nodes are adopted by D2–D5, E2, E5, E7 and F1–F12.
+  - User answers:
+    - An Avatar on the mobile top nav is 44.
+    - Text on the Accent band is On-Accent, one line with an ellipsis.
+    - No Breadcrumbs on mobile: AppShellHeader and PageHeader turn a trail into Back under 744.
+    - 26 photos are exported from Figma into `platformMedia`.
+  - Phase 3 ("Màn hình"): 26 platform pages had their screen and phone app examples rebuilt on the new shell. Six
+    agents worked in waves after two rate-limit stops.
+  - Fixed at their owners on the way:
+    - SidePanel: Escape is scoped to its AppShell.
+    - AppShellHeader: the stack test needs a pixel of slack.
+    - Sidebar: labels ellipsize in their grid track.
+    - The harness tag reader skips comments.
+    - PlatformPhone gives its content the mobile Zen modes, so focus is no longer lost on a phone screen switch.
+    - Studio's Assets App shell writes AppShellHeader.
 - **Open:**
-  - TopNavigation large-title capline / subheading, `Top-bar=false`, Badge or Avatar in trailing (agent running),
-    then the examples adopt them (D2, D3, D4, D5, E2, E5, E7, F1–F12).
+  - The conversation group (chat, ai-chat, ai-ui, action-bar, form, menu) is still running.
+  - Image has no frameless option for the E1 mascot; this needs the user's approval for a new prop.
   - Studio E2E groups (builder, starters, handoff), guidelines and ai-ui build, the full gate, PR.
   - `src/platform/examples/pages/progress.tsx` has two `layout="stacked"` edits of unknown origin. Left out of this
     change.
