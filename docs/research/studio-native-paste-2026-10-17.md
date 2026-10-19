@@ -144,7 +144,11 @@ message** (`Image.dataBlob` = chỉ số blob): Figma desktop nhận ảnh mới
 không được tải (lần thử đầu tưởng data: URL chạy vì ảnh đó đã có sẵn theo hash). WebP không vào: Studio vẽ nó ra PNG
 bằng canvas (`figmaClipboard.ts`). Crop = `STRETCH` với `transform` [[w,0,x],[0,h,y]] (phân số), Tile = `scale`. `src`
 của Studio đi theo shared plugin data: Figma ghi nó là `pluginData` `{ pluginID: "", key: "zenstudio-image" }`.
-Ảnh riêng của component (Avatar, Image) còn mở: gói định nghĩa chưa ghi layer nào giữ image fill.
+Ảnh riêng của component (Avatar ảnh, ô Avatar / Photo của bảng; user duyệt 2026-10-19): gói định nghĩa ghi `img` (các
+fill) cho mỗi layer có fill IMAGE (671 layer: Avatar/Single 656, Photo-Cell, Popover item Photo…); writer tìm layer đầu
+tiên có ảnh như importer (`applyImage`), sau các override lồng (biến thể đang hiện), và ghi override `fillPaints` theo
+guidPath, blob của ảnh trong override cũng được đánh chỉ số. `native-pack.mjs images-code` / `images` đọc lại các layer
+này bằng use_figma khi thư viện đổi ảnh mà không cần chụp lại cả gói; một lần chụp đầy đủ (`packFrom`) cũng ghi chúng.
 
 ## 8. Còn mở
 

@@ -282,6 +282,31 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(read?.fillPaints?.[1]?.image.hash.length === 20 && Buffer.from(readBlob?.bytes ?? []).equals(logoBytes) && read.pluginData?.[0]?.key === "zenstudio-image", "the picture's bytes and its src survive the paste html");
 }
 
+// --- a component's own picture (an Avatar's photo, a table cell's): the first layer that shows one (pack `img`) ------
+{
+  const logoBytes = fs.readFileSync(path.join(root, "src/templates/hr/assets/workspace-logo.png"));
+  const sha = crypto.createHash("sha1").update(logoBytes).digest("hex");
+  const pictures = await nativePictures({ "/u/ann.png": logoBytes.toString("base64") });
+  const avatar = { type: "INSTANCE", name: "Ann", set: { id: "223:9050", name: "Avatar/Single" }, props: { Shape: "Circle", Size: "Large", Theme: "Photo", Background: "Subtle" }, image: "/u/ann.png" };
+  const avatarCell = { type: "INSTANCE", name: "Owner", set: { id: "1603:2869", name: "Primitives/Table/Cell/Avatar-Cell" }, props: { Bold: "No", Subtext: "No" }, nested: [{ path: "Avatar", props: { Shape: "Square", Size: "Small", Theme: "Photo", Background: "Subtle" } }], image: "/u/ann.png" };
+  const photoCell = { type: "INSTANCE", name: "Cover", set: { id: "1603:4668", name: "Primitives/Table/Cell/Photo-Cell" }, props: { Bold: "No", Subtext: "No" }, image: "/u/ann.png" };
+  const lost = { ...avatar, name: "Lost", image: "/u/gone.png" };
+  const { message, notes } = nativeMessage(exportOf([avatar, avatarCell, photoCell, lost]), pack, pictures);
+  const [ann, owner, cover, missing] = instances(message);
+  const pictureAt = (node, guids) => overrides(node).find((entry) => entry.guidPath.guids.map(id).join("/") === guids.join("/"))?.fillPaints?.[0];
+  const imageRow = (symbolId) => pack.symbols[symbolId]?.nodes.find((row) => row[11]?.img)?.[0];
+  const shows = (paint) => paint?.type === "IMAGE" && Buffer.from(paint.image.hash).toString("hex") === sha && Buffer.from(message.blobs[paint.image.dataBlob]?.bytes ?? []).equals(logoBytes) && paint.imageScaleMode === "FILL";
+  const annRow = imageRow(id(ann?.symbolData.symbolID));
+  check(annRow && shows(pictureAt(ann, [annRow])), `an Avatar's photo fills its Image layer (${annRow})`);
+  // The Avatar-Cell's Avatar shows the variant its nested props choose: the picture goes to that variant's Image.
+  const swap = overrides(owner).find((entry) => entry.guidPath.guids.map(id).join("/") === "1603:2873" && entry.overriddenSymbolID);
+  const shown = swap ? id(swap.overriddenSymbolID) : pack.symbols["1603:2870"].nodes.find((row) => row[0] === "1603:2873")[9];
+  check(pack.symbols[shown]?.name.includes("Shape=Square") && shows(pictureAt(owner, ["1603:2873", imageRow(shown)])), `an Avatar-Cell's picture fills its nested Avatar's Image, in the variant shown (${pack.symbols[shown]?.name})`);
+  check(shows(pictureAt(cover, ["1603:4720"])), "a Photo-Cell's picture fills its Photo");
+  check(missing && !overrides(missing).some((entry) => entry.fillPaints) && notes.length === 1 && notes[0].includes("Lost") && notes[0].includes("not in the export"), `a picture without bytes is named in a note (${notes.join("; ")})`);
+  check(message.blobs.filter((blob) => Buffer.from(blob.bytes).equals(logoBytes)).length === 1, "one blob for a picture used three times");
+}
+
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------
 {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, "tools/studio/fixtures/figma-expenses.json"), "utf8"));

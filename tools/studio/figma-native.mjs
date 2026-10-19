@@ -254,6 +254,9 @@ export async function nativePictures(images, { toPng = null } = {}) {
 
 /** figma-image.mjs scale modes → Figma's (its Crop is STRETCH with the shown part as the paint's transform). */
 const IMAGE_SCALE_MODES = { FILL: "FILL", FIT: "FIT", CROP: "STRETCH", TILE: "TILE" };
+const IMAGE_FITS = Object.fromEntries(Object.entries(IMAGE_SCALE_MODES).map(([fit, mode]) => [mode, fit]));
+/** A component layer's fills when it shows a picture (the pack's `img`; a slot content's own fills), or null. */
+const pictureFillsOf = (ref) => (ref.kind === "row" ? ref.row.more.img ?? null : (ref.tmpl.fillPaints ?? []).some((paint) => paint.type === "IMAGE") ? ref.tmpl.fillPaints : null);
 /** An `imageFill` as Figma's IMAGE paint (the fields of Figma's own copy of a placed picture, 2026-10-19). */
 export function imagePaint(fill, picture) {
   const mode = IMAGE_SCALE_MODES[fill.scaleMode] ?? "FILL";
@@ -641,15 +644,26 @@ class Writer {
   imageFill(node, spec, where) {
     const fill = spec.imageFill;
     if (!fill?.src) return;
-    const picture = this.pictures.get(fill.src);
-    if (!picture?.hash) { this.note(`${where}: ${picture?.reason ? `its picture is ${picture.reason}` : `its picture was not in the export (${fill.src})`}`); return; }
-    this.pictureBytes.set(picture.hex, picture.bytes);
-    const paint = imagePaint(fill, picture);
-    paint.image.dataBlob = paint.imageThumbnail.dataBlob = { picture: picture.hex };
-    node.fillPaints = [...(node.fillPaints ?? []), paint];
+    const picture = this.pictureFor(fill.src, where);
+    if (!picture) return;
+    node.fillPaints = [...(node.fillPaints ?? []), this.picturePaint(fill, picture)];
     // The paints are the layer's own now (setting fills detaches a fill style in Figma too).
     delete node.styleIdForFill;
     node.pluginData = [...(node.pluginData ?? []), { pluginID: "", key: "zenstudio-image", value: String(fill.src) }];
+  }
+
+  /** The export's picture `src` (its bytes go into the message as a blob), or null with a note. */
+  pictureFor(src, where) {
+    const picture = this.pictures.get(src);
+    if (!picture?.hash) { this.note(`${where}: ${picture?.reason ? `its picture is ${picture.reason}` : `its picture was not in the export (${src})`}`); return null; }
+    this.pictureBytes.set(picture.hex, picture.bytes);
+    return picture;
+  }
+  /** An `imageFill`'s IMAGE paint whose image and thumbnail name the picture's blob (nativeMessage gives it its index). */
+  picturePaint(fill, picture) {
+    const paint = imagePaint(fill, picture);
+    paint.image.dataBlob = paint.imageThumbnail.dataBlob = { picture: picture.hex };
+    return paint;
   }
 
   /**
@@ -735,8 +749,9 @@ class Writer {
     if (typeof spec.text === "string") inst.label([], spec.text, where);
     inst.texts([], spec, where);
     if (spec.swapIcon) inst.swapIcon([], spec.swapIcon, where);
-    if (spec.image) this.note(`${where}: pictures are not in a direct paste yet`);
     for (const nested of spec.nested ?? []) inst.nested(nested, where);
+    // After the nested edits: the picture goes to the layer of the variant they show (an Avatar-Cell's Avatar, Photo).
+    if (spec.image) inst.picture(spec.image, where);
     const tree = this.index.tree(main);
     const id = this.fresh();
     const w = spec.size || spec.fixedWidth || tree.w, h = spec.size || tree.h;
@@ -1270,6 +1285,21 @@ class InstanceBuild {
       this.setText(ref, text);
     }
   }
+  /**
+   * `image` (an Avatar's photo, a table cell's picture): the export's picture fills the first layer of the instance that
+   * shows one in its component (the importer's applyImage), as that layer fills it, its other fills kept.
+   */
+  picture(src, where) {
+    const picture = this.w.pictureFor(src, where);
+    if (!picture) return;
+    const own = this.w.index.tree(this.symbol)?.img ?? null;
+    const ref = own ? null : this.layers([]).find((layer) => pictureFillsOf(layer));
+    const fills = own ?? (ref ? pictureFillsOf(ref) : null);
+    if (!fills) { this.w.note(`${where}: no image layer for its picture`); return; }
+    const paints = fills.map((paint) => (paint.type === "IMAGE" ? { ...this.w.picturePaint({ scaleMode: IMAGE_FITS[paint.imageScaleMode] ?? "FILL" }, picture), visible: paint.visible !== false, opacity: paint.opacity ?? 1 } : structuredClone(paint)));
+    if (ref) this.target(ref).fillPaints = paints;
+    else { this.touch(); this.root.fillPaints = paints; }
+  }
   swapIcon(path, iconName, where) {
     const icon = this.w.componentNamed(iconName);
     if (!icon) { this.w.note(`${where}: no icon component ${iconName}`); return; }
@@ -1482,7 +1512,9 @@ export function nativeMessage(pkg, pack, pictures = new Map()) {
     if (!pictureBlobs.has(hex)) { message.blobs.push({ bytes: writer.pictureBytes.get(hex) }); pictureBlobs.set(hex, message.blobs.length - 1); }
     return pictureBlobs.get(hex);
   };
-  for (const node of nodeChanges) for (const paint of node.fillPaints ?? []) for (const ref of [paint.image, paint.imageThumbnail]) if (ref?.dataBlob?.picture) ref.dataBlob = pictureBlob(ref.dataBlob.picture);
+  // Layers' own fills and an instance's overrides (a component's picture layer).
+  const fillLists = (node) => [node.fillPaints, ...(node.symbolData?.symbolOverrides ?? []).map((entry) => entry.fillPaints)];
+  for (const node of nodeChanges) for (const paint of fillLists(node).flatMap((list) => list ?? [])) for (const ref of [paint.image, paint.imageThumbnail]) if (ref?.dataBlob?.picture) ref.dataBlob = pictureBlob(ref.dataBlob.picture);
   return { message, root: root.guid, notes: writer.notes };
 }
 

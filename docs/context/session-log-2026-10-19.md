@@ -341,3 +341,10 @@ User picked "Dán ảnh qua ⌘C→⌘V" (the rest of F8). `tools/studio/figma-n
   12 / 8 / 4 (2026-10-19).
 - Gate finding met (usage:check ⚠ layer/popover-is-overlay, my F10 rulers.css): the rulers took Background/Popover;
   they are canvas chrome like the panels, so Surface/Default now.
+- **A component's own picture** (user: "làm ảnh riêng của Avatar/Image luôn"; Image and Thumbnail have no Figma set,
+  so in practice Avatar/Single Theme=Photo and the table's Avatar-Cell / Photo-Cell): the pack records `img` (the fills)
+  on every layer with an IMAGE fill. `packFrom` writes it from a capture; `native-pack.mjs images-code` / `images` read
+  it with use_figma (3 parts, hashes of the answers checked) instead of a full re-capture: 671 layers (+114 KB). The
+  writer fills the first such layer after the nested edits (the variant shown), an override `fillPaints` with the
+  picture's blob. Live paste (QA page, removed): Avatar Large, Avatar-Cell (nested Avatar → Square Small Photo),
+  Photo-Cell show their fresh pictures, hashes exact. Selftest figma-native 90.

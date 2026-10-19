@@ -189,10 +189,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   in a Card. Align the old ones the same way? (a component property cannot reach slot content of a nested Card).
 - **P2 · Direct paste (⌘V on the canvas) outside the Zen file (2026-10-17):** it binds by node id, so only the Zen file
   takes it; other files need the published library and full component definitions in the paste (instances by
-  `componentKey`, as Figma's own copies carry). Also open: a component's own picture in a direct paste (Avatar photo,
-  Image: the pack does not record which layer holds the image fill, so it needs a pack re-capture; image fills on
-  shapes and frames go since 2026-10-19), and the frame menu's Copy for Figma (async write: Chromium rewrites the html,
-  only the plugin reads it). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6, §8.
+  `componentKey`, as Figma's own copies carry). Also open: the frame menu's Copy for Figma (async write: Chromium rewrites
+  the html, only the plugin reads it). Pictures go since 2026-10-19 (F8c). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6, §7c.
 - **P2 · Direct paste of Studio Shapes and page-local components (user approved 2026-10-17):** Writer.build() branches in
   tools/studio/figma-native.mjs for LINE arrow/POLYGON/STAR/path/boolean (RECTANGLE and ELLIPSE with its arc went in
   with F8c pictures, 2026-10-19; the others are named in a note) and Component → COMPONENT, Use →
