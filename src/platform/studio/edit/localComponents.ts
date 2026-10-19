@@ -22,7 +22,20 @@ import { boxFloating, floatingGroup } from "./groupLayers";
  */
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
-export type MainRef = { id: string; name: string; componentLoc: string; rootLoc: string; file: string; uses: string[] };
+/** A component property of a page's component (tools/studio/dialect.mjs COMPONENT_PROPERTY_TYPES). */
+export type PropertyRef = { name: string; type: "text" | "boolean" | "swap" | "slot"; default?: unknown; preferred?: unknown[] };
+export type MainRef = {
+  id: string; name: string; componentLoc: string; rootLoc: string; file: string; uses: string[];
+  /** Its component set's id, when it is a variant (F7). */
+  set?: string;
+  /** A variant's values ("Size" → "Small"). */
+  variant?: Record<string, string>;
+  /** Its properties (a variant's are its set's). */
+  properties: PropertyRef[];
+  description?: string;
+};
+/** A page's component set (`<ComponentSet>`, Figma's Combine as variants). */
+export type SetRef = { id: string; name: string; loc: string; file: string; variants: string[]; axes: Array<{ name: string; values: string[] }>; properties: PropertyRef[]; uses: string[]; description?: string };
 
 const fail = (message: string) => { announceEditStatus({ kind: "error", message, at: Date.now() }); return false; };
 
@@ -37,7 +50,10 @@ export async function mainsOf(file: string): Promise<MainRef[]> {
     const of = String(node.props.of?.value ?? "");
     uses.set(of, [...(uses.get(of) ?? []), node.loc]);
   });
-  return engine.localComponents(tree).filter((main) => main.id && main.root).map((main) => ({ id: main.id!, name: String(main.name ?? main.id), componentLoc: main.loc, rootLoc: main.root!.loc, file, uses: uses.get(main.id!) ?? [] }));
+  return engine.localComponents(tree).filter((main) => main.id && main.root).map((main) => ({
+    id: main.id!, name: String(main.name ?? main.id), componentLoc: main.loc, rootLoc: main.root!.loc, file, uses: uses.get(main.id!) ?? [],
+    ...(main.set ? { set: main.set, variant: main.variant ?? {} } : {}), properties: main.properties ?? [], ...(main.description ? { description: main.description } : {}),
+  }));
 }
 
 /** The main component the selection is the root of, or null. */
@@ -259,12 +275,14 @@ export async function renameComponent(main: MainRef, name: string): Promise<bool
 }
 
 /** Swap instance (Figma's instance menu): the instance shows another main component of the page. */
-export async function swapInstance(selection: NodeSelection, to: MainRef): Promise<boolean> {
+export async function swapInstance(selection: NodeSelection, to: Pick<MainRef, "id" | "name">): Promise<boolean> {
   const at = parseSrc(selection.src);
   if (!at) return false;
   const use = await studioApi.element(at.file, at.loc);
   if (!use) return false;
-  const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "setProp", name: "of", value: { kind: "string", value: to.id } } as EditOp], hash: use.hash }, `Swap instance → ${to.name}`);
+  // Another component takes its own variant and property values (Figma: a swap keeps only the overrides that still fit).
+  const extra = use.attributes.some((attr) => attr.name === "variant" || attr.name === "props") ? [{ op: "removeProp", name: "variant" }, { op: "removeProp", name: "props" }] as EditOp[] : [];
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "setProp", name: "of", value: { kind: "string", value: to.id } } as EditOp, ...extra], hash: use.hash }, `Swap instance → ${to.name}`);
   return response.ok;
 }
 
@@ -284,4 +302,152 @@ export async function deleteMain(selection: NodeSelection): Promise<boolean> {
   const response = await applyEdit({ file: main.file, loc: main.componentLoc, name: "Component", ops: [{ op: "removeElement" } as EditOp], hash: component.hash }, `Delete component ${main.name}`);
   if (response.ok) { multiSelection.clear(); studioStore.setState({ selection: null }); flushStudioStore(); }
   return true;
+}
+
+/* ── F7: component sets, variants and properties (docs/research/studio-f7-components-spec-2026-10-19.md) ───────────── */
+
+/** The page's component sets as read from its text now. */
+export async function setsOf(file: string): Promise<SetRef[]> {
+  const engine = await loadEngine();
+  const source = await studioApi.source(file);
+  const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
+  const uses = new Map<string, string[]>();
+  engine.eachElement(tree.board, (node) => {
+    if (node.name !== "Use") return;
+    const of = String(node.props.of?.value ?? "");
+    uses.set(of, [...(uses.get(of) ?? []), node.loc]);
+  });
+  return engine.componentSets(tree).filter((set) => set.id).map((set) => ({
+    id: set.id!, name: String(set.name ?? set.id), loc: set.loc, file, variants: set.variants.flatMap((main) => (main.id ? [main.id] : [])), axes: set.axes,
+    properties: set.properties ?? [], uses: [...(uses.get(set.id!) ?? []), ...set.variants.flatMap((main) => uses.get(main.id ?? "") ?? [])], ...(set.description ? { description: set.description } : {}),
+  }));
+}
+
+/** A JS object literal of `values` as the page writes it: names as they are when they can be, else quoted. */
+export function objectCode(values: Record<string, unknown>): string {
+  const entries = Object.entries(values);
+  if (!entries.length) return "{}";
+  const key = (name: string) => (/^[A-Za-z_$][\w$]*$/.test(name) ? name : JSON.stringify(name));
+  const value = (entry: unknown): string => (entry && typeof entry === "object" && !Array.isArray(entry) ? objectCode(entry as Record<string, unknown>) : JSON.stringify(entry));
+  return `{ ${entries.map(([name, entry]) => `${key(name)}: ${value(entry)}`).join(", ")} }`;
+}
+const expression = (values: Record<string, unknown>) => ({ kind: "expression" as const, code: objectCode(values) });
+
+/** Writes `ops` on the element at `file:loc`, its hash read first (one edit, one ⌘Z). */
+async function write(file: string, loc: string, ops: EditOp[], label: string): Promise<boolean> {
+  const element = await studioApi.element(file, loc);
+  if (!element) return fail("The component is no longer there — select it again");
+  const response = await applyEdit({ file, loc, name: element.name, ops, hash: element.hash }, label);
+  return Boolean(response.ok);
+}
+
+/**
+ * Figma's Combine as variants: several main components side by side become one component set, each a variant named
+ * "Property 1=Default", "Property 1=Variant2"… by its place (dialect.mjs defaultVariant), one edit. They must share a
+ * frame (Figma moves them; here: put them in one frame first).
+ */
+export async function combineAsVariants(layers: ExtraLayer[] = selectedLayers()): Promise<boolean> {
+  if (layers.length < 2) return fail("Select two or more main components to combine them as variants");
+  const at = parseSrc(layers[0].src);
+  if (!at || layers.some((layer) => parseSrc(layer.src)?.file !== at.file)) return fail("Select main components of one page");
+  const mains = await mainsOf(at.file);
+  const picked = layers.map((layer) => mains.find((main) => main.rootLoc === parseSrc(layer.src)?.loc) ?? null);
+  if (picked.some((main) => !main)) return fail("Only main components combine as variants: make each a component first (⌥⌘K)");
+  if (picked.some((main) => main!.set)) return fail("A variant is already in a component set: add variants to that set instead");
+  const engine = await loadEngine();
+  const source = await studioApi.source(at.file);
+  const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
+  const parentOf = new Map<string, string>();
+  engine.eachElement(tree.board, (node, parents) => { if (node.name === "Component") parentOf.set(node.loc, (parents.at(-1) as { loc?: string } | undefined)?.loc ?? ""); });
+  const ordered = [...picked as MainRef[]].sort((a, b) => compareLoc(a.componentLoc, b.componentLoc));
+  if (new Set(ordered.map((main) => parentOf.get(main.componentLoc))).size !== 1) return fail("Put the components in one frame first, then combine them as variants");
+  const sets = await setsOf(at.file);
+  const { name, id } = freshNames([...mains, ...sets.map((set) => ({ ...set, componentLoc: set.loc, rootLoc: set.loc, properties: [] } as MainRef))], [ordered[0].name])[0];
+  const [first, ...rest] = ordered;
+  const ok = await write(at.file, first.componentLoc, [{ op: "wrap", tag: "ComponentSet", props: { id: { kind: "string", value: id }, name: { kind: "string", value: name } }, with: rest.map((main) => main.componentLoc) } as EditOp], `Combine as variants · ${name}`);
+  if (ok) inspectorStatus.set("positive", `${name}: ${ordered.length} variants, Property 1 = Default, Variant2…`);
+  return ok;
+}
+
+const compareLoc = (a: string, b: string) => { const [la, ca] = a.split(":").map(Number); const [lb, cb] = b.split(":").map(Number); return la - lb || ca - cb; };
+
+/** Figma's + on a component set: the last variant again, its first property's value a new one (Variant3…), one edit. */
+export async function addVariant(set: SetRef): Promise<boolean> {
+  const mains = await mainsOf(set.file);
+  const variants = set.variants.map((id) => mains.find((main) => main.id === id)).filter((main): main is MainRef => Boolean(main));
+  const last = variants.at(-1);
+  if (!last) return fail("The set has no variant to copy");
+  const element = await studioApi.element(set.file, last.componentLoc);
+  const source = await studioApi.source(set.file);
+  if (!element?.range) return fail("The variant is no longer there — select the set again");
+  const lines = source.content.split("\n");
+  const code = lines.slice(element.range.start - 1, element.range.end).join("\n").trim();
+  const axis = set.axes[0]?.name ?? "Property 1";
+  const taken = new Set(set.axes[0]?.values ?? []);
+  let n = variants.length + 1;
+  while (taken.has(`Variant${n}`)) n += 1;
+  const values = { ...(last.variant ?? {}), [axis]: `Variant${n}` };
+  const { id } = freshNames(mains, [`${set.name} ${values[axis]}`])[0];
+  const opening = code.replace(/^<Component\b[^>]*>/, `<Component id="${id}" variant={${objectCode(values)}}>`);
+  const ok = await write(set.file, set.loc, [{ op: "pasteCode", code: opening, after: last.componentLoc } as EditOp], `Add variant · ${set.name}`);
+  if (ok) inspectorStatus.set("positive", `${set.name}: ${axis}=${values[axis]} added`);
+  return ok;
+}
+
+/** A variant's values (Figma: a variant property's value on that variant), one edit. */
+export function setVariantValues(main: MainRef, values: Record<string, string>): Promise<boolean> {
+  return write(main.file, main.componentLoc, [{ op: "setProp", name: "variant", value: expression(values) }], `${main.name} → ${Object.entries(values).map(([key, value]) => `${key}=${value}`).join(", ")}`);
+}
+
+/** Renames a variant property on every variant of the set (one edit). */
+export async function renameVariantProperty(set: SetRef, from: string, to: string): Promise<boolean> {
+  const name = to.trim();
+  if (!name || name === from) return false;
+  if (set.axes.some((axis) => axis.name === name)) return fail(`${set.name} has a ${name} property already`);
+  const mains = await mainsOf(set.file);
+  const variants = set.variants.map((id) => mains.find((main) => main.id === id)).filter((main): main is MainRef => Boolean(main));
+  const opsByLoc = Object.fromEntries(variants.map((main) => [main.componentLoc, [{ op: "setProp", name: "variant", value: expression(Object.fromEntries(Object.entries(main.variant ?? {}).map(([key, value]) => [key === from ? name : key, value]))) } as EditOp]]));
+  const element = await studioApi.element(set.file, variants[0].componentLoc);
+  if (!element) return fail("The set is no longer there — select it again");
+  const response = await applyEdit({ file: set.file, loc: variants[0].componentLoc, name: "Component", ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc } as EditOp], hash: element.hash }, `${set.name}: ${from} → ${name}`);
+  return Boolean(response.ok);
+}
+
+/** Figma's default for a new property of a type: "Property N", and a value of its kind. */
+export function newProperty(properties: PropertyRef[], type: PropertyRef["type"]): PropertyRef {
+  const names = new Set(properties.map((property) => property.name));
+  let n = properties.length + 1;
+  while (names.has(`Property ${n}`)) n += 1;
+  const fallback = { text: "Text", boolean: true, swap: "icon-star-line", slot: undefined }[type];
+  return { name: `Property ${n}`, type, ...(fallback !== undefined ? { default: fallback } : {}) };
+}
+
+/** The `properties={{ … }}` value of a component or set (null: none, the prop goes). */
+const propertiesValue = (properties: PropertyRef[]) => Object.fromEntries(properties.map((property) => [property.name, { type: property.type, ...(property.default !== undefined ? { default: property.default } : {}), ...(property.preferred ? { preferred: property.preferred } : {}) }]));
+
+/** Writes a component's (or set's) properties, one edit; an empty list removes the prop. */
+export function setComponentProperties(owner: { file: string; loc: string; name: string }, properties: PropertyRef[], label: string): Promise<boolean> {
+  return write(owner.file, owner.loc, [properties.length ? { op: "setProp", name: "properties", value: expression(propertiesValue(properties)) } : { op: "removeProp", name: "properties" }], `${owner.name} · ${label}`);
+}
+
+/** The layer attribute that binds a layer to a property of each type (dialect.mjs PROPERTY_BINDINGS). */
+export const BINDING_OF: Readonly<Record<PropertyRef["type"], string>> = { text: "data-prop-text", boolean: "data-prop-visible", swap: "data-prop-swap", slot: "data-prop-slot" };
+
+/** Figma's Apply component property on a layer of a main: binds it to `property` (null unbinds), one edit. */
+export function bindLayer(selection: NodeSelection, type: PropertyRef["type"], property: string | null): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return Promise.resolve(false);
+  const attr = BINDING_OF[type];
+  return write(at.file, at.loc, [property ? { op: "setProp", name: attr, value: { kind: "string", value: property } } : { op: "removeProp", name: attr }], property ? `${selection.name} → property ${property}` : `${selection.name} unbound`);
+}
+
+/** An instance's variant values and property values (`<Use variant props>`), one edit; empty objects remove the props. */
+export function setInstanceValues(selection: NodeSelection, variant: Record<string, string>, props: Record<string, unknown>): Promise<boolean> {
+  const at = parseSrc(selection.src);
+  if (!at) return Promise.resolve(false);
+  const ops: EditOp[] = [
+    Object.keys(variant).length ? { op: "setProp", name: "variant", value: expression(variant) } : { op: "removeProp", name: "variant" },
+    Object.keys(props).length ? { op: "setProp", name: "props", value: expression(props) } : { op: "removeProp", name: "props" },
+  ];
+  return write(at.file, at.loc, ops, "Instance properties");
 }

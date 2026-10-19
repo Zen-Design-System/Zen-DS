@@ -195,6 +195,38 @@ both("moveTo another parent", "Badge", 0, (loc) => [{ op: "moveTo", parent: loc(
     check("setRowProp: ids followed the edit", [through.ids, byName(through.doc, "ListItem").id], [true, row.id]);
   }
 }
+// F7: Combine as variants — two main components side by side wrapped in one <ComponentSet> (one edit), the builder
+// import added; each becomes a variant named by its place (dialect.mjs defaultVariant).
+{
+  const page = `// @zen-page {"format":1,"title":"Set"}
+import { Board, Component, Screen } from "@zen-ds/react/builder";
+import { Button, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Set">
+        <Stack>
+          <Component id="a" name="Action"><Button>One</Button></Component>
+          <Component id="b" name="Action 2"><Button level="secondary">Two</Button></Component>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const tree = parsePage(page);
+  const locs = [];
+  (function visit(node) { if (!node || node.kind !== "element") return; if (node.name === "Component") locs.push(node.loc); node.children.forEach(visit); })(tree.board);
+  const result = applyOps(page, locs[0], "Component", [{ op: "wrap", tag: "ComponentSet", props: { id: { kind: "string", value: "action" }, name: { kind: "string", value: "Action" } }, with: [locs[1]] }], engine(page));
+  check("combine: accepted", result.error ?? null, null);
+  if (!result.error) {
+    check("combine: the builder import and the set", [/import \{ Board, Component, ComponentSet, Screen \} from "@zen-ds\/react\/builder";/.test(result.code), /<ComponentSet id="action" name="Action">\s*<Component id="a"[^>]*>[\s\S]*<Component id="b"/.test(result.code)], [true, true]);
+    check("combine: a valid page", parsePage(result.code).errors.map((error) => error.message), []);
+  }
+}
 check("a loc with nothing there is refused, as the engine refuses it", editDoc(start, startText, { file: FILE, loc: "999:0", name: "Button", ops: [{ op: "removeElement" }] }, { applyOps, dataFieldEdit, sha1, options: engine(startText) }).code, "not-found");
 // M6 (a Figma update): code an op brings with data-zen-id sets those ids in the document, and the page's text never shows them.
 {

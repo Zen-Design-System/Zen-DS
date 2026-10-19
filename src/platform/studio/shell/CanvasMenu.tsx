@@ -25,7 +25,7 @@ import { canvasApi } from "../canvas/viewport";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
 import { modKey, presentShortcut } from "./modKey";
-import { createComponent, createComponentOfLayers, createComponents } from "../edit/localComponents";
+import { combineAsVariants, createComponent, createComponentOfLayers, createComponents } from "../edit/localComponents";
 import { removeFrame, wrapInSection } from "../builder/proto/addFrame";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
@@ -168,6 +168,8 @@ export function CanvasMenu() {
     ...(studioStore.getState().localPage ? [
       { id: "multi-create-component", label: "Create component", icon: "icon-diamond-line" as const, shortcut: `⌥${modKey}K`, disabled: Boolean(editOff), onSelect: () => { void createComponentOfLayers(); } },
       { id: "multi-create-components", label: "Create multiple components", icon: "icon-diamond-line" as const, disabled: Boolean(editOff), onSelect: () => { void createComponents(); } },
+      // Figma's Combine as variants: main components side by side become one component set (F7).
+      { id: "multi-combine-variants", label: "Combine as variants", icon: "icon-diamond-line" as const, disabled: Boolean(editOff), onSelect: () => { void combineAsVariants(); } },
     ] : []),
     { type: "separator", id: "multi-remove-separator" },
     { id: "multi-remove", label: "Delete", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void removeLayers(); } },

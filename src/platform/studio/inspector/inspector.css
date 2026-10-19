@@ -387,3 +387,6 @@
 /* "Ag" in the style's family and weight; its size capped at Body/Base so a Display style fits the row. */
 .studio-local-styles__item .studio-local-styles__type { display: inline-flex; width: var(--zen-element-size-popular-medium, 24px); flex: none; justify-content: center; overflow: hidden; font-size: var(--zen-typography-font-size-body-base, 16px); line-height: 1; }
 .studio-local-styles__color { display: inline-block; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: none; border-radius: var(--zen-corner-radius-rounded, 999px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+/* A component property row (ComponentSection.tsx): its type, name, default, − (Figma UI3's component properties). */
+.studio-component-property { display: grid; min-width: 0; grid-template-columns: var(--zen-element-size-popular-small, 16px) minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-component-property__type { display: inline-flex; color: var(--zen-color-content-support-violet-base); }

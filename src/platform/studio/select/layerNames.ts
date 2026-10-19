@@ -15,6 +15,8 @@ export function layerName(name: string, props: Record<string, unknown> | null | 
   // A page-local component (renderPage marks its main's root and its instances): its name, as Figma lists them.
   if (typeof props?.["data-zen-main-name"] === "string") return props["data-zen-main-name"] as string;
   if (typeof props?.["data-zen-instance-name"] === "string") return props["data-zen-instance-name"] as string;
+  // A component set (F7: <ComponentSet>, Figma's set of variants): its name.
+  if (typeof props?.["data-zen-set-name"] === "string") return props["data-zen-set-name"] as string;
   if (name === "Shape") return SHAPE_LABELS[String(props?.type ?? "rectangle")] ?? "Rectangle";
   return name;
 }
@@ -27,7 +29,7 @@ const SHAPE_ICONS: Readonly<Record<string, IconName>> = { rectangle: "icon-squar
  * image. Null for the rest: layerIcon shows its component or code icon.
  */
 export function objectIcon(name: string, props: Record<string, unknown> | null | undefined): IconName | null {
-  if (props?.["data-zen-main"] || props?.["data-zen-instance"]) return "icon-diamond-line";
+  if (props?.["data-zen-main"] || props?.["data-zen-instance"] || props?.["data-zen-set"]) return "icon-diamond-line";
   if (name === "Shape") return SHAPE_ICONS[String(props?.type ?? "rectangle")] ?? "icon-square-line";
   if (name === "Box") return "icon-hash-01-line";
   if (name === "Stack") return props?.direction === "row" ? "icon-columns-01-line" : "icon-rows-01-line";
