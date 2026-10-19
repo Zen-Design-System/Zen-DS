@@ -83,6 +83,13 @@ User: "làm tiếp phần còn thiếu của main component" · "Bug UI của st
   nền xám"): #128 had the Studio side; the live Progress-Circle/Icon Base now has no fill (2px ring only, all 14
   variants) → progress.css background transparent. Done=No pies differ per theme sample (20–85%); Accent/Neutral keep 80.
   The user's Studio (:5174, Vite from 2026-10-16 in the shared checkout) serves the new code: a reload shows it.
+- Progress select (user: "ok, thêm ô chọn Progress cho ProgressBar"): map Progress → `{ prop: "value", values: { None:
+  "0" … Done: "100" } }` (was skip + main; variant sets unchanged); PropField `NumberStepsControl` for a number row with
+  Figma names (a value between steps shows as "86%"); GroupedProperties keeps the number's own row in `after`, and now
+  passes `component` to PropField: Figma-grouped panels never got their numberRanges slider (plain number field). Probe on
+  an isolated server (card page, value 86 → Medium): select 40, slider 40%, aria-valuenow 40. 2026-10-20 on main 7db4c184
+  (after #151): the select is the shared RowSelectField (B's note: Inline-Field on the panel grid); figma.mjs panelFits
+  finds nothing on the ProgressBar panel before or after (inline, value not cut).
 
 ## Studio Text tool — F6a (Session C; user: "F6a trước, F6b sau", rich text API "Component mới TextRun") — tier M, branch `zen/feat/studio-f6-text-20261019`
 
@@ -496,3 +503,25 @@ User picked "Dán ảnh qua ⌘C→⌘V" (the rest of F8). `tools/studio/figma-n
   Photo-Cell show their fresh pictures, hashes exact. Selftest figma-native 90.
 - Gate (Giám sát's slot after B, on 1a18705f): `npm run qa -- --isolated --files=<11 files>` PASS — static ✓, Studio E2E
   336 works · 0 broken (1577 s); report `.qa/reports/2026-10-19T16-58-37-ee53b0aa.md`.
+
+## Direct paste of the other Shapes (Session C, 2026-10-20) — tier S, branch `zen/feat/studio-native-shapes-20261020`
+BACKLOG item the user approved 2026-10-17 ("Direct paste of Studio Shapes"), picked up while #154 waited for CI.
+- One capture of a probe built with the importer's own calls (QA page; clipboard saved and put back; probe removed)
+  gave Figma's encodings: LINE + ARROW_LINES cap, REGULAR_POLYGON `count`, STAR `count` / `starInnerScale`, VECTOR
+  network (Q as cubic; even-odd = one region of style 0), BOOLEAN_OPERATION with its shapes inside.
+- `figma-native.mjs`: one `shape()` writer for every Shape kind; `parsePath` reads Q; `vectorNetwork` groups loops into
+  regions per vectorPaths entry. Selftest figma-native 102.
+- Live paste of a Shapes page through figma-push → figmaPasteHtml (the first paste missed while B's gate loaded the
+  machine; the retry landed): types, sizes, rotation / flip about the centre, counts, the even-odd hole, Subtract as
+  drawn (screenshot), test nodes removed.
+- Found: an arrow gets a head at both ends in Figma (plugin import too); the Studio draws one. A LINE with a per-vertex
+  cap network was dropped by the paste; BACKLOG asks for a Figma copy of a ⇧L arrow. Experiments stopped once the user
+  was active in Figma.
+- Page-local components (same BACKLOG item): a probe capture gave Figma's set / variant / property / instance
+  encoding; the writer is parked on `zen/wip/studio-native-local-components-20261020` (set and properties pasted right,
+  instances unlinked from their pasted main). Later pastes, even a known-good one, stopped landing while the user
+  worked in Figma: experiments stopped, every test node removed, BACKLOG says what to try next.
+- Gate (Giám sát's slot, 5faa80e7): static ✓, Studio E2E 335 works · 1 broken. The broken row, PT-15 (Present's device
+  simulator, a click timeout), works alone right after (`--rows=PT-15`, 63 s); nothing in the change reaches Present.
+  Reports `.qa/reports/2026-10-19T18-30-20-ee53b0aa.md`, `.qa/studio-e2e/2026-10-19T18-58-10.md`. Main 7db4c184 merged
+  after it (#155, compile.mjs only).

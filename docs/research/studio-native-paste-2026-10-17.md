@@ -150,6 +150,14 @@ tiên có ảnh như importer (`applyImage`), sau các override lồng (biến t
 guidPath, blob của ảnh trong override cũng được đánh chỉ số. `native-pack.mjs images-code` / `images` đọc lại các layer
 này bằng use_figma khi thư viện đổi ảnh mà không cần chụp lại cả gói; một lần chụp đầy đủ (`packFrom`) cũng ghi chúng.
 
+## 7d. Các Shape còn lại (2026-10-20, mục BACKLOG user duyệt 2026-10-17)
+
+Đọc từ bản Figma tự copy một probe dựng bằng đúng các lệnh của importer: LINE (cao 0, stroke CENTER, mũi tên =
+`strokeCap: ARROW_LINES` trên node, vẽ ở cả hai đầu), REGULAR_POLYGON `count`, STAR `count` + `starInnerScale`, VECTOR
+(blob mạng điểm; Figma đổi Q thành C, đường even-odd là một region nhiều vòng với style 0), BOOLEAN_OPERATION
+(`booleanOperation`, `vectorOperationVersion: 1`, hình con nằm trong nó; Exclude = XOR). Dán thật cả trang Shape từ
+figma-push: đúng loại, kích thước, xoay/lật quanh tâm, biến màu. Mũi tên một đầu còn mở (BACKLOG).
+
 ## 8. Còn mở
 
 Cách ghi slot ở cấp ngoài như Figma (nội dung "Contents" của List-Item, "Header-Text" của Header: bản dán ghi override vào

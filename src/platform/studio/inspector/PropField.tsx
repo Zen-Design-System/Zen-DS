@@ -24,6 +24,7 @@ import { InspectorRow, NoInlineLabel, useInlineLabel } from "./Section";
 import { numberRange, type NumberRange } from "./numberRanges";
 import { toneWarning } from "./toneRules";
 import { paletteFor, tonePalette, type SwatchPalette } from "./palettes";
+import { RowSelectField } from "./rowFields";
 import { hexOf, nearestColors, parseHex, type Rgb } from "./controls/colorMatch";
 import { openVariables } from "../variables/variablesState";
 import { inspectorStatus } from "./status";
@@ -408,6 +409,27 @@ function NumberEnumControl({ label, value, fallback, disabled, onSet, options }:
       placeholder="—"
       onValueChange={(next) => { if (Number(next) !== value) onSet(Number(next)); }}
       options={all.map((option) => ({ value: String(option), label: String(option) }))}
+    />
+  );
+}
+
+/**
+ * A number Figma names in steps (Progress-Bar Progress: None 0, Low 20 … Done 100; figma-props.map.mjs): a select of the
+ * steps by their Figma names. A number between them shows as itself ("53%"); the prop's own field below sets it.
+ */
+function NumberStepsControl({ label, value, fallback, disabled, onSet, steps, range }: ControlProps<number> & { steps: Readonly<Record<string, string>>; range: NumberRange | null }) {
+  const shown = value ?? fallback;
+  const options = Object.entries(steps).map(([option, name]) => ({ value: option, label: name }));
+  if (shown !== undefined && !(String(shown) in steps)) options.push({ value: String(shown), label: range?.format?.(shown) ?? String(shown) });
+  return (
+    <RowSelectField
+      aria-label={label}
+      size="sm"
+      disabled={disabled}
+      value={shown !== undefined ? String(shown) : ""}
+      placeholder="—"
+      onValueChange={(next) => { if (Number(next) !== value) onSet(Number(next)); }}
+      options={options}
     />
   );
 }
@@ -861,6 +883,7 @@ function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boo
     case "number": {
       const shown = typeof live === "number" ? live : undefined;
       const range = numberRange(component, spec.name, shown);
+      if (optionLabels) return <NumberStepsControl {...common} steps={optionLabels} range={range} value={shown} onSet={onSet} />;
       return range ? <NumberSliderControl {...common} range={range} value={shown} onSet={onSet} /> : <NumberControl {...common} value={shown} onSet={onSet} />;
     }
     case "string":
@@ -904,6 +927,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
     case "number": {
       const shown = typeof literal === "number" ? literal : undefined;
       const range = numberRange(extra.component, spec.name, shown ?? (typeof fallback === "number" ? fallback : undefined));
+      if (extra.optionLabels) return <NumberStepsControl {...common} steps={extra.optionLabels} range={range} value={shown} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />;
       return range
         ? <NumberSliderControl {...common} range={range} value={shown} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />
         : <NumberControl {...common} value={shown} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />;
