@@ -32,12 +32,16 @@ export function useFrameBox(frameId: string): Box | null {
       return before && next && before.x === next.x && before.y === next.y && before.width === next.width && before.height === next.height ? before : next;
     });
     update();
+    // On the next frame: the panel re-rendering inside a ResizeObserver callback would resize what other observers watch
+    // in the same frame (the browser's "ResizeObserver loop" error).
+    let frame = 0;
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(() => { frame = 0; update(); }); };
     const element = elementOf(frameId);
-    const observer = new ResizeObserver(update);
+    const observer = new ResizeObserver(schedule);
     if (element) observer.observe(element);
-    const offMoved = onFramesMoved(update);
-    const offSource = onSourceUpdate(update);
-    return () => { observer.disconnect(); offMoved(); offSource(); };
+    const offMoved = onFramesMoved(schedule);
+    const offSource = onSourceUpdate(schedule);
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); offMoved(); offSource(); };
   }, [frameId]);
   return box;
 }
