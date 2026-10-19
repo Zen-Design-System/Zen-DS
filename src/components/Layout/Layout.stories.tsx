@@ -132,6 +132,21 @@ export const Clip: Story = {
  * Figma's auto layout frame with a fill is one Stack: surface, stroke, corners and effect on the frame that lays out its
  * content; opacity, rotation and flip as Figma's layer fields; a one-sided and a dashed stroke.
  */
+/** A frame's image fill (Figma's Image paint on a frame): the picture over the fill, under the frame's layers. */
+export const ImageFill: Story = {
+  render: () => (
+    <Stack direction="row" gap="lg" align="start" wrap>
+      <Stack image={photo} radius="xl" padding="lg" justify="end" width={280} height={180}>
+        <Badge background="subtle">Santorini</Badge>
+      </Stack>
+      <Box image={photo} imageFit="fit" surface="subtle" radius="lg" width={200} height={180} role="img" aria-label="Santorini, the whole picture" />
+      <Grid columns={2} gap="xs" image={photo} imageFit="tile" imageScale={8} padding="sm" radius="lg" width={200}>
+        <Box surface="surface" radius="sm" padding="xs"><Text textStyle="Caption/Regular">Tile</Text></Box>
+        <Box surface="surface" radius="sm" padding="xs"><Text textStyle="Caption/Regular">8%</Text></Box>
+      </Grid>
+    </Stack>
+  ),
+};
 export const FrameAppearance: Story = {
   render: () => (
     <Stack direction="row" gap="lg" align="start" wrap>

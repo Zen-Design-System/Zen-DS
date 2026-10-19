@@ -83,12 +83,22 @@ function textCode(value) {
   return /^[^\s{}<>&]([^{}<>&\n\r]*[^\s{}<>&])?$/.test(value) && !/\s{2,}/.test(value) ? value : `{${quote(value)}}`;
 }
 
+const isRun = (child) => child.kind === "element" && child.name === "TextRun";
+/** Words with styles of their own (TextRun): only words and runs, written on one line as a person writes them. */
+const onlyWords = (node) => node.children.every((child) => child.kind === "text" || (isRun(child) && onlyWords(child)));
+const isRichText = (node) => node.children.some(isRun) && onlyWords(node);
+/** Words on the one line of a rich text: JSX keeps them as they are, edge spaces included (edit/richText.ts runsCode). */
+const richWords = (value) => (/[\n\r{}<>]|&[A-Za-z#]|\s{2}/.test(value) ? `{${quote(value)}}` : value);
+
 /** An element; `inline`: one line (a prop's element value). */
 function elementCode(node, indent, ctx, inline = false) {
   const attributes = Object.entries(node.props).map(([name, value]) => attributeCode(name, value, ctx));
   if (ctx.ids) attributes.push(`${ID_PROP}="${node.id}"`);
   const open = `<${node.name}${attributes.length ? ` ${attributes.join(" ")}` : ""}`;
   if (!node.children.length) return `${open} />`;
+  if (isRichText(node) || (node.name === "TextRun" && onlyWords(node))) {
+    return `${open}>${node.children.map((child) => (child.kind === "text" ? richWords(child.value) : elementCode(child, "", ctx, true))).join("")}</${node.name}>`;
+  }
   if (inline || (node.children.length === 1 && node.children[0].kind === "text")) {
     return `${open}>${node.children.map((child) => childCode(child, "", ctx, true)).join("")}</${node.name}>`;
   }

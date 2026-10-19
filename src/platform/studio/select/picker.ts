@@ -66,7 +66,9 @@ const CONTEXT_PROVIDER = 10;
  * Docs scaffolding written in the playground source (their call sites carry the annotation): not layers and never
  * selectable. A click on them falls through to the element around them, or the frame.
  */
-const transparentNames = new Set(["ComponentPreview", "PlaygroundControls", "PlaygroundFilterChip", "PlaygroundToggle", "PlaygroundSlot", "PlatformCode", "ExampleCard", "ExamplePage"]);
+// TextRun (F6b) is some words of a Text with a style of their own, as Figma's mixed styles: part of the text layer, not a
+// layer of its own (a click on its words selects the Text).
+const transparentNames = new Set(["ComponentPreview", "PlaygroundControls", "PlaygroundFilterChip", "PlaygroundToggle", "PlaygroundSlot", "PlatformCode", "ExampleCard", "ExamplePage", "TextRun"]);
 /** Docs scaffolding that is never a layer (ComponentPreview, PlaygroundControls…). */
 export const isTransparentName = (name: string) => transparentNames.has(name);
 

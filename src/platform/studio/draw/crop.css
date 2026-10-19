@@ -1,0 +1,47 @@
+/* Figma's crop on the canvas (CropHandles.tsx), in the selection layer's px: the whole picture faint around the layer
+   (drag it to move what the layer shows), white corner handles ringed in the selection blue to scale it, a pill under
+   the layer. */
+.studio-crop__picture {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--zen-color-border-info-solid-default);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  opacity: 0.4;
+  cursor: move;
+  pointer-events: auto;
+  touch-action: none;
+}
+.studio-crop__picture[data-dragging] { opacity: 0.5; }
+.studio-crop__handle {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  width: var(--zen-spacing-gap-xsmall, 8px);
+  height: var(--zen-spacing-gap-xsmall, 8px);
+  margin: calc(var(--zen-spacing-gap-xsmall, 8px) / -2) 0 0 calc(var(--zen-spacing-gap-xsmall, 8px) / -2);
+  border: 1px solid var(--zen-color-border-info-solid-default);
+  background: var(--zen-color-background-white-solid-default);
+  pointer-events: auto;
+  touch-action: none;
+}
+.studio-crop__handle:is([data-corner="nw"], [data-corner="se"]) { cursor: nwse-resize; }
+.studio-crop__handle:is([data-corner="ne"], [data-corner="sw"]) { cursor: nesw-resize; }
+.studio-crop__pill {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-default);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+  translate: 0 var(--zen-spacing-gap-xsmall, 8px);
+}

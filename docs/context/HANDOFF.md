@@ -154,6 +154,11 @@ Last updated: 2026-10-19.
   right panel (`builder/FramePresets.tsx`), a click = 100 × 100, frame handles + X / Y / W / H written in the page
   (`board/FrameHandles.tsx`, `builder/FrameGeometry.tsx`), Sections `<Section>` beside the frames (membership by
   place, `board/sections.ts`), N / ⇧N, Pages order + dividers (`builder/store/pageOrderStore.ts`); FW-40…49.
+  **F6 + F8 (C, one PR):** the Text tool (T click / drag, typing at once; Enter is a new line only on pages you made),
+  `TextRun` mixed styles (⌘B ⌘I ⌘U ⇧⌘X; TEXT `segments` to and from Figma, `tools/studio/text-runs.mjs`), image fills
+  on Shape and frames (`image` / `imageFit` / `imageCrop` / `imageScale`, `_shared/image-fill.ts`), ⇧⌘K file dialog +
+  drop / paste pictures, Fill › Image, crop on the canvas (`draw/CropHandles.tsx`), `tools/studio/figma-image.mjs`;
+  FW-60…69, FW-80…87. F10 (view and find) waits on its own branch; next for C: free frames as Figma layoutMode NONE.
   **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides / dash, corners, effect,
   opacity, rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame with a fill is one Stack
   in code, push / pull and the Zen plugin; the right panel is in Figma's order. F5b (typed values, variable pills,
