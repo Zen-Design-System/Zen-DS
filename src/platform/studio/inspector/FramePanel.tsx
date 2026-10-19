@@ -18,7 +18,9 @@ import { pageFile, usePage } from "../builder/store/pageStore";
 import { usePageTree } from "../builder/usePageTree";
 import type { StudioFrameWidth } from "../types";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
-import { copyText, exampleOf, frameKind, frameLabel } from "./frames";
+import { copyText, exampleOf, frameKind, frameLabel, isBuilderFrame } from "./frames";
+import { FrameGeometry } from "../builder/FrameGeometry";
+import { SectionPanel } from "../builder/SectionPanel";
 import { InspectorFields, InspectorRow, InspectorSection } from "./Section";
 import { RowSelectField } from "./rowFields";
 import { SlotHost, useSlotFilled } from "./SlotHost";
@@ -269,6 +271,12 @@ function ScreenSection({ frameId }: { frameId: string }) {
 }
 
 export function FramePanel({ frameId, controlsSlot }: { frameId: string; controlsSlot: HTMLElement }) {
+  // A Section of a page you made (F4, Session C): its own panel (name, X / Y / W / H).
+  if (frameId.startsWith("section:")) return <SectionPanel frameId={frameId} />;
+  return <FramePanelBody frameId={frameId} controlsSlot={controlsSlot} />;
+}
+
+function FramePanelBody({ frameId, controlsSlot }: { frameId: string; controlsSlot: HTMLElement }) {
   const page = useStudio((state) => state.page);
   // The board's key (StudioFrame, FrameChrome): a builder page keeps its frames' width and theme under local:<id>, so a
   // width dragged on its frame's edge shows here and a width or theme set here reaches the frame.
@@ -307,9 +315,12 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
         {example?.description ? <p className={`studio-inspector__description ${typographyStyles["Body/Small/Regular"]}`}>{example.description}</p> : null}
       </header>
 
+      {/* A frame of a page you made: Figma's X / Y / W / H, written in the page (builder/FrameGeometry.tsx, F4). */}
+      {isBuilderFrame(frameId) ? <FrameGeometry frameId={frameId} /> : null}
       {frameId.startsWith("screen:") ? <ScreenSection frameId={frameId} /> : null}
       <InspectorSection title="Frame">
-        <InspectorRow label="Width">
+        {/* A view setting for example frames; a frame of a page you made has its own width (Layout › W). */}
+        {isBuilderFrame(frameId) ? null : <InspectorRow label="Width">
           <RowSelectField
             aria-label="Frame width"
             size="sm"
@@ -317,7 +328,7 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
             onValueChange={(value) => setFrameOverride(key, frameId, { width: value === "auto" ? "auto" : (Number(value) as StudioFrameWidth) })}
             options={widthOptions}
           />
-        </InspectorRow>
+        </InspectorRow>}
         {/* The label above and the Segmented across the fields, as a Screen's Canvas (user, 2026-10-15): beside a label
             its three options were cut ("P… L… D…"). */}
         <InspectorFields

@@ -847,9 +847,9 @@ export const rules = [
   { id: "popover/explicit-open", components: ["Popover", "PopoverSearch", "PopoverManualAddNew"], severity: "error", allow: "popover-open", guideline: "docs/guidelines/popover.md",
     summary: "Popover is closed by default: pass `open` (open={isOpen} with onOpenChange, or a bare `open` for an always-visible surface).",
     check: ({ attrs }) => (present(attrs, "open") ? null : "has no `open` prop, so it never shows (Popover is closed by default).") },
-  { id: "box/border-matches-action", components: ["Box"], severity: "warn", allow: "box-border", guideline: "docs/guidelines/layout.md",
-    summary: "A Box border follows the border rule: subtle only when the box is actionable (onClick, href, role=button), pale when it is static.",
-    check: ({ attrs }) => { const border = literal(attrs, "border"); if (!border || opaque(attrs)) return null; const actionable = has(attrs, "onClick") || has(attrs, "href") || literal(attrs, "role") === "button"; if (border === "subtle" && !actionable) return 'is static but uses border="subtle" — static boxes use border="pale" (clickable tiles: Card).'; if (border === "pale" && actionable) return 'is clickable but uses border="pale" — actionable boxes use border="subtle", or use Card.'; return null; } },
+  { id: "box/border-matches-action", components: ["Box", "Stack", "Grid"], severity: "warn", allow: "box-border", guideline: "docs/guidelines/layout.md",
+    summary: "A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static; a dashed border is always subtle (box/dashed-is-subtle).",
+    check: ({ attrs }) => { const border = literal(attrs, "border"); if (!border || opaque(attrs) || literal(attrs, "borderStyle") === "dashed") return null; const actionable = has(attrs, "onClick") || has(attrs, "href") || literal(attrs, "role") === "button"; if (border === "subtle" && !actionable) return 'is static but uses border="subtle" — static boxes use border="pale" (clickable tiles: Card).'; if (border === "pale" && actionable) return 'is clickable but uses border="pale" — actionable boxes use border="subtle", or use Card.'; return null; } },
   // Position and constraints (Figma "Ignore auto layout" + Constraints; position.ts). Only fixed values are judged.
   { id: "layout/constraint-needs-absolute", components: ["Stack", "Grid", "Box"], severity: "warn", allow: "constraint-in-flow", guideline: "docs/guidelines/layout.md",
     summary: "constraintX, constraintY and insetTop/Right/Bottom/Left are read only with position=\"absolute\" (Figma: constraints apply once a layer ignores auto layout).",
@@ -904,7 +904,7 @@ export const rules = [
     } },
   // Box effect style (Figma effect styles; effects.ts). The JSX twin of surface/no-shadow-on-tinted, which reads CSS
   // rule bodies and cannot see a surface prop and an effect prop on one element.
-  { id: "box/effect-needs-surface", components: ["Box"], severity: "error", allow: "tinted-shadow", guideline: "docs/guidelines/layout.md",
+  { id: "box/effect-needs-surface", components: ["Box", "Stack", "Grid"], severity: "error", allow: "tinted-shadow", guideline: "docs/guidelines/layout.md",
     summary: "A Shadow/Bottom|Top/Level-N effect style renders only on surface=\"surface\": never on Subtle, Pale or Surface-Alt (§9), and a box without a fill has nothing to cast it.",
     check: ({ attrs }) => {
       const own = topAttrs(attrs), effect = fixedProp(own, "effectStyle");
@@ -913,7 +913,7 @@ export const rules = [
       if (surface === null || (surface === undefined && opaque(attrs)) || surface === "surface") return null;
       return ["subtle", "pale", "surface-alt"].includes(surface) ? `No outer shadow on Subtle, Pale or Surface-Alt (§9). Drop effectStyle="${effect}" (a border or ring separates a tinted box).` : `A shadow needs surface="surface".`;
     } },
-  { id: "box/blur-needs-tint", components: ["Box"], severity: "warn", allow: "blur-on-opaque", guideline: "docs/guidelines/layout.md",
+  { id: "box/blur-needs-tint", components: ["Box", "Stack", "Grid"], severity: "warn", allow: "blur-on-opaque", guideline: "docs/guidelines/layout.md",
     summary: "Effect/Overlay (background blur) shows only through a translucent fill: surface=\"subtle\" or \"pale\".",
     check: ({ attrs }) => {
       const own = topAttrs(attrs); if (fixedProp(own, "effectStyle") !== "Effect/Overlay") return null;
@@ -921,14 +921,30 @@ export const rules = [
       if (surface === null || (surface === undefined && opaque(attrs)) || ["subtle", "pale"].includes(surface)) return null;
       return "Background blur does nothing behind an opaque fill. Use surface=\"subtle\" or \"pale\".";
     } },
-  { id: "box/shadow-no-border", components: ["Box"], severity: "warn", allow: "elevation", guideline: "docs/guidelines/layout.md",
-    summary: "Elevation follows the Sidebar: a Box with a drop-shadow effect style takes no border (a bordered box takes no shadow).",
+  { id: "box/shadow-no-border", components: ["Box", "Stack", "Grid"], severity: "warn", allow: "elevation", guideline: "docs/guidelines/layout.md",
+    summary: "Elevation follows the Sidebar: a frame (Box, Stack, Grid) with a drop-shadow effect style takes no border (a bordered frame takes no shadow).",
     check: ({ attrs }) => {
       const own = topAttrs(attrs), effect = fixedProp(own, "effectStyle"), border = fixedProp(own, "border");
       return Boolean(effect && DROP_SHADOW_STYLE.test(effect)) && Boolean(border) && border !== "none" && "A shadowed surface takes no border (elevation follows the Sidebar). Keep the shadow or the border, not both.";
     } },
+  // Frame stroke dash and layer opacity (appearance.ts, Figma's Stroke › Dash and layer opacity).
+  { id: "box/dashed-is-subtle", components: ["Box", "Stack", "Grid"], severity: "warn", allow: "dashed-border", guideline: "docs/guidelines/layout.md",
+    summary: "borderStyle=\"dashed\" draws only with border=\"subtle\": dashed borders are always Subtle (a drop zone, an empty slot).",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs); if (fixedProp(own, "borderStyle") !== "dashed") return null;
+      const border = fixedProp(own, "border");
+      if (border === null || (border === undefined && opaque(attrs)) || border === "subtle") return null;
+      return border === undefined || border === "none" ? 'borderStyle="dashed" without a border draws nothing; add border="subtle".' : `borderStyle="dashed" with border="${border}" draws a solid line: dashed borders are Subtle. Use border="subtle".`;
+    } },
+  { id: "layout/opacity-percent", components: ["Box", "Stack", "Grid", "Shape"], severity: "error", allow: "opacity-fraction", guideline: "docs/guidelines/layout.md",
+    summary: "opacity is a percentage, as Figma's layer opacity (0 … 100): write opacity={50}, not CSS's 0.5.",
+    check: ({ attrs }) => {
+      const value = fixedProp(topAttrs(attrs), "opacity");
+      const n = typeof value === "string" ? Number(value) : NaN;
+      return n > 0 && n < 1 && `opacity={${value}} is ${value}% — almost invisible. Zen's opacity is a percentage (Figma's layer opacity): write opacity={${Math.round(n * 100)}}.`;
+    } },
   // Per-corner radius (corners.ts): canonical form = radius, plus only the corners that differ from it.
-  { id: "radius/redundant-corners", components: ["Box", "Image"], severity: "warn", allow: "redundant-corners", guideline: "docs/guidelines/layout.md",
+  { id: "radius/redundant-corners", components: ["Box", "Stack", "Grid", "Image"], severity: "warn", allow: "redundant-corners", guideline: "docs/guidelines/layout.md",
     summary: "Write radius alone when the corners match, and set radiusTopLeft/TopRight/BottomRight/BottomLeft only where they differ from radius (Image's radius defaults to md).",
     check: ({ tag, attrs }) => {
       const own = topAttrs(attrs);
@@ -944,7 +960,7 @@ export const rules = [
     } },
   // full is Corner-Radius/Rounded (1000px): beside a finite corner, CSS overlap scaling shrinks every corner by the same
   // factor, so the small one renders square (corners.ts). full mixes only with none, which is square by design.
-  { id: "radius/full-mixed", components: ["Box", "Image"], severity: "warn", allow: "full-mixed", guideline: "docs/guidelines/layout.md",
+  { id: "radius/full-mixed", components: ["Box", "Stack", "Grid", "Image"], severity: "warn", allow: "full-mixed", guideline: "docs/guidelines/layout.md",
     summary: "radius=\"full\" takes no finite corner (radiusTopLeft/TopRight/BottomRight/BottomLeft other than full or none): use one token for all corners, or a finite radius with corner overrides.",
     check: ({ attrs }) => {
       const own = topAttrs(attrs); if (fixedProp(own, "radius") !== "full") return null;
@@ -1379,9 +1395,18 @@ export const rules = [
   { id: "popover/bulk-action-limit", components: ["PopoverBulkAction", "PopoverBunkAction"], severity: "warn", allow: "bulk-action", guideline: "docs/guidelines/popover.md",
     summary: "Popover/Bulk-Action is a named toolbar (aria-label) of at most 6 Button/Icon-Flat Medium actions — more belongs in a context menu or side panel.",
     check: ({ attrs, children }) => { if (!has(topLevel(attrs), "aria-label")) return "has no aria-label — name the selection toolbar (\"Selection actions\", \"Actions for 3 files\")."; const n = ((children ?? "").match(/<IconButton\b/g) ?? []).length; return n > 6 && `has ${n} actions — keep Bulk-Action to 6 and move the rest into a context menu.`; } },
-  { id: "badge/count-uses-counter", components: ["Badge"], severity: "warn", allow: "badge-count", guideline: "docs/guidelines/badge.md",
+  // User 2026-10-18: "Luôn ghi vào harness và rule là các badge dùng số đếm luôn dùng badge counter" (error since then).
+  { id: "badge/count-uses-counter", components: ["Badge"], severity: "error", allow: "badge-count", guideline: "docs/guidelines/badge.md",
     summary: "A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height.",
     check: ({ children }) => { const c = (children ?? "").trim(); const numeric = /^\d+\+?$/.test(c) || /^\{\s*(String\()?[\w.$]*(count|length|total|unread|countIn)\b[^}]*\}$/i.test(c); return numeric && `shows a count (\`${c.slice(0, 40)}\`) — use <BadgeCounter value={…} />.`; } },
+  { id: "badge/count-text-uses-counter", components: ["span", "Text"], severity: "error", allow: "count-text", guideline: "docs/guidelines/badge.md",
+    summary: "A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something.",
+    check: ({ attrs, children }) => {
+      const c = (children ?? "").trim();
+      const lone = /^\d+\+?$/.test(c) || /^\{\s*(String\()?[\w.$]*(count|length|total|unread|size)\b[^}]*\}$/i.test(c);
+      const countClass = /className=\{?["'`][^"'`]*count\b/i.test(attrs ?? "");
+      return lone && countClass && `shows a count (\`${c.slice(0, 40)}\`) as text — use <BadgeCounter value={…} theme="neutral" background="subtle" />.`;
+    } },
   { id: "table/media-size-by-subtext", components: ["TableMedia"], severity: "warn", allow: "table-media-size", guideline: "docs/guidelines/table.md",
     summary: "TableMedia follows the Figma cell primitives: with a caption (Subtext=Yes) Avatar/Photo is Small 32px and a basic Icon lg 28px; without one Avatar is XSmall 24px and Icon base 20px; Dock Icon follows Avatar (XSmall 24px → Small 32px with a caption).",
     check: ({ attrs }) => {

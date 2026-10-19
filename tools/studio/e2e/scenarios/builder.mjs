@@ -292,6 +292,18 @@ ${shell("        ")}
 };
 /** One Screen's code in the page text. */
 const screenCode = (text, id) => { const at = text.indexOf(`<Screen id="${id}"`); return at < 0 ? "" : text.slice(at, text.indexOf("</Screen>", at)); };
+/** A Screen's opening tag: up to its first `>` outside braces (its slot props hold JSX). */
+const screenTag = (text, id) => {
+  const at = text.indexOf(`<Screen id="${id}"`);
+  if (at < 0) return "";
+  let depth = 0;
+  for (let k = at; k < text.length; k++) {
+    if (text[k] === "{") depth += 1;
+    else if (text[k] === "}") depth -= 1;
+    else if (text[k] === ">" && depth === 0) return text.slice(at, k + 1);
+  }
+  return text.slice(at);
+};
 
 export const rows = [
   {
@@ -660,41 +672,46 @@ export const rows = [
     },
   },
   {
-    id: "B-20", feature: "Toolbar › Frame on a page you made: a click on the canvas asks Screen (which device) or Frame; Screen › iPhone adds an empty 390 × 844 phone Screen placed at the click (user 2026-10-18)", wp: "toolbar 2026-10-09, free frames 2026-10-15, frame picker 2026-10-18",
+    id: "B-20", feature: "Toolbar › Frame on a page you made: the right panel lists Figma's frame presets (Phone, Tablet, Desktop…); Phone › iPhone adds an empty 390 × 844 phone frame beside the page's frame, selected, and the tool goes back to Move (user 2026-10-19: \"Như Figma\")", wp: "toolbar 2026-10-09, free frames 2026-10-15, frame presets F4 2026-10-19",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame", exact: true }).click();
-      const box = await page.locator(".studio-viewport").boundingBox();
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height - 160);
-      await page.mouse.down();
-      await page.mouse.up();
-      const picker = page.getByRole("menu", { name: "New frame" });
-      await picker.waitFor({ state: "visible", timeout: 5000 });
-      await picker.getByRole("menuitem", { name: /^iPhone\b/ }).first().click();
-      await until(async () => (((await pageText(page, id)) ?? "").match(/<Screen\b/g) ?? []).length === 2, { message: "a second Screen" });
+      const presets = page.locator("#studio-right").getByRole("region", { name: "Frame presets" });
+      await presets.waitFor({ state: "visible", timeout: 5000 });
+      for (const group of ["Phone", "Tablet", "Desktop", "Presentation", "Watch", "Paper", "Social media"]) {
+        if (!(await presets.getByRole("button", { name: group, exact: true }).count())) throw new Error(`no ${group} group in the presets`);
+      }
+      await presets.getByRole("list", { name: "Phone" }).getByRole("button", { name: /^iPhone\s*390 × 844$/ }).click();
+      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a second Screen" });
       const text = (await pageText(page, id)) ?? "";
-      if ((text.match(/<Screen [^>]*device="phone"/g) ?? []).length !== 2) throw new Error("the new Screen is not a phone");
-      if (!/<Screen id="screen-2"[^>]*width=\{390\} height=\{844\}/.test(text)) throw new Error("the new Screen is not 390 × 844");
-      if (!/<Screen id="screen-2"[^>]* x=\{-?\d+\} y=\{-?\d+\}/.test(text)) throw new Error("the new Screen has no place (x, y)");
-      // Placed at the click: its top-left is where the pointer was.
-      const frame = await page.locator('[data-studio-frame="screen:screen-2"]').boundingBox();
-      if (!frame || Math.abs(frame.x - (box.x + box.width / 2)) > 3 || Math.abs(frame.y - (box.y + box.height - 160)) > 3) throw new Error(`the Screen is not at the click (${frame ? `${Math.round(frame.x)},${Math.round(frame.y)}` : "none"})`);
-      return "Frame tool click → New frame › iPhone → an empty 390 × 844 phone Screen at the click";
+      const first = screenTag(text, "screen-1");
+      const added = screenTag(text, "screen-2");
+      if (!/device="phone"/.test(added)) throw new Error(`the new Screen is not a phone: ${added}`);
+      if (!/width=\{390\} height=\{844\}/.test(added)) throw new Error(`the new Screen is not 390 × 844: ${added}`);
+      // Beside the page's frame (Figma places a preset frame right of the frames), top-aligned.
+      const x = Number(first.match(/\sx=\{(-?\d+)\}/)?.[1] ?? 0);
+      const y = Number(first.match(/\sy=\{(-?\d+)\}/)?.[1] ?? 0);
+      const width = Number(first.match(/\swidth=\{(\d+)\}/)?.[1] ?? (/device="phone"/.test(first) ? 390 : 1440));
+      if (!added.includes(` x={${x + width + 96}} y={${y}}`)) throw new Error(`the new Screen is not beside the first (${added} · first ${first.replace(/\s+/g, " ").slice(0, 160)})`);
+      await until(async () => (await page.locator(".studio-canvas-tools").getByRole("button", { name: "Move", exact: true }).getAttribute("aria-pressed")) === "true", { message: "back to Move" });
+      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
+      return "Frame tool → presets › Phone › iPhone → an empty 390 × 844 phone frame beside screen-1, selected, Move again";
     },
   },
   {
-    id: "B-45", feature: "Toolbar › Frame › Frame (Figma's click without a preset): an empty 100 × 100 frame at the click, no device chrome (user 2026-10-18)", wp: "frame picker 2026-10-18",
+    id: "B-45", feature: "Toolbar › Frame, a click on the canvas (Figma's): an empty 100 × 100 frame named Frame 2 at the click, no device chrome, no menu (user 2026-10-19)", wp: "frame presets F4 2026-10-19",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame", exact: true }).click();
-      const box = await page.locator(".studio-viewport").boundingBox();
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height - 160);
+      // On the empty canvas right of the page's frame (inside a frame the Frame tool draws a frame in it).
+      const first = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+      const view = await page.locator(".studio-viewport").boundingBox();
+      const at = { x: Math.min(first.x + first.width + 80, view.x + view.width - 420), y: Math.max(first.y, view.y + 80) };
+      await page.mouse.move(at.x, at.y);
       await page.mouse.down();
       await page.mouse.up();
-      const picker = page.getByRole("menu", { name: "New frame" });
-      await picker.waitFor({ state: "visible", timeout: 5000 });
-      await picker.getByRole("menuitem", { name: /^Frame\b/ }).click();
       await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a second frame" });
+      if (await page.getByRole("menu", { name: "New frame" }).count()) throw new Error("a click still asks for a frame kind");
       const text = (await pageText(page, id)) ?? "";
       const frame = text.match(/<Screen id="screen-2"[^>]*>/)?.[0] ?? "";
       if (!/width=\{100\} height=\{100\}/.test(frame)) throw new Error(`the frame is not 100 × 100: ${frame}`);
@@ -702,7 +719,10 @@ export const rows = [
       if (!/title="Frame 2"/.test(frame)) throw new Error(`the frame is not named Frame 2: ${frame}`);
       const own = text.slice(text.indexOf('<Screen id="screen-2"')).split(/(?=<Screen )/)[0];
       if (/<(AppShell|Sidebar|PageHeader|TopNavigation|BottomNavigation)\b/.test(own)) throw new Error("the frame came with an app frame");
-      return "Frame tool click → New frame › Frame → an empty 100 × 100 frame (Frame 2)";
+      // At the click: its top-left is where the pointer was.
+      const placed = await page.locator('[data-studio-frame="screen:screen-2"]').boundingBox();
+      if (!placed || Math.abs(placed.x - at.x) > 3 || Math.abs(placed.y - at.y) > 3) throw new Error(`the frame is not at the click (${placed ? `${Math.round(placed.x)},${Math.round(placed.y)}` : "none"})`);
+      return "Frame tool click → an empty 100 × 100 frame (Frame 2) at the click";
     },
   },
   {
@@ -710,11 +730,7 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame", exact: true }).click();
-      const box = await page.locator(".studio-viewport").boundingBox();
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height - 160);
-      await page.mouse.down();
-      await page.mouse.up();
-      await page.getByRole("menu", { name: "New frame" }).getByRole("menuitem", { name: /^iPhone\b/ }).first().click();
+      await page.locator("#studio-right").getByRole("list", { name: "Phone" }).getByRole("button", { name: /^iPhone\s*390 × 844$/ }).click();
       const screen2 = async () => ((await pageText(page, id)) ?? "").match(/<Screen id="screen-2"[^>]*>/)?.[0] ?? "";
       await until(async () => /width=\{390\} height=\{844\}/.test(await screen2()), { message: "a 390 × 844 iPhone Screen" });
       // The new Screen is selected: its Screen section shows Size iPhone.

@@ -3,6 +3,7 @@ import { plural } from "../../../components/Text";
 import { applyEdit, parseSrc, studioApi, subscribeStudioWrites, undoEdit } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { inspectorStatus, saveShortcut, undoShortcut } from "../inspector/status";
+import { boxFloating, floatingGroup } from "../edit/groupLayers";
 import { canStructurallyEdit } from "../slots/actions";
 import { selectedHit } from "../slots/dom";
 import { flushStudioStore, studioStore } from "../store";
@@ -264,6 +265,10 @@ export async function wrapInBox(layer: ExtraLayer, props: Record<string, EditVal
 async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Record<string, EditValue>; label: string; done: string }): Promise<boolean> {
   // Sidebar rows go in a section of their own, as Figma groups Menu-Items under a Section-Title (user, 2026-10-10:
   // "Hành vi này phải làm được ở mọi nơi trong thiết kế"); other layers in a Stack or Box.
+  // Layers floating in a frame without auto layout: a Box at the box around them, each keeping its place (F3; a plain
+  // wrap put them in an in-flow Box of no height, measured from its corner).
+  const floating = kind === "box" && !given ? floatingGroup(layers) : null;
+  if (floating) return boxFloating(floating, {}, `Frame selection (${plural(floating.length, "layer")})`, `Framed ${plural(floating.length, "layer")} where they are`);
   const rows = kind === "stack" && !given && layers.every((layer) => layer.name === "SidebarMenuItem");
   const tag = rows ? "SidebarMenuSection" : tagOf(kind);
   const ordered = [...layers].sort(sourceOrder);

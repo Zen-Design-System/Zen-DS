@@ -198,6 +198,9 @@ export const Good = () => <>
   <TableMedia media={<DockIcon icon="icon-file-doc-line" size="small" />} caption="2.4 MB">Spec.pdf</TableMedia>
   <FileUpload label="Avatar" caption="PNG or JPG. Max 2 MB" accept="image/*" files={files} onReplace={(file) => replace(file)} />
   <BadgeCounter size="small" theme="neutral" background="subtle" value={12} />
+  {/* A count beside its label is a BadgeCounter; a count inside a sentence stays text (badge/count-text-uses-counter). */}
+  <BadgeCounter className="panel__count" size="xs" theme="neutral" background="subtle" value={items.length} />
+  <span className="panel__caption">{items.length} files</span>
   <Badge size="small" theme="green" background="subtle">Live</Badge>
   <Chip variant="advanced" size="small" leading={<Icon name="icon-filter-lines-line" decorative />} aria-haspopup="dialog" onClick={openFilters}>All filters</Chip>
   <ProgressBar value={92} theme="status" scale="quota" label="Storage · 92% used" />
@@ -304,6 +307,13 @@ export const Good = () => <>
   <Image src={photo} alt="Harbour at dusk" radius="full" />
   <Box surface="surface" radius="full" radiusBottomLeft="none">Pill with a square corner</Box>
   <Box surface="surface" radius="lg" radiusTopLeft="xs" radiusBottomRight="xs">Finite radius with corners</Box>
+  <Stack surface="surface" radius="lg" effectStyle="Shadow/Bottom/Level-1" padding="lg" gap="md">One auto layout frame with a fill</Stack>
+  <Stack border="pale" radius="md" padding="md" direction="row">Static bordered row</Stack>
+  <Grid columns={2} surface="pale" effectStyle="Effect/Overlay" radius="xl" radiusBottomRight="xs" padding="md">Frosted grid</Grid>
+  <Stack border="subtle" borderStyle="dashed" radius="lg" padding="lg" role="button" onClick={open}>Drop files here</Stack>
+  <Stack border="pale" borderSides="bottom" borderWeight={2} paddingY="sm">Bar with a bottom rule</Stack>
+  <Stack opacity={40} rotation={15} flip="horizontal">Faded, turned and mirrored</Stack>
+  <Shape type="ellipse" opacity={60} width={24} height={24} />
   <Text tone="support-blue-strongest">Your files sync across every device you sign in on.</Text>
   <Text textStyle="Body/Small/Bold" tone="positive-light">Saved</Text>
   <Text textStyle="Body/Small/Regular" tone="negative-light">Enter an email address like name@company.com.</Text>

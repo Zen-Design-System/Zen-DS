@@ -17,10 +17,14 @@ import { clipboardActions, clipboardShortcuts } from "../clipboard";
 import { duplicateLayers, removeLayers, stepLayers } from "../multi";
 import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
 import { multiSelection, selectedLayers } from "../../select/multiSelection";
+import { selectedFrames } from "../../select/frameSelection";
 import { COLLAPSE_LAYERS_EVENT } from "../../select/layerMeta";
 import { isSelectionLocked, lockShortcut, toggleLockSelection } from "../lock";
 import { renameShortcut, startRename } from "../rename";
 import { startTextEditOnSelection } from "../textEdit";
+import { stepFrame } from "../../board/frameOrder";
+import { wrapInSection } from "../../builder/proto/addFrame";
+import { createComponentOfLayers, createComponents } from "../localComponents";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
 
 /*
@@ -49,13 +53,17 @@ export function commands(): Command[] {
   const list: Command[] = [
     { id: "tool-select", group: "Tools", label: "Move", shortcut: "V", keywords: "select", run: () => studioStore.setState({ tool: "select" }) },
     { id: "tool-hand", group: "Tools", label: "Hand", shortcut: "H", keywords: "pan", run: () => studioStore.setState({ tool: "hand" }) },
+    // Figma's Frame and Section tools (F4), on a page you made.
+    { id: "tool-frame", group: "Tools", label: "Frame", shortcut: "F", keywords: "screen artboard preset device", disabled: state.localPage ? undefined : "Frame works on a page you made", run: () => studioStore.setState({ tool: "frame" }) },
+    { id: "tool-section", group: "Tools", label: "Section", shortcut: "⇧S", keywords: "group area board", disabled: state.localPage ? undefined : "Section works on a page you made", run: () => studioStore.setState({ tool: "section" }) },
+    { id: "wrap-section", group: "Edit", label: "Wrap in new section", keywords: "section group frames", disabled: !state.localPage || !frameId || !/^(screen|overlay):/.test(frameId) || selection?.kind !== "frame" ? "Select a frame on a page you made" : !canEdit(state) ? "View only" : undefined, run: () => { if (state.localPage && frameId) void wrapInSection(state.localPage, selectedFrames().length ? selectedFrames() : [frameId]); } },
     // Zen's own tool (Figma has none): try the components where they are drawn, an Overlay frame's form included. On a
     // page you made it is here only (no toolbar button; I is Figma's Pick color there).
     { id: "tool-interact", group: "Tools", label: "Interact", shortcut: state.localPage ? undefined : "I", keywords: "preview play use try examples components", run: () => studioStore.setState({ tool: "interact" }) },
     { id: "edit-text", group: "Edit", label: "Edit text", shortcut: "Enter", keywords: "type content copy", disabled: editOff, run: () => { if (!startTextEditOnSelection()) press({ key: "Enter", code: "Enter" }); } },
     { id: "copy", group: "Edit", label: "Copy", shortcut: clipboardShortcuts.copy, disabled: layerOff, run: () => { if (node) void clipboardActions.copy(node); } },
     { id: "cut", group: "Edit", label: "Cut", shortcut: clipboardShortcuts.cut, disabled: editOff, run: () => { if (node) void clipboardActions.cut(node); } },
-    { id: "paste", group: "Edit", label: "Paste", shortcut: clipboardShortcuts.paste, disabled: editOff, run: () => { if (node) void clipboardActions.paste(node); } },
+    { id: "paste", group: "Edit", label: "Paste", shortcut: clipboardShortcuts.paste, disabled: editOff, run: () => { void clipboardActions.paste(node ?? null); } },
     { id: "paste-replace", group: "Edit", label: "Paste to replace", shortcut: clipboardShortcuts.replace, disabled: editOff, run: () => { if (node) void clipboardActions.replace(node); } },
     { id: "copy-props", group: "Edit", label: "Copy properties", shortcut: clipboardShortcuts.copyProps, keywords: "style", disabled: layerOff, run: () => { if (node) void clipboardActions.copyProperties(node); } },
     { id: "paste-props", group: "Edit", label: "Paste properties", shortcut: clipboardShortcuts.pasteProps, keywords: "style", disabled: editOff ?? (clipboardActions.hasProperties() ? undefined : "Copy properties first"), run: () => { if (node) void clipboardActions.pasteProperties(node); } },
@@ -71,6 +79,9 @@ export function commands(): Command[] {
     // Figma's Rename (⌘R; several layers: Rename layers) and Lock / Unlock (⇧⌘L), on a page you made (F1).
     { id: "rename", group: "Edit", label: selectedLayers().length > 1 ? "Rename layers" : "Rename", shortcut: renameShortcut, keywords: "name layer batch", disabled: editOff ?? (state.localPage ? (selection ? undefined : "Select a layer first") : "Works on a page you made"), run: () => startRename() },
     { id: "lock", group: "Edit", label: isSelectionLocked(selection) ? "Unlock" : "Lock", shortcut: lockShortcut, keywords: "lock unlock freeze", disabled: editOff ?? (state.localPage ? (selection ? undefined : "Select a layer first") : "Works on a page you made"), run: () => { void toggleLockSelection(); } },
+    // Figma's Create component (⌥⌘K: one, of every selected layer) and Create multiple components, on a page you made (F3).
+    { id: "create-component", group: "Edit", label: "Create component", shortcut: `⌥${modKey}K`, keywords: "main component symbol make", disabled: editOff ?? (state.localPage ? undefined : "Works on a page you made"), run: () => { void createComponentOfLayers(); } },
+    { id: "create-components", group: "Edit", label: "Create multiple components", keywords: "main components symbols make each", disabled: editOff ?? (!state.localPage ? "Works on a page you made" : selectedLayers().length > 1 ? undefined : "Select several layers"), run: () => { void createComponents(); } },
     { id: "detach", group: "Edit", label: "Detach instance", shortcut: detachShortcut, disabled: editOff ?? (node && !offersDetach(node.name) ? "Select an instance" : undefined), run: () => { if (node) void detachSelection(node); } },
     { id: "undo", group: "Edit", label: "Undo", shortcut: `${modKey}Z`, disabled: state.undo.length ? undefined : "Nothing to undo", run: () => { void undoEdit(); } },
     { id: "redo", group: "Edit", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: state.redo.length ? undefined : "Nothing to redo", run: () => { void redoEdit(); } },
@@ -86,6 +97,8 @@ export function commands(): Command[] {
     { id: "zoom-100", group: "View", label: "Zoom to 100%", shortcut: "⇧0", run: () => canvasApi.setZoom(1) },
     { id: "zoom-fit", group: "View", label: "Zoom to fit", shortcut: "⇧1", run: () => canvasApi.fit() },
     { id: "zoom-selection", group: "View", label: "Zoom to selection", shortcut: "⇧2", disabled: selection ? undefined : "Select a layer or frame first", run: () => press({ key: "@", code: "Digit2", shiftKey: true }) },
+    { id: "next-frame", group: "View", label: "Zoom to next frame", shortcut: "N", disabled: state.localPage ? undefined : "Works on a page you made", run: () => { stepFrame(1); } },
+    { id: "previous-frame", group: "View", label: "Zoom to previous frame", shortcut: "⇧N", disabled: state.localPage ? undefined : "Works on a page you made", run: () => { stepFrame(-1); } },
     { id: "present", group: "View", label: "Present", shortcut: presentShortcut, keywords: "full screen play", disabled: frameId ? undefined : "Select a frame or a layer in one", run: () => { if (frameId) presentFrame(frameId); } },
     { id: "panels", group: "View", label: "Show/Hide UI", shortcut: `${modKey}\\`, keywords: "side panels", run: toggleSidePanels },
     { id: "theme", group: "View", label: state.chromeTheme === "dark" ? "Light mode" : "Dark mode", keywords: "theme dark light interface canvas mode", run: toggleStudioTheme },

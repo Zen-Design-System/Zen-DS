@@ -85,8 +85,9 @@ export async function renameFrame(frameId: string, next: string): Promise<boolea
   const node = frameNodeOf(file, frameId);
   if (!node) return false;
   const name = next.trim();
-  if (node.name === "Screen" && !name) return false;
-  const op: EditOp = node.name === "Screen"
+  // A Screen and a Section are named by their title (a Section's is its canvas label, F4).
+  if ((node.name === "Screen" || node.name === "Section") && !name) return false;
+  const op: EditOp = node.name === "Screen" || node.name === "Section"
     ? { op: "setProp", name: "title", value: { kind: "string", value: name } }
     : name ? { op: "setProp", name: NAME_PROP, value: { kind: "string", value: name } } : { op: "removeProp", name: NAME_PROP };
   const response = await applyEdit({ file, loc: node.loc, name: node.name, ops: [op] }, `Rename → ${name || "Overlay"}`);

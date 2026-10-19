@@ -92,8 +92,8 @@ export interface ProgressCircleProps {
   ref?: Ref<HTMLDivElement>;
 }
 
-/** Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on
- * Neutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc (it covers the ring) + 12px
+/** Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border, no
+ * fill) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc (it covers the ring) + 12px
  * icon-check-solid. */
 export function ProgressCircle({ value, theme = "accent", label, "aria-label": ariaLabel, className, ref }: ProgressCircleProps) {
   const t = useZenLabels();

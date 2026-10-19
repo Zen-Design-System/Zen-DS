@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, useSyncExternalStore } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu, type MenuEntry } from "../../../components/Menu";
@@ -7,6 +7,10 @@ import type { FieldApi } from "../inspector/fieldApi";
 import { PropField } from "../inspector/PropField";
 import type { PropSpec, PropValue } from "../inspector/propSchema";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
+import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
+import type { EditOp } from "../types";
+import { canHideSrc, hiddenValueAt, hideShortcut, subscribeHiddenLayers, toggleLayerHidden } from "../edit/visibility";
+import { tip } from "../shell/ShortcutTip";
 import {
   cardThemeEffect, CORNERS, cornerClear, cornerLabels, cornerPick, defaultEffect, EFFECT_STYLES, effectAvailability, effectKey,
   effectLayers, effectStyleOf, effectWarnings, isMixed, RADIUS_STEPS, uniformClear, uniformPick, type Corner, type ManifestEffect,
@@ -15,17 +19,25 @@ import {
 import "./appearance.css";
 
 /*
- * Figma UI3's Appearance and Effects sections for Box (and corner radius for Image): Fill (surface), Border, Corner
- * radius with independent corners (Clip content is in the Layout section); then the Box's effect style. Token-only, one apply per gesture, the
- * canonical corner form (appearanceModel.ts). WP-D of docs/research/studio-builder-plan-2026-10-05.md; spec
- * docs/research/studio-position-effects-radius-spec-2026-10-03.md §4.2–4.3.
+ * Figma UI3's Appearance, Fill, Stroke and Effects sections for a frame (Box, Stack and Grid alike: one Figma frame is
+ * one element, decision 2 of docs/research/studio-figma-design-parity-2026-10-18.md) and corner radius for Image:
+ * Appearance (opacity, corner radius with independent corners), Fill (the background layer), Stroke (border, weight,
+ * sides, dash), then the frame's effect style. Clip content is in the Layout section. Token-only, one apply per gesture,
+ * the canonical corner form (appearanceModel.ts). Specs: docs/research/studio-position-effects-radius-spec-2026-10-03.md
+ * §4.2–4.3, docs/research/studio-f5-right-panel-spec-2026-10-19.md §5.
  */
 
+/** A frame's look: what Appearance, Fill, Stroke and Effects show (Layout appearance.ts). */
+const FRAME_LOOK = ["opacity", "surface", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "effectStyle"];
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
 export const appearancePropNames: Readonly<Record<string, readonly string[]>> = {
-  Box: ["surface", "border", "radius", ...CORNERS, "effectStyle"],
+  Box: FRAME_LOOK,
+  Stack: FRAME_LOOK,
+  Grid: FRAME_LOOK,
   Image: ["radius", ...CORNERS],
 };
+/** Box, Stack and Grid: Figma's frames, which take a fill, stroke and effect. */
+export const isFrameLook = (component: string) => component === "Box" || component === "Stack" || component === "Grid";
 
 const literalOf = (value: PropValue) => (value.state === "literal" && typeof value.value === "string" ? value.value : undefined);
 
@@ -108,18 +120,101 @@ export function CornerRadiusField({ api, specs, host }: { api: FieldApi; specs: 
   );
 }
 
-/** Appearance: Fill, Border, Corner radius (Box); Corner radius only (Image). Clip content is in the Layout section (Figma UI3). */
-export function AppearanceSection({ api, specs, component, host }: { api: FieldApi; specs: PropSpec[]; component: string; host: HTMLElement | null }) {
-  const spec = (name: string) => specs.find((candidate) => candidate.name === name);
-  const field = (name: string, label: string) => {
-    const found = spec(name);
-    return found ? <PropField spec={found} label={label} value={api.valueFor(name)} disabled={api.disabled} onSet={(value) => api.setProp(name, value)} onReset={() => api.removeProp(name)} /> : null;
+const numberOf = (value: PropValue) => (value.state === "literal" && typeof value.value === "number" ? value.value : null);
+const boundOrSpread = (value: PropValue) => value.state === "bound" || value.state === "spread";
+
+/** Figma UI3's eye in the Appearance header: Show / Hide the layer (⇧⌘H), on a page made in the Studio. */
+function VisibilityToggle({ src, name, disabled }: { src: string; name: string; disabled: boolean }) {
+  const hidden = useSyncExternalStore(subscribeHiddenLayers, () => hiddenValueAt(src) === true, () => false);
+  const label = hidden ? "Show" : "Hide";
+  return <IconButton icon={hidden ? "icon-eye-off-line" : "icon-eye-line"} aria-label={label} aria-pressed={hidden} tooltip={tip(label, hideShortcut)} appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => void toggleLayerHidden(src, name)} />;
+}
+
+/** Appearance (Figma UI3): the layer's opacity and its corner radius (a frame); corner radius only (Image). The header's
+ *  eye shows or hides the layer. */
+export function AppearanceSection({ api, specs, host, layer }: { api: FieldApi; specs: PropSpec[]; component: string; host: HTMLElement | null; layer?: { src: string; name: string } }) {
+  const opacitySpec = specs.find((candidate) => candidate.name === "opacity");
+  const opacity = api.valueFor("opacity");
+  const setOpacity = (value: number) => {
+    const shown = Math.round(Math.min(100, Math.max(0, value)));
+    // Back at Figma's default, the prop goes (the code stays short).
+    void api.apply(shown === 100 ? [{ op: "removeProp", name: "opacity" }] : [{ op: "setProp", name: "opacity", value: { kind: "number", value: shown } }], `Opacity → ${shown}%`);
   };
   return (
-    <InspectorSection title="Appearance">
-      {component === "Box" ? field("surface", "Fill") : null}
-      {component === "Box" ? field("border", "Border") : null}
+    <InspectorSection title="Appearance" fieldGrid={Boolean(opacitySpec)} actions={layer && canHideSrc(layer.src) ? <VisibilityToggle src={layer.src} name={layer.name} disabled={api.disabled} /> : undefined}>
+      {opacitySpec ? (
+        <div className="studio-shape__pair" data-prop="opacity">
+          <ScrubNumberField label={<Icon name="icon-drop-line" size="sm" decorative />} name="Opacity" suffix="%" min={0} max={100} value={numberOf(opacity) ?? 100}
+            disabled={api.disabled || boundOrSpread(opacity)} onCommit={setOpacity} />
+        </div>
+      ) : null}
       <CornerRadiusField api={api} specs={specs} host={host} />
+    </InspectorSection>
+  );
+}
+
+/** The "+" (add the first one) or "−" (remove it) of a Fill or Stroke section's header, as Figma's. */
+function LayerToggle({ shown, name, disabled, onAdd, onRemove }: { shown: boolean; name: string; disabled: boolean; onAdd: () => void; onRemove: () => void }) {
+  return shown
+    ? <IconButton icon="icon-minus-line" aria-label={`Remove ${name}`} appearance="flat" level="primary" size="xs" disabled={disabled} onClick={onRemove} />
+    : <IconButton icon="icon-plus-line" aria-label={`Add ${name}`} appearance="flat" level="primary" size="xs" disabled={disabled} onClick={onAdd} />;
+}
+
+/** Fill (Figma UI3): the frame's background layer as one fill, its variable named; "+" adds Surface, "−" removes it. */
+export function FillSection({ api, specs }: { api: FieldApi; specs: PropSpec[] }) {
+  const spec = specs.find((candidate) => candidate.name === "surface");
+  if (!spec) return null;
+  const value = api.valueFor("surface");
+  const shown = value.state !== "unset" && !(value.state === "literal" && value.value === "none");
+  return (
+    <InspectorSection title="Fill" actions={<LayerToggle shown={shown} name="fill" disabled={api.disabled || boundOrSpread(value)} onAdd={() => api.setProp("surface", "surface")} onRemove={() => api.removeProp("surface")} />}>
+      {shown ? <PropField spec={spec} label="Fill" value={value} disabled={api.disabled} resettable={false} onSet={(next) => (next === "none" ? api.removeProp("surface") : api.setProp("surface", next))} onReset={() => api.removeProp("surface")} /> : null}
+    </InspectorSection>
+  );
+}
+
+const SIDE_LABELS: Readonly<Record<string, string>> = { all: "All", top: "Top", right: "Right", bottom: "Bottom", left: "Left" };
+
+/**
+ * Stroke (Figma UI3): the frame's border as one stroke (Pale or Subtle, inside), its weight in px, which sides it draws
+ * and its dash; "+" adds Pale (Subtle is for actionable frames), "−" removes the stroke and its settings in one apply.
+ */
+export function StrokeSection({ api, specs }: { api: FieldApi; specs: PropSpec[] }) {
+  const spec = (name: string) => specs.find((candidate) => candidate.name === name);
+  const border = spec("border");
+  if (!border) return null;
+  const value = api.valueFor("border");
+  const shown = value.state !== "unset" && !(value.state === "literal" && value.value === "none");
+  const settings = ["borderWeight", "borderSides", "borderStyle"].filter((name) => api.valueFor(name).state !== "unset");
+  const remove = () => { void api.apply([{ op: "removeProp", name: "border" }, ...settings.map((name): EditOp => ({ op: "removeProp", name }))], "Remove stroke"); };
+  const weight = api.valueFor("borderWeight");
+  const setWeight = (next: number) => {
+    const px = Math.max(0, Math.round(next * 100) / 100);
+    void api.apply(px === 1 ? [{ op: "removeProp", name: "borderWeight" }] : [{ op: "setProp", name: "borderWeight", value: { kind: "number", value: px } }], `Stroke weight → ${px}`);
+  };
+  const sides = spec("borderSides");
+  const dash = spec("borderStyle");
+  const subtle = value.state === "literal" && value.value === "subtle";
+  return (
+    <InspectorSection title="Stroke" fieldGrid={shown} actions={<LayerToggle shown={shown} name="stroke" disabled={api.disabled || boundOrSpread(value)} onAdd={() => api.setProp("border", "pale")} onRemove={remove} />}>
+      {shown ? (
+        <>
+          <PropField spec={border} label="Stroke" value={value} disabled={api.disabled} resettable={false} onSet={(next) => (next === "none" ? remove() : api.setProp("border", next))} onReset={remove} />
+          <div className="studio-shape__pair">
+            <ScrubNumberField label={<Icon name="icon-line-height-line" size="sm" decorative />} name="Stroke weight" min={0} max={400} round={1} value={numberOf(weight) ?? 1}
+              disabled={api.disabled || boundOrSpread(weight)} onCommit={setWeight} />
+            {sides ? (
+              <PropField spec={{ ...sides, defaultValue: "all" }} label="Sides" value={api.valueFor("borderSides")} disabled={api.disabled} optionLabels={SIDE_LABELS}
+                onSet={(next) => (next === "all" ? api.removeProp("borderSides") : api.setProp("borderSides", next))} onReset={() => api.removeProp("borderSides")} />
+            ) : null}
+          </div>
+          {dash ? (
+            <PropField spec={{ ...dash, defaultValue: "solid" }} label="Dash" value={api.valueFor("borderStyle")} disabled={api.disabled || !subtle} optionLabels={{ solid: "Solid", dashed: "Dashed" }}
+              hint={subtle ? undefined : "Dashed strokes are Subtle"}
+              onSet={(next) => (next === "solid" ? api.removeProp("borderStyle") : api.setProp("borderStyle", next))} onReset={() => api.removeProp("borderStyle")} />
+          ) : null}
+        </>
+      ) : null}
     </InspectorSection>
   );
 }

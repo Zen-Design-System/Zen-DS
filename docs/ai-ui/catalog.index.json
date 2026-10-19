@@ -139,8 +139,8 @@
     {
       "name": "Box",
       "status": "stable",
-      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? padding? paddingX? paddingY? surface? scroll? border? radius? as? children? aria-label? aria-labelledby? aria-describedby?"
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? rotation? flip? padding? paddingX? paddingY? scroll? as? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BreadcrumbItem",
@@ -278,7 +278,7 @@
       "name": "Container",
       "status": "stable",
       "chrome": true,
-      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
       "props": "maxWidth? gutter? as? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
@@ -411,8 +411,8 @@
     {
       "name": "Grid",
       "status": "stable",
-      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? columns? minColumnWidth? gap? rowGap? columnGap? align? stackBelow? padding? as? children? clip? aria-label? aria-labelledby? aria-describedby?"
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? rotation? flip? effectStyle? columns? minColumnWidth? gap? rowGap? columnGap? align? stackBelow? padding? as? children? clip? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "GroupedBarChart",
@@ -695,8 +695,8 @@
     {
       "name": "Stack",
       "status": "stable",
-      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? direction? gap? align? justify? wrap? clip? scroll? fillChildren? padding? paddingX? paddingY? as? children? aria-label? aria-labelledby? aria-describedby?"
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? rotation? flip? effectStyle? direction? gap? align? justify? wrap? clip? scroll? fillChildren? padding? paddingX? paddingY? as? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "StackBarChart",

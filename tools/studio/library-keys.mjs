@@ -123,7 +123,7 @@ export function tableFrom({ sets: setLines, icons: iconLines }, { read }) {
 /**
  * The keys a package uses (its `library`): its instances' sets (and a variant's set) by id and the icons it swaps in or
  * sets as an INSTANCE_SWAP value by name, each `{ key, type }` (the plugin imports a set and a component differently);
- * its text styles by name; every variable collection (the plugin finds a variable by name in them).
+ * its text, effect and paint styles by name; every variable collection (the plugin finds a variable by name in them).
  */
 export function libraryKeysFor(pkg, table) {
   const sets = {}, icons = {}, styles = {};
@@ -140,6 +140,9 @@ export function libraryKeysFor(pkg, table) {
   const visit = (value, field) => {
     if (typeof value === "string") {
       if (field === "textStyle" && table.styles.text[value]) styles[value] = table.styles.text[value];
+      // A frame's effect style (figma-push frameLook) and a chart mark's paint style (fillStyle): imported by key too.
+      else if (field === "effectStyle" && table.styles.effect?.[value]) styles[value] = table.styles.effect[value];
+      else if ((field === "fillStyle" || field === "strokeStyle") && table.styles.paint?.[value]) styles[value] = table.styles.paint[value];
       else addName(value);
       return;
     }

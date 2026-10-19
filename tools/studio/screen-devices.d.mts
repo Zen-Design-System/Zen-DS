@@ -22,3 +22,8 @@ export function screenDevice(id: string | null | undefined): ScreenDevice | unde
 export function deviceOfSize(width: number | undefined, height: number | undefined): ScreenDevice | undefined;
 export function deviceOfScreen(device: string | undefined, layout: string | undefined, width: unknown, height: unknown): ScreenDevice | undefined;
 export function deviceSize(entry: ScreenDevice): string;
+
+export type FramePreset = { id: string; label: string; width: number; height: number; device: "phone" | "tablet" | "desktop"; layout?: "mobile" | "desktop"; zen?: string };
+export type FramePresetGroup = { id: string; label: string; icon: string; presets: ReadonlyArray<FramePreset> };
+export const FRAME_PRESET_GROUPS: ReadonlyArray<FramePresetGroup>;
+export function framePreset(id: string): FramePreset | undefined;

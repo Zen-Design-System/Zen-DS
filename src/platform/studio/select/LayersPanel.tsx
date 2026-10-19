@@ -2,6 +2,7 @@ import { tip } from "../shell/ShortcutTip";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, startTransition } from "react";
 import { layerIcon, objectIcon } from "./layerNames";
 import { COLLAPSE_LAYERS_EVENT, displayName, isLockedFrame, isOwnLock, useLayerMeta } from "./layerMeta";
+import { toggleFrame, useFrameSelection } from "./frameSelection";
 import { useIconTooltip } from "../../../components/Tooltip";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
@@ -13,6 +14,7 @@ import type { IconName } from "../../../icons/generated/names";
 import type { PlatformPage } from "../../PlatformExamples";
 import { useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
+import { boardBoxes, isSectionId, sectionOf } from "../board/sections";
 import { frameLabel } from "../inspector/frames";
 import { focusSlot, selectedSlotOf, useSlotFocusRequest } from "../slots/actions";
 import { layerSlotsOf } from "../slots/layers";
@@ -211,7 +213,30 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean, local =
     }
     group.children.forEach((child) => relink(child, group));
   }
+  if (local) nestInSections(groups);
   return { groups, byId, total, aliases, figma: !showAll, front: local };
+}
+
+/**
+ * A page you made: a frame (or Section) inside a Section is listed under that Section's row, as Figma's Layers does
+ * (board/sections.ts reads which Section holds what from the board).
+ */
+function nestInSections(groups: LayerNode[]) {
+  const boxes = boardBoxes();
+  if (!boxes.some((box) => isSectionId(box.id))) return;
+  const byFrame = new Map(groups.map((group) => [group.frameId, group]));
+  const holder = new Map<LayerNode, LayerNode>();
+  for (const group of groups) {
+    const around = sectionOf(group.frameId, boxes);
+    const section = around ? byFrame.get(around) : undefined;
+    if (!section || section === group) continue;
+    section.children.push(group);
+    holder.set(group, section);
+  }
+  // Depths from the top-level Sections down (a Section inside a Section carries its own rows along).
+  const deepen = (node: LayerNode, parent: LayerNode) => { node.parent = parent; node.depth = parent.depth + 1; node.children.forEach((child) => deepen(child, node)); };
+  for (const [group, section] of holder) if (!holder.has(section)) deepen(group, section);
+  for (let k = groups.length - 1; k >= 0; k--) if (holder.has(groups[k])) groups.splice(k, 1);
 }
 
 /** Figma's eye on a layer row: on hover, and always while the layer is hidden; ⇧⌘H does the same from the keyboard. Its
@@ -730,7 +755,7 @@ const componentOfRow = (node: LayerNode) => {
 
 function rowIcon(node: LayerNode, front: boolean): IconName {
   // A page you made: a frame is Figma's frame (#); a code page's frames are its sections.
-  if (node.kind === "frame") return front ? "icon-hash-01-line" : "icon-layout-alt-01-line";
+  if (node.kind === "frame") return front ? (isSectionId(node.frameId) ? "icon-browser-line" : "icon-hash-01-line") : "icon-layout-alt-01-line";
   // Figma's layer icons (select/layerNames.ts): a component's ◇ (its main and its instances), a shape's own, a frame's
   // # (Box), auto layout by its direction (Stack), text's T.
   const own = node.kind === "node" ? objectIcon(node.name, node.fiber?.memoizedProps as Record<string, unknown> | null) : null;
@@ -769,7 +794,8 @@ export function LayersPanel() {
   const collection = useStudio((state) => state.collection);
   const selection = useStudio((state) => state.selection);
   const extras = useExtraSelection();
-  const extraIds = useMemo(() => new Set(extras.map((layer) => `${layer.src}#${layer.instance}`)), [extras]);
+  const extraFrames = useFrameSelection();
+  const extraIds = useMemo(() => new Set([...extras.map((layer) => `${layer.src}#${layer.instance}`), ...extraFrames.map((frameId) => `frame:${frameId}`)]), [extras, extraFrames]);
   const itemSet = useItemSelection();
   const [tree, setTree] = useState<Tree>(emptyTree);
   const [ready, setReady] = useState(false);
@@ -1002,6 +1028,8 @@ export function LayersPanel() {
   /** Click / Enter / Space on a row: select it; the "Parts" folder opens or closes instead. */
   const activate = (node: LayerNode, event?: MouseEvent) => {
     const target = node.stand ?? node;
+    // ⇧ / ⌘-click a frame's row: it joins the frames selected, or leaves them (select/frameSelection.ts).
+    if (event && (event.shiftKey || event.metaKey || event.ctrlKey) && node.kind === "frame") { toggleFrame(node.frameId); return; }
     const layer = layerOf(node);
     // Items of one data slot (Sidebar Menu-Items): with an item of that slot selected, ⌘/Ctrl+click adds one, Shift+click
     // the range from it (user, 2026-10-10: "Chưa chọn được nhiều item add stack được").

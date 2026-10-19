@@ -583,7 +583,7 @@ async function autoLayoutCases(ctx) {
     if (!(await undoTo(page, id, seed, 2))) throw new Error("3 Shapes: two ⌘Z did not bring the page back");
     results.push("row of 3 (Inspector + / −)");
   }
-  // 2. A painted, empty Frame: the canvas menu's Add auto layout → its Box keeps the fill, a Stack inside.
+  // 2. A painted, empty Frame: the canvas menu's Add auto layout → one Stack that keeps the fill (decision 2, 2026-10-19).
   stage = "case 2";
   {
     const { page, id } = await seededPage(ctx, framePage('<Box surface="surface" radius="md" width={200} height={120} />'), /surface="surface" radius="md"/);
@@ -599,7 +599,7 @@ async function autoLayoutCases(ctx) {
     await page.getByRole("menuitem", { name: /^Add auto layout/ }).first().click();
     const added = await next(page, id, seed, "canvas menu Add auto layout");
     const frame = frameIn(added);
-    if (frame.name !== "Box" || frame.props.surface?.value !== "surface" || layersOf(frame)[0]?.name !== "Stack") throw new Error(`painted empty Frame: ${frame.name} > ${layersOf(frame).map((layer) => layer.name)}`);
+    if (frame.name !== "Stack" || frame.props.surface?.value !== "surface" || frame.props.radius?.value !== "md" || layersOf(frame).length) throw new Error(`painted empty Frame: ${frame.name}(${Object.keys(frame.props)}) > ${layersOf(frame).map((layer) => layer.name)}`);
     if (!(await undoTo(page, id, seed, 1))) throw new Error("painted Frame: ⌘Z did not bring the page back");
     results.push("painted empty Frame (canvas menu)");
   }

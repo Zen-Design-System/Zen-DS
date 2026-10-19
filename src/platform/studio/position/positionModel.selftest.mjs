@@ -3,7 +3,7 @@
 // Node strips the types), without a server or a browser.
 //   node src/platform/studio/position/positionModel.selftest.mjs     summary; exit 1 on any failure
 import { tokenName } from "../inspector/controls/scale.ts";
-import { constraintOps, ladderName, floatOps, floatPlan, floatSummary, pinOf, pinOfConstraint, readInsets, snap, unfloatOps } from "./positionModel.ts";
+import { constraintOps, flipTurn, ladderName, floatOps, floatPlan, floatSummary, normalizeTurn, pinOf, pinOfConstraint, readInsets, snap, turnOps, unfloatOps } from "./positionModel.ts";
 
 let passed = 0;
 const failures = [];
@@ -86,6 +86,16 @@ check("constraint → center", constraintOps("y", "center", axis(20, 20), ladder
 // Align (flush): the edge, no inset.
 check("align right", constraintOps("x", "end", axis(30, 30), ladder, { constraintX: unset, insetLeft: lit("md"), insetRight: unset }, { flush: true }).ops, [set("constraintX", "right"), remove("insetLeft")]);
 check("align top again: nothing to write", constraintOps("y", "start", axis(0, 50), ladder, { constraintY: unset, insetTop: unset, insetBottom: unset }, { flush: true }).ops, []);
+
+// Rotation and flip (Figma: Flip horizontal ⇧H / vertical ⇧V mirror in the parent's axes; two flips are a half turn).
+check("turn: 270 → −90, −180 → 180", [normalizeTurn(270), normalizeTurn(-180), normalizeTurn(360)], [-90, 180, 0]);
+check("flip h on an upright layer", flipTurn(0, undefined, "horizontal"), { rotation: 0, flip: "horizontal" });
+check("flip h on a turned layer: the rotation changes sign", flipTurn(30, undefined, "horizontal"), { rotation: -30, flip: "horizontal" });
+check("flip h again: back", flipTurn(-30, "horizontal", "horizontal"), { rotation: 30 });
+check("flip v after h: a half turn, no flip", flipTurn(30, "horizontal", "vertical"), { rotation: 150 });
+check("flip h on both: vertical", flipTurn(0, "both", "horizontal"), { rotation: 0, flip: "vertical" });
+check("turn ops: defaults removed", turnOps({ rotation: 0 }), [remove("rotation"), remove("flip")]);
+check("turn ops: set", turnOps({ rotation: -30, flip: "horizontal" }), [{ op: "setProp", name: "rotation", value: { kind: "number", value: -30 } }, set("flip", "horizontal")]);
 
 if (failures.length) {
   console.error(`✗ Position model selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

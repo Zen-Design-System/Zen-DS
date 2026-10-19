@@ -6203,6 +6203,148 @@
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
               },
+              "surface": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "surface",
+                      "surface-alt",
+                      "subtle",
+                      "pale",
+                      "canvas"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable."
+              },
+              "border": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "pale",
+                      "subtle"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md)."
+              },
+              "borderWeight": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Stroke weight in px (Figma strokeWeight), read with `border`."
+              },
+              "borderSides": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "all",
+                      "top",
+                      "right",
+                      "bottom",
+                      "left"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g."
+              },
+              "borderStyle": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "solid",
+                      "dashed"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle)."
+              },
+              "radius": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners."
+              },
+              "opacity": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+              },
+              "rotation": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
+              },
+              "flip": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "horizontal",
+                      "vertical",
+                      "both"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept."
+              },
               "padding": {
                 "anyOf": [
                   {
@@ -6302,24 +6444,6 @@
                   }
                 ]
               },
-              "surface": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "none",
-                      "surface",
-                      "surface-alt",
-                      "subtle",
-                      "pale",
-                      "canvas"
-                    ]
-                  },
-                  {
-                    "$ref": "#/$defs/marker"
-                  }
-                ],
-                "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells."
-              },
               "scroll": {
                 "anyOf": [
                   {
@@ -6333,51 +6457,6 @@
                   }
                 ],
                 "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside)."
-              },
-              "border": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "none",
-                      "pale",
-                      "subtle"
-                    ]
-                  },
-                  {
-                    "$ref": "#/$defs/marker"
-                  }
-                ],
-                "description": "Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md)."
-              },
-              "radius": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "none",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "full"
-                    ]
-                  },
-                  {
-                    "$ref": "#/$defs/marker"
-                  }
-                ],
-                "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners."
               },
               "as": {
                 "anyOf": [
@@ -16918,6 +16997,289 @@
                   }
                 ],
                 "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+              },
+              "radiusTopLeft": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full), following the radius mode."
+              },
+              "radiusTopRight": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius)."
+              },
+              "radiusBottomRight": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius)."
+              },
+              "radiusBottomLeft": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+              },
+              "surface": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "surface",
+                      "surface-alt",
+                      "subtle",
+                      "pale",
+                      "canvas"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable."
+              },
+              "border": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "pale",
+                      "subtle"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md)."
+              },
+              "borderWeight": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Stroke weight in px (Figma strokeWeight), read with `border`."
+              },
+              "borderSides": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "all",
+                      "top",
+                      "right",
+                      "bottom",
+                      "left"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g."
+              },
+              "borderStyle": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "solid",
+                      "dashed"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle)."
+              },
+              "radius": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners."
+              },
+              "opacity": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+              },
+              "rotation": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
+              },
+              "flip": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "horizontal",
+                      "vertical",
+                      "both"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept."
+              },
+              "effectStyle": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "Shadow/Bottom/Level-1",
+                      "Shadow/Bottom/Level-2",
+                      "Shadow/Bottom/Level-3",
+                      "Shadow/Bottom/Level-4",
+                      "Shadow/Top/Level-1",
+                      "Shadow/Top/Level-2",
+                      "Shadow/Top/Level-3",
+                      "Shadow/Top/Level-4",
+                      "Effect/Overlay"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma effect style (the whole style is the token, one per layer as in Figma)."
               },
               "columns": {
                 "anyOf": [
@@ -30624,6 +30986,289 @@
                   }
                 ],
                 "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+              },
+              "radiusTopLeft": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full), following the radius mode."
+              },
+              "radiusTopRight": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius)."
+              },
+              "radiusBottomRight": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius)."
+              },
+              "radiusBottomLeft": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+              },
+              "surface": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "surface",
+                      "surface-alt",
+                      "subtle",
+                      "pale",
+                      "canvas"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable."
+              },
+              "border": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "pale",
+                      "subtle"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md)."
+              },
+              "borderWeight": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Stroke weight in px (Figma strokeWeight), read with `border`."
+              },
+              "borderSides": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "all",
+                      "top",
+                      "right",
+                      "bottom",
+                      "left"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Which sides the stroke draws (Figma's Stroke › sides): `all` (default) or one side, e.g."
+              },
+              "borderStyle": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "solid",
+                      "dashed"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's Stroke › Dash: `dashed` draws only with `border=\"subtle\"` (dashed borders are always Subtle)."
+              },
+              "radius": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xl",
+                      "3xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge",
+                      "2xlarge",
+                      "3xlarge",
+                      "full"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners."
+              },
+              "opacity": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+              },
+              "rotation": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
+              },
+              "flip": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "horizontal",
+                      "vertical",
+                      "both"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept."
+              },
+              "effectStyle": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "Shadow/Bottom/Level-1",
+                      "Shadow/Bottom/Level-2",
+                      "Shadow/Bottom/Level-3",
+                      "Shadow/Bottom/Level-4",
+                      "Shadow/Top/Level-1",
+                      "Shadow/Top/Level-2",
+                      "Shadow/Top/Level-3",
+                      "Shadow/Top/Level-4",
+                      "Effect/Overlay"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma effect style (the whole style is the token, one per layer as in Figma)."
               },
               "direction": {
                 "anyOf": [

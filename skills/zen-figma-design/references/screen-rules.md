@@ -114,6 +114,7 @@ Components own their inner padding and gap; never change them. Between elements,
 | Tabular data | Table cells (`Table/Cell/*`, `Primitives/Table/*`) on the canvas, full width | a Table inside a Card (unless it is a dashboard widget) |
 | A number that matters (KPI) | `Metric-Card` / `Primitives/Metric/*` | a Card with big text |
 | Status | `Badge` (short state) or `Tag` (removable label) | coloured text |
+| A count (unread, items, a section's or folder's count, filters applied) | `Badge-Counter`, Neutral Subtle beside a label, "99+" at most (audit `badge/count-uses-counter`; user 2026-10-18) | a `Badge` holding a number, bare number text |
 | Free text (notes, brief, description) | `Input/Text-Area` | a Text-Field |
 | A date | `Input/Date-Field` (calendar icon, dd/mm/yyyy) | a Text-Field |
 | A choice from a list | `Input/Select-Field`, `Input/Autocomplete-Field` | a Chip in a form |

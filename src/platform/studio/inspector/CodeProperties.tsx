@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { BadgeCounter } from "../../../components/Badge";
 import { Icon } from "../../../components/Icon";
 import { typographyStyles } from "../../../tokens/typography.generated";
 
@@ -10,20 +11,23 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 
 let openNow = false;
 
-export function CodeProperties({ count, children }: { count: number; children: ReactNode }) {
+/** `placement`: "panel" straight in the Design tab (a frame, text or shape), which pads it as a section; "section" (default)
+ *  inside the Properties section, which already does. */
+export function CodeProperties({ count, placement = "section", children }: { count: number; placement?: "panel" | "section"; children: ReactNode }) {
   const [open, setOpen] = useState(openNow);
   if (!count) return null;
   return (
     <details
       className="studio-inspector__code"
       data-e2e="code-properties"
+      data-placement={placement}
       open={open}
       onToggle={(event) => { openNow = event.currentTarget.open; setOpen(openNow); }}
     >
       <summary className={`studio-inspector__code-summary ${typographyStyles["Body/Small/Bold"]}`}>
         <Icon name="icon-chevron-right-line" size={16} decorative />
         <span>Code properties</span>
-        <span className={`studio-inspector__code-count ${typographyStyles["Body/Small/Regular"]}`}>{count}</span>
+        <BadgeCounter className="studio-inspector__code-count" value={count} size="xs" theme="neutral" background="subtle" />
       </summary>
       <div className="studio-inspector__code-body">{children}</div>
     </details>

@@ -76,7 +76,7 @@ type Drag = {
   captor: Element;
   handle: Handle;
   start: { x: number; y: number };
-  last: { x: number; y: number; shift: boolean };
+  last: { x: number; y: number; shift: boolean; alt: boolean };
   /** Screen px per CSS px of the element at the press, and the canvas zoom then (a wheel zoom mid-drag rescales). */
   scale: number;
   zoom: number;
@@ -141,20 +141,29 @@ function floatAxes(host: HTMLElement, selection: NodeSelection): FloatAxes | nul
  * A pinned edge moves its inset (snapped) and the size keeps the far edge; a stretched axis moves the inset only (no
  * size); a centred one grows on both sides; the free edge of a pinned axis is a plain size change.
  */
-function floatAxis(float: FloatAxes, axis: PositionAxis, side: -1 | 1, delta: number, size0: number, floor: number): { size?: number; inset?: FloatInset } {
+function floatAxis(float: FloatAxes, axis: PositionAxis, side: -1 | 1, delta: number, size0: number, floor: number, centred = false): { size?: number; insets: FloatInset[] } {
   const pin = float.pins[axis];
   const [startProp, endProp] = axis === "x" ? (["insetLeft", "insetRight"] as const) : (["insetTop", "insetBottom"] as const);
   const prop = side < 0 ? startProp : endProp;
   const offset = side < 0 ? float.start[axis] + delta : float.end[axis] - delta;
-  if (pin === "center") return { size: snapSize(size0 + 2 * side * delta, false, floor) };
+  if (pin === "center") return { size: snapSize(size0 + 2 * side * delta, false, floor), insets: [] };
+  // ⌥ (Figma's resize from centre) in a free frame: both edges move by the same px, the centre stays.
+  if (centred && float.free) {
+    const size = snapSize(size0 + 2 * side * delta, false, floor);
+    const grow = (size - size0) / 2;
+    const insets: FloatInset[] = [];
+    if (pin === "start" || pin === "stretch") insets.push({ prop: startProp, css: INSET_CSS[startProp], snap: pxSnap(float.start[axis] - grow) });
+    if (pin === "end" || pin === "stretch") insets.push({ prop: endProp, css: INSET_CSS[endProp], snap: pxSnap(float.end[axis] - grow) });
+    return pin === "stretch" ? { insets } : { size, insets };
+  }
   const moves = pin === "stretch" || (pin === "start" && side < 0) || (pin === "end" && side > 0);
-  if (!moves) return { size: snapSize(size0 + side * delta, false, floor) };
+  if (!moves) return { size: snapSize(size0 + side * delta, false, floor), insets: [] };
   const reach = Math.min(offset, (side < 0 ? float.start[axis] : float.end[axis]) + size0 - floor);
   const snapped = float.free ? pxSnap(reach) : snap(reach, float.ladder);
   const inset = { prop, css: INSET_CSS[prop], snap: snapped };
-  if (pin === "stretch") return { inset };
+  if (pin === "stretch") return { insets: [inset] };
   const was = side < 0 ? float.start[axis] : float.end[axis];
-  return { inset, size: Math.max(floor, Math.round(size0 + (was - snapped.px))) };
+  return { insets: [inset], size: Math.max(floor, Math.round(size0 + (was - snapped.px))) };
 }
 
 /** What the pill shows while dragging: the values, Fill (fullWidth), in a Stack (a wrap or its Stack), all N. */
@@ -855,7 +864,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   useEffect(() => () => { releaseHeld(); window.clearTimeout(announceTimer.current); }, [releaseHeld]);
 
   /** The values a pointer position gives (only the handle's axes; a corner counts an axis once moved along it). */
-  const valuesAt = useCallback((drag: Drag, x: number, y: number, shift: boolean): Values => {
+  const valuesAt = useCallback((drag: Drag, x: number, y: number, shift: boolean, alt = false): Values => {
     const zoomNow = getViewport().zoom || drag.zoom;
     const scale = drag.scale * (zoomNow / drag.zoom);
     const dx = (x - drag.start.x) / scale;
@@ -865,8 +874,10 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     drag.insets = [];
     const xOn = Boolean(drag.handle.sx && drag.target.width && (!corner || Math.abs(x - drag.start.x) >= DRAG_START));
     const yOn = Boolean(drag.handle.sy && drag.target.height && (!corner || Math.abs(y - drag.start.y) >= DRAG_START));
-    // ⇧ on a corner keeps the ratio (Figma): both sides take the larger of the two changes.
+    // ⇧ keeps the ratio (Figma): on a corner both sides take the larger of the two changes; on an edge the other side
+    // follows that edge's.
     const ratioLocked = shift && corner && xOn && yOn && drag.w0 > 0 && drag.h0 > 0;
+    const edgeRatio = shift && !corner && drag.w0 > 0 && drag.h0 > 0 && Boolean(drag.target.width && drag.target.height) ? (drag.handle.sx ? "x" : "y") : null;
     const keepRatio = (w: number, h: number) => {
       const scale = Math.max(Math.abs(w / drag.w0), Math.abs(h / drag.h0));
       return { width: drag.w0 * scale, height: drag.h0 * scale };
@@ -880,32 +891,37 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       }
       for (const [axis, on, side, delta, size0, floor, key] of [["x", xOn, drag.handle.sx, deltas.x, drag.w0, drag.min.width, "width"], ["y", yOn, drag.handle.sy, deltas.y, drag.h0, drag.min.height, "height"]] as const) {
         if (!on || !side) continue;
-        const moved = floatAxis(drag.float, axis, side, delta, size0, Math.max(MIN_SIZE, floor));
+        const moved = floatAxis(drag.float, axis, side, delta, size0, Math.max(MIN_SIZE, floor), alt);
         if (moved.size !== undefined) values[key] = moved.size;
-        if (moved.inset) drag.insets.push(moved.inset);
+        drag.insets.push(...moved.insets);
       }
+      // ⇧ on an edge: the other side keeps the ratio (it grows from its pinned edge).
+      if (edgeRatio === "x" && values.width !== undefined) values.height = snapSize(values.width * drag.h0 / drag.w0, false, drag.min.height);
+      if (edgeRatio === "y" && values.height !== undefined) values.width = snapSize(values.height * drag.w0 / drag.h0, false, drag.min.width);
       return values;
     }
-    // Never below what the element renders at its smallest (the pill shows the clamped value). ⇧ on a corner keeps the
-    // ratio (Figma); ⇧ on an edge snaps it to 8 px.
+    // Never below what the element renders at its smallest (the pill shows the clamped value). ⇧ keeps the ratio
+    // (Figma), on a corner and on an edge.
     if (ratioLocked) {
       const sized = keepRatio(drag.w0 + drag.handle.sx * dx, drag.h0 + drag.handle.sy * dy);
       values.width = snapSize(sized.width, false, drag.min.width);
       values.height = snapSize(sized.height, false, drag.min.height);
       return values;
     }
-    if (xOn) values.width = snapSize(drag.w0 + drag.handle.sx * dx, shift, drag.min.width);
-    if (yOn) values.height = snapSize(drag.h0 + drag.handle.sy * dy, shift, drag.min.height);
+    if (xOn) values.width = snapSize(drag.w0 + drag.handle.sx * dx, false, drag.min.width);
+    if (yOn) values.height = snapSize(drag.h0 + drag.handle.sy * dy, false, drag.min.height);
+    if (edgeRatio === "x" && values.width !== undefined) values.height = snapSize(values.width * drag.h0 / drag.w0, false, drag.min.height);
+    if (edgeRatio === "y" && values.height !== undefined) values.width = snapSize(values.height * drag.w0 / drag.h0, false, drag.min.width);
     return values;
   }, []);
 
-  const update = useCallback((x: number, y: number, shift: boolean) => {
+  const update = useCallback((x: number, y: number, shift: boolean, alt = false) => {
     const drag = dragRef.current;
     if (!drag) return;
-    drag.last = { x, y, shift };
+    drag.last = { x, y, shift, alt };
     if (!drag.active && Math.hypot(x - drag.start.x, y - drag.start.y) < DRAG_START) return;
     drag.active = true;
-    const values = valuesAt(drag, x, y, shift);
+    const values = valuesAt(drag, x, y, shift, alt);
     // fullWidth: near the parent's content width an edge drag snaps to it (Fill); anywhere else, and a corner, is a wrap.
     const corner = drag.handle.sx !== 0 && drag.handle.sy !== 0;
     const fullWidth = !corner && drag.target.width?.kind === "fullWidth" && values.width !== undefined && reachesParent(values.width, drag.parentWidth);
@@ -1069,16 +1085,17 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const captor = event.currentTarget;
     try { captor.setPointerCapture(pointerId); } catch { /* the pointer may already be gone */ }
     dragRef.current = {
-      pointerId, captor, handle, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey },
+      pointerId, captor, handle, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey, alt: event.altKey },
       scale, zoom, w0, h0, host, hit, element, target: shown, selection, parentWidth: contentWidth(parent), mainAxis,
       values: {}, active: false, saved: new Map(), stack: false, min, cross, count,
-      float: shown.kind === "layout" ? floatAxes(host, selection) : null, insets: [],
+      // A floating Box / Stack / Grid, or a Shape at X / Y in a free frame: the dragged edge moves its inset (Figma).
+      float: shown.kind === "layout" || hit.name === "Shape" ? floatAxes(host, selection) : null, insets: [],
       grid: shown.width?.kind === "column" && gridCellNow ? { element: gridCellNow.element, saved: new Map() } : null,
     };
-    const onMove = (move: PointerEvent) => { if (move.pointerId === pointerId) update(move.clientX, move.clientY, move.shiftKey); };
+    const onMove = (move: PointerEvent) => { if (move.pointerId === pointerId) update(move.clientX, move.clientY, move.shiftKey, move.altKey); };
     const onUp = (up: PointerEvent) => {
       if (up.pointerId !== pointerId) return;
-      update(up.clientX, up.clientY, up.shiftKey);
+      update(up.clientX, up.clientY, up.shiftKey, up.altKey);
       void commit();
     };
     const onCancel = (cancel: PointerEvent) => { if (cancel.pointerId === pointerId) finish(false); };
@@ -1091,7 +1108,9 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
         key.stopPropagation();
         finish(false);
         if (drag.active) announce("Resize canceled");
-      } else if (key.key === "Shift") update(drag.last.x, drag.last.y, key.type === "keydown");
+      } else if (key.key === "Shift") update(drag.last.x, drag.last.y, key.type === "keydown", drag.last.alt);
+      // ⌥ resizes from the centre (Figma), held or let go mid-drag.
+      else if (key.key === "Alt") update(drag.last.x, drag.last.y, drag.last.shift, key.type === "keydown");
     };
     const onBlur = () => finish(false);
     window.addEventListener("pointermove", onMove);

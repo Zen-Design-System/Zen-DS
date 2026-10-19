@@ -501,3 +501,25 @@ Zen Studio draws a Screen's phone parts from its desktop AppShell by this table:
 you edit them on the phone (Reset to desktop links them again), and the export writes them as the AppShell's
 `topNavigation` / `bottomNavigation`. Harness: `app-shell/page-header-in-main`, `app-shell/top-navigation-title`
 and the TopNavigation rules (`top-navigation/*`).
+
+## 18. A count is a BadgeCounter
+
+A number that counts something and stands on its own (unread messages, items in a section or folder, filters applied,
+pages in a list, variables in a group) is a **BadgeCounter** (Figma Badge-Counter): the round pill whose min width
+equals its height, Neutral Subtle beside a label, capped at "99+" and hidden at zero. Never a `Badge` holding a number,
+never bare text beside the label. A count inside a sentence ("3 files", "12 of 40") stays text.
+
+- **Applies to:** `Badge` children that are a number or a count expression, and a `span` / `Text` whose class names a
+  count and that holds only a number or a count expression.
+- User rule 2026-10-18: "Luôn ghi vào harness và rule là các badge dùng số đếm luôn dùng badge counter".
+
+```tsx
+// ✅
+<BadgeCounter value={items.length} size="xs" theme="neutral" background="subtle" />
+// ❌
+<Badge size="small">{items.length}</Badge>
+<span className="panel__count">{items.length}</span>
+```
+
+Harness (`npm run usage:check`): `badge/count-uses-counter` and `badge/count-text-uses-counter` (errors). Figma audit
+(`skills/zen-figma-design`): `badge/count-uses-counter` on a Badge instance whose label is a number.

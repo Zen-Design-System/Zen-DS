@@ -352,6 +352,8 @@ export const Bad = () => <>
   <FileUpload label="Avatar" caption="PNG or JPG. Max 2 MB" accept="image/*" files={files} onReplace={() => {}} />
   {/* expect: badge/count-uses-counter */}
   <Badge size="small">12</Badge>
+  {/* expect: badge/count-text-uses-counter */}
+  <span className="panel__count">{items.length}</span>
   {/* expect: button/filter-is-chip */}
   <Button level="tertiary" size="sm" startIcon={<Icon name="icon-filter-lines-line" decorative />} onClick={openFilters}>All filters</Button>
   {/* expect: progress/quota-scale */}
@@ -509,6 +511,26 @@ export const Bad = () => <>
   <Box surface="surface" radius="full" radiusBottomRight="xs">Pill tail</Box>
   {/* expect: radius/full-mixed */}
   <Image src={photo} alt="Harbour at dusk" radius="full" radiusTopLeft="lg" />
+  {/* expect: box/border-matches-action */}
+  <Stack border="subtle" padding="md">Static notes in an auto layout frame</Stack>
+  {/* expect: box/effect-needs-surface */}
+  <Stack surface="subtle" effectStyle="Shadow/Bottom/Level-2" padding="md">Tinted auto layout well</Stack>
+  {/* expect: box/blur-needs-tint */}
+  <Grid columns={2} surface="surface" effectStyle="Effect/Overlay">Opaque grid</Grid>
+  {/* expect: box/shadow-no-border */}
+  <Grid columns={2} surface="surface" border="pale" effectStyle="Shadow/Bottom/Level-1">Bordered and shadowed</Grid>
+  {/* expect: radius/redundant-corners */}
+  <Stack surface="surface" radius="lg" radiusTopLeft="lg" radiusBottomRight="xs">Bubble</Stack>
+  {/* expect: radius/full-mixed */}
+  <Stack surface="surface" radius="full" radiusBottomRight="xs" direction="row">Pill tail</Stack>
+  {/* expect: box/dashed-is-subtle */}
+  <Stack border="pale" borderStyle="dashed" padding="lg">Drop files here</Stack>
+  {/* expect: box/dashed-is-subtle */}
+  <Box borderStyle="dashed" padding="lg">Empty slot</Box>
+  {/* expect: layout/opacity-percent */}
+  <Stack opacity={0.5} padding="md">Faded</Stack>
+  {/* expect: layout/opacity-percent */}
+  <Shape type="ellipse" opacity={0.4} width={24} height={24} />
   {/* expect: content/lights-no-light-text */}
   <Text tone="warning-light">Due tomorrow</Text>
   {/* expect: content/lights-no-light-text */}
