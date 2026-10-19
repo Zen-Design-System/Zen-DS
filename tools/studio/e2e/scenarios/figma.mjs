@@ -401,6 +401,8 @@ const setsText = (title) => [
   '          <Component id="toolbar" name="Toolbar">',
   '            <Stack direction="row" gap="sm" padding="sm">',
   '              <Use of="chip" />',
+  // A nested instance whose text is no property (FW-97: an override inside it is a path through it).
+  '              <Use of="tag-small" />',
   "            </Stack>",
   "          </Component>",
   '          <Use of="toolbar" />',
@@ -2688,6 +2690,25 @@ export const rows = [
         await shot(page, "fw-95-nested-instance");
         await expectPanelFits(page, "the nested instance's panel");
         return "Toolbar › Chip: Size Large as an override of this Toolbar";
+      });
+    },
+  },
+  {
+    id: "FW-97", feature: "A layer inside a nested instance (⌘-click through the Toolbar into its Tag's text): its words change for this Toolbar only", wp: "F7b 2026-10-20", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const toolbar = marked(page, id, "data-zen-instance", "toolbar");
+        await deepInto(page, toolbar.getByText("Small", { exact: true }));
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the nested instance selected (Layer section)" }).catch(async (error) => { throw new Error(`${error.message} · header ${await selectedName(page)} · sections ${(await sections(page)).join(", ")}`); });
+        await typeText(page, "Text", "Deep");
+        await written(page, id, /<Use of="toolbar" overrides=\{\{ "Tag small\/Text": \{ children: "Deep" \} \}\} \/>/, "the Toolbar's override of the Text inside its Tag");
+        await until(async () => (await toolbar.innerText()).includes("Deep"), { message: "the Toolbar reads Deep" });
+        const main = await marked(page, id, "data-zen-main", "toolbar").innerText();
+        if (main.includes("Deep")) throw new Error(`the Toolbar main reads ${main.trim()}`);
+        await shot(page, "fw-97-deep-layer");
+        await expectPanelFits(page, "the deep layer's panel");
+        return "Toolbar › Tag small › Text Deep: an override of this Toolbar only (main unchanged)";
       });
     },
   },

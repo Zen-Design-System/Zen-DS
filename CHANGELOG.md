@@ -144,6 +144,9 @@ removed (four unused colour ramps were, see Removed).
   colour, a nested instance switched to another variant or given other values, and what it puts in its main's slots
   (`<Use overrides>`, `<Use slots>`). A page with its own components now imports `Component`, `ComponentSet` and
   `Use` from `@zen-ds/react/builder` when the Studio prints it; before, a pulled page with them failed the dialect check.
+- Zen Studio's Figma push and pull carry an override inside a nested instance of a page's own component (the text in
+  a Chip inside a Toolbar: `overrides={{ "Chip/Text": { children: "Done" } }}`), in the variant that instance shows. A
+  layer inside a nested instance switched to another variant now opens in that variant in the panel.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

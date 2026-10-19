@@ -598,12 +598,21 @@ export async function localLayerAt(file: string, loc: string, path: string): Pro
   const { engine, tree, model, use } = await instanceAt(file, loc);
   if (!use) return null;
   const table = literalTable(use.props.overrides);
-  const mainOf = (node: TreeNode) => {
-    const resolved = engine.resolveInstance(tree, node);
+  // A nested instance is drawn in the variant its own values and this instance's overrides of it pick (renderPage draws
+  // it so, and dialect layerChain pushes it so): its layers are that variant's.
+  const mainOf = (node: TreeNode, at = "") => {
+    const asked = Object.fromEntries(Object.entries(table[at] ?? {}).flatMap(([name, value]) => {
+      const dot = /^variant\.(.+)$/.exec(name);
+      return dot ? [[dot[1], { kind: "literal", value }]] : [];
+    }));
+    const own = node.props.variant?.kind === "object" ? node.props.variant.fields ?? {} : {};
+    const shown = at && Object.keys(asked).length ? { ...node, props: { ...node.props, variant: { kind: "object", fields: { ...own, ...asked } } } } : node;
+    const resolved = engine.resolveInstance(tree, shown);
     return model.mains.find((entry) => entry.id === resolved?.main.id) ?? null;
   };
   let main = mainOf(use);
   let rest = path;
+  let consumed = "";
   let found: TreeNode | null = null;
   let inner: string | null = null;
   for (let depth = 0; main && depth < 8 && !found; depth++) {
@@ -614,7 +623,8 @@ export async function localLayerAt(file: string, loc: string, path: string): Pro
     if (!leaf) return null;
     if (leaf[1].name !== "Use") { found = leaf[1]; inner = rest.slice(leaf[0].length + 1); break; }
     rest = rest.slice(leaf[0].length + 1);
-    main = mainOf(leaf[1]);
+    consumed = consumed ? `${consumed}/${leaf[0]}` : leaf[0];
+    main = mainOf(leaf[1], consumed);
   }
   if (!found) return null;
   const own = table[path] ?? {};
