@@ -32,8 +32,10 @@ import { tokens } from "../../src/tokens/generated.ts";
 /** A spacing step's Figma variable name: md → Medium ("Spacing/Gap/Medium"). */
 
 /** Shape type → Figma node type and layer name (Shape.tsx; Figma names a drawn layer by its tool). */
-const SHAPE_NODE = { rectangle: "RECTANGLE", ellipse: "ELLIPSE", line: "LINE", arrow: "LINE", polygon: "POLYGON", star: "STAR", vector: "VECTOR" };
-const SHAPE_LABEL = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector" };
+const SHAPE_NODE = { rectangle: "RECTANGLE", ellipse: "ELLIPSE", line: "LINE", arrow: "LINE", polygon: "POLYGON", star: "STAR", vector: "VECTOR", boolean: "BOOLEAN_OPERATION" };
+const SHAPE_LABEL = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector", boolean: "Union" };
+/** A boolean group's operation → Figma's booleanOperation and its layer name. */
+const BOOLEAN_OP = { union: ["UNION", "Union"], subtract: ["SUBTRACT", "Subtract"], intersect: ["INTERSECT", "Intersect"], exclude: ["EXCLUDE", "Exclude"] };
 const SHAPE_DEFAULT_SIZE = 100;
 /** A rectangle's Corner-Radius token → its Figma variable and px (Corner Radius, Rounded mode). */
 const SHAPE_RADIUS = { none: ["", 0], "2xs": ["Corner-Radius/2XSmall", 2], xs: ["Corner-Radius/XSmall", 4], sm: ["Corner-Radius/Small", 8], md: ["Corner-Radius/Base", 12], lg: ["Corner-Radius/Large", 16], xl: ["Corner-Radius/XLarge", 20], "2xl": ["Corner-Radius/2XLarge", 24], "3xl": ["Corner-Radius/3XLarge", 28], full: ["Corner-Radius/Rounded", 1000] };
@@ -437,7 +439,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     let node;
     if (element.name === "Stack" || element.name === "Grid" || element.name === "Box") node = frameNode(element, code, id, parent);
     // Figma's own shapes (Shape): RECTANGLE, ELLIPSE with its arcData, LINE (an arrow's end cap), POLYGON, STAR.
-    else if (element.name === "Shape") node = shapeNode(code, id);
+    else if (element.name === "Shape") node = shapeNode(code, id, element);
     // A page's own component: its main as Figma's COMPONENT around its layer, each instance an INSTANCE of it (the
     // importer makes the main first, then the instances; `local` is the page's component id).
     else if (element.name === "Component") {
@@ -500,7 +502,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
    * rotation (degrees, counter-clockwise, about the centre) and opacity as Figma's. `shape: true` tells the importer
    * from a chart mark's ELLIPSE.
    */
-  function shapeNode(code, id) {
+  function shapeNode(code, id, element = null) {
     const kind = SHAPE_NODE[code.type] ? code.type : "rectangle";
     const line = kind === "line" || kind === "arrow";
     const vector = kind === "vector";
@@ -517,7 +519,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       ...(fill !== "none" && shapeFillTokens[fill] ? { fill: shapeFillTokens[fill] } : {}),
       ...(stroke !== "none" && shapeStrokeTokens[stroke] ? { stroke: shapeStrokeTokens[stroke], strokeWeight: weight, strokeAlign: line ? "CENTER" : { center: "CENTER", outside: "OUTSIDE", inside: "INSIDE" }[code.strokeAlign] ?? (vector ? "CENTER" : "INSIDE") } : {}),
       // A vector: its path in the node's px (Figma's vectorPaths), stretched from its viewBox to its size.
-      ...(vector ? vectorSpec(code, width, height) : {}),
+      ...(vector && kind !== "boolean" ? vectorSpec(code, width, height) : {}),
+      // A boolean group (F9b): Figma's BOOLEAN_OPERATION of its shapes, each at its X / Y inside it (the importer
+      // builds them, then combines them).
+      ...(kind === "boolean" ? booleanSpec(code, element) : {}),
       ...(kind === "arrow" ? { endCap: "ARROW_LINES" } : {}),
       ...(data ? { arc: { start: data.startingAngle, end: data.endingAngle, inner: data.innerRadius } } : {}),
       ...(kind === "polygon" || kind === "star" ? { pointCount: typeof code.pointCount === "number" ? code.pointCount : kind === "star" ? 5 : 3 } : {}),
@@ -529,6 +534,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       ...(code.width === "fill" ? { fillW: true } : { fixedWidth: width }),
       ...(code.height === "fill" && !line ? { fillH: true } : { fixedHeight: height }),
     };
+  }
+
+  /** A boolean group's Figma operation, name and its shapes (pushed as shapes are). */
+  function booleanSpec(code, element) {
+    const [operation, name] = BOOLEAN_OP[code.operation] ?? BOOLEAN_OP.union;
+    const children = (element?.children ?? []).filter((child) => child.kind === "element" && child.name === "Shape").map((child) => convert(child, { direction: "column", stretch: false })).filter(Boolean);
+    return { booleanOperation: operation, name, children };
   }
 
   /** A vector's Figma vectorPaths (`d` fitted to `width` × `height`, its winding rule), or none when its path is not one. */

@@ -101,7 +101,7 @@ export async function flattenSelection(): Promise<boolean> {
   return replaceWithVector(layers, vector, paint, layers.length > 1 ? `Flatten ${layers.length} layers` : `Flatten ${layers[0].name}`);
 }
 
-/** Figma's Outline stroke (⌥⌘O): a shape's stroke as a filled vector (its stroke colour as the fill), for a stroke without a fill. */
+/** Figma's Outline stroke (⌥⌘O): a shape's stroke as a filled vector (its stroke color as the fill), for a stroke without a fill. */
 export async function outlineStrokeSelection(): Promise<boolean> {
   const layers = shapesSelected("Outline stroke");
   if (typeof layers === "string") return say(layers);
@@ -113,7 +113,7 @@ export async function outlineStrokeSelection(): Promise<boolean> {
   if (stroke === "none") return say("Outline stroke: this shape has no stroke");
   const fill = typeof props.fill === "string" ? props.fill : unfilled ? "none" : "support-neutral-soft";
   if (fill !== "none") return say("Outline stroke works on a stroke without a fill: set its fill to none first");
-  if (!(shapeFills as readonly string[]).includes(stroke)) return say(`Outline stroke: the stroke colour ${stroke} has no fill colour of the same name`);
+  if (!(shapeFills as readonly string[]).includes(stroke)) return say(`Outline stroke: the stroke color ${stroke} has no fill color of the same name`);
   const [kit, engine] = await Promise.all([loadPathKit(), loadEngine()]);
   const vector = engine.outlineStrokeResult(kit, props);
   if (!vector) return say("Outline stroke: nothing to outline");

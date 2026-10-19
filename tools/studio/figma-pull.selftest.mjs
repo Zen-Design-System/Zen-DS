@@ -269,6 +269,8 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("vectors: the path, its box and winding rule; stroke weight; no default stroke or align", [/d="M 0 40 C 20 0 60 0 80 40 Z"/.test(line), /viewBox="0 0 80 40"/.test(line), /fillRule="evenodd"/.test(line), /strokeWeight=\{2\}/.test(line), /stroke=|strokeAlign=|fill=/.test(line), /insetLeft=\{10\}/.test(line)], [true, true, true, true, false, true]);
   check("vectors: an arc command is left out, noted", [pulled.text.split('type="vector"').length, pulled.notes.some((note) => /"Odd": its vector path/.test(note))], [2, true]);
   check("vectors: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+}
+
 // Frames as figmaReadCode reads them (stroke weight per side, four corners, effect style, opacity, rotation, mirror):
 // one Stack or Grid with its look (decision 2, plan 2026-10-18); a value Zen has no token for is noted.
 {
@@ -311,6 +313,27 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("groups: a Box group at its X / Y, sized, its opacity", [/position="absolute"/.test(box), /insetLeft=\{20\}/.test(box), /insetTop=\{30\}/.test(box), /width=\{120\}/.test(box), /height=\{60\}/.test(box)], [true, true, true, true, true]);
   check("groups: its layers at their X / Y inside it", pulled.text.split("\n").filter((line) => /type="ellipse"/.test(line)).map((line) => [/insetLeft=\{(\d+)\}/.exec(line)?.[1], /insetTop=\{(\d+)\}/.exec(line)?.[1]]), [["0", "0"], ["80", "20"]]);
   check("groups: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+}
+
+// F9b: a Figma BOOLEAN_OPERATION comes back as a Zen boolean group: its result (fill geometry) as d, its operation,
+// its shapes at their X / Y inside it.
+{
+  const booleanFrame = {
+    type: "FRAME", name: "Booleans", width: 400, height: 300, layout: null,
+    children: [
+      { type: "FRAME", name: "Canvas", width: 400, height: 300, layout: null, children: [
+        { type: "BOOLEAN_OPERATION", name: "Subtract", shape: { w: 120, h: 60, fill: "Color/Background/Accent/Solid/Default", stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", rotation: 0, opacity: 1, operation: "SUBTRACT", paths: [{ windingRule: "NONZERO", data: "M 0 0 L 120 0 L 120 60 L 0 60 Z" }] }, absolute: { x: 20, y: 30, w: 120, h: 60, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true }, children: [
+          { type: "RECTANGLE", name: "Rectangle", shape: { w: 120, h: 60, fill: null, stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", rotation: 0, opacity: 1 }, absolute: { x: 0, y: 0, w: 120, h: 60, pw: 120, ph: 60, cx: "MIN", cy: "MIN", free: true } },
+          { type: "ELLIPSE", name: "Ellipse", shape: { w: 60, h: 60, fill: null, stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", rotation: 0, opacity: 1 }, absolute: { x: 80, y: 0, w: 60, h: 60, pw: 120, ph: 60, cx: "MIN", cy: "MIN", free: true } },
+        ] },
+      ] },
+    ],
+  };
+  const pulled = pageFromFigma(booleanFrame, { mapping });
+  const head = pulled.text.split("\n").find((line) => line.includes('type="boolean"')) ?? "";
+  check("booleans: a boolean group with its operation, result and fill, at its X / Y", [/operation="subtract"/.test(head), /d="M 0 0 L 120 0 L 120 60 L 0 60 Z"/.test(head), /viewBox="0 0 120 60"/.test(head), /fill="accent-solid"/.test(head), /insetLeft=\{20\}/.test(head)], [true, true, true, true, true]);
+  check("booleans: its shapes inside it", pulled.text.split("\n").filter((line) => /type="(rectangle|ellipse)"/.test(line)).map((line) => /insetLeft=\{(\d+)\}/.exec(line)?.[1]), ["0", "80"]);
+  check("booleans: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
 if (failures.length) {
