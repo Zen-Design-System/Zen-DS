@@ -4304,6 +4304,7 @@
   --zen-card-padding-medium: var(--zen-spacing-padding-xlarge);
   --zen-margin-compact: var(--zen-spacing-padding-large);
   --zen-card-padding-small: var(--zen-spacing-padding-medium);
+  --zen-card-padding-xsmall: var(--zen-spacing-padding-xsmall);
   --zen-modal-radius: var(--zen-corner-radius-xgiant);
   --zen-interactive-list-item-radius: var(--zen-corner-radius-base);
   --zen-list-container-vertical-padding: var(--zen-spacing-padding-small);
@@ -4319,6 +4320,7 @@
   --zen-card-padding-medium: var(--zen-spacing-padding-large);
   --zen-margin-compact: var(--zen-spacing-padding-large);
   --zen-card-padding-small: var(--zen-spacing-padding-medium);
+  --zen-card-padding-xsmall: var(--zen-spacing-padding-xsmall);
   --zen-modal-radius: var(--zen-corner-radius-giant);
   --zen-interactive-list-item-radius: var(--zen-corner-radius-large);
   --zen-list-container-vertical-padding: var(--zen-spacing-padding-xsmall);
@@ -4334,6 +4336,7 @@
   --zen-card-padding-medium: var(--zen-spacing-padding-large);
   --zen-margin-compact: var(--zen-spacing-padding-medium);
   --zen-card-padding-small: var(--zen-spacing-padding-medium);
+  --zen-card-padding-xsmall: var(--zen-spacing-padding-xsmall);
   --zen-modal-radius: var(--zen-corner-radius-giant);
   --zen-interactive-list-item-radius: var(--zen-corner-radius-large);
   --zen-list-container-vertical-padding: var(--zen-spacing-padding-xsmall);

@@ -2150,6 +2150,7 @@ abstract final class ZenToken {
   static const String cardPaddingMedium = 'Card-padding-medium';
   static const String marginCompact = 'Margin-Compact';
   static const String cardPaddingSmall = 'Card-padding-small';
+  static const String cardPaddingXsmall = 'Card-padding-xsmall';
   static const String modalRadius = 'Modal-Radius';
   static const String interactiveListItemRadius = 'Interactive-List-Item-Radius';
   static const String listContainerVerticalPadding = 'List-Container-Vertical-Padding';

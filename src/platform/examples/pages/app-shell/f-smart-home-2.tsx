@@ -104,7 +104,7 @@ function LightPhone() {
       status={<DeviceStatus device={ceilingLight} on={on} onPowerChange={(next) => { setOn(next); toast({ title: next ? "Ceiling light on" : "Ceiling light off", children: next ? `${brightness}% · ${warmthLabel} white` : "Living room" }); }}
         icon="icon-sun-line" value={on ? `${brightness}%` : "Off"} caption={on ? `Brightness · ${warmthLabel} white` : "Turned off from the app"} />}>
       {/* The lamp photo leads (Figma Device, Corner-Radius/3XLarge), then the controls in the order they are used. */}
-      <Image src={platformMedia.devices.ceilingLight.src} alt={platformMedia.devices.ceilingLight.alt} ratio={350 / 240} radius="3xl" />
+      <Image src={platformMedia.devices.ceilingLight.src} alt={platformMedia.devices.ceilingLight.alt} ratio={350 / 240} frame={false} radius="3xl" />
       <SliderField label="Brightness" theme="accent" min={1} value={brightness} formatValue={(value) => `${value}%`}
         onValueChange={(value) => { setBrightness(value); setScene(undefined); setOn(true); }} />
       <Stack gap="xs">
@@ -327,7 +327,7 @@ export const examples: ExampleDef[] = [
     code: `${deviceShellCode}
 
 // Ceiling light · Philips Hue · Living room: icon="icon-sun-line" value="70%" caption="Brightness · warm white"
-<Image src={lampPhoto} alt="Round ceiling light glowing warm white" ratio={350 / 240} radius="3xl" />
+<Image src={lampPhoto} alt="Round ceiling light glowing warm white" ratio={350 / 240} frame={false} radius="3xl" />
 <SliderField label="Brightness" theme="accent" min={1} value={brightness} onValueChange={setBrightness} formatValue={(value) => \`\${value}%\`} />
 <Stack gap="xs">
   <Text textStyle="Body/Base/Medium">Colour temperature</Text>

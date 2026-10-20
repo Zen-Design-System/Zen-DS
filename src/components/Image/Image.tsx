@@ -70,6 +70,13 @@ export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "s
   /** cover (default): fills the frame and crops. contain: shows the whole picture on Neutral/Pale bars (logos, documents). */
   fit?: ImageFit;
   /**
+   * The frame behind the picture: Neutral/Pale with a 1px Border/Neutral/Pale hairline (default true), so a light photo
+   * keeps its edge. `false` for a cut-out picture on a transparent background (a mascot, a product without its backdrop,
+   * Figma's bare image fill): no fill and no hairline, so no faint square shows around it. The Skeleton and the error
+   * placeholder still fill the box.
+   */
+  frame?: boolean;
+  /**
    * Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full.
    * `radiusTopLeft` … `radiusBottomLeft` override single corners (Figma per-corner radius, e.g. top media in a card:
    * `radius="none" radiusTopLeft="2xl" radiusTopRight="2xl"`); unset corners keep this radius (md by default).
@@ -94,13 +101,13 @@ export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "s
  *
  *   <Image src={photo} alt="Snowy rooftops of the old town" ratio="16:9" caption="Old town, January" />
  */
-export function Image({ src, alt, ratio, fit = "cover", radius = "md", radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, loading = "lazy", caption, className, style, onLoad, onError, ref, ...imgProps }: ImageProps) {
+export function Image({ src, alt, ratio, fit = "cover", frame = true, radius = "md", radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, loading = "lazy", caption, className, style, onLoad, onError, ref, ...imgProps }: ImageProps) {
   const { imgRef, status, handleLoad, handleError } = useImageStatus(src, onLoad, onError);
   const setRef = useMergedRefs(imgRef, ref);
   const Root = caption ? "figure" : "div";
   const vars = { "--zen-image-ratio": ratioValue(ratio), "--zen-image-radius": cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft }) } as CSSProperties;
   return (
-    <Root className={["zen-image", className].filter(Boolean).join(" ")} data-status={status} data-fit={fit} data-ratio={ratio === undefined ? undefined : "true"} style={{ ...vars, ...style }}>
+    <Root className={["zen-image", className].filter(Boolean).join(" ")} data-status={status} data-fit={fit} data-ratio={ratio === undefined ? undefined : "true"} data-frame={frame ? undefined : "none"} style={{ ...vars, ...style }}>
       <div className="zen-image__frame">
         <ImageMedia src={src} alt={alt} loading={loading} fit={fit} status={status} imgRef={setRef} handleLoad={handleLoad} handleError={handleError} imgProps={imgProps} />
       </div>

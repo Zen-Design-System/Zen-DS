@@ -354,7 +354,9 @@ function SupportInboxApp() {
       <AppShell pattern="list-detail" collapse="sidebar"
         sidebar={(
           <Sidebar logo={<StudioLogo src={studio.logo} name="Northwind Support" />} logoCollapsed={<Avatar size="sm" shape="square" theme="photo" src={studio.logo} alt="Northwind Support" />}
-            sections={inboxSections} selectedId="inbox" footer={<SidebarMenuItem id="preferences" label="Preferences" icon="icon-settings-01-line" />} />
+            sections={inboxSections} selectedId="inbox"
+            onItemClick={(item) => { if (item.id !== "inbox") toast({ title: `${item.label} isn't part of this example`, children: "The Inbox shows the list-detail layout." }); }}
+            footer={<SidebarMenuItem id="preferences" label="Preferences" icon="icon-settings-01-line" />} />
         )}
         leadingPane={(
           <AppShellPane theme="flat" title={<>Inbox <BadgeCounter theme="neutral" background="solid" value={12} /></>}

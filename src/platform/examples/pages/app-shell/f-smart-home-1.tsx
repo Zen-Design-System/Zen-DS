@@ -30,10 +30,11 @@ import type { ExampleDef } from "../../types";
 
 // ——— Shared parts ——————————————————————————————————————————————————————————————————————————————————————————————————
 
-/** Figma Picture: the device's cut-out photo, 129 × 108 with Corner-Radius/Large (Fill). The kitchen's smart plugs,
+/** Figma Picture: the device's cut-out photo, 129 × 108 with Corner-Radius/Large (Fill), on the card itself (no fill behind
+ *  it in Figma, so frame={false}). The kitchen's smart plugs,
  *  which no Figma screen shows, keep their glyph on a Neutral/Pale tile of the same height. */
 function DevicePicture({ photo, icon }: { photo?: PlatformPhoto; icon: IconName }) {
-  if (photo) return <Image src={photo.src} alt="" ratio={129 / 108} radius="lg" />;
+  if (photo) return <Image src={photo.src} alt="" ratio={129 / 108} frame={false} radius="lg" />;
   return (
     <Box surface="pale" radius="lg" height={108}>
       <Stack align="center" justify="center" height="fill">
@@ -269,7 +270,7 @@ function SpeakerPhone() {
           <PowerStatus device="HomePod mini" on={on} battery="98%" caption="Battery"
             onPowerChange={(next) => { setOn(next); setPlaying(next); toast({ title: next ? "HomePod mini is on" : "HomePod mini is off" }); }} />
           {/* Figma Device: the speaker's photo, 350 × 240 with Corner-Radius/3XLarge. */}
-          <Image src={platformMedia.devices.smartSpeaker.src} alt="" ratio={350 / 240} radius="3xl" />
+          <Image src={platformMedia.devices.smartSpeaker.src} alt="" ratio={350 / 240} frame={false} radius="3xl" />
           <SliderField label="Volume" theme="accent" value={volume} onValueChange={setVolume} formatValue={(value) => `${value}%`} />
           <Card theme="shadow" as="section" aria-label="Now playing">
             <Stack gap="md">
@@ -335,8 +336,9 @@ function RobotVacuumPhone() {
         <Stack gap="xl">
           <PowerStatus device="Robot vacuum" on={on} battery="38%" caption="Needs charging soon"
             onPowerChange={(next) => { setOn(next); if (!next) setCleaning(false); }} />
-          {/* Figma Device: the vacuum's photo, 350 × 240 with Corner-Radius/3XLarge. */}
-          <Image src={platformMedia.devices.robotVacuum.src} alt="" ratio={350 / 240} radius="3xl" />
+          {/* Figma Device: the vacuum's photo, 350 × 240 with Corner-Radius/3XLarge, cropped about 1.18× in (its own file:
+              F1 shows the whole picture). */}
+          <Image src={platformMedia.devices.robotVacuumClose.src} alt="" ratio={350 / 240} frame={false} radius="3xl" />
           <Stack as="ul" direction="row" gap="sm" fillChildren aria-label="Modes">
             {modes.map((mode) => (
               <Stack as="li" key={mode.id} gap="xs" align="center">
@@ -406,7 +408,7 @@ export const examples: ExampleDef[] = [
               <Text textStyle="Caption/Regular" tone="base">Philips</Text>
               <Text textStyle="Body/Base/Bold" truncate>Ceiling light</Text>
             </Stack>
-            <Image src={ceilingLight.photo} alt="" ratio={129 / 108} radius="lg" />
+            <Image src={ceilingLight.photo} alt="" ratio={129 / 108} frame={false} radius="lg" />
             <Stack direction="row" justify="between" align="center" gap="xs">
               <Text textStyle="Body/Small/Regular" truncate>70%</Text>
               {/* zen-allow-secondary: a pressed toggle, Secondary while the device is on. */}
@@ -479,7 +481,7 @@ export const examples: ExampleDef[] = [
           <Text textStyle="Body/Small/Regular" tone="base">Battery</Text>
         </Stack>
       </Stack>
-      <Image src={homepod.photo} alt="" ratio={350 / 240} radius="3xl" />
+      <Image src={homepod.photo} alt="" ratio={350 / 240} frame={false} radius="3xl" />
       <SliderField label="Volume" theme="accent" value={volume} onValueChange={setVolume} formatValue={(value) => \`\${value}%\`} />
       <Card theme="shadow" as="section" aria-label="Now playing">
         <Stack gap="md">
@@ -527,7 +529,7 @@ export const examples: ExampleDef[] = [
           <Text textStyle="Body/Small/Regular" tone="base">Needs charging soon</Text>
         </Stack>
       </Stack>
-      <Image src={vacuum.photo} alt="" ratio={350 / 240} radius="3xl" />
+      <Image src={vacuum.photo} alt="" ratio={350 / 240} frame={false} radius="3xl" />
       <Stack as="ul" direction="row" gap="sm" fillChildren aria-label="Modes">
         <Stack as="li" gap="xs" align="center">
           {/* zen-allow-no-tooltip: the mode's visible label sits right under the button. */}
