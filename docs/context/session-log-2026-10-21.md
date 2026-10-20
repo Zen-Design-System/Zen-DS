@@ -30,4 +30,4 @@ Spec card `docs/research/studio-instance-panel-parity-spec-2026-10-21.md`. Plugi
 - Checks:
   - Selftests: push 345, compile 77, the new layerNames selftest 7; studio:selftest passes and tsc is clean.
   - Conformance 180/180; the plugin's full `npm test` passes.
-  - New E2E rows FW-99, FW-100 and FW-101 (figma group).
+  - New E2E rows FW-99, FW-141 and FW-142 (figma group).

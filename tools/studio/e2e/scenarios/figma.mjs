@@ -2819,7 +2819,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-100", feature: "A Zen instance's Appearance (Figma's): opacity 40 % and ◐ Multiply write opacity / blendMode on the Button, its root draws them, the eye is there; 100 % and Pass through take them away", wp: "re-measure K-74 2026-10-21",
+    id: "FW-141", feature: "A Zen instance's Appearance (Figma's): opacity 40 % and ◐ Multiply write opacity / blendMode on the Button, its root draws them, the eye is there; 100 % and Pass through take them away", wp: "re-measure K-74 2026-10-21",
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
       await clickNamed(page, id, "Button");
@@ -2837,7 +2837,7 @@ export const rows = [
         const style = getComputedStyle(button);
         return style.opacity === "0.4" && style.mixBlendMode === "multiply";
       }, id), { message: "the Button draws at 40 % in Multiply" });
-      await shot(page, "fw-100-instance-appearance");
+      await shot(page, "fw-141-instance-appearance");
       await expectPanelFits(page, "a Button's Appearance");
       await typeNumber(page, "Opacity", 100);
       await blend.click();
@@ -2847,7 +2847,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-101", feature: "The Design panel heads a frame Frame and a group Group (Figma UI3), its code name on hover", wp: "re-measure 2026-10-21", timeout: 60_000,
+    id: "FW-142", feature: "The Design panel heads a frame Frame and a group Group (Figma UI3), its code name on hover", wp: "re-measure 2026-10-21", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
       await selectBody(page, id);

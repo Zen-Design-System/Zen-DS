@@ -56,8 +56,8 @@ Figma UI3's panel heads a frame "Frame" and a group "Group". The Studio's reads 
 - E2E (figma group):
   - FW-99: a Button's menu has Go to main component, which opens the Button page's Main component, and Reset all
     changes, one ⌘Z.
-  - FW-100: a Button's Appearance opacity 40 % + Multiply writes `opacity={40} blendMode="multiply"`; its root draws
+  - FW-141: a Button's Appearance opacity 40 % + Multiply writes `opacity={40} blendMode="multiply"`; its root draws
     them; the eye is there; 100 % and Pass through remove them.
-  - FW-101: a frame's panel heading reads Frame, and a group's reads Group.
+  - FW-142: a frame's panel heading reads Frame, and a group's reads Group.
 - Live Zen file: import a Button at 40 % Multiply, read it back, remove the QA frame.
 - Gate scoped to the changed files.
