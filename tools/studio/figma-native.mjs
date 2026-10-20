@@ -288,6 +288,24 @@ export function imagePaint(fill, picture) {
   };
 }
 
+/**
+ * Figma's arrow (its copy of an arrow drawn as ⇧L does, 2026-10-20): a VECTOR, no height, its network two vertices
+ * (style 1 at the start, NONE; style 2 at the end, the cap) and one straight segment, the styles in styleOverrideTable.
+ */
+function arrowVector(length, cap) {
+  const bytes = new Uint8Array(12 + 2 * 12 + 28);
+  const view = new DataView(bytes.buffer);
+  let at = 0;
+  const u32 = (v) => { view.setUint32(at, v, true); at += 4; };
+  const f32 = (v) => { view.setFloat32(at, v, true); at += 4; };
+  u32(2); u32(1); u32(0);
+  u32(1); f32(0); f32(0);
+  u32(2); f32(length); f32(0);
+  u32(0); u32(0); f32(0); f32(0); u32(1); f32(0); f32(0);
+  const style = (styleID, strokeCap) => ({ styleID, cornerRadius: 0, strokeCap, strokeJoin: "MITER", handleMirroring: "NONE" });
+  return { type: "VECTOR", vectorData: { vectorNetworkBlob: { blob: base64Of(bytes) }, normalizedSize: { x: length, y: 0 }, styleOverrideTable: [style(1, "NONE"), style(2, cap)] } };
+}
+
 /** A layer turned (degrees, counter-clockwise) and flipped about its centre at x, y, w, h: R(θ)·S (the importer's turnAboutCentre). */
 function turned(x, y, w, h, degrees, flip) {
   const r = ((degrees || 0) * Math.PI) / 180, cos = Math.cos(r), sin = Math.sin(r);
@@ -737,7 +755,8 @@ class Writer {
       if (spec.radiusVar) Object.assign(node, this.bindings(["RECTANGLE_TOP_LEFT_CORNER_RADIUS", "RECTANGLE_TOP_RIGHT_CORNER_RADIUS", "RECTANGLE_BOTTOM_LEFT_CORNER_RADIUS", "RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS"].map((field) => [field, spec.radiusVar])));
     }
     if (spec.type === "ELLIPSE" && spec.arc) node.arcData = { startingAngle: spec.arc.start || 0, endingAngle: spec.arc.end || 0, innerRadius: spec.arc.inner || 0 };
-    if (line && spec.endCap) node.strokeCap = spec.endCap;
+    // An arrow is Figma's own (⇧L): a VECTOR of two vertices whose end has the cap (a LINE's strokeCap caps both ends).
+    if (line && spec.endCap) Object.assign(node, arrowVector(pos.w, spec.endCap));
     if (spec.type === "POLYGON" || spec.type === "STAR") node.count = typeof spec.pointCount === "number" ? spec.pointCount : spec.type === "STAR" ? 5 : 3;
     if (spec.type === "STAR" && typeof spec.innerRadius === "number") node.starInnerScale = spec.innerRadius;
     if (path) node.vectorData = path.vectorData;

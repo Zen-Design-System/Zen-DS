@@ -242,15 +242,18 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
         { type: "RECTANGLE", name: "Rectangle", shape: { w: 100, h: 60, fill: "Color/Background/Support/Neutral/Soft", stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 2, strokeAlign: "INSIDE", radius: 12, radiusVar: "Corner-Radius/Base", rotation: 90, opacity: 0.8 }, absolute: { x: 180, y: 110, w: 100, h: 60, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
         { type: "LINE", name: "Arrow", shape: { w: 140, h: 0, fill: null, stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 1, strokeAlign: "CENTER", cap: "ARROW_LINES", rotation: 0, opacity: 1 }, absolute: { x: 20, y: 200, w: 140, h: 0, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
         { type: "STAR", name: "Star", shape: { w: 90, h: 90, fill: "#fc0", stroke: null, strokeWeight: 1, pointCount: 6, innerRadius: 0.382, rotation: 0, opacity: 1 }, absolute: { x: 280, y: 160, w: 90, h: 90, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
+        // Figma's own arrow (⇧L; the direct paste writes the same): a two-vertex VECTOR capped at its end.
+        { type: "VECTOR", name: "Arrow 2", shape: { w: 120, h: 0, fill: null, stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 2, strokeAlign: "CENTER", cap: null, arrowLine: true, paths: [{ windingRule: "NONE", data: "M 0 0 L 120 0" }], rotation: 30, opacity: 1 }, absolute: { x: 40, y: 260, w: 120, h: 0, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
       ] },
     ],
   };
   const pulled = pageFromFigma(shapes, { mapping });
   const shapeLines = pulled.text.split("\n").filter((line) => line.includes("<Shape"));
-  check("shapes: four Shapes", shapeLines.length === 4, true);
+  check("shapes: five Shapes", shapeLines.length === 5, true);
   check("shapes: ellipse arc and fill", shapeLines.some((line) => /type="ellipse"/.test(line) && /arcSweep=\{75\}/.test(line) && /arcRatio=\{50\}/.test(line) && /fill="accent-solid"/.test(line) && /insetLeft=\{20\}/.test(line) && /insetTop=\{30\}/.test(line)), true);
   check("shapes: turned rectangle at its unrotated box", shapeLines.some((line) => /type="rectangle"/.test(line) && /insetLeft=\{160\}/.test(line) && /insetTop=\{30\}/.test(line) && /rotation=\{90\}/.test(line) && /radius="md"/.test(line) && /stroke="neutral-solid"/.test(line) && /strokeWeight=\{2\}/.test(line) && /opacity=\{80\}/.test(line) && !/fill=/.test(line)), true);
   check("shapes: arrow from a LINE's cap", shapeLines.some((line) => /type="arrow"/.test(line) && /width=\{140\}/.test(line) && !/height=/.test(line) && !/stroke=/.test(line)), true);
+  check("shapes: arrow from Figma's arrow vector (⇧L)", shapeLines.some((line) => /type="arrow"/.test(line) && /width=\{120\}/.test(line) && /rotation=\{30\}/.test(line) && /strokeWeight=\{2\}/.test(line) && !/ d=/.test(line)), true);
   check("shapes: star count, unbound fill noted", shapeLines.some((line) => /type="star"/.test(line) && /pointCount=\{6\}/.test(line)) && pulled.notes.some((note) => /"Star": its fill/.test(note)), true);
   check("shapes: no drawings note", !pulled.notes.some((note) => /drawings/.test(note)), true);
   check("shapes: the page passes the dialect", validateDialect(pulled.text).length === 0, true);

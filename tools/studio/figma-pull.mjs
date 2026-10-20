@@ -61,6 +61,20 @@ figma.skipInvisibleInstanceChildren = false;
 const layerKey = ${layerKey.toString()};
 const variableName = async (id) => { if (!id) return null; const v = await figma.variables.getVariableByIdAsync(id); return v ? v.name : null; };
 ${READ_IMAGE_FILL}
+// Figma's arrow (⇧L, and the push's arrow): a VECTOR of two vertices on one level, one straight segment, a NONE start
+// and an arrow cap at its end (its copy of a drawn arrow, 2026-10-20). Read behind \`in\` (Figma throws on a property a
+// node type lacks).
+const arrowLineOf = (node) => {
+  if (node.type !== "VECTOR" || !("vectorNetwork" in node)) return false;
+  try {
+    const net = node.vectorNetwork;
+    if (!net || net.vertices.length !== 2 || net.segments.length !== 1 || (net.regions || []).length) return false;
+    const [a, b] = net.vertices;
+    const seg = net.segments[0];
+    const straight = [seg.tangentStart, seg.tangentEnd].every((t) => !t || (Math.abs(t.x) < 0.01 && Math.abs(t.y) < 0.01));
+    return straight && Math.abs(a.y - b.y) < 0.01 && b.x > a.x && (a.strokeCap || "NONE") === "NONE" && /ARROW/.test(b.strokeCap || "");
+  } catch (e) { return false; }
+};
 const textStyles = new Map();
 const textStyleOf = async (id) => { if (!textStyles.has(id)) textStyles.set(id, await figma.getStyleByIdAsync(id)); return textStyles.get(id); };
 const fillVariable = async (fills) => { const paint = Array.isArray(fills) ? fills.find((fill) => fill.visible !== false) : null; return paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null; };
@@ -524,7 +538,7 @@ const readFrame = async (node, root = false) => {
       w: Math.round(node.width * 100) / 100, h: Math.round(node.height * 100) / 100,
       fill: fillPaint ? (await variableName(boundId(fillPaint))) || "unbound" : null,
       stroke: strokePaint ? (await variableName(boundId(strokePaint))) || "unbound" : null,
-      strokeWeight: typeof own("strokeWeight") === "number" ? node.strokeWeight : 1, strokeAlign: own("strokeAlign"), cap: typeof own("strokeCap") === "string" ? node.strokeCap : null,
+      strokeWeight: typeof own("strokeWeight") === "number" ? node.strokeWeight : 1, strokeAlign: own("strokeAlign"), cap: typeof own("strokeCap") === "string" ? node.strokeCap : null, arrowLine: arrowLineOf(node),
       arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: own("pointCount"), innerRadius: own("innerRadius"),
       radius: typeof own("cornerRadius") === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
       rotation: turn, ...(mirrored ? { flip: "horizontal" } : {}), opacity: node.opacity, imageFill: readImageFill(node),
@@ -1568,15 +1582,15 @@ const round2 = (value) => Math.round(value * 100) / 100;
 
 /**
  * A Figma shape (RECTANGLE, ELLIPSE, LINE, POLYGON, STAR) as a Zen Shape (figma-push shapeNode, the other way): its
- * type (a LINE with an arrow cap is an arrow), px size, fill and stroke by their variables (a colour that is no Zen
+ * type (a LINE with an arrow cap, or Figma's arrow: a two-vertex VECTOR capped at its end, is an arrow), px size, fill and stroke by their variables (a colour that is no Zen
  * Background / Border variable is left at the default and noted), arc, count, ratio, corner radius variable, rotation
  * and opacity; Figma's defaults are left out, as the push leaves them out.
  */
 function shapeElement(node, ctx) {
   const shape = node.shape;
   const where = `"${node.name}"`;
-  const arrow = node.type === "LINE" && typeof shape.cap === "string" && /ARROW/.test(shape.cap);
-  const type = { RECTANGLE: "rectangle", ELLIPSE: "ellipse", LINE: arrow ? "arrow" : "line", POLYGON: "polygon", STAR: "star", VECTOR: "vector", BOOLEAN_OPERATION: "boolean" }[node.type];
+  const arrow = (node.type === "LINE" && typeof shape.cap === "string" && /ARROW/.test(shape.cap)) || (node.type === "VECTOR" && shape.arrowLine === true);
+  const type = { RECTANGLE: "rectangle", ELLIPSE: "ellipse", LINE: arrow ? "arrow" : "line", POLYGON: "polygon", STAR: "star", VECTOR: arrow ? "arrow" : "vector", BOOLEAN_OPERATION: "boolean" }[node.type];
   const line = type === "line" || type === "arrow";
   const boolean = type === "boolean";
   // A boolean group writes its result as a vector does (its shapes come along as its children).
