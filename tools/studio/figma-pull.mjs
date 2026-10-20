@@ -246,6 +246,8 @@ const ROOT_ID = ${JSON.stringify(nodeId)};
 // its Figma id. A library component, or one elsewhere in the file: null.
 const pageOwn = (component) => { for (let at = component; at; at = at.parent) if (at.id === ROOT_ID) return studioData(component, "local") || component.id; return null; };
 const ownerOf = (main) => (main && main.parent && main.parent.type === "COMPONENT_SET" ? main.parent : main);
+// A Zen component's instance (the library's, not one of the page's own components).
+const zenInstance = async (node) => node.type === "INSTANCE" && !pageOwn(ownerOf(await node.getMainComponentAsync()));
 // A swap's component: the page's own (its id) or another by name (an icon).
 const swapName = async (id) => {
   const component = typeof id === "string" ? await figma.getNodeByIdAsync(id) : null;
@@ -292,9 +294,10 @@ const readLocalInstance = async (node, owner) => {
     if (entry.id === node.id) continue;
     const layer = await figma.getNodeByIdAsync(entry.id);
     if (!layer) continue;
-    // A layer in a slot is the instance's own content (below), not an override of its main.
+    // A layer in a slot is the instance's own content (below), not an override of its main; a layer inside a Zen
+    // component is read with that component (below).
     let inSlot = layer.type === "SLOT";
-    for (let up = layer.parent; up && up.id !== node.id && !inSlot; up = up.parent) inSlot = up.type === "SLOT";
+    for (let up = layer.parent; up && up.id !== node.id && !inSlot; up = up.parent) inSlot = up.type === "SLOT" || await zenInstance(up);
     if (inSlot) continue;
     const at = indexPath(layer, node);
     if (!at) continue;
@@ -330,6 +333,54 @@ const readLocalInstance = async (node, owner) => {
     if (!change) { change = { at }; overrides.push(change); }
     if (Object.keys(variant).length) change.variant = variant;
     if (Object.keys(props).length) change.props = props;
+  }
+  // A Zen component in the main (a Button, a Card): the properties this instance gives it that its main's does not
+  // have, its label, and its own nested instances (figma-push layerOverrides props / text / nested; nested as
+  // readInstance reads a placed one's).
+  const touched = new Set(changed.filter((entry) => (entry.overriddenFields || []).some((field) => field === "componentProperties" || field === "characters")).map((entry) => entry.id));
+  // Its own texts (not a nested instance's) this instance changed.
+  const ownTextTouched = (instance) => { const seen = (parent) => (parent.children || []).some((child) => (child.type === "TEXT" && touched.has(child.id)) || (child.type !== "INSTANCE" && seen(child))); return seen(instance); };
+  for (const layer of node.findAll((each) => each.type === "INSTANCE")) {
+    if (!(await zenInstance(layer))) continue;
+    let skip = false;
+    for (let up = layer.parent; up && up.id !== node.id && !skip; up = up.parent) skip = up.type === "SLOT" || await zenInstance(up);
+    if (skip) continue;
+    const at = indexPath(layer, node);
+    const theirs = at ? counterpart(at) : null;
+    if (!theirs || theirs.type !== "INSTANCE") continue;
+    const change = {};
+    if (touched.has(layer.id)) {
+      const mine = await propsOf(layer);
+      const base = await propsOf(theirs);
+      const differ = Object.fromEntries(Object.entries(mine).filter(([name, value]) => base[name] !== value));
+      if (Object.keys(differ).length) change.props = differ;
+    }
+    if (ownTextTouched(layer)) change.text = firstText(layer);
+    // Its nested instances this instance changed: only the properties that differ from the same layer in the main's
+    // (a Pagination's Next keeps its own size and icon; the instance's change is its level).
+    const nested = [];
+    const walk = async (parent, mirror, trail) => {
+      const kids = parent.children || [];
+      for (let index = 0; index < kids.length; index++) {
+        const child = kids[index];
+        if (!child.visible || child.type === "SLOT") continue;
+        const twin = mirror && "children" in mirror ? mirror.children[index] || null : null;
+        const next = child.type === "INSTANCE" ? trail.concat([layerKey(child.name)]) : trail;
+        if (child.type === "INSTANCE" && (touched.has(child.id) || ownTextTouched(child))) {
+          const mine = await propsOf(child);
+          const base = twin && twin.type === "INSTANCE" ? await propsOf(twin) : {};
+          const props = Object.fromEntries(Object.entries(mine).filter(([name, value]) => base[name] !== value));
+          nested.push({ path: next.join("/"), set: await setOf(child), props, ...(ownTextTouched(child) ? { text: firstText(child) } : {}) });
+        }
+        await walk(child, twin, next);
+      }
+    };
+    await walk(layer, theirs, []);
+    if (nested.length) change.nested = nested;
+    if (!Object.keys(change).length) continue;
+    const known = overrides.find((each) => each.at.join(".") === at.join("."));
+    if (known) Object.assign(known, change);
+    else overrides.push(Object.assign({ at }, change));
   }
   if (overrides.length) out.layerOverrides = overrides;
   const slots = [];
@@ -2026,10 +2077,30 @@ function pathAt(spec, at, ctx, variantAt) {
       const outer = at.slice(0, step + 1);
       const inner = prefix === undefined ? null : shownSpec(target.local, { ...(target.variant ?? {}), ...(variantAt(outer) ?? {}) }, ctx);
       const rest = inner ? pathAt(inner, at.slice(step + 1), ctx, (deeper) => variantAt([...outer, ...deeper])) : undefined;
-      return rest === undefined ? undefined : `${prefix}/${rest}`;
+      return rest === undefined ? undefined : { path: `${prefix}/${rest.path}`, target: rest.target };
     }
   }
-  return paths.get(ctx.innerOf.get(target));
+  const path = paths.get(ctx.innerOf.get(target));
+  return path === undefined ? undefined : { path, target };
+}
+
+/**
+ * The code props an instance gives a Zen component in its main (figma-push layerOverrides props / text, the other
+ * way): the component's props with this instance's Figma properties and label, against the main's own (`target`, the
+ * main's read of that layer). A prop the main sets that the instance takes back to the component's default is that
+ * default.
+ */
+function libraryOverride(target, override, set, ctx, where) {
+  const quiet = [];
+  const base = instanceProps({ props: target.props ?? {}, text: target.text }, set, ctx.mapping, quiet, where);
+  const shown = instanceProps({ props: { ...(target.props ?? {}), ...(override.props ?? {}) }, text: typeof override.text === "string" ? override.text : target.text }, set, ctx.mapping, ctx.notes, where);
+  const fields = {};
+  for (const [name, value] of Object.entries(shown)) if (JSON.stringify(base[name]) !== JSON.stringify(value)) fields[name] = value;
+  for (const name of Object.keys(base)) {
+    const fallback = ctx.mapping.apiProps[set.code]?.get(name);
+    if (!(name in shown) && fallback !== undefined) fields[name] = literal(fallback);
+  }
+  return fields;
 }
 
 /**
@@ -2048,9 +2119,29 @@ function settleOverrides(ctx) {
     const variantAt = (at) => node.layerOverrides.find((override) => (override.at ?? []).join(".") === at.join("."))?.variant ?? null;
     const table = {};
     for (const override of node.layerOverrides) {
-      const path = pathAt(spec, override.at ?? [], ctx, variantAt);
-      if (path === undefined) { ctx.notes.push(`${node.name ?? "Instance"}: an override of a layer at ${(override.at ?? []).join(".")} is left out (not a layer of its main on the page)`); continue; }
+      const found = pathAt(spec, override.at ?? [], ctx, variantAt);
+      if (found === undefined) { ctx.notes.push(`${node.name ?? "Instance"}: an override of a layer at ${(override.at ?? []).join(".")} is left out (not a layer of its main on the page)`); continue; }
+      const { path, target } = found;
       const fields = { ...(table[path]?.fields ?? {}) };
+      // A Zen component in the main (a Button, a Card): its props and label as code props; its own nested layers
+      // ("Card/Sub-Action") as a placed component's overrides are read.
+      if (target.type === "INSTANCE" && !target.local && target.set) {
+        const where = `${node.name ?? "Instance"} › ${path}`;
+        const set = ctx.mapping.sets.get(target.set.id) ?? ctx.mapping.sets.get(target.set.name);
+        if (override.visible === false) fields.hidden = literal(true);
+        const more = override.props || typeof override.text === "string" || override.nested?.length;
+        if (!set && more) ctx.notes.push(`${where}: ${target.set.name} has no Zen component (its other overrides are left out)`);
+        if (set && (override.props || typeof override.text === "string")) Object.assign(fields, libraryOverride(target, override, set, ctx, where));
+        if (Object.keys(fields).length) table[path] = { kind: "object", fields };
+        for (const nested of set ? override.nested ?? [] : []) {
+          const inner = nested.set ? ctx.mapping.sets.get(nested.set.id) ?? ctx.mapping.sets.get(nested.set.name) : null;
+          if (!inner) { ctx.notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
+          const own = instanceProps(nested, inner, ctx.mapping, ctx.notes, `${where} › ${nested.path}`);
+          const key = `${path}/${nested.path}`;
+          if (Object.keys(own).length) table[key] = { kind: "object", fields: { ...(table[key]?.fields ?? {}), ...own } };
+        }
+        continue;
+      }
       if (typeof override.characters === "string") fields.children = literal(override.characters);
       if (override.visible === false) fields.hidden = literal(true);
       const tone = typeof override.fill === "string" ? TONE_OF.get(override.fill.replace(/^Color\//, "")) : undefined;

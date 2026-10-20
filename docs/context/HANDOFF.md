@@ -199,8 +199,10 @@ Last updated: 2026-10-19.
   1785c37); specs `docs/research/studio-f7-components-spec-2026-10-19.md`, `…f7b-instance-overrides-spec-2026-10-19.md`.
   Same PR: the right panel on one grid, using the shared Inline-Field (E2E `panelFits`), and E2E retries that start
   from the documents the row found. Since 2026-10-20: the React export turns overrides no property carries into props
-  (#155), and the Figma pull brings overrides and slot content back (live fixture `figma-overrides.json`). Open:
-  BACKLOG "Studio components, after F7a/F7b".
+  (#155), and the Figma pull brings overrides and slot content back (live fixture `figma-overrides.json`). Push and pull
+  also carry overrides inside nested instances (#160, `figma-deep-overrides.json`) and of Zen components in a main: props,
+  label and nest() layers such as "Pagination/Next" (`figma-library-layers.json`; plugin `studio-import` 1352a72, arrow
+  one head eed5057). Open: BACKLOG "Studio components, after F7a/F7b", "Card `subAction` to and from Figma".
   **F2 + F3 + F9 (Session A, done 2026-10-20):** F2 (#140): several layers align, distribute, tidy up, nudge and move
   (`edit/arrangeModel.ts`, `edit/alignLayers.ts`), resize from the centre / ⇧ ratio, equal-spacing snaps
   (`edit/spacingModel.ts`), several frames (`select/frameSelection.ts`: ⌘A, marquee, ⇧-click). F3 (#142, #145): Delete

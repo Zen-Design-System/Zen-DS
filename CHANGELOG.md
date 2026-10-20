@@ -210,6 +210,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio's Figma push and pull carry an override inside a nested instance of a page's own component (the text in
   a Chip inside a Toolbar: `overrides={{ "Chip/Text": { children: "Done" } }}`), in the variant that instance shows. A
   layer inside a nested instance switched to another variant now opens in that variant in the panel.
+- Zen Studio's Figma push and pull carry an instance's overrides of a Zen component in its main: its props and label
+  (`overrides={{ Button: { level: "secondary", children: "Buy" } }}`) and its own nested layers by their names
+  (`"Pagination/Next": { level: "secondary" }`). An override path may go inside a Zen component that has content of
+  its own (`Card/Sub-Action`). A prop with no Figma property is noted instead of dropped silently.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.
