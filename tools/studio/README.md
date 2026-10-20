@@ -144,7 +144,7 @@ Wrap (Figma's Frame selection, ⌥⌘G; `{ op: "wrap", tag: "Box", props: { padd
   handlers, size) or fail the check. One list, shared with the Studio client: `src/platform/studio/cloning.json`
   (from a grep of `src/components` for `cloneElement`, `Children.only`/`Children.map`, `isValidElement` and
   `child.type ===`; each entry says why and gives the reason). `props`: the value of Menu `trigger` and AppShell
-  `sidebar`/`aside`; any other attribute's value is wrapped, inline in the attribute (a ListItem's `trailing` Badge).
+  `sidebar`/`sidePanel`/`topNavigation`; any other attribute's value is wrapped, inline in the attribute (a ListItem's `trailing` Badge).
   `parents`: the child of `Tooltip` ("keeps its size inside a Tooltip, which clones it; change it in code"),
   `FormField`, `FormActions` (Buttons only, also inside a fragment, an `[ … ]` or a `.map` callback's result, as its
   `Children.map` reaches them: "FormActions sizes its Buttons (Large when stacked); resize the FormActions instead")
@@ -180,7 +180,7 @@ Unwrap (a one-layer wrap undone: the Position section's Ignore auto layout off o
   example snippet is unwrapped the same way when the wrapper's code occurs exactly once in it.
 
 Slots holding several layers and hidden layers (user, 2026-10-16; `visibility.mjs`): a prop of a builder page may hold
-a fragment (`headerActions={<><Badge … /><AppShellAccount … /></>}`), its layers straight in the slot as Figma's. Any
+a fragment (an AppShellHeader's `actions={<><Badge … /><AppShellAccount … /></>}`), its layers straight in the slot as Figma's. Any
 layer takes `hidden` (every layout), `hidden="mobile"` or `hidden="desktop"`; a component takes `hiddenSlots={["prop"]}`
 (Figma's boolean on a slot). Both are Studio-only: the canvas does not draw them (Layers lists a hidden layer dimmed),
 `pruneHidden` leaves them out of the code export and the Figma push.
@@ -189,10 +189,12 @@ A Screen's master layout (user, 2026-10-15: the Screen section's desktop parts e
 ◇ Master-Layout, so a page from a template never shows a second Sidebar; `{ op: "screenFrame", prop, on, code }`,
 `screen-frame.mjs`):
 
-- Alone in its request, on a `<Screen>`. `prop` is a part of `FRAME_PARTS` (`banner`, `sidebar`, `header`,
-  `headerCenter`, `headerActions`, `sections`, `aside`, `floatingAction`, `footer`; `screen-chrome.mjs`), `code` the
-  component it starts with (`screenFrameCode`). The Screen section switches a part that holds layers off and on through
-  the AppShell's `hiddenSlots` instead (above), so its layers come back as they were.
+- Alone in its request, on a `<Screen>`. `prop` is a part of `FRAME_PARTS` (`screen-chrome.mjs`): on the AppShell
+  `banner`, `sidebar`, `sidePanel`, `floatingActions`; on its `header={<AppShellHeader …/>}` (Figma Header/AppShell)
+  `leading`, `center`, `actions` (the top row) and `main` (the Page header); `code` the component it starts with
+  (`screenFrameCode`). The Screen section switches a part that holds layers off and on through its host's `hiddenSlots`
+  instead (above), so its layers come back as they were. Pages written before 2026-10-19 (`headerActions`, `sections`,
+  `aside`, `floatingAction`, `footer`, `sidebarToggle`) are moved to these props as they load (`migrateAppShellProps`).
 - The mobile layout keeps the Screen's Top and Bottom Navigation: the canvas, the code export and the Figma push draw
   the AppShell's content without its frame there.
 - On: the prop joins the Screen's root AppShell, or an AppShell is made around the Screen's content. Off: the prop goes;

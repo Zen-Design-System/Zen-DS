@@ -3,9 +3,13 @@
    holds the other actions, a page's More menu groups its commands and keeps an unavailable one visible with the
    reason, a New menu composes items with file icons and captions, the keyboard and letter shortcuts of an Actions
    menu, and a short row menu on a phone. */
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ActionBar } from "../../../components/ActionBar";
-import { Badge } from "../../../components/Badge";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
+import { Avatar } from "../../../components/Avatar";
+import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -16,22 +20,26 @@ import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { useFormState } from "../../../components/Form";
 import { InputField } from "../../../components/Input";
-import { Box, Container, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Menu, MenuItem, type MenuEntry, type MenuItemData } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
+import { ProgressBar } from "../../../components/Progress";
+import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
+import { Sidebar, SidebarMenuItem, type SidebarSection } from "../../../components/Sidebar";
 import { Table, TableActions, TableBadges, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
-  TODAY, daysFromToday, formatBytes, formatDate, formatDue, formatMoney, formatRelative, invoiceStatusTheme, invoices, people,
-  projectById, projects, projectStatusTheme, taskStatusTheme, tasks, type Invoice, type PersonId, type Project, type Task,
+  TODAY, activity, daysFromToday, files as studioFiles, formatBytes, formatDate, formatDue, formatMoney, formatRelative, initials, invoiceStatusTheme, invoices, me, people,
+  projectById, projects, projectStatusTheme, studio, taskStatusTheme, tasks, type Invoice, type Person, type PersonId, type Project, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -39,6 +47,73 @@ import { keepOnHotUpdate } from "../../hotData";
 export const page: PlatformPage = "menu";
 
 const copyText = (text: string) => { void navigator.clipboard?.writeText(text).catch(() => null); };
+
+// ——— The studio app's chrome (Project actions) and the Zen app's roots (Row menu on a phone) ————————————————————
+/** A person as Avatar props: their photo, or initials on their steady theme. */
+const avatarOf = (person: Person) => person.photo
+  ? { theme: "photo" as const, src: person.photo, alt: "" }
+  : { theme: person.theme, alt: "", children: initials(person.name) };
+const studioPlaces: SidebarSection[] = [{ items: [
+  { id: "home", label: "Home", icon: "icon-home-03-line" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", counter: tasks.filter((task) => task.assignee === me.id && task.status !== "Done").length },
+  { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+  { id: "people", label: "People", icon: "icon-users-line" },
+] }];
+const unreadActivity = activity.filter((item) => item.unread);
+
+/** A place this example does not draw: the toast says so, and the navigation keeps the current screen. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This screen shows the menu." });
+}
+
+/** The studio's Sidebar on the page it shows; the other places toast that they are not drawn here. */
+function StudioSidebar({ selectedId }: { selectedId: string }) {
+  const notHere = useNotHere();
+  return (
+    <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+      sections={studioPlaces} selectedId={selectedId} onItemClick={(item) => { if (item.id !== selectedId) notHere(item.label); }}
+      footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+  );
+}
+
+/** The top row's utilities: notifications (the unread count clears once read) and the account menu, last. */
+function StudioActions() {
+  const { toast } = useToast();
+  const [unread, setUnread] = useState(unreadActivity.length);
+  const latest = unreadActivity[0];
+  return (
+    <>
+      <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+        setUnread(0);
+        toast({ title: unread ? plural(unread, "new notification") : "You're all caught up", children: `${people[latest.actor].name} ${latest.verb} ${latest.object} · ${formatRelative(latest.at)}` });
+      }} />
+      <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+        { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+        { id: "settings", label: "Settings", icon: "icon-settings-01-line", onSelect: () => toast({ title: "Settings", children: "Workspace, notifications and billing." }) },
+        { type: "separator" },
+        { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+      ]} />
+    </>
+  );
+}
+
+/** Đìzai Studio's Zen app on a phone: the roots of its tab bar. The other roots are not drawn here, so a toast says so
+ *  and the bar keeps this root. */
+const zenRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
+  { id: "files", label: "Files", icon: "icon-file-doc-line", selectedIcon: "icon-file-doc-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+function ZenRoots({ value }: { value: string }) {
+  const notHere = useNotHere();
+  return (
+    <BottomNavigation aria-label={studio.name} showLabels items={zenRoots} value={value}
+      onValueChange={(id) => { if (id !== value) notHere(zenRoots.find((item) => item.id === id)?.label ?? id); }} />
+  );
+}
 
 // ——— 1. Row actions in a table: the row opens the invoice, its ⋯ holds the rest ——————————————————————
 /** Where each client's invoices and reminders go. */
@@ -160,21 +235,50 @@ const timing = (project: Project) =>
     : project.status === "Completed" ? `Finished ${formatDate(project.due)}`
       : formatDue(project.due);
 
+/** The width of an element, kept current (a list folds its row parts when its column gets narrow). */
+function useWidth() {
+  const [element, setElement] = useState<HTMLElement | null>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    if (!element) return undefined;
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element]);
+  return [setElement, width] as const;
+}
+
+/** A project's money and time, for the facts card. */
+const budgetLine = (project: Project) => (project.budget ? `${formatMoney(project.spent)} of ${formatMoney(project.budget)}` : "Internal, not billed");
+
 function ProjectActions() {
   const { toast } = useToast();
+  const notHere = useNotHere();
   const [list, setList] = useState<ProjectState[]>(projects);
   const [openId, setOpenId] = useState<string | null>("phin-loyalty");
+  const [query, setQuery] = useState("");
+  const [creating, setCreating] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
+  const [measureTasks, tasksWidth] = useWidth();
+  const narrowTasks = tasksWidth > 0 && tasksWidth < 480;
   const tasksId = useId();
+  const detailsId = useId();
+  const teamId = useId();
+  const filesId = useId();
   const shown = list.filter((project) => !project.archived);
   const project = shown.find((item) => item.id === openId);
   const focus = (selector: string) => requestAnimationFrame(() => frameRef.current?.querySelector<HTMLElement>(selector)?.focus());
-  const open = (id: string) => { setOpenId(id); focus(".zen-page-header__back button"); };
+  // Opening a project puts focus on Projects in the trail (the way back); the list puts it back on the row it left.
+  const open = (id: string) => { setOpenId(id); focus(".zen-breadcrumbs button.zen-breadcrumb"); };
   const toProjects = (from?: string) => { setOpenId(null); focus(from ? `[data-project="${from}"] .zen-list-item__wrapper` : ".zen-list-item__wrapper"); };
   const update = (id: string, patch: Partial<ProjectState>) => setList((items) => items.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  const addProject = (name: string) => {
+    const created: ProjectState = { ...projects[0], id: `new-${list.length}`, name, client: studio.name, icon: "icon-folder-line", theme: "neutral", status: "Planning", lead: me.id as PersonId, members: [me.id as PersonId], progress: 0, spent: 0, budget: 0, start: daysFromToday(7), due: daysFromToday(97) };
+    setList((items) => [created, ...items]);
+  };
   // Rename opens with the current name filled in, so a small change doesn't mean retyping it.
   const renameForm = useFormState<{ name: string }>({
     initialValues: { name: "" },
@@ -189,79 +293,93 @@ function ProjectActions() {
     },
   });
 
+  // The two screens of one studio page: the list of projects, and a project with its actions.
+  let header: ReactNode;
+  let body: ReactNode;
+  let overlays: ReactNode = null;
   if (!project) {
-    return (
-      <Box ref={frameRef}>
-        <Container maxWidth="lg">
-          <Stack paddingY="xl" gap="xl">
-            <PageHeader title="Projects" description={`${plural(shown.length, "project")} for Đìzai Studio and its clients`} />
-            {/* Rows on the page's Canvas/Default: a ListBox, flat Surface with no border (usage rules §16). */}
-            <ListBox>
-              <List aria-label="Projects">
-                {shown.map((item) => (
-                  <ListItem key={item.id} data-project={item.id} title={item.name} caption={`${item.client} · ${timing(item)}`}
-                    leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" />}
-                    trailing={<Badge theme={projectStatusTheme[item.status]} background="subtle">{item.status}</Badge>}
-                    onClick={() => open(item.id)} />
-                ))}
-              </List>
-            </ListBox>
-          </Stack>
-        </Container>
-      </Box>
+    const q = query.trim().toLowerCase();
+    const rows = shown.filter((item) => !q || `${item.name} ${item.client}`.toLowerCase().includes(q));
+    header = (
+      <AppShellHeader
+        // A root page: a Search narrows the projects in the top row; the page's Primary sits in the Main row.
+        leading={<Box width={320}><Search placeholder="Search projects" aria-label="Search projects" value={query} onValueChange={setQuery} clearable /></Box>}
+        actions={<StudioActions />}
+        main={<PageHeader title="Projects" description={`${plural(shown.length, "project")} for Đìzai Studio and its clients`}
+          actions={<Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>New project</Button>} />}
+      />
     );
-  }
+    body = rows.length ? (
+      // Rows on the Canvas: a ListBox at the Sidebar's elevation (Shadow).
+      <ListBox theme="shadow">
+        <List aria-label="Projects">
+          {rows.map((item) => (
+            <ListItem key={item.id} data-project={item.id} title={item.name} caption={`${item.client} · ${timing(item)}`}
+              leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" />}
+              trailing={<Badge theme={projectStatusTheme[item.status]} background="subtle">{item.status}</Badge>}
+              onClick={() => open(item.id)} />
+          ))}
+        </List>
+      </ListBox>
+    ) : (
+      <EmptyState headingLevel={2} icon="icon-search-medium-line" title="No projects match" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>
+        No project or client has “{query.trim()}” in its name.
+      </EmptyState>
+    );
+  } else {
+    const openTasks = openTasksOf(project.id);
+    const projectFiles = studioFiles.filter((file) => file.project === project.id);
+    const copyLink = () => { copyText(`https://zen.dizai.studio/projects/${project.id}`); toast({ title: "Link copied" }); };
+    const duplicate = () => {
+      const copy: ProjectState = { ...project, id: `${project.id}-copy-${list.length}`, name: `${project.name} (copy)`, status: "Planning", progress: 0, spent: 0, start: daysFromToday(7), due: daysFromToday(97) };
+      setList((items) => [...items, copy]);
+      toast({ title: "Project duplicated", children: copy.name, action: { label: "View", onClick: () => open(copy.id) } });
+    };
+    const hold = () => {
+      const before = project.status;
+      const next = before === "On hold" ? "Active" : "On hold";
+      update(project.id, { status: next });
+      toast({ title: next === "On hold" ? "Project put on hold" : "Project resumed", action: { label: "Undo", onClick: () => update(project.id, { status: before }) } });
+    };
+    // Archiving hides the project and can be undone; deleting can't, so it asks first.
+    const archive = () => {
+      update(project.id, { archived: true });
+      toProjects();
+      toast({ title: "Project archived", children: project.name, action: { label: "Undo", onClick: () => update(project.id, { archived: false }) } });
+    };
+    const remove = () => {
+      setList((items) => items.filter((item) => item.id !== project.id));
+      setDeleting(false);
+      toProjects();
+      toast({ title: "Project deleted", children: project.name });
+    };
 
-  const openTasks = openTasksOf(project.id);
-  const copyLink = () => { copyText(`https://zen.dizai.studio/projects/${project.id}`); toast({ title: "Link copied" }); };
-  const duplicate = () => {
-    const copy: ProjectState = { ...project, id: `${project.id}-copy-${list.length}`, name: `${project.name} (copy)`, status: "Planning", progress: 0, spent: 0, start: daysFromToday(7), due: daysFromToday(97) };
-    setList((items) => [...items, copy]);
-    toast({ title: "Project duplicated", children: copy.name, action: { label: "View", onClick: () => open(copy.id) } });
-  };
-  const hold = () => {
-    const before = project.status;
-    const next = before === "On hold" ? "Active" : "On hold";
-    update(project.id, { status: next });
-    toast({ title: next === "On hold" ? "Project put on hold" : "Project resumed", action: { label: "Undo", onClick: () => update(project.id, { status: before }) } });
-  };
-  // Archiving hides the project and can be undone; deleting can't, so it asks first.
-  const archive = () => {
-    update(project.id, { archived: true });
-    toProjects();
-    toast({ title: "Project archived", children: project.name, action: { label: "Undo", onClick: () => update(project.id, { archived: false }) } });
-  };
-  const remove = () => {
-    setList((items) => items.filter((item) => item.id !== project.id));
-    setDeleting(false);
-    toProjects();
-    toast({ title: "Project deleted", children: project.name });
-  };
-
-  const items: MenuEntry[] = [
-    { type: "group", label: "Link and export", items: [
-      { id: "copy", label: "Copy link", icon: "icon-link-01-line", onSelect: copyLink },
-      { id: "report", label: "Export status report", icon: "icon-download-01-line", onSelect: () => toast({ title: "Report exported", children: `${project.name} status report.pdf` }) },
-    ] },
-    { type: "group", label: "Project", items: [
-      { id: "rename", label: "Rename…", icon: "icon-edit-02-line", onSelect: () => { renameForm.reset({ name: project.name }); setRenaming(true); } },
-      { id: "duplicate", label: "Duplicate project", icon: "icon-duplicate-line", onSelect: duplicate },
-      ...(project.status === "Completed" ? [] : [project.status === "On hold"
-        ? { id: "resume", label: "Resume project", icon: "icon-play-circle-line", onSelect: hold } as const
-        : { id: "hold", label: "Put on hold", icon: "icon-pause-circle-line", onSelect: hold } as const]),
-      // Unavailable right now: it stays in the menu, dimmed, and the caption says what to do first.
-      { id: "archive", label: "Archive project", icon: "icon-archive-line", disabled: openTasks.length > 0,
-        caption: openTasks.length ? `Close ${plural(openTasks.length, "open task")} first` : undefined, onSelect: archive },
-    ] },
-    { type: "separator" },
-    { id: "delete", label: "Delete project", icon: "icon-trash-line", danger: true, onSelect: () => setDeleting(true) },
-  ];
-
-  return (
-    <Box ref={frameRef}>
-      <Container maxWidth="lg">
-        <Stack paddingY="xl" gap="xl">
-          <PageHeader back={{ label: "Projects", onClick: () => toProjects(project.id) }} eyebrow={project.client} title={project.name}
+    const items: MenuEntry[] = [
+      { type: "group", label: "Link and export", items: [
+        { id: "copy", label: "Copy link", icon: "icon-link-01-line", onSelect: copyLink },
+        { id: "report", label: "Export status report", icon: "icon-download-01-line", onSelect: () => toast({ title: "Report exported", children: `${project.name} status report.pdf` }) },
+      ] },
+      { type: "group", label: "Project", items: [
+        { id: "rename", label: "Rename…", icon: "icon-edit-02-line", onSelect: () => { renameForm.reset({ name: project.name }); setRenaming(true); } },
+        { id: "duplicate", label: "Duplicate project", icon: "icon-duplicate-line", onSelect: duplicate },
+        ...(project.status === "Completed" ? [] : [project.status === "On hold"
+          ? { id: "resume", label: "Resume project", icon: "icon-play-circle-line", onSelect: hold } as const
+          : { id: "hold", label: "Put on hold", icon: "icon-pause-circle-line", onSelect: hold } as const]),
+        // Unavailable right now: it stays in the menu, dimmed, and the caption says what to do first.
+        { id: "archive", label: "Archive project", icon: "icon-archive-line", disabled: openTasks.length > 0,
+          caption: openTasks.length ? `Close ${plural(openTasks.length, "open task")} first` : undefined, onSelect: archive },
+      ] },
+      { type: "separator" },
+      { id: "delete", label: "Delete project", icon: "icon-trash-line", danger: true, onSelect: () => setDeleting(true) },
+    ];
+    header = (
+      <AppShellHeader
+        // The trail starts at a Sub level beside the collapse toggle; Projects goes back to the list.
+        leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: project.id, label: project.name }]}
+          onNavigate={(item) => { if (item.id === "projects") toProjects(project.id); }} />}
+        actions={<StudioActions />}
+        main={(
+          <PageHeader eyebrow={project.client} title={project.name}
             meta={<Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>}
             description={`Led by ${people[project.lead].name} · ${timing(project)}`}
             actions={<>
@@ -269,35 +387,115 @@ function ProjectActions() {
               <Menu align="end" items={items}
                 trigger={<IconButton level="tertiary" size="md" icon="icon-dots-horizontal-line" aria-label={`More actions for ${project.name}`} />} />
             </>} />
-          <Stack as="section" gap="md" aria-labelledby={tasksId}>
-            <Heading level={2} id={tasksId} textStyle="Heading/4">Open tasks</Heading>
-            {openTasks.length ? (
-              <ListBox>
-                <List aria-labelledby={tasksId}>
-                  {openTasks.map((task) => (
-                    <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${people[task.assignee].name} · ${formatDue(task.due)}`}
-                      trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
-                  ))}
-                </List>
-              </ListBox>
-            ) : (
+        )}
+      />
+    );
+    // The open tasks lead (they decide whether Archive is available); the facts and the team sit beside them, all on
+    // Shadow surfaces at the Sidebar's elevation. In a narrow window the side column moves under the tasks.
+    body = (
+      <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="xl" align="start">
+        <Stack gap="xl">
+        <Stack as="section" gap="md" aria-labelledby={tasksId} ref={measureTasks}>
+          <Heading level={2} id={tasksId} textStyle="Heading/4">Open tasks</Heading>
+          {openTasks.length ? (
+            <ListBox theme="shadow">
+              <List aria-labelledby={tasksId}>
+                {openTasks.map((task) => (
+                  // In a narrow column the assignee's face and a trailing Badge would squeeze the title to an ellipsis:
+                  // the status then leads the caption instead.
+                  <ListItem key={task.id} title={task.title} titleLines={2}
+                    caption={narrowTasks ? `${task.status} · ${task.key} · ${formatDue(task.due)}` : `${task.key} · ${people[task.assignee].name} · ${formatDue(task.due)}`}
+                    leading={narrowTasks ? undefined : <Avatar size="md" {...avatarOf(people[task.assignee])} />}
+                    trailing={narrowTasks ? undefined : <Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+                ))}
+              </List>
+            </ListBox>
+          ) : (
+            <Card theme="shadow">
               <EmptyState size="sm" headingLevel={3} icon="icon-check-done-line" title="No open tasks">Every task on this project is done.</EmptyState>
-            )}
-          </Stack>
+            </Card>
+          )}
         </Stack>
-      </Container>
-      <DemoFieldDialog open={sharing} onOpenChange={setSharing} title={`Share ${project.name}`}
-        description="They can view the project, its tasks and its files."
-        field={{ kind: "email", label: "Email", placeholder: "name@company.com" }} submitLabel="Share project"
-        confirm={(email) => `Shared with ${email}`} />
-      <ModalForm open={renaming} onOpenChange={setRenaming} title="Rename project" onSubmit={renameForm.handleSubmit}
-        primaryAction={{ label: "Rename project" }} secondaryAction={{ label: "Cancel" }}>
-        <InputField label="Project name" autoComplete="off" data-autofocus="" {...renameForm.field("name")} />
-      </ModalForm>
-      <Dialog open={deleting} onOpenChange={setDeleting} theme="negative" title={`Delete ${project.name}?`}
-        description={`Its ${plural(tasks.filter((task) => task.project === project.id).length, "task")}, files and invoices are removed for everyone. This can't be undone.`}
-        primaryAction={{ label: "Delete project", level: "danger", onClick: remove }} secondaryAction={{ label: "Cancel" }} />
-    </Box>
+        <Stack as="section" gap="md" aria-labelledby={filesId}>
+          <Heading level={2} id={filesId} textStyle="Heading/4">Latest files</Heading>
+          {projectFiles.length ? (
+            <ListBox theme="shadow">
+              <List aria-labelledby={filesId}>
+                {projectFiles.map((file) => (
+                  <ListItem key={file.id} title={file.name} caption={`${formatBytes(file.bytes)} · ${people[file.owner].name} · ${formatRelative(file.updated)}`}
+                    leading={<FileIcon format={fileIconFormatOf(file.name)} />}
+                    onClick={() => toast({ title: `Opening ${file.name}`, children: `${formatBytes(file.bytes)} · ${people[file.owner].name}` })} />
+                ))}
+              </List>
+            </ListBox>
+          ) : (
+            <Card theme="shadow">
+              <EmptyState size="sm" headingLevel={3} icon="icon-folder-line" title="No files yet">Files the team shares on this project show here.</EmptyState>
+            </Card>
+          )}
+        </Stack>
+        </Stack>
+        <Stack gap="lg">
+          <Card as="section" theme="shadow" aria-labelledby={detailsId}>
+            <Stack gap="md">
+              <Heading level={2} id={detailsId} textStyle="Heading/Subheading">Details</Heading>
+              <ProgressBar value={project.progress} label="Progress" aria-label={`${project.name} progress`} layout="stacked" />
+              <DescriptionList divider layout="inline" items={[
+                { id: "client", term: "Client", description: project.client },
+                { id: "start", term: "Started", description: formatDate(project.start) },
+                { id: "due", term: "Due", description: formatDate(project.due) },
+                { id: "budget", term: "Budget", description: budgetLine(project) },
+              ]} />
+            </Stack>
+          </Card>
+          <ListBox as="section" theme="shadow" aria-labelledby={teamId}
+            header={(
+              <Stack direction="row" gap="xs" align="center">
+                <Heading level={2} id={teamId} textStyle="Heading/Subheading">Team</Heading>
+                <BadgeCounter theme="neutral" background="subtle" value={project.members.length} aria-label={plural(project.members.length, "member")} />
+              </Stack>
+            )}>
+            <List aria-labelledby={teamId}>
+              {project.members.map((id) => (
+                <ListItem key={id} title={people[id].name} caption={id === project.lead ? `${people[id].role} · Project lead` : people[id].role}
+                  leading={<Avatar size="md" {...avatarOf(people[id])} />} />
+              ))}
+            </List>
+          </ListBox>
+        </Stack>
+      </Grid>
+    );
+    overlays = (
+      <>
+        <DemoFieldDialog open={sharing} onOpenChange={setSharing} title={`Share ${project.name}`}
+          description="They can view the project, its tasks and its files."
+          field={{ kind: "email", label: "Email", placeholder: "name@company.com" }} submitLabel="Share project"
+          confirm={(email) => `Shared with ${email}`} />
+        <ModalForm open={renaming} onOpenChange={setRenaming} title="Rename project" onSubmit={renameForm.handleSubmit}
+          primaryAction={{ label: "Rename project" }} secondaryAction={{ label: "Cancel" }}>
+          <InputField label="Project name" autoComplete="off" data-autofocus="" {...renameForm.field("name")} />
+        </ModalForm>
+        <Dialog open={deleting} onOpenChange={setDeleting} theme="negative" title={`Delete ${project.name}?`}
+          description={`Its ${plural(tasks.filter((task) => task.project === project.id).length, "task")}, files and invoices are removed for everyone. This can't be undone.`}
+          primaryAction={{ label: "Delete project", level: "danger", onClick: remove }} secondaryAction={{ label: "Cancel" }} />
+      </>
+    );
+  }
+
+  return (
+    // A page of the studio app: one AppShell (pattern sidebar), the studio's Sidebar on Projects, the header's top row
+    // for the trail (or the list's Search) and the utilities, the page's title and actions in its Main row. The Body pads
+    // the page, so the screens need no Container for the margins.
+    <PreviewAppFrame frameRef={frameRef} height={{ min: 640, max: 820 }}>
+      <AppShell sidebar={<StudioSidebar selectedId="projects" />} header={header}>
+        {body}
+        {overlays}
+        <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New project"
+          description="It starts in Planning, led by you. Add the client and the team next."
+          field={{ kind: "name", label: "Project name", placeholder: "Website refresh" }} submitLabel="Create project"
+          confirm={(name) => `${name} created`} onSubmit={addProject} />
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -441,6 +639,8 @@ function PhoneFileMenu() {
   const { toast } = useToast();
   const screen = usePhoneScreen();
   const screenRef = useRef<HTMLDivElement>(null);
+  const recentId = useId();
+  const earlierId = useId();
   const [files, setFiles] = useState(phoneFiles);
   const [openId, setOpenId] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<PhoneFile | null>(null);
@@ -469,57 +669,84 @@ function PhoneFileMenu() {
   };
   const caption = (file: PhoneFile) => `${formatBytes(file.bytes)} · ${file.offline ? "Available offline" : formatRelative(file.updated)}`;
 
+  const fileMenu = (file: PhoneFile) => (
+    <Menu align="end"
+      trigger={<IconButton appearance="flat" level="primary" size="md" icon="icon-dots-horizontal-line" aria-label={`More actions for ${file.name}`} />}
+      items={[
+        { id: "copy", label: "Copy link", icon: "icon-link-01-line", onSelect: () => { copyText(`https://zen.dizai.studio/files/${file.id}`); toast({ title: "Link copied" }); } },
+        { id: "rename", label: "Rename…", icon: "icon-edit-02-line", onSelect: () => setRenaming(file) },
+        { id: "offline", label: file.offline ? "Remove offline copy" : "Make available offline", icon: file.offline ? "icon-cloud-off-line" : "icon-download-cloud-01-line", onSelect: () => toggleOffline(file) },
+        { type: "separator" },
+        { id: "delete", label: "Delete file", icon: "icon-trash-line", danger: true, onSelect: () => remove(file) },
+      ]} />
+  );
+
   if (opened) {
     return (
-      <PlatformPhone key={opened.id} label="Files" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact-alt" title={opened.name} scrollRef={screenRef}
-          leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-file="${opened.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
-        footer={<ActionBar position="static" primaryAction={{ label: opened.offline ? "Remove offline copy" : "Make available offline", onClick: () => toggleOffline(opened) }} />}>
-        {screen.anchor}
-        <Stack gap="lg" padding="lg">
-          <FileIcon format={fileIconFormatOf(opened.name)} size="3xl" />
-          <DescriptionList divider items={[
-            { term: "Size", description: formatBytes(opened.bytes) },
-            { term: "Owner", description: people[opened.owner].name },
-            { term: "Project", description: "Loyalty app" },
-            { term: "Updated", description: formatRelative(opened.updated) },
-            { term: "On this phone", description: opened.offline ? "Available offline" : "Online only" },
-          ]} />
-        </Stack>
+      // A pushed screen: the compact bar with Back and the file's name (the screen's h1), the file's one action in the
+      // Action bar the shell pins to the bottom, no tab bar.
+      <PlatformPhone key={opened.id} label="Files" canvas="default" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation type="compact-alt" title={opened.name} scrollRef={screenRef}
+            leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-file="${opened.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
+          actionBar={<ActionBar primaryAction={{ label: opened.offline ? "Remove offline copy" : "Make available offline", onClick: () => toggleOffline(opened) }} />}
+        >
+          {screen.anchor}
+          <Stack gap="sm" align="center" paddingY="md">
+            <FileIcon format={fileIconFormatOf(opened.name)} size="3xl" />
+            <Text textStyle="Body/Small/Regular" tone="base" align="center">{`${formatBytes(opened.bytes)} · Loyalty app · Phin & Co`}</Text>
+          </Stack>
+          <Card theme="flat">
+            <DescriptionList divider layout="inline" items={[
+              { term: "Size", description: formatBytes(opened.bytes) },
+              { term: "Owner", description: people[opened.owner].name },
+              { term: "Project", description: "Loyalty app" },
+              { term: "Updated", description: formatRelative(opened.updated) },
+              { term: "On this phone", description: opened.offline ? "Available offline" : "Online only" },
+            ]} />
+          </Card>
+        </AppShell>
       </PlatformPhone>
     );
   }
 
+  // Files changed this week first, then the rest; both keep the order they had.
+  const weekAgo = daysFromToday(-7, 0, 0);
+  const groups = [
+    { id: recentId, title: "This week", rows: files.filter((file) => file.updated >= weekAgo) },
+    { id: earlierId, title: "Earlier", rows: files.filter((file) => file.updated < weekAgo) },
+  ].filter((group) => group.rows.length);
   return (
-    <PlatformPhone key="files" label="Files" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
-      {screen.anchor}
-      {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
-      <Box paddingX="lg" paddingY="xs">
-        <List aria-label="Loyalty app files">
-          {files.map((file) => (
-            // The row opens the file; its ⋯ is a separate target with a few short actions.
-            <ListItem key={file.id} data-file={file.id} title={file.name} caption={caption(file)}
-              leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />}
-              onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(file.id))}
-              trailing={
-                <Menu align="end"
-                  trigger={<IconButton appearance="flat" level="primary" size="md" icon="icon-dots-horizontal-line" aria-label={`More actions for ${file.name}`} />}
-                  items={[
-                    { id: "copy", label: "Copy link", icon: "icon-link-01-line", onSelect: () => { copyText(`https://zen.dizai.studio/files/${file.id}`); toast({ title: "Link copied" }); } },
-                    { id: "rename", label: "Rename…", icon: "icon-edit-02-line", onSelect: () => setRenaming(file) },
-                    { id: "offline", label: file.offline ? "Remove offline copy" : "Make available offline", icon: file.offline ? "icon-cloud-off-line" : "icon-download-cloud-01-line", onSelect: () => toggleOffline(file) },
-                    { type: "separator" },
-                    { id: "delete", label: "Delete file", icon: "icon-trash-line", danger: true, onSelect: () => remove(file) },
-                  ]} />
-              } />
-          ))}
-        </List>
-      </Box>
-      <BottomSheet inline open={Boolean(renaming)} onOpenChange={(open) => { if (!open) setRenaming(null); }} title="Rename file"
-        onSubmit={form.handleSubmit} primaryAction={{ label: "Rename file" }} secondaryAction={{ label: "Cancel" }}>
-        <InputField size="lg" label="File name" autoComplete="off" {...form.field("name")} />
-      </BottomSheet>
+    // A tab root of Đìzai Studio's Zen app: the large title folds as the files scroll under the bar; the tab bar casts a
+    // shadow, so the file groups take the same Shadow elevation.
+    <PlatformPhone key="files" label="Files" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation title="Files" largeTitle="Files" largeTitleSubheading={`Loyalty app · ${plural(files.length, "file")}`} scrollRef={screenRef} />}
+        bottomNavigation={<ZenRoots value="files" />}
+      >
+        {screen.anchor}
+        {groups.map((group) => (
+          <Stack key={group.id} as="section" gap="xs" aria-labelledby={group.id}>
+            <Box paddingX="lg"><Heading level={2} id={group.id} textStyle="Body/Small/Bold" tone="light">{group.title}</Heading></Box>
+            <ListBox theme="shadow">
+              <List aria-labelledby={group.id}>
+                {group.rows.map((file) => (
+                  // The row opens the file; its ⋯ is a separate target with a few short actions.
+                  <ListItem key={file.id} data-file={file.id} title={file.name} caption={caption(file)}
+                    leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />}
+                    onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(file.id))}
+                    trailing={fileMenu(file)} />
+                ))}
+              </List>
+            </ListBox>
+          </Stack>
+        ))}
+        {/* Not inline: the sheet opens in the device frame, above the shell's tab bar. */}
+        <BottomSheet open={Boolean(renaming)} onOpenChange={(open) => { if (!open) setRenaming(null); }} title="Rename file"
+          onSubmit={form.handleSubmit} primaryAction={{ label: "Rename file" }} secondaryAction={{ label: "Cancel" }}>
+          <InputField size="lg" label="File name" autoComplete="off" {...form.field("name")} />
+        </BottomSheet>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -560,30 +787,41 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Project actions",
     screen: true,
-    description: "Share stays a button; the page's other commands sit in its More menu, grouped under labels, with Delete last. Archive stays visible but disabled while tasks are open, and its caption says what to do first. Back returns to the projects list.",
+    description: "A project page in the studio app: Share stays a button in the PageHeader; the page's other commands sit in its More menu, grouped under labels, with Delete last. Archive stays visible but disabled while tasks are open, and its caption says what to do first. Projects in the trail returns to the list, where Search narrows the projects and New project adds one.",
     render: () => <ProjectActions />,
-    code: `<PageHeader back={{ label: "Projects", onClick: toProjects }} eyebrow={project.client} title={project.name}
-  meta={<Badge theme={statusTheme[project.status]} background="subtle">{project.status}</Badge>}
-  actions={<>
-    <Button level="tertiary" startIcon="icon-user-plus-line" onClick={() => setSharing(true)}>Share</Button>
-    <Menu align="end"
-      trigger={<IconButton level="tertiary" size="md" icon="icon-dots-horizontal-line" aria-label={\`More actions for \${project.name}\`} />}
-      items={[
-        { type: "group", label: "Link and export", items: [
-          { id: "copy", label: "Copy link", icon: "icon-link-01-line", onSelect: copyLink },
-          { id: "report", label: "Export status report", icon: "icon-download-01-line", onSelect: exportReport },
-        ] },
-        { type: "group", label: "Project", items: [
-          { id: "rename", label: "Rename…", icon: "icon-edit-02-line", onSelect: () => setRenaming(true) },
-          { id: "duplicate", label: "Duplicate project", icon: "icon-duplicate-line", onSelect: duplicate },
-          { id: "hold", label: "Put on hold", icon: "icon-pause-circle-line", onSelect: hold },
-          { id: "archive", label: "Archive project", icon: "icon-archive-line", onSelect: archive,
-            disabled: openTasks.length > 0, caption: openTasks.length ? \`Close \${plural(openTasks.length, "open task")} first\` : undefined },
-        ] },
-        { type: "separator" },
-        { id: "delete", label: "Delete project", icon: "icon-trash-line", danger: true, onSelect: () => setDeleting(true) },
-      ]} />
-  </>} />`,
+    code: `<AppShell
+  sidebar={<Sidebar logo={studioLogo} sections={studioPlaces} selectedId="projects" />}
+  header={<AppShellHeader
+    leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: project.id, label: project.name }]} onNavigate={toProjects} />}
+    actions={<>{notifications}{accountMenu}</>}
+    main={(
+      <PageHeader eyebrow={project.client} title={project.name}
+        meta={<Badge theme={statusTheme[project.status]} background="subtle">{project.status}</Badge>}
+        actions={<>
+          <Button level="tertiary" startIcon="icon-user-plus-line" onClick={() => setSharing(true)}>Share</Button>
+          <Menu align="end"
+            trigger={<IconButton level="tertiary" size="md" icon="icon-dots-horizontal-line" aria-label={\`More actions for \${project.name}\`} />}
+            items={[
+              { type: "group", label: "Link and export", items: [
+                { id: "copy", label: "Copy link", icon: "icon-link-01-line", onSelect: copyLink },
+                { id: "report", label: "Export status report", icon: "icon-download-01-line", onSelect: exportReport },
+              ] },
+              { type: "group", label: "Project", items: [
+                { id: "rename", label: "Rename…", icon: "icon-edit-02-line", onSelect: () => setRenaming(true) },
+                { id: "duplicate", label: "Duplicate project", icon: "icon-duplicate-line", onSelect: duplicate },
+                { id: "hold", label: "Put on hold", icon: "icon-pause-circle-line", onSelect: hold },
+                { id: "archive", label: "Archive project", icon: "icon-archive-line", onSelect: archive,
+                  disabled: openTasks.length > 0, caption: openTasks.length ? \`Close \${plural(openTasks.length, "open task")} first\` : undefined },
+              ] },
+              { type: "separator" },
+              { id: "delete", label: "Delete project", icon: "icon-trash-line", danger: true, onSelect: () => setDeleting(true) },
+            ]} />
+        </>} />
+    )} />}
+>
+  {/* The Body pads the page: open tasks beside the project's details and team, on Shadow surfaces. */}
+  <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="xl" align="start">…</Grid>
+</AppShell>`,
   },
   {
     title: "New file menu",
@@ -627,35 +865,42 @@ const onKeyDown = (event) => {
   },
   {
     title: "Row menu on a phone",
-    description: "Each file row opens the file, and its ⋯ is a separate target with four short actions; the menu opens inside the phone, lined up with the button. Rename opens a Bottom Sheet form, and Delete removes the row with Undo in the toast.",
+    description: "Each file row opens the file, and its ⋯ is a separate target with four short actions; the menu opens inside the phone, lined up with the button. Rename opens a Bottom Sheet form, and Delete removes the row with Undo in the toast. The files sit on a tab root of the Zen app, grouped by when they changed.",
     render: () => <PhoneFileMenu />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-<PlatformPhone key="files" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
-  <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
-    <List aria-label="Loyalty app files">
-      {files.map((file) => (
-        <ListItem key={file.id} title={file.name} caption={caption(file)}
-          leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />}
-          onClick={() => setOpenId(file.id)}
-          trailing={<Menu align="end"
-            trigger={<IconButton appearance="flat" level="primary" size="md" icon="icon-dots-horizontal-line" aria-label={\`More actions for \${file.name}\`} />}
-            items={[
-              { id: "copy", label: "Copy link", icon: "icon-link-01-line", onSelect: () => copyLink(file) },
-              { id: "rename", label: "Rename…", icon: "icon-edit-02-line", onSelect: () => setRenaming(file) },
-              { id: "offline", label: file.offline ? "Remove offline copy" : "Make available offline",
-                icon: file.offline ? "icon-cloud-off-line" : "icon-download-cloud-01-line", onSelect: () => toggleOffline(file) },
-              { type: "separator" },
-              { id: "delete", label: "Delete file", icon: "icon-trash-line", danger: true, onSelect: () => remove(file) },
-            ]} />} />
-      ))}
-    </List>
-  </Box>
-  <BottomSheet inline open={Boolean(renaming)} onOpenChange={(open) => !open && setRenaming(null)} title="Rename file"
-    onSubmit={form.handleSubmit} primaryAction={{ label: "Rename file" }} secondaryAction={{ label: "Cancel" }}>
-    <InputField size="lg" label="File name" {...form.field("name")} />
-  </BottomSheet>
+<PlatformPhone key="files" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation title="Files" largeTitle="Files" largeTitleSubheading="Loyalty app · 15 files" scrollRef={screenRef} />}
+    bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" showLabels items={roots} value="files" onValueChange={navigate} />}
+  >
+    <Stack as="section" gap="xs" aria-labelledby="this-week">
+      <Box paddingX="lg"><Heading level={2} id="this-week" textStyle="Body/Small/Bold" tone="light">This week</Heading></Box>
+      <ListBox theme="shadow">
+        <List aria-labelledby="this-week">
+          {files.map((file) => (
+            <ListItem key={file.id} title={file.name} caption={caption(file)}
+              leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />}
+              onClick={() => setOpenId(file.id)}
+              trailing={<Menu align="end"
+                trigger={<IconButton appearance="flat" level="primary" size="md" icon="icon-dots-horizontal-line" aria-label={\`More actions for \${file.name}\`} />}
+                items={[
+                  { id: "copy", label: "Copy link", icon: "icon-link-01-line", onSelect: () => copyLink(file) },
+                  { id: "rename", label: "Rename…", icon: "icon-edit-02-line", onSelect: () => setRenaming(file) },
+                  { id: "offline", label: file.offline ? "Remove offline copy" : "Make available offline",
+                    icon: file.offline ? "icon-cloud-off-line" : "icon-download-cloud-01-line", onSelect: () => toggleOffline(file) },
+                  { type: "separator" },
+                  { id: "delete", label: "Delete file", icon: "icon-trash-line", danger: true, onSelect: () => remove(file) },
+                ]} />} />
+          ))}
+        </List>
+      </ListBox>
+    </Stack>
+    <BottomSheet open={Boolean(renaming)} onOpenChange={(open) => !open && setRenaming(null)} title="Rename file"
+      onSubmit={form.handleSubmit} primaryAction={{ label: "Rename file" }} secondaryAction={{ label: "Cancel" }}>
+      <InputField size="lg" label="File name" {...form.field("name")} />
+    </BottomSheet>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

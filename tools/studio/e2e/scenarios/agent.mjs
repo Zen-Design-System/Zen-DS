@@ -37,7 +37,9 @@ async function pageWithButton(ctx) {
   const made = await newPage(ctx, { device: "desktop" });
   const { page, id } = made;
   const tree = await mcp(ctx, "get_tree");
-  const content = /Stack #(\S+) gap="md" padding="xl"/.exec(tree)?.[1];
+  // The content Stack of a blank desktop page: inside the master layout the AppShell Body pads the page, so it has no
+  // padding of its own (a bare Screen's keeps padding="xl").
+  const content = /^\s*Stack #(\S+) gap="md"(?: padding="xl")?$/m.exec(tree)?.[1];
   if (!content) throw new Error(`no content Stack in get_tree:\n${tree.slice(0, 400)}`);
   const added = await mcp(ctx, "insert", { parent: content, index: 0, jsx: '<Button level="primary">Save</Button>' });
   const button = /Button #(\S+)/.exec(added)?.[1];

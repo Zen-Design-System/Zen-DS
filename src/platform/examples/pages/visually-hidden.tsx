@@ -2,17 +2,20 @@
    Alex Duong, Wednesday Sep 30, 2026, 10:30 am. Each example teaches one use of text that only assistive technology
    reads: a skip link that shows on the first Tab, names for icon-only table columns, words that make repeated buttons
    unique, a status that announces a change shown only visually, unread counts that say what they count on a phone, and
-   a heading that names a region sighted people read from the layout. */
+   a heading that names a region sighted people read from the layout. The client portal (AppShell Layout=Top-Bar,
+   whose own skip link is the subject) and the phone Inbox sit in the new AppShell (2026-10-19). */
 import { useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { AppShell, AppShellAccount, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
-import { Box, Container, Grid, Stack } from "../../../components/Layout";
+import { Grid, Stack } from "../../../components/Layout";
 import { Link } from "../../../components/Link";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
@@ -24,6 +27,7 @@ import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
+import { PreviewAppFrame, StudioLogo } from "../../PlatformFrames";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   TODAY, daysFromToday, formatBytes, formatCompactMoney, formatDate, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme,
@@ -86,11 +90,14 @@ const portal: Record<PortalPage, { label: string; title: string; description: st
 };
 const portalPages = Object.keys(portal) as PortalPage[];
 
+const loyalty = projectById("phin-loyalty");
+
 function SkipLinkPortal() {
+  const { toast } = useToast();
   const [current, setCurrent] = useState<PortalPage>("overview");
-  const mainRef = useRef<HTMLElement>(null);
   const mainId = useId();
   const sectionId = useId();
+  const glanceId = useId();
   const page = portal[current];
   const navigate = (event: MouseEvent<HTMLElement>, id: PortalPage) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -98,65 +105,78 @@ function SkipLinkPortal() {
     setCurrent(id);
   };
   return (
-    // The skip link's pill shows at the top-start corner of the nearest positioned box: this page.
-    <Box className="px-visually-hidden-site">
-      {/* The first focusable element of the page: hidden until it has focus, then it moves focus to the main content. */}
-      <VisuallyHidden as="a" href={`#${mainId}`} focusable onClick={(event) => { event.preventDefault(); mainRef.current?.focus(); }}>
-        Skip to main content
-      </VisuallyHidden>
-      <Box as="header" className="px-visually-hidden-header">
-        <Container maxWidth="lg">
-          {/* Brand · navigation · account in one row; in a narrow window the navigation takes a row of its own. */}
-          <Box className="px-visually-hidden-bar">
-            <Stack direction="row" align="center" gap="xs" className="px-visually-hidden-brand">
-              <Avatar size="xs" shape="square" theme="photo" src={studio.logo} alt="" />
-              <Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text>
-            </Stack>
-            <Stack as="nav" aria-label="Client portal" className="px-visually-hidden-nav">
-              <Stack as="ul" direction="row" gap="sm" wrap>
-                {portalPages.map((id) => {
-                  const here = id === current;
-                  return (
-                    <li key={id}>
-                      {/* A navigation list, not links in copy: the links take the bar's neutral text colour (tone="inherit"),
-                          the current page is Strongest and Bold with aria-current, and the others underline on hover. */}
-                      <Text as="span" textStyle={here ? "Body/Base/Bold" : "Body/Base/Medium"} tone={here ? "strongest" : "base"}>
-                        <Link href={`/portal/${id}`} tone="inherit" underline={here ? "none" : "hover"} aria-current={here ? "page" : undefined}
-                          onClick={(event) => navigate(event, id)}>{portal[id].label}</Link>
-                      </Text>
-                    </li>
-                  );
-                })}
+    <PreviewAppFrame height={{ min: 600, max: 760 }}>
+      {/* The client portal is one product without a Sidebar: AppShell Layout=Top-Bar, the brand and the portal's
+          navigation in the header's top row, Trang's account at its end, the page's PageHeader as its Main row. The
+          shell's first focusable element is its skip link (a VisuallyHidden link): hidden until it has focus, then a
+          Surface pill at the shell's top-start corner that moves focus to the main content (mainId). */}
+      <AppShell pattern="top-bar" mainId={mainId}
+        header={(
+          <AppShellHeader
+            leading={(
+              // Brand · navigation; in a narrow window the row takes a line of its own above the account.
+              <Stack direction="row" align="center" gap="xl" wrap>
+                <StudioLogo src={studio.logo} name={studio.name} />
+                <Stack as="nav" aria-label="Client portal">
+                  <Stack as="ul" direction="row" gap="md" wrap>
+                    {portalPages.map((id) => {
+                      const here = id === current;
+                      return (
+                        <li key={id}>
+                          {/* A navigation list, not links in copy: the links take the bar's neutral text colour (tone="inherit"),
+                              the current page is Strongest and Bold with aria-current, and the others underline on hover. */}
+                          <Text as="span" textStyle={here ? "Body/Base/Bold" : "Body/Base/Medium"} tone={here ? "strongest" : "base"}>
+                            <Link href={`/portal/${id}`} tone="inherit" underline={here ? "none" : "hover"} aria-current={here ? "page" : undefined}
+                              onClick={(event) => navigate(event, id)}>{portal[id].label}</Link>
+                          </Text>
+                        </li>
+                      );
+                    })}
+                  </Stack>
+                </Stack>
               </Stack>
+            )}
+            actions={(
+              <Menu align="end" trigger={<AppShellAccount name="Trang Le" theme="blue" />} items={[
+                { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: "Trang Le", children: "Product owner · Phin & Co" }) },
+                { type: "separator" },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out of the client portal", children: "See you soon, Trang." }) },
+              ]} />
+            )}
+            main={<PageHeader title={page.title} description={page.description}
+              meta={current === "overview" ? <Badge theme="blue" background="subtle">Active</Badge> : undefined} />}
+          />
+        )}
+      >
+        {/* The Body pads the page and is the skip link's target. Sections of the page sit xl apart. */}
+        <Stack gap="xl">
+          {current === "overview" ? (
+            <Stack as="section" gap="md" aria-labelledby={glanceId}>
+              <Heading level={2} id={glanceId} textStyle="Heading/4">At a glance</Heading>
+              {/* No Sidebar sets an elevation: white flat boxes on the Canvas. */}
+              <Grid columns="repeat(auto-fit, minmax(min(100%, 220px), 1fr))" gap="md">
+                <MetricCard theme="flat" size="md" icon="icon-target-04-line" iconTheme="blue" label="Progress" value={`${loyalty.progress}%`} />
+                <MetricCard theme="flat" size="md" icon="icon-calendar-line" iconTheme="purple" label="Store staff beta" value={formatDate(new Date(2026, 9, 15))} />
+                <MetricCard theme="flat" size="md" icon="icon-coins-line" iconTheme="green" label="Budget used" value={formatCompactMoney(loyalty.spent)} />
+              </Grid>
             </Stack>
-            <Stack direction="row" align="center" gap="xs" className="px-visually-hidden-account">
-              <Avatar size="sm" theme="blue" alt="">TL</Avatar>
-              <Text as="span" textStyle="Body/Small/Medium">Trang Le</Text>
-            </Stack>
-          </Box>
-        </Container>
-      </Box>
-      <Box as="main" ref={mainRef} id={mainId} tabIndex={-1} className="px-visually-hidden-main">
-        <Container maxWidth="lg">
-          <Stack paddingY="xl" gap="xl">
-            <PageHeader title={page.title} description={page.description}
-              meta={current === "overview" ? <Badge theme="blue" background="subtle">Active</Badge> : undefined} />
-            <Stack as="section" gap="md" aria-labelledby={sectionId}>
-              <Heading level={2} id={sectionId} textStyle="Heading/4">{page.section}</Heading>
-              <ListBox>
-                <List aria-labelledby={sectionId}>
-                  {/* A row that leads to another page of the portal is a link (href), so Tab after the skip link lands on it. */}
-                  {page.rows.map(({ to, ...row }) => (
-                    <ListItem key={row.id} title={row.title} titleLines={2} caption={row.caption} leading={row.leading} trailing={row.trailing}
-                      href={to ? `/portal/${to}` : undefined} onClick={to ? (event) => navigate(event, to) : undefined} />
-                  ))}
-                </List>
-              </ListBox>
-            </Stack>
+          ) : null}
+          <Stack as="section" gap="md" aria-labelledby={sectionId}>
+            <Heading level={2} id={sectionId} textStyle="Heading/4">{page.section}</Heading>
+            <ListBox>
+              <List aria-labelledby={sectionId}>
+                {/* A row that leads to another page of the portal is a link (href); the others open in place. */}
+                {page.rows.map(({ to, ...row }) => (
+                  <ListItem key={row.id} title={row.title} titleLines={2} caption={row.caption} leading={row.leading} trailing={row.trailing}
+                    href={to ? `/portal/${to}` : undefined}
+                    onClick={to ? (event) => navigate(event, to) : () => toast({ title: row.title, children: row.caption })} />
+                ))}
+              </List>
+            </ListBox>
           </Stack>
-        </Container>
-      </Box>
-    </Box>
+        </Stack>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -376,31 +396,50 @@ const firstThreads: Thread[] = [
 ];
 const back = "icon-chevron-left-line-medium" as const;
 
+/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
+const phoneRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
+  { id: "inbox", label: "Inbox", icon: "icon-message-chat-circle-line", selectedIcon: "icon-message-chat-circle-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+
 function PhoneInbox() {
+  const { toast } = useToast();
   const screen = usePhoneScreen();
   const screenRef = useRef<HTMLDivElement>(null);
   const [threads, setThreads] = useState(firstThreads);
   const [openId, setOpenId] = useState<string | null>(null);
   const opened = threads.find((item) => item.id === openId);
   const unread = threads.reduce((sum, item) => sum + item.unread, 0);
+  const waiting = threads.filter((item) => item.unread).length;
   const open = (id: string) => screen.go('.zen-top-nav__action[aria-label="Back"]', () => {
     setOpenId(id);
     setThreads((list) => list.map((item) => (item.id === id ? { ...item, unread: 0 } : item)));
   });
+  const notHere = (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows Visually Hidden." });
 
   if (opened) {
+    const markUnread = () => {
+      setThreads((list) => list.map((item) => (item.id === opened.id ? { ...item, unread: item.comments.length } : item)));
+      toast({ title: "Marked as unread", children: `${opened.key} · ${plural(opened.comments.length, "unread comment")}` });
+    };
     return (
-      <PlatformPhone key={opened.id} label="Zen app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact-alt" title={opened.key} scrollRef={screenRef}
-          leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-thread="${opened.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
-        {screen.anchor}
-        <Stack gap="lg" paddingY="lg">
-          <Stack gap="xs" paddingX="lg">
-            <Heading level={2} textStyle="Heading/Subheading">{opened.title}</Heading>
-            <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${projectById(opened.project).name} · ${plural(opened.comments.length, "comment")}`}</Text>
-          </Stack>
-          {/* Static rows (comments are read, not opened) take the same screen margin as the title above. */}
-          <Box paddingX="lg">
+      // A pushed screen: the compact bar with Back and the task's key, this thread's one action in its trailing slot, no
+      // bottom bar. The Body pads the screen.
+      <PlatformPhone key={opened.id} label="Zen app" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation type="compact-alt" title={opened.key} scrollRef={screenRef}
+            leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-thread="${opened.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }}
+            trailing={[{ icon: "icon-mail-01-line", label: "Mark as unread", onClick: markUnread }]} />}
+        >
+          {screen.anchor}
+          <Stack gap="lg">
+            <Stack gap="xs">
+              <Heading level={2} textStyle="Heading/Subheading">{opened.title}</Heading>
+              <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${projectById(opened.project).name} · ${plural(opened.comments.length, "comment")}`}</Text>
+            </Stack>
+            {/* Static rows (comments are read, not opened) take the same screen margin as the title above. */}
             <List aria-label="Comments">
               {opened.comments.map((comment) => (
                 // The comment is what the thread is read for: it takes the body text; name and time are the line above it.
@@ -413,34 +452,40 @@ function PhoneInbox() {
                 </ListItem>
               ))}
             </List>
-          </Box>
-        </Stack>
+          </Stack>
+        </AppShell>
       </PlatformPhone>
     );
   }
 
   return (
-    <PlatformPhone key="inbox" label="Zen app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
-      {screen.anchor}
-      {/* The list's name carries the total; each counter is aria-hidden and its hidden text says what it counts. The rows
-          sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall
-          above and below, like a List-Box. */}
-      <Box paddingX="lg" paddingY="xs">
-        <List aria-label={unread ? `Inbox, ${plural(unread, "unread comment")}` : "Inbox"}>
-          {threads.map((item) => {
-            const last = item.comments[0];
-            return (
-              <ListItem key={item.id} data-thread={item.id} title={item.title} titleLines={2} caption={`${item.key} · ${people[last.by].name} · ${formatRelative(last.at)}`}
-                leading={personAvatar(last.by)} onClick={() => open(item.id)}
-                trailing={item.unread ? <>
-                  <BadgeCounter value={item.unread} theme="red" aria-hidden="true" />
-                  <VisuallyHidden>{plural(item.unread, "unread comment")}</VisuallyHidden>
-                </> : undefined} />
-            );
-          })}
-        </List>
-      </Box>
+    // The Inbox root: the large title folds into the bar as the threads scroll, the app's roots sit in the bottom bar. The
+    // bar casts a shadow, so the threads' block takes the same Shadow elevation.
+    <PlatformPhone key="inbox" label="Zen app" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={screenRef}
+          largeTitleSubheading={waiting ? `New comments in ${plural(waiting, "thread")}` : "You’re all caught up"} />}
+        bottomNavigation={<BottomNavigation aria-label={studio.name} showLabels items={phoneRoots} value="inbox"
+          onValueChange={(id) => { if (id !== "inbox") notHere(phoneRoots.find((item) => item.id === id)?.label ?? id); }} />}
+      >
+        {screen.anchor}
+        {/* The list's name carries the total; each counter is aria-hidden and its hidden text says what it counts. */}
+        <ListBox theme="shadow">
+          <List aria-label={unread ? `Inbox, ${plural(unread, "unread comment")}` : "Inbox"}>
+            {threads.map((item) => {
+              const last = item.comments[0];
+              return (
+                <ListItem key={item.id} data-thread={item.id} title={item.title} titleLines={2} caption={`${item.key} · ${people[last.by].name} · ${formatRelative(last.at)}`}
+                  leading={personAvatar(last.by)} onClick={() => open(item.id)}
+                  trailing={item.unread ? <>
+                    <BadgeCounter value={item.unread} theme="red" aria-hidden="true" />
+                    <VisuallyHidden>{plural(item.unread, "unread comment")}</VisuallyHidden>
+                  </> : undefined} />
+              );
+            })}
+          </List>
+        </ListBox>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -494,18 +539,30 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Skip link",
     screen: true,
-    description: "The client portal's first Tab stop is a skip link: hidden until it has focus, then a Surface pill at the top of the page that jumps past the navigation to the main content. AppShell adds one for you; a page built without it adds its own.",
+    description: "Phin & Co's client portal, built on AppShell (Layout=Top-Bar). Its first Tab stop is the shell's skip link, a VisuallyHidden link: hidden until it has focus, then a Surface pill at the top of the page that jumps past the brand and the navigation to the main content. AppShell adds one for you; a page built without it adds its own, as the second half of the code shows.",
     render: () => <SkipLinkPortal />,
-    code: `{/* The first focusable element of the page; its pill shows at the top-start of the nearest positioned box. */}
+    code: `{/* AppShell renders the skip link first: <VisuallyHidden as="a" href={\`#\${mainId}\`} focusable>Skip to content</VisuallyHidden> */}
+<AppShell pattern="top-bar" mainId={mainId}
+  header={
+    <AppShellHeader
+      leading={<Stack direction="row" align="center" gap="xl" wrap>
+        <StudioLogo src={studio.logo} name="Đìzai Studio" />
+        <Stack as="nav" aria-label="Client portal">…</Stack>
+      </Stack>}
+      actions={<Menu align="end" trigger={<AppShellAccount name="Trang Le" theme="blue" />} items={accountItems} />}
+      main={<PageHeader title="Loyalty app" description="…" meta={<Badge theme="blue" background="subtle">Active</Badge>} />}
+    />
+  }
+>
+  …the page: the skip link's target
+</AppShell>
+
+{/* A page without AppShell: the first focusable element; its pill shows at the top-start of the nearest positioned box. */}
 <VisuallyHidden as="a" href="#main" focusable onClick={(event) => { event.preventDefault(); mainRef.current?.focus(); }}>
   Skip to main content
 </VisuallyHidden>
-<header>
-  <nav aria-label="Client portal">…</nav>
-</header>
-<main ref={mainRef} id="main" tabIndex={-1}>
-  <PageHeader title="Loyalty app" description="…" />
-</main>`,
+<header><nav aria-label="Client portal">…</nav></header>
+<main ref={mainRef} id="main" tabIndex={-1}>…</main>`,
   },
   {
     title: "Icon-only columns",
@@ -568,23 +625,27 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Unread counts on a phone",
-    description: "A red counter alone reads as a bare “3”. The counter is hidden from screen readers and hidden text beside it says “3 unread comments”, while the list's name carries the total. Opening a thread clears its count; Back returns to the row.",
+    description: "A red counter alone reads as a bare “3”. In the studio app's Inbox the counter is hidden from screen readers and hidden text beside it says “3 unread comments”, while the list's name carries the total. Opening a thread clears its count, Mark as unread brings it back, and Back returns to the row.",
     render: () => <PhoneInbox />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-<PlatformPhone key="inbox" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
-  <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
-    <List aria-label={unread ? \`Inbox, \${plural(unread, "unread comment")}\` : "Inbox"}>
-      {threads.map((item) => (
-        <ListItem key={item.id} title={item.title} titleLines={2} caption={\`\${item.key} · \${lastBy.name} · \${formatRelative(last.at)}\`} leading={avatar(item)} onClick={() => open(item.id)}
-          trailing={item.unread ? <>
-            <BadgeCounter value={item.unread} theme="red" aria-hidden="true" />
-            <VisuallyHidden>{plural(item.unread, "unread comment")}</VisuallyHidden>
-          </> : undefined} />
-      ))}
-    </List>
-  </Box>
+<PlatformPhone key="inbox" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation title="Inbox" largeTitle="Inbox" largeTitleSubheading="New comments in 6 threads" scrollRef={screenRef} />}
+    bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" showLabels items={roots} value="inbox" onValueChange={go} />}
+  >
+    <ListBox theme="shadow">
+      <List aria-label={unread ? \`Inbox, \${plural(unread, "unread comment")}\` : "Inbox"}>
+        {threads.map((item) => (
+          <ListItem key={item.id} title={item.title} titleLines={2} caption={\`\${item.key} · \${lastBy.name} · \${formatRelative(last.at)}\`} leading={avatar(item)} onClick={() => open(item.id)}
+            trailing={item.unread ? <>
+              <BadgeCounter value={item.unread} theme="red" aria-hidden="true" />
+              <VisuallyHidden>{plural(item.unread, "unread comment")}</VisuallyHidden>
+            </> : undefined} />
+        ))}
+      </List>
+    </ListBox>
+  </AppShell>
 </PlatformPhone>`,
   },
   {

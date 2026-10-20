@@ -3,26 +3,31 @@
    (examples/data.ts), the spec is validated against the catalog and rendered in the AI bubble with the real components,
    what Alex picks lands in a shared state the conversation reads, and a follow-up edits the UI in place (ops) instead of
    rebuilding it. Nothing here is styled by hand: every look is a component prop. */
-import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread, type AiChatFieldStyle } from "../../../components/AiChat";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
+import { Avatar } from "../../../components/Avatar";
 import { Chip } from "../../../components/Chip";
 import { Tag } from "../../../components/Tag";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Button, IconButton } from "../../../components/Button";
+import { Button } from "../../../components/Button";
 import { DescriptionItem, DescriptionList } from "../../../components/DescriptionList";
 import { Card } from "../../../components/Card";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
+import { SidePanel } from "../../../components/SidePanel";
 import { SkeletonText } from "../../../components/Skeleton";
 import { Heading, Text } from "../../../components/Text";
+import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { AiUi, applyOps, createLiveComposer, extractSlots, keywordClassifier, markdownToSpec, primaryActionOf, resolveArgs, walkNodes, toJsx, validateSpec, type ActionCall, type Catalog, type LiveComposer, type LiveState, type Slots as LiveSlots, type UiNode, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
-import { PreviewWindow } from "../../PlatformFrames";
+import { PreviewAppFrame } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
 import { Panel, PlaygroundFilterChip, option } from "../../appLayer/shared";
-import { formatMoney, invoices, me, projectById, projects, studioMonths } from "../data";
+import { formatMoney, invoices, me, projectById, projects, studio, studioMonths } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
@@ -383,7 +388,8 @@ function Suggestions({ demo }: { demo: Demo }) {
 /** Who answers typed prompts: the model behind /ai-ui when one is configured (ANTHROPIC_API_KEY before npm run dev), the
     demo composer otherwise. */
 function ModelTag({ demo }: { demo: Demo }) {
-  return <Tag>{demo.server?.enabled ? demo.server.model : "Demo composer"}</Tag>;
+  // In the header's top row it steps aside on a phone (.pf-wide-only), where the row keeps the panel and the account.
+  return <Tag className="pf-wide-only">{demo.server?.enabled ? demo.server.model : "Demo composer"}</Tag>;
 }
 
 /* ───────────── Composing while typing (the user's decision, 2026-10-15: the UI appears as the sentence forms) ───────────── */
@@ -630,22 +636,23 @@ function LiveTypingExample({ initial = "", placement = "below", fieldStyle = "de
   );
 }
 
-/** The composer on a phone: the greeting fills the screen, the card rises above the docked field as the sentence forms and
-    pushes the greeting up; the screen follows the field (useScrollToEnd), so the keyboard would cover nothing. */
+/** The composer on a phone: the greeting fills the screen and the composer sits at the end of the shell's Body, in flow;
+    the card rises above the field as the sentence forms and pushes the greeting up, and the screen follows the field
+    (useScrollToEnd), so the keyboard would cover nothing. */
 function LiveTypingPhone({ initial = "" }: { initial?: string }) {
   const screenRef = useRef<HTMLDivElement>(null);
   useScrollToEnd(screenRef, null, null);
   return (
-    <PlatformPhone label="Zen AI" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
-      <div className="px-ai-ui-phone-flow">
+    <PlatformPhone label="Zen AI" screenRef={screenRef}>
+      <AppShell topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
         <Box className="px-ai-ui-phone-home">
           <AiChatBlock greeting={`What do you need, ${firstName}?`}>
             <Text textStyle="Body/Base/Regular" tone="base">Type it: the form takes shape above the field as you go.</Text>
           </AiChatBlock>
         </Box>
+        {/* In flow at the end of the Body, not pinned: a card taller than the screen scrolls, and the screen follows it. */}
         <Box className="px-ai-ui-phone-composer"><LiveTypingExample initial={initial} placement="above" fieldStyle="liquid-glass" placeholder="Ask Zen AI" /></Box>
-      </div>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -658,14 +665,11 @@ const flatten = (value: unknown, prefix = ""): Array<[string, string]> =>
     : [[prefix, Array.isArray(value) ? value.map(String).join(", ") : String(value ?? "")]];
 
 /** What the conversation sees (the shared state, the events): the panel the screen's bar opens, or the playground's column. */
-function Aside({ demo, onClose }: { demo: Demo; onClose?: () => void }) {
+function Aside({ demo, titled = true }: { demo: Demo; /** The playground's column names itself; a Side Panel's title does it there. */ titled?: boolean }) {
   const rows = flatten(demo.shared);
   return (
     <Stack gap="lg">
-      <Stack direction="row" gap="sm" align="center" justify="between">
-        <Heading level={2} textStyle="Heading/4">What Zen AI sees</Heading>
-        {onClose ? <IconButton icon="icon-x-medium-line" aria-label="Close the panel" variant="tertiary" appearance="flat" size="sm" onClick={onClose} /> : null}
-      </Stack>
+      {titled ? <Heading level={2} textStyle="Heading/4">What Zen AI sees</Heading> : null}
       <Stack gap="xs">
         <Heading level={3} textStyle="Body/Base/Medium">Shared state</Heading>
         {rows.length
@@ -703,53 +707,73 @@ function useScrollToEnd(ref: RefObject<HTMLDivElement | null>, turns: unknown, c
   }, [ref]);
 }
 
-/** Zen AI on the desktop: a bar (title, who answers, the panel's button), the conversation with its composed UIs scrolling
-    under a Liquid Glass field (Figma AI/Chat-Field, Style=Liquid Glass) on the window's Canvas, and, when opened, what the
-    conversation sees in a panel over the screen's right edge. */
+/** Zen AI on the desktop, one product without navigation (AppShell pattern top-bar): the header's one row holds the
+    product, who answers, the panel's button and the account; the conversation with its composed UIs scrolls under a
+    Liquid Glass field (Figma AI/Chat-Field, Style=Liquid Glass) docked at the bottom of the window, on the Canvas; what
+    the conversation sees opens as the shell's Side Panel, docked beside the conversation where the window has room. */
 function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: boolean }) {
+  const { toast } = useToast();
   const demo = useComposerDemo(initial);
-  const screenRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // The window's scroller (PreviewAppFrame) is what follows the end of the conversation.
+  useLayoutEffect(() => { scrollRef.current = frameRef.current?.querySelector<HTMLDivElement>(".pf-app-frame__scroll") ?? null; }, []);
   useScrollToEnd(scrollRef, demo.turns, demo.catalog);
   const [open, setOpen] = useState(false);
-  const panelId = useId();
   return (
-    <PreviewWindow ref={screenRef} height={{ min: 560, max: 720, offset: 160 }} clip={false}>
-      <div className="px-ai-ui-screen">
+    <PreviewAppFrame frameRef={frameRef} height={{ min: 560, max: 720 }}>
+      <AppShell pattern="top-bar"
+        header={(
+          <AppShellHeader
+            leading={(
+              <Stack direction="row" gap="xs" align="center">
+                <Avatar size="sm" shape="square" theme="photo" src={studio.logo} alt="" />
+                {/* zen-allow-visual-heading: the product's name in the bar repeats the visually hidden h1 of the Body (aria-hidden), so the outline has one h1 and the bar no oversized title. */}
+                <Text as="span" textStyle="Heading/4" aria-hidden="true">Zen AI</Text>
+              </Stack>
+            )}
+            actions={<>
+              <ModelTag demo={demo} />
+              {/* A header utility (AppShellAction): its name is the tooltip, so the row fits a narrow window too. */}
+              {aside ? <AppShellAction icon="icon-code-01-line" aria-label="What Zen AI sees" aria-expanded={open} onClick={() => setOpen((value) => !value)} /> : null}
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+                { id: "history", label: "Chat history", icon: "icon-clock-line", onSelect: () => toast({ title: "Chat history", children: "Zen AI keeps your chats for 30 days." }) },
+                { type: "separator" },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+              ]} />
+            </>}
+          />
+        )}
+        sidePanel={aside ? (
+          <SidePanel type="standard" size="small" open={open} onOpenChange={setOpen} title="What Zen AI sees" description="The shared state and the events, as the conversation reads them.">
+            <Aside demo={demo} titled={false} />
+          </SidePanel>
+        ) : undefined}
+      >
         {/* The screen's title for the outline; the bar shows it at bar size (a content h1 would be Heading/1). */}
         <VisuallyHidden as="h1">Zen AI</VisuallyHidden>
-        <Stack direction="row" gap="sm" align="center" justify="between" wrap className="px-ai-ui-screen__bar">
-          {/* zen-allow-visual-heading: the visible bar label repeats the visually hidden h1 above at bar size (aria-hidden), so the outline has one h1 and the bar no oversized title. */}
-          <Text as="span" textStyle="Heading/4" aria-hidden="true">Zen AI</Text>
-          <Stack direction="row" gap="sm" align="center" wrap>
-            <ModelTag demo={demo} />
-            {aside ? <Button variant="tertiary" size="sm" startIcon="icon-code-01-line" aria-expanded={open} aria-controls={open ? panelId : undefined} onClick={() => setOpen((value) => !value)}>What Zen AI sees</Button> : null}
-          </Stack>
-        </Stack>
-        <Box ref={scrollRef} scroll="y" className="px-ai-ui-screen__scroll">
-          <div className="px-ai-ui-screen__flow">
-            <div className="px-ai-ui-screen__thread"><Stack gap="lg" className="px-ai-ui-column"><Thread demo={demo} /><Suggestions demo={demo} /></Stack></div>
-            <div className="px-ai-ui-screen__dock"><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} className="px-ai-ui-column" /></div>
-          </div>
-        </Box>
-        {aside && open ? <Box id={panelId} role="region" aria-label="What Zen AI sees" surface="surface" effectStyle="Shadow/Bottom/Level-3" scroll="y" className="px-ai-ui-aside"><Aside demo={demo} onClose={() => setOpen(false)} /></Box> : null}
-      </div>
-    </PreviewWindow>
+        <Stack gap="lg" className="px-ai-ui-column px-ai-ui-desk__thread"><Thread demo={demo} /><Suggestions demo={demo} /></Stack>
+        <div className="px-ai-ui-dock"><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} className="px-ai-ui-column" /></div>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
-/** Zen AI on a phone: the same composer, the same specs, in Comfortable density and Mobile typography. */
+/** Zen AI on a phone: the same composer, the same specs, in Comfortable density and Mobile typography. The field docks at
+    the bottom of the shell, where a task's Action bar goes, and the conversation scrolls under its glass. */
 function ComposerPhone({ initial }: { initial: string[] }) {
   const demo = useComposerDemo(initial);
   const screenRef = useRef<HTMLDivElement>(null);
-  useScrollToEnd(screenRef, demo.turns, demo.catalog); // the phone's screen is the scroller; the flow is its first child
+  useScrollToEnd(screenRef, demo.turns, demo.catalog); // the phone's screen is the scroller; the shell is its first child
   return (
-    <PlatformPhone label="Zen AI" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
-      <div className="px-ai-ui-phone-flow">
-        <Box className="px-ai-ui-phone-body"><Thread demo={demo} /></Box>
-        <Box className="px-ai-ui-phone-dock"><AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></Box>
-      </div>
+    <PlatformPhone label="Zen AI" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}
+        actionBar={<Box className="px-ai-ui-phone-dock"><AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></Box>}
+      >
+        <Thread demo={demo} />
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -807,7 +831,7 @@ const renderCode = `const check = validateSpec(spec, catalog);            // the
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Compose from a prompt",
-    description: "Alex asks for a design review; the assistant answers with a booking form composed from the catalog (SelectField, DateField, ChipGroup, Buttons) and rendered inside its bubble. Every pick lands in the shared state (open “What Zen AI sees” in the bar to watch it), and Schedule sends it back as an action. The bar's Tag says who answers typed prompts: the model behind /ai-ui when ANTHROPIC_API_KEY is set before npm run dev, the demo composer otherwise.",
+    description: "Alex asks for a design review; the assistant answers with a booking form composed from the catalog (SelectField, DateField, ChipGroup, Buttons) and rendered inside its bubble. Every pick lands in the shared state (open “What Zen AI sees”, the code icon in the header, to watch it in the Side Panel), and Schedule sends it back as an action. The bar's Tag says who answers typed prompts: the model behind /ai-ui when ANTHROPIC_API_KEY is set before npm run dev, the demo composer otherwise.",
     screen: true,
     render: () => <ComposerScreen initial={[suggestions[0].prompt]} />,
     code: renderCode,
@@ -855,12 +879,14 @@ const action = primaryActionOf(live.spec ?? live.skeleton);                     
     title: "Composed while typing, on a phone",
     description: "The same composer on a phone: the card rises above the docked field, so a keyboard would cover nothing and the preview pushes the greeting up (study F9); the slots become chips, the form shows once the intent is sure, and the footer's keys and buttons wrap in the 390 px column.",
     render: () => <LiveTypingPhone initial="Schedule a design review with Gia tomorrow at 4 pm" />,
-    code: `<PlatformPhone label="Zen AI" header={<TopNavigation type="compact-alt" title="Zen AI" />}>
-  <AiChatBlock greeting="What do you need, Alex?">…</AiChatBlock>
-  <Stack gap="xs">                                                    {/* docked: the card, then the field */}
-    <Card theme="flat" width="fill">…the guess…</Card>
-    <AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" value={text} onValueChange={…} onAccept={…} onClear={…} onSubmit={…} />
-  </Stack>
+    code: `<PlatformPhone label="Zen AI" screenRef={screenRef}>
+  <AppShell topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
+    <AiChatBlock greeting="What do you need, Alex?">…</AiChatBlock>
+    <Stack gap="xs">                                                    {/* at the end of the Body, in flow: the card, then the field */}
+      <Card theme="flat" width="fill">…the guess…</Card>
+      <AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" value={text} onValueChange={…} onAccept={…} onClear={…} onSubmit={…} />
+    </Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
   {
@@ -883,10 +909,15 @@ const action = primaryActionOf(live.spec ?? live.skeleton);                     
     title: "On a phone",
     description: "The same composer and specs in a phone frame: Comfortable density and Mobile typography come from the frame, the form stacks in one column on its Card, in the narrow bubble the time chips and the actions wrap onto another row instead of overflowing, the Liquid Glass field docks above the home indicator and the conversation scrolls under it.",
     render: () => <ComposerPhone initial={[suggestions[0].prompt]} />,
-    code: `<PlatformPhone label="Zen AI" header={<TopNavigation type="compact-alt" title="Zen AI" />} footer={<AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" onSubmit={ask} />}>
-  <AiChatThread aria-label="Conversation with Zen AI">
-    <AiChatBubble side="ai"><AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} /></AiChatBubble>
-  </AiChatThread>
+    code: `<PlatformPhone label="Zen AI" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}
+    actionBar={<AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" onSubmit={ask} />}
+  >
+    <AiChatThread aria-label="Conversation with Zen AI">
+      <AiChatBubble side="ai"><AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} /></AiChatBubble>
+    </AiChatThread>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

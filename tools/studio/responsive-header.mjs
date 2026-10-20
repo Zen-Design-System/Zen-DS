@@ -108,10 +108,12 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
   if (!shell) return { kind: null, topNavigation: null, bottomNavigation: null, notes: ["no desktop AppShell to draw the phone header from"] };
   const scope = { mock };
   const notes = [];
-  const header = elementsIn(shell.props.header);
-  const center = elementsIn(shell.props.headerCenter);
-  const sectionRows = elementsIn(shell.props.sections);
-  const pageHeader = sectionRows.find((node) => node.name === "PageHeader") ?? firstNamed(shell.children, "PageHeader");
+  // Header/AppShell: its top row (leading · center · actions) and its Main row (main, then sections).
+  const appHeader = elementsIn(shell.props.header).find((node) => node.name === "AppShellHeader") ?? null;
+  const header = elementsIn(appHeader?.props.leading);
+  const center = elementsIn(appHeader?.props.center);
+  const mainRows = [...elementsIn(appHeader?.props.main), ...elementsIn(appHeader?.props.sections)];
+  const pageHeader = mainRows.find((node) => node.name === "PageHeader") ?? firstNamed(shell.children, "PageHeader");
   const crumbs = [...header, ...elementsIn(pageHeader?.props.breadcrumbs)].find((node) => node.name === "Breadcrumbs");
   const crumbCount = Array.isArray(plain(crumbs?.props.items, scope)) ? plain(crumbs.props.items, scope).length : 0;
   const child = crumbCount >= 2 || Boolean(pageHeader?.props.back);
@@ -131,7 +133,7 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
   }
   let account = null;
   let notifications = null;
-  for (const action of elementsIn(shell.props.headerActions)) {
+  for (const action of elementsIn(appHeader?.props.actions)) {
     const trigger = action.name === "Menu" ? elementsIn(action.props.trigger)[0] ?? null : action;
     if (!trigger) continue;
     if (trigger.name === "AppShellAccount" || trigger.name === "Avatar") { account = account ?? trigger; continue; }

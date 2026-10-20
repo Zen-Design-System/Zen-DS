@@ -13,10 +13,6 @@
 }
 .zen-skeleton-shape.px-description-list-badge-skeleton::before { height: var(--zen-element-size-popular-small, 16px); content: ""; }
 
-/* Load details in a panel: a project page and its docked Standard panel side by side on the app's Canvas
-   (PreviewWindow). The page sets the height; the docked panel stretches to it (its own 100% has no fixed height to
-   resolve against here, and SidePanel takes no height prop). */
-.pf-window > .zen-side-panel.px-description-list-panel { height: auto; align-self: stretch; }
 /* The panel title takes focus when Try again goes away (tabIndex -1): its ring is drawn around the text with room. */
 .px-description-list-focus-target { position: relative; }
 .px-description-list-focus-target:focus { outline: none; }

@@ -1,35 +1,107 @@
 /* Inline Message examples: messages that sit inside the content they describe, in Đìzai Studio's Zen workspace (brief:
    docs/research/example-rebuild-brief-2026-09-30.md). A page- or app-wide condition is an Alert Banner, the result of
-   one quick action is a Toast, and one bad field is that field's error text. */
+   one quick action is a Toast, and one bad field is that field's error text. The two screens (the sent invoice, the
+   phone timesheet) sit in the new AppShell (2026-10-19). */
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ActionBar } from "../../../components/ActionBar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
+import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { Dialog } from "../../../components/Dialog";
+import { DockIcon } from "../../../components/DockIcon";
 import { Form, FormActions, useFormState } from "../../../components/Form";
 import { Image, Thumbnail } from "../../../components/Image";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { InputField, SelectField, TextAreaField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
+import { Sidebar, SidebarMenuItem, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { platformMedia } from "../../PlatformMedia";
-import { PlatformPhone } from "../../PlatformPhone";
+import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
-  daysFromToday, formatDate, formatDay, formatMoney, formatRange, formatRelative, invoiceStatusTheme, invoices, people, projectById,
-  taskStatusTheme, type PersonId, type TaskStatus,
+  TODAY, daysFromToday, formatDate, formatDay, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices, leaveBalance, me,
+  people, projectById, studio, taskStatusTheme, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
-import { PreviewPage } from "../../PlatformFrames";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "inline-message";
+
+/* ───────────── The studio's desktop app ───────────── */
+
+/** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the Inline Message." });
+}
+
+/* Đìzai Studio's navigation: the same Sidebar on every page, its current page selected. */
+const studioNav: SidebarSection[] = [
+  { items: [
+    { id: "home", label: "Home", icon: "icon-home-03-line" },
+    { id: "projects", label: "Projects", icon: "icon-folder-line" },
+    { id: "clients", label: "Clients", icon: "icon-briefcase-line" },
+    { id: "people", label: "People", icon: "icon-users-line" },
+  ] },
+  { label: "Finance", items: [
+    { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+    { id: "expenses", label: "Expenses", icon: "icon-wallet-02-line" },
+  ] },
+];
+
+/**
+ * One page of the studio's app: AppShell Layout=Sidebar in a desktop window, the trail and the utilities in the header's
+ * top row and the page's PageHeader, its h1, as the Main row. The Body pads the page margins itself.
+ */
+function StudioApp({ here, leading, main, children }: { here: string; leading?: ReactNode; main: ReactNode; children: ReactNode }) {
+  const { toast } = useToast();
+  const notHere = useNotHere();
+  const [unread, setUnread] = useState(1);
+  return (
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            sections={studioNav} selectedId={here} onItemClick={(item: SidebarItem) => { if (item.id !== here) notHere(item.label); }}
+            footer={<>
+              <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
+              <SidebarMenuItem id="help" label="Help" icon="icon-help-circle-line" />
+            </>} />
+        )}
+        header={(
+          <AppShellHeader leading={leading}
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                toast(unread ? { title: "Trang Le commented on INV-2026-0142", children: "“Could you add our PO number before Friday?”" } : { title: "No new notifications", children: "You’re all caught up." });
+                setUnread(0);
+              }} />
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.email}` }) },
+                { type: "separator" },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out", children: `See you soon, ${me.name.split(" ")[0]}.` }) },
+              ]} />
+            </>}
+            main={main}
+          />
+        )}
+      >
+        {children}
+      </AppShell>
+    </PreviewAppFrame>
+  );
+}
 
 /* ───────────── 1. Editing a sent invoice (context above a form) ───────────── */
 
@@ -40,43 +112,93 @@ const terms = [
   { value: "net45", label: `Net 45 · due ${formatDate(daysFromToday(40))}` },
 ];
 type InvoiceEdit = { terms: string; po: string; note: string };
+/** What the invoice bills: the September work on the Loyalty app, $120 an hour. */
+const lineItems = [
+  { id: "design", title: "Points history and rewards screens", caption: "Design · 96 h at $120", amount: 11520 },
+  { id: "api", title: "Rewards API in checkout", caption: "Engineering · 64 h at $120", amount: 7680 },
+  { id: "research", title: "Usability round with store staff", caption: "Research · fixed fee", amount: 1800 },
+];
+type HistoryEntry = { id: string; who: PersonId | "trang"; text: string; at: Date };
+const firstHistory: HistoryEntry[] = [
+  { id: "asked", who: "trang", text: "Asked for the purchase order number on it", at: daysFromToday(-1, 16, 40) },
+  { id: "viewed", who: "trang", text: "Opened the invoice", at: daysFromToday(-4, 14, 12) },
+  { id: "sent", who: "mai", text: "Sent it to Trang Le at Phin & Co", at: daysFromToday(-5, 9, 30) },
+];
+/** Trang Le, Phin & Co's product owner, is a client guest: initials on a steady theme. */
+const historyAvatar = (who: HistoryEntry["who"]) => who === "trang"
+  ? <Avatar size="md" theme="blue" alt="">TL</Avatar>
+  : people[who].photo ? <Avatar size="md" theme="photo" src={people[who].photo} alt="" /> : <Avatar size="md" theme={people[who].theme} alt="">{initials(people[who].name)}</Avatar>;
+const historyName = (who: HistoryEntry["who"]) => (who === "trang" ? "Trang Le" : people[who].name);
 
 function SentInvoiceExample() {
   const { toast } = useToast();
+  const notHere = useNotHere();
+  const itemsId = useId();
+  const historyId = useId();
+  const [history, setHistory] = useState(firstHistory);
   const form = useFormState<InvoiceEdit>({
-    initialValues: { terms: "net30", po: "PHIN-PO-0915", note: "" },
+    initialValues: { terms: "net30", po: "", note: "" },
     validate: ({ note }) => ({ note: note.trim() ? undefined : "Tell Phin & Co what changed" }),
-    // The saved values become the new baseline for the next edit.
-    onSubmit: (values, { reset }) => { reset(values); toast({ title: "Updated invoice sent", children: "Phin & Co got the new copy by email" }); },
+    // The saved values become the new baseline for the next edit; the invoice's history records the new copy.
+    onSubmit: (values, { reset }) => {
+      reset(values);
+      setHistory((list) => [{ id: `resent-${list.length}`, who: "alex", text: "Sent the updated copy to Trang Le", at: TODAY }, ...list]);
+      toast({ title: "Updated invoice sent", children: "Phin & Co got the new copy by email" });
+    },
   });
   return (
-    <PreviewPage margin="all" fill>
-      <Stack gap="xl">
-        <PageHeader eyebrow="Invoices" title={`Edit ${sentInvoice.number}`}
-          meta={<Badge theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>}
-          description={`${sentInvoice.client} · ${projectById(sentInvoice.project).name} · Issued ${formatDate(sentInvoice.issued)}`} />
-        <Card theme="flat" width="fill" maxWidth={640}>
+    <StudioApp here="invoices"
+      leading={<Breadcrumbs master={false} items={[{ id: "invoices", label: "Invoices" }, { id: sentInvoice.id, label: sentInvoice.number }]}
+        onNavigate={(item, event) => { event.preventDefault(); notHere(String(item.label)); }} />}
+      main={<PageHeader title={`Edit ${sentInvoice.number}`}
+        meta={<Badge theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>}
+        description={`${sentInvoice.client} · ${projectById(sentInvoice.project).name} · Issued ${formatDate(sentInvoice.issued)}`} />}>
+      {/* The form beside what it bills and what happened to it; under 880px the summary moves under the form. Beside the
+          Sidebar every box takes its elevation (Shadow). */}
+      <Grid columns="minmax(0, 1fr) minmax(0, 320px)" stackBelow={880} gap="md" align="start" maxWidth={1200}>
+        <Card theme="shadow" as="section" aria-label="Invoice details">
           <Form form={form}>
             {/* Context for the whole form, above its first field. Essential, so it has no close button. */}
             <InlineMessage theme="warning" title="Phin & Co already has this invoice">
               Saving emails them the updated copy with your note about what changed.
             </InlineMessage>
-            <DescriptionList items={[
-              { term: "Client", description: sentInvoice.client },
-              { term: "Amount", description: formatMoney(sentInvoice.amount, true), emphasis: true },
-            ]} />
             <Stack gap="md">
               <SelectField label="Payment terms" options={terms} {...form.selectField("terms")} />
-              <InputField label="Purchase order" labelOptional {...form.field("po")} />
+              <InputField label="Purchase order" labelOptional helpText="Trang Le asked for PHIN-PO-0915 on Sep 29" {...form.field("po")} />
               <TextAreaField label="Note to Phin & Co" helpText="Shown at the top of the email" rows={3} {...form.field("note")} />
             </Stack>
             <FormActions>
+              {/* Back to what Phin & Co already has. */}
+              {form.isDirty ? <Button level="tertiary" onClick={() => form.reset()}>Undo changes</Button> : null}
               <Button level="primary" type="submit">Save and send</Button>
             </FormActions>
           </Form>
         </Card>
-      </Stack>
-    </PreviewPage>
+        <Stack gap="md">
+          <Card theme="shadow" as="section" aria-labelledby={itemsId}>
+            <Stack gap="md">
+              <Heading level={2} id={itemsId} textStyle="Heading/Subheading">Line items</Heading>
+              <List aria-labelledby={itemsId}>
+                {lineItems.map((item) => (
+                  <ListItem key={item.id} title={item.title} titleLines={2} caption={item.caption} value={formatMoney(item.amount)} />
+                ))}
+              </List>
+              <DescriptionList items={[
+                { term: "Total", description: formatMoney(sentInvoice.amount, true), emphasis: true },
+              ]} />
+            </Stack>
+          </Card>
+          <ListBox theme="shadow" as="section" aria-labelledby={historyId}
+            header={<Heading level={2} id={historyId} textStyle="Heading/Subheading">History</Heading>}>
+            <List aria-labelledby={historyId}>
+              {history.map((entry) => (
+                <ListItem key={entry.id} title={historyName(entry.who)} caption={`${entry.text} · ${formatRelative(entry.at)}`} leading={historyAvatar(entry.who)} />
+              ))}
+            </List>
+          </ListBox>
+        </Stack>
+      </Grid>
+    </StudioApp>
   );
 }
 
@@ -330,8 +452,27 @@ function WeekSection({ title, days, children }: { title: string; days: Day[]; ch
   );
 }
 
+/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
+const phoneRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
+  { id: "inbox", label: "Inbox", icon: "icon-message-chat-circle-line", selectedIcon: "icon-message-chat-circle-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+const sheetBadge: Record<Sheet, { theme: "yellow" | "green"; label: string }> = {
+  draft: { theme: "yellow", label: "To submit" },
+  blocked: { theme: "yellow", label: "To submit" },
+  submitted: { theme: "green", label: "Submitted" },
+};
+
 function TimesheetPhoneExample() {
+  const { toast } = useToast();
+  const notHere = useNotHere();
+  const screen = usePhoneScreen();
+  const workId = useId();
+  const accountId = useId();
   const screenRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(true);
   const [days, setDays] = useState(lastWeek);
   const [sheet, setSheet] = useState<Sheet>("draft");
   const focusNext = useRef<string | null>(null);
@@ -346,6 +487,7 @@ function TimesheetPhoneExample() {
     if (missing.length) { focusNext.current = ".zen-inline-message__action"; setSheet("blocked"); return; }
     focusNext.current = ".zen-action-bar button";
     setSheet("submitted");
+    toast({ type: "positive", title: "Timesheet submitted", children: `Last week · ${hours(totalOf(days))}` });
   };
   const logHours = () => {
     focusNext.current = ".zen-action-bar button";
@@ -353,19 +495,74 @@ function TimesheetPhoneExample() {
     setSheet("draft");
   };
   const recall = () => { focusNext.current = ".zen-action-bar button"; setSheet("draft"); };
+  const badge = sheetBadge[sheet];
+
+  if (!open) {
+    return (
+      // The Me root: the large title, Alex's profile, then his work and his account in white blocks under their kickers,
+      // the app's roots in the bottom bar. The bar casts a shadow, so every block takes the same Shadow elevation.
+      <PlatformPhone key="me" label="Zen app" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="Me" largeTitle="Me" largeTitleSubheading={`${me.role} · ${studio.name}`} scrollRef={screenRef} />}
+          bottomNavigation={<BottomNavigation aria-label={studio.name} showLabels items={phoneRoots} value="me"
+            onValueChange={(id) => { if (id !== "me") notHere(phoneRoots.find((item) => item.id === id)?.label ?? id); }} />}
+        >
+          {screen.anchor}
+          {/* Alex's profile first: the whole row opens it. */}
+          <ListBox theme="shadow">
+            <List aria-label="Profile">
+              <ListItem title={me.name} caption={`${me.email} · ${me.location}`}
+                leading={<Avatar size="lg" theme="photo" src={me.photo} alt="" />} onClick={() => notHere("Profile")} />
+            </List>
+          </ListBox>
+          <Stack as="section" gap="xs" aria-labelledby={workId}>
+            <Box paddingX="lg"><Heading level={2} id={workId} textStyle="Body/Small/Bold" tone="light">Work</Heading></Box>
+            <ListBox theme="shadow">
+              <List aria-labelledby={workId}>
+                <ListItem data-row="timesheet" title="Timesheet" caption={`Last week · ${hours(totalOf(days))}`}
+                  leading={<DockIcon icon="icon-clock-line" theme="blue" background="subtle" size="medium" />}
+                  trailing={<Badge theme={badge.theme} background="subtle">{badge.label}</Badge>}
+                  onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpen(true))} />
+                <ListItem title="Time off" caption={`${leaveBalance["Annual leave"]?.left ?? 0} days of annual leave left`}
+                  leading={<DockIcon icon="icon-calendar-heart-line" theme="green" background="subtle" size="medium" />} onClick={() => notHere("Time off")} />
+                <ListItem title="Expenses" caption="Nothing waiting for approval"
+                  leading={<DockIcon icon="icon-wallet-02-line" theme="orange" background="subtle" size="medium" />} onClick={() => notHere("Expenses")} />
+              </List>
+            </ListBox>
+          </Stack>
+          <Stack as="section" gap="xs" aria-labelledby={accountId}>
+            <Box paddingX="lg"><Heading level={2} id={accountId} textStyle="Body/Small/Bold" tone="light">Account</Heading></Box>
+            <ListBox theme="shadow">
+              <List aria-labelledby={accountId}>
+                <ListItem title="Notifications" caption="Email and push on this phone"
+                  leading={<DockIcon icon="icon-bell-01-line" theme="purple" background="subtle" size="medium" />} onClick={() => notHere("Notifications")} />
+                <ListItem title="Sign out" caption={`Signed in as ${me.email}`}
+                  leading={<DockIcon icon="icon-log-out-01-line" theme="neutral" background="subtle" size="medium" />}
+                  onClick={() => toast({ title: "Signed out", children: `See you soon, ${me.name.split(" ")[0]}.` })} />
+              </List>
+            </ListBox>
+          </Stack>
+        </AppShell>
+      </PlatformPhone>
+    );
+  }
+
   return (
-    // Grouped list: the screen is Surface-Alt and each week a white block under its kicker.
-    <PlatformPhone label="Timesheet" canvas="alt" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Timesheet" largeTitle="Timesheet" scrollRef={screenRef} />}
-      footer={(
-        <ActionBar position="static"
-          summary={<Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{`Last week · ${hours(totalOf(days))}`}</Text>}
-          {...(sheet === "submitted"
-            ? { secondaryAction: { label: "Recall timesheet", onClick: recall } }
-            : { primaryAction: { label: "Submit timesheet", onClick: submit } })} />
-      )}>
-      {/* Margin-Compact body (padding lg, 20); group → group lg. */}
-      <Stack gap="lg" padding="lg">
+    // A pushed screen, a grouped list: each week is a white block under its kicker on the grey Canvas (no frame). Last
+    // week's one action sits in the Action bar (Figma Bottom=Actions), so the screen has no bottom bar.
+    <PlatformPhone key="timesheet" label="Zen app" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="Timesheet" scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[data-row="timesheet"] .zen-list-item__wrapper', () => setOpen(false)) }} />}
+        actionBar={(
+          <ActionBar
+            summary={<Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{`Last week · ${hours(totalOf(days))}`}</Text>}
+            {...(sheet === "submitted"
+              ? { secondaryAction: { label: "Recall timesheet", onClick: recall } }
+              : { primaryAction: { label: "Submit timesheet", onClick: submit } })} />
+        )}
+      >
+        {screen.anchor}
         <WeekSection title="This week" days={thisWeek} />
         {/* The message sits right above the week it is about, as wide as its block. */}
         <WeekSection title="Last week" days={days}>
@@ -379,7 +576,7 @@ function TimesheetPhoneExample() {
           ) : null}
         </WeekSection>
         <WeekSection title={formatRange(daysFromToday(-16), daysFromToday(-12))} days={approvedWeek} />
-      </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -387,12 +584,12 @@ function TimesheetPhoneExample() {
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Editing a sent invoice",
-    description: "The invoice has already gone out, so a Warning above the form says what saving will do before anyone types. It is essential context, so it has no close button and stays while the form is open.",
+    description: "Alex edits an invoice Phin & Co already has, in the studio's app. A Warning at the top of the form says what saving will do before anyone types; it is essential context, so it has no close button and stays while the form is open. Beside the form, the line items and the history (Trang Le asked for the PO number) say why the edit happens, and saving adds the new copy to it.",
     wide: true,
     screen: true,
     render: () => <SentInvoiceExample />,
     code: `const form = useFormState({
-  initialValues: { terms: "net30", po: "PHIN-PO-0915", note: "" },
+  initialValues: { terms: "net30", po: "", note: "" },
   validate: ({ note }) => ({ note: note.trim() ? undefined : "Tell Phin & Co what changed" }),
   onSubmit: (values, { reset }) => {
     reset(values);
@@ -400,20 +597,34 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
 });
 
-<PageHeader eyebrow="Invoices" title="Edit INV-2026-0142" meta={<Badge theme="blue" background="subtle">Sent</Badge>} />
-<Card theme="flat">
-  <Form form={form}>
-    <InlineMessage theme="warning" title="Phin & Co already has this invoice">
-      Saving emails them the updated copy with your note about what changed.
-    </InlineMessage>
-    <SelectField label="Payment terms" options={terms} {...form.selectField("terms")} />
-    <InputField label="Purchase order" labelOptional {...form.field("po")} />
-    <TextAreaField label="Note to Phin & Co" helpText="Shown at the top of the email" {...form.field("note")} />
-    <FormActions>
-      <Button level="primary" type="submit">Save and send</Button>
-    </FormActions>
-  </Form>
-</Card>`,
+<AppShell
+  sidebar={<Sidebar logo={logo} sections={studioNav} selectedId="invoices" onItemClick={navigate} />}
+  header={
+    <AppShellHeader
+      leading={<Breadcrumbs master={false} items={[{ id: "invoices", label: "Invoices" }, { id: "i1", label: "INV-2026-0142" }]} onNavigate={go} />}
+      actions={<>{notifications}{account}</>}
+      main={<PageHeader title="Edit INV-2026-0142" meta={<Badge theme="blue" background="subtle">Sent</Badge>}
+        description="Phin & Co · Loyalty app · Issued Sep 25, 2026" />}
+    />
+  }
+>
+  <Grid columns="minmax(0, 1fr) minmax(0, 320px)" stackBelow={880} gap="md" align="start">
+    <Card theme="shadow">
+      <Form form={form}>
+        <InlineMessage theme="warning" title="Phin & Co already has this invoice">
+          Saving emails them the updated copy with your note about what changed.
+        </InlineMessage>
+        <SelectField label="Payment terms" options={terms} {...form.selectField("terms")} />
+        <InputField label="Purchase order" labelOptional helpText="Trang Le asked for PHIN-PO-0915 on Sep 29" {...form.field("po")} />
+        <TextAreaField label="Note to Phin & Co" helpText="Shown at the top of the email" {...form.field("note")} />
+        <FormActions>
+          <Button level="primary" type="submit">Save and send</Button>
+        </FormActions>
+      </Form>
+    </Card>
+    {/* Line items (Card) and History (ListBox), Shadow like every box beside the Sidebar */}
+  </Grid>
+</AppShell>`,
   },
   {
     title: "Form error summary",
@@ -479,15 +690,18 @@ const count = Object.keys(form.errors).length;
   },
   {
     title: "Timesheet on a phone",
-    description: "On a phone the message sits in the page flow, right above the week it is about; each week is a white block under its kicker on the Surface-Alt screen. Submitting with a gap turns the same Warning Negative and focuses Log hours, rather than stacking a second message.",
+    description: "In the studio's phone app Alex opens last week's timesheet from Me. The message sits in the page flow, right above the week it is about; each week is a white block under its kicker on the grey Canvas, and Submit waits in the Action bar. Submitting with a gap turns the same Warning Negative and focuses Log hours, rather than stacking a second message; Back shows the Me row with the new status.",
     render: () => <TimesheetPhoneExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-<PlatformPhone canvas="alt" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Timesheet" largeTitle="Timesheet" scrollRef={screenRef} />}
-  footer={<ActionBar position="static" summary={\`Last week · \${hours(total)}\`}
-    primaryAction={{ label: "Submit timesheet", onClick: submit }} />}>
-  <Stack gap="lg" padding="lg">
+<PlatformPhone key="timesheet" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Timesheet" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToMe }} />}
+    actionBar={<ActionBar summary={\`Last week · \${hours(total)}\`}
+      primaryAction={{ label: "Submit timesheet", onClick: submit }} />}
+  >
+    {/* The Body pads the screen and spaces the weeks Layout-Mobile/Section-Gap apart */}
     <WeekSection title="This week" days={thisWeek} />
     <Stack as="section" gap="md" aria-labelledby="last-week">
       {missing.length ? (
@@ -501,7 +715,7 @@ const count = Object.keys(form.errors).length;
         <Box paddingX="lg">
           <Heading level={2} id="last-week" textStyle="Body/Small/Bold" tone="light">Last week</Heading>
         </Box>
-        {/* One white Surface block per week on the Surface-Alt screen */}
+        {/* One white block per week on the grey Canvas */}
         <ListBox>
           <List aria-labelledby="last-week">
             {days.map((day) => <ListItem key={day.id} title={day.day} caption={day.projects} trailing={hours(day.minutes)} />)}
@@ -510,7 +724,7 @@ const count = Object.keys(form.errors).length;
       </Stack>
     </Stack>
     <WeekSection title="Sep 14 – Sep 18, 2026" days={approvedWeek} />
-  </Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

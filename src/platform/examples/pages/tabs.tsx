@@ -1,10 +1,14 @@
 /* Tabs examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Alex Duong works through the Đìzai Studio
    workspace: the sections of a project page, a draft invoice, the work waiting on his dashboard, a colleague's profile on
-   his phone and a client record in a narrow column. Tabs switch sections of one thing; filters stay Chips. */
+   his phone and a client record in a narrow column. Tabs switch sections of one thing; filters stay Chips. The screens
+   sit in the studio's AppShell: the project page's tabs in the header's Sections row, the workspace's Large tabs in the
+   top-bar pattern's top row, the profile's in the phone's Top Navigation control bar. */
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { AppShellAccount } from "../../../components/AppShell";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { DescriptionList } from "../../../components/DescriptionList";
@@ -13,11 +17,13 @@ import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import type { IconName } from "../../../components/Icon";
-import { Box, Container, Grid, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
+import { ProgressBar } from "../../../components/Progress";
+import { Sidebar, SidebarMenuItem, type SidebarItem } from "../../../components/Sidebar";
 import { SkeletonShape, SkeletonText } from "../../../components/Skeleton";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
 import { TabItem, TabPanel, Tabs } from "../../../components/Tabs";
@@ -32,7 +38,7 @@ import {
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type Task,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
-import { PreviewPage, StudioLogo, StudioMark } from "../../PlatformFrames";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 
@@ -44,6 +50,24 @@ const avatar = (p: Person, size: "xsmall" | "medium" = "medium") => p.photo
   : <Avatar size={size} theme={p.theme} alt="">{initials(p.name)}</Avatar>;
 /** One idPrefix per rendered example, so tab and panel ids stay unique when an example renders twice. */
 const usePrefix = (name: string) => `${name}-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+
+// ——— The studio app's chrome ——————————————————————————————————————————————————————————————————————————
+/** The account menu at the end of the header's top row. */
+function AccountMenu({ onProfile }: { onProfile?: () => void }) {
+  const { toast } = useToast();
+  return (
+    <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+      { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: onProfile ?? (() => toast({ title: me.name, children: `${me.role} · ${me.location}` })) },
+      { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+    ]} />
+  );
+}
+
+/** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the tabs." });
+}
 
 // ——— 1. Project sections ————————————————————————————————————————————————————————————————————————————
 const lumen = projectById("lumen-banking");
@@ -67,6 +91,9 @@ const taskColumns: TableColumn<Task>[] = [
 
 function ProjectSectionsExample() {
   const prefix = usePrefix("project");
+  const { toast } = useToast();
+  const notHere = useNotHere();
+  const [unread, setUnread] = useState(2);
   const [tab, setTab] = useState("overview");
   const [taskList, setTaskList] = useState(() => tasks.filter((t) => t.project === lumen.id));
   const [dialog, setDialog] = useState<"share" | "task" | null>(null);
@@ -84,93 +111,134 @@ function ProjectSectionsExample() {
     setTab("tasks");
   };
 
+  const tabs = (
+    <Tabs idPrefix={prefix} aria-label="Project sections" value={tab} onValueChange={setTab} items={[
+      { id: "overview", label: "Overview", icon: "icon-layout-grid-01-line" },
+      // Counts only while there is something to count: a badge of 0 is hidden.
+      { id: "tasks", label: "Tasks", icon: "icon-check-square-line", badge: open || undefined },
+      { id: "files", label: "Files", icon: "icon-folder-line", badge: lumenFiles.length },
+      { id: "activity", label: "Activity", icon: "icon-activity-line" },
+    ]} />
+  );
+
   return (
-    <PreviewPage margin="block">
-      <Container maxWidth="full">
-        <Stack gap="xl">
-          <PageHeader
-            eyebrow={lumen.client}
-            title={lumen.name}
-            meta={<Badge theme={projectStatusTheme[lumen.status]} background="subtle">{lumen.status}</Badge>}
-            description={`${formatRange(lumen.start, lumen.due)} · Led by ${people[lumen.lead].name}`}
-            actions={<><Button level="tertiary" onClick={() => setDialog("share")}>Share</Button><Button level="primary" onClick={() => setDialog("task")}>New task</Button></>}
-            tabs={(
-              <Tabs idPrefix={prefix} aria-label="Project sections" value={tab} onValueChange={setTab} items={[
-                { id: "overview", label: "Overview", icon: "icon-layout-grid-01-line" },
-                // Counts only while there is something to count: a badge of 0 is hidden.
-                { id: "tasks", label: "Tasks", icon: "icon-check-square-line", badge: open || undefined },
-                { id: "files", label: "Files", icon: "icon-folder-line", badge: lumenFiles.length },
-                { id: "activity", label: "Activity", icon: "icon-activity-line" },
-              ]} />
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      {/* The project page of the studio app: the trail and the utilities in the header's top row, the PageHeader in its
+          Main row and the section tabs in its Sections row, so they stay with the title while the panel scrolls. */}
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            selectedId="projects" onItemClick={(item: SidebarItem) => { if (item.id !== "projects") notHere(item.label); }}
+            sections={[{ items: [
+              { id: "home", label: "Home", icon: "icon-home-03-line" },
+              { id: "projects", label: "Projects", icon: "icon-folder-line" },
+              { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+              { id: "people", label: "People", icon: "icon-users-line" },
+            ] }]}
+            footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+        )}
+        header={(
+          <AppShellHeader
+            leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: lumen.id, label: lumen.name }]}
+              onNavigate={(_, event) => { event.preventDefault(); notHere("Projects"); }} />}
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                setUnread(0);
+                toast({ title: unread ? `${plural(unread, "new update")} on ${lumen.name}` : "You're all caught up", children: `${people[lumenActivity[0].actor].name}: ${lumenActivity[0].text}` });
+              }} />
+              <AccountMenu />
+            </>}
+            main={(
+              <PageHeader
+                eyebrow={lumen.client}
+                title={lumen.name}
+                meta={<Badge theme={projectStatusTheme[lumen.status]} background="subtle">{lumen.status}</Badge>}
+                description={`${formatRange(lumen.start, lumen.due)} · Led by ${people[lumen.lead].name}`}
+                actions={<><Button level="tertiary" onClick={() => setDialog("share")}>Share</Button><Button level="primary" onClick={() => setDialog("task")}>New task</Button></>}
+              />
             )}
+            sections={tabs}
           />
-
-          <TabPanel idPrefix={prefix} id="overview" hidden={tab !== "overview"}>
-            <Stack gap="md">
-              {/* As many 200px columns as fit, stretched to fill the row. */}
-              <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
-                <MetricCard label="Progress" value={`${lumen.progress}%`} icon="icon-target-04-line" iconTheme="blue" theme="flat" />
-                <MetricCard label="Budget used" value={formatMoney(lumen.spent)} icon="icon-coins-line" iconTheme="green" theme="flat" />
-                <MetricCard label="Open tasks" value={`${open}`} icon="icon-check-square-line" iconTheme="orange" theme="flat" />
-              </Grid>
-              {/* Flat Surfaces on the page's Canvas/Default: no border, no shadow (usage rules §16). Side content stops at
-                  xl (1440px) on a full-width page (backlog batch 6b). */}
-              <Box maxWidth={1440}>
-              <Card theme="flat">
-                <DescriptionList items={[
-                  { term: "Account director", description: people.hana.name },
-                  { term: "Budget", description: formatMoney(lumen.budget) },
-                  { term: "Team", description: <AvatarStack size="xsmall" items={lumen.members.map((id) => people[id].photo ? { src: people[id].photo, alt: people[id].name } : { theme: people[id].theme, alt: people[id].name, children: initials(people[id].name) })} /> },
-                  { term: "Due", description: formatDate(lumen.due) },
-                ]} />
+        )}
+      >
+        <TabPanel idPrefix={prefix} id="overview" hidden={tab !== "overview"}>
+          <Stack gap="md">
+            {/* As many 200px columns as fit, stretched to fill the row. Beside the default Sidebar every Surface takes its
+                elevation: Shadow/Bottom/Level-1, no border (usage rules §16). */}
+            <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
+              <MetricCard label="Progress" value={`${lumen.progress}%`} icon="icon-target-04-line" iconTheme="blue" theme="shadow" />
+              <MetricCard label="Budget used" value={formatMoney(lumen.spent)} icon="icon-coins-line" iconTheme="green" theme="shadow" />
+              <MetricCard label="Open tasks" value={`${open}`} icon="icon-check-square-line" iconTheme="orange" theme="shadow" />
+            </Grid>
+            {/* The project's facts beside its latest files: side content stops at xl (1440px) on a full-width page. */}
+            <Grid columns="minmax(0, 1fr) minmax(0, 1fr)" stackBelow={720} gap="md" align="start" maxWidth={1440}>
+              <Card theme="shadow" as="section" aria-labelledby={`${prefix}-facts`}>
+                <Stack gap="md">
+                  <Heading level={2} id={`${prefix}-facts`} textStyle="Heading/Subheading">Details</Heading>
+                  <DescriptionList items={[
+                    { term: "Account director", description: people.hana.name },
+                    { term: "Budget", description: formatMoney(lumen.budget) },
+                    { term: "Team", description: <AvatarStack size="xsmall" items={lumen.members.map((id) => people[id].photo ? { src: people[id].photo, alt: people[id].name } : { theme: people[id].theme, alt: people[id].name, children: initials(people[id].name) })} /> },
+                    { term: "Due", description: formatDate(lumen.due) },
+                  ]} />
+                </Stack>
               </Card>
-              </Box>
-            </Stack>
-          </TabPanel>
-
-          {/* The task table is the section's content, so it lies on the page (no Card). */}
-          <TabPanel idPrefix={prefix} id="tasks" hidden={tab !== "tasks"}>
-            <Table aria-label="Tasks" rows={taskList} columns={taskColumns} />
-          </TabPanel>
-
-          {/* The file and activity rows sit in a ListBox: a box made only of List-Items. */}
-          <TabPanel idPrefix={prefix} id="files" hidden={tab !== "files"}>
-            <ListBox>
-              <List aria-label="Files">
-                {lumenFiles.map((f) => (
-                  <ListItem key={f.id} title={f.name} caption={`${formatBytes(f.bytes)} · ${people[f.owner].name} · ${formatRelative(f.updated)}`}
-                    leading={<FileIcon format={fileIconFormatOf(f.name)} size="xl" />} />
-                ))}
-              </List>
-            </ListBox>
-          </TabPanel>
-
-          <TabPanel idPrefix={prefix} id="activity" hidden={tab !== "activity"}>
-            <ListBox>
-              {activityLoaded ? (
-                <List aria-label="Activity">
-                  {lumenActivity.map((a) => <ListItem key={a.id} title={people[a.actor].name} caption={`${a.text} · ${formatRelative(a.at)}`} leading={avatar(people[a.actor])} />)}
-                </List>
-              ) : (
-                // Placeholder rows are List-Items too (same padding, Avatar Medium, row gap), so nothing jumps on load.
-                <List aria-busy="true" aria-label="Loading activity">
-                  {[0, 1, 2].map((row) => (
-                    <ListItem key={row} aria-hidden="true" title="" leading={<SkeletonShape shape="round" size="md" />}>
-                      <SkeletonText lines={2} />
-                    </ListItem>
+              <ListBox theme="shadow" as="section" aria-labelledby={`${prefix}-next`}
+                header={<Heading level={2} id={`${prefix}-next`} textStyle="Heading/Subheading">Due next</Heading>}>
+                <List aria-labelledby={`${prefix}-next`}>
+                  {taskList.filter((t) => t.status !== "Done").sort((a, b) => a.due.getTime() - b.due.getTime()).slice(0, 3).map((t) => (
+                    <ListItem key={t.id} title={t.title} titleLines={2} caption={`${t.key} · ${formatDue(t.due)}`} leading={avatar(people[t.assignee])}
+                      onClick={() => setTab("tasks")} />
                   ))}
                 </List>
-              )}
-            </ListBox>
-          </TabPanel>
-        </Stack>
-      </Container>
+              </ListBox>
+            </Grid>
+          </Stack>
+        </TabPanel>
+
+        {/* The task table is the section's content, so it lies on the page (no Card). */}
+        <TabPanel idPrefix={prefix} id="tasks" hidden={tab !== "tasks"}>
+          <Table aria-label="Tasks" rows={taskList} columns={taskColumns} />
+        </TabPanel>
+
+        {/* The file and activity rows sit in a ListBox: a box made only of List-Items, at the Sidebar's elevation. */}
+        <TabPanel idPrefix={prefix} id="files" hidden={tab !== "files"}>
+          <ListBox theme="shadow">
+            <List aria-label="Files">
+              {lumenFiles.map((f) => (
+                <ListItem key={f.id} title={f.name} caption={`${formatBytes(f.bytes)} · ${people[f.owner].name} · ${formatRelative(f.updated)}`}
+                  leading={<FileIcon format={fileIconFormatOf(f.name)} size="xl" />}
+                  onClick={() => toast({ title: `Opening ${f.name}`, children: `${formatBytes(f.bytes)} · ${people[f.owner].name}` })} />
+              ))}
+            </List>
+          </ListBox>
+        </TabPanel>
+
+        <TabPanel idPrefix={prefix} id="activity" hidden={tab !== "activity"}>
+          <ListBox theme="shadow">
+            {activityLoaded ? (
+              <List aria-label="Activity">
+                {lumenActivity.map((a) => <ListItem key={a.id} title={people[a.actor].name} caption={`${a.text} · ${formatRelative(a.at)}`} leading={avatar(people[a.actor])} />)}
+              </List>
+            ) : (
+              // Placeholder rows are List-Items too (same padding, Avatar Medium, row gap), so nothing jumps on load.
+              <List aria-busy="true" aria-label="Loading activity">
+                {[0, 1, 2].map((row) => (
+                  <ListItem key={row} aria-hidden="true" title="" leading={<SkeletonShape shape="round" size="md" />}>
+                    <SkeletonText lines={2} />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </ListBox>
+        </TabPanel>
+      </AppShell>
 
       <DemoFieldDialog open={dialog === "share"} onOpenChange={(next) => setDialog(next ? "share" : null)} title={`Share ${lumen.name}`}
         field={{ kind: "email", label: "Email address", placeholder: "thu@lumenbank.com" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />
       <DemoFieldDialog open={dialog === "task"} onOpenChange={(next) => setDialog(next ? "task" : null)} title="New task"
         field={{ kind: "name", label: "Task name", placeholder: "Review the transfer limits copy" }} submitLabel="Add task" confirm={() => "Task added"} onSubmit={addTask} />
-    </PreviewPage>
+    </PreviewAppFrame>
   );
 }
 
@@ -355,9 +423,18 @@ const activityOf = (id: PersonId): ActivityRow[] => id === "chi" ? chiActivity :
   ...files.filter((f) => f.owner === id).map((f) => ({ id: f.id, icon: "icon-upload-01-line" as IconName, title: f.name, verb: "Updated", at: f.updated })),
 ].sort((a, b) => b.at.getTime() - a.at.getTime());
 
+/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
+const phoneRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
+  { id: "people", label: "People", icon: "icon-users-line", selectedIcon: "icon-users-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+
 function ProfileOnPhoneExample() {
   const prefix = usePrefix("profile");
   const screen = usePhoneScreen();
+  const notHere = useNotHere();
   // One scroller per screen; each screen is its own PlatformPhone (key), so the fold is measured again.
   const screenRef = useRef<HTMLDivElement>(null);
   const activityId = useId();
@@ -366,18 +443,22 @@ function ProfileOnPhoneExample() {
 
   if (!personId) {
     return (
-      <PlatformPhone key="root" label="People" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="People" largeTitle="People" scrollRef={screenRef} />}>
-        {screen.anchor}
-        {/* Rows pad 0 at the sides: the screen margin (lg, 20px) insets them, and their fill (12px outside a row) stays 8px off every edge. */}
-        <Box padding="lg">
+      // The People root: the large title, the directory and the app's roots in the bottom bar. The Body pads the screen,
+      // so the rows (no side padding of their own) line up with the title.
+      <PlatformPhone key="root" label="People" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="People" largeTitle="People" largeTitleSubheading={`${plural(directory.length, "person", "people")} at ${studio.name}`} scrollRef={screenRef} />}
+          bottomNavigation={<BottomNavigation aria-label={studio.name} showLabels items={phoneRoots} value="people"
+            onValueChange={(id) => { if (id !== "people") notHere(phoneRoots.find((item) => item.id === id)?.label ?? id); }} />}
+        >
+          {screen.anchor}
           <List aria-label="People">
             {directory.map((p) => (
               <ListItem key={p.id} data-person={p.id} title={p.name} caption={`${p.role} · ${p.location}`} leading={avatar(p)}
                 onClick={() => screen.go('[role="tab"][aria-selected="true"]', () => { setPersonId(p.id as PersonId); setTab("about"); })} />
             ))}
           </List>
-        </Box>
+        </AppShell>
       </PlatformPhone>
     );
   }
@@ -388,68 +469,70 @@ function ProfileOnPhoneExample() {
   const recent = activityOf(personId);
   const lead = leadOf[person.team];
   return (
-    <PlatformPhone key={personId} label={person.name} headerOverlay screenRef={screenRef}
-      header={(
-        <TopNavigation type="compact-alt" title={person.name} scrollRef={screenRef}
-          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-person="${personId}"] .zen-list-item__wrapper`, () => setPersonId(null)) }}
-          // Two to four tabs share the phone's width evenly; the bar stays pinned under the title.
-          controlBar={<Tabs idPrefix={prefix} fullWidth aria-label={`${person.name} sections`} value={tab} onValueChange={setTab} items={[
-            { id: "about", label: "About" },
-            { id: "projects", label: "Projects", badge: personProjects.length || undefined },
-            { id: "time-off", label: "Time off" },
-          ]} />} />
-      )}>
-      {screen.anchor}
-      <TabPanel idPrefix={prefix} id="about" hidden={tab !== "about"}>
-        <Stack gap="lg" paddingY="lg">
-          <Stack gap="md" paddingX="lg">
-            <Stack direction="row" gap="sm" align="center">
-              {person.photo ? <Avatar size="xlarge" theme="photo" src={person.photo} alt="" /> : <Avatar size="xlarge" theme={person.theme} alt="">{initials(person.name)}</Avatar>}
-              <Stack gap="xs">
-                <Text textStyle="Body/Base/Bold">{person.role}</Text>
-                <Text textStyle="Body/Small/Regular" tone="base">{person.location}</Text>
+    // A child screen: the compact bar with Back and the person's name, the three sections as full-width tabs in its
+    // control bar (pinned while the panel scrolls), no bottom bar.
+    <PlatformPhone key={personId} label={person.name} screenRef={screenRef}>
+      <AppShell
+        topNavigation={(
+          <TopNavigation type="compact-alt" title={person.name} scrollRef={screenRef}
+            leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-person="${personId}"] .zen-list-item__wrapper`, () => setPersonId(null)) }}
+            // Two to four tabs share the phone's width evenly; the bar stays pinned under the title.
+            controlBar={<Tabs idPrefix={prefix} fullWidth aria-label={`${person.name} sections`} value={tab} onValueChange={setTab} items={[
+              { id: "about", label: "About" },
+              { id: "projects", label: "Projects", badge: personProjects.length || undefined },
+              { id: "time-off", label: "Time off" },
+            ]} />} />
+        )}
+      >
+        {screen.anchor}
+        <TabPanel idPrefix={prefix} id="about" hidden={tab !== "about"}>
+          {/* The Body pads the screen and keeps the panel's two sections apart. */}
+          <Stack gap="xl">
+            <Stack gap="md">
+              <Stack direction="row" gap="sm" align="center">
+                {person.photo ? <Avatar size="xlarge" theme="photo" src={person.photo} alt="" /> : <Avatar size="xlarge" theme={person.theme} alt="">{initials(person.name)}</Avatar>}
+                <Stack gap="xs">
+                  <Text textStyle="Body/Base/Bold">{person.role}</Text>
+                  <Text textStyle="Body/Small/Regular" tone="base">{person.location}</Text>
+                </Stack>
               </Stack>
+              <DescriptionList divider items={[
+                { term: "Team", description: person.team },
+                { term: "Email", description: person.email },
+                ...(lead === personId ? [] : [{ term: "Manager", description: people[lead].name }]),
+              ]} />
             </Stack>
-            <DescriptionList divider items={[
-              { term: "Team", description: person.team },
-              { term: "Email", description: person.email },
-              ...(lead === personId ? [] : [{ term: "Manager", description: people[lead].name }]),
-            ]} />
+            <Stack as="section" gap="xs" aria-labelledby={activityId}>
+              <Heading level={2} id={activityId} textStyle="Body/Small/Bold" tone="light">Recent activity</Heading>
+              {recent.length ? (
+                <List aria-labelledby={activityId}>
+                  {recent.map((a) => (
+                    // The task or file name is the entry and nothing else shows it in full: up to two lines.
+                    <ListItem key={a.id} title={a.title} titleLines={2} caption={`${a.verb} · ${formatRelative(a.at)}`}
+                      leading={<DockIcon icon={a.icon} theme="neutral" background="subtle" size="medium" />} />
+                  ))}
+                </List>
+              ) : (
+                <Text textStyle="Body/Small/Regular" tone="base">{`Nothing from ${person.name.split(" ")[0]} in the last two weeks.`}</Text>
+              )}
+            </Stack>
           </Stack>
-          <Stack as="section" gap="xs" paddingX="lg" aria-labelledby={activityId}>
-            <Heading level={2} id={activityId} textStyle="Body/Small/Bold" tone="light">Recent activity</Heading>
-            {recent.length ? (
-              <List aria-labelledby={activityId}>
-                {recent.map((a) => (
-                  // The task or file name is the entry and nothing else shows it in full: up to two lines.
-                  <ListItem key={a.id} title={a.title} titleLines={2} caption={`${a.verb} · ${formatRelative(a.at)}`}
-                    leading={<DockIcon icon={a.icon} theme="neutral" background="subtle" size="medium" />} />
-                ))}
-              </List>
-            ) : (
-              <Text textStyle="Body/Small/Regular" tone="base">{`Nothing from ${person.name.split(" ")[0]} in the last two weeks.`}</Text>
-            )}
-          </Stack>
-        </Stack>
-      </TabPanel>
-      <TabPanel idPrefix={prefix} id="projects" hidden={tab !== "projects"}>
-        {personProjects.length ? (
-          // Static rows (nothing opens them) sit in the screen margin.
-          <Box padding="lg">
+        </TabPanel>
+        <TabPanel idPrefix={prefix} id="projects" hidden={tab !== "projects"}>
+          {personProjects.length ? (
+            // Static rows (nothing opens them) sit in the screen margin the Body pads.
             <List aria-label="Projects">
               {personProjects.map((p) => (
                 <ListItem key={p.id} title={p.name} caption={p.client} leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="medium" />}
                   trailing={<Badge theme={projectStatusTheme[p.status]} background="subtle">{p.status}</Badge>} />
               ))}
             </List>
-          </Box>
-        ) : (
-          <EmptyState headingLevel={2} icon="icon-folder-line" title="No projects yet">Projects {person.name.split(" ")[0]} joins show up here.</EmptyState>
-        )}
-      </TabPanel>
-      <TabPanel idPrefix={prefix} id="time-off" hidden={tab !== "time-off"}>
-        {leave.length ? (
-          <Box padding="lg">
+          ) : (
+            <EmptyState headingLevel={2} icon="icon-folder-line" title="No projects yet">Projects {person.name.split(" ")[0]} joins show up here.</EmptyState>
+          )}
+        </TabPanel>
+        <TabPanel idPrefix={prefix} id="time-off" hidden={tab !== "time-off"}>
+          {leave.length ? (
             <List aria-label="Time off">
               {leave.map((l) => (
                 <ListItem key={l.id} title={l.kind} caption={`${l.days > 1 ? formatRange(l.from, l.to) : formatDate(l.from)} · ${plural(l.days, "day")}`}
@@ -457,11 +540,11 @@ function ProfileOnPhoneExample() {
                   trailing={<Badge theme={leaveStatusTheme[l.status]} background="subtle">{l.status}</Badge>} />
               ))}
             </List>
-          </Box>
-        ) : (
-          <EmptyState headingLevel={2} icon="icon-calendar-heart-line" title="No time off yet">Leave {person.name.split(" ")[0]} books shows up here.</EmptyState>
-        )}
-      </TabPanel>
+          ) : (
+            <EmptyState headingLevel={2} icon="icon-calendar-heart-line" title="No time off yet">Leave {person.name.split(" ")[0]} books shows up here.</EmptyState>
+          )}
+        </TabPanel>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -526,14 +609,14 @@ const unpaidInvoices = invoices.filter((i) => i.status === "Sent" || i.status ==
 const myOpenTasks = tasks.filter((t) => t.assignee === me.id && t.status !== "Done");
 const workspaceSections: Record<string, { title: string; description: string }> = {
   home: { title: "Home", description: `${studio.name} this week` },
-  projects: { title: "Projects", description: `${activeProjects.length} active projects` },
-  invoices: { title: "Invoices", description: `${unpaidInvoices.length} invoices waiting for payment` },
-  people: { title: "People", description: `${peopleList.length} people in the studio` },
+  projects: { title: "Projects", description: `${plural(activeProjects.length, "active project")}` },
+  invoices: { title: "Invoices", description: `${plural(unpaidInvoices.length, "invoice")} waiting for payment` },
+  people: { title: "People", description: `${plural(peopleList.length, "person", "people")} in ${plural(new Set(peopleList.map((p) => p.team)).size, "team")}` },
 };
 
 /** True while `ref`'s element is narrower than `width`: on a phone-width page the logo keeps only its mark. */
 function useNarrowerThan(width: number) {
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [narrow, setNarrow] = useState(false);
   useLayoutEffect(() => {
     const element = ref.current;
@@ -545,144 +628,246 @@ function useNarrowerThan(width: number) {
   return [ref, narrow] as const;
 }
 
+const unpaidTotal = unpaidInvoices.reduce((sum, i) => sum + i.amount, 0);
+const overdueTotal = invoices.filter((i) => i.status === "Overdue").reduce((sum, i) => sum + i.amount, 0);
+const paidTotal = invoices.filter((i) => i.status === "Paid").reduce((sum, i) => sum + i.amount, 0);
+const myDueSoon = [...myOpenTasks].sort((a, b) => a.due.getTime() - b.due.getTime());
+const teamsInStudio = [...new Set(peopleList.map((p) => p.team))];
+
 function WorkspaceTopNavExample() {
   const prefix = usePrefix("workspace");
   const [tab, setTab] = useState("projects");
   const { toast } = useToast();
-  const [pageRef, narrow] = useNarrowerThan(640);
+  const [frameRef, narrow] = useNarrowerThan(640);
+  const homeTasksId = useId();
+  const homeActivityId = useId();
+  const otherProjectsId = useId();
+  const unpaidId = useId();
+  const paidId = useId();
   const panel = (id: string, children: ReactNode) => <TabPanel idPrefix={prefix} id={id} hidden={tab !== id}>{children}</TabPanel>;
+  const open = (title: string, detail: string) => toast({ title, children: detail });
 
   return (
-    <PreviewPage ref={pageRef}>
-      {/* The bar lies on the page's Canvas; the Divider under it is the tabs' baseline, so the 64px Large items fill the
-          bar and the selected indicator sits on that line. */}
-      <Container maxWidth="full">
-        <Stack direction="row" align="center" justify="between" gap="lg">
-          <Stack direction="row" align="center" gap="lg" width="fill">
-            {/* The logo slot is 24px high; on a phone-width page only the mark stays and the tabs scroll. */}
-            {narrow ? <StudioMark src={studio.logo} name={studio.name} /> : <Box width="hug" height={24}><StudioLogo src={studio.logo} name={studio.name} /></Box>}
-            <Tabs idPrefix={prefix} size="lg" aria-label="Workspace" value={tab} onValueChange={setTab} items={[
-              { id: "home", label: "Home" },
-              { id: "projects", label: "Projects", badge: activeProjects.length },
-              { id: "invoices", label: "Invoices", badge: unpaidInvoices.length || undefined },
-              { id: "people", label: "People" },
-            ]} />
-          </Stack>
-          <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
-            { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => setTab("people") },
-            { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
-          ]} />
-        </Stack>
-      </Container>
-      <Divider />
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="xl">
-          <PageHeader title={workspaceSections[tab].title} description={workspaceSections[tab].description} />
-          {panel("home", (
+    <PreviewAppFrame frameRef={frameRef} height={{ min: 640, max: 820 }}>
+      {/* AppShell pattern="top-bar": no Sidebar, the studio's main sections are Large tabs in the header's top row (64px
+          items, the selected one underlined), beside the logo; the account stays last. The page's PageHeader is the
+          header's Main row and changes with the tab; every block on the Canvas is flat (no Sidebar, so no elevation). */}
+      <AppShell pattern="top-bar"
+        header={(
+          <AppShellHeader
+            leading={(
+              <Stack direction="row" align="center" gap="lg">
+                {/* The logo takes the top row's Element-Size/Popular/Medium (24 Compact, taller at Comfortable: a fixed 24 box
+                    spilled it); on a phone-width page only the mark stays and the tabs scroll. */}
+                {narrow ? <StudioMark src={studio.logo} name={studio.name} /> : <Box width="hug"><StudioLogo src={studio.logo} name={studio.name} /></Box>}
+                <Tabs idPrefix={prefix} size="lg" aria-label="Workspace" value={tab} onValueChange={setTab} items={[
+                  { id: "home", label: "Home" },
+                  { id: "projects", label: "Projects", badge: activeProjects.length },
+                  { id: "invoices", label: "Invoices", badge: unpaidInvoices.length || undefined },
+                  { id: "people", label: "People" },
+                ]} />
+              </Stack>
+            )}
+            actions={<AccountMenu onProfile={() => setTab("people")} />}
+            main={<PageHeader title={workspaceSections[tab].title} description={workspaceSections[tab].description} />}
+          />
+        )}
+      >
+        {panel("home", (
+          <Stack gap="md">
             <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
-              <MetricCard label="Active projects" value={`${activeProjects.length}`} icon="icon-folder-line" iconTheme="neutral" theme="flat" />
-              <MetricCard label="Unpaid invoices" value={formatMoney(unpaidInvoices.reduce((sum, i) => sum + i.amount, 0))} icon="icon-receipt-line" iconTheme="neutral" theme="flat" />
-              <MetricCard label="Your open tasks" value={`${myOpenTasks.length}`} icon="icon-check-square-line" iconTheme="neutral" theme="flat" />
+              <MetricCard label="Active projects" value={`${activeProjects.length}`} icon="icon-folder-line" iconTheme="blue" theme="flat" />
+              <MetricCard label="Unpaid invoices" value={formatMoney(unpaidTotal)} icon="icon-receipt-line" iconTheme="orange" theme="flat" />
+              <MetricCard label="Your open tasks" value={`${myOpenTasks.length}`} icon="icon-check-square-line" iconTheme="green" theme="flat" />
             </Grid>
-          ))}
-          {panel("projects", (
-            <ListBox>
-              <List aria-label="Active projects">
-                {activeProjects.map((p) => (
-                  <ListItem key={p.id} title={p.name} caption={`${p.client} · Due ${formatDate(p.due)}`}
-                    leading={<DockIcon icon={p.icon} theme="neutral" background="subtle" size="medium" />}
-                    trailing={<Text textStyle="Body/Small/Regular" tone="base">{`${p.progress}% done`}</Text>} />
-                ))}
-              </List>
-            </ListBox>
-          ))}
-          {panel("invoices", (
-            <ListBox>
-              <List aria-label="Unpaid invoices">
-                {unpaidInvoices.map((i) => (
-                  <ListItem key={i.id} title={i.number} caption={`${i.client} · ${formatMoney(i.amount, true)} · Due ${formatDate(i.due)}`}
-                    leading={<DockIcon icon="icon-receipt-line" theme="neutral" background="subtle" size="medium" />}
-                    trailing={<Badge theme={invoiceStatusTheme[i.status]} background="subtle">{i.status}</Badge>} />
-                ))}
-              </List>
-            </ListBox>
-          ))}
-          {panel("people", (
-            <ListBox>
-              <List aria-label="People">
-                {peopleList.slice(0, 6).map((p) => <ListItem key={p.id} title={p.name} caption={`${p.role} · ${p.team}`} leading={avatar(p)} />)}
-              </List>
-            </ListBox>
-          ))}
-        </Stack>
-      </Container>
-    </PreviewPage>
+            <Grid columns="minmax(0, 1fr) minmax(0, 1fr)" stackBelow={720} gap="md" align="start">
+              <ListBox as="section" aria-labelledby={homeTasksId} header={<Heading level={2} id={homeTasksId} textStyle="Heading/Subheading">Your tasks</Heading>}>
+                <List aria-labelledby={homeTasksId}>
+                  {myDueSoon.map((t) => (
+                    <ListItem key={t.id} title={t.title} titleLines={2} caption={`${t.key} · ${formatDue(t.due)}`}
+                      leading={<DockIcon icon={projectById(t.project).icon} theme={projectById(t.project).theme} background="subtle" size="medium" />}
+                      trailing={<Badge theme={taskStatusTheme[t.status]} background="subtle">{t.status}</Badge>}
+                      onClick={() => open(t.title, `${t.key} · ${projectById(t.project).name}`)} />
+                  ))}
+                </List>
+              </ListBox>
+              <ListBox as="section" aria-labelledby={homeActivityId} header={<Heading level={2} id={homeActivityId} textStyle="Heading/Subheading">Since yesterday</Heading>}>
+                <List aria-labelledby={homeActivityId}>
+                  {activity.slice(0, 4).map((a) => (
+                    <ListItem key={a.id} title={people[a.actor].name} caption={`${a.verb} ${a.object} · ${formatRelative(a.at)}`} leading={avatar(people[a.actor])} />
+                  ))}
+                </List>
+              </ListBox>
+            </Grid>
+          </Stack>
+        ))}
+        {panel("projects", (
+          <Stack gap="xl">
+            {/* The active projects as flat cards, as many 280px columns as fit: each with its progress and its next date. */}
+            <Grid as="ul" minColumnWidth={280} gap="md" aria-label="Active projects">
+              {activeProjects.map((p) => (
+                <Card as="li" key={p.id} theme="flat">
+                  <Stack gap="md">
+                    <Stack direction="row" gap="sm" align="center">
+                      <DockIcon icon={p.icon} theme={p.theme} background="subtle" size="medium" />
+                      <Stack gap="2xs" width="fill">
+                        <Heading level={2} textStyle="Heading/Subheading">{p.name}</Heading>
+                        <Text textStyle="Body/Small/Regular" tone="base">{p.client}</Text>
+                      </Stack>
+                    </Stack>
+                    <ProgressBar value={p.progress} label aria-label={`${p.name} progress`} />
+                    <Stack direction="row" gap="xs" align="center" justify="between">
+                      <Text as="span" textStyle="Body/Small/Regular" tone="base">{`Due ${formatDate(p.due)}`}</Text>
+                      <AvatarStack size="xsmall" max={4} items={p.members.map((id) => people[id].photo ? { src: people[id].photo, alt: people[id].name } : { theme: people[id].theme, alt: people[id].name, children: initials(people[id].name) })} />
+                    </Stack>
+                    <Button level="tertiary" onClick={() => open(p.name, `${p.client} · ${p.progress}% done · Led by ${people[p.lead].name}`)} aria-label={`Open ${p.name}`}>Open project</Button>
+                  </Stack>
+                </Card>
+              ))}
+            </Grid>
+            <Stack as="section" gap="md" aria-labelledby={otherProjectsId}>
+              <Heading level={2} id={otherProjectsId} textStyle="Heading/4">Other projects</Heading>
+              <ListBox>
+                <List aria-labelledby={otherProjectsId}>
+                  {projects.filter((p) => p.status !== "Active").map((p) => (
+                    <ListItem key={p.id} title={p.name} caption={`${p.client} · Led by ${people[p.lead].name}`}
+                      leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="medium" />}
+                      trailing={<Badge theme={projectStatusTheme[p.status]} background="subtle">{p.status}</Badge>}
+                      onClick={() => open(p.name, `${p.client} · ${p.status}`)} />
+                  ))}
+                </List>
+              </ListBox>
+            </Stack>
+          </Stack>
+        ))}
+        {panel("invoices", (
+          <Stack gap="xl">
+            <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
+              <MetricCard label="Outstanding" value={formatMoney(unpaidTotal)} icon="icon-hourglass-line" iconTheme="blue" theme="flat" />
+              <MetricCard label="Overdue" value={formatMoney(overdueTotal)} icon="icon-alert-triangle-line" iconTheme="red" theme="flat" />
+              <MetricCard label="Paid this quarter" value={formatMoney(paidTotal)} icon="icon-check-circle-line" iconTheme="green" theme="flat" />
+            </Grid>
+            <Stack as="section" gap="md" aria-labelledby={unpaidId}>
+              <Heading level={2} id={unpaidId} textStyle="Heading/4">Waiting for payment</Heading>
+              <ListBox>
+                <List aria-labelledby={unpaidId}>
+                  {unpaidInvoices.map((i) => (
+                    <ListItem key={i.id} title={i.number} caption={`${i.client} · ${formatMoney(i.amount, true)} · Due ${formatDate(i.due)}`}
+                      leading={<DockIcon icon="icon-receipt-line" theme="neutral" background="subtle" size="medium" />}
+                      trailing={<Badge theme={invoiceStatusTheme[i.status]} background="subtle">{i.status}</Badge>}
+                      onClick={() => open(i.number, `${i.client} · ${formatMoney(i.amount, true)}`)} />
+                  ))}
+                </List>
+              </ListBox>
+            </Stack>
+            <Stack as="section" gap="md" aria-labelledby={paidId}>
+              <Heading level={2} id={paidId} textStyle="Heading/4">Paid recently</Heading>
+              <ListBox>
+                <List aria-labelledby={paidId}>
+                  {invoices.filter((i) => i.status === "Paid").map((i) => (
+                    <ListItem key={i.id} title={i.number} caption={`${i.client} · ${formatMoney(i.amount, true)} · Issued ${formatDate(i.issued)}`}
+                      leading={<DockIcon icon="icon-receipt-line" theme="neutral" background="subtle" size="medium" />}
+                      trailing={<Badge theme={invoiceStatusTheme[i.status]} background="subtle">{i.status}</Badge>}
+                      onClick={() => open(i.number, `${i.client} · ${formatMoney(i.amount, true)}`)} />
+                  ))}
+                </List>
+              </ListBox>
+            </Stack>
+          </Stack>
+        ))}
+        {panel("people", (
+          // One block of rows per team, as many 320px columns as fit.
+          <Grid minColumnWidth={320} gap="md" align="start">
+            {teamsInStudio.map((team) => (
+              <ListBox key={team} as="section" aria-labelledby={`${prefix}-${team.replace(/\s+/g, "-")}`}
+                header={<Heading level={2} id={`${prefix}-${team.replace(/\s+/g, "-")}`} textStyle="Heading/Subheading">{team}</Heading>}>
+                <List aria-labelledby={`${prefix}-${team.replace(/\s+/g, "-")}`}>
+                  {peopleList.filter((p) => p.team === team).map((p) => <ListItem key={p.id} title={p.name} caption={`${p.role} · ${p.location}`} leading={avatar(p)} />)}
+                </List>
+              </ListBox>
+            ))}
+          </Grid>
+        ))}
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Project sections",
-    description: "A project page splits into Overview, Tasks, Files and Activity: Indicator tabs with icons in the PageHeader, each paired with a TabPanel. Counts sit in badges and leave at zero; Activity loads the first time it opens.",
+    description: "A project page splits into Overview, Tasks, Files and Activity: Indicator tabs with icons in the AppShell header's Sections row, under the PageHeader in its Main row, each paired with a TabPanel in the Body. Counts sit in badges and leave at zero; Activity loads the first time it opens.",
     wide: true,
     screen: true,
     render: () => <ProjectSectionsExample />,
     code: `const [tab, setTab] = useState("overview");
 
-<PageHeader
-  eyebrow="Lumen Bank"
-  title="Online banking redesign"
-  meta={<Badge theme="blue" background="subtle">Active</Badge>}
-  actions={<><Button level="tertiary" onClick={share}>Share</Button><Button level="primary" onClick={newTask}>New task</Button></>}
-  tabs={
-    <Tabs idPrefix="project" aria-label="Project sections" value={tab} onValueChange={setTab} items={[
-      { id: "overview", label: "Overview", icon: "icon-layout-grid-01-line" },
-      { id: "tasks", label: "Tasks", icon: "icon-check-square-line", badge: openTasks || undefined }, // hidden at 0
-      { id: "files", label: "Files", icon: "icon-folder-line", badge: files.length },
-      { id: "activity", label: "Activity", icon: "icon-activity-line" },
-    ]} />
+<AppShell
+  sidebar={<Sidebar logo={logo} sections={places} selectedId="projects" onItemClick={go} />}
+  header={
+    <AppShellHeader
+      leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: "lumen", label: "Online banking redesign" }]} onNavigate={go} />}
+      actions={<>{notifications}{account}</>}
+      main={
+        <PageHeader eyebrow="Lumen Bank" title="Online banking redesign"
+          meta={<Badge theme="blue" background="subtle">Active</Badge>}
+          actions={<><Button level="tertiary" onClick={share}>Share</Button><Button level="primary" onClick={newTask}>New task</Button></>} />
+      }
+      // The page's views: the Sections row under the Main row
+      sections={
+        <Tabs idPrefix="project" aria-label="Project sections" value={tab} onValueChange={setTab} items={[
+          { id: "overview", label: "Overview", icon: "icon-layout-grid-01-line" },
+          { id: "tasks", label: "Tasks", icon: "icon-check-square-line", badge: openTasks || undefined }, // hidden at 0
+          { id: "files", label: "Files", icon: "icon-folder-line", badge: files.length },
+          { id: "activity", label: "Activity", icon: "icon-activity-line" },
+        ]} />
+      }
+    />
   }
-/>
-<TabPanel idPrefix="project" id="overview" hidden={tab !== "overview"}>
-  <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">{/* MetricCards */}</Grid>
-</TabPanel>
-<TabPanel idPrefix="project" id="tasks" hidden={tab !== "tasks"}>
-  <Table aria-label="Tasks" rows={tasks} columns={columns} /> {/* on the page, no Card */}
-</TabPanel>
-<TabPanel idPrefix="project" id="activity" hidden={tab !== "activity"}>
-  <ListBox>{loaded ? <ActivityList /> : <SkeletonRows />}</ListBox>
-</TabPanel>`,
+>
+  <TabPanel idPrefix="project" id="overview" hidden={tab !== "overview"}>
+    <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">{/* MetricCards theme="shadow" */}</Grid>
+  </TabPanel>
+  <TabPanel idPrefix="project" id="tasks" hidden={tab !== "tasks"}>
+    <Table aria-label="Tasks" rows={tasks} columns={columns} /> {/* on the page, no Card */}
+  </TabPanel>
+  <TabPanel idPrefix="project" id="activity" hidden={tab !== "activity"}>
+    <ListBox theme="shadow">{loaded ? <ActivityList /> : <SkeletonRows />}</ListBox>
+  </TabPanel>
+</AppShell>`,
   },
   {
     title: "Workspace top navigation",
-    description: "On desktop the studio's main sections sit in the top bar as Large tabs: 64px items that fill the bar, with the selected indicator on the Divider under it. Counts sit in badges and leave at zero; Your profile in the account menu opens People.",
+    description: "On desktop the studio's main sections sit in the top bar as Large tabs: the AppShell's top-bar pattern (no Sidebar) puts them beside the logo in the header's top row, 64px items with the selected one underlined, and the PageHeader in the Main row follows the tab. Counts sit in badges and leave at zero; Your profile in the account menu opens People.",
     wide: true,
     screen: true,
     render: () => <WorkspaceTopNavExample />,
     code: `const [tab, setTab] = useState("projects");
 
-<Container maxWidth="full">
-  <Stack direction="row" align="center" justify="between" gap="lg">
-    <Stack direction="row" align="center" gap="lg" width="fill">
-      <Logo />
-      <Tabs idPrefix="workspace" size="lg" aria-label="Workspace" value={tab} onValueChange={setTab} items={[
-        { id: "home", label: "Home" },
-        { id: "projects", label: "Projects", badge: activeProjects.length },
-        { id: "invoices", label: "Invoices", badge: unpaidInvoices.length || undefined }, // hidden at 0
-        { id: "people", label: "People" },
-      ]} />
-    </Stack>
-    <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={accountItems} />
-  </Stack>
-</Container>
-<Divider /> {/* the tabs' baseline: the indicator sits on it */}
-<Container maxWidth="full">
-  <PageHeader title="Projects" description="3 active projects" /> {/* the screen's h1 */}
+<AppShell pattern="top-bar"
+  header={
+    <AppShellHeader
+      leading={
+        <Stack direction="row" align="center" gap="lg">
+          <Logo />
+          <Tabs idPrefix="workspace" size="lg" aria-label="Workspace" value={tab} onValueChange={setTab} items={[
+            { id: "home", label: "Home" },
+            { id: "projects", label: "Projects", badge: activeProjects.length },
+            { id: "invoices", label: "Invoices", badge: unpaidInvoices.length || undefined }, // hidden at 0
+            { id: "people", label: "People" },
+          ]} />
+        </Stack>
+      }
+      actions={<Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={accountItems} />}
+      main={<PageHeader title="Projects" description="3 active projects" />} // the screen's h1
+    />
+  }
+>
   <TabPanel idPrefix="workspace" id="projects" hidden={tab !== "projects"}>
     <ListBox><List aria-label="Active projects">{/* ListItems */}</List></ListBox>
   </TabPanel>
   …
-</Container>`,
+</AppShell>`,
   },
   {
     title: "Your work",
@@ -745,25 +930,30 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Profile on a phone",
-    description: "On a phone, three sections of a profile sit in the Top Navigation control bar as full-width tabs that share the screen evenly and stay pinned while the activity scrolls under them. Back returns to the person's row in People, and a section without entries says so.",
+    description: "On a phone, three sections of a profile sit in the Top Navigation control bar as full-width tabs that share the screen evenly and stay pinned while the activity scrolls under them. The profile is a child screen of the People root (Back, no bottom bar): Back returns to the person's row in People, and a section without entries says so.",
     render: () => <ProfileOnPhoneExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 // One PlatformPhone per screen (key), each wired to the scroll.
-<PlatformPhone key={personId} headerOverlay screenRef={screenRef} header={
-  <TopNavigation type="compact-alt" title="Chi Tran" scrollRef={screenRef}
-    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToPeople }}
-    controlBar={
-      <Tabs idPrefix="profile" fullWidth aria-label="Chi Tran sections" value={tab} onValueChange={setTab} items={[
-        { id: "about", label: "About" },
-        { id: "projects", label: "Projects", badge: projects.length || undefined },
-        { id: "time-off", label: "Time off" },
-      ]} />
-    } />
-}>
-  <TabPanel idPrefix="profile" id="about" hidden={tab !== "about"}>…</TabPanel>
-  <TabPanel idPrefix="profile" id="projects" hidden={tab !== "projects"}>…</TabPanel>
-  <TabPanel idPrefix="profile" id="time-off" hidden={tab !== "time-off"}>…</TabPanel>
+<PlatformPhone key={personId} screenRef={screenRef}>
+  <AppShell
+    topNavigation={
+      <TopNavigation type="compact-alt" title="Chi Tran" scrollRef={screenRef}
+        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToPeople }}
+        controlBar={
+          <Tabs idPrefix="profile" fullWidth aria-label="Chi Tran sections" value={tab} onValueChange={setTab} items={[
+            { id: "about", label: "About" },
+            { id: "projects", label: "Projects", badge: projects.length || undefined },
+            { id: "time-off", label: "Time off" },
+          ]} />
+        } />
+    }
+  >
+    {/* The Body pads the screen */}
+    <TabPanel idPrefix="profile" id="about" hidden={tab !== "about"}>…</TabPanel>
+    <TabPanel idPrefix="profile" id="projects" hidden={tab !== "projects"}>…</TabPanel>
+    <TabPanel idPrefix="profile" id="time-off" hidden={tab !== "time-off"}>…</TabPanel>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

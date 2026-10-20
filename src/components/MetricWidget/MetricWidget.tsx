@@ -298,15 +298,16 @@ const tileSmall = (size: MetricSize | undefined) => size === "sm" || size === "s
  * the trend; Spacing/Gap/2XSmall) over the Dock-Icon, Spacing/Gap/Small apart. Medium: Body/Small/Medium, Display/3,
  * Dock-Icon Medium; Small: Caption/Medium, Heading/3, Dock-Icon Small. Its Content follows the card it sits in: the text
  * reads the card's re-pointed tokens, the trend its Content, and the Dock-Icon Inverse on Solid Neutral, On-Color on Accent
- * and the hues (Neutral Solid elsewhere).
+ * and the hues (Neutral Solid elsewhere). The Dock-Icon is Background=Solid unless `iconBackground` says otherwise
+ * (◇ Master-Layout · Example F1, F2, F6: Subtle tiles).
  */
-function MetricTile({ label, value, trend, icon = "icon-activity-line", iconTheme, iconEmoji, size }: Pick<MetricProps, "label" | "value" | "trend" | "icon" | "iconTheme" | "iconEmoji" | "size">) {
+function MetricTile({ label, value, trend, icon = "icon-activity-line", iconTheme, iconBackground = "solid", iconEmoji, size }: Pick<MetricProps, "label" | "value" | "trend" | "icon" | "iconTheme" | "iconBackground" | "iconEmoji" | "size">) {
   const nest = useNested();
   const on = useCardContent();
   const small = tileSmall(size);
   const theme = iconTheme ?? (on === "inverse" ? "inverse" : on ? "on-color" : "neutral");
   const dock = small ? "small" : "medium";
-  const mark = iconEmoji ? <DockIcon theme="emoji" emoji={iconEmoji} background="solid" size={dock} /> : icon ? <DockIcon icon={icon} theme={theme} background="solid" size={dock} /> : null;
+  const mark = iconEmoji ? <DockIcon theme="emoji" emoji={iconEmoji} background={iconBackground} size={dock} /> : icon ? <DockIcon icon={icon} theme={theme} background={iconBackground} size={dock} /> : null;
   return (
     <div className="zen-metric-tile" data-size={small ? "small" : "medium"}>
       <div className="zen-metric-tile__value">
@@ -348,7 +349,7 @@ export function MetricCard({ theme: themeProp, color: colorProp, subAction, spac
   }
   if (type === "tile") {
     // Figma Metric-Card Type=Tile: the Card (Spacing=Small) around a Metric-Tile, whose content follows the card's fill.
-    return card(nest("Metric-Tile", <MetricTile label={metric.label} value={metric.value} trend={metric.trend} icon={metric.icon} iconTheme={metric.iconTheme} iconEmoji={metric.iconEmoji} size={metric.size} />));
+    return card(nest("Metric-Tile", <MetricTile label={metric.label} value={metric.value} trend={metric.trend} icon={metric.icon} iconTheme={metric.iconTheme} iconBackground={metric.iconBackground} iconEmoji={metric.iconEmoji} size={metric.size} />));
   }
   if (type === "comparison") {
     // The title heads the columns under it, as a ChartCard's title: a heading (the outline), Heading/Subheading (the look).

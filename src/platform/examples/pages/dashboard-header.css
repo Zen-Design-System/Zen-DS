@@ -1,4 +1,2 @@
 /* Dashboard Header examples: the row sits on the example's Canvas, the page margin around it. */
 .pe-dashboard-page { width: 100%; min-width: 0; }
-/* A docked panel's width beside a Sidebar: the control bar wraps inside it. */
-.pe-dashboard-shell { min-height: 560px; }

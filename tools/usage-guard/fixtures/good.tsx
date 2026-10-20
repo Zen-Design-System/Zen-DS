@@ -166,7 +166,21 @@ export const Good = () => <>
   <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   <TopNavigation title="Ava Chen" trailing={[{ icon: "icon-phone-line", label: "Audio call", group: "call", onClick: callAudio }, { icon: "icon-video-recorder-line", label: "Video call", group: "call", onClick: callVideo }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   {/* A shell that also runs on phones: the page title in sections and the bar, the same words (component-usage-rules §17). */}
-  <AppShell sidebar={nav} sections={<PageHeader title="Invoices" />} topNavigation={<TopNavigation title="Invoices" largeTitle="Invoices" />} bottomNavigation={<BottomNavigation value="invoices" onValueChange={go} items={roots} />}><Container>{page}</Container></AppShell>
+  <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} main={<PageHeader title="Invoices" />} />} topNavigation={<TopNavigation title="Invoices" largeTitle="Invoices" />} bottomNavigation={<BottomNavigation value="invoices" onValueChange={go} items={roots} />}>{page}</AppShell>
+  {/* The Master crumb stays when the toggle moves into the Sidebar; each pattern gets the panes it draws. */}
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
+  <AppShell pattern="workspace" header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />} leadingPane={<AppShellPane title="Files">{fileList}</AppShellPane>} trailingPane={<AppShellPane title="Comments">{comments}</AppShellPane>}>{page}</AppShell>
+  {/* A comment with an apostrophe inside an attribute's expression is no string: the tag still reads as one AppShell. */}
+  <AppShell sidebar={(
+    // the studio's own navigation
+    <Sidebar sections={sections} />
+  )}>{page}</AppShell>
+  {/* Two actions and an Avatar node: three trailing places. */}
+  <TopNavigation title="Home" trailing={[{ icon: "icon-bell-01-line", label: "Notifications", onClick: invite }, { icon: "icon-plus-line", label: "Add", onClick: invite }, <Avatar key="me" name="Ava Chen" alt="" />]} />
+  {/* A phone Band-Sheet page sits on a white Surface sheet: a Pale card is fine there. */}
+  <AppShell mobileTop="band-sheet" topNavigation={<TopNavigation title="Today" />} actionBar={<ActionBar primaryAction={{ label: "Log meal", onClick: invite }} />}><Card theme="pale">{page}</Card></AppShell>
+  {/* A header without a Main row keeps its product's Primary in the top row (Figma Workspace: Publish). */}
+  <AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<Button level="primary" onClick={invite}>Publish</Button>} />
   <TopNavigation title="Files" largeTitle="Files" largeTitleAction={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Search", icon: "icon-search-medium-line" }, { id: "c", label: "Me", icon: "icon-user-line" }]} />
   <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" items={shareItems} onSelect={share} />
@@ -247,6 +261,10 @@ export const Good = () => <>
   <VisuallyHidden as="a" href="#main" focusable>Skip to main content</VisuallyHidden>
   <VisuallyHidden>Actions</VisuallyHidden>
   <Heading level={1}>Billing</Heading>
+  {/* An emphasis page (a home, a welcome) may title itself larger than Heading/1: any Display / Display-Extra style. */}
+  <Heading level={1} textStyle="Display/3">New arrivals</Heading>
+  <Text as="h1" textStyle="Display-Extra/1">zenio</Text>
+  <h1 className={typographyStyles["Display/1"]}>Continue French!</h1>
   <Heading level={2} textStyle="Heading/4">Current plan</Heading>
   {/* The compact app bar title is the screen's h1 in its bar style; a list group header (kicker) may use Base. */}
   <Text as="h1" textStyle="Body/Extra/Bold" className="zen-top-nav__title">Order #1042</Text>
@@ -277,9 +295,10 @@ export const Good = () => <>
   <Menu trigger={<Button level="tertiary" size="sm">Actions</Button>} items={[{ id: "rename", label: "Rename" }, { id: "archive", label: "Archive" }]} onSelect={run} />
   <Breadcrumbs items={[{ id: "files", label: "Files", href: "/files" }, { id: "brand", label: "Brand refresh" }]} />
   <Sidebar sections={[{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }] }]} onItemClick={go} footer={<button type="button" onClick={openHelp}>Help</button>} />
-  <AppShell sidebar={nav} header={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />}
-    headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={openInbox} /><Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} onSelect={runAccountAction} /></>}>
-    <Container><PageHeader title="Invoices" actions={<Button level="primary" onClick={createInvoice}>New invoice</Button>} /></Container>
+  <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />}
+    actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={openInbox} /><Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} onSelect={runAccountAction} /></>}
+    main={<PageHeader title="Invoices" actions={<Button level="primary" onClick={createInvoice}>New invoice</Button>} />} />}>
+    {page}
   </AppShell>
   <Form onSubmit={save}><Button level="primary" type="submit">Save profile</Button></Form>
   <Button level="primary" disabled>Publish</Button>

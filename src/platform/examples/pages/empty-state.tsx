@@ -1,15 +1,21 @@
-/* Empty State examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio in Zen: Alex's first
-   expense, his tasks filtered to nothing, a review queue he has cleared, a file he can't open on his phone, and a
-   client's uploads while they load. An Empty State shows only once the data is there and really empty. Each demo
-   copies its data into local state; EmptyState comes from ../../../components/EmptyState. */
-import { useEffect, useRef, useState } from "react";
+/* Empty State examples (brief: docs/research/example-rebuild-brief-2026-09-30.md; the two screens rebuilt on the new
+   AppShell 2026-10-19). Đìzai Studio in Zen: Alex's first expense in the studio's desktop app, his tasks filtered to
+   nothing, a review queue he has cleared, a file he can't open in the phone app, and a client's uploads while they load.
+   An Empty State shows only once the data is there and really empty. Each demo copies its data into local state;
+   EmptyState comes from ../../../components/EmptyState. */
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
+import { ActionBar } from "../../../components/ActionBar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Button, IconButton } from "../../../components/Button";
+import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { ModalForm } from "../../../components/Dialog";
@@ -18,10 +24,13 @@ import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { DateField, InputField, SelectField } from "../../../components/Input";
-import { Container, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
+import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
 import { Segmented } from "../../../components/Segmented";
+import { Sidebar, SidebarMenuItem, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
 import { SkeletonShape, SkeletonText } from "../../../components/Skeleton";
 import { Table, TableActions, TableBadges, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
@@ -29,8 +38,8 @@ import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import {
-  TODAY, daysFromToday, files, formatBytes, formatDate, formatDue, formatMoney, formatRelative, initials, people, projectById,
-  projects, taskStatusTheme, type Person, type PersonId, type Priority, type StudioFile, type TaskStatus,
+  TODAY, activity, daysFromToday, files, formatBytes, formatDate, formatDay, formatDue, formatMoney, formatRelative, initials, me, people, projectById,
+  projects, studio, taskStatusTheme, type Person, type PersonId, type Priority, type StudioFile, type TaskStatus,
 } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
 import "./empty-state.css";
@@ -45,6 +54,74 @@ const avatarOf = (person: Person) => person.photo
 /** Focus a control once the next render has put it on screen (the button that was pressed may be gone by then). */
 const focusSoon = (find: () => HTMLElement | null | undefined) => requestAnimationFrame(() => find()?.focus());
 
+/** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the Empty State." });
+}
+
+// ——— The studio's desktop app ————————————————————————————————————————————————————————————————————
+/* Đìzai Studio's navigation: the same Sidebar on every page, its current page selected. */
+const studioNav: SidebarSection[] = [
+  { items: [
+    { id: "home", label: "Home", icon: "icon-home-03-line" },
+    { id: "projects", label: "Projects", icon: "icon-folder-line" },
+    { id: "clients", label: "Clients", icon: "icon-briefcase-line" },
+    { id: "people", label: "People", icon: "icon-users-line" },
+  ] },
+  { label: "Finance", items: [
+    { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+    { id: "expenses", label: "Expenses", icon: "icon-wallet-02-line" },
+  ] },
+];
+const unreadActivity = activity.filter((item) => item.unread);
+
+/**
+ * One page of the studio's app: AppShell Layout=Sidebar in a desktop window, the toggle at the start of the header's top
+ * row, the utilities (Notifications, the account) at its end, and the page's PageHeader, its h1, as the Main row. The
+ * Body pads the page margins itself.
+ */
+function StudioApp({ here, main, children }: { here: string; main: ReactNode; children: ReactNode }) {
+  const { toast } = useToast();
+  const notHere = useNotHere();
+  const [unread, setUnread] = useState(unreadActivity.length);
+  const first = unreadActivity[0];
+  return (
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            sections={studioNav} selectedId={here} onItemClick={(item: SidebarItem) => { if (item.id !== here) notHere(item.label); }}
+            footer={<>
+              <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
+              <SidebarMenuItem id="help" label="Help" icon="icon-help-circle-line" />
+            </>} />
+        )}
+        header={(
+          <AppShellHeader
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                toast(unread
+                  ? { title: plural(unread, "new notification"), children: `${people[first.actor].name} ${first.verb} “${first.object}”.` }
+                  : { title: "No new notifications", children: "You’re all caught up." });
+                setUnread(0);
+              }} />
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.email}` }) },
+                { type: "separator" },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out", children: `See you soon, ${me.name.split(" ")[0]}.` }) },
+              ]} />
+            </>}
+            main={main}
+          />
+        )}
+      >
+        {children}
+      </AppShell>
+    </PreviewAppFrame>
+  );
+}
+
 // ——— 1. First run: the page's only Primary is the Empty State's ————————————————————————————————————————
 type Expense = { id: string; what: string; project: string; date: Date; amount: number };
 const approver = people.mai;
@@ -56,6 +133,8 @@ const parseDay = (text: string) => {
   return d && d.getDate() === Number(m?.[2]) && d <= TODAY ? d : null;
 };
 const todayText = "09/30/2026";
+/** Mai Ho approves expenses every Friday: the next one is Oct 2. */
+const nextFriday = daysFromToday(2);
 
 function FirstRun() {
   const { toast } = useToast();
@@ -81,7 +160,7 @@ function FirstRun() {
     if (next.what || next.amount || next.date || !day) return;
     setRows((list) => [{ id: `e${list.length}-${what.length}`, what: what.trim(), project, date: day, amount: value }, ...list]);
     setOpen(false);
-    toast({ title: "Expense added" });
+    toast({ type: "positive", title: "Expense added", children: `${approver.name} approves it by ${formatDate(nextFriday)}.` });
   };
   // Deleting is undoable, so it acts at once and offers Undo; the last delete brings the Empty State back.
   const remove = (row: Expense) => {
@@ -100,15 +179,26 @@ function FirstRun() {
       cell: (row) => <TableActions><IconButton appearance="flat" size="md" icon="icon-trash-line" aria-label={`Delete ${row.what}`} onClick={() => remove(row)} /></TableActions>,
     },
   ];
+  const pending = rows.reduce((sum, row) => sum + row.amount, 0);
   return (
-    <Container maxWidth="full">
-      <Stack ref={pageRef} paddingY="xl" gap="xl">
-        {/* While the page is empty its only Primary is the Empty State's; the header takes it back once a row exists. */}
-        <PageHeader title="Expenses" description={`What you paid for the studio. ${approver.name} approves them every Friday.`}
-          actions={rows.length ? <Button level="primary" startIcon="icon-plus-line" onClick={start}>Add expense</Button> : undefined} />
+    <StudioApp here="expenses"
+      // While the page is empty its only Primary is the Empty State's; the header takes it back once a row exists.
+      main={<PageHeader title="Expenses" description={`What you paid for the studio. ${approver.name} approves them every Friday.`}
+        actions={rows.length ? <Button level="primary" startIcon="icon-plus-line" onClick={start}>Add expense</Button> : undefined} />}>
+      <Stack ref={pageRef} gap="xl">
         {rows.length ? (
-          <Table aria-label="Expenses" columns={columns} rows={rows} />
+          <>
+            {/* Beside the Sidebar every box takes its elevation (Shadow). */}
+            <Grid minColumnWidth={240} gap="md">
+              <MetricCard theme="shadow" size="md" icon="icon-clock-line" iconTheme="orange" label="Waiting for approval" value={formatMoney(pending, !Number.isInteger(pending))} />
+              <MetricCard theme="shadow" size="md" icon="icon-receipt-line" iconTheme="blue" label="Expenses this month" value={String(rows.length)} />
+              <MetricCard theme="shadow" size="md" icon="icon-calendar-check-line" iconTheme="green" label={`Next approval · ${approver.name}`} value={formatDay(nextFriday)} />
+            </Grid>
+            {/* The table is the page's content, so it lies on the page (no Card). */}
+            <Table aria-label="Expenses" columns={columns} rows={rows} />
+          </>
         ) : (
+          // The first visit: the page has nothing yet, so the Empty State takes the page (size Medium).
           <EmptyState headingLevel={2} icon="icon-receipt-line" title="No expenses yet"
             primaryAction={{ label: "Add expense", onClick: start }}>
             {`Add a receipt and ${approver.name} approves it by Friday.`}
@@ -124,7 +214,7 @@ function FirstRun() {
         <SelectField label="Project" options={expenseProjects} value={project} onValueChange={setProject} />
         <DateField label="Date" today={TODAY} value={date} onValueChange={(value) => { setDate(value); setErrors((e) => ({ ...e, date: undefined })); }} error={errors.date} />
       </ModalForm>
-    </Container>
+    </StudioApp>
   );
 }
 
@@ -246,10 +336,28 @@ const sharedFiles = newestFirst([
   { id: "f15", name: "Shipment tracking – app map.pdf", bytes: 3_100_000, owner: "duy", project: "mekong-tracking", updated: daysFromToday(-23, 10, 15) },
 ]);
 const bareName = (name: string) => name.replace(/\.[a-z0-9]+$/i, "");
+/** The files grouped as the phone list shows them: today, the last seven days, then everything older. */
+const startOfWeek = daysFromToday(-6, 0, 0);
+const fileGroups = [
+  { id: "today", title: "Today", rows: sharedFiles.filter((file) => file.updated >= startOfToday) },
+  { id: "week", title: "This week", rows: sharedFiles.filter((file) => file.updated < startOfToday && file.updated >= startOfWeek) },
+  { id: "earlier", title: "Earlier", rows: sharedFiles.filter((file) => file.updated < startOfWeek) },
+];
+
+/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
+const phoneRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
+  { id: "files", label: "Files", icon: "icon-file-doc-line", selectedIcon: "icon-file-doc-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
 
 function NoAccess() {
+  const { toast } = useToast();
+  const notHere = useNotHere();
   const screen = usePhoneScreen();
-  // One scroller per screen, so the large title folds as the list runs under the header.
+  const groupId = useId();
+  // One scroller per screen, so the large title folds as the list runs under the bar.
   const screenRef = useRef<HTMLDivElement>(null);
   const emptyRef = useRef<HTMLElement>(null);
   const [openId, setOpenId] = useState<string | null>("f4");
@@ -263,30 +371,55 @@ function NoAccess() {
   };
 
   if (!file || !owner) {
+    const locked = sharedFiles.filter((item) => item.locked && !requested.includes(item.id)).length;
     return (
-      <PlatformPhone key="root" label="Files" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
-        {screen.anchor}
-        <List aria-label="Shared with you">
-          {sharedFiles.map((item) => (
-            <ListItem key={item.id} data-file={item.id} title={item.name}
-              caption={`${people[item.owner].name} · ${item.locked ? "No access" : formatRelative(item.updated)}`}
-              leading={<FileIcon format={fileIconFormatOf(item.name)} size="xl" />}
-              onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
+      // The Files root: the large title folds into the bar as the groups scroll, and the app's roots sit in the bottom
+      // bar. The bar casts a shadow, so each group's block takes the same Shadow elevation.
+      <PlatformPhone key="root" label="Files" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef}
+            largeTitleSubheading={`${plural(sharedFiles.length, "file")} shared with you${locked ? ` · ${locked} locked` : ""}`} />}
+          bottomNavigation={<BottomNavigation aria-label={studio.name} showLabels items={phoneRoots} value="files"
+            onValueChange={(id) => { if (id !== "files") notHere(phoneRoots.find((item) => item.id === id)?.label ?? id); }} />}
+        >
+          {screen.anchor}
+          {fileGroups.map((group) => (
+            <Stack key={group.id} as="section" gap="xs" aria-labelledby={`${groupId}-${group.id}`}>
+              {/* The kicker lines up with the row text inside the block (paddingX lg, 20). */}
+              <Box paddingX="lg"><Heading level={2} id={`${groupId}-${group.id}`} textStyle="Body/Small/Bold" tone="light">{group.title}</Heading></Box>
+              <ListBox theme="shadow">
+                <List aria-labelledby={`${groupId}-${group.id}`}>
+                  {group.rows.map((item) => (
+                    <ListItem key={item.id} data-file={item.id} title={item.name}
+                      caption={`${people[item.owner].name} · ${item.locked ? (requested.includes(item.id) ? "Access requested" : "No access") : formatRelative(item.updated)}`}
+                      leading={<FileIcon format={fileIconFormatOf(item.name)} size="xl" />}
+                      onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
+                  ))}
+                </List>
+              </ListBox>
+            </Stack>
           ))}
-        </List>
+        </AppShell>
       </PlatformPhone>
     );
   }
   const asked = requested.includes(file.id);
+  const project = projectById(file.project);
+  const back = () => screen.go(`[data-file="${file.id}"] .zen-list-item__wrapper`, () => setOpenId(null));
   return (
-    <PlatformPhone key={file.id} label="File" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title={bareName(file.name)} scrollRef={screenRef}
-        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-file="${file.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
-      {screen.anchor}
-      {file.locked ? (
-        <Stack padding="lg">
-          {/* aria-live: the caption and the action change after a request, and a screen reader hears the new state. */}
+    // A pushed screen: the compact bar with Back and the file's name, no bottom bar. A file Alex can open keeps its one
+    // action in the Action bar; a locked one has nothing to open, so the Empty State carries the action.
+    <PlatformPhone key={file.id} label="File" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title={bareName(file.name)} scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+        actionBar={file.locked ? undefined : (
+          <ActionBar primaryAction={{ label: "Open file", onClick: () => toast({ title: `Opening ${file.name}`, children: `${formatBytes(file.bytes)} · ${project.name}` }) }} />
+        )}
+      >
+        {screen.anchor}
+        {file.locked ? (
+          // aria-live: the caption and the action change after a request, and a screen reader hears the new state.
           <EmptyState ref={emptyRef} aria-live="polite" headingLevel={2} icon="icon-lock-01-line" title="No access to this file"
             primaryAction={asked ? undefined : { label: "Request access", onClick: () => setRequest(file.id, true) }}
             secondaryAction={asked ? { label: "Withdraw request", onClick: () => setRequest(file.id, false) } : undefined}>
@@ -294,18 +427,25 @@ function NoAccess() {
               ? `${owner.name} has your request and answers by email.`
               : `Request access and ${owner.name}, who owns it, gets an email.`}
           </EmptyState>
-        </Stack>
-      ) : (
-        <Stack padding="lg" gap="md">
-          <FileIcon format={fileIconFormatOf(file.name)} size="3xl" />
-          <DescriptionList divider items={[
-            { term: "Owner", description: owner.name },
-            { term: "Project", description: projectById(file.project).name },
-            { term: "Size", description: formatBytes(file.bytes) },
-            { term: "Updated", description: formatRelative(file.updated) },
-          ]} />
-        </Stack>
-      )}
+        ) : (
+          <>
+            <Stack direction="row" gap="sm" align="center">
+              <FileIcon format={fileIconFormatOf(file.name)} size="3xl" />
+              <Stack gap="2xs">
+                <Text textStyle="Body/Base/Bold">{file.name}</Text>
+                <Text textStyle="Body/Small/Regular" tone="base">{`${project.name} · ${project.client}`}</Text>
+              </Stack>
+            </Stack>
+            <Card theme="flat">
+              <DescriptionList divider items={[
+                { term: "Owner", description: owner.name },
+                { term: "Size", description: formatBytes(file.bytes) },
+                { term: "Updated", description: formatRelative(file.updated) },
+              ]} />
+            </Card>
+          </>
+        )}
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -375,31 +515,48 @@ function ClientUploads() {
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "First run",
-    description: "A new page has nothing yet, so the Empty State takes the page at size Medium (240 illustration) and carries the page's only Primary. Once an expense exists the table takes over and Add expense moves to the page header; deleting the last one brings the Empty State back.",
+    description: "Alex opens Expenses in the studio's app for the first time. The page has nothing yet, so the Empty State takes the page's Body at size Medium (240 illustration) and carries the page's only Primary. Once an expense exists, the totals and the table take over and Add expense moves to the PageHeader in the shell's header; deleting the last one brings the Empty State back.",
     wide: true,
     screen: true,
-    code: `<PageHeader title="Expenses" description="What you paid for the studio. Mai Ho approves them every Friday."
-  actions={rows.length ? <Button level="primary" startIcon="icon-plus-line" onClick={start}>Add expense</Button> : undefined} />
-
-{rows.length ? (
-  <Table aria-label="Expenses" columns={columns} rows={rows} />
-) : (
-  <EmptyState headingLevel={2} icon="icon-receipt-line" title="No expenses yet"
-    primaryAction={{ label: "Add expense", onClick: start }}>
-    Add a receipt and Mai Ho approves it by Friday.
-  </EmptyState>
-)}`,
+    code: `<AppShell
+  sidebar={<Sidebar logo={logo} sections={studioNav} selectedId="expenses" onItemClick={navigate} />}
+  header={
+    <AppShellHeader
+      actions={<>{notifications}{account}</>}
+      main={<PageHeader title="Expenses" description="What you paid for the studio. Mai Ho approves them every Friday."
+        actions={rows.length ? <Button level="primary" startIcon="icon-plus-line" onClick={start}>Add expense</Button> : undefined} />}
+    />
+  }
+>
+  {/* The Body pads the page: no Container */}
+  {rows.length ? (
+    <>
+      <Grid minColumnWidth={240} gap="md">
+        <MetricCard theme="shadow" label="Waiting for approval" value={formatMoney(pending)} icon="icon-clock-line" iconTheme="orange" />
+        …
+      </Grid>
+      <Table aria-label="Expenses" columns={columns} rows={rows} />
+    </>
+  ) : (
+    <EmptyState headingLevel={2} icon="icon-receipt-line" title="No expenses yet"
+      primaryAction={{ label: "Add expense", onClick: start }}>
+      Add a receipt and Mai Ho approves it by Friday.
+    </EmptyState>
+  )}
+</AppShell>`,
     render: () => <FirstRun />,
   },
   {
     title: "No access",
-    description: "A file Alex can't open on his phone: the Empty State fills the screen under the bar, says who owns it and offers Request access. The caption and action change after the request, and aria-live reads the new state.",
+    description: "In the studio's phone app Alex opens the Q3 report he can't see. The pushed screen has no Action bar: the Empty State fills its Body under the compact bar, says who owns the file and offers Request access. The caption and action change after the request, aria-live reads the new state, and Back returns to the Files root, where the row now says Access requested.",
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-<PlatformPhone key={file.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title="Q3 studio report" scrollRef={screenRef}
-    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToFiles }} />}>
-  <Stack padding="lg">
+<PlatformPhone key={file.id} screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Q3 studio report" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToFiles }} />}
+    actionBar={file.locked ? undefined : <ActionBar primaryAction={{ label: "Open file", onClick: openFile }} />}
+  >
     <EmptyState aria-live="polite" headingLevel={2} icon="icon-lock-01-line" title="No access to this file"
       primaryAction={requested ? undefined : { label: "Request access", onClick: () => setRequested(true) }}
       secondaryAction={requested ? { label: "Withdraw request", onClick: () => setRequested(false) } : undefined}>
@@ -407,7 +564,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
         ? "Mai Ho has your request and answers by email."
         : "Request access and Mai Ho, who owns it, gets an email."}
     </EmptyState>
-  </Stack>
+  </AppShell>
 </PlatformPhone>`,
     render: () => <NoAccess />,
   },

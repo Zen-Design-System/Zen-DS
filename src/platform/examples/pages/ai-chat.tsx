@@ -1,23 +1,27 @@
 /* AI Chat examples (docs/research/example-rebuild-brief-2026-09-30.md). Zen AI is the assistant inside Đìzai Studio's
    workspace: Alex asks it about his week, projects, files and invoices, and every answer comes from the shared studio
    data. Answers think for a moment and then stream a word at a time, so Stop, feedback and retry can be tried. */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread, type AiChatAction, type AiChatFieldStyle } from "../../../components/AiChat";
+import { AppShell, AppShellAccount, AppShellHeader } from "../../../components/AppShell";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Box, Container, Stack } from "../../../components/Layout";
+import { Box, Stack } from "../../../components/Layout";
+import { Menu } from "../../../components/Menu";
+import { PageHeader } from "../../../components/PageHeader";
 import { Popover } from "../../../components/Popover";
+import { Sidebar, SidebarMenuItem, type SidebarSection } from "../../../components/Sidebar";
 import { Tag } from "../../../components/Tag";
 import { Text } from "../../../components/Text";
+import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
-import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { AiVoiceConversation, type AiVoiceState } from "../../../components/Voice";
-import { PreviewWindow } from "../../PlatformFrames";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
-import { files, formatBytes, formatDate, formatMoney, formatRange, formatRelative, invoices, leaveRequests, me, people, projectById, studioMonths, type StudioFile } from "../data";
+import { files, formatBytes, formatDate, formatMoney, formatRange, formatRelative, invoices, leaveRequests, me, people, projectById, studio, studioMonths, type StudioFile } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
@@ -241,14 +245,53 @@ const promptBefore = (turns: Turn[], answer: Turn) => turns[turns.indexOf(answer
 
 /* ───────────── Assistant home ───────────── */
 
+/* The studio app's chrome: Zen AI is a place of the studio's Sidebar, and the header's top row keeps the utilities. */
+const studioPlaces: SidebarSection[] = [{ items: [
+  { id: "home", label: "Home", icon: "icon-home-03-line" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line" },
+  { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+  { id: "zen-ai", label: "Zen AI", icon: "icon-stars-01-line" },
+] }];
+
+function StudioSidebar() {
+  const { toast } = useToast();
+  return (
+    <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+      sections={studioPlaces} selectedId="zen-ai"
+      onItemClick={(item) => { if (item.id !== "zen-ai") toast({ title: `${item.label} isn't part of this example`, children: "This screen shows Zen AI." }); }}
+      footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+  );
+}
+
+function StudioActions() {
+  const { toast } = useToast();
+  return (
+    <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+      { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+      { id: "history", label: "Chat history", icon: "icon-clock-line", onSelect: () => toast({ title: "Chat history", children: "Zen AI keeps your chats for 30 days." }) },
+      { type: "separator" },
+      { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+    ]} />
+  );
+}
+
+/** The window's scroller (PreviewAppFrame) follows the newest line of the conversation. */
+function useFrameScrollToEnd(frameRef: RefObject<HTMLDivElement | null>, dep: unknown) {
+  useEffect(() => {
+    const scroller = frameRef.current?.querySelector<HTMLElement>(".pf-app-frame__scroll");
+    scroller?.scrollTo({ top: scroller.scrollHeight });
+  }, [frameRef, dep]);
+}
+
 function AssistantHomeExample() {
   const chat = useAssistant();
   const actions = useAnswerActions();
   const [modelId, setModelId] = useState(models[0].id);
-  const screenRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useScrollToEnd(chat.turns);
+  const frameRef = useRef<HTMLDivElement>(null);
+  useFrameScrollToEnd(frameRef, chat.turns);
   const started = chat.turns.length > 0;
-  useKeepPromptFocus(started, () => screenRef.current?.querySelector("textarea"));
+  useKeepPromptFocus(started, () => frameRef.current?.querySelector("textarea"));
   const ask = (prompt: string, file?: StudioFile) => chat.ask(prompt, replyTo(prompt, file), file);
   const last = chat.turns[chat.turns.length - 1];
   // A new version of the answer starts unrated.
@@ -256,47 +299,52 @@ function AssistantHomeExample() {
   const field = <AskField fieldStyle="surface" dictation="What's due tomorrow?" modelId={modelId} onModelChange={setModelId}
     busy={chat.busy} onStop={chat.stop} onAsk={ask} className={started ? "px-ai-chat-column" : undefined} />;
   return (
-    <PreviewWindow ref={screenRef} height={{ min: 560, max: 720, offset: 160 }} clip={false}>
-      <VisuallyHidden as="h1">Zen AI</VisuallyHidden>
-      {started ? (
-        <>
-          {/* A strip over the conversation: block padding Small, the page margin at the sides (24, or 20 on a phone). */}
-          <Container maxWidth="full">
-            <Stack direction="row" justify="end" paddingY="sm">
-              <Button level="tertiary" startIcon="icon-message-plus-circle-line" onClick={chat.reset}>New chat</Button>
-            </Stack>
-          </Container>
-          <Box ref={scrollRef} scroll="y" height="fill" className="px-ai-chat-screen__scroll">
-            <AiChatThread aria-label="Conversation with Zen AI">
-              {chat.turns.map((turn) => turn.side === "you" ? (
-                <AiChatBubble key={turn.id} side="you" actions={[actions.copy(turn)]}><Prompt turn={turn} /></AiChatBubble>
-              ) : (
-                <AiChatBubble key={turn.id} side="ai" thinking={turn.state === "thinking"} streaming={turn.state === "streaming"}
-                  actions={turn.state === "done" ? [
-                    ...actions.feedback(turn),
-                    ...(turn === last ? [{ icon: "icon-refresh-cw-01-line" as const, label: "Regenerate", onClick: () => regenerate(turn) }] : []),
-                    actions.copy(turn),
-                  ] : []}>
-                  {turn.text}
-                </AiChatBubble>
-              ))}
-            </AiChatThread>
+    // A place of the studio app (AppShell, pattern sidebar): the Sidebar on Zen AI, the page's title and New chat in the
+    // header's Main row. The Body opens on the Block in the middle of the page; once a conversation starts, the thread
+    // runs in its 800 column and the field docks at the bottom of the window.
+    <PreviewAppFrame frameRef={frameRef} height={{ min: 600, max: 760 }}>
+      <AppShell
+        sidebar={<StudioSidebar />}
+        header={(
+          <AppShellHeader actions={<StudioActions />}
+            main={<PageHeader title="Zen AI" description="Answers from the studio's projects, tasks, files and invoices."
+              actions={started ? <Button level="tertiary" startIcon="icon-message-plus-circle-line" onClick={chat.reset}>New chat</Button> : undefined} />} />
+        )}
+      >
+        {started ? (
+          <>
+            <Box className="px-ai-chat-desk__thread">
+              <AiChatThread aria-label="Conversation with Zen AI">
+                {chat.turns.map((turn) => turn.side === "you" ? (
+                  <AiChatBubble key={turn.id} side="you" actions={[actions.copy(turn)]}><Prompt turn={turn} /></AiChatBubble>
+                ) : (
+                  <AiChatBubble key={turn.id} side="ai" thinking={turn.state === "thinking"} streaming={turn.state === "streaming"}
+                    actions={turn.state === "done" ? [
+                      ...actions.feedback(turn),
+                      ...(turn === last ? [{ icon: "icon-refresh-cw-01-line" as const, label: "Regenerate", onClick: () => regenerate(turn) }] : []),
+                      actions.copy(turn),
+                    ] : []}>
+                    {turn.text}
+                  </AiChatBubble>
+                ))}
+              </AiChatThread>
+            </Box>
+            <Box className="px-ai-chat-dock">{field}</Box>
+          </>
+        ) : (
+          <Box className="px-ai-chat-home">
+            <AiChatBlock greeting={`What are we working on, ${firstName}?`} suggestions={[
+              { label: "Summarise my week", icon: "icon-align-left-line", onClick: () => ask("Summarise my week") },
+              { label: "Draft a client update", icon: "icon-pencil-line", onClick: () => ask("Draft an update for Lumen Bank on the online banking redesign") },
+              { label: "Check overdue invoices", icon: "icon-receipt-line", onClick: () => ask("Which invoices are overdue?") },
+              { label: "Plan tomorrow", icon: "icon-calendar-check-line", onClick: () => ask("What's due tomorrow?") },
+            ]}>
+              {field}
+            </AiChatBlock>
           </Box>
-          <Box className="px-ai-chat-screen__dock">{field}</Box>
-        </>
-      ) : (
-        <Stack direction="row" scroll="y" height="fill" className="px-ai-chat-screen__home">
-          <AiChatBlock greeting={`What are we working on, ${firstName}?`} suggestions={[
-            { label: "Summarise my week", icon: "icon-align-left-line", onClick: () => ask("Summarise my week") },
-            { label: "Draft a client update", icon: "icon-pencil-line", onClick: () => ask("Draft an update for Lumen Bank on the online banking redesign") },
-            { label: "Check overdue invoices", icon: "icon-receipt-line", onClick: () => ask("Which invoices are overdue?") },
-            { label: "Plan tomorrow", icon: "icon-calendar-check-line", onClick: () => ask("What's due tomorrow?") },
-          ]}>
-            {field}
-          </AiChatBlock>
-        </Stack>
-      )}
-    </PreviewWindow>
+        )}
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -450,12 +498,14 @@ function PhoneAssistantExample() {
   const field = <AskField dictation="What's due today?" busy={chat.busy} onStop={chat.stop} onAsk={ask} />;
   return (
     // The screen that keeps the newest answer in view is also the Top Navigation's scroller: once the thread runs under
-    // the bar, the bar shows its Pale rule.
-    <PlatformPhone label="Zen AI" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} trailing={started ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: chat.reset }] : undefined} />}
-      footer={started ? <Box className="px-ai-chat-phone-dock">{field}</Box> : undefined}>
-      {started ? (
-        <Box className="px-ai-chat-phone-body">
+    // the bar, the bar shows its Pale rule. Once Alex asks, the field docks at the bottom of the shell, where a task's
+    // Action bar goes, above the home indicator.
+    <PlatformPhone label="Zen AI" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} trailing={started ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: chat.reset }] : undefined} />}
+        actionBar={started ? <Box className="px-ai-chat-phone-dock">{field}</Box> : undefined}
+      >
+        {started ? (
           <AiChatThread aria-label="Conversation with Zen AI">
             {chat.turns.map((turn) => turn.side === "you" ? (
               <AiChatBubble key={turn.id} side="you" actions={[actions.copy(turn)]}><Prompt turn={turn} /></AiChatBubble>
@@ -466,18 +516,18 @@ function PhoneAssistantExample() {
               </AiChatBubble>
             ))}
           </AiChatThread>
-        </Box>
-      ) : (
-        <Box className="px-ai-chat-phone-home">
-          <AiChatBlock greeting={`What do you need, ${firstName}?`} suggestions={[
-            { label: "Plan my day", icon: "icon-calendar-check-line", onClick: () => ask("Plan my day") },
-            { label: "Find a file", icon: "icon-folder-line", onClick: () => ask("Find the newest loyalty app file") },
-            { label: "Check my hours", icon: "icon-clock-line", onClick: () => ask("How many hours did I log in September?") },
-          ]}>
-            {field}
-          </AiChatBlock>
-        </Box>
-      )}
+        ) : (
+          <Box className="px-ai-chat-phone-home">
+            <AiChatBlock greeting={`What do you need, ${firstName}?`} suggestions={[
+              { label: "Plan my day", icon: "icon-calendar-check-line", onClick: () => ask("Plan my day") },
+              { label: "Find a file", icon: "icon-folder-line", onClick: () => ask("Find the newest loyalty app file") },
+              { label: "Check my hours", icon: "icon-clock-line", onClick: () => ask("How many hours did I log in September?") },
+            ]}>
+              {field}
+            </AiChatBlock>
+          </Box>
+        )}
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -541,34 +591,41 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Assistant home",
     screen: true,
-    description: "A full-page assistant opens on the Block: a greeting, the field and suggestions that start real tasks. The first prompt turns it into a Thread with the field docked below; the answer streams with Stop in the field and shows its actions once it ends. New chat goes back to the greeting.",
+    description: "A full-page assistant in the studio app opens on the Block in the middle of the page: a greeting, the field and suggestions that start real tasks. The first prompt turns it into a Thread with the field docked at the bottom of the window; the answer streams with Stop in the field and shows its actions once it ends. New chat in the page header goes back to the greeting.",
     render: () => <AssistantHomeExample />,
     code: `const [turns, setTurns] = useState<Turn[]>([]);
 const streaming = turns.some((turn) => turn.side === "ai" && turn.state !== "done");
 const field = <AiChatField fieldStyle="surface" placeholder="Ask Zen AI" model={model.label} onModelClick={openModels}
   onAttach={openFiles} onVoice={dictate} busy={streaming} onStop={stop} onSubmit={ask} />;
 
-{turns.length === 0 ? (
-  <AiChatBlock greeting="What are we working on, Alex?" suggestions={[
-    { label: "Summarise my week", icon: "icon-align-left-line", onClick: () => ask("Summarise my week") },
-    { label: "Check overdue invoices", icon: "icon-receipt-line", onClick: () => ask("Which invoices are overdue?") },
-  ]}>
-    {field}
-  </AiChatBlock>
-) : (
-  <>
-    <Button level="tertiary" startIcon="icon-message-plus-circle-line" onClick={() => setTurns([])}>New chat</Button>
-    <AiChatThread aria-label="Conversation with Zen AI">
-      {turns.map((turn) => (
-        <AiChatBubble key={turn.id} side={turn.side} thinking={turn.state === "thinking"} streaming={turn.state === "streaming"}
-          actions={turn.state === "streaming" || turn.state === "thinking" ? [] : actionsFor(turn)}>
-          {turn.text}
-        </AiChatBubble>
-      ))}
-    </AiChatThread>
-    {field}
-  </>
-)}`,
+<AppShell
+  sidebar={<Sidebar logo={studioLogo} sections={studioPlaces} selectedId="zen-ai" />}
+  header={<AppShellHeader actions={accountMenu}
+    main={<PageHeader title="Zen AI" description="Answers from the studio's projects, tasks, files and invoices."
+      actions={turns.length ? <Button level="tertiary" startIcon="icon-message-plus-circle-line" onClick={() => setTurns([])}>New chat</Button> : undefined} />} />}
+>
+  {turns.length === 0 ? (
+    <AiChatBlock greeting="What are we working on, Alex?" suggestions={[
+      { label: "Summarise my week", icon: "icon-align-left-line", onClick: () => ask("Summarise my week") },
+      { label: "Check overdue invoices", icon: "icon-receipt-line", onClick: () => ask("Which invoices are overdue?") },
+    ]}>
+      {field}
+    </AiChatBlock>
+  ) : (
+    <>
+      <AiChatThread aria-label="Conversation with Zen AI">
+        {turns.map((turn) => (
+          <AiChatBubble key={turn.id} side={turn.side} thinking={turn.state === "thinking"} streaming={turn.state === "streaming"}
+            actions={turn.state === "streaming" || turn.state === "thinking" ? [] : actionsFor(turn)}>
+            {turn.text}
+          </AiChatBubble>
+        ))}
+      </AiChatThread>
+      {/* position: sticky at the bottom of the window, on the page's Canvas */}
+      {field}
+    </>
+  )}
+</AppShell>`,
   },
   {
     title: "Rate an answer",
@@ -633,25 +690,28 @@ const [editing, setEditing] = useState<number | null>(null);
   },
   {
     title: "Assistant on a phone",
-    description: "On a phone the Block fills the first screen and leaves out the model switch. Once Alex asks, the field docks in the footer above the home indicator, and New chat in the Top Navigation goes back to the greeting.",
+    description: "On a phone the Block fills the first screen and leaves out the model switch. Once Alex asks, the field docks at the bottom of the shell above the home indicator, and New chat in the Top Navigation goes back to the greeting.",
     render: () => <PhoneAssistantExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-<PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef}
-    trailing={turns.length ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: newChat }] : undefined} />}
-  footer={turns.length ? field : undefined}>
-  {turns.length ? (
-    <AiChatThread aria-label="Conversation with Zen AI">{bubbles}</AiChatThread>
-  ) : (
-    <AiChatBlock greeting="What do you need, Alex?" suggestions={[
-      { label: "Plan my day", icon: "icon-calendar-check-line", onClick: () => ask("Plan my day") },
-      { label: "Find a file", icon: "icon-folder-line", onClick: () => ask("Find the newest loyalty app file") },
-      { label: "Check my hours", icon: "icon-clock-line", onClick: () => ask("How many hours did I log in September?") },
-    ]}>
-      {field /* <AiChatField placeholder="Ask Zen AI" onAttach={openFiles} onVoice={dictate} busy={streaming} onStop={stop} onSubmit={ask} /> */}
-    </AiChatBlock>
-  )}
+<PlatformPhone screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef}
+      trailing={turns.length ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: newChat }] : undefined} />}
+    actionBar={turns.length ? field : undefined}
+  >
+    {turns.length ? (
+      <AiChatThread aria-label="Conversation with Zen AI">{bubbles}</AiChatThread>
+    ) : (
+      <AiChatBlock greeting="What do you need, Alex?" suggestions={[
+        { label: "Plan my day", icon: "icon-calendar-check-line", onClick: () => ask("Plan my day") },
+        { label: "Find a file", icon: "icon-folder-line", onClick: () => ask("Find the newest loyalty app file") },
+        { label: "Check my hours", icon: "icon-clock-line", onClick: () => ask("How many hours did I log in September?") },
+      ]}>
+        {field /* <AiChatField placeholder="Ask Zen AI" onAttach={openFiles} onVoice={dictate} busy={streaming} onStop={stop} onSubmit={ask} /> */}
+      </AiChatBlock>
+    )}
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

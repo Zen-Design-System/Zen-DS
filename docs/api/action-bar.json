@@ -28,10 +28,10 @@
         },
         {
           "name": "surface",
-          "type": "\"default\" | \"alt\" | \"none\"",
+          "type": "\"default\" | \"alt\" | \"glass\" | \"none\"",
           "required": false,
           "default": "\"default\"",
-          "description": "default: Surface/Default with a Pale (Border/Neutral/Pale) top rule. alt: Surface/Alt with the same rule. none: no\nfill and no rule, for a static bar inside a container that already has one. Never a drop shadow.",
+          "description": "default: Surface/Default with a Pale (Border/Neutral/Pale) top rule. alt: Surface/Alt with the same rule. glass\n(Figma Action-Bar/Mobile Type=Glass 16326:6489): no rule, a fade from Inverse/Flat to Surface/Default at 20% over a\nprogressive background blur, for a bar over photos or a long scroll. none: no fill and no rule, for a static bar\ninside a container that already has one. Never a drop shadow.",
           "deprecated": null
         },
         {

@@ -2,29 +2,33 @@
  * Template: dashboard (a product studio's operations overview). Copy it into your app, then replace the sample data and
  * handlers. Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  *
- * - Top bar: Search (filters the projects; Enter opens the first match), Notifications (a docked Side Panel) and the
- *   account menu.
- * - PageHeader: Export (Tertiary) and New project (Primary → a validated ModalForm). The period Chip under it scopes the
- *   tiles and the projects, and moves the highlighted month of both charts.
+ * - AppShell, Sidebar pattern. The header's top row: Search (filters the projects; Enter opens the first match),
+ *   Notifications (a docked Side Panel) and the account menu. Its Main row: the PageHeader with Export (Tertiary) and
+ *   New project (Primary → a validated ModalForm). Its Sections row: the period Chip, which scopes the tiles and the
+ *   projects and moves the highlighted month of both charts.
  * - Four KPI tiles, each with its breakdown in a Side Panel; revenue or profit per month (Segmented) and billable hours
  *   by team (the chevron opens the exact figures).
  * - Active projects: a Status filter chip and a sortable Table (a List on phones). A row opens the project in a Side
  *   Panel, where Mark at risk / Mark on track changes its status and offers Undo. Recent activity rows open their project.
- * - Phone: the period and Status chips open their choices in Bottom Sheets.
+ * - Phone and upright tablet (the shell's mobile layout, below 1024px): a TopNavigation with the account (its menu in a
+ *   Bottom Sheet), New project, Notifications, More (Export) and the Search under the title; the description and the
+ *   period open the page; a Bottom Navigation holds the Sidebar's first four rows and More (the rest in a sheet). On a
+ *   phone the period and Status chips open their choices in Bottom Sheets.
  */
 import { useRef, useState, type ReactNode } from "react";
 import {
   AppShell,
   AppShellAccount,
   AppShellAction,
+  AppShellHeader,
   Avatar,
   Badge,
+  BottomNavigation,
   BottomSheet,
   Button,
   Card,
   ChartCard,
   Chip,
-  Container,
   DateField,
   DescriptionList,
   DockIcon,
@@ -55,7 +59,9 @@ import {
   TableMedia,
   TableText,
   Text,
+  TopNavigation,
   plural,
+  useAppShell,
   useFormState,
   useToast,
   useZen,
@@ -64,6 +70,8 @@ import {
   type DescriptionListItem,
   type DockIconTheme,
   type IconName,
+  type MenuEntry,
+  type MenuItemData,
   type SidebarSection,
   type TableColumn,
   type TableSort,
@@ -190,6 +198,29 @@ const nav: SidebarSection[] = [
     { id: "settings", label: "Settings", icon: "icon-settings-01-line" },
   ] },
 ];
+/** Phone: the Bottom Navigation holds the Sidebar's first four rows and More, which lists these. */
+const morePages: Array<{ id: string; label: string; icon: IconName }> = [
+  { id: "time", label: "Time", icon: "icon-clock-line" },
+  { id: "reports", label: "Reports", icon: "icon-bar-chart-01-line" },
+  { id: "settings", label: "Settings", icon: "icon-settings-01-line" },
+];
+
+/* ── Layout parts ────────────────────────────────────────────────────── */
+/** Only in the shell's mobile layout (below 1024px), where the TopNavigation shows the title alone: the rest of the
+ *  page's header (its description, the period) opens the page instead. */
+function MobileOnly({ children }: { children: ReactNode }) {
+  return useAppShell()?.layout === "mobile" ? <>{children}</> : null;
+}
+/** A Menu's commands in an action Bottom Sheet (popovers are for pointers): no separators and nothing that's off;
+ *  choosing one closes the sheet and runs it. */
+function ActionSheet({ title, entries, open, onOpenChange }: { title: string; entries: MenuEntry[]; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const items = entries.filter((entry): entry is MenuItemData => entry.type !== "separator" && entry.type !== "group" && !entry.disabled);
+  return (
+    <BottomSheet type="action" open={open} onOpenChange={onOpenChange} title={title}
+      items={items.map(({ id, label, icon, danger }) => ({ id, label, icon, destructive: danger }))}
+      onSelect={(item) => { onOpenChange(false); items.find((entry) => entry.id === item.id)?.onSelect?.(); }} />
+  );
+}
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
@@ -279,6 +310,8 @@ export function DashboardTemplate() {
   const [creating, setCreating] = useState(false);
   // Phone: the period and Status chips open Bottom Sheets (popovers are for pointers).
   const [sheet, setSheet] = useState<"period" | "status" | null>(null);
+  // The mobile layout's action sheets: the account menu, the page's other actions (More) and the rest of the navigation.
+  const [phoneSheet, setPhoneSheet] = useState<"account" | "actions" | "pages" | null>(null);
   const projectsRef = useRef<HTMLElement>(null);
   // Clearing the search or the filter removes the button that did it, so focus goes back to the control.
   const searchRef = useRef<HTMLInputElement>(null);
@@ -363,6 +396,16 @@ export function DashboardTemplate() {
     },
   });
   const startProject = () => { projectForm.reset(); setCreating(true); };
+  const exportOverview = () => toast({ title: "Overview exported", children: `${period.name} · dizai-studio-overview.csv` });
+  const toggleInbox = () => { setUnread(0); setPanel((current) => (current?.type === "inbox" ? null : { type: "inbox" })); };
+  const closePhoneSheet = (open: boolean) => { if (!open) setPhoneSheet(null); };
+  const accountItems: MenuEntry[] = [
+    { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => notInDemo("Profile") },
+    { id: "settings", label: "Studio settings", icon: "icon-settings-01-line", onSelect: () => notInDemo("Studio settings") },
+    { type: "separator" },
+    { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
+  ];
+  const description = `Money, capacity and delivery across ${workspace.name}'s client work.`;
 
   /* ── Breakdowns behind the tiles and the hours chart: the exact figures of the period ── */
   const reportOf = (id: ReportId): { title: string; description: string; items: DescriptionListItem[] } => {
@@ -430,10 +473,10 @@ export function DashboardTemplate() {
   ];
 
   /* ── The docked Side Panel: notifications, a project or a breakdown ── */
-  let aside: ReactNode;
+  let sidePanel: ReactNode;
   const opened = panel?.type === "project" ? projects.find((project) => project.id === panel.id) : undefined;
   if (panel?.type === "inbox") {
-    aside = (
+    sidePanel = (
       <SidePanel type="standard" title="Notifications" open onOpenChange={close}>
         <List aria-label="Notifications">
           {notices.map((notice) => (
@@ -447,7 +490,7 @@ export function DashboardTemplate() {
     const lead = people[opened.lead];
     const used = opened.budget ? (opened.billed / opened.budget) * 100 : 0;
     const history = activity.filter((item) => item.project === opened.id);
-    aside = (
+    sidePanel = (
       <SidePanel type="standard" title={opened.name} description={clients[opened.client].name} open onOpenChange={close}
         primaryAction={{ label: "Open project", onClick: () => notInDemo("The project page") }}
         secondaryAction={opened.health === "On track"
@@ -480,12 +523,32 @@ export function DashboardTemplate() {
     );
   } else if (panel?.type === "report") {
     const report = reportOf(panel.id);
-    aside = (
+    sidePanel = (
       <SidePanel type="standard" size="small" title={report.title} description={report.description} open onOpenChange={close}>
         <DescriptionList divider items={report.items} />
       </SidePanel>
     );
   }
+
+  /* ── Header parts: the shell mounts one layout at a time, so the desktop header and the TopNavigation share them ── */
+  const searchField = (
+    <Search ref={searchRef} aria-label="Search projects" placeholder="Search projects" value={query} onValueChange={search}
+      // Enter opens the first match. preventDefault keeps the same key press off the modal panel's Close button,
+      // which takes focus when the panel opens as a modal (narrow shells).
+      onKeyDown={(event) => { if (event.key === "Enter" && rows[0]) { event.preventDefault(); openProject(rows[0].id); } }} />
+  );
+  const periodRow = (
+    <Stack direction="row" gap="sm" align="center" wrap>
+      {phone ? (
+        <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line" aria-haspopup="dialog" aria-expanded={sheet === "period"} onClick={() => setSheet("period")}>{period.label}</Chip>
+      ) : (
+        <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line" popoverLabel="Period"
+          popoverItems={periodIds.map((id) => ({ id, label: periods[id].label, selected: id === periodId }))}
+          onPopoverSelect={(item) => setPeriodId(item.id as PeriodId)}>{period.label}</Chip>
+      )}
+      <Text as="span" tone="base">{period.range}</Text>
+    </Stack>
+  );
 
   return (
     <AppShell
@@ -500,130 +563,147 @@ export function DashboardTemplate() {
         />
       )}
       header={(
-        <Search ref={searchRef} aria-label="Search projects" placeholder="Search projects" value={query} onValueChange={search}
-          // Enter opens the first match. preventDefault keeps the same key press off the modal panel's Close button,
-          // which takes focus when the panel opens as a modal (narrow shells).
-          onKeyDown={(event) => { if (event.key === "Enter" && rows[0]) { event.preventDefault(); openProject(rows[0].id); } }} />
-      )}
-      headerActions={<>
-        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={panel?.type === "inbox"}
-          onClick={() => { setUnread(0); setPanel((current) => (current?.type === "inbox" ? null : { type: "inbox" })); }} />
-        <Menu align="end" trigger={<AppShellAccount name={me.name} />} items={[
-          { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => notInDemo("Profile") },
-          { id: "settings", label: "Studio settings", icon: "icon-settings-01-line", onSelect: () => notInDemo("Studio settings") },
-          { type: "separator" },
-          { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
-        ]} />
-      </>}
-      aside={aside}
-    >
-      <Container maxWidth="full">
-        <Stack gap="lg" paddingY="sm">
-          <Stack gap="md">
-            <PageHeader title="Studio overview" description={`Money, capacity and delivery across ${workspace.name}'s client work.`}
+        <AppShellHeader
+          // The top row: the Search, then utilities only (Notifications, the account menu last).
+          leading={searchField}
+          actions={<>
+            <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={panel?.type === "inbox"} onClick={toggleInbox} />
+            <Menu align="end" trigger={<AppShellAccount name={me.name} />} items={accountItems} />
+          </>}
+          // The Main row: the page's own header with its actions (one Primary); the period scopes it, under it.
+          main={(
+            <PageHeader title="Studio overview" description={description}
               actions={<>
-                <Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Overview exported", children: `${period.name} · dizai-studio-overview.csv` })}>Export</Button>
+                <Button level="tertiary" startIcon="icon-download-01-line" onClick={exportOverview}>Export</Button>
                 <Button level="primary" startIcon="icon-plus-line" onClick={startProject}>New project</Button>
               </>} />
-            <Stack direction="row" gap="sm" align="center" wrap>
-              {phone ? (
-                <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line" aria-haspopup="dialog" aria-expanded={sheet === "period"} onClick={() => setSheet("period")}>{period.label}</Chip>
-              ) : (
-                <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line" popoverLabel="Period"
-                  popoverItems={periodIds.map((id) => ({ id, label: periods[id].label, selected: id === periodId }))}
-                  onPopoverSelect={(item) => setPeriodId(item.id as PeriodId)}>{period.label}</Chip>
-              )}
-              <Text as="span" tone="base">{period.range}</Text>
-            </Stack>
-          </Stack>
-
-          <Stack gap="md">
-            {/* Four tiles in a row, two by two, or stacked: never three and one. */}
-            <Grid columns="repeat(auto-fit, minmax(min(100%, 496px), 1fr))" gap="md">
-              {[kpis.slice(0, 2), kpis.slice(2)].map((pair) => (
-                <Grid key={pair[0].id} columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">{pair.map(kpiTile)}</Grid>
-              ))}
-            </Grid>
-
-            {/* Side by side the two plots share a baseline: the hours chart is taller by the height of the switch. */}
-            <Grid columns="repeat(auto-fit, minmax(min(100%, 360px), 1fr))" gap="md">
-              <ChartCard title="Revenue and profit" headingLevel={2} theme="shadow" range={measure} onRangeChange={(id) => setMeasure(id as typeof measure)}
-                ranges={[{ id: "revenue", label: "Revenue" }, { id: "profit", label: "Profit" }]} rangesFullWidth={phone}>
-                <LineChart key={`${periodId}-${measure}`} initialIndex={activeMonth} height={220} format={moneyShort}
-                  aria-label={`${measure === "revenue" ? "Revenue" : "Profit"} per month, ${chartRange}`}
-                  data={chartMonths.map((month) => ({ label: month.label, value: measure === "revenue" ? month.revenue : month.revenue - month.costs }))} />
-              </ChartCard>
-              <ChartCard title="Billable hours by team" headingLevel={2} theme="shadow" onOpen={() => setPanel({ type: "report", id: "hours" })} openLabel="Open billable hours by team">
-                <StackBarChart key={periodId} initialIndex={activeMonth} height={phone ? 220 : 276} format={hours}
-                  aria-label={`Billable hours by team and month, ${chartRange}`}
-                  series={teams.map((team) => ({ id: team.id, label: team.label }))}
-                  data={chartMonths.map((month) => ({ label: month.label, values: month.hours }))} />
-              </ChartCard>
-            </Grid>
-
-            <Grid columns="repeat(auto-fit, minmax(min(100%, 480px), 1fr))" gap="md">
-              <Card ref={projectsRef} theme="shadow" as="section" aria-labelledby="dashboard-projects">
-                <Stack gap="md">
-                  <Stack direction="row" gap="sm" justify="between" align="center" wrap>
-                    <Heading level={2} textStyle="Heading/Subheading" id="dashboard-projects">Active projects</Heading>
-                    {phone ? (
-                      <Chip ref={statusRef} {...statusChip} aria-haspopup="dialog" aria-expanded={sheet === "status"} onClick={() => setSheet("status")}>{statusLabel}</Chip>
-                    ) : (
-                      <Chip ref={statusRef} {...statusChip} popoverMultiple popoverLabel="Status" popoverItems={healths.map((health) => ({ id: health, label: health, selected: statusFilter.includes(health) }))}
-                        onPopoverSelect={(item) => setStatusFilter((list) => toggle(list, item.id))}>{statusLabel}</Chip>
-                    )}
-                  </Stack>
-                  {phone ? (
-                    // Phone: the same projects as a List, the revenue over the status; the row opens the project.
-                    rows.length ? (
-                      <List aria-labelledby="dashboard-projects">
-                        {rows.map((row) => (
-                          <ListItem key={row.id} title={row.name} caption={clients[row.client].name} leading={clientMark(row.client, "md")}
-                            trailing={(
-                              <Stack gap="2xs" align="end">
-                                <Text as="span" textStyle="Body/Base/Bold">{money(row.earned)}</Text>
-                                <Badge size="sm" theme={healthTheme[row.health]} background="subtle">{row.health}</Badge>
-                              </Stack>
-                            )}
-                            selected={opened?.id === row.id} onClick={() => openProject(row.id)} />
-                        ))}
-                      </List>
-                    ) : noRows
-                  ) : (
-                    // The open project's row stays selected while its panel is open.
-                    <Table aria-labelledby="dashboard-projects" rows={rows} getRowId={(row) => row.id} columns={columns}
-                      sort={sort} onSortChange={setSort} selectedIds={opened ? [opened.id] : []} onRowClick={(row) => openProject(row.id)} empty={noRows} />
-                  )}
-                  {rows.length ? (
-                    <Text textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "project")} · {money(sum(rows.map((row) => row.earned)))} in {period.name}</Text>
-                  ) : null}
-                </Stack>
-              </Card>
-
-              {/* Rows only: a ListBox, the title and an underlined Show all in its Header-Slot. */}
-              <ListBox as="section" theme="shadow" aria-labelledby="dashboard-activity"
-                header={<Stack direction="row" gap="sm" justify="between" align="center">
-                  <Heading level={2} textStyle="Heading/Subheading" id="dashboard-activity">Recent activity</Heading>
-                  {activity.length > ACTIVITY_PREVIEW ? (
-                    // A section head's Show all is underlined text, not a button (user, 2026-10-13): a Link rendered as a
-                    // button element, since it expands the list in place.
-                    <Text as="span" textStyle="Body/Base/Medium">
-                      <Link as="button" tone="inherit" aria-expanded={showAllActivity} onClick={() => setShowAllActivity((all) => !all)}>
-                        {showAllActivity ? "Show less" : "Show all"}
-                      </Link>
-                    </Text>
-                  ) : null}
-                </Stack>}>
-                <List aria-labelledby="dashboard-activity">
-                  {(showAllActivity ? activity : activity.slice(0, ACTIVITY_PREVIEW)).map((item) => (
-                    <ListItem key={item.id} title={item.title} caption={activityCaption(item, true)} leading={activityMark(item)} onClick={() => openProject(item.project)} />
-                  ))}
-                </List>
-              </ListBox>
-            </Grid>
-          </Stack>
+          )}
+          sections={periodRow}
+        />
+      )}
+      // Mobile layout: the same header as a TopNavigation (a root: the account leads, New project is "+", Export moves to
+      // More, the Search sits under the title) and the Sidebar as the Bottom Navigation.
+      topNavigation={(
+        <TopNavigation title="Studio overview" largeTitle="Studio overview" controlBar={searchField}
+          leading={<AppShellAccount name={me.name} aria-haspopup="dialog" aria-expanded={phoneSheet === "account"} onClick={() => setPhoneSheet("account")} />}
+          trailing={[
+            { icon: "icon-plus-line", label: "New project", onClick: startProject },
+            { icon: "icon-bell-01-line", label: unread ? `Notifications, ${unread} new` : "Notifications", dot: unread > 0, onClick: toggleInbox },
+            { icon: "icon-dots-horizontal-line", label: "More actions", onClick: () => setPhoneSheet("actions") },
+          ]} />
+      )}
+      bottomNavigation={(
+        <BottomNavigation aria-label={workspace.name} value="overview" showLabels
+          onValueChange={(id) => { if (id === "more") setPhoneSheet("pages"); else if (id !== "overview") notInDemo(nav[0].items.find((item) => item.id === id)?.label ?? "This page"); }}
+          items={[
+            { id: "overview", label: "Overview", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+            { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
+            { id: "clients", label: "Clients", icon: "icon-briefcase-line", selectedIcon: "icon-briefcase-solid" },
+            { id: "invoices", label: "Invoices", icon: "icon-receipt-line", selectedIcon: "icon-receipt-solid" },
+            { id: "more", label: "More", icon: "icon-dots-horizontal-line" },
+          ]} />
+      )}
+      sidePanel={sidePanel}
+    >
+      {/* The Body already pads the page margins: the content sits straight in it, no Container. */}
+      <MobileOnly>
+        <Stack gap="md">
+          <Text tone="base">{description}</Text>
+          {periodRow}
         </Stack>
-      </Container>
+      </MobileOnly>
+      <Stack gap="md">
+        {/* Four tiles in a row, two by two, or stacked: never three and one. */}
+        <Grid columns="repeat(auto-fit, minmax(min(100%, 496px), 1fr))" gap="md">
+          {[kpis.slice(0, 2), kpis.slice(2)].map((pair) => (
+            <Grid key={pair[0].id} columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">{pair.map(kpiTile)}</Grid>
+          ))}
+        </Grid>
+
+        {/* Side by side the two plots share a baseline: the hours chart is taller by the height of the switch. */}
+        <Grid columns="repeat(auto-fit, minmax(min(100%, 360px), 1fr))" gap="md">
+          <ChartCard title="Revenue and profit" headingLevel={2} theme="shadow" range={measure} onRangeChange={(id) => setMeasure(id as typeof measure)}
+            ranges={[{ id: "revenue", label: "Revenue" }, { id: "profit", label: "Profit" }]} rangesFullWidth={phone}>
+            <LineChart key={`${periodId}-${measure}`} initialIndex={activeMonth} height={220} format={moneyShort}
+              aria-label={`${measure === "revenue" ? "Revenue" : "Profit"} per month, ${chartRange}`}
+              data={chartMonths.map((month) => ({ label: month.label, value: measure === "revenue" ? month.revenue : month.revenue - month.costs }))} />
+          </ChartCard>
+          <ChartCard title="Billable hours by team" headingLevel={2} theme="shadow" onOpen={() => setPanel({ type: "report", id: "hours" })} openLabel="Open billable hours by team">
+            <StackBarChart key={periodId} initialIndex={activeMonth} height={phone ? 220 : 276} format={hours}
+              aria-label={`Billable hours by team and month, ${chartRange}`}
+              series={teams.map((team) => ({ id: team.id, label: team.label }))}
+              data={chartMonths.map((month) => ({ label: month.label, values: month.hours }))} />
+          </ChartCard>
+        </Grid>
+
+        <Grid columns="repeat(auto-fit, minmax(min(100%, 480px), 1fr))" gap="md">
+          <Card ref={projectsRef} theme="shadow" as="section" aria-labelledby="dashboard-projects">
+            <Stack gap="md">
+              <Stack direction="row" gap="sm" justify="between" align="center" wrap>
+                <Heading level={2} textStyle="Heading/Subheading" id="dashboard-projects">Active projects</Heading>
+                {phone ? (
+                  <Chip ref={statusRef} {...statusChip} aria-haspopup="dialog" aria-expanded={sheet === "status"} onClick={() => setSheet("status")}>{statusLabel}</Chip>
+                ) : (
+                  <Chip ref={statusRef} {...statusChip} popoverMultiple popoverLabel="Status" popoverItems={healths.map((health) => ({ id: health, label: health, selected: statusFilter.includes(health) }))}
+                    onPopoverSelect={(item) => setStatusFilter((list) => toggle(list, item.id))}>{statusLabel}</Chip>
+                )}
+              </Stack>
+              {phone ? (
+                // Phone: the same projects as a List, the revenue over the status; the row opens the project.
+                rows.length ? (
+                  <List aria-labelledby="dashboard-projects">
+                    {rows.map((row) => (
+                      <ListItem key={row.id} title={row.name} caption={clients[row.client].name} leading={clientMark(row.client, "md")}
+                        trailing={(
+                          <Stack gap="2xs" align="end">
+                            <Text as="span" textStyle="Body/Base/Bold">{money(row.earned)}</Text>
+                            <Badge size="sm" theme={healthTheme[row.health]} background="subtle">{row.health}</Badge>
+                          </Stack>
+                        )}
+                        selected={opened?.id === row.id} onClick={() => openProject(row.id)} />
+                    ))}
+                  </List>
+                ) : noRows
+              ) : (
+                // The open project's row stays selected while its panel is open.
+                <Table aria-labelledby="dashboard-projects" rows={rows} getRowId={(row) => row.id} columns={columns}
+                  sort={sort} onSortChange={setSort} selectedIds={opened ? [opened.id] : []} onRowClick={(row) => openProject(row.id)} empty={noRows} />
+              )}
+              {rows.length ? (
+                <Text textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "project")} · {money(sum(rows.map((row) => row.earned)))} in {period.name}</Text>
+              ) : null}
+            </Stack>
+          </Card>
+
+          {/* Rows only: a ListBox, the title and an underlined Show all in its Header-Slot. */}
+          <ListBox as="section" theme="shadow" aria-labelledby="dashboard-activity"
+            header={<Stack direction="row" gap="sm" justify="between" align="center">
+              <Heading level={2} textStyle="Heading/Subheading" id="dashboard-activity">Recent activity</Heading>
+              {activity.length > ACTIVITY_PREVIEW ? (
+                // A section head's Show all is underlined text, not a button (user, 2026-10-13): a Link rendered as a
+                // button element, since it expands the list in place.
+                <Text as="span" textStyle="Body/Base/Medium">
+                  <Link as="button" tone="inherit" aria-expanded={showAllActivity} onClick={() => setShowAllActivity((all) => !all)}>
+                    {showAllActivity ? "Show less" : "Show all"}
+                  </Link>
+                </Text>
+              ) : null}
+            </Stack>}>
+            <List aria-labelledby="dashboard-activity">
+              {(showAllActivity ? activity : activity.slice(0, ACTIVITY_PREVIEW)).map((item) => (
+                <ListItem key={item.id} title={item.title} caption={activityCaption(item, true)} leading={activityMark(item)} onClick={() => openProject(item.project)} />
+              ))}
+            </List>
+          </ListBox>
+        </Grid>
+      </Stack>
+
+      {/* Mobile layout: the account menu, the page's other actions and the rest of the navigation. */}
+      <ActionSheet title={me.name} entries={accountItems} open={phoneSheet === "account"} onOpenChange={closePhoneSheet} />
+      <ActionSheet title="Studio overview" open={phoneSheet === "actions"} onOpenChange={closePhoneSheet}
+        entries={[{ id: "export", label: "Export overview", icon: "icon-download-01-line", onSelect: exportOverview }]} />
+      <ActionSheet title="More" open={phoneSheet === "pages"} onOpenChange={closePhoneSheet}
+        entries={morePages.map((item) => ({ ...item, onSelect: () => notInDemo(item.label) }))} />
 
       <ModalForm open={creating} onOpenChange={setCreating} title="New project" description="It starts on track and joins Active projects."
         onSubmit={projectForm.handleSubmit} primaryAction={{ label: "Create project" }} secondaryAction={{ label: "Cancel" }}>

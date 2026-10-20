@@ -20,12 +20,12 @@ const check = (label, actual, expected) => {
 check("hidden alone hides on every layout", [hiddenOn({ kind: "literal", value: true }, "mobile"), hiddenOn(true, "desktop"), hiddenOn(true, undefined)], [true, true, true]);
 check("hidden=mobile hides on mobile only", [hiddenOn("mobile", "mobile"), hiddenOn("mobile", "desktop"), hiddenOn("mobile", undefined)], [true, false, false]);
 check("other values are no hidden value", [hiddenValueOf("tablet"), hiddenValueOf(false), hiddenValueOf(undefined)], [null, null, null]);
-check("hiddenSlots reads a list of prop names", [hiddenSlotsOf({ kind: "array", items: [{ kind: "literal", value: "headerActions" }, { kind: "literal", value: 3 }] }), hiddenSlotsOf(["a"]), hiddenSlotsOf(undefined)], [["headerActions"], ["a"], []]);
+check("hiddenSlots reads a list of prop names", [hiddenSlotsOf({ kind: "array", items: [{ kind: "literal", value: "actions" }, { kind: "literal", value: 3 }] }), hiddenSlotsOf(["a"]), hiddenSlotsOf(undefined)], [["actions"], ["a"], []]);
 check("labels", ["mobile", "desktop", true, null].map(hiddenLabel), ["Hidden on mobile", "Hidden on desktop", "Hidden", "Visible"]);
 
 const PAGE = `// @zen-page {"format":1,"title":"Hide"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { AppShell, AppShellAction, AppShellAccount, Badge, Search, Stack, Text } from "@zen-ds/react";
+import { AppShell, AppShellAction, AppShellAccount, AppShellHeader, Badge, Search, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -34,9 +34,11 @@ export default function Page() {
     <Board>
       <Screen id="screen-1" title="Hide" device="desktop">
         <AppShell
-          header={<Search aria-label="Search" placeholder="Search" />}
-          headerActions={<><Badge hidden>Pro</Badge><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" /><AppShellAccount name="Khoa Dang" /></>}
-          hiddenSlots={["header"]}
+          header={<AppShellHeader
+            leading={<Search aria-label="Search" placeholder="Search" />}
+            actions={<><Badge hidden>Pro</Badge><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" /><AppShellAccount name="Khoa Dang" /></>}
+            hiddenSlots={["leading"]}
+          />}
         >
           <Stack gap="md">
             <Text>Always</Text>
@@ -54,9 +56,9 @@ const doc = docFromText(PAGE).doc;
 check("the page keeps them through a print", parsePage(printPage(doc)).errors, []);
 const screen = parsePage(PAGE).board.children[0];
 const desktop = pruneHidden(screen, "desktop");
-const shell = desktop.children.find((child) => child.kind === "element");
-check("desktop: the switched-off slot and the Studio-only props are gone", Object.keys(shell.props).sort(), ["headerActions"]);
-check("desktop: the hidden Badge is left out of its slot", shell.props.headerActions.children.map((child) => child.name), ["AppShellAction", "AppShellAccount"]);
+const header = desktop.children.find((child) => child.kind === "element").props.header.node;
+check("desktop: the switched-off slot and the Studio-only props are gone", Object.keys(header.props).sort(), ["actions"]);
+check("desktop: the hidden Badge is left out of its slot", header.props.actions.children.map((child) => child.name), ["AppShellAction", "AppShellAccount"]);
 const texts = (node) => node.children.flatMap((child) => (child.kind === "element" ? (child.name === "Text" ? [child.children[0].value] : texts(child)) : []));
 check("desktop draws the desktop-only text", texts(desktop), ["Always", "Desktop only"]);
 check("mobile draws the phone-only text", texts(pruneHidden(screen, "mobile")), ["Always", "Phone only"]);

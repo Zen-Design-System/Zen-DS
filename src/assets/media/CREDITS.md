@@ -1,6 +1,6 @@
 # Platform sample media
 
-Sample photos and video for the Platform's mobile examples. They are not part of the design system package.
+Sample photos and video for the Platform's examples. They are not part of the design system package.
 
 | File | Source | Author | License |
 |---|---|---|---|
@@ -27,3 +27,29 @@ Sample photos and video for the Platform's mobile examples. They are not part of
 | avatar-duy.webp | https://images.unsplash.com/photo-1500648767791-00dcc994a43e (160×160, crop=faces) | Unsplash photographer (see source) | Unsplash License |
 | avatar-emi.webp | https://images.unsplash.com/photo-1544005313-94ddf0286df2 (160×160, crop=faces) | Unsplash photographer (see source) | Unsplash License |
 | avatar-finn.webp | https://images.unsplash.com/photo-1506794778202-cad84cf45f1d (160×160, crop=faces) | Unsplash photographer (see source) | Unsplash License |
+| product-sneaker-offwhite.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example B1 15907:119280 (also B6, C5, E2, E3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| product-sneaker-sand.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example B1 15907:119280 (also E3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| product-sneaker-red-violet-high.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example B1 15907:119280 (also B6, C5, E2, E3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| product-sneaker-silver.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example B1 15907:119280 (also E3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| product-sneaker-olive.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example B1 15907:119280 (also C3, E3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| product-sneaker-black.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example B1 15907:119280 (also E3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| product-sneaker-navy.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example B1 15907:119280 (also E3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| product-cap-trucker.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example B1 15907:119280 (also E3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| canyon-antelope.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example C4 15922:8287 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| mascot-burger.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E1 15991:9673 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| food-bento.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E1 15991:9673 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| food-hotpot.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E1 15991:9673 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| brand-sneakers-orange.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E3 15991:9787 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| portrait-red-hair.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E4 15991:9843 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| portrait-short-hair.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E4 15991:9843 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| portrait-curly-hoodie.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E4 15991:9843 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| portrait-curly-hair.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E4 15991:9843 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| portrait-smile.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E4 15991:9843 (also E6) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| portrait-window.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E6 15991:9955 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| portrait-blazer.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example E6 15991:9955 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| device-ceiling-light.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example F1 15991:10068 (also F5) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| device-air-conditioner.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example F1 15991:10068 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| device-smart-speaker.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example F1 15991:10068 (also F3) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| device-robot-vacuum.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example F1 15991:10068 (also F4) (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| porch-live-view.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example F7 15991:10327 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |
+| room-roller-blind.webp | Zen Figma file 9nZv4uW2LT21yuHabMTCh1, ◇ Master-Layout · Example F10 15991:10453 (placed by the design team) | Zen design team (Figma example asset) | Zen design team (Figma example asset) |

@@ -1,29 +1,38 @@
 /* Skeleton examples (docs/research/example-rebuild-brief-2026-09-30.md): Đìzai Studio's invoices, files, activity and
-   tasks while they load. Every demo loads on a short timer, then swaps the real content in one step. */
-import { useEffect, useId, useRef, useState } from "react";
+   tasks while they load. Every demo loads on a short timer, then swaps the real content in one step. The two screens
+   (the Invoices page, the phone app's task) sit in the new AppShell (2026-10-19): Layout=Sidebar on desktop, the
+   mobile parts (TopNavigation, BottomNavigation, ActionBar) inside PlatformPhone. */
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { ActionBar } from "../../../components/ActionBar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Image } from "../../../components/Image";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Box, Container, Grid, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
+import { Sidebar, SidebarMenuItem, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
 import { SkeletonHeading, SkeletonShape, SkeletonText } from "../../../components/Skeleton";
 import { Table, TableBadges, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
+import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { platformMedia } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import {
   TODAY, activity, daysFromToday, formatBytes, formatDate, formatDue, formatMoney, formatRelative, initials, invoiceStatusTheme,
-  invoices, people, priorityTheme, projectById, studioMonths, taskStatusTheme, tasks, type Activity, type Invoice, type PersonId,
+  invoices, me, people, priorityTheme, projectById, studio, studioMonths, taskStatusTheme, tasks, type Activity, type Invoice, type PersonId,
   type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -48,6 +57,74 @@ const personAvatar = (id: PersonId) => {
   const person = people[id];
   return person.photo ? <Avatar theme="photo" src={person.photo} alt="" /> : <Avatar theme={person.theme} alt="">{initials(person.name)}</Avatar>;
 };
+
+/** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the Skeleton." });
+}
+
+/* ───────────── The studio's desktop app ───────────── */
+
+/* Đìzai Studio's navigation: the same Sidebar on every page, its current page selected. */
+const studioNav: SidebarSection[] = [
+  { items: [
+    { id: "home", label: "Home", icon: "icon-home-03-line" },
+    { id: "projects", label: "Projects", icon: "icon-folder-line" },
+    { id: "clients", label: "Clients", icon: "icon-briefcase-line" },
+    { id: "people", label: "People", icon: "icon-users-line" },
+  ] },
+  { label: "Finance", items: [
+    { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+    { id: "expenses", label: "Expenses", icon: "icon-wallet-02-line" },
+  ] },
+];
+const unreadActivity = activity.filter((item) => item.unread);
+
+/**
+ * One page of the studio's app: AppShell Layout=Sidebar in a desktop window. The chrome (the Sidebar, the header's top
+ * row and the PageHeader in its Main row) renders at once; only the Body waits for data. The Body pads the page itself.
+ */
+function StudioApp({ here, main, children }: { here: string; main: ReactNode; children: ReactNode }) {
+  const { toast } = useToast();
+  const notHere = useNotHere();
+  const [unread, setUnread] = useState(unreadActivity.length);
+  const first = unreadActivity[0];
+  return (
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            sections={studioNav} selectedId={here} onItemClick={(item: SidebarItem) => { if (item.id !== here) notHere(item.label); }}
+            footer={<>
+              <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
+              <SidebarMenuItem id="help" label="Help" icon="icon-help-circle-line" />
+            </>} />
+        )}
+        header={(
+          <AppShellHeader
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                toast(unread
+                  ? { title: plural(unread, "new notification"), children: `${people[first.actor].name} ${first.verb} “${first.object}”.` }
+                  : { title: "No new notifications", children: "You’re all caught up." });
+                setUnread(0);
+              }} />
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.email}` }) },
+                { type: "separator" },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out", children: `See you soon, ${me.name.split(" ")[0]}.` }) },
+              ]} />
+            </>}
+            main={main}
+          />
+        )}
+      >
+        {children}
+      </AppShell>
+    </PreviewAppFrame>
+  );
+}
 
 /* ───────────── Page loading ───────────── */
 
@@ -91,33 +168,32 @@ function InvoicesPageExample() {
     return [{ id: number, number, client, project: "", amount: 0, status: "Draft", issued: TODAY, due: daysFromToday(30) }, ...list];
   });
   return (
-    <Container maxWidth="full">
-      {/* PageHeader → metrics → table: sections of a page (xl); a section heading keeps its table close (md). */}
-      <Stack gap="xl" paddingY="xl">
-        <PageHeader title="Invoices" description="Bill clients and see what they owe the studio."
-          actions={<>
-            <Button level="tertiary" startIcon="icon-refresh-cw-01-line" onClick={reload}>Refresh</Button>
-            <Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>New invoice</Button>
-          </>} />
-        <Stack gap="xl" aria-busy={loading}>
-          <Grid minColumnWidth={280} gap="md">
-            <MetricCard theme="flat" size="md" icon="icon-clock-line" iconTheme="blue" label="Outstanding" value={value(sum(due))} />
-            <MetricCard theme="flat" size="md" icon="icon-alert-circle-line" iconTheme="red" label="Overdue" value={value(sum(overdue))} />
-            <MetricCard theme="flat" size="md" icon="icon-check-circle-line" iconTheme="green" label="Paid in Q3" value={value(formatMoney(paidInQ3, false))} />
-          </Grid>
-          <Stack gap="md">
-            <Heading level={2} id={tableTitleId}>Recent invoices</Heading>
-            {loading
-              ? <Table aria-labelledby={tableTitleId} rows={[1, 2, 3, 4, 5]} getRowId={String} columns={loadingColumns} />
-              : <Table aria-labelledby={tableTitleId} rows={rows} columns={invoiceColumns} />}
-          </Stack>
+    <StudioApp here="invoices"
+      main={<PageHeader title="Invoices" description="Bill clients and see what they owe the studio."
+        actions={<>
+          <Button level="tertiary" startIcon="icon-refresh-cw-01-line" onClick={reload}>Refresh</Button>
+          <Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>New invoice</Button>
+        </>} />}>
+      {/* Metrics → table: sections of a page (xl); a section heading keeps its table close (md). Beside the Sidebar every
+          box takes its elevation (Shadow); the table lies on the page. */}
+      <Stack gap="xl" aria-busy={loading}>
+        <Grid minColumnWidth={240} gap="md">
+          <MetricCard theme="shadow" size="md" icon="icon-clock-line" iconTheme="blue" label="Outstanding" value={value(sum(due))} />
+          <MetricCard theme="shadow" size="md" icon="icon-alert-circle-line" iconTheme="red" label="Overdue" value={value(sum(overdue))} />
+          <MetricCard theme="shadow" size="md" icon="icon-check-circle-line" iconTheme="green" label="Paid in Q3" value={value(formatMoney(paidInQ3, false))} />
+        </Grid>
+        <Stack gap="md">
+          <Heading level={2} id={tableTitleId}>Recent invoices</Heading>
+          {loading
+            ? <Table aria-labelledby={tableTitleId} rows={[1, 2, 3, 4, 5]} getRowId={String} columns={loadingColumns} />
+            : <Table aria-labelledby={tableTitleId} rows={rows} columns={invoiceColumns} />}
         </Stack>
-        <VisuallyHidden role="status">{loading ? "Loading invoices…" : `${plural(rows.length, "invoice")} loaded`}</VisuallyHidden>
-        <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New invoice" description="Start a draft; you can add line items next."
-          field={{ kind: "name", label: "Client", placeholder: "Saola Outdoor" }} submitLabel="Create draft"
-          confirm={(client) => `Draft invoice for ${client} created`} onSubmit={addDraft} />
       </Stack>
-    </Container>
+      <VisuallyHidden role="status">{loading ? "Loading invoices…" : `${plural(rows.length, "invoice")} loaded`}</VisuallyHidden>
+      <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New invoice" description="Start a draft; you can add line items next."
+        field={{ kind: "name", label: "Client", placeholder: "Saola Outdoor" }} submitLabel="Create draft"
+        confirm={(client) => `Draft invoice for ${client} created`} onSubmit={addDraft} />
+    </StudioApp>
   );
 }
 
@@ -326,10 +402,28 @@ const taskNotes: Record<string, string> = {
   t17: "Five photographers who shoot outdoor gear, with day rates and two sample shoots each.",
 };
 
+/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
+const phoneRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
+  { id: "inbox", label: "Inbox", icon: "icon-message-chat-circle-line", selectedIcon: "icon-message-chat-circle-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+/** The open tasks by when they are due, as the Tasks root groups them. */
+const endOfWeek = daysFromToday(4, 23, 59);
+const taskGroups = [
+  { id: "week", title: "Due this week", rows: openTasks.filter((task) => task.due <= endOfWeek) },
+  { id: "later", title: "Later", rows: openTasks.filter((task) => task.due > endOfWeek) },
+];
+
 function TaskDetailPhoneExample() {
+  const { toast } = useToast();
+  const notHere = useNotHere();
   const screen = usePhoneScreen();
+  const groupId = useId();
   const screenRef = useRef<HTMLDivElement>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [done, setDone] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (!loading) return undefined;
@@ -337,51 +431,78 @@ function TaskDetailPhoneExample() {
     return () => window.clearTimeout(timer);
   }, [loading]);
   const task = openTasks.find((t) => t.id === openId);
+  const statusOf = (t: Task): Task["status"] => (done.includes(t.id) ? "Done" : t.status);
 
   // Each screen is its own PlatformPhone (key): the task opens at the top and the bar measures the fold again.
   if (!task) {
+    const dueThisWeek = taskGroups[0].rows.filter((t) => !done.includes(t.id)).length;
     return (
-      <PlatformPhone key="tasks" label="Tasks" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
-        {screen.anchor}
-        {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
-        <Box paddingX="lg" paddingY="xs">
-          <List aria-label="Tasks">
-            {openTasks.map((t) => (
-              <ListItem key={t.id} data-task={t.id} leading={personAvatar(t.assignee)} title={t.title} caption={`${t.key} · ${formatDue(t.due)}`}
-                onClick={() => screen.go(".zen-top-nav__action", () => { setOpenId(t.id); setLoading(true); })} />
-            ))}
-          </List>
-        </Box>
+      // The Tasks root: the large title folds into the bar as the groups scroll, the app's roots sit in the bottom bar.
+      // The bar casts a shadow, so each group's block takes the same Shadow elevation.
+      <PlatformPhone key="tasks" label="Tasks" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="Tasks" largeTitle="Tasks" largeTitleSubheading={`${plural(dueThisWeek, "task")} due this week`} scrollRef={screenRef} />}
+          bottomNavigation={<BottomNavigation aria-label={studio.name} showLabels items={phoneRoots} value="tasks"
+            onValueChange={(id) => { if (id !== "tasks") notHere(phoneRoots.find((item) => item.id === id)?.label ?? id); }} />}
+        >
+          {screen.anchor}
+          {taskGroups.map((group) => (
+            <Stack key={group.id} as="section" gap="xs" aria-labelledby={`${groupId}-${group.id}`}>
+              {/* The kicker lines up with the row text inside the block (paddingX lg, 20). */}
+              <Box paddingX="lg"><Heading level={2} id={`${groupId}-${group.id}`} textStyle="Body/Small/Bold" tone="light">{group.title}</Heading></Box>
+              <ListBox theme="shadow">
+                <List aria-labelledby={`${groupId}-${group.id}`}>
+                  {group.rows.map((t) => (
+                    <ListItem key={t.id} data-task={t.id} leading={personAvatar(t.assignee)} title={t.title} titleLines={2} caption={`${t.key} · ${done.includes(t.id) ? "Done" : formatDue(t.due)}`}
+                      onClick={() => screen.go(".zen-top-nav__action", () => { setOpenId(t.id); setLoading(true); })} />
+                  ))}
+                </List>
+              </ListBox>
+            </Stack>
+          ))}
+        </AppShell>
       </PlatformPhone>
     );
   }
 
   const skeleton = line("medium");
+  const status = statusOf(task);
+  const finished = status === "Done";
   return (
-    <PlatformPhone key={task.id} label="Tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
-        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-task="${task.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
-      {screen.anchor}
-      {/* The title came with the row, so it shows at once; the rest waits for the task. Body padding lg (20) = the bar's
-          margin; title, fields and description are sections of the screen (lg). */}
-      <Stack gap="lg" padding="lg" aria-busy={loading}>
-        <Stack gap="xs">
+    // A pushed screen: the compact bar with Back and the task's key, its one action in the Action bar, no bottom bar.
+    <PlatformPhone key={task.id} label="Tasks" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-task="${task.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
+        // The action waits for the task as well: it is there at once (nothing jumps) and works once the task has loaded.
+        actionBar={<ActionBar primaryAction={finished
+          ? { label: "Reopen task", onClick: () => setDone((list) => list.filter((id) => id !== task.id)) }
+          : { label: "Mark as done", disabled: loading, onClick: () => {
+            setDone((list) => [...list, task.id]);
+            toast({ title: "Task completed", children: task.title, action: { label: "Undo", onClick: () => setDone((list) => list.filter((id) => id !== task.id)) } });
+          } }} />}
+      >
+        {screen.anchor}
+        {/* The title came with the row, so it shows at once; the rest waits for the task. The Body pads the screen and
+            spaces the title, the fields and the description Layout-Mobile/Section-Gap apart. */}
+        <Stack gap="xs" aria-busy={loading}>
           <Heading level={2} textStyle="Heading/4">{task.title}</Heading>
-          {loading ? <SkeletonShape shape="pill" size="xs" /> : <Badge background="subtle" theme={taskStatusTheme[task.status]}>{task.status}</Badge>}
+          {loading ? <SkeletonShape shape="pill" size="xs" /> : <Badge background="subtle" theme={taskStatusTheme[status]}>{status}</Badge>}
         </Stack>
-        <DescriptionList divider items={[
-          { term: "Project", description: loading ? skeleton : projectById(task.project).name },
-          { term: "Assignee", description: loading ? skeleton : people[task.assignee].name },
-          { term: "Due", description: loading ? skeleton : formatDue(task.due) },
-          { term: "Priority", description: loading ? skeleton : <Badge background="subtle" theme={priorityTheme[task.priority]}>{task.priority}</Badge> },
-        ]} />
-        <Stack gap="xs">
+        <Card theme="flat" aria-busy={loading}>
+          <DescriptionList divider items={[
+            { term: "Project", description: loading ? skeleton : projectById(task.project).name },
+            { term: "Assignee", description: loading ? skeleton : people[task.assignee].name },
+            { term: "Due", description: loading ? skeleton : formatDue(task.due) },
+            { term: "Priority", description: loading ? skeleton : <Badge background="subtle" theme={priorityTheme[task.priority]}>{task.priority}</Badge> },
+          ]} />
+        </Card>
+        <Stack gap="xs" aria-busy={loading}>
           <Heading level={3} textStyle="Body/Small/Bold" tone="light">Description</Heading>
           {loading ? <SkeletonText lines={3} /> : <Text>{taskNotes[task.id]}</Text>}
         </Stack>
         <VisuallyHidden role="status">{loading ? "Loading task…" : "Task loaded"}</VisuallyHidden>
-      </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -391,25 +512,36 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Page loading",
     wide: true,
     screen: true,
-    description: "The page header and every label render at once; only the data waits. Metric values and table cells hold placeholders shaped like their content, and the real numbers and rows replace them in one step.",
+    description: "The studio's Invoices page while its data loads. The shell, the Sidebar, the PageHeader and every label render at once; only the data waits. Metric values and table cells hold placeholders shaped like their content, and the real numbers and rows replace them in one step. Refresh loads again.",
     render: () => <InvoicesPageExample />,
     code: `const value = (text: string) => (loading ? <SkeletonHeading size="md" className="skeleton-inline" /> : text);
 
-<PageHeader title="Invoices" actions={<>
-  <Button level="tertiary" startIcon="icon-refresh-cw-01-line" onClick={reload}>Refresh</Button>
-  <Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>New invoice</Button>
-</>} />
-<Stack gap="xl" aria-busy={loading}>
-  <Grid minColumnWidth={280}>
-    <MetricCard theme="flat" size="md" icon="icon-clock-line" iconTheme="blue" label="Outstanding" value={value(outstanding)} />
-    …
-  </Grid>
-  <Heading level={2} id={tableTitleId}>Recent invoices</Heading>
-  {loading
-    ? <Table aria-labelledby={tableTitleId} rows={[1, 2, 3, 4, 5]} getRowId={String} columns={loadingColumns} />
-    : <Table aria-labelledby={tableTitleId} rows={rows} columns={columns} />}
-</Stack>
-<VisuallyHidden role="status">{loading ? "Loading invoices…" : \`\${plural(rows.length, "invoice")} loaded\`}</VisuallyHidden>
+<AppShell
+  sidebar={<Sidebar logo={logo} sections={studioNav} selectedId="invoices" onItemClick={navigate} />}
+  header={
+    <AppShellHeader
+      actions={<>{notifications}{account}</>}
+      main={<PageHeader title="Invoices" description="Bill clients and see what they owe the studio." actions={<>
+        <Button level="tertiary" startIcon="icon-refresh-cw-01-line" onClick={reload}>Refresh</Button>
+        <Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>New invoice</Button>
+      </>} />}
+    />
+  }
+>
+  <Stack gap="xl" aria-busy={loading}>
+    <Grid minColumnWidth={240} gap="md">
+      <MetricCard theme="shadow" size="md" icon="icon-clock-line" iconTheme="blue" label="Outstanding" value={value(outstanding)} />
+      …
+    </Grid>
+    <Stack gap="md">
+      <Heading level={2} id={tableTitleId}>Recent invoices</Heading>
+      {loading
+        ? <Table aria-labelledby={tableTitleId} rows={[1, 2, 3, 4, 5]} getRowId={String} columns={loadingColumns} />
+        : <Table aria-labelledby={tableTitleId} rows={rows} columns={columns} />}
+    </Stack>
+  </Stack>
+  <VisuallyHidden role="status">{loading ? "Loading invoices…" : \`\${plural(rows.length, "invoice")} loaded\`}</VisuallyHidden>
+</AppShell>
 
 // loadingColumns: the same headers, one placeholder per cell
 { id: "status", header: "Status", cell: () => <SkeletonShape shape="pill" size="xs" /> },
@@ -481,26 +613,30 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Detail screen",
-    description: "On a phone, a task opens from the list at once with the title it already had; its status, fields and description load behind placeholders. The field labels stay, so only the values change, and Back returns to the row it came from.",
+    description: "In the studio's phone app a task opens from the Tasks root at once, with the title it already had; its status, fields and description load behind placeholders. The field labels and the Action bar are there from the start, so only the values change, and Mark as done waits until the task has loaded. Back returns to the row it came from.",
     render: () => <TaskDetailPhoneExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 // One PlatformPhone per screen (key): the task opens at the top; the bar follows the scroll.
-<PlatformPhone key={task.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
-    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />}>
-  <Stack gap="lg" padding="lg" aria-busy={loading}>
-    <Stack gap="xs">
+<PlatformPhone key={task.id} screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />}
+    actionBar={<ActionBar primaryAction={{ label: "Mark as done", disabled: loading, onClick: markDone }} />}
+  >
+    <Stack gap="xs" aria-busy={loading}>
       <Heading level={2} textStyle="Heading/4">{task.title}</Heading>
       {loading ? <SkeletonShape shape="pill" size="xs" /> : <Badge background="subtle" theme={statusTheme}>{task.status}</Badge>}
     </Stack>
-    <DescriptionList divider items={[
-      { term: "Project", description: loading ? <SkeletonText lines={1} className="skeleton-inline" /> : project.name },
-      { term: "Due", description: loading ? <SkeletonText lines={1} className="skeleton-inline" /> : formatDue(task.due) },
-    ]} />
+    <Card theme="flat" aria-busy={loading}>
+      <DescriptionList divider items={[
+        { term: "Project", description: loading ? <SkeletonText lines={1} className="skeleton-inline" /> : project.name },
+        { term: "Due", description: loading ? <SkeletonText lines={1} className="skeleton-inline" /> : formatDue(task.due) },
+      ]} />
+    </Card>
     {loading ? <SkeletonText lines={3} /> : <Text>{task.notes}</Text>}
     <VisuallyHidden role="status">{loading ? "Loading task…" : "Task loaded"}</VisuallyHidden>
-  </Stack>
-</PlatformPhone>`
+  </AppShell>
+</PlatformPhone>`,
   },
 ]);

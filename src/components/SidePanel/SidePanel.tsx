@@ -57,7 +57,8 @@ export interface SidePanelProps extends OverlayOpenProps {
 
 /**
  * Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered
- * in place (the page layout docks it); Escape closes it (from the panel or the page beside it) and focus returns to the
+ * in place (the page layout docks it); Escape closes it (from the panel or the page beside it, within its AppShell when
+ * it docks in one) and focus returns to the
  * opener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container
  * border, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener.
  * Sections, each Modal-Padding on every side: Top-Customize (optional) · Header (Header-Contents, gap XSmall: the row
@@ -98,6 +99,10 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
       if (event.key !== "Escape" || event.defaultPrevented || event === popupEscape || modalIsOpen()) return;
       const target = event.target instanceof Element ? event.target : null;
       const inside = Boolean(target && panelRef.current?.contains(target));
+      // "The page beside it" is the app the panel docks in: docked in an AppShell, a press outside that shell (another
+      // app on the same page, a docs page's other examples) is not its business.
+      const shell = panelRef.current?.closest(".zen-app-shell");
+      if (!inside && shell && target && !shell.contains(target)) return;
       if (!inside && target?.closest("input, textarea, select, [contenteditable='true']")) return;
       event.preventDefault();
       onOpenChange(false);

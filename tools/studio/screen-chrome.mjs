@@ -54,40 +54,48 @@ export function screenChromeCode(prop, title) {
 }
 
 /**
- * The desktop layout's master layout (user, 2026-10-15; screen-frame.mjs): one <AppShell> at the Screen's root, Figma
- * ◇ Master-Layout. The parts the Screen section switches, each an AppShell prop with the code it starts with.
+ * The desktop layout's master layout (user, 2026-10-15; screen-frame.mjs): one <AppShell> at the Screen's root, Figma's
+ * AppShell patterns (◇ Master-Layout 16254:1057; the AppShell rebuilt on them 2026-10-19). The parts the Screen section
+ * switches, each with the code it starts with: an AppShell prop (`host` "shell") or a prop of the AppShellHeader in the
+ * AppShell's `header` (`host` "header": the header's top row and its Main row).
  */
 export const FRAME_PARTS = [
-  { prop: "banner", label: "Banner", component: "AlertBanner" },
-  { prop: "sidebar", label: "Sidebar", component: "Sidebar" },
-  { prop: "header", label: "Top bar", component: "Search" },
-  // Figma Nav-Center-Block (Center-Slots, up to 400px): a Search in the middle of the bar (user, 2026-10-16).
-  { prop: "headerCenter", label: "Top bar center", component: "Search" },
-  { prop: "headerActions", label: "Top bar actions", component: "AppShellAccount" },
-  { prop: "sections", label: "Page header", component: "PageHeader" },
-  { prop: "aside", label: "Side panel", component: "SidePanel" },
-  { prop: "floatingAction", label: "Floating action", component: "IconButton" },
-  { prop: "footer", label: "Footer", component: "ActionBar" },
+  { prop: "banner", host: "shell", label: "Banner", component: "AlertBanner" },
+  { prop: "sidebar", host: "shell", label: "Sidebar", component: "Sidebar" },
+  { prop: "leading", host: "header", label: "Top bar", component: "Search" },
+  // Figma Center-Slots (up to 400px): a Search in the middle of the top row (user, 2026-10-16).
+  { prop: "center", host: "header", label: "Top bar center", component: "Search" },
+  { prop: "actions", host: "header", label: "Top bar actions", component: "AppShellAccount" },
+  { prop: "main", host: "header", label: "Page header", component: "PageHeader" },
+  { prop: "sidePanel", host: "shell", label: "Side panel", component: "SidePanel" },
+  { prop: "floatingActions", host: "shell", label: "Floating action", component: "IconButton" },
 ];
 
 /** Every AppShell prop that draws part of the frame: an AppShell without any of them is no frame (it unwraps). */
-export const FRAME_PROPS = new Set(["sidebar", "header", "headerCenter", "headerActions", "sections", "aside", "floatingAction", "footer", "banner"]);
+export const FRAME_PROPS = new Set(["banner", "sidebar", "header", "leadingPane", "trailingPane", "progress", "sidePanel", "floatingActions"]);
+/** The AppShellHeader props that draw part of the header: a header without any of them goes with its last one. */
+export const HEADER_PROPS = new Set(["leading", "center", "actions", "main", "sections"]);
 
 /** The component a frame part starts with (`title`: the page's). */
 export function screenFrameCode(prop, title) {
   const name = quote(String(title ?? "Untitled").replace(/[{}<>]/g, ""));
   switch (prop) {
     case "sidebar": return screenChromeCode("sidebar", title);
-    case "header": return `<Search aria-label="Search" placeholder="Search" />`;
-    case "headerCenter": return `<Search aria-label="Search" placeholder="Search" />`;
+    case "leading": return `<Search aria-label="Search" placeholder="Search" />`;
+    case "center": return `<Search aria-label="Search" placeholder="Search" />`;
     case "banner": return `<AlertBanner theme="info">Your trial ends in 7 days.</AlertBanner>`;
-    case "headerActions": return `<AppShellAccount name="Khoa Dang" />`;
-    case "sections": return `<PageHeader title=${name} />`;
-    case "aside": return [`<SidePanel type="standard" title="Details" open>`, `  <Text tone="base">Details of the selected item.</Text>`, `</SidePanel>`].join("\n");
-    case "floatingAction": return `<IconButton level="accent" icon="icon-plus-line" aria-label="New" />`;
-    case "footer": return `<ActionBar position="static" primaryAction={{ label: "Save" }} />`;
+    case "actions": return `<AppShellAccount name="Khoa Dang" />`;
+    case "main": return `<PageHeader title=${name} />`;
+    case "sidePanel": return [`<SidePanel type="standard" title="Details" open>`, `  <Text tone="base">Details of the selected item.</Text>`, `</SidePanel>`].join("\n");
+    case "floatingActions": return `<IconButton level="accent" icon="icon-plus-line" aria-label="New" />`;
     default: throw new Error(`${prop} is not a frame part (${FRAME_PARTS.map((part) => part.prop).join(", ")})`);
   }
+}
+
+/** The AppShell's `header` holding `parts` ([prop, code] of AppShellHeader props). */
+export function screenHeaderCode(parts) {
+  if (!parts.length) return "<AppShellHeader />";
+  return ["<AppShellHeader", ...parts.map(([prop, code]) => `  ${prop}={${code.split("\n").join("\n  ")}}`), "/>"].join("\n");
 }
 
 /** Whether a page may hold the old frame props (cheap; migrateScreenFrame then reads the Screens themselves). */
