@@ -223,3 +223,5 @@ BACKLOG finding (2026-10-20): a Studio arrow got a head at both ends in Figma (p
 - Slip, fixed: a capture's clipboard restore failed and left the user's clipboard empty (it held a 0.5 MB picture: the
   saved base64 went inline into osascript). Put back at once from the saved copy (8/8 types); the scratch capture and
   paste scripts now save and restore through files.
+- Gate (Giám sát's slot after the snap session, on c7d8613a with main b2f2e019): `qa --isolated` PASS — static ✓, Studio
+  E2E 336 works · 0 broken (1951 s). Report `.qa/reports/2026-10-20T13-57-08-ee53b0aa.md`.
