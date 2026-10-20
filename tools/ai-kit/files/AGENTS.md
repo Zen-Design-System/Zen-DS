@@ -22,6 +22,10 @@ These instructions apply to every agent (Claude, ChatGPT/Codex, others) that rea
   button per area, filters as Chip/Advanced in the header's control bar, tables on the canvas.
 - Real content in the brief's language; real states (Inputted, Pressed, Disabled) instead of look-alikes.
 
+The rules say what is wrong. To choose well among the options they leave open (which colours, how much, what leads,
+how a layout changes with the width), use the principles in `skills/zen-figma-design/references/design-principles.md`
+and `skills/zen-figma-design/references/responsive-principles.md`. They guide judgement; the audit does not check them.
+
 ## Done means
 
 For every screen you touched: `skills/zen-figma-design/harness/zen-figma-audit.js` (run with `use_figma`) reports

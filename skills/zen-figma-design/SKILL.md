@@ -13,6 +13,8 @@ Files in this skill:
 | File | Read it |
 | --- | --- |
 | `references/screen-rules.md` | before the first screen: layout, surfaces, spacing ladder, component choice |
+| `references/design-principles.md` | before the first screen, and when a screenshot passes the audit but looks off: colour pairing and balance, hierarchy, composition (principles for judgement, not rules) |
+| `references/responsive-principles.md` | when a screen has more than one width (desktop, tablet, phone): responsive and adaptive layout, what to keep, what to move (principles, not rules) |
 | `references/figma-components.md` | to find a component set and its exact property names and values |
 | `references/figma-tokens.md` | to pick a colour, spacing, radius variable or a text/effect style |
 | `references/figma-gotchas.md` | before writing `use_figma` code that touches instances |
@@ -41,6 +43,9 @@ Files in this skill:
    🔤 Typography page's Content-Hierarchy section is the heading and text-style ladder.
 4. **Read the brief into a screen list.** For each screen: who uses it, the one main action, the data it shows, the
    states it needs (empty, loading, error, an open menu or dialog). Reference the source app's features, not its look.
+5. **Plan the design** (`references/design-principles.md` §0): the mood (Component Size and Typography modes), what
+   must carry colour (the colour budget), the focal point, and, for more than one width, the canonical layout and how
+   it folds (`references/responsive-principles.md` §3). These are judgement calls; the audit does not check them.
 
 ## 2. Hard rules (an audit error or a designer's rejection when broken)
 
@@ -158,7 +163,8 @@ Files in this skill:
    - the screen still works in the other Component Size and Typography mode: switch them and look.
 3. **Colour:** Brand / Accent leads; supporting hues stay small; status colours sit only on status elements.
 4. **Screenshot review** (`get_screenshot`, which also renders emoji): hierarchy, alignment, nothing cut or covered by
-   the navigation, real copy, no default component text.
+   the navigation, real copy, no default component text. Then ask it the questions of design-principles.md §9
+   (squint, count the hues and say what each means, greyscale, the other modes).
 5. **Report** what is left and why (§5). A screen with an audit error, or a component used against its rule, is not
    done.
 

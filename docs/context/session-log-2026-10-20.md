@@ -254,3 +254,27 @@ BACKLOG finding (2026-10-20): a Studio arrow got a head at both ends in Figma (p
   paste scripts now save and restore through files.
 - Gate (Giám sát's slot after the snap session, on c7d8613a with main b2f2e019): `qa --isolated` PASS — static ✓, Studio
   E2E 336 works · 0 broken (1951 s). Report `.qa/reports/2026-10-20T13-57-08-ee53b0aa.md`.
+
+## Design principles for AI-generated UI (skill references) — tier S, branch `zen/docs/design-principles-20261020`
+
+User (2026-10-20): "Bổ sung cho skill để AI generate UI dựa trên các nguyên tắc phối màu, và principle design. Lưu ý là
+skill không phải rule hay hardness", then "Nghiên cứu cả những principle về responsive, adaptive cho UI".
+
+- New `skills/zen-component-usage/references/design-principles.md`: the screen's job and mood first; colour carries
+  meaning; 60-30-10 as a sanity check (Zen's own measurement: hue count, not area, made screens busy); Brand/Accent
+  leads, supporting hues by context, siblings share a hue, the demotion order; harmony (analogous, one complementary
+  spot, equal steps); fill-to-content pairing by step (Canvas → Pale → Subtle → Solid); APCA targets as orientation
+  (user 2026-10-19: no WCAG rework of brand pairs); dark mode and themes; data colours; hierarchy levers, Gestalt,
+  restraint, rhythm, emphasis budget; the screenshot questions.
+- New `skills/zen-responsive-screens/references/responsive-principles.md`: responsive vs adaptive and Microsoft's
+  technique ladder mapped to Zen; size classes by space, not device (Zen 744/1024 next to Material 3's classes; the
+  tablet-by-orientation decision of 2026-10-18); component-level adaptation (AppShell, Grid `stackBelow`); canonical
+  layouts and how each folds; navigation by width; ranking parts, WCAG 1.4.10; state kept across size changes;
+  touch vs pointer by media features; text and tables that flex; in-between widths.
+- Sources: Material 3 / Android window size classes and canonical layouts, Microsoft responsive techniques, Apple HIG
+  Color and Layout, Carbon Color, Radix scale, APCA levels, WCAG 2.2 (1.4.1, 1.4.4, 1.4.10, 1.4.12, 2.5.8).
+- Wording is advisory on purpose: no harness rule, no audit check, no `component-usage-rules.md` change.
+- The three SKILL.md files point at them (usage: a step 0 plan + the §9 questions after the gate; Figma: files table,
+  §1 step 5, QA checklist 4; responsive: intro + a check line). AI kit for Figma: `KIT_SOURCES.principles` in
+  `tools/ai-kit/kit.mjs` copies both into `skills/zen-figma-design/references/`; `build.mjs` reads and checks them,
+  `src/platform/aiKit.ts` globs them; kit README and AGENTS.md mention them. `ai-kit:check` 164 ✓, 85 files.

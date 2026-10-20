@@ -1,14 +1,22 @@
 ---
 name: zen-component-usage
-description: Compose screens, examples or templates with Zen Design System components correctly, following each component's Do/Don't guidelines and passing the usage harness. Also defines the "definition of done" for new components (guidelines + harness rules). Use whenever writing JSX with Zen components or finishing a new component.
+description: Compose screens, examples or templates with Zen Design System components correctly, following each component's Do/Don't guidelines, Zen's design principles (colour pairing and balance, hierarchy, composition, responsive layouts) and passing the usage harness. Also defines the "definition of done" for new components (guidelines + harness rules). Use whenever writing JSX with Zen components, generating a UI with Zen, or finishing a new component.
 ---
 
 # Zen component usage
 
 Zen components have written usage rules. Follow them when you **use** components, and extend them when you **build** one.
 
+The rules say what is wrong. To choose well among the options they leave open, use the design principles:
+`references/design-principles.md` (colour pairing and balance, hierarchy, composition) and
+`skills/zen-responsive-screens/references/responsive-principles.md` (responsive and adaptive layouts). They are
+principles, not rules: no harness checks them, and the brief, a template or the designer may choose otherwise.
+
 ## When composing UI with Zen components
 
+0. **Plan the screen before the JSX** (design-principles §0): its job, its mood (density and Typography mode), what
+   must carry colour, the focal point, and how it changes across widths. Then build structure → spacing → type →
+   colour → effects, in that order.
 1. Read `docs/guidelines/index.json` (compact) or the relevant `docs/guidelines/<component>.md` before choosing a component. Check the "Use something else for" list first: picking the right component matters more than configuring it.
 2. Apply the house rules that most often go wrong:
    - **Buttons:** Primary = the one main CTA; Tertiary for everything else; Secondary is rare (a justified highlight); Accent only for promoted CTAs; Danger for irreversible actions.
@@ -35,7 +43,7 @@ Examples are copied into products, so they must model correct usage. Follow `doc
 4. **Composition:** List/ListItem for rows (never `div` + Text + Badge), EmptyState, FileIcon + `fileIconFormatOf`, Chip advanced for filters, BadgeCounter for counts, token swatches in ColorSelector, `scale="quota"` for usage-against-limit bars, Icon sizes from the token scale only.
 5. **One mood (default pairing):** the stage is Canvas/Default and every box on it is flat Surface/Default, no border and no shadow (Card and MetricCard `theme="flat"`, ChartCard, ListBox). Use a border or a shadow only when a condition asks for it: a Sidebar screen (elevation follows the Sidebar), a white page or phone screen (§11), a Surface inside a Surface, a clickable card (`theme="border"`), the selected card. See `docs/component-usage-rules.md` §16; reference Card › Workspace plan.
 6. **Platform CSS:** example classes are `pe-*`; grep `src/platform/platform.css` for the name first (a reused `.pe-summary` once broke a layout); tokens only; titles are Strongest.
-7. **Verify:** run `npm run qa` (the Build-QA gate in `skills/zen-build-qa`: static gates, style tokens, text styles and content hierarchy, Comfortable density, dark, behaviour, coverage, screenshots) and open the contact sheets the gate asks for. DOM checks cannot see a squashed button or an oversized icon.
+7. **Verify:** run `npm run qa` (the Build-QA gate in `skills/zen-build-qa`: static gates, style tokens, text styles and content hierarchy, Comfortable density, dark, behaviour, coverage, screenshots) and open the contact sheets the gate asks for. DOM checks cannot see a squashed button or an oversized icon. Then ask the screenshot the questions of design-principles §9 (squint, count the hues, greyscale, the other modes): no gate asks them.
 
 For a full audit of every page, use the `zen-platform-qa` skill.
 
