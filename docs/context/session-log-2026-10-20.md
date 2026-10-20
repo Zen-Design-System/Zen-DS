@@ -180,6 +180,10 @@ Branch `zen/feat/studio-blend-mode-20261020` (from main 4b5bb818). Tier M. Spec 
 - E2E FW-98 (figma group): ◐ → Multiply writes `blendMode="multiply"`, and the layer computes `mix-blend-mode`
   multiply. Pass through removes it, and the panel fits.
 - Selftests: push 342, pull 114; studio:selftest, usage, ai-ui (rebuilt), style and guidelines pass; tsc is clean.
+- Gate finding, fixed: the full Vitest run (`tests/**` changed) failed SegmentedItem as "fixed violations still listed".
+  - Its inactive light label is 3.73:1 (#7f7f7f on #f7f7f7). Axe reports that alone and in `tests/smoke` (twice), but
+    calls it incomplete in the gate's loaded full run: the same case as TabItem.
+  - SegmentedItem joins `ENVIRONMENT_DEPENDENT` in `tests/smoke/components.test.tsx`; the baseline is unchanged.
 
 ## Direct paste of the page's own components (Session C) — tier S, branch `zen/feat/studio-native-local-components-20261020`
 BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studio Shapes and page-local components").
