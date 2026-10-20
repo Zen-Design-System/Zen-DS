@@ -140,7 +140,8 @@ function WorkspaceEditorApp() {
               </Stack>
             )}
             actions={<>
-              <AvatarStack size="sm" background="subtle" items={[
+              // Who else is editing; on a phone the row keeps Present, Share and Publish only.
+              <AvatarStack size="sm" background="subtle" className="pf-wide-only" items={[
                 { theme: "accent", alt: people.ava.name, children: "A" },
                 { theme: "blue", alt: people.bao.name, children: "B" },
                 { theme: "brown", alt: people.chi.name, children: "C" },

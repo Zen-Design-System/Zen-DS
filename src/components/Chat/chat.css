@@ -129,6 +129,10 @@
 /* Chat-Control: Surface bar, padding 8, gap 8 (Mobile 60 high: 44px Nav-Actions; Desktop 56: 40px Button/Icon-Flat). */
 .zen-chat-composer { display: flex; box-sizing: border-box; align-items: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px))); background: var(--zen-color-background-surface-default, #fff); }
 .zen-chat-composer__leading, .zen-chat-composer__trailing { display: flex; flex: 0 0 auto; }
+/* A narrow composer (a 320px phone, a narrow pane; Comfortable grows every control) keeps only plus, as typing does, so the
+   field keeps room for its text and the emoji: with all three at 320 the emoji spilled 46px out of the field. */
+.zen-chat-composer { container-type: inline-size; }
+@container (max-width: 340px) { .zen-chat-composer__leading > button ~ button { display: none; } }
 .zen-top-nav__action[data-style="flat-chat"] { background: transparent; box-shadow: none; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-top-nav__action[data-style="flat-chat"]:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 /* Figma Search/Default in the bar: 40 high, padding 10/0/10/12 (+2 text inset), gap 8; the emoji is a flat 44px Nav-Action at its trailing edge.

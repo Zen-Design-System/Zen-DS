@@ -657,8 +657,9 @@ function WorkspaceTopNavExample() {
           <AppShellHeader
             leading={(
               <Stack direction="row" align="center" gap="lg">
-                {/* The logo slot is 24px high; on a phone-width page only the mark stays and the tabs scroll. */}
-                {narrow ? <StudioMark src={studio.logo} name={studio.name} /> : <Box width="hug" height={24}><StudioLogo src={studio.logo} name={studio.name} /></Box>}
+                {/* The logo takes the top row's Element-Size/Popular/Medium (24 Compact, taller at Comfortable: a fixed 24 box
+                    spilled it); on a phone-width page only the mark stays and the tabs scroll. */}
+                {narrow ? <StudioMark src={studio.logo} name={studio.name} /> : <Box width="hug"><StudioLogo src={studio.logo} name={studio.name} /></Box>}
                 <Tabs idPrefix={prefix} size="lg" aria-label="Workspace" value={tab} onValueChange={setTab} items={[
                   { id: "home", label: "Home" },
                   { id: "projects", label: "Projects", badge: activeProjects.length },

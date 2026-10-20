@@ -291,9 +291,9 @@ function PaymentFailedExample() {
         sidebar={studioSidebar(page, setPage, !paid)}
         header={(
           <AppShellHeader
-            // The plan Badge leads the row’s utilities; the account menu ends it.
+            // The plan Badge leads the row’s utilities (not on a phone); the account menu ends it.
             actions={<>
-              <Badge theme="accent" background="subtle">{`${plan.name} plan`}</Badge>
+              <Badge theme="accent" background="subtle" className="pf-wide-only">{`${plan.name} plan`}</Badge>
               <AccountMenu onSettings={() => setPage("settings")} />
             </>}
             main={pageHeader(view)}

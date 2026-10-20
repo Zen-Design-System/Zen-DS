@@ -279,9 +279,9 @@ function StudioApp({ windowWidth, notice = false }: { windowWidth?: number; noti
           // The top row: the collapse toggle, the trail (Home first, no Master icon beside the toggle)…
           leading={<Breadcrumbs master={false} items={page === "home" ? [{ id: "home", label: "Home" }] : [{ id: "home", label: "Home" }, { id: page, label: studioPages[page] }]}
             onNavigate={(item, event) => { event.preventDefault(); go(item.id as StudioPage); }} />}
-          // …then utilities only: the plan, Notifications with its unread count, the account menu last.
+          // …then utilities only: the plan (not on a phone), Notifications with its unread count, the account menu last.
           actions={<>
-            <Badge theme="accent" background="subtle" leadingIcon={false}>Business</Badge>
+            <Badge theme="accent" background="subtle" leadingIcon={false} className="pf-wide-only">Business</Badge>
             <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unseen} onClick={() => go("notifications")} />
             {account.menu}
           </>}

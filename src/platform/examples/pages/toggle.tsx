@@ -148,7 +148,7 @@ function NotificationSettingsExample() {
               <Heading level={2} id={devicesId} textStyle="Heading/Subheading">Delivered to</Heading>
               <Text role="status" textStyle="Body/Small/Regular" tone="base">{paused ? "Paused: nothing is delivered" : "Where your notifications go"}</Text>
             </Stack>}
-            footer={<Stack direction="row"><Button level="tertiary" startIcon="icon-send-01-line" onClick={sendTest}>Send a test notification</Button></Stack>}>
+            footer={<Stack direction="row"><Button level="tertiary" size="sm" startIcon="icon-send-01-line" onClick={sendTest}>Send a test notification</Button></Stack>}>
             <List aria-labelledby={devicesId}>
               <ListItem title="Email" caption={me.email} leading={<DockIcon icon="icon-mail-01-line" theme="blue" background="subtle" size="medium" />} />
               <ListItem title="iPhone 15" caption="Push · active 2 minutes ago" leading={<DockIcon icon="icon-mobile-line" theme="green" background="subtle" size="medium" />} />
