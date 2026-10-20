@@ -73,6 +73,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio: a library component placed in a free frame resizes like a floating layer there: its left and top edges
   move its X / Y, and its moving edges snap with red guides (⌘ held: no snapping; ⌥ and ⇧ as above). Frame resizing
   draws the red guides it snaps to, and now snaps with ⌥ and ⇧ too. One write and one ⌘Z per drag.
+- Layer blend mode (Figma's Appearance › blend): `blendMode` on Box, Stack, Grid and Shape, Figma's list in kebab case
+  (`pass-through` · `normal` · `multiply` · `screen` · `plus-darker` · `plus-lighter` · `overlay` · `difference` · `hue`
+  …), drawn with CSS `mix-blend-mode`; unset is Figma's default (Pass through for a frame, Normal for a shape), and a
+  frame's `normal` keeps its layers' blending inside it. Zen Studio's Appearance header has Figma UI3's ◐ before the eye
+  (frames and shapes): the list in Figma's groups, the current one checked, one ⌘Z. Figma push / pull carry it (Zen
+  plugin updated; a row page frame is now placed the device wide, not hugging its row).
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and

@@ -2000,6 +2000,7 @@
           "rotation?: number",
           "flip?: horizontal|vertical|both",
           "opacity?: number",
+          "blendMode?: pass-through|normal|darken|multiply|plus-darker|color-burn|lighten|screen|plus-lighter|color-dodge|overlay|soft-light|hard-light|difference|exclusion|hue|saturation|color|luminosity",
           "label?: string",
           "ref?: Ref<HTMLDivElement>"
         ]
@@ -4294,6 +4295,7 @@
           "borderStyle?: solid|dashed",
           "radius?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "opacity?: number",
+          "blendMode?: pass-through|normal|darken|multiply|plus-darker|color-burn|lighten|screen|plus-lighter|color-dodge|overlay|soft-light|hard-light|difference|exclusion|hue|saturation|color|luminosity",
           "rotation?: number",
           "flip?: horizontal|vertical|both",
           "effectStyle?: Shadow/Bottom/Level-1|Shadow/Bottom/Level-2|Shadow/Bottom/Level-3|Shadow/Bottom/Level-4|Shadow/Top/Level-1|Shadow/Top/Level-2|Shadow/Top/Level-3|Shadow/Top/Level-4|Effect/Overlay",
@@ -4342,6 +4344,7 @@
           "borderStyle?: solid|dashed",
           "radius?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "opacity?: number",
+          "blendMode?: pass-through|normal|darken|multiply|plus-darker|color-burn|lighten|screen|plus-lighter|color-dodge|overlay|soft-light|hard-light|difference|exclusion|hue|saturation|color|luminosity",
           "rotation?: number",
           "flip?: horizontal|vertical|both",
           "effectStyle?: Shadow/Bottom/Level-1|Shadow/Bottom/Level-2|Shadow/Bottom/Level-3|Shadow/Bottom/Level-4|Shadow/Top/Level-1|Shadow/Top/Level-2|Shadow/Top/Level-3|Shadow/Top/Level-4|Effect/Overlay",
@@ -4390,6 +4393,7 @@
           "borderStyle?: solid|dashed",
           "radius?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "opacity?: number",
+          "blendMode?: pass-through|normal|darken|multiply|plus-darker|color-burn|lighten|screen|plus-lighter|color-dodge|overlay|soft-light|hard-light|difference|exclusion|hue|saturation|color|luminosity",
           "rotation?: number",
           "flip?: horizontal|vertical|both",
           "padding?: none|ZenScaleInput|4xl|ZenMargin",

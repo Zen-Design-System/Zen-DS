@@ -1128,6 +1128,47 @@ export default function Looks() {
   check("frame look: one side, dash, rotation, flip", [rule.stroke, rule.strokeSides, rule.dash, rule.rotation, rule.flip], ["Border/Neutral/Subtle/Default", "bottom", [2, 2], 15, "horizontal"]);
   check("frame look: a Box keeps its look", [box.fill, box.radius], ["Background/Neutral/Subtle/Default", 12]);
   check("round trip: frame looks come back on the same elements", shape(pageFromFigma(push(looks).frame, { mapping }).text), shape(looks));
+  // Layer blend (2026-10-20, spec docs/research/studio-blend-mode-spec-2026-10-20.md): Figma's enum on frames, a group
+  // and shapes; a frame's Pass through and a shape's Normal (their defaults) left out; and back to the same props.
+  const blends = `// @zen-page {"format":1,"title":"Blends"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack, Text } from "@zen-ds/react";
+
+export default function Blends() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Blends" device="desktop">
+        <Stack gap="lg" padding="xl">
+          <Stack gap="sm" surface="surface" blendMode="multiply">
+            <Text>Multiply</Text>
+            <Text>Two</Text>
+          </Stack>
+          <Stack gap="sm" blendMode="normal">
+            <Text>Normal frame</Text>
+            <Text>Two</Text>
+          </Stack>
+          <Stack gap="sm" blendMode="pass-through">
+            <Text>Pass through</Text>
+            <Text>Two</Text>
+          </Stack>
+          <Stack direction="row" gap="sm">
+            <Shape type="ellipse" width={24} height={24} blendMode="plus-lighter" />
+            <Shape type="rectangle" width={24} height={24} blendMode="normal" />
+          </Stack>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const blended = push(blends).frame.children;
+  check("blend: a frame's mode in Figma's enum; Normal kept on a frame, Pass through left out", blended.slice(0, 3).map((node) => node.blendMode ?? null), ["MULTIPLY", "NORMAL", null]);
+  check("blend: a shape's mode (Plus lighter = LINEAR_DODGE); Normal left out", blended[3].children.map((node) => node.blendMode ?? null), ["LINEAR_DODGE", null]);
+  // (Frames only: the pull reads a shape from Figma's read, figma-pull.selftest's shape fixture checks a shape's blend.)
+  const frameBlends = push(blends).frame;
+  frameBlends.children = frameBlends.children.slice(0, 3);
+  const backBlends = shape(pageFromFigma(frameBlends, { mapping }).text);
+  check("round trip: a frame's blend mode comes back on the same frame", backBlends.children[0].children[0].children.map((node) => node.props.blendMode ?? null), ["multiply", "normal", null]);
   // A component set (F7): COMPONENT_SET of variants named by their values, its properties defined on it, a bound layer's
   // references, an instance's variant and property values.
   const chips = `// @zen-page {"format":1,"title":"Chips"}

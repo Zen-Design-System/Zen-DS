@@ -25,6 +25,7 @@ Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ri
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Type | `type` | rectangle (default) · ellipse · line · arrow · polygon · star · vector · boolean |
+| Blend mode | `blendMode` | Figma's layer blend: normal (default) · darken · multiply · plus-darker · color-burn · lighten · screen · plus-lighter · color-dodge · overlay · soft-light · hard-light · difference · exclusion · hue · saturation · color · luminosity (mix-blend-mode of the same name) |
 | Boolean group | `operation · children` | union (default) · subtract · intersect · exclude of its shapes (children at their X / Y); Zen Studio writes the result as d |
 | Path | `d / viewBox / fillRule` | a vector's path in absolute M / L / C / Q / Z commands, the box it is written in (it stretches to the size), nonzero (default) · evenodd |
 | Fill | `fill` | a Color/Background token by path (neutral-subtle · accent-solid · surface · support-blue-soft …) or none; default Background/Support/Neutral/Soft (Figma's #D9D9D9) |
@@ -87,6 +88,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProp
 | `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the shape about its centre. |
 | `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the shape mirrored on that axis about its centre. |
 | `opacity` | `number` | — | Layer opacity in percent (Figma's layer opacity, 0 … 100). Default 100. |
+| `blendMode` | `"pass-through" \| "normal" \| "darken" \| "multiply" \| "plus-darker" \| "color-burn" \| "lighten" \| "screen" \| "plus-lighter" \| "color-dodge" \| "overlay" \| "soft-light" \| "hard-light" \| "difference" \| "exclusion" \| "hue" \| "saturation" \| "color" \| "luminosity"` | — | Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the shape mixes with what lies under it, as CSS's `mix-blend-mode` of the same name. Default `normal`; `pass-through` is a frame's and draws as normal here. |
 | `label` | `string` | — | Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech. |
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the shape's root element. |
 

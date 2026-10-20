@@ -2769,6 +2769,27 @@ export const rows = [
     },
   },
   {
+    id: "FW-98", feature: "Appearance's ◐ Blend mode (Figma UI3): Multiply writes blendMode=\"multiply\" and the layer draws with mix-blend-mode multiply; Pass through removes it", wp: "F5 blend 2026-10-20",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      const blend = right(page).getByRole("button", { name: "Blend mode", exact: true });
+      await blend.click();
+      await page.getByRole("option", { name: "Multiply", exact: true }).click();
+      await written(page, id, /<Stack\b[^>]*blendMode="multiply"/, "blendMode=\"multiply\"");
+      await until(async () => page.evaluate(() => {
+        const layer = document.querySelector('.studio-world [data-blend="multiply"]');
+        return Boolean(layer) && getComputedStyle(layer).mixBlendMode === "multiply";
+      }), { message: "the layer draws with mix-blend-mode multiply" });
+      await shot(page, "fw-98-blend-mode");
+      await expectPanelFits(page, "the Appearance section with its blend");
+      await blend.click();
+      await page.getByRole("option", { name: "Pass through", exact: true }).click();
+      await written(page, id, /<Stack\b[^>]*blendMode=/, "blendMode removed at Pass through", true);
+      return "◐ → Multiply → blendMode=\"multiply\", mix-blend-mode multiply → Pass through → removed";
+    },
+  },
+  {
     id: "FW-96", feature: "Assets › Local components shows a component set as one tile; a click adds an instance of the set", wp: "F7b 2026-10-19", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await setsPage(ctx);
