@@ -310,3 +310,9 @@ Image component; E1's Character is a 100 × 100 frame with an IMAGE fill (Fit), 
       fixture.
     - E6's intents are four xs cards in a row.
 
+    - Figma descriptions (2026-10-21): `tools/figma-docs` sources now name XSmall. Written to the live file:
+      the Card set, `Card-padding-xsmall` and Corner-Radius/Base. The old text is backed up in frame 16784:3
+      ("Description backup 2026-10-21") on 🔒 ARCHIVED.
+      - Only these three were written, not the whole `variables` command. A dry run showed ~110 other variables
+        would also change: the stored `&#39;` escapes, and source edits that other sessions have not written yet.
+        Spacing/Gap/3XSmall still says "outside the ladder" in Figma.
