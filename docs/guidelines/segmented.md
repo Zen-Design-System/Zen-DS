@@ -93,7 +93,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 
 ## ❌ Don't
 - Don't use Segmented as a filter.
-- Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.
+- Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a dark colour or photo: its dark labels need a bright, saturated colour under it (black-overlay goes on dark colours and photos).
 - Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).
 - Don't mix icon-only and labelled items in one control.
 - Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again.

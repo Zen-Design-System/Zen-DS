@@ -492,7 +492,7 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "E7 · Big number",
-    description: "One huge value on a Solid band: a Background/Accent/Solid band from the top edge with a week strip (today on White), a White-Overlay Segmented for the view (its dark label stays readable on any brand's Accent), one Display-Extra number and three tiles. A Surface sheet carries the day's updates: a Segmented and a Pale measurement card with range, last reading and status. Shell: AppShell/Mobile · Phone · Top=Band-Sheet · Bottom=Floating. Fits: Health / Nutrition, Fitness, Energy, Budget.",
+    description: "One huge value on a Solid band: a Background/Accent/Solid band from the top edge with a week strip (today on White), a White-Overlay Segmented for the view (dark labels on a light track, as Figma draws it), one Display-Extra number and three tiles. A Surface sheet carries the day's updates: a Segmented and a Pale measurement card with range, last reading and status. Shell: AppShell/Mobile · Phone · Top=Band-Sheet · Bottom=Floating. Fits: Health / Nutrition, Fitness, Energy, Budget.",
     render: () => <BigNumberPhone />,
     code: `<PlatformPhone canvas="surface" statusBar="light" homeIndicator="dark">
   <AppShell
