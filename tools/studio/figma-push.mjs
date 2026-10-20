@@ -15,6 +15,7 @@
 // no network).
 import { docFromText } from "./doc.mjs";
 import { PROPERTY_BINDINGS, componentSets, layerChain, localComponents, resolveInstance, variantName } from "./dialect.mjs";
+import { figmaBlendOf } from "./blend-modes.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -620,6 +621,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       ...(typeof code.rotation === "number" && code.rotation % 360 ? { rotation: code.rotation } : {}),
       ...(["horizontal", "vertical", "both"].includes(code.flip) ? { flip: code.flip } : {}),
       ...(typeof code.opacity === "number" && code.opacity < 100 ? { opacity: Math.max(0, code.opacity) / 100 } : {}),
+      // Its layer blend (blend-modes.mjs), when not Normal.
+      ...(figmaBlendOf(code.blendMode, false) ? { blendMode: figmaBlendOf(code.blendMode, false) } : {}),
       ...(code.width === "fill" ? { fillW: true } : { fixedWidth: width }),
       ...(code.height === "fill" && !line ? { fillH: true } : { fixedHeight: height }),
     };
@@ -1373,6 +1376,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     }
     if (typeof code.effectStyle === "string" && FRAME_EFFECTS.has(code.effectStyle)) look.effectStyle = code.effectStyle;
     if (typeof code.opacity === "number" && code.opacity < 100) look.opacity = Math.max(0, code.opacity) / 100;
+    // Its layer blend (blend-modes.mjs), when not Pass through (a frame's and a group's default).
+    if (figmaBlendOf(code.blendMode, true)) look.blendMode = figmaBlendOf(code.blendMode, true);
     if (typeof code.rotation === "number" && code.rotation % 360 !== 0) look.rotation = code.rotation;
     if (["horizontal", "vertical", "both"].includes(code.flip)) look.flip = code.flip;
     return look;

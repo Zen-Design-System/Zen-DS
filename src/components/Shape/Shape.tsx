@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
-import { frameFlips, type FrameFlip } from "../Layout/appearance";
+import { frameFlips, zenBlendModes, type FrameFlip, type ZenBlendMode } from "../Layout/appearance";
 import { layoutPosition, type LayoutPositionProps } from "../Layout/position";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
 import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
@@ -77,6 +77,11 @@ export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "childr
   flip?: FrameFlip;
   /** Layer opacity in percent (Figma's layer opacity, 0 … 100). Default 100. */
   opacity?: number;
+  /**
+   * Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the shape mixes with what lies under
+   * it, as CSS's `mix-blend-mode` of the same name. Default `normal`; `pass-through` is a frame's and draws as normal here.
+   */
+  blendMode?: ZenBlendMode;
   /** Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech. */
   label?: string;
   /** Ref to the shape's root element. */
@@ -139,6 +144,7 @@ export function Shape({
   rotation,
   flip,
   opacity,
+  blendMode,
   label,
   image,
   imageFit,
@@ -190,6 +196,7 @@ export function Shape({
     "--zen-shape-radius": kind === "rectangle" ? cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft }) : undefined,
     "--zen-shape-default-width": finite(width) ? undefined : `${SHAPE_DEFAULT_SIZE}px`,
     opacity: finite(opacity) ? Math.min(100, Math.max(0, opacity)) / 100 : undefined,
+    mixBlendMode: blendMode && blendMode !== "normal" && blendMode !== "pass-through" && (zenBlendModes as readonly string[]).includes(blendMode) ? (blendMode as CSSProperties["mixBlendMode"]) : undefined,
     // CSS's individual transforms (as Box, Stack and Grid turn and flip): CSS turns clockwise, Figma counter-clockwise.
     rotate: finite(rotation) && rotation % 360 !== 0 ? `${-rotation}deg` : undefined,
     scale: flip === "horizontal" ? "-1 1" : flip === "vertical" ? "1 -1" : flip === "both" ? "-1 -1" : undefined,

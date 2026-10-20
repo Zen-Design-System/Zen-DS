@@ -237,11 +237,11 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   const shapes = {
     type: "FRAME", name: "Shapes", width: 400, height: 300, layout: null,
     children: [
-      { type: "FRAME", name: "Canvas", width: 400, height: 300, layout: null, children: [
+      { type: "FRAME", name: "Canvas", width: 400, height: 300, layout: null, blendMode: "MULTIPLY", children: [
         { type: "ELLIPSE", name: "Ellipse", shape: { w: 120, h: 120, fill: "Color/Background/Accent/Solid/Default", stroke: null, strokeWeight: 1, strokeAlign: "INSIDE", arc: { startingAngle: 0, endingAngle: Math.PI * 1.5, innerRadius: 0.5 }, rotation: 0, opacity: 1 }, absolute: { x: 20, y: 30, w: 120, h: 120, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
         { type: "RECTANGLE", name: "Rectangle", shape: { w: 100, h: 60, fill: "Color/Background/Support/Neutral/Soft", stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 2, strokeAlign: "INSIDE", radius: 12, radiusVar: "Corner-Radius/Base", rotation: 90, opacity: 0.8 }, absolute: { x: 180, y: 110, w: 100, h: 60, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
         { type: "LINE", name: "Arrow", shape: { w: 140, h: 0, fill: null, stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 1, strokeAlign: "CENTER", cap: "ARROW_LINES", rotation: 0, opacity: 1 }, absolute: { x: 20, y: 200, w: 140, h: 0, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
-        { type: "STAR", name: "Star", shape: { w: 90, h: 90, fill: "#fc0", stroke: null, strokeWeight: 1, pointCount: 6, innerRadius: 0.382, rotation: 0, opacity: 1 }, absolute: { x: 280, y: 160, w: 90, h: 90, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
+        { type: "STAR", name: "Star", shape: { w: 90, h: 90, fill: "#fc0", stroke: null, strokeWeight: 1, pointCount: 6, innerRadius: 0.382, rotation: 0, opacity: 1, blendMode: "SCREEN" }, absolute: { x: 280, y: 160, w: 90, h: 90, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
         // Figma's own arrow (⇧L; the direct paste writes the same): a two-vertex VECTOR capped at its end.
         { type: "VECTOR", name: "Arrow 2", shape: { w: 120, h: 0, fill: null, stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 2, strokeAlign: "CENTER", cap: null, arrowLine: true, paths: [{ windingRule: "NONE", data: "M 0 0 L 120 0" }], rotation: 30, opacity: 1 }, absolute: { x: 40, y: 260, w: 120, h: 0, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
       ] },
@@ -256,6 +256,8 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("shapes: arrow from Figma's arrow vector (⇧L)", shapeLines.some((line) => /type="arrow"/.test(line) && /width=\{120\}/.test(line) && /rotation=\{30\}/.test(line) && /strokeWeight=\{2\}/.test(line) && !/ d=/.test(line)), true);
   check("shapes: star count, unbound fill noted", shapeLines.some((line) => /type="star"/.test(line) && /pointCount=\{6\}/.test(line)) && pulled.notes.some((note) => /"Star": its fill/.test(note)), true);
   check("shapes: no drawings note", !pulled.notes.some((note) => /drawings/.test(note)), true);
+  // Layer blend (2026-10-20): a shape's and a frame's Figma blend back to blendMode; a shape's Normal is no prop.
+  check("shapes: a star's Screen and the frame's Multiply blend", [shapeLines.some((line) => /type="star"/.test(line) && /blendMode="screen"/.test(line)), /<(Box|Stack)[^>]*blendMode="multiply"/.test(pulled.text), shapeLines.filter((line) => /blendMode=/.test(line)).length], [true, true, 1]);
   check("shapes: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
