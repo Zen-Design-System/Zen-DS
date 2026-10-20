@@ -267,6 +267,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- PageHeader's description (and DashboardHeader Main's subheading) is Content/Neutral/Light, as Figma's SubHeading
+  (4122:33399) (2026-10-21, user: "trong Figma dòng subtext dưới header là tone Light chứ không phải base").
 - Popover: an item with only a leading icon (no label) centres the icon; the first-line alignment is for labelled items
   only (2026-10-20, user: "icon trong popover bị lệch tâm", Studio's Recent / Related icon tiles).
 - Zen Studio Appearance as Figma's (2026-10-20, user: "Appearance 2 ô nhập lại nằm 2 hàng khác nhau, figma đang để cùng 1
