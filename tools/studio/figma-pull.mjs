@@ -25,6 +25,7 @@ import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-met
 import { runsFromSegments } from "./text-runs.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
+import { zenBlendOf } from "./blend-modes.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { arcFromData, parseVectorPath, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
@@ -593,6 +594,8 @@ const readFrame = async (node, root = false) => {
       arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: own("pointCount"), innerRadius: own("innerRadius"),
       radius: typeof own("cornerRadius") === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
       rotation: turn, ...(mirrored ? { flip: "horizontal" } : {}), opacity: node.opacity, imageFill: readImageFill(node),
+      // Its layer blend (Appearance › blend mode): Normal is a shape's default.
+      ...("blendMode" in node && typeof node.blendMode === "string" && node.blendMode !== "NORMAL" ? { blendMode: node.blendMode } : {}),
       // A vector's own paths; a boolean group's result (its fill geometry: Figma combined its shapes, F9b).
       paths: node.type === "VECTOR" && Array.isArray(node.vectorPaths) ? node.vectorPaths.map((path) => ({ windingRule: path.windingRule, data: path.data }))
         : node.type === "BOOLEAN_OPERATION" && Array.isArray(node.fillGeometry) ? node.fillGeometry.map((path) => ({ windingRule: path.windingRule, data: path.data })) : null,
@@ -675,6 +678,8 @@ const readFrame = async (node, root = false) => {
       if (style) out.effectStyle = style.name;
     }
     if (typeof node.opacity === "number" && node.opacity < 1) out.opacity = node.opacity;
+    // Its layer blend: Pass through is a frame's and a group's default.
+    if ("blendMode" in node && typeof node.blendMode === "string" && node.blendMode !== "PASS_THROUGH") out.blendMode = node.blendMode;
     // relativeTransform [[a, c, x], [b, d, y]] = R(θ)·S: a mirror (negative determinant) reads as a horizontal flip.
     const t = node.relativeTransform;
     if (t) {
@@ -1700,6 +1705,7 @@ function shapeElement(node, ctx) {
   if (shape.rotation) props.rotation = literal(shape.rotation);
   if (shape.flip) props.flip = literal(shape.flip);
   if (typeof shape.opacity === "number" && shape.opacity < 1) props.opacity = literal(Math.round(shape.opacity * 100));
+  if (zenBlendOf(shape.blendMode, false)) props.blendMode = literal(zenBlendOf(shape.blendMode, false));
   const children = boolean ? (node.children ?? []).map((child) => convert(child, ctx)).filter((child) => child?.name === "Shape") : [];
   return { kind: "element", name: "Shape", props, children };
 }
@@ -1944,8 +1950,8 @@ function convertNode(node, ctx) {
   if (node.children?.length && !children.length) return null;
   // Figma's GROUP: a Zen group (Box group) of its layers at their X / Y inside it, sized to them (figma-push, the other way).
   if (node.type === "GROUP") {
-    const { opacity } = frameLookProps(node, ctx);
-    return { kind: "element", name: "Box", props: { group: literal(true), ...maskProps(node, ctx), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
+    const { opacity, blendMode } = frameLookProps(node, ctx);
+    return { kind: "element", name: "Box", props: { group: literal(true), ...maskProps(node, ctx), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}), ...(blendMode ? { blendMode } : {}) }, children };
   }
   return frameElement(node, children, ctx);
 }
@@ -2349,6 +2355,8 @@ function frameLookProps(node, ctx) {
     else ctx.notes.push(`${where}: its effect style ${node.effectStyle} is not one a frame takes; left out`);
   }
   if (typeof node.opacity === "number" && node.opacity < 1) props.opacity = literal(Math.round(node.opacity * 100));
+  // Figma's layer blend (blend-modes.mjs): Pass through, the frame's default, is no prop.
+  if (zenBlendOf(node.blendMode, true)) props.blendMode = literal(zenBlendOf(node.blendMode, true));
   if (node.rotation) props.rotation = literal(node.rotation);
   if (node.flip) props.flip = literal(node.flip);
   return props;

@@ -75,6 +75,10 @@
 /* Figma's layer opacity, rotation (counter-clockwise, about the centre) and flip. Individual transforms compose with any
    transform of the element and leave its box in the layout. */
 :is(.zen-box, .zen-stack, .zen-grid)[data-opacity] { opacity: var(--zen-layout-opacity); }
+/* Figma's layer blend: the same CSS mode; a frame's Normal keeps its layers' blending inside it (Pass through, the
+   default, draws nothing). */
+:is(.zen-box, .zen-stack, .zen-grid)[data-blend] { mix-blend-mode: var(--zen-layout-blend); }
+:is(.zen-box, .zen-stack, .zen-grid)[data-blend="normal"] { isolation: isolate; }
 :is(.zen-box, .zen-stack, .zen-grid)[data-rotation] { rotate: var(--zen-layout-rotation); }
 :is(.zen-box, .zen-stack, .zen-grid)[data-flip="horizontal"] { scale: -1 1; }
 :is(.zen-box, .zen-stack, .zen-grid)[data-flip="vertical"] { scale: 1 -1; }

@@ -1,6 +1,7 @@
 import { Icon, type IconName } from "../../../components/Icon";
 import { CORNERS } from "./appearanceModel";
 import { AppearanceFields } from "./AppearanceSection";
+import { BlendModeButton } from "./BlendMode";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL } from "../../../components/Shape/paint";
 import { STAR_RATIO } from "../../../components/Shape/geometry";
 import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
@@ -21,7 +22,7 @@ import "./appearance.css";
  */
 
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
-export const shapePropNames: readonly string[] = ["type", "fill", "image", "imageFit", "imageCrop", "imageScale", "stroke", "strokeWeight", "strokeAlign", "arcStart", "arcSweep", "arcRatio", "pointCount", "starRatio", "opacity", "radius", ...CORNERS, "d", "viewBox", "fillRule"];
+export const shapePropNames: readonly string[] = ["type", "fill", "image", "imageFit", "imageCrop", "imageScale", "stroke", "strokeWeight", "strokeAlign", "arcStart", "arcSweep", "arcRatio", "pointCount", "starRatio", "opacity", "blendMode", "radius", ...CORNERS, "d", "viewBox", "fillRule"];
 
 /** A field's leading mark, an icon as Figma's (it is also what the pointer scrubs). */
 const mark = (name: IconName) => <Icon name={name} size="sm" decorative />;
@@ -77,7 +78,7 @@ export function ShapeSections({ api, specs, host }: { api: FieldApi; specs: Prop
           </div>
         </InspectorSection>
       ) : null}
-      <InspectorSection title="Appearance" fieldGrid>
+      <InspectorSection title="Appearance" fieldGrid actions={specs.some((spec) => spec.name === "blendMode") ? <BlendModeButton api={api} frame={false} /> : undefined}>
         <AppearanceFields api={api} specs={specs} radius={type === "rectangle"} opacity={
           <ScrubNumberField label={mark("icon-drop-line")} name="Opacity" suffix="%" min={0} max={100} value={number("opacity", 100)} disabled={api.disabled || bound("opacity")}
             onCommit={(value) => write("opacity", value, 100, `Opacity → ${value}%`)} />

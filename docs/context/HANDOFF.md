@@ -191,7 +191,10 @@ Last updated: 2026-10-19.
   in code, push / pull and the Zen plugin; the right panel is in Figma's order.
   **F5b + F5c (B, #151):** typed values snap to variables (variable pills, W / H math, ratio lock, nearest colours),
   Export, a text's Fill and style details, several frames at once, Selection colors, Local styles; spec
-  `docs/research/studio-f5-right-panel-spec-2026-10-19.md`.
+  `docs/research/studio-f5-right-panel-spec-2026-10-19.md`. **Blend mode (B, 2026-10-20):** `blendMode` on Box /
+  Stack / Grid / Shape (`mix-blend-mode`), Appearance's ◐ (`appearance/BlendMode.tsx`), push / pull / plugin
+  (`tools/studio/blend-modes.mjs`, `studio-import` 325ba36); native ⌘C→⌘V waits on C (BACKLOG P2); spec
+  `docs/research/studio-blend-mode-spec-2026-10-20.md`.
   **F7 (B, #152):** component sets and variants (`<ComponentSet>`, Combine as variants, Add variant), properties and
   their bindings (`data-prop-*`), instance values, overrides inside an instance (`<Use overrides>`; layer paths in
   `tools/studio/instance-paths.mjs`; ⌘-click into an instance, `inspector/LocalPartPanel.tsx`), Reset / Push changes
