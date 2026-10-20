@@ -2966,4 +2966,88 @@ export const rows = [
       return `⌃⌘M → ${maskTag(before) ? "?" : "<Box group mask>"} · clip-path url(#…) · the mask hidden · Mask group in Layers · ⌃⌘M again → group · ⌘Z`;
     },
   },
+  {
+    id: "FW-128", feature: "Resizing a floating layer in a free frame: its moving edge snaps to another layer's edge with a red guide while dragging (Figma's smart guides); one write, one ⌘Z", wp: "F2 2026-10-20", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      await selectShape(page, id, 0);
+      // The Rectangle's right edge (X 100) dragged 38 px of the frame: 2 px short of the Ellipse's left edge (X 140).
+      const handle = await until(() => page.locator('.studio-resize__handle[data-handle="e"]').first().boundingBox(), { message: "the e handle" });
+      const x = handle.x + handle.width / 2;
+      const y = handle.y + handle.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      let guide = null;
+      try {
+        for (let step = 1; step <= 5; step++) { await page.mouse.move(x + (38 * frame.scale * step) / 5, y); await sleep(30); }
+        guide = await until(() => page.locator(".studio-drag__guide").first().boundingBox(), { timeout: 3000, message: "a red guide while dragging" });
+      } finally {
+        await page.mouse.up();
+      }
+      const want = frame.at(140, 0).x;
+      if (Math.abs(guide.x - want) > 1.5) throw new Error(`the guide is at x ${Math.round(guide.x)}, not on the Ellipse's left edge (${Math.round(want)})`);
+      await until(async () => (await pageText(page, id)) !== before, { message: "the resize written" });
+      const text = (await pageText(page, id)) ?? "";
+      const [size] = sizesIn(before).filter((shape) => shape.type === "rectangle");
+      const now = sizesIn(text).find((shape) => shape.type === "rectangle");
+      const place = shapesIn(text).find((shape) => shape.type === "rectangle");
+      if (now.width !== 120 || now.height !== size.height || place.x !== 20) throw new Error(`not snapped to X 140: X ${place.x}, ${now.width} × ${now.height}`);
+      await until(async () => (await page.locator(".studio-drag__guide").count()) === 0, { timeout: 2000, message: "the guide gone after the release" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      return `right edge 138 → 140 (the Ellipse's left edge) with a red guide there · width ${size.width} → ${now.width} · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-129", feature: "⌘ held turns resize snapping off (the exact px, no guide); ⌥ from the centre and ⇧ on a corner snap too (the centre stays, the ratio holds)", wp: "F2 2026-10-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      const rectangle = async () => {
+        const text = (await pageText(page, id)) ?? "";
+        return { ...shapesIn(text).find((shape) => shape.type === "rectangle"), ...sizesIn(text).find((shape) => shape.type === "rectangle") };
+      };
+      const written = () => until(async () => (await pageText(page, id)) !== before, { message: "the resize written" });
+      // ⌘ pressed mid-drag: no snap, no guide (the right edge stays at 138, 2 px short of the Ellipse).
+      await selectShape(page, id, 0);
+      const handle = await until(() => page.locator('.studio-resize__handle[data-handle="e"]').first().boundingBox(), { message: "the e handle" });
+      const x = handle.x + handle.width / 2;
+      const y = handle.y + handle.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      try {
+        for (let step = 1; step <= 3; step++) { await page.mouse.move(x + (20 * frame.scale * step) / 3, y); await sleep(30); }
+        await page.keyboard.down("ControlOrMeta");
+        await page.mouse.move(x + 38 * frame.scale, y, { steps: 2 });
+        await sleep(150);
+        if (await page.locator(".studio-drag__guide").count()) throw new Error("a guide shows with ⌘ held");
+      } finally {
+        await page.mouse.up();
+        await page.keyboard.up("ControlOrMeta");
+      }
+      await written();
+      const exact = await rectangle();
+      if (exact.width === 120 || Math.abs(exact.width - 118) > 1) throw new Error(`⌘ held: width ${exact.width}, not the exact 118`);
+      await undoTo(page, id, before);
+      // ⌥: both edges move; the left one (X 2) snaps to the frame's left edge and the right one mirrors it.
+      await selectShape(page, id, 0);
+      await dragHandle(page, "e", 18 * frame.scale, 0, ["Alt"]);
+      await written();
+      const centred = await rectangle();
+      if (centred.x !== 0 || centred.width !== 120) throw new Error(`⌥: X ${centred.x}, width ${centred.width} (want X 0, width 120: the centre 60 kept, the left edge on the frame's)`);
+      await undoTo(page, id, before);
+      // ⇧ on a corner: the right edge (138) snaps to the Ellipse (140) and the height follows the ratio (80 × 60 → 120 × 90).
+      await selectShape(page, id, 0);
+      await dragHandle(page, "se", 38 * frame.scale, 10 * frame.scale, ["Shift"]);
+      await written();
+      const ratio = await rectangle();
+      if (ratio.width !== 120 || ratio.height !== 90 || ratio.x !== 20 || ratio.y !== 20) throw new Error(`⇧: X ${ratio.x}, Y ${ratio.y}, ${ratio.width} × ${ratio.height} (want 20, 20, 120 × 90)`);
+      await undoTo(page, id, before);
+      return `⌘: width ${exact.width} (no snap, no guide) · ⌥: X 0, width 120 · ⇧ corner: 120 × 90 · ⌘Z each`;
+    },
+  },
 ];

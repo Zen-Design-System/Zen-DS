@@ -113,3 +113,23 @@ Branch `zen/feat/studio-deep-overrides-20261020`, stacked on `zen/feat/studio-pu
   - The reader read the same indices back, and the converter gave the same overrides.
   - The QA frame was removed. Fixture `tools/studio/fixtures/figma-deep-overrides.json`.
 - Selftests: push 334, pull 106; studio:selftest passes; tsc is clean.
+
+## Smart guides while resizing a layer (F2's last item; worktree `festive-chebyshev-fbfcb8`, started by local_3ff40721)
+
+Plan §5 F2 "snapping and guides while resizing": ⌥ centre and ⇧ ratio were built (F2b), snapping only for frames (C's F4).
+- Model `select/resizeSnap.ts` (pure, `resizeSnap.selftest.mjs` 22 checks, in `studio:selftest`): works on the dragged
+  edges' deltas, so ResizeLayer's pin / inset logic (`floatAxis`) stays as it is. Per axis the moving edges (the dragged
+  one; with ⌥ or a centred constraint both, the far one mirrored) snap to the nearest line (start, centre, end) of the
+  frame and its other layers within 6 screen px; ⇧ on a corner picks the closest snap on either axis and the other
+  follows the ratio (the same side·delta/size coupling as `keepRatio`); a snap below the least size gives way to the
+  next one, and the result is clamped there so the guides sit where the edges really are.
+- `ResizeLayer.tsx`: a floating layer in a free frame (`floatAxes(...).free`) measures the frame and its siblings at the
+  press; `valuesAt` snaps the deltas unless ⌘ / Ctrl is held (tracked on pointer events and Meta / Control keys, as
+  Shift and Alt); the guides go through `publishDragView` (DragLayer's red `.studio-drag__guide`) and are cleared at
+  the end of the drag. Still one applyEdit per drag.
+- `edit/drag.ts`: the sibling measuring of a free move and of a group move is now one `freeFrameBoxes`, and `guidesOn`
+  (was private, duplicated by `freeGuides`) is exported; no behaviour change.
+- E2E FW-128 (e: the Rectangle's right edge 138 → 140 on the Ellipse, a red guide at it mid-drag, gone after, one ⌘Z),
+  FW-129 (⌘ mid-drag: 118 exact, no guide; ⌥: X 0 / width 120; ⇧ corner: 120 × 90).
+- Not covered (follow-up): a component in a free frame (its floating Box wrapper) still resizes without snapping, and
+  frame resizing (FrameHandles) snaps but draws no guides.

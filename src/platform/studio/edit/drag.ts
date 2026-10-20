@@ -354,6 +354,22 @@ type GroupMove = { items: FloatingItem[]; block: HTMLElement | null; scale: numb
 /** A free frame's DOM node: a builder Screen (or its content box) or a Box that is not a layer's float wrapper. */
 const FREE_FRAME = ".studio-builder-screen, .studio-builder-screen__content, .zen-box";
 
+/**
+ * The frame itself and its other layers, in the px of `block` (the layers' containing block, `scale` screen px each):
+ * what layers moved or resized in a free frame snap to (select/ResizeLayer.tsx too).
+ */
+export function freeFrameBoxes(layers: readonly HTMLElement[], block: HTMLElement, scale: number): FrameBox[] {
+  const outer = block.getBoundingClientRect();
+  const siblings = Array.from(layers[0]?.parentElement?.children ?? []).filter((child): child is HTMLElement => child instanceof HTMLElement && !layers.includes(child));
+  return [
+    { x: 0, y: 0, width: block.clientWidth, height: block.clientHeight },
+    ...siblings.map((child) => {
+      const box = child.getBoundingClientRect();
+      return { x: (box.left - outer.left) / scale - block.clientLeft, y: (box.top - outer.top) / scale - block.clientTop, width: box.width / scale, height: box.height / scale };
+    }).filter((box) => box.width > 0 || box.height > 0),
+  ];
+}
+
 /** The floating layer a press on `host` moves (itself, or the floating Box that holds only it), or null. */
 function floatOf(host: HTMLElement, layer: NodeSelection): FloatMove | null {
   const own = host.dataset.position === "absolute" && host.matches(".zen-stack, .zen-grid, .zen-box, .zen-shape");
@@ -370,14 +386,7 @@ function floatOf(host: HTMLElement, layer: NodeSelection): FloatMove | null {
   const target: NodeSelection = own ? layer : { ...layer, src, name: "Box" };
   const parent = floating.parentElement;
   const freeFrame = parent?.matches(FREE_FRAME) && !(parent.matches('.zen-box[data-position="absolute"]') && parent.children.length === 1);
-  // The other layers of a free frame and the frame itself, in its px: what the moved layer snaps to.
-  const others: FrameBox[] = freeFrame && parent ? [
-    { x: 0, y: 0, width: block.clientWidth, height: block.clientHeight },
-    ...Array.from(parent.children).filter((child): child is HTMLElement => child instanceof HTMLElement && child !== floating).map((child) => {
-      const box = child.getBoundingClientRect();
-      return { x: (box.left - outer.left) / scale - block.clientLeft, y: (box.top - outer.top) / scale - block.clientTop, width: box.width / scale, height: box.height / scale };
-    }).filter((box) => box.width > 0 || box.height > 0),
-  ] : [];
+  const others = freeFrame ? freeFrameBoxes([floating], block, scale) : [];
   return {
     target, host: floating, scale,
     pins: { x: pinOfConstraint("x", floating.dataset.constraintX), y: pinOfConstraint("y", floating.dataset.constraintY) },
@@ -431,13 +440,7 @@ function followFree(current: Session, float: FloatMove, free: NonNullable<FloatM
 function freeGuides(float: FloatMove, free: NonNullable<FloatMove["free"]>) {
   const block = float.host.offsetParent;
   if (!(block instanceof HTMLElement) || !free.guides.length) return undefined;
-  const outer = block.getBoundingClientRect();
-  const at = (x: number, y: number) => ({ x: outer.left + (x + block.clientLeft) * float.scale, y: outer.top + (y + block.clientTop) * float.scale });
-  return free.guides.map((guide) => {
-    const from = guide.axis === "x" ? at(guide.at, guide.from) : at(guide.from, guide.at);
-    const length = (guide.to - guide.from) * float.scale;
-    return guide.axis === "x" ? { x: from.x, y: from.y, w: 1, h: length } : { x: from.x, y: from.y, w: length, h: 1 };
-  });
+  return guidesOn(block, float.scale, free.guides);
 }
 
 function followFloat(current: Session, float: FloatMove) {
@@ -696,14 +699,7 @@ function armGroup(event: PointerEvent, world: Element, layers: ExtraLayer[], ite
   const outer = items[0].block.getBoundingClientRect();
   const scale = items[0].block.offsetWidth ? outer.width / items[0].block.offsetWidth || 1 : 1;
   const free = block && items.every((item) => item.host.parentElement?.matches(FREE_FRAME) && !(item.host.parentElement.matches('.zen-box[data-position="absolute"]') && item.host.parentElement.children.length === 1));
-  const moving = new Set<Element>(items.map((item) => item.host));
-  const others: FrameBox[] | null = free && block ? [
-    { x: 0, y: 0, width: block.clientWidth, height: block.clientHeight },
-    ...Array.from(items[0].host.parentElement?.children ?? []).filter((child): child is HTMLElement => child instanceof HTMLElement && !moving.has(child)).map((child) => {
-      const box = child.getBoundingClientRect();
-      return { x: (box.left - outer.left) / scale - block.clientLeft, y: (box.top - outer.top) / scale - block.clientTop, width: box.width / scale, height: box.height / scale };
-    }).filter((box) => box.width > 0 || box.height > 0),
-  ] : null;
+  const others = free && block ? freeFrameBoxes(items.map((item) => item.host), block, scale) : null;
   const left = Math.min(...items.map((item) => item.offset.left));
   const top = Math.min(...items.map((item) => item.offset.top));
   const union = { x: left, y: top, width: Math.max(...items.map((item) => item.offset.left + item.box.width)) - left, height: Math.max(...items.map((item) => item.offset.top + item.box.height)) - top };
@@ -735,8 +731,8 @@ function followGroup(current: Session, group: GroupMove) {
   publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? `X ${group.shift.x >= 0 ? "+" : ""}${group.shift.x}, Y ${group.shift.y >= 0 ? "+" : ""}${group.shift.y}`, tone: current.refusal ? "negative" : "info", guides, spacing });
 }
 
-/** Snap guides measured in a block's unscaled px, as screen px (the canvas's red smart guides). */
-function guidesOn(block: HTMLElement, scale: number, guides: SnapGuide[]) {
+/** Snap guides measured in a block's unscaled px, as screen px (the canvas's red smart guides; a resize's too). */
+export function guidesOn(block: HTMLElement, scale: number, guides: readonly SnapGuide[]) {
   const outer = block.getBoundingClientRect();
   const at = (x: number, y: number) => ({ x: outer.left + (x + block.clientLeft) * scale, y: outer.top + (y + block.clientTop) * scale });
   return guides.map((guide) => {
