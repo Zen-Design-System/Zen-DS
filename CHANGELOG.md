@@ -80,6 +80,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio: a library component placed in a free frame resizes like a floating layer there: its left and top edges
   move its X / Y, and its moving edges snap with red guides (⌘ held: no snapping; ⌥ and ⇧ as above). Frame resizing
   draws the red guides it snaps to, and now snaps with ⌥ and ⇧ too. One write and one ⌘Z per drag.
+- Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
+  `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
+  hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and
+  `skills/zen-responsive-screens/references/responsive-principles.md` (responsive vs adaptive, size classes, canonical
+  layouts, navigation by width, what to drop, state, input, flexible content). The usage, Figma and responsive skills
+  point at them, and the AI kit for Figma ships both.
 - Box `mask` (Figma's mask): the box's first layer is the mask and draws nothing; the layers after it show only
   inside its outline, turned and flipped as drawn. Zen Studio's Use as mask (⌃⌘M, the canvas menu, Quick actions)
   makes a Mask group of two or more floating layers, the bottom one the mask, and on a mask group removes it.

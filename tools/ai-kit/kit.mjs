@@ -19,6 +19,8 @@ export const KIT_SOURCES = {
   skill: `${SKILL_DIR}/`,
   /** The Zen screen and component rules, copied into the skill's references. */
   rules: "docs/component-usage-rules.md",
+  /** The design principles (colour and composition, responsive and adaptive) the code skills keep, copied into the skill's references. */
+  principles: ["skills/zen-component-usage/references/design-principles.md", "skills/zen-responsive-screens/references/responsive-principles.md"],
   guidelines: "docs/guidelines/",
   /** Data the generated references are written from. */
   contract: "docs/figma-contracts/component-properties.json",
@@ -34,6 +36,7 @@ export function kitPath(repoPath) {
   if (path.startsWith(KIT_SOURCES.root)) return path.slice(KIT_SOURCES.root.length);
   if (path.startsWith(KIT_SOURCES.skill)) return path;
   if (path === KIT_SOURCES.rules) return `${REFERENCES}/component-usage-rules.md`;
+  if (KIT_SOURCES.principles.includes(path)) return `${REFERENCES}/${path.slice(path.lastIndexOf("/") + 1)}`;
   if (path.startsWith(KIT_SOURCES.guidelines) && path.endsWith(".md")) return `${REFERENCES}/guidelines/${path.slice(KIT_SOURCES.guidelines.length)}`;
   return null;
 }
