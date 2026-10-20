@@ -3,3 +3,8 @@
 /* Quantity between − and +: two digits of width (ch follows the typography mode), so the buttons don't move as the
    number changes. */
 .px-action-bar-qty { min-width: 2ch; }
+
+/* Unsaved changes (desktop): the save bar is the bottom edge of the page, as wide as the main column. It takes back the
+   Body's margins at the sides and below (the AppShell Body pads Margin-Comfortable), so it reaches the window's edges
+   while it sticks, and its own padding (Margin-Comfortable) lines its content up with the page margin. */
+.zen-action-bar.px-action-bar-dock { width: auto; margin: 0 calc(-1 * var(--zen-margin-comfortable, 24px)) calc(-1 * var(--zen-margin-comfortable, 24px)); }

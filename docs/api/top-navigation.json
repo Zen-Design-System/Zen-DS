@@ -12,7 +12,7 @@
       "props": [
         {
           "name": "type",
-          "type": "\"default\" | \"alt\" | \"default-blurring\" | \"alt-blurring\" | \"liquid-glass\" | \"default-overlay\" | \"liquid-overlay\" | \"compact\" | \"compact-alt\" | \"compact-overlay\"",
+          "type": "\"default\" | \"alt\" | \"default-blurring\" | \"alt-blurring\" | \"liquid-glass\" | \"default-overlay\" | \"liquid-overlay\" | \"compact\" | \"compact-alt\" | \"compact-overlay\" | \"transparent\" | \"transparent-on-color\"",
           "required": false,
           "default": "\"default\"",
           "description": "",
@@ -31,7 +31,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title\nbecomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in\nBody/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2. The identity title is the screen's\nheading like any bar title; with `onTitleClick` the heading wraps the identity button.",
+          "description": "Figma Heading-Text Type=Sub with Subheading (Top-Heading-Text 12014:44793, `.Primitives/Heading-Text/Basic`\n4060:17984): a second line under the bar title, the title in Body/Extra/Bold over the subtitle in Caption/Regular\n(Content/Neutral/Light), Spacing/Gap/3XSmall (2) apart. As the Type=Sub variant draws it (Contents and Heading\ncentred, Subheading text-align centre), the block stays centred in the bar — \"Hi, Maya / Personal account\" after an\nAvatar (◇ Master-Layout · Example C2 15921:8204), \"Order #10428 / Placed Sep 30 · Online store\" between Back and\nMore (C5 15923:8404). With `titleLeading` the title becomes the conversation identity instead (see there). The title\nis the screen's heading like any bar title; with `onTitleClick` the heading wraps the title button.",
           "deprecated": null
         },
         {
@@ -39,7 +39,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma Heading-Text Leading on (◆ Social conversation header 6353:69678): a 48px visual (Avatar / ChatAvatarGroup)\nbefore the title, Spacing/Gap/Small (12) apart, and the title and `subtitle` left-aligned after it, filling the bar\nbetween the leading and trailing slots (the Social header aligns Heading and Subheading to the start).",
           "deprecated": null
         },
         {
@@ -83,6 +83,22 @@
           "deprecated": null
         },
         {
+          "name": "largeTitleCapline",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Expand-Heading › Main-Heading-Text Capline (`.Primitives/Heading-Text/Basic` 4060:17984, Capline on): a line\nabove the large title — \"Welcome home\" over \"Hi, Mai Anh\" (◇ Master-Layout · Example F1 15991:10116), a brand over a\ndevice name (F3–F10), \"GOOD MORNING\" (D5 15952:9644). Body/Base/Regular in Content/Neutral/Light (On-Black-Overlay/Base\non the overlay and on-colour types), Spacing/Gap/2XSmall (4) above the title, 3XSmall (2) at h3. It is not part of the\nheading's name: the title stays the h1, the capline and `largeTitleSubheading` sit beside it in an `<hgroup>`. It\nfolds away with the large title. Ignored without `largeTitle`.",
+          "deprecated": null
+        },
+        {
+          "name": "largeTitleSubheading",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Expand-Heading › Main-Heading-Text Subheading (Subheading on): a line under the large title — \"6 devices · 4 on\"\nunder \"Living room\" (F2), \"Living room\" under \"HomePod mini\" (F3), \"One tap for many devices\" under\n\"Scenes\" (F12). Same style, tone and gap as `largeTitleCapline`; it folds away with the large title.",
+          "deprecated": null
+        },
+        {
           "name": "headingLevel",
           "type": "\"h1\" | \"h2\" | \"h3\"",
           "required": false,
@@ -100,18 +116,18 @@
         },
         {
           "name": "trailing",
-          "type": "TopNavigationAction[]",
+          "type": "(TopNavigationAction | ReactNode)[]",
           "required": false,
           "default": "[]",
-          "description": "Figma Top-Trailing: up to three actions (its Trailing-Slot takes 3); more are not drawn.",
+          "description": "Figma Top-Trailing: up to three places (its Trailing-Slot takes 3); more are not drawn. A place is an action (a 44px\nNav-Action), a pair of actions with the same `group` (one pill), or a visual drawn as it is — a Badge or an Avatar,\nas Figma puts them straight in the Trailing-Slot: an Orange \"3\" Badge (Medium, icon-zap-line) and a 48 Avatar\n(Medium) on D3 15950:9324, a 56 square Avatar (Large) on D4 15950:9696. The places stay\nNavigation-Mobile/Top/Action-Button-Gap (8) apart in the fixed Navigation-Mobile/Top/Bar-Size (64) row, so a 56\nAvatar overhangs the 8px padding instead of growing the bar. A visual is not a button: when it opens something (the\naccount), pass an action, or make the node itself a labelled button. `null` / `false` items take no place.",
           "deprecated": null
         },
         {
           "name": "largeTitleAction",
-          "type": "TopNavigationAction | TopNavigationAction[]",
+          "type": "TopNavigationAction | ReactNode | (TopNavigationAction | ReactNode)[]",
           "required": false,
           "default": null,
-          "description": "Figma Expand-Trailing (Header-Trailing): one action, or a list of up to three, beside the large title. When the bar\nrow folds into the large-title row (a root, see `topBar`) they sit first in the trailing slot, so they stay in place\nand in reach once the title folds; the bar still draws three actions in all.",
+          "description": "Figma Expand-Trailing (Header-Trailing): one place, or a list of up to three, beside the large title — actions or\nvisuals, as `trailing` (D3 and D5 15952:9644 put their Badge and Avatar here). When the bar row folds into the\nlarge-title row (a root, see `topBar`) they sit first in the trailing slot, so they stay in place and in reach once\nthe title folds; the bar still draws three places in all.",
           "deprecated": null
         },
         {
@@ -119,7 +135,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Figma Top-bar: the navigator-bar row. By default a root (a large title and no `leading`) hides it while the large title\nshows, as Figma's root screens do (Top-bar=false): the trailing actions sit at the right of the large-title row, and\nonce the title folds the bar title shows in that same row, so the header keeps its height. `true` keeps the row\nabove the large title (the iOS layout); `false` hides it on any screen with a large title.",
+          "description": "Figma Top-bar: the navigator-bar row. By default a root (a large title and no `leading`) hides it while the large title\nshows, as Figma's root screens do (Top-bar=false): the trailing actions sit at the right of the large-title row, and\nonce the title folds the bar title shows in that same row, so the header keeps its height. `true` keeps the row\nabove the large title (the iOS layout); `false` hides it on any screen with a large title.\n\n`false` without a large title (Figma Top-bar=false with Expand-Heading off, ◇ Master-Layout · Example D2 15948:9920:\na welcome screen under a brand band) draws no bar row at all: only the status-bar inset, then `controlBar` and\n`banner` if any; `leading`, `trailing` and `subtitle` are not drawn. A `title` stays the screen's heading\n(`headingLevel`) for screen readers only, so the screen keeps its one title; leave `title` out when the content\ndraws the screen's h1. With nothing left to hold, the root is a plain `<div>`, not an empty `<header>` landmark.",
           "deprecated": null
         },
         {
@@ -127,7 +143,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Control-Bar slot (48px): a Search, Segmented or Tabs under the heading.",
+          "description": "Figma Control-Bar slot (12014:44764): a Search, Segmented, Tabs or a Progress under the heading. The row hugs its\ncontrol: the bar's side margin and Spacing/Padding/XSmall (8) above and below it (a 24px Progress makes a 40px row),\nnone above and below a Tabs (its row is the bar). Several controls stack Spacing/Gap/XSmall apart.",
           "deprecated": null
         },
         {

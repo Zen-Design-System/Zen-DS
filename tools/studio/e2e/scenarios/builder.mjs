@@ -203,7 +203,7 @@ const playScreen = (page) => playing(page).locator(".studio-player__device").get
  *  actions are a fragment of three layers, and a phone Screen with a desktop-only and a phone-only Text. */
 const headerSlotsPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { AppShell, AppShellAccount, AppShellAction, Badge, Search, Stack, Text } from "@zen-ds/react";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, Badge, Search, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -212,8 +212,10 @@ export default function Page() {
     <Board>
       <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">
         <AppShell
-          header={<Search aria-label="Search" placeholder="Search expenses" />}
-          headerActions={<><Badge theme="neutral">Pro</Badge><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><AppShellAccount name="Khoa Dang" /></>}
+          header={<AppShellHeader
+            leading={<Search aria-label="Search" placeholder="Search expenses" />}
+            actions={<><Badge theme="neutral">Pro</Badge><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><AppShellAccount name="Khoa Dang" /></>}
+          />}
         >
           <Stack gap="md" padding="xl">
             <Text>Always</Text>
@@ -258,8 +260,10 @@ const phoneHeaderPage = (title) => {
     `${indent}    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
     `${indent}    <SidebarMenuItem id="invoices" label="Invoices" icon="icon-receipt-line" />`,
     `${indent}  </Sidebar>}`,
-    `${indent}  headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={2} /><AppShellAccount name="Khoa Dang" /></>}`,
-    `${indent}  sections={<PageHeader title="Invoices" actions={<Button level="primary">New invoice</Button>} />}`,
+    `${indent}  header={<AppShellHeader`,
+    `${indent}    actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={2} /><AppShellAccount name="Khoa Dang" /></>}`,
+    `${indent}    main={<PageHeader title="Invoices" actions={<Button level="primary">New invoice</Button>} />}`,
+    `${indent}  />}`,
     `${indent}>`,
     `${indent}  <Stack gap="md" padding="xl">`,
     `${indent}    <Text>INV-1024</Text>`,
@@ -268,7 +272,7 @@ const phoneHeaderPage = (title) => {
   ].join("\n");
   return `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { AppShell, AppShellAccount, AppShellAction, Button, PageHeader, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, Button, PageHeader, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -915,7 +919,7 @@ export const rows = [
       await page.locator("#studio-right").getByRole("button", { name: /^Laid out as desktop/ }).click();
       await until(async () => /\blayout="desktop"/.test((await pageText(page, id)) ?? ""), { message: 'layout="desktop"' });
       // AppShell's own breakpoint: under 1024 its Sidebar opens as a drawer from the top bar's menu button.
-      await until(async () => (await frame.locator('.zen-app-shell .zen-app-shell__toggle [aria-haspopup="dialog"]').count()) === 1 && (await frame.locator(".zen-bottom-nav, .zen-top-nav").count()) === 0, { message: "the master layout on the tablet (its Sidebar behind the menu button), no phone bars" });
+      await until(async () => (await frame.locator('.zen-app-shell .zen-app-shell-header__toggle [aria-haspopup="dialog"]').count()) === 1 && (await frame.locator(".zen-bottom-nav, .zen-top-nav").count()) === 0, { message: "the master layout on the tablet (its Sidebar behind the menu button), no phone bars" });
       return "phone bars, no AppShell; tablet → desktop layout shows the AppShell, its Sidebar a drawer";
     },
   },
@@ -980,21 +984,21 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "Breadcrumbs", { message: "the Breadcrumbs selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item-List" }).click();
       await until(async () => (((await text()).match(/<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "").match(/\bid:/g) ?? []).length === before + 1, { message: `${before + 1} breadcrumb items` });
-      // Up to the master layout (Esc: Breadcrumbs → PageHeader → AppShell): its Sections slot takes any content.
+      // Up to the master layout's header (Esc: Breadcrumbs → PageHeader → AppShellHeader): its Sections slot takes any content.
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
-      await until(async () => (await selectedName(page)) === "AppShell", { message: "the AppShell selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      await until(async () => (await selectedName(page)) === "AppShellHeader", { message: "the AppShellHeader selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       await page.locator('#studio-right [data-slot="sections"]').getByRole("button", { name: "Add to Sections" }).click();
       await page.getByRole("option", { name: /^Search/ }).first().click();
-      await until(async () => /sections=\{<[^]*<PageHeader [^]*<Search /.test(await text()), { message: "the Sections hold the PageHeader and a Search" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => /main=\{<PageHeader [^]*sections=\{<Search /.test(await text()), { message: "the Main row holds the PageHeader, the Sections a Search" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       // A Menu item placed outside a Sidebar still draws Figma's Menu-Item (padding and gap Small).
       await selectStack(page, id);
       await insertAsset(page, "Menu item");
       await until(async () => (await frame.locator(".zen-app-shell__main .zen-sidebar__item").count()) === 1, { message: "the Menu item in the page's Stack" });
       const spacing = await frame.locator(".zen-app-shell__main .zen-sidebar__item").first().evaluate((el) => { const style = getComputedStyle(el); return `${style.paddingLeft} ${style.columnGap}`; });
       if (spacing !== "12px 12px") throw new Error(`the row outside a Sidebar has padding/gap ${spacing}`);
-      return `Breadcrumbs: ${before} → ${before + 1} items · Sections: PageHeader + Search · Menu item outside a Sidebar: ${spacing}`;
+      return `Breadcrumbs: ${before} → ${before + 1} items · Main: PageHeader, Sections: Search · Menu item outside a Sidebar: ${spacing}`;
     },
   },
   {
@@ -1222,12 +1226,12 @@ export const rows = [
   {
     id: "B-39", feature: "A header slot holding one layer takes a second one (a prop holds several layers, <>…</>): ⌘D on the top bar's Search makes two Searches in the bar; ⌘Z takes the copy back", wp: "header slots 2026-10-16",
     async run(ctx) {
-      const { page, id, text } = await seededPage(ctx, headerSlotsPage, /headerActions=\{<>/);
+      const { page, id, text } = await seededPage(ctx, headerSlotsPage, /\bactions=\{<>/);
       await focusScreen(page);
       await clickNamed(page, id, "Search");
       await until(async () => (await selectedName(page)) === "Search", { message: "the Search selected" });
       await page.keyboard.press("ControlOrMeta+KeyD");
-      await until(async () => /header=\{<>\s*<Search[^]*<Search[^]*<\/>\}/.test(await text()), { message: "two Searches in the top bar's prop" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => /leading=\{<>\s*<Search[^]*<Search[^]*<\/>\}/.test(await text()), { message: "two Searches in the top bar's prop" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       const bar = page.locator('[data-studio-frame="screen:screen-1"] .zen-app-shell__header');
       await until(async () => (await bar.locator(".zen-search").count()) === 2, { message: "two Searches drawn in the bar" });
       await page.keyboard.press("ControlOrMeta+KeyZ");
@@ -1238,7 +1242,7 @@ export const rows = [
   {
     id: "B-40", feature: "Hide a layer as Figma's eye: ⇧⌘H on the Badge in the top bar's actions writes hidden, the canvas leaves it out and Layers lists it dimmed; its eye shows it again. hidden=\"mobile\" / \"desktop\" draw on the other layout only", wp: "header slots 2026-10-16",
     async run(ctx) {
-      const { page, id, text } = await seededPage(ctx, headerSlotsPage, /headerActions=\{<>/);
+      const { page, id, text } = await seededPage(ctx, headerSlotsPage, /\bactions=\{<>/);
       const desktop = page.locator('[data-studio-frame="screen:screen-1"]');
       const phone = page.locator('[data-studio-frame="screen:screen-2"]');
       const words = async (frame) => (await frame.innerText()).replace(/\s+/g, " ");
@@ -1261,21 +1265,21 @@ export const rows = [
   {
     id: "B-41", feature: "Screen › Top bar actions off hides the slot and keeps its three layers (hiddenSlots, Figma's boolean); on brings the same layers back, not a starting AppShellAccount", wp: "header slots 2026-10-16",
     async run(ctx) {
-      const { page, text } = await seededPage(ctx, headerSlotsPage, /headerActions=\{<>/);
+      const { page, text } = await seededPage(ctx, headerSlotsPage, /\bactions=\{<>/);
       await showLeftTab(page, "layers");
       await page.locator('[data-layer-id="frame:screen:screen-1"]').click();
-      const toggle = inspectorRow(page, "headerActions").getByRole("switch");
+      const toggle = inspectorRow(page, "actions").getByRole("switch");
       await toggle.waitFor({ state: "visible", timeout: 5000 });
       if ((await toggle.getAttribute("aria-checked")) !== "true") throw new Error("Top bar actions reads off");
       await toggle.click();
-      await until(async () => /hiddenSlots=\{\["headerActions"\]\}/.test(await text()), { message: "hiddenSlots on the AppShell" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => /hiddenSlots=\{\["actions"\]\}/.test(await text()), { message: "hiddenSlots on the AppShellHeader" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       if (!/<Badge[^>]*>Pro<\/Badge>/.test(await text()) || !/<AppShellAccount name="Khoa Dang"/.test(await text())) throw new Error("switching off removed the layers");
       const desktop = page.locator('[data-studio-frame="screen:screen-1"]');
-      await until(async () => (await desktop.locator(".zen-app-shell__header-actions").count()) === 0, { message: "the actions not drawn" });
+      await until(async () => (await desktop.locator(".zen-app-shell-header__actions").count()) === 0, { message: "the actions not drawn" });
       await toggle.click();
-      await until(async () => !/hiddenSlots/.test(await text()) && (await desktop.locator(".zen-app-shell__header-actions [data-zen-name]").count()) === 3, { message: "the same three layers back" });
-      // In the AppShell's actions (the linked phone bar keeps its own copy of the account, component-usage-rules §17).
-      const actions = async () => (await text()).match(/headerActions=\{<>[^]*?<\/>\}/)?.[0] ?? "";
+      await until(async () => !/hiddenSlots/.test(await text()) && (await desktop.locator(".zen-app-shell-header__actions [data-zen-name]").count()) === 3, { message: "the same three layers back" });
+      // In the AppShellHeader's actions (the linked phone bar keeps its own copy of the account, component-usage-rules §17).
+      const actions = async () => (await text()).match(/\bactions=\{<>[^]*?<\/>\}/)?.[0] ?? "";
       if (((await actions()).match(/<AppShellAccount\b/g) ?? []).length !== 1) throw new Error("switching on added a starting account");
       return "off → hiddenSlots, layers kept; on → the same three";
     },

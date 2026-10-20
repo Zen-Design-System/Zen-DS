@@ -52,11 +52,11 @@ check("blank: component and screens", [blank.component, blank.screens], ["Checko
 // The app frame: the master layout (the Screen's root AppShell: Sidebar + Page header) exports one AppShell that also
 // carries the Screen's phone parts as topNavigation / bottomNavigation, drawn under 744px (component-usage-rules §17).
 const framedDesktop = compileReact(newPageText({ title: "Orders" }), { file: "orders.zen.tsx" }).code ?? "";
-ok("frame (desktop): the AppShell with the Sidebar and the Page header around the page", /<AppShell\n\s*sidebar=\{<Sidebar [^>]*>\n(\s*<SidebarMenuItem [^>]*\/>\n){3}\s*<\/Sidebar>\}\n\s*sections=\{<PageHeader title="Orders" \/>\}/.test(framedDesktop) && /<\/Stack>\n\s*<\/AppShell>/.test(framedDesktop));
-ok("frame (desktop): the phone parts ride on the AppShell", /\btopNavigation=\{<TopNavigation type="compact" title="Orders" \/>\}/.test(framedDesktop) && /\bbottomNavigation=\{<BottomNavigation/.test(framedDesktop) && framedDesktop.includes('import { AppShell, BottomNavigation, PageHeader, Sidebar, SidebarMenuItem, Stack, Text, TopNavigation } from "@zen-ds/react";'));
+ok("frame (desktop): the AppShell with the Sidebar and the Page header (its header's Main row) around the page", /<AppShell\n\s*sidebar=\{<Sidebar [^>]*>\n(\s*<SidebarMenuItem [^>]*\/>\n){3}\s*<\/Sidebar>\}\n\s*header=\{<AppShellHeader main=\{<PageHeader title="Orders" \/>\} \/>\}/.test(framedDesktop) && /<\/Stack>\n\s*<\/AppShell>/.test(framedDesktop));
+ok("frame (desktop): the phone parts ride on the AppShell", /\btopNavigation=\{<TopNavigation type="compact" title="Orders" \/>\}/.test(framedDesktop) && /\bbottomNavigation=\{<BottomNavigation/.test(framedDesktop) && framedDesktop.includes('import { AppShell, AppShellHeader, BottomNavigation, PageHeader, Sidebar, SidebarMenuItem, Stack, Text, TopNavigation } from "@zen-ds/react";'));
 // A desktop page turned phone exports the same AppShell: one code for both widths.
 const turned = compileReact(newPageText({ title: "Orders" }).replace('device="desktop"', 'device="phone"'), { file: "orders.zen.tsx" }).code ?? "";
-ok("frame (phone): the same AppShell with its phone parts", /<AppShell\b/.test(turned) && /\btopNavigation=\{<TopNavigation type="compact" title="Orders" \/>\}/.test(turned) && /\bsections=\{<PageHeader/.test(turned));
+ok("frame (phone): the same AppShell with its phone parts", /<AppShell\b/.test(turned) && /\btopNavigation=\{<TopNavigation type="compact" title="Orders" \/>\}/.test(turned) && /\bmain=\{<PageHeader/.test(turned));
 const framedPhone = compileReact(newPageText({ title: "Orders", device: "phone" }), { file: "orders.zen.tsx" }).code ?? "";
 ok("frame (phone): Top Navigation, the page, Bottom Navigation; no desktop parts", /<TopNavigation type="compact" title="Orders" \/>\n\s*<Stack[\s\S]*<\/Stack>\n\s*<BottomNavigation/.test(framedPhone) && !/Sidebar|PageHeader|AppShell/.test(framedPhone));
 

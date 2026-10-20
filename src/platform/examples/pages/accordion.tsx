@@ -1,7 +1,9 @@
-import { useId, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { Accordion } from "../../../components/Accordion";
 import { ActionBar } from "../../../components/ActionBar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, AppShellPane } from "../../../components/AppShell";
 import { Badge, BadgeCounter } from "../../../components/Badge";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
@@ -11,20 +13,27 @@ import { Divider } from "../../../components/Divider";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { Form, FormActions } from "../../../components/Form";
+import { InlineMessage } from "../../../components/InlineMessage";
 import { ColorField, InputField, SelectField } from "../../../components/Input";
-import { Box, Container, Stack } from "../../../components/Layout";
-import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Box, Stack } from "../../../components/Layout";
+import { Link } from "../../../components/Link";
+import { List, ListBox, ListItem, ToggleListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { Search } from "../../../components/Search";
+import { Segmented } from "../../../components/Segmented";
+import { SidebarSubMenu, type SidebarSection } from "../../../components/Sidebar";
 import { SliderField } from "../../../components/SliderField";
 import { SidePanel } from "../../../components/SidePanel";
+import { Stepper } from "../../../components/Stepper";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { PreviewAppFrame, StudioLogo } from "../../PlatformFrames";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
-import { daysFromToday, formatDate, formatMoney, people, projectStatusTheme, projects, studio, tasks, type Project } from "../data";
+import { daysFromToday, formatDate, formatMoney, leaveBalance, me, people, projectStatusTheme, projects, studio, tasks, type Project } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 import "./accordion.css";
@@ -81,7 +90,6 @@ const order = {
 // "× 2" only for more than one; a no-break space keeps it with its item when a long name wraps.
 const lineName = (item: (typeof order.items)[number]) => (item.quantity > 1 ? `${item.name}\u00a0×\u00a0${item.quantity}` : item.name);
 const orderSubtotal = order.items.reduce((sum, item) => sum + item.price, 0);
-const orderTotal = orderSubtotal - order.pointsDiscount;
 
 /** The facets of the project filter panel, one Accordion each. */
 type Facet = "status" | "client" | "lead";
@@ -163,27 +171,154 @@ function HelpSearchExample() {
   );
 }
 
-/** A policy page: sections right under the page h1 (headingLevel 2, Large), with Expand all / Collapse all. */
+/** The People handbook's chapters: the Docs pane's navigation. Leave policy is the page this example draws. */
+const handbookChapters: SidebarSection[] = [
+  { label: "Welcome", items: [{ id: "how-we-work", label: "How the studio works" }, { id: "first-week", label: "Your first week" }] },
+  { label: "Time off", items: [{ id: "leave", label: "Leave policy" }, { id: "holidays-2026", label: "2026 public holidays" }, { id: "remote", label: "Working remotely" }] },
+  { label: "Pay and expenses", items: [{ id: "payday", label: "Payday and payslips" }, { id: "expenses", label: "Expenses" }, { id: "equipment", label: "Equipment budget" }] },
+  { label: "Working together", items: [{ id: "conduct", label: "Code of conduct" }, { id: "reviews", label: "Feedback and reviews" }] },
+];
+const annualLeave = leaveBalance["Annual leave"]!;
+const sickLeave = leaveBalance["Sick leave"]!;
+
+/** The account button at the end of the header's top row, in its menu. */
+function HandbookAccount() {
+  const { toast } = useToast();
+  return (
+    <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+      { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+      { id: "leave", label: "Your time off", icon: "icon-calendar-line", onSelect: () => toast({ title: `${annualLeave.left} days of annual leave left`, children: `Of ${annualLeave.perYear} this year.` }) },
+      { type: "separator" },
+      { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+    ]} />
+  );
+}
+
+/** The width of the window the shell sits in, kept current: under 1024 the AppShell leaves the Docs pattern for its
+ *  narrow layout, where the panes stack around the page. */
+function useFrameWidth() {
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    if (!frame) return undefined;
+    setWidth(frame.offsetWidth);
+    const observer = new ResizeObserver(() => setWidth(frame.offsetWidth));
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [frame]);
+  return [setFrame, width] as const;
+}
+
+/**
+ * The People handbook in the Docs pattern (reading): the chapters in the leading pane, the policy in the 720 reading
+ * column, "On this page" and the reader's own balance in the trailing pane. Sections sit right under the page h1
+ * (headingLevel 2, Large), with Expand all / Collapse all; a link in "On this page" opens its section and focuses it.
+ */
 function LeavePolicyExample() {
+  const { toast } = useToast();
   const [open, setOpen] = useState<string[]>(["annual"]);
+  const [query, setQuery] = useState("");
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // A narrow window has no room for the chapters beside the page, and stacked above it they would push the policy off
+  // the first screen: the trail leads back up instead, and the header keeps the studio and the utilities.
+  const [frameRef, frameWidth] = useFrameWidth();
+  const narrow = frameWidth > 0 && frameWidth < 1024;
   const allOpen = open.length === leavePolicy.length;
   const toggle = (id: string, next: boolean) => setOpen((current) => next ? [...current, id] : current.filter((openId) => openId !== id));
+  // "On this page" opens the section and moves focus to its header button, so the reader lands on what they picked.
+  const goTo = (id: string) => {
+    setOpen((current) => (current.includes(id) ? current : [...current, id]));
+    sectionRefs.current[id]?.querySelector<HTMLButtonElement>(".zen-accordion__trigger")?.focus();
+  };
+  const notHere = (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the Leave policy." });
+  // The header Search filters the handbook's chapters as you type.
+  const words = query.trim().toLowerCase();
+  const chapters: SidebarSection[] = handbookChapters
+    .map((chapter) => ({ ...chapter, items: chapter.items.filter((item) => !words || item.label.toLowerCase().includes(words)).map((item) => ({ ...item, selected: item.id === "leave" })) }))
+    .filter((chapter) => chapter.items.length > 0);
   return (
-    <Container maxWidth="md">
-      <Stack paddingY="xl" gap="xl">
-        <PageHeader eyebrow="People handbook" title="Leave policy"
-          description={`How annual, sick and parental leave work at the studio. Updated ${formatDate(policyUpdated)} by ${people.minhAnh.name}.`}
-          actions={<Button level="tertiary" aria-expanded={allOpen} onClick={() => setOpen(allOpen ? [] : leavePolicy.map((section) => section.id))}>{allOpen ? "Collapse all" : "Expand all"}</Button>} />
-        <Stack gap="none">
-          {leavePolicy.map((section) => (
-            <Accordion key={section.id} size="lg" headingLevel={2} title={section.title}
-              expanded={open.includes(section.id)} onExpandedChange={(next) => toggle(section.id, next)}>
-              <Stack gap="sm">{section.body.map((paragraph) => <Text key={paragraph} tone="base">{paragraph}</Text>)}</Stack>
-            </Accordion>
-          ))}
+    <PreviewAppFrame height={{ min: 640, max: 820 }} frameRef={frameRef}>
+      {/* Docs on the Canvas: a 720 reading column between two equal Canvas panes (no box). The header keeps its top
+          row (Figma Top-Header only): the handbook's name, its Search and the reader's utilities. */}
+      <AppShell pattern="docs"
+        header={(
+          <AppShellHeader
+            leading={(
+              <Stack direction="row" gap="xs" align="center">
+                <StudioLogo src={studio.logo} name={studio.name} />
+                {narrow ? null : <Badge size="sm" theme="neutral" background="subtle" leadingIcon={false}>Handbook</Badge>}
+              </Stack>
+            )}
+            center={narrow ? undefined : <Search placeholder="Search the handbook" aria-label="Search the handbook" value={query} onValueChange={setQuery} />}
+            actions={<>
+              <AppShellAction icon="icon-message-chat-circle-line" aria-label="Ask People Ops"
+                onClick={() => toast({ title: `Message to ${people.minhAnh.name}`, children: "People Ops answers within a working day." })} />
+              <HandbookAccount />
+            </>}
+          />
+        )}
+        leadingPane={narrow ? undefined : (
+          <AppShellPane theme="canvas" aria-label="Handbook chapters">
+            {chapters.length ? (
+              <SidebarSubMenu sections={chapters} onItemClick={(item) => { if (item.id !== "leave") notHere(item.label); }} />
+            ) : (
+              <EmptyState size="sm" headingLevel={2} icon="icon-search-medium-line" title="No chapters match"
+                secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Try “leave”, “expenses” or “remote”.</EmptyState>
+            )}
+          </AppShellPane>
+        )}
+        trailingPane={(
+          <AppShellPane theme="canvas" aria-label="On this page">
+            <Stack gap="lg">
+              <Stack gap="sm">
+                <Box paddingX="xs"><Text textStyle="All-Caps/S" tone="light">On this page</Text></Box>
+                <Stack as="nav" gap="sm" paddingX="xs" aria-label="On this page">
+                  {leavePolicy.map((section) => (
+                    // zen-allow-link-underline: "On this page" is a list of plain Body/Small rows (as the Docs pattern draws it); the nav landmark says they are links.
+                    <Text key={section.id} textStyle="Body/Small/Regular" tone={open.includes(section.id) ? "strongest" : "light"}>
+                      <Link as="button" tone="inherit" underline="hover" onClick={() => goTo(section.id)}>{section.title}</Link>
+                    </Text>
+                  ))}
+                </Stack>
+              </Stack>
+              <Divider />
+              {/* The reader's own numbers next to the rules they read. */}
+              <Stack gap="sm" paddingX="xs">
+                <Text textStyle="All-Caps/S" tone="light">Your leave this year</Text>
+                <DescriptionList items={[
+                  { id: "annual", term: "Annual leave", description: `${annualLeave.left} of ${annualLeave.perYear} days left` },
+                  { id: "sick", term: "Sick leave", description: `${sickLeave.left} of ${sickLeave.perYear} days left` },
+                ]} />
+                <Box>
+                  <Button level="tertiary" size="sm" startIcon="icon-calendar-plus-line"
+                    onClick={() => toast({ title: "Leave request started", children: "Pick your dates in Time off; your team lead gets the request." })}>Request leave</Button>
+                </Box>
+              </Stack>
+            </Stack>
+          </AppShellPane>
+        )}
+      >
+        <Stack gap="xl">
+          {/* The trail sits in the PageHeader, which turns it into Back to Time off on a phone. */}
+          <PageHeader title="Leave policy"
+            breadcrumbs={<Breadcrumbs master={false} items={[{ id: "handbook", label: "Handbook" }, { id: "time-off", label: "Time off" }, { id: "leave", label: "Leave policy" }]}
+              onNavigate={(item, event) => { event.preventDefault(); notHere(item.id === "handbook" ? "The handbook's home" : "Time off"); }} />}
+            description={`How annual, sick and parental leave work at the studio. Updated ${formatDate(policyUpdated)} by ${people.minhAnh.name}.`}
+            actions={<Button level="tertiary" aria-expanded={allOpen} onClick={() => setOpen(allOpen ? [] : leavePolicy.map((section) => section.id))}>{allOpen ? "Collapse all" : "Expand all"}</Button>} />
+          <InlineMessage theme="info" title="What changed in this update">
+            Unused days now carry over until Mar 31 instead of Jan 31, so a Tết trip no longer costs you the days you saved.
+          </InlineMessage>
+          <Stack gap="none">
+            {leavePolicy.map((section) => (
+              <Accordion key={section.id} ref={(element) => { sectionRefs.current[section.id] = element; }} size="lg" headingLevel={2} title={section.title}
+                expanded={open.includes(section.id)} onExpandedChange={(next) => toggle(section.id, next)}>
+                <Stack gap="sm">{section.body.map((paragraph) => <Text key={paragraph} tone="base">{paragraph}</Text>)}</Stack>
+              </Accordion>
+            ))}
+          </Stack>
         </Stack>
-      </Stack>
-    </Container>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -266,15 +401,24 @@ function ProjectFiltersExample() {
   );
 }
 
+/** Pickup time picked at checkout: as soon as possible (about 10 minutes from 10:30 am) or at 11:00 am. */
+type Pickup = "asap" | "later";
+const pickupOptions = [{ id: "asap", label: "In 10 minutes" }, { id: "later", label: "At 11:00 am" }];
+const pickupWhen = (pickup: Pickup) => (pickup === "asap" ? "in about 10 minutes" : "at 11:00 am");
+/** The member's points and wallet before this order. */
+const pointsBalance = 1240;
+const walletBalance = 24.6;
+const totalWith = (points: boolean) => orderSubtotal - (points ? order.pointsDiscount : 0);
+
 /**
  * The order as a receipt in a Box accordion. Folded, the title carries the total; open, the total moves to the receipt's
  * last row, so it is never shown twice in the box. Two groups: what was ordered (the cart's rows, with their options so
- * the customer can check them), then the calculation (Subtotal, the points, Total). contentWidth="full" runs the prices
- * to the box padding, under the chevron, instead of stopping before an empty column.
+ * the customer can check them), then the calculation (Subtotal, the points when used, Total). contentWidth="full" runs
+ * the prices to the box padding, under the chevron, instead of stopping before an empty column.
  */
-function OrderSummary({ defaultExpanded }: { defaultExpanded: boolean }) {
+function OrderSummary({ defaultExpanded, points }: { defaultExpanded: boolean; points: boolean }) {
   const [open, setOpen] = useState(defaultExpanded);
-  const total = formatMoney(orderTotal, true);
+  const total = formatMoney(totalWith(points), true);
   return (
     <Accordion theme="box" headingLevel={2} contentWidth="full" expanded={open} onExpandedChange={setOpen}
       title={<span className="px-accordion-summary"><span>Order summary</span>{open ? null : <span>{total}</span>}</span>}>
@@ -288,7 +432,7 @@ function OrderSummary({ defaultExpanded }: { defaultExpanded: boolean }) {
         <Divider />
         <DescriptionList items={[
           { id: "subtotal", term: "Subtotal", description: formatMoney(orderSubtotal, true) },
-          { id: "points", term: "200 points redeemed", description: <Text as="span" textStyle="Body/Base/Medium" tone="positive">{`−${formatMoney(order.pointsDiscount, true)}`}</Text> },
+          ...(points ? [{ id: "points", term: "200 points redeemed", description: <Text as="span" textStyle="Body/Base/Medium" tone="positive">{`−${formatMoney(order.pointsDiscount, true)}`}</Text> }] : []),
           { id: "total", term: "Total", description: total, emphasis: true },
         ]} />
       </Stack>
@@ -298,69 +442,107 @@ function OrderSummary({ defaultExpanded }: { defaultExpanded: boolean }) {
 
 /** Phone checkout, pushed from the cart: the line items fold away, the total stays in the title and on the button. */
 type CheckoutStep = "cart" | "checkout" | "placed";
+const backButton = '.zen-top-nav__action[aria-label="Back"]';
+const actionBarButton = ".zen-action-bar .zen-button";
 
 function MobileOrderSummaryExample() {
+  const { toast } = useToast();
   const screen = usePhoneScreen();
   const screenRef = useRef<HTMLDivElement>(null);
+  const cartId = useId();
+  const rewardsId = useId();
+  const pickupId = useId();
+  const paymentId = useId();
   const [step, setStep] = useState<CheckoutStep>("checkout");
+  const [points, setPoints] = useState(true);
+  const [pickup, setPickup] = useState<Pickup>("asap");
   // Each screen is its own PlatformPhone (key): it opens at the top and its bar measures the fold again.
   const go = (next: CheckoutStep, focus: string) => screen.go(focus, () => setStep(next));
-  const total = formatMoney(orderTotal, true);
+  const total = formatMoney(totalWith(points), true);
   // Open on checkout, where the customer checks the lines; folded on the confirmation, one tap away.
-  const summary = <OrderSummary defaultExpanded={step === "checkout"} />;
+  const summary = <OrderSummary defaultExpanded={step === "checkout"} points={points} />;
 
   if (step === "cart") {
     return (
-      <PlatformPhone key={step} label="Phin & Co cart" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
-        footer={<ActionBar position="static" summary={<Text as="span" textStyle="Body/Base/Medium">{`Subtotal ${formatMoney(orderSubtotal, true)}`}</Text>}
-          primaryAction={{ label: "Check out", onClick: () => go("checkout", '.zen-top-nav__action[aria-label="Back"]') }} />}>
-        {screen.anchor}
-        {/* Static rows pad 0 at the sides: the screen's margin (lg, as the bar) insets them. */}
-        <Box paddingX="lg" paddingY="xs">
-          <List aria-label="Items in your cart">
-            {order.items.map((item) => (
-              <ListItem key={item.id} leading={<DockIcon theme="emoji" emoji={item.emoji} size="medium" />} title={lineName(item)} caption={item.note}
-                trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(item.price, true)}</Text>} />
-            ))}
-          </List>
-        </Box>
+      // The cart on the white screen (Canvas/Alt, so the Box summary and the rows need no card): the lines under the
+      // store they are picked up at, the points as a Toggle (it applies at once), and the total with Check out pinned
+      // in the Action bar (Figma Bottom=Actions).
+      <PlatformPhone key={step} label="Phin & Co cart" canvas="surface" screenRef={screenRef}>
+        <AppShell canvas="alt"
+          topNavigation={<TopNavigation type="default" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
+          actionBar={<ActionBar summary={<Text as="span" textStyle="Body/Base/Medium">{`Total ${total}`}</Text>}
+            primaryAction={{ label: "Check out", onClick: () => go("checkout", backButton) }} />}>
+          {screen.anchor}
+          <Stack as="section" gap="xs" aria-labelledby={cartId}>
+            <Heading level={2} id={cartId} textStyle="Body/Small/Bold" tone="light">{`Pickup at ${order.store}`}</Heading>
+            <List aria-labelledby={cartId}>
+              {order.items.map((item) => (
+                <ListItem key={item.id} leading={<DockIcon theme="emoji" emoji={item.emoji} size="medium" />} title={lineName(item)} caption={item.note}
+                  trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(item.price, true)}</Text>} />
+              ))}
+            </List>
+          </Stack>
+          <Stack as="section" gap="xs" aria-labelledby={rewardsId}>
+            <Heading level={2} id={rewardsId} textStyle="Body/Small/Bold" tone="light">Phin rewards</Heading>
+            <List aria-labelledby={rewardsId}>
+              <ToggleListItem leading={<DockIcon icon="icon-gift-01-line" theme="accent" background="subtle" size="medium" />} title="Use 200 points"
+                caption={`${formatMoney(order.pointsDiscount, true)} off · ${pointsBalance.toLocaleString("en-US")} points now`} checked={points} onCheckedChange={setPoints} />
+            </List>
+          </Stack>
+        </AppShell>
       </PlatformPhone>
     );
   }
 
   if (step === "placed") {
-    // An end state keeps a way out: Done starts again from the cart.
+    // An end state keeps a way out: Done starts again from the cart. The progress shows where the order is.
     return (
-      <PlatformPhone key={step} label="Phin & Co order placed" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact-alt" title="Order placed" scrollRef={screenRef} />}
-        footer={<ActionBar position="static" primaryAction={{ label: "Done", onClick: () => go("cart", ".zen-action-bar .zen-button") }} />}>
-        {screen.anchor}
-        <Stack paddingX="lg" paddingY="lg" gap="lg">
+      <PlatformPhone key={step} label="Phin & Co order placed" canvas="surface" screenRef={screenRef}>
+        <AppShell canvas="alt"
+          topNavigation={<TopNavigation type="compact" title="Order placed" scrollRef={screenRef} />}
+          actionBar={<ActionBar primaryAction={{ label: "Done", onClick: () => go("cart", actionBarButton) }}
+            secondaryAction={{ label: "Get directions", onClick: () => toast({ title: `Directions to ${order.store}`, children: "42 Nguyen Hue, District 1 · 6 minutes on foot" }) }} />}>
+          {screen.anchor}
           <Stack gap="xs" role="status">
             <Heading level={2}>{`${order.number} is on its way`}</Heading>
-            <Text tone="base">{`Pick it up at ${order.store} in about 10 minutes. You paid ${total}.`}</Text>
+            <Text tone="base">{`Pick it up at ${order.store} ${pickupWhen(pickup)}. You paid ${total}${points ? " and used 200 points" : ""}.`}</Text>
           </Stack>
+          <Stepper orientation="vertical" aria-label="Order progress" current={1} steps={[
+            { id: "received", title: "Order received", caption: "10:30 am" },
+            { id: "preparing", title: "Preparing", caption: "Your barista has started on it" },
+            { id: "ready", title: "Ready for pickup", caption: pickup === "asap" ? "About 10:40 am" : "11:00 am" },
+          ]} />
           {summary}
-        </Stack>
+        </AppShell>
       </PlatformPhone>
     );
   }
 
   return (
-    <PlatformPhone key={step} label="Phin & Co checkout" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
-        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => go("cart", ".zen-action-bar .zen-button") }} />}
-      footer={<ActionBar position="static" primaryAction={{ label: `Place order · ${total}`, onClick: () => go("placed", ".zen-action-bar .zen-button") }} />}>
-      {screen.anchor}
-      {/* Body padding lg (20) = the bar's margin; the summary and the pickup details are sections of the screen (lg). */}
-      <Stack paddingX="lg" paddingY="lg" gap="lg">
+    // A pushed screen: the compact bar with Back, the order to check, when and where to pick it up, how it is paid, and
+    // the one action pinned in the Action bar with the total on it.
+    <PlatformPhone key={step} label="Phin & Co checkout" canvas="surface" screenRef={screenRef}>
+      <AppShell canvas="alt"
+        topNavigation={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => go("cart", actionBarButton) }} />}
+        actionBar={<ActionBar primaryAction={{ label: `Place order · ${total}`, onClick: () => go("placed", actionBarButton) }} />}>
+        {screen.anchor}
         {summary}
-        <List aria-label="Pickup and payment">
-          <ListItem leading={<DockIcon icon="icon-marker-pin-01-line" theme="orange" background="subtle" size="medium" />} title={order.store} caption="Pickup · ready in about 10 minutes" />
-          <ListItem leading={<DockIcon icon="icon-wallet-02-line" theme="green" background="subtle" size="medium" />} title="Phin wallet" caption="Balance $24.60" />
-        </List>
-      </Stack>
+        <Stack as="section" gap="sm" aria-labelledby={pickupId}>
+          <Heading level={2} id={pickupId} textStyle="Body/Small/Bold" tone="light">Pickup</Heading>
+          <List aria-labelledby={pickupId}>
+            <ListItem leading={<DockIcon icon="icon-marker-pin-01-line" theme="orange" background="subtle" size="medium" />} title={order.store} caption={`Ready ${pickupWhen(pickup)}`} />
+          </List>
+          <Segmented fullWidth aria-label="Pickup time" options={pickupOptions} value={pickup} onValueChange={(next) => setPickup(next as Pickup)} />
+        </Stack>
+        <Stack as="section" gap="xs" aria-labelledby={paymentId}>
+          <Heading level={2} id={paymentId} textStyle="Body/Small/Bold" tone="light">Payment</Heading>
+          <List aria-labelledby={paymentId}>
+            <ListItem leading={<DockIcon icon="icon-wallet-02-line" theme="green" background="subtle" size="medium" />} title="Phin wallet"
+              caption={`Balance ${formatMoney(walletBalance, true)} · ${formatMoney(walletBalance - totalWith(points), true)} after this order`} />
+          </List>
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -505,22 +687,41 @@ const clear = () => { search(""); searchRef.current?.focus(); };
     title: "Expand all sections",
     wide: true,
     screen: true,
-    description: "Policy sections sit right under the page h1, so they are headingLevel 2 in the Large size. Expand all opens every section at once and turns into Collapse all.",
+    description: "The People handbook in the AppShell's Docs pattern: the chapters in the leading pane, the policy in the reading column, On this page and the reader's own balance in the trailing pane. The sections sit right under the page h1, so they are headingLevel 2 in the Large size; Expand all opens every section at once and turns into Collapse all, and a link in On this page opens its section and moves focus to it. In a narrow window the chapters step aside, and on a phone the trail turns into Back to Time off.",
     render: () => <LeavePolicyExample />,
     code: `const [open, setOpen] = useState<string[]>(["annual"]);
 const allOpen = open.length === sections.length;
+const goTo = (id: string) => { setOpen((ids) => ids.includes(id) ? ids : [...ids, id]); refs.current[id]?.querySelector("button")?.focus(); };
 
-<PageHeader eyebrow="People handbook" title="Leave policy" description="How annual, sick and parental leave work at the studio."
-  actions={<Button level="tertiary" aria-expanded={allOpen} onClick={() => setOpen(allOpen ? [] : sections.map((s) => s.id))}>
-    {allOpen ? "Collapse all" : "Expand all"}
-  </Button>} />
-{sections.map((section) => (
-  <Accordion key={section.id} size="lg" headingLevel={2} title={section.title}
-    expanded={open.includes(section.id)}
-    onExpandedChange={(next) => setOpen((ids) => next ? [...ids, section.id] : ids.filter((id) => id !== section.id))}>
-    {section.body}
-  </Accordion>
-))}`,
+<AppShell
+  pattern="docs" // reading: a 720 column between two Canvas panes
+  header={<AppShellHeader leading={<StudioLogo … />} center={<Search placeholder="Search the handbook" value={query} onValueChange={setQuery} />}
+    actions={<><AppShellAction icon="icon-message-chat-circle-line" aria-label="Ask People Ops" onClick={askPeopleOps} />
+      <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={account} /></>} />}
+  leadingPane={<AppShellPane theme="canvas" aria-label="Handbook chapters"><SidebarSubMenu sections={chapters} onItemClick={openChapter} /></AppShellPane>}
+  trailingPane={<AppShellPane theme="canvas" aria-label="On this page">
+    {/* zen-allow-link-underline: plain Body/Small rows in the On this page nav */}
+    {sections.map((s) => <Link key={s.id} as="button" tone="inherit" underline="hover" onClick={() => goTo(s.id)}>{s.title}</Link>)}
+    …your leave this year, Request leave…
+  </AppShellPane>}
+>
+  <Stack gap="xl">
+    <PageHeader title="Leave policy" description="How annual, sick and parental leave work at the studio."
+      breadcrumbs={<Breadcrumbs master={false} items={[{ id: "handbook", label: "Handbook" }, { id: "time-off", label: "Time off" }, { id: "leave", label: "Leave policy" }]} onNavigate={go} />}
+      actions={<Button level="tertiary" aria-expanded={allOpen} onClick={() => setOpen(allOpen ? [] : sections.map((s) => s.id))}>
+        {allOpen ? "Collapse all" : "Expand all"}
+      </Button>} />
+    <Stack gap="none">
+      {sections.map((section) => (
+        <Accordion key={section.id} ref={(el) => { refs.current[section.id] = el; }} size="lg" headingLevel={2} title={section.title}
+          expanded={open.includes(section.id)}
+          onExpandedChange={(next) => setOpen((ids) => next ? [...ids, section.id] : ids.filter((id) => id !== section.id))}>
+          {section.body}
+        </Accordion>
+      ))}
+    </Stack>
+  </Stack>
+</AppShell>`,
   },
   {
     title: "Advanced options",
@@ -596,17 +797,17 @@ const submit = () => {
   },
   {
     title: "Mobile order summary",
-    description: "Checkout opens from the cart with a Back chevron. The order sits in a Box accordion at the top, open while the customer checks it: the cart's rows with their options, then Subtotal, the points and Total, with the prices running to the box edge (contentWidth=\"full\"). Folded, the total moves into the title and stays on Place order, so nothing they pay for is hidden. After the order the same summary waits folded, and Done goes back to the cart.",
+    description: "Checkout opens from the cart with a Back chevron. The order sits in a Box accordion at the top, open while the customer checks it: the cart's rows with their options, then Subtotal, the points (when the cart's Toggle uses them) and Total, with the prices running to the box edge (contentWidth=\"full\"). Folded, the total moves into the title and stays on Place order, so nothing they pay for is hidden. After the order the same summary waits folded under the order's progress, and Done goes back to the cart. Each screen is the AppShell's mobile Bar with the Action bar (Figma Bottom=Actions).",
     render: () => <MobileOrderSummaryExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 // One PlatformPhone per screen (key), so each opens at the top; the bar follows the scroll.
-<PlatformPhone key="checkout" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
-    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToCart }} />}
-  footer={<ActionBar position="static" primaryAction={{ label: "Place order · $9.40", onClick: placeOrder }} />}>
-  <Stack paddingX="lg" paddingY="lg" gap="lg">
-    {/* Folded, the title carries the total; open, the total is the receipt's last row. */}
+<PlatformPhone key="checkout" canvas="surface" screenRef={screenRef}>
+  <AppShell canvas="alt"
+    topNavigation={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToCart }} />}
+    actionBar={<ActionBar primaryAction={{ label: "Place order · $9.40", onClick: placeOrder }} />}>
+    {/* The Body pads the screen and spaces its sections; folded, the title carries the total. */}
     <Accordion theme="box" headingLevel={2} contentWidth="full" expanded={open} onExpandedChange={setOpen}
       title={<span className="summary-title"><span>Order summary</span>{open ? null : <span>$9.40</span>}</span>}>
       <Stack gap="md">
@@ -623,8 +824,13 @@ const submit = () => {
         ]} />
       </Stack>
     </Accordion>
-    <List aria-label="Pickup and payment">…</List>
-  </Stack>
+    <Stack as="section" gap="sm" aria-labelledby="pickup">
+      <Heading level={2} id="pickup" textStyle="Body/Small/Bold" tone="light">Pickup</Heading>
+      <List aria-labelledby="pickup"><ListItem leading={pin} title="Phin & Co Nguyen Hue" caption="Ready in about 10 minutes" /></List>
+      <Segmented fullWidth aria-label="Pickup time" options={pickupTimes} value={pickup} onValueChange={setPickup} />
+    </Stack>
+    …Payment…
+  </AppShell>
 </PlatformPhone>
 /* .summary-title { display: flex; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall); } */`
   },

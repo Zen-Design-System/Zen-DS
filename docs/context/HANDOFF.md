@@ -69,6 +69,26 @@ Last updated: 2026-10-19.
   Templates rebuilt on it (user: archive the old screens, leave Ecommerce and Logistic): HR-Platform 22, Performance 21,
   Finance 10 and Social 17 done (originals in each page's "Archive · before AppShell" section). Empty-State has Size Medium (240) | Small (200) in Figma and code (EmptyState sm, Studio Size, push/pull). Studio phase 1 + device simulator and the floating bottom-nav fit: branch zen/feat/appshell-frames-20261018 (QA PASS, PR next). Detail
   in session-log-2026-10-18.
+- **Code AppShell rebuilt from scratch (2026-10-19, user: "Phá hẳn, migrate hết"; in progress):**
+  - Branch zen/feat/appshell-patterns-20261019, worktree `../Zen-DS-appshell`.
+  - New API: `pattern`, `collapse`, AppShellHeader, AppShellPane, the mobile pattern; no aliases. Spec:
+    `docs/research/appshell-rebuild-2026-10-19.md`.
+  - Templates, HR, appLayer, the harness and Studio are migrated (all studio:selftest steps pass).
+  - The platform page `app-shell` is Figma ◇ Master-Layout · Example sections A–F (41 screens, Figma's own photos) in
+    `src/platform/examples/pages/app-shell/*`, plus six behaviour examples.
+  - Phase 3 is done: the screen and phone app examples on all 32 platform pages run on the new shell. On a phone, a
+    trail turns into Back (`_shared/trail-back.tsx`).
+  - The audit and harness follow the user's 2026-10-19 rules: APCA contrast, h1 ≥ Heading/1 (Display allowed), and
+    Gap/3XSmall on the ladder.
+  - Three gate runs on 2026-10-20 (session-log-2026-10-19, the AppShell section) found the following, all fixed at their
+    owners:
+    - The Sidebar collapse button remounted.
+    - The phone header squeezed its actions; header niceties now step aside (`.pf-wide-only`).
+    - ChatComposer and a narrow desktop ChatThread at 320.
+    - E2E rows read the old padded content Stack.
+    - A JSX-text comment in B4.
+  - E2E shards are 336/0. The PR follows the app-shell and ai-ui re-audit.
+  - Detail in session-log-2026-10-19.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:
   Figma first, review, then code (tier L each). Ids: session-log-2026-10-17 "Calendar / Schedule / Timeline in Figma".
@@ -208,7 +228,9 @@ Last updated: 2026-10-19.
 - **Zen Studio Screen = master layout (2026-10-15, user):** a builder Screen's desktop frame is one root `<AppShell>`
   (`tools/studio/screen-frame.mjs`, op `screenFrame`; parts in `screen-chrome.mjs` FRAME_PARTS); the Screen's own
   `sidebar`/`header` props are legacy, moved into it when a page opens (`localApi.ts` moveScreenFrame). The mobile layout
-  keeps the Screen's Top/Bottom navigation and draws the AppShell's content only (runtime, compile, push).
+  keeps the Screen's Top/Bottom navigation and draws the AppShell's content only (runtime, compile, push). Since
+  2026-10-19 the header parts (`leading`, `center`, `actions`, `main`) live on `header={<AppShellHeader …/>}` (FRAME_PARTS
+  `host`), and old pages move to the new props on load (`migrateAppShellProps`).
 - **Zen Studio MCP M0 (2026-10-15, user):** AI clients (Claude Code first) read and edit the open Studio page live
   through `/__zen-studio/mcp` (relayed to the tab over Vite's HMR socket, one ⌘Z per change, AI chip Stop/Resume).
   Merged in #72 (baafbf8). Tools: get_studio_state, get_tree, update, get_screenshot, on pages made in the Studio;

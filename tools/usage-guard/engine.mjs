@@ -49,6 +49,10 @@ function readTag(src, start) {
     // Escapes (\` inside code-sample template strings) never open or close anything.
     if (ch === "\\") { i += 2; continue; }
     if (quote) { if (ch === quote) quote = null; }
+    // A comment inside an attribute's expression (`// Figma's …`) holds no quotes: its apostrophe opened a string that
+    // swallowed the rest of the tag (app-shell/nested fired on alert-banner, 2026-10-19).
+    else if (depth > 0 && ch === "/" && src[i + 1] === "/") { const eol = src.indexOf("\n", i); i = eol < 0 ? src.length : eol; continue; }
+    else if (depth > 0 && ch === "/" && src[i + 1] === "*") { const close = src.indexOf("*/", i + 2); i = close < 0 ? src.length : close + 2; continue; }
     else if (ch === '"' || ch === "'" || ch === "`") quote = ch;
     else if (ch === "{") depth++;
     else if (ch === "}") depth--;

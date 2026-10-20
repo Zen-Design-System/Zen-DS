@@ -28,6 +28,7 @@ export function describeVariable(name, collection, current) {
   if (collection === "Spacing") {
     const PX = { Gap: { "3XSmall": 2, "2XSmall": 4, XSmall: 8, Small: 12, Medium: 16, Large: 24, XLarge: 32, "2XLarge": 40, "3XLarge": 48, Giant: 64, XGiant: 88, "2XGiant": 144 }, Padding: { "3XSmall": 2, "2XSmall": 4, XSmall: 8, Small: 12, Medium: 16, Large: 20, XLarge: 24, "2XLarge": 32, "3XLarge": 40, "4XLarge": 48 } };
     const LADDER = {
+      "3XSmall": "two lines of one compact item: a name or value and the caption right under it (a stat over its label, a name over its meta line)",
       "2XSmall": "pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags or Badges; a pair that belongs together",
       XSmall: "a thing and its label or description (label → field, heading → supporting line, kicker → list); controls in one toolbar row (Chips, icon buttons, Search)",
       Small: "a group acting as one: text buttons side by side, choices in a group",
@@ -39,7 +40,7 @@ export function describeVariable(name, collection, current) {
     const px = (PX[kind] || {})[last];
     if (kind === "Gap") {
       if (LADDER[last]) return `Gap between siblings in auto layout (itemSpacing), ${px}px. Zen spacing ladder: ${LADDER[last]}. The gap between groups is always at least one step larger than the gap inside them.`;
-      return `Gap between siblings in auto layout (itemSpacing), ${px}px. Outside the Zen ladder (2XSmall–XLarge): ${px < 4 ? "micro adjustments inside a component only" : "large layout gaps (hero areas, landing sections), never between ordinary elements"}.`;
+      return `Gap between siblings in auto layout (itemSpacing), ${px}px. Outside the Zen ladder (3XSmall–XLarge): ${px < 4 ? "micro adjustments inside a component only" : "large layout gaps (hero areas, landing sections), never between ordinary elements"}.`;
     }
     const PAD = {
       Small: " Strips inside a surface (toolbar, summary, footer) take it above and below; List-Item rows pad it above and below.",

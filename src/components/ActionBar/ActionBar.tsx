@@ -2,6 +2,7 @@ import { useRef, useState, type HTMLAttributes, type ReactNode, type Ref } from 
 import { Button, type ButtonLevel } from "../Button";
 import "./action-bar.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { ProgressiveBlur } from "../_shared/progressive-blur";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
 
@@ -9,7 +10,7 @@ export const actionBarPositions = ["sticky", "fixed", "static"] as const;
 export type ActionBarPosition = (typeof actionBarPositions)[number];
 export const actionBarDirections = ["vertical", "horizontal"] as const;
 export type ActionBarDirection = (typeof actionBarDirections)[number];
-export const actionBarSurfaces = ["default", "alt", "none"] as const;
+export const actionBarSurfaces = ["default", "alt", "glass", "none"] as const;
 export type ActionBarSurface = (typeof actionBarSurfaces)[number];
 
 /** A button the ActionBar renders itself (Large when vertical or on a phone-width horizontal bar, Medium on a wider horizontal
@@ -46,8 +47,10 @@ export interface ActionBarProps extends HTMLAttributes<HTMLDivElement> {
    */
   direction?: ActionBarDirection;
   /**
-   * default: Surface/Default with a Pale (Border/Neutral/Pale) top rule. alt: Surface/Alt with the same rule. none: no
-   * fill and no rule, for a static bar inside a container that already has one. Never a drop shadow.
+   * default: Surface/Default with a Pale (Border/Neutral/Pale) top rule. alt: Surface/Alt with the same rule. glass
+   * (Figma Action-Bar/Mobile Type=Glass 16326:6489): no rule, a fade from Inverse/Flat to Surface/Default at 20% over a
+   * progressive background blur, for a bar over photos or a long scroll. none: no fill and no rule, for a static bar
+   * inside a container that already has one. Never a drop shadow.
    */
   surface?: ActionBarSurface;
   /** The one main action (level primary). Rendered first (top) when vertical and last (end) when horizontal. */
@@ -131,6 +134,8 @@ export function ActionBar({ position = "sticky", direction = "vertical", surface
         data-narrow={direction === "horizontal" && narrow ? "true" : undefined}
         data-surface={surface}
       >
+        {/* Glass: Figma PROGRESSIVE background blur (radius 24, strongest at the bottom edge), under the fade. */}
+        {surface === "glass" ? <ProgressiveBlur className="zen-action-bar__progressive" strong="bottom" /> : null}
         {summary ? <div className="zen-action-bar__summary">{nest.slot(summary)}</div> : null}
         <div className="zen-action-bar__actions">
           {direction === "vertical" ? <>{primary}{secondary}{nest.slot(children)}</> : <>{nest.slot(children)}{secondary}{primary}</>}

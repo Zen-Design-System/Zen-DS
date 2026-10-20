@@ -31,7 +31,7 @@ Show details, filters or an edit form next to the page without leaving it.
 Generated from the TypeScript source; full JSON in `docs/api/side-panel.json`.
 
 ### SidePanel
-Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered in place (the page layout docks it); Escape closes it (from the panel or the page beside it) and focus returns to the opener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container border, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener. Sections, each Modal-Padding on every side: Top-Customize (optional) · Header (Header-Contents, gap XSmall: the row back · title (Standard Heading/3, Modal Heading/4) · close, gap Medium; caption; more header content) · Contents (gap Medium, scrolls) · Modal/Actions footer.
+Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered in place (the page layout docks it); Escape closes it (from the panel or the page beside it, within its AppShell when it docks in one) and focus returns to the opener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container border, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener. Sections, each Modal-Padding on every side: Top-Customize (optional) · Header (Header-Contents, gap XSmall: the row back · title (Standard Heading/3, Modal Heading/4) · close, gap Medium; caption; more header content) · Contents (gap Medium, scrolls) · Modal/Actions footer.
 
 Also accepts `OverlayOpenProps`.
 

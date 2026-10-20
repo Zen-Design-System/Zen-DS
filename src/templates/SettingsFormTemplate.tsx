@@ -5,11 +5,15 @@
  * - Annotated sections: each title and its one-line description on the left, the settings in a Card on the right
  *   (stacked on phones).
  * - Profile: photo (FileUpload + Avatar preview), full name, email and time zone in a Form validated by useFormState.
- *   The Save bar (an ActionBar in the AppShell footer) stays disabled until something changes and says why.
+ *   The Save bar (an ActionBar that sticks to the bottom of the page; the phone shell pins it as its actionBar) stays
+ *   disabled until something changes and says why.
  * - Notifications: Toggles outside the Form; each one saves at once and confirms in a Toast.
  * - Sign-in and security: the password row opens Change password (a ModalForm with live rules); the 2-step verification
  *   row opens its setup ModalForm, or a Dialog to turn it off.
  * - Danger zone: Delete workspace opens a negative Dialog that asks for the workspace name.
+ * - The frame is AppShell's Sidebar pattern: the header's top row holds the trail and the utilities (Notifications, the
+ *   account menu) and its Main row the PageHeader. Under 1024px it draws the mobile pattern: a compact TopNavigation
+ *   with Back (to Admin) and the Save bar pinned at the bottom.
  */
 import { useId, useRef, useState, type ReactNode } from "react";
 import {
@@ -17,12 +21,12 @@ import {
   AppShell,
   AppShellAccount,
   AppShellAction,
+  AppShellHeader,
   Avatar,
   Badge,
   Breadcrumbs,
   Button,
   Card,
-  Container,
   DescriptionList,
   Dialog,
   DockIcon,
@@ -48,6 +52,8 @@ import {
   Stack,
   Text,
   Toggle,
+  TopNavigation,
+  useAppShell,
   useFormState,
   useToast,
   useZen,
@@ -132,6 +138,16 @@ const listOf = (items: string[]) => (items.length <= 2 ? items.join(" and ") : `
 const fileSize = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
 /** "Đìzai Studio" and "dizai studio" match: people shouldn't need a Vietnamese keyboard to confirm. */
 const plain = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[đĐ]/g, "d").trim().toLowerCase();
+
+/** The PageHeader's description where the shell draws its mobile pattern: the TopNavigation shows the title only, so the
+ * description opens the page instead. */
+function MobileIntro({ children }: { children: ReactNode }) {
+  return useAppShell()?.layout === "mobile" ? <Text tone="base">{children}</Text> : null;
+}
+/** The desktop's Save bar, at the end of the page: the mobile shell pins the same bar as its actionBar instead. */
+function DesktopOnly({ children }: { children: ReactNode }) {
+  return useAppShell()?.layout === "mobile" ? null : children;
+}
 
 /** Annotated layout: the section's title and description on the left, its settings on the right (stacked on phones). */
 function SettingsSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -260,6 +276,14 @@ export function SettingsFormTemplate() {
     toast({ title: "Workspace deleted", children: `${workspace.name} is gone for every member` });
   };
 
+  // Sticky at the bottom of the page while there is more above it (desktop); the phone shell pins it as its actionBar.
+  const saveBar = (
+    <ActionBar direction="horizontal" aria-label="Profile changes"
+      summary={<Text ref={statusRef} tabIndex={-1} as="span" textStyle="Body/Small/Regular" tone="base" role="status">{status}</Text>}
+      secondaryAction={{ label: "Discard", disabled: !profile.isDirty || profile.isSubmitting, onClick: () => { profile.reset(); statusRef.current?.focus(); } }}
+      primaryAction={{ label: profile.isSubmitting ? "Saving…" : "Save changes", type: "submit", form: formId, disabled: !profile.isDirty || profile.isSubmitting }} />
+  );
+
   return (
     <AppShell
       sidebar={(
@@ -272,16 +296,26 @@ export function SettingsFormTemplate() {
           onItemClick={(item) => { if (item.id !== "settings") notInDemo(item.label); }}
         />
       )}
-      header={<Breadcrumbs master={false} items={[{ id: "admin", label: "Admin" }, { id: "settings", label: "Settings" }]} onNavigate={(item, event) => { event.preventDefault(); if (item.id !== "settings") notInDemo(String(item.label)); }} />}
-      headerActions={<>
-        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={inboxOpen} onClick={() => { setUnread(0); setInboxOpen((open) => !open); }} />
-        <Menu align="end" trigger={<AppShellAccount name={saved.name} src={saved.photo?.previewUrl} theme="neutral" />} items={[
-          { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => nameRef.current?.focus() },
-          { type: "separator" },
-          { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
-        ]} />
-      </>}
-      aside={inboxOpen ? (
+      header={(
+        <AppShellHeader
+          // The top row: the collapse toggle, the trail (no Master crumb beside the toggle), then utilities only.
+          leading={<Breadcrumbs master={false} items={[{ id: "admin", label: "Admin" }, { id: "settings", label: "Settings" }]} onNavigate={(item, event) => { event.preventDefault(); if (item.id !== "settings") notInDemo(String(item.label)); }} />}
+          actions={<>
+            <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={inboxOpen} onClick={() => { setUnread(0); setInboxOpen((open) => !open); }} />
+            <Menu align="end" trigger={<AppShellAccount name={saved.name} src={saved.photo?.previewUrl} theme="neutral" />} items={[
+              { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => nameRef.current?.focus() },
+              { type: "separator" },
+              { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
+            ]} />
+          </>}
+          main={<PageHeader title="Settings" description={`Your account and the ${workspace.name} workspace.`} />}
+        />
+      )}
+      // Under 1024px: a form screen under Admin, so a compact bar with Back to the parent crumb and the Save bar pinned
+      // at the bottom (no tab bar).
+      topNavigation={<TopNavigation type="compact-alt" title="Settings" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => notInDemo("Admin") }} />}
+      actionBar={saveBar}
+      sidePanel={inboxOpen ? (
         <SidePanel type="standard" title="Notifications" open onOpenChange={setInboxOpen}>
           <List aria-label="Notifications">
             {notices.map((notice) => (
@@ -290,77 +324,71 @@ export function SettingsFormTemplate() {
           </List>
         </SidePanel>
       ) : undefined}
-      footer={(
-        <ActionBar position="static" direction="horizontal" aria-label="Profile changes"
-          summary={<Text ref={statusRef} tabIndex={-1} as="span" textStyle="Body/Small/Regular" tone="base" role="status">{status}</Text>}
-          secondaryAction={{ label: "Discard", disabled: !profile.isDirty || profile.isSubmitting, onClick: () => { profile.reset(); statusRef.current?.focus(); } }}
-          primaryAction={{ label: profile.isSubmitting ? "Saving…" : "Save changes", type: "submit", form: formId, disabled: !profile.isDirty || profile.isSubmitting }} />
-      )}
     >
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="sm" fillChildren>
-          <PageHeader title="Settings" description={`Your account and the ${workspace.name} workspace.`} />
+      {/* The Body pads the page margins. */}
+      <Stack gap="xl" fillChildren>
+        <MobileIntro>Your account and the {workspace.name} workspace.</MobileIntro>
 
-          <SettingsSection title="Profile" description="How you appear to the studio in projects, comments and mentions.">
-            <Card>
-              <Form form={profile} id={formId}>
-                <Stack direction="row" gap="lg" align="center">
-                  <Avatar size="2xl" theme={photo ? "photo" : "neutral"} background="subtle" src={photo?.previewUrl} alt="">{initials(profile.values.name.trim() || saved.name)}</Avatar>
-                  <FileUpload label="Profile photo" type="button" buttonLabel="Upload photo" accept="image/jpeg,image/png" helpText="JPG or PNG, up to 2 MB"
-                    thumbnail="none" files={photo ? [photo] : []} onFilesAdd={addPhoto} error={profile.fieldError("photo")}
-                    onRemove={() => profile.setValue("photo", null)} />
-                </Stack>
-                <Stack gap="md">
-                  <InputField ref={nameRef} label="Full name" autoComplete="name" {...profile.field("name")} />
-                  <InputField label="Email" type="email" autoComplete="email"
-                    helpText={profile.values.email.trim().toLowerCase() !== saved.email ? "We'll email a link to confirm it" : undefined} {...profile.field("email")} />
-                  <SelectField label="Time zone" options={timeZones} {...profile.selectField("timezone")} />
-                </Stack>
-              </Form>
-            </Card>
-          </SettingsSection>
-
-          <SettingsSection title="Notifications" description="What we email you about. Changes save right away.">
-            <Card>
-              <FormFieldset legend="Email me about" kind="toggle">
-                {emailSettings.map((setting) => (
-                  <Toggle key={setting.id} size={phone ? "lg" : "md"} label={setting.label} caption={setting.caption}
-                    checked={emailPrefs[setting.id]} onCheckedChange={(on) => switchEmail(setting, on)} />
-                ))}
-              </FormFieldset>
-            </Card>
-          </SettingsSection>
-
-          <SettingsSection title="Sign-in and security" description="Your password and the second step that protects your account.">
-            <ListBox theme="shadow">
-              <List aria-label="Sign-in methods">
-                <ListItem title="Password" caption={`Last changed ${passwordChanged}`} onClick={openPassword}
-                  leading={<DockIcon icon="icon-lock-01-line" background="subtle" size="md" />}
-                  trailing={<Icon name="icon-chevron-right-line" decorative />} />
-                {/* The status Badge sits after the title (Contents slot), so the title keeps its width on phones. */}
-                <ListItem title="2-step verification" onClick={openTwoStep}
-                  leading={<DockIcon icon="icon-passcode-line" background="subtle" size="md" />}
-                  trailing={<Icon name="icon-chevron-right-line" decorative />}>
-                  <Stack direction="row" gap="xs" align="center" wrap>
-                    <Text as="span" textStyle="Body/Base/Bold">2-step verification</Text>
-                    <Badge size="sm" theme={twoStep ? "green" : "neutral"} background="subtle">{twoStep ? "On" : "Off"}</Badge>
-                  </Stack>
-                  <Text as="span" textStyle="Body/Small/Regular" tone="light">{twoStep ? "Codes come from your authenticator app" : "Add a code from your phone to each sign-in"}</Text>
-                </ListItem>
-              </List>
-            </ListBox>
-          </SettingsSection>
-
-          <SettingsSection title="Danger zone" description="Actions here can't be undone.">
-            <Card>
-              <Stack gap="md" align="start">
-                <Text>Deleting {workspace.name} removes its projects, files and comments for everyone, and every member loses access.</Text>
-                <Button level="danger-subtle" startIcon="icon-trash-line" onClick={openDelete}>Delete workspace</Button>
+        <SettingsSection title="Profile" description="How you appear to the studio in projects, comments and mentions.">
+          <Card>
+            <Form form={profile} id={formId}>
+              <Stack direction="row" gap="lg" align="center">
+                <Avatar size="2xl" theme={photo ? "photo" : "neutral"} background="subtle" src={photo?.previewUrl} alt="">{initials(profile.values.name.trim() || saved.name)}</Avatar>
+                <FileUpload label="Profile photo" type="button" buttonLabel="Upload photo" accept="image/jpeg,image/png" helpText="JPG or PNG, up to 2 MB"
+                  thumbnail="none" files={photo ? [photo] : []} onFilesAdd={addPhoto} error={profile.fieldError("photo")}
+                  onRemove={() => profile.setValue("photo", null)} />
               </Stack>
-            </Card>
-          </SettingsSection>
-        </Stack>
-      </Container>
+              <Stack gap="md">
+                <InputField ref={nameRef} label="Full name" autoComplete="name" {...profile.field("name")} />
+                <InputField label="Email" type="email" autoComplete="email"
+                  helpText={profile.values.email.trim().toLowerCase() !== saved.email ? "We'll email a link to confirm it" : undefined} {...profile.field("email")} />
+                <SelectField label="Time zone" options={timeZones} {...profile.selectField("timezone")} />
+              </Stack>
+            </Form>
+          </Card>
+        </SettingsSection>
+
+        <SettingsSection title="Notifications" description="What we email you about. Changes save right away.">
+          <Card>
+            <FormFieldset legend="Email me about" kind="toggle">
+              {emailSettings.map((setting) => (
+                <Toggle key={setting.id} size={phone ? "lg" : "md"} label={setting.label} caption={setting.caption}
+                  checked={emailPrefs[setting.id]} onCheckedChange={(on) => switchEmail(setting, on)} />
+              ))}
+            </FormFieldset>
+          </Card>
+        </SettingsSection>
+
+        <SettingsSection title="Sign-in and security" description="Your password and the second step that protects your account.">
+          <ListBox theme="shadow">
+            <List aria-label="Sign-in methods">
+              <ListItem title="Password" caption={`Last changed ${passwordChanged}`} onClick={openPassword}
+                leading={<DockIcon icon="icon-lock-01-line" background="subtle" size="md" />}
+                trailing={<Icon name="icon-chevron-right-line" decorative />} />
+              {/* The status Badge sits after the title (Contents slot), so the title keeps its width on phones. */}
+              <ListItem title="2-step verification" onClick={openTwoStep}
+                leading={<DockIcon icon="icon-passcode-line" background="subtle" size="md" />}
+                trailing={<Icon name="icon-chevron-right-line" decorative />}>
+                <Stack direction="row" gap="xs" align="center" wrap>
+                  <Text as="span" textStyle="Body/Base/Bold">2-step verification</Text>
+                  <Badge size="sm" theme={twoStep ? "green" : "neutral"} background="subtle">{twoStep ? "On" : "Off"}</Badge>
+                </Stack>
+                <Text as="span" textStyle="Body/Small/Regular" tone="light">{twoStep ? "Codes come from your authenticator app" : "Add a code from your phone to each sign-in"}</Text>
+              </ListItem>
+            </List>
+          </ListBox>
+        </SettingsSection>
+
+        <SettingsSection title="Danger zone" description="Actions here can't be undone.">
+          <Card>
+            <Stack gap="md" align="start">
+              <Text>Deleting {workspace.name} removes its projects, files and comments for everyone, and every member loses access.</Text>
+              <Button level="danger-subtle" startIcon="icon-trash-line" onClick={openDelete}>Delete workspace</Button>
+            </Stack>
+          </Card>
+        </SettingsSection>
+      </Stack>
+      <DesktopOnly>{saveBar}</DesktopOnly>
 
       <ModalForm open={passwordOpen} onOpenChange={setPasswordOpen} title="Change password" onSubmit={passwordForm.handleSubmit}
         description="Other devices where you're signed in will sign out."

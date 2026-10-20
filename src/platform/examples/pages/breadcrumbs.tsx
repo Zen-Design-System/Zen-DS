@@ -1,9 +1,11 @@
 /* Breadcrumbs examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Alex Duong moves up and down the
    Đìzai Studio workspace: the shared Files, a colleague's profile three levels under People, a deep handbook page and the
    folder picker of Move. Each trail starts at its root, ends at the current page (not a link) and never wraps: long paths
-   collapse their middle. Phones go up with the Top Navigation Back chevron instead (see Top navigation). */
+   collapse their middle. The two screens are AppShells (Pattern/AppShell/Desktop, Layout=Sidebar) whose trail leads the
+   header's top row: a Master crumb with collapse="sidebar", or master={false} beside the header's collapse toggle. Phones
+   go up with the Top Navigation Back chevron instead (see Top navigation). */
 import { useEffect, useState, type ReactNode } from "react";
-import { AppShell } from "../../../components/AppShell";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { BreadcrumbItem, Breadcrumbs, type BreadcrumbItemData } from "../../../components/Breadcrumbs";
@@ -15,21 +17,21 @@ import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Icon, type IconName } from "../../../components/Icon";
-import { Container, Stack } from "../../../components/Layout";
+import { Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
-import { Sidebar } from "../../../components/Sidebar";
+import { Sidebar, type SidebarSection } from "../../../components/Sidebar";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import {
-  TODAY, activity, daysFromToday, formatBytes, formatDate, formatRelative, initials, people, peopleList, projectStatusTheme, projects, studio,
+  TODAY, activity, daysFromToday, formatBytes, formatDate, formatMoney, formatRelative, initials, me, people, peopleList, projectStatusTheme, projects, studio,
   type Person, type PersonId, type Team,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
-import { PreviewAppFrame, PreviewPage, ShellPage, StudioLogo } from "../../PlatformFrames";
+import { PreviewAppFrame, StudioLogo } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 
@@ -52,7 +54,7 @@ function useWidth() {
   return [setElement, width] as const;
 }
 
-// ——— The studio's shared files (examples 1 and 4) ————————————————————————————————————————————————————
+// ——— The studio’s shared files (examples 1 and 4) ————————————————————————————————————————————————————
 type Entry = { id: string; name: string; parent: string | null; owner: PersonId; updated: Date; bytes?: number };
 const isFolder = (e: Entry) => e.bytes === undefined;
 const fileTree: Entry[] = [
@@ -72,6 +74,9 @@ const fileTree: Entry[] = [
   { id: "plan", name: "Usability plan – transfers.pdf", parent: "research", owner: "ava", updated: daysFromToday(-1, 16, 5), bytes: 1_240_000 },
   { id: "notes", name: "Session notes – round 1.docx", parent: "research", owner: "ava", updated: daysFromToday(-4, 11, 30), bytes: 96_000 },
   { id: "clips", name: "Session highlights.mp4", parent: "research", owner: "emi", updated: daysFromToday(-4, 17, 45), bytes: 48_200_000 },
+  { id: "synthesis", name: "Round 1 synthesis.fig", parent: "research", owner: "ava", updated: daysFromToday(-2, 18, 10), bytes: 12_700_000 },
+  { id: "screener", name: "Recruiting screener – transfers.pdf", parent: "research", owner: "ava", updated: daysFromToday(-6, 10, 5), bytes: 210_000 },
+  { id: "consent", name: "Consent form – Lumen Bank.docx", parent: "research", owner: "hana", updated: daysFromToday(-7, 15, 40), bytes: 54_000 },
   { id: "overview-fig", name: "Account overview.fig", parent: "design", owner: "alex", updated: daysFromToday(-2, 10, 20), bytes: 31_800_000 },
   { id: "loyalty", name: "Loyalty app", parent: "phin", owner: "chi", updated: daysFromToday(0, 10, 17) },
   { id: "points", name: "Loyalty app – points history.fig", parent: "loyalty", owner: "chi", updated: daysFromToday(0, 10, 17), bytes: 18_400_000 },
@@ -81,14 +86,43 @@ const fileTree: Entry[] = [
 /** Root first, the folder itself last. */
 const pathTo = (tree: Entry[], id: string): Entry[] => { const e = tree.find((x) => x.id === id); return e ? [...(e.parent ? pathTo(tree, e.parent) : []), e] : []; };
 const childrenOf = (tree: Entry[], id: string) => tree.filter((e) => e.parent === id).sort((a, b) => Number(isFolder(b)) - Number(isFolder(a)) || a.name.localeCompare(b.name));
-/** Page trails link each folder's address; a picker's trail only moves inside the picker, so its crumbs are buttons. */
+/** Page trails link each folder’s address; a picker’s trail only moves inside the picker, so its crumbs are buttons. */
 const trail = (path: Entry[], links = true): BreadcrumbItemData[] => path.map((e) => ({ id: e.id, label: e.name, href: links ? `/files/${e.id}` : undefined, icon: e.parent === null ? "icon-folder-line" : undefined }));
 
 /** How many crumbs fit: all of them on a desktop page, the first and the last two when it narrows, the first and the
  *  current page on a phone-width page. */
 const collapseAt = (width: number) => (!width || width >= 800 ? undefined : width >= 480 ? 3 : 2);
 
+// ——— Shared shell parts (examples 1 and 2) ————————————————————————————————————————————————————————————————
+const studioLogo = <StudioLogo src={studio.logo} name={studio.name} />;
+const studioMark = <Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
+
+/** The account button at the end of the header’s top row, with its menu. */
+function AccountMenu() {
+  const { toast } = useToast();
+  return (
+    <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+      { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.email}` }) },
+      { id: "settings", label: "Settings", icon: "icon-settings-01-line", onSelect: () => toast({ title: "Settings", children: "Notifications, security and billing." }) },
+      { type: "separator" },
+      { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out", children: "See you soon, Alex." }) },
+    ]} />
+  );
+}
+
 // ——— 1. File browser ——————————————————————————————————————————————————————————————————————————————————
+/** The Sidebar’s places: every file, the latest ones, and the top-level folders (a folder keeps its top folder selected). */
+const fileSections: SidebarSection[] = [
+  { items: [
+    { id: "root", label: "All files", icon: "icon-folder-line" },
+    { id: "recent", label: "Recent", icon: "icon-clock-line" },
+  ] },
+  { label: "Folders", items: [
+    { id: "clients", label: "Clients", icon: "icon-briefcase-line" },
+    { id: "studio", label: "Studio", icon: "icon-home-03-line" },
+  ] },
+];
+
 function FileBrowserExample() {
   const { toast } = useToast();
   const [tree, setTree] = useState(fileTree);
@@ -96,14 +130,17 @@ function FileBrowserExample() {
   const [creating, setCreating] = useState(false);
   const [measure, width] = useWidth();
 
-  const path = pathTo(tree, folderId);
+  const recent = folderId === "recent";
+  const path = recent ? [] : pathTo(tree, folderId);
   const folder = path[path.length - 1];
-  const rows = childrenOf(tree, folderId);
+  const rows = recent ? tree.filter((e) => !isFolder(e)).sort((a, b) => +b.updated - +a.updated).slice(0, 8) : childrenOf(tree, folderId);
   const folders = rows.filter(isFolder).length;
-  const counts = [folders ? plural(folders, "folder") : "", rows.length - folders ? plural(rows.length - folders, "file") : ""].filter(Boolean).join(" · ");
+  const bytes = rows.reduce((sum, e) => sum + (e.bytes ?? 0), 0);
+  const counts = [folders ? plural(folders, "folder") : "", rows.length - folders ? plural(rows.length - folders, "file") : "", bytes ? formatBytes(bytes) : ""].filter(Boolean).join(" · ");
   const addFolder = (name: string) => setTree((list) => [...list, { id: `new-${list.length}`, name, parent: folderId, owner: "alex", updated: TODAY }]);
-  // A phone-width page shows the Name column alone and folds size and date into its caption (the icon steps up to lg).
-  const narrow = width > 0 && width < 560;
+  const download = (e: Entry) => toast({ title: "Download started", children: e.name });
+  // A phone-width window shows the Name column alone and folds size and date into its caption (the icon steps up to lg).
+  const narrow = width > 0 && width < 640;
   const allColumns: TableColumn<Entry>[] = [
     { id: "name", header: "Name", cell: (e) => (narrow
       ? <TableMedia bold media={isFolder(e) ? <Icon name="icon-folder-line" size="lg" /> : <FileIcon format={fileIconFormatOf(e.name)} size="lg" />}
@@ -114,30 +151,45 @@ function FileBrowserExample() {
     { id: "size", header: "Size", align: "right", width: "96px", cell: (e) => <TableText>{e.bytes === undefined ? "" : formatBytes(e.bytes)}</TableText> },
   ];
   const columns = narrow ? allColumns.filter((column) => column.id === "name") : allColumns;
+  const title = recent ? "Recent" : folder.name;
 
   return (
-    <PreviewPage ref={measure} margin="block">
-      <Container maxWidth="full">
-        <Stack gap="xl">
-          <PageHeader
-            // A top-level page has no trail; below it, the trail starts at Files and ends at this folder.
-            breadcrumbs={path.length > 1 ? (
+    <PreviewAppFrame frameRef={measure} height={{ min: 560, max: 760 }}>
+      <AppShell
+        // The trail starts at Files, a Master crumb with its folder icon, so the collapse toggle moves into the Sidebar’s
+        // header: beside the toggle the two icons would read as two controls in a row.
+        collapse="sidebar"
+        sidebar={(
+          <Sidebar logo={studioLogo} logoCollapsed={studioMark} sections={fileSections}
+            selectedId={recent ? "recent" : path[1]?.id ?? "root"} onItemClick={(item) => setFolderId(item.id)} />
+        )}
+        header={(
+          <AppShellHeader
+            // A top-level place has no trail; below it, the trail starts at Files and ends at this folder.
+            leading={path.length > 1 ? (
               <Breadcrumbs key={folderId} items={trail(path)} maxItems={collapseAt(width)}
                 onNavigate={(item, event) => { event.preventDefault(); setFolderId(item.id); }} />
             ) : undefined}
-            title={folder.name}
-            description={counts || undefined}
-            actions={<Button level="tertiary" onClick={() => setCreating(true)}>New folder</Button>}
+            actions={<AccountMenu />}
+            main={(
+              <PageHeader title={title} description={counts || undefined}
+                actions={recent ? undefined : <>
+                  <Button level="tertiary" startIcon="icon-folder-plus-line" onClick={() => setCreating(true)}>New folder</Button>
+                  <Button level="primary" startIcon="icon-upload-01-line" onClick={() => toast({ title: `Uploading to ${title}`, children: "Drop files anywhere on the page, or pick them from your computer." })}>Upload</Button>
+                </>} />
+            )}
           />
-          {/* The folder's table is the page's content: it lies on the page, no Card. */}
-          <Table aria-label={folder.name} rows={rows} columns={columns}
-            onRowClick={(e) => (isFolder(e) ? setFolderId(e.id) : toast({ title: "Download started", children: e.name }))}
-            empty={<EmptyState headingLevel={2} icon="icon-folder-line" title="No files yet" primaryAction={{ label: "New folder", onClick: () => setCreating(true) }}>Files shared in {folder.name} show up here.</EmptyState>} />
-        </Stack>
-      </Container>
+        )}
+      >
+        {/* The folder’s table is the page’s content: it lies on the page, no Card. */}
+        <Table aria-label={title} rows={rows} columns={columns}
+          onRowClick={(e) => (isFolder(e) ? setFolderId(e.id) : download(e))}
+          // The header’s Upload stays the page’s one Primary; the empty state offers the other way in.
+          empty={<EmptyState headingLevel={2} icon="icon-folder-line" title="No files yet" secondaryAction={{ label: "New folder", onClick: () => setCreating(true) }}>Upload files or add a folder: what you share in {title} shows up here.</EmptyState>} />
+      </AppShell>
       <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New folder" field={{ kind: "name", label: "Folder name", placeholder: "Round 2" }}
         submitLabel="Create folder" confirm={() => "Folder created"} onSubmit={addFolder} />
-    </PreviewPage>
+    </PreviewAppFrame>
   );
 }
 
@@ -151,10 +203,13 @@ const teams: { id: string; team: Team; icon: IconName }[] = [
 ];
 type Route = { section: "home" | "projects" | "people"; team?: string; person?: PersonId; project?: string };
 const teamOf = (p: Person) => teams.find((t) => t.team === p.team)!;
+const capitalised = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`;
 
 function TopBarTrailExample() {
+  const { toast } = useToast();
   const [measure, width] = useWidth();
   const [route, setRoute] = useState<Route>({ section: "people", team: "design", person: "chi" });
+  const [unseen, setUnseen] = useState(2);
   const team = teams.find((t) => t.id === route.team);
   const person = route.person ? people[route.person] : undefined;
   const project = route.project ? projects.find((p) => p.id === route.project) : undefined;
@@ -178,28 +233,36 @@ function TopBarTrailExample() {
     if (id === "home" || id === "projects" || id === "people") setRoute({ section: id });
     else if (id.startsWith("team:")) setRoute({ section: "people", team: id.slice(5) });
   };
+  /** A titled list section on the page. */
+  const section = (id: string, label: string, list: ReactNode) => (
+    <ListBox as="section" theme="shadow" aria-labelledby={id} header={<Heading level={2} textStyle="Heading/Subheading" id={id}>{label}</Heading>}>
+      <List aria-labelledby={id}>{list}</List>
+    </ListBox>
+  );
 
+  let header: { title: string; description?: string; meta?: ReactNode };
   let content: ReactNode;
   if (project) {
     // Reached from a profile or from Projects, the trail is the same: it shows where the page sits, not the way here.
     const members = project.members.map((id) => people[id]);
+    header = { title: project.name, meta: <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>, description: `${project.client} · ${project.status === "Completed" ? "Finished" : "Due"} ${formatDate(project.due)}` };
     content = (
-      <>
-        <PageHeader title={project.name} meta={<Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>} description={`${project.client} · ${project.status === "Completed" ? "Finished" : "Due"} ${formatDate(project.due)}`} />
-        <Stack gap="md" as="section" aria-labelledby={`${project.id}-team`}>
-          <Heading level={2} textStyle="Heading/4" id={`${project.id}-team`}>Team</Heading>
-          <ListBox theme="shadow">
-            <List aria-labelledby={`${project.id}-team`}>
-              {members.map((p) => <ListItem key={p.id} title={p.name} caption={p.id === project.lead ? `${p.role} · Lead` : p.role} leading={avatar(p)} onClick={() => openPerson(p)} />)}
-            </List>
-          </ListBox>
-        </Stack>
-      </>
+      <Grid columns={2} stackBelow={720} gap="md" align="start">
+        <Card theme="shadow">
+          <DescriptionList items={[
+            { term: "Client", description: project.client },
+            { term: "Lead", description: people[project.lead].name },
+            { term: "Progress", description: `${project.progress}% done` },
+            { term: "Budget", description: `${formatMoney(project.spent)} of ${formatMoney(project.budget)}` },
+          ]} />
+        </Card>
+        {section(`${project.id}-team`, "Team", members.map((p) => <ListItem key={p.id} title={p.name} caption={p.id === project.lead ? `${p.role} · Lead` : p.role} leading={avatar(p)} onClick={() => openPerson(p)} />))}
+      </Grid>
     );
   } else if (person && team) {
+    header = { title: person.name, description: `${person.role} · ${person.location}` };
     content = (
-      <>
-        <PageHeader title={person.name} description={`${person.role} · ${person.location}`} />
+      <Grid columns={2} stackBelow={720} gap="md" align="start">
         <Card theme="shadow">
           <DescriptionList items={[
             { term: "Team", description: team.team },
@@ -207,78 +270,58 @@ function TopBarTrailExample() {
             { term: "Location", description: person.location },
           ]} />
         </Card>
-        <Stack gap="md" as="section" aria-labelledby={`${person.id}-projects`}>
-          <Heading level={2} textStyle="Heading/4" id={`${person.id}-projects`}>Projects</Heading>
-          <ListBox theme="shadow">
-            <List aria-labelledby={`${person.id}-projects`}>
-              {projects.filter((p) => p.members.includes(person.id as PersonId)).map(projectRow)}
-            </List>
-          </ListBox>
-        </Stack>
-      </>
+        {section(`${person.id}-projects`, "Projects", projects.filter((p) => p.members.includes(person.id as PersonId)).map(projectRow))}
+      </Grid>
     );
   } else if (team) {
     const members = peopleList.filter((p) => p.team === team.team);
+    header = { title: team.team, description: plural(members.length, "person", "people") };
     content = (
-      <>
-        <PageHeader title={team.team} description={plural(members.length, "person", "people")} />
-        <ListBox theme="shadow">
-          <List aria-label={`${team.team} team`}>
-            {members.map((p) => <ListItem key={p.id} title={p.name} caption={p.role} leading={avatar(p)} onClick={() => openPerson(p)} />)}
-          </List>
-        </ListBox>
-      </>
+      <ListBox theme="shadow">
+        <List aria-label={`${team.team} team`}>
+          {members.map((p) => <ListItem key={p.id} title={p.name} caption={`${p.role} · ${p.location}`} leading={avatar(p)} onClick={() => openPerson(p)} />)}
+        </List>
+      </ListBox>
     );
   } else if (route.section === "people") {
+    header = { title: "People", description: `${plural(peopleList.length, "person", "people")} across ${plural(teams.length, "team")}` };
     content = (
-      <>
-        <PageHeader title="People" description={`${plural(peopleList.length, "person", "people")} across ${plural(teams.length, "team")}`} />
-        <ListBox theme="shadow">
-          <List aria-label="Teams">
-            {teams.map((t) => (
-              <ListItem key={t.id} title={t.team} caption={plural(peopleList.filter((p) => p.team === t.team).length, "person", "people")}
-                leading={<DockIcon icon={t.icon} theme="neutral" background="subtle" size="medium" />} onClick={() => setRoute({ section: "people", team: t.id })} />
-            ))}
-          </List>
-        </ListBox>
-      </>
+      <ListBox theme="shadow">
+        <List aria-label="Teams">
+          {teams.map((t) => (
+            <ListItem key={t.id} title={t.team} caption={plural(peopleList.filter((p) => p.team === t.team).length, "person", "people")}
+              leading={<DockIcon icon={t.icon} theme="neutral" background="subtle" size="medium" />} onClick={() => setRoute({ section: "people", team: t.id })} />
+          ))}
+        </List>
+      </ListBox>
     );
   } else if (route.section === "projects") {
+    header = { title: "Projects", description: `${plural(projects.length, "project")} for ${plural(5, "client")} and the studio` };
     content = (
-      <>
-        <PageHeader title="Projects" description={`${plural(projects.length, "project")} for ${plural(5, "client")} and the studio`} />
-        <ListBox theme="shadow">
-          <List aria-label="Projects">{projects.map(projectRow)}</List>
-        </ListBox>
-      </>
+      <ListBox theme="shadow">
+        <List aria-label="Projects">{projects.map(projectRow)}</List>
+      </ListBox>
     );
   } else {
-    const recent = activity.slice(0, 4);
+    header = { title: "Home", description: `Good morning, ${people.alex.name.split(" ")[0]}. Here is what changed at ${studio.name} since yesterday.` };
     content = (
-      <>
-        <PageHeader title="Home" description={`Good morning, ${people.alex.name.split(" ")[0]}. Here is what changed at ${studio.name} since yesterday.`} />
-        <Stack gap="md" as="section" aria-labelledby="home-recent">
-          <Heading level={2} textStyle="Heading/4" id="home-recent">Since yesterday</Heading>
-          <ListBox theme="shadow">
-            <List aria-labelledby="home-recent">
-              {recent.map((a) => (
-                <ListItem key={a.id} title={people[a.actor].name} caption={`${a.verb[0].toUpperCase()}${a.verb.slice(1)} ${a.object} · ${formatRelative(a.at)}`} leading={avatar(people[a.actor])} />
-              ))}
-            </List>
-          </ListBox>
-        </Stack>
-      </>
+      <Grid columns={2} stackBelow={720} gap="md" align="start">
+        {section("home-recent", "Since yesterday", activity.slice(0, 4).map((a) => (
+          <ListItem key={a.id} title={people[a.actor].name} caption={`${capitalised(a.verb)} ${a.object} · ${formatRelative(a.at)}`} leading={avatar(people[a.actor])} onClick={() => openPerson(people[a.actor])} />
+        )))}
+        {section("home-projects", "Your projects", projects.filter((p) => p.members.includes("alex")).map(projectRow))}
+      </Grid>
     );
   }
 
   return (
-    <PreviewAppFrame frameRef={measure} height={{ min: 520, max: 720 }}>
+    <PreviewAppFrame frameRef={measure} height={{ min: 560, max: 760 }}>
       <AppShell
         sidebar={(
           <Sidebar
             // The logo slot is sized to the header (24px, 20px dense): the mark fills its height, so density never outgrows it.
-            logo={<StudioLogo src={studio.logo} name={studio.name} />}
-            logoCollapsed={<Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
+            logo={studioLogo}
+            logoCollapsed={studioMark}
             sections={[{ items: [
               { id: "home", label: "Home", icon: "icon-home-03-line" },
               { id: "projects", label: "Projects", icon: "icon-folder-line" },
@@ -288,11 +331,21 @@ function TopBarTrailExample() {
             onItemClick={(item) => go(item.id)}
           />
         )}
-        // The house pattern (HR-Platform): the trail sits in the top bar, starts at Home and has no master icon. Home itself
-        // is the top level, so it shows no trail.
-        header={crumbs.length > 1 ? <Breadcrumbs key={crumbs.length} master={false} items={crumbs} maxItems={width && width < 640 ? 3 : undefined} onNavigate={(item, event) => { event.preventDefault(); go(item.id); }} /> : undefined}
+        header={(
+          <AppShellHeader
+            // The house pattern (HR-Platform): the trail leads the top row, right after the collapse toggle, so it starts
+            // at Home without the Master icon. Home itself is the top level, so it shows no trail.
+            leading={crumbs.length > 1 ? <Breadcrumbs key={crumbs.length} master={false} items={crumbs} maxItems={width && width < 640 ? 3 : undefined} onNavigate={(item, event) => { event.preventDefault(); go(item.id); }} /> : undefined}
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unseen}
+                onClick={() => { setUnseen(0); toast({ title: "2 new since yesterday", children: "Chi Tran commented on the points history · Bao Nguyen asked for a review" }); }} />
+              <AccountMenu />
+            </>}
+            main={<PageHeader {...header} />}
+          />
+        )}
       >
-        <ShellPage>{content}</ShellPage>
+        {content}
       </AppShell>
     </PreviewAppFrame>
   );
@@ -313,7 +366,7 @@ const handbook: Doc[] = [
   { id: "q3", title: "Q3 critique", parent: "y2026", updated: daysFromToday(-1, 17, 20), owner: "alex" },
   { id: "q2", title: "Q2 critique", parent: "y2026", updated: daysFromToday(-92), owner: "chi" },
 ];
-// What the Q3 critique page says: findings from the studio's own projects, each with an owner.
+// What the Q3 critique page says: findings from the studio’s own projects, each with an owner.
 const q3Findings = "Three findings came out of the Q3 critiques. Lumen Bank's transfer flow needs a review step before people confirm (Ava Chen). The Phin & Co points history reads better grouped by month (Chi Tran). The Saola Outdoor moodboard leans on product photos rather than illustration (Gia Pham).";
 /** "Yesterday at 5:20 pm" reads "updated yesterday at 5:20 pm" mid-sentence; dates and weekdays keep their capital. */
 const lower = (text: string) => (/^(Yesterday|Just now)/.test(text) ? `${text[0].toLowerCase()}${text.slice(1)}` : text);
@@ -330,7 +383,7 @@ function LongPathExample() {
     <Stack><Card theme="flat" spacing="md" width="fill" maxWidth={480} alignSelf="center" ref={measure}>
       <Stack gap="md">
         {/* Six levels: the first and the last two stay, "…" opens the rest (narrow: the first and the current page). */}
-        {/* The trail as BreadcrumbItem children (Figma's Item-List slot); an items array works the same. */}
+        {/* The trail as BreadcrumbItem children (Figma’s Item-List slot); an items array works the same. */}
         <Breadcrumbs key={docId} maxItems={width && width < 400 ? 2 : 3} onNavigate={(item, event) => { event.preventDefault(); setDocId(item.id); }}>
           {path.map((d) => <BreadcrumbItem key={d.id} item={{ id: d.id, label: d.title, href: `/handbook/${d.id}`, icon: d.parent === null ? "icon-book-open-line" : undefined }} />)}
         </Breadcrumbs>
@@ -421,7 +474,7 @@ function MoveToFolderExample() {
         primaryAction={{ label: "Move here", onClick: move, disabled: browse === fileFolder }}
         secondaryAction={{ label: "Cancel" }}>
         <Stack gap="md">
-          {/* A second trail on the screen gets its own name. It is the picker's only sign of where you are, so it takes
+          {/* A second trail on the screen gets its own name. It is the picker’s only sign of where you are, so it takes
               the Medium emphasis. */}
           <Breadcrumbs key={browse} aria-label="Folder path" emphasis="medium" items={trail(here, false)} maxItems={3} onNavigate={(item, event) => { event.preventDefault(); setBrowse(item.id); }} />
           {folders.length ? (
@@ -440,31 +493,43 @@ function MoveToFolderExample() {
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "File browser",
-    description: "Folders three and more levels deep: the trail sits above the PageHeader title, starts at Files with its icon and ends at the open folder as plain text. Crumbs are links with an href, so they open in a new tab too; the top level shows no trail.",
+    description: "Folders three and more levels deep in the studio’s Files: the trail leads the header’s top row, starts at Files with its folder icon (the Master level) and ends at the open folder as plain text. Because the trail starts with a Master crumb, the collapse toggle sits in the Sidebar (collapse=\"sidebar\"). Crumbs are links with an href, so they open in a new tab too; a top-level place shows no trail, and a narrow window collapses the middle.",
     wide: true,
     screen: true,
     render: () => <FileBrowserExample />,
     code: `const path = pathTo(folderId); // [Files, Clients, Lumen Bank, Online banking, Research]
 
-<PageHeader
-  breadcrumbs={path.length > 1 && (
-    <Breadcrumbs
-      items={path.map((f) => ({ id: f.id, label: f.name, href: \`/files/\${f.id}\`, icon: f.isRoot ? "icon-folder-line" : undefined }))}
-      maxItems={narrow ? 2 : undefined} // Files › … › Research on a phone-width page
-      onNavigate={(item, event) => { event.preventDefault(); setFolderId(item.id); }}
+<AppShell
+  collapse="sidebar" // the trail starts with the Master crumb, so the toggle moves into the Sidebar's header
+  sidebar={<Sidebar logo={logo} sections={places} selectedId={path[1]?.id ?? "root"} onItemClick={(item) => setFolderId(item.id)} />}
+  header={
+    <AppShellHeader
+      leading={path.length > 1 && (
+        <Breadcrumbs
+          items={path.map((f) => ({ id: f.id, label: f.name, href: \`/files/\${f.id}\`, icon: f.isRoot ? "icon-folder-line" : undefined }))}
+          maxItems={narrow ? 2 : undefined} // Files › … › Research in a phone-width window
+          onNavigate={(item, event) => { event.preventDefault(); setFolderId(item.id); }}
+        />
+      )}
+      actions={<Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={photo} />} items={accountItems} />}
+      main={
+        <PageHeader title={folder.name} description="1 folder · 6 files · 62.5 MB"
+          actions={<>
+            <Button level="tertiary" startIcon="icon-folder-plus-line" onClick={openNewFolder}>New folder</Button>
+            <Button level="primary" startIcon="icon-upload-01-line" onClick={upload}>Upload</Button>
+          </>} />
+      }
     />
-  )}
-  title={folder.name}
-  description="1 folder · 3 files"
-  actions={<Button level="tertiary" onClick={openNewFolder}>New folder</Button>}
-/>
-{/* The table sits on the page, no Card; on a phone-width page Name stands alone, size and date in its caption */}
-<Table aria-label={folder.name} rows={children} columns={narrow ? [nameWithCaption] : columns}
-  onRowClick={(row) => row.isFolder ? setFolderId(row.id) : download(row)} />`,
+  }
+>
+  {/* The table sits on the page, no Card; in a phone-width window Name stands alone, size and date in its caption */}
+  <Table aria-label={folder.name} rows={children} columns={narrow ? [nameWithCaption] : columns}
+    onRowClick={(row) => row.isFolder ? setFolderId(row.id) : download(row)} />
+</AppShell>`,
   },
   {
     title: "Top bar trail",
-    description: "In an AppShell the trail sits in the top bar, the way the HR platform does it: it starts at Home without the master icon, since the Sidebar already shows where you are. It follows the page’s place, not the way there: a project opened from Chi Tran’s profile reads Home › Projects › Loyalty app.",
+    description: "The house pattern (HR-Platform): the trail leads the header’s top row right after the collapse toggle, so it starts at Home without the Master icon (master={false}); the Sidebar already shows the section. It follows the page’s place, not the way there: a project opened from Chi Tran’s profile reads Home › Projects › Loyalty app.",
     wide: true,
     screen: true,
     render: () => <TopBarTrailExample />,
@@ -473,20 +538,26 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 <AppShell
   sidebar={<Sidebar sections={sections} selectedId={route.section} onItemClick={(item) => go(item.id)} />}
   header={
-    <Breadcrumbs
-      master={false}
-      maxItems={narrow ? 3 : undefined}
-      items={[
-        { id: "home", label: "Home" },
-        { id: "people", label: "People" },
-        { id: "team:design", label: "Design" },
-        { id: "person:chi", label: "Chi Tran" },
-      ]}
-      onNavigate={(item, event) => { event.preventDefault(); go(item.id); }}
+    <AppShellHeader
+      leading={
+        <Breadcrumbs
+          master={false} // beside the collapse toggle the trail starts at a Sub level
+          maxItems={narrow ? 3 : undefined}
+          items={[
+            { id: "home", label: "Home" },
+            { id: "people", label: "People" },
+            { id: "team:design", label: "Design" },
+            { id: "person:chi", label: "Chi Tran" },
+          ]}
+          onNavigate={(item, event) => { event.preventDefault(); go(item.id); }}
+        />
+      }
+      actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={2} onClick={openNotifications} /><AccountMenu /></>}
+      main={<PageHeader title="Chi Tran" description="Product Designer · Hanoi" />}
     />
   }
 >
-  <PageHeader title="Chi Tran" description="Product Designer · Hanoi" />
+  <ProfilePage person="chi" />
 </AppShell>`,
   },
   {

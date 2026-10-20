@@ -276,7 +276,9 @@ export const rows = [
         await counter.press("Enter");
         await until(async () => /label: "Reports", icon: "[\w-]+", counter: (3|"3") \}/.test(await text()), { message: "the row's counter in the page" });
         await page.locator("#studio-right").getByRole("button", { name: /^Delete Reports/ }).click();
-        await until(async () => !/label: "Reports"/.test(await text()) && /label: "Billing"/.test(await text()), { message: "Reports removed, Billing kept" });
+        // The Sidebar's own rows (the phone's BottomNavigation lists Reports too, since 2026-10-19).
+        const sidebarRows = async () => (await text()).match(/<Sidebar\b[\s\S]*?\bsections=\{\[[\s\S]*?\n\s*\]\}/)?.[0] ?? "";
+        await until(async () => !/label: "Reports"/.test(await sidebarRows()) && /label: "Billing"/.test(await sidebarRows()), { message: "Reports removed, Billing kept" });
         await until(async () => (await sidebar.locator(".zen-sidebar__item", { hasText: "Reports" }).count()) === 0, { message: "Reports gone from the Screen" });
         // The section title is Figma's Section-Title: ⌘-click selects it, Delete takes it (its rows join the section above).
         const title = sidebar.locator(".zen-sidebar__section-item", { hasText: "Admin" }).first();
@@ -468,7 +470,7 @@ export const rows = [
     },
   },
   {
-    id: "SP-16", feature: "Layers lists what the canvas selects (user 2026-10-13: \"Panel Layers vẫn hiện các lớp mà click đã bỏ qua\"): on a Dashboard page AppShell › Stack › Stack › Grid › Grid › MetricCard, no Container, no List row, no Parts row under a Stack or Grid; a selected KPI card's row is the selected one", wp: "studio click 2026-10-13",
+    id: "SP-16", feature: "Layers lists what the canvas selects (user 2026-10-13: \"Panel Layers vẫn hiện các lớp mà click đã bỏ qua\"): on a Dashboard page AppShell › Stack › Grid › Grid › MetricCard (the Body pads the page since 2026-10-19: no margin Container or its Stack), no Container, no List row, no Parts row under a Stack or Grid; a selected KPI card's row is the selected one", wp: "studio click 2026-10-13",
     timeout: 60_000,
     async run(ctx) {
       try {
@@ -487,8 +489,8 @@ export const rows = [
         for (let index = selected - 1, level = rows[selected].level; index >= 0 && level > 1; index--) if (rows[index].level < level) { chain.unshift(rows[index].name.replace(/Empty$/, "")); level = rows[index].level; }
         const joined = chain.join(" › ");
         if (/Container|(^| › )List( › |$)/.test(joined)) throw new Error(`Layers still lists a passed-through layer: ${joined}`);
-        // Stack › Stack › Grid › Grid, by Figma's names (F1 2026-10-18: every frame is "Frame N" in Layers).
-        if (!/AppShell › Frame \d+ › Frame \d+ › Frame \d+ › Frame \d+$/.test(joined)) throw new Error(`ancestors: ${joined}`);
+        // Stack › Grid › Grid, by Figma's names (F1 2026-10-18: every frame is "Frame N" in Layers).
+        if (!/AppShell › Frame \d+ › Frame \d+ › Frame \d+$/.test(joined)) throw new Error(`ancestors: ${joined}`);
         const partsUnderLayout = rows.some((row, index) => /^Parts/.test(row.name) && index > 0 && /^(Stack|Grid|Frame \d+)\b/.test(rows.slice(0, index).reverse().find((other) => other.level === row.level - 1)?.name ?? ""));
         if (partsUnderLayout) throw new Error("a Parts row under a Stack or Grid");
         return `${joined} › MetricCard`;
@@ -720,7 +722,7 @@ export const rows = [
     },
   })),
   {
-    id: "SP-22", feature: "A page from the Dashboard template on its master layout (user, 2026-10-15): Screen › Sidebar, Top bar and Page header read the template's own (its Page header is in the content); Page header off hides it (kept, 2026-10-16), on shows the same one; never two Sidebars or Page headers", wp: "master layout 2026-10-15",
+    id: "SP-22", feature: "A page from the Dashboard template on its master layout (user, 2026-10-15): Screen › Sidebar, Top bar and Page header read the template's own (its Page header is the AppShellHeader's Main row); Page header off hides it (kept, 2026-10-16), on shows the same one; never two Sidebars or Page headers", wp: "master layout 2026-10-15",
     timeout: 120_000,
     async run(ctx) {
       const { page, id } = await pageFromTemplate(ctx, "Dashboard");
@@ -732,17 +734,16 @@ export const rows = [
       const toggle = (prop) => inspectorRow(page, prop).getByRole("switch");
       const on = async (prop) => (await toggle(prop).getAttribute("aria-checked")) === "true";
       await toggle("sidebar").waitFor({ state: "visible", timeout: 5000 });
-      const read = [await on("sidebar"), await on("header"), await on("sections")];
+      const read = [await on("sidebar"), await on("leading"), await on("main")];
       if (read.join() !== "true,true,true") throw new Error(`Sidebar, Top bar, Page header read ${read.join(", ")}`);
-      await toggle("sections").click();
-      // The header's own attributes hold JSX (actions={<>…}), so its `hidden` is read from the element's text.
-      const headerHidden = async () => /\shidden(?=[\s/>])/.test(await firstElementText(page, id, "PageHeader"));
-      await until(async () => (await headerHidden()) && (await count("PageHeader")) === 1 && (await frame.locator(".zen-page-header").count()) === 0, { message: "the template's Page header hidden, kept in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
-      await until(async () => !(await on("sections")), { message: "Page header reads off" });
-      await toggle("sections").click();
-      await until(async () => !(await headerHidden()) && (await count("PageHeader")) === 1, { message: "the same Page header shown again" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await toggle("main").click();
+      // Off keeps the PageHeader in the AppShellHeader's main and lists the slot in its hiddenSlots (Figma's boolean).
+      await until(async () => /hiddenSlots=\{\["main"\]\}/.test(await text()) && (await count("PageHeader")) === 1 && (await frame.locator(".zen-page-header").count()) === 0, { message: "the template's Page header hidden, kept in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => !(await on("main")), { message: "Page header reads off" });
+      await toggle("main").click();
+      await until(async () => !/hiddenSlots/.test(await text()) && (await count("PageHeader")) === 1, { message: "the same Page header shown again" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       await until(async () => (await frame.locator(".zen-page-header").count()) === 1 && (await frame.locator(".zen-sidebar").count()) === 1, { message: "one Page header and one Sidebar on the Screen" });
-      return "Sidebar · Top bar · Page header read on; Page header off → hidden, on → the same one";
+      return "Sidebar · Top bar · Page header read on; Page header off → hiddenSlots, on → the same one";
     },
   },
 ];

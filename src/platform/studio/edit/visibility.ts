@@ -28,7 +28,7 @@ export type HiddenLayer = {
   drawn: boolean;
   /** Its element ancestors, nearest first ("file:line:col"): Layers puts it under the first one it lists. */
   ancestors: string[];
-  /** The slot prop it is in (`headerActions`), when it sits in a prop. */
+  /** The slot prop it is in (`actions`), when it sits in a prop. */
   prop?: string;
   /** The element drawn before it in the same parent (and prop), if any. */
   after: string | null;

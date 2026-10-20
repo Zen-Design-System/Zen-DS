@@ -2,19 +2,24 @@
  * Template: detail page (an invoice in a billing app). Copy it into your app, then replace the sample data and handlers.
  * Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  *
- * - Top bar: Breadcrumbs back to Invoices, Notifications (a docked Side Panel) and the account menu.
- * - PageHeader: the invoice number with its status Badge and what is due, a More Menu (Download PDF, Duplicate,
- *   Void → negative Dialog) and one Primary, Record payment → ModalForm; Tabs Overview / Activity.
+ * - AppShell, Sidebar pattern. The header's top row: Breadcrumbs back to Invoices, Notifications (a docked Side Panel)
+ *   and the account menu. Its Main row: the PageHeader with the invoice number, its status Badge and what is due, a More
+ *   Menu (Download PDF, Duplicate, Void → negative Dialog) and one Primary, Record payment → ModalForm. Its Sections
+ *   row: Tabs Overview / Activity.
  * - Main column + aside: Overview shows the line items Table with DescriptionList totals and the notes, Activity the
  *   invoice's timeline. The aside stays beside both tabs: the amount due, an overdue InlineMessage and the client.
  * - Recording a payment updates the status, the amounts and the timeline, and its Toast offers Undo.
- * - Phone: the More actions open in a Bottom Sheet instead of a Menu.
+ * - Phone and upright tablet (the shell's mobile layout, below 1024px): a child screen. A compact TopNavigation with Back
+ *   to Invoices, the invoice number and More (a Bottom Sheet), the Tabs under it; the status and what is due open the
+ *   page; Record payment is the Action Bar at the bottom. Phones also drop the Qty and Unit price columns.
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
+  ActionBar,
   AppShell,
   AppShellAccount,
   AppShellAction,
+  AppShellHeader,
   Avatar,
   Badge,
   BottomSheet,
@@ -22,7 +27,6 @@ import {
   Breadcrumbs,
   Button,
   Card,
-  Container,
   DateField,
   DescriptionList,
   Dialog,
@@ -48,6 +52,8 @@ import {
   TableText,
   Tabs,
   Text,
+  TopNavigation,
+  useAppShell,
   useFormState,
   useToast,
   useZen,
@@ -126,10 +132,26 @@ const nav: SidebarSection[] = [
   ] },
 ];
 
+/* ── Layout parts ────────────────────────────────────────────────────── */
+/** Only in the shell's mobile layout (below 1024px), where the TopNavigation shows the title alone: the rest of the
+ *  PageHeader (the status and what is due) opens the page instead. */
+function MobileOnly({ children }: { children: ReactNode }) {
+  return useAppShell()?.layout === "mobile" ? <>{children}</> : null;
+}
+/** A Menu's commands in an action Bottom Sheet (popovers are for pointers): no separators and nothing that's off;
+ *  choosing one closes the sheet and runs it. */
+function ActionSheet({ title, entries, open, onOpenChange }: { title: string; entries: MenuEntry[]; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const items = entries.filter((entry): entry is MenuItemData => entry.type !== "separator" && entry.type !== "group" && !entry.disabled);
+  return (
+    <BottomSheet type="action" open={open} onOpenChange={onOpenChange} title={title}
+      items={items.map(({ id, label, icon, danger }) => ({ id, label, icon, destructive: danger }))}
+      onSelect={(item) => { onOpenChange(false); items.find((entry) => entry.id === item.id)?.onSelect?.(); }} />
+  );
+}
+
 export function DetailTemplate() {
   const { toast, dismiss } = useToast();
-  // Phones drop the Qty and Unit price columns (the item's caption carries "2 × $1,800.00" instead) and open More in a
-  // Bottom Sheet.
+  // Phones drop the Qty and Unit price columns (the item's caption carries "2 × $1,800.00" instead).
   const compact = useZen()?.breakpoint === "mobile";
   const [tab, setTab] = useState("overview");
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -203,9 +225,14 @@ export function DetailTemplate() {
     { id: "void", label: "Void invoice", icon: "icon-slash-circle-01-line", danger: true, disabled: voided || paid > 0,
       caption: voided ? "This invoice is void" : paid > 0 ? "Invoices with payments can't be voided" : undefined, onSelect: () => setConfirmVoid(true) },
   ];
-  /** Phone: the same actions in a Bottom Sheet (the ones that are off stay out). */
-  const sheetItems = moreItems.filter((entry): entry is MenuItemData => entry.type !== "separator" && entry.type !== "group" && !entry.disabled);
-  const sheetTitle = `Invoice ${invoice.number}`;
+  const title = `Invoice ${invoice.number}`;
+  const description = `${client.name} · ${summary}`;
+  const statusBadge = <Badge theme={status.theme} background="subtle">{status.label}</Badge>;
+  /** The invoice's views: the header's Sections row on a desktop, the TopNavigation's control bar (full width) on a phone. */
+  const sectionTabs = (fullWidth: boolean) => (
+    <Tabs aria-label="Invoice sections" idPrefix="invoice" value={tab} onValueChange={setTab} fullWidth={fullWidth}
+      items={[{ id: "overview", label: "Overview" }, { id: "activity", label: "Activity", badge: activity.length }]} />
+  );
 
   const columns: TableColumn<Line>[] = compact ? [
     { id: "item", header: "Item", cell: (row) => <TableText bold caption={`${row.qty} × ${money(row.price)}`}>{row.item}</TableText> },
@@ -228,16 +255,38 @@ export function DetailTemplate() {
           onItemClick={(item) => notInDemo(item.label)}
         />
       )}
-      header={<Breadcrumbs master={false} items={[{ id: "invoices", label: "Invoices" }, { id: invoice.number, label: invoice.number }]} onNavigate={(item, event) => { event.preventDefault(); notInDemo(String(item.label)); }} />}
-      headerActions={<>
-        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={inboxOpen} onClick={() => { setUnread(0); setInboxOpen((open) => !open); }} />
-        <Menu align="end" trigger={<AppShellAccount name={signedIn} theme="teal" />} items={[
-          { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => notInDemo("Profile") },
-          { type: "separator" },
-          { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
-        ]} />
-      </>}
-      aside={inboxOpen ? (
+      header={(
+        <AppShellHeader
+          // The top row: the trail back to Invoices (no Master crumb beside the collapse toggle), then utilities only.
+          leading={<Breadcrumbs master={false} items={[{ id: "invoices", label: "Invoices" }, { id: invoice.number, label: invoice.number }]} onNavigate={(item, event) => { event.preventDefault(); notInDemo(String(item.label)); }} />}
+          actions={<>
+            <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={inboxOpen} onClick={() => { setUnread(0); setInboxOpen((open) => !open); }} />
+            <Menu align="end" trigger={<AppShellAccount name={signedIn} theme="teal" />} items={[
+              { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => notInDemo("Profile") },
+              { type: "separator" },
+              { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
+            ]} />
+          </>}
+          // The Main row: the page's own header, its More menu and one Primary; the invoice's views under it.
+          main={(
+            <PageHeader title={title} meta={statusBadge} description={description}
+              actions={<>
+                <Menu align="end" trigger={<IconButton aria-label={`Actions for ${invoice.number}`} icon="icon-dots-horizontal-line" />} items={moreItems} />
+                {balance > 0 ? <Button level="primary" startIcon="icon-bank-note-01-line" onClick={recordPayment}>Record payment</Button> : null}
+              </>} />
+          )}
+          sections={sectionTabs(false)}
+        />
+      )}
+      // Mobile layout: a child screen. Back replaces the trail, More keeps the menu's actions, the Tabs sit under the
+      // title and Record payment moves to the Action Bar; Notifications and the account stay on the root screens.
+      topNavigation={(
+        <TopNavigation type="compact-alt" title={title} controlBar={sectionTabs(true)}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => notInDemo("Invoices") /* your router: navigate(-1) */ }}
+          trailing={[{ icon: "icon-dots-horizontal-line", label: `Actions for ${invoice.number}`, onClick: () => setMoreSheet(true) }]} />
+      )}
+      actionBar={balance > 0 ? <ActionBar primaryAction={{ label: "Record payment", onClick: recordPayment }} /> : undefined}
+      sidePanel={inboxOpen ? (
         <SidePanel type="standard" title="Notifications" open onOpenChange={setInboxOpen}>
           <List aria-label="Notifications">
             {notifications.map((item) => <ListItem key={item.id} title={item.title} caption={item.caption} leading={<DockIcon icon={item.icon} background="subtle" size="md" />} />)}
@@ -245,115 +294,104 @@ export function DetailTemplate() {
         </SidePanel>
       ) : undefined}
     >
-      <Container>
-        <Stack gap="lg" paddingY="sm">
-          <PageHeader
-            title={`Invoice ${invoice.number}`}
-            meta={<Badge theme={status.theme} background="subtle">{status.label}</Badge>}
-            description={`${client.name} · ${summary}`}
-            actions={<>
-              {compact
-                ? <IconButton aria-label={`Actions for ${invoice.number}`} icon="icon-dots-horizontal-line" aria-haspopup="dialog" aria-expanded={moreSheet} onClick={() => setMoreSheet(true)} />
-                : <Menu align="end" trigger={<IconButton aria-label={`Actions for ${invoice.number}`} icon="icon-dots-horizontal-line" />} items={moreItems} />}
-              {balance > 0 ? <Button level="primary" startIcon="icon-bank-note-01-line" onClick={recordPayment}>Record payment</Button> : null}
-            </>}
-            tabs={<Tabs aria-label="Invoice sections" idPrefix="invoice" value={tab} onValueChange={setTab}
-              items={[{ id: "overview", label: "Overview" }, { id: "activity", label: "Activity", badge: activity.length }]} />}
-          />
-
-          {/* Main column + aside; the aside stays beside both tabs. Tablets put its two cards side by side under the
-              main column, phones stack everything. */}
-          <Grid columns={{ mobile: 1, tablet: 1, desktop: "minmax(0, 2fr) minmax(300px, 1fr)" }} gap="lg" align="start">
-            <Stack gap="lg">
-              <TabPanel idPrefix="invoice" id="overview" hidden={tab !== "overview"}>
-                <Stack gap="lg">
-                  <Card as="section" aria-labelledby="invoice-lines-title">
-                    <Stack gap="md">
-                      <Heading level={2} textStyle="Heading/Subheading" id="invoice-lines-title">Line items</Heading>
-                      <Table aria-labelledby="invoice-lines-title" rows={lines} getRowId={(row) => row.id} columns={columns} />
-                      {/* The same inset as the table cells, so terms and amounts line up with the columns above; the
-                          short totals stay on one line at every width. */}
-                      <Box paddingX="md">
-                        <DescriptionList stackBelow={0} items={[
-                          { term: "Subtotal", description: money(subtotal) },
-                          { term: `Discount (${DISCOUNT_RATE * 100}%)`, description: `−${money(discount)}` },
-                          { term: `Tax (${TAX_RATE * 100}%)`, description: money(tax) },
-                          { term: "Total", description: money(total), emphasis: true },
-                        ]} />
-                      </Box>
-                    </Stack>
-                  </Card>
-
-                  <Card as="section" aria-labelledby="invoice-notes-title">
-                    <Stack gap="md">
-                      <Heading level={2} textStyle="Heading/Subheading" id="invoice-notes-title">Notes</Heading>
-                      <DescriptionList layout="stacked" items={[
-                        { term: "Message to client", description: "Thanks for trusting us with phase 2 of the Lotus Rewards app. This invoice covers the work we delivered in August." },
-                        { term: "Payment instructions", description: `Bank transfer to ${workspace.name} JSC, Vietcombank account ending 3456. Use ${invoice.number} as the reference.` },
-                      ]} />
-                    </Stack>
-                  </Card>
-                </Stack>
-              </TabPanel>
-
-              <TabPanel idPrefix="invoice" id="activity" hidden={tab !== "activity"}>
-                <ListBox theme="shadow">
-                  <List aria-label="Invoice activity">
-                    {activity.map((event) => <ListItem key={event.id} title={event.title} caption={event.caption} leading={<DockIcon icon={event.icon} theme={event.theme ?? "neutral"} background="subtle" size="md" />} />)}
-                  </List>
-                </ListBox>
-              </TabPanel>
-            </Stack>
-
-            <Grid as="aside" aria-label="Payment and client" columns={{ mobile: 1, tablet: 2, desktop: 1 }} gap="lg" align="start">
-              <Card as="section" aria-labelledby="invoice-payment-title">
-                <Stack gap="md">
-                  <Heading level={2} textStyle="Heading/Subheading" id="invoice-payment-title">Payment</Heading>
-                  <Metric size="md" label="Amount due" value={money(balance)} icon="icon-bank-note-01-line" />
-                  {voided ? (
-                    <InlineMessage theme="neutral" title="Invoice voided" action={{ label: "Duplicate", onClick: duplicate }}>
-                      It can't be paid and stays in your records. Duplicate it to bill the work again.
-                    </InlineMessage>
-                  ) : balance === 0 ? (
-                    <InlineMessage theme="positive" title="Paid in full">The last payment arrived {payments.at(-1)?.date}.</InlineMessage>
-                  ) : (
-                    <InlineMessage theme="warning" title={`${invoice.daysOverdue} days overdue`} action={{ label: "Send reminder", onClick: remind }}>
-                      {paid > 0 ? `${money(balance)} is still unpaid.` : `${client.name} hasn't paid yet.`} The last reminder went out {lastReminder}.
-                    </InlineMessage>
-                  )}
-                  <DescriptionList stackBelow={0} items={[
-                    { term: "Issued", description: invoice.issued },
-                    { term: "Due", description: invoice.due },
-                    { term: "Terms", description: invoice.terms },
-                    { term: "Invoice total", description: money(total) },
-                    { term: "Paid", description: money(paid) },
-                  ]} />
-                </Stack>
-              </Card>
-
-              <Card as="section" aria-labelledby="invoice-client-title">
-                <Stack gap="md">
-                  <Heading level={2} textStyle="Heading/Subheading" id="invoice-client-title">Client</Heading>
-                  {/* The row pads 0 at the sides, so its text lines up with the heading; its fill hangs 12px outside, inside the card padding. */}
-                  <List aria-labelledby="invoice-client-title">
-                    <ListItem title={client.name} caption={client.since} onClick={() => notInDemo(client.name)}
-                      leading={<Avatar size="md" shape="square" theme="orange" background="subtle" alt="">{client.initials}</Avatar>}
-                      trailing={<Icon name="icon-chevron-right-line" decorative />} />
-                  </List>
-                  <DescriptionList layout="stacked" items={[
-                    { term: "Contact", description: client.contact },
-                    { term: "Email", description: client.email, action: (
-                      <IconButton appearance="flat" level="primary" size="sm" aria-label="Copy email" icon="icon-copy-line"
-                        onClick={() => { void navigator.clipboard?.writeText(client.email).catch(() => undefined); toast({ title: "Email copied" }); }} />
-                    ) },
-                    { term: "Billing address", description: client.address },
-                  ]} />
-                </Stack>
-              </Card>
-            </Grid>
-          </Grid>
+      {/* The Body already pads the page margins: the content sits straight in it, no Container. */}
+      <MobileOnly>
+        <Stack gap="xs" align="start">
+          {statusBadge}
+          <Text tone="base">{description}</Text>
         </Stack>
-      </Container>
+      </MobileOnly>
+      {/* Main column + aside; the aside stays beside both tabs. Tablets put its two cards side by side under the
+          main column, phones stack everything. */}
+      <Grid columns={{ mobile: 1, tablet: 1, desktop: "minmax(0, 2fr) minmax(300px, 1fr)" }} gap="lg" align="start">
+        <Stack gap="lg">
+          <TabPanel idPrefix="invoice" id="overview" hidden={tab !== "overview"}>
+            <Stack gap="lg">
+              <Card as="section" aria-labelledby="invoice-lines-title">
+                <Stack gap="md">
+                  <Heading level={2} textStyle="Heading/Subheading" id="invoice-lines-title">Line items</Heading>
+                  <Table aria-labelledby="invoice-lines-title" rows={lines} getRowId={(row) => row.id} columns={columns} />
+                  {/* The same inset as the table cells, so terms and amounts line up with the columns above; the
+                      short totals stay on one line at every width. */}
+                  <Box paddingX="md">
+                    <DescriptionList stackBelow={0} items={[
+                      { term: "Subtotal", description: money(subtotal) },
+                      { term: `Discount (${DISCOUNT_RATE * 100}%)`, description: `−${money(discount)}` },
+                      { term: `Tax (${TAX_RATE * 100}%)`, description: money(tax) },
+                      { term: "Total", description: money(total), emphasis: true },
+                    ]} />
+                  </Box>
+                </Stack>
+              </Card>
+
+              <Card as="section" aria-labelledby="invoice-notes-title">
+                <Stack gap="md">
+                  <Heading level={2} textStyle="Heading/Subheading" id="invoice-notes-title">Notes</Heading>
+                  <DescriptionList layout="stacked" items={[
+                    { term: "Message to client", description: "Thanks for trusting us with phase 2 of the Lotus Rewards app. This invoice covers the work we delivered in August." },
+                    { term: "Payment instructions", description: `Bank transfer to ${workspace.name} JSC, Vietcombank account ending 3456. Use ${invoice.number} as the reference.` },
+                  ]} />
+                </Stack>
+              </Card>
+            </Stack>
+          </TabPanel>
+
+          <TabPanel idPrefix="invoice" id="activity" hidden={tab !== "activity"}>
+            <ListBox theme="shadow">
+              <List aria-label="Invoice activity">
+                {activity.map((event) => <ListItem key={event.id} title={event.title} caption={event.caption} leading={<DockIcon icon={event.icon} theme={event.theme ?? "neutral"} background="subtle" size="md" />} />)}
+              </List>
+            </ListBox>
+          </TabPanel>
+        </Stack>
+
+        <Grid as="aside" aria-label="Payment and client" columns={{ mobile: 1, tablet: 2, desktop: 1 }} gap="lg" align="start">
+          <Card as="section" aria-labelledby="invoice-payment-title">
+            <Stack gap="md">
+              <Heading level={2} textStyle="Heading/Subheading" id="invoice-payment-title">Payment</Heading>
+              <Metric size="md" label="Amount due" value={money(balance)} icon="icon-bank-note-01-line" />
+              {voided ? (
+                <InlineMessage theme="neutral" title="Invoice voided" action={{ label: "Duplicate", onClick: duplicate }}>
+                  It can't be paid and stays in your records. Duplicate it to bill the work again.
+                </InlineMessage>
+              ) : balance === 0 ? (
+                <InlineMessage theme="positive" title="Paid in full">The last payment arrived {payments.at(-1)?.date}.</InlineMessage>
+              ) : (
+                <InlineMessage theme="warning" title={`${invoice.daysOverdue} days overdue`} action={{ label: "Send reminder", onClick: remind }}>
+                  {paid > 0 ? `${money(balance)} is still unpaid.` : `${client.name} hasn't paid yet.`} The last reminder went out {lastReminder}.
+                </InlineMessage>
+              )}
+              <DescriptionList stackBelow={0} items={[
+                { term: "Issued", description: invoice.issued },
+                { term: "Due", description: invoice.due },
+                { term: "Terms", description: invoice.terms },
+                { term: "Invoice total", description: money(total) },
+                { term: "Paid", description: money(paid) },
+              ]} />
+            </Stack>
+          </Card>
+
+          <Card as="section" aria-labelledby="invoice-client-title">
+            <Stack gap="md">
+              <Heading level={2} textStyle="Heading/Subheading" id="invoice-client-title">Client</Heading>
+              {/* The row pads 0 at the sides, so its text lines up with the heading; its fill hangs 12px outside, inside the card padding. */}
+              <List aria-labelledby="invoice-client-title">
+                <ListItem title={client.name} caption={client.since} onClick={() => notInDemo(client.name)}
+                  leading={<Avatar size="md" shape="square" theme="orange" background="subtle" alt="">{client.initials}</Avatar>}
+                  trailing={<Icon name="icon-chevron-right-line" decorative />} />
+              </List>
+              <DescriptionList layout="stacked" items={[
+                { term: "Contact", description: client.contact },
+                { term: "Email", description: client.email, action: (
+                  <IconButton appearance="flat" level="primary" size="sm" aria-label="Copy email" icon="icon-copy-line"
+                    onClick={() => { void navigator.clipboard?.writeText(client.email).catch(() => undefined); toast({ title: "Email copied" }); }} />
+                ) },
+                { term: "Billing address", description: client.address },
+              ]} />
+            </Stack>
+          </Card>
+        </Grid>
+      </Grid>
 
       <ModalForm open={recording} onOpenChange={setRecording} title="Record payment" description={`${client.name} · ${money(dueAtOpen)} due`} onSubmit={payment.handleSubmit}
         primaryAction={{ label: "Record payment" }} secondaryAction={{ label: "Cancel" }}>
@@ -363,9 +401,8 @@ export function DetailTemplate() {
         <InputField label="Reference" labelOptional autoComplete="off" placeholder="FT26273018" {...payment.field("reference")} />
       </ModalForm>
 
-      <BottomSheet type="action" open={moreSheet} onOpenChange={setMoreSheet} title={sheetTitle}
-        items={sheetItems.map(({ id, label, icon, danger }) => ({ id, label, icon, destructive: danger }))}
-        onSelect={(item) => { setMoreSheet(false); sheetItems.find((entry) => entry.id === item.id)?.onSelect?.(); }} />
+      {/* Mobile layout: the More menu's actions (the ones that are off stay out). */}
+      <ActionSheet title={title} entries={moreItems} open={moreSheet} onOpenChange={setMoreSheet} />
 
       <Dialog open={confirmVoid} onOpenChange={setConfirmVoid} theme="negative" title={`Void invoice ${invoice.number}?`}
         description={`${client.name} can no longer pay it, and it stays in your records as void. You can't undo this.`}

@@ -313,7 +313,7 @@ const ladder: Array<{ group: string; rows: Rule[] }> = [
 ];
 
 const outlineRules = [
-  "Exactly one h1 per page or screen, present at all times, naming it — and document.title matches it (the h1 text, then the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1; a compact app bar title is the screen's h1 and keeps its bar style, Body/Extra/Bold (harness: heading/h1-is-heading-1).",
+  "Exactly one h1 per page or screen, present at all times, naming it — and document.title matches it (the h1 text, then the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, or a larger Display / Display-Extra style on an emphasis page (a home, a welcome), never smaller; a compact app bar title is the screen's h1 and keeps its bar style, Body/Extra/Bold (harness: heading/h1-is-heading-1).",
   "Going deeper, step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Every page or screen starts at its h1. A component's headings take their level from where it is placed (headingLevel); fixed regions such as the Sidebar and Drawer keep the same level on every page.",
   "Inside one content area — the page body, a card, an overlay — a heading is never larger than the heading it sits under; the app bar title and overlay titles are compared only within their own layer. The same kind of content takes the same style on a page, whatever its level, and content that looks subordinate is marked up one level deeper.",
   "Sections (h2 Heading/4) and the cards or groups in them (h3 Heading/Subheading) are told apart by spacing and containment — the gap above a section, the card's surface — not by a new size.",

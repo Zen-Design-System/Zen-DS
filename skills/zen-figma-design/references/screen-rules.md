@@ -62,6 +62,7 @@ Components own their inner padding and gap; never change them. Between elements,
 
 | Relationship | Variable | px |
 | --- | --- | --- |
+| Two lines of one compact item: a name or value and the caption right under it (a stat over its label, a name over its meta line) | `Spacing/Gap/3XSmall` | 2 |
 | Pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags | `Spacing/Gap/2XSmall` | 4 |
 | A thing and its label or description; controls in one toolbar row (Chips, icon buttons, Search) | `Spacing/Gap/XSmall` | 8 |
 | A group acting as one: text buttons side by side, choices in a group | `Spacing/Gap/Small` | 12 |

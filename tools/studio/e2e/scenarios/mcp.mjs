@@ -35,7 +35,9 @@ const undoStack = (page) => page.evaluate(() => JSON.parse(sessionStorage.getIte
 async function pageWithContent(ctx) {
   const made = await newPage(ctx, { device: "desktop" });
   const tree = (await call(ctx, "get_tree")).text;
-  const content = /Stack #(\S+) gap="md" padding="xl"/.exec(tree)?.[1];
+  // The content Stack of a blank desktop page: inside the master layout the AppShell Body pads the page, so it has no
+  // padding of its own (a bare Screen's keeps padding="xl").
+  const content = /^\s*Stack #(\S+) gap="md"(?: padding="xl")?$/m.exec(tree)?.[1];
   if (!content) throw new Error(`no content Stack in get_tree:\n${tree.slice(0, 600)}`);
   return { ...made, tree, content };
 }

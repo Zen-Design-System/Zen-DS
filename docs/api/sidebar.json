@@ -30,7 +30,7 @@
           "name": "collapsed",
           "type": "boolean",
           "required": false,
-          "default": "false",
+          "default": null,
           "description": "The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it\n from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps\n it (controlled).",
           "deprecated": null
         },
@@ -176,6 +176,14 @@
           "required": false,
           "default": "false",
           "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the\n page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it.",
+          "deprecated": null
+        },
+        {
+          "name": "shadow",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes). Yes: the Surface/Default Sidebar\ntakes Shadow/Bottom/Level-1 (a Canvas/Default page whose cards are shadowed). `shadow={false}` is Shadow=No:\nSurface/Default with no shadow (◇ Master-Layout · Example A2 · Tiles, 15904:2813, beside flat tiles). Unlike\n`background=\"flat\"` (Surface/Flat, which is the page colour in dark mode), the Sidebar stays a Surface in both\nmodes. Alt, Flat, the small density and the workspace panel carry no shadow either way.",
           "deprecated": null
         },
         {

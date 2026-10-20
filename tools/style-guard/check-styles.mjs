@@ -351,9 +351,17 @@ function checkTsx(file, src) {
   // <Text textStyle="Heading/…">Title</Text> renders a <p>/<span>: a visual heading without a place in the outline.
   for (const m of src.matchAll(/<Text\b([^>]*?)textStyle="(Heading\/(?:1|2|3|4|Subheading))"([^>]*)>([\s\S]{0,120}?)<\/Text>/g)) {
     const children = m[4].trim(); const attrs = m[1] + m[3];
-    const value = /^\{[^}]*(value|count|total|amount|price|percent|stat|metric|number|sum|\.length)[^}]*\}$/i.test(children) || /^[\s\d$€£¥%.,+\-−×/:]+$/.test(children);
-    const wordmark = /logo=\{?\s*$/.test(src.slice(Math.max(0, m.index - 30), m.index)) || /\bbrand|logo|wordmark\b/i.test(attrs);
-    if (value || wordmark || !children) continue;
+    // A value: a number (with its unit: "12 days", "3 pg/ml") or an expression that reads one (a count, a date).
+    const value = /^\{[^}]*(value|count|total|amount|price|percent|stat|metric|number|sum|date|time|\.length)[^}]*\}$/i.test(children) || /^[\s\d$€£¥%.,+\-−×/:]+$/.test(children) || /^[$€£¥]?\d[\d.,]*\s?[\p{L}%°/]+(?:\s[\p{L}/]+)?$/u.test(children);
+    // A wordmark: a logo prop's text, a brand-named Text, or the name right after its mark (an Avatar, Icon or Dock-Icon
+    // that leads a brand row: "[N] Northwind").
+    const lead = src.slice(Math.max(0, m.index - 240), m.index).trimEnd();
+    const wordmark = /logo=\{?\s*$/.test(src.slice(Math.max(0, m.index - 30), m.index)) || /\bbrand|logo|wordmark\b/i.test(attrs)
+      || (/\bas="span"/.test(attrs) && (/<(Avatar|Icon|DockIcon)\b(?:[^<>]|=>)*?(?:\/>|>[^<]*<\/\1>)$/.test(lead) || /<\w*(Brand|Logo)\b[^<>]*>$/.test(lead)));
+    // A styled run inside a Heading (a two-tone title: "Morning <span>Alexander</span>") is part of that heading.
+    const before = src.slice(0, m.index);
+    const inHeading = before.lastIndexOf("<Heading") > before.lastIndexOf("</Heading>");
+    if (value || wordmark || inHeading || !children) continue;
     const lineNo = lineOf(src, m.index);
     if (allowedAt(lines, lineNo, RULE["type/visual-heading"].allow)) continue;
     findings.push({ file, line: lineNo, rule: "type/visual-heading", message: `<Text textStyle="${m[2]}"> around "${children.replace(/\s+/g, " ").slice(0, 40)}" looks like a title but is not a heading → <Heading level={…} textStyle="${m[2]}">`, context: `<Text textStyle="${m[2]}">${children.slice(0, 40)}</Text>` });

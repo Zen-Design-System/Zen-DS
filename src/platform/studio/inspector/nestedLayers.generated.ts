@@ -21,15 +21,17 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Leading": "Icon"
   },
   "AppShell": {
-    "Close": "IconButton",
-    "Collapse": "IconButton",
-    "Menu": "IconButton"
+    "Close": "IconButton"
   },
   "AppShellAccount": {
     "Avatar": "Avatar"
   },
   "AppShellAction": {
     "Button": "IconButton"
+  },
+  "AppShellHeader": {
+    "Collapse": "IconButton",
+    "Menu": "IconButton"
   },
   "AutocompleteField": {
     "Help-Text": "InputHelpText",

@@ -17,7 +17,7 @@ const check = (label, actual, expected) => {
 const ok = (label, value) => check(label, Boolean(value), true);
 
 const FILE = "local:phone-test.zen.tsx";
-const NAMES = ["AppShell", "AppShellAccount", "AppShellAction", "Badge", "BottomNavigation", "Breadcrumbs", "Button", "Menu", "PageHeader", "Search", "Sidebar", "SidebarMenuItem", "Stack", "Tabs", "Text", "TopNavigation"];
+const NAMES = ["AppShell", "AppShellAccount", "AppShellAction", "AppShellHeader", "Badge", "BottomNavigation", "Breadcrumbs", "Button", "Menu", "PageHeader", "Search", "Sidebar", "SidebarMenuItem", "Stack", "Tabs", "Text", "TopNavigation"];
 const componentModules = new Map(NAMES.map((name) => [name, name]));
 const options = (text) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(text) });
 
@@ -50,9 +50,7 @@ const SIDEBAR = `          sidebar={<Sidebar aria-label="Main" selectedId="expen
             <SidebarMenuItem id="reports" label="Reports" icon="icon-pie-chart-01-line" />
           </Sidebar>}`;
 const ROOT = page({ shellProps: `${SIDEBAR}
-          header={<Search aria-label="Search" placeholder="Search expenses" />}
-          headerActions={<><Badge theme="neutral">Pro</Badge><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} onClick={proto.toast("4 new")} /><Menu align="end" items={[]} trigger={<AppShellAccount name="Khoa Dang" />} /></>}
-          sections={<PageHeader title="Expenses" actions={<Button level="primary" onClick={proto.open("new-expense")}>New expense</Button>} />}` });
+          header={<AppShellHeader leading={<Search aria-label="Search" placeholder="Search expenses" />} actions={<><Badge theme="neutral">Pro</Badge><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} onClick={proto.toast("4 new")} /><Menu align="end" items={[]} trigger={<AppShellAccount name="Khoa Dang" />} /></>} main={<PageHeader title="Expenses" actions={<Button level="primary" onClick={proto.open("new-expense")}>New expense</Button>} />} />}` });
 const screenOf = (text) => parsePage(text).board.children.find((child) => child.kind === "element" && child.name === "Screen");
 
 /* ── a root ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -70,9 +68,7 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
 /* ── over budget: More takes the last place ─────────────────────────────────────────────────────────────────────── */
 {
   const busy = page({ shellProps: `${SIDEBAR}
-          header={<Search aria-label="Search" placeholder="Search" />}
-          headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><AppShellAction icon="icon-settings-01-line" aria-label="Settings" /></>}
-          sections={<PageHeader title="Expenses" actions={<><Button level="tertiary">Export</Button><Button level="primary">New expense</Button></>} />}` });
+          header={<AppShellHeader leading={<Search aria-label="Search" placeholder="Search" />} actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><AppShellAction icon="icon-settings-01-line" aria-label="Settings" /></>} main={<PageHeader title="Expenses" actions={<><Button level="tertiary">Export</Button><Button level="primary">New expense</Button></>} />} />}` });
   const code = phoneChromeCode(screenOf(busy));
   const trailing = code.topNavigation.match(/label: "([^"]+)"/g).map((item) => item.slice(8, -1));
   check("busy: three places, More holds the rest", trailing, ["Search", "New expense", "More"]);
@@ -82,9 +78,7 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
 /* ── a child ────────────────────────────────────────────────────────────────────────────────────────────────────── */
 {
   const child = page({ shellProps: `${SIDEBAR}
-          header={<Breadcrumbs master={false} items={[{ id: "expenses", label: "Expenses" }, { id: "x-1024", label: "EXP-1024" }]} />}
-          headerActions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} />}
-          sections={<PageHeader title="EXP-1024" actions={<Button level="primary">Approve</Button>} tabs={<Tabs aria-label="Sections" items={[{ id: "a", label: "Overview" }, { id: "b", label: "Activity" }]} />} />}` });
+          header={<AppShellHeader leading={<Breadcrumbs master={false} items={[{ id: "expenses", label: "Expenses" }, { id: "x-1024", label: "EXP-1024" }]} />} actions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} />} main={<PageHeader title="EXP-1024" actions={<Button level="primary">Approve</Button>} tabs={<Tabs aria-label="Sections" items={[{ id: "a", label: "Overview" }, { id: "b", label: "Activity" }]} />} />} />}` });
   const code = phoneChromeCode(screenOf(child));
   check("child: kind", code.kind, "child");
   ok("child: compact bar, the bar title, no large title", /<TopNavigation type="compact-alt" title="EXP-1024"/.test(code.topNavigation) && !/largeTitle/.test(code.topNavigation));
@@ -97,7 +91,7 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
 /* ── a Sidebar written as data (HR) ─────────────────────────────────────────────────────────────────────────────── */
 {
   const hr = page({ shellProps: `          sidebar={<Sidebar selectedId="people" sections={[{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "profile", label: "My profile", icon: "icon-user-square-line" }] }, { label: "Modules", items: [{ id: "people", label: "People", icon: "icon-users-line" }, { id: "documents", label: "Documents", icon: "icon-file-doc-line", children: [{ id: "a", label: "Nested" }] }] }]} />}
-          sections={<PageHeader title="People" />}` });
+          header={<AppShellHeader main={<PageHeader title="People" />} />}` });
   const code = phoneChromeCode(screenOf(hr));
   ok("data sidebar: four top-level rows, groups flattened, sub-rows skipped", /items=\{\[\{ id: "home"[^\]]*\{ id: "profile"[^\]]*\{ id: "people"[^\]]*\{ id: "documents", label: "Documents", icon: "icon-file-doc-line" \}\]\}/.test(code.bottomNavigation) && /value="people"/.test(code.bottomNavigation) && !/Nested/.test(code.bottomNavigation));
 }
@@ -124,14 +118,14 @@ function synced(before, text) {
   ok("open: a starting top bar and a missing bottom bar are drawn from the desktop and linked", /phoneLinked=\{\["topNavigation", ?"bottomNavigation"\]\}/.test(opened) && /topNavigation=\{<TopNavigation type="alt"/.test(opened) && /bottomNavigation=\{<BottomNavigation value="expenses"/.test(opened));
   check("open: nothing left to do", planPhoneSync(null, opened), []);
   // The desktop title changes: the linked bar follows.
-  const renamed = opened.replace('sections={<PageHeader title="Expenses"', 'sections={<PageHeader title="Spending"');
+  const renamed = opened.replace('main={<PageHeader title="Expenses"', 'main={<PageHeader title="Spending"');
   const followed = synced(opened, renamed);
   ok("follow: the bar takes the desktop's new title", /topNavigation=\{<TopNavigation type="alt" title="Spending" largeTitle="Spending"/.test(followed));
   // The bar edited on the phone: it is the person's own, the desktop no longer redraws it.
   const own = followed.replace(/topNavigation=\{<TopNavigation type="alt" title="Spending"/, 'topNavigation={<TopNavigation type="alt" title="My spending"');
   const kept = synced(followed, own);
   ok("unlink: an edit of the bar takes it off the linked list", /phoneLinked=\{\["bottomNavigation"\]\}/.test(kept) && /title="My spending"/.test(kept));
-  const later = synced(kept, kept.replace('sections={<PageHeader title="Spending"', 'sections={<PageHeader title="Costs"'));
+  const later = synced(kept, kept.replace('main={<PageHeader title="Spending"', 'main={<PageHeader title="Costs"'));
   ok("unlink: the desktop's next change leaves the person's bar alone", /title="My spending"/.test(later) && !/<TopNavigation[^>]*title="Costs"/.test(later));
   // Reset to desktop: the part back on the list, the sync draws it.
   const reset = synced(later, later.replace('phoneLinked={["bottomNavigation"]}', 'phoneLinked={["bottomNavigation", "topNavigation"]}'));

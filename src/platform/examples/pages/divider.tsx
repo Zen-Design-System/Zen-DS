@@ -1,6 +1,9 @@
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { ActionBar } from "../../../components/ActionBar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
@@ -9,16 +12,19 @@ import { Divider } from "../../../components/Divider";
 import { DockIcon } from "../../../components/DockIcon";
 import { Form, FormActions, FormFieldset } from "../../../components/Form";
 import { InputField, SelectField } from "../../../components/Input";
-import { Box, Container, Grid, Stack } from "../../../components/Layout";
-import { List, ListItem } from "../../../components/ListItem";
+import { Box, Grid, Stack } from "../../../components/Layout";
+import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
-import { Heading, Text } from "../../../components/Text";
+import { Sidebar, SidebarMenuItem, type SidebarSection } from "../../../components/Sidebar";
+import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
-import { files, formatBytes, formatMoney, formatRelative, formatTime, daysFromToday, people, projects, studio } from "../data";
+import { activity, files, formatBytes, formatMoney, formatRelative, formatTime, daysFromToday, me, people, projects, studio } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 import "./divider.css";
@@ -102,6 +108,40 @@ function SectionIntro({ title, children }: { title: string; children: string }) 
 /** Each settings section: its heading beside the fields on a desktop, above them on a phone. */
 const sectionColumns = { mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" } as const;
 
+// ——— The studio app's chrome (the desktop screen) ————————————————————————————————————————————————
+// "Settings sections" is a page of the Đìzai Studio app: one AppShell (pattern sidebar) with the studio's Sidebar
+// (Settings selected), the header's top row (the trail, notifications, the account) and the PageHeader in its Main row.
+// The Body pads the page, so the form starts at the page margin without a Container.
+const studioPlaces: SidebarSection[] = [{ items: [
+  { id: "home", label: "Home", icon: "icon-home-03-line" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line" },
+  { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+  { id: "people", label: "People", icon: "icon-users-line" },
+] }];
+const unread = activity.filter((item) => item.unread);
+
+/** The top row's utilities: notifications (the count clears once read) and the account menu, last. */
+function StudioActions() {
+  const { toast } = useToast();
+  const [count, setCount] = useState(unread.length);
+  const latest = unread[0];
+  return (
+    <>
+      <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={count} onClick={() => {
+        setCount(0);
+        toast({ title: count ? plural(count, "new notification") : "You're all caught up", children: `${people[latest.actor].name} ${latest.verb} ${latest.object} · ${formatRelative(latest.at)}` });
+      }} />
+      <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+        { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+        { id: "settings", label: "Settings", icon: "icon-settings-01-line", onSelect: () => toast({ title: "You're in Settings", children: "Studio settings apply to everyone." }) },
+        { type: "separator" },
+        { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+      ]} />
+    </>
+  );
+}
+
 /** Default dividers between the sections of a settings page; save at the bottom, not in the header. */
 function StudioSettingsExample() {
   const { toast } = useToast();
@@ -111,55 +151,75 @@ function StudioSettingsExample() {
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const dirty = JSON.stringify(saved) !== JSON.stringify(draft);
   const set = <K extends keyof StudioSettings>(key: K, value: StudioSettings[K]) => setDraft((current) => ({ ...current, [key]: value }));
+  const notHere = (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the studio settings." });
   // Save and Cancel go quiet once nothing is left to save, so focus moves back to the top of the form, not to <body>.
   const backToTop = () => window.requestAnimationFrame(() => firstFieldRef.current?.focus());
   const save = () => {
     if (!draft.name.trim()) { setNameError("Enter the studio name"); return; }
     setNameError(undefined);
     setSaved(draft);
-    toast({ type: "positive", title: "Settings saved" });
+    toast({ type: "positive", title: "Settings saved", children: `Everyone in the ${studio.workspace} sees them now.` });
     backToTop();
   };
   const discard = () => { setDraft(saved); setNameError(undefined); backToTop(); };
   return (
-    <Container maxWidth="md">
-      <Stack paddingY="xl" gap="xl">
-        <PageHeader title="Studio settings" description={`These apply to everyone in the ${studio.workspace}.`} />
-        <Form onSubmit={save} gap="xl" aria-label="Studio settings">
-          <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
-            <SectionIntro title="Studio profile">How the studio appears on invoices and in the client portal.</SectionIntro>
-            <Stack gap="md">
-              <InputField ref={firstFieldRef} label="Studio name" value={draft.name} onValueChange={(value) => set("name", value)} error={nameError} />
-              <InputField label="Website" value={draft.website} onValueChange={(value) => set("website", value)} />
-              <SelectField label="Time zone" options={timeZones} value={draft.timeZone} onValueChange={(value) => set("timeZone", value)} />
-            </Stack>
-          </Grid>
-          <Divider />
-          <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
-            <SectionIntro title="Time tracking">Timesheets feed the weekly client reports.</SectionIntro>
-            <Stack gap="md">
-              <FormFieldset legend="Timesheets">
-                <Checkbox label="Remind people to log time on Friday afternoon" checked={draft.reminders} onCheckedChange={(value) => set("reminders", value)} />
-                <Checkbox label="Lock timesheets once the client report is sent" checked={draft.lockTimesheets} onCheckedChange={(value) => set("lockTimesheets", value)} />
-              </FormFieldset>
-              <SelectField label="Round entries to" options={roundings} value={draft.rounding} onValueChange={(value) => set("rounding", value)} />
-            </Stack>
-          </Grid>
-          <Divider />
-          <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
-            <SectionIntro title="Invoices">Defaults for every new invoice. You can change them per invoice.</SectionIntro>
-            <Stack gap="md">
-              <SelectField label="Payment terms" options={paymentTerms} value={draft.terms} onValueChange={(value) => set("terms", value)} />
-              <InputField label="Invoice number prefix" value={draft.prefix} onValueChange={(value) => set("prefix", value)} helpText={`Next invoice: ${draft.prefix}0144`} />
-            </Stack>
-          </Grid>
-          <FormActions>
-            <Button level="tertiary" disabled={!dirty} onClick={discard}>Cancel</Button>
-            <Button level="primary" type="submit" disabled={!dirty}>Save changes</Button>
-          </FormActions>
-        </Form>
-      </Stack>
-    </Container>
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            sections={studioPlaces} selectedId="settings" onItemClick={(item) => { if (item.id !== "settings") notHere(item.label); }}
+            footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+        )}
+        header={(
+          <AppShellHeader
+            // A Sub-level trail beside the collapse toggle (no Master crumb next to it).
+            leading={<Breadcrumbs master={false} items={[{ id: "settings", label: "Settings" }, { id: "studio", label: "Studio" }]}
+              onNavigate={(_, event) => { event.preventDefault(); notHere("Settings"); }} />}
+            actions={<StudioActions />}
+            main={<PageHeader title="Studio settings" description={`These apply to everyone in the ${studio.workspace}.`} />}
+          />
+        )}
+      >
+        {/* A form reads best at a readable width: the Body already pads the page, so the form only stops at 960 and
+            starts at the page margin, in line with the title above it. */}
+        <Box maxWidth={960}>
+          <Form onSubmit={save} gap="xl" aria-label="Studio settings">
+            <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
+              <SectionIntro title="Studio profile">How the studio appears on invoices and in the client portal.</SectionIntro>
+              <Stack gap="md">
+                <InputField ref={firstFieldRef} label="Studio name" value={draft.name} onValueChange={(value) => set("name", value)} error={nameError} />
+                <InputField label="Website" value={draft.website} onValueChange={(value) => set("website", value)} />
+                <SelectField label="Time zone" options={timeZones} value={draft.timeZone} onValueChange={(value) => set("timeZone", value)} />
+              </Stack>
+            </Grid>
+            <Divider />
+            <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
+              <SectionIntro title="Time tracking">Timesheets feed the weekly client reports.</SectionIntro>
+              <Stack gap="md">
+                <FormFieldset legend="Timesheets">
+                  <Checkbox label="Remind people to log time on Friday afternoon" checked={draft.reminders} onCheckedChange={(value) => set("reminders", value)} />
+                  <Checkbox label="Lock timesheets once the client report is sent" checked={draft.lockTimesheets} onCheckedChange={(value) => set("lockTimesheets", value)} />
+                </FormFieldset>
+                <SelectField label="Round entries to" options={roundings} value={draft.rounding} onValueChange={(value) => set("rounding", value)} />
+              </Stack>
+            </Grid>
+            <Divider />
+            <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
+              <SectionIntro title="Invoices">Defaults for every new invoice. You can change them per invoice.</SectionIntro>
+              <Stack gap="md">
+                <SelectField label="Payment terms" options={paymentTerms} value={draft.terms} onValueChange={(value) => set("terms", value)} />
+                <InputField label="Invoice number prefix" value={draft.prefix} onValueChange={(value) => set("prefix", value)} helpText={`Next invoice: ${draft.prefix}0144`} />
+              </Stack>
+            </Grid>
+            <Divider />
+            <FormActions>
+              <Button level="tertiary" disabled={!dirty} onClick={discard}>Cancel</Button>
+              <Button level="primary" type="submit" disabled={!dirty}>Save changes</Button>
+            </FormActions>
+          </Form>
+        </Box>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -311,11 +371,30 @@ function SignInExample() {
   );
 }
 
+/** The Phin & Co app's roots on a phone; Orders is the root the receipt is pushed from. */
+const phinRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "menu", label: "Menu", icon: "icon-coffee-cup-line", selectedIcon: "icon-coffee-cup-solid" },
+  { id: "orders", label: "Orders", icon: "icon-receipt-line", selectedIcon: "icon-receipt-solid" },
+  { id: "rewards", label: "Rewards", icon: "icon-gift-01-line", selectedIcon: "icon-gift-01-solid" },
+];
+/** Orders from the last 7 days, then the rest: one group each. */
+const weekStart = daysFromToday(-6, 0, 0).getTime();
+const orderGroups = [
+  { id: "week", label: "This week", orders: phinOrders.filter((o) => o.at.getTime() >= weekStart) },
+  { id: "earlier", label: "Earlier", orders: phinOrders.filter((o) => o.at.getTime() < weekStart) },
+];
+/** A caption of whole values: it wraps between them, never inside a time or an order number (no-break spaces and hyphens). */
+const wholeValues = (...values: string[]) => values.map((value) => value.replace(/ /g, "\u00a0").replace(/-/g, "\u2011")).join(" · ");
+
 /** Phone receipt, pushed from the order history: Default dividers between its blocks, a dashed tear line before the
     loyalty stub. */
 function MobileReceiptExample() {
+  const { toast } = useToast();
   const screen = usePhoneScreen();
   const screenRef = useRef<HTMLDivElement>(null);
+  const baseId = useId();
+  const [root, setRoot] = useState("orders");
   const [openId, setOpenId] = useState<string | null>(phinOrders[0].id);
   const [emailing, setEmailing] = useState(false);
   const order = phinOrders.find((candidate) => candidate.id === openId);
@@ -323,60 +402,73 @@ function MobileReceiptExample() {
   // Each screen is its own PlatformPhone (key): it opens at the top and its bar measures the fold again.
   if (!order) {
     return (
-      <PlatformPhone key="orders" label="Phin & Co orders" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
-        {screen.anchor}
-        {/* Rows pad 0 at the sides: the screen's margin (lg) insets them, and sm above and below keeps the first and last fills clear. */}
-        <Box paddingX="lg" paddingY="xs">
-          <List aria-label="Orders">
-            {phinOrders.map((row) => (
-              <ListItem key={row.id} data-order={row.id} leading={<DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" size="medium" />}
-                title={row.store} caption={`${formatRelative(row.at)} · Order ${row.id}`}
-                trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(totalsOf(row).paid, true)}</Text>}
-                onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(row.id))} />
-            ))}
-          </List>
-        </Box>
+      // The Orders root on the AppShell's mobile Bar: the large title folds as the orders scroll under it, and the bottom
+      // bar casts a shadow, so each group is a Shadow ListBox on the grey Canvas; the kickers line up with the row text.
+      <PlatformPhone key="orders" label="Phin & Co orders" canvas="default" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef}
+            trailing={[{ icon: "icon-search-medium-line", label: "Search orders", onClick: () => toast({ title: "Search orders", children: "By drink, store or date." }) }]} />}
+          bottomNavigation={<BottomNavigation aria-label="Phin & Co" showLabels items={phinRoots} value={root} onValueChange={setRoot} />}
+        >
+          {screen.anchor}
+          {orderGroups.map((group) => (
+            <Stack key={group.id} as="section" gap="xs" aria-labelledby={`${baseId}-${group.id}`}>
+              <Box paddingX="lg"><Heading level={2} id={`${baseId}-${group.id}`} textStyle="Body/Small/Bold" tone="light">{group.label}</Heading></Box>
+              <ListBox theme="shadow">
+                <List aria-labelledby={`${baseId}-${group.id}`}>
+                  {group.orders.map((row) => (
+                    <ListItem key={row.id} data-order={row.id} leading={<DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" size="medium" />}
+                      title={row.store} caption={wholeValues(formatRelative(row.at), `Order ${row.id}`)}
+                      trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(totalsOf(row).paid, true)}</Text>}
+                      onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(row.id))} />
+                  ))}
+                </List>
+              </ListBox>
+            </Stack>
+          ))}
+        </AppShell>
       </PlatformPhone>
     );
   }
 
   const { subtotal, discount, paid, points } = totalsOf(order);
   return (
-    <PlatformPhone key={order.id} label="Phin & Co receipt" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="Receipt" scrollRef={screenRef}
-        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
-      footer={<ActionBar position="static" primaryAction={{ label: "Email receipt", onClick: () => setEmailing(true) }} />}>
-      {screen.anchor}
-      {/* Body padding lg (20) = the bar's margin; the store, the items and the stub are sections of the screen (lg). */}
-      <Stack paddingX="lg" paddingY="lg" gap="lg">
-        {/* The store is a List row with no side padding of its own, so the screen's lg puts it level with the items. */}
-        <List aria-label="Store">
-          {/* zen-detached: ListItem · Zen Studio */}
-          <Stack as="li" direction="column" align="center" gap="md" paddingY="sm" justify="start">
-            <DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" size="2xl" />
-            <Stack gap="2xs" style={{ flex: 1 }}>
-              <Heading level={2} textStyle="Heading/2" truncate align="center">{order.store}</Heading>
-              <Text as="span" textStyle="Body/Small/Regular" tone="light" align="center">
-                {`${formatRelative(order.at)} · Order ${order.id}`}
-              </Text>
+    // A pushed screen: the compact bar with Back, the receipt as one flat slip on the grey Canvas, and its actions in the
+    // Action bar (Figma Bottom=Actions), Email receipt on top.
+    <PlatformPhone key={order.id} label="Phin & Co receipt" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="Receipt" scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
+        actionBar={<ActionBar primaryAction={{ label: "Email receipt", onClick: () => setEmailing(true) }}
+          secondaryAction={{ label: "Order again", onClick: () => toast({ title: "Order added to your cart", children: order.items.map((id) => menu[id].name).join(", ") }) }} />}
+      >
+        {screen.anchor}
+        {/* The slip: the store, the items and the stub are its groups, lg apart, with a divider between each. */}
+        <Card theme="flat" as="article" aria-label={`Receipt for order ${order.id}`}>
+          <Stack gap="lg">
+            <Stack direction="column" align="center" gap="md">
+              <DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" size="2xl" />
+              <Stack gap="2xs" align="center">
+                <Heading level={2} textStyle="Heading/2" truncate align="center">{order.store}</Heading>
+                <Text as="span" textStyle="Body/Small/Regular" tone="light" align="center">{`${formatRelative(order.at)} · Order ${order.id}`}</Text>
+              </Stack>
+            </Stack>
+            <Divider />
+            <DescriptionList items={[
+              // A no-break space keeps "× 1" with its item when a long name wraps.
+              ...order.items.map((id) => ({ id, term: `${menu[id].name}\u00a0×\u00a01`, description: formatMoney(menu[id].price, true) })),
+              { id: "subtotal", term: "Subtotal", description: formatMoney(subtotal, true) },
+              { id: "discount", term: "Member discount (10%)", description: `−${formatMoney(discount, true)}` },
+              { id: "total", term: "Paid with Phin wallet", description: formatMoney(paid, true), emphasis: true },
+            ]} />
+            <Divider dashed decorative />
+            <Stack gap="xs">
+              <Text textStyle="Body/Base/Bold">{`You earned ${points} points`}</Text>
+              <Text textStyle="Body/Small/Regular" tone="base">{`Balance after this order: ${balanceAfter(order).toLocaleString("en-US")} points`}</Text>
             </Stack>
           </Stack>
-        </List>
-        <Divider />
-        <DescriptionList items={[
-          // A no-break space keeps "× 1" with its item when a long name wraps.
-          ...order.items.map((id) => ({ id, term: `${menu[id].name}\u00a0×\u00a01`, description: formatMoney(menu[id].price, true) })),
-          { id: "subtotal", term: "Subtotal", description: formatMoney(subtotal, true) },
-          { id: "discount", term: "Member discount (10%)", description: `−${formatMoney(discount, true)}` },
-          { id: "total", term: "Paid with Phin wallet", description: formatMoney(paid, true), emphasis: true },
-        ]} />
-        <Divider dashed decorative />
-        <Stack gap="xs">
-          <Text textStyle="Body/Base/Bold">{`You earned ${points} points`}</Text>
-          <Text textStyle="Body/Small/Regular" tone="base">{`Balance after this order: ${balanceAfter(order).toLocaleString("en-US")} points`}</Text>
-        </Stack>
-      </Stack>
+        </Card>
+      </AppShell>
       <DemoFieldDialog open={emailing} onOpenChange={setEmailing} title="Email receipt" description={`Order ${order.id} at ${order.store}.`}
         field={{ kind: "email", label: "Email address", placeholder: "name@company.com" }} submitLabel="Send receipt" confirm={(email) => `Receipt sent to ${email}`} />
     </PlatformPhone>
@@ -390,28 +482,39 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Settings sections",
     wide: true,
     screen: true,
-    description: "Default dividers split a long settings page into its sections, each with a heading and a one-line purpose on the left. Cancel and Save changes sit under the last divider and wake up once something changes.",
+    description: "Default dividers split the studio's settings page into its sections, each with a heading and a one-line purpose on the left. The page sits in the studio's AppShell, whose Body pads it, so the form only stops at a readable width; Cancel and Save changes sit under the last divider and wake up once something changes.",
     render: () => <StudioSettingsExample />,
-    code: `<PageHeader title="Studio settings" description="These apply to everyone in the Đìzai Studio workspace." />
-<Form onSubmit={save} gap="xl">
-  {/* Heading beside the fields; stacked on a phone. */}
-  <Grid columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start">
-    <SectionIntro title="Studio profile">How the studio appears on invoices and in the client portal.</SectionIntro>
-    <Stack gap="md">
-      <InputField label="Studio name" value={draft.name} onValueChange={(value) => set("name", value)} />
-      <SelectField label="Time zone" options={timeZones} value={draft.timeZone} onValueChange={(value) => set("timeZone", value)} />
-    </Stack>
-  </Grid>
-  <Divider />
-  <Grid …>{/* Time tracking */}</Grid>
-  <Divider />
-  <Grid …>{/* Invoices */}</Grid>
-  <Divider />
-  <FormActions>
-    <Button level="tertiary" disabled={!dirty} onClick={discard}>Cancel</Button>
-    <Button level="primary" type="submit" disabled={!dirty}>Save changes</Button>
-  </FormActions>
-</Form>`,
+    code: `<AppShell
+  sidebar={<Sidebar logo={logo} sections={places} selectedId="settings" onItemClick={go} footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />}
+  header={<AppShellHeader
+    leading={<Breadcrumbs master={false} items={[{ id: "settings", label: "Settings" }, { id: "studio", label: "Studio" }]} onNavigate={go} />}
+    actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} />
+      <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={account} /></>}
+    main={<PageHeader title="Studio settings" description="These apply to everyone in the Đìzai Studio workspace." />} />}
+>
+  {/* The Body pads the page; the form stops at a readable width. */}
+  <Box maxWidth={960}>
+    <Form onSubmit={save} gap="xl">
+      {/* Heading beside the fields; stacked on a phone. */}
+      <Grid columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start">
+        <SectionIntro title="Studio profile">How the studio appears on invoices and in the client portal.</SectionIntro>
+        <Stack gap="md">
+          <InputField label="Studio name" value={draft.name} onValueChange={(value) => set("name", value)} />
+          <SelectField label="Time zone" options={timeZones} value={draft.timeZone} onValueChange={(value) => set("timeZone", value)} />
+        </Stack>
+      </Grid>
+      <Divider />
+      <Grid …>{/* Time tracking */}</Grid>
+      <Divider />
+      <Grid …>{/* Invoices */}</Grid>
+      <Divider />
+      <FormActions>
+        <Button level="tertiary" disabled={!dirty} onClick={discard}>Cancel</Button>
+        <Button level="primary" type="submit" disabled={!dirty}>Save changes</Button>
+      </FormActions>
+    </Form>
+  </Box>
+</AppShell>`,
   },
   {
     title: "Toolbar groups",
@@ -469,24 +572,27 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Mobile receipt",
-    description: "A receipt pushed from the order history, with Back to the list. Default dividers separate the store, the items and the loyalty stub; the stub hangs under a dashed tear line, which steps up to Subtle by itself. The total's High rule comes from the Description List.",
+    description: "A receipt pushed from the Phin & Co app's order history, with Back to the Orders root and Email receipt / Order again in the AppShell's Action bar. Default dividers separate the store, the items and the loyalty stub on one flat slip; the stub hangs under a dashed tear line, which steps up to Subtle by itself. The total's High rule comes from the Description List.",
     render: () => <MobileReceiptExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-// The Orders root's clickable rows sit in the screen margin: <Box paddingX="lg" paddingY="xs"><List>…</List></Box>.
-<PlatformPhone key={order.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title="Receipt" scrollRef={screenRef}
-    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToOrders }} />}
-  footer={<ActionBar position="static" primaryAction={{ label: "Email receipt", onClick: openEmail }} />}>
-  <Stack paddingX="lg" paddingY="lg" gap="lg">
-    <List aria-label="Store">
-      <ListItem leading={storeIcon} title="Phin & Co Nguyen Hue" caption="18 minutes ago · Order A-247" />
-    </List>
-    <Divider />
-    <DescriptionList items={[…items, { term: "Paid with Phin wallet", description: "$7.02", emphasis: true }]} />
-    <Divider dashed decorative />
-    <Text textStyle="Body/Base/Bold">You earned 70 points</Text>
-  </Stack>
+// One PlatformPhone per screen (key); the Orders root has the bottom bar, the receipt the Action bar.
+<PlatformPhone key={order.id} canvas="default" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Receipt" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToOrders }} />}
+    actionBar={<ActionBar primaryAction={{ label: "Email receipt", onClick: openEmail }} secondaryAction={{ label: "Order again", onClick: orderAgain }} />}
+  >
+    <Card theme="flat" as="article" aria-label="Receipt for order A-247">
+      <Stack gap="lg">
+        <Stack align="center" gap="md">…the store…</Stack>
+        <Divider />
+        <DescriptionList items={[…items, { term: "Paid with Phin wallet", description: "$7.02", emphasis: true }]} />
+        <Divider dashed decorative />
+        <Text textStyle="Body/Base/Bold">You earned 70 points</Text>
+      </Stack>
+    </Card>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

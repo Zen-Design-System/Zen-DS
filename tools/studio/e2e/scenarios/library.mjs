@@ -68,7 +68,8 @@ export const rows = [
       for (let i = 0; i < 3; i += 1) await page.keyboard.press("Escape");
       await library(page, "Components", "badge");
       await assets(page).locator("[data-asset]", { hasText: /^Badge/ }).first().click();
-      await until(async () => /<Stack gap="md" padding="(lg|xl)">[\s\S]*<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge inside the Screen's Stack" });
+      // The blank page's content Stack: unpadded inside the master layout (its AppShell Body pads), padded on a bare Screen.
+      await until(async () => /<Stack gap="md"(?: padding="(?:lg|xl)")?>[\s\S]*<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge inside the Screen's Stack" });
       await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
       await until(async () => (await selectedName(page)) === "Badge", { message: "the new Badge selected" });
       return "Badge into the Screen's Stack, selected";
@@ -99,7 +100,7 @@ export const rows = [
       await until(async () => (await activeOption(page)) === "Badge", { message: "Badge focused" });
       await page.keyboard.press("Enter");
       await until(async () => (await quick(page).count()) === 0, { message: "Quick insert closed" });
-      await until(async () => /<Stack gap="md" padding="(lg|xl)">[\s\S]*<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge in the Stack" });
+      await until(async () => /<Stack gap="md"(?: padding="(?:lg|xl)")?>[\s\S]*<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge in the Stack" });
       await until(async () => (await selectedName(page)) === "Badge", { message: "the Badge selected" });
       return `"${where}" → Badge added and selected`;
     },
