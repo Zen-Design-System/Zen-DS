@@ -23,6 +23,7 @@ import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-metric.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
+import { instanceLayerPaths } from "./instance-paths.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
@@ -250,9 +251,8 @@ const swapName = async (id) => {
   const component = typeof id === "string" ? await figma.getNodeByIdAsync(id) : null;
   return component ? pageOwn(ownerOf(component)) || component.name : id;
 };
-// An instance of the page's own main or set (figma-push Use): its variant and its text, boolean and swap values.
-const readLocalInstance = async (node, owner) => {
-  const out = { type: "INSTANCE", id: node.id, name: node.name, local: pageOwn(owner) };
+// An instance's variant and its text, boolean and swap values (its component properties).
+const instanceValues = async (node) => {
   const variant = {};
   const props = {};
   for (const [key, entry] of Object.entries(node.componentProperties || {})) {
@@ -261,8 +261,87 @@ const readLocalInstance = async (node, owner) => {
     else if (entry.type === "INSTANCE_SWAP") props[name] = await swapName(entry.value);
     else if (entry.type === "TEXT" || entry.type === "BOOLEAN") props[name] = entry.value;
   }
-  if (Object.keys(variant).length) out.variant = variant;
-  if (Object.keys(props).length) out.props = props;
+  return { variant, props };
+};
+// A layer's child indices from an instance (figma-push layerOverrides' "at": an instance's layers mirror its main's).
+// By id: a layer findAll gave inside an instance is not the same object as its parent's child (indexOf: -1, 2026-10-20).
+const indexPath = (layer, top) => {
+  const at = [];
+  for (let at_ = layer; at_ && at_.id !== top.id; at_ = at_.parent) {
+    const index = at_.parent ? at_.parent.children.findIndex((child) => child.id === at_.id) : -1;
+    if (index < 0) return null;
+    at.unshift(index);
+  }
+  return at;
+};
+const plainJson = (value) => JSON.stringify(value, (key, entry) => (key === "id" || key === "key" ? undefined : entry));
+// An instance of the page's own main or set (figma-push Use): its variant and values; its overrides of its main's
+// layers (instance.overrides: words, visibility, colour) by child indices, and the values a nested instance of the
+// page's own components has that its counterpart in the main has not (Figma lists no override for a nested instance
+// switched to another variant, checked 2026-10-20); what it puts in its main's slots, when that differs from its main's
+// own content.
+const readLocalInstance = async (node, owner) => {
+  const out = { type: "INSTANCE", id: node.id, name: node.name, local: pageOwn(owner) };
+  const own = await instanceValues(node);
+  if (Object.keys(own.variant).length) out.variant = own.variant;
+  if (Object.keys(own.props).length) out.props = own.props;
+  const overrides = [];
+  let changed = [];
+  try { changed = ("overrides" in node && node.overrides) || []; } catch (e) { changed = []; }
+  for (const entry of changed) {
+    if (entry.id === node.id) continue;
+    const layer = await figma.getNodeByIdAsync(entry.id);
+    if (!layer) continue;
+    // A layer in a slot is the instance's own content (below), not an override of its main.
+    let inSlot = layer.type === "SLOT";
+    for (let up = layer.parent; up && up.id !== node.id && !inSlot; up = up.parent) inSlot = up.type === "SLOT";
+    if (inSlot) continue;
+    const at = indexPath(layer, node);
+    if (!at) continue;
+    const fields = entry.overriddenFields || [];
+    const change = { at };
+    if (fields.includes("characters") && layer.type === "TEXT") change.characters = layer.characters;
+    if (fields.includes("visible")) change.visible = layer.visible;
+    if (fields.includes("fills") && "fills" in layer && Array.isArray(layer.fills)) {
+      const paint = layer.fills.find((fill) => fill.visible !== false);
+      const name = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
+      if (name) change.fill = name;
+    }
+    if (Object.keys(change).length > 1) overrides.push(change);
+  }
+  const main = await node.getMainComponentAsync();
+  // The main's layer at the same child indices (an instance's layers mirror its main's).
+  const counterpart = (at) => { let theirs = main; for (const index of at) theirs = theirs && "children" in theirs ? theirs.children[index] : null; return theirs; };
+  for (const layer of node.findAll((each) => each.type === "INSTANCE")) {
+    // Not a slot's content (the instance's own layers, below); a nested instance inside a nested one counts (Chip/Icon).
+    let inSlot = false;
+    for (let up = layer.parent; up && up.id !== node.id && !inSlot; up = up.parent) inSlot = up.type === "SLOT";
+    if (inSlot || !pageOwn(ownerOf(await layer.getMainComponentAsync()))) continue;
+    const at = indexPath(layer, node);
+    const theirs = at ? counterpart(at) : null;
+    if (!theirs || theirs.type !== "INSTANCE") continue;
+    const mine = await instanceValues(layer);
+    const base = await instanceValues(theirs);
+    const differ = (values, from) => Object.fromEntries(Object.entries(values).filter(([name, value]) => from[name] !== value));
+    const variant = differ(mine.variant, base.variant);
+    const props = differ(mine.props, base.props);
+    if (!Object.keys(variant).length && !Object.keys(props).length) continue;
+    let change = overrides.find((each) => each.at.join(".") === at.join("."));
+    if (!change) { change = { at }; overrides.push(change); }
+    if (Object.keys(variant).length) change.variant = variant;
+    if (Object.keys(props).length) change.props = props;
+  }
+  if (overrides.length) out.layerOverrides = overrides;
+  const slots = [];
+  for (const slot of node.findAll((layer) => layer.type === "SLOT")) {
+    const at = indexPath(slot, node) || [];
+    let theirs = main;
+    for (const index of at) theirs = theirs && "children" in theirs ? theirs.children[index] : null;
+    const children = (await Promise.all(slot.children.map(read))).filter(Boolean);
+    const defaults = theirs && "children" in theirs ? (await Promise.all(theirs.children.map(read))).filter(Boolean) : [];
+    if (plainJson(children) !== plainJson(defaults)) slots.push({ name: slot.name, children });
+  }
+  if (slots.length) out.slots = slots;
   return out;
 };
 const read = async (node) => {
@@ -341,6 +420,11 @@ const DRAWING = new Set(["VECTOR", "RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLY
 const SHAPE_READ = new Set(["RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "VECTOR", "BOOLEAN_OPERATION"]);
 // A child that fills its auto-layout parent on an axis (Figma's Fill container), or one placed outside the auto layout
 // (Ignore auto layout): its constraints and its box in the parent's.
+// Figma's mask (isMask, Use as mask): the layer masks the ones above it in its parent (Zen Box mask, its first layer).
+const maskOf = (out, child) => {
+  if ("isMask" in child && child.isMask === true) out.isMask = true;
+  return out;
+};
 const placed = (out, child, parent) => {
   // A GROUP has no constraints (Figma throws on reading them): its edges are its layers', read as left / top.
   const constraints = "constraints" in child ? child.constraints : { horizontal: "MIN", vertical: "MIN" };
@@ -543,6 +627,7 @@ const readFrame = async (node, root = false) => {
     // A grid's child: its cell (column and row from 0, its spans).
     if (own("layoutMode") === "GRID") read_.cell = { col: child.gridColumnAnchorIndex, row: child.gridRowAnchorIndex, span: child.gridColumnSpan, rowSpan: child.gridRowSpan };
     else placed(read_, child, node);
+    maskOf(read_, child);
     out.children.push(read_);
   }
   return out;
@@ -1344,6 +1429,8 @@ function convert(node, ctx) {
   let element = convertNode(node, ctx);
   bindings(element, node);
   if (element && !element.id) { const id = idOf(node, ctx); if (id) element.id = id; }
+  // The layer's own element (not a wrapper that places it): an instance's overrides find its main's layers by it.
+  if (element && ctx.innerOf) ctx.innerOf.set(node, element);
   if (element && node.absolute) element = positioned(element, node, ctx);
   if (element && !SOURCE.has(element)) SOURCE.set(element, node);
   return element;
@@ -1793,7 +1880,7 @@ function convertNode(node, ctx) {
   // Figma's GROUP: a Zen group (Box group) of its layers at their X / Y inside it, sized to them (figma-push, the other way).
   if (node.type === "GROUP") {
     const { opacity } = frameLookProps(node, ctx);
-    return { kind: "element", name: "Box", props: { group: literal(true), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
+    return { kind: "element", name: "Box", props: { group: literal(true), ...maskProps(node, ctx), width: literal(round2(node.width)), height: literal(round2(node.height)), ...(opacity ? { opacity } : {}) }, children };
   }
   return frameElement(node, children, ctx);
 }
@@ -1812,6 +1899,10 @@ function localComponentsOf(frame) {
   const ids = new Map();
   const defaults = new Map();
   const firstVariant = new Map();
+  /** Each COMPONENT as drawn, by its id on the page; a set's variants; the name a nested instance's layer takes. */
+  const specs = new Map();
+  const variants = new Map();
+  const names = new Map();
   const taken = new Set();
   const walk = (node, set) => {
     if (!node || typeof node !== "object") return;
@@ -1819,14 +1910,19 @@ function localComponentsOf(frame) {
       const own = typeof node.local === "string" && node.local && !/^I?\d+:\d+/.test(node.local) ? node.local : null;
       const id = uniqueId(own ?? slug(set ? `${set.name ?? ""} ${node.name ?? ""}` : node.name ?? "component"), taken);
       for (const key of [node.local, node.id]) if (typeof key === "string" && key) ids.set(key, id);
-      if (node.type === "COMPONENT_SET") firstVariant.set(id, node.children?.find((child) => child.type === "COMPONENT") ?? null);
+      if (node.type === "COMPONENT_SET") {
+        firstVariant.set(id, node.children?.find((child) => child.type === "COMPONENT") ?? null);
+        variants.set(id, (node.children ?? []).filter((child) => child.type === "COMPONENT"));
+      }
+      if (node.type === "COMPONENT") specs.set(id, node);
+      names.set(id, set ? set.name ?? id : node.name ?? id);
       if (!set) defaults.set(id, Object.fromEntries((node.properties ?? []).filter((property) => property.default !== undefined).map((property) => [property.name, property.default])));
     }
     for (const child of node.children ?? []) walk(child, node.type === "COMPONENT_SET" ? node : null);
     for (const slot of node.slots ?? []) for (const child of slot.children ?? []) walk(child, null);
   };
   walk(frame, null);
-  return { ids, defaults, firstVariant };
+  return { ids, defaults, firstVariant, specs, variants, names };
 }
 
 /** A main's or set's description and link. */
@@ -1854,7 +1950,10 @@ function componentSetElement(node, ctx) {
   const props = { id: literal(id), name: literal(node.name ?? id), ...componentAbout(node) };
   const properties = propertiesValue(node.properties, ctx);
   if (properties) props.properties = properties;
-  const children = (node.children ?? []).filter((child) => child.type === "COMPONENT").map((child) => convert({ ...child, variant: variantValues(child) }, ctx)).filter(Boolean);
+  const children = (node.children ?? []).filter((child) => child.type === "COMPONENT").map((child) => {
+    child.variant ??= variantValues(child);
+    return convert(child, ctx);
+  }).filter(Boolean);
   return { kind: "element", name: "ComponentSet", props, children };
 }
 
@@ -1886,7 +1985,93 @@ function useElement(node, ctx) {
   const defaults = ctx.local.defaults.get(of) ?? {};
   const values = Object.fromEntries(Object.entries(node.props ?? {}).map(([name, value]) => [name, pageValue(value, ctx)]).filter(([name, value]) => defaults[name] !== value));
   if (Object.keys(values).length) props.props = valuesObject(values);
-  return { kind: "element", name: "Use", props, children: [] };
+  // What it puts in its main's slots (figma-push slots, the reader's slot content): `slots={{ Content: <…/> }}`.
+  const fills = {};
+  for (const slot of Array.isArray(node.slots) ? node.slots : []) {
+    const layers = (slot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+    if (layers.length) fills[slot.name] = layers.length === 1 ? { kind: "element", node: layers[0] } : { kind: "fragment", children: layers };
+  }
+  if (Object.keys(fills).length) props.slots = { kind: "object", fields: fills };
+  const element = { kind: "element", name: "Use", props, children: [] };
+  // Its overrides of its main's layers: placed once the whole page is converted (settleOverrides).
+  if (Array.isArray(node.layerOverrides) && node.layerOverrides.length) (ctx.pendingOverrides ??= []).push({ element, node, of });
+  return element;
+}
+
+/** The COMPONENT an instance shows: a set's variant with its values (else the set's first), or the lone main. */
+function shownSpec(of, values, ctx) {
+  const variants = ctx.local.variants.get(of);
+  if (!variants) return ctx.local.specs.get(of) ?? null;
+  const wanted = Object.entries(values ?? {});
+  return variants.find((variant) => wanted.every(([name, value]) => variantValues(variant)[name] === value)) ?? variants[0] ?? null;
+}
+
+/**
+ * The Studio's layer path (instance-paths.mjs) of the layer the child indices `at` reach in the drawn main `spec`, on
+ * through the nested instances of the page's own components it passes ("Chip/Text": the Chip in this main, then the
+ * Text in the Chip's main, in the variant the instance's overrides show: `variantAt` by the nested instance's indices).
+ * Undefined: not a layer of a main on the page.
+ */
+function pathAt(spec, at, ctx, variantAt) {
+  const component = ctx.innerOf.get(spec);
+  const root = component?.children?.find((child) => child.kind === "element");
+  if (!root) return undefined;
+  const paths = instanceLayerPaths(root, (use) => ctx.local.names.get(use.props.of?.value) ?? null);
+  let target = spec;
+  for (let step = 0; step < at.length; step++) {
+    target = target?.children?.[at[step]];
+    if (!target) return undefined;
+    if (target.type === "INSTANCE" && step < at.length - 1) {
+      const prefix = paths.get(ctx.innerOf.get(target));
+      const outer = at.slice(0, step + 1);
+      const inner = prefix === undefined ? null : shownSpec(target.local, { ...(target.variant ?? {}), ...(variantAt(outer) ?? {}) }, ctx);
+      const rest = inner ? pathAt(inner, at.slice(step + 1), ctx, (deeper) => variantAt([...outer, ...deeper])) : undefined;
+      return rest === undefined ? undefined : `${prefix}/${rest}`;
+    }
+  }
+  return paths.get(ctx.innerOf.get(target));
+}
+
+/**
+ * Each instance's overrides of its main's layers (figma-push layerOverrides, the reader's instance.overrides), as
+ * `<Use overrides>` by the Studio's layer paths (pathAt; through nested instances: "Chip/Text"). Characters → its
+ * words, visible → hidden, a Content colour → tone, a nested instance's values → variant.X / props.X. An override of a
+ * layer the main does not draw (left out of the page) is a note.
+ */
+function settleOverrides(ctx) {
+  for (const { element, node, of } of ctx.pendingOverrides ?? []) {
+    const spec = shownSpec(of, node.variant, ctx);
+    const component = spec ? ctx.innerOf.get(spec) : null;
+    const root = component?.children?.find((child) => child.kind === "element");
+    if (!root) { ctx.notes.push(`${node.name ?? "Instance"}: its overrides are left out (its main is not on the page)`); continue; }
+    // A nested instance's variant as this instance overrides it: the layers inside it are that variant's.
+    const variantAt = (at) => node.layerOverrides.find((override) => (override.at ?? []).join(".") === at.join("."))?.variant ?? null;
+    const table = {};
+    for (const override of node.layerOverrides) {
+      const path = pathAt(spec, override.at ?? [], ctx, variantAt);
+      if (path === undefined) { ctx.notes.push(`${node.name ?? "Instance"}: an override of a layer at ${(override.at ?? []).join(".")} is left out (not a layer of its main on the page)`); continue; }
+      const fields = { ...(table[path]?.fields ?? {}) };
+      if (typeof override.characters === "string") fields.children = literal(override.characters);
+      if (override.visible === false) fields.hidden = literal(true);
+      const tone = typeof override.fill === "string" ? TONE_OF.get(override.fill.replace(/^Color\//, "")) : undefined;
+      if (tone) fields.tone = literal(tone);
+      for (const [name, value] of Object.entries(override.variant ?? {})) fields[`variant.${name}`] = literal(value);
+      for (const [name, value] of Object.entries(override.props ?? {})) fields[`props.${name}`] = literal(pageValue(value, ctx));
+      if (Object.keys(fields).length) table[path] = { kind: "object", fields };
+    }
+    if (Object.keys(table).length) element.props.overrides = { kind: "object", fields: table };
+  }
+}
+
+/**
+ * Figma's mask (the reader's isMask): a group or free frame whose bottom layer masks the others is a Zen Box with
+ * `mask` (its first layer is the mask). A mask higher up masks only the layers above it, which Box mask cannot say: noted.
+ */
+function maskProps(node, ctx) {
+  const index = (node.children ?? []).findIndex((child) => child.isMask);
+  if (index < 0) return {};
+  if (index > 0) { ctx.notes.push(`"${node.name}": its mask is not its bottom layer; left unmasked (Use as mask on the layers it masks)`); return {}; }
+  return { mask: literal(true) };
 }
 
 /** A frame (or a slot) as a Stack in its auto layout; Figma's grid layout as a Grid. */
@@ -1895,6 +2080,8 @@ function frameElement(node, children, ctx) {
   if (node.name === "AiChatBlock" && children.length === 1 && children[0].name === "AiChatBlock") return children[0];
   const props = {};
   const layout = node.layout;
+  // A mask in an auto layout frame (a plugin can make one): Box mask holds it only in a group or a free frame.
+  if ((layout || !node.fixed) && (node.children ?? []).some((child) => child.isMask)) ctx.notes.push(`"${node.name}": a mask in an auto layout frame is left out; its mask layer draws (Use as mask on a group)`);
   // A wrapping row whose layers all fill it, or a grid whose cells all keep, the same minimum width: a Grid of columns
   // that fit (figma-push draws one so, a grid where it knows the page's width; minColumnWidth).
   const cells = children.map((child) => SOURCE.get(child));
@@ -1909,7 +2096,7 @@ function frameElement(node, children, ctx) {
   // other way; positioned() gave them px insets).
   if (!layout && node.fixed) {
     const look = frameLookProps(node, ctx);
-    return { kind: "element", name: "Box", props: { width: literal(node.fixed.w), height: literal(node.fixed.h), ...look, ...(node.clip ? { clip: literal(true) } : {}) }, children };
+    return { kind: "element", name: "Box", props: { ...maskProps(node, ctx), width: literal(node.fixed.w), height: literal(node.fixed.h), ...look, ...(node.clip ? { clip: literal(true) } : {}) }, children };
   }
   // A column of List-Items (figma-push draws List as one): a List, which spaces its rows itself (Gap/3XSmall).
   if (!grid && layout?.mode !== "HORIZONTAL" && children.length && children.every((child) => child.name === "ListItem") && !node.fill && !node.scroll) {
@@ -2357,6 +2544,7 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   frame = frame ? JSON.parse(JSON.stringify(frame)) : frame;
   slotKeys(frame);
   ctx.local = localComponentsOf(frame);
+  ctx.innerOf = new Map();
   // The Screen's own canvas and height, which figma-push writes on the page frame: Screen props, not a Box surface.
   const screenProps = {};
   const canvasFill = /^(?:Color\/)?Background\/Canvas\/(Default|Alt|Flat)$/.exec(String(frame?.fill ?? ""));
@@ -2370,6 +2558,7 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   }
   const chrome = screenChrome(frame, ctx);
   let root = chrome ? chrome.root : convert(frame, ctx);
+  settleOverrides(ctx);
   // The push's page frame around an app frame (a column holding only the AppShell): the AppShell itself.
   if (root?.name === "Stack" && root.children.length === 1 && root.children[0].name === "AppShell" && Object.keys(root.props).every((name) => name === "gap")) root = root.children[0];
   if (ctx.drawings.length) ctx.notes.push(`${ctx.drawings.length} drawings (vectors, shapes: ${[...new Set(ctx.drawings)].join(", ")}) are left out: a page has no layer for them`);

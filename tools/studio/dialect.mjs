@@ -17,7 +17,7 @@
 //       Child = Node | { kind: "text", value } | { kind: "ref", root, path } | { kind: "map", source, item, node }
 import { jsxName, parseSource } from "./jsx-source.mjs";
 import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenFrameCode, screenHeaderCode, screenLayout } from "./screen-chrome.mjs";
-import { instanceLayerPaths } from "./instance-paths.mjs";
+import { NESTED_VALUE_KEY, instanceLayerPaths } from "./instance-paths.mjs";
 
 export { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout };
 
@@ -750,6 +750,39 @@ function useNameOf(use, model) {
  */
 export function mainLayerPaths(main, model) {
   return instanceLayerPaths(main?.root ?? null, (use) => useNameOf(use, model));
+}
+
+/**
+ * A layer of a main by its path inside an instance of it, through nested instances of the page's own components
+ * ("Chip/Text": the Chip instance in this main, then the Text in the Chip's main). A nested instance is drawn in the
+ * variant its own values and the outer instance's overrides pick (`{ Chip: { "variant.Size": "Large" } }`, as the canvas
+ * draws it). `table`: the outer instance's overrides, path → plain values. Returns the steps outermost first
+ * (`{ main, layer }`, the last one's layer the one the path names), or null: no such layer, or one inside a Zen
+ * component's own layers ("Badge/Dot").
+ */
+export function layerChain(tree, main, path, model, table = {}) {
+  const byPath = new Map([...mainLayerPaths(main, model)].map(([layer, at]) => [at, layer]));
+  const exact = byPath.get(path);
+  if (exact) return [{ main, layer: exact }];
+  const parts = path.split("/");
+  for (let cut = parts.length - 1; cut >= 1; cut--) {
+    const prefix = parts.slice(0, cut).join("/");
+    const use = byPath.get(prefix);
+    if (use?.name !== "Use") continue;
+    const asked = {};
+    for (const [key, value] of Object.entries(table[prefix] ?? {})) {
+      const nested = NESTED_VALUE_KEY.exec(key);
+      if (nested?.[1] === "variant") asked[nested[2]] = { kind: "literal", value };
+    }
+    const fields = use.props.variant?.kind === "object" ? use.props.variant.fields : {};
+    const shown = Object.keys(asked).length ? { ...use, props: { ...use.props, variant: { kind: "object", fields: { ...fields, ...asked } } } } : use;
+    const nestedMain = resolveInstance(tree, shown, model)?.main;
+    if (!nestedMain) return null;
+    const inner = Object.fromEntries(Object.entries(table).flatMap(([key, value]) => (key.startsWith(`${prefix}/`) ? [[key.slice(prefix.length + 1), value]] : [])));
+    const rest = layerChain(tree, nestedMain, parts.slice(cut).join("/"), model, inner);
+    return rest ? [{ main, layer: use }, ...rest] : null;
+  }
+  return null;
 }
 
 /** The dialect errors of a page text (empty: the text is a valid page). */

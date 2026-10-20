@@ -2853,6 +2853,10 @@
           "type": "boolean",
           "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them (Zen Studio writes its box)."
         },
+        "mask": {
+          "type": "boolean",
+          "description": "Figma's mask (Zen Studio ⌃⌘M \"Use as mask\", Figma `isMask` on the group's bottom layer): the box's first layer is the mask and the layers after it show only inside its outline (a S"
+        },
         "as": {
           "enum": [
             "div",

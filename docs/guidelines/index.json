@@ -4397,6 +4397,7 @@
           "paddingY?: none|ZenScaleInput|4xl|ZenMargin",
           "scroll?: x|y",
           "group?: boolean",
+          "mask?: boolean",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
           "children?: ReactNode",
           "ref?: Ref<HTMLElement>"

@@ -24,6 +24,7 @@ Token-based layout primitives: Stack (one direction), Grid (columns), Box (a fra
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Group (Box) | `group` | Figma's Group (Zen Studio ⌘G): holds its layers at their X / Y, sized to them; no fill, stroke, corners, effect, padding (ignored); moves, turns, flips and fades as one |
+| Mask (Box) | `mask` | Figma's mask (Zen Studio ⌃⌘M Use as mask): the first layer is the mask and draws nothing; the layers after it show only inside its outline (a Shape's outline, or a layer's box with its corners, turned and flipped as drawn); mostly on a group: <Box group mask> |
 | Gap (Spacing/Gap) | `gap · rowGap · columnGap` | none · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 (default) · lg 24 · xl 32 · 2xl 40 · 3xl 48 · giant 64 · xgiant 88 · 2xgiant 144 (long names like small also work) |
 | Padding (Spacing/Padding) | `padding · paddingX · paddingY` | 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; or a page margin that follows the breakpoint (Figma Breakpoint & Grids): margin-comfortable 24 (20 on a phone) for a page or screen body, margin-compact 20 (16 on a phone) |
 | Direction / alignment | `direction · align · justify · wrap` | column (default) or row; start · center · end · stretch · baseline; between · around |
@@ -198,6 +199,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `paddingY` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
 | `scroll` | `"x" \| "y"` | — | Figma "Overflow scrolling": `"y"` scrolls vertically, `"x"` sideways, inside the box (the scroll stays inside). |
 | `group` | `boolean` | — | Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them (Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are ignored. It moves, turns, flips and fades (opacity) as one. |
+| `mask` | `boolean` | — | Figma's mask (Zen Studio ⌃⌘M "Use as mask", Figma `isMask` on the group's bottom layer): the box's first layer is the mask and the layers after it show only inside its outline (a Shape's outline, or a layer's box with its corners, turned and flipped as drawn). The mask layer itself draws nothing. Mostly on a `group`. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
 | `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
