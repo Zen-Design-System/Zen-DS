@@ -683,9 +683,16 @@ export const rows = [
       }
       await presets.getByRole("list", { name: "Phone" }).getByRole("button", { name: /^iPhone\s*390 × 844$/ }).click();
       await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a second Screen" });
-      const text = (await pageText(page, id)) ?? "";
+      // Read until the new Screen's tag settles (a phone, 390 × 844): one read of the stored page can come back empty
+      // (null) under a loaded matrix run, as B-45's did (gate 2026-10-20).
+      let text = "";
+      let added = "";
+      await until(async () => {
+        text = (await pageText(page, id)) ?? "";
+        added = screenTag(text, "screen-2");
+        return /device="phone"/.test(added) && /width=\{390\} height=\{844\}/.test(added);
+      }, { message: "a 390 × 844 phone Screen" }).catch(() => undefined);
       const first = screenTag(text, "screen-1");
-      const added = screenTag(text, "screen-2");
       if (!/device="phone"/.test(added)) throw new Error(`the new Screen is not a phone: ${added}`);
       if (!/width=\{390\} height=\{844\}/.test(added)) throw new Error(`the new Screen is not 390 × 844: ${added}`);
       // Beside the page's frame (Figma places a preset frame right of the frames), top-aligned.

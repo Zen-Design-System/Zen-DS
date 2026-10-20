@@ -186,7 +186,8 @@ Branch `zen/feat/studio-blend-mode-20261020` (from main 4b5bb818). Tier M. Spec 
   - SegmentedItem joins `ENVIRONMENT_DEPENDENT` in `tests/smoke/components.test.tsx`; the baseline is unchanged.
 - Gate finding, fixed: E2E B-45 (C's Frame tool click) failed once in the full matrix with an empty tag. It passes
   3/3 alone. One read of the stored page came back null, so the row now waits for the frame's tag to settle
-  (`builder.mjs`).
+  (`builder.mjs`). B-20 had the same single read, and C asked for the same fix (passes 2/2). The delta re-gate
+  passed: Studio E2E 336/336.
 - Gate warnings, not from this change: they are on the representative pages a Layout edit adds, and both are already
   in BACKLOG.
   - templates rhythm, 9 text styles: seen in gates since 2026-10-13.
