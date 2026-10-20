@@ -6,34 +6,44 @@
    Every interaction is live (useChatDemo + this file's useMessenger): hold / hover actions, reactions, reply, delete,
    retry, calls, the composer's attachment, photo, voice and emoji actions, details and photo viewers, Back on phones. */
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { Avatar } from "../../../components/Avatar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, AppShellPane } from "../../../components/AppShell";
+import { Avatar, AvatarStack } from "../../../components/Avatar";
+import { BadgeCounter } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { BottomSheet } from "../../../components/BottomSheet";
-import { IconButton } from "../../../components/Button";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
+import { Button, IconButton } from "../../../components/Button";
+import { Card } from "../../../components/Card";
 import {
-  ChatAvatarGroup, ChatCall, ChatComposer, ChatConversationItem, ChatDateDivider, ChatEmojiPicker, ChatFile, ChatMessage, ChatPhotos, ChatThread, ChatVoice,
+  ChatCall, ChatComposer, ChatConversationItem, ChatDateDivider, ChatEmojiPicker, ChatFile, ChatMessage, ChatPhotos, ChatThread, ChatVoice,
   type ChatCallState, type ChatComposerProps, type ChatConversationItemProps, type ChatDomain, type ChatFileKind, type ChatPerson,
   type ChatReaction, type ChatReplyTarget, type ChatSide,
 } from "../../../components/Chat";
 import { Divider } from "../../../components/Divider";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
-import { Icon } from "../../../components/Icon";
+import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Image } from "../../../components/Image";
-import { Box, Stack } from "../../../components/Layout";
-import { List, ListItem } from "../../../components/ListItem";
+import { Box, Grid, Stack } from "../../../components/Layout";
+import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
+import { PageHeader } from "../../../components/PageHeader";
 import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
+import { Sidebar, SidebarMenuItem, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
+import { TabPanel, Tabs } from "../../../components/Tabs";
 import { Heading, plural, Text } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { ChatDemoNote, useChatDemo } from "../../chatDemo";
 import { PlatformChatHeader } from "../../PlatformChatHeader";
-import { ChatWindow, ChatWindowList, ChatWindowMain, ChatWindowSplit, ThreadHeader, headerActions } from "../../PlatformChatDesktopShowcases";
+import { headerActions } from "../../PlatformChatDesktopShowcases";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { platformMedia, type PlatformPhoto } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
-import { daysFromToday, formatMoney, formatRange, formatRelative, formatTime, initials, leaveRequests, people, projectById, TODAY, type Person } from "../data";
+import { activity, daysFromToday, formatMoney, formatRange, formatRelative, formatTime, initials, leaveRequests, people, projectById, studio, TODAY, type Person } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 import "./chat.css";
@@ -68,6 +78,8 @@ type Conv = {
   /** One-to-one: the other person. Groups set `group` (the two faces) instead. */
   person?: ChatPerson;
   group?: ChatPerson[];
+  /** Groups: everyone in it, you first (the header's AvatarStack). */
+  members?: ChatPerson[];
   status: string;
   online?: boolean;
   unread?: boolean;
@@ -114,8 +126,10 @@ const memberDetails = (members: Person[]): Detail[] =>
   [alex, ...members].map((p) => ({ id: p.id, title: p.id === alex.id ? `${p.name} (you)` : p.name, caption: p.role, leading: face(cp(p)) }));
 const oneToOne = (p: Person, rest: Omit<Conv, "title" | "person" | "details" | "status" | "online"> & { status?: string }): Conv =>
   ({ title: p.name, person: cp(p), online: p.online, status: p.online ? "Active now" : "Active today", details: personDetails(p), ...rest });
-const groupChat = (title: string, members: Person[], rest: Omit<Conv, "title" | "group" | "details" | "status">): Conv =>
-  ({ title, group: members.slice(0, 2).map(cp), status: plural(members.length + 1, "member"), details: memberDetails(members), ...rest });
+const groupChat = (title: string, members: Person[], rest: Omit<Conv, "title" | "group" | "members" | "details" | "status">): Conv =>
+  ({ title, group: members.slice(0, 2).map(cp), members: [alex, ...members].map(cp), status: plural(members.length + 1, "member"), details: memberDetails(members), ...rest });
+/** A chat person as Avatar props: their photo, or initials on their steady theme. */
+const faceItem = (p: ChatPerson) => (p.src ? { theme: "photo" as const, src: p.src, alt: p.name } : { theme: p.theme ?? "neutral", alt: p.name, children: initials(p.name) });
 
 /** The quote a reply shows, built from the message it answers. */
 const quoteOf = (m: Msg): ChatReplyTarget => {
@@ -424,22 +438,23 @@ function viewerCaption(viewer: NonNullable<Messenger["viewer"]>) {
   return `Photo ${viewer.index + 1} of ${viewer.msg.photos.length} · ${viewer.msg.from?.name ?? "You"}`;
 }
 
-/** Phone overlays anchor to the device: the hold menu's More, the chat details and the photo viewer. */
+/** Phone overlays open in the device frame (not inline): the hold menu's More, the chat details and the photo viewer
+ *  cover the whole screen, above the shell's header and composer. */
 function PhoneSheets({ m }: { m: Messenger }) {
   const more = m.moreFor;
   return (
     <>
-      <BottomSheet inline type="action" open={Boolean(more)} onOpenChange={(shown) => { if (!shown) m.setMoreFor(null); }} title="More"
+      <BottomSheet type="action" open={Boolean(more)} onOpenChange={(shown) => { if (!shown) m.setMoreFor(null); }} title="More"
         items={[
           { id: "pin", label: "Pin message", icon: "icon-pin-02-line" },
           { id: "remind", label: "Remind me", icon: "icon-bell-01-line" },
           ...(more?.side === "others" ? [{ id: "report", label: "Report message", icon: "icon-flag-01-line" as const }] : []),
         ]}
         onSelect={(item) => m.toast(item.id === "pin" ? { title: "Message pinned" } : item.id === "remind" ? { title: "Reminder set", children: "Tomorrow at 9:00 am" } : { title: "Message reported" })} />
-      <BottomSheet inline open={m.details} onOpenChange={m.setDetails} title={m.conv?.title ?? ""}>
+      <BottomSheet open={m.details} onOpenChange={m.setDetails} title={m.conv?.title ?? ""}>
         <DetailList m={m} />
       </BottomSheet>
-      <BottomSheet inline size="max" open={Boolean(m.viewer)} onOpenChange={(shown) => { if (!shown) m.setViewer(null); }} title={m.viewer?.msg.album ?? ""}>
+      <BottomSheet size="max" open={Boolean(m.viewer)} onOpenChange={(shown) => { if (!shown) m.setViewer(null); }} title={m.viewer?.msg.album ?? ""}>
         {m.viewer ? <Image src={m.viewer.msg.photos[m.viewer.index].src} alt={m.viewer.msg.photos[m.viewer.index].alt} ratio="3:4" radius="lg" caption={viewerCaption(m.viewer)} /> : null}
       </BottomSheet>
     </>
@@ -460,22 +475,112 @@ function DesktopPanels({ m }: { m: Messenger }) {
   );
 }
 
-/** A chat app on a phone: the chat list, and a thread whose Back returns to it. */
-function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenger; label: string; listTitle?: string; canvas?: "default" | "canvas" }) {
+// ——— The apps' chrome ——————————————————————————————————————————————————————————————————————————————————
+/** A place this example does not draw: the toast says so, and the navigation keeps the current screen. */
+function useNotHere() {
   const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This screen shows the chat." });
+}
+/** Đìzai Studio's chat app on a phone: the roots of its tab bar (a selected tab shows its solid icon). */
+const studioChatRoots: BottomNavigationItem[] = [
+  { id: "chats", label: "Chats", icon: "icon-message-chat-circle-line", selectedIcon: "icon-message-chat-circle-solid" },
+  { id: "calls", label: "Calls", icon: "icon-phone-line", selectedIcon: "icon-phone-solid" },
+  { id: "people", label: "People", icon: "icon-users-line", selectedIcon: "icon-users-solid" },
+  { id: "settings", label: "Settings", icon: "icon-settings-01-line", selectedIcon: "icon-settings-01-solid" },
+];
+/** The Phin & Co app (a member's view): Messages holds the support chats. */
+const phinRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "order", label: "Order", icon: "icon-coffee-cup-line", selectedIcon: "icon-coffee-cup-solid" },
+  { id: "rewards", label: "Rewards", icon: "icon-gift-01-line", selectedIcon: "icon-gift-01-solid" },
+  { id: "chats", label: "Messages", icon: "icon-message-chat-circle-line", selectedIcon: "icon-message-chat-circle-solid" },
+];
+
+/** The studio app's places on desktop; Chats carries the unread count. */
+const studioPlaces = (unread: number): SidebarSection[] => [{ items: [
+  { id: "home", label: "Home", icon: "icon-home-03-line" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line" },
+  { id: "chats", label: "Chats", icon: "icon-message-chat-circle-line", counter: unread || undefined },
+  { id: "files", label: "Files", icon: "icon-file-doc-line" },
+  { id: "people", label: "People", icon: "icon-users-line" },
+] }];
+function StudioSidebar({ selectedId, unread }: { selectedId: "chats" | "projects"; unread: number }) {
+  const notHere = useNotHere();
+  return (
+    <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+      sections={studioPlaces(unread)} selectedId={selectedId} onItemClick={(item) => { if (item.id !== selectedId) notHere(item.label); }}
+      footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+  );
+}
+/** The header's utilities: notifications (the unread count clears once read) and the account menu, last. */
+function StudioActions() {
+  const { toast } = useToast();
+  const unreadActivity = activity.filter((item) => item.unread);
+  const [unread, setUnread] = useState(unreadActivity.length);
+  const latest = unreadActivity[0];
+  return (
+    <>
+      <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+        setUnread(0);
+        toast({ title: unread ? plural(unread, "new notification") : "You're all caught up", children: `${people[latest.actor].name} ${latest.verb} ${latest.object} · ${formatRelative(latest.at)}` });
+      }} />
+      <Menu align="end" trigger={<AppShellAccount name={alex.name} src={alex.photo} />} items={[
+        { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: alex.name, children: `${alex.role} · ${alex.location}` }) },
+        { id: "status", label: "Set a status", icon: "icon-face-smile-line", onSelect: () => toast({ title: "Status set", children: "In a meeting until 11:00 am" }) },
+        { type: "separator" },
+        { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+      ]} />
+    </>
+  );
+}
+
+/** Unread messages: the run of the other side's messages at the end of the chat (0 once it is read). */
+const unreadCount = (c: Conv) => {
+  if (!c.unread) return 0;
+  let count = 0;
+  for (let i = c.items.length - 1; i >= 0; i -= 1) {
+    const item = c.items[i];
+    if (!isMsg(item)) continue;
+    if (item.side === "you") break;
+    count += 1;
+  }
+  return Math.max(count, 1);
+};
+
+/** A chat app on a phone: the chat list (a tab root) and a thread whose Back returns to it. Both are one AppShell in the
+ *  phone: the list has the large-title bar and the tab bar; a thread has the conversation header and the composer,
+ *  pinned to the bottom where a task's Action bar goes (Figma Bottom=Actions). */
+function PhoneMessenger({ m, label, listTitle = "Chats", canvas, roots = studioChatRoots, appName = studio.name }: {
+  m: Messenger; label: string; listTitle?: string; canvas?: "default" | "canvas"; roots?: BottomNavigationItem[]; appName?: string;
+}) {
+  const { toast } = useToast();
+  const notHere = useNotHere();
   const screen = usePhoneScreen();
   // The chat list folds its large title as it scrolls; each screen has its own key, so a thread opens fresh.
   const screenRef = useRef<HTMLDivElement>(null);
   const conv = m.conv;
   if (!conv) {
+    const unread = m.convs.some((c) => c.unread);
     return (
       <>
-        <PlatformPhone key="chats" label={label} canvas={canvas} headerOverlay screenRef={screenRef}
-          header={<TopNavigation type="alt" title={listTitle} largeTitle={listTitle} scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Favourite", onClick: () => toast({ title: "Favourite" }) }]} />}>
-          {screen.anchor}
-          <List aria-label={listTitle}>
-            {m.convs.map((c) => <ChatConversationItem key={c.id} {...rowOf(m, c)} onClick={() => screen.go('[aria-label="Back"]', () => m.open(c.id))} />)}
-          </List>
+        <PlatformPhone key="chats" label={label} canvas={canvas} screenRef={screenRef}>
+          <AppShell
+            topNavigation={<TopNavigation title={listTitle} largeTitle={listTitle} scrollRef={screenRef}
+              trailing={[{ icon: "icon-edit-01-line", label: "New chat", onClick: () => toast({ title: "New chat", children: "Pick a person or a group to write to." }) }]} />}
+            bottomNavigation={<BottomNavigation aria-label={appName} showLabels value="chats"
+              items={roots.map((root) => (root.id === "chats" ? { ...root, dot: unread } : root))}
+              onValueChange={(id) => { if (id !== "chats") notHere(roots.find((root) => root.id === id)?.label ?? id); }} />}
+          >
+            {screen.anchor}
+            {/* Conversation-List rows run edge to edge with their own 16px sides (Figma 375 wide), so the list takes
+                back the Body's side margins. */}
+            <Box className="px-chat-bleed">
+              <List aria-label={listTitle}>
+                {m.convs.map((c) => <ChatConversationItem key={c.id} {...rowOf(m, c)} onClick={() => screen.go('[aria-label="Back"]', () => m.open(c.id))} />)}
+              </List>
+            </Box>
+          </AppShell>
         </PlatformPhone>
         <ChatDemoNote note={m.demo.note} />
       </>
@@ -486,13 +591,18 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
   return (
     <>
       {/* The thread is the bar's scroller too: once messages run under the header, it shows its Pale rule. */}
-      <PlatformPhone key={conv.id} label={label} canvas={canvas} screenRef={screenRef}
-        header={<PlatformChatHeader title={conv.title} subtitle={m.offline ? "Connecting…" : conv.status} person={conv.person} group={conv.group} online={!m.offline && conv.online} scrollRef={screenRef}
-          onAction={(what) => (what.startsWith("Back") ? back : m.phoneHeaderAction(what))} />}
-        footer={<Composer m={m} />}>
-        {screen.anchor}
-        <Thread m={m} />
-        <PhoneSheets m={m} />
+      <PlatformPhone key={conv.id} label={label} canvas={canvas} screenRef={screenRef}>
+        <AppShell
+          topNavigation={<PlatformChatHeader title={conv.title} subtitle={m.offline ? "Connecting…" : conv.status} person={conv.person} group={conv.group} online={!m.offline && conv.online} scrollRef={screenRef}
+            onAction={(what) => (what.startsWith("Back") ? back : m.phoneHeaderAction(what))} />}
+          actionBar={<Composer m={m} />}
+        >
+          {screen.anchor}
+          {/* The thread keeps its own 16px padding edge to edge (Figma Chat 375): it takes back the Body's padding and
+              fills the screen, so the newest message sits right above the composer. */}
+          <Box className="px-chat-bleed px-chat-fill"><Thread m={m} /></Box>
+          <PhoneSheets m={m} />
+        </AppShell>
       </PlatformPhone>
       <ChatDemoNote note={m.demo.note} />
     </>
@@ -500,75 +610,81 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
 }
 
 /**
- * The desktop thread header: ThreadHeader for a one-to-one chat. ThreadHeader takes one person, so a group shows the
- * same bar with its two faces (ChatAvatarGroup Medium, the 40px of ThreadHeader's Avatar) instead of initials of its name.
+ * The desktop thread's header, the Main row of the shell's header: the chat's name is the page's h1 (PageHeader), what
+ * it is under it (the person's role and presence, or the members), the group's faces beside it, and the chat's actions
+ * as Tertiary icon buttons (Voice call · Video call · Conversation details).
  */
-function DesktopHeader({ m }: { m: Messenger }) {
+function ThreadPageHeader({ m }: { m: Messenger }) {
   const conv = m.conv!;
-  const avatar = conv.group ? <ChatAvatarGroup people={conv.group} size="md" online={conv.online} /> : undefined;
-  return <ThreadHeader person={conv.person ?? { name: conv.title }} avatar={avatar} status={conv.status} actions={headerActions} onAction={m.desktopHeaderAction} />;
+  const role = conv.person ? conv.details.find((row) => row.id === "role")?.title : undefined;
+  return (
+    <PageHeader title={conv.title}
+      meta={conv.members ? <AvatarStack size="sm" max={4} showMore items={conv.members.map(faceItem)} /> : undefined}
+      description={[role, conv.status].filter(Boolean).join(" · ")}
+      trailing={<>
+        {headerActions.map((action) => (
+          <IconButton key={action.label} level="tertiary" icon={action.icon} aria-label={action.label} onClick={() => m.desktopHeaderAction(action.label)} />
+        ))}
+      </>} />
+  );
 }
 
-/** One desktop chat window: the thread header over the desktop thread and Chat-Control. */
-function DesktopThread({ m }: { m: Messenger }) {
+/** The thread and its composer in the shell's Body: the thread fills the page under the header (the newest message at
+ *  the bottom) and the composer docks at the bottom of the window, so the messages scroll under the header and above it. */
+function DesktopConversation({ m }: { m: Messenger }) {
   const conv = m.conv!;
   return (
-    <ChatWindow layout="thread" domain={conv.domain} fit>
-      <ChatWindowMain label={`Chat with ${conv.title}`}>
-        {/* The window's one h1 names the open chat; the header bar shows it. */}
-        <VisuallyHidden as="h1">{conv.title}</VisuallyHidden>
-        <DesktopHeader m={m} />
-        <Thread key={conv.id} m={m} />
-        <Composer m={m} />
-        <ChatDemoNote note={m.demo.note} />
-      </ChatWindowMain>
-      <DesktopPanels m={m} />
-    </ChatWindow>
+    <Stack as="section" gap="none" height="fill" className="px-chat-desk" aria-label={`Chat with ${conv.title}`}>
+      <Box className="px-chat-desk__thread"><Thread key={conv.id} m={m} /></Box>
+      <Box className="px-chat-dock"><Composer m={m} /></Box>
+      <ChatDemoNote note={m.demo.note} />
+    </Stack>
   );
 }
 
 // ——— 1. Team messenger (desktop): Conversation-List rows beside the thread ——————————————————————————
 function TeamMessenger() {
+  const { toast } = useToast();
   const m = useMessenger([chiChat(), loyaltyChat(), baoChat(), hanaChat(), duyCallChat(), minhAnhChat()], { device: "desktop" });
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
-  const headingId = useId();
   const q = query.trim().toLowerCase();
   const shown = m.convs.filter((c) => c.title.toLowerCase().includes(q));
+  const unread = m.convs.reduce((sum, c) => sum + unreadCount(c), 0);
   const conv = m.conv!;
   return (
-    <ChatWindow fit>
-      {/* The screen's one h1 names the open chat (the header bar shows it); the chat list is its h2. */}
-      <VisuallyHidden as="h1">{conv.title}</VisuallyHidden>
-      <ChatWindowList aria-labelledby={headingId} head={(
-        <>
-          <Heading level={2} id={headingId} textStyle="Heading/4">Chats</Heading>
-          <Search ref={searchRef} placeholder="Search chats" aria-label="Search chats" value={query} onValueChange={setQuery} clearable />
-        </>
-      )}>
-        {shown.length ? (
-          // The pane scrolls under its sticky head; the rows pad 12px above and below and keep their own 16px sides
-          // (Conversation-List), so their fill stays 4px inside the pane.
-          <Box>
-            <List aria-labelledby={headingId}>
-              {shown.map((c) => <ChatConversationItem key={c.id} {...rowOf(m, c)} selected={c.id === conv.id} onClick={() => m.open(c.id)} />)}
-            </List>
-          </Box>
-        ) : (
-          <EmptyState size="sm" headingLevel={3} icon="icon-search-medium-line" title="No chats match" secondaryAction={{ label: "Show all chats", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
-            No person or group is called “{query.trim()}”.
-          </EmptyState>
+    // List-Detail: the studio's Sidebar on its rail with the toggle in its own header (Collapse=Sidebar), the chats as the
+    // Leading-Pane, the open chat in the main column under its header, and its details as a modal Side Panel. The panes
+    // take the Sidebar's elevation (Shadow) on Canvas/Default.
+    <PreviewAppFrame height={{ min: 600, max: 760 }}>
+      {/* defaultSidebarCollapsed: the wrapped Sidebar registers its own collapsed (false) with the shell, which would
+          otherwise open it expanded; List-Detail starts on the rail. */}
+      <AppShell pattern="list-detail" collapse="sidebar" defaultSidebarCollapsed
+        sidebar={<StudioSidebar selectedId="chats" unread={unread} />}
+        leadingPane={(
+          <AppShellPane title={<>Chats {unread ? <BadgeCounter theme="neutral" background="solid" value={unread} /> : null}</>}
+            action={<IconButton level="tertiary" size="sm" icon="icon-edit-01-line" aria-label="New chat" onClick={() => toast({ title: "New chat", children: "Pick a person or a group to write to." })} />}>
+            <Box paddingX="xs">
+              <Search ref={searchRef} placeholder="Search chats" aria-label="Search chats" value={query} onValueChange={setQuery} clearable />
+            </Box>
+            {shown.length ? (
+              // Conversation-List rows pad 12px above and below and keep their own 16px sides inside the pane.
+              <List aria-label="Chats">
+                {shown.map((c) => <ChatConversationItem key={c.id} {...rowOf(m, c)} selected={c.id === conv.id} onClick={() => m.open(c.id)} />)}
+              </List>
+            ) : (
+              <EmptyState size="sm" headingLevel={3} icon="icon-search-medium-line" title="No chats match" secondaryAction={{ label: "Show all chats", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
+                No person or group is called “{query.trim()}”.
+              </EmptyState>
+            )}
+          </AppShellPane>
         )}
-      </ChatWindowList>
-      <ChatWindowSplit />
-      <ChatWindowMain label={`Chat with ${conv.title}`}>
-        <DesktopHeader m={m} />
-        <Thread key={conv.id} m={m} />
-        <Composer m={m} />
-        <ChatDemoNote note={m.demo.note} />
-      </ChatWindowMain>
-      <DesktopPanels m={m} />
-    </ChatWindow>
+        header={<AppShellHeader main={<ThreadPageHeader m={m} />} sections={<Divider />} />}
+      >
+        <DesktopConversation m={m} />
+        <DesktopPanels m={m} />
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -679,9 +795,47 @@ const replyChat = (): Conv => groupChat("Loyalty app", [chi, bao, em], {
   ],
 });
 
+/** The Lumen Bank project's group, a second group in the studio's chat list. */
+const lumenChat = (): Conv => groupChat("Online banking", [ava, finn, khoa, hana], {
+  id: "lumen", time: clock(9, 5),
+  items: [
+    at("lum-d1", clock(8, 58)),
+    says(finn, "lum-1", "Passkey sign-in is merged. iOS only for now; Android follows next sprint."),
+    says(ava, "lum-2", "Usability sessions 4 and 5 are booked for Friday."),
+    mine("lum-3", "Great. I'll bring the transfer limits screen to the review.", { time: clock(9, 5) }),
+  ],
+});
+
 function ReplyToMessage() {
-  const m = useMessenger([replyChat()], { device: "desktop" });
-  return <DesktopThread m={m} />;
+  const notHere = useNotHere();
+  const m = useMessenger([replyChat(), lumenChat(), chiChat(), baoChat(), hanaChat()], { device: "desktop" });
+  const conv = m.conv!;
+  // The chat list is the app's navigation: groups, then direct messages, each with its unread count.
+  const row = (c: Conv): SidebarItem => ({
+    id: c.id, label: c.title, counter: unreadCount(c) || undefined,
+    icon: c.person ? <Avatar size="2xs" {...faceItem(c.person)} alt="" /> : "icon-users-line",
+  });
+  const sections: SidebarSection[] = [
+    { label: "Groups", items: m.convs.filter((c) => c.group).map(row) },
+    { label: "Direct messages", items: m.convs.filter((c) => !c.group).map(row) },
+  ];
+  return (
+    // Sidebar: the studio's chat app, its Sidebar listing the chats (picking one opens it), the open chat's header in the
+    // Main row with the top row's utilities above it, and the thread with its composer in the Body.
+    <PreviewAppFrame height={{ min: 600, max: 760 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar aria-label="Chats" logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            sections={sections} selectedId={conv.id} onItemClick={(item) => (item.id === "settings" ? notHere("Settings") : m.open(item.id))}
+            footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+        )}
+        header={<AppShellHeader actions={<StudioActions />} main={<ThreadPageHeader m={m} />} sections={<Divider />} />}
+      >
+        <DesktopConversation m={m} />
+        <DesktopPanels m={m} />
+      </AppShell>
+    </PreviewAppFrame>
+  );
 }
 
 // ——— 5. Not delivered (phone) ———————————————————————————————————————————————————————————————————
@@ -750,7 +904,7 @@ const supportChats = (): Conv[] => [
 
 function CustomerSupport() {
   const m = useMessenger(supportChats(), { device: "mobile", answer: () => "Thanks, Alex. Thảo will reply here in a few minutes." });
-  return <PhoneMessenger m={m} label="Phin & Co support chat" listTitle="Messages" canvas="canvas" />;
+  return <PhoneMessenger m={m} label="Phin & Co support chat" listTitle="Messages" canvas="canvas" roots={phinRoots} appName="Phin & Co" />;
 }
 
 // ——— 8. Files, photos and calls (desktop) ———————————————————————————————————————————————————————
@@ -761,6 +915,12 @@ const saolaChat = (): Conv => groupChat("Saola brand refresh", [gia, emi, linh, 
   photo: platformMedia.feed[6],
   // Newest last, so the window opens on the moodboard grid, the shortlist and the read list; files and calls sit above.
   items: [
+    at("sao-d0", when(-2, 10, 15)),
+    sends(hana, "sao-0a", { kind: "file", name: "Saola brief v2.pdf", file: "pdf", size: "2.1 MB" }),
+    says(hana, "sao-0b", "The brief from Saola: three outdoor ranges for spring, and a new name for the hiking line."),
+    sends(emi, "sao-0c", { kind: "photo", photos: [platformMedia.feed[0], platformMedia.feed[2], platformMedia.feed[6]], album: "Trail scouting, Đà Lạt" }),
+    says(emi, "sao-0d", "Scouting shots from the weekend, for the light and the colours."),
+    sends(gia, "sao-0e", { kind: "file", name: "Logo sketches.fig", file: "other", size: "24.8 MB" }),
     at("sao-d1", when(-1, 17, 20)),
     sends(linh, "sao-1", { kind: "file", name: "Saola tone of voice.pdf", file: "pdf", size: "1.2 MB" }),
     sends(hana, "sao-2", { kind: "file", name: "Saola budget.xlsx", file: "sheet", size: "86 KB" }),
@@ -778,8 +938,72 @@ const saolaChat = (): Conv => groupChat("Saola brand refresh", [gia, emi, linh, 
 });
 
 function FilesPhotosCalls() {
+  const notHere = useNotHere();
   const m = useMessenger([saolaChat()], { device: "desktop" });
-  return <DesktopThread m={m} />;
+  const tabsId = useId();
+  const [tab, setTab] = useState("chat");
+  const conv = m.conv!;
+  // What the chat shared, newest first: the Files and Photos tabs follow the thread (a deleted message leaves them).
+  const shared = conv.items.filter((item): item is Msg => isMsg(item) && !m.demo.isDeleted(item.id)).reverse();
+  const sharedFiles = shared.filter((item): item is Msg & { kind: "file" } => item.kind === "file");
+  const albums = shared.filter((item): item is Msg & { kind: "photo" } => item.kind === "photo");
+  const photoCount = albums.reduce((sum, album) => sum + album.photos.length, 0);
+  const sender = (msg: Msg) => (msg.side === "you" ? "You" : msg.from?.name ?? "");
+  return (
+    // Sidebar: the chat is a part of its project, so the studio's Sidebar stays on Projects and the trail leads to it.
+    // The group's header holds its views as Tabs (Sections): the thread, then what it shared.
+    <PreviewAppFrame height={{ min: 600, max: 760 }}>
+      <AppShell
+        sidebar={<StudioSidebar selectedId="projects" unread={0} />}
+        header={(
+          <AppShellHeader
+            leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: saolaBrand.id, label: saolaBrand.name }, { id: "chat", label: "Team chat" }]}
+              onNavigate={(item) => { if (item.id !== "chat") notHere(String(item.label)); }} />}
+            actions={<StudioActions />}
+            main={<ThreadPageHeader m={m} />}
+            sections={<Tabs aria-label={`${conv.title} views`} idPrefix={tabsId} value={tab} onValueChange={setTab}
+              items={[{ id: "chat", label: "Chat" }, { id: "files", label: "Files", badge: sharedFiles.length }, { id: "photos", label: "Photos", badge: photoCount }]} />}
+          />
+        )}
+      >
+        <TabPanel idPrefix={tabsId} id="chat" hidden={tab !== "chat"} className="px-chat-panel">
+          <DesktopConversation m={m} />
+        </TabPanel>
+        <TabPanel idPrefix={tabsId} id="files" hidden={tab !== "files"}>
+          {/* Each file opens (downloads) from its row, as its card does in the thread. */}
+          <ListBox theme="shadow">
+            <List aria-label={`Files shared in ${conv.title}`}>
+              {sharedFiles.map((msg) => (
+                <ListItem key={msg.id} title={msg.name} caption={`${msg.size} · ${sender(msg)}`}
+                  leading={<FileIcon format={fileIconFormatOf(msg.name)} />} onClick={() => m.openFile(msg)} />
+              ))}
+            </List>
+          </ListBox>
+        </TabPanel>
+        <TabPanel idPrefix={tabsId} id="photos" hidden={tab !== "photos"}>
+          <Stack gap="lg">
+            {albums.map((album) => (
+              <Card key={album.id} as="section" theme="shadow" aria-label={album.album}>
+                <Stack gap="md">
+                  <Stack direction="row" gap="sm" align="center" justify="between" wrap>
+                    <Stack gap="3xs">
+                      <Heading level={2} textStyle="Heading/Subheading">{album.album}</Heading>
+                      <Text textStyle="Body/Small/Regular" tone="base">{`${plural(album.photos.length, "photo")} · ${sender(album)}`}</Text>
+                    </Stack>
+                    <Button level="tertiary" startIcon="icon-image-line" onClick={() => m.openPhoto(album, 0)}>View photos</Button>
+                  </Stack>
+                  <Grid columns={{ mobile: 2, desktop: 5 }} gap="sm">
+                    {album.photos.map((photo) => <Image key={photo.src} src={photo.src} alt={photo.alt} ratio="1:1" radius="lg" />)}
+                  </Grid>
+                </Stack>
+              </Card>
+            ))}
+          </Stack>
+        </TabPanel>
+        <DesktopPanels m={m} />
+      </AppShell>
+    </PreviewAppFrame>
+  );
 }
 
 // ——— 9. Voice messages (phone) ——————————————————————————————————————————————————————————————————————————
@@ -807,29 +1031,37 @@ function VoiceMessages() {
   const fromBao = useVoicePlayback(32);
   const mine = useVoicePlayback(18);
   const [sent, setSent] = useState<Array<{ id: string; text: string }>>([]);
-  const header = (
-    <PlatformChatHeader title={bao.name} person={cp(bao)} online scrollRef={screenRef}
-      onAction={(what) => demo.headerAction(what)} />
-  );
+  const intro = "Recorded the checkout walkthrough for you, it's quicker than typing it out 🙂";
   return (
     <Stack gap="sm">
-      <PlatformPhone label="Voice messages with Bao Tran" canvas="canvas" screenRef={screenRef} header={header}
-        footer={<ChatComposer actions={demo.composerActions} onEmoji={demo.onEmoji} {...demo.composerReply} onSend={(text) => { demo.takeReply(); setSent((all) => [...all, { id: `voice-sent-${all.length}`, text }]); demo.say("Sent"); }} />}>
-        <ChatThread aria-label="Voice messages with Bao Tran">
-          {demo.isDeleted("voice-bao") ? null : (
-            <ChatMessage side="others" author={cp(bao)} {...demo.act("voice-bao", "others", { kind: "voice", author: bao.name, reply: { duration: "0:32" } })}>
-              <ChatVoice side="others" {...fromBao} />
-            </ChatMessage>
-          )}
-          {demo.isDeleted("voice-you") ? null : (
-            <ChatMessage side="you" status={sent.length ? undefined : "Seen"} {...demo.act("voice-you", "you", { kind: "voice", reply: { duration: "0:18" } })}>
-              <ChatVoice side="you" {...mine} />
-            </ChatMessage>
-          )}
-          {sent.map((message, index) => (
-            <ChatMessage key={message.id} side="you" continued status={index === sent.length - 1 ? "Sent" : undefined} {...demo.act(message.id, "you", { text: message.text })}>{message.text}</ChatMessage>
-          ))}
-        </ChatThread>
+      {/* A thread screen: the conversation header, the thread edge to edge, and the composer pinned to the bottom. */}
+      <PlatformPhone label="Voice messages with Bao Tran" canvas="canvas" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<PlatformChatHeader title={bao.name} person={cp(bao)} online scrollRef={screenRef} onAction={(what) => demo.headerAction(what)} />}
+          actionBar={<ChatComposer actions={demo.composerActions} onEmoji={demo.onEmoji} {...demo.composerReply} onSend={(text) => { demo.takeReply(); setSent((all) => [...all, { id: `voice-sent-${all.length}`, text }]); demo.say("Sent"); }} />}
+        >
+          <Box className="px-chat-bleed px-chat-fill">
+            <ChatThread aria-label="Voice messages with Bao Tran">
+              <ChatDateDivider>{clock(9, 38)}</ChatDateDivider>
+              {demo.isDeleted("voice-intro") ? null : (
+                <ChatMessage side="others" author={cp(bao)} continued={!demo.isDeleted("voice-bao")} {...demo.act("voice-intro", "others", { text: intro, author: bao.name })}>{intro}</ChatMessage>
+              )}
+              {demo.isDeleted("voice-bao") ? null : (
+                <ChatMessage side="others" author={cp(bao)} {...demo.act("voice-bao", "others", { kind: "voice", author: bao.name, reply: { duration: "0:32" } })}>
+                  <ChatVoice side="others" {...fromBao} />
+                </ChatMessage>
+              )}
+              {demo.isDeleted("voice-you") ? null : (
+                <ChatMessage side="you" status={sent.length ? undefined : "Seen"} {...demo.act("voice-you", "you", { kind: "voice", reply: { duration: "0:18" } })}>
+                  <ChatVoice side="you" {...mine} />
+                </ChatMessage>
+              )}
+              {sent.map((message, index) => (
+                <ChatMessage key={message.id} side="you" continued status={index === sent.length - 1 ? "Sent" : undefined} {...demo.act(message.id, "you", { text: message.text })}>{message.text}</ChatMessage>
+              ))}
+            </ChatThread>
+          </Box>
+        </AppShell>
       </PlatformPhone>
       <ChatDemoNote note={demo.note} />
     </Stack>
@@ -841,27 +1073,35 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Team messenger",
     wide: true,
     screen: true,
-    description: "On desktop, Conversation-List rows sit beside a thread with device=\"desktop\": text runs to 516px and each message gets the hover toolbar. Opening a chat marks it read, and Search narrows the list by name.",
+    description: "The studio's messenger on desktop: an AppShell List-Detail, the Sidebar on its rail, the Conversation-List rows in the Leading-Pane and the open chat beside them. Its thread has device=\"desktop\": text runs to 516px and each message gets the hover toolbar; the composer docks at the bottom of the window. Opening a chat marks it read (the counts in the pane and the Sidebar follow), and Search narrows the list by name.",
     render: () => <TeamMessenger />,
     code: `const shown = chats.filter((c) => c.title.toLowerCase().includes(query.trim().toLowerCase()));
 
-<VisuallyHidden as="h1">{chat.title}</VisuallyHidden>
-<aside aria-labelledby="chats">
-  <Heading level={2} id="chats" textStyle="Heading/4">Chats</Heading>
-  <Search placeholder="Search chats" aria-label="Search chats" value={query} onValueChange={setQuery} clearable />
-  {/* The pane scrolls; rows pad 12px above and below and 16px at the sides (Conversation-List) */}
-  <Box>
-    <List aria-labelledby="chats">
-      {shown.map((c) => (
-        <ChatConversationItem key={c.id} person={c.person} group={c.group} preview={c.preview} time={c.time}
-          unread={c.unread} online={c.online} selected={c.id === openId} onClick={() => open(c.id)} />
-      ))}
-    </List>
-  </Box>
-</aside>
-<Divider orientation="vertical" decorative />
-<section aria-label={\`Chat with \${chat.title}\`}>
-  {/* Thread header: avatar, name, presence and Icon-Flat call · video · details */}
+<AppShell pattern="list-detail" collapse="sidebar"
+  sidebar={<Sidebar logo={studioLogo} logoCollapsed={studioMark} sections={studioPlaces} selectedId="chats" />}
+  leadingPane={(
+    <AppShellPane title={<>Chats <BadgeCounter theme="neutral" background="solid" value={unread} /></>}
+      action={<IconButton level="tertiary" size="sm" icon="icon-edit-01-line" aria-label="New chat" onClick={newChat} />}>
+      <Box paddingX="xs"><Search placeholder="Search chats" aria-label="Search chats" value={query} onValueChange={setQuery} clearable /></Box>
+      {/* Conversation-List rows: 12px above and below, their own 16px sides */}
+      <List aria-label="Chats">
+        {shown.map((c) => (
+          <ChatConversationItem key={c.id} person={c.person} group={c.group} preview={c.preview} time={c.time}
+            unread={c.unread} online={c.online} selected={c.id === openId} onClick={() => open(c.id)} />
+        ))}
+      </List>
+    </AppShellPane>
+  )}
+  header={<AppShellHeader sections={<Divider />} main={(
+    <PageHeader title={chat.title} description={\`\${chat.role} · \${chat.status}\`}
+      trailing={<>
+        <IconButton level="tertiary" icon="icon-phone-call-line" aria-label="Voice call" onClick={call} />
+        <IconButton level="tertiary" icon="icon-video-recorder-line" aria-label="Video call" onClick={videoCall} />
+        <IconButton level="tertiary" icon="icon-info-circle-line" aria-label="Conversation details" onClick={openDetails} />
+      </>} />
+  )} />}
+>
+  {/* The Body: the thread fills the page; the composer docks at the bottom of the window (position: sticky) */}
   <ChatThread device="desktop" aria-label={\`Messages with \${chat.title}\`}>
     {chat.messages.map((m) => (
       <ChatMessage key={m.id} side={m.side} author={m.author} continued={m.continued}
@@ -870,7 +1110,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     ))}
   </ChatThread>
   <ChatComposer device="desktop" onSend={send} replyTo={replyTo} onCancelReply={() => setReplyTo(undefined)} />
-</section>`,
+</AppShell>`,
   },
   {
     title: "Hold to react",
@@ -901,26 +1141,33 @@ const handle = (action, id) => {
   },
   {
     title: "Chats inbox",
-    description: "Unread chats have a bold preview and a green dot; a missed call stays red until opened, and a call going on now is green. Each row opens its chat, and Back returns to the list with that chat read.",
+    description: "Unread chats have a bold preview and a green dot; a missed call stays red until opened, and a call going on now is green. The list is a tab root (the tab bar's Chats shows a dot while anything is unread); each row opens its chat, and Back returns to the list with that chat read.",
     render: () => <ChatsInbox />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-<PlatformPhone key="chats" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Chats" largeTitle="Chats" scrollRef={screenRef} />}>
-  <List aria-label="Chats">
-    <ChatConversationItem person={chi} preview="Can you look at it before the 2 pm review?" time="2 minutes ago" unread={!read.chi} onClick={() => open("chi")} />
-    <ChatConversationItem person={bao} call="missed-audio" time="13 minutes ago" unread={!read.bao} online onClick={() => open("bao")} />
-    <ChatConversationItem person={{ name: "Loyalty app" }} group={[chi, bao]} call="ongoing" time="25 minutes ago" online onClick={() => open("loyalty")} />
-    <ChatConversationItem person={duy} call="missed-video" time="Yesterday at 4:40 pm" online onClick={() => open("duy")} />
-    <ChatConversationItem person={minhAnh} call="outgoing" time="Monday at 11:05 am" onClick={() => open("minh-anh")} />
-  </List>
+<PlatformPhone key="chats" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation title="Chats" largeTitle="Chats" scrollRef={screenRef}
+      trailing={[{ icon: "icon-edit-01-line", label: "New chat", onClick: newChat }]} />}
+    bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" showLabels value="chats" onValueChange={navigate}
+      items={[{ id: "chats", label: "Chats", icon: "icon-message-chat-circle-line", selectedIcon: "icon-message-chat-circle-solid", dot: hasUnread }, …]} />}
+  >
+    {/* Conversation-List rows run edge to edge with their own 16px sides (margin-inline: −Margin-Comfortable) */}
+    <List aria-label="Chats">
+      <ChatConversationItem person={chi} preview="Can you look at it before the 2 pm review?" time="2 minutes ago" unread={!read.chi} onClick={() => open("chi")} />
+      <ChatConversationItem person={bao} call="missed-audio" time="13 minutes ago" unread={!read.bao} online onClick={() => open("bao")} />
+      <ChatConversationItem person={{ name: "Loyalty app" }} group={[chi, bao]} call="ongoing" time="25 minutes ago" online onClick={() => open("loyalty")} />
+      <ChatConversationItem person={duy} call="missed-video" time="Yesterday at 4:40 pm" online onClick={() => open("duy")} />
+      <ChatConversationItem person={minhAnh} call="outgoing" time="Monday at 11:05 am" onClick={() => open("minh-anh")} />
+    </List>
+  </AppShell>
 </PlatformPhone>`,
   },
   {
     title: "Reply to a message",
     wide: true,
     screen: true,
-    description: "Reply in the hover toolbar fills the composer's “Replying to” bar, and × or Escape drops it. A sent reply quotes what it answers (text, a photo, a file, a call, or a deleted message) and pressing the quote jumps back to it.",
+    description: "Reply in the hover toolbar fills the composer's “Replying to” bar, and × or Escape drops it. A sent reply quotes what it answers (text, a photo, a file, a call, or a deleted message) and pressing the quote jumps back to it. The chat app's Sidebar lists the groups and direct messages with their unread counts; picking one opens it.",
     render: () => <ReplyToMessage />,
     code: `<ChatMessage id="rep-3" side="others" author={em} showName
   holdActions={chatHoldActionsFor("file", "others")}
@@ -953,25 +1200,29 @@ const handle = (action, id) => {
     title: "First message",
     description: "A new chat says who it is with instead of showing an empty thread, and offers one first step: Say hello sends a wave emoji. That first message opens the thread, and its Sent turns to Seen when Em answers.",
     render: () => <FirstMessage />,
-    code: `<PlatformPhone screenRef={screenRef} header={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} scrollRef={screenRef} onAction={onAction} />}
-  footer={<ChatComposer onSend={send} actions={actions} onEmoji={toggleEmoji} />}>
-  {messages.length === 0 ? (
-    <EmptyState headingLevel={2} icon="icon-message-smile-circle-line" title="No messages yet"
-      primaryAction={{ label: "Say hello", onClick: () => send("👋") }}>
-      Em Pham is the QA engineer on the Loyalty app, based in Hanoi.
-    </EmptyState>
-  ) : (
-    <ChatThread aria-label="Messages with Em Pham">
-      {messages.map((m) => <ChatMessage key={m.id} {...act(m)} side={m.side} author={m.author}>{m.text}</ChatMessage>)}
-    </ChatThread>
-  )}
+    code: `<PlatformPhone screenRef={screenRef}>
+  <AppShell
+    topNavigation={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} scrollRef={screenRef} onAction={onAction} />}
+    actionBar={<ChatComposer onSend={send} actions={actions} onEmoji={toggleEmoji} />}
+  >
+    {messages.length === 0 ? (
+      <EmptyState headingLevel={2} icon="icon-message-smile-circle-line" title="No messages yet"
+        primaryAction={{ label: "Say hello", onClick: () => send("👋") }}>
+        Em Pham is the QA engineer on the Loyalty app, based in Hanoi.
+      </EmptyState>
+    ) : (
+      <ChatThread aria-label="Messages with Em Pham">
+        {messages.map((m) => <ChatMessage key={m.id} {...act(m)} side={m.side} author={m.author}>{m.text}</ChatMessage>)}
+      </ChatThread>
+    )}
+  </AppShell>
 </PlatformPhone>`,
   },
   {
     title: "Files, photos and calls",
     wide: true,
     screen: true,
-    description: "Attachments are cards: photos fill a 400px grid with “+N” past four, files take their type colour, and calls say what happened with one action. In a group, the read list under your last message replaces “Seen”.",
+    description: "Attachments are cards: photos fill a 400px grid with “+N” past four, files take their type colour, and calls say what happened with one action. In a group, the read list under your last message replaces “Seen”. The group chat is part of its project: the trail leads back to it, and the header's Files and Photos tabs gather what the thread shared.",
     render: () => <FilesPhotosCalls />,
     code: `<ChatThread device="desktop" aria-label="Messages with Saola brand refresh">
   <ChatMessage side="others" author={linh} showName><ChatFile kind="pdf" name="Saola tone of voice.pdf" size="1.2 MB" onOpen={download} /></ChatMessage>
@@ -989,32 +1240,40 @@ const handle = (action, id) => {
     title: "Voice messages",
     description: "On a phone, ChatVoice plays a voice message in its bubble: the played share of the waveform turns full strength, the speed steps 1× → 1.5× → 2×, and hold (or Shift+F10 on a focused bubble) offers Reply, Forward, Pin and Delete as on a file.",
     render: () => <VoiceMessages />,
-    code: `<PlatformPhone canvas="canvas" screenRef={screenRef}
-  header={<PlatformChatHeader title="Bao Tran" person={bao} online scrollRef={screenRef} onAction={onAction} />}
-  footer={<ChatComposer replyTo={replyTo} onCancelReply={cancelReply} onSend={send} />}>
-  <ChatThread aria-label="Voice messages with Bao Tran">
-    <ChatMessage side="others" author={bao} {...act("voice-bao", "others", { kind: "voice" })}>
-      <ChatVoice side="others" duration="0:32" elapsed={elapsed} progress={progress}
-        playing={playing} onPlayingChange={setPlaying} speed={speed} onSpeedChange={setSpeed} />
-    </ChatMessage>
-    <ChatMessage side="you" status="Seen" {...act("voice-you", "you", { kind: "voice" })}>
-      <ChatVoice side="you" duration="0:18" playing={mine} onPlayingChange={setMine} speed={mineSpeed} onSpeedChange={setMineSpeed} />
-    </ChatMessage>
-  </ChatThread>
+    code: `<PlatformPhone canvas="canvas" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<PlatformChatHeader title="Bao Tran" person={bao} online scrollRef={screenRef} onAction={onAction} />}
+    actionBar={<ChatComposer replyTo={replyTo} onCancelReply={cancelReply} onSend={send} />}
+  >
+    <ChatThread aria-label="Voice messages with Bao Tran">
+      <ChatMessage side="others" author={bao} continued {...act("voice-intro", "others", { text: intro })}>{intro}</ChatMessage>
+      <ChatMessage side="others" author={bao} {...act("voice-bao", "others", { kind: "voice" })}>
+        <ChatVoice side="others" duration="0:32" elapsed={elapsed} progress={progress}
+          playing={playing} onPlayingChange={setPlaying} speed={speed} onSpeedChange={setSpeed} />
+      </ChatMessage>
+      <ChatMessage side="you" status="Seen" {...act("voice-you", "you", { kind: "voice" })}>
+        <ChatVoice side="you" duration="0:18" playing={mine} onPlayingChange={setMine} speed={mineSpeed} onSpeedChange={setMineSpeed} />
+      </ChatMessage>
+    </ChatThread>
+  </AppShell>
 </PlatformPhone>`,
   },
   {
     title: "Customer support",
-    description: "A support chat uses the Business domain on the Canvas background: the time sits inside every bubble and card, and support answers a moment after you write.",
+    description: "A support chat in the Phin & Co app uses the Business domain on the Canvas background: the time sits inside every bubble and card, and support answers a moment after you write. Back leads to the app's Messages, a tab root.",
     render: () => <CustomerSupport />,
-    code: `<PlatformPhone canvas="canvas" screenRef={screenRef} header={<PlatformChatHeader title="Phin & Co" subtitle="Member support" person={support} scrollRef={screenRef} onAction={onAction} />}
-  footer={<ChatComposer onSend={send} />}>
-  <ChatThread aria-label="Messages with Phin & Co">
-    <ChatMessage side="others" domain="business" author={support} time="9:58 am">Hi Alex, this is Thảo from Phin & Co. How can I help?</ChatMessage>
-    <ChatMessage side="you" domain="business" time="10:01 am">I bought two cold brews this morning, but no points showed up.</ChatMessage>
-    <ChatMessage side="you" domain="business" time="10:01 am"><ChatFile side="you" kind="pdf" name="Receipt.pdf" size="96 KB" onOpen={download} /></ChatMessage>
-    <ChatMessage side="others" domain="business" author={support} time="10:05 am">I've added the 40 points by hand. They're in your balance now.</ChatMessage>
-  </ChatThread>
+    code: `<PlatformPhone canvas="canvas" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<PlatformChatHeader title="Phin & Co" subtitle="Member support" person={support} scrollRef={screenRef} onAction={onAction} />}
+    actionBar={<ChatComposer onSend={send} />}
+  >
+    <ChatThread aria-label="Messages with Phin & Co">
+      <ChatMessage side="others" domain="business" author={support} time="9:58 am">Hi Alex, this is Thảo from Phin & Co. How can I help?</ChatMessage>
+      <ChatMessage side="you" domain="business" time="10:01 am">I bought two cold brews this morning, but no points showed up.</ChatMessage>
+      <ChatMessage side="you" domain="business" time="10:01 am"><ChatFile side="you" kind="pdf" name="Receipt.pdf" size="96 KB" onOpen={download} /></ChatMessage>
+      <ChatMessage side="others" domain="business" author={support} time="10:05 am">I've added the 40 points by hand. They're in your balance now.</ChatMessage>
+    </ChatThread>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

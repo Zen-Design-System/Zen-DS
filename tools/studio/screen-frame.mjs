@@ -8,15 +8,15 @@
 // Pure functions over a page's text (the browser engine and Node):
 //   FRAME_PARTS, FRAME_PROPS, screenFrameCode(prop, title)   (from screen-chrome.mjs, which the Studio client reads)
 //   rootAppShell(screenElement)               the Screen's one root <AppShell> (Babel JSXElement) or null
-//   setScreenFramePart(text, loc, op, opts)   op { prop, on, code }: the part on the root AppShell (made when missing,
-//                                             removed with its last part) → new text
+//   setScreenFramePart(text, loc, op, opts)   op { prop, on, code }: the part on the root AppShell or on its header's
+//                                             AppShellHeader (each made when missing, removed with its last part) → new text
 //   migrateScreenFrame(text, opts)            the Screen's old `sidebar` / `header` props moved into the root AppShell,
 //                                             a second Sidebar or Page header dropped → { text, changed, notes }
 import { parse } from "@babel/parser";
 import { UNIT, importEdits, indentAt, refuse } from "./source-helpers.mjs";
-import { FRAME_PARTS, FRAME_PROPS, LEGACY_FRAME, screenFrameCode } from "./screen-chrome.mjs";
+import { FRAME_PARTS, FRAME_PROPS, HEADER_PROPS, LEGACY_FRAME, screenFrameCode, screenHeaderCode } from "./screen-chrome.mjs";
 
-export { FRAME_PARTS, FRAME_PROPS, LEGACY_FRAME, screenFrameCode } from "./screen-chrome.mjs";
+export { FRAME_PARTS, FRAME_PROPS, HEADER_PROPS, LEGACY_FRAME, screenFrameCode, screenHeaderCode } from "./screen-chrome.mjs";
 
 /* ── reading ──────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -38,6 +38,13 @@ const locOf = (element) => `${element.loc.start.line}:${element.loc.start.column
 export function rootAppShell(screen) {
   const kids = screen.children.filter(meaningful);
   return kids.length === 1 && kids[0].type === "JSXElement" && nameOf(kids[0]) === "AppShell" ? kids[0] : null;
+}
+
+/** The AppShellHeader in a root AppShell's `header`, or null. */
+function headerOf(shell) {
+  const value = shell ? attrOf(shell, "header")?.value : null;
+  const element = value?.type === "JSXExpressionContainer" ? value.expression : value;
+  return element?.type === "JSXElement" && nameOf(element) === "AppShellHeader" ? element : null;
 }
 
 /** The frame parts a root AppShell draws. */
@@ -141,6 +148,35 @@ export function setScreenFramePart(text, loc, op, { file } = {}) {
   const code = typeof op.code === "string" && op.code.trim() ? op.code.trim() : screenFrameCode(op.prop, null);
   const edits = [];
   let removedCode = "";
+  const part = FRAME_PARTS.find((entry) => entry.prop === op.prop);
+  if (part.host === "header") {
+    // A part of the header: a prop of the AppShellHeader in the AppShell's `header` (both made when missing; the header
+    // goes with its last part, and the AppShell with its last frame prop).
+    const header = headerOf(shell);
+    if (op.on) {
+      if (header && attrOf(header, op.prop)) return text;
+      if (header) edits.push(attributeInsertion(text, header, [[op.prop, code]], indentAt(text, header.start) + UNIT, eol));
+      else if (shell) edits.push(attributeInsertion(text, shell, [["header", screenHeaderCode([[op.prop, code]])]], indentAt(text, shell.start) + UNIT, eol));
+      else edits.push(wrapEdit(text, screen, [["header", screenHeaderCode([[op.prop, code]])]], eol));
+    } else {
+      const attribute = header ? attrOf(header, op.prop) : null;
+      if (!attribute) return text;
+      removedCode = text.slice(attribute.start, attribute.end);
+      const rest = header.openingElement.attributes.filter((other) => other !== attribute && other.type === "JSXAttribute" && HEADER_PROPS.has(other.name.name));
+      if (rest.length) edits.push(attributeRemoval(text, attribute));
+      else {
+        const headerAttribute = attrOf(shell, "header");
+        removedCode = text.slice(headerAttribute.start, headerAttribute.end);
+        const others = shell.openingElement.attributes.filter((other) => other !== headerAttribute && !(other.type === "JSXAttribute" && other.name.name === "data-zen-id"));
+        if (!others.length) edits.push(unwrapEdit(text, shell));
+        else edits.push(attributeRemoval(text, headerAttribute));
+      }
+    }
+    const draft = applyEdits(text, edits);
+    const needed = op.on ? [...(shell ? [] : ["AppShell"]), ...(headerOf(shell) ? [] : ["AppShellHeader"]), ...componentsIn(code)] : [];
+    const maybeGone = op.on ? [] : ["AppShell", "AppShellHeader", ...componentsIn(removedCode)];
+    return applyEdits(text, [...edits, ...importChanges(ast, text, draft, file, needed, maybeGone, eol)]);
+  }
   if (op.on) {
     if (shell && attrOf(shell, op.prop)) return text;
     if (shell) edits.push(attributeInsertion(text, shell, [[op.prop, code]], indentAt(text, shell.start) + UNIT, eol));
@@ -167,11 +203,14 @@ export function setScreenFramePart(text, loc, op, { file } = {}) {
  * header as the AppShell's `sections` unless it has them or its content already starts with a PageHeader. Returns
  * { text, changed, notes } (notes: what was dropped as a duplicate).
  */
-export function migrateScreenFrame(text, { file } = {}) {
+export function migrateScreenFrame(source, { file } = {}) {
+  // The AppShell rebuild first (old AppShell props → the new API), then the Screen's own frame props.
+  const rebuilt = migrateAppShellProps(source, { file });
+  const text = rebuilt.text;
   // A quick look first (a prop's component may hold ">", so the props are not matched inside the Screen's tag here).
-  if (!LEGACY_FRAME.test(text)) return { text, changed: false, notes: [] };
+  if (!LEGACY_FRAME.test(text)) return { text, changed: rebuilt.changed, notes: [] };
   let ast;
-  try { ast = parseText(text); } catch { return { text, changed: false, notes: [] }; }
+  try { ast = parseText(text); } catch { return { text, changed: rebuilt.changed, notes: [] }; }
   const eol = eolOf(text);
   const edits = [];
   const notes = [];
@@ -192,16 +231,98 @@ export function migrateScreenFrame(text, { file } = {}) {
     }
     if (header) {
       edits.push(attributeRemoval(text, header));
-      if (has.has("sections") || /<PageHeader\b/.test(content)) notes.push("a second Page header (the Screen's) was dropped: the page has its own");
-      else entries.push(["sections", relativeValueCode(text, header)]);
+      if (has.has("header") || /<PageHeader\b/.test(content)) notes.push("a second Page header (the Screen's) was dropped: the page has its own");
+      else { needed.add("AppShellHeader"); entries.push(["header", screenHeaderCode([["main", relativeValueCode(text, header)]])]); }
     }
     if (!entries.length) continue;
     if (shell) edits.push(attributeInsertion(text, shell, entries, indentAt(text, shell.start) + UNIT, eol));
     else { needed.add("AppShell"); edits.push(wrapEdit(text, screen, entries, eol)); }
   }
-  if (!edits.length) return { text, changed: false, notes };
+  if (!edits.length) return { text, changed: rebuilt.changed, notes };
   const draft = applyEdits(text, edits);
   const gone = ["Sidebar", "SidebarMenuItem", "PageHeader"];
   const next = applyEdits(text, [...edits, ...importChanges(ast, text, draft, file, [...needed], gone, eol)]);
-  return { text: next, changed: next !== text, notes };
+  return { text: next, changed: rebuilt.changed || next !== text, notes };
+}
+
+/* ── the AppShell rebuild (2026-10-19) ───────────────────────────────────────────────────────────────────────────── */
+
+/** The AppShell props the rebuild renamed or folded into AppShellHeader (no aliases: a page is moved once, on load). */
+const OLD_SHELL_PROPS = new Set(["headerCenter", "headerActions", "sections", "aside", "floatingAction", "footer", "sidebarToggle"]);
+/** Old top-bar props → the AppShellHeader prop each becomes. */
+const TO_HEADER = { header: "leading", headerCenter: "center", headerActions: "actions", sections: "main" };
+const RENAMED = { aside: "sidePanel", floatingAction: "floatingActions" };
+const OLD_LAYOUT = { sidebar: "desktop", phone: "mobile" };
+
+/** Whether an AppShell still speaks the old API. */
+function oldShell(shell) {
+  for (const attribute of shell.openingElement.attributes) {
+    if (attribute.type !== "JSXAttribute") continue;
+    const name = attribute.name.name;
+    if (OLD_SHELL_PROPS.has(name)) return true;
+    if (name === "header" && !headerOf(shell)) return true;
+    if (name === "layout" && attribute.value?.type === "StringLiteral" && OLD_LAYOUT[attribute.value.value]) return true;
+  }
+  return false;
+}
+
+/**
+ * Pages written for the AppShell before its rebuild (2026-10-19: the user's "Phá hẳn, migrate hết", no aliases): every
+ * AppShell's top bar (header, headerCenter, headerActions) and header rows (sections) move into one
+ * `header={<AppShellHeader leading center actions main />}`; aside becomes sidePanel and floatingAction floatingActions;
+ * the footer bar moves to the end of the page (a sticky ActionBar); sidebarToggle={false} becomes collapse="none" (true
+ * goes); layout "sidebar" / "phone" becomes "desktop" / "mobile". Returns { text, changed }.
+ */
+export function migrateAppShellProps(text, { file } = {}) {
+  if (!/<AppShell\b/.test(text)) return { text, changed: false };
+  let ast;
+  try { ast = parseText(text); } catch { return { text, changed: false }; }
+  const eol = eolOf(text);
+  const edits = [];
+  let moved = false;
+  for (const shell of elements(ast.program)) {
+    if (nameOf(shell) !== "AppShell" || !oldShell(shell)) continue;
+    moved = true;
+    const pad = indentAt(text, shell.start) + UNIT;
+    const headerParts = [];
+    const added = [];
+    let footer = null;
+    for (const attribute of shell.openingElement.attributes) {
+      if (attribute.type !== "JSXAttribute") continue;
+      const name = attribute.name.name;
+      if (name === "header" && headerOf(shell)) continue;
+      if (TO_HEADER[name]) { headerParts.push([TO_HEADER[name], relativeValueCode(text, attribute)]); edits.push(attributeRemoval(text, attribute)); continue; }
+      if (RENAMED[name]) { edits.push({ start: attribute.name.start, end: attribute.name.end, text: RENAMED[name] }); continue; }
+      if (name === "footer") { footer = relativeValueCode(text, attribute); edits.push(attributeRemoval(text, attribute)); continue; }
+      if (name === "sidebarToggle") {
+        const off = attribute.value?.type === "JSXExpressionContainer" && attribute.value.expression.type === "BooleanLiteral" && !attribute.value.expression.value;
+        edits.push(attributeRemoval(text, attribute));
+        if (off) added.push(`${eol}${pad}collapse="none"`);
+        continue;
+      }
+      if (name === "layout" && attribute.value?.type === "StringLiteral" && OLD_LAYOUT[attribute.value.value]) edits.push({ start: attribute.value.start, end: attribute.value.end, text: `"${OLD_LAYOUT[attribute.value.value]}"` });
+    }
+    if (headerParts.length) {
+      // The leading part keeps the toggle's place: the Main row (a PageHeader) last, as Header/AppShell draws them.
+      const order = ["leading", "center", "actions", "main"];
+      headerParts.sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+      added.push(`${eol}${pad}header={${indented(screenHeaderCode(headerParts), pad)}}`);
+    }
+    if (added.length) {
+      const opening = shell.openingElement;
+      const kept = opening.attributes.filter((attribute) => !(attribute.type === "JSXAttribute" && (TO_HEADER[attribute.name.name] && !(attribute.name.name === "header" && headerOf(shell)) || attribute.name.name === "footer" || attribute.name.name === "sidebarToggle")));
+      const at = kept.length ? kept.at(-1).end : opening.name.end;
+      edits.push({ start: at, end: at, text: added.join("") });
+    }
+    if (footer) {
+      // A sticky ActionBar at the end of the page (the shell has no desktop footer any more).
+      const bar = footer.replace(/\s+position="static"/, "");
+      const close = shell.closingElement;
+      if (close) edits.push({ start: close.start, end: close.start, text: `${indented(`${UNIT}${bar}`, pad)}${eol}${indentAt(text, shell.start)}` });
+    }
+  }
+  if (!moved) return { text, changed: false };
+  const draft = applyEdits(text, edits);
+  const next = applyEdits(text, [...edits, ...importChanges(ast, text, draft, file, /<AppShellHeader\b/.test(draft) ? ["AppShellHeader"] : [], [], eol)]);
+  return { text: next, changed: next !== text };
 }

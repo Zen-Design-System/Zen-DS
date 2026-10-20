@@ -1,0 +1,20 @@
+/* App Shell screens (src/platform/examples/pages/app-shell/*.tsx). Tokens only. */
+
+/* A shortcut tile (Figma E1 categories, E2 shortcuts and brands): the mark, a Large Dock Icon or Avatar, over its
+   Body/Small label, Spacing/Gap/2XSmall apart. The whole tile is one labelled button (Dock Icon guideline: wrap the
+   mark in a labelled control), so the visible label is its name and the mark keeps its own size: an IconButton's
+   icon slot is the Button icon size, and a 56px mark spilled out of it. No fill at rest, so nothing paints on hover;
+   the focus ring follows the mark's corners. */
+.px-shell-shortcut {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--zen-corner-radius-large, 16px);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.px-shell-shortcut:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }

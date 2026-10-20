@@ -13,7 +13,7 @@ One row of a dashboard page's header: a control bar (Search, filter Chips, a res
 - Converting a Figma Header/Dashboard: every Primitives/Dashboard/Header row keeps its Type.
 
 ## Use something else for
-- The app frame's top bar inside an AppShell → AppShell header · headerCenter · headerActions.
+- The app frame's top row inside an AppShell → AppShellHeader leading · center · actions.
 - A page title with breadcrumbs, Back or section tabs → PageHeader (type main renders the same row without them).
 - Phone screens → TopNavigation and the mobile filter row (Chip › Mobile filter row).
 - A toolbar inside a card or a table widget → a Stack in the card's header.

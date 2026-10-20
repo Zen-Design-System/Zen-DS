@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
-import { AppShell, Sidebar, SidebarMenuItem, Stack, useAppShell, type SidebarSection } from "../../src/index";
+import { AppShell, AppShellHeader, Sidebar, SidebarMenuItem, Stack, useAppShell, type SidebarSection } from "../../src/index";
 
 const sections: SidebarSection[] = [
   { items: [{ id: "home", label: "Home", icon: "icon-home-line" }, { id: "inbox", label: "Approvals", icon: "icon-inbox-line", counter: 3 }] },
@@ -32,12 +32,12 @@ function PageToggle() {
 }
 
 const shellOf = (sidebar: React.ReactNode, props: Partial<React.ComponentProps<typeof AppShell>> = {}) => (
-  <div style={{ width: 1280 }}><AppShell layout="sidebar" sidebar={sidebar} header={<span>Top</span>} {...props}><PageToggle /></AppShell></div>
+  <div style={{ width: 1280 }}><AppShell layout="desktop" sidebar={sidebar} header={<AppShellHeader leading={<span>Top</span>} />} {...props}><PageToggle /></AppShell></div>
 );
 
 describe("AppShell › Sidebar context", () => {
   it("collapses a wrapped Sidebar to the rail, with a dot for the counter and a divider between groups", async () => {
-    const screen = await render(<div style={{ width: 1280 }}><AppShell layout="sidebar" defaultSidebarCollapsed sidebar={<AppNavigation />} header={<span>Top</span>}><p>Page</p></AppShell></div>);
+    const screen = await render(<div style={{ width: 1280 }}><AppShell layout="desktop" defaultSidebarCollapsed sidebar={<AppNavigation />} header={<AppShellHeader leading={<span>Top</span>} />}><p>Page</p></AppShell></div>);
     const nav = screen.getByRole("navigation", { name: "Main" });
     await expect.element(nav).toHaveAttribute("data-collapsed", "true");
     await expect.element(screen.getByRole("button", { name: "Approvals, 3" })).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe("AppShell › Sidebar context", () => {
     await expect.element(nav).toHaveAttribute("data-collapsed", "false");
   });
 
-  it("gives a wrapped Sidebar the top-bar toggle without any shell prop", async () => {
+  it("gives a wrapped Sidebar the header toggle without any shell prop", async () => {
     const screen = await render(shellOf(<AppNavigation />));
     const nav = screen.getByRole("navigation", { name: "Main" });
     await expect.element(nav).toHaveAttribute("data-collapsed", "false");
@@ -81,7 +81,7 @@ describe("AppShell › Sidebar context", () => {
   it("keeps one control for a wrapped Sidebar that owns the rail, and sends the shell's requests to it", async () => {
     const screen = await render(shellOf(<OwnRail />, { defaultSidebarCollapsed: false }));
     const nav = screen.getByRole("navigation", { name: "Main" });
-    expect(document.querySelectorAll(".zen-app-shell__toggle").length).toBe(0);
+    expect(document.querySelectorAll(".zen-app-shell-header__toggle").length).toBe(0);
     expect(nav.element().querySelectorAll(".zen-sidebar__collapse").length).toBe(1);
     await screen.getByRole("button", { name: "Toggle from the page" }).click();
     await expect.element(nav).toHaveAttribute("data-collapsed", "true");

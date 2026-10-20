@@ -18,10 +18,8 @@ import { useState } from "react";
 import {
   Badge,
   BottomSheet,
-  Button,
   Checkbox,
   Chip,
-  Container,
   DateField,
   EmptyState,
   Flag,
@@ -35,7 +33,6 @@ import {
   Menu,
   MetricCard,
   ModalForm,
-  PageHeader,
   SelectField,
   Stack,
   Table,
@@ -209,81 +206,79 @@ export function HrPublicHolidayTemplate() {
     </EmptyState>
   );
 
+  // The year beside the title: a Chip popover on a desktop, a Bottom Sheet on a phone.
+  const yearChip = phone ? (
+    <Chip variant="advanced" size="md" dropdown aria-label={`Year, ${year}`} aria-haspopup="dialog" aria-expanded={yearSheet} onClick={() => setYearSheet(true)}>
+      {String(year)}
+    </Chip>
+  ) : (
+    <Chip variant="advanced" size="md" dropdown aria-label={`Year, ${year}`} popoverLabel="Year"
+      popoverItems={years.map((option) => ({ id: String(option), label: String(option), selected: option === year }))}
+      onPopoverSelect={(item) => setYear(Number(item.id))}>
+      {String(year)}
+    </Chip>
+  );
+  // One calendar per office country: the header's Sections on a desktop, the TopNavigation's control bar on a phone.
+  const calendars = (
+    <Tabs aria-label="Holiday calendars" idPrefix="hr-holidays" value={slug(country)} onValueChange={(id) => setCountry(countryOf(id))}
+      items={holidayCalendars.map((item) => ({ id: slug(item.country), label: item.country, icon: <Flag name={item.country} size="sm" /> }))} />
+  );
+
   return (
-    <HrShell module="time-off" page="public-holiday" onNavigate={navigate}>
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="sm">
-          <PageHeader title="Public holidays" description="Everyone gets their country's public holidays, and leave requests skip them."
-            meta={phone ? (
-              <Chip variant="advanced" size="md" dropdown aria-label={`Year, ${year}`} aria-haspopup="dialog" aria-expanded={yearSheet} onClick={() => setYearSheet(true)}>
-                {String(year)}
-              </Chip>
+    <HrShell module="time-off" page="public-holiday" onNavigate={navigate}
+      pageHeader={{ title: "Public holidays", description: "Everyone gets their country's public holidays, and leave requests skip them.",
+        meta: yearChip, primary: { label: "Add holiday", onClick: () => openForm() }, tabs: calendars }}>
+      <TabPanel idPrefix="hr-holidays" id={slug(country)}>
+        <Stack gap="xl">
+          <Grid columns="repeat(auto-fit, minmax(min(100%, 220px), 1fr))" gap="md">
+            {tiles.map((tile) => (
+              <MetricCard key={tile.id} variant="title-highlight" size={phone ? "sm" : "xl"} label={tile.label} value={tile.value}
+                trend={tile.trend ? { direction: "normal", label: tile.trend } : undefined} icon={tile.icon} iconTheme={tile.theme} iconSize="md" />
+            ))}
+          </Grid>
+
+          <Stack gap="md">
+            <Heading level={2} textStyle="Heading/4" id="hr-holidays-title">Holidays in {year}</Heading>
+            {phone ? (
+              // Phone: the same holidays as a List (date in the caption, days off over the office badge).
+              rows.length ? (
+                <List aria-labelledby="hr-holidays-title">
+                  {rows.map((row) => (
+                    <ListItem key={row.id} title={row.name} selected={acting?.id === row.id} onClick={() => setActing(row)}
+                      caption={[`${dateOf(row)} · ${weekdaysOf(row)}`, row.inLieu && !row.officeOpen ? `Day in lieu on ${formatDate(row.inLieu, { year: false, weekday: true })}` : ""].filter(Boolean).join(" · ")}
+                      trailing={(
+                        <Stack gap="2xs" align="end">
+                          <Text as="span" textStyle="Body/Base/Bold">{formatDays(daysOffOf(row))}</Text>
+                          {officeBadge(row, "sm")}
+                        </Stack>
+                      )} />
+                  ))}
+                </List>
+              ) : empty
             ) : (
-              <Chip variant="advanced" size="md" dropdown aria-label={`Year, ${year}`} popoverLabel="Year"
-                popoverItems={years.map((option) => ({ id: String(option), label: String(option), selected: option === year }))}
-                onPopoverSelect={(item) => setYear(Number(item.id))}>
-                {String(year)}
-              </Chip>
+              <Table aria-labelledby="hr-holidays-title" rows={rows} getRowId={(row) => row.id} onRowClick={(row) => openForm(row)} empty={empty}
+                columns={[
+                  { id: "date", header: "Date", width: "168px", cell: (row) => <TableText caption={weekdaysOf(row)}>{dateOf(row)}</TableText> },
+                  { id: "name", header: "Holiday", cell: (row) => <TableText bold caption={row.inLieu && !row.officeOpen ? `Day in lieu on ${formatDate(row.inLieu, { year: false, weekday: true })}` : undefined}>{row.name}</TableText> },
+                  { id: "days", header: "Days off", width: "112px", align: "right", cell: (row) => <TableText>{formatDays(daysOffOf(row))}</TableText> },
+                  // The office badge leads, so it lines up in every row; the next holiday adds Next after it.
+                  { id: "status", header: "Status", width: "240px", cell: (row) => (
+                    <TableBadges>
+                      {officeBadge(row)}
+                      {row.id === next?.id ? <Badge theme="accent" background="subtle">Next</Badge> : null}
+                    </TableBadges>
+                  ) },
+                  { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, width: "72px", align: "right", cell: (row) => (
+                    <TableActions>
+                      <Menu align="end" items={rowActions(row)}
+                        trigger={<IconButton appearance="flat" level="primary" icon="icon-dots-horizontal-line" aria-label={`Actions for ${row.name}`} />} />
+                    </TableActions>
+                  ) },
+                ]} />
             )}
-            actions={<Button level="primary" startIcon="icon-plus-line" onClick={() => openForm()}>Add holiday</Button>}
-            tabs={(
-              <Tabs aria-label="Holiday calendars" idPrefix="hr-holidays" value={slug(country)} onValueChange={(id) => setCountry(countryOf(id))}
-                items={holidayCalendars.map((item) => ({ id: slug(item.country), label: item.country, icon: <Flag name={item.country} size="sm" /> }))} />
-            )} />
-
-          <TabPanel idPrefix="hr-holidays" id={slug(country)}>
-            <Stack gap="xl">
-              <Grid columns="repeat(auto-fit, minmax(min(100%, 220px), 1fr))" gap="md">
-                {tiles.map((tile) => (
-                  <MetricCard key={tile.id} variant="title-highlight" size={phone ? "sm" : "xl"} label={tile.label} value={tile.value}
-                    trend={tile.trend ? { direction: "normal", label: tile.trend } : undefined} icon={tile.icon} iconTheme={tile.theme} iconSize="md" />
-                ))}
-              </Grid>
-
-              <Stack gap="md">
-                <Heading level={2} textStyle="Heading/4" id="hr-holidays-title">Holidays in {year}</Heading>
-                {phone ? (
-                  // Phone: the same holidays as a List (date in the caption, days off over the office badge).
-                  rows.length ? (
-                    <List aria-labelledby="hr-holidays-title">
-                      {rows.map((row) => (
-                        <ListItem key={row.id} title={row.name} selected={acting?.id === row.id} onClick={() => setActing(row)}
-                          caption={[`${dateOf(row)} · ${weekdaysOf(row)}`, row.inLieu && !row.officeOpen ? `Day in lieu on ${formatDate(row.inLieu, { year: false, weekday: true })}` : ""].filter(Boolean).join(" · ")}
-                          trailing={(
-                            <Stack gap="2xs" align="end">
-                              <Text as="span" textStyle="Body/Base/Bold">{formatDays(daysOffOf(row))}</Text>
-                              {officeBadge(row, "sm")}
-                            </Stack>
-                          )} />
-                      ))}
-                    </List>
-                  ) : empty
-                ) : (
-                  <Table aria-labelledby="hr-holidays-title" rows={rows} getRowId={(row) => row.id} onRowClick={(row) => openForm(row)} empty={empty}
-                    columns={[
-                      { id: "date", header: "Date", width: "168px", cell: (row) => <TableText caption={weekdaysOf(row)}>{dateOf(row)}</TableText> },
-                      { id: "name", header: "Holiday", cell: (row) => <TableText bold caption={row.inLieu && !row.officeOpen ? `Day in lieu on ${formatDate(row.inLieu, { year: false, weekday: true })}` : undefined}>{row.name}</TableText> },
-                      { id: "days", header: "Days off", width: "112px", align: "right", cell: (row) => <TableText>{formatDays(daysOffOf(row))}</TableText> },
-                      // The office badge leads, so it lines up in every row; the next holiday adds Next after it.
-                      { id: "status", header: "Status", width: "240px", cell: (row) => (
-                        <TableBadges>
-                          {officeBadge(row)}
-                          {row.id === next?.id ? <Badge theme="accent" background="subtle">Next</Badge> : null}
-                        </TableBadges>
-                      ) },
-                      { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, width: "72px", align: "right", cell: (row) => (
-                        <TableActions>
-                          <Menu align="end" items={rowActions(row)}
-                            trigger={<IconButton appearance="flat" level="primary" icon="icon-dots-horizontal-line" aria-label={`Actions for ${row.name}`} />} />
-                        </TableActions>
-                      ) },
-                    ]} />
-                )}
-              </Stack>
-            </Stack>
-          </TabPanel>
+          </Stack>
         </Stack>
-      </Container>
+      </TabPanel>
 
       <ModalForm open={formOpen} onOpenChange={setFormOpen} title={editingId ? "Edit holiday" : "Add holiday"}
         onSubmit={form.handleSubmit} primaryAction={{ label: editingId ? "Save changes" : "Add holiday" }} secondaryAction={{ label: "Cancel" }}>

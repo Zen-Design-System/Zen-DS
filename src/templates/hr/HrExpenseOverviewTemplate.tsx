@@ -21,7 +21,6 @@ import {
   Card,
   ChartCard,
   Chip,
-  Container,
   DateField,
   DescriptionList,
   DockIcon,
@@ -40,7 +39,6 @@ import {
   Metric,
   MetricCard,
   ModalForm,
-  PageHeader,
   ProgressBar,
   SelectField,
   SidePanel,
@@ -371,149 +369,144 @@ export function HrExpenseOverviewTemplate() {
   ) : null;
 
   return (
-    <HrShell module="expenses" page="overviews" onNavigate={navigate} aside={claimPanel ?? reportPanel ?? undefined}
-      approvals={claims.filter((claim) => claim.status === "Submitted" && claim.approver === currentUser.id).length}>
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="sm">
-          <Stack gap="md">
-            <PageHeader title="Expense overview" description="Studio spend across company cards, invoices and expense claims."
-              actions={<>
-                <Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Overview exported", children: `${period.name} · CSV` })}>Export</Button>
-                <Button level="primary" startIcon="icon-plus-line" onClick={startExpense}>New expense</Button>
-              </>} />
-            <Stack direction="row" gap="sm" align="center" wrap>
-              {phone ? (
-                <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line" aria-haspopup="dialog" aria-expanded={sheet === "period"} onClick={() => setSheet("period")}>{period.label}</Chip>
-              ) : (
-                <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line" popoverLabel="Period"
-                  popoverItems={periodList.map((item) => ({ id: item.id, label: item.label, selected: item.id === periodId }))}
-                  onPopoverSelect={(item) => setPeriodId(item.id as PeriodId)}>{period.label}</Chip>
-              )}
-              <Text as="span" tone="base">{formatRange(period.start, period.end)}</Text>
-            </Stack>
-          </Stack>
-
-          {/* Two pairs of totals: four in a row when there is room, two by two below that, never three and one. */}
-          <Grid columns="repeat(auto-fit, minmax(min(100%, 496px), 1fr))" gap="md">
-            <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
-              <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Total spend" value={formatMoney(spend, { compact: true })}
-                trend={{ direction: "normal", label: `${change > 0 ? "+" : change < 0 ? "−" : ""}${Math.abs(change)}% vs ${period.previousName}` }}
-                action={breakdown("Open spend by category", () => openReport("spend"))} />
-              {/* The quarter's budget: the bar turns Warning from 75% used and Negative from 90%. */}
-              <Card>
-                <Stack gap="2xs">
-                  <Metric variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label={`${budget.quarter.split(" ")[0]} budget left`} value={formatMoney(budget.left, { compact: true })}
-                    action={breakdown(`Open the ${budget.quarter} budget`, () => openReport("budget"))} />
-                  <ProgressBar theme="status" scale="quota" value={budget.used} label={`${Math.round(budget.used)}% used`} aria-label={`${budget.quarter} budget used`} />
-                </Stack>
-              </Card>
-            </Grid>
-            <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
-              <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Awaiting approval" value={formatMoney(sumOf(waiting.map((claim) => claim.amount)), { compact: true })}
-                trend={{ direction: "normal", label: plural(waiting.length, "claim") }}
-                action={breakdown("Show claims awaiting approval", showWaiting)} />
-              <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Reimbursed" value={formatMoney(sumOf(reimbursed.map((claim) => claim.amount)), { compact: true })}
-                trend={{ direction: "normal", label: plural(reimbursed.length, "claim") }}
-                action={breakdown("Open reimbursed claims", () => openReport("reimbursed"))} />
-            </Grid>
-          </Grid>
-
-          {/* The period's last month is the active column; ←/→ move through the others. */}
-          <Grid columns="repeat(auto-fit, minmax(min(100%, 360px), 1fr))" gap="md">
-            <ChartCard title="Spend by category" headingLevel={2} theme="shadow" onOpen={() => openReport("months")} openLabel="Open spend by month">
-              <StackBarChart key={periodId} initialIndex={activeMonth} aria-label={`Spend by category and month, ${shownMonths}`} format={chartMoney} height={220}
-                series={expenseCategoryList.map((category) => ({ id: category.id, label: category.name }))}
-                data={monthlySpend.map((month) => ({ label: month.label, values: month.spend }))} />
-            </ChartCard>
-            {/* A phone sizes the range switch to its labels, so "Equipment" isn't cut to fit equal thirds. */}
-            <ChartCard title="Monthly trend" headingLevel={2} theme="shadow" ranges={trendRanges} range={trend} onRangeChange={setTrend} rangesFullWidth={!phone}>
-              <LineChart key={`${periodId}-${trend}`} initialIndex={activeMonth} format={chartMoney} height={220}
-                aria-label={`${trend === "all" ? "Total spend" : `${expenseCategories[trend as ExpenseCategoryId].name} spend`} per month, ${shownMonths}`}
-                data={monthlySpend.map((month) => ({ label: month.label, value: trend === "all" ? monthTotal(month) : month.spend[trend as ExpenseCategoryId] }))} />
-            </ChartCard>
-          </Grid>
-
-          <Stack gap="md">
-            <Stack gap="xs">
-              <Heading level={2} textStyle="Heading/4" id={budgetsTitle}>Team budgets</Heading>
-              <Text tone="base">{`${quarter} · ${formatRange(periods["this-quarter"].start, periods["this-quarter"].end)}`}</Text>
-            </Stack>
-            <Table aria-labelledby={budgetsTitle} rows={quarterBudgets} getRowId={(row) => row.team}
-              // A phone keeps two columns, so nothing scrolls sideways: the team with what it spent of its budget in
-              // the caption (compact amounts), and the share used (red once over budget) where the bar would not fit.
-              columns={[
-                { id: "team", header: "Team", cell: (row) => {
-                  const team = teams[row.team];
-                  return <TableMedia bold media={<DockIcon icon={team.icon} theme={team.theme} background="subtle" size="sm" />}
-                    caption={phone ? `${formatMoney(row.spent, { compact: true })} of ${formatMoney(row.budget, { compact: true })}` : plural(team.headcount, "person", "people")}>{team.name}</TableMedia>;
-                } },
-                ...(phone ? [] : [
-                  { id: "budget", header: "Budget", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.budget)}</TableText> },
-                  { id: "spent", header: "Spent", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.spent)}</TableText> },
-                  { id: "left", header: "Left", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.budget - row.spent)}</TableText> },
-                ]),
-                { id: "used", header: "Used", width: phone ? "80px" : "208px", align: phone ? "right" : undefined, cell: (row) => {
-                  const used = (row.spent / row.budget) * 100;
-                  if (phone) return <TableText>{used > 100 ? <Text as="span" tone="negative">{`${Math.round(used)}%`}</Text> : `${Math.round(used)}%`}</TableText>;
-                  return <ProgressBar theme="status" scale="quota" value={used} label={`${Math.round(used)}%`} aria-label={`${teams[row.team].name} budget used`} />;
-                } },
-              ]} />
-          </Stack>
-
-          <Stack gap="md">
-            <Stack direction="row" gap="sm" justify="between" align="center" wrap>
-              <Heading level={2} textStyle="Heading/4" id={claimsTitle}>Recent claims</Heading>
-              {/* On a phone the chips stay on one row that scrolls sideways. */}
-              <Stack direction="row" gap="xs" align="center" wrap={!phone} role="group" aria-label="Filter claims" style={phone ? { overflowX: "auto" } : undefined}>
-                {filterChip("status")}
-                {filterChip("team")}
-                {statusFilter.length > 0 && teamFilter.length > 0 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
-              </Stack>
-            </Stack>
-            {phone ? (
-              // A phone lists the same claims: who and when in the caption, the amount and status at the end.
-              shown.length ? (
-                <>
-                  <Text textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "claim")} · {formatMoney(sumOf(shown.map((claim) => claim.amount)))}</Text>
-                  <List aria-labelledby={claimsTitle}>
-                    {shown.map((claim) => {
-                      const category = expenseCategories[claim.category];
-                      return (
-                        <ListItem key={claim.id} title={claim.title} selected={claim.id === openId} onClick={() => openClaim(claim.id)}
-                          caption={`${people[claim.person].name}${claim.submitted ? ` · ${formatDate(claim.submitted, { year: false })}` : ""}`}
-                          leading={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="md" />}
-                          trailing={(
-                            <Stack gap="2xs" align="end">
-                              <Text as="span" textStyle="Body/Base/Bold">{formatMoney(claim.amount)}</Text>
-                              <Badge size="sm" theme={claimStatusTheme[claim.status]} background="subtle">{claim.status}</Badge>
-                            </Stack>
-                          )} />
-                      );
-                    })}
-                  </List>
-                </>
-              ) : noClaims
-            ) : (
-              // The opened claim's row stays selected while its panel is open.
-              <Table aria-labelledby={claimsTitle} rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => openClaim(row.id)}
-                selectedIds={opened ? [opened.id] : []} empty={noClaims}
-                columns={[
-                  { id: "claim", header: "Claim", cell: (row) => {
-                    const category = expenseCategories[row.category];
-                    return <TableMedia bold media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={row.merchant}>{row.title}</TableMedia>;
-                  } },
-                  { id: "person", header: "Person", width: "184px", cell: (row) => {
-                    const person = people[row.person];
-                    return <TableMedia bold={false} media={<Avatar size="sm" {...avatarOf(person)} alt="" />} caption={teams[person.team].name}>{person.name}</TableMedia>;
-                  } },
-                  { id: "submitted", header: "Submitted", width: "136px", sortable: true, cell: (row) => <TableText>{row.submitted ? formatDate(row.submitted) : ""}</TableText> },
-                  { id: "amount", header: "Amount", width: "120px", align: "right", sortable: true, cell: (row) => <TableText>{formatMoney(row.amount)}</TableText> },
-                  { id: "status", header: "Status", width: "128px", cell: (row) => <TableBadges><Badge theme={claimStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges> },
-                ]} />
-            )}
-          </Stack>
+    <HrShell module="expenses" page="overviews" onNavigate={navigate} sidePanel={claimPanel ?? reportPanel ?? undefined}
+      approvals={claims.filter((claim) => claim.status === "Submitted" && claim.approver === currentUser.id).length}
+      pageHeader={{ title: "Expense overview", description: "Studio spend across company cards, invoices and expense claims.",
+        secondary: [{ id: "export", label: "Export", icon: "icon-download-01-line", onClick: () => toast({ title: "Overview exported", children: `${period.name} · CSV` }) }],
+        primary: { label: "New expense", onClick: startExpense } }}>
+      <Stack gap="xl">
+        {/* The period drives every figure below: it opens the page. */}
+        <Stack direction="row" gap="sm" align="center" wrap>
+          {phone ? (
+            <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line" aria-haspopup="dialog" aria-expanded={sheet === "period"} onClick={() => setSheet("period")}>{period.label}</Chip>
+          ) : (
+            <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line" popoverLabel="Period"
+              popoverItems={periodList.map((item) => ({ id: item.id, label: item.label, selected: item.id === periodId }))}
+              onPopoverSelect={(item) => setPeriodId(item.id as PeriodId)}>{period.label}</Chip>
+          )}
+          <Text as="span" tone="base">{formatRange(period.start, period.end)}</Text>
         </Stack>
-      </Container>
+
+        {/* Two pairs of totals: four in a row when there is room, two by two below that, never three and one. */}
+        <Grid columns="repeat(auto-fit, minmax(min(100%, 496px), 1fr))" gap="md">
+          <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
+            <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Total spend" value={formatMoney(spend, { compact: true })}
+              trend={{ direction: "normal", label: `${change > 0 ? "+" : change < 0 ? "−" : ""}${Math.abs(change)}% vs ${period.previousName}` }}
+              action={breakdown("Open spend by category", () => openReport("spend"))} />
+            {/* The quarter's budget: the bar turns Warning from 75% used and Negative from 90%. */}
+            <Card>
+              <Stack gap="2xs">
+                <Metric variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label={`${budget.quarter.split(" ")[0]} budget left`} value={formatMoney(budget.left, { compact: true })}
+                  action={breakdown(`Open the ${budget.quarter} budget`, () => openReport("budget"))} />
+                <ProgressBar theme="status" scale="quota" value={budget.used} label={`${Math.round(budget.used)}% used`} aria-label={`${budget.quarter} budget used`} />
+              </Stack>
+            </Card>
+          </Grid>
+          <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
+            <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Awaiting approval" value={formatMoney(sumOf(waiting.map((claim) => claim.amount)), { compact: true })}
+              trend={{ direction: "normal", label: plural(waiting.length, "claim") }}
+              action={breakdown("Show claims awaiting approval", showWaiting)} />
+            <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Reimbursed" value={formatMoney(sumOf(reimbursed.map((claim) => claim.amount)), { compact: true })}
+              trend={{ direction: "normal", label: plural(reimbursed.length, "claim") }}
+              action={breakdown("Open reimbursed claims", () => openReport("reimbursed"))} />
+          </Grid>
+        </Grid>
+
+        {/* The period's last month is the active column; ←/→ move through the others. */}
+        <Grid columns="repeat(auto-fit, minmax(min(100%, 360px), 1fr))" gap="md">
+          <ChartCard title="Spend by category" headingLevel={2} theme="shadow" onOpen={() => openReport("months")} openLabel="Open spend by month">
+            <StackBarChart key={periodId} initialIndex={activeMonth} aria-label={`Spend by category and month, ${shownMonths}`} format={chartMoney} height={220}
+              series={expenseCategoryList.map((category) => ({ id: category.id, label: category.name }))}
+              data={monthlySpend.map((month) => ({ label: month.label, values: month.spend }))} />
+          </ChartCard>
+          {/* A phone sizes the range switch to its labels, so "Equipment" isn't cut to fit equal thirds. */}
+          <ChartCard title="Monthly trend" headingLevel={2} theme="shadow" ranges={trendRanges} range={trend} onRangeChange={setTrend} rangesFullWidth={!phone}>
+            <LineChart key={`${periodId}-${trend}`} initialIndex={activeMonth} format={chartMoney} height={220}
+              aria-label={`${trend === "all" ? "Total spend" : `${expenseCategories[trend as ExpenseCategoryId].name} spend`} per month, ${shownMonths}`}
+              data={monthlySpend.map((month) => ({ label: month.label, value: trend === "all" ? monthTotal(month) : month.spend[trend as ExpenseCategoryId] }))} />
+          </ChartCard>
+        </Grid>
+
+        <Stack gap="md">
+          <Stack gap="xs">
+            <Heading level={2} textStyle="Heading/4" id={budgetsTitle}>Team budgets</Heading>
+            <Text tone="base">{`${quarter} · ${formatRange(periods["this-quarter"].start, periods["this-quarter"].end)}`}</Text>
+          </Stack>
+          <Table aria-labelledby={budgetsTitle} rows={quarterBudgets} getRowId={(row) => row.team}
+            // A phone keeps two columns, so nothing scrolls sideways: the team with what it spent of its budget in
+            // the caption (compact amounts), and the share used (red once over budget) where the bar would not fit.
+            columns={[
+              { id: "team", header: "Team", cell: (row) => {
+                const team = teams[row.team];
+                return <TableMedia bold media={<DockIcon icon={team.icon} theme={team.theme} background="subtle" size="sm" />}
+                  caption={phone ? `${formatMoney(row.spent, { compact: true })} of ${formatMoney(row.budget, { compact: true })}` : plural(team.headcount, "person", "people")}>{team.name}</TableMedia>;
+              } },
+              ...(phone ? [] : [
+                { id: "budget", header: "Budget", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.budget)}</TableText> },
+                { id: "spent", header: "Spent", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.spent)}</TableText> },
+                { id: "left", header: "Left", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.budget - row.spent)}</TableText> },
+              ]),
+              { id: "used", header: "Used", width: phone ? "80px" : "208px", align: phone ? "right" : undefined, cell: (row) => {
+                const used = (row.spent / row.budget) * 100;
+                if (phone) return <TableText>{used > 100 ? <Text as="span" tone="negative">{`${Math.round(used)}%`}</Text> : `${Math.round(used)}%`}</TableText>;
+                return <ProgressBar theme="status" scale="quota" value={used} label={`${Math.round(used)}%`} aria-label={`${teams[row.team].name} budget used`} />;
+              } },
+            ]} />
+        </Stack>
+
+        <Stack gap="md">
+          <Stack direction="row" gap="sm" justify="between" align="center" wrap>
+            <Heading level={2} textStyle="Heading/4" id={claimsTitle}>Recent claims</Heading>
+            {/* On a phone the chips stay on one row that scrolls sideways. */}
+            <Stack direction="row" gap="xs" align="center" wrap={!phone} role="group" aria-label="Filter claims" style={phone ? { overflowX: "auto" } : undefined}>
+              {filterChip("status")}
+              {filterChip("team")}
+              {statusFilter.length > 0 && teamFilter.length > 0 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
+            </Stack>
+          </Stack>
+          {phone ? (
+            // A phone lists the same claims: who and when in the caption, the amount and status at the end.
+            shown.length ? (
+              <>
+                <Text textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "claim")} · {formatMoney(sumOf(shown.map((claim) => claim.amount)))}</Text>
+                <List aria-labelledby={claimsTitle}>
+                  {shown.map((claim) => {
+                    const category = expenseCategories[claim.category];
+                    return (
+                      <ListItem key={claim.id} title={claim.title} selected={claim.id === openId} onClick={() => openClaim(claim.id)}
+                        caption={`${people[claim.person].name}${claim.submitted ? ` · ${formatDate(claim.submitted, { year: false })}` : ""}`}
+                        leading={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="md" />}
+                        trailing={(
+                          <Stack gap="2xs" align="end">
+                            <Text as="span" textStyle="Body/Base/Bold">{formatMoney(claim.amount)}</Text>
+                            <Badge size="sm" theme={claimStatusTheme[claim.status]} background="subtle">{claim.status}</Badge>
+                          </Stack>
+                        )} />
+                    );
+                  })}
+                </List>
+              </>
+            ) : noClaims
+          ) : (
+            // The opened claim's row stays selected while its panel is open.
+            <Table aria-labelledby={claimsTitle} rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => openClaim(row.id)}
+              selectedIds={opened ? [opened.id] : []} empty={noClaims}
+              columns={[
+                { id: "claim", header: "Claim", cell: (row) => {
+                  const category = expenseCategories[row.category];
+                  return <TableMedia bold media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={row.merchant}>{row.title}</TableMedia>;
+                } },
+                { id: "person", header: "Person", width: "184px", cell: (row) => {
+                  const person = people[row.person];
+                  return <TableMedia bold={false} media={<Avatar size="sm" {...avatarOf(person)} alt="" />} caption={teams[person.team].name}>{person.name}</TableMedia>;
+                } },
+                { id: "submitted", header: "Submitted", width: "136px", sortable: true, cell: (row) => <TableText>{row.submitted ? formatDate(row.submitted) : ""}</TableText> },
+                { id: "amount", header: "Amount", width: "120px", align: "right", sortable: true, cell: (row) => <TableText>{formatMoney(row.amount)}</TableText> },
+                { id: "status", header: "Status", width: "128px", cell: (row) => <TableBadges><Badge theme={claimStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges> },
+              ]} />
+          )}
+        </Stack>
+      </Stack>
 
       {/* Phone choices: the period is one choice and closes its sheet; a filter keeps it open until Show. */}
       <BottomSheet open={sheet === "period"} onOpenChange={(open) => { if (!open) setSheet(null); }} title="Period">

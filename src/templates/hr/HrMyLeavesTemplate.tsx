@@ -21,7 +21,6 @@ import {
   Button,
   Card,
   Chip,
-  Container,
   DateField,
   DescriptionList,
   DockIcon,
@@ -37,7 +36,6 @@ import {
   Metric,
   MetricCard,
   ModalForm,
-  PageHeader,
   plural,
   RadioButton,
   Search,
@@ -325,18 +323,15 @@ export function HrMyLeavesTemplate() {
   })() : undefined;
 
   return (
-    <HrShell module="time-off" page="my-leaves" onNavigate={navigate} aside={panel}>
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="sm">
-          <PageHeader title="My leaves" description={`Your time off this year, approved by ${approver.name}.`}
-            actions={<Button level="primary" startIcon="icon-plus-line" onClick={() => startRequest()}>Request leave</Button>} />
-
-          <Stack gap="md">
-            {/* The next leave opens its request; with nothing planned the card starts a new one. */}
-            {next ? (
-// Side content stops at xl (1440px) on the full-width page (backlog batch 6b).
-              <Box maxWidth={1440}>
-                            <Card onClick={() => setOpenId(next.id)} aria-label={`Next leave: ${reasonOf(next)}, ${formatRange(next.start, next.end)}`}>
+    <HrShell module="time-off" page="my-leaves" onNavigate={navigate} sidePanel={panel}
+      pageHeader={{ title: "My leaves", description: `Your time off this year, approved by ${approver.name}.`, primary: { label: "Request leave", onClick: () => startRequest() } }}>
+      <Stack gap="xl">
+        <Stack gap="md">
+          {/* The next leave opens its request; with nothing planned the card starts a new one. */}
+          {next ? (
+            // Side content stops at xl (1440px) on the full-width page (backlog batch 6b).
+            <Box maxWidth={1440}>
+              <Card onClick={() => setOpenId(next.id)} aria-label={`Next leave: ${reasonOf(next)}, ${formatRange(next.start, next.end)}`}>
                 <Grid columns={phone ? "auto minmax(0, 1fr)" : "auto minmax(0, 1fr) auto"} gap="md" align="center">
                   <DockIcon theme="emoji" emoji={leaveKinds[next.kind].emoji} size="lg" />
                   <Stack gap="2xs">
@@ -351,74 +346,73 @@ export function HrMyLeavesTemplate() {
                   {phone ? null : <Metric size="sm" icon={false} {...startsIn(next)} />}
                 </Grid>
               </Card>
-              </Box>
-            ) : (
-              <Card onClick={() => startRequest()} aria-label="No leave planned. Request leave">
-                <Grid columns="auto minmax(0, 1fr)" gap="md" align="center">
-                  <DockIcon theme="emoji" emoji="🗓️" size="lg" />
-                  <Stack gap="2xs">
-                    <Heading level={2} textStyle="Heading/Subheading">No leave planned</Heading>
-                    <Text textStyle="Body/Small/Regular" tone="base">{formatDays(balanceOf("annual").available)} of annual leave left this year</Text>
-                  </Stack>
-                </Grid>
-              </Card>
-            )}
-            <Grid columns="repeat(auto-fit, minmax(min(100%, 400px), 1fr))" gap="md">
-              {tiles(paidKinds.slice(0, 2))}
-              {tiles(paidKinds.slice(2, 4))}
-            </Grid>
-          </Stack>
-
-          <Stack gap="md">
-            <Heading level={2} textStyle="Heading/4" id={tableTitleId}>Requests</Heading>
-            {/* Search fills its column; the filter chips (and Clear all, once two filters are on) share the rest. */}
-            <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
-              <Search aria-label="Search leave requests" placeholder="Search requests" value={query} onValueChange={setQuery} />
-              {/* On a phone the chips stay on one row that scrolls sideways. */}
-              <Stack direction="row" gap="xs" align="center" wrap={!phone} role="group" aria-label="Filter requests" style={phone ? { overflowX: "auto" } : undefined}>
-                {filterChip("kind")}
-                {filterChip("status")}
-                {activeFilters >= 2 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
-              </Stack>
-            </Grid>
-
-            {phone ? (
-              // A phone lists the same requests: the reason, its type and dates, then the working days and status.
-              shown.length ? (
-                <>
-                  <Text textStyle="Body/Small/Regular" tone="base">{resultCount}</Text>
-                  <List aria-labelledby={tableTitleId}>
-                    {shown.map((request) => (
-                      <ListItem key={request.id} title={reasonOf(request)} selected={request.id === openId} onClick={() => setOpenId(request.id)}
-                        caption={`${leaveKinds[request.kind].name} · ${formatRange(request.start, request.end)}${request.half ? ` · ${halfLabel[request.half]}` : ""}`}
-                        leading={<DockIcon theme="emoji" emoji={leaveKinds[request.kind].emoji} size="md" />}
-                        trailing={(
-                          <Stack gap="2xs" align="end">
-                            <Text as="span" textStyle="Body/Base/Bold">{formatDays(request.days)}</Text>
-                            <Badge size="sm" theme={leaveStatusTheme[request.status]} background="subtle">{request.status}</Badge>
-                          </Stack>
-                        )} />
-                    ))}
-                  </List>
-                </>
-              ) : noRequests
-            ) : (
-              // The opened request's row stays selected while its panel is open.
-              <Table aria-labelledby={tableTitleId} rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => setOpenId(row.id)}
-                selectedIds={opened ? [opened.id] : []} empty={noRequests}
-                columns={[
-                  { id: "leave", header: "Leave", cell: (row) => (
-                    <TableMedia bold media={<DockIcon theme="emoji" emoji={leaveKinds[row.kind].emoji} size="sm" />} caption={reasonOf(row)}>{leaveKinds[row.kind].name}</TableMedia>
-                  ) },
-                  { id: "dates", header: "Dates", width: "232px", sortable: true, cell: (row) => <TableText caption={row.half ? halfLabel[row.half] : undefined}>{formatRange(row.start, row.end)}</TableText> },
-                  { id: "days", header: "Working days", width: "160px", align: "right", sortable: true, cell: (row) => <TableText>{row.days.toLocaleString("en-US")}</TableText> },
-                  { id: "status", header: "Status", width: "136px", cell: (row) => <TableBadges><Badge theme={leaveStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges> },
-                ]} />
-            )}
-            {!phone && shown.length ? <Text textStyle="Body/Small/Regular" tone="base">{resultCount}</Text> : null}
-          </Stack>
+            </Box>
+          ) : (
+            <Card onClick={() => startRequest()} aria-label="No leave planned. Request leave">
+              <Grid columns="auto minmax(0, 1fr)" gap="md" align="center">
+                <DockIcon theme="emoji" emoji="🗓️" size="lg" />
+                <Stack gap="2xs">
+                  <Heading level={2} textStyle="Heading/Subheading">No leave planned</Heading>
+                  <Text textStyle="Body/Small/Regular" tone="base">{formatDays(balanceOf("annual").available)} of annual leave left this year</Text>
+                </Stack>
+              </Grid>
+            </Card>
+          )}
+          <Grid columns="repeat(auto-fit, minmax(min(100%, 400px), 1fr))" gap="md">
+            {tiles(paidKinds.slice(0, 2))}
+            {tiles(paidKinds.slice(2, 4))}
+          </Grid>
         </Stack>
-      </Container>
+
+        <Stack gap="md">
+          <Heading level={2} textStyle="Heading/4" id={tableTitleId}>Requests</Heading>
+          {/* Search fills its column; the filter chips (and Clear all, once two filters are on) share the rest. */}
+          <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
+            <Search aria-label="Search leave requests" placeholder="Search requests" value={query} onValueChange={setQuery} />
+            {/* On a phone the chips stay on one row that scrolls sideways. */}
+            <Stack direction="row" gap="xs" align="center" wrap={!phone} role="group" aria-label="Filter requests" style={phone ? { overflowX: "auto" } : undefined}>
+              {filterChip("kind")}
+              {filterChip("status")}
+              {activeFilters >= 2 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
+            </Stack>
+          </Grid>
+
+          {phone ? (
+            // A phone lists the same requests: the reason, its type and dates, then the working days and status.
+            shown.length ? (
+              <>
+                <Text textStyle="Body/Small/Regular" tone="base">{resultCount}</Text>
+                <List aria-labelledby={tableTitleId}>
+                  {shown.map((request) => (
+                    <ListItem key={request.id} title={reasonOf(request)} selected={request.id === openId} onClick={() => setOpenId(request.id)}
+                      caption={`${leaveKinds[request.kind].name} · ${formatRange(request.start, request.end)}${request.half ? ` · ${halfLabel[request.half]}` : ""}`}
+                      leading={<DockIcon theme="emoji" emoji={leaveKinds[request.kind].emoji} size="md" />}
+                      trailing={(
+                        <Stack gap="2xs" align="end">
+                          <Text as="span" textStyle="Body/Base/Bold">{formatDays(request.days)}</Text>
+                          <Badge size="sm" theme={leaveStatusTheme[request.status]} background="subtle">{request.status}</Badge>
+                        </Stack>
+                      )} />
+                  ))}
+                </List>
+              </>
+            ) : noRequests
+          ) : (
+            // The opened request's row stays selected while its panel is open.
+            <Table aria-labelledby={tableTitleId} rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => setOpenId(row.id)}
+              selectedIds={opened ? [opened.id] : []} empty={noRequests}
+              columns={[
+                { id: "leave", header: "Leave", cell: (row) => (
+                  <TableMedia bold media={<DockIcon theme="emoji" emoji={leaveKinds[row.kind].emoji} size="sm" />} caption={reasonOf(row)}>{leaveKinds[row.kind].name}</TableMedia>
+                ) },
+                { id: "dates", header: "Dates", width: "232px", sortable: true, cell: (row) => <TableText caption={row.half ? halfLabel[row.half] : undefined}>{formatRange(row.start, row.end)}</TableText> },
+                { id: "days", header: "Working days", width: "160px", align: "right", sortable: true, cell: (row) => <TableText>{row.days.toLocaleString("en-US")}</TableText> },
+                { id: "status", header: "Status", width: "136px", cell: (row) => <TableBadges><Badge theme={leaveStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges> },
+              ]} />
+          )}
+          {!phone && shown.length ? <Text textStyle="Body/Small/Regular" tone="base">{resultCount}</Text> : null}
+        </Stack>
+      </Stack>
 
       {/* Phone filters: a multiple choice keeps the sheet open until Show. */}
       <BottomSheet open={sheetFilter !== null} onOpenChange={(open) => { if (!open) setSheet(null); }} title={sheetFilter?.label ?? "Filter"}

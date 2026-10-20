@@ -17,7 +17,6 @@ import {
   BottomSheet,
   Button,
   Chip,
-  Container,
   Dialog,
   DockIcon,
   EmptyState,
@@ -32,7 +31,6 @@ import {
   Menu,
   ModalForm,
   NumberField,
-  PageHeader,
   RadioButton,
   Search,
   Stack,
@@ -238,62 +236,56 @@ export function HrLeaveTypesTemplate() {
       : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Search by name or description.</EmptyState>;
 
   return (
-    <HrShell module="time-off" page="leave-types" onNavigate={navigate}>
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="sm">
-          <PageHeader title="Leave types" description="The kinds of time off people can request. Allowances reset every Jan 1."
-            actions={<Button level="primary" startIcon="icon-plus-line" onClick={addType}>Add leave type</Button>} />
-
-          <Stack gap="md">
-            {/* Search fills its column; the filter chips (and Clear all, once two filters are on) share the rest. */}
-            <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
-              <Search aria-label="Search leave types" placeholder="Search leave types" value={query} onValueChange={setQuery} />
-              {/* On a phone the chips stay on one row that scrolls sideways. */}
-              <Stack direction="row" gap="xs" align="center" wrap={!phone} role="group" aria-label="Filter leave types" style={phone ? { overflowX: "auto" } : undefined}>
-                {chip("pay")}
-                {chip("status")}
-                {activeFilters >= 2 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
-              </Stack>
-            </Grid>
-
-            {phone ? (
-              // A phone lists the types: allowance, pay and who it applies to under the name; Active and the menu stay in reach.
-              shown.length ? (
-                <List aria-label="Leave types">
-                  {shown.map((type) => (
-                    <ListItem key={type.id} title={type.name} onClick={() => openForm(type.id, valuesOf(type))}
-                      caption={`${formatDays(type.allowance)} a year · ${type.paid ? "Paid" : "Unpaid"} · ${audienceOf(type).label}`}
-                      leading={<DockIcon theme="emoji" emoji={type.emoji} size="md" />}
-                      trailing={<Stack direction="row" gap="xs" align="center">{activeToggle(type)}{actionsMenu(type)}</Stack>} />
-                  ))}
-                </List>
-              ) : empty
-            ) : (
-              <Table aria-label="Leave types" rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} empty={empty}
-                onRowClick={(row) => openForm(row.id, valuesOf(row))}
-                columns={[
-                  { id: "name", header: "Leave type", sortable: true, cell: (row) => (
-                    <TableMedia bold media={<DockIcon theme="emoji" emoji={row.emoji} size="sm" />} caption={usageOf(row.id)}>{row.name}</TableMedia>
-                  ) },
-                  // Pay is a category, not a status: the Badge drops its status dot.
-                  { id: "pay", header: "Pay", width: "104px", cell: (row) => (
-                    <TableBadges><Badge theme={row.paid ? "green" : "neutral"} background="subtle" leadingIcon={false}>{row.paid ? "Paid" : "Unpaid"}</Badge></TableBadges>
-                  ) },
-                  { id: "allowance", header: "Allowance", width: "136px", align: "right", sortable: true, cell: (row) => <TableText>{formatDays(row.allowance)}</TableText> },
-                  { id: "carry-over", header: "Carry-over", width: "112px", align: "right", cell: (row) => <TableText>{row.carryOver ? formatDays(row.carryOver) : "None"}</TableText> },
-                  { id: "audience", header: "Applies to", width: "144px", cell: (row) => {
-                    const audience = audienceOf(row);
-                    return <TableText caption={plural(audience.people, "person", "people")}>{audience.label}</TableText>;
-                  } },
-                  { id: "active", header: "Active", width: "88px", cell: activeToggle },
-                  { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, width: "64px", align: "right", cell: actionsMenu },
-                ]} />
-            )}
-
-            {shown.length ? <Text textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "leave type")} · {shown.filter((type) => type.active).length} active</Text> : null}
+    <HrShell module="time-off" page="leave-types" onNavigate={navigate}
+      pageHeader={{ title: "Leave types", description: "The kinds of time off people can request. Allowances reset every Jan 1.", primary: { label: "Add leave type", onClick: addType } }}>
+      <Stack gap="md">
+        {/* Search fills its column; the filter chips (and Clear all, once two filters are on) share the rest. */}
+        <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
+          <Search aria-label="Search leave types" placeholder="Search leave types" value={query} onValueChange={setQuery} />
+          {/* On a phone the chips stay on one row that scrolls sideways. */}
+          <Stack direction="row" gap="xs" align="center" wrap={!phone} role="group" aria-label="Filter leave types" style={phone ? { overflowX: "auto" } : undefined}>
+            {chip("pay")}
+            {chip("status")}
+            {activeFilters >= 2 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
           </Stack>
-        </Stack>
-      </Container>
+        </Grid>
+
+        {phone ? (
+          // A phone lists the types: allowance, pay and who it applies to under the name; Active and the menu stay in reach.
+          shown.length ? (
+            <List aria-label="Leave types">
+              {shown.map((type) => (
+                <ListItem key={type.id} title={type.name} onClick={() => openForm(type.id, valuesOf(type))}
+                  caption={`${formatDays(type.allowance)} a year · ${type.paid ? "Paid" : "Unpaid"} · ${audienceOf(type).label}`}
+                  leading={<DockIcon theme="emoji" emoji={type.emoji} size="md" />}
+                  trailing={<Stack direction="row" gap="xs" align="center">{activeToggle(type)}{actionsMenu(type)}</Stack>} />
+              ))}
+            </List>
+          ) : empty
+        ) : (
+          <Table aria-label="Leave types" rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} empty={empty}
+            onRowClick={(row) => openForm(row.id, valuesOf(row))}
+            columns={[
+              { id: "name", header: "Leave type", sortable: true, cell: (row) => (
+                <TableMedia bold media={<DockIcon theme="emoji" emoji={row.emoji} size="sm" />} caption={usageOf(row.id)}>{row.name}</TableMedia>
+              ) },
+              // Pay is a category, not a status: the Badge drops its status dot.
+              { id: "pay", header: "Pay", width: "104px", cell: (row) => (
+                <TableBadges><Badge theme={row.paid ? "green" : "neutral"} background="subtle" leadingIcon={false}>{row.paid ? "Paid" : "Unpaid"}</Badge></TableBadges>
+              ) },
+              { id: "allowance", header: "Allowance", width: "136px", align: "right", sortable: true, cell: (row) => <TableText>{formatDays(row.allowance)}</TableText> },
+              { id: "carry-over", header: "Carry-over", width: "112px", align: "right", cell: (row) => <TableText>{row.carryOver ? formatDays(row.carryOver) : "None"}</TableText> },
+              { id: "audience", header: "Applies to", width: "144px", cell: (row) => {
+                const audience = audienceOf(row);
+                return <TableText caption={plural(audience.people, "person", "people")}>{audience.label}</TableText>;
+              } },
+              { id: "active", header: "Active", width: "88px", cell: activeToggle },
+              { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, width: "64px", align: "right", cell: actionsMenu },
+            ]} />
+        )}
+
+        {shown.length ? <Text textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "leave type")} · {shown.filter((type) => type.active).length} active</Text> : null}
+      </Stack>
 
       <ModalForm open={formOpen} onOpenChange={setFormOpen} onSubmit={form.handleSubmit}
         title={current ? "Edit leave type" : "Add leave type"}

@@ -20,6 +20,10 @@
 }
 .zen-action-bar[data-surface="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
 .zen-action-bar[data-surface="none"] { border-top: 0; background: transparent; }
+/* Glass (Figma Action-Bar/Mobile Type=Glass 16326:6489): a linear fade from Inverse/Flat to Surface/Default painted at 20%
+   (Figma paint opacity 0.2), over a progressive background blur (radius 24 ≈ CSS 12px), strongest at the bottom edge. */
+.zen-action-bar[data-surface="glass"] { isolation: isolate; border-top: 0; background: linear-gradient(180deg, var(--zen-color-background-inverse-flat-default, rgb(0 0 0 / 0%)), color-mix(in srgb, var(--zen-color-background-surface-default, #fff) 20%, transparent)); }
+.zen-action-bar__progressive { --zen-progressive-blur: 12px; position: absolute; z-index: -1; inset: 0; }
 .zen-action-bar[data-position="static"] { position: relative; z-index: auto; }
 .zen-action-bar[data-position="fixed"] { position: fixed; right: 0; bottom: 0; left: 0; width: auto; }
 .zen-action-bar-spacer { flex: 0 0 auto; pointer-events: none; }
@@ -34,9 +38,12 @@
 .zen-action-bar[data-direction="horizontal"] > .zen-action-bar__summary { flex: 1 1 12rem; }
 .zen-action-bar[data-direction="horizontal"] > .zen-action-bar__actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-inline-start: auto; }
 /* A horizontal bar narrower than 480px (a phone-width window or a panel): the summary takes the first row and the Large
-   buttons share the next one equally, Tertiary · Primary (Figma Bottom-Sheet dual footer). Labels too long for half the
-   width wrap to full-width rows; wrap-reverse keeps the Primary (last in the DOM) on top, as Dialog's vertical actions do. */
+   buttons share the next one equally, Tertiary · Primary (Figma Bottom-Sheet dual footer); wrap-reverse keeps the Primary
+   (last in the DOM) on top, as Dialog's vertical actions do, should a row ever wrap. */
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] { flex-direction: column; align-items: stretch; }
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__summary { flex: 0 0 auto; }
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions { flex-wrap: wrap-reverse; margin-inline-start: 0; }
-.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions > * { flex: 1 1 0; }
+.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions > * { min-width: 0; flex: 1 1 0; }
+/* The Primary keeps its whole label (user 2026-10-19, ◇ Master-Layout · Example C5 "Mark as shipped": "Primary rộng
+   hơn"): half the row while its words fit, wider when they need it; the other button gives way and truncates. */
+.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions > :last-child:not(:only-child) { min-width: max-content; }

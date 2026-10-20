@@ -16,6 +16,7 @@
  *   counts      a Segmented with fewer than 2 or more than 5 items as rendered: segmented/option-count counts only options
  *               written out in the JSX, so options computed at run time (token modes, mapped data) reach this check
  *   sizes       a fixed-size visual (Avatar, Dock Icon, Icon) rendered off its declared size or out of square — stretched by a layout rule
+ *               (measured in its own CSS px: a transform that draws the preview smaller is divided out)
  *   edges       text closer than 8px (sides) / 4px (top, bottom) to the inner edge of the box that visibly holds it — missing padding
  *   outline     heading outline per example (Typography › Content hierarchy): more than one h1 on a page (each phone frame is
  *               its own screen), a skipped level going down (h1 → h3), or a heading larger than the heading it sits under
@@ -24,7 +25,7 @@
  *               outline does not start at it (outline-start); a heading inside a card larger than the card's title
  *               (outline-card); same-level sibling headings of one kind in different styles (outline-siblings)
  *   device      chat pieces that do not match their frame: a desktop ChatThread / ChatComposer in the phone, a mobile one in
- *               a desktop window (.pe-chat-desktop), chat examples outside any device frame, or the mobile hold on desktop
+ *               a desktop window (.pe-chat-desktop or an app window, .pf-app-frame), chat examples outside any device frame, or the mobile hold on desktop
  *   typography  preview, guideline Do/Don't or portalled-overlay text (Dialog, Side Panel, Toast…) resolving the shell's Zen-Platform typography
  *               (TASA Explorer, looser heading tracking) instead of the preview's data-typography (Dashboard by default)
  *   playground  every Select option and Toggle in each playground, one axis at a time, re-running the checks
@@ -36,13 +37,13 @@
  * Build-QA checks (opt-in; tools/platform-audit/quality-checks.mjs, run by `npm run qa`):
  *   scale       (--quality) text that is no Zen text style; example markup with padding / gap / radius / colour off the tokens
  *   roles       (--quality, warn) example markup using a token in the wrong role (background token as text colour…)
- *   hierarchy   (--quality) a content h1 ≠ Heading/1 (bar title and overlay titles exempt), an h2/h3 Heading/* smaller than
+ *   hierarchy   (--quality) a content h1 smaller than Heading/1 (Heading/1 or a larger Display / Display-Extra style; bar title and overlay titles exempt), an h2/h3 Heading/* smaller than
  *               the body text under it, an overlay title styled Heading/1
  *   rhythm      (--quality, warn) flat title/description, title not Strongest, other headings smaller than their body
  *               text (group headers exempt), visual headings, > 7 text styles, non-concentric nested corners, list rows
  *               inset twice
  *   ladder      (--quality, warn) the spacing ladder (usage rules §13): a Stack / Grid / example-markup gap that is no
- *               2xs·xs·sm·md·lg·xl step, or a group whose own gap is wider than the gap between it and its siblings
+ *               3xs·2xs·xs·sm·md·lg·xl step, or a group whose own gap is wider than the gap between it and its siblings
  *   density     (--density) Zen elements outgrown by their content, and new overflow/size/edge errors, at Comfortable
  *   fit         (--quality) text wider than its own box with no ellipsis and no scroll: it runs into its neighbours or is
  *               cut off, even inside an `overflow: hidden` ancestor (which `overflow` skips). With --density also at
@@ -222,6 +223,21 @@ function pageChecks({ scopeSel, mobile }) {
   const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r, g, b, a }; };
   const over = (top, bot) => ({ r: top.r * top.a + bot.r * (1 - top.a), g: top.g * top.a + bot.g * (1 - top.a), b: top.b * top.a + bot.b * (1 - top.a), a: 1 });
   const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+  // APCA Lc, as the Zen ramp computes it (tools/studio/zen-ramp.generated.mjs apcaContrast: it picks every On-Brand colour).
+  const apcaY = ({ r, g, b }) => { let y = 0.2126729 * (r / 255) ** 2.4 + 0.7151522 * (g / 255) ** 2.4 + 0.072175 * (b / 255) ** 2.4; if (y < 0.022) y += (0.022 - y) ** 1.414; return y; };
+  const apcaLc = (text, back) => {
+    const yt = apcaY(text), yb = apcaY(back);
+    if (yb > yt) { const sapc = (yb ** 0.56 - yt ** 0.57) * 1.14; return sapc < 0.1 ? 0 : (sapc - 0.027) * 100; }
+    const sapc = (yb ** 0.65 - yt ** 0.62) * 1.14; return sapc > -0.1 ? 0 : (sapc + 0.027) * 100;
+  };
+  // The user's measure is APCA, not the WCAG ratio (2026-10-19: "không áp dụng cứng nhắc WCAG … dùng APCA … có mode
+  // High Contrast"): text on a fill passes when it is the fill's APCA pick (as good as the opposite of white and black,
+  // as the ramp chooses On colours) and reaches Lc 45; High Contrast mode raises every pair for those who need more.
+  const apcaPick = (text, back) => {
+    const lc = Math.abs(apcaLc(text, back));
+    const opposite = Math.abs(apcaLc(lum(text) > lum(back) ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 }, back));
+    return lc >= 45 && lc + 1 >= opposite;
+  };
   const bgOf = (el) => { const layers = []; for (let p = el; p; p = p.parentElement) { const s = getComputedStyle(p); if (s.backgroundImage !== "none") return null; const c = parse(s.backgroundColor); if (c && c.a > 0) { layers.push(c); if (c.a >= 1) break; } } let acc = { r: 255, g: 255, b: 255, a: 1 }; for (const l of layers.reverse()) acc = over(l, acc); return acc; };
   const walker = document.createTreeWalker(scope === document ? document.body : scope, NodeFilter.SHOW_TEXT);
   const checked = new Set();
@@ -238,7 +254,7 @@ function pageChecks({ scopeSel, mobile }) {
     if (control?.querySelector(":disabled, [aria-disabled='true']")) continue;
     const s = getComputedStyle(el); const fg = parse(s.color); const bg = bgOf(el); if (!fg || !bg) continue;
     const c = over(fg, bg); const L1 = lum(c), L2 = lum(bg); const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
-    if (ratio < 3 && parseFloat(s.opacity) > 0.5) out.contrast.push(`${label(el)}: "${n.textContent.trim().slice(0, 24)}" ${ratio.toFixed(2)}:1`);
+    if (ratio < 3 && parseFloat(s.opacity) > 0.5 && !apcaPick(c, bg)) out.contrast.push(`${label(el)}: "${n.textContent.trim().slice(0, 24)}" ${ratio.toFixed(2)}:1`);
   }
   // Surfaces (§11): Canvas/Alt and Surface/Default are the same colour, so a Surface/Default box whose backdrop is a Canvas/Alt
   // page needs a closed border (all four sides, an outline or a 0 0 0 Npx ring, on the box or its ::before/::after). A shadow
@@ -304,7 +320,10 @@ function pageChecks({ scopeSel, mobile }) {
   const casting = [...elevated].filter(([el]) => el.closest(".pe-card__stage, .platform-example-panel, .platform-guideline-visual") && visible(el)
     && !el.matches("button, a[href], input, [role='tab'], [role='option'], [role='menuitem'], .zen-bottom-nav__item")
     && !el.closest(`${FLOATING}, .platform-guideline-visual__dont, [data-verdict='dont'], [data-audit-skip-elevation]`) && castsShadow(getComputedStyle(el).boxShadow));
-  const onCanvasAlt = (host) => matchesAny(host, painters.canvas) || (Boolean(host.closest("[data-canvas='alt']")) && matchesAny(host, painters.shellCanvas));
+  // An AppShell paints --zen-app-shell-canvas from its own canvas prop: the nearest shell decides, not a phone frame's
+  // data-canvas around it, which is the phone's own scale (PlatformPhone canvas="alt" is Surface/Alt, grey). 2026-10-19:
+  // the iPad's Shadow cards on its grey Canvas/Default shell read as cards on a white page.
+  const onCanvasAlt = (host) => matchesAny(host, painters.canvas) || (host.closest(".zen-app-shell")?.getAttribute("data-canvas") === "alt" && matchesAny(host, painters.shellCanvas));
   for (const [el, p] of casting) {
     let host = el.parentElement;
     for (; host; host = host.parentElement) { const c = parse(getComputedStyle(host).backgroundColor); if (c && c.a > 0) break; }
@@ -366,8 +385,13 @@ function pageChecks({ scopeSel, mobile }) {
   for (const el of scope.querySelectorAll(".zen-avatar, .zen-dock-icon, svg.zen-icon, .zen-icon")) {
     if (!visible(el) || el.closest("[data-audit-skip-sizes]")) continue;
     const r = el.getBoundingClientRect(); if (r.width < 4 || r.height < 4) continue;
-    const k = el.closest(".platform-phone") ? el.closest(".platform-phone").getBoundingClientRect().width / el.closest(".platform-phone").offsetWidth : 1;
-    const w = r.width / k, h = r.height / k;
+    // Measured in the element's own CSS px: rendered size ÷ the scale it is drawn at, read on the nearest HTML box (an SVG
+    // icon has no offsetWidth) as AppShellHeader's useStackedRow does. A CSS transform around it (the builder's scaled
+    // desktop windows, a phone frame drawn smaller) is not a stretch.
+    let box = el; while (box && !(box instanceof HTMLElement && box.offsetWidth > 0 && box.offsetHeight > 0)) box = box.parentElement;
+    const br = box?.getBoundingClientRect();
+    const kx = box ? br.width / box.offsetWidth || 1 : 1, ky = box ? br.height / box.offsetHeight || 1 : 1;
+    const w = r.width / kx, h = r.height / ky;
     // Only a px size is a declared size; a percentage (Avatar filling a Popover leading slot) follows its slot.
     const rawSize = el.matches(".zen-avatar") ? getComputedStyle(el).getPropertyValue("--zen-avatar-size").trim() : "";
     const declared = /^[\d.]+px$/.test(rawSize) ? parseFloat(rawSize) : NaN;
@@ -389,7 +413,8 @@ function pageChecks({ scopeSel, mobile }) {
   // window — and the mobile hold layer (Chat/Mobile/Bubble/Overlay) never runs on desktop.
   for (const el of scope.querySelectorAll(".pe-card__stage :is(.zen-chat-thread, .zen-chat-composer, .zen-chat-convo), .platform-example-panel :is(.zen-chat-thread, .zen-chat-composer)")) {
     if (!visible(el)) continue;
-    const phone = el.closest(".platform-phone"), desk = el.closest(".pe-chat-desktop");
+    // A desktop window: the chat showcase's own, or an app window (PreviewAppFrame around an AppShell, 2026-10-19).
+    const phone = el.closest(".platform-phone"), desk = el.closest(".pe-chat-desktop, .pf-app-frame");
     const dev = el.matches(".zen-chat-convo") ? null : el.dataset.device ?? "mobile";
     const where = phone ? "inside the phone" : desk ? "inside a desktop window" : "outside any device frame";
     const msg = !phone && !desk ? `${label(el)}: ${describe(el)} is shown ${where}` : dev && ((phone && dev !== "mobile") || (desk && dev !== "desktop")) ? `${label(el)}: ${describe(el)} is ${dev} ${where}` : null;
@@ -454,7 +479,9 @@ function pageChecks({ scopeSel, mobile }) {
       // outline-h1 / outline-start: a page or screen names itself with exactly one h1, and its outline starts there.
       if (pg.pageLike) {
         const named = titles(all);
-        const first = all.find((h) => !h.closest(`${OVERLAY}, ${FIXED}`));
+        // An AppShell's leading pane and Sidebar come first in reading and focus order, as they come first on screen (a
+        // list beside its detail): the page's outline starts at the first heading after them.
+        const first = all.find((h) => !h.closest(`${OVERLAY}, ${FIXED}, .zen-app-shell__pane[data-side="leading"], .zen-app-shell__sidebar`));
         if (!named.length) note("outline-h1", `${pg.name}: no h1 — a page or screen exposes exactly one h1 that names it (PageHeader or TopNavigation large title in Heading/1; a compact bar title is the h1 in its bar style)${first ? `; the outline starts at h${levelOf(first)} "${headText(first)}"` : ""}`);
         else if (named.length > 1 && h1s <= 1) note("outline-h1", `${pg.name}: ${named.length} h1 (${named.map((h) => `"${headText(h)}"`).join(", ")}) — exactly one h1 per page or screen, visually hidden ones included`);
         if (first && levelOf(first) !== 1) note("outline-start", `${pg.name}: the outline starts at h${levelOf(first)} "${headText(first)}" — a page or screen starts at its h1 title and steps down from it`);

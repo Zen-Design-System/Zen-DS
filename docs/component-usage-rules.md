@@ -179,6 +179,9 @@ Harness rules:
 - `content/lights-no-light-text` (error)
 - `content/title-is-strongest` (warn)
 - `content/colour-light-is-highlight` (warn)
+- `heading/h1-is-heading-1` (error): a content h1 (the title shown large) is at least Heading/1: Heading/1, or a larger
+  Display / Display-Extra style on an emphasis page (a home, a welcome), never a smaller style; only the TopNavigation
+  compact bar title keeps its bar style (Body/Extra/Bold).
 - `heading/title-not-light` (warn): h1–h3 titles never take Light; only a Body/Small/Bold group header uses Base.
 
 Details are in `docs/guidelines/content-colors.md`. The heading ladder (levels, styles, the h1 rule) is on the
@@ -304,6 +307,7 @@ picks the step, and the same relationship gets the same step on every screen:
 
 | Relationship | Stack / Grid `gap` | Token |
 | --- | --- | --- |
+| Two lines of one compact item: a name or value and the caption right under it (a stat over its label, a row's name over its meta line, a person's name over their email) | `3xs` | Gap/3XSmall 2 |
 | Pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags or Badges | `2xs` | Gap/2XSmall 4 |
 | A thing and its label or description (label → control, heading → supporting line, kicker → list); controls in one toolbar row (Chips, IconButtons, Search) | `xs` | Gap/XSmall 8 |
 | A group acting as one: text Buttons side by side, choices in a group | `sm` | Gap/Small 12 |
@@ -328,7 +332,8 @@ picks the step, and the same relationship gets the same step on every screen:
   rows 8, last row → rule 16.
 - Checked by the audit's `ladder` warning (`audit.mjs --quality`, run by `npm run qa`). It reads the rendered gaps of
   Stack, Grid and example markup and reports two things:
-  - a gap that is not one of the six steps of the current density (`3xs`, `2xl`, `3xl`, `giant`, padding tokens, px);
+  - a gap that is not one of the seven steps of the current density (`2xl`, `3xl`, `giant`, padding tokens, px; `3xs`
+    joined the ladder on 2026-10-19, the user: Figma spaces two lines of one compact item 2 apart);
   - peer groups laid out alike whose own gap is wider than the gap between them.
   A heading or toolbar above one group is a label → content relationship and is not compared.
 
@@ -434,9 +439,9 @@ one to its place**. Nothing is dropped: every action the desktop header offers i
 
 | Layout | Width (`useZen().breakpoint`) | Chrome |
 | --- | --- | --- |
-| Desktop | ≥ 1024 | AppShell: Sidebar beside the page, the top bar, `sections` (Figma Header/Dashboard) |
-| Tablet | 744–1023 | The same AppShell; the Sidebar opens as a drawer from the Menu button |
-| Mobile | < 744 | AppShell `topNavigation` + `bottomNavigation` (Figma Top-Navigation/Mobile, Bottom-Navigation): they replace the top bar and `sections`; the Sidebar still opens as the drawer (`useAppShell().openNav()`) |
+| Desktop | ≥ 1024 | AppShell's `pattern` (Figma Pattern/AppShell/Desktop): the Sidebar, panes, `header={<AppShellHeader …/>}` (Figma Header/AppShell: the top row and the Main row) |
+| Mobile | < 1024 with mobile parts (an upright iPad too) | AppShell `topNavigation` + `bottomNavigation` or `actionBar` (Figma Pattern/AppShell/Mobile, Top-Navigation/Mobile, Bottom-Navigation, Action-Bar/Mobile): they replace the header; the Sidebar still opens as the drawer (`useAppShell().openNav()`) |
+| Drawer | < 1024 without mobile parts | The header; the Sidebar opens as a drawer from the Menu button |
 
 **The screen's kind picks the bar** (top-navigation-mobile-rules §1): a **root** (a Sidebar destination: no `back`,
 Breadcrumbs of one item or none) is `type="default"` with `largeTitle` and the BottomNavigation; a **child** (Breadcrumbs
@@ -447,7 +452,7 @@ a **modal or form** screen has Close and its Primary in an ActionBar footer.
 | --- | --- |
 | Sidebar items | BottomNavigation from the top-level rows in order (group titles and sub-rows skipped): up to 5 map one to one; more than 5 → the first 4 + More (the full list in a sheet) |
 | Sidebar brand, footer rows (Settings), collapse toggle | the account sheet or More, never the bar |
-| Breadcrumbs | root: none · child: Back chevron to the parent crumb (§10) |
+| Breadcrumbs | root: none · child: Back chevron to the parent crumb (§10). AppShellHeader's top row and PageHeader do this themselves under 744 (the drawer layout, or a mobile breakpoint) |
 | PageHeader `title` | root: `largeTitle` and `title` (the folded bar) · child: `title` |
 | PageHeader `description`, `meta` | the first block of the content |
 | PageHeader `tabs` | `controlBar`: Tabs or Segmented `fullWidth` |
@@ -458,8 +463,8 @@ a **modal or form** screen has Close and its Primary in an ActionBar footer.
 | Other `AppShellAction`s, the plan Badge | root: ⋯ More or the account sheet · child: none |
 | Account (`AppShellAccount` + Menu) | root: the avatar in `leading`, opening the account menu as an action BottomSheet · child: none (Back holds `leading`) · none when the BottomNavigation has a Profile tab |
 | Control-bar row: Search + filter Chips | `controlBar` Search; the Chips → a scrolling Chip row at the top of the content |
-| `floatingAction`, `footer` | stay (the floating action hides on scroll; ActionBar `lg`, full width) |
-| `aside` (SidePanel) | a pushed screen or a BottomSheet `size="max"` |
+| `floatingActions`, a task's ActionBar | stay: the floating actions hide on scroll; the ActionBar becomes AppShell `actionBar` (Figma Bottom=Actions) |
+| `sidePanel` (SidePanel) | a pushed screen or a BottomSheet `size="max"` |
 | `banner` | TopNavigation `banner` |
 
 Rules:
@@ -470,18 +475,22 @@ Rules:
 2. **Every desktop header action is reachable on the phone**: in the bar, More, the footer, the account sheet or the
    More tab. A part meant for one layout only is hidden on the other on purpose (Studio: Hide on mobile / desktop; code:
    the breakpoint from `useZen()`), never lost in the mapping.
-3. **One h1.** The page title lives in AppShell `sections` (never in the content), so the phone hides that PageHeader
-   and the TopNavigation title is the h1 (top-navigation-mobile-rules R12).
+3. **One h1.** The page title lives in the AppShellHeader's `main` (never in the content), so the phone hides that
+   PageHeader and the TopNavigation title is the h1 (top-navigation-mobile-rules R12).
 4. **Same words.** `title` / `largeTitle` = the PageHeader title; a root's title = its BottomNavigation label (R13); a
    trailing action's label = the desktop button's.
-5. **One way to create.** The Primary becomes "+" or the footer, never both; a `floatingAction` "+" counts as that way.
+5. **One way to create.** The Primary becomes "+" or the Action bar, never both; a `floatingActions` "+" counts as that way.
 
 ```tsx
 <AppShell
   sidebar={<Sidebar aria-label="Main" selectedId="expenses">…</Sidebar>}
-  header={<Search aria-label="Search" placeholder="Search expenses" />}
-  headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><Menu trigger={<AppShellAccount name="Khoa Dang" />} items={account} /></>}
-  sections={<PageHeader title="Expenses" actions={<Button level="primary">New expense</Button>} />}
+  header={
+    <AppShellHeader
+      leading={<Search aria-label="Search" placeholder="Search expenses" />}
+      actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><Menu trigger={<AppShellAccount name="Khoa Dang" />} items={account} /></>}
+      main={<PageHeader title="Expenses" actions={<Button level="primary">New expense</Button>} />}
+    />
+  }
   topNavigation={
     <TopNavigation title="Expenses" largeTitle="Expenses" leading={<AppShellAccount name="Khoa Dang" onClick={openAccount} />}
       trailing={[{ icon: "icon-plus-line", label: "New expense" }, { icon: "icon-bell-01-line", label: "Notifications", dot: true }]}
@@ -495,7 +504,7 @@ Rules:
 
 Zen Studio draws a Screen's phone parts from its desktop AppShell by this table: they stay linked to the desktop until
 you edit them on the phone (Reset to desktop links them again), and the export writes them as the AppShell's
-`topNavigation` / `bottomNavigation`. Harness: `app-shell/page-header-in-sections`, `app-shell/top-navigation-title`
+`topNavigation` / `bottomNavigation`. Harness: `app-shell/page-header-in-main`, `app-shell/top-navigation-title`
 and the TopNavigation rules (`top-navigation/*`).
 
 ## 18. A count is a BadgeCounter

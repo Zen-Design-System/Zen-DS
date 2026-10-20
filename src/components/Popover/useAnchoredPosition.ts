@@ -26,13 +26,19 @@ const anchorWidthOf = (style: CSSProperties | undefined) => (style as Record<str
 /**
  * The side an open surface takes. It keeps the side it is on while it still fits there (or while the other side has no
  * room either), so scrolling never flips it back and forth: it moves only when it would be cut off and the other side has
- * room, as CSS anchor positioning keeps its last successful fallback. Without a previous side: below when it fits or when
- * below has more room, else above.
+ * room, as CSS anchor positioning keeps its last successful fallback. Without a previous side: below when it fits, above
+ * when only that fits. When neither fits in view, `reachable` (the sides with room inside the clipping ancestors alone)
+ * picks the side the page can scroll into view over one a clipping frame cuts off for good: a chip at the top of a phone
+ * preview scrolled to the window's bottom edge flipped its menu above the phone, out of sight (2026-10-20). Else the side
+ * with more room.
  */
-export function resolveAnchoredSide(previous: AnchoredSide | null, below: number, above: number, height: number): AnchoredSide {
+export function resolveAnchoredSide(previous: AnchoredSide | null, below: number, above: number, height: number, reachable?: Record<AnchoredSide, boolean>): AnchoredSide {
   const fits: Record<AnchoredSide, boolean> = { bottom: below >= height, top: above >= height };
   if (previous && (fits[previous] || !fits[previous === "bottom" ? "top" : "bottom"])) return previous;
-  return fits.bottom || below >= above ? "bottom" : "top";
+  if (fits.bottom) return "bottom";
+  if (fits.top) return "top";
+  if (reachable && reachable.bottom !== reachable.top) return reachable.bottom ? "bottom" : "top";
+  return below >= above ? "bottom" : "top";
 }
 
 /** The horizontal edge, with the same memory as resolveAnchoredSide: the preferred edge on opening, flipping to the other
@@ -51,12 +57,12 @@ export function clampAnchoredLeft(left: number, width: number, boundsLeft: numbe
 }
 
 /** The viewport intersected with every ancestor that clips its overflow — the area the surface can
- * actually be seen in. */
-export function visibleBounds(from: HTMLElement) {
-  let top = 0;
-  let left = 0;
-  let bottom = document.documentElement.clientHeight;
-  let right = document.documentElement.clientWidth;
+ * actually be seen in. `viewport: false`: the clipping ancestors alone (what scrolling the page cannot reveal). */
+export function visibleBounds(from: HTMLElement, { viewport = true }: { viewport?: boolean } = {}) {
+  let top = viewport ? 0 : -Infinity;
+  let left = viewport ? 0 : -Infinity;
+  let bottom = viewport ? document.documentElement.clientHeight : Infinity;
+  let right = viewport ? document.documentElement.clientWidth : Infinity;
   for (let node: HTMLElement | null = from; node && node !== document.body && node !== document.documentElement; node = node.parentElement) {
     const style = getComputedStyle(node);
     if (style.overflowX === "visible" && style.overflowY === "visible") continue;
@@ -125,7 +131,9 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       const width = surface.offsetWidth * scale;
       const below = bounds.bottom - box.bottom - gap * scale - VIEWPORT_MARGIN;
       const above = box.top - bounds.top - gap * scale - VIEWPORT_MARGIN;
-      const side = resolveAnchoredSide(lastSide, below, above, height);
+      const clip = visibleBounds(container, { viewport: false });
+      const reachable = { bottom: clip.bottom - box.bottom - gap * scale - VIEWPORT_MARGIN >= height, top: box.top - clip.top - gap * scale - VIEWPORT_MARGIN >= height };
+      const side = resolveAnchoredSide(lastSide, below, above, height, reachable);
       const fitsStart = box.left + width <= bounds.right - VIEWPORT_MARGIN;
       const fitsEnd = box.right - width >= bounds.left + VIEWPORT_MARGIN;
       const resolvedAlign = resolveAnchoredAlign(lastAlign, align, fitsStart, fitsEnd);

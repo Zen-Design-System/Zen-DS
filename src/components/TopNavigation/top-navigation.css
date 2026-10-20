@@ -35,6 +35,12 @@
   --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)) 80%, transparent) 0%, transparent 100%);
 }
 .zen-top-nav[data-type="compact-overlay"] { --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)) 80%, transparent) 0%, transparent 100%); }
+/* Transparent (Figma 12014:45167 Type=Transparent / Transparent-On-Color): no fill, for a bar that sits on a band of the page
+   (AppShell mobileTop="band" | "band-sheet") or over a colour or photo; On-Color takes white content. */
+.zen-top-nav:is([data-type="transparent"], [data-type="transparent-on-color"]) { --zen-top-nav-fill: transparent; }
+/* Transparent-On-Color: the bar over a colour fill. Its content is On-Black-Overlay unless the fill names its own
+   content colour (--zen-on-fill-content: AppShell band="accent" sets On-Accent, user 2026-10-19: Figma D5). */
+.zen-top-nav[data-type="transparent-on-color"] { --zen-top-nav-content: var(--zen-on-fill-content, var(--zen-color-content-on-black-overlay-strongest, #fff)); }
 
 /* Scroll-linked collapse (scrollRef). The fold (Expand-Heading, plus a Search Control-Bar that folds into searchAction)
    slides up by --zen-top-nav-fold with the content, 1:1, and is cut where it passes under the bar; a pinned Control-Bar
@@ -62,7 +68,9 @@
 /* The sides are equal while both fit, so the title stays centred; a side never shrinks below its actions (three Tertiary
    actions are 180px, more than half a 390px bar), so then the title gives way and ellipsizes instead of running under them. */
 .zen-top-nav__bar { display: grid; min-height: 64px; grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr); align-items: center; }
-.zen-top-nav__leading, .zen-top-nav__trailing { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding-block: var(--zen-spacing-padding-xsmall, 8px); }
+/* Top-Leading and Top-Trailing are Navigation-Mobile/Top/Bar-Size (64) high, fixed: a place taller than 48 (a 56 Avatar,
+   D4 15950:9696) stays centred and overhangs the 8px padding instead of growing the bar. */
+.zen-top-nav__leading, .zen-top-nav__trailing { display: flex; box-sizing: border-box; height: var(--zen-navigation-mobile-top-bar-size, 64px); min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding-block: var(--zen-spacing-padding-xsmall, 8px); }
 /* Figma Leading-Slot gap = Spacing/Gap/Medium (16). Trailing-Slot gap between actions:
    Style=Default/Glass 44px buttons = Navigation-Mobile/Top/Action-Button-Gap (8);
    Style=Flat 24px icons (Type=Compact*) = Navigation-Mobile/Top/Action-Icon-Gap (20). Same in both Margin variants. */
@@ -84,9 +92,34 @@
 .zen-top-nav__heading { overflow: hidden; min-width: 0; flex: 1; margin: 0; padding: var(--zen-navigation-mobile-top-bar-padding-h1, 12px) var(--zen-top-nav-side); color: var(--zen-top-nav-content); text-overflow: ellipsis; white-space: nowrap; }
 .zen-top-nav__heading[data-level="h2"] { padding-block: var(--zen-navigation-mobile-top-bar-padding-h2, 12px); }
 .zen-top-nav__heading[data-level="h3"] { padding-block: var(--zen-navigation-mobile-top-bar-padding-h3, 16px); }
-.zen-top-nav__expand-trailing { display: flex; align-items: center; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-top-nav-side) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
-.zen-top-nav__control { display: flex; min-height: 48px; box-sizing: border-box; align-items: center; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-top-nav-side) var(--zen-spacing-padding-xsmall, 8px); }
-.zen-top-nav__control > * { min-width: 0; flex: 1; }
+.zen-top-nav__expand-trailing { display: flex; box-sizing: border-box; height: var(--zen-navigation-mobile-top-bar-size, 64px); align-items: center; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-top-nav-side) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
+/* Large title with a Capline and/or a Subheading (Figma Main-Heading-Text, .Primitives/Heading-Text/Basic 4060:17984,
+   Capline · Subheading on; F1 15991:10116, F3–F10, D5 15952:9644): an hgroup that takes the Main-Heading-Text padding,
+   the lines in Body/Base/Regular, Content/Neutral/Light, above and below the title in the Heading frame's gap
+   (H1 · H2 Spacing/Gap/2XSmall 4, H3 Spacing/Gap/3XSmall 2); H2 adds its Contents padding Spacing/Padding/3XSmall (2)
+   above and below. Expand-Heading aligns its children to the top (counter-axis MIN), so Header-Trailing (and the room the
+   overlaid bar actions take on a root) stays level with the first line, not centred on the taller block. */
+.zen-top-nav__expand[data-lines="true"] { align-items: flex-start; }
+.zen-top-nav__heading-group { display: flex; overflow: hidden; min-width: 0; flex: 1; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-navigation-mobile-top-bar-padding-h1, 12px) var(--zen-top-nav-side); }
+.zen-top-nav__heading-group[data-level="h2"] { padding-block: calc(var(--zen-navigation-mobile-top-bar-padding-h2, 12px) + var(--zen-spacing-padding-3-xsmall, 2px)); }
+.zen-top-nav__heading-group[data-level="h3"] { gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-block: var(--zen-navigation-mobile-top-bar-padding-h3, 16px); }
+.zen-top-nav__heading-group > .zen-top-nav__heading { flex: none; padding: 0; }
+/* An Avatar in the bar or beside the large title (a node in leading, trailing or largeTitleAction, the account) is the
+   size of the bar's actions: Figma Nav-Slot/Visual is bound to Navigation-Action/Size, 44 (user 2026-10-19: "trên top
+   nav mobile thì là 44"), whatever Avatar size it was given. */
+.zen-top-nav :is(.zen-top-nav__leading, .zen-top-nav__trailing, .zen-top-nav__expand-trailing) .zen-avatar[data-size] { --zen-avatar-size: var(--zen-navigation-action-size, 44px); }
+.zen-top-nav__capline, .zen-top-nav__subheading { overflow: hidden; margin: 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav:is([data-type$="overlay"], [data-type="transparent-on-color"]) :is(.zen-top-nav__capline, .zen-top-nav__subheading) { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
+.zen-top-nav[data-type="transparent-on-color"] :is(.zen-top-nav__capline, .zen-top-nav__subheading, .zen-top-nav__identity-subtitle) { color: var(--zen-on-fill-content, var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%))); }
+/* Control-Bar (Figma Control-Bar 12014:44764 › Control-Slot 12014:44786): no padding and no height of its own (it hugs
+   its slot), the slot a column of controls Spacing/Gap/XSmall (8) apart; each Figma screen wraps its controls in a
+   padded frame. This wrapper is that frame: the bar's side margin (Margin-Comfortable 20 · Margin-Compact 16, as
+   Top-Leading and Top-Trailing) and Spacing/Padding/XSmall (8) above and below (◆ Finance chips I16342:181443 → 56;
+   C6 progress 15923:8850 → 8 + 24 + 8 = 40). A Tab-Bar takes no block padding: its Tab-Item row is the bar's height
+   (C3 15922:7729: Tabs-Wrap 0 above and below, 48 at Comfortable density). */
+.zen-top-nav__control { display: flex; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-top-nav-side); }
+.zen-top-nav__control > * { min-width: 0; }
+.zen-top-nav__control:has(> .zen-tabs) { padding-block: 0; }
 /* A Segmented in the Control-Bar always spans the bar with equal items (mobile pattern), even without fullWidth. */
 .zen-top-nav__control > .zen-segmented { display: flex; width: 100%; }
 .zen-top-nav__control > .zen-segmented > .zen-segmented__item { flex: 1 1 0; }
@@ -134,6 +167,9 @@
 .zen-top-nav__action[data-style="glass-dark"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-black-overlay-hover, rgb(0 0 0 / 40%)); }
 /* Noti (Nav-Slot/Action 6085:44062, every Style incl. Flat): 8px at x 26 · y 10 of the 44px button, i.e. pinned to the
    icon's top-right corner, so it sits one icon padding in from the top and the end. */
+/* A visual in a Trailing-Slot place (Figma D3 15950:9324: Badge Medium Orange Solid + Avatar Medium; D4 15950:9696:
+   Avatar Large Square): drawn as it is, its own size, centred in the 64px row like a Nav-Action. */
+.zen-top-nav__visual { display: inline-flex; flex: none; align-items: center; }
 /* The dot is the shared Notification-Dot (_shared/notification-dot.css); this places it on the icon. */
 .zen-top-nav__dot { top: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px); right: var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px); }
 @media (prefers-reduced-motion: no-preference) { .zen-top-nav__action { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
@@ -145,10 +181,16 @@
 @keyframes zen-top-nav-search-out { to { opacity: 0; transform: scale(calc(1 - 0.2 * var(--zen-motion-movement, 1))); } }
 /* Reduced motion: the Search control crossfades (its scale step is multiplied by --zen-motion-movement, 0 there). */
 
-/* Identity title (Figma ◆ Social conversation header: Heading-Text Type=Sub + Leading + Subheading). The bar switches to
-   leading · identity (fills, left-aligned) · trailing; the identity keeps the Heading-Text padding 8/4. */
-.zen-top-nav__bar:has(> :is(.zen-top-nav__identity, .zen-top-nav__identity-heading)) { grid-template-columns: auto minmax(0, 1fr) auto; }
-.zen-top-nav__bar:has(> :is(.zen-top-nav__identity, .zen-top-nav__identity-heading)) > .zen-top-nav__leading { padding-inline-end: var(--zen-spacing-padding-small, 12px); }
+/* Title with a subtitle (Figma Heading-Text Type=Sub + Subheading, Top-Heading-Text 12014:44793): the Heading-Text
+   padding 8/4 around the title over the subtitle. data-identity="center" (no titleLeading): the bar keeps its centred
+   grid and the block is centred, as the Type=Sub variant draws it (Contents and Heading CENTER, Subheading text-align
+   CENTER; C2 15921:8204, C5 15923:8404). data-identity="start" (titleLeading, the ◆ Social conversation header
+   6353:69678: Heading-Text Leading + Subheading, Heading and Subheading set to the start): the bar switches to
+   leading · identity (fills, left-aligned) · trailing. */
+.zen-top-nav__bar[data-identity="start"] { grid-template-columns: auto minmax(0, 1fr) auto; }
+.zen-top-nav__bar[data-identity="start"] > .zen-top-nav__leading { padding-inline-end: var(--zen-spacing-padding-small, 12px); }
+.zen-top-nav__bar[data-identity="center"] .zen-top-nav__identity { justify-content: center; text-align: center; }
+.zen-top-nav__bar[data-identity="center"] .zen-top-nav__identity-text { align-items: center; }
 /* A clickable identity sits inside its heading (a heading cannot sit inside a button); the heading only lays it out. */
 .zen-top-nav__identity-heading { display: flex; min-width: 0; align-items: center; margin: 0; font: inherit; }
 .zen-top-nav__identity { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; color: var(--zen-top-nav-content); font: inherit; text-align: start; }
@@ -159,7 +201,7 @@ button.zen-top-nav__identity:focus-visible { outline: 3px solid var(--zen-color-
 .zen-top-nav__identity-text { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-top-nav__identity-title, .zen-top-nav__identity-subtitle { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; }
 .zen-top-nav__identity-subtitle { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
-.zen-top-nav[data-type$="overlay"] .zen-top-nav__identity-subtitle { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
+.zen-top-nav:is([data-type$="overlay"], [data-type="transparent-on-color"]) .zen-top-nav__identity-subtitle { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
 
 /* Grouped trailing actions: the dual Nav-Action (Figma Trailing-Icon on Nav-Action/Icon-Main 6085:33688 · Liquid-Glass
    12015:46174 · Icon-Overlay 6085:33284, 92×44 — padding 10, two 24px icons 24 apart) made of two 44px flat halves, so
@@ -187,7 +229,7 @@ button.zen-top-nav__identity:focus-visible { outline: 3px solid var(--zen-color-
    of that row (Figma Expand-Trailing); its title stays hidden until the large title folds, then shows in the same row,
    which takes the fill so nothing that still slides under it shows through. */
 .zen-top-nav[data-bar="overlay"] > .zen-top-nav__bar { position: absolute; z-index: 1; top: var(--zen-safe-area-top, env(safe-area-inset-top, 0px)); right: 0; left: 0; pointer-events: none; }
-.zen-top-nav[data-bar="overlay"] > .zen-top-nav__bar .zen-top-nav__action { pointer-events: auto; }
+.zen-top-nav[data-bar="overlay"] > .zen-top-nav__bar :is(.zen-top-nav__action, .zen-top-nav__visual) { pointer-events: auto; }
 .zen-top-nav[data-bar="overlay"][data-collapsed="true"] > .zen-top-nav__bar { background: var(--zen-top-nav-fill); }
 /* The room the overlaid actions take, kept free in the large-title row (invisible placeholders of the same size). */
 .zen-top-nav__trailing--room { flex: 0 0 auto; visibility: hidden; }

@@ -30,6 +30,9 @@
 .studio-builder-screen[data-chrome] { display: flex; align-items: stretch; }
 .studio-builder-screen__side { display: flex; flex: 0 0 auto; }
 .studio-builder-screen__main { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+/* A desktop master layout shown on the mobile layout: its content in the AppShell's mobile Body (Spacing/Padding/XSmall
+   above, Margin-Comfortable at the sides, Spacing/Padding/Large below, Layout-Mobile/Section-Gap between the sections). */
+.studio-builder-screen__shell-body { display: flex; box-sizing: border-box; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-layout-mobile-section-gap, 32px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-comfortable, 20px) var(--zen-spacing-padding-large, 20px); }
 .studio-builder-screen__content { min-width: 0; flex: 1 1 auto; }
 .studio-builder-screen__header { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
 .studio-builder-screen__top { position: sticky; z-index: 1; top: 0; }
@@ -43,17 +46,18 @@
 .studio-builder-screen__pin { position: sticky; z-index: 20; height: 0; }
 .studio-builder-screen__pin[data-edge="top"] { top: 0; }
 .studio-builder-screen__pin[data-edge="bottom"] { bottom: 0; }
-/* An AppShell on a Screen is a drawing of the whole page, as Figma's frame is: it fills the Screen, and its Sidebar and
-   docked aside span the page's height instead of the browser window's (their sticky 100dvh is for an app that scrolls). */
+/* An AppShell on a Screen is a drawing of the whole page, as Figma's frame is: it fills the Screen, and its Sidebar, panes
+   and docked side panel span the page's height instead of the browser window's (their sticky 100dvh is for an app that
+   scrolls). */
 .studio-builder-screen:has(> .zen-app-shell) { display: flex; flex-direction: column; }
 .studio-builder-screen > .zen-app-shell { flex: 1 0 auto; min-height: 0; }
-.studio-builder-screen .zen-app-shell__sidebar, .studio-builder-screen .zen-app-shell__aside:not([data-stacked="true"]) { height: auto; }
+.studio-builder-screen :is(.zen-app-shell__sidebar, .zen-app-shell__pane, .zen-app-shell__side-panel:not([data-stacked="true"])) { height: auto; }
 /* Play and Present run the page as an app (Figma's prototype, the user 2026-10-16; Present 2026-10-17: it still drew the
-   whole page there, so the Sidebar scrolled away): the Sidebar and docked aside stick to the scroll box at its height
+   whole page there, so the Sidebar scrolled away): the Sidebar, panes and docked side panel stick to the scroll box at its height
    again and their items scroll inside when they outgrow it. Auto viewport: Play's device clips (no scroll box of its
    own), so they stick to the window's scroll at AppShell's 100dvh; Present's full-screen card scrolls its stage, the
    page under the bar (board.css, 100cqh). A fixed W × H viewport is the scroll box, and its height is the shell's. */
-:is(.studio-player, .studio-present) .studio-builder-screen :is(.zen-app-shell__sidebar, .zen-app-shell__aside:not([data-stacked="true"])) { height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); }
+:is(.studio-player, .studio-present) .studio-builder-screen :is(.zen-app-shell__sidebar, .zen-app-shell__pane, .zen-app-shell__side-panel:not([data-stacked="true"])) { height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); }
 .studio-present__fit[data-viewport="fixed"] > :is(.studio-player__device, .studio-present__viewport) { container-type: size; }
 .studio-present__fit[data-viewport="fixed"] > :is(.studio-player__device, .studio-present__viewport) .studio-builder-screen > .zen-app-shell { --zen-app-shell-height: 100cqh; }
 /* Screen › Canvas (as AppShell's canvas): Canvas/Alt, a white page; Canvas/Flat. */

@@ -191,7 +191,7 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
 //    wrappers as frames of their layers, Heading as text, a Menu as its trigger.
 const SHELL = `// @zen-page {"format":1,"title":"Team"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { AppShell, AppShellAccount, AppShellAction, Breadcrumbs, Button, Container, Heading, List, ListItem, Menu, PageHeader, Search, Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, Breadcrumbs, Button, Container, Heading, List, ListItem, Menu, PageHeader, Search, Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -204,15 +204,17 @@ export default function Page() {
             <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />
             <SidebarMenuItem id="people" label="People" icon="icon-users-line" />
           </Sidebar>}
-          header={<Breadcrumbs items={[{ id: "team", label: "Team" }]} />}
-          headerActions={<Stack direction="row" gap="sm" align="center">
-            <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} />
-            <Menu trigger={<AppShellAccount name="Khoa Dang" />} items={[{ id: "out", label: "Sign out" }]} />
-          </Stack>}
+          header={<AppShellHeader
+            leading={<Breadcrumbs items={[{ id: "team", label: "Team" }]} />}
+            actions={<Stack direction="row" gap="sm" align="center">
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} />
+              <Menu trigger={<AppShellAccount name="Khoa Dang" />} items={[{ id: "out", label: "Sign out" }]} />
+            </Stack>}
+            main={<PageHeader title="Team members" description="12 people" actions={<Stack direction="row" gap="sm"><Button level="tertiary">Export</Button><Button>Invite</Button></Stack>} />}
+          />}
         >
           <Container>
             <Stack gap="lg">
-              <PageHeader title="Team members" description="12 people" actions={<Stack direction="row" gap="sm"><Button level="tertiary">Export</Button><Button>Invite</Button></Stack>} />
               <Heading level={2}>Admins</Heading>
               <List>
                 <ListItem title="Ava Chen" />
@@ -236,18 +238,18 @@ export default function Page() {
   check("AppShell: the Sidebar pattern Expand=Yes; its Side-Bar's rows in Body-Content (the selected one Select Yes), no logo: Header-Content emptied, no footer: Footer-Content emptied, its container hidden inside the Side-Bar (not the master's first layer of that name)", { expand: shell.nested.find((entry) => entry.path === "Patterns")?.props, slots: shell.slots.filter((slot) => slot.within?.[0] === inner[0]).map((slot) => [slot.name, slot.within, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), hide: shell.hide, hidden: shell.edits.filter((edit) => edit.visible === false).map((edit) => edit.layer) }, { expand: { Expand: "Yes" }, slots: [["Header-Content", inner, []], ["Body-Content", inner, ["Home:No", "People:Yes"]], ["Footer-Content", inner, []]], hide: undefined, hidden: [[...inner, "Divider"], [...inner, "Footer-Container"]] });
   const sections = slotOf("Sections");
   const bar = sections.children[0];
-  check("AppShell: Header/Dashboard's Sections hold the top bar, the Dashboard header Type=Navigation padded as the master's own row (Margin-Comfortable, Padding/XSmall below)", { within: sections.within, rows: sections.children.length, set: bar.set.name, type: bar.props.Type, padding: bar.padding, vars: bar.paddingVars }, { within: ["Header/Dashboard"], rows: 1, set: "Primitives/Dashboard/Header", type: "Navigation", padding: [24, 24, 8, 24], vars: ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/XSmall", "Margin-Comfortable"] });
+  check("AppShell: Header/Dashboard's Sections hold the top bar (the Dashboard header Type=Navigation padded as the master's own row: Margin-Comfortable, Padding/XSmall below), then the header's Main row", { within: sections.within, rows: sections.children.length, set: bar.set.name, type: bar.props.Type, padding: bar.padding, vars: bar.paddingVars }, { within: ["Header/Dashboard"], rows: 2, set: "Primitives/Dashboard/Header", type: "Navigation", padding: [24, 24, 8, 24], vars: ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/XSmall", "Margin-Comfortable"] });
   check("AppShell: Leading-Slots the collapse toggle and the header, Trailing-Slots the actions and the account's Avatar", bar.slots.map((slot) => [slot.name, slot.children.map((child) => child.set.name)]), [["Leading-Slots", ["Button/Icon-Flat", "Breadcrumbs"]], ["Trailing-Slots", ["Primitives/Dashboard/Header/Action-Item", "Avatar/Single"]]]);
   check("a slot with content turns its block on (Nav-Trailing-Block), one without stays off", [bar.props["Nav-Trailing-Block"], bar.props["Nav-Center-Block"]], [true, false]);
   const account = find(bar, (node) => node.set?.name === "Avatar/Single");
   check("AppShellAccount (a Menu's trigger): its Avatar, named by the person, the initials", [account?.name, account?.text, account?.props.Size], ["Khoa Dang", "KD", "Medium"]);
   const content = slotOf("Content");
   const main = content.children[0];
-  check("Container: in Body's Content slot, a frame of its layers with the gutter (Margin-Comfortable each side); Body unpadded as AppShell's main is", [content.within, main?.name, main?.layout.padding, main?.fillW, shell.edits.find((edit) => edit.padding)], [["Body"], "Container", [0, 24, 0, 24], true, { layer: ["Body"], padding: [0, 0, 0, 0], hugH: true }]);
+  check("Container: in Body's Content slot, a frame of its layers with the gutter (Margin-Comfortable each side); Body keeps the master's padding as AppShell's Body pads", [content.within, main?.name, main?.layout.padding, main?.fillW, shell.edits.find((edit) => edit.padding) ?? null], [["Body"], "Container", [0, 24, 0, 24], true, null]);
   // Figma's master is one viewport tall (982) with its Content filling it: a longer page was cut off (2026-10-17).
   check("AppShell grows with its page: Main-Container, Body and the Content slot hug, the Side-Bar is as tall, the viewport's 982 stays the minimum", { min: shell.minH, content: content.hugH, hug: shell.edits.filter((edit) => edit.hugH).map((edit) => edit.layer.join(" › ")), fill: shell.edits.filter((edit) => edit.fillH).map((edit) => edit.layer.join(" › ")) }, { min: 982, content: true, hug: ["Main-Container", "Body"], fill: [inner.join(" › ")] });
-  const header = find(main, (node) => node.props?.Type === "Main");
-  check("PageHeader: the Dashboard header Type=Main, its title, SubHeading and actions (Actions on)", [header?.text, header?.texts?.SubHeading, header?.props.Actions, header?.slots?.[0]?.name, header?.slots?.[0]?.children.map((button) => button.text)], ["Team members", "12 people", true, "Action-Slots", ["Export", "Invite"]]);
+  const header = find(sections.children[1], (node) => node.props?.Type === "Main");
+  check("PageHeader (the header's Main row): the Dashboard header Type=Main, its title, SubHeading and actions (Actions on)", [header?.text, header?.texts?.SubHeading, header?.props.Actions, header?.slots?.[0]?.name, header?.slots?.[0]?.children.map((button) => button.text)], ["Team members", "12 people", true, "Action-Slots", ["Export", "Invite"]]);
   check("Heading: text in its level's style (h2 Heading/4)", find(main, (node) => node.type === "TEXT" && node.characters === "Admins")?.textStyle, "Heading/4");
   const list = find(main, (node) => node.name === "List");
   check("List: a frame of its rows, Gap/3XSmall", [list?.type, list?.layout.gap, list?.children.map((row) => row.set.name)], ["FRAME", 2, ["List-Item", "List-Item"]]);
@@ -276,8 +278,9 @@ export default function Page() {
   const shell = shape(back).children[0].children[0];
   const prop = (name) => shell.props[name]?.element;
   check("AppShell round trip: an AppShell straight in the Screen, its Sidebar's rows with the selected one", { name: shell.name, sidebar: prop("sidebar")?.name, selected: prop("sidebar")?.props.selectedId }, { name: "AppShell", sidebar: "Sidebar", selected: "people" });
-  check("AppShell round trip: the toggle is AppShell's own (not a header layer), the header the Breadcrumbs", { toggle: shell.props.sidebarToggle ?? null, header: prop("header")?.name }, { toggle: null, header: "Breadcrumbs" });
-  check("AppShell round trip: the actions, the account (its Avatar named after the person) as AppShellAccount", prop("headerActions")?.children.map((child) => child.name), ["AppShellAction", "AppShellAccount"]);
+  const headerProp = (name) => prop("header")?.props[name]?.element;
+  check("AppShell round trip: the toggle is AppShell's own (not a header layer), the header an AppShellHeader leading with the Breadcrumbs, the PageHeader its Main row", { toggle: shell.props.collapse ?? null, header: prop("header")?.name, leading: headerProp("leading")?.name, main: headerProp("main")?.props.title }, { toggle: null, header: "AppShellHeader", leading: "Breadcrumbs", main: "Team members" });
+  check("AppShell round trip: the actions, the account (its Avatar named after the person) as AppShellAccount", headerProp("actions")?.children.map((child) => child.name), ["AppShellAction", "AppShellAccount"]);
   check("AppShell round trip: the page's Container › Stack comes back as the AppShell's content", shell.children.map((child) => child.name), ["Stack"]);
 }
 {
@@ -298,7 +301,7 @@ export default function Page() {
 //    chart, ListItem and ListBox parts, Text in its default style and tone, icon names as Figma's cuts.
 const DASH = `// @zen-page {"format":1,"title":"Dash"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { AppShell, Avatar, ChartCard, Chip, DockIcon, Grid, IconButton, LineChart, List, ListBox, ListItem, MetricCard, Search, Segmented, Sidebar, SidebarMenuItem, Stack, StackBarChart, Text, Button, Heading } from "@zen-ds/react";
+import { AppShell, AppShellHeader, Avatar, ChartCard, Chip, DockIcon, Grid, IconButton, LineChart, List, ListBox, ListItem, MetricCard, Search, Segmented, Sidebar, SidebarMenuItem, Stack, StackBarChart, Text, Button, Heading } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -306,7 +309,7 @@ export default function Page() {
   return (
     <Board>
       <Screen id="screen-1" title="Dash" device="desktop">
-        <AppShell sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>} header={<Search aria-label="Search" placeholder="Search projects" />}>
+        <AppShell header={<AppShellHeader leading={<Search aria-label="Search" placeholder="Search projects" />} />} sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>}>
           <Stack gap="md">
             <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line">This quarter</Chip>
             <Text tone="base">Jul 1 – Sep 30</Text>
@@ -461,7 +464,7 @@ export default function Page() {
 //     Breadcrumbs draw their chevrons (Dash) and Level; InlineMessage's close button follows onClose.
 const WIDTHS = `// @zen-page {"format":1,"title":"Widths"}
 import { Board, Screen, proto } from "@zen-ds/react/builder";
-import { AppShell, Breadcrumbs, Card, Container, Grid, IconButton, InlineMessage, Segmented, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
+import { AppShell, AppShellHeader, Breadcrumbs, Card, Container, Grid, IconButton, InlineMessage, Segmented, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -469,7 +472,7 @@ export default function Page() {
   return (
     <Board>
       <Screen id="screen-1" title="Widths" device="desktop">
-        <AppShell sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>} header={<Breadcrumbs items={[{ id: "a", label: "Invoices" }, { id: "b", label: "INV-0142" }]} />}>
+        <AppShell header={<AppShellHeader leading={<Breadcrumbs items={[{ id: "a", label: "Invoices" }, { id: "b", label: "INV-0142" }]} />} />} sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>}>
           <Container>
             <Stack gap="lg">
               <Grid minColumnWidth={480} gap="lg"><Card><Text>Projects</Text></Card><Card><Text>Activity</Text></Card></Grid>
@@ -618,7 +621,7 @@ export default function Page() {
 //     a table Avatar cell's own Avatar, Form's gap, the account's Subtle Avatar.
 const MEMBERS = `// @zen-page {"format":1,"title":"Team"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { AppShell, AppShellAccount, Form, Grid, InputField, Search, Stack, Table, Text } from "@zen-ds/react";
+import { AppShell, AppShellHeader, AppShellAccount, Form, Grid, InputField, Search, Stack, Table, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -626,7 +629,7 @@ export default function Page() {
   return (
     <Board>
       <Screen id="screen-1" title="Team" device="desktop">
-        <AppShell headerActions={<AppShellAccount name="Linh Hoang" theme="yellow" />}>
+        <AppShell header={<AppShellHeader actions={<AppShellAccount name="Linh Hoang" theme="yellow" />} />}>
           <Stack gap="lg">
             <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr auto" }} gap="sm"><Search aria-label="Search" placeholder="Search" /><Text>Filters</Text><Text>View</Text></Grid>
             <Table aria-label="Members" selectable sort={{ columnId: "member", direction: "asc" }} rows={[{ id: "a", member: "An Mai", email: "an.mai@dizai.studio", role: "Member" }, { id: "b", member: "Bao Nguyen", email: "bao@dizai.studio", role: "Admin" }]} columns={[{ id: "member", header: "Member", sortable: true, content: "avatar", captionField: "email" }, { id: "role", header: "Role", width: "120px", sortable: true }]} overrides={{ "Row[a]/member/Avatar": { children: "MA" }, "Row[b]/member/Avatar": { theme: "green" } }} />
@@ -710,7 +713,7 @@ export default function Page() {
   check("TopNavigation: Top-Navigation/Mobile, its Type, no Status-bar, the parts the page shows", [inbox.set.id, inbox.props.Type, inbox.props["Status-Bar"], inbox.props["Top-bar"], inbox.props["Top-Heading-Text"], inbox.props["Expand-Heading"], inbox.props["Expand-Trailing"], inbox.props["Control-Bar"]], ["12014:45167", "Liquid Glass", false, true, false, true, true, true]);
   check("TopNavigation: the large title and the leading Action (named by its label, its glyph)", [inbox.nested[0], inbox.nested[1]], [{ path: "Main-Heading-Text", props: { Type: "H1" }, texts: { "Header-Text": "Inbox" } }, { path: "Top-Leading/Action", name: "Back", props: { "Noti-Dot": false }, swapIcon: "icon-chevron-left-line-medium" }]);
   check("TopNavigation: each row's actions in its own Trailing-Slot, as Nav-Slot/Action in the Type's Button", inbox.slots.slice(0, 2).map((slot) => [slot.within, slot.children.map((item) => [item.name, item.set.id, item.props.Style, item.props["Noti-Dot"], item.nested[0].set.name, item.nested[0].props.Level, item.nested[0].swapIcon])]), [["Navigator-bar", [["Search", "6340:42675", "Default", false, "Nav-Action/Liquid-Glass", "Secondary", "icon-search-medium-line"], ["Alerts", "6340:42675", "Default", true, "Nav-Action/Liquid-Glass", "Secondary", "icon-bell-01-line"]]], ["Expand-Heading", [["New", "6340:42675", "Default", false, "Nav-Action/Liquid-Glass", "Secondary", "icon-plus-line"]]]]);
-  check("TopNavigation: the control bar in Control-Slot, padded as the code pads it (Padding/2XSmall, Large, XSmall)", [inbox.slots[2].name, inbox.slots[2].children[0].name, inbox.slots[2].children[0].layout.padding, inbox.slots[2].children[0].children[0].set.name], ["Control-Slot", "Control", [4, 20, 8, 20], "Segmented"]);
+  check("TopNavigation: the control bar in Control-Slot, padded as the code pads it (Padding/XSmall above and below, the bar's margin at the sides)", [inbox.slots[2].name, inbox.slots[2].children[0].name, inbox.slots[2].children[0].layout.padding, inbox.slots[2].children[0].children[0].set.name], ["Control-Slot", "Control", [8, 20, 8, 20], "Segmented"]);
   check("TopNavigation: a compact root folds its bar into the large-title row (Top-bar off, the actions beside the title, Flat › Icon-Flat)", [home.props["Top-bar"], home.props["Top-Leading"], home.props["Expand-Trailing"], home.slots.map((slot) => [slot.within, slot.children.map((item) => [item.props.Style, item.nested[0].set.name, item.nested[0].props.Level])])], [false, false, true, [["Expand-Heading", [["Flat", "Nav-Action/Icon-Flat", "Primary"], ["Flat", "Nav-Action/Icon-Flat", "Primary"]]]]]);
   check("TopNavigation: an identity's title and subtitle in Top-Heading-Text, Margin Compact, an overlay's Icon-Overlay", [ava.props.Margin, ava.props["Expand-Heading"], ava.nested[0].props, ava.nested[0].texts, ava.slots[0].children[0].nested[0].props.Level], ["Compact", false, { Type: "Sub", Header: true, Subheading: true, Leading: false }, { "Header-Text": "Ava Chen", Subheading: "Active now" }, "Black Overlay"]);
   ok("TopNavigation: a note for actions that share a pill (Figma has none)", notes.some((note) => /share a pill/.test(note)));
@@ -1778,7 +1781,7 @@ export default function Page() {
 {
   const PAGE = `// @zen-page {"format":1,"title":"Expenses"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { AppShell, Pagination, ProgressBar, Search, Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
+import { AppShell, AppShellHeader, Pagination, ProgressBar, Search, Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1786,7 +1789,7 @@ export default function Page() {
   return (
     <Board>
       <Screen id="screen-1" title="Expenses" device="desktop">
-        <AppShell header={<Search aria-label="Search" placeholder="Search expenses, merchants or people" />} sidebar={<Sidebar aria-label="Main" selectedId="approvals"><SidebarMenuItem id="home" label="Overview" icon="icon-home-03-line" /><SidebarMenuItem id="approvals" label="Approvals" icon="icon-check-circle-line" counter="12" /></Sidebar>}>
+        <AppShell header={<AppShellHeader leading={<Search aria-label="Search" placeholder="Search expenses, merchants or people" />} />} sidebar={<Sidebar aria-label="Main" selectedId="approvals"><SidebarMenuItem id="home" label="Overview" icon="icon-home-03-line" /><SidebarMenuItem id="approvals" label="Approvals" icon="icon-check-circle-line" counter="12" /></Sidebar>}>
           <Stack gap="md">
             <ProgressBar layout="stacked" theme="accent" value={38} label="Engineering" valueLabel="$9,120 of $24,000" />
             <ProgressBar layout="stacked" theme="accent" value={9} label="Operations" />

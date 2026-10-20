@@ -6,8 +6,8 @@ Three screens from the repo's templates, mapped by `docs/component-usage-rules.m
 
 Desktop (the Studio page "Expenses"): Sidebar of 7 rows (Overview, Expenses, Approvals 12, Corporate cards,
 Reimbursements, Vendors, Reports) + a Settings footer row; top bar Search "Search expenses, merchants or people";
-`headerActions` Notifications (count 4) and the account menu (Khoa Dang); PageHeader "Expenses" with a description and
-the page actions.
+AppShellHeader `actions` Notifications (count 4) and the account menu (Khoa Dang); its `main` PageHeader "Expenses" with
+a description and the page actions.
 
 | Desktop | Phone |
 | --- | --- |
@@ -22,8 +22,8 @@ the page actions.
 
 ## 2. HR Home (a root with a busy top bar)
 
-Desktop (`src/templates/hr/HrShell.tsx`): Breadcrumbs "Home"; `headerActions` = plan Badge, Settings menu, Inbox
-(count), account menu with photo; the Sidebar has a Home group (Home, My profile) and Modules (People, Documents, Files,
+Desktop (`src/templates/hr/HrShell.tsx`): AppShellHeader `leading` Breadcrumbs "Home" (`master={false}`); `actions` =
+plan Badge, Settings menu, Inbox (count), account menu with photo; the Sidebar has a Home group (Home, My profile) and Modules (People, Documents, Files,
 Expenses, Time off, Workbench) plus Spaces; floating "Ask Zen AI".
 
 | Desktop | Phone |
@@ -40,7 +40,7 @@ Expenses, Time off, Workbench) plus Spaces; floating "Ask Zen AI".
 
 Desktop (`src/templates/DetailTemplate.tsx`): Breadcrumbs "Invoices › INV-…"; PageHeader title "Invoice …", a status
 Badge in `meta`, a description, actions ⋯ (more) + Primary "Record payment", `tabs` Overview / Activity;
-`headerActions` Notifications + account.
+AppShellHeader `actions` Notifications + account.
 
 | Desktop | Phone |
 | --- | --- |

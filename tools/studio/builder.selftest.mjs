@@ -15,7 +15,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:checkout.zen.tsx";
-const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"], ["AlertBanner", "AlertBanner"]]);
+const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["AppShellHeader", "AppShell"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"], ["AlertBanner", "AlertBanner"]]);
 const options = (code) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(code) });
 const components = new Set(componentModules.keys());
 
@@ -121,8 +121,8 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   const screen = (text = framed) => parsePage(text).board.children[0];
   const shell = (text = framed) => kids(screen(text)).find((child) => child.name === "AppShell") ?? null;
   check("the Screen holds the mobile layout's parts", SCREEN_CHROME.map((part) => screen().props[part.prop]?.node?.name ?? null), [null, null, "TopNavigation", "BottomNavigation"]);
-  check("its master layout: one AppShell with the Sidebar and the Page header", [kids(screen()).map((child) => child.name), shell()?.props.sidebar?.node?.name, shell()?.props.sections?.node?.name], [["AppShell"], "Sidebar", "PageHeader"]);
-  check("the Page header carries the title", shell().props.sections.node.props.title, { kind: "literal", value: "Orders" });
+  check("its master layout: one AppShell with the Sidebar and the Page header", [kids(screen()).map((child) => child.name), shell()?.props.sidebar?.node?.name, shell()?.props.header?.node?.props.main?.node?.name], [["AppShell"], "Sidebar", "PageHeader"]);
+  check("the Page header carries the title", shell().props.header.node.props.main.node.props.title, { kind: "literal", value: "Orders" });
   check("the Stack is the AppShell's content", kids(shell()).map((child) => child.name), ["Stack"]);
   const frame = (text, prop, on) => applyOps(text, screen(text).loc, "Screen", [{ op: "screenFrame", prop, on, code: screenFrameCode(prop, "Orders") }], options(text));
   const packageImport = (text) => /import \{ ([^}]+) \} from "@zen-ds\/react";/.exec(text)?.[1].split(", ") ?? [];
@@ -143,14 +143,16 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
     check(`${part.label} on, valid`, [result.error ?? null, validateDialect(result.code ?? "", { components })], [null, []]);
     all = result.code ?? all;
   }
-  check("every part on the one AppShell, each imported", [Object.keys(shell(all).props).filter((name) => FRAME_PARTS.some((part) => part.prop === name)).sort(), FRAME_PARTS.every((part) => packageImport(all).includes(part.component))], [FRAME_PARTS.map((part) => part.prop).sort(), true]);
+  // The header parts live on its AppShellHeader (`header`), the others on the AppShell.
+  const partProps = (text) => [...Object.keys(shell(text).props), ...Object.keys(shell(text).props.header?.node?.props ?? {})];
+  check("every part on the one AppShell, each imported", [partProps(all).filter((name) => FRAME_PARTS.some((part) => part.prop === name)).sort(), FRAME_PARTS.every((part) => packageImport(all).includes(part.component))], [FRAME_PARTS.map((part) => part.prop).sort(), true]);
   for (const part of FRAME_PARTS) all = frame(all, part.prop, false).code ?? all;
   check("all off: no AppShell, the Stack is the Screen's content", [kids(screen(all)).map((child) => child.name), packageImport(all).filter((name) => FRAME_PARTS.some((part) => part.component === name) || name === "AppShell" || name === "SidebarMenuItem"), validateDialect(all, { components })], [["Stack"], [], []]);
-  const back = frame(all, "sections", true);
+  const back = frame(all, "main", true);
   check("a part on a Screen without an AppShell wraps its content", [kids(screen(back.code)).map((child) => child.name), kids(shell(back.code)).map((child) => child.name), validateDialect(back.code ?? "", { components })], [["AppShell"], ["Stack"], []]);
   check("not a part: refused", applyOps(framed, screen().loc, "Screen", [{ op: "screenFrame", prop: "children", on: true, code: "<Text>Hi</Text>" }], options(framed)).code ?? null, "invalid");
   const stack = kids(shell())[0];
-  check("sent on another element: refused", applyOps(framed, stack.loc, "Stack", [{ op: "screenFrame", prop: "aside", on: true }], options(framed)).code ?? null, "invalid");
+  check("sent on another element: refused", applyOps(framed, stack.loc, "Stack", [{ op: "screenFrame", prop: "sidePanel", on: true }], options(framed)).code ?? null, "invalid");
   check("layouts", [screenLayout("phone"), screenLayout("desktop", "mobile"), screenLayout("tablet"), screenLayout("tablet", "desktop")], ["mobile", "desktop", "mobile", "desktop"]);
   const tablet = applyOps(framed, screen().loc, "Screen", [{ op: "setProp", name: "layout", value: { kind: "string", value: "desktop" } }], options(framed));
   check("a tablet laid out as desktop is valid", validateDialect(tablet.code ?? "", { components }), []);

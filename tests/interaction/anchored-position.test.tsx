@@ -6,7 +6,7 @@ import { useRef } from "react";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { Popover, ZenProvider, type PopoverProps } from "../../src/index";
-import { clampAnchoredLeft } from "../../src/components/Popover/useAnchoredPosition";
+import { clampAnchoredLeft, resolveAnchoredSide } from "../../src/components/Popover/useAnchoredPosition";
 import { fixedLayerSpace } from "../../src/components/_shared/layer-space";
 
 describe("clampAnchoredLeft", () => {
@@ -21,6 +21,26 @@ describe("clampAnchoredLeft", () => {
   });
   it("pins a surface wider than the bounds to the left margin", () => {
     expect(clampAnchoredLeft(100, 500, 0, 390)).toBe(8);
+  });
+});
+
+describe("resolveAnchoredSide", () => {
+  it("opens below when it fits, above when only that fits", () => {
+    expect(resolveAnchoredSide(null, 300, 50, 200)).toBe("bottom");
+    expect(resolveAnchoredSide(null, 50, 300, 200)).toBe("top");
+  });
+  it("keeps its side while it fits there", () => {
+    expect(resolveAnchoredSide("top", 300, 250, 200)).toBe("top");
+  });
+  it("fits nowhere in view: takes the side the page can scroll to, not one a clipping frame cuts off", () => {
+    // A chip at the top of a phone preview at the window's bottom edge: 31px above it inside the phone, -7px below in the
+    // window; only below has room inside the phone, which scrolling reveals.
+    expect(resolveAnchoredSide(null, -7, 31, 200, { bottom: true, top: false })).toBe("bottom");
+    expect(resolveAnchoredSide(null, 31, -7, 200, { bottom: false, top: true })).toBe("top");
+  });
+  it("fits nowhere and both sides are reachable or neither: the side with more room", () => {
+    expect(resolveAnchoredSide(null, -7, 31, 200)).toBe("top");
+    expect(resolveAnchoredSide(null, -7, 31, 200, { bottom: false, top: false })).toBe("top");
   });
 });
 

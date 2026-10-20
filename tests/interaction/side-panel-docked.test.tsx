@@ -7,7 +7,7 @@ import { useState } from "react";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { Button, SidePanel } from "../../src/index";
+import { AppShell, Button, SidePanel, ZenProvider } from "../../src/index";
 
 function Docked() {
   const [open, setOpen] = useState(false);
@@ -40,6 +40,30 @@ describe("SidePanel standard", () => {
     await userEvent.keyboard("{Escape}");
     await expect.element(screen.getByRole("complementary")).toBeInTheDocument();
     screen.getByRole("button", { name: "Open details" }).element().focus();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(screen.getByRole("complementary")).not.toBeInTheDocument();
+  });
+
+  it("docked in an AppShell, ignores Escape pressed outside that shell (another app on the page)", async () => {
+    function TwoApps() {
+      const [open, setOpen] = useState(true);
+      return (
+        <ZenProvider>
+          <div style={{ width: 1440 }}>
+            <AppShell layout="desktop" sidePanel={<SidePanel open={open} onOpenChange={setOpen} title="Invoice 2041"><Button>Mark paid</Button></SidePanel>}>
+              <Button>Inside the shell</Button>
+            </AppShell>
+          </div>
+          <Button>Another example</Button>
+        </ZenProvider>
+      );
+    }
+    const screen = await render(<TwoApps />);
+    await expect.element(screen.getByRole("complementary")).toBeInTheDocument();
+    screen.getByRole("button", { name: "Another example" }).element().focus();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(screen.getByRole("complementary")).toBeInTheDocument();
+    screen.getByRole("button", { name: "Inside the shell" }).element().focus();
     await userEvent.keyboard("{Escape}");
     await expect.element(screen.getByRole("complementary")).not.toBeInTheDocument();
   });

@@ -10,14 +10,15 @@
  *              a colour that is no --zen-color-* token in the current theme and modes
  *   roles      (warn)  example markup that paints text with a background/border token, a fill with a content token…;
  *              a Surface/Default box on the Canvas/Default stage with a border or a shadow (§16 default pairing)
- *   hierarchy  (error) content hierarchy (Typography › Content hierarchy, review 2026-09-29): a content h1 that is not
- *              Heading/1 (the TopNavigation bar title and overlay titles are exempt), an h2/h3 in a Heading/* style
+ *   hierarchy  (error) content hierarchy (Typography › Content hierarchy, review 2026-09-29): a content h1 smaller than
+ *              Heading/1 — Heading/1 or a larger Display / Display-Extra style (an emphasis page: a home, a welcome; the
+ *              user 2026-10-19); the TopNavigation bar title and overlay titles are exempt — an h2/h3 in a Heading/* style
  *              smaller than the body text right under it, an overlay title styled Heading/1 (h1 or h2 are both fine)
  *   rhythm     (warn)  a title and the text under it that look identical (flat hierarchy), a title not in the
  *              Strongest tone (tone read from the token that paints it; a Body/Small/Bold group header may be Base), any
  *              other heading smaller than the body text right under it (Body/Small/Bold group headers are kickers and
- *              exempt), an overlay title below h2, a Heading/* styled line that is not a heading (and not a value), more
- *              than seven text styles in one example (eight on a whole screen; the .pth-outline readout not counted), nested corners that are not
+ *              exempt), an overlay title below h2, a Heading/* styled line that is not a heading (and not a value or a wordmark: the name after its Avatar / Icon / Dock Icon mark, a brand or logo wrapper), more
+ *              than seven text styles in one example (eight on a whole screen; the .pth-outline readout and the navigation chrome, Sidebar and TopNavigation compact bar, not counted), nested corners that are not
  *              concentric (outer = inner + inset, each corner on its own; the Luxury radius mode is skipped), list rows padded twice
  *   density    (error) (densitySnapshot, compared by audit.mjs) Zen elements whose in-flow content outgrows them once
  *              Component Size is Comfortable
@@ -62,8 +63,9 @@ export function qualityChecks({ scopeSel, regionSel }) {
   const normColour = (c) => { if (!c) return null; canvas.fillStyle = "#010203"; canvas.fillStyle = c; const v = canvas.fillStyle; return v === "#010203" && !/^#010203$/i.test(c.trim()) ? null : v; };
   const MODE = "[data-theme], [data-density], [data-radius], [data-typography], [data-emphasis], [data-breakpoint], [data-component-theme]";
   const scopes = new Map();
-  // The spacing ladder (usage rules §13): name → Gap token suffix, resolved per mode scope like the other tokens.
-  const LADDER = [["2xs", "2-xsmall"], ["xs", "xsmall"], ["sm", "small"], ["md", "medium"], ["lg", "large"], ["xl", "xlarge"]];
+  // The spacing ladder (usage rules §13): name → Gap token suffix, resolved per mode scope like the other tokens. 3xs
+  // (Gap/3XSmall, 2) joined it on 2026-10-19 (the user): two lines of one compact item, as Figma spaces them.
+  const LADDER = [["3xs", "3-xsmall"], ["2xs", "2-xsmall"], ["xs", "xsmall"], ["sm", "small"], ["md", "medium"], ["lg", "large"], ["xl", "xlarge"]];
   const ladders = new Map();
   const modeScope = (el) => el.closest(MODE) ?? document.documentElement;
   const tokensFor = (el) => {
@@ -184,8 +186,9 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const overlayTitle = Boolean(overlay) && overlay.querySelector(HEADING) === b.heading;
       const bar = barTitle(b.heading);
       const kicker = b.st.name === "body-small-bold"; // a list group header: a kicker label (decision 4)
-      // A content h1 is the title shown large; the compact bar title and overlay titles are their own layers.
-      if (b.level === 1 && b.st.name && b.st.name !== "heading-1" && !bar && !overlayTitle) push("hierarchy", `${where} is ${b.st.name} — a content h1 is the page title shown large and uses Heading/1 (only the TopNavigation bar title keeps its bar style)`);
+      // A content h1 is the title shown large: Heading/1, or a larger Display / Display-Extra style on an emphasis page (a
+      // home, a welcome: the user 2026-10-19), never smaller. The compact bar title and overlay titles are their own layers.
+      if (b.level === 1 && b.st.name && !/^(heading-1|display-(extra-)?\d)$/.test(b.st.name) && !bar && !overlayTitle) push("hierarchy", `${where} is ${b.st.name} — a content h1 is the page title shown large: Heading/1 or a larger Display / Display-Extra style, never smaller (only the TopNavigation bar title keeps its bar style)`);
       // Overlay titles: h2 by default, h1 accepted (decision 5a); the component's own style, never Heading/1 (5b).
       if (overlayTitle && b.st.name === "heading-1") push("hierarchy", `${where} titles an overlay in Heading/1 — overlay titles keep the component's style (Dialog, Bottom Sheet, Side Panel Heading/3 · ModalForm Heading/2), never Heading/1`);
       else if (overlayTitle && b.level > 2) push("rhythm", `${where} titles an overlay — overlay titles are h2 by default (h1 is accepted)`);
@@ -214,11 +217,19 @@ export function qualityChecks({ scopeSel, regionSel }) {
     for (const b of content) {
       if (b.level || !b.st.name || !/^heading-(1|3|4|subheading)$/.test(b.st.name) || NUMERIC.test(b.text) || (/\d/.test(b.text) && b.text.length < 12)) continue;
       // Values styled as Subheading: a metric, a stat, a Dashboard Header's result count ("96 results").
-      if (b.el.closest(".zen-top-nav, .zen-sidebar, .zen-bottom-nav, [class*='logo'], [class*='brand'], .zen-metric, .zen-stat, .zen-dashboard-header__subheading")) continue;
+      if (b.el.closest(".zen-top-nav, .zen-sidebar, .zen-bottom-nav, [class*='logo' i], [class*='brand' i], [data-brand], [data-logo], .zen-metric, .zen-stat, .zen-dashboard-header__subheading")) continue;
+      // A wordmark, as the style-guard reads it (tools/style-guard/check-styles.mjs type/visual-heading): an inline name
+      // right after its mark, an Avatar, Icon or Dock Icon leading a brand row ("[N] Northwind", "[Z] Zen Docs").
+      const mark = b.el.previousElementSibling;
+      if (b.el.tagName === "SPAN" && mark?.matches(".zen-avatar, .zen-dock-icon, .zen-icon, svg")) continue;
       push("rhythm", `${label(b.el)}: "${b.text.slice(0, 24)}" is styled ${b.st.name} but is not a heading — titles are <Heading level> so the outline matches what people see`);
     }
-    // The Outline readout (.pth-outline, Typography › Content hierarchy) is platform annotation, not the example.
-    const distinct = new Set(content.filter((b) => !b.el.closest(".pth-outline")).map((b) => b.st.name).filter(Boolean));
+    // The Outline readout (.pth-outline, Typography › Content hierarchy) is platform annotation, not the example. The app's
+    // navigation chrome, the Sidebar and the TopNavigation compact bar, is a layer of its own (as in the outline check),
+    // the same on every page: its brand and section labels are not the page's hierarchy (2026-10-19: the Invoices page
+    // rose from 8 to 9 styles only because it moved into the Sidebar shell).
+    const chrome = ".pth-outline, .zen-app-shell__sidebar, .zen-sidebar, .zen-top-nav__bar";
+    const distinct = new Set(content.filter((b) => !b.el.closest(chrome)).map((b) => b.st.name).filter(Boolean));
     // A whole screen (ExampleCard `screen`, the Templates) is a real page: h1, h4, Subheading, body regular / medium /
     // bold, small and caption make 8.
     const styleLimit = region.closest?.(".pe-card[data-screen='true']") ? 8 : 7;
@@ -362,7 +373,7 @@ export function qualityChecks({ scopeSel, regionSel }) {
     }
 
     /* ── spacing ladder (usage rules §13): the gap between elements is picked by their relationship from one ladder,
-       2xs · xs · sm · md · lg · xl (Gap tokens of this density), and a group's own gap is never wider than the gap
+       3xs · 2xs · xs · sm · md · lg · xl (Gap tokens of this density), and a group's own gap is never wider than the gap
        that separates it from its siblings. Only the gaps a page author picks are read: Stack, Grid and example markup
        (components own their inner gaps, from Figma). A group that paints its own surface is grouped by its frame. */
     const authored = (el) => (el.classList.contains("zen-stack") || el.classList.contains("zen-grid") || !isInternal(el)) && !isFrame(el) && !el.closest("svg, .zen-chart__svg, [data-audit-skip-quality]");

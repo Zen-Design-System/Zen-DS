@@ -23,7 +23,7 @@ export function App() {
       {/* expect: text/use-text */}
       <h2>Team members</h2>
       {/* expect: app-shell/forced-layout */}
-      <Zen.AppShell layout="sidebar"><Zen.Text>Page</Zen.Text></Zen.AppShell>
+      <Zen.AppShell layout="desktop"><Zen.Text>Page</Zen.Text></Zen.AppShell>
       {/* zen-allow-secondary: toolbar toggle that stays pressed */}
       <ZenButton level="secondary" onClick={() => setBold(!bold)}>Bold</ZenButton>
     </main>

@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
 import { PlatformPhone } from "../../PlatformPhone";
 import { Accordion } from "../../../components/Accordion";
+import { ActionBar } from "../../../components/ActionBar";
+import { AppShell } from "../../../components/AppShell";
 import { Card } from "../../../components/Card";
 import { CurvePreview, type CurvePreviewType } from "../../../components/CurvePreview";
 import { Divider } from "../../../components/Divider";
+import { DockIcon } from "../../../components/DockIcon";
 import { SelectField } from "../../../components/Input";
-import { Grid, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
+import { List, ListBox, ListItem, ToggleListItem } from "../../../components/ListItem";
 import { Segmented } from "../../../components/Segmented";
 import { SliderField } from "../../../components/SliderField";
 import { Heading, Text } from "../../../components/Text";
+import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { keepOnHotUpdate } from "../../hotData";
 
@@ -107,19 +112,63 @@ function TransitionOffExample() {
   );
 }
 
-/* ───────────── 6. Mobile: the same settings in a sheet-like screen ───────────── */
+/* ───────────── 6. Mobile: the same settings on a prototype's phone screen ───────────── */
 
 function PhoneMotionExample() {
+  const { toast } = useToast();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const interactionId = useId();
+  const animationId = useId();
+  const accessId = useId();
   const [type, setType] = useState<CurvePreviewType>("bounce");
+  const [duration, setDuration] = useState(0.45);
   const [bounce, setBounce] = useState(0.7);
+  const [fade, setFade] = useState(true);
+  const label = curveOptions.find((option) => option.value === type)?.label ?? "Spring";
+  const summary = `${label} · ${seconds(duration)}${isSpring(type) ? ` · bounce ${bounce.toFixed(2)}` : ""}`;
   return (
-    <PlatformPhone label="Transition" header={<TopNavigation type="compact-alt" title="Transition" />}>
-      <Stack gap="xs" padding="lg">
-        {/* The preview takes the phone's width; its height stays 176. */}
-        <CurvePreview type={type} bounce={isSpring(type) ? bounce : undefined} />
-        <SelectField layout="inline" label="Type" value={type} onValueChange={(value) => setType(value as CurvePreviewType)} options={curveOptions} />
-        {isSpring(type) ? <SliderField label="Bounce" value={bounce} onValueChange={setBounce} min={0} max={0.9} step={0.01} /> : null}
-      </Stack>
+    // A pushed screen of the Loyalty app prototype: the compact bar with Back, the interaction it belongs to, the curve
+    // over its settings in one flat block on the grey Canvas, what Reduce Motion gets instead, and Preview / Apply
+    // pinned in the Action bar (Figma Bottom=Actions).
+    <PlatformPhone label="Transition" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="Transition" scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to the interaction", children: "On tap · Rewards card" }) }} />}
+        actionBar={<ActionBar direction="horizontal"
+          secondaryAction={{ label: "Preview", onClick: () => toast({ title: "Playing on the prototype", children: summary }) }}
+          primaryAction={{ label: "Apply transition", onClick: () => toast({ type: "positive", title: "Transition applied", children: summary }) }} />}
+      >
+        <Stack as="section" gap="xs" aria-labelledby={interactionId}>
+          <Box paddingX="lg"><Heading level={2} id={interactionId} textStyle="Body/Small/Bold" tone="light">Interaction</Heading></Box>
+          <ListBox theme="flat">
+            <List aria-labelledby={interactionId}>
+              <ListItem leading={<DockIcon icon="icon-cursor-click-line" theme="orange" background="subtle" size="medium" />} title="On tap · Rewards card"
+                caption="Opens Reward detail · Loyalty app" />
+            </List>
+          </ListBox>
+        </Stack>
+        <Stack as="section" gap="xs" aria-labelledby={animationId}>
+          <Box paddingX="lg"><Heading level={2} id={animationId} textStyle="Body/Small/Bold" tone="light">Animation</Heading></Box>
+          <Card theme="flat">
+            <Stack gap="xs">
+              {/* The preview takes the block's width; its height stays 176, so the overshoot stays readable. */}
+              <CurvePreview type={type} bounce={isSpring(type) ? bounce : undefined} />
+              <SelectField layout="inline" label="Type" value={type} onValueChange={(value) => setType(value as CurvePreviewType)} options={curveOptions} />
+              <SliderField label="Duration" value={duration} onValueChange={setDuration} min={0.1} max={2} step={0.01} formatValue={seconds} />
+              {isSpring(type) ? <SliderField label="Bounce" value={bounce} onValueChange={setBounce} min={0} max={0.9} step={0.01} /> : null}
+            </Stack>
+          </Card>
+        </Stack>
+        <Stack as="section" gap="xs" aria-labelledby={accessId}>
+          <Box paddingX="lg"><Heading level={2} id={accessId} textStyle="Body/Small/Bold" tone="light">Reduce Motion</Heading></Box>
+          <ListBox theme="flat">
+            <List aria-labelledby={accessId}>
+              <ToggleListItem title="Fade instead" caption={fade ? "A 0.20\u00a0s fade when motion is off" : "No transition when motion is off"}
+                checked={fade} onCheckedChange={setFade} />
+            </List>
+          </ListBox>
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -176,11 +225,31 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Motion settings on a phone",
-    description: "The same rows on a phone: the preview takes the screen's width and keeps its 176 height, so the overshoot stays readable.",
+    description: "The same rows on a phone screen of a prototype, in the AppShell's mobile Bar with Preview and Apply transition in the Action bar. The preview takes the block's width and keeps its 176 height, so the overshoot stays readable; Type, Duration and Bounce change the curve at once, and Reduce Motion says what people who turn motion off get instead.",
     render: () => <PhoneMotionExample />,
-    code: `<CurvePreview type={type} bounce={isSpring ? bounce : undefined} />
-<SelectField layout="inline" label="Type" value={type} onValueChange={setType} options={curveOptions} />
-<SliderField label="Bounce" value={bounce} onValueChange={setBounce} min={0} max={0.9} step={0.01} />`,
-    screen: true,
+    code: `<PlatformPhone canvas="default" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Transition" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+    actionBar={<ActionBar direction="horizontal"
+      secondaryAction={{ label: "Preview", onClick: preview }}
+      primaryAction={{ label: "Apply transition", onClick: apply }} />}
+  >
+    {/* The Body pads the screen and spaces its sections */}
+    <Card theme="flat">
+      <Stack gap="xs">
+        <CurvePreview type={type} bounce={isSpring ? bounce : undefined} />
+        <SelectField layout="inline" label="Type" value={type} onValueChange={setType} options={curveOptions} />
+        <SliderField label="Duration" value={duration} onValueChange={setDuration} min={0.1} max={2} step={0.01} formatValue={seconds} />
+        {isSpring && <SliderField label="Bounce" value={bounce} onValueChange={setBounce} min={0} max={0.9} step={0.01} />}
+      </Stack>
+    </Card>
+    <ListBox theme="flat">
+      <List aria-label="Reduce Motion">
+        <ToggleListItem title="Fade instead" caption="A 0.20 s fade when motion is off" checked={fade} onCheckedChange={setFade} />
+      </List>
+    </ListBox>
+  </AppShell>
+</PlatformPhone>`,
   },
 ]);

@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
 import { PlatformPhone } from "../../PlatformPhone";
+import { platformMedia } from "../../PlatformMedia";
+import { ActionBar } from "../../../components/ActionBar";
+import { AppShell } from "../../../components/AppShell";
 import { Accordion } from "../../../components/Accordion";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Divider } from "../../../components/Divider";
+import { Image } from "../../../components/Image";
 import { ColorField, InputField } from "../../../components/Input";
 import { Stack } from "../../../components/Layout";
 import { Segmented } from "../../../components/Segmented";
 import { SliderField } from "../../../components/SliderField";
 import { Heading, Text } from "../../../components/Text";
+import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { keepOnHotUpdate } from "../../hotData";
 
@@ -110,19 +115,70 @@ function StatesExample() {
 
 /* ───────────── 5. Mobile: photo adjustments by touch ───────────── */
 
+type Adjustments = { brightness: number; contrast: number; warmth: number; saturation: number };
+/** The photo as it was shot, and Gia's edit in progress, where the screen opens. */
+const noAdjustments: Adjustments = { brightness: 0, contrast: 0, warmth: 0, saturation: 0 };
+const giasEdit: Adjustments = { brightness: 0.1, contrast: 0.2, warmth: -0.1, saturation: 0.15 };
+const signed = (value: number) => `${value > 0 ? "+" : ""}${Math.round(value * 100)}`;
+/** The edit as CSS filters on the preview: warmer leans sepia, cooler turns the hue towards blue. */
+const filterOf = ({ brightness, contrast, warmth, saturation }: Adjustments) => [
+  `brightness(${1 + brightness * 0.6})`,
+  `contrast(${1 + contrast * 0.6})`,
+  `saturate(${1 + saturation})`,
+  warmth > 0 ? `sepia(${warmth * 0.5})` : `hue-rotate(${warmth * 24}deg)`,
+].join(" ");
+const photo = platformMedia.feed[1];
+
 function PhoneAdjustExample() {
-  const [brightness, setBrightness] = useState(0.1);
-  const [contrast, setContrast] = useState(0.2);
-  const [warmth, setWarmth] = useState(-0.1);
-  const signed = (value: number) => `${value > 0 ? "+" : ""}${Math.round(value * 100)}`;
+  const { toast } = useToast();
+  const lightId = useId();
+  const colourId = useId();
+  const [edit, setEdit] = useState<Adjustments>(giasEdit);
+  const [saved, setSaved] = useState<Adjustments>(noAdjustments);
+  const set = (key: keyof Adjustments) => (value: number) => setEdit((current) => ({ ...current, [key]: value }));
+  const changed = (Object.keys(edit) as (keyof Adjustments)[]).some((key) => edit[key] !== saved[key]);
+  const close = () => {
+    const before = edit;
+    setEdit(saved);
+    toast(changed
+      ? { title: "Changes discarded", children: photo.alt, action: { label: "Undo", onClick: () => setEdit(before) } }
+      : { title: "No changes to discard", children: "The photo is as it was saved." });
+  };
   return (
-    <PlatformPhone label="Adjust" header={<TopNavigation type="compact-alt" title="Adjust" />}>
-      <Stack gap="xs" padding="lg">
-        {/* Touch: drag along the row to scrub, tap to type. Medium rows stay 40px tall on a phone. */}
-        <SliderField label="Brightness" value={brightness} onValueChange={setBrightness} min={-1} max={1} step={0.01} formatValue={signed} />
-        <SliderField label="Contrast" value={contrast} onValueChange={setContrast} min={-1} max={1} step={0.01} formatValue={signed} />
-        <SliderField label="Warmth" value={warmth} onValueChange={setWarmth} min={-1} max={1} step={0.01} formatValue={signed} theme="accent" />
-      </Stack>
+    // Media + Actions: the photo being edited is the backdrop and follows every slider; a Surface sheet rises over it
+    // with the rows, and Save waits in the Action bar. A task screen, so Close instead of Back and no bottom bar.
+    <PlatformPhone label="Adjust" canvas="surface" statusBar="light">
+      <AppShell mobileTop="media"
+        backdrop={<Image src={photo.src} alt={photo.alt} radius="none" loading="eager" style={{ filter: filterOf(edit) }} />}
+        topNavigation={<TopNavigation title="Adjust"
+          leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }}
+          trailing={[{ icon: "icon-refresh-ccw-01-line", label: "Reset adjustments", onClick: () => {
+            const before = edit;
+            setEdit(noAdjustments);
+            toast({ title: "Adjustments reset", children: "The photo shows as it was shot.", action: { label: "Undo", onClick: () => setEdit(before) } });
+          } }]} />}
+        actionBar={<ActionBar
+          summary={<Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{changed ? "Unsaved changes" : "No changes to save"}</Text>}
+          primaryAction={{ label: "Save photo", disabled: !changed, onClick: () => { setSaved(edit); toast({ type: "positive", title: "Photo saved", children: "Brand refresh moodboard · Saola Outdoor" }); } }} />}
+      >
+        <Stack gap="lg">
+          <Stack gap="2xs">
+            <Heading level={2} textStyle="Heading/4">Creek in the forest</Heading>
+            <Text textStyle="Body/Small/Regular" tone="base">Brand refresh moodboard · Shot by Gia Pham</Text>
+          </Stack>
+          {/* Touch: drag along a row to scrub, tap it to type. Medium rows stay 40px tall on a phone. */}
+          <Stack as="section" gap="xs" aria-labelledby={lightId}>
+            <Heading level={3} id={lightId} textStyle="Body/Small/Bold" tone="light">Light</Heading>
+            <SliderField label="Brightness" value={edit.brightness} onValueChange={set("brightness")} min={-1} max={1} step={0.01} formatValue={signed} />
+            <SliderField label="Contrast" value={edit.contrast} onValueChange={set("contrast")} min={-1} max={1} step={0.01} formatValue={signed} />
+          </Stack>
+          <Stack as="section" gap="xs" aria-labelledby={colourId}>
+            <Heading level={3} id={colourId} textStyle="Body/Small/Bold" tone="light">Colour</Heading>
+            <SliderField label="Warmth" value={edit.warmth} onValueChange={set("warmth")} min={-1} max={1} step={0.01} formatValue={signed} theme="accent" />
+            <SliderField label="Saturation" value={edit.saturation} onValueChange={set("saturation")} min={-1} max={1} step={0.01} formatValue={signed} />
+          </Stack>
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -170,10 +226,24 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Adjustments on a phone",
-    description: "Photo adjustments by touch: drag along a row to scrub, tap to type. Signed values show their sign; the rows stay Medium (40px) on a phone.",
+    description: "Gia retouches a moodboard photo for Saola Outdoor in the studio's phone app. The photo is the screen's backdrop and follows every row; drag along a row to scrub, tap it to type. Signed values show their sign, and the rows stay Medium (40px) on a phone. Save photo in the Action bar works once something changed; Close and Reset offer Undo.",
     render: () => <PhoneAdjustExample />,
-    code: `<SliderField label="Brightness" value={brightness} onValueChange={setBrightness} min={-1} max={1} step={0.01}
-  formatValue={(v) => \`\${v > 0 ? "+" : ""}\${Math.round(v * 100)}\`} />`,
-    screen: true,
+    code: `<PlatformPhone canvas="surface" statusBar="light">
+  <AppShell mobileTop="media"
+    backdrop={<Image src={photo.src} alt={photo.alt} radius="none" style={{ filter: filterOf(edit) }} />}
+    topNavigation={<TopNavigation title="Adjust"
+      leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }}
+      trailing={[{ icon: "icon-refresh-ccw-01-line", label: "Reset adjustments", onClick: reset }]} />}
+    actionBar={<ActionBar summary={changed ? "Unsaved changes" : "No changes to save"}
+      primaryAction={{ label: "Save photo", disabled: !changed, onClick: save }} />}
+  >
+    <Stack as="section" gap="xs" aria-labelledby="light">
+      <Heading level={3} id="light" textStyle="Body/Small/Bold" tone="light">Light</Heading>
+      <SliderField label="Brightness" value={edit.brightness} onValueChange={set("brightness")} min={-1} max={1} step={0.01}
+        formatValue={(v) => \`\${v > 0 ? "+" : ""}\${Math.round(v * 100)}\`} />
+      <SliderField label="Contrast" value={edit.contrast} onValueChange={set("contrast")} min={-1} max={1} step={0.01} formatValue={signed} />
+    </Stack>
+  </AppShell>
+</PlatformPhone>`,
   },
 ]);
