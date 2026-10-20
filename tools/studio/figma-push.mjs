@@ -334,6 +334,9 @@ function figmaProps(entry, code, mapping, notes, where, only = null, filled = nu
 }
 
 /** The set of a code component: by its set prop (Button appearance="flat" → Button/Flat), else its only set. */
+/** Layers an override of names directly (words, visibility, a page instance's values), never a Zen component's set. */
+const NOT_LIBRARY = new Set(["Use", "Text", "Heading", "Stack", "Grid", "Box", "Shape"]);
+
 function entryFor(name, code, byCode, mapping) {
   const entries = byCode.get(name);
   if (!entries?.length) return null;
@@ -495,8 +498,34 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
           // The layer, through the nested instances of the page's own components it is in (Chip/Text): one step each,
           // in the main that draws it.
           const steps = layerChain(doc.board, main, path, localModel, plain);
-          if (steps?.every((step) => step.layer.id)) pending.push({ steps: steps.map((step) => ({ main: step.main.id, key: step.layer.id })), path, props, kind: steps.at(-1).layer.name });
-          else notes.push(`${node.name}: its override of ${path} (a layer inside a Zen component) is not pushed yet`);
+          if (!steps?.every((step) => step.layer.id)) { notes.push(`${node.name}: its override of ${path} is not pushed (no such layer in its main)`); continue; }
+          const last = steps.at(-1);
+          const keys = steps.map((step) => ({ main: step.main.id, key: step.layer.id }));
+          // A Zen component in the main (a Badge): its props as Figma properties, its words as its label; a layer inside
+          // it (Badge/Dot, its nest() name) as a nested override, as a placed component's own overrides are pushed.
+          if (!NOT_LIBRARY.has(last.layer.name) && byCode.has(last.layer.name)) {
+            const { hidden, children, ...fields } = props;
+            const where = `${node.name} › ${path}`;
+            const own = codeProps(last.layer);
+            if (last.inner === undefined) {
+              const entry = entryFor(last.layer.name, { ...own, ...fields }, byCode, mapping);
+              const figma = entry && Object.keys(fields).length ? figmaProps(entry, { ...own, ...fields }, mapping, notes, where, new Set(Object.keys(fields))) : null;
+              if (Object.keys(fields).length && !Object.keys(figma ?? {}).length) notes.push(`${where}: ${Object.keys(fields).join(", ")} has no Figma property (not pushed)`);
+              pending.push({ steps: keys, path, props: hidden === undefined ? {} : { hidden }, kind: last.layer.name, figma, ...(typeof children === "string" ? { text: children } : {}) });
+              continue;
+            }
+            let owner = last.layer.name;
+            for (const segment of last.inner.split("/")) owner = owner ? nestedLayers[owner]?.[segment.replace(/\[.*$/, "")] : null;
+            const inner = owner ? entryFor(owner, fields, byCode, mapping) : null;
+            if (!inner) { notes.push(`${where}: its component is not known (override left out)`); continue; }
+            if (hidden !== undefined) notes.push(`${where}: hidden is not pushed (a layer inside a Zen component shows as its component draws it)`);
+            const nested = { path: last.inner, set: { id: inner.id, name: inner.name }, props: figmaProps(inner, fields, mapping, notes, where, new Set(Object.keys(fields))), ...(typeof children === "string" ? { text: children } : {}) };
+            if (Object.keys(fields).length && !Object.keys(nested.props).length) notes.push(`${where}: ${Object.keys(fields).join(", ")} has no Figma property (not pushed)`);
+            pending.push({ steps: keys, path, props: {}, kind: last.layer.name, nested });
+            continue;
+          }
+          if (last.inner !== undefined) { notes.push(`${node.name}: its override of ${path} is not pushed (${last.layer.name} has no layers of its own)`); continue; }
+          pending.push({ steps: keys, path, props, kind: last.layer.name });
         }
         // On the node itself: the frame's assembly copies nodes ({ ...node, fillW }).
         if (pending.length) node.layerPending = { pending };
@@ -2027,7 +2056,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const { pending } = instance.layerPending;
       delete instance.layerPending;
       const out = [];
-      for (const { steps, path, props, kind } of pending) {
+      for (const { steps, path, props, kind, figma, text, nested: inside } of pending) {
         // The indices to the nested instance in its main, then on inside it (its layers mirror its own main's).
         let at = [];
         for (const step of steps) {
@@ -2037,7 +2066,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
           at.push(...part);
         }
         if (!at) { notes.push(`${instance.name}: its override of ${path} is not pushed (the layer is not drawn in its main)`); continue; }
-        const override = { at };
+        // One entry per layer: a Zen component's own props and its nested layers' overrides go together.
+        const known = out.find((each) => each.at.join(".") === at.join("."));
+        const override = known ?? { at };
+        if (figma && Object.keys(figma).length) override.props = { ...(override.props ?? {}), ...figma };
+        if (typeof text === "string") override.text = text;
+        if (inside) override.nested = [...(override.nested ?? []), inside];
         for (const [name, value] of Object.entries(props)) {
           const nested = /^(variant|props)\.(.+)$/.exec(name);
           if (nested && kind === "Use") (override[nested[1]] ??= {})[nested[2]] = value;
@@ -2046,7 +2080,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
           else if (name === "tone" && (kind === "Text" || kind === "Heading") && typeof value === "string") override.fill = contentToneToken(value);
           else notes.push(`${instance.name}: ${path} ${name} is not pushed (an override Figma has no field for here yet)`);
         }
-        if (Object.keys(override).length > 1) out.push(override);
+        if (!known && Object.keys(override).length > 1) out.push(override);
       }
       // A nested instance's variant first, then the layers inside it (they are the variant's: Figma swaps them).
       out.sort((a, b) => a.at.length - b.at.length);

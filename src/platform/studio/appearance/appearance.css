@@ -30,6 +30,9 @@
 .studio-effect__settings p { margin: 0; }
 .studio-effect__settings-note { color: var(--zen-color-content-neutral-light); }
 
+/* Appearance's fields (AppearanceFields): one per cell of the field grid, stretched to the cell. */
+.studio-appearance-field { display: grid; min-width: 0; }
+
 /* A shape's fields two to a row (ShapeSections), as Figma's Arc and Stroke rows. */
 /* Two half fields on the panel's grid (inspector.css .studio-inspector__row): the icon column stays reserved, so a pair
    lines up with X / Y and W / H above it (user 2026-10-19: the tool's UI never juts out or steps in). */

@@ -114,6 +114,40 @@ Branch `zen/feat/studio-deep-overrides-20261020`, stacked on `zen/feat/studio-pu
   - The QA frame was removed. Fixture `tools/studio/fixtures/figma-deep-overrides.json`.
 - Selftests: push 334, pull 106; studio:selftest passes; tsc is clean.
 
+## Session B · Overrides of Zen components in a main, push and pull (user, 2026-10-20: "làm mục 1 trước", item 1 of the two left)
+
+Branch `zen/feat/studio-library-layer-overrides-20261020` (from main fe5dc9b9). Plugin `studio-import` 1352a72.
+
+- The item the user picked was the push of a Zen component's own layer (`Badge/Dot`). An instance's override of the
+  Zen component's own props in a main (`Button: { level }`) was not pushed either: the panel writes it, and the
+  push only noted it. Both are in now.
+- `dialect.mjs`:
+  - `layerChain` returns `inner` for a path that goes on inside a Zen component.
+  - `opensInside` lets a path go inside a Zen component even when the page puts content in it (`Card/Sub-Action`).
+    Before, only leaf layers could be opened.
+- Push (`figma-push.mjs`): a Zen component layer in a main (byCode, not a frame or text) becomes:
+  - its fields → Figma properties (`figmaProps`, only the fields given);
+  - `children` → `text`;
+  - an inner path → a `nested` entry (owner chain through NESTED_LAYERS, as a placed component's own overrides);
+  - one override entry per layer.
+  - A prop with no Figma property is noted. `hidden` inside a Zen component is noted.
+- Plugin: `applyNested` is shared by a placed instance's `nested` and `applyLayerOverrides`, which now also applies
+  `text` and `nested` on an INSTANCE. A mock test is added; the full `npm test` passes.
+- Pull reader (`readLocalInstance`):
+  - The overrides loop skips layers inside a Zen component.
+  - A new pass reads each Zen component in the instance: the props this instance changed (diffed against the main's
+    layer), its label, and its nested instances. A nested instance's props are diffed against the same layer in the
+    main's: Pagination's Next keeps its own size and icon, and only the instance's level comes back.
+- Converter: `pathAt` returns `{ path, target }`. `libraryOverride` turns the props into code props against the main
+  layer's own; `nested` uses `instanceProps`. An instance that is not Zen's (an icon) keeps only `hidden`.
+- Live Zen file test:
+  - The real importer, with the plugin change, placed CTA (Button + Badge) and Pager (Pagination), with no notes.
+  - The screenshot matched: Buy in Secondary, a red Badge, Next in Secondary.
+  - The read came back as the same `<Use overrides>`.
+  - The QA frame was removed. Fixture `figma-library-layers.json`.
+- Found and noted (BACKLOG P3): a Card's `subAction` is not pushed or pulled.
+- Selftests: push 339, pull 112, dialect 48; studio:selftest passes; tsc is clean.
+
 ## Direct paste of the page's own components (Session C) — tier S, branch `zen/feat/studio-native-local-components-20261020`
 BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studio Shapes and page-local components").
 - Figma's encoding read from its own copy of a probe (lone main with TEXT + BOOL properties, a 2-variant set with a
@@ -137,6 +171,20 @@ BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studi
   then `--rows=B-20` on c5f4f362 (main b60bedb8): 168 + 168 works, 0 broken (B-20 ✓ inside shard 1), and B-20 alone
   1 works (`.qa/studio-e2e/2026-10-20T08-52-16.md`; the runner keeps only its last report, the shard summaries are
   from their run output).
+
+## Session "Bug" · Appearance on one row (tier S; user: "Appearance 2 ô nhập lại nằm 2 hàng khác nhau, figma đang để cùng 1 hàng" + "nếu để 2 hàng thì phải cho chiều dài bằng nhau" + "nên có icon bên trong input cho corner radius")
+- B's area (appearance/), told through the supervisor; no worktree had edits there. `AppearanceFields` replaces
+  `CornerRadiusField`: one InspectorFields row (Opacity · Corner radius, labels above, ⛶ Independent corners in the icon
+  column), the radius a ScaleField with `icon-maximize-02-line` inside (Figma's glyph is the same four corners), the four
+  corners as two InspectorFields rows of ScaleFields (fallback = the uniform radius, in the placeholder tone). Each field
+  keeps `data-prop` on a wrapper (AP-01 finds `radiusBottomRight`). One field (Image: radius only) stays half width.
+  ShapeSections uses the same row (radius only on rectangles). Mixed corners read "Mixed" in the field.
+- Probe on a private server (5189, own Vite cache, the E2E host fixture's box): fields 128 + 128 on one row, corners
+  2×2 at the same widths; figma.mjs panelFits clean closed, open and at 3XLarge.
+- Popover icon tiles (user: "icon trong popover bị lệch tâm"): popover.css put every Icon-tone leading at align-self
+  flex-start (first line of a label), so a leading-only item (Studio icon picker Recent/Related) drew its icon 4px from
+  the top of a 36px tile. The rule now needs `:has(> .zen-popover__item-content)`, as its own comment said. Measured on
+  the private server: 10 / 10 px top and bottom, 9.7 / 9.6 px sides.
 
 ## Smart guides while resizing a layer (F2's last item; worktree `festive-chebyshev-fbfcb8`, started by local_3ff40721)
 

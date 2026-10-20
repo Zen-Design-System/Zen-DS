@@ -1203,8 +1203,47 @@ export default function Chips() {
   // In the Small variant the Text is the second layer (after the Icon): the indices follow the variant shown.
   const smallPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', `${toolbar.trim()}\n          <Use of="toolbar" overrides={{ "Chip/Text": { children: "Small" } }} />`);
   check("deep overrides: in the nested instance's own variant", push(smallPage).frame.children.find((node) => node.type === "INSTANCE" && node.local === "toolbar")?.layerOverrides, [{ at: [0, 0, 0, 1], characters: "Small" }]);
-  const libraryPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="tag-chip" overrides={{ "Badge/Dot": { hidden: true } }} />\n          <Component id="tag-chip" name="Tag chip"><Stack><Badge>New</Badge></Stack></Component>').replace("import { Icon, Stack, Text }", "import { Badge, Icon, Stack, Text }");
-  check("deep overrides: a Zen component's own layer is noted, not pushed", push(libraryPage).notes.filter((note) => note.includes("Badge/Dot")).length, 1);
+  // A Zen component in a main (2026-10-20): its props as Figma properties, its words as its label, a layer inside it
+  // (its nest() name) as a nested override, one entry per layer; and back by the same paths.
+  const libraryPage = `// @zen-page {"format":1,"title":"Library layers"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { AlertBanner, Badge, Button, Stack } from "@zen-ds/react";
+
+export default function LibraryLayers() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Library layers" device="desktop">
+        <Stack gap="lg" padding="xl">
+          <Component id="cta" name="CTA">
+            <Stack direction="row" gap="sm">
+              <Button>Go</Button>
+              <Badge>New</Badge>
+            </Stack>
+          </Component>
+          <Use of="cta" overrides={{ Button: { level: "secondary", children: "Buy" }, Badge: { theme: "red" } }} />
+          <Component id="notice" name="Notice">
+            <Stack>
+              <AlertBanner title="Heads up" />
+            </Stack>
+          </Component>
+          <Use of="notice" overrides={{ "AlertBanner/Action": { level: "secondary" } }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const library = push(libraryPage);
+  const [ctaUse, noticeUse] = library.frame.children.filter((node) => node.type === "INSTANCE");
+  check("library layers: a Zen component's props and words in a main", ctaUse?.layerOverrides, [{ at: [0, 0], props: { Level: "Secondary" }, text: "Buy" }, { at: [0, 1], props: { Theme: "Red" } }]);
+  check("library layers: a layer inside a Zen component, by its nest() name", noticeUse?.layerOverrides, [{ at: [0, 0], nested: [{ path: "Action", set: { id: "1026:8312", name: "Button/Main" }, props: { Level: "Secondary" } }] }]);
+  check("library layers: no note", library.notes.filter((note) => note.includes("override") || note.includes("Figma property")), []);
+  const libraryBack = pageFromFigma(library.frame, { mapping });
+  check("round trip: a Zen component's props, words and nested layers in a main come back by path", libraryBack.text.split("\n").map((line) => line.trim()).filter((line) => line.startsWith("<Use ")), [
+    '<Use of="cta" overrides={{ Button: { level: "secondary", children: "Buy" }, Badge: { theme: "red" } }} />',
+    '<Use of="notice" overrides={{ "AlertBanner/Action": { level: "secondary" } }} />',
+  ]);
+  check("library layers: a prop with no Figma property is noted", push(libraryPage.replace('Badge: { theme: "red" }', 'Badge: { nope: "x" }')).notes.filter((note) => note.includes("nope has no Figma property")).length, 1);
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
 import { Board, Screen } from "@zen-ds/react/builder";
 import { Grid, Stack, Text } from "@zen-ds/react";
