@@ -3323,6 +3323,11 @@
         "rectangle (default) · ellipse · line · arrow · polygon · star · vector · boolean"
       ],
       [
+        "Blend mode",
+        "blendMode",
+        "Figma's layer blend: normal (default) · darken · multiply · plus-darker · color-burn · lighten · screen · plus-lighter · color-dodge · overlay · soft-light · hard-light · difference · exclusion · hue · saturation · color · luminosity (mix-blend-mode of the same name)"
+      ],
+      [
         "Boolean group",
         "operation · children",
         "union (default) · subtract · intersect · exclude of its shapes (children at their X / Y); Zen Studio writes the result as d"
@@ -7587,6 +7592,11 @@
         "Opacity",
         "opacity (Box, Stack, Grid)",
         "0 … 100, a percentage as Figma's layer opacity (default 100), never CSS's 0–1 (harness: layout/opacity-percent)"
+      ],
+      [
+        "Blend mode",
+        "blendMode (Box, Stack, Grid)",
+        "Figma's layer blend (Appearance › blend mode): pass-through (default: the frame's layers blend with what lies under it) · normal (keeps their blending inside the frame) · darken · multiply · plus-darker · color-burn · lighten · screen · plus-lighter · color-dodge · overlay · soft-light · hard-light · difference · exclusion · hue · saturation · color · luminosity; for pictures and decorative layers, never to make text readable"
       ],
       [
         "Rotation and flip",

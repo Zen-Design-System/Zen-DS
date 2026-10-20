@@ -15,7 +15,7 @@ export { layoutAlignSelfValues, type LayoutAlignSelf, type LayoutSizing, type La
 export { layoutConstraintsX, layoutConstraintsY, layoutPositions, positionPropNames, type LayoutConstraintX, type LayoutConstraintY, type LayoutPosition, type LayoutPositionProps } from "./position";
 export { boxEffectStyles, effectPropNames, type BoxEffectProps, type BoxEffectStyle, type FrameEffectProps } from "./effects";
 export { cornerRadiusPropNames, radiusPropNames, type CornerRadiusProps } from "../_shared/corners";
-export { boxSurfaces, frameAppearancePropNames, frameBorders, frameBorderSides, frameBorderStyles, frameFlips, type BoxSurface, type FrameAppearanceProps, type FrameBorder, type FrameBorderSide, type FrameBorderStyle, type FrameFlip, type FrameTransformProps } from "./appearance";
+export { boxSurfaces, frameAppearancePropNames, frameBorders, frameBorderSides, frameBorderStyles, frameFlips, zenBlendModes, type BoxSurface, type FrameAppearanceProps, type FrameBorder, type FrameBorderSide, type FrameBorderStyle, type FrameFlip, type FrameTransformProps, type ZenBlendMode } from "./appearance";
 
 export const layoutElements = ["div", "section", "article", "aside", "header", "footer", "main", "nav", "form", "fieldset", "ul", "ol", "li"] as const;
 /** Figma "Overflow scrolling": the frame scrolls along one axis and keeps the scroll inside it. */
@@ -84,10 +84,10 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack gap="lg">…sections…</Stack>
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
-export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: StackProps) {
+export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: StackProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
-  const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, blendMode, rotation, flip });
   const picture = useImageFill({ image, imageFit, imageCrop, imageScale });
   const corners = frameCorners(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft });
   return (
@@ -185,7 +185,7 @@ function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement> | 
  *   <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…</Grid>
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
-export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: GridProps) {
+export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: GridProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   const perBreakpoint = typeof columns === "object" ? columns : undefined;
@@ -193,7 +193,7 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
   const desktop = tracks(fixed ?? perBreakpoint?.desktop ?? perBreakpoint?.tablet ?? perBreakpoint?.mobile);
   const min = typeof minColumnWidth === "number" ? `${minColumnWidth}px` : minColumnWidth;
   const { stacked, measure } = useStackBelow(stackBelow, ref);
-  const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, blendMode, rotation, flip });
   const picture = useImageFill({ image, imageFit, imageCrop, imageScale });
   const corners = frameCorners(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft });
   return (
@@ -240,7 +240,7 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
   /**
    * Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them
    * (Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are
-   * ignored. It moves, turns, flips and fades (opacity) as one.
+   * ignored. It moves, turns, flips, fades (opacity) and blends (blendMode) as one.
    */
   group?: boolean;
   /**
@@ -260,11 +260,11 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
  * around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,
  * which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
  */
-export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
+export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   // A group (Figma's) has no look of its own: only its opacity, rotation and flip.
-  const look = group ? frameAppearance({ opacity, rotation, flip }) : frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip });
+  const look = group ? frameAppearance({ opacity, blendMode, rotation, flip }) : frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, blendMode, rotation, flip });
   const pad = group ? {} : { block: paddingY ?? padding, inline: paddingX ?? padding };
   // A group (Figma's) has no fill: no picture either.
   const picture = useImageFill(group ? {} : { image, imageFit, imageCrop, imageScale });

@@ -2752,6 +2752,30 @@
           "type": "number",
           "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
         },
+        "blendMode": {
+          "enum": [
+            "pass-through",
+            "normal",
+            "darken",
+            "multiply",
+            "plus-darker",
+            "color-burn",
+            "lighten",
+            "screen",
+            "plus-lighter",
+            "color-dodge",
+            "overlay",
+            "soft-light",
+            "hard-light",
+            "difference",
+            "exclusion",
+            "hue",
+            "saturation",
+            "color",
+            "luminosity"
+          ],
+          "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies under it."
+        },
         "rotation": {
           "type": "number",
           "description": "Rotation in degrees, counter-clockwise positive, as Figma's rotation field."
@@ -8378,6 +8402,30 @@
         "opacity": {
           "type": "number",
           "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+        },
+        "blendMode": {
+          "enum": [
+            "pass-through",
+            "normal",
+            "darken",
+            "multiply",
+            "plus-darker",
+            "color-burn",
+            "lighten",
+            "screen",
+            "plus-lighter",
+            "color-dodge",
+            "overlay",
+            "soft-light",
+            "hard-light",
+            "difference",
+            "exclusion",
+            "hue",
+            "saturation",
+            "color",
+            "luminosity"
+          ],
+          "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies under it."
         },
         "rotation": {
           "type": "number",
@@ -14194,6 +14242,30 @@
           "type": "number",
           "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100)."
         },
+        "blendMode": {
+          "enum": [
+            "pass-through",
+            "normal",
+            "darken",
+            "multiply",
+            "plus-darker",
+            "color-burn",
+            "lighten",
+            "screen",
+            "plus-lighter",
+            "color-dodge",
+            "overlay",
+            "soft-light",
+            "hard-light",
+            "difference",
+            "exclusion",
+            "hue",
+            "saturation",
+            "color",
+            "luminosity"
+          ],
+          "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the shape mixes with what lies under it, as CSS's `mix-blend-mode` of the same name."
+        },
         "label": {
           "type": "string",
           "description": "Accessible name for a shape that means something (a status mark, a chart legend dot); without it the shape is decorative and hidden from assistive tech."
@@ -15542,6 +15614,30 @@
         "opacity": {
           "type": "number",
           "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+        },
+        "blendMode": {
+          "enum": [
+            "pass-through",
+            "normal",
+            "darken",
+            "multiply",
+            "plus-darker",
+            "color-burn",
+            "lighten",
+            "screen",
+            "plus-lighter",
+            "color-dodge",
+            "overlay",
+            "soft-light",
+            "hard-light",
+            "difference",
+            "exclusion",
+            "hue",
+            "saturation",
+            "color",
+            "luminosity"
+          ],
+          "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies under it."
         },
         "rotation": {
           "type": "number",

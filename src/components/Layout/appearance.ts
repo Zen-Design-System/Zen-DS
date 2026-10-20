@@ -1,5 +1,5 @@
 /**
- * Figma's frame appearance on Box, Stack and Grid: fill, stroke, corner radius, opacity, rotation and flip. A Figma auto
+ * Figma's frame appearance on Box, Stack and Grid: fill, stroke, corner radius, opacity, blend, rotation and flip. A Figma auto
  * layout frame with a fill is one element in code (decision 2 of docs/research/studio-figma-design-parity-2026-10-18.md;
  * spec docs/research/studio-f5-right-panel-spec-2026-10-19.md §2), so Stack and Grid take what Box takes.
  *
@@ -28,6 +28,13 @@ export type FrameBorderStyle = (typeof frameBorderStyles)[number];
 /** Figma's Flip horizontal (⇧H) and Flip vertical (⇧V); both is a half turn's mirror. */
 export const frameFlips = ["horizontal", "vertical", "both"] as const;
 export type FrameFlip = (typeof frameFlips)[number];
+/**
+ * Figma's layer blend (Appearance › blend mode), in Figma's order and groups. `pass-through` is a frame's (and a group's)
+ * default: its layers blend with what lies under the frame; every other layer's default is `normal`. CSS draws each with
+ * the `mix-blend-mode` of the same name (`plus-darker` falls back to normal where a browser has no such mode).
+ */
+export const zenBlendModes = ["pass-through", "normal", "darken", "multiply", "plus-darker", "color-burn", "lighten", "screen", "plus-lighter", "color-dodge", "overlay", "soft-light", "hard-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"] as const;
+export type ZenBlendMode = (typeof zenBlendModes)[number];
 
 export interface FrameAppearanceProps extends CornerRadiusProps, ImageFillProps {
   /**
@@ -54,6 +61,12 @@ export interface FrameAppearanceProps extends CornerRadiusProps, ImageFillProps 
   radius?: ZenCornerRadius;
   /** Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers. Default 100. */
   opacity?: number;
+  /**
+   * Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies
+   * under it. Default `pass-through` (its layers blend with what is under the frame, Figma's frame default); `normal`
+   * keeps their blending inside the frame. Mostly for pictures and decorative layers, never to make text readable.
+   */
+  blendMode?: ZenBlendMode;
 }
 
 export interface FrameTransformProps {
@@ -67,16 +80,18 @@ export interface FrameTransformProps {
 }
 
 /** Prop names the Studio's Appearance, Fill and Stroke sections own (filtered out of Properties). */
-export const frameAppearancePropNames: ReadonlySet<string> = new Set(["surface", "border", "borderWeight", "borderSides", "borderStyle", "opacity", ...imageFillPropNames]);
+export const frameAppearancePropNames: ReadonlySet<string> = new Set(["surface", "border", "borderWeight", "borderSides", "borderStyle", "opacity", "blendMode", ...imageFillPropNames]);
 
 type Attributes = Record<`data-${string}`, string | undefined>;
 type Vars = Record<`--${string}`, string | undefined>;
 
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 
-/** Data attributes and custom properties for the fill, stroke, opacity, rotation and flip; nothing for unset props. */
-export function frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, rotation, flip }: Omit<FrameAppearanceProps, "radius" | keyof CornerRadiusProps> & FrameTransformProps): { attributes: Attributes; vars: Vars } {
+/** Data attributes and custom properties for the fill, stroke, opacity, blend, rotation and flip; nothing for unset props. */
+export function frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, blendMode, rotation, flip }: Omit<FrameAppearanceProps, "radius" | keyof CornerRadiusProps> & FrameTransformProps): { attributes: Attributes; vars: Vars } {
   const stroked = border !== undefined && border !== "none";
+  // Pass through is the frame's default: nothing to draw.
+  const blend = blendMode && blendMode !== "pass-through" && (zenBlendModes as readonly string[]).includes(blendMode) ? blendMode : undefined;
   const weight = stroked && finite(borderWeight) && borderWeight >= 0 && borderWeight !== 1 ? borderWeight : undefined;
   const shown = finite(opacity) && opacity < 100 ? Math.max(0, opacity) : undefined;
   const turned = finite(rotation) && rotation % 360 !== 0 ? rotation : undefined;
@@ -88,12 +103,14 @@ export function frameAppearance({ surface, border, borderWeight, borderSides, bo
       "data-border-sides": stroked && borderSides && borderSides !== "all" ? borderSides : undefined,
       "data-border-style": stroked && borderStyle === "dashed" ? "dashed" : undefined,
       "data-opacity": shown !== undefined ? "true" : undefined,
+      "data-blend": blend,
       "data-rotation": turned !== undefined ? "true" : undefined,
       "data-flip": flip && (frameFlips as readonly string[]).includes(flip) ? flip : undefined,
     },
     vars: {
       "--zen-layout-border-weight": weight !== undefined ? `${weight}px` : undefined,
       "--zen-layout-opacity": shown !== undefined ? String(shown / 100) : undefined,
+      "--zen-layout-blend": blend,
       // CSS turns clockwise; Figma's rotation is counter-clockwise.
       "--zen-layout-rotation": turned !== undefined ? `${-turned}deg` : undefined,
     },

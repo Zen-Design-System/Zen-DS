@@ -18,6 +18,7 @@ import {
   effectLayers, effectStyleOf, effectWarnings, isMixed, RADIUS_STEPS, uniformClear, uniformPick, type Corner, type ManifestEffect,
   type WrittenRadius,
 } from "./appearanceModel";
+import { BlendModeButton } from "./BlendMode";
 import { ImageFillRow } from "./ImageFillRow";
 import "./appearance.css";
 
@@ -31,7 +32,7 @@ import "./appearance.css";
  */
 
 /** A frame's look: what Appearance, Fill, Stroke and Effects show (Layout appearance.ts). */
-const FRAME_LOOK = ["opacity", "surface", "image", "imageFit", "imageCrop", "imageScale", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "effectStyle"];
+const FRAME_LOOK = ["opacity", "blendMode", "surface", "image", "imageFit", "imageCrop", "imageScale", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "effectStyle"];
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
 export const appearancePropNames: Readonly<Record<string, readonly string[]>> = {
   Box: FRAME_LOOK,
@@ -132,9 +133,11 @@ function VisibilityToggle({ src, name, disabled }: { src: string; name: string; 
 }
 
 /** Appearance (Figma UI3): the layer's opacity and its corner radius (a frame); corner radius only (Image). The header's
- *  eye shows or hides the layer. */
+ *  ◐ picks the layer blend (a frame's default Pass through), its eye shows or hides the layer. */
 export function AppearanceSection({ api, specs, layer }: { api: FieldApi; specs: PropSpec[]; component: string; host: HTMLElement | null; layer?: { src: string; name: string } }) {
   const opacitySpec = specs.find((candidate) => candidate.name === "opacity");
+  const blend = specs.some((candidate) => candidate.name === "blendMode") ? <BlendModeButton api={api} frame /> : null;
+  const eye = layer && canHideSrc(layer.src) ? <VisibilityToggle src={layer.src} name={layer.name} disabled={api.disabled} /> : null;
   const opacity = api.valueFor("opacity");
   const setOpacity = (value: number) => {
     const shown = Math.round(Math.min(100, Math.max(0, value)));
@@ -142,7 +145,7 @@ export function AppearanceSection({ api, specs, layer }: { api: FieldApi; specs:
     void api.apply(shown === 100 ? [{ op: "removeProp", name: "opacity" }] : [{ op: "setProp", name: "opacity", value: { kind: "number", value: shown } }], `Opacity → ${shown}%`);
   };
   return (
-    <InspectorSection title="Appearance" fieldGrid actions={layer && canHideSrc(layer.src) ? <VisibilityToggle src={layer.src} name={layer.name} disabled={api.disabled} /> : undefined}>
+    <InspectorSection title="Appearance" fieldGrid actions={blend || eye ? <>{blend}{eye}</> : undefined}>
       <AppearanceFields api={api} specs={specs} opacity={opacitySpec ? (
         <ScrubNumberField label={<Icon name="icon-drop-line" size="sm" decorative />} name="Opacity" suffix="%" min={0} max={100} value={numberOf(opacity) ?? 100}
           disabled={api.disabled || boundOrSpread(opacity)} onCommit={setOpacity} />

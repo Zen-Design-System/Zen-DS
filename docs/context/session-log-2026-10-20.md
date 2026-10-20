@@ -148,6 +148,51 @@ Branch `zen/feat/studio-library-layer-overrides-20261020` (from main fe5dc9b9). 
 - Found and noted (BACKLOG P3): a Card's `subAction` is not pushed or pulled.
 - Selftests: push 339, pull 112, dialect 48; studio:selftest passes; tsc is clean.
 
+## Session B · Layer blend mode in Appearance (user, 2026-10-20, relayed by local_3ff40721: "Giao Blend mode (Appearance) cho phiên B, rồi đo lại 14 tác vụ Figma"; confirmed in B: "Làm Blend mode")
+
+Branch `zen/feat/studio-blend-mode-20261020` (from main 4b5bb818). Tier M. Spec card
+`docs/research/studio-blend-mode-spec-2026-10-20.md`. Plugin `studio-import` 325ba36.
+
+- Library: `blendMode` (`ZenBlendMode`, Figma's 19 modes in kebab case) on Box, Stack and Grid
+  (`FrameAppearanceProps` → `data-blend` + `--zen-layout-blend`), and on Shape (inline `mix-blend-mode`).
+  - Pass through (a frame's default) and Normal (a shape's) write nothing.
+  - A frame's `normal` adds `isolation: isolate`: Figma's Normal keeps the frame's layers' blending inside it.
+  - Test: `tests/interaction/blend-mode.test.tsx`.
+- Studio: `appearance/BlendMode.tsx`, a ◐ `icon-contrast-02-line` IconButton in the Appearance header before the eye
+  (frames: `AppearanceSection`; shapes: `ShapeSections`).
+  - It opens a Popover in Figma's groups. A shape's list has no Pass through.
+  - Picking the default removes the prop. One change, one ⌘Z.
+  - `zen-allow-filter-button`: Figma's icon, not a filter, the same exception as LayoutSection's cross axis.
+- Figma:
+  - `tools/studio/blend-modes.mjs` maps Zen ↔ Figma (plus-darker = LINEAR_BURN, plus-lighter = LINEAR_DODGE).
+  - Push: `frameLook`, `shapeNode`. Pull: reader frame/shape fields, then the converter. Defaults are left out both ways.
+  - Plugin: frames, components, groups, boolean groups and shapes set `blendMode`, else the default.
+- Live Zen file test:
+  - The real importer placed a frame Multiply, a frame Normal with a star Screen, and defaults, with no notes.
+  - The read-back carried MULTIPLY, NORMAL and SCREEN, and nothing on the defaults.
+  - The screenshot matched. The QA frame was removed.
+- Found and fixed (plugin): a row page frame (the Screen's one row Stack, merged into the frame) hugged its row:
+  456 px instead of 1440. The importer fixed the counter axis, which is the height for HORIZONTAL. It now fixes the
+  width on whichever axis is horizontal. Mock test added; verified in Figma.
+  - Also: a test comment that spelled the bundle's forbidden import sequence is reworded.
+- Not in this change: native ⌘C→⌘V (`figma-native.mjs`, Session C's files). The node change should carry
+  `blendMode`. Asked of C, and noted in BACKLOG.
+- E2E FW-98 (figma group): ◐ → Multiply writes `blendMode="multiply"`, and the layer computes `mix-blend-mode`
+  multiply. Pass through removes it, and the panel fits.
+- Selftests: push 342, pull 114; studio:selftest, usage, ai-ui (rebuilt), style and guidelines pass; tsc is clean.
+- Gate finding, fixed: the full Vitest run (`tests/**` changed) failed SegmentedItem as "fixed violations still listed".
+  - Its inactive light label is 3.73:1 (#7f7f7f on #f7f7f7). Axe reports that alone and in `tests/smoke` (twice), but
+    calls it incomplete in the gate's loaded full run: the same case as TabItem.
+  - SegmentedItem joins `ENVIRONMENT_DEPENDENT` in `tests/smoke/components.test.tsx`; the baseline is unchanged.
+- Gate finding, fixed: E2E B-45 (C's Frame tool click) failed once in the full matrix with an empty tag. It passes
+  3/3 alone. One read of the stored page came back null, so the row now waits for the frame's tag to settle
+  (`builder.mjs`). B-20 had the same single read, and C asked for the same fix (passes 2/2). The delta re-gate
+  passed: Studio E2E 336/336.
+- Gate warnings, not from this change: they are on the representative pages a Layout edit adds, and both are already
+  in BACKLOG.
+  - templates rhythm, 9 text styles: seen in gates since 2026-10-13.
+  - chat inbox dead click (Duy Le row).
+
 ## Direct paste of the page's own components (Session C) — tier S, branch `zen/feat/studio-native-local-components-20261020`
 BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studio Shapes and page-local components").
 - Figma's encoding read from its own copy of a probe (lone main with TEXT + BOOL properties, a 2-variant set with a

@@ -6392,6 +6392,37 @@
                 ],
                 "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
               },
+              "blendMode": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "pass-through",
+                      "normal",
+                      "darken",
+                      "multiply",
+                      "plus-darker",
+                      "color-burn",
+                      "lighten",
+                      "screen",
+                      "plus-lighter",
+                      "color-dodge",
+                      "overlay",
+                      "soft-light",
+                      "hard-light",
+                      "difference",
+                      "exclusion",
+                      "hue",
+                      "saturation",
+                      "color",
+                      "luminosity"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies under it."
+              },
               "rotation": {
                 "anyOf": [
                   {
@@ -17400,6 +17431,37 @@
                   }
                 ],
                 "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+              },
+              "blendMode": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "pass-through",
+                      "normal",
+                      "darken",
+                      "multiply",
+                      "plus-darker",
+                      "color-burn",
+                      "lighten",
+                      "screen",
+                      "plus-lighter",
+                      "color-dodge",
+                      "overlay",
+                      "soft-light",
+                      "hard-light",
+                      "difference",
+                      "exclusion",
+                      "hue",
+                      "saturation",
+                      "color",
+                      "luminosity"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies under it."
               },
               "rotation": {
                 "anyOf": [
@@ -28862,6 +28924,37 @@
                 ],
                 "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100)."
               },
+              "blendMode": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "pass-through",
+                      "normal",
+                      "darken",
+                      "multiply",
+                      "plus-darker",
+                      "color-burn",
+                      "lighten",
+                      "screen",
+                      "plus-lighter",
+                      "color-dodge",
+                      "overlay",
+                      "soft-light",
+                      "hard-light",
+                      "difference",
+                      "exclusion",
+                      "hue",
+                      "saturation",
+                      "color",
+                      "luminosity"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the shape mixes with what lies under it, as CSS's `mix-blend-mode` of the same name."
+              },
               "label": {
                 "anyOf": [
                   {
@@ -31641,6 +31734,37 @@
                   }
                 ],
                 "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers."
+              },
+              "blendMode": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "pass-through",
+                      "normal",
+                      "darken",
+                      "multiply",
+                      "plus-darker",
+                      "color-burn",
+                      "lighten",
+                      "screen",
+                      "plus-lighter",
+                      "color-dodge",
+                      "overlay",
+                      "soft-light",
+                      "hard-light",
+                      "difference",
+                      "exclusion",
+                      "hue",
+                      "saturation",
+                      "color",
+                      "luminosity"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies under it."
               },
               "rotation": {
                 "anyOf": [

@@ -8188,6 +8188,14 @@
           "deprecated": null
         },
         {
+          "name": "blendMode",
+          "type": "\"pass-through\" | \"normal\" | \"darken\" | \"multiply\" | \"plus-darker\" | \"color-burn\" | \"lighten\" | \"screen\" | \"plus-lighter\" | \"color-dodge\" | \"overlay\" | \"soft-light\" | \"hard-light\" | \"difference\" | \"exclusion\" | \"hue\" | \"saturation\" | \"color\" | \"luminosity\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the shape mixes with what lies under\nit, as CSS's `mix-blend-mode` of the same name. Default `normal`; `pass-through` is a frame's and draws as normal here.",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "string",
           "required": false,
@@ -15792,6 +15800,14 @@
           "deprecated": null
         },
         {
+          "name": "blendMode",
+          "type": "\"pass-through\" | \"normal\" | \"darken\" | \"multiply\" | \"plus-darker\" | \"color-burn\" | \"lighten\" | \"screen\" | \"plus-lighter\" | \"color-dodge\" | \"overlay\" | \"soft-light\" | \"hard-light\" | \"difference\" | \"exclusion\" | \"hue\" | \"saturation\" | \"color\" | \"luminosity\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies\nunder it. Default `pass-through` (its layers blend with what is under the frame, Figma's frame default); `normal`\nkeeps their blending inside the frame. Mostly for pictures and decorative layers, never to make text readable.",
+          "deprecated": null
+        },
+        {
           "name": "rotation",
           "type": "number",
           "required": false,
@@ -16163,6 +16179,14 @@
           "required": false,
           "default": null,
           "description": "Layer opacity in percent (Figma's layer opacity, 0 … 100), the whole frame and its layers. Default 100.",
+          "deprecated": null
+        },
+        {
+          "name": "blendMode",
+          "type": "\"pass-through\" | \"normal\" | \"darken\" | \"multiply\" | \"plus-darker\" | \"color-burn\" | \"lighten\" | \"screen\" | \"plus-lighter\" | \"color-dodge\" | \"overlay\" | \"soft-light\" | \"hard-light\" | \"difference\" | \"exclusion\" | \"hue\" | \"saturation\" | \"color\" | \"luminosity\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies\nunder it. Default `pass-through` (its layers blend with what is under the frame, Figma's frame default); `normal`\nkeeps their blending inside the frame. Mostly for pictures and decorative layers, never to make text readable.",
           "deprecated": null
         },
         {
@@ -16540,6 +16564,14 @@
           "deprecated": null
         },
         {
+          "name": "blendMode",
+          "type": "\"pass-through\" | \"normal\" | \"darken\" | \"multiply\" | \"plus-darker\" | \"color-burn\" | \"lighten\" | \"screen\" | \"plus-lighter\" | \"color-dodge\" | \"overlay\" | \"soft-light\" | \"hard-light\" | \"difference\" | \"exclusion\" | \"hue\" | \"saturation\" | \"color\" | \"luminosity\"",
+          "required": false,
+          "default": null,
+          "description": "Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies\nunder it. Default `pass-through` (its layers blend with what is under the frame, Figma's frame default); `normal`\nkeeps their blending inside the frame. Mostly for pictures and decorative layers, never to make text readable.",
+          "deprecated": null
+        },
+        {
           "name": "rotation",
           "type": "number",
           "required": false,
@@ -16592,7 +16624,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them\n(Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are\nignored. It moves, turns, flips and fades (opacity) as one.",
+          "description": "Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them\n(Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are\nignored. It moves, turns, flips, fades (opacity) and blends (blendMode) as one.",
           "deprecated": null
         },
         {
