@@ -77,6 +77,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   every device) with Corner-Radius/Base, for compact tiles such as a row of choices on a phone. Figma has the 40 XSmall
   variants; harness card/spacing-by-count counts XSmall as compact; App Shell E6's intent tiles use it (four in a row,
   as Figma draws them).
+- AppShellHeader: the Main frame pads Spacing/Padding/Small (12) below, as Figma Header/AppShell (16243:290461) binds it,
+  instead of XSmall (8); found by the Bug session on 2026-10-21.
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
