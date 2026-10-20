@@ -8953,10 +8953,10 @@
         },
         {
           "name": "spacing",
-          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "type": "\"md\" | \"sm\" | \"xs\" | \"medium\" | \"small\" | \"xsmall\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large) ·\n XSmall (Card-padding-xsmall 8, Corner-Radius/Base 12: a compact tile, such as a row of choices on a phone; the user,\n 2026-10-20). Short (xs, sm, md) or Figma (xsmall, small, medium) spelling.",
           "deprecated": null
         },
         {
@@ -11089,7 +11089,7 @@
         },
         {
           "name": "spacing",
-          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "type": "\"md\" | \"sm\" | \"xs\" | \"medium\" | \"small\" | \"xsmall\"",
           "required": false,
           "default": null,
           "description": "Figma Metric-Card's Card Spacing (it is an exposed Card): Medium (default; Card-padding-medium, Corner-Radius/2XLarge)\n or Small (Card-padding-small, Corner-Radius/Large). `type=\"tile\"` defaults to Small. On a phone, three or more\n cards side by side take Small (harness card/spacing-by-count; desktop cards keep Medium). Short (sm, md) or Figma\n (small, medium) spelling.",

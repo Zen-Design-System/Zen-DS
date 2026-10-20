@@ -390,7 +390,8 @@ const cardSpacingFinding = (attrs, src, start, children) => {
   const spacing = step(literal(own, "spacing") ?? (tile ? "sm" : "md"));
   const fewest = Math.min(...sites.map((s) => s.shown)), most = Math.max(...sites.map((s) => s.shown));
   const where = uses[0] === me ? "" : ` (where <${me.owner}> is used)`;
-  if (fewest >= 3) return spacing !== "sm" && `is one of ${fewest} cards in its group${where} on a phone at Spacing=Medium — three or more cards take spacing="small" (Card-padding-small, Corner-Radius/Large).`;
+  // XSmall (a compact tile, 2026-10-20) is as compact as Small: only Medium is too roomy for a group of three or more.
+  if (fewest >= 3) return spacing === "md" && `is one of ${fewest} cards in its group${where} on a phone at Spacing=Medium — three or more cards take spacing="small" (Card-padding-small, Corner-Radius/Large), or "xs" for compact tiles.`;
   // A Voice frame pads itself (Spacing/Padding/XLarge, Figma 15081:1294): the card around it stays Small, so the
   // three actions keep their row on a phone.
   if (/<(VoiceRecorder|AiVoiceConversation)\b/.test(children) || tile) return false;

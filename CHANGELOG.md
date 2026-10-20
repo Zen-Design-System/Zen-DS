@@ -73,6 +73,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Strongest when hovered, focused or selected, readable on a bright Accent band where the white label was 1.96:1. Both overlay levels' Focused ring is
   Border/Overlay/Solid (static), with the dark label colour on the white selected segment. App Shell E7 uses
   White-Overlay again, as Figma draws it.
+- Card `spacing="xs"` (Figma Spacing=XSmall, 2026-10-20, user-approved: "8px đều", radius 12): Card-padding-xsmall (8 on
+  every device) with Corner-Radius/Base, for compact tiles such as a row of choices on a phone. Figma has the 40 XSmall
+  variants; harness card/spacing-by-count counts XSmall as compact; App Shell E6's intent tiles use it (four in a row,
+  as Figma draws them).
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and

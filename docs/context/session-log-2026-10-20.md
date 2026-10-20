@@ -292,4 +292,21 @@ Image component; E1's Character is a 100 × 100 frame with an IMAGE fill (Fit), 
 - Other #168 answers: Card spacing xs is approved, but Figma's Card has Spacing Medium | Small only, and E6's
   Intent tiles are plain frames (padding 8/12, radius 20). This needs the user's call on Figma first. The E7
   Segmented and the F4 crop are explained to the user again.
+- The user's answers, then the work:
+  - **E7.** The user updated Segmented in Figma twice. White-Overlay labels are now On-White-Overlay Light at rest,
+    Strongest when hovered, focused or selected; the overlay Focused ring is Border/Overlay/Solid.
+    - Code: `segmented.css`. The ring stays currentColor on the white selected segment.
+    - The contract's changed variants were re-captured by a sub-agent; the hashes match the live file.
+    - E7 is back on White-Overlay.
+  - **F4: "Xuất ảnh crop riêng cho F4".** `device-robot-vacuum-f4.webp` (867 × 595) is cut from the 1024 source with
+    the Device Crop fill's imageTransform, encoded with Chromium's canvas. The cut-out devices in F1, F3, F4 and F5
+    take `frame={false}`: Figma draws no fill behind them.
+  - **Card XSmall: "Thêm Spacing=XSmall vào Figma trước", padding "8px đều", radius 12 (Corner-Radius/Base).**
+    - A sub-agent added the variable `Card-padding-xsmall` (VariableID:16772:3, Breakpoint & Grids, Spacing/Padding/XSmall
+      in every mode) and 40 Spacing=XSmall variants (rows 15–22 of the set). It checked them against the Small sources
+      by tree signature: 40/40 pass, and the Sub-Action top padding follows the card padding.
+    - Code: `cardSpacings` xsmall, card.css xsmall (the mobile radius rule is now Medium-only), the token source, the
+      Studio props (`component-properties.json`), the harness spacing-by-count (xs counts as compact) and its good
+      fixture.
+    - E6's intents are four xs cards in a row.
 

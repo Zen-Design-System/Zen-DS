@@ -4168,7 +4168,7 @@
       [
         "Spacing",
         "spacing",
-        "medium (default: Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large): on a phone, small once three or more cards sit side by side and medium for one or two; desktop cards keep medium (harness card/spacing-by-count)"
+        "medium (default: Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large) · xsmall (Card-padding-xsmall 8, Radius Base 12: compact tiles, e.g. a row of choices on a phone): on a phone, small once three or more cards sit side by side and medium for one or two; desktop cards keep medium (harness card/spacing-by-count)"
       ],
       [
         "Active",

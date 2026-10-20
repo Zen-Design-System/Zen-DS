@@ -223,14 +223,12 @@ function DiscoverPhone() {
             trailing={<InputLeadingTrailing icon="icon-microphone-line" aria-label="Search by voice" onClick={() => toast({ title: "Listening…", children: "Say a name or a place." })} />} />
           <Stack as="section" gap="sm" aria-labelledby={intentsId}>
             <Heading level={2} id={intentsId} textStyle="Heading/4">What to explore?</Heading>
-            {/* Figma's Intent tiles are 83 wide with 8px sides; a Small Card pads 16, so four do not fit 350 with their
-                two-line labels. The row scrolls sideways instead (as the Collections chips do), each tile as wide as
-                its longest line needs. */}
-            <Stack direction="row" gap="xs" align="stretch" scroll="x" paddingY="3xs" role="group" aria-labelledby={intentsId}>
+            {/* Figma's Intent tiles: four in the row, 8px inside (Card Spacing=XSmall, the user 2026-10-20). */}
+            <Grid columns={4} gap="xs" align="stretch" role="group" aria-labelledby={intentsId}>
               {intents.map((item) => {
                 const chosen = intent === item.id;
                 return (
-                  <Card key={item.id} theme={chosen ? "subtle" : "flat"} color={chosen ? "brand" : "neutral"} spacing="sm" width={96} aria-pressed={chosen} onClick={() => setIntent(item.id)}>
+                  <Card key={item.id} theme={chosen ? "subtle" : "flat"} color={chosen ? "brand" : "neutral"} spacing="xs" aria-pressed={chosen} onClick={() => setIntent(item.id)}>
                     <Stack gap="xs" align="center">
                       <Icon name={item.icon} tone={chosen ? "accent-base" : "base"} decorative />
                       <Text textStyle="Caption/Medium" tone={chosen ? "accent-base" : "strongest"} align="center" wrap={false}>{item.lines[0]}<br />{item.lines[1]}</Text>
@@ -238,7 +236,7 @@ function DiscoverPhone() {
                   </Card>
                 );
               })}
-            </Stack>
+            </Grid>
           </Stack>
           <Stack as="section" gap="md" aria-labelledby={resultsId}>
             <Stack direction="row" justify="between" align="center" gap="xs">
@@ -454,16 +452,16 @@ export const examples: ExampleDef[] = [
       trailing={<InputLeadingTrailing icon="icon-microphone-line" aria-label="Search by voice" onClick={listen} />} />
     <Stack as="section" gap="sm" aria-labelledby="intents">
       <Heading level={2} id="intents" textStyle="Heading/4">What to explore?</Heading>
-      <Stack direction="row" gap="xs" align="stretch" scroll="x" paddingY="3xs" role="group" aria-labelledby="intents">
-        <Card theme="subtle" color="brand" spacing="sm" width={96} aria-pressed onClick={pick}>
+      <Grid columns={4} gap="xs" align="stretch" role="group" aria-labelledby="intents">
+        <Card theme="subtle" color="brand" spacing="xs" aria-pressed onClick={pick}>
           <Stack gap="xs" align="center">
             <Icon name="icon-users-check-line" tone="accent-base" decorative />
             <Text textStyle="Caption/Medium" tone="accent-base" align="center" wrap={false}>Find<br />ancestors</Text>
           </Stack>
         </Card>
-        <Card theme="flat" spacing="sm" width={96} aria-pressed={false} onClick={pick}>…Explain<br />my DNA</Card>
+        <Card theme="flat" spacing="xs" aria-pressed={false} onClick={pick}>…Explain<br />my DNA</Card>
         …Find records · Family story
-      </Stack>
+      </Grid>
     </Stack>
     <Stack as="section" gap="md" aria-labelledby="results">
       …AI discoveries · <Link as="button" tone="inherit" onClick={viewAll}>View all</Link>

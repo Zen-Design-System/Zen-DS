@@ -46,6 +46,7 @@
 .zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item[data-selected="true"] { background: var(--zen-color-background-white-solid-default, #fff); color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
 /* Figma Focused (both overlay levels, 2026-10-20): a 3px inside ring of Border/Overlay/Solid/Default, which is static
    (the dark ramp's step 12 in both modes), so it reads on a colour band or photo in light and dark alike. */
+/* zen-allow-focus-ring-token: Figma's overlay Focused variants bind Border/Overlay/Solid; no Color/Focus token is static, and Focus/Accent vanishes on a Brand/Accent band. */
 .zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item:is(:focus-visible, [data-state="focused"]) { box-shadow: inset 0 0 0 3px var(--zen-color-border-overlay-solid-default, #fdfdfd); }
 /* Figma draws Focused unselected only: on the white selected segment that ring would vanish, so it takes the dark label
    colour there (currentColor, On-White-Overlay/Strongest). */

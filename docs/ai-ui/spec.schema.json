@@ -7513,15 +7513,17 @@
                     "enum": [
                       "md",
                       "sm",
+                      "xs",
                       "medium",
-                      "small"
+                      "small",
+                      "xsmall"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large)."
+                "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large) · XSmall (Card-padding-xsmall 8, Corner-Radius/Base 12: a compa"
               },
               "selected": {
                 "anyOf": [
@@ -22190,8 +22192,10 @@
                     "enum": [
                       "md",
                       "sm",
+                      "xs",
                       "medium",
-                      "small"
+                      "small",
+                      "xsmall"
                     ]
                   },
                   {

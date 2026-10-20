@@ -9,7 +9,7 @@ import "./card.css";
 import "../Icon/core";
 
 export const cardThemes = ["shadow", "flat", "pale", "border", "on-container", "solid", "subtle"] as const;
-export const cardSpacings = ["medium", "small"] as const;
+export const cardSpacings = ["medium", "small", "xsmall"] as const;
 /** Figma Card Color (6643:51021): the hue of a Pale or Solid card. */
 export const cardColors = ["neutral", "brand", "cyan", "violet", "green", "yellow", "orange", "blue", "purple", "accent"] as const;
 /** The colours Figma draws at Theme=Solid (15480:87472…87496; Accent 16109:23445/23454); the others render as Solid
@@ -24,7 +24,7 @@ export type CardTheme = (typeof cardThemes)[number] | "semi-pale";
 /** CSS / Figma key (the `data-spacing` value). */
 type CardSpacingKey = (typeof cardSpacings)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
-export type CardSpacing = "md" | "sm" | "medium" | "small";
+export type CardSpacing = "md" | "sm" | "xs" | "medium" | "small" | "xsmall";
 /** Layer 2 fill of Shadow / Flat / Border cards (Figma Card Surface): default on a Canvas/Default page, alt to suit a
  *  Canvas/Alt (white) page, flat (Border only) on a Canvas/Flat page. */
 export type CardSurface = "default" | "alt" | "flat";
@@ -69,7 +69,9 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
    *  Content/On-Brights; the other hues → Content/On-Colors) and tells its Metric parts which family to draw; the page
    *  keeps its mode. */
   color?: CardColor;
-  /** Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling. */
+  /** Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large) ·
+   *  XSmall (Card-padding-xsmall 8, Corner-Radius/Base 12: a compact tile, such as a row of choices on a phone; the user,
+   *  2026-10-20). Short (xs, sm, md) or Figma (xsmall, small, medium) spelling. */
   spacing?: CardSpacing;
   /** Figma Active=Yes: the selected card — Surface fill with a 2px Card/Border/Active stroke. */
   selected?: boolean;

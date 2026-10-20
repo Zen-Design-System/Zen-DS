@@ -3382,11 +3382,13 @@
           "enum": [
             "md",
             "sm",
+            "xs",
             "medium",
-            "small"
+            "small",
+            "xsmall"
           ],
           "default": "md",
-          "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large)."
+          "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large) · XSmall (Card-padding-xsmall 8, Corner-Radius/Base 12: a compa"
         },
         "selected": {
           "type": "boolean",
@@ -10973,8 +10975,10 @@
           "enum": [
             "md",
             "sm",
+            "xs",
             "medium",
-            "small"
+            "small",
+            "xsmall"
           ],
           "description": "Figma Metric-Card's Card Spacing (it is an exposed Card): Medium (default; Card-padding-medium, Corner-Radius/2XLarge) or Small (Card-padding-small, Corner-Radius/Large)."
         },

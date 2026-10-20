@@ -79,6 +79,15 @@
         }
       },
       {
+        "name": "Card-padding-xsmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Spacing/Padding/XSmall}",
+          "Tablet": "{Spacing/Padding/XSmall}",
+          "Mobile": "{Spacing/Padding/XSmall}"
+        }
+      },
+      {
         "name": "Modal-Radius",
         "type": "FLOAT",
         "valuesByMode": {
