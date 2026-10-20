@@ -3273,4 +3273,15 @@ export const rows = [
       return `on it, 3 px above and 3 px below → Line; 20 px above → ${(await selectedName(page)) || "nothing"}`;
     },
   },
+  {
+    id: "FW-133", feature: "A page just made shows its Layers (Figma's new file), not the Pages list it was made from", wp: "Figma walk 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await newPage(ctx);
+      const tab = page.locator('#studio-left [role="tab"][aria-selected="true"]').first();
+      await until(async () => /Layers/.test(await tab.innerText().catch(() => "")), { timeout: 5000, message: "the Layers tab" })
+        .catch(async (error) => { throw new Error(`${error.message} (shown: ${(await tab.innerText().catch(() => "?")).trim()})`); });
+      await page.locator(".studio-layers__tree").waitFor({ state: "visible", timeout: 5000 });
+      return "New page › Create → Layers";
+    },
+  },
 ];
