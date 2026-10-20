@@ -592,6 +592,30 @@ class Writer {
       node.rectangleCornerRadiiIndependent = true;
       if (spec.radiusVar) vars.push(["RECTANGLE_TOP_LEFT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_TOP_RIGHT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_BOTTOM_LEFT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS", spec.radiusVar]);
     }
+    // The rest of a frame's look (figma-push frameLook; the importer's applyFrameLook): its stroke inside at a weight
+    // (one side, or Zen's dash), its corners one by one on Corner-Radius variables, its effect style (by its node id,
+    // as Figma's copies name one), its opacity, and its rotation and flip about its centre.
+    const where = spec.name || "Frame";
+    if (spec.stroke) {
+      node.strokePaints = this.paint(spec.stroke, where);
+      node.strokeWeight = typeof spec.strokeWeight === "number" ? spec.strokeWeight : 1;
+      node.strokeAlign = spec.strokeAlign || "INSIDE";
+      if (spec.strokeSides) {
+        for (const side of ["Top", "Right", "Bottom", "Left"]) node[`border${side}Weight`] = side.toLowerCase() === spec.strokeSides ? node.strokeWeight : 0;
+        node.borderStrokeWeightsIndependent = true;
+      }
+      if (Array.isArray(spec.dash) && spec.dash.length) node.dashPattern = spec.dash;
+    }
+    if (Array.isArray(spec.radii)) {
+      [["rectangleTopLeftCornerRadius", "RECTANGLE_TOP_LEFT_CORNER_RADIUS"], ["rectangleTopRightCornerRadius", "RECTANGLE_TOP_RIGHT_CORNER_RADIUS"], ["rectangleBottomRightCornerRadius", "RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS"], ["rectangleBottomLeftCornerRadius", "RECTANGLE_BOTTOM_LEFT_CORNER_RADIUS"]].forEach(([field, variableField], corner) => {
+        node[field] = spec.radii[corner] ?? 0;
+        if (spec.radiiVars?.[corner]) vars.push([variableField, spec.radiiVars[corner]]);
+      });
+      node.rectangleCornerRadiiIndependent = true;
+    }
+    if (spec.effectStyle) { const style = this.style(spec.effectStyle, where); if (style) node.styleIdForEffect = { guid: guid(style[0]) }; }
+    if (typeof spec.opacity === "number") node.opacity = spec.opacity;
+    if (!root && ((typeof spec.rotation === "number" && spec.rotation % 360) || spec.flip)) node.transform = turned(pos.x, pos.y, pos.w, pos.h, spec.rotation, spec.flip);
     if (spec.scroll && spec.scroll !== "NONE") node.scrollDirection = spec.scroll;
     if (typeof spec.strokeBottom === "number") { node.borderBottomWeight = spec.strokeBottom; node.borderTopWeight = 0; node.borderLeftWeight = 0; node.borderRightWeight = 0; node.borderStrokeWeightsIndependent = true; }
     Object.assign(node, this.bindings(vars));

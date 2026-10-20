@@ -331,6 +331,26 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   const blended = nativeMessage(exportOf([{ type: "FRAME", name: "Multiplied", layout: { mode: "VERTICAL" }, blendMode: "MULTIPLY", children: [] }, { type: "STAR", shape: true, name: "Dodged", fill, blendMode: "LINEAR_DODGE", fixedWidth: 40, fixedHeight: 40 }, { type: "RECTANGLE", shape: true, name: "Plain", fill, fixedWidth: 40, fixedHeight: 40 }]), pack).message.nodeChanges;
   const blendOf = (name) => blended.find((n) => n.name === name);
   check(blendOf("Multiplied")?.blendMode === "MULTIPLY" && blendOf("Dodged")?.blendMode === "LINEAR_DODGE" && !("blendMode" in (blendOf("Plain") ?? {})) && blendOf("Dodged")?.fillPaints?.[0]?.blendMode === "NORMAL", "a layer blend mode on frames and shapes; none at the default; paints stay NORMAL");
+  // A frame's look (figma-push frameLook): its stroke inside at a weight, on one side or dashed, its corners one by one
+  // on their variables, its effect style by its node id, its opacity, and its rotation about its centre.
+  const edge = "Border/Neutral/Subtle/Default";
+  const looks = { type: "FRAME", name: "Looks", layout: { mode: "NONE" }, fixedWidth: 600, fixedHeight: 300, children: [
+    ["Stroked", { stroke: edge, strokeWeight: 2, strokeAlign: "INSIDE" }], ["Bottom", { stroke: edge, strokeWeight: 1, strokeSides: "bottom" }],
+    ["Dashed", { stroke: edge, strokeWeight: 1, dash: [2, 2] }], ["Cornered", { radii: [16, 0, 16, 0], radiiVars: ["Corner-Radius/XLarge", null, "Corner-Radius/XLarge", null] }],
+    ["Shadowed", { effectStyle: "Shadow/Bottom/Level-2" }], ["Faded", { opacity: 0.5 }], ["Turned", { rotation: 90 }], ["Plain", {}],
+  ].map(([name, look]) => ({ type: "FRAME", name, layout: { mode: "NONE" }, fixedWidth: 120, fixedHeight: 80, children: [], absolute: { cx: "MIN", cy: "MIN", left: 20, top: 20, right: 0, bottom: 0 }, ...look })) };
+  const looked = nativeMessage(exportOf([looks]), pack).message.nodeChanges;
+  const lookOf = (name) => looked.find((n) => n.name === name) ?? {};
+  const bound = (node) => (node.parameterConsumptionMap?.entries ?? []).map((entry) => entry.variableField);
+  const [stroked, bottom, cornered, turn, plain] = ["Stroked", "Bottom", "Cornered", "Turned", "Plain"].map(lookOf);
+  check(varOf(stroked.strokePaints) === pack.variables[`Color/${edge}`][0] && stroked.strokeWeight === 2 && stroked.strokeAlign === "INSIDE" && !stroked.borderStrokeWeightsIndependent, "a frame's stroke: its Border variable inside at its weight");
+  check(bottom.borderBottomWeight === 1 && bottom.borderTopWeight === 0 && bottom.borderLeftWeight === 0 && bottom.borderRightWeight === 0 && bottom.borderStrokeWeightsIndependent === true, "a stroke on one side: that side's weight, 0 on the others");
+  check(JSON.stringify(lookOf("Dashed").dashPattern) === "[2,2]" && !("dashPattern" in stroked), "Zen's dash 2 / 2, only where the code dashes");
+  check(cornered.rectangleTopLeftCornerRadius === 16 && cornered.rectangleTopRightCornerRadius === 0 && cornered.rectangleBottomRightCornerRadius === 16 && cornered.rectangleBottomLeftCornerRadius === 0 && cornered.rectangleCornerRadiiIndependent && JSON.stringify(bound(cornered).sort()) === JSON.stringify(["RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS", "RECTANGLE_TOP_LEFT_CORNER_RADIUS"]), "corners one by one (TL TR BR BL), each step on its Corner-Radius variable");
+  check(id(lookOf("Shadowed").styleIdForEffect?.guid) === pack.styles["Shadow/Bottom/Level-2"][0], "the effect style by its node id");
+  check(lookOf("Faded").opacity === 0.5 && plain.opacity === 1, "its opacity; 1 when the code sets none");
+  check(Math.abs(turn.transform?.m00) < 1e-9 && turn.transform?.m10 === -1 && turn.transform?.m01 === 1 && Math.abs(turn.transform?.m02 - 40) < 1e-9 && Math.abs(turn.transform?.m12 - 120) < 1e-9, `turned 90° about its centre (${JSON.stringify(turn.transform)})`);
+  check(!plain.strokePaints?.length && !plain.styleIdForEffect && !plain.dashPattern && plain.transform?.m00 === 1 && plain.transform?.m02 === 20, "a frame without a look keeps Figma's defaults");
   const back = await readFigmaClipboard((await figmaPasteHtml(exportOf([free]), pack)).html);
   check(back?.message.nodeChanges.filter((n) => ["LINE", "REGULAR_POLYGON", "STAR", "VECTOR", "BOOLEAN_OPERATION"].includes(n.type)).length === 7, "the shapes survive Figma's clipboard encoding");
 }
