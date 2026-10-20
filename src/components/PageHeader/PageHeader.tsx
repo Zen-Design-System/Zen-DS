@@ -24,7 +24,8 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
    * "Design team"). Part of the heading, so the page's title reads both.
    */
   childTitle?: ReactNode;
-  /** One or two sentences under the title. */
+  /** One or two sentences under the title: Figma SubHeading (Primitives/Dashboard/Header Type=Main, 4122:33399), Body/Base/Regular
+   *  in Content/Neutral/Light (read 2026-10-21). */
   description?: ReactNode;
   /** Above the title: <Breadcrumbs> for nested pages. */
   breadcrumbs?: ReactNode;
@@ -91,7 +92,8 @@ export function PageHeader({ title, childTitle, description, breadcrumbs, eyebro
           </div>
         ) : null}
       </div>
-      {description ? <Text className="zen-page-header__description" tone="base">{description}</Text> : null}
+      {/* Figma SubHeading is Content/Neutral/Light (user 2026-10-21: "trong Figma dòng subtext dưới header là tone Light chứ không phải base"). */}
+      {description ? <Text className="zen-page-header__description" tone="light">{description}</Text> : null}
       {tabs ? <div className="zen-page-header__tabs">{tabs}</div> : null}
     </header>
   );
