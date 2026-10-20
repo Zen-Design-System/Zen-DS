@@ -79,6 +79,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   frame's `normal` keeps its layers' blending inside it. Zen Studio's Appearance header has Figma UI3's ◐ before the eye
   (frames and shapes): the list in Figma's groups, the current one checked, one ⌘Z. Figma push / pull carry it (Zen
   plugin updated; a row page frame is now placed the device wide, not hugging its row).
+- Zen Studio, three gaps from the Figma walk's re-measure (14 tasks in 44 steps against Figma's 39):
+  - A Zen instance's layer menu has Go to main component (it opens the component's page on its Main component) and
+    Reset all changes (the panel's reset, one ⌘Z). A page's own instance also gets Go to main component.
+  - A Zen instance on a page you made has Appearance: opacity, the ◐ blend and the eye. The page writes `opacity` and
+    `blendMode` as a frame does. The canvas, the exported code (`style={{ opacity, mixBlendMode }}`) and Figma push /
+    pull carry them (Zen plugin updated). This covers the 59 components whose `style` reaches their root; the
+    conformance test keeps that list exact.
+  - The Design panel heads a frame "Frame" and a group "Group", as Figma; the code name shows on hover, and Layers keep
+    it.
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and

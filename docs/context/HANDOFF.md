@@ -194,7 +194,11 @@ Last updated: 2026-10-19.
   `docs/research/studio-f5-right-panel-spec-2026-10-19.md`. **Blend mode (B, 2026-10-20):** `blendMode` on Box /
   Stack / Grid / Shape (`mix-blend-mode`), Appearance's ◐ (`appearance/BlendMode.tsx`), push / pull / plugin
   (`tools/studio/blend-modes.mjs`, `studio-import` 325ba36); native ⌘C→⌘V waits on C (BACKLOG P2); spec
-  `docs/research/studio-blend-mode-spec-2026-10-20.md`.
+  `docs/research/studio-blend-mode-spec-2026-10-20.md`. **Re-measure gaps (B, 2026-10-21):** a Zen instance's layer
+  menu Go to main component / Reset all changes (`inspector/instanceActions.ts`); a Zen instance's Appearance
+  (`opacity` / `blendMode` on the page → its `style`, `tools/studio/instance-look.mjs` with STYLE_ON_ROOT pinned by the
+  conformance test; push / pull / plugin 8248c59); the panel heads frames Frame and groups Group (`panelTitle`); spec
+  `docs/research/studio-instance-panel-parity-spec-2026-10-21.md`.
   **F7 (B, #152):** component sets and variants (`<ComponentSet>`, Combine as variants, Add variant), properties and
   their bindings (`data-prop-*`), instance values, overrides inside an instance (`<Use overrides>`; layer paths in
   `tools/studio/instance-paths.mjs`; ⌘-click into an instance, `inspector/LocalPartPanel.tsx`), Reset / Push changes

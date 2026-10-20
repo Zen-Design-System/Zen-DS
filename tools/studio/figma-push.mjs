@@ -16,6 +16,7 @@
 import { docFromText } from "./doc.mjs";
 import { PROPERTY_BINDINGS, componentSets, layerChain, localComponents, resolveInstance, variantName } from "./dialect.mjs";
 import { figmaBlendOf } from "./blend-modes.mjs";
+import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "./instance-look.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
@@ -455,6 +456,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // Not on screen: screen-reader text, a tab's panel while another tab is selected.
     if (NOT_DRAWN.has(element.name) || (element.name === "TabPanel" && literalOf(element.props.hidden) === true)) return null;
     const id = figmaIdOf(element.id);
+    // A Zen instance's own opacity and blend (instance-look.mjs): the layer's, not a Figma property of its component.
+    const look = takesInstanceLook(element.name) && INSTANCE_LOOK_PROPS.some((name) => element.props[name]) ? { opacity: literalOf(element.props.opacity), blendMode: literalOf(element.props.blendMode) } : null;
+    if (look) element = { ...element, props: Object.fromEntries(Object.entries(element.props).filter(([name]) => !INSTANCE_LOOK_PROPS.includes(name))) };
     const code = codeProps(element);
     let node;
     if (element.name === "Stack" || element.name === "Grid" || element.name === "Box") node = frameNode(element, code, id, parent);
@@ -578,6 +582,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "Menu" && element.props.trigger?.kind === "element") node = convertElement(element.props.trigger.node, parent);
     else node = instanceNode(element, code, id, parent);
     if (node && code.position === "absolute") node.absolute = absoluteOf(code);
+    if (node && look) {
+      const css = instanceLookStyle(look);
+      if (css?.opacity !== undefined) node.opacity = css.opacity;
+      const blend = figmaBlendOf(look.blendMode, true);
+      if (blend) node.blendMode = blend;
+    }
     return node;
   };
 
