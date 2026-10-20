@@ -163,9 +163,10 @@ function floatBoxOf(host: HTMLElement, wrapped: boolean): HTMLElement | null {
 /**
  * A floating layout's drag on one axis: the edge under the pointer (side -1 start, 1 end) moved by `delta` CSS px.
  * A pinned edge moves its inset (snapped) and the size keeps the far edge; a stretched axis moves the inset only (no
- * size); a centred one grows on both sides; the free edge of a pinned axis is a plain size change.
+ * size); a centred one grows on both sides; the free edge of a pinned axis is a plain size change. `sized`: the layer
+ * sits in a floating Box it does not fill, so a stretched axis writes its size too.
  */
-function floatAxis(float: FloatAxes, axis: PositionAxis, side: -1 | 1, delta: number, size0: number, floor: number, centred = false): { size?: number; insets: FloatInset[] } {
+function floatAxis(float: FloatAxes, axis: PositionAxis, side: -1 | 1, delta: number, size0: number, floor: number, centred = false, sized = false): { size?: number; insets: FloatInset[] } {
   const pin = float.pins[axis];
   const [startProp, endProp] = axis === "x" ? (["insetLeft", "insetRight"] as const) : (["insetTop", "insetBottom"] as const);
   const prop = side < 0 ? startProp : endProp;
@@ -178,14 +179,14 @@ function floatAxis(float: FloatAxes, axis: PositionAxis, side: -1 | 1, delta: nu
     const insets: FloatInset[] = [];
     if (pin === "start" || pin === "stretch") insets.push({ prop: startProp, css: INSET_CSS[startProp], snap: pxSnap(float.start[axis] - grow) });
     if (pin === "end" || pin === "stretch") insets.push({ prop: endProp, css: INSET_CSS[endProp], snap: pxSnap(float.end[axis] - grow) });
-    return pin === "stretch" ? { insets } : { size, insets };
+    return pin === "stretch" && !sized ? { insets } : { size, insets };
   }
   const moves = pin === "stretch" || (pin === "start" && side < 0) || (pin === "end" && side > 0);
   if (!moves) return { size: snapSize(size0 + side * delta, false, floor), insets: [] };
   const reach = Math.min(offset, (side < 0 ? float.start[axis] : float.end[axis]) + size0 - floor);
   const snapped = float.free ? pxSnap(reach) : snap(reach, float.ladder);
   const inset = { prop, css: INSET_CSS[prop], snap: snapped };
-  if (pin === "stretch") return { insets: [inset] };
+  if (pin === "stretch" && !sized) return { insets: [inset] };
   const was = side < 0 ? float.start[axis] : float.end[axis];
   return { insets: [inset], size: Math.max(floor, Math.round(size0 + (was - snapped.px))) };
 }
@@ -201,7 +202,7 @@ function withFloatBox(name: string, sized: ResizePlan | null, box: string, inset
   const wrap = sized?.wrap ? sized.ops.find((op): op is WrapOp => op.op === "wrap") : undefined;
   if (sized?.wrap) return wrap ? { ...sized, ops: [{ ...wrap, parent: insetOps }], label, announce } : null;
   const boxLoc = parseSrc(box)?.loc;
-  const sizeLoc = parseSrc(sized?.grid ?? sized?.wrapper ?? layer)?.loc;
+  const sizeLoc = parseSrc(sized?.wrapper ?? layer)?.loc;
   if (!boxLoc || !sizeLoc) return null;
   const opsByLoc: Record<string, EditOp[]> = { [boxLoc]: insetOps, ...(sized ? { [sizeLoc]: sized.ops } : {}) };
   return { ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc }], wrap: false, wrapper: null, float: box, label, announce };
@@ -950,7 +951,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       }
       for (const [axis, on, side, delta, size0, floor, key] of [["x", xOn, drag.handle.sx, deltas.x, drag.w0, drag.min.width, "width"], ["y", yOn, drag.handle.sy, deltas.y, drag.h0, drag.min.height, "height"]] as const) {
         if (!on || !side) continue;
-        const moved = floatAxis(drag.float, axis, side, delta, size0, Math.max(MIN_SIZE, floor), alt);
+        const moved = floatAxis(drag.float, axis, side, delta, size0, Math.max(MIN_SIZE, floor), alt, Boolean(drag.floatBox));
         if (moved.size !== undefined) values[key] = moved.size;
         drag.insets.push(...moved.insets);
       }
