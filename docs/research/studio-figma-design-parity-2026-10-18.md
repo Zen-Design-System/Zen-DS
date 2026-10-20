@@ -68,6 +68,44 @@ History, ⇧⌘C opens DevTools).
 Also seen: the Show/Hide UI state survived a page reload in a new session, so the walk started with both panels
 hidden and no hint how to bring them back (Figma shows them again on reload).
 
+### 2a. The walk again (2026-10-21, `main` e99c5408: F0–F10, Copy as PNG, mask, Blend mode)
+
+The same 76 actions, each from a freshly loaded walk page on a private Studio server (Playwright, Chromium). The walk
+page is the old one with a Line added (distribute and tidy up get three layers, and Outline stroke gets a stroke without a
+fill) and the Ellipse at X 120. Grades follow Figma's result. A key Zen Studio still lacks counts ❌, even though it says
+so on the status line.
+
+| Group | 2026-10-18 ✅ / 🟡 / ❌ | 2026-10-21 ✅ / 🟡 / ❌ | Still 🟡 / ❌ now |
+| --- | --- | --- | --- |
+| Tools (26) | 12 / 2 / 12 | 23 / 0 / 3 | ❌ K (Scale); ❌ S (Slice); ❌ C (Comment) |
+| Selection (8) | 5 / 1 / 2 | 7 / 0 / 1 | ❌ ⌥⌘A (Select matching layers) |
+| Transform (12) | 8 / 0 / 4 | 12 / 0 / 0 | — |
+| Structure (19) | 8 / 3 / 8 | 18 / 1 / 0 | 🟡 ⌥⌘B (Detach instance) on a Button |
+| Text (3) | 3 / 0 / 0 | 3 / 0 / 0 | — |
+| Menus (3) | 0 / 3 / 0 | 0 / 3 / 0 | 🟡 Right-click a shape; 🟡 Right-click a Button (instance); 🟡 Right-click the empty canvas |
+| Right panel (5) | 0 / 5 / 0 | 2 / 3 / 0 | 🟡 A Button (instance); 🟡 A Card (instance); 🟡 A text |
+| **All (76)** | **36 / 14 / 26** | **65 / 7 / 4** | |
+
+Up since 2026-10-18 (29): ⇧S (Section) (❌ → ✅) · ⇧P (Pencil) (❌ → ✅) · ⇧⌘K (Place image/video) (❌ → ✅) · ⌘K (Actions) (❌ → ✅) · ⌘F (Find and replace) (❌ → ✅) · ⇧R (Rulers) (❌ → ✅) · ⌃G (Show layout guides) (❌ → ✅) · ⌘Y (Outlines) (❌ → ✅) · N (Next frame) (❌ → ✅) · P (Pen) (🟡 → ✅) · ⌘/ (Actions) (🟡 → ✅) · Enter (Select children) (🟡 → ✅) · ⌘A with nothing selected (Select all) (❌ → ✅) · ⇧H (Flip horizontal) (❌ → ✅) · ⇧V (Flip vertical) (❌ → ✅) · ⌃⌥T (Tidy up) (❌ → ✅) · ⌃⌥H (Distribute horizontal spacing) (❌ → ✅) · Delete (nothing selected after) (🟡 → ✅) · ⌥⌘C ⌥⌘V (Copy / Paste properties) (🟡 → ✅) · ⌘G (Group selection) (❌ → ✅) · ⇧⌘G (Ungroup / Remove frame) (❌ → ✅) · ⌃⌘M (Use as mask) (❌ → ✅) · ⌘E (Flatten) (❌ → ✅) · ⌥⌘O (Outline stroke) on a Line (❌ → ✅) · ⇧⌘L (Lock) (❌ → ✅) · ⌘R (Rename) (❌ → ✅) · ⇧⌘C (Copy as PNG) (❌ → ✅) · A frame (free Box) (🟡 → ✅) · An auto layout frame (Stack) (🟡 → ✅).
+
+What is still not Figma's:
+- **Missing, and the status line says so:** K (Scale), S (Slice), C (Comment), ⌥⌘A (Select matching layers).
+- **Detach instance on a Button:** kept on purpose (user, 2026-10-03: an interactive component stops working when
+  detached).
+- **Menus:**
+  - The layer menu has no Flip horizontal / Flip vertical (the keys work).
+  - A Zen instance's menu has no Go to main component and no Reset all changes (Reset shows in its panel).
+  - The empty canvas menu is Zoom to fit, Zoom to 100% and Show/Hide UI, with no Paste (Paste here works inside a frame).
+- **Right panel:**
+  - A Button, a Card and a text have a **Content** section that edits their words in the panel. Figma edits words on the
+    canvas, or through an instance's text property.
+  - A Button's panel has no Appearance, Fill, Stroke or Effects, so its look comes from its variants only.
+
+Found on the way (not graded rows):
+- **A Line cannot be clicked on the canvas.** A horizontal line's box is 0 px high, so ⌘-clicking its middle selects the
+  frame around it (Figma clicks a line within a few px). The walk reached it by Tab or by Enter on its frame.
+- **The group's panel heading reads "Box".** Layers says "Group 1", and Figma's header says "Group".
+
 ## 3. UX writing (every UI string of the design page)
 
 **Harvest** (294 files: `src/platform/studio/**` + the 13 engine files whose messages reach the UI; selftests, e2e,
@@ -212,6 +250,26 @@ component, Rename, Paste here, Copy as ›), and a frame's and the empty canvas'
 **Status (2026-10-18):** F0 shipped (PR #135); F1 built on `zen/feat/studio-f1-layers-20261018` — the Figma walk
 (`npm run studio:e2e -- --only=figma`) reads 18 / 18 for the F0 and F1 rows (FW-01…18). Left from both: BACKLOG P1.
 
+**Status (2026-10-21):** every phase is shipped:
+
+| Phase | PRs |
+| --- | --- |
+| F0 | #135 |
+| F1 | #139 |
+| F2 | #140 |
+| F3 | #142, #145 |
+| F4 | #143 |
+| F5 | #144, #151 |
+| F6 + F8 | #147, #154 |
+| F7 | #152 |
+| F9 | #146, #148 |
+| F10 | #150 |
+| Since | Copy as PNG #156, Use as mask #161, Blend mode #171 |
+
+The hands-on walk (§2a) reads 65 ✅ · 7 🟡 · 4 ❌ of 76; on 2026-10-18 it was 36 · 14 · 26. The first-ten-minutes walk
+(§6) finishes 14 / 14 tasks in 44 steps, against Figma's 39, with no refusal. What is left is listed in §2a and §6 and
+in BACKLOG P1.
+
 **F1 · Layers like Figma (M).** Names (decision 4) with Figma's auto names and icons (Frame #, auto layout icons,
 Group, Component ◇ purple, Instance ◇, Text T, Image, Section); top of the list = front; rename (double-click,
 ⌘R, batch); Lock ⇧⌘L (canvas skips locked layers, Layers padlock on hover); row right-click = the canvas menu;
@@ -278,4 +336,35 @@ F7 / F9 are the longest. Parallel agents only for F2, F5, F7, F9 (tier L), one a
 3. **First-ten-minutes task walk** (the click-depth metric): 14 tasks a Figma user does first (make a frame from a
    preset, draw, type text, group, rename, auto layout, fill, align three layers, make a component, export), counting
    steps and refusals against Figma's.
+
+   **2026-10-21, the first run** (`main` e99c5408, private Studio server):
+   - Tasks: the ten above, plus duplicate, frame W 400, place an image (⇧⌘K) and a text style.
+   - Setup: one sitting on a new phone page.
+   - Counting: a click, a double-click, a key, a drag, a typed string and a picked option are one step each. Figma's
+     steps are UI3's, counted the same way.
+
+| Task | Studio steps | Figma steps | Refusals | Studio: what the person did | Figma |
+| --- | --- | --- | --- | --- | --- |
+| T-01 Make a frame from a preset (iPhone 16) | 2 | 2 | 0 | F · click iPhone 16 | F · click iPhone 16 in the right panel |
+| T-02 Draw a rectangle in it | 2 | 2 | 0 | R · drag in the frame | R · drag in the frame |
+| T-03 Type a text | 4 | 4 | 0 | T · click in the frame · type Hello · Esc | T · click in the frame · type · Esc |
+| T-04 Rename the rectangle | 4 (+1) | 3 | 0 | open Layers · double-click its name in Layers · type Hero · Enter | double-click the layer's name · type · Enter |
+| T-05 Fill the rectangle with a colour | 3 | 3 | 0 | click · click the fill colour · pick Accent | click the shape · click its fill colour · pick a colour (library variable) |
+| T-06 Duplicate the rectangle | 2 | 2 | 0 | click · ⌘D | click the shape · ⌘D |
+| T-07 Align three layers left | 6 (+2) | 4 | 0 | click · ⇧-click · ⇧⌘-click (⇧-click did not add it) · ⇧-click · ⇧⌘-click (⇧-click did not add it) · ⌥A | click · ⇧-click · ⇧-click · ⌥A |
+| T-08 Group two layers | 4 (+1) | 3 | 0 | click · ⇧-click · ⇧⌘-click (⇧-click did not add it) · ⌘G | click · ⇧-click · ⌘G |
+| T-09 Make the group a component | 3 (+1) | 2 | 0 | click · ⇧Enter (Rectangle was selected) · ⌥⌘K | click the group · ⌥⌘K |
+| T-10 Resize the frame to W 400 | 3 | 3 | 0 | click the frame's name · click W · type 400 ↵ | click the frame's name · click W · type 400 ↵ |
+| T-11 Add auto layout to the frame | 2 | 2 | 0 | click the frame's name · ⇧A | click the frame's name · ⇧A |
+| T-12 Place an image | 3 | 3 | 0 | ⇧⌘K · pick the file · click in the frame | ⇧⌘K · pick the file · click in the frame |
+| T-13 Give the text a text style | 3 | 3 | 0 | click Hello in Layers · open the text style list · pick a Heading style | click the text · open the text style list · pick a style |
+| T-14 Export the frame as PNG | 3 | 3 | 0 | click the frame's name · Export + · Export | click the frame's name · Export + · Export |
+| **14 / 14 done** | **44** | **39** | **0** | | |
+
+   The 5 extra steps:
+   - **⇧-click does not add** a layer that sits inside a frame; it takes ⇧⌘-click (+3 in T-07 and T-08). In Figma,
+     ⇧-click adds the layer you click.
+   - **A click on a grouped layer selects that layer**, not its group, so it takes ⇧Enter to reach the group (+1 in
+     T-09). In Figma, the first click selects the group and a double-click goes in.
+   - **The left panel stays on Pages** after a page is made, so Layers takes a click (+1 in T-04). Figma shows Layers.
 4. Engine matrices (`npm run studio:dnd`) extended per phase (group / ungroup, multi-move, text runs, vector paths).

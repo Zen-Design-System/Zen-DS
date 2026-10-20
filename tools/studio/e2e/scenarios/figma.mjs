@@ -3236,4 +3236,41 @@ export const rows = [
       return `right edge → the second frame's left edge with a red guide (width ${start.width} → ${snapped.width}) · ⌘: ${exact.width} · ⌥: X ${centred.x}, width ${centred.width} · one ⌘Z each`;
     },
   },
+  {
+    id: "FW-132", feature: "A click on a Line selects it, within a few px of it (Figma picks a LINE so), not the frame around it; 20 px away it does not", wp: "Figma walk 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const text = (title) => [
+        `// @zen-page ${JSON.stringify({ format: 1, title })}`,
+        'import { Board, Screen } from "@zen-ds/react/builder";',
+        'import { Shape } from "@zen-ds/react";',
+        "export const mock = {};",
+        "",
+        "export default function Page() {",
+        "  return (",
+        "    <Board>",
+        `      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop" width={800} height={500}>`,
+        '        <Shape type="line" position="absolute" insetLeft={100} insetTop={200} width={240} />',
+        "      </Screen>",
+        "    </Board>",
+        "  );",
+        "}",
+        "",
+      ].join("\n");
+      const { page, id } = await seededPage(ctx, text, /type="line"/);
+      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).first().boundingBox();
+      if (!box || box.height > 1) throw new Error(`the line's box: ${JSON.stringify(box)}`);
+      const x = box.x + box.width / 2;
+      for (const dy of [0, 3, -3]) {
+        await deselect(page);
+        await page.mouse.click(x, box.y + dy);
+        await until(async () => /^Line/.test(await selectedName(page)), { timeout: 3000, message: `a click ${dy} px off the line selects it` })
+          .catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page) || "nothing"})`); });
+      }
+      await deselect(page);
+      await page.mouse.click(x, box.y - 20);
+      await sleep(400);
+      if (/^Line/.test(await selectedName(page))) throw new Error("a click 20 px off the line still selects it");
+      return `on it, 3 px above and 3 px below → Line; 20 px above → ${(await selectedName(page)) || "nothing"}`;
+    },
+  },
 ];
