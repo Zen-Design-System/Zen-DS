@@ -327,6 +327,10 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(subtract?.type === "BOOLEAN_OPERATION" && subtract.booleanOperation === "SUBTRACT" && subtract.vectorOperationVersion === 1 && varOf(subtract.fillPaints) === pack.variables[fill][0], "a boolean group: Figma's operation and its fill");
   check(parts.length === 2 && parts[0].type === "ROUNDED_RECTANGLE" && parts[1].type === "ELLIPSE" && parts[1].transform.m02 === 40 && parts[1].transform.m12 === 40 && parts[0].parentIndex.position < parts[1].parentIndex.position, "its shapes inside it, in order, at their X / Y");
   check(named("Exclude")?.booleanOperation === "XOR", "Exclude is Figma's XOR");
+  // A layer blend mode (figma-push writes Figma's enum off the default): on the node; none at the default.
+  const blended = nativeMessage(exportOf([{ type: "FRAME", name: "Multiplied", layout: { mode: "VERTICAL" }, blendMode: "MULTIPLY", children: [] }, { type: "STAR", shape: true, name: "Dodged", fill, blendMode: "LINEAR_DODGE", fixedWidth: 40, fixedHeight: 40 }, { type: "RECTANGLE", shape: true, name: "Plain", fill, fixedWidth: 40, fixedHeight: 40 }]), pack).message.nodeChanges;
+  const blendOf = (name) => blended.find((n) => n.name === name);
+  check(blendOf("Multiplied")?.blendMode === "MULTIPLY" && blendOf("Dodged")?.blendMode === "LINEAR_DODGE" && !("blendMode" in (blendOf("Plain") ?? {})) && blendOf("Dodged")?.fillPaints?.[0]?.blendMode === "NORMAL", "a layer blend mode on frames and shapes; none at the default; paints stay NORMAL");
   const back = await readFigmaClipboard((await figmaPasteHtml(exportOf([free]), pack)).html);
   check(back?.message.nodeChanges.filter((n) => ["LINE", "REGULAR_POLYGON", "STAR", "VECTOR", "BOOLEAN_OPERATION"].includes(n.type)).length === 7, "the shapes survive Figma's clipboard encoding");
 }

@@ -323,3 +323,12 @@ skill không phải rule hay hardness", then "Nghiên cứu cả những princip
   §1 step 5, QA checklist 4; responsive: intro + a check line). AI kit for Figma: `KIT_SOURCES.principles` in
   `tools/ai-kit/kit.mjs` copies both into `skills/zen-figma-design/references/`; `build.mjs` reads and checks them,
   `src/platform/aiKit.ts` globs them; kit README and AGENTS.md mention them. `ai-kit:check` 164 ✓, 85 files.
+
+## Blend mode in the direct paste (Session C) — tier XS, branch `zen/feat/studio-native-blend-mode-20261020`
+Session B's Blend mode (user-given; push / pull / plugin on B's branch) left the native ⌘C → ⌘V to C. figma-native writes
+a frame's or a shape's `blendMode` (Figma's enum, as figma-push writes it off the default) on the node, nothing at the
+default, as Figma's own copies do; paints keep NORMAL. Selftest figma-native 115. Live paste (QA page, removed): a frame
+MULTIPLY, a star LINEAR_DODGE, the outer frame PASS_THROUGH.
+- After #171: a Studio page's `blendMode` (Box multiply, star plus-lighter) goes through figma-push into the paste as
+  MULTIPLY / LINEAR_DODGE, nothing at the default. Gate (Giám sát's slot, on 0d551f9f with main e99c5408): `qa --isolated`
+  PASS — static ✓, Studio E2E 336 works · 0 broken (1793 s); report `.qa/reports/2026-10-20T18-27-33-ee53b0aa.md`.
