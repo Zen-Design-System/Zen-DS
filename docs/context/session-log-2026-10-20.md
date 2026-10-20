@@ -145,7 +145,8 @@ BACKLOG finding (2026-10-20): a Studio arrow got a head at both ends in Figma (p
   styleOverrideTable). A LINE's strokeCap caps both ends.
 - figma-native writes that VECTOR (`arrowVector`); figma-pull reads a two-vertex VECTOR capped at its end as
   `<Shape type="arrow">` (`arrowLineOf` in the reader). Live paste: one head (screenshot); the reader's detection on the
-  pasted node: Arrow yes, the rest no. Importer recipe sent to Session B. Selftests: native 114, pull 111, push 335.
+  pasted node: Arrow yes, the rest no. Importer: Session B's plugin studio-import eed5057 (a LINE spec with an endCap
+  becomes that VECTOR; checked live, mock test updated). Selftests: native 114, pull 111, push 335.
 - Slip, fixed: a capture's clipboard restore failed and left the user's clipboard empty (it held a 0.5 MB picture: the
   saved base64 went inline into osascript). Put back at once from the saved copy (8/8 types); the scratch capture and
   paste scripts now save and restore through files.
