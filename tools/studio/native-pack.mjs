@@ -11,6 +11,10 @@
 //   node tools/studio/native-pack.mjs capture --frames=a:b,c:d [--keep]   macOS + Figma desktop: copy each probe frame,
 //                                                           then write the pack (needs Accessibility for the terminal app)
 //   node tools/studio/native-pack.mjs write --files=a.html,b.html   copies saved by hand → the pack
+//   node tools/studio/native-pack.mjs probe-code --ids=a:b,c:d   use_figma code: a probe of just these sets / components
+//   … capture --frames=… --merge | write --files=… --merge      add the copies' sets, symbols, styles, variables and
+//                                                           contents to the existing pack (a set added to the library)
+//                                                           instead of rebuilding it; the schema module stays
 //   node tools/studio/native-pack.mjs check                 sets the push writes that the pack lacks
 //   node tools/studio/native-pack.mjs images-code --part=N  use_figma code: the layers that show a picture in every
 //                                                           component (an Avatar's Image), without a full capture
@@ -354,6 +358,18 @@ export function withImages(pack, answers) {
   return { pack, layers: counts.layers, symbols: counts.symbols.size, skipped: counts.skipped };
 }
 
+/**
+ * `added` (packFrom of new copies) on top of `base` (the pack): their sets, symbols, styles, variables and contents
+ * replace the same ids and add the rest; `merged` records what each merge brought.
+ */
+export function mergePacks(base, added) {
+  const sortedKeys = (object) => Object.fromEntries(Object.entries(object).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  const merged = { ...base };
+  for (const field of ["sets", "symbols", "styles", "variables", "contents"]) merged[field] = sortedKeys({ ...(base[field] ?? {}), ...(added[field] ?? {}) });
+  merged.merged = [...(base.merged ?? []), { read: added.read, sets: Object.keys(added.sets ?? {}).sort(), symbols: Object.keys(added.symbols ?? {}).length }];
+  return merged;
+}
+
 /** A lone component's own property definitions (a set's live on the set). */
 function propsOf(node) {
   const props = (node.componentPropDefs ?? []).filter((def) => def.name && !def.isDeleted).map((def) => [def.name, def.type, id(def.id), initialOf(def.initialValue)]);
@@ -395,6 +411,26 @@ export const FIGMA_CLIPBOARD_SCHEMA = {
 
 const nodeModule = (name) => import(/* @vite-ignore */ `node:${name}`);
 
+/**
+ * The user's clipboard saved to files (every type, NSData) and put back from them: a capture clears it. Files, never an
+ * inline osascript argument: a restore that passed a large picture inline failed and left the clipboard empty
+ * (2026-10-20). Returns the number of types saved / put back.
+ */
+export async function clipboardFiles(dir) {
+  const { execFileSync } = await nodeModule("child_process");
+  const { default: fs } = await nodeModule("fs");
+  const jxa = (code) => execFileSync("osascript", ["-l", "JavaScript", "-e", code], { encoding: "utf8", maxBuffer: 1 << 30 }).trim();
+  return {
+    save() {
+      fs.mkdirSync(dir, { recursive: true });
+      return Number(jxa(`ObjC.import("AppKit"); ObjC.import("Foundation"); const pb = $.NSPasteboard.generalPasteboard; const t = pb.types; const order = []; for (let i = 0; i < t.count; i++) { const k = t.objectAtIndex(i).js; const d = pb.dataForType(k); if (d.isNil()) continue; const p = ${JSON.stringify(dir)} + "/" + order.length + ".bin"; d.writeToFileAtomically(p, true); order.push([k, p]); } $(JSON.stringify(order)).writeToFileAtomicallyEncodingError(${JSON.stringify(`${dir}/order.json`)}, true, $.NSUTF8StringEncoding, null); order.length + ""`));
+    },
+    restore() {
+      return jxa(`ObjC.import("AppKit"); ObjC.import("Foundation"); const pb = $.NSPasteboard.generalPasteboard; pb.clearContents; const order = JSON.parse($.NSString.stringWithContentsOfFileEncodingError(${JSON.stringify(`${dir}/order.json`)}, $.NSUTF8StringEncoding, null).js); if (order.length) pb.declareTypesOwner($(order.map((o) => o[0])), null); let n = 0; for (const [t, p] of order) { const d = $.NSData.dataWithContentsOfFile(p); if (!d.isNil() && pb.setDataForType(d, t)) n++; } n + "/" + order.length`);
+    },
+  };
+}
+
 /** macOS: select `nodeId` in Figma desktop, Edit › Copy, and return the clipboard's html (Esc first: a focused field would copy its text). */
 async function copyFromFigma(nodeId, retry = true) {
   const { execFileSync } = await nodeModule("child_process");
@@ -425,20 +461,32 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
   const keys = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/library-keys.json"), "utf8"));
   const ids = pushIdsFrom(keys);
   const read = option("date") ?? new Date().toISOString().slice(0, 10);
+  const merge = process.argv.includes("--merge");
   const write = async (htmls) => {
     const copies = [];
     for (const html of htmls) { const copy = await readFigmaClipboard(html); if (!copy) throw new Error("native-pack: a copy without Figma's buffer"); copies.push(copy); }
-    const pack = packFrom(copies, { read });
+    const fresh = packFrom(copies, { read });
+    // --merge: the copies' definitions on top of the existing pack (and its schema, which pastes still read).
+    const pack = merge ? mergePacks(JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8")), fresh) : fresh;
     fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(pack)}\n`);
-    fs.writeFileSync(path.join(root, SCHEMA_MODULE), schemaModule(copies[copies.length - 1], read));
+    if (!merge) fs.writeFileSync(path.join(root, SCHEMA_MODULE), schemaModule(copies[copies.length - 1], read));
+    if (merge) console.log(`native-pack: merged ${Object.keys(fresh.sets).length} sets, ${Object.keys(fresh.symbols).length} symbols from the copies`);
     const missing = ids.filter((key) => !pack.sets[key] && !pack.symbols[key]);
     console.log(`native-pack: ${Object.keys(pack.symbols).length} symbols in ${Object.keys(pack.sets).length} sets, ${Object.keys(pack.styles).length} styles, ${Object.keys(pack.variables).length} variables; ${(fs.statSync(path.join(root, PACK_FILE)).size / 1e6).toFixed(1)} MB${missing.length ? `; missing: ${missing.join(", ")}` : ""}`);
   };
   if (command === "probe-code" && process.argv.includes("--icons")) console.log(iconProbeCode());
-  else if (command === "probe-code") console.log(probeCode(ids, Number(option("part") ?? 0)));
+  else if (command === "probe-code") console.log(probeCode(option("ids") ? option("ids").split(",") : ids, Number(option("part") ?? 0)));
   else if (command === "capture" && option("frames")) {
+    // The user's clipboard: saved before the copies, put back after them (also when a copy fails).
+    const { default: os } = await nodeModule("os");
+    const clip = await clipboardFiles(path.join(os.tmpdir(), `zen-native-pack-clipboard-${process.pid}`));
+    console.log(`native-pack: saved the clipboard (${clip.save()} types)`);
     const htmls = [];
-    for (const frame of option("frames").split(",")) { htmls.push(await copyFromFigma(frame)); console.log(`native-pack: copied ${frame} (${(htmls[htmls.length - 1].length / 1e6).toFixed(1)} MB)`); }
+    try {
+      for (const frame of option("frames").split(",")) { htmls.push(await copyFromFigma(frame)); console.log(`native-pack: copied ${frame} (${(htmls[htmls.length - 1].length / 1e6).toFixed(1)} MB)`); }
+    } finally {
+      console.log(`native-pack: put the clipboard back (${clip.restore()} types)`);
+    }
     await write(htmls);
   } else if (command === "write" && option("files")) await write(option("files").split(",").map((file) => fs.readFileSync(file, "utf8")));
   else if (command === "images-code" || command === "images") {
@@ -458,7 +506,7 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     if (missing.length) { console.error(`native-pack: ${missing.length} set(s) the push can write are not in the pack (${missing.join(", ")}): rebuild with probe-code + capture`); process.exit(1); }
     console.log(`native-pack: every set the push can write (${ids.length}) is in the pack (read ${pack.read})`);
   } else {
-    console.error("usage: native-pack.mjs probe-code --part=N | capture --frames=<ids> | write --files=<html files> | check | images-code --part=N | images --files=<answers>");
+    console.error("usage: native-pack.mjs probe-code --part=N | probe-code --ids=<ids> | capture --frames=<ids> [--merge] | write --files=<html files> [--merge] | check | images-code --part=N | images --files=<answers>");
     process.exit(1);
   }
 }

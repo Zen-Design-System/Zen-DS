@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { nativeMessage, nativePictures, pictureKind, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
+import { mergePacks } from "./native-pack.mjs";
 import { diffMessages } from "./native-diff.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -397,6 +398,15 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(shows(pictureAt(cover, ["1603:4720"])), "a Photo-Cell's picture fills its Photo");
   check(missing && !overrides(missing).some((entry) => entry.fillPaints) && notes.length === 1 && notes[0].includes("Lost") && notes[0].includes("not in the export"), `a picture without bytes is named in a note (${notes.join("; ")})`);
   check(message.blobs.filter((blob) => Buffer.from(blob.bytes).equals(logoBytes)).length === 1, "one blob for a picture used three times");
+}
+
+// --- native-pack --merge: a set added to the library joins the pack without a full capture ------------------------
+{
+  const base = { file: "f", read: "2026-10-18", sets: { "1:1": { name: "A" } }, symbols: { "1:2": { name: "A1" }, "1:3": { name: "old" } }, styles: { S: ["5:5", "TEXT"] }, variables: { V: ["6:6", "COLOR"] }, contents: {} };
+  const added = { read: "2026-10-21", sets: { "2:1": { name: "Header/AppShell" } }, symbols: { "2:2": { name: "B1" }, "1:3": { name: "new" } }, styles: { S2: ["7:7", "FILL"] }, variables: {}, contents: { "2:9": [] } };
+  const merged = mergePacks(base, added);
+  check(merged.sets["1:1"] && merged.sets["2:1"] && merged.symbols["1:2"] && merged.symbols["2:2"] && merged.symbols["1:3"].name === "new" && merged.styles.S && merged.styles.S2 && merged.contents["2:9"] && merged.read === "2026-10-18", "a merge keeps the pack, adds the copies' definitions, the same id takes the new one");
+  check(JSON.stringify(merged.merged) === JSON.stringify([{ read: "2026-10-21", sets: ["2:1"], symbols: 2 }]) && Object.keys(merged.symbols).join() === "1:2,1:3,2:2", "it records the merge; keys stay sorted");
 }
 
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------

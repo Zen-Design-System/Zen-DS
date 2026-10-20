@@ -323,3 +323,12 @@ skill không phải rule hay hardness", then "Nghiên cứu cả những princip
   §1 step 5, QA checklist 4; responsive: intro + a check line). AI kit for Figma: `KIT_SOURCES.principles` in
   `tools/ai-kit/kit.mjs` copies both into `skills/zen-figma-design/references/`; `build.mjs` reads and checks them,
   `src/platform/aiKit.ts` globs them; kit README and AGENTS.md mention them. `ai-kit:check` 164 ✓, 85 files.
+
+## native-pack: merge a set into the pack; capture keeps the clipboard (Session C) — tier XS, branch `zen/feat/native-pack-merge-20261021`
+Asked by Bug (the user's Header/AppShell in Studio needs 16243:290461 in the pack; `native-pack check` failed): `write
+--merge` / `capture --merge` add new copies' sets, symbols, styles, variables and contents to the existing pack
+(`mergePacks`, `merged` records each), the schema module stays; `probe-code --ids=` probes just those components. Fix
+at its owner: `capture` cleared the user's clipboard and never put it back — it now saves every type to files and puts
+it back after the copies, also when one fails (`clipboardFiles`; inline osascript failed on a large picture on
+2026-10-20). Checked offline: a probe copy merged onto the pack (230 → 231 sets, base kept), a save → restore round trip
+of the live clipboard (4/4 types). Selftest figma-native 116. Rides Bug's PR and gate.
