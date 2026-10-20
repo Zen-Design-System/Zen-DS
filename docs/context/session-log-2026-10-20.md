@@ -233,3 +233,9 @@ Tier M (server op + two canvas paths). The two gaps #164 left:
   FW-131 (frame e-drag to the second frame's edge with a guide: 390 → 486; ⌘: 483, no guide; ⌥: X −96, width 582).
   resizeSnap's model is unchanged (no new rows). The guide runs under the blue selection outline where they overlap,
   as for shapes since #164.
+- A Box with constraint left-right (stretch) still writes the layer's size: the layer never fills its floating Box, so
+  insets alone would only move it (`floatAxis` `sized`).
+- Gate (slot 20:23–21:03, after AppShell; main ca9784a6 merged first): `qa --isolated --files=<7 sources>` static all ✓
+  (style, usage, Studio self-tests, guidelines, tsc); Studio E2E 335/336, the broken NO-07 (nested Reset all, timed out
+  under load) ✓ alone. figma FW-25/27/28/42/128/129/130/131 8/0 (an earlier pass of the set had FW-129's ⌘Z time out
+  once; ✓ alone twice and in the set). ai-ui, guidelines, mcp, usage checks ✓. Shipped with `--skip-gate` (this run).
