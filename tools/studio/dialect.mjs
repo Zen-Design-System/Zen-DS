@@ -16,7 +16,7 @@
 //             | { kind: "proto", action, args } | { kind: "ref", root, path }        (root "mock" or a .map item name)
 //       Child = Node | { kind: "text", value } | { kind: "ref", root, path } | { kind: "map", source, item, node }
 import { jsxName, parseSource } from "./jsx-source.mjs";
-import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenFrameCode, screenLayout } from "./screen-chrome.mjs";
+import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenFrameCode, screenHeaderCode, screenLayout } from "./screen-chrome.mjs";
 import { NESTED_VALUE_KEY, instanceLayerPaths } from "./instance-paths.mjs";
 
 export { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout };
@@ -55,8 +55,9 @@ const quote = (value) => JSON.stringify(String(value));
 /** Props one per line at `indent` (a multi-line component indented under its prop). */
 const propLines = (entries, indent) => entries.map(([prop, code]) => `${indent}${prop}={${code.split("\n").map((line, index) => (index ? `${indent}${line}` : line)).join("\n")}}`);
 const componentsOf = (codes) => codes.flatMap((code) => [...code.matchAll(/<([A-Z]\w*)/g)].map((match) => match[1]));
-/** The parts a new Screen's master layout (its root AppShell, screen-frame.mjs) starts with: the Sidebar and the Page header. */
-const NEW_FRAME = ["sidebar", "sections"];
+/** The parts a new Screen's master layout (its root AppShell, screen-frame.mjs) starts with: the Sidebar, and the header's Main
+ *  row holding the Page header (Header/AppShell). */
+const newFrame = (title) => [["sidebar", screenFrameCode("sidebar", title)], ["header", screenHeaderCode([["main", screenFrameCode("main", title)]])]];
 
 /**
  * A new Screen's app frame (user, 2026-10-09; master layout 2026-10-15): the mobile layout's Top and Bottom Navigation as
@@ -72,13 +73,14 @@ function screenLines({ open, title, heading, device, layout, chrome, empty = fal
   const framed = chrome && screenLayout(device, layout) === "desktop";
   const depth = framed ? 2 : 1;
   const stack = [
-    `${inner(depth)}<Stack gap="md" padding="${device === "phone" ? "lg" : "xl"}">`,
+    // Inside the master layout the AppShell's Body pads the page (Margin-Comfortable); a bare Screen pads itself.
+    framed ? `${inner(depth)}<Stack gap="md">` : `${inner(depth)}<Stack gap="md" padding="${device === "phone" ? "lg" : "xl"}">`,
     chrome ? `${inner(depth + 1)}<Text tone="base">Start building here: add components from Assets.</Text>` : `${inner(depth + 1)}<Text textStyle="Heading/3">${heading}</Text>`,
     `${inner(depth)}</Stack>`,
   ];
   if (!chrome) return { lines: [`${indent}${open}>`, ...stack, `${indent}</Screen>`], components: ["Stack", "Text"] };
   const bars = SCREEN_CHROME.filter((part) => part.layout === "mobile").map((part) => [part.prop, screenChromeCode(part.prop, title)]);
-  const frame = framed ? NEW_FRAME.map((prop) => [prop, screenFrameCode(prop, title)]) : [];
+  const frame = framed ? newFrame(title) : [];
   const attrs = propLines(bars, inner(1));
   const lines = [
     `${indent}${open}`,
@@ -721,7 +723,7 @@ function checkComponents(board, errors) {
       else {
         // A path below a layer is only one of a layer the main does not list itself: a component's own (a Badge's dot) or
         // a nested instance's (its main's layers).
-        const layers = [...mainLayerPaths(resolved.main, model)].map(([layer, path]) => ({ path, leaf: !layer.children.some((child) => child.kind === "element") }));
+        const layers = [...mainLayerPaths(resolved.main, model)].map(([layer, path]) => ({ path, leaf: opensInside(layer) }));
         const owner = set?.name ?? resolved.main.name;
         for (const [path, layer] of Object.entries(overrides.fields)) {
           if (!layers.some((known) => path === known.path || (known.leaf && path.startsWith(`${known.path}/`)))) at(node, `<Use> overrides no layer ${path} of ${owner}`);
@@ -731,6 +733,12 @@ function checkComponents(board, errors) {
     }
   });
 }
+
+/** Layers whose inside is only what the page writes in them (frames, texts, shapes). */
+const PAGE_DRAWN = new Set(["Stack", "Grid", "Box", "Text", "Heading", "Shape", "Component", "ComponentSet"]);
+/** Whether an override path may go on below this layer of a main: a nested instance (its main's layers), a Zen
+ *  component (its own nest() layers, even when the page puts content in it: Card/Sub-Action), or a layer with none. */
+const opensInside = (layer) => layer.name === "Use" || !PAGE_DRAWN.has(layer.name) || !layer.children.some((child) => child.kind === "element");
 
 /** The name a nested instance's layer takes inside an outer instance: its set's name, else its main's. */
 function useNameOf(use, model) {
@@ -755,8 +763,8 @@ export function mainLayerPaths(main, model) {
  * ("Chip/Text": the Chip instance in this main, then the Text in the Chip's main). A nested instance is drawn in the
  * variant its own values and the outer instance's overrides pick (`{ Chip: { "variant.Size": "Large" } }`, as the canvas
  * draws it). `table`: the outer instance's overrides, path → plain values. Returns the steps outermost first
- * (`{ main, layer }`, the last one's layer the one the path names), or null: no such layer, or one inside a Zen
- * component's own layers ("Badge/Dot").
+ * (`{ main, layer }`, the last one's layer the one the path names; on a Zen component, `inner` is the path on inside
+ * its own layers, nest() names: "Badge/Dot" → the Badge, inner "Dot"), or null: no such layer.
  */
 export function layerChain(tree, main, path, model, table = {}) {
   const byPath = new Map([...mainLayerPaths(main, model)].map(([layer, at]) => [at, layer]));
@@ -766,7 +774,10 @@ export function layerChain(tree, main, path, model, table = {}) {
   for (let cut = parts.length - 1; cut >= 1; cut--) {
     const prefix = parts.slice(0, cut).join("/");
     const use = byPath.get(prefix);
-    if (use?.name !== "Use") continue;
+    if (!use) continue;
+    // A layer with layers of its own the main does not list (a Zen component's nest() layers, Card/Sub-Action): the path
+    // goes on inside it.
+    if (use.name !== "Use") return opensInside(use) ? [{ main, layer: use, inner: parts.slice(cut).join("/") }] : null;
     const asked = {};
     for (const [key, value] of Object.entries(table[prefix] ?? {})) {
       const nested = NESTED_VALUE_KEY.exec(key);

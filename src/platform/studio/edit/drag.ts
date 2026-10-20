@@ -161,7 +161,7 @@ export function sameDropScope(from: Element | null, to: Element | null): boolean
 }
 
 /** Where a Screen and an AppShell draw their bars and side parts (props, not children). */
-const BAR_PARTS = ".studio-builder-screen__top, .studio-builder-screen__bottom, .studio-builder-screen__side, .studio-builder-screen__header, .zen-app-shell__sidebar, .zen-app-shell__sections, .zen-app-shell__header, .zen-app-shell__top-nav, .zen-app-shell__bottom, .zen-app-shell__banner, .zen-app-shell__aside";
+const BAR_PARTS = ".studio-builder-screen__top, .studio-builder-screen__bottom, .studio-builder-screen__side, .studio-builder-screen__header, .zen-app-shell__sidebar, .zen-app-shell__header, .zen-app-shell__progress, .zen-app-shell__pane, .zen-app-shell__top-nav, .zen-app-shell__bottom, .zen-app-shell__banner, .zen-app-shell__side-panel, .zen-app-shell__floating, .zen-app-shell__hero, .zen-app-shell__backdrop";
 /** A container's child layers: a Screen's and an AppShell's leave out what their bars draw (a Top Navigation, a Sidebar). */
 export function kidsOf(container: FiberHit): FiberHit[] {
   const kids = childHits(container);

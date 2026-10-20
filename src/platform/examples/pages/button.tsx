@@ -1,8 +1,11 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { useZen } from "../../../components/Provider";
 import { ActionBar } from "../../../components/ActionBar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
-import { Badge } from "../../../components/Badge";
+import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
@@ -14,10 +17,12 @@ import { Form, FormActions, useFormState } from "../../../components/Form";
 import { Image } from "../../../components/Image";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { InputField } from "../../../components/Input";
-import { Box, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
+import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
+import { Sidebar, SidebarMenuItem, type SidebarSection } from "../../../components/Sidebar";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
@@ -26,12 +31,12 @@ import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { platformMedia } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
-  daysFromToday, files, formatBytes, formatDate, formatDay, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices, leaveRequests, leaveStatusTheme,
-  people, projectStatusTheme, tasks, taskStatusTheme, type InvoiceStatus, type LeaveRequest, type Person, type PersonId, type ProjectStatus, type StudioFile, type TaskStatus,
+  activity, daysFromToday, files, formatBytes, formatDate, formatDay, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices, leaveBalance, leaveRequests, leaveStatusTheme,
+  me, people, projectById, projectStatusTheme, studio, tasks, taskStatusTheme, type InvoiceStatus, type LeaveRequest, type Person, type PersonId, type ProjectStatus, type StudioFile, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
-import { PreviewPage } from "../../PlatformFrames";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { keepOnHotUpdate } from "../../hotData";
 import "./button.css";
 
@@ -42,8 +47,49 @@ const avatarOf = (person: Person) => person.photo
   ? { theme: "photo" as const, src: person.photo, alt: "" }
   : { theme: person.theme, children: initials(person.name) };
 
+/* ───────────── The studio app's chrome (the desktop screen) ───────────── */
+// "Page actions" is a page of the Đìzai Studio app: one AppShell (pattern sidebar) with the studio's Sidebar, the
+// header's top row (the trail, notifications, the account) and the project's PageHeader in its Main row, where the page's
+// actions live. The Body pads the page, so the content starts at the page margin without a Container.
+const studioPlaces: SidebarSection[] = [{ items: [
+  { id: "home", label: "Home", icon: "icon-home-03-line" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line" },
+  { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
+  { id: "people", label: "People", icon: "icon-users-line" },
+] }];
+const unread = activity.filter((item) => item.unread);
+
+/** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This screen shows where each action sits." });
+}
+
+/** The top row's utilities: notifications (the count clears once read) and the account menu, last. */
+function StudioActions() {
+  const { toast } = useToast();
+  const [count, setCount] = useState(unread.length);
+  const latest = unread[0];
+  return (
+    <>
+      <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={count} onClick={() => {
+        setCount(0);
+        toast({ title: count ? plural(count, "new notification") : "You're all caught up", children: `${people[latest.actor].name} ${latest.verb} ${latest.object} · ${formatRelative(latest.at)}` });
+      }} />
+      <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+        { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+        { id: "settings", label: "Settings", icon: "icon-settings-01-line", onSelect: () => toast({ title: "Settings", children: "Workspace, notifications and billing." }) },
+        { type: "separator" },
+        { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+      ]} />
+    </>
+  );
+}
+
 /* ───────────── Page actions ───────────── */
 
+const loyalty = projectById("phin-loyalty");
 type TaskRow = { id: string; key: string; title: string; assignee: PersonId; status: TaskStatus; due: Date };
 const loyaltyTasks: TaskRow[] = [
   ...tasks.filter((task) => task.project === "phin-loyalty").map(({ id, key, title, assignee, status, due }) => ({ id, key, title, assignee, status, due })),
@@ -65,47 +111,73 @@ const taskColumns: TableColumn<TaskRow>[] = [
 
 function PageActionsExample() {
   const { toast } = useToast();
+  const notHere = useNotHere();
   const [rows, setRows] = useState(loyaltyTasks);
-  const [status, setStatus] = useState<ProjectStatus>("Active");
+  const [status, setStatus] = useState<ProjectStatus>(loyalty.status);
   const [dialog, setDialog] = useState<"share" | "task" | null>(null);
   const tasksId = useId();
   const phone = useZen()?.breakpoint === "mobile";
+  const open = rows.filter((row) => row.status !== "Done").length;
   // New task adds a row at the top; its key continues the project's sequence.
   const addTask = (title: string) => setRows((list) => [{ id: `new-${list.length}`, key: `PHIN-${224 + list.length}`, title, assignee: "alex", status: "To do", due: daysFromToday(7) }, ...list]);
   const putOnHold = () => {
     setStatus("On hold");
-    toast({ title: "Project put on hold", action: { label: "Undo", onClick: () => setStatus("Active") } });
+    toast({ title: "Project put on hold", children: "The team stops getting reminders for its tasks.", action: { label: "Undo", onClick: () => setStatus("Active") } });
   };
   return (
-    <PreviewPage margin="all">
-      <Stack gap="xl">
-        <PageHeader
-          eyebrow="Phin & Co"
-          title="Loyalty app"
-          meta={<Badge theme={projectStatusTheme[status]} background="subtle">{status}</Badge>}
-          description="Points, rewards and checkout for the Phin & Co coffee app. Launch is due Nov 2, 2026."
-          actions={<>
-            <Button level="tertiary" startIcon="icon-share-01-line" onClick={() => setDialog("share")}>Share</Button>
-            <Menu align="end" trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="More actions" />} items={[
-              { id: "duplicate", label: "Duplicate project", onSelect: () => toast({ title: "Project duplicated" }) },
-              { id: "hold", label: "Put on hold", disabled: status === "On hold", onSelect: putOnHold },
-            ]} />
-            <Button level="primary" startIcon="icon-plus-line" onClick={() => setDialog("task")}>New task</Button>
-          </>}
-        />
-        {/* The task table is the section's content: it lies on the page under its h2, no Card. */}
-        <Stack as="section" gap="lg" aria-labelledby={tasksId}>
-          <Heading level={2} id={tasksId}>Tasks</Heading>
-          <Table aria-labelledby={tasksId} columns={phone ? phoneTaskColumns : taskColumns} rows={rows} />
+    <PreviewAppFrame>
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            sections={studioPlaces} selectedId="projects" onItemClick={(item) => { if (item.id !== "projects") notHere(item.label); }}
+            footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+        )}
+        header={(
+          <AppShellHeader
+            // A Sub-level trail beside the collapse toggle; the top row keeps utilities only, the page's actions sit in its Main row.
+            leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: loyalty.id, label: loyalty.name }]}
+              onNavigate={(_, event) => { event.preventDefault(); notHere("Projects"); }} />}
+            actions={<StudioActions />}
+            main={(
+              <PageHeader
+                eyebrow={loyalty.client}
+                title={loyalty.name}
+                meta={<Badge theme={projectStatusTheme[status]} background="subtle">{status}</Badge>}
+                description={`Points, rewards and checkout for the Phin & Co coffee app. Launch is due ${formatDate(loyalty.due)}.`}
+                actions={<>
+                  <Button level="tertiary" startIcon="icon-share-01-line" onClick={() => setDialog("share")}>Share</Button>
+                  <Menu align="end" trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="More actions" />} items={[
+                    { id: "duplicate", label: "Duplicate project", icon: "icon-copy-line", onSelect: () => toast({ title: "Project duplicated", children: `${loyalty.name} (copy) is in Projects, without its tasks' history.` }) },
+                    { id: "hold", label: "Put on hold", icon: "icon-pause-circle-line", disabled: status === "On hold", onSelect: putOnHold },
+                  ]} />
+                  <Button level="primary" startIcon="icon-plus-line" onClick={() => setDialog("task")}>New task</Button>
+                </>}
+              />
+            )}
+          />
+        )}
+      >
+        {/* Sections of the page, xl apart: the project in three numbers (Shadow, the Sidebar's elevation), then its
+            tasks. The task table is the section's content: it lies on the page under its h2, no Card. */}
+        <Stack gap="xl">
+          <Grid columns={3} gap="md" stackBelow={640}>
+            <MetricCard theme="shadow" label="Progress" value={`${loyalty.progress}%`} icon="icon-check-done-line" trend={{ direction: "positive", label: "+6% this week" }} />
+            <MetricCard theme="shadow" label="Budget spent" value={formatMoney(loyalty.spent)} icon="icon-wallet-02-line" trend={{ direction: "normal", label: `of ${formatMoney(loyalty.budget)}` }} />
+            <MetricCard theme="shadow" label="Open tasks" value={String(open)} icon="icon-check-square-line" trend={{ direction: "normal", label: `${rows.length - open} done` }} />
+          </Grid>
+          <Stack as="section" gap="md" aria-labelledby={tasksId}>
+            <Heading level={2} id={tasksId} textStyle="Heading/4">Tasks</Heading>
+            <Table aria-labelledby={tasksId} columns={phone ? phoneTaskColumns : taskColumns} rows={rows} />
+          </Stack>
         </Stack>
-      </Stack>
-      <DemoFieldDialog open={dialog === "share"} onOpenChange={(open) => setDialog(open ? "share" : null)} title="Share Loyalty app"
+      </AppShell>
+      <DemoFieldDialog open={dialog === "share"} onOpenChange={(next) => setDialog(next ? "share" : null)} title={`Share ${loyalty.name}`}
         description="They can view the project and comment on tasks." field={{ kind: "email", label: "Email", placeholder: "name@phinco.vn" }}
         submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />
-      <DemoFieldDialog open={dialog === "task"} onOpenChange={(open) => setDialog(open ? "task" : null)} title="New task"
+      <DemoFieldDialog open={dialog === "task"} onOpenChange={(next) => setDialog(next ? "task" : null)} title="New task"
         field={{ kind: "name", label: "Task name", placeholder: "Design the rewards screen" }} submitLabel="Create task"
         confirm={() => "Task created"} onSubmit={addTask} />
-    </PreviewPage>
+    </PreviewAppFrame>
   );
 }
 
@@ -349,91 +421,141 @@ const leaveDates = (request: LeaveRequest) => request.days === 1 ? formatDate(re
 // Rows drop the year, as every request is this year; the detail shows the full dates.
 const leaveDays = (request: LeaveRequest) => request.days === 1 ? formatDay(request.from) : `${formatDay(request.from)} – ${formatDay(request.to)}`;
 const backButton = '.zen-top-nav__action[aria-label="Back"]';
+/** The studio app's roots on a phone; Time off is this screen. */
+const studioRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
+  { id: "time-off", label: "Time off", icon: "icon-calendar-line", selectedIcon: "icon-calendar-solid" },
+  { id: "profile", label: "Profile", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+/** Who else on the Design team is off (approved or waiting) on any day of this request. */
+const alsoOff = (request: LeaveRequest, all: LeaveRequest[]) => all.filter((other) => other.id !== request.id && other.person !== request.person
+  && (other.status === "Approved" || other.status === "Pending") && people[other.person].team === "Design"
+  && other.from.getTime() <= request.to.getTime() && other.to.getTime() >= request.from.getTime());
 
 function PhoneApproveExample() {
   const { toast } = useToast();
   const screen = usePhoneScreen();
   // One scroller per screen: the large title folds as the list runs under the bar.
   const screenRef = useRef<HTMLDivElement>(null);
+  const waitingId = useId();
+  const decidedId = useId();
   const noteId = useId();
+  const overlapId = useId();
   const [requests, setRequests] = useState(approvals);
   const [openId, setOpenId] = useState<string | null>("l2");
+  const [root, setRoot] = useState("time-off");
   const request = requests.find((item) => item.id === openId);
-  // A decision removes the footer, so focus moves to Back instead of dropping to <body>.
+  // A decision removes the Action bar, so focus moves to Back instead of dropping to <body>.
   const decide = (id: string, status: LeaveRequest["status"]) => screen.go(backButton, () => setRequests((list) => list.map((item) => item.id === id ? { ...item, status } : item)));
   const approve = (item: LeaveRequest) => {
     decide(item.id, "Approved");
-    toast({ type: "positive", title: "Leave approved", action: { label: "Undo", onClick: () => decide(item.id, "Pending") } });
+    toast({ type: "positive", title: "Leave approved", children: `${people[item.person].name} gets an email now.`, action: { label: "Undo", onClick: () => decide(item.id, "Pending") } });
   };
   const decline = (item: LeaveRequest) => {
     decide(item.id, "Declined");
-    toast({ title: "Leave declined", action: { label: "Undo", onClick: () => decide(item.id, "Pending") } });
+    toast({ title: "Leave declined", children: `${people[item.person].name.split(" ")[0]} can ask again with other dates.`, action: { label: "Undo", onClick: () => decide(item.id, "Pending") } });
   };
+  // A trailing Badge would squeeze a phone row's caption, so a decided request's status leads its caption; each value
+  // keeps its words together, so the caption wraps between values.
+  const row = (item: LeaveRequest, decided: boolean) => (
+    <ListItem key={item.id} data-request={item.id} title={people[item.person].name}
+      caption={[decided && item.status, leaveDays(item), plural(item.days, "day")].filter(Boolean).map((value) => String(value).replace(/ /g, "\u00a0")).join(" · ")}
+      leading={<Avatar size="md" {...avatarOf(people[item.person])} />}
+      onClick={() => screen.go(backButton, () => setOpenId(item.id))} />
+  );
 
   if (!request) {
+    const waiting = requests.filter((item) => item.status === "Pending");
+    const decided = requests.filter((item) => item.status !== "Pending");
     return (
-      <PlatformPhone key="root" label="Time off" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="Time off" largeTitle="Time off" scrollRef={screenRef} />}>
-        {screen.anchor}
-        {/* Rows pad 0 at the sides: the screen margin (lg) insets them, and sm above and below keeps the first and last fills clear. */}
-        <Box paddingX="lg" paddingY="xs">
-          <List aria-label="Leave requests">
-            {requests.map((item) => (
-              <ListItem key={item.id} data-request={item.id} title={people[item.person].name} caption={`${leaveDays(item)} · ${plural(item.days, "day")}`}
-                leading={<Avatar size="md" {...avatarOf(people[item.person])} />}
-                trailing={<Badge theme={leaveStatusTheme[item.status]} background="subtle">{item.status}</Badge>}
-                onClick={() => screen.go(backButton, () => setOpenId(item.id))} />
-            ))}
-          </List>
-        </Box>
+      // A tab root: the large title folds as the groups scroll under the bar, and the bottom bar holds the app's roots. It
+      // casts a shadow, so both groups take the Shadow ListBox on the grey Canvas; the kickers line up with the row text.
+      <PlatformPhone key="root" label="Time off" canvas="default" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="Time off" largeTitle="Time off" scrollRef={screenRef}
+            trailing={[{ icon: "icon-calendar-plus-line", label: "Request leave", onClick: () => toast({ title: "Request leave", children: `You have ${leaveBalance["Annual leave"]?.left ?? 0} days of annual leave left.` }) }]} />}
+          bottomNavigation={<BottomNavigation aria-label={studio.name} showLabels items={studioRoots} value={root} onValueChange={setRoot} />}
+        >
+          {screen.anchor}
+          <Stack as="section" gap="xs" aria-labelledby={waitingId}>
+            <Stack direction="row" gap="xs" align="center" paddingX="lg">
+              <Heading level={2} id={waitingId} textStyle="Body/Small/Bold" tone="light">Waiting for you</Heading>
+              {waiting.length ? <BadgeCounter size="sm" theme="neutral" background="subtle" value={waiting.length} /> : null}
+            </Stack>
+            <ListBox theme="shadow">
+              {waiting.length ? <List aria-labelledby={waitingId}>{waiting.map((item) => row(item, false))}</List> : (
+                <EmptyState size="sm" headingLevel={3} title="You're all caught up">New requests from the Design team show here.</EmptyState>
+              )}
+            </ListBox>
+          </Stack>
+          <Stack as="section" gap="xs" aria-labelledby={decidedId}>
+            <Box paddingX="lg"><Heading level={2} id={decidedId} textStyle="Body/Small/Bold" tone="light">Decided this year</Heading></Box>
+            <ListBox theme="shadow">
+              <List aria-labelledby={decidedId}>{decided.map((item) => row(item, true))}</List>
+            </ListBox>
+          </Stack>
+        </AppShell>
       </PlatformPhone>
     );
   }
   const person = people[request.person];
   const left = annualLeft[request.person];
+  const overlap = alsoOff(request, requests);
   return (
-    <PlatformPhone key={request.id} label="Leave request" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
-        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-request="${request.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
-      // Two peer answers: Decline and Approve side by side, Primary at the end. Decided requests have no footer.
-      footer={request.status === "Pending" ? (
-        <ActionBar position="static" direction="horizontal"
-          secondaryAction={{ label: "Decline leave", onClick: () => decline(request) }}
-          primaryAction={{ label: "Approve leave", onClick: () => approve(request) }} />
-      ) : undefined}>
-      {screen.anchor}
-      <Stack gap="lg" paddingY="xs">
-        <List aria-label="Requested by">
-          {/* zen-detached: ListItem · Zen Studio */}
-          <Stack as="li" direction="column" align="center" gap="md" paddingX="lg" paddingY="sm" justify="center">
-            <Avatar size="2xl" {...avatarOf(person)} />
-            <Stack gap="2xs" style={{ flex: 1 }}>
-              <Heading level={2} textStyle="Heading/2" truncate align="center">{person.name}</Heading>
-              <Text as="span" textStyle="Body/Small/Regular" tone="light">{`${person.role} · ${person.location}`}</Text>
-            </Stack>
-            <Stack direction="row" align="center" gap="sm">
-              <Badge theme={leaveStatusTheme[request.status]} background="subtle">{request.status}</Badge>
-            </Stack>
+    // A pushed screen: the compact bar with Back, the request in flat blocks on the grey Canvas, and the two peer
+    // answers in the Action bar (Figma Bottom=Actions), Primary at the end. Decided requests have no Action bar.
+    <PlatformPhone key={request.id} label="Leave request" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-request="${request.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
+        actionBar={request.status === "Pending" ? (
+          <ActionBar direction="horizontal"
+            secondaryAction={{ label: "Decline leave", onClick: () => decline(request) }}
+            primaryAction={{ label: "Approve leave", onClick: () => approve(request) }} />
+        ) : undefined}
+      >
+        {screen.anchor}
+        <Stack direction="column" align="center" gap="md" paddingY="xs">
+          <Avatar size="2xl" {...avatarOf(person)} />
+          <Stack gap="2xs" align="center">
+            <Heading level={2} textStyle="Heading/2" truncate align="center">{person.name}</Heading>
+            <Text as="span" textStyle="Body/Small/Regular" tone="light">{`${person.role} · ${person.location}`}</Text>
           </Stack>
-        </List>
-        <Box paddingX="lg">
+          <Badge theme={leaveStatusTheme[request.status]} background="subtle">{request.status}</Badge>
+        </Stack>
+        <Card theme="flat">
           <DescriptionList divider items={[
-            { term: "Type", description: request.kind },
-            { term: "Dates", description: leaveDates(request) },
-            { term: "Length", description: plural(request.days, "day") },
+            { id: "type", term: "Type", description: request.kind },
+            { id: "dates", term: "Dates", description: leaveDates(request) },
+            { id: "length", term: "Length", description: plural(request.days, "day") },
             // While it waits, the approver sees what annual leave would be left; other kinds don't use the balance.
             ...(request.status === "Pending" && request.kind === "Annual leave" && left !== undefined
-              ? [{ term: "Balance after", description: plural(left - request.days, "day") }] : []),
-            { term: "Requested", description: formatRelative(request.requested) },
+              ? [{ id: "balance", term: "Balance after", description: plural(left - request.days, "day") }] : []),
+            { id: "requested", term: "Requested", description: formatRelative(request.requested) },
           ]} />
-        </Box>
+        </Card>
         {request.note ? (
-          <Stack as="section" gap="xs" paddingX="lg" aria-labelledby={noteId}>
+          <Stack as="section" gap="xs" aria-labelledby={noteId}>
             <Heading level={2} id={noteId} textStyle="Body/Small/Bold" tone="light">Note</Heading>
             <Text>{request.note}</Text>
           </Stack>
         ) : null}
-      </Stack>
+        {/* What an approver checks before saying yes: who else on the team is away on those days. */}
+        <Stack as="section" gap="xs" aria-labelledby={overlapId}>
+          <Box paddingX="lg"><Heading level={2} id={overlapId} textStyle="Body/Small/Bold" tone="light">Also off on these days</Heading></Box>
+          <ListBox theme="flat">
+            {overlap.length ? (
+              <List aria-labelledby={overlapId}>
+                {overlap.map((other) => (
+                  <ListItem key={other.id} title={people[other.person].name} caption={`${leaveDays(other)} · ${other.status}`}
+                    leading={<Avatar size="md" {...avatarOf(people[other.person])} />} />
+                ))}
+              </List>
+            ) : <Text textStyle="Body/Small/Regular" tone="base">{`No one else on the ${person.team} team is off then.`}</Text>}
+          </ListBox>
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -441,23 +563,43 @@ function PhoneApproveExample() {
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Page actions",
-    description: "A project page has one Primary, New task, on the right. Share is Tertiary and rarer actions wait in the More actions menu, so the main action stands out.",
+    description: "A project page in the studio's AppShell has one Primary, New task, at the end of the PageHeader in the header's Main row. Share is Tertiary and rarer actions wait in the More actions menu, so the main action stands out; the header's top row keeps only the trail, notifications and the account.",
     wide: true,
     screen: true,
     render: () => <PageActionsExample />,
-    code: `<PageHeader
-  eyebrow="Phin & Co"
-  title="Loyalty app"
-  meta={<Badge theme="blue" background="subtle">Active</Badge>}
-  actions={<>
-    <Button level="tertiary" startIcon="icon-share-01-line" onClick={() => setDialog("share")}>Share</Button>
-    <Menu align="end" trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="More actions" />} items={[
-      { id: "duplicate", label: "Duplicate project", onSelect: duplicate },
-      { id: "hold", label: "Put on hold", onSelect: putOnHold },
-    ]} />
-    <Button level="primary" startIcon="icon-plus-line" onClick={() => setDialog("task")}>New task</Button>
-  </>}
-/>`,
+    code: `<AppShell
+  sidebar={<Sidebar logo={logo} sections={places} selectedId="projects" onItemClick={go} footer={settings} />}
+  header={
+    <AppShellHeader
+      // The top row: utilities only (the trail, notifications, the account)
+      leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: "phin-loyalty", label: "Loyalty app" }]} onNavigate={go} />}
+      actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} />
+        <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={account} /></>}
+      // The Main row: the page's title and its actions, one Primary at the end
+      main={<PageHeader
+        eyebrow="Phin & Co"
+        title="Loyalty app"
+        meta={<Badge theme="blue" background="subtle">Active</Badge>}
+        actions={<>
+          <Button level="tertiary" startIcon="icon-share-01-line" onClick={() => setDialog("share")}>Share</Button>
+          <Menu align="end" trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="More actions" />} items={[
+            { id: "duplicate", label: "Duplicate project", icon: "icon-copy-line", onSelect: duplicate },
+            { id: "hold", label: "Put on hold", icon: "icon-pause-circle-line", onSelect: putOnHold },
+          ]} />
+          <Button level="primary" startIcon="icon-plus-line" onClick={() => setDialog("task")}>New task</Button>
+        </>}
+      />}
+    />
+  }
+>
+  <Stack gap="xl">
+    <Grid columns={3} gap="md" stackBelow={640}>{/* Progress · Budget spent · Open tasks: MetricCard theme="shadow" */}</Grid>
+    <Stack as="section" gap="md" aria-labelledby="tasks">
+      <Heading level={2} id="tasks" textStyle="Heading/4">Tasks</Heading>
+      <Table aria-labelledby="tasks" columns={columns} rows={rows} />
+    </Stack>
+  </Stack>
+</AppShell>`,
   },
   {
     title: "Send an invoice",
@@ -534,20 +676,26 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Approve on a phone",
-    description: "On a phone the decision sits in an ActionBar footer: Decline leave and Approve leave are two Large buttons side by side, Primary at the end. Once decided, the footer leaves, focus returns to Back and a Toast offers Undo.",
+    description: "On a phone the decision sits in the AppShell's Action bar: Decline leave and Approve leave are two Large buttons side by side, Primary at the end, under the request and who else is off on those days. Once decided, the Action bar leaves, focus returns to Back and a Toast offers Undo; Back goes to the Time off root, where waiting and decided requests are grouped over the bottom bar.",
     render: () => <PhoneApproveExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 // One key per screen; the Top Navigation follows the scroll of the phone screen.
-<PlatformPhone key={request.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
-    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToRequests }} />}
-  footer={request.status === "Pending" ? (
-    <ActionBar position="static" direction="horizontal"
-      secondaryAction={{ label: "Decline leave", onClick: () => decline(request) }}
-      primaryAction={{ label: "Approve leave", onClick: () => approve(request) }} />
-  ) : undefined}>
-  …
+<PlatformPhone key={request.id} canvas="default" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToRequests }} />}
+    actionBar={request.status === "Pending" ? (
+      <ActionBar direction="horizontal"
+        secondaryAction={{ label: "Decline leave", onClick: () => decline(request) }}
+        primaryAction={{ label: "Approve leave", onClick: () => approve(request) }} />
+    ) : undefined}
+  >
+    {/* The Body pads the screen and spaces its sections */}
+    <Stack align="center" gap="md">…the person and the status…</Stack>
+    <Card theme="flat"><DescriptionList divider items={[…type, dates, length, balance after…]} /></Card>
+    <Stack as="section" gap="xs" aria-labelledby="also-off">…who else is off…</Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

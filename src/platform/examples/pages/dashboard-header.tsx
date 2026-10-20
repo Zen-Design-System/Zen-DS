@@ -4,7 +4,7 @@
    Header/Dashboard), a row of your own and a narrow column. Phones name their screens with the Top Navigation and filter
    in one scrolling Chip row instead (see Top navigation and Chip › Mobile filter row). */
 import { useEffect, useState } from "react";
-import { AppShell, AppShellAccount, AppShellAction } from "../../../components/AppShell";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
@@ -13,7 +13,7 @@ import { Chip } from "../../../components/Chip";
 import { DashboardHeader } from "../../../components/DashboardHeader";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
-import { Box, Container, Stack } from "../../../components/Layout";
+import { Box, Stack } from "../../../components/Layout";
 import { Menu, type MenuItemData } from "../../../components/Menu";
 import { Search } from "../../../components/Search";
 import { Segmented } from "../../../components/Segmented";
@@ -23,8 +23,9 @@ import { Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { keepOnHotUpdate } from "../../hotData";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewAppFrame } from "../../PlatformFrames";
 import { figmaSidebarBrand } from "../../PlatformSidebarBrand";
-import { formatRange, leaveRequests, leaveStatusTheme, people, type LeaveKind, type LeaveRequest, type LeaveStatus } from "../data";
+import { formatRange, initials, leaveRequests, leaveStatusTheme, people, type LeaveKind, type LeaveRequest, type LeaveStatus } from "../data";
 import type { ExampleDef } from "../types";
 import "./dashboard-header.css";
 
@@ -51,6 +52,17 @@ const columns: TableColumn<LeaveRequest>[] = [
   { id: "days", header: "Days", width: "88px", align: "right", cell: (row) => <TableText>{plural(row.days, "day")}</TableText> },
   { id: "status", header: "Status", width: "136px", cell: (row) => <Badge size="medium" theme={leaveStatusTheme[row.status]} background="subtle">{row.status}</Badge> },
 ];
+
+/** A narrow window keeps the person and the status, the type and dates under the name; a phone-width one (no room for
+ *  a second column) puts the status in that line too. */
+const personColumn = (withStatus: boolean): TableColumn<LeaveRequest> => ({
+  id: "person", header: "Person", cell: (row) => {
+    const person = people[row.person];
+    return <TableMedia media={<Avatar size="small" src={person.photo} alt="" theme={person.photo ? "photo" : person.theme}>{initials(person.name)}</Avatar>} caption={`${withStatus ? `${row.status} · ` : ""}${row.kind} · ${formatRange(row.from, row.to)}`}>{person.name}</TableMedia>;
+  },
+});
+const narrowColumns: TableColumn<LeaveRequest>[] = [personColumn(false), { ...columns[columns.length - 1], width: undefined }];
+const phoneColumns: TableColumn<LeaveRequest>[] = [personColumn(true)];
 
 // ——— 1. Control bar over a table ————————————————————————————————————————————————————————————
 function LeaveRequests() {
@@ -135,24 +147,54 @@ function NavigationBar() {
 const navSections = [{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "time-off", label: "Time off", icon: "icon-calendar-line" }, { id: "team", label: "Team", icon: "icon-users-line" }] }];
 function DashboardPage() {
   const { toast } = useToast();
-  const [section, setSection] = useState("time-off");
   const [status, setStatus] = useState<LeaveStatus | null>(null);
-  const rows = leaveRequests.filter((row) => !status || row.status === status);
+  const [requests, setRequests] = useState(leaveRequests);
+  const [waiting, setWaiting] = useState(true);
+  const rows = requests.filter((row) => !status || row.status === status);
+  const [measure, width] = useWidth();
+  const alex = people.alex;
+  // Only Time off is drawn here: the other rows and crumbs say so instead of selecting a page that doesn't change.
+  const notHere = (label: string) => toast({ title: `${label} isn’t part of this example`, children: "This example shows the Time off page." });
+  const pending = leaveRequests.filter((row) => row.status === "Pending");
+  const submit = () => {
+    const next: LeaveRequest = { id: `l${requests.length + 1}`, person: "alex", kind: "Annual leave", from: new Date(2026, 10, 16), to: new Date(2026, 10, 17), days: 2, status: "Pending", requested: new Date(2026, 8, 30, 10, 30) };
+    setRequests((list) => [next, ...list]);
+    toast({ type: "positive", title: "Leave submitted", children: `${next.kind} · ${formatRange(next.from, next.to)}`, action: { label: "Undo", onClick: () => setRequests((list) => list.filter((row) => row.id !== next.id)) } });
+  };
   return (
-    <AppShell
-      className="pe-dashboard-shell"
-      sidebar={<Sidebar {...figmaSidebarBrand} sections={navSections} selectedId={section} onItemClick={(item) => setSection(item.id)} />}
-      header={<Breadcrumbs items={[{ id: "home", label: "Home" }, { id: "time-off", label: "Time off" }]} onNavigate={(item, event) => { event.preventDefault(); setSection(item.id); }} />}
-      headerActions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot onClick={() => toast({ title: "No new notifications" })} />}
-      sections={<>
-        <DashboardHeader type="main" title="Time off" childTitle="2026" subheading="Leave requests from the Design team."
-          actions={<Button level="primary" startIcon="icon-plus-line" onClick={() => toast({ type: "positive", title: "Leave submitted", children: "Annual leave · Nov 16 – Nov 17, 2026" })}>Submit leave</Button>} />
-        <DashboardHeader controls={<FilterChip label="Status" options={statuses} value={status} onChange={setStatus} />} subheading={plural(rows.length, "request")}
-          actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Export started", children: "time-off-2026.csv" })}>Export report</Button>} />
-      </>}
-    >
-      <Container maxWidth="full"><Table aria-label="Time off requests" rows={rows} columns={columns} /></Container>
-    </AppShell>
+    <PreviewAppFrame>
+      <AppShell
+        sidebar={<Sidebar {...figmaSidebarBrand} sections={navSections} selectedId="time-off" onItemClick={(item) => { if (item.id !== "time-off") notHere(item.label); }} />}
+        header={(
+          <AppShellHeader
+            // The top row: the collapse toggle, then the trail (no Master icon beside the toggle), Notifications and
+            // the account last.
+            leading={<Breadcrumbs master={false} items={[{ id: "home", label: "Home" }, { id: "time-off", label: "Time off" }]} onNavigate={(item, event) => { event.preventDefault(); if (item.id !== "time-off") notHere(String(item.label)); }} />}
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot={waiting} onClick={() => {
+                toast(waiting
+                  ? { title: `${plural(pending.length, "request")} wait for you`, children: `${pending.map((row) => people[row.person].name).join(" and ")} asked for annual leave.` }
+                  : { title: "No new notifications", children: "You’re all caught up." });
+                setWaiting(false);
+              }} />
+              <Menu align="end" aria-label="Account" trigger={<AppShellAccount name={alex.name} src={alex.photo} />} items={[
+                { id: "profile", label: "Profile", icon: "icon-user-line", onSelect: () => toast({ title: alex.name, children: `${alex.role} · ${alex.email}` }) },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out" }) },
+              ]} />
+            </>}
+            // The Main row: the page title row with the page's one Primary.
+            main={<DashboardHeader type="main" title="Time off" childTitle="2026" subheading="Leave requests from the Design team."
+              actions={<Button level="primary" startIcon="icon-plus-line" onClick={submit}>Submit leave</Button>} />}
+            // Sections: the control bar over the table, at the page margins.
+            sections={<DashboardHeader controls={<FilterChip label="Status" options={statuses} value={status} onChange={setStatus} />} subheading={plural(rows.length, "request")}
+              actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Export started", children: `time-off-2026.csv · ${plural(rows.length, "row")}` })}>Export report</Button>} />}
+          />
+        )}
+      >
+        {/* The Body pads the page margins: the table sits straight on the Canvas. */}
+        <div ref={measure}><Table aria-label="Time off requests" rows={rows} columns={width > 0 && width < 360 ? phoneColumns : width > 0 && width < 560 ? narrowColumns : columns} /></div>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -230,22 +272,27 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "The rows of a dashboard page",
-    description: "Figma's Header/Dashboard: inside an AppShell the rows go in sections — the page title row (type main: the title, a second title in Light and one line under it) and a control bar — and the shell pads each one. The app frame's own top bar stays AppShell's header.",
+    description: "Figma's Header/Dashboard inside an AppShell (AppShellHeader): the top row keeps the trail, Notifications and the account, the page title row (type main: the title, a second title in Light, one line under it and the page's Primary) is the Main row, and the control bar sits in Sections, at the page margins. The Body pads the table, so it needs no Container. Submit leave adds a pending request (the toast can undo it) and the Status chip filters the rows.",
     wide: true,
     screen: true,
     render: () => <DashboardPage />,
     code: `<AppShell
-  sidebar={<Sidebar sections={sections} selectedId={section} onItemClick={(item) => setSection(item.id)} />}
-  header={<Breadcrumbs items={crumbs} onNavigate={go} />}
-  headerActions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot onClick={openInbox} />}
-  sections={<>
-    <DashboardHeader type="main" title="Time off" childTitle="2026" subheading="Leave requests from the Design team."
-      actions={<Button level="primary" startIcon="icon-plus-line" onClick={submitLeave}>Submit leave</Button>} />
-    <DashboardHeader controls={statusChip} subheading={plural(rows.length, "request")}
-      actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={exportCsv}>Export report</Button>} />
-  </>}
+  sidebar={<Sidebar sections={sections} selectedId="time-off" onItemClick={go} />}
+  header={
+    <AppShellHeader
+      leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />}
+      actions={<>
+        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot={waiting} onClick={openInbox} />
+        <Menu align="end" aria-label="Account" trigger={<AppShellAccount name="Alex Duong" src={photo} />} items={accountItems} />
+      </>}
+      main={<DashboardHeader type="main" title="Time off" childTitle="2026" subheading="Leave requests from the Design team."
+        actions={<Button level="primary" startIcon="icon-plus-line" onClick={submitLeave}>Submit leave</Button>} />}
+      sections={<DashboardHeader controls={statusChip} subheading={plural(rows.length, "request")}
+        actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={exportCsv}>Export report</Button>} />}
+    />
+  }
 >
-  <Container maxWidth="full"><Table aria-label="Time off requests" rows={rows} columns={columns} /></Container>
+  <Table aria-label="Time off requests" rows={rows} columns={columns} />
 </AppShell>`,
   },
   {

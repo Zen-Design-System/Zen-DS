@@ -107,6 +107,8 @@ export type ResizePlan = {
   wrapper: string | null;
   /** The ops go to the Grid whose column the element fills (this src, a Grid), not to the element. */
   grid?: string;
+  /** The ops go to the floating Box that holds the element (this src, a Box): one op many, its insets and the size. */
+  float?: string;
   /** Undo label. */
   label: string;
   /** What the canvas announces at commit ("Width 320, fixed"). */

@@ -102,11 +102,14 @@ export function BottomNavigation({ items: itemsProp, children, value, onValueCha
   // Figma's defaults: Floating's Action is Theme=Primary, Floating-Glass's the Glass one ("default" here), the Default
   // bar's action Primary (user 2026-10-19: "Update bottom navigation từ Figma lên Studio").
   const actionTheme = action?.theme ?? (type === "floating-glass" ? "default" : "primary");
-  // Figma Floating-Glass (9017:42257): the container and the CTA are Glass-Floating, the selected item Liquid-Glass/Normal
-  // (GLASS: frost, refraction, dispersion; _shared/liquid-glass.ts).
+  // Figma Floating-Glass (9017:42257): the Container (9017:42211) and the CTA (9017:42216) take the effect style
+  // Liquid-Glass/Normal (GLASS frost 4, refraction 0.8, depth 20, light 0.8; _shared/liquid-glass.ts). The selected item
+  // (Items/Floating-Glass Select=Yes, 9018:43918) is Active/Neutral/Subtle with a lightless GLASS (light 0) of its own,
+  // which draws nothing in the browser: inside the pill, whose backdrop filter makes it the backdrop root, the item's
+  // backdrop is only the pill's own fill, and refracting that semi-transparent fill turned the tab grey. So the item
+  // keeps its fill alone (C3 15922:7729, C7 15942:120713: a light pill).
   const glassy = type === "floating-glass";
-  const floatingGlass = useLiquidGlass("glass-floating", glassy);
-  const itemGlass = useLiquidGlass("liquid-glass-normal", glassy);
+  const floatingGlass = useLiquidGlass("liquid-glass-normal", glassy);
   const actionButton = action ? (
     <TipButton ref={glassy && actionTheme === "default" ? floatingGlass : undefined} tip={action.label} className={floating ? "zen-bottom-nav__fab" : "zen-bottom-nav__action"} data-tone={actionTheme} aria-label={action.label} onClick={action.onClick}>
       {nest.at("Action")("Icon", renderIcon(action.icon))}
@@ -118,7 +121,7 @@ export function BottomNavigation({ items: itemsProp, children, value, onValueCha
         const selected = item.id === value;
         return (
           <li key={item.id} className="zen-bottom-nav__cell">
-            <TipButton ref={selected ? itemGlass : undefined} tip={showLabels ? false : item.label} className="zen-bottom-nav__item" aria-current={selected ? "page" : undefined} aria-label={showLabels ? undefined : item.label} data-selected={selected ? "true" : "false"} onClick={() => onValueChange(item.id)}>
+            <TipButton tip={showLabels ? false : item.label} className="zen-bottom-nav__item" aria-current={selected ? "page" : undefined} aria-label={showLabels ? undefined : item.label} data-selected={selected ? "true" : "false"} onClick={() => onValueChange(item.id)}>
               <span className="zen-bottom-nav__icon">
                 {nest.at("Item", item.id)("Icon", renderIcon(selected && item.selectedIcon ? item.selectedIcon : item.icon))}
                 {item.dot ? <NotificationDot className="zen-bottom-nav__dot" /> : null}

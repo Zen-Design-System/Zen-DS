@@ -22,7 +22,6 @@ import {
   Box,
   Card,
   Chip,
-  Container,
   DateField,
   DescriptionList,
   DockIcon,
@@ -355,12 +354,12 @@ export function HrHomeTemplate() {
     </List>
   );
 
-  let aside: ReactNode;
+  let sidePanel: ReactNode;
   if (openedLeave) {
     const kind = leaveKinds[openedLeave.kind];
     const left = leaveBalances(requests, openedLeave.person).find((balance) => balance.kind === openedLeave.kind);
     const pending = openedLeave.status === "Pending";
-    aside = (
+    sidePanel = (
       <SidePanel type="standard" title="Leave request" description={`Sent ${midSentence(formatRelative(openedLeave.submitted))}`} open onOpenChange={close}
         primaryAction={pending ? { label: "Approve", onClick: () => decideLeave(openedLeave, "Approved") } : undefined}
         secondaryAction={pending ? { label: "Decline", onClick: () => decideLeave(openedLeave, "Declined") } : undefined}>
@@ -380,7 +379,7 @@ export function HrHomeTemplate() {
   } else if (openedClaim) {
     const category = expenseCategories[openedClaim.category];
     const submitted = openedClaim.status === "Submitted";
-    aside = (
+    sidePanel = (
       <SidePanel type="standard" title="Expense claim" description={openedClaim.submitted ? `${openedClaim.id} · Sent ${midSentence(formatRelative(openedClaim.submitted))}` : openedClaim.id} open onOpenChange={close}
         primaryAction={submitted ? { label: "Approve", onClick: () => decideClaim(openedClaim, "Approved") } : undefined}
         secondaryAction={submitted ? { label: "Reject", onClick: () => decideClaim(openedClaim, "Rejected") } : undefined}>
@@ -423,7 +422,7 @@ export function HrHomeTemplate() {
         { term: "Total", description: formatMoney(monthTotal(thisMonth)), emphasis: true },
       ]} />,
     };
-    aside = (
+    sidePanel = (
       <SidePanel type="standard" size="small" title={openedKpi.label} description={`${openedKpi.value} · ${openedKpi.trend.label}`} open onOpenChange={close}
         primaryAction={openedKpi.id === "spend" ? { label: "Open expenses", onClick: () => go({ module: "expenses", page: "overviews" }) } : undefined}>
         {breakdown[openedKpi.id]}
@@ -432,161 +431,159 @@ export function HrHomeTemplate() {
   }
 
   return (
-    <HrShell module="home" onNavigate={navigate} aside={aside}>
-      {/* Full width like the other HR pages (backlog batch 6b, user 2026-10-07). */}
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="sm">
-          {/* Zen AI: the greeting, a short thread once Alex asks, and the prompt. The greeting is the page's h1 (it is the
-              title people see, in Heading/1), so the sections under it are h2 Heading/4. */}
-          <AiChatBlock headingLevel={1} greeting={`${greeting}, ${me.name.split(" ")[0]}. How can I help?`} suggestions={suggestions}>
-            {messages.length ? (
-              <AiChatThread aria-label="Conversation with Zen AI">
-                {messages.map((message) => (
-                  <AiChatBubble key={message.id} side={message.side}>
-                    {/* A prompt sent with a file shows the file above it. */}
-                    {message.file ? (
-                      <Stack gap="xs" align="end">
-                        <Stack direction="row" gap="2xs" align="center">
-                          <FileIcon format={fileIconFormatOf(message.file)} />
-                          <Text as="span" textStyle="Body/Base/Medium">{message.file}</Text>
-                        </Stack>
-                        <Text as="span">{message.text}</Text>
+    <HrShell module="home" onNavigate={navigate} sidePanel={sidePanel}>
+      {/* Full width like the other HR pages (backlog batch 6b, user 2026-10-07): the Body sets the page margins. */}
+      <Stack gap="xl">
+        {/* Zen AI: the greeting, a short thread once Alex asks, and the prompt. The greeting is the page's h1 (it is the
+            title people see, in Heading/1), so the sections under it are h2 Heading/4. */}
+        <AiChatBlock headingLevel={1} greeting={`${greeting}, ${me.name.split(" ")[0]}. How can I help?`} suggestions={suggestions}>
+          {messages.length ? (
+            <AiChatThread aria-label="Conversation with Zen AI">
+              {messages.map((message) => (
+                <AiChatBubble key={message.id} side={message.side}>
+                  {/* A prompt sent with a file shows the file above it. */}
+                  {message.file ? (
+                    <Stack gap="xs" align="end">
+                      <Stack direction="row" gap="2xs" align="center">
+                        <FileIcon format={fileIconFormatOf(message.file)} />
+                        <Text as="span" textStyle="Body/Base/Medium">{message.file}</Text>
                       </Stack>
-                    ) : message.text}
-                  </AiChatBubble>
-                ))}
-                {thinking ? <AiChatBubble side="ai" thinking /> : null}
-              </AiChatThread>
-            ) : null}
-            {file ? (
-              <Stack direction="row" gap="2xs">
-                <Tag leading={<FileIcon format={fileIconFormatOf(file)} />} remove onRemove={() => setFile(null)}>{file}</Tag>
-              </Stack>
-            ) : null}
-            <Box ref={fieldRef}>
-              <AiChatField key={dictation.key} defaultValue={dictation.text} fieldStyle="surface" placeholder="Ask Zen AI" busy={thinking} onStop={stop} onSubmit={ask}
-                onAttach={attach} onVoice={() => setDictation((current) => ({ key: current.key + 1, text: "What's waiting for my approval?" }))} />
-            </Box>
-          </AiChatBlock>
-
-          {/* Today: what needs Alex, who's away and the next day off. Tablets and phones stack the columns. */}
-          <Stack as="section" gap="md" aria-labelledby="home-today">
-            <Stack direction="row" gap="xs" align="baseline" wrap>
-              <Heading level={2} id="home-today">Today</Heading>
-              <Text as="span" textStyle="Body/Small/Regular" tone="light">{formatDate(today, { weekday: true, year: false })}</Text>
+                      <Text as="span">{message.text}</Text>
+                    </Stack>
+                  ) : message.text}
+                </AiChatBubble>
+              ))}
+              {thinking ? <AiChatBubble side="ai" thinking /> : null}
+            </AiChatThread>
+          ) : null}
+          {file ? (
+            <Stack direction="row" gap="2xs">
+              <Tag leading={<FileIcon format={fileIconFormatOf(file)} />} remove onRemove={() => setFile(null)}>{file}</Tag>
             </Stack>
-            <Grid columns={{ mobile: 1, tablet: 1, desktop: "minmax(0, 2fr) minmax(360px, 1fr)" }} gap="md" align="start">
-              {/* Rows (grouped under kickers) → a ListBox: the title and count in its Header-Slot. */}
-              <ListBox as="section" theme="shadow" aria-labelledby="home-waiting" ref={waitingRef}
-                header={<Stack direction="row" gap="xs" align="center">
-                  <Heading level={3} id="home-waiting">Waiting for you</Heading>
-                  {waiting ? <BadgeCounter value={waiting} /> : null}
-                </Stack>}>
-                {/* Kicker → rows xs (the rows pad 12px above and below themselves); group → group lg (24). */}
-                <Stack gap="lg">
-                  {leaveToReview.length ? (
-                    <Stack gap="xs">
-                      <Heading level={4} textStyle="Body/Small/Bold" tone="light" id="home-waiting-leave">Leave requests</Heading>
-                      <List aria-labelledby="home-waiting-leave">
-                        {leaveToReview.map((request) => leaveRow(request,
-                          approvalActions(people[request.person].name, () => decideLeave(request, "Approved"), () => decideLeave(request, "Declined"), "Decline"),
-                          () => setPanel({ type: "leave", id: request.id })))}
-                      </List>
+          ) : null}
+          <Box ref={fieldRef}>
+            <AiChatField key={dictation.key} defaultValue={dictation.text} fieldStyle="surface" placeholder="Ask Zen AI" busy={thinking} onStop={stop} onSubmit={ask}
+              onAttach={attach} onVoice={() => setDictation((current) => ({ key: current.key + 1, text: "What's waiting for my approval?" }))} />
+          </Box>
+        </AiChatBlock>
+
+        {/* Today: what needs Alex, who's away and the next day off. Tablets and phones stack the columns. */}
+        <Stack as="section" gap="md" aria-labelledby="home-today">
+          <Stack direction="row" gap="xs" align="baseline" wrap>
+            <Heading level={2} id="home-today">Today</Heading>
+            <Text as="span" textStyle="Body/Small/Regular" tone="light">{formatDate(today, { weekday: true, year: false })}</Text>
+          </Stack>
+          <Grid columns={{ mobile: 1, tablet: 1, desktop: "minmax(0, 2fr) minmax(360px, 1fr)" }} gap="md" align="start">
+            {/* Rows (grouped under kickers) → a ListBox: the title and count in its Header-Slot. */}
+            <ListBox as="section" theme="shadow" aria-labelledby="home-waiting" ref={waitingRef}
+              header={<Stack direction="row" gap="xs" align="center">
+                <Heading level={3} id="home-waiting">Waiting for you</Heading>
+                {waiting ? <BadgeCounter value={waiting} /> : null}
+              </Stack>}>
+              {/* Kicker → rows xs (the rows pad 12px above and below themselves); group → group lg (24). */}
+              <Stack gap="lg">
+                {leaveToReview.length ? (
+                  <Stack gap="xs">
+                    <Heading level={4} textStyle="Body/Small/Bold" tone="light" id="home-waiting-leave">Leave requests</Heading>
+                    <List aria-labelledby="home-waiting-leave">
+                      {leaveToReview.map((request) => leaveRow(request,
+                        approvalActions(people[request.person].name, () => decideLeave(request, "Approved"), () => decideLeave(request, "Declined"), "Decline"),
+                        () => setPanel({ type: "leave", id: request.id })))}
+                    </List>
+                  </Stack>
+                ) : null}
+                {claimsToReview.length ? (
+                  <Stack gap="xs">
+                    <Heading level={4} textStyle="Body/Small/Bold" tone="light" id="home-waiting-claims">Expense claims</Heading>
+                    <List aria-labelledby="home-waiting-claims">
+                      {claimsToReview.map((claim) => (
+                        <ListItem key={claim.id} title={people[claim.person].name} leading={personAvatar(claim.person)}
+                          // Phones keep the caption to two lines: the amount and category (the panel has the rest).
+                          caption={phone ? `${formatMoney(claim.amount)} · ${expenseCategories[claim.category].name}` : `${claim.title} · ${formatMoney(claim.amount)}`}
+                          trailing={approvalActions(people[claim.person].name, () => decideClaim(claim, "Approved"), () => decideClaim(claim, "Rejected"), "Reject")}
+                          onClick={() => setPanel({ type: "claim", id: claim.id })} selected={panel?.type === "claim" && panel.id === claim.id} />
+                      ))}
+                    </List>
+                  </Stack>
+                ) : null}
+              </Stack>
+              {waiting ? null : (
+                <EmptyState title="No requests to review" headingLevel={4} size="sm" icon="icon-check-circle-line"
+                  secondaryAction={{ label: "Open approvals", onClick: () => go({ module: "time-off", page: "approvals" }) }}>
+                  Leave requests and expense claims from your team show up here.
+                </EmptyState>
+              )}
+            </ListBox>
+
+            <Stack gap="md">
+              <ListBox as="section" theme="shadow" aria-labelledby="home-out"
+                header={<>
+                  <Heading level={3} id="home-out">Who's out</Heading>
+                  {/* A phone can't fit three equal segments, so it gets a single-choice row of Normal chips: Small and
+                      2xs apart, so the three periods share one line inside the card (they wrap only on a narrower phone). */}
+                  {phone ? (
+                    <Stack direction="row" gap="2xs" wrap role="group" aria-label="Period">
+                      {(Object.keys(periods) as Period[]).map((id) => (
+                        <Chip key={id} variant="normal" size="sm" level="primary" selected={id === period} onClick={() => setPeriod(id)}>{periods[id].label}</Chip>
+                      ))}
                     </Stack>
-                  ) : null}
-                  {claimsToReview.length ? (
-                    <Stack gap="xs">
-                      <Heading level={4} textStyle="Body/Small/Bold" tone="light" id="home-waiting-claims">Expense claims</Heading>
-                      <List aria-labelledby="home-waiting-claims">
-                        {claimsToReview.map((claim) => (
-                          <ListItem key={claim.id} title={people[claim.person].name} leading={personAvatar(claim.person)}
-                            // Phones keep the caption to two lines: the amount and category (the panel has the rest).
-                            caption={phone ? `${formatMoney(claim.amount)} · ${expenseCategories[claim.category].name}` : `${claim.title} · ${formatMoney(claim.amount)}`}
-                            trailing={approvalActions(people[claim.person].name, () => decideClaim(claim, "Approved"), () => decideClaim(claim, "Rejected"), "Reject")}
-                            onClick={() => setPanel({ type: "claim", id: claim.id })} selected={panel?.type === "claim" && panel.id === claim.id} />
-                        ))}
-                      </List>
-                    </Stack>
-                  ) : null}
-                </Stack>
-                {waiting ? null : (
-                  <EmptyState title="No requests to review" headingLevel={4} size="sm" icon="icon-check-circle-line"
-                    secondaryAction={{ label: "Open approvals", onClick: () => go({ module: "time-off", page: "approvals" }) }}>
-                    Leave requests and expense claims from your team show up here.
+                  ) : (
+                    <Segmented aria-label="Period" fullWidth value={period} onValueChange={(value) => setPeriod(value as Period)}
+                      options={(Object.keys(periods) as Period[]).map((id) => ({ id, label: periods[id].label }))} />
+                  )}
+                </>}>
+                {out.length ? (
+                  <List aria-label={`Out ${periods[period].label.toLowerCase()}`}>{out.map((request) => leaveRow(request))}</List>
+                ) : (
+                  <EmptyState title={`No one is off ${periods[period].label.toLowerCase()}`} headingLevel={4} size="sm" icon="icon-calendar-heart-line"
+                    secondaryAction={{ label: "Open calendar", onClick: () => go({ module: "time-off", page: "calendar" }) }}>
+                    Approved leave shows up here.
                   </EmptyState>
                 )}
               </ListBox>
 
-              <Stack gap="md">
-                <ListBox as="section" theme="shadow" aria-labelledby="home-out"
-                  header={<>
-                    <Heading level={3} id="home-out">Who's out</Heading>
-                    {/* A phone can't fit three equal segments, so it gets a single-choice row of Normal chips: Small and
-                        2xs apart, so the three periods share one line inside the card (they wrap only on a narrower phone). */}
-                    {phone ? (
-                      <Stack direction="row" gap="2xs" wrap role="group" aria-label="Period">
-                        {(Object.keys(periods) as Period[]).map((id) => (
-                          <Chip key={id} variant="normal" size="sm" level="primary" selected={id === period} onClick={() => setPeriod(id)}>{periods[id].label}</Chip>
-                        ))}
-                      </Stack>
-                    ) : (
-                      <Segmented aria-label="Period" fullWidth value={period} onValueChange={(value) => setPeriod(value as Period)}
-                        options={(Object.keys(periods) as Period[]).map((id) => ({ id, label: periods[id].label }))} />
-                    )}
-                  </>}>
-                  {out.length ? (
-                    <List aria-label={`Out ${periods[period].label.toLowerCase()}`}>{out.map((request) => leaveRow(request))}</List>
-                  ) : (
-                    <EmptyState title={`No one is off ${periods[period].label.toLowerCase()}`} headingLevel={4} size="sm" icon="icon-calendar-heart-line"
-                      secondaryAction={{ label: "Open calendar", onClick: () => go({ module: "time-off", page: "calendar" }) }}>
-                      Approved leave shows up here.
-                    </EmptyState>
-                  )}
+              {holiday ? (
+                <ListBox as="section" theme="shadow" aria-labelledby="home-holiday"
+                  header={<Heading level={3} id="home-holiday">Next public holiday</Heading>}>
+                  <List aria-labelledby="home-holiday">
+                    <ListItem title={holiday.name} caption={`${formatDate(holiday.start, { weekday: true, year: holiday.start.slice(0, 4) !== today.slice(0, 4) })} · ${inDays(holiday.start)}`}
+                      leading={<DockIcon icon="icon-calendar-heart-line" theme="red" background="subtle" size="md" />}
+                      trailing={<Icon name="icon-chevron-right-line" />} onClick={() => go({ module: "time-off", page: "public-holiday" })} />
+                  </List>
                 </ListBox>
-
-                {holiday ? (
-                  <ListBox as="section" theme="shadow" aria-labelledby="home-holiday"
-                    header={<Heading level={3} id="home-holiday">Next public holiday</Heading>}>
-                    <List aria-labelledby="home-holiday">
-                      <ListItem title={holiday.name} caption={`${formatDate(holiday.start, { weekday: true, year: holiday.start.slice(0, 4) !== today.slice(0, 4) })} · ${inDays(holiday.start)}`}
-                        leading={<DockIcon icon="icon-calendar-heart-line" theme="red" background="subtle" size="md" />}
-                        trailing={<Icon name="icon-chevron-right-line" />} onClick={() => go({ module: "time-off", page: "public-holiday" })} />
-                    </List>
-                  </ListBox>
-                ) : null}
-              </Stack>
-            </Grid>
-          </Stack>
-
-          {/* Studio at a glance: four tiles in a row, two by two, or stacked; never three and one. */}
-          <Stack as="section" gap="md" aria-labelledby="home-studio">
-            <Heading level={2} id="home-studio">Studio at a glance</Heading>
-            <Grid minColumnWidth={496} gap="md">
-              {[kpis.slice(0, 2), kpis.slice(2)].map((pair) => (
-                <Grid key={pair[0].id} columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">{pair.map(kpiTile)}</Grid>
-              ))}
-            </Grid>
-          </Stack>
-
-          {/* Your apps: each card opens its module. */}
-          <Stack as="section" gap="md" aria-labelledby="home-apps">
-            <Heading level={2} id="home-apps">Your apps</Heading>
-            <Grid columns={{ mobile: 1, tablet: 3, desktop: 3 }} gap="md">
-              {apps.map((app) => (
-                <Card key={app.module} onClick={() => go({ module: app.module })}>
-                  <Stack direction="row" gap="md" align="center">
-                    <DockIcon icon={app.icon} theme={app.theme} size="md" />
-                    <Stack gap="none">
-                      <Heading level={3}>{hrModules[app.module].title}</Heading>
-                      <Text textStyle="Body/Small/Regular" tone="base">{app.caption}</Text>
-                    </Stack>
-                  </Stack>
-                </Card>
-              ))}
-            </Grid>
-          </Stack>
+              ) : null}
+            </Stack>
+          </Grid>
         </Stack>
-      </Container>
+
+        {/* Studio at a glance: four tiles in a row, two by two, or stacked; never three and one. */}
+        <Stack as="section" gap="md" aria-labelledby="home-studio">
+          <Heading level={2} id="home-studio">Studio at a glance</Heading>
+          <Grid minColumnWidth={496} gap="md">
+            {[kpis.slice(0, 2), kpis.slice(2)].map((pair) => (
+              <Grid key={pair[0].id} columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">{pair.map(kpiTile)}</Grid>
+            ))}
+          </Grid>
+        </Stack>
+
+        {/* Your apps: each card opens its module. */}
+        <Stack as="section" gap="md" aria-labelledby="home-apps">
+          <Heading level={2} id="home-apps">Your apps</Heading>
+          <Grid columns={{ mobile: 1, tablet: 3, desktop: 3 }} gap="md">
+            {apps.map((app) => (
+              <Card key={app.module} onClick={() => go({ module: app.module })}>
+                <Stack direction="row" gap="md" align="center">
+                  <DockIcon icon={app.icon} theme={app.theme} size="md" />
+                  <Stack gap="none">
+                    <Heading level={3}>{hrModules[app.module].title}</Heading>
+                    <Text textStyle="Body/Small/Regular" tone="base">{app.caption}</Text>
+                  </Stack>
+                </Stack>
+              </Card>
+            ))}
+          </Grid>
+        </Stack>
+      </Stack>
 
       <ModalForm open={requesting} onOpenChange={setRequesting} title="Request time off" description={`${myManager.name} gets it for approval.`}
         onSubmit={leaveForm.handleSubmit} primaryAction={{ label: "Send request" }} secondaryAction={{ label: "Cancel" }}>

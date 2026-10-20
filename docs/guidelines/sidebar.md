@@ -33,7 +33,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | --- | --- | --- | --- |
 | `variant` | `"basic" \| "workspace" \| "small-density"` | — |  |
 | `density` | `"medium" \| "small"` | — | Compatibility alias for the earlier component API. |
-| `collapsed` | `boolean` | `false` | The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps it (controlled). |
+| `collapsed` | `boolean` | — | The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps it (controlled). |
 | `onCollapsedChange` | `(collapsed: boolean) => void` | — | Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is not rendered. Ignored by `variant="workspace"`, which has no collapsed state. |
 | `brand` | `ReactNode` | — | Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and hides the rest visually. |
 | `logo` | `ReactNode` | — | Header logo while expanded (Figma LOGO / Union). Sized to the header height (24px; 20px in Small-Density). |
@@ -52,6 +52,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the rows (by item id, a child row inside its parent) it draws, by layer (`{ "Item[inbox]/Badge-Counter": { theme: "accent" }, "Item[team]/Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets the sections. |
 | `background` | `"default" \| "alt" \| "flat" \| "inverse"` | `"default"` | Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. |
 | `divider` | `boolean` | `false` | A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it. |
+| `shadow` | `boolean` | `true` | Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes). Yes: the Surface/Default Sidebar takes Shadow/Bottom/Level-1 (a Canvas/Default page whose cards are shadowed). `shadow={false}` is Shadow=No: Surface/Default with no shadow (◇ Master-Layout · Example A2 · Tiles, 15904:2813, beside flat tiles). Unlike `background="flat"` (Surface/Flat, which is the page colour in dark mode), the Sidebar stays a Surface in both modes. Alt, Flat, the small density and the workspace panel carry no shadow either way. |
 | `workspaceBrand` | `ReactNode` | — |  |
 | `workspaceItems` | `SidebarItem[]` | `[]` |  |
 | `workspaceFooter` | `ReactNode` | — |  |

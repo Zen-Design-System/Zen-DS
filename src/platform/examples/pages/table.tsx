@@ -2,8 +2,10 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
 import { PlatformPhone } from "../../PlatformPhone";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { ActionBar } from "../../../components/ActionBar";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar, AvatarStack, type AvatarSize } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { Button, IconButton } from "../../../components/Button";
@@ -14,11 +16,14 @@ import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Icon } from "../../../components/Icon";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Box, Container, Stack } from "../../../components/Layout";
+import { Box, Stack } from "../../../components/Layout";
+import { List, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { ProgressBar } from "../../../components/Progress";
 import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
+import { Sidebar, SidebarMenuItem } from "../../../components/Sidebar";
 import { SkeletonText } from "../../../components/Skeleton";
 import { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, type TableBulkAction, type TableColumn, type TableSort } from "../../../components/Table";
 import { Tag } from "../../../components/Tag";
@@ -28,7 +33,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import {
   TODAY, daysFromToday, files, formatBytes, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials,
-  invoiceStatusTheme, people, projectById, projectStatusTheme, projects, taskStatusTheme, tasks,
+  invoiceStatusTheme, me, people, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks,
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type TaskStatus,
 } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
@@ -152,6 +157,7 @@ function BulkActionsExample() {
 
 /* ───────────── 3. Open a row: read-only projects open their detail in a Side Panel ───────────── */
 
+const projectStatuses = ["Planning", "Active", "On hold", "Completed"];
 const projectColumns: TableColumn<Project>[] = [
   { id: "name", header: "Project", cell: (project) => <TableMedia bold media={<DockIcon size="sm" icon={project.icon} theme={project.theme} background="subtle" />} caption={project.client}>{project.name}</TableMedia> },
   { id: "lead", header: "Lead", width: "170px", cell: (project) => <TableMedia bold={false} media={<PersonAvatar person={people[project.lead]} size="xs" />}>{people[project.lead].name}</TableMedia> },
@@ -177,20 +183,85 @@ function ProjectDetail({ project }: { project: Project }) {
   );
 }
 
+/** The project's open tasks, from the shared task list: what the panel lists under the facts. */
+const openTasksOf = (project: Project) => tasks.filter((task) => task.project === project.id && task.status !== "Done");
+
 function OpenRowExample() {
+  const { toast } = useToast();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
+  const [unread, setUnread] = useState(3);
   const opened = openId ? projectById(openId) : null;
+  const rows = projects.filter((project) => !status || project.status === status);
+  const notHere = (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the table." });
   return (
-    <Container maxWidth="full">
-      <Stack paddingY="xl" gap="xl">
-        <PageHeader title="Projects" description="Client and studio work, from planning to handover." />
-        <Table aria-label="Projects" columns={projectColumns} rows={projects} onRowClick={(project) => setOpenId(project.id)} />
-      </Stack>
-      <SidePanel type="modal" open={Boolean(opened)} onOpenChange={(open) => { if (!open) setOpenId(null); }}
-        title={opened?.name ?? ""} description={opened?.client}>
-        {opened ? <ProjectDetail project={opened} /> : null}
-      </SidePanel>
-    </Container>
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      {/* The studio's Projects page: AppShell pattern sidebar, the PageHeader in the header's Main row, the status filter
+          in its Sections row, the table on the page (no Card). A row opens its project in the shell's side panel: docked
+          beside the page when the window keeps room for both, else floating over it, so the list stays in place. */}
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            selectedId="projects" onItemClick={(item) => { if (item.id !== "projects") notHere(item.label); }}
+            sections={[{ items: [
+              { id: "home", label: "Home", icon: "icon-home-03-line" },
+              { id: "projects", label: "Projects", icon: "icon-folder-line" },
+              { id: "tasks", label: "Tasks", icon: "icon-check-square-line" },
+              { id: "people", label: "People", icon: "icon-users-line" },
+            ] }]}
+            footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+        )}
+        header={(
+          <AppShellHeader
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                setUnread(0);
+                toast({ title: unread ? plural(unread, "new notification") : "You're all caught up", children: "Duy Le moved Shipment tracking to On hold" });
+              }} />
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+              ]} />
+            </>}
+            main={<PageHeader title="Projects" description={`Client and studio work, from planning to handover · ${plural(projects.length, "project")}`} />}
+            sections={(
+              <Stack direction="row" gap="xs" align="center" paddingY="xs">
+                <Chip variant="advanced" selected={status !== null} popoverLabel="Status"
+                  popoverItems={projectStatuses.map((value) => ({ id: value, label: value, selected: value === status }))}
+                  onPopoverSelect={(item) => setStatus(item.id === status ? null : item.id)} onClearSelection={() => setStatus(null)}>
+                  {status ?? "Status"}
+                </Chip>
+                <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "project")}</Text>
+              </Stack>
+            )}
+          />
+        )}
+        sidePanel={(
+          <SidePanel type="standard" open={Boolean(opened)} onOpenChange={(open) => { if (!open) setOpenId(null); }}
+            title={opened?.name ?? ""} description={opened?.client}>
+            {opened ? (
+              <Stack gap="lg">
+                <ProjectDetail project={opened} />
+                {openTasksOf(opened).length ? (
+                  <Stack as="section" gap="xs" aria-label="Open tasks">
+                    <Heading level={3} textStyle="Body/Small/Bold" tone="light">Open tasks</Heading>
+                    <List aria-label={`${opened.name} open tasks`}>
+                      {openTasksOf(opened).map((task) => (
+                        <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${formatDue(task.due)}`}
+                          leading={<PersonAvatar person={people[task.assignee]} size="md" />} />
+                      ))}
+                    </List>
+                  </Stack>
+                ) : null}
+              </Stack>
+            ) : null}
+          </SidePanel>
+        )}
+      >
+        <Table aria-label="Projects" columns={projectColumns} rows={rows} onRowClick={(project) => setOpenId(project.id)}
+          empty={<EmptyState headingLevel={2} size="sm" icon="icon-search-medium-line" title="No projects match" secondaryAction={{ label: "Clear filter", onClick: () => setStatus(null) }}>Try another status.</EmptyState>} />
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -470,7 +541,7 @@ const timesheetColumns: TableColumn<Timesheet>[] = [
 
 function PhoneTimesheetsExample() {
   const { toast } = useToast();
-  // The phone's scroller: the large title folds as the table runs under the bar.
+  // The phone's scroller: the bar title stays while the table runs under it.
   const screenRef = useRef<HTMLDivElement>(null);
   const [approved, setApproved] = useState(false);
   const hours = timesheets.reduce((sum, sheet) => sum + weekTotal(sheet), 0);
@@ -479,17 +550,23 @@ function PhoneTimesheetsExample() {
     toast({ title: `${plural(timesheets.length, "timesheet")} approved`, action: { label: "Undo", onClick: () => setApproved(false) } });
   };
   return (
-    <PlatformPhone label="Team hours" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
-      footer={<ActionBar position="static"
-        summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{approved ? "Approved just now" : `${plural(timesheets.length, "timesheet")} · ${plural(hours, "hour")}`}</Text>}
-        primaryAction={approved ? undefined : { label: "Approve timesheets", onClick: approve }}
-        secondaryAction={approved ? { label: "Reopen timesheets", onClick: () => setApproved(false) } : undefined} />}>
-      {/* The table lies on the screen inside its 20px margin, no card around it: its edge lines up with the title. */}
-      <Stack gap="xs" padding="lg">
-        <Text tone="base">Design team · {formatRange(weekStart, daysFromToday(-5))}</Text>
-        <Table aria-label={`Design team hours, week of ${formatDate(weekStart)}`} columns={timesheetColumns} rows={timesheets} getRowId={(sheet) => sheet.person.id} />
-      </Stack>
+    // A task screen pushed from Approvals: the compact bar with Back, the week's one action in the Action bar (Figma
+    // Bottom=Actions), no bottom bar.
+    <PlatformPhone label="Team hours" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="Team hours" subtitle={`Design team · ${formatRange(weekStart, daysFromToday(-5))}`} scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to Approvals", children: "This example shows the one screen." }) }} />}
+        actionBar={<ActionBar
+          summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{approved ? "Approved just now" : `${plural(timesheets.length, "timesheet")} · ${plural(hours, "hour")}`}</Text>}
+          primaryAction={approved ? undefined : { label: "Approve timesheets", onClick: approve }}
+          secondaryAction={approved ? { label: "Reopen timesheets", onClick: () => setApproved(false) } : undefined} />}
+      >
+        {/* The table lies on the screen inside the margin the Body pads, no card around it. */}
+        <Stack gap="xs">
+          <Text tone="base">{approved ? `Approved by ${me.name}` : "Waiting for your approval"}</Text>
+          <Table aria-label={`Design team hours, week of ${formatDate(weekStart)}`} columns={timesheetColumns} rows={timesheets} getRowId={(sheet) => sheet.person.id} />
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -540,28 +617,39 @@ const count = plural(picked.length, "invoice");
   },
   {
     title: "Open a row",
-    description: "A list page whose read-only rows open a record uses onRowClick: the whole row is the target, Tab reaches each row and Enter opens it. The project opens in a Side Panel, so the list stays in place.",
+    description: "A list page whose read-only rows open a record uses onRowClick: the whole row is the target, Tab reaches each row and Enter opens it. The project opens in the AppShell's side panel, docked beside the table when the window has room (the table narrows) and floating over it when not, so the list stays in place. The Status filter sits in the header's Sections row, under the PageHeader.",
     wide: true,
     screen: true,
     render: () => <OpenRowExample />,
     code: `const [openId, setOpenId] = useState<string | null>(null);
 const opened = projects.find((project) => project.id === openId);
 
-<PageHeader title="Projects" description="Client and studio work, from planning to handover." />
-{/* The table lies on the page: no Card around it. */}
-<Table aria-label="Projects" rows={projects} onRowClick={(project) => setOpenId(project.id)} columns={[
-  { id: "name", header: "Project", cell: (p) => (
-    <TableMedia bold media={<DockIcon size="sm" icon={p.icon} theme={p.theme} background="subtle" />} caption={p.client}>{p.name}</TableMedia>
-  ) },
-  { id: "progress", header: "Progress", width: "160px", cell: (p) => <ProgressBar value={p.progress} label aria-label={\`\${p.name} progress\`} /> },
-  { id: "status", header: "Status", width: "120px", cell: (p) => <TableBadges><Badge theme={statusTheme[p.status]} background="subtle">{p.status}</Badge></TableBadges> },
-  { id: "open", header: <VisuallyHidden>Open</VisuallyHidden>, align: "right", width: "56px",
-    cell: () => <Icon name="icon-chevron-right-line" size="base" decorative /> },
-]} />
-<SidePanel type="modal" open={Boolean(opened)} onOpenChange={(open) => !open && setOpenId(null)}
-  title={opened?.name} description={opened?.client}>
-  <DescriptionList items={details(opened)} />
-</SidePanel>`,
+<AppShell
+  sidebar={<Sidebar logo={logo} sections={places} selectedId="projects" onItemClick={go} />}
+  header={
+    <AppShellHeader actions={<>{notifications}{account}</>}
+      main={<PageHeader title="Projects" description="Client and studio work, from planning to handover · 6 projects" />}
+      sections={<Chip variant="advanced" popoverLabel="Status" … >{status ?? "Status"}</Chip>} />
+  }
+  // Docked beside the page while it keeps 744px, else the modal panel
+  sidePanel={
+    <SidePanel type="standard" open={Boolean(opened)} onOpenChange={(open) => !open && setOpenId(null)}
+      title={opened?.name} description={opened?.client}>
+      <DescriptionList items={details(opened)} />
+    </SidePanel>
+  }
+>
+  {/* The table lies on the page: no Card around it. */}
+  <Table aria-label="Projects" rows={rows} onRowClick={(project) => setOpenId(project.id)} columns={[
+    { id: "name", header: "Project", cell: (p) => (
+      <TableMedia bold media={<DockIcon size="sm" icon={p.icon} theme={p.theme} background="subtle" />} caption={p.client}>{p.name}</TableMedia>
+    ) },
+    { id: "progress", header: "Progress", width: "160px", cell: (p) => <ProgressBar value={p.progress} label aria-label={\`\${p.name} progress\`} /> },
+    { id: "status", header: "Status", width: "120px", cell: (p) => <TableBadges><Badge theme={statusTheme[p.status]} background="subtle">{p.status}</Badge></TableBadges> },
+    { id: "open", header: <VisuallyHidden>Open</VisuallyHidden>, align: "right", width: "56px",
+      cell: () => <Icon name="icon-chevron-right-line" size="base" decorative /> },
+  ]} />
+</AppShell>`,
   },
   {
     title: "Edit in place",
@@ -648,26 +736,30 @@ const opened = projects.find((project) => project.id === openId);
   },
   {
     title: "Narrow screen",
-    description: "Columns with a fixed width keep their values on one line, so on a phone the table scrolls sideways with a swipe instead of wrapping names and numbers. The footer approves the week.",
+    description: "Columns with a fixed width keep their values on one line, so on a phone the table scrolls sideways with a swipe instead of wrapping names and numbers. The week is a task screen pushed from Approvals: Back in the compact bar, and the Action bar approves it.",
     render: () => <PhoneTimesheetsExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 const hours = timesheets.reduce((sum, s) => sum + s.total, 0);
 
-<PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
-  footer={<ActionBar position="static" summary={\`\${plural(timesheets.length, "timesheet")} · \${plural(hours, "hour")}\`}
-    primaryAction={{ label: "Approve timesheets", onClick: approve }} />}>
-  {/* padding 20 (Margin-Compact): the table's edge lines up with the large title */}
-  <Stack gap="xs" padding="lg">
-    <Text tone="base">Design team · Sep 21 – Sep 25, 2026</Text>
-    <Table aria-label="Design team hours, week of Sep 21, 2026" rows={timesheets} getRowId={(s) => s.person.id} columns={[
-      { id: "person", header: "Person", width: "176px", cell: (s) => <TableMedia bold={false} media={<Avatar size="xs" … />}>{s.person.name}</TableMedia> },
-      ...["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, i) => ({
-        id: day, header: day, align: "right", width: "64px", cell: (s) => <TableText>{s.hours[i].toFixed(1)}</TableText>,
-      })),
-      { id: "total", header: "Total", align: "right", width: "80px", cell: (s) => <TableText bold>{s.total.toFixed(1)}</TableText> },
-    ]} />
-  </Stack>
+<PlatformPhone screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="Team hours" subtitle="Design team · Sep 21 – Sep 25, 2026" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToApprovals }} />}
+    actionBar={<ActionBar summary={\`\${plural(timesheets.length, "timesheet")} · \${plural(hours, "hour")}\`}
+      primaryAction={{ label: "Approve timesheets", onClick: approve }} />}
+  >
+    {/* The Body pads 20: the table's edge lines up with the bar's margin */}
+    <Stack gap="xs">
+      <Text tone="base">Waiting for your approval</Text>
+      <Table aria-label="Design team hours, week of Sep 21, 2026" rows={timesheets} getRowId={(s) => s.person.id} columns={[
+        { id: "person", header: "Person", width: "176px", cell: (s) => <TableMedia bold={false} media={<Avatar size="xs" … />}>{s.person.name}</TableMedia> },
+        ...["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, i) => ({
+          id: day, header: day, align: "right", width: "64px", cell: (s) => <TableText>{s.hours[i].toFixed(1)}</TableText>,
+        })),
+        { id: "total", header: "Total", align: "right", width: "80px", cell: (s) => <TableText bold>{s.total.toFixed(1)}</TableText> },
+      ]} />
+    </Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
 ]);

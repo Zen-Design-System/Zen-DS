@@ -237,6 +237,8 @@ const canvasOf = (src, start) => {
   const close = tagClose(src, opening.index + host.length + 1);
   const tag = src.slice(opening.index, close < 0 ? start : close + 1);
   if (host === "ZenProvider") return /\bpaint=\{false\}/.test(tag) ? null : "default";
+  // A phone AppShell on Band-Sheet or Media draws its page on a Surface/Default sheet (app-shell.css), not on the Canvas.
+  if (host === "AppShell" && /\bmobileTop=(?:"|\{\s*")(band-sheet|media)"/.test(tag)) return "surface";
   const value = /\bcanvas=(?:"([\w-]+)"|\{\s*"([\w-]+)"\s*\})/.exec(tag);
   if (!value && /\bcanvas=/.test(tag)) return null;
   const canvas = value ? value[1] ?? value[2] : "default";
@@ -1012,42 +1014,68 @@ export const rules = [
   { id: "dashboard-header/filters-are-chips", components: ["DashboardHeader"], severity: "warn", allow: "dashboard-header-filter-button", guideline: "docs/guidelines/dashboard-header.md",
     summary: "Filters in a DashboardHeader's controls are Chip variant=\"advanced\" (each opens its own Popover), not Buttons.",
     check: ({ attrs }) => (/<(Button|IconButton)\b/.test(expr(attrs, "controls") ?? "") ? "puts a Button in controls — filters are Chip variant=\"advanced\"; page actions go in actions." : null) },
-  // App Shell (2026-09-29, researched against Carbon, Material 3, Atlassian, Polaris and the Figma HR-Platform pattern).
-  { id: "app-shell/primary-in-top-bar", components: ["AppShell"], severity: "warn", allow: "top-bar-primary", guideline: "docs/guidelines/app-shell.md",
-    summary: "The top bar (header, headerActions) holds utilities: Breadcrumbs or a Search, a plan Badge, AppShellAction buttons and the account menu. A Primary or Accent page action belongs in the PageHeader actions.",
+  // App Shell (rebuilt 2026-10-19 on Figma's AppShell patterns, ◇ Master-Layout 16254:1057).
+  { id: "app-shell/primary-in-top-bar", components: ["AppShellHeader"], severity: "warn", allow: "top-bar-primary", guideline: "docs/guidelines/app-shell.md",
+    summary: "With a Main row, the header's top row (leading, center, actions) holds utilities: Breadcrumbs or a Search, a plan Badge, AppShellAction buttons and the account menu; a Primary or Accent page action belongs in the Main row's PageHeader actions. A header without a Main row (Figma Top-Bar, Workspace, Docs) keeps its product's Primary in the top row.",
     check: ({ attrs, src, end }) => {
       if (inCodeSample(src, end)) return null;
-      const topBar = [expr(attrs, "header"), expr(attrs, "headerActions")].filter(Boolean).join(" ");
-      const main = openingTags(topBar, "Button").find((a) => /level=(?:"|\{\s*")(primary|accent)"/.test(a) && !/appearance="(flat|overlay)"/.test(a));
-      return main ? `puts a ${/accent/.test(main) ? "Accent" : "Primary"} Button in the top bar — page actions go in the PageHeader's actions; the top bar keeps search, notifications and the account menu.` : null;
+      // No Main row (main off): the top row is the page's only header, as Figma's Top-Bar / Workspace / Docs draw it.
+      if (!expr(attrs, "main")) return null;
+      const top = [expr(attrs, "leading"), expr(attrs, "center"), expr(attrs, "actions")].filter(Boolean).join(" ");
+      const main = openingTags(top, "Button").find((a) => /level=(?:"|\{\s*")(primary|accent)"/.test(a) && !/appearance="(flat|overlay)"/.test(a));
+      return main ? `puts a ${/accent/.test(main) ? "Accent" : "Primary"} Button in the header's top row — page actions go in the PageHeader's actions (main); the top row keeps search, notifications and the account menu.` : null;
     } },
   { id: "app-shell/nested", components: ["AppShell"], severity: "error", allow: "nested-shell", guideline: "docs/guidelines/app-shell.md",
-    summary: "One AppShell per screen: a shell inside another shell repeats the navigation, the top bar and <main>.",
+    summary: "One AppShell per screen: a shell inside another shell repeats the navigation, the header and <main>.",
     check: ({ children, src, end }) => !inCodeSample(src, end) && openingTags(children ?? "", "AppShell").length > 0 && "renders another AppShell inside — one shell per screen; put the inner page straight into this shell's children." },
-  { id: "app-shell/breadcrumbs-once", components: ["AppShell"], severity: "warn", allow: "breadcrumbs-twice", guideline: "docs/guidelines/app-shell.md",
-    summary: "Breadcrumbs appear once: in the top bar (header, the HR-Platform pattern) or in the PageHeader, never both.",
-    check: ({ attrs, children, src, end }) => {
-      if (inCodeSample(src, end) || !/<Breadcrumbs\b/.test(expr(attrs, "header") ?? "")) return null;
-      return openingTags(children ?? "", "PageHeader").some((a) => has(a, "breadcrumbs")) && "shows Breadcrumbs in the top bar and again in the PageHeader — keep the top bar's and drop the PageHeader's breadcrumbs.";
+  { id: "app-shell/breadcrumbs-once", components: ["AppShellHeader"], severity: "warn", allow: "breadcrumbs-twice", guideline: "docs/guidelines/app-shell.md",
+    summary: "Breadcrumbs appear once: in the header's top row (leading) or in the Main row's PageHeader, never both.",
+    check: ({ attrs, src, end }) => {
+      if (inCodeSample(src, end) || !/<Breadcrumbs\b/.test(expr(attrs, "leading") ?? "")) return null;
+      return openingTags(expr(attrs, "main") ?? "", "PageHeader").some((a) => has(a, "breadcrumbs")) && "shows Breadcrumbs in the top row and again in the PageHeader — keep the top row's and drop the PageHeader's breadcrumbs.";
     } },
   { id: "app-shell/forced-layout", components: ["AppShell"], consumerOnly: true, severity: "warn", allow: "forced-layout", guideline: "docs/guidelines/app-shell.md",
-    summary: "An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px, the phone chrome under 744px); layout=\"sidebar\", \"drawer\" or \"phone\" is for previews and tests. (App mode only.)",
-    check: ({ attrs }) => { const layout = literal(attrs, "layout"); return layout === "sidebar" || layout === "drawer" || layout === "phone" ? `forces layout="${layout}" — leave it on auto so narrow screens get the drawer (or the phone chrome) and wide ones the Sidebar.` : null; } },
-  { id: "app-shell/page-header-in-sections", components: ["AppShell"], severity: "warn", allow: "page-header-in-content", guideline: "docs/guidelines/app-shell.md",
-    summary: "With a phone TopNavigation (topNavigation), the page's PageHeader goes in sections: in the content a phone keeps it beside the bar's title, two h1s (component-usage-rules §17).",
+    summary: "An app lets AppShell pick its layout from its own width (auto: the desktop pattern from 1024px; narrower the mobile pattern when it has mobile parts, else the drawer); layout=\"desktop\", \"drawer\" or \"mobile\" is for previews and tests. (App mode only.)",
+    check: ({ attrs }) => { const layout = literal(attrs, "layout"); return layout === "desktop" || layout === "drawer" || layout === "mobile" ? `forces layout="${layout}" — leave it on auto so phones and an iPad held upright get the mobile pattern and wide screens the desktop one.` : null; } },
+  { id: "app-shell/page-header-in-main", components: ["AppShell"], severity: "warn", allow: "page-header-in-content", guideline: "docs/guidelines/app-shell.md",
+    summary: "The page's PageHeader goes in the header's Main row (AppShellHeader main), not in the Body: with a topNavigation a phone shows the bar's title instead, and a PageHeader in the Body would stay beside it (two h1s, component-usage-rules §17).",
     check: ({ attrs, children, src, end }) => {
       if (inCodeSample(src, end) || !has(attrs, "topNavigation")) return null;
-      return openingTags(children ?? "", "PageHeader").length > 0 && "has a topNavigation and a PageHeader in its content — move the PageHeader into sections, which a phone leaves to the TopNavigation (one h1).";
+      return openingTags(children ?? "", "PageHeader").length > 0 && "has a topNavigation and a PageHeader in its Body — move the PageHeader into the header's main (AppShellHeader main), which a phone leaves to the TopNavigation (one h1).";
     } },
   { id: "app-shell/top-navigation-title", components: ["AppShell"], severity: "warn", allow: "phone-title", guideline: "docs/guidelines/app-shell.md",
-    summary: "The phone bar (topNavigation's TopNavigation title) and the page header (sections' PageHeader title) say the same words (component-usage-rules §17).",
+    summary: "The phone bar (topNavigation's TopNavigation title) and the page header (the header's main PageHeader title) say the same words (component-usage-rules §17).",
     check: ({ attrs }) => {
       const bar = expr(attrs, "topNavigation");
-      const rows = expr(attrs, "sections");
-      if (!bar || !rows) return null;
+      const header = expr(attrs, "header");
+      if (!bar || !header) return null;
       const barTitle = literal(openingTags(bar, "TopNavigation")[0] ?? "", "title");
-      const pageTitle = literal(openingTags(rows, "PageHeader")[0] ?? "", "title");
+      const pageTitle = literal(openingTags(header, "PageHeader")[0] ?? "", "title");
       return Boolean(barTitle && pageTitle && barTitle !== pageTitle) && `titles the phone bar "${barTitle}" and the page "${pageTitle}" — use the same words on both layouts.`;
+    } },
+  { id: "app-shell/collapse-beside-master-crumb", components: ["AppShell"], severity: "error", allow: "toggle-beside-master", guideline: "docs/guidelines/app-shell.md",
+    summary: "With the collapse toggle in the header (collapse=\"header\", the default), the trail starts at a Sub level (Breadcrumbs master={false}): a Master crumb's home icon beside the toggle reads as two controls in a row. To keep the Master crumb, move the toggle into the Sidebar (collapse=\"sidebar\"). (User rule 2026-10-18; Figma audit navigation/collapse-beside-master-crumb.)",
+    check: ({ attrs, src, end }) => {
+      if (inCodeSample(src, end) || !has(attrs, "sidebar")) return null;
+      const collapse = literal(attrs, "collapse");
+      if (collapse === "sidebar" || collapse === "none") return null;
+      const pattern = literal(attrs, "pattern");
+      if (pattern && pattern !== "sidebar" && pattern !== "list-detail") return null;
+      const crumbs = openingTags(expr(attrs, "header") ?? "", "Breadcrumbs")[0];
+      if (!crumbs || /\bmaster=\{\s*false\s*\}/.test(crumbs)) return null;
+      return "starts the header with the Sidebar toggle and a Master crumb (two icons in a row) — set master={false} on the Breadcrumbs, or collapse=\"sidebar\" to keep the Master crumb.";
+    } },
+  { id: "app-shell/pattern-parts", components: ["AppShell"], severity: "warn", allow: "pattern-parts", guideline: "docs/guidelines/app-shell.md",
+    summary: "Each desktop pattern draws its own parts: leadingPane on list-detail, workspace and docs; trailingPane on workspace, docs and focus; progress on focus; the Sidebar beside the page on sidebar and list-detail. A part the pattern does not draw only shows on a narrow screen.",
+    check: ({ attrs, src, end }) => {
+      if (inCodeSample(src, end)) return null;
+      const pattern = literal(attrs, "pattern") ?? "sidebar";
+      const parts = [
+        ["leadingPane", ["list-detail", "workspace", "docs"]],
+        ["trailingPane", ["workspace", "docs", "focus"]],
+        ["progress", ["focus"]],
+      ].filter(([name, patterns]) => has(attrs, name) && !patterns.includes(pattern)).map(([name]) => name);
+      return parts.length ? `gives pattern="${pattern}" ${parts.join(" and ")}, which it does not draw on a desktop — pick the pattern that has ${parts.length > 1 ? "them" : "it"} (Figma Pattern/AppShell/Desktop Layout) or drop ${parts.length > 1 ? "them" : "it"}.` : null;
     } },
   { id: "toast/needs-title", components: ["Toast"], severity: "error", allow: "toast-title", guideline: "docs/guidelines/toast.md",
     summary: "A toast states its outcome in a title.",
@@ -1331,20 +1359,22 @@ export const rules = [
     summary: "Theme=Emoji needs the emoji prop (otherwise a placeholder face renders).",
     check: ({ attrs }) => literal(attrs, "theme") === "emoji" && !present(attrs, "emoji") && "is theme emoji without an emoji." },
   { id: "heading/h1-is-heading-1", components: ["Heading", "Text", "h1"], severity: "error", allow: "h1-style", guideline: "docs/guidelines/text.md",
-    summary: "Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) uses Heading/1. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold).",
+    summary: "Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) is at least Heading/1: Heading/1, or a larger Display / Display-Extra style on an emphasis page (a home, a welcome; the user 2026-10-19), never a smaller style. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold).",
     check: ({ tag, attrs }) => {
       // The compact app bar title is the screen's h1 and keeps its bar style (D1, typography review 2026-09-29).
       if (/\bzen-top-nav__title\b/.test(attrs)) return null;
+      // Heading/1 or larger: the Display and Display-Extra styles (a home's or a welcome screen's title).
+      const large = (style) => /^(Heading\/1|heading-1|Display(-Extra)?\/\d|display-(extra-)?\d)$/.test(style);
       if (tag === "h1") {
         const n = attrs.match(/typographyStyles\[\s*["'`]([^"'`]+)["'`]\s*\]|zen-type-([\w-]+)/); const style = n && (n[1] ?? n[2]);
-        return style && !/^(Heading\/1|heading-1)$/.test(style) && `uses ${style} — a content h1 is Heading/1 (only the TopNavigation bar title keeps its bar style).`;
+        return style && !large(style) && `uses ${style} — a content h1 is Heading/1 or a larger Display style, never smaller (only the TopNavigation bar title keeps its bar style).`;
       }
       const h1 = tag === "Heading" ? headingLevelOf(attrs) === 1 : literal(attrs, "as") === "h1";
       if (!h1) return null;
       // <Text as="h1"> without textStyle renders its default, Body/Base/Regular.
       const style = literal(attrs, "textStyle");
       if (!style && tag === "Text" && !has(topLevel(attrs), "textStyle") && !opaque(attrs)) return "renders an h1 in Text's default Body/Base/Regular — a content h1 is Heading/1: use <Heading level={1}>.";
-      return style && style !== "Heading/1" && `is an h1 styled "${style}" — a content h1 is Heading/1; drop textStyle, or use level 2 for a section title.`;
+      return style && !large(style) && `is an h1 styled "${style}" — a content h1 is Heading/1 or a larger Display style, never smaller; drop textStyle, or use level 2 for a section title.`;
     } },
   { id: "heading/title-not-light", components: ["Heading", "Text"], severity: "warn", allow: "title-light", guideline: "docs/guidelines/text.md",
     summary: "Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03, Apple's 3:1 for bold text). Lower the level, not the colour.",
@@ -1465,6 +1495,15 @@ export const rules = [
           const group = /\bgroup\s*:\s*["'`]([^"'`]+)["'`]/.exec(item)?.[1] ?? null;
           if (!(group && group === prev)) places += 1;
           prev = group;
+        }
+        // A node in the list (a Badge, an Avatar: Figma's Trailing-Slot holds them as they are) takes a place too.
+        let depth = 0, last = "";
+        for (let i = 0; i < v.length; i += 1) {
+          const c = v[i];
+          if ("[{(".includes(c)) depth += 1;
+          else if ("]})".includes(c)) depth -= 1;
+          else if (c === "<" && depth === 1 && (last === "[" || last === ",") && /[A-Za-z]/.test(v[i + 1] ?? "")) places += 1;
+          if (!/\s/.test(c)) last = c;
         }
         return places;
       };

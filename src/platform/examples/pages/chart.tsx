@@ -1,19 +1,31 @@
 /* Chart examples (docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio reads its revenue, its billable
-   hours and a project's budget through ChartCard, LineChart and StackBarChart; the phone example is Alex's own hours in
-   the studio app. Charts and KPI tiles may abbreviate ("$105.7K"); the report behind a chart never does. */
-import { useEffect, useId, useRef, useState } from "react";
+   hours and a project's budget through ChartCard, LineChart and StackBarChart; the phone examples are Alex's own hours in
+   the studio app. Charts and KPI tiles may abbreviate ("$105.7K"); the report behind a chart never does. The screens sit
+   in the studio's AppShell: Finance and Analytics in the sidebar pattern, the phones in its mobile parts (Hours is a
+   root with the bottom bar; the screens pushed from it have Back). */
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   AreaChart, BarChart, BarList, BulletChart, ChartCard, ComboChart, DonutChart, FunnelChart, GaugeChart, GroupedBarChart, HeatmapChart, LineChart, RadialChart, StackBarChart,
   type ChartBullet, type ChartComboDatum, type ChartDatum, type ChartPoint, type ChartSlice, type ChartStack,
 } from "../../../components/Chart";
+import { ActionBar } from "../../../components/ActionBar";
+import { Badge } from "../../../components/Badge";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { BottomSheet } from "../../../components/BottomSheet";
+import { Button } from "../../../components/Button";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Box, Container, Grid, Stack } from "../../../components/Layout";
+import { useFormState } from "../../../components/Form";
+import { InputField, SelectField } from "../../../components/Input";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { Metric, MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
 import { SidePanel } from "../../../components/SidePanel";
+import { Sidebar, SidebarMenuItem, type SidebarSection } from "../../../components/Sidebar";
 import { SkeletonShape } from "../../../components/Skeleton";
 import { Table, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
@@ -21,8 +33,9 @@ import { Segmented } from "../../../components/Segmented";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
-import { formatCompactMoney, formatDue, formatMoney, invoices, projectById, studio, studioMonths, studioTeamHours } from "../data";
+import { formatCompactMoney, formatDue, formatMoney, invoiceStatusTheme, invoices, me, projectById, studio, studioMonths, studioTeamHours } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
@@ -32,6 +45,62 @@ export const page: PlatformPage = "chart";
 
 /** "1,540 h" — hours read in full, also on the axis. */
 const hours = (value: number) => `${value.toLocaleString("en-US")} h`;
+
+/* ───────────── The studio app's chrome ───────────── */
+
+/** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
+function useNotHere() {
+  const { toast } = useToast();
+  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This screen shows the charts." });
+}
+
+const studioPlaces: SidebarSection[] = [{ items: [
+  { id: "home", label: "Home", icon: "icon-home-03-line" },
+  { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  { id: "finance", label: "Finance", icon: "icon-coins-line" },
+  { id: "analytics", label: "Analytics", icon: "icon-bar-chart-01-line" },
+  { id: "people", label: "People", icon: "icon-users-line" },
+] }];
+
+/**
+ * A desktop page of the studio app: AppShell pattern sidebar, the PageHeader in the header's Main row and the Body padding
+ * the page. The Sidebar is Shadow=No (Surface, no shadow), so the dashboards' cards stay flat on the Canvas: one
+ * elevation for the screen, none.
+ */
+function StudioApp({ place, main, sidePanel, children }: { place: string; main: ReactNode; sidePanel?: ReactNode; children: ReactNode }) {
+  const { toast } = useToast();
+  const notHere = useNotHere();
+  const [unread, setUnread] = useState(2);
+  return (
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar shadow={false} logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            sections={studioPlaces} selectedId={place} onItemClick={(item) => { if (item.id !== place) notHere(item.label); }}
+            footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+        )}
+        header={(
+          <AppShellHeader
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                setUnread(0);
+                toast({ title: unread ? plural(unread, "new notification") : "You're all caught up", children: `Mai Ho marked ${invoices[1].number} as paid · Lumen Bank sent ${formatMoney(invoices[1].amount)}` });
+              }} />
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+              ]} />
+            </>}
+            main={main}
+          />
+        )}
+        sidePanel={sidePanel}
+      >
+        {children}
+      </AppShell>
+    </PreviewAppFrame>
+  );
+}
 
 /* ───────────── Finance dashboard ───────────── */
 
@@ -53,7 +122,11 @@ const reportColumns: TableColumn<ReportRow>[] = [
   { id: "collected", header: "Collected", align: "right", cell: (row) => <TableText bold={row.total}>{formatMoney(row.collected)}</TableText> },
 ];
 
+const unpaid = invoices.filter((invoice) => invoice.status === "Sent" || invoice.status === "Overdue").sort((a, b) => a.due.getTime() - b.due.getTime());
+
 function FinanceDashboardExample() {
+  const { toast } = useToast();
+  const openId = useId();
   const [rangeId, setRangeId] = useState("6m");
   const [reportOpen, setReportOpen] = useState(false);
   const range = revenueRanges.find((r) => r.id === rangeId) ?? revenueRanges[0];
@@ -64,34 +137,48 @@ function FinanceDashboardExample() {
   const reportRows: ReportRow[] = [...months].reverse().map((m) => ({ id: m.id, month: m.month, invoiced: m.invoiced, collected: m.collected }));
   reportRows.push({ id: "total", month: "Total", invoiced: sum("invoiced"), collected: sum("collected"), total: true });
   return (
-    <Box surface="canvas">
-      <Container maxWidth="lg">
-        <Stack paddingY="xl" gap="xl">
-          <PageHeader title="Finance" description={`What ${studio.name} invoiced and collected from its clients.`} />
-          <Stack gap="md">
-            {/* Three tiles share the row: each column at least 30% wide, one per row once 220px no longer fits. */}
-            <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
-              <MetricCard theme="flat" label="Invoiced in September" value={formatMoney(september.invoiced)} icon="icon-currency-dollar-circle-line" iconTheme="green"
-                trend={{ direction: september.invoiced >= august.invoiced ? "positive" : "negative", label: `${changeOf(september.invoiced, august.invoiced)} vs. August` }} />
-              <MetricCard theme="flat" label="Collected in September" value={formatMoney(september.collected)} icon="icon-bank-note-01-line" iconTheme="blue"
-                trend={{ direction: september.collected >= august.collected ? "positive" : "negative", label: `${changeOf(september.collected, august.collected)} vs. August` }} />
-              <MetricCard theme="flat" label="Overdue" value={formatMoney(overdue.reduce((total, invoice) => total + invoice.amount, 0))} icon="icon-alert-triangle-line" iconTheme="red"
-                trend={{ direction: "normal", label: overdue.length ? `${plural(overdue.length, "invoice")} · ${formatDue(overdue[0].due)}` : "Nothing overdue" }} />
-            </Grid>
-            {/* On the canvas every surface keeps its Pale edge (theme border). Right under the page h1: an h2. A wide card hugs its range switch. */}
-            <ChartCard title="Revenue" headingLevel={2} onOpen={() => setReportOpen(true)} openLabel="Open revenue report"
-              ranges={revenueRanges.map((r) => ({ id: r.id, label: r.label }))} range={rangeId} onRangeChange={setRangeId} rangesFullWidth={false}>
-              {/* A new range starts on its latest month. */}
-              <LineChart key={rangeId} aria-label={`Revenue invoiced per month, ${range.span}`} data={points} format={formatCompactMoney} height={260} />
-            </ChartCard>
-          </Stack>
-        </Stack>
-      </Container>
-      {/* The chevron opens the exact amounts behind the chart. */}
-      <SidePanel type="modal" open={reportOpen} onOpenChange={setReportOpen} title="Revenue report" description={`Invoiced and collected per month, ${range.span}.`}>
-        <Table aria-label={`Revenue per month, ${range.span}`} columns={reportColumns} rows={reportRows} />
-      </SidePanel>
-    </Box>
+    <StudioApp place="finance"
+      main={(
+        <PageHeader title="Finance" description={`What ${studio.name} invoiced and collected from its clients.`}
+          actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Revenue exported", children: `revenue-${range.id}.csv · ${range.span}` })}>Export</Button>} />
+      )}
+      // The chevron opens the exact amounts behind the chart: docked beside the page when the window has room for both,
+      // else as the modal panel.
+      sidePanel={(
+        <SidePanel type="standard" open={reportOpen} onOpenChange={setReportOpen} title="Revenue report" description={`Invoiced and collected per month, ${range.span}.`}>
+          <Table aria-label={`Revenue per month, ${range.span}`} columns={reportColumns} rows={reportRows} />
+        </SidePanel>
+      )}
+    >
+      <Stack gap="md">
+        {/* Three tiles share the row: each column at least 30% wide, one per row once 220px no longer fits. */}
+        <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
+          <MetricCard theme="flat" label="Invoiced in September" value={formatMoney(september.invoiced)} icon="icon-currency-dollar-circle-line" iconTheme="green"
+            trend={{ direction: september.invoiced >= august.invoiced ? "positive" : "negative", label: `${changeOf(september.invoiced, august.invoiced)} vs. August` }} />
+          <MetricCard theme="flat" label="Collected in September" value={formatMoney(september.collected)} icon="icon-bank-note-01-line" iconTheme="blue"
+            trend={{ direction: september.collected >= august.collected ? "positive" : "negative", label: `${changeOf(september.collected, august.collected)} vs. August` }} />
+          <MetricCard theme="flat" label="Overdue" value={formatMoney(overdue.reduce((total, invoice) => total + invoice.amount, 0))} icon="icon-alert-triangle-line" iconTheme="red"
+            trend={{ direction: "normal", label: overdue.length ? `${plural(overdue.length, "invoice")} · ${formatDue(overdue[0].due)}` : "Nothing overdue" }} />
+        </Grid>
+        {/* Flat on the canvas, like the tiles. Right under the page h1: an h2. A wide card hugs its range switch. */}
+        <ChartCard title="Revenue" headingLevel={2} onOpen={() => setReportOpen(true)} openLabel="Open revenue report"
+          ranges={revenueRanges.map((r) => ({ id: r.id, label: r.label }))} range={rangeId} onRangeChange={setRangeId} rangesFullWidth={false}>
+          {/* A new range starts on its latest month. */}
+          <LineChart key={rangeId} aria-label={`Revenue invoiced per month, ${range.span}`} data={points} format={formatCompactMoney} height={260} />
+        </ChartCard>
+        {/* What is still open: the invoices the tiles add up, so the dashboard ends on the next thing to do. */}
+        <ListBox as="section" aria-labelledby={openId} header={<Heading level={2} id={openId} textStyle="Heading/Subheading">Waiting for payment</Heading>}>
+          <List aria-labelledby={openId}>
+            {unpaid.map((invoice) => (
+              <ListItem key={invoice.id} title={`${invoice.number} · ${invoice.client}`} caption={`${formatMoney(invoice.amount)} · ${formatDue(invoice.due)}`}
+                leading={<DockIcon size="md" icon="icon-receipt-line" theme={invoice.status === "Overdue" ? "red" : "blue"} background="subtle" />}
+                trailing={<Badge theme={invoiceStatusTheme[invoice.status]} background="subtle">{invoice.status}</Badge>}
+                onClick={() => toast({ title: `Reminder sent to ${invoice.client}`, children: `${invoice.number} · ${formatMoney(invoice.amount)}` })} />
+            ))}
+          </List>
+        </ListBox>
+      </Stack>
+    </StudioApp>
   );
 }
 
@@ -238,6 +325,27 @@ const thisWeek = [
   { id: "w6", note: "Zen office hours", project: "zen-ds", day: "Monday", value: 2 },
 ].map((entry) => ({ ...entry, project: projectById(entry.project) }));
 
+/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
+const phoneRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
+  { id: "hours", label: "Hours", icon: "icon-clock-line", selectedIcon: "icon-clock-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+/** The bottom bar of a root screen: the other roots are not drawn here, so a toast says so and the bar keeps this root. */
+function PhoneRoots({ value }: { value: string }) {
+  const notHere = useNotHere();
+  return (
+    <BottomNavigation aria-label={studio.name} showLabels items={phoneRoots} value={value}
+      onValueChange={(id) => { if (id !== value) notHere(phoneRoots.find((item) => item.id === id)?.label ?? id); }} />
+  );
+}
+/** Back on a pushed screen whose parent this example does not draw: the toast names where it goes. */
+function useBackTo(parent: string) {
+  const { toast } = useToast();
+  return { icon: "icon-chevron-left-line-medium" as const, label: "Back", onClick: () => toast({ title: `Back to ${parent}`, children: "This example shows the one screen." }) };
+}
+
 function PhoneHoursExample() {
   // The phone's scroller: the large title folds as the month's entries run under the bar.
   const screenRef = useRef<HTMLDivElement>(null);
@@ -246,12 +354,14 @@ function PhoneHoursExample() {
   const weekId = useId();
   const [rangeId, setRangeId] = useState("weekly");
   return (
-    // One main chart on a phone goes straight on the screen, no Chart Card: the card's padding would cost the plot its
-    // width (the user, 2026-10-13). The entries are grouped: the screen is Surface-Alt and each group is a white block, so
-    // no border or shadow is needed; each group is a ListBox (20px on a phone) and its kicker lines up with the row text.
-    <PlatformPhone label="My hours" canvas="alt" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="My hours" largeTitle="My hours" scrollRef={screenRef} />}>
-      <Stack gap="lg" padding="lg">
+    // The Hours root of the studio app: one main chart goes straight on the screen, no Chart Card (the card's padding
+    // would cost the plot its width; the user, 2026-10-13). The bottom bar casts a shadow, so the entry groups are Shadow
+    // blocks on the grey Canvas, each a ListBox (20px on a phone) whose kicker lines up with the row text.
+    <PlatformPhone label="Hours" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation title="Hours" largeTitle="Hours" largeTitleSubheading={`${me.name} · 164 h in September`} scrollRef={screenRef} />}
+        bottomNavigation={<PhoneRoots value="hours" />}
+      >
         <Stack as="section" gap="md" aria-labelledby={chartId}>
           <Heading level={2} id={chartId} textStyle="Heading/Subheading">Hours logged</Heading>
           <Segmented options={myRanges} value={rangeId} onValueChange={setRangeId} fullWidth aria-label="Range" />
@@ -260,7 +370,7 @@ function PhoneHoursExample() {
         </Stack>
         <Stack as="section" gap="xs" aria-labelledby={groupId}>
           <Box paddingX="lg"><Heading level={2} id={groupId} textStyle="Body/Small/Bold" tone="light">September by project</Heading></Box>
-          <ListBox>
+          <ListBox theme="shadow">
             <List aria-labelledby={groupId}>
               {septemberByProject.map(({ project, value }) => (
                 <ListItem key={project.id} title={project.name} caption={project.client}
@@ -272,7 +382,7 @@ function PhoneHoursExample() {
         </Stack>
         <Stack as="section" gap="xs" aria-labelledby={weekId}>
           <Box paddingX="lg"><Heading level={2} id={weekId} textStyle="Body/Small/Bold" tone="light">This week</Heading></Box>
-          <ListBox>
+          <ListBox theme="shadow">
             <List aria-labelledby={weekId}>
               {/* Day and client: each client has one project here, and the client keeps the caption on one line in the block. */}
               {thisWeek.map((entry) => (
@@ -283,7 +393,7 @@ function PhoneHoursExample() {
             </List>
           </ListBox>
         </Stack>
-      </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -407,23 +517,24 @@ function ActivityCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
 }
 
 function StudioAnalyticsExample() {
+  const { toast } = useToast();
   return (
-    <Box surface="canvas">
-      <Container maxWidth="lg">
-        <Stack paddingY="xl" gap="xl">
-          <PageHeader title="Analytics" description={`How ${studio.name} earns, bills and spends its time.`} />
-          {/* Three cards a row on a desktop, one per row once 300px no longer fits; every card is flat on the canvas. */}
-          <Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
-            <RevenueBarsCard headingLevel={2} />
-            <CashFlowCard headingLevel={2} />
-            <ClientShareCard headingLevel={2} />
-            <ActivityCard headingLevel={2} />
-            <CapacityCard headingLevel={2} />
-            <BudgetRingsCard headingLevel={2} />
-          </Grid>
-        </Stack>
-      </Container>
-    </Box>
+    <StudioApp place="analytics"
+      main={(
+        <PageHeader title="Analytics" description={`How ${studio.name} earns, bills and spends its time.`}
+          actions={<Button level="tertiary" startIcon="icon-share-01-line" onClick={() => toast({ title: "Link copied", children: "Analytics · Jan – Sep 2026, view only" })}>Share</Button>} />
+      )}
+    >
+      {/* Three cards a row on a desktop, one per row once 300px no longer fits; every card is flat on the canvas. */}
+      <Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
+        <RevenueBarsCard headingLevel={2} />
+        <CashFlowCard headingLevel={2} />
+        <ClientShareCard headingLevel={2} />
+        <ActivityCard headingLevel={2} />
+        <CapacityCard headingLevel={2} />
+        <BudgetRingsCard headingLevel={2} />
+      </Grid>
+    </StudioApp>
   );
 }
 
@@ -448,18 +559,34 @@ function TopClientsCard() {
 function PhoneProjectsExample() {
   const screenRef = useRef<HTMLDivElement>(null);
   const headingId = useId();
+  const back = useBackTo("Hours");
   return (
-    // The ranking is the screen's one chart: straight on the screen, no Chart Card, its column labels over the rows.
-    <PlatformPhone label="Hours by project" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title="Hours by project" scrollRef={screenRef} />}>
-      <Stack as="section" gap="md" padding="lg" aria-labelledby={headingId}>
-        <Stack gap="2xs">
-          <Heading level={2} id={headingId} textStyle="Heading/Subheading">September</Heading>
-          <Text tone="base" textStyle="Body/Small/Regular">{`${hours(septemberByProject.reduce((sum, p) => sum + p.value, 0))} on ${plural(septemberByProject.length, "project")}`}</Text>
+    // A pushed screen from Hours: the compact bar with Back, no bottom bar. The ranking is the screen's one chart:
+    // straight on the screen, no Chart Card, its column labels over the rows.
+    <PlatformPhone label="Hours by project" canvas="default" screenRef={screenRef}>
+      <AppShell topNavigation={<TopNavigation type="compact-alt" title="Hours by project" scrollRef={screenRef} leading={back} />}>
+        <Stack as="section" gap="md" aria-labelledby={headingId}>
+          <Stack gap="2xs">
+            <Heading level={2} id={headingId} textStyle="Heading/Subheading">September</Heading>
+            <Text tone="base" textStyle="Body/Small/Regular">{`${hours(septemberByProject.reduce((sum, p) => sum + p.value, 0))} on ${plural(septemberByProject.length, "project")}`}</Text>
+          </Stack>
+          <BarList aria-label="Your hours by project, September 2026" headers={{ label: "Project", value: "Hours" }}
+            data={septemberByProject.map(({ project, value }) => ({ label: project.name, value }))} format={hours} />
         </Stack>
-        <BarList aria-label="Your hours by project, September 2026" headers={{ label: "Project", value: "Hours" }}
-          data={septemberByProject.map(({ project, value }) => ({ label: project.name, value }))} format={hours} />
-      </Stack>
+        {/* What the ranking leaves out: the client projects' budgets, so the hours read against what each can still take. */}
+        <Stack as="section" gap="xs" aria-labelledby={`${headingId}-budget`}>
+          <Box paddingX="lg"><Heading level={2} id={`${headingId}-budget`} textStyle="Body/Small/Bold" tone="light">Budget left</Heading></Box>
+          <ListBox>
+            <List aria-labelledby={`${headingId}-budget`}>
+              {septemberByProject.filter(({ project }) => project.spent > 0).map(({ project }) => (
+                <ListItem key={project.id} title={project.name} caption={`${project.client} · ${Math.round((project.spent / project.budget) * 100)}% used`}
+                  leading={<DockIcon size="md" icon={project.icon} theme={project.theme} background="subtle" />}
+                  trailing={<Text as="span" textStyle="Body/Base/Medium">{formatCompactMoney(project.budget - project.spent)}</Text>} />
+              ))}
+            </List>
+          </ListBox>
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -514,25 +641,47 @@ function UtilisationGaugeCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }
 const weekHours = 40;
 const weekLogged = thisWeek.reduce((total, entry) => total + entry.value, 0);
 
+const logProjects = ["lumen-banking", "zen-ds", "phin-loyalty", "saola-brand"].map((id) => ({ value: id, label: projectById(id).name }));
+const logHours = ["1", "2", "3", "4"].map((value) => ({ value, label: hours(Number(value)) }));
+
 function PhoneWeekGaugeExample() {
+  const { toast } = useToast();
   const screenRef = useRef<HTMLDivElement>(null);
   const gaugeId = useId();
   const listId = useId();
+  const back = useBackTo("Hours");
+  const [entries, setEntries] = useState(thisWeek);
+  const [logging, setLogging] = useState(false);
+  const logged = entries.reduce((total, entry) => total + entry.value, 0);
+  const form = useFormState<{ note: string; project: string; hours: string }>({
+    initialValues: { note: "", project: "lumen-banking", hours: "2" },
+    validate: (values) => ({ note: values.note.trim() ? undefined : "Say what you worked on" }),
+    onSubmit: (values, { reset }) => {
+      const entry = { id: `log-${entries.length}`, note: values.note.trim(), project: projectById(values.project), day: "Today", value: Number(values.hours) };
+      setEntries((list) => [entry, ...list]);
+      setLogging(false);
+      reset();
+      toast({ title: `${hours(entry.value)} logged`, children: `${entry.note} · ${entry.project.name}`, action: { label: "Undo", onClick: () => setEntries((list) => list.filter((item) => item.id !== entry.id)) } });
+    },
+  });
   return (
-    // One main chart on a phone goes straight on the screen; the entries are white blocks on the Surface-Alt screen.
-    <PlatformPhone label="This week" canvas="alt" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
-      <Stack gap="lg" padding="lg">
+    // A pushed screen from Hours: Back and the compact bar, the week's one action in the Action bar (Figma Bottom=Actions).
+    // One main chart goes straight on the screen; the entries are a white block on the grey Canvas.
+    <PlatformPhone label="This week" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title="This week" scrollRef={screenRef} leading={back} />}
+        actionBar={<ActionBar primaryAction={{ label: "Log time", onClick: () => setLogging(true) }} />}
+      >
         <Stack as="section" gap="md" aria-labelledby={gaugeId}>
           <Heading level={2} id={gaugeId} textStyle="Heading/Subheading" align="center">Hours logged</Heading>
-          <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={weekLogged} max={weekHours} format={hours} actualLabel="Logged"
-            caption={`${hours(weekHours - weekLogged)} to go`} />
+          <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={Math.min(logged, weekHours)} max={weekHours} format={hours} actualLabel="Logged"
+            caption={logged >= weekHours ? "Week complete" : `${hours(weekHours - logged)} to go`} />
         </Stack>
         <Stack as="section" gap="xs" aria-labelledby={listId}>
           <Box paddingX="lg"><Heading level={2} id={listId} textStyle="Body/Small/Bold" tone="light">Entries</Heading></Box>
           <ListBox>
             <List aria-labelledby={listId}>
-              {thisWeek.map((entry) => (
+              {entries.map((entry) => (
                 <ListItem key={entry.id} title={entry.note} caption={`${entry.day} · ${entry.project.client}`}
                   leading={<DockIcon size="md" icon={entry.project.icon} theme={entry.project.theme} background="subtle" />}
                   trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(entry.value)}</Text>} />
@@ -540,7 +689,13 @@ function PhoneWeekGaugeExample() {
             </List>
           </ListBox>
         </Stack>
-      </Stack>
+      </AppShell>
+      <BottomSheet inline open={logging} onOpenChange={(open) => { setLogging(open); if (!open) form.reset(); }} title="Log time" onSubmit={form.handleSubmit}
+        primaryAction={{ label: "Log hours" }} secondaryAction={{ label: "Cancel" }}>
+        <InputField label="What did you work on?" placeholder="Transfer limits review" data-autofocus="" {...form.field("note")} />
+        <SelectField label="Project" options={logProjects} {...form.selectField("project")} />
+        <SelectField label="Hours" options={logHours} {...form.selectField("hours")} />
+      </BottomSheet>
     </PlatformPhone>
   );
 }
@@ -615,11 +770,11 @@ function PhoneTimeSplitExample() {
   const screenRef = useRef<HTMLDivElement>(null);
   const chartId = useId();
   const totalsId = useId();
+  const back = useBackTo("Hours");
   return (
-    // One main chart on a phone goes straight on the screen; the totals are a white block on the Surface-Alt screen.
-    <PlatformPhone label="Billable time" canvas="alt" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Billable time" largeTitle="Billable time" scrollRef={screenRef} />}>
-      <Stack gap="lg" padding="lg">
+    // A pushed screen from Hours: one main chart straight on the screen; the totals are a white block on the grey Canvas.
+    <PlatformPhone label="Billable time" canvas="default" screenRef={screenRef}>
+      <AppShell topNavigation={<TopNavigation type="compact-alt" title="Billable time" scrollRef={screenRef} leading={back} />}>
         <Stack as="section" gap="md" aria-labelledby={chartId}>
           <Stack gap="xs">
             <Heading level={2} id={chartId} textStyle="Heading/Subheading">Billable and internal</Heading>
@@ -637,7 +792,7 @@ function PhoneTimeSplitExample() {
             </List>
           </ListBox>
         </Stack>
-      </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -672,45 +827,58 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Finance dashboard",
     screen: true,
-    description: "On a dashboard the Chart Card sits on the page canvas with three Metric Cards, all flat (Surface on the canvas, no border or shadow), and its title is an h2 right under the page title. On the wide card the range switch hugs its labels; the chevron opens the exact amounts in a Side Panel.",
+    description: "The studio's Finance page: the Chart Card sits on the page canvas with three Metric Cards, all flat (Surface on the canvas, no border or shadow) beside a Sidebar without a shadow, and its title is an h2 right under the PageHeader in the header's Main row. On the wide card the range switch hugs its labels; the chevron opens the exact amounts in a Side Panel that docks beside the page when the window has room and floats over it when not.",
     render: () => <FinanceDashboardExample />,
     code: `const [range, setRange] = useState("6m");
 const [reportOpen, setReportOpen] = useState(false);
 
-<PageHeader title="Finance" description="What Đìzai Studio invoiced and collected from its clients." />
-<Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
-  <MetricCard theme="flat" label="Invoiced in September" value="$105,700" icon="icon-currency-dollar-circle-line" iconTheme="green"
-    trend={{ direction: "positive", label: "+9% vs. August" }} />
-  {/* Collected in September, Overdue */}
-</Grid>
-<ChartCard title="Revenue" headingLevel={2} onOpen={() => setReportOpen(true)} openLabel="Open revenue report"
-  ranges={[{ id: "6m", label: "6 months" }, { id: "12m", label: "12 months" }]} range={range} onRangeChange={setRange}
-  rangesFullWidth={false}>
-  <LineChart key={range} aria-label="Revenue invoiced per month, Apr – Sep 2026" data={points} format={formatCompactMoney} height={260} />
-</ChartCard>
-
-<SidePanel type="modal" open={reportOpen} onOpenChange={setReportOpen} title="Revenue report"
-  description="Invoiced and collected per month, Apr – Sep 2026.">
-  <Table aria-label="Revenue per month, Apr – Sep 2026" columns={columns} rows={rows} />
-</SidePanel>`,
+<AppShell
+  // Shadow=No: a Surface Sidebar with no shadow, so the cards stay flat on the Canvas
+  sidebar={<Sidebar shadow={false} logo={logo} sections={places} selectedId="finance" onItemClick={go} />}
+  header={<AppShellHeader actions={<>{notifications}{account}</>}
+    main={<PageHeader title="Finance" description="What Đìzai Studio invoiced and collected from its clients." actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={exportCsv}>Export</Button>} />} />}
+  sidePanel={
+    <SidePanel type="standard" open={reportOpen} onOpenChange={setReportOpen} title="Revenue report"
+      description="Invoiced and collected per month, Apr – Sep 2026.">
+      <Table aria-label="Revenue per month, Apr – Sep 2026" columns={columns} rows={rows} />
+    </SidePanel>
+  }
+>
+  <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
+    <MetricCard theme="flat" label="Invoiced in September" value="$105,700" icon="icon-currency-dollar-circle-line" iconTheme="green"
+      trend={{ direction: "positive", label: "+9% vs. August" }} />
+    {/* Collected in September, Overdue */}
+  </Grid>
+  <ChartCard title="Revenue" headingLevel={2} onOpen={() => setReportOpen(true)} openLabel="Open revenue report"
+    ranges={[{ id: "6m", label: "6 months" }, { id: "12m", label: "12 months" }]} range={range} onRangeChange={setRange}
+    rangesFullWidth={false}>
+    <LineChart key={range} aria-label="Revenue invoiced per month, Apr – Sep 2026" data={points} format={formatCompactMoney} height={260} />
+  </ChartCard>
+  <ListBox as="section" aria-labelledby="open" header={<Heading level={2} id="open" textStyle="Heading/Subheading">Waiting for payment</Heading>}>…</ListBox>
+</AppShell>`,
   },
   {
     title: "Studio analytics",
     screen: true,
-    description: "The whole chart family on one canvas, every card flat with its title as an h2 under the page title: bars with a hatched forecast, a line with a dashed comparison, a donut, a heatmap, bars against capacity and ring gauges. Each chart draws itself in as it mounts.",
+    description: "The whole chart family on the studio's Analytics page, every card flat on the canvas beside a Sidebar without a shadow, its title an h2 under the PageHeader in the header's Main row: bars with a hatched forecast, a line with a dashed comparison, a donut, a heatmap, bars against capacity and ring gauges. Each chart draws itself in as it mounts.",
     render: () => <StudioAnalyticsExample />,
-    code: `<PageHeader title="Analytics" description="How Đìzai Studio earns, bills and spends its time." />
-<Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
-  <ChartCard title="Revenue" headingLevel={2} icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
-    <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue} format={formatCompactMoney} height={240} showAverage />
-  </ChartCard>
-  <ChartCard title="Invoiced and collected" headingLevel={2} icon="icon-line-chart-up-line" description="Apr – Sep 2026">
-    <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={invoiced} label="Invoiced"
-      compare={{ label: "Collected", values: collected }} legendPosition="top" height={240} />
-  </ChartCard>
-  {/* Revenue by client (DonutChart), When the studio logs time (HeatmapChart),
-      Hours against capacity (BarChart orientation="horizontal"), Budget used (RadialChart) */}
-</Grid>`,
+    code: `<AppShell
+  sidebar={<Sidebar shadow={false} logo={logo} sections={places} selectedId="analytics" onItemClick={go} />}
+  header={<AppShellHeader actions={<>{notifications}{account}</>}
+    main={<PageHeader title="Analytics" description="How Đìzai Studio earns, bills and spends its time." actions={<Button level="tertiary" startIcon="icon-share-01-line" onClick={share}>Share</Button>} />} />}
+>
+  <Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
+    <ChartCard title="Revenue" headingLevel={2} icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
+      <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue} format={formatCompactMoney} height={240} showAverage />
+    </ChartCard>
+    <ChartCard title="Invoiced and collected" headingLevel={2} icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+      <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={invoiced} label="Invoiced"
+        compare={{ label: "Collected", values: collected }} legendPosition="top" height={240} />
+    </ChartCard>
+    {/* Revenue by client (DonutChart), When the studio logs time (HeatmapChart),
+        Hours against capacity (BarChart orientation="horizontal"), Budget used (RadialChart) */}
+  </Grid>
+</AppShell>`,
   },
   {
     title: "Hours by team",
@@ -871,15 +1039,17 @@ const retry = () => {
   },
   {
     title: "Hours on a phone",
-    description: "On a phone a screen's one main chart goes straight on the screen — no Chart Card, whose padding would cost the plot its width: its title, the range switch split into equal halves and the chart share the screen margin, and six short labels keep every point tappable. The entries below are grouped on the Surface-Alt screen as white blocks, and they scroll the large title into the bar.",
+    description: "On a phone a screen's one main chart goes straight on the screen — no Chart Card, whose padding would cost the plot its width: its title, the range switch split into equal halves and the chart share the margin the AppShell's Body pads, and six short labels keep every point tappable. Hours is a root of the studio app, so the bottom bar holds its roots; the bar casts a shadow, so the entry groups below are Shadow blocks on the grey Canvas, and they scroll the large title into the bar.",
     render: () => <PhoneHoursExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-// One main chart on a phone: straight on the screen, no Chart Card. Grouped list: Surface-Alt screen, white blocks.
-<PlatformPhone canvas="alt" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="My hours" largeTitle="My hours" scrollRef={screenRef} />}>
-  {/* padding 20 (Margin-Compact); gap 24 between the chart and the groups */}
-  <Stack gap="lg" padding="lg">
+// One main chart on a phone: straight on the screen, no Chart Card.
+<PlatformPhone screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation title="Hours" largeTitle="Hours" largeTitleSubheading="Alex Duong · 164 h in September" scrollRef={screenRef} />}
+    bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" showLabels value="hours" onValueChange={go} items={roots} />}
+  >
+    {/* The Body pads 20 and spaces the sections Layout-Mobile/Section-Gap apart */}
     <Stack as="section" gap="md" aria-labelledby={chartId}>
       <Heading level={2} id={chartId} textStyle="Heading/Subheading">Hours logged</Heading>
       <Segmented options={[{ id: "weekly", label: "Weekly" }, { id: "monthly", label: "Monthly" }]} value={range}
@@ -889,8 +1059,8 @@ const retry = () => {
     <Stack as="section" gap="xs" aria-labelledby={groupId}>
       {/* The kicker lines up with the row text inside the group */}
       <Box paddingX="lg"><Heading level={2} id={groupId} textStyle="Body/Small/Bold" tone="light">September by project</Heading></Box>
-      {/* Rows have no side padding of their own: the ListBox pads them */}
-      <ListBox>
+      {/* Rows have no side padding of their own: the ListBox pads them. Shadow: the bottom bar's elevation */}
+      <ListBox theme="shadow">
         <List aria-labelledby={groupId}>
           <ListItem title="Online banking redesign" caption="Lumen Bank" leading={<DockIcon size="md" icon="icon-bank-line" theme="blue" background="subtle" />}
             trailing={<Text as="span" textStyle="Body/Base/Medium">92 h</Text>} />
@@ -898,7 +1068,7 @@ const retry = () => {
       </ListBox>
     </Stack>
     {/* … then "This week" the same way: one row per time entry */}
-  </Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
   {
@@ -914,20 +1084,23 @@ const retry = () => {
   },
   {
     title: "Ranking on a phone",
-    description: "On a phone the screen's one ranking goes straight on the screen, no Chart Card: a heading with its total, then the list at full width. Project names sit inside the bars (a short bar lets its name run past its end, a name too long for the column ends in an ellipsis) and the values keep their own column.",
+    description: "On a phone the screen's one ranking goes straight on the screen, no Chart Card: a heading with its total, then the list at full width. Project names sit inside the bars (a short bar lets its name run past its end, a name too long for the column ends in an ellipsis) and the values keep their own column. The screen is pushed from Hours: Back in the compact bar, no bottom bar, and the budgets left follow as a white block.",
     render: () => <PhoneProjectsExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-<PlatformPhone label="Hours by project" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title="Hours by project" scrollRef={screenRef} />}>
-  <Stack as="section" gap="md" padding="lg" aria-labelledby={headingId}>
-    <Stack gap="2xs">
-      <Heading level={2} id={headingId} textStyle="Heading/Subheading">September</Heading>
-      <Text tone="base" textStyle="Body/Small/Regular">164 h on 4 projects</Text>
+<PlatformPhone screenRef={screenRef}>
+  <AppShell topNavigation={<TopNavigation type="compact-alt" title="Hours by project" scrollRef={screenRef}
+    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToHours }} />}>
+    <Stack as="section" gap="md" aria-labelledby={headingId}>
+      <Stack gap="2xs">
+        <Heading level={2} id={headingId} textStyle="Heading/Subheading">September</Heading>
+        <Text tone="base" textStyle="Body/Small/Regular">164 h on 4 projects</Text>
+      </Stack>
+      <BarList aria-label="Your hours by project, September 2026" headers={{ label: "Project", value: "Hours" }} format={hours}
+        data={[{ label: "Online banking redesign", value: 92 }, { label: "Zen design system", value: 48 }, /* … */]} />
     </Stack>
-    <BarList aria-label="Your hours by project, September 2026" headers={{ label: "Project", value: "Hours" }} format={hours}
-      data={[{ label: "Online banking redesign", value: 92 }, { label: "Zen design system", value: 48 }, /* … */]} />
-  </Stack>
+    {/* Budget left: a ListBox under a Body/Small/Bold kicker */}
+  </AppShell>
 </PlatformPhone>`,
   },
   {
@@ -964,17 +1137,22 @@ const retry = () => {
   },
   {
     title: "Hours this week on a phone",
-    description: "A gauge with no target: the week's 40 hours are the scale, format reads hours at the figure and both ends, and the caption says what is left. On a phone the screen's one main chart goes straight on the screen, without a Chart Card; the week's entries follow as a white block on the Surface-Alt screen.",
+    description: "A gauge with no target: the week's 40 hours are the scale, format reads hours at the figure and both ends, and the caption says what is left. On a phone the screen's one main chart goes straight on the screen, without a Chart Card; the week's entries follow as a white block on the grey Canvas. Log time in the Action bar adds an entry from a Bottom Sheet, and the gauge moves with it (Undo in the toast).",
     render: () => <PhoneWeekGaugeExample />,
-    code: `<PlatformPhone canvas="alt" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
-  <Stack gap="lg" padding="lg">
+    code: `<PlatformPhone screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation type="compact-alt" title="This week" scrollRef={screenRef}
+      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToHours }} />}
+    actionBar={<ActionBar primaryAction={{ label: "Log time", onClick: () => setLogging(true) }} />}
+  >
     <Stack as="section" gap="md" aria-labelledby={gaugeId}>
       <Heading level={2} id={gaugeId} textStyle="Heading/Subheading" align="center">Hours logged</Heading>
-      <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={18} max={40} format={hours} actualLabel="Logged" caption="22 h to go" />
+      <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={logged} max={40} format={hours} actualLabel="Logged" caption={\`\${hours(40 - logged)} to go\`} />
     </Stack>
     {/* … the week's entries: a ListBox under a Body/Small/Bold kicker */}
-  </Stack>
+  </AppShell>
+  <BottomSheet inline open={logging} onOpenChange={setLogging} title="Log time" onSubmit={form.handleSubmit}
+    primaryAction={{ label: "Log hours" }} secondaryAction={{ label: "Cancel" }}>…</BottomSheet>
 </PlatformPhone>`,
   },
   {
@@ -1031,11 +1209,11 @@ const retry = () => {
   },
   {
     title: "Grouped bars on a phone",
-    description: "On a phone the chart goes straight on the screen under its heading, without a Chart Card. Six weeks of two bars still fit 390px: each bar narrows with its column. Touching a week shows its Tooltip; the totals below are a white block on the Surface-Alt screen.",
+    description: "On a phone the chart goes straight on the screen under its heading, without a Chart Card. Six weeks of two bars still fit 390px: each bar narrows with its column. Touching a week shows its Tooltip; the totals below are a white block on the grey Canvas of a screen pushed from Hours (Back, no bottom bar).",
     render: () => <PhoneTimeSplitExample />,
-    code: `<PlatformPhone label="Billable time" canvas="alt" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Billable time" largeTitle="Billable time" scrollRef={screenRef} />}>
-  <Stack gap="lg" padding="lg">
+    code: `<PlatformPhone screenRef={screenRef}>
+  <AppShell topNavigation={<TopNavigation type="compact-alt" title="Billable time" scrollRef={screenRef}
+    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToHours }} />}>
     <Stack as="section" gap="md" aria-labelledby={chartId}>
       <Stack gap="xs">
         <Heading level={2} id={chartId} textStyle="Heading/Subheading">Billable and internal</Heading>
@@ -1046,7 +1224,7 @@ const retry = () => {
         data={[{ label: "Aug 17", values: { billable: 32, internal: 6 } }, /* … */]} />
     </Stack>
     {/* Six-week totals: a ListBox under a Body/Small/Bold kicker */}
-  </Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
   {

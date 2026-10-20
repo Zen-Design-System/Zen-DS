@@ -525,3 +525,136 @@ BACKLOG item the user approved 2026-10-17 ("Direct paste of Studio Shapes"), pic
   simulator, a click timeout), works alone right after (`--rows=PT-15`, 63 s); nothing in the change reaches Present.
   Reports `.qa/reports/2026-10-19T18-30-20-ee53b0aa.md`, `.qa/studio-e2e/2026-10-19T18-58-10.md`. Main 7db4c184 merged
   after it (#155, compile.mjs only).
+
+## AppShell rebuilt from scratch on Figma's AppShell patterns (tier L, branch zen/feat/appshell-patterns-20261019)
+
+User: "đập appshell hiện có ra làm lại từ đầu"; answers "Phá hẳn, migrate hết" (no aliases) and "Màn hình + templates".
+Then "Các example Appshell nên build như trong Figma ◇ Master-Layout · Example".
+
+- **Library:**
+  - AppShell is rewritten: `pattern` (6 desktop structures), `collapse`, the mobile pattern (`mobileTop`, `hero`,
+    `backdrop`, `actionBar`), `layout` desktop | drawer | mobile.
+  - New AppShellHeader (Header/AppShell) and AppShellPane.
+  - ActionBar `surface="glass"`; TopNavigation `transparent` / `transparent-on-color`; Sidebar `toggleHere`.
+  - Spec and migration map: `docs/research/appshell-rebuild-2026-10-19.md`.
+- **Harness and docs:**
+  - The app-shell rules are rewritten, and two are new: `collapse-beside-master-crumb` and `pattern-parts`.
+  - Guideline entry with 2 Do/Don't visuals; component-usage-rules §17, AGENTS.consumer, the responsive skill and
+    getting-started are updated.
+- **Consumers migrated:** the 7 templates and HR (agents), the appLayer shell (agent), and the platform page `app-shell`.
+  - That page's sections A–F (41 screens) are files under `examples/pages/app-shell/`, one agent per 3–4 screens.
+  - The 16 behaviour examples stay until the sections land.
+- **Studio:**
+  - The Screen section's parts have a host (`screen-chrome.mjs`: shell or header).
+  - `migrateAppShellProps` moves saved pages to the new props on load.
+  - The phone header is derived from the AppShellHeader.
+  - Figma push and pull write the AppShellHeader. The Body keeps Figma's Margin-Comfortable padding in both directions:
+    no doubled padding Stack.
+  - The slots registry, cloning.json (sidePanel, topNavigation), builder.css and drag selectors are updated, as are the
+    E2E fixtures B-39/41/42, SP-22 and HO-10.
+- **Checks so far:**
+  - All 54 `studio:selftest` steps pass.
+  - The app-shell interaction tests pass (38/38).
+  - tsc is clean outside the example files still being written.
+- **Wave 2 and component parity (afternoon):**
+  - All 41 Figma screens are built (A–F) from use_figma node dumps, and compared 1:1 beside the Figma screenshots.
+  - Fixed at their owners:
+    - TopNavigation: a centred title with a subtitle, and the Control-Bar size.
+    - BottomNavigation: the floating-glass selected tab.
+    - AppShell: the media spacer and backdrop Image, the Focus stepper at 200 per step, a Transparent bar on the page
+      canvas, the floating clearance in tokens.
+    - Sidebar: `shadow`, and sections 8 apart.
+    - MetricCard tile `iconBackground`.
+    - ActionBar: the Primary keeps its label (user).
+    - New AppShell `band` (user).
+  - Harness: primary-in-top-bar allows a header without a Main row; pale-on-canvas reads Band-Sheet / Media sheets.
+  - Studio: the push pads the Control frame as the code does; registry slot layouts follow; partProps regenerated.
+  - A stale Studio admin draft of app-shell.tsx on :5262 was serving old code. Discarded; the lesson is in memory and
+    in the agents' brief.
+  - Checks: `npx vitest run` 1098 passed, all studio selftests, usage:selftest.
+- **Evening: user answers, photos, phase 3:**
+  - TopNavigation capline / subheading, `topBar={false}` and trailing nodes are adopted by D2–D5, E2, E5, E7 and F1–F12.
+  - User answers:
+    - An Avatar on the mobile top nav is 44.
+    - Text on the Accent band is On-Accent, one line with an ellipsis.
+    - No Breadcrumbs on mobile: AppShellHeader and PageHeader turn a trail into Back under 744.
+    - 26 photos are exported from Figma into `platformMedia`.
+  - Phase 3 ("Màn hình"): 26 platform pages had their screen and phone app examples rebuilt on the new shell. Six
+    agents worked in waves after two rate-limit stops.
+  - Fixed at their owners on the way:
+    - SidePanel: Escape is scoped to its AppShell.
+    - AppShellHeader: the stack test needs a pixel of slack.
+    - Sidebar: labels ellipsize in their grid track.
+    - The harness tag reader skips comments.
+    - PlatformPhone gives its content the mobile Zen modes, so focus is no longer lost on a phone screen switch.
+    - Studio's Assets App shell writes AppShellHeader.
+- **Night: finish and merge main:**
+  - The conversation group is done, so all 32 Phase-3 pages are on the new shell.
+  - User rules, now in the audit and the harness:
+    - Contrast by APCA (`apcaPick`, Lc ≥45).
+    - h1 ≥ Heading/1 (Display allowed).
+    - Gap/3XSmall on the ladder.
+  - False positives the new shell exposed were fixed at their checks: sizes under any transform, `.pf-app-frame`
+    device, outline after the leading pane, chrome left out of the style count, wordmarks, the nearest shell's canvas.
+  - Merged main 02dd4dca (118 commits, 8 conflicts) as 8dd57911. tsc, usage, style, guidelines, ai-ui, ai-kit and mcp
+    are green; vitest has 1126 passed; all 67 studio selftests pass.
+  - Gate plan agreed with the supervisor:
+    - the scoped `qa --isolated` on the 211 changed files (41 pages);
+    - `platform:audit --quality` on the other 39 pages;
+    - the full Studio E2E;
+    - then the PR.
+- **Gate 2026-10-20, 02:00–03:05 (the supervisor's slot): FAIL.** Report `.qa/reports/2026-10-19T18-59-47-26060f06.md`.
+  - Static: all green, including the full vitest and every Figma contract.
+  - Platform audit: shard 2 started with app-shell (41 screens × 1512/390/320, smoke, density) and hit the 30 min cap,
+    so it wrote no report. The next run uses `ZEN_QA_SHARDS=4`.
+  - Behaviour found two problems, both fixed at their owners:
+    - Sidebar with `brand` + `logoCollapsed`: the collapse button remounted when the brand gave way to the rail mark,
+      so focus was lost and aria-expanded stayed stale. It is now the header's second child in both states. A
+      regression test fails on the old code.
+    - Avatar's self row offered only disabled menu items; it now offers Edit your profile.
+    - app-shell joins the behaviour probe's HEAVY_PAGES.
+  - Studio E2E: 315 works · 21 broken, all on this branch.
+    - LB-03, LB-05, AI-*, AG-* read the blank desktop page's content Stack as `padding="xl"`. Inside the master layout
+      the AppShell Body pads, so that Stack is unpadded; the rows now accept both.
+    - MC-02 (Layers row timeout) waits for a row re-run.
+  - Contact sheets at 390, plus two fixes:
+    - The B4 artboard was a fixed 390 and overflowed a phone column; it now fills, up to 390.
+    - B5's three labelled links sat at the row's edge; in the drawer layout Changelog and Community move into More.
+  - Also fixed: page-header Nested pages hid its trail by hand under 480. It now passes the full trail, and PageHeader
+    turns it into Back on a phone.
+  - Merged main 36c866ce (#156, #157). Conflicts in CHANGELOG and this log were resolved keeping both sides. tsc, all
+    67 studio selftests and the E2E selftest are green.
+- **Gate run 2, 2026-10-20 14:26–15:30 (`ZEN_QA_SHARDS=4`, main fe5dc9b9 + b60bedb8 merged): FAIL.** Report
+  `.qa/reports/2026-10-20T07-26-04-26060f06.md`.
+  - The 21 rows re-ran first: 21 works (MC-02 included).
+  - Static: all green. Behaviour: 0 errors. The audit finished in 1546 s (4 shards keep app-shell under the cap) and
+    found 25 errors, fixed in 265d5a69 and 1cd7394e:
+    - AppShellHeader on a phone: `min-width: 0` on every action squeezed Badges and AvatarStacks at 320 Comfortable.
+      Now only a Search (or its fixed box) shrinks. Header niceties (`.pf-wide-only`: the studio plan Badge, B4's
+      editors) step aside on a phone.
+    - Chat at 320: the composer keeps only plus under 340px (container query). A desktop thread under 480px drops the
+      104px hover gutter, and the toolbar sits over the bubble's top corner. The call card went from 80 to 208px.
+    - The tabs logo box no longer pins 24px; the toggle footer button is Small.
+  - E1's chip popover covered at 1512 (smoke) does not reproduce: all four sample points hit the popover.
+  - Studio E2E: 334 works · 2 broken.
+    - B-28 passes alone.
+    - MC-02…07 fail after MC-08 in `--only=main` and pass without it. This waits for a debug slot.
+- **Gate run 3, 17:53–19:15 (main dcd5fe11 merged, 65f7130c): FAIL, then targeted re-runs.** Report
+  `.qa/reports/2026-10-20T10-53-22-26060f06.md`.
+  - The debug slot first: after main's #163/#164/#166, `--only=main --no-retry` passes 8/0 (MC-02…07 no longer fail after
+    MC-08). The dump showed the Layers tree had held 0 variant rows.
+  - Static all green; behaviour 0 errors.
+  - Audit: 448 errors, 441 of them from one slip. A `// …` line written between JSX children in B4 rendered as text and
+    tripped every smoke edge at 320. Fixed in beadc41f; a Babel scan of all 434 TSX files finds no other JSX-text
+    comment. The ai-ui model Tag spilled out of the phone top row; it is now `.pf-wide-only`.
+  - E2E hit the 40-min cap under load. Re-run in sequential shards: 1/2 168/0 (661 s), 2/2 168/0 (922 s).
+  - The supervisor agreed that targeted re-verification is enough: the app-shell and ai-ui audit at 1512/390/320 with
+    smoke, quality and density, then the PR.
+- **Open:**
+  - Image has no frameless option for the E1 mascot; this needs the user's approval for a new prop.
+  - Designer questions:
+    - E7 Segmented on black-overlay: the Figma node fails there.
+    - F4 vacuum crop.
+    - Card spacing xs (a new API).
+  - `src/platform/examples/pages/progress.tsx` has two `layout="stacked"` edits of unknown origin. Left out of this
+    change.

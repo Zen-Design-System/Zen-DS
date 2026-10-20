@@ -17,7 +17,6 @@ import {
   BottomSheet,
   Button,
   Chip,
-  Container,
   DateField,
   DescriptionList,
   DockIcon,
@@ -35,7 +34,6 @@ import {
   Metric,
   MetricCard,
   ModalForm,
-  PageHeader,
   plural,
   Search,
   SelectField,
@@ -339,85 +337,80 @@ export function HrMyExpensesTemplate() {
   })() : undefined;
 
   return (
-    <HrShell module="expenses" page="my-expenses" onNavigate={navigate} aside={panel}>
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="sm">
-          <PageHeader title="My expenses" description={`Work costs you paid yourself, approved by ${approver.name}.`}
-            actions={<>
-              <Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Expenses exported", children: `${plural(shown.length, "expense")} · CSV` })}>Export</Button>
-              <Button level="primary" startIcon="icon-plus-line" onClick={() => startExpense()}>New expense</Button>
-            </>} />
+    <HrShell module="expenses" page="my-expenses" onNavigate={navigate} sidePanel={panel}
+      pageHeader={{ title: "My expenses", description: `Work costs you paid yourself, approved by ${approver.name}.`,
+        secondary: [{ id: "export", label: "Export", icon: "icon-download-01-line", onClick: () => toast({ title: "Expenses exported", children: `${plural(shown.length, "expense")} · CSV` }) }],
+        primary: { label: "New expense", onClick: () => startExpense() } }}>
+      <Stack gap="xl">
+        <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
+          {totals.map((tile) => (
+            <MetricCard key={tile.status} variant="title-highlight" size={phone ? "sm" : "xl"} label={tile.label} value={formatMoney(tile.sum)}
+              trend={{ direction: "normal", label: plural(tile.count, "expense") }} icon={tile.icon} iconTheme={tile.theme} iconSize="md" />
+          ))}
+        </Grid>
 
-          <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
-            {totals.map((tile) => (
-              <MetricCard key={tile.status} variant="title-highlight" size={phone ? "sm" : "xl"} label={tile.label} value={formatMoney(tile.sum)}
-                trend={{ direction: "normal", label: plural(tile.count, "expense") }} icon={tile.icon} iconTheme={tile.theme} iconSize="md" />
-            ))}
-          </Grid>
-
-          {phone ? (
-            // Phone: Search, one row of chips that scrolls sideways, the result count, then the claims as a List.
-            <Stack gap="sm">
+        {phone ? (
+          // Phone: Search, one row of chips that scrolls sideways, the result count, then the claims as a List.
+          <Stack gap="sm">
+            <Search aria-label="Search expenses" placeholder="Search expenses" value={query} onValueChange={setQuery} />
+            <Stack direction="row" gap="xs" role="group" aria-label="Filters" style={{ overflowX: "auto" }}>
+              {filterChip("status")}
+              {filterChip("category")}
+              <Chip variant="advanced" size="md" dropdown aria-haspopup="dialog" aria-expanded={sheet === "sort"} selected={sortChoice !== sortChoices[0]}
+                onClick={() => setSheet("sort")} onClearSelection={() => setSort(defaultSort)}>{sortChoice === sortChoices[0] ? "Sort" : sortChoice.label}</Chip>
+            </Stack>
+            {shown.length ? (
+              <>
+                <Text textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "expense")} · {formatMoney(shown.reduce((sum, claim) => sum + claim.amount, 0))}</Text>
+                <List aria-label="My expenses">
+                  {shown.map((claim) => {
+                    const category = expenseCategories[claim.category];
+                    return (
+                      <ListItem key={claim.id} title={claim.title} caption={`${formatDate(claim.spent, { year: false })} · ${claim.merchant}`} selected={claim.id === openId}
+                        leading={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="md" />}
+                        trailing={(
+                          <Stack gap="2xs" align="end">
+                            <Text as="span" textStyle="Body/Base/Bold">{formatMoney(claim.amount)}</Text>
+                            <Badge size="sm" theme={claimStatusTheme[claim.status]} background="subtle">{claim.status}</Badge>
+                          </Stack>
+                        )}
+                        onClick={() => setOpenId(claim.id)} />
+                    );
+                  })}
+                </List>
+              </>
+            ) : emptyState}
+          </Stack>
+        ) : (
+          // Desktop: the toolbar, the claims Table and the result count sit on the page, like My leaves (a Surface
+          // container here would need the Sidebar's shadow; the page reads cleaner without one).
+          <Stack gap="md">
+            {/* Search fills its column; the filter chips (and Clear all, once two filters are on) share the rest. */}
+            <Grid columns="minmax(0, 320px) 1fr" gap="sm" align="center">
               <Search aria-label="Search expenses" placeholder="Search expenses" value={query} onValueChange={setQuery} />
-              <Stack direction="row" gap="xs" role="group" aria-label="Filters" style={{ overflowX: "auto" }}>
+              <Stack direction="row" gap="xs" align="center" wrap>
                 {filterChip("status")}
                 {filterChip("category")}
-                <Chip variant="advanced" size="md" dropdown aria-haspopup="dialog" aria-expanded={sheet === "sort"} selected={sortChoice !== sortChoices[0]}
-                  onClick={() => setSheet("sort")} onClearSelection={() => setSort(defaultSort)}>{sortChoice === sortChoices[0] ? "Sort" : sortChoice.label}</Chip>
+                {activeFilters >= 2 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
               </Stack>
-              {shown.length ? (
-                <>
-                  <Text textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "expense")} · {formatMoney(shown.reduce((sum, claim) => sum + claim.amount, 0))}</Text>
-                  <List aria-label="My expenses">
-                    {shown.map((claim) => {
-                      const category = expenseCategories[claim.category];
-                      return (
-                        <ListItem key={claim.id} title={claim.title} caption={`${formatDate(claim.spent, { year: false })} · ${claim.merchant}`} selected={claim.id === openId}
-                          leading={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="md" />}
-                          trailing={(
-                            <Stack gap="2xs" align="end">
-                              <Text as="span" textStyle="Body/Base/Bold">{formatMoney(claim.amount)}</Text>
-                              <Badge size="sm" theme={claimStatusTheme[claim.status]} background="subtle">{claim.status}</Badge>
-                            </Stack>
-                          )}
-                          onClick={() => setOpenId(claim.id)} />
-                      );
-                    })}
-                  </List>
-                </>
-              ) : emptyState}
-            </Stack>
-          ) : (
-            // Desktop: the toolbar, the claims Table and the result count sit on the page, like My leaves (a Surface
-            // container here would need the Sidebar's shadow; the page reads cleaner without one).
-            <Stack gap="md">
-              {/* Search fills its column; the filter chips (and Clear all, once two filters are on) share the rest. */}
-              <Grid columns="minmax(0, 320px) 1fr" gap="sm" align="center">
-                <Search aria-label="Search expenses" placeholder="Search expenses" value={query} onValueChange={setQuery} />
-                <Stack direction="row" gap="xs" align="center" wrap>
-                  {filterChip("status")}
-                  {filterChip("category")}
-                  {activeFilters >= 2 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
-                </Stack>
-              </Grid>
-              <Table aria-label="My expenses" rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => setOpenId(row.id)} empty={emptyState}
-                selectedIds={opened ? [opened.id] : []}
-                columns={[
-                  { id: "expense", header: "Expense", cell: (row) => {
-                    const category = expenseCategories[row.category];
-                    return <TableMedia bold media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={`${row.merchant} · ${category.name}`}>{row.title}</TableMedia>;
-                  } },
-                  { id: "spent", header: "Date", width: "144px", sortable: true, cell: (row) => <TableText>{formatDate(row.spent)}</TableText> },
-                  { id: "amount", header: "Amount", width: "136px", align: "right", sortable: true, cell: (row) => <TableText>{formatMoney(row.amount)}</TableText> },
-                  { id: "status", header: "Status", width: "152px", cell: (row) => <TableBadges><Badge theme={claimStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges> },
-                ]} />
-              {shown.length ? (
-                <Text textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "expense")} · {formatMoney(shown.reduce((sum, claim) => sum + claim.amount, 0))}</Text>
-              ) : null}
-            </Stack>
-          )}
-        </Stack>
-      </Container>
+            </Grid>
+            <Table aria-label="My expenses" rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => setOpenId(row.id)} empty={emptyState}
+              selectedIds={opened ? [opened.id] : []}
+              columns={[
+                { id: "expense", header: "Expense", cell: (row) => {
+                  const category = expenseCategories[row.category];
+                  return <TableMedia bold media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={`${row.merchant} · ${category.name}`}>{row.title}</TableMedia>;
+                } },
+                { id: "spent", header: "Date", width: "144px", sortable: true, cell: (row) => <TableText>{formatDate(row.spent)}</TableText> },
+                { id: "amount", header: "Amount", width: "136px", align: "right", sortable: true, cell: (row) => <TableText>{formatMoney(row.amount)}</TableText> },
+                { id: "status", header: "Status", width: "152px", cell: (row) => <TableBadges><Badge theme={claimStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges> },
+              ]} />
+            {shown.length ? (
+              <Text textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "expense")} · {formatMoney(shown.reduce((sum, claim) => sum + claim.amount, 0))}</Text>
+            ) : null}
+          </Stack>
+        )}
+      </Stack>
 
       {/* Phone filters: a multiple choice keeps the sheet open; Sort is one choice and closes it. */}
       <BottomSheet open={sheetFilter !== null} onOpenChange={(open) => { if (!open) setSheet(null); }} title={sheetFilter?.label ?? "Filter"}

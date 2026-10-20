@@ -484,6 +484,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "MetricTile": {
     "DockIcon": {
+      "background": "iconBackground",
       "emoji": "iconEmoji",
       "icon": "icon"
     }
@@ -737,6 +738,9 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   "TopNavigation": {
     "TopNavigationActionButton": {
       "action": "leading"
+    },
+    "VisuallyHidden": {
+      "as": "headingLevel"
     }
   },
   "VoiceAction": {

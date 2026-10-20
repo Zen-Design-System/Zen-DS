@@ -19,12 +19,12 @@ List what the desktop screen has, by part (not by pixel):
 | Part | Where it is |
 | --- | --- |
 | Destinations | Sidebar items (and its brand, footer rows) |
-| Where am I | Breadcrumbs (top bar `header`) or PageHeader `back` |
-| Title | PageHeader `title` in AppShell `sections` (Figma Header/Dashboard Type=Main) |
+| Where am I | Breadcrumbs (AppShellHeader `leading`) or PageHeader `back` |
+| Title | PageHeader `title` in AppShellHeader `main` (Figma Header/AppShell's Main row) |
 | Page actions | PageHeader `actions`: one Primary, Tertiary, Danger |
-| Global actions | `headerActions`: notifications, settings, help, plan Badge, the account |
-| Find and filter | top bar Search, Control-bar row (Search + filter Chips), PageHeader `tabs` |
-| Bottom | `floatingAction`, `footer` ActionBar, `banner`, `aside` |
+| Global actions | AppShellHeader `actions`: notifications, settings, help, plan Badge, the account |
+| Find and filter | top row Search, Control-bar row in `sections` (Search + filter Chips), PageHeader `tabs` |
+| Bottom | `floatingActions`, a task's ActionBar, `banner`, `sidePanel` |
 
 ## 2. Decide the screen's kind
 
@@ -53,11 +53,11 @@ Situations beyond these (search-led list, media, selection mode, conversation) f
 
 ## 4. Build it where you work
 
-**Code (React).** Give AppShell both sets; the shell picks by its width (under 744px it draws `topNavigation` and
-`bottomNavigation` instead of the top bar and `sections`; the Sidebar still opens as the drawer):
+**Code (React).** Give AppShell both sets; the shell picks by its width (under 1024px it draws `topNavigation` and
+`bottomNavigation` or `actionBar` instead of the header; the Sidebar still opens as the drawer):
 
 ```tsx
-<AppShell sidebar={…} header={…} headerActions={…} sections={<PageHeader title="Expenses" … />}
+<AppShell sidebar={…} header={<AppShellHeader leading={…} actions={…} main={<PageHeader title="Expenses" … />} />}
   topNavigation={<TopNavigation title="Expenses" largeTitle="Expenses" leading={…} trailing={[…]} />}
   bottomNavigation={<BottomNavigation value="expenses" items={[…]} />}>
 ```

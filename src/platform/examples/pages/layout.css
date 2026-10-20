@@ -8,5 +8,3 @@
 .px-layout-cover { min-height: 26rem; }
 .px-layout-cover-body { flex: 1 1 auto; }
 
-/* A picture in a stretched layer (position="absolute", Left & right × Top & bottom) covers the layer, cropping as needed. */
-.px-layout-media { display: block; width: 100%; height: 100%; object-fit: cover; }

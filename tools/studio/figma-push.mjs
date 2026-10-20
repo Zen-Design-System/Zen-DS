@@ -334,6 +334,9 @@ function figmaProps(entry, code, mapping, notes, where, only = null, filled = nu
 }
 
 /** The set of a code component: by its set prop (Button appearance="flat" → Button/Flat), else its only set. */
+/** Layers an override of names directly (words, visibility, a page instance's values), never a Zen component's set. */
+const NOT_LIBRARY = new Set(["Use", "Text", "Heading", "Stack", "Grid", "Box", "Shape"]);
+
 function entryFor(name, code, byCode, mapping) {
   const entries = byCode.get(name);
   if (!entries?.length) return null;
@@ -495,8 +498,34 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
           // The layer, through the nested instances of the page's own components it is in (Chip/Text): one step each,
           // in the main that draws it.
           const steps = layerChain(doc.board, main, path, localModel, plain);
-          if (steps?.every((step) => step.layer.id)) pending.push({ steps: steps.map((step) => ({ main: step.main.id, key: step.layer.id })), path, props, kind: steps.at(-1).layer.name });
-          else notes.push(`${node.name}: its override of ${path} (a layer inside a Zen component) is not pushed yet`);
+          if (!steps?.every((step) => step.layer.id)) { notes.push(`${node.name}: its override of ${path} is not pushed (no such layer in its main)`); continue; }
+          const last = steps.at(-1);
+          const keys = steps.map((step) => ({ main: step.main.id, key: step.layer.id }));
+          // A Zen component in the main (a Badge): its props as Figma properties, its words as its label; a layer inside
+          // it (Badge/Dot, its nest() name) as a nested override, as a placed component's own overrides are pushed.
+          if (!NOT_LIBRARY.has(last.layer.name) && byCode.has(last.layer.name)) {
+            const { hidden, children, ...fields } = props;
+            const where = `${node.name} › ${path}`;
+            const own = codeProps(last.layer);
+            if (last.inner === undefined) {
+              const entry = entryFor(last.layer.name, { ...own, ...fields }, byCode, mapping);
+              const figma = entry && Object.keys(fields).length ? figmaProps(entry, { ...own, ...fields }, mapping, notes, where, new Set(Object.keys(fields))) : null;
+              if (Object.keys(fields).length && !Object.keys(figma ?? {}).length) notes.push(`${where}: ${Object.keys(fields).join(", ")} has no Figma property (not pushed)`);
+              pending.push({ steps: keys, path, props: hidden === undefined ? {} : { hidden }, kind: last.layer.name, figma, ...(typeof children === "string" ? { text: children } : {}) });
+              continue;
+            }
+            let owner = last.layer.name;
+            for (const segment of last.inner.split("/")) owner = owner ? nestedLayers[owner]?.[segment.replace(/\[.*$/, "")] : null;
+            const inner = owner ? entryFor(owner, fields, byCode, mapping) : null;
+            if (!inner) { notes.push(`${where}: its component is not known (override left out)`); continue; }
+            if (hidden !== undefined) notes.push(`${where}: hidden is not pushed (a layer inside a Zen component shows as its component draws it)`);
+            const nested = { path: last.inner, set: { id: inner.id, name: inner.name }, props: figmaProps(inner, fields, mapping, notes, where, new Set(Object.keys(fields))), ...(typeof children === "string" ? { text: children } : {}) };
+            if (Object.keys(fields).length && !Object.keys(nested.props).length) notes.push(`${where}: ${Object.keys(fields).join(", ")} has no Figma property (not pushed)`);
+            pending.push({ steps: keys, path, props: {}, kind: last.layer.name, nested });
+            continue;
+          }
+          if (last.inner !== undefined) { notes.push(`${node.name}: its override of ${path} is not pushed (${last.layer.name} has no layers of its own)`); continue; }
+          pending.push({ steps: keys, path, props, kind: last.layer.name });
         }
         // On the node itself: the frame's assembly copies nodes ({ ...node, fillW }).
         if (pending.length) node.layerPending = { pending };
@@ -699,41 +728,47 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
 
   /**
    * AppShell with the Zen components it renders (app-shell.css), named by Zen: the Sidebar, then a column of the top bar
-   * (Figma's Dashboard header Type=Navigation: the collapse toggle and `header` in Leading-Slots, `headerCenter` in
-   * Center-Slots, `headerActions` in Trailing-Slots), the `sections` rows, the page (`children`) and the `footer`, the
-   * floating action pinned bottom right; the docked `aside` last.
+   * (Figma's Dashboard header Type=Navigation: the collapse toggle and the AppShellHeader's `leading` in Leading-Slots,
+   * `center` in Center-Slots, `actions` in Trailing-Slots), its `main` and `sections` rows, the page (`children`), the
+   * floating actions pinned bottom right; the docked `sidePanel` last. Drawn on ◇ Master-Layout's Sidebar pattern: the
+   * other patterns' panes and progress are not drawn yet (docs/research/appshell-rebuild-2026-10-19.md, phase 2b).
    */
   function appShellNode(element, code, id, parent = null) {
     const sidebar = layerOf(element, "sidebar");
     const overrides = plain(element.props.overrides) ?? {};
-    const hasTopBar = ["header", "headerCenter", "headerActions"].some((prop) => layerOf(element, prop));
-    // The collapse toggle (AppShell.tsx showCollapseToggle): a Zen Sidebar that is not the workspace rail, with a top bar.
+    // Header/AppShell (AppShellHeader.tsx): the top row's leading · center · actions, the Main row and the section rows.
+    const header = layerOf(element, "header")?.name === "AppShellHeader" ? layerOf(element, "header") : null;
+    const headerLayers = (prop) => (header ? layersOf(header, prop) : []);
+    const hasTopBar = Boolean(header) && ["leading", "center", "actions"].some((prop) => layerOf(header, prop));
+    for (const prop of ["leadingPane", "trailingPane", "progress"]) if (layerOf(element, prop)) notes.push(`AppShell ${prop}: not drawn in Figma yet (the Sidebar pattern only)`);
+    // The collapse toggle (AppShell.tsx, collapse="header"): a Zen Sidebar that is not the workspace rail, with a top bar.
     const collapsed = literalOf(sidebar?.props.collapsed) ?? code.defaultSidebarCollapsed ?? code.sidebarCollapsed ?? false;
-    const toggle = hasTopBar && code.sidebarToggle !== false && sidebar?.name === "Sidebar" && literalOf(sidebar.props.variant) !== "workspace" && code.layout !== "drawer"
+    const toggle = hasTopBar && (code.collapse ?? "header") === "header" && sidebar?.name === "Sidebar" && literalOf(sidebar.props.variant) !== "workspace" && code.layout !== "drawer"
       ? elementOf("IconButton", Object.fromEntries(Object.entries({ appearance: "flat", level: "primary", size: "md", icon: collapsed ? "icon-layout-right-line" : "icon-layout-left-line", "aria-label": collapsed ? "Expand sidebar" : "Collapse sidebar", ...(overrides.Collapse ?? {}) }).map(([name, value]) => [name, literal(value)])))
       : null;
-    const leading = [toggle, ...layersOf(element, "header")].filter(Boolean);
+    const leading = [toggle, ...headerLayers("leading")].filter(Boolean);
     const topBar = hasTopBar ? instanceNode(elementOf("DashboardHeader", {
       type: literal("navigation"),
       leading: leading.length ? { kind: "element", node: elementOf("Stack", { direction: literal("row"), gap: literal("md"), align: literal("center") }, leading) } : null,
-      center: element.props.headerCenter?.kind === "element" ? element.props.headerCenter : null,
-      trailing: element.props.headerActions?.kind === "element" ? element.props.headerActions : null,
+      center: header?.props.center?.kind === "element" ? header.props.center : null,
+      trailing: header?.props.actions?.kind === "element" ? header.props.actions : null,
     }), { type: "navigation" }) : null;
-    // The header's Search fills the bar up to 400px (app-shell.css .zen-app-shell__header-content > .zen-search), where
+    // The header's Search fills the bar up to 400px (app-shell.css .zen-app-shell-header__leading > .zen-search), where
     // Figma's Search keeps its own 250px and cut the placeholder short.
     for (const slot of topBar?.slots ?? []) {
       if (slot.name === "Leading-Slots") slot.children = slot.children.map((layer) => (/^Search\//.test(layer.set?.name ?? "") ? { ...layer, fillW: true, maxW: HEADER_SEARCH_MAX } : layer));
     }
-    // The column's width: the shell's less the open Sidebar (another sidebar, a collapsed one or an aside: unknown).
-    const aside = layerOf(element, "aside") ? convert(layerOf(element, "aside"), { direction: "row", stretch: true }) : null;
+    // The column's width: the shell's less the open Sidebar (another sidebar, a collapsed one or a side panel: unknown).
+    const aside = layerOf(element, "sidePanel") ? convert(layerOf(element, "sidePanel"), { direction: "row", stretch: true }) : null;
     const sideWidth = !sidebar ? 0 : sidebarWidth(sidebar, collapsed);
     const columnWidth = typeof parent?.width === "number" && sideWidth !== null && !aside ? parent.width - sideWidth : null;
     const filling = (layers, width = columnWidth) => layers.map((layer) => convert(layer, { direction: "column", stretch: true, width })).filter(Boolean).map((node) => (node.absolute ? node : { ...node, fillW: true }));
     const stretch = { direction: "column", stretch: true, width: columnWidth };
-    const sections = filling(layersOf(element, "sections"), columnWidth === null ? null : columnWidth - SHELL_ROW_PADDING[1] - SHELL_ROW_PADDING[3]);
-    const floating = layerOf(element, "floatingAction") ? convert(layerOf(element, "floatingAction"), stretch) : null;
+    const sections = filling([...headerLayers("main"), ...headerLayers("sections")], columnWidth === null ? null : columnWidth - SHELL_ROW_PADDING[1] - SHELL_ROW_PADDING[3]);
+    const floating = layerOf(element, "floatingActions") ? convert(layerOf(element, "floatingActions"), stretch) : null;
     const page = filling(element.children.filter((child) => child.kind === "element"));
-    const footer = filling(layersOf(element, "footer"));
+    // A desktop task's ActionBar is the page's last child (sticky); nothing else is a footer.
+    const footer = [];
     // A Sidebar the AppShell collapses (defaultSidebarCollapsed) is drawn as the rail too.
     const shellSidebar = sidebar?.name === "Sidebar" && collapsed && literalOf(sidebar.props.collapsed) === undefined ? { ...sidebar, props: { ...sidebar.props, collapsed: literal(true) } } : sidebar;
     const sidebarNode = shellSidebar ? convert(shellSidebar, { direction: "row", stretch: true }) : null;
@@ -762,8 +797,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
    * master layout không khớp với nhau thành component master layout"): the Sidebar pattern (Expand by the collapsed state)
    * around the Side-Bar the Sidebar converts to; Header/Dashboard's Sections slot with the top bar and the section rows,
    * Dashboard header rows padded as the master's own rows are (the top bar Margin-Comfortable · Padding/XSmall below, a
-   * section Padding/Small · Margin-Comfortable); Body's Content slot with the page and the footer, Body unpadded since
-   * AppShell's main is (the page's Container gives the margin, as in the browser); Floating-Item; the Side-Panel. Null when
+   * section Padding/Small · Margin-Comfortable); Body's Content slot with the page, Body padded Margin-Comfortable and
+   * Gap/XSmall apart as AppShell's Body is (app-shell.css .zen-app-shell__body); Floating-Item; the Side-Panel. Null when
    * a part has no place in it (an aside that is no SidePanel, a sidebar that is no instance): the frames then.
    */
   function masterLayoutNode({ sidebar, collapsed, topBar, sections, page, footer, floating, aside, canvas }) {
@@ -807,7 +842,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // it): Main-Container, Body and the Content slot hug their content; the viewport's height stays the minimum.
     const content = [...page, ...footer];
     if (content.length) slots.push({ name: "Content", within: ["Body"], hugH: true, children: content });
-    edits.push({ layer: ["Main-Container"], hugH: true }, { layer: ["Body"], padding: [0, 0, 0, 0], hugH: true });
+    edits.push({ layer: ["Main-Container"], hugH: true }, { layer: ["Body"], hugH: true });
     if (floating) {
       const { absolute, ...action } = floating;
       slots.push({ name: "Floating-Item", within: ["Floating-Actions"], children: [action] });
@@ -1222,7 +1257,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       };
       roundSearches(control);
       const side = code.margin === "compact" ? 16 : 20;
-      if (control) slots.push({ name: "Control-Slot", children: [{ type: "FRAME", name: "Control", layout: { mode: "VERTICAL", gap: 0, padding: [4, side, 8, side], counter: "MIN", primary: "MIN" }, children: [{ ...control, fillW: true }], fillW: true }] });
+      // top-navigation.css .zen-top-nav__control: Padding/XSmall above and below (none around Tabs, which carry their own
+      // indicator row), the bar's margin at the sides; Figma Control-Bar (12014:44764) hugs its slot.
+      const block = element.props.controlBar.node.name === "Tabs" ? 0 : 8;
+      if (control) slots.push({ name: "Control-Slot", children: [{ type: "FRAME", name: "Control", layout: { mode: "VERTICAL", gap: 0, padding: [block, side, block, side], counter: "MIN", primary: "MIN" }, children: [{ ...control, fillW: true }], fillW: true }] });
     }
     const node = { type: "INSTANCE", ...(id ? { id } : {}), name: title || largeTitle || "TopNavigation", set: TOP_NAV_SET, props, ...(nested.length ? { nested } : {}), ...(slots.length ? { slots } : {}) };
     const banner = element.props.banner?.kind === "element" ? convert(element.props.banner.node, { direction: "column", stretch: true }) : null;
@@ -2027,7 +2065,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const { pending } = instance.layerPending;
       delete instance.layerPending;
       const out = [];
-      for (const { steps, path, props, kind } of pending) {
+      for (const { steps, path, props, kind, figma, text, nested: inside } of pending) {
         // The indices to the nested instance in its main, then on inside it (its layers mirror its own main's).
         let at = [];
         for (const step of steps) {
@@ -2037,7 +2075,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
           at.push(...part);
         }
         if (!at) { notes.push(`${instance.name}: its override of ${path} is not pushed (the layer is not drawn in its main)`); continue; }
-        const override = { at };
+        // One entry per layer: a Zen component's own props and its nested layers' overrides go together.
+        const known = out.find((each) => each.at.join(".") === at.join("."));
+        const override = known ?? { at };
+        if (figma && Object.keys(figma).length) override.props = { ...(override.props ?? {}), ...figma };
+        if (typeof text === "string") override.text = text;
+        if (inside) override.nested = [...(override.nested ?? []), inside];
         for (const [name, value] of Object.entries(props)) {
           const nested = /^(variant|props)\.(.+)$/.exec(name);
           if (nested && kind === "Use") (override[nested[1]] ??= {})[nested[2]] = value;
@@ -2046,7 +2089,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
           else if (name === "tone" && (kind === "Text" || kind === "Heading") && typeof value === "string") override.fill = contentToneToken(value);
           else notes.push(`${instance.name}: ${path} ${name} is not pushed (an override Figma has no field for here yet)`);
         }
-        if (Object.keys(override).length > 1) out.push(override);
+        if (!known && Object.keys(override).length > 1) out.push(override);
       }
       // A nested instance's variant first, then the layers inside it (they are the variant's: Figma swaps them).
       out.sort((a, b) => a.at.length - b.at.length);

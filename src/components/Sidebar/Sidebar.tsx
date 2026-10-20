@@ -128,6 +128,14 @@ export interface SidebarProps {
   /** A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the
    *  page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it. */
   divider?: boolean;
+  /**
+   * Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes). Yes: the Surface/Default Sidebar
+   * takes Shadow/Bottom/Level-1 (a Canvas/Default page whose cards are shadowed). `shadow={false}` is Shadow=No:
+   * Surface/Default with no shadow (◇ Master-Layout · Example A2 · Tiles, 15904:2813, beside flat tiles). Unlike
+   * `background="flat"` (Surface/Flat, which is the page colour in dark mode), the Sidebar stays a Surface in both
+   * modes. Alt, Flat, the small density and the workspace panel carry no shadow either way.
+   */
+  shadow?: boolean;
   workspaceBrand?: ReactNode;
   workspaceItems?: SidebarItem[];
   workspaceFooter?: ReactNode;
@@ -539,10 +547,14 @@ function SidebarPanel({ className, brand, brandSlots, sections, children, footer
     <SidebarRowsContext value={{ collapsed, openItems, setOpenItems, onItemClick }}>
       <div className={className}>
         {/* A custom brand is the expanded header, followed by the collapse control (backlog batch 6, user 2026-10-07); the
-            rail shows logoCollapsed in its place. */}
-        <div className="zen-sidebar__header">{brand && !(collapsed && brandSlots?.logoCollapsed)
-          ? <>{nest.slot(brand)}{onCollapsedChange ? <SidebarCollapseButton collapsed={collapsed} onCollapsedChange={onCollapsedChange} /> : null}</>
-          : <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} onCollapsedChange={onCollapsedChange} />}</div>
+            rail shows logoCollapsed in its place. The control stays the header's second child in both states, so React
+            keeps the same button: focus stays on it and its aria-expanded flips (behaviour apg, 2026-10-20). */}
+        <div className="zen-sidebar__header">
+          {!brand ? <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} onCollapsedChange={onCollapsedChange} />
+            : collapsed && brandSlots?.logoCollapsed ? <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} />
+            : nest.slot(brand)}
+          {brand && onCollapsedChange ? <SidebarCollapseButton collapsed={collapsed} onCollapsedChange={onCollapsedChange} /> : null}
+        </div>
         {search ? <div className="zen-sidebar__search">{collapsed
           // Figma collapsed rail: Search becomes Button/Icon-Main Small Tertiary; activating it expands the panel.
           ? nest.slot(searchCollapsed) ?? nest("Search", <IconButton appearance="main" level="tertiary" size="sm" aria-label={t.search} icon={<Icon name="icon-search-medium-line" />} onClick={expandRail} />)
@@ -588,14 +600,18 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
   return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
-export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedProp = false, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref }: SidebarProps) {
+export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedArg, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref }: SidebarProps) {
+  // Unset is not "expanded": an AppShell's pattern decides where the rail starts (List-Detail on the rail), so the
+  // shell hears `collapsed` only when it was given.
+  const collapsedProp = collapsedArg ?? false;
   const nest = useNested(overrides);
   const t = useZenLabels();
   // Inside an AppShell (directly or wrapped in an app component) the shell owns the rail unless the Sidebar has its own
   // onCollapsedChange; its drawer always shows the whole navigation with no collapse control.
   const shell = useSidebarShell();
   const collapsed = shell?.drawer ? false : onCollapsedChangeProp ? collapsedProp : (shell?.collapsed ?? collapsedProp);
-  const onCollapsedChange = shell?.drawer ? undefined : onCollapsedChangeProp;
+  // AppShell collapse="sidebar" (Figma Collapse=Sidebar): the header control is the shell's toggle, drawn here.
+  const onCollapsedChange = shell?.drawer ? undefined : onCollapsedChangeProp ?? shell?.toggleHere;
   const expandRail = onCollapsedChange ? () => onCollapsedChange(false) : shell?.expand;
   const subMenuLabel = subMenuLabelProp ?? t.subMenu;
   const rootRef = useRef<HTMLElement>(null);
@@ -608,7 +624,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   const register = shell?.register;
   const ownsRail = Boolean(onCollapsedChangeProp);
   const requestCollapse = useStableCallback(onCollapsedChangeProp);
-  useIsomorphicLayoutEffect(() => register?.({ canCollapse: variant !== "workspace", collapsed: collapsedProp, owns: ownsRail, request: requestCollapse }), [register, variant, collapsedProp, ownsRail, requestCollapse]);
+  useIsomorphicLayoutEffect(() => register?.({ canCollapse: variant !== "workspace", collapsed: collapsedArg, owns: ownsRail, request: requestCollapse }), [register, variant, collapsedArg, ownsRail, requestCollapse]);
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const rootClassName = ["zen-sidebar", className].filter(Boolean).join(" ");
   const nav = { selectedId, linkAs };
@@ -645,7 +661,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   }
 
   return (
-    <nav ref={navRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={requestedDensity ?? (variant === "small-density" ? "small" : "medium")} aria-label={ariaLabel ?? t.mainNavigation}>
+    <nav ref={navRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-shadow={shadow ? undefined : "false"} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={requestedDensity ?? (variant === "small-density" ? "small" : "medium")} aria-label={ariaLabel ?? t.mainNavigation}>
       <SidebarNavContext value={nav}>
         {nest.scope(<SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} searchCollapsed={searchCollapsed} collapsed={collapsed} onCollapsedChange={onCollapsedChange} expandRail={expandRail} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</SidebarPanel>)}
         {flyout}

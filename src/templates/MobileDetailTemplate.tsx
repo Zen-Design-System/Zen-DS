@@ -3,17 +3,19 @@
  * into your app, then replace the sample data and handlers. Render it inside
  * <ZenProvider typography="mobile" density="comfortable">. Uses only @zen-ds/react components, no custom CSS.
  *
- * - A sticky compact TopNavigation: Back (a left chevron), the order number as the screen's h1, and Share. It follows
- *   the scroll (scrollRef), so a Pale rule separates it from the content running under it.
+ * - The frame is AppShell's mobile pattern (Top=Bar, Bottom=Actions): a child screen, so no tab bar.
+ * - A compact TopNavigation that stays at the top: Back (a left chevron), the order number as the screen's h1, and
+ *   Share. It follows the scroll (scrollRef), so a Pale rule separates it from the content running under it.
  * - Delivery status: the status Badge, the arrival day (h2) with the latest update, and a vertical Stepper.
  * - Prints (a List with Thumbnails), Delivery (the address, the carrier and the tracking number with Copy) and Payment
  *   (DescriptionList totals closed by the emphasised total, then Paid with). Sections are h2 in Heading/4.
- * - A sticky ActionBar: Track package (Primary) opens the carrier's updates; Get help opens an Action BottomSheet whose
- *   Report a problem continues in a pick-one sheet (List + ListItem selected).
+ * - The ActionBar pinned at the bottom (the shell's actionBar): Track package (Primary) opens the carrier's updates; Get
+ *   help opens an Action BottomSheet whose Report a problem continues in a pick-one sheet (List + ListItem selected).
  */
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import {
   ActionBar,
+  AppShell,
   Badge,
   BottomSheet,
   DescriptionList,
@@ -130,14 +132,24 @@ export function MobileDetailTemplate() {
   };
 
   return (
-    <Stack ref={rootRef} gap="none">
-      {/* The compact bar title is the screen's h1 (in the bar style), so the content starts at h2. Your router also sets
-          document.title to it: "Order #1054 · Your app". scrollRef draws the bar's Pale rule while content runs under it. */}
-      <TopNavigation type="compact-alt" sticky scrollRef={scroller} title={`Order #${order.number}`}
-        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Orders isn't part of this demo" }) /* your router: navigate(-1) */ }}
-        trailing={[{ icon: "icon-share-01-line", label: "Share order", onClick: () => void copy(order.link, "Order link copied", "Couldn't copy the link") }]} />
-
-      <Stack gap="xl" paddingX="lg" paddingY="lg">
+    <>
+      {/* The Bar pattern with Bottom=Actions: the TopNavigation stays at the top, the Body holds the sections at the
+          phone's margins (Layout-Mobile/Section-Gap apart), the ActionBar stays at the bottom. */}
+      <AppShell ref={rootRef}
+        // The compact bar title is the screen's h1 (in the bar style), so the content starts at h2. Your router also sets
+        // document.title to it: "Order #1054 · Your app". scrollRef draws the bar's Pale rule while content runs under it.
+        topNavigation={(
+          <TopNavigation type="compact-alt" scrollRef={scroller} title={`Order #${order.number}`}
+            leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Orders isn't part of this demo" }) /* your router: navigate(-1) */ }}
+            trailing={[{ icon: "icon-share-01-line", label: "Share order", onClick: () => void copy(order.link, "Order link copied", "Couldn't copy the link") }]} />
+        )}
+        // Footer CTA: Large and full width, Primary on top; it clears the home indicator.
+        actionBar={(
+          <ActionBar
+            primaryAction={{ label: "Track package", onClick: () => setSheet("tracking") }}
+            secondaryAction={{ label: "Get help", onClick: () => setSheet("help") }} />
+        )}
+      >
         <Stack gap="md">
           <Stack gap="xs" align="start">
             <Badge theme="blue" background="subtle">Shipped</Badge>
@@ -186,12 +198,7 @@ export function MobileDetailTemplate() {
             <DescriptionList items={[{ term: "Paid with", description: paidWith }]} />
           </Stack>
         </Stack>
-      </Stack>
-
-      {/* Footer CTA: sticky, Large and full width, Primary on top; it clears the home indicator. */}
-      <ActionBar
-        primaryAction={{ label: "Track package", onClick: () => setSheet("tracking") }}
-        secondaryAction={{ label: "Get help", onClick: () => setSheet("help") }} />
+      </AppShell>
 
       <BottomSheet title="Track package" open={sheet === "tracking"} onOpenChange={(open) => setSheet(open ? "tracking" : null)}>
         <Stack gap="xs">
@@ -231,6 +238,6 @@ export function MobileDetailTemplate() {
           ))}
         </List>
       </BottomSheet>
-    </Stack>
+    </>
   );
 }

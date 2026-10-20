@@ -3,6 +3,8 @@
  * replace the sample data and handlers. Render it inside <ZenProvider typography="mobile" density="comfortable">.
  * Uses only @zen-ds/react components, no custom CSS.
  *
+ * - The frame is AppShell's mobile pattern (Top=Bar, Bottom=Tab-Bar): the TopNavigation, the page in the Body at the
+ *   phone's margins, and the shop's four roots in a BottomNavigation with Orders selected.
  * - TopNavigation: the large title "Orders" is the screen's h1, with a Search control bar. Both fold into the bar as
  *   the list scrolls, and the folded Search comes back as a Search action at the top right.
  * - Filters: one sideways-scrolling row. Date opens a Bottom Sheet to pick one range (List + ListItem selected), then
@@ -16,7 +18,9 @@
 import { flushSync } from "react-dom";
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import {
+  AppShell,
   Badge,
+  BottomNavigation,
   BottomSheet,
   Button,
   Chip,
@@ -36,6 +40,7 @@ import {
   plural,
   useToast,
   type BadgeTheme,
+  type BottomNavigationItem,
 } from "@zen-ds/react";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */
@@ -92,6 +97,14 @@ const seed: Order[] = [
   { id: "1011", placed: "2026-01-15T12:00", status: "Delivered", delivered: "2026-01-20T10:05", items: [{ print: "terracotta", qty: 2 }] },
   { id: "1004", placed: "2025-12-20T18:30", status: "Delivered", delivered: "2025-12-24T13:45", items: [{ print: "saffron", qty: 1 }, { print: "sea", qty: 1 }, { print: "dusk", qty: 1 }] },
   { id: "1001", placed: "2025-11-28T10:15", status: "Delivered", delivered: "2025-12-02T15:30", items: [{ print: "mist", qty: 2 }] },
+];
+
+/** The app's roots (Figma Bottom-Navigation): line icons, the current one solid. */
+const tabs: BottomNavigationItem[] = [
+  { id: "shop", label: "Shop", icon: "icon-shopping-bag-02-line", selectedIcon: "icon-shopping-bag-02-solid" },
+  { id: "saved", label: "Saved", icon: "icon-heart-line", selectedIcon: "icon-heart-solid" },
+  { id: "orders", label: "Orders", icon: "icon-package-line", selectedIcon: "icon-package-solid" },
+  { id: "account", label: "Account", icon: "icon-user-circle-line", selectedIcon: "icon-user-circle-solid" },
 ];
 
 /** The Date filter: one range at a time, measured from NOW. */
@@ -228,59 +241,74 @@ export function MobileListTemplate() {
   };
 
   return (
-    <Stack ref={rootRef} gap="none">
-      {/* The large title is the screen's h1. Your router also sets document.title to it: "Orders · Your app". */}
-      <TopNavigation type="alt" sticky scrollRef={scroller} title="Orders" largeTitle="Orders"
-        controlBar={<Search ref={searchRef} aria-label="Search orders" placeholder="Search orders" value={query} onValueChange={search} />}
-        searchAction={{ label: "Search orders", onClick: openSearch }} />
+    <>
+      {/* The Bar pattern: the TopNavigation sticks at the top, the Body holds the list at the phone's margins and the
+          tab bar stays at the bottom. */}
+      <AppShell ref={rootRef}
+        // The large title is the screen's h1. Your router also sets document.title to it: "Orders · Your app".
+        topNavigation={(
+          <TopNavigation scrollRef={scroller} title="Orders" largeTitle="Orders"
+            controlBar={<Search ref={searchRef} aria-label="Search orders" placeholder="Search orders" value={query} onValueChange={search} />}
+            searchAction={{ label: "Search orders", onClick: openSearch }} />
+        )}
+        // Your router goes here: navigate(`/${id}`). The root's title is its tab's label.
+        bottomNavigation={(
+          <BottomNavigation items={tabs} value="orders" showLabels
+            onValueChange={(id) => { if (id !== "orders") toast({ title: `${tabs.find((tab) => tab.id === id)?.label ?? id} isn't part of this demo` }); }} />
+        )}
+      >
+        <Stack gap="none">
+          {/* One row that scrolls sideways, edge to edge across the Body's margins: Date opens a pick-one sheet, the
+              status chips choose one status. */}
+          <Stack direction="row" gap="xs" paddingX="margin-comfortable" paddingY="xs" role="group" aria-label="Filter orders"
+            style={{ overflowX: "auto", scrollbarWidth: "none", marginInline: "calc(-1 * var(--zen-margin-comfortable, 20px))" }}>
+            <Chip variant="advanced" size="medium" dropdown aria-haspopup="dialog" aria-expanded={sheet === "date"} popoverOpen={sheet === "date"}
+              selected={range !== "any"} onClick={() => setSheet("date")} onClearSelection={range !== "any" ? () => pickRange("any") : undefined}>
+              {range === "any" ? "Date" : rangeOption.label}
+            </Chip>
+            {(["all", ...statuses] as const).map((option) => (
+              <Chip key={option} variant="normal" size="medium" level="primary" selected={status === option} onClick={() => filterStatus(option)}>
+                {option === "all" ? "All" : option}
+              </Chip>
+            ))}
+          </Stack>
 
-      {/* One row that scrolls sideways: Date opens a pick-one sheet, the status chips choose one status. */}
-      <Stack direction="row" gap="xs" paddingX="lg" paddingY="xs" role="group" aria-label="Filter orders" style={{ overflowX: "auto", scrollbarWidth: "none" }}>
-        <Chip variant="advanced" size="medium" dropdown aria-haspopup="dialog" aria-expanded={sheet === "date"} popoverOpen={sheet === "date"}
-          selected={range !== "any"} onClick={() => setSheet("date")} onClearSelection={range !== "any" ? () => pickRange("any") : undefined}>
-          {range === "any" ? "Date" : rangeOption.label}
-        </Chip>
-        {(["all", ...statuses] as const).map((option) => (
-          <Chip key={option} variant="normal" size="medium" level="primary" selected={status === option} onClick={() => filterStatus(option)}>
-            {option === "all" ? "All" : option}
-          </Chip>
-        ))}
-      </Stack>
+          {/* The result count is announced as filters and search change. */}
+          <Stack role="status">
+            {matches.length ? <Text textStyle="Body/Small/Regular" tone="base">{plural(matches.length, "order")}</Text> : <VisuallyHidden>{emptyTitle}</VisuallyHidden>}
+          </Stack>
 
-      {/* The result count is announced as filters and search change. */}
-      <Stack paddingX="lg" role="status">
-        {matches.length ? <Text textStyle="Body/Small/Regular" tone="base">{plural(matches.length, "order")}</Text> : <VisuallyHidden>{emptyTitle}</VisuallyHidden>}
-      </Stack>
-
-      {matches.length ? (
-        // Rows pad 0 at the sides: the screen margin (lg) insets them; xs above and below, like a List-Box on a phone.
-        <Stack paddingX="lg" paddingY="xs" gap="lg" align="stretch">
-          <List ref={listRef} aria-label="Orders">
-            {matches.slice(0, shown).map((order) => {
-              const { count, total } = totals(order);
-              const cover = prints[order.items[0].print];
-              return (
-                <ListItem key={order.id} data-order={order.id} title={`Order #${order.id}`} caption={<>{`${plural(count, "print")} · ${money(total)}`}<br />{stamp(order.placed)}</>}
-                  leading={<Thumbnail src={cover.picture} alt={cover.name} />} trailing={statusBadge(order.status)}
-                  selected={sheet === "order" && orderId === order.id} onClick={() => openOrder(order.id)} />
-              );
-            })}
-          </List>
-          {matches.length > shown ? <Button level="tertiary" size="md" onClick={loadMore}>Load more orders</Button> : null}
-        </Stack>
-      ) : (
-        <Stack paddingX="lg" paddingY="xl">
-          {term ? (
-            <EmptyState headingLevel={2} icon="icon-search-medium-line" title={emptyTitle} secondaryAction={{ label: "Clear search", onClick: clearSearchAndFocus }}>
-              Try an order number or a print name.
-            </EmptyState>
+          {matches.length ? (
+            // Rows pad 0 at the sides: the Body's margin insets them; xs above and below, like a List-Box on a phone.
+            <Stack paddingY="xs" gap="lg" align="stretch">
+              <List ref={listRef} aria-label="Orders">
+                {matches.slice(0, shown).map((order) => {
+                  const { count, total } = totals(order);
+                  const cover = prints[order.items[0].print];
+                  return (
+                    <ListItem key={order.id} data-order={order.id} title={`Order #${order.id}`} caption={<>{`${plural(count, "print")} · ${money(total)}`}<br />{stamp(order.placed)}</>}
+                      leading={<Thumbnail src={cover.picture} alt={cover.name} />} trailing={statusBadge(order.status)}
+                      selected={sheet === "order" && orderId === order.id} onClick={() => openOrder(order.id)} />
+                  );
+                })}
+              </List>
+              {matches.length > shown ? <Button level="tertiary" size="md" onClick={loadMore}>Load more orders</Button> : null}
+            </Stack>
           ) : (
-            <EmptyState headingLevel={2} icon="icon-search-medium-line" title={emptyTitle} secondaryAction={{ label: "Clear filters", onClick: clearFiltersAndFocus }}>
-              Try another status or date.
-            </EmptyState>
+            <Stack paddingY="xl">
+              {term ? (
+                <EmptyState headingLevel={2} icon="icon-search-medium-line" title={emptyTitle} secondaryAction={{ label: "Clear search", onClick: clearSearchAndFocus }}>
+                  Try an order number or a print name.
+                </EmptyState>
+              ) : (
+                <EmptyState headingLevel={2} icon="icon-search-medium-line" title={emptyTitle} secondaryAction={{ label: "Clear filters", onClick: clearFiltersAndFocus }}>
+                  Try another status or date.
+                </EmptyState>
+              )}
+            </Stack>
           )}
         </Stack>
-      )}
+      </AppShell>
 
       {/* Pick one range: List + ListItem, the chosen row Selected with a check; picking closes the sheet. */}
       <BottomSheet title="Date placed" open={sheet === "date"} onOpenChange={(open) => { if (!open) setSheet(null); }}>
@@ -297,7 +325,7 @@ export function MobileListTemplate() {
         <OrderSheet order={opened} open={sheet === "order"} onOpenChange={(open) => { if (!open) { setSheet(null); focusOrder(opened.id); } }}
           onCancel={cancel} onOrderAgain={orderAgain} onCopyTracking={copyTracking} />
       ) : null}
-    </Stack>
+    </>
   );
 }
 

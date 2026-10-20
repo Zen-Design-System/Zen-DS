@@ -61,6 +61,20 @@ figma.skipInvisibleInstanceChildren = false;
 const layerKey = ${layerKey.toString()};
 const variableName = async (id) => { if (!id) return null; const v = await figma.variables.getVariableByIdAsync(id); return v ? v.name : null; };
 ${READ_IMAGE_FILL}
+// Figma's arrow (⇧L, and the push's arrow): a VECTOR of two vertices on one level, one straight segment, a NONE start
+// and an arrow cap at its end (its copy of a drawn arrow, 2026-10-20). Read behind \`in\` (Figma throws on a property a
+// node type lacks).
+const arrowLineOf = (node) => {
+  if (node.type !== "VECTOR" || !("vectorNetwork" in node)) return false;
+  try {
+    const net = node.vectorNetwork;
+    if (!net || net.vertices.length !== 2 || net.segments.length !== 1 || (net.regions || []).length) return false;
+    const [a, b] = net.vertices;
+    const seg = net.segments[0];
+    const straight = [seg.tangentStart, seg.tangentEnd].every((t) => !t || (Math.abs(t.x) < 0.01 && Math.abs(t.y) < 0.01));
+    return straight && Math.abs(a.y - b.y) < 0.01 && b.x > a.x && (a.strokeCap || "NONE") === "NONE" && /ARROW/.test(b.strokeCap || "");
+  } catch (e) { return false; }
+};
 const textStyles = new Map();
 const textStyleOf = async (id) => { if (!textStyles.has(id)) textStyles.set(id, await figma.getStyleByIdAsync(id)); return textStyles.get(id); };
 const fillVariable = async (fills) => { const paint = Array.isArray(fills) ? fills.find((fill) => fill.visible !== false) : null; return paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null; };
@@ -246,6 +260,8 @@ const ROOT_ID = ${JSON.stringify(nodeId)};
 // its Figma id. A library component, or one elsewhere in the file: null.
 const pageOwn = (component) => { for (let at = component; at; at = at.parent) if (at.id === ROOT_ID) return studioData(component, "local") || component.id; return null; };
 const ownerOf = (main) => (main && main.parent && main.parent.type === "COMPONENT_SET" ? main.parent : main);
+// A Zen component's instance (the library's, not one of the page's own components).
+const zenInstance = async (node) => node.type === "INSTANCE" && !pageOwn(ownerOf(await node.getMainComponentAsync()));
 // A swap's component: the page's own (its id) or another by name (an icon).
 const swapName = async (id) => {
   const component = typeof id === "string" ? await figma.getNodeByIdAsync(id) : null;
@@ -292,9 +308,10 @@ const readLocalInstance = async (node, owner) => {
     if (entry.id === node.id) continue;
     const layer = await figma.getNodeByIdAsync(entry.id);
     if (!layer) continue;
-    // A layer in a slot is the instance's own content (below), not an override of its main.
+    // A layer in a slot is the instance's own content (below), not an override of its main; a layer inside a Zen
+    // component is read with that component (below).
     let inSlot = layer.type === "SLOT";
-    for (let up = layer.parent; up && up.id !== node.id && !inSlot; up = up.parent) inSlot = up.type === "SLOT";
+    for (let up = layer.parent; up && up.id !== node.id && !inSlot; up = up.parent) inSlot = up.type === "SLOT" || await zenInstance(up);
     if (inSlot) continue;
     const at = indexPath(layer, node);
     if (!at) continue;
@@ -330,6 +347,54 @@ const readLocalInstance = async (node, owner) => {
     if (!change) { change = { at }; overrides.push(change); }
     if (Object.keys(variant).length) change.variant = variant;
     if (Object.keys(props).length) change.props = props;
+  }
+  // A Zen component in the main (a Button, a Card): the properties this instance gives it that its main's does not
+  // have, its label, and its own nested instances (figma-push layerOverrides props / text / nested; nested as
+  // readInstance reads a placed one's).
+  const touched = new Set(changed.filter((entry) => (entry.overriddenFields || []).some((field) => field === "componentProperties" || field === "characters")).map((entry) => entry.id));
+  // Its own texts (not a nested instance's) this instance changed.
+  const ownTextTouched = (instance) => { const seen = (parent) => (parent.children || []).some((child) => (child.type === "TEXT" && touched.has(child.id)) || (child.type !== "INSTANCE" && seen(child))); return seen(instance); };
+  for (const layer of node.findAll((each) => each.type === "INSTANCE")) {
+    if (!(await zenInstance(layer))) continue;
+    let skip = false;
+    for (let up = layer.parent; up && up.id !== node.id && !skip; up = up.parent) skip = up.type === "SLOT" || await zenInstance(up);
+    if (skip) continue;
+    const at = indexPath(layer, node);
+    const theirs = at ? counterpart(at) : null;
+    if (!theirs || theirs.type !== "INSTANCE") continue;
+    const change = {};
+    if (touched.has(layer.id)) {
+      const mine = await propsOf(layer);
+      const base = await propsOf(theirs);
+      const differ = Object.fromEntries(Object.entries(mine).filter(([name, value]) => base[name] !== value));
+      if (Object.keys(differ).length) change.props = differ;
+    }
+    if (ownTextTouched(layer)) change.text = firstText(layer);
+    // Its nested instances this instance changed: only the properties that differ from the same layer in the main's
+    // (a Pagination's Next keeps its own size and icon; the instance's change is its level).
+    const nested = [];
+    const walk = async (parent, mirror, trail) => {
+      const kids = parent.children || [];
+      for (let index = 0; index < kids.length; index++) {
+        const child = kids[index];
+        if (!child.visible || child.type === "SLOT") continue;
+        const twin = mirror && "children" in mirror ? mirror.children[index] || null : null;
+        const next = child.type === "INSTANCE" ? trail.concat([layerKey(child.name)]) : trail;
+        if (child.type === "INSTANCE" && (touched.has(child.id) || ownTextTouched(child))) {
+          const mine = await propsOf(child);
+          const base = twin && twin.type === "INSTANCE" ? await propsOf(twin) : {};
+          const props = Object.fromEntries(Object.entries(mine).filter(([name, value]) => base[name] !== value));
+          nested.push({ path: next.join("/"), set: await setOf(child), props, ...(ownTextTouched(child) ? { text: firstText(child) } : {}) });
+        }
+        await walk(child, twin, next);
+      }
+    };
+    await walk(layer, theirs, []);
+    if (nested.length) change.nested = nested;
+    if (!Object.keys(change).length) continue;
+    const known = overrides.find((each) => each.at.join(".") === at.join("."));
+    if (known) Object.assign(known, change);
+    else overrides.push(Object.assign({ at }, change));
   }
   if (overrides.length) out.layerOverrides = overrides;
   const slots = [];
@@ -524,7 +589,7 @@ const readFrame = async (node, root = false) => {
       w: Math.round(node.width * 100) / 100, h: Math.round(node.height * 100) / 100,
       fill: fillPaint ? (await variableName(boundId(fillPaint))) || "unbound" : null,
       stroke: strokePaint ? (await variableName(boundId(strokePaint))) || "unbound" : null,
-      strokeWeight: typeof own("strokeWeight") === "number" ? node.strokeWeight : 1, strokeAlign: own("strokeAlign"), cap: typeof own("strokeCap") === "string" ? node.strokeCap : null,
+      strokeWeight: typeof own("strokeWeight") === "number" ? node.strokeWeight : 1, strokeAlign: own("strokeAlign"), cap: typeof own("strokeCap") === "string" ? node.strokeCap : null, arrowLine: arrowLineOf(node),
       arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: own("pointCount"), innerRadius: own("innerRadius"),
       radius: typeof own("cornerRadius") === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
       rotation: turn, ...(mirrored ? { flip: "horizontal" } : {}), opacity: node.opacity, imageFill: readImageFill(node),
@@ -1255,10 +1320,11 @@ const innermost = (node) => (node.type === "INSTANCE" || node.children?.length !
  * An app frame as AppShell (AppShell.tsx; figma-push.mjs appShellNode, the other way): a row of the Sidebar (an instance,
  * or the composition that wraps one), a column whose first row is the Dashboard header Type=Navigation, and an optional
  * Side-Panel. Read from Figma's ◇ Master-Layout (Main-Container › Header/Dashboard › Sections; Body with its Content
- * and Floating-Actions) and from the push's frames (Column › Header, Sections, Main). The navigation row gives `header`
- * (its Leading-Slots without the toggle AppShell draws), `headerCenter` and `headerActions` (a named Avatar at their
- * end is the account); the other rows are `sections`; the page frame's layers the children (Body's padding kept in a
- * Stack); a layer pinned outside the auto layout the floating action; layers after the page the footer.
+ * and Floating-Actions) and from the push's frames (Column › Header, Sections, Main). The rows give `header`, an
+ * AppShellHeader: the navigation row its `leading` (Leading-Slots without the toggle AppShell draws), `center` and
+ * `actions` (a named Avatar at their end is the account); a PageHeader row its `main`, the other rows `sections`. The
+ * page frame's layers are the children (Body's padding kept in a Stack), then the layers after the page (an ActionBar);
+ * a layer pinned outside the auto layout is the floating action.
  */
 function appShellElement(node, ctx) {
   const layers = node.children ?? [];
@@ -1271,18 +1337,19 @@ function appShellElement(node, ctx) {
   const rows = headerNode ? rowsIn(headerNode) : [];
   if (!isNavigation(rows[0], ctx)) return null;
   const props = { sidebar: { kind: "element", node: convert(sidebarNode, ctx) } };
+  const headerProps = {};
   const nav = rows[0];
   const slotOf = (name) => (nav.slots ?? []).find((slot) => slot.name === name);
-  // Top bar: Leading-Slots without the toggle (AppShell draws it; a design without one says sidebarToggle={false}).
+  // Top bar: Leading-Slots without the toggle (AppShell draws it; a design without one says collapse="none").
   const leadingSlot = slotOf("Leading-Slots");
   const leading = (leadingSlot?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
   if (leading[0]?.name === "IconButton" && TOGGLE_ICON.test(leading[0].props.icon?.value ?? "")) leading.shift();
-  else props.sidebarToggle = literal(false);
+  else props.collapse = literal("none");
   const header = oneOf(leading, { name: "Leading-Slots", layout: leadingSlot?.layout, source: leadingSlot }, ctx);
-  if (header) props.header = { kind: "element", node: unpadded(header) };
+  if (header) headerProps.leading = { kind: "element", node: unpadded(header) };
   const centerSlot = nav.props?.["Nav-Center-Block"] === false ? null : slotOf("Center-Slots");
   const center = centerSlot ? oneOf((centerSlot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), { name: "Center-Slots", layout: centerSlot.layout, source: centerSlot }, ctx) : null;
-  if (center) props.headerCenter = { kind: "element", node: center };
+  if (center) headerProps.center = { kind: "element", node: center };
   const trailingSlot = slotOf("Trailing-Slots");
   const trailingNodes = trailingSlot?.children ?? [];
   const trailing = trailingNodes.map((child, index) => {
@@ -1297,13 +1364,17 @@ function appShellElement(node, ctx) {
     return element;
   }).filter(Boolean);
   const actions = oneOf(trailing, { name: "Trailing-Slots", layout: trailingSlot?.layout, source: trailingSlot }, ctx);
-  if (actions) props.headerActions = { kind: "element", node: actions };
+  if (actions) headerProps.actions = { kind: "element", node: actions };
   // Sections: Header/Dashboard's other rows, or the push's Sections frame.
   const sectionNodes = rows.slice(1);
   let after = rest;
   if (after[0]?.type === "FRAME" && after[0].name === "Sections") { sectionNodes.push(...(after[0].children ?? [])); after = after.slice(1); }
-  const sections = sectionNodes.map((row) => unpadded(convert(row, ctx))).filter(Boolean);
-  if (sections.length) props.sections = { kind: "element", node: sections.length === 1 ? sections[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: sections } };
+  const rowElements = sectionNodes.map((row) => unpadded(convert(row, ctx))).filter(Boolean);
+  // The Main row: the first PageHeader; the rows after it are the section rows.
+  const sections = rowElements[0]?.name === "PageHeader" ? rowElements.slice(1) : rowElements;
+  if (rowElements[0]?.name === "PageHeader") headerProps.main = { kind: "element", node: rowElements[0] };
+  if (sections.length) headerProps.sections = { kind: "element", node: sections.length === 1 ? sections[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: sections } };
+  if (Object.keys(headerProps).length) props.header = { kind: "element", node: { kind: "element", name: "AppShellHeader", props: headerProps, children: [] } };
   // The page: the next frame's layers (Body's padding kept in a Stack around them); pinned layers are the floating action.
   const pinned = [];
   let children = [];
@@ -1317,17 +1388,24 @@ function appShellElement(node, ctx) {
     const inside = bodyLayers.filter((child) => (child.absolute ? (pinned.push(child), false) : true));
     const elements = inside.map((child) => convert(child, ctx)).filter(Boolean);
     const padding = pageNode.layout?.padding ?? [];
-    children = padding.some(Boolean) ? [frameElement({ ...pageNode, children: inside }, elements, ctx)] : elements;
+    // AppShell's Body pads Margin-Comfortable and spaces the page Gap/XSmall (app-shell.css): a Body padded so keeps a
+    // Stack only for what else it does (its gap, its alignment), never the padding (the page would be padded twice).
+    const asBody = pageNode.layout?.paddingVar === "Margin-Comfortable";
+    const { padding: _padding, paddingVar: _paddingVar, paddingVars: _paddingVars, ...unpaddedLayout } = pageNode.layout ?? {};
+    const own = asBody ? { ...pageNode, layout: unpaddedLayout } : pageNode;
+    const bodyAsIs = asBody && (pageNode.layout?.gap ?? 0) === 8 && !["CENTER", "MAX"].includes(pageNode.layout?.counter);
+    children = padding.some(Boolean) && !bodyAsIs ? [frameElement({ ...own, children: inside }, elements, ctx)] : elements;
   }
   const footer = after.filter((part) => part !== pageNode && !(part.absolute && pinned.push(part)) && after.indexOf(part) > after.indexOf(pageNode)).map((part) => convert(part, ctx)).filter(Boolean);
-  if (footer.length) props.footer = { kind: "element", node: oneOf(footer, { name: "Footer", layout: { mode: "VERTICAL" } }, ctx) };
+  // A desktop task's ActionBar is the page's last child (AppShell has no footer).
+  children.push(...footer);
   if (pinned.length) {
     const { absolute, ...floating } = innermost(pinned[0]);
     const element = convert(floating, ctx);
-    if (element) props.floatingAction = { kind: "element", node: element };
+    if (element) props.floatingActions = { kind: "element", node: element };
     if (pinned.length > 1) ctx.notes.push(`AppShell "${node.name}": ${pinned.length} layers sit outside the auto layout; the first is the floating action, the others are left out`);
   }
-  if (asideNode) props.aside = { kind: "element", node: convert(asideNode, ctx) };
+  if (asideNode) props.sidePanel = { kind: "element", node: convert(asideNode, ctx) };
   return { kind: "element", name: "AppShell", props, children };
 }
 
@@ -1568,15 +1646,15 @@ const round2 = (value) => Math.round(value * 100) / 100;
 
 /**
  * A Figma shape (RECTANGLE, ELLIPSE, LINE, POLYGON, STAR) as a Zen Shape (figma-push shapeNode, the other way): its
- * type (a LINE with an arrow cap is an arrow), px size, fill and stroke by their variables (a colour that is no Zen
+ * type (a LINE with an arrow cap, or Figma's arrow: a two-vertex VECTOR capped at its end, is an arrow), px size, fill and stroke by their variables (a colour that is no Zen
  * Background / Border variable is left at the default and noted), arc, count, ratio, corner radius variable, rotation
  * and opacity; Figma's defaults are left out, as the push leaves them out.
  */
 function shapeElement(node, ctx) {
   const shape = node.shape;
   const where = `"${node.name}"`;
-  const arrow = node.type === "LINE" && typeof shape.cap === "string" && /ARROW/.test(shape.cap);
-  const type = { RECTANGLE: "rectangle", ELLIPSE: "ellipse", LINE: arrow ? "arrow" : "line", POLYGON: "polygon", STAR: "star", VECTOR: "vector", BOOLEAN_OPERATION: "boolean" }[node.type];
+  const arrow = (node.type === "LINE" && typeof shape.cap === "string" && /ARROW/.test(shape.cap)) || (node.type === "VECTOR" && shape.arrowLine === true);
+  const type = { RECTANGLE: "rectangle", ELLIPSE: "ellipse", LINE: arrow ? "arrow" : "line", POLYGON: "polygon", STAR: "star", VECTOR: arrow ? "arrow" : "vector", BOOLEAN_OPERATION: "boolean" }[node.type];
   const line = type === "line" || type === "arrow";
   const boolean = type === "boolean";
   // A boolean group writes its result as a vector does (its shapes come along as its children).
@@ -2013,10 +2091,30 @@ function pathAt(spec, at, ctx, variantAt) {
       const outer = at.slice(0, step + 1);
       const inner = prefix === undefined ? null : shownSpec(target.local, { ...(target.variant ?? {}), ...(variantAt(outer) ?? {}) }, ctx);
       const rest = inner ? pathAt(inner, at.slice(step + 1), ctx, (deeper) => variantAt([...outer, ...deeper])) : undefined;
-      return rest === undefined ? undefined : `${prefix}/${rest}`;
+      return rest === undefined ? undefined : { path: `${prefix}/${rest.path}`, target: rest.target };
     }
   }
-  return paths.get(ctx.innerOf.get(target));
+  const path = paths.get(ctx.innerOf.get(target));
+  return path === undefined ? undefined : { path, target };
+}
+
+/**
+ * The code props an instance gives a Zen component in its main (figma-push layerOverrides props / text, the other
+ * way): the component's props with this instance's Figma properties and label, against the main's own (`target`, the
+ * main's read of that layer). A prop the main sets that the instance takes back to the component's default is that
+ * default.
+ */
+function libraryOverride(target, override, set, ctx, where) {
+  const quiet = [];
+  const base = instanceProps({ props: target.props ?? {}, text: target.text }, set, ctx.mapping, quiet, where);
+  const shown = instanceProps({ props: { ...(target.props ?? {}), ...(override.props ?? {}) }, text: typeof override.text === "string" ? override.text : target.text }, set, ctx.mapping, ctx.notes, where);
+  const fields = {};
+  for (const [name, value] of Object.entries(shown)) if (JSON.stringify(base[name]) !== JSON.stringify(value)) fields[name] = value;
+  for (const name of Object.keys(base)) {
+    const fallback = ctx.mapping.apiProps[set.code]?.get(name);
+    if (!(name in shown) && fallback !== undefined) fields[name] = literal(fallback);
+  }
+  return fields;
 }
 
 /**
@@ -2035,9 +2133,29 @@ function settleOverrides(ctx) {
     const variantAt = (at) => node.layerOverrides.find((override) => (override.at ?? []).join(".") === at.join("."))?.variant ?? null;
     const table = {};
     for (const override of node.layerOverrides) {
-      const path = pathAt(spec, override.at ?? [], ctx, variantAt);
-      if (path === undefined) { ctx.notes.push(`${node.name ?? "Instance"}: an override of a layer at ${(override.at ?? []).join(".")} is left out (not a layer of its main on the page)`); continue; }
+      const found = pathAt(spec, override.at ?? [], ctx, variantAt);
+      if (found === undefined) { ctx.notes.push(`${node.name ?? "Instance"}: an override of a layer at ${(override.at ?? []).join(".")} is left out (not a layer of its main on the page)`); continue; }
+      const { path, target } = found;
       const fields = { ...(table[path]?.fields ?? {}) };
+      // A Zen component in the main (a Button, a Card): its props and label as code props; its own nested layers
+      // ("Card/Sub-Action") as a placed component's overrides are read.
+      if (target.type === "INSTANCE" && !target.local && target.set) {
+        const where = `${node.name ?? "Instance"} › ${path}`;
+        const set = ctx.mapping.sets.get(target.set.id) ?? ctx.mapping.sets.get(target.set.name);
+        if (override.visible === false) fields.hidden = literal(true);
+        const more = override.props || typeof override.text === "string" || override.nested?.length;
+        if (!set && more) ctx.notes.push(`${where}: ${target.set.name} has no Zen component (its other overrides are left out)`);
+        if (set && (override.props || typeof override.text === "string")) Object.assign(fields, libraryOverride(target, override, set, ctx, where));
+        if (Object.keys(fields).length) table[path] = { kind: "object", fields };
+        for (const nested of set ? override.nested ?? [] : []) {
+          const inner = nested.set ? ctx.mapping.sets.get(nested.set.id) ?? ctx.mapping.sets.get(nested.set.name) : null;
+          if (!inner) { ctx.notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
+          const own = instanceProps(nested, inner, ctx.mapping, ctx.notes, `${where} › ${nested.path}`);
+          const key = `${path}/${nested.path}`;
+          if (Object.keys(own).length) table[key] = { kind: "object", fields: { ...(table[key]?.fields ?? {}), ...own } };
+        }
+        continue;
+      }
       if (typeof override.characters === "string") fields.children = literal(override.characters);
       if (override.visible === false) fields.hidden = literal(true);
       const tone = typeof override.fill === "string" ? TONE_OF.get(override.fill.replace(/^Color\//, "")) : undefined;

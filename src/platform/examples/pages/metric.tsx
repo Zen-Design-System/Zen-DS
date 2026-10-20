@@ -1,7 +1,11 @@
 /* Metric examples (docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio reads its month, its people and its
-   invoices through Metric and MetricCard; the phone example is the studio's own app, where Alex checks his month. */
+   invoices through Metric and MetricCard; the phone examples are the studio's own app, where Alex checks his month. The
+   screens sit in the studio's AppShell: Invoices in the sidebar pattern, the phones in its mobile parts (Numbers is a
+   root with the bottom bar; the screens pushed from it have Back). */
 import { useEffect, useId, useRef, useState } from "react";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Badge } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Divider } from "../../../components/Divider";
@@ -9,7 +13,7 @@ import { DockIcon, type DockIconTheme } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import type { IconName } from "../../../components/Icon";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Box, Container, Grid, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { Metric, MetricCard, type MetricTrendDirection } from "../../../components/MetricWidget";
@@ -17,12 +21,15 @@ import { PageHeader } from "../../../components/PageHeader";
 import { ProgressBar } from "../../../components/Progress";
 import { Segmented } from "../../../components/Segmented";
 import { SidePanel } from "../../../components/SidePanel";
+import { Sidebar, SidebarMenuItem } from "../../../components/Sidebar";
+import { Search } from "../../../components/Search";
 import { SkeletonHeading, SkeletonShape, SkeletonText } from "../../../components/Skeleton";
 import { Table, TableActions, TableBadges, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
   formatCompactMoney, formatDate, formatMoney, formatRange, invoiceStatusTheme, invoices, leaveRequests, me, projectById, studio, studioMonths, studioTeamHours,
@@ -312,23 +319,41 @@ function TileStatesExample() {
 const sumOf = (rows: Invoice[], statuses: InvoiceStatus[]) => rows.filter((row) => statuses.includes(row.status)).reduce((total, row) => total + row.amount, 0);
 const byNumber = (a: Invoice, b: Invoice) => b.number.localeCompare(a.number);
 
+/** The drafts New invoice adds, in turn: the next milestones of the studio's active clients, issued today. */
+const nextDrafts: Pick<Invoice, "client" | "project" | "amount">[] = [
+  { client: "Saola Outdoor", project: "saola-brand", amount: 8400 },
+  { client: "Phin & Co", project: "phin-loyalty", amount: 14000 },
+  { client: "Lumen Bank", project: "lumen-banking", amount: 27000 },
+];
+
 function InvoiceSummaryExample() {
   const { toast } = useToast();
   const tableRef = useRef<HTMLElement>(null); // the summary and the table
   const [rows, setRows] = useState(() => [...invoices].sort(byNumber));
+  const [query, setQuery] = useState("");
+  const [unread, setUnread] = useState(1);
   const outstanding = sumOf(rows, ["Sent", "Overdue"]);
   const overdue = sumOf(rows, ["Overdue"]);
   const paid = sumOf(rows, ["Paid"]);
+  const words = query.trim().toLowerCase();
+  const shown = rows.filter((row) => !words || `${row.number} ${row.client}`.toLowerCase().includes(words));
   const setStatus = (id: string, status: InvoiceStatus) => setRows((list) => list.map((row) => (row.id === id ? { ...row, status } : row)));
   const change = (invoice: Invoice, status: InvoiceStatus, title: string) => {
     setStatus(invoice.id, status);
     toast({ title, children: `${invoice.number} · ${invoice.client}`, action: { label: "Undo", onClick: () => setStatus(invoice.id, invoice.status) } });
     // A paid invoice has no action left: focus moves on to the next open invoice (below, else above), not to <body>.
     if (status === "Paid") {
-      const at = rows.indexOf(invoice);
-      const next = [...rows.slice(at + 1), ...rows.slice(0, at).reverse()].find((row) => row.status !== "Paid");
+      const at = shown.indexOf(invoice);
+      const next = [...shown.slice(at + 1), ...shown.slice(0, at).reverse()].find((row) => row.status !== "Paid");
       if (next) requestAnimationFrame(() => tableRef.current?.querySelector<HTMLElement>(`button[aria-label$="${next.number}"]`)?.focus());
     }
+  };
+  const newInvoice = () => {
+    const count = rows.filter((row) => row.id.startsWith("new-")).length;
+    const draft: Invoice = { ...nextDrafts[count % nextDrafts.length], id: `new-${count}`, number: `INV-2026-${String(144 + count).padStart(4, "0")}`, status: "Draft", issued: invoices[4].issued, due: invoices[4].due };
+    setRows((list) => [draft, ...list]);
+    setQuery("");
+    toast({ title: "Draft invoice created", children: `${draft.number} · ${draft.client} · ${formatMoney(draft.amount)}`, action: { label: "Undo", onClick: () => setRows((list) => list.filter((row) => row.id !== draft.id)) } });
   };
   const columns: TableColumn<Invoice>[] = [
     { id: "invoice", header: "Invoice", cell: (row) => <TableText bold caption={row.client}>{row.number}</TableText> },
@@ -348,9 +373,41 @@ function InvoiceSummaryExample() {
     },
   ];
   return (
-    <Container maxWidth="full">
-      <Stack paddingY="xl" gap="xl">
-        <PageHeader title="Invoices" description={`What ${studio.name} has billed its clients since July.`} />
+    <PreviewAppFrame height={{ min: 640, max: 820 }}>
+      {/* The studio's Invoices page: AppShell pattern sidebar, a Search in the header's top row (it filters the table),
+          the PageHeader with its one Primary in the Main row. The summary and the table lie on the page, no box. */}
+      <AppShell
+        sidebar={(
+          <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
+            selectedId="invoices" onItemClick={(item) => { if (item.id !== "invoices") toast({ title: `${item.label} isn't part of this example`, children: "This page shows the summary." }); }}
+            sections={[{ items: [
+              { id: "home", label: "Home", icon: "icon-home-03-line" },
+              { id: "projects", label: "Projects", icon: "icon-folder-line" },
+              { id: "invoices", label: "Invoices", icon: "icon-receipt-line", counter: rows.filter((row) => row.status === "Overdue").length || undefined },
+              { id: "people", label: "People", icon: "icon-users-line" },
+            ] }]}
+            footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
+        )}
+        header={(
+          <AppShellHeader
+            leading={<Search placeholder="Search invoices" aria-label="Search invoices" value={query} onValueChange={setQuery} />}
+            actions={<>
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
+                setUnread(0);
+                toast({ title: unread ? "1 new notification" : "You're all caught up", children: "Mai Ho marked INV-2026-0141 as paid · Lumen Bank" });
+              }} />
+              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+                { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+              ]} />
+            </>}
+            main={(
+              <PageHeader title="Invoices" description={`What ${studio.name} has billed its clients since July.`}
+                actions={<Button level="primary" startIcon="icon-plus-line" onClick={newInvoice}>New invoice</Button>} />
+            )}
+          />
+        )}
+      >
         <Stack gap="md" ref={tableRef}>
           {/* Every number comes from the same rows as the table, so a change shows in both at once. */}
           <Grid as="section" aria-label="Summary" minColumnWidth="200px" gap="sm">
@@ -358,10 +415,11 @@ function InvoiceSummaryExample() {
             <Metric size="sm" label="Overdue" value={formatMoney(overdue, true)} icon="icon-alert-triangle-line" iconTheme="red" />
             <Metric size="sm" label="Paid" value={formatMoney(paid, true)} icon="icon-check-circle-line" iconTheme="green" />
           </Grid>
-          <Table aria-label="Invoices" columns={columns} rows={rows} />
+          <Table aria-label="Invoices" columns={columns} rows={shown}
+            empty={<EmptyState headingLevel={2} size="sm" icon="icon-search-medium-line" title="No invoices match" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Try a client or an invoice number.</EmptyState>} />
         </Stack>
-      </Stack>
-    </Container>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -449,7 +507,21 @@ const myGroups: MyGroup[] = [
 const myMetrics = myGroups.flatMap((group) => group.metrics);
 const openLabel = (metric: MyMetric) => `Open ${metric.label.toLowerCase()}`;
 
+/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
+const phoneRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
+  { id: "numbers", label: "Numbers", icon: "icon-pie-chart-01-line", selectedIcon: "icon-pie-chart-01-solid" },
+  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
+];
+/** Back on a pushed screen whose parent this example does not draw: the toast names where it goes. */
+function useBackTo(parent: string) {
+  const { toast } = useToast();
+  return { icon: "icon-chevron-left-line-medium" as const, label: "Back", onClick: () => toast({ title: `Back to ${parent}`, children: "This example shows the one screen." }) };
+}
+
 function PhoneDrillInExample() {
+  const { toast } = useToast();
   const screen = usePhoneScreen();
   // The scroller of whichever screen shows: the large title folds as the cards run under the bar.
   const screenRef = useRef<HTMLDivElement>(null);
@@ -459,18 +531,22 @@ function PhoneDrillInExample() {
 
   if (!open) {
     return (
-      // One key per screen: each screen opens at the top and the bar measures its fold again.
-      <PlatformPhone key="root" label="My numbers" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="alt" title="My numbers" largeTitle="My numbers" scrollRef={screenRef} />}>
-        {screen.anchor}
-        <Stack gap="lg" padding="lg">
+      // The Numbers root of the studio app: one key per screen, so each screen opens at the top and the bar measures its
+      // fold again. The bottom bar casts a shadow, so the cards on the grey Canvas take the same Shadow elevation.
+      <PlatformPhone key="root" label="Numbers" screenRef={screenRef}>
+        <AppShell
+          topNavigation={<TopNavigation title="Numbers" largeTitle="Numbers" largeTitleSubheading={`${me.name} · ${me.role}`} scrollRef={screenRef} />}
+          bottomNavigation={<BottomNavigation aria-label={studio.name} showLabels items={phoneRoots} value="numbers"
+            onValueChange={(id) => { if (id !== "numbers") toast({ title: `${phoneRoots.find((item) => item.id === id)?.label ?? id} isn't part of this example`, children: "This screen shows the metrics." }); }} />}
+        >
+          {screen.anchor}
           {myGroups.map((group) => (
             <Stack as="section" key={group.id} gap="xs" aria-labelledby={`${groupId}-${group.id}`}>
               <Heading level={2} id={`${groupId}-${group.id}`} textStyle="Body/Small/Bold" tone="light">{group.title}</Heading>
               <Stack as="ul" gap="md">
                 {group.metrics.map((metric) => (
                   <li key={metric.id}>
-                    <MetricCard theme="flat" variant="title-highlight" size="md" label={metric.label} value={metric.value} trend={metric.trend} icon={metric.icon} iconTheme={metric.theme}
+                    <MetricCard theme="shadow" variant="title-highlight" size="md" label={metric.label} value={metric.value} trend={metric.trend} icon={metric.icon} iconTheme={metric.theme}
                       action={<IconButton appearance="main" level="tertiary" size="xs" icon="icon-chevron-right-line" aria-label={openLabel(metric)}
                         onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(metric.id))} />} />
                   </li>
@@ -478,17 +554,19 @@ function PhoneDrillInExample() {
               </Stack>
             </Stack>
           ))}
-        </Stack>
+        </AppShell>
       </PlatformPhone>
     );
   }
   return (
-    <PlatformPhone key={open.id} label={open.label} headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact-alt" title={open.label} scrollRef={screenRef}
-        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[aria-label="${openLabel(open)}"]`, () => setOpenId(null)) }} />}>
-      {screen.anchor}
-      {/* Rows pad 0 at the sides: the screen margin (lg) insets them, so they line up with the metric. */}
-      <Stack gap="lg" padding="lg">
+    // The pushed screen: the compact bar with Back and the metric's name, no bottom bar.
+    <PlatformPhone key={open.id} label={open.label} screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation type="compact-alt" title={open.label} scrollRef={screenRef}
+          leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[aria-label="${openLabel(open)}"]`, () => setOpenId(null)) }} />}
+      >
+        {screen.anchor}
+        {/* Rows pad 0 at the sides: the Body's margin insets them, so they line up with the metric. */}
         <Metric size="lg" icon={false} label={open.period} value={open.value} trend={open.trend} />
         <Stack as="section" gap="xs" aria-labelledby={groupId}>
           <Heading level={2} id={groupId} textStyle="Body/Small/Bold" tone="light">{open.group}</Heading>
@@ -499,7 +577,7 @@ function PhoneDrillInExample() {
             ))}
           </List>
         </Stack>
-      </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -614,20 +692,24 @@ function HeroMetric() {
   );
 }
 
-/** The month on the studio's phone app: the Hero, then the cash-flow columns stacked. */
+/** The month on the studio's phone app: a screen pushed from Numbers, its typed cards stacked. */
 function PhoneMetricTypes() {
   const screenRef = useRef<HTMLDivElement>(null);
+  const back = useBackTo("Numbers");
   return (
-    <PlatformPhone label="This month" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="September" largeTitle="September" scrollRef={screenRef} />}>
-      <Stack gap="md" padding="lg">
-        <MetricCard theme="flat" spacing="small" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
-          trend={{ direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` }} />
-        <MetricCard theme="flat" spacing="small" type="comparison" label="Cash flow" headingLevel={2} comparison={[
-          { id: "invoiced", label: "Invoiced", value: usd(monthOf("sep").invoiced), trend: { direction: "positive", label: "+9% vs. August" } },
-          { id: "collected", label: "Collected", value: usd(monthOf("sep").collected), trend: { direction: "negative", label: "−8% vs. August" } },
-        ]} />
-        <MetricCard theme="flat" spacing="small" type="category-bar" label="Invoices by status" value={usd(statusTotal)} categories={byStatus} format={usd} />
-      </Stack>
+    <PlatformPhone label="September" screenRef={screenRef}>
+      <AppShell topNavigation={<TopNavigation type="compact-alt" title="September" scrollRef={screenRef} leading={back} />}>
+        {/* The Body pads the screen; the cards sit md apart, flat on the grey Canvas (no bottom bar, no shadow). */}
+        <Stack gap="md">
+          <MetricCard theme="flat" spacing="small" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
+            trend={{ direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` }} />
+          <MetricCard theme="flat" spacing="small" type="comparison" label="Cash flow" headingLevel={2} comparison={[
+            { id: "invoiced", label: "Invoiced", value: usd(monthOf("sep").invoiced), trend: { direction: "positive", label: "+9% vs. August" } },
+            { id: "collected", label: "Collected", value: usd(monthOf("sep").collected), trend: { direction: "negative", label: "−8% vs. August" } },
+          ]} />
+          <MetricCard theme="flat" spacing="small" type="category-bar" label="Invoices by status" value={usd(statusTotal)} categories={byStatus} format={usd} />
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -653,24 +735,44 @@ function StandOutTiles() {
   );
 }
 
-/** The phone app's week: two Medium tiles (the dark one stands out), then three Small tiles. */
+/** The phone app's week, pushed from Numbers: two Medium tiles (the dark one stands out), three Small tiles, then what
+ *  comes up next (the shared tasks, review requests and leave). */
+const comingUp: Row[] = [
+  { id: "audit", title: "Audit the account overview for WCAG 2.2", caption: "LUM-091 · Due today", icon: "icon-check-square-line", theme: "blue" },
+  { id: "review", title: "Connect the rewards API to checkout", caption: "Bao Nguyen asked you to review", icon: "icon-annotation-check-line", theme: "purple" },
+  { id: "leave", title: "Annual leave", caption: formatRange(myLeave.from, myLeave.to), icon: "icon-plane-line", theme: "cyan" },
+];
+
 function PhoneTiles() {
   const screenRef = useRef<HTMLDivElement>(null);
+  const back = useBackTo("Numbers");
+  const daysId = useId();
   return (
-    <PlatformPhone label="This week" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
-      <Stack gap="md" padding="lg">
-        <Grid columns="repeat(2, minmax(0, 1fr))" gap="sm">
-          <MetricCard type="tile" theme="solid" color="neutral" label="Billable" value="82%" icon="icon-pie-chart-01-line"
-            trend={{ direction: "positive", label: "+4%" }} />
-          <MetricCard type="tile" theme="flat" label="Hours logged" value="164 h" icon="icon-clock-line"
-            trend={{ direction: "positive", label: "+12 h" }} />
-        </Grid>
-        <Grid columns="repeat(3, minmax(0, 1fr))" gap="sm">
-          <MetricCard type="tile" size="sm" theme="flat" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
-          <MetricCard type="tile" size="sm" theme="flat" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
-          <MetricCard type="tile" size="sm" theme="flat" label="Days off left" value="9" icon="icon-plane-line" />
-        </Grid>
-      </Stack>
+    <PlatformPhone label="This week" screenRef={screenRef}>
+      <AppShell topNavigation={<TopNavigation type="compact-alt" title="This week" scrollRef={screenRef} leading={back} />}>
+        <Stack gap="md">
+          <Grid columns="repeat(2, minmax(0, 1fr))" gap="sm">
+            <MetricCard type="tile" theme="solid" color="neutral" label="Billable" value="82%" icon="icon-pie-chart-01-line"
+              trend={{ direction: "positive", label: "+4%" }} />
+            <MetricCard type="tile" theme="flat" label="Hours logged" value="164 h" icon="icon-clock-line"
+              trend={{ direction: "positive", label: "+12 h" }} />
+          </Grid>
+          <Grid columns="repeat(3, minmax(0, 1fr))" gap="sm">
+            <MetricCard type="tile" size="sm" theme="flat" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
+            <MetricCard type="tile" size="sm" theme="flat" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
+            <MetricCard type="tile" size="sm" theme="flat" label="Days off left" value="9" icon="icon-plane-line" />
+          </Grid>
+        </Stack>
+        {/* What comes up next: the rows under the tiles, in the Body's margin. */}
+        <Stack as="section" gap="xs" aria-labelledby={daysId}>
+          <Heading level={2} id={daysId} textStyle="Body/Small/Bold" tone="light">Coming up</Heading>
+          <List aria-labelledby={daysId}>
+            {comingUp.map((row) => (
+              <ListItem key={row.id} title={row.title} titleLines={2} caption={row.caption} leading={<DockIcon size="md" icon={row.icon} theme={row.theme} background="subtle" />} />
+            ))}
+          </List>
+        </Stack>
+      </AppShell>
     </PlatformPhone>
   );
 }
@@ -823,22 +925,24 @@ const send = () => {
   },
   {
     title: "Drill in on a phone",
-    description: "On a phone the Title-Highlight metric puts its title first and a chevron in the title row, one card per row under a kicker for its period. The chevron opens what the number adds up as the next screen, and Back returns focus to it.",
+    description: "On a phone the Title-Highlight metric puts its title first and a chevron in the title row, one card per row under a kicker for its period, on the Numbers root of the studio app (the large title, the bottom bar; its shadow gives the cards theme=\"shadow\"). The chevron opens what the number adds up as the next screen, pushed without the bottom bar, and Back returns focus to it.",
     render: () => <PhoneDrillInExample />,
     code: `const screen = usePhoneScreen();
 const screenRef = useRef<HTMLDivElement>(null);
 const [openId, setOpenId] = useState<string | null>(null);
 
 // One key per screen; the large title folds as the cards scroll under the bar.
-<PlatformPhone key="root" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="My numbers" largeTitle="My numbers" scrollRef={screenRef} />}>
-  {/* padding 20 (Margin-Compact); gap 24 (sections) → 8 (kicker → cards) → 16 (cards) */}
-  <Stack gap="lg" padding="lg">
+<PlatformPhone key="root" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation title="Numbers" largeTitle="Numbers" largeTitleSubheading="Alex Duong · Design Lead" scrollRef={screenRef} />}
+    bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" showLabels value="numbers" onValueChange={go} items={roots} />}
+  >
+    {/* The Body pads 20 and spaces the sections Layout-Mobile/Section-Gap apart; kicker → cards 8; cards 16 */}
     <Stack as="section" gap="xs" aria-labelledby={septemberId}>
       <Heading level={2} id={septemberId} textStyle="Body/Small/Bold" tone="light">September</Heading>
       <Stack as="ul" gap="md">
         <li>
-          <MetricCard theme="flat" variant="title-highlight" size="md" label="Hours logged" value="164 h"
+          <MetricCard theme="shadow" variant="title-highlight" size="md" label="Hours logged" value="164 h"
             trend={{ direction: "positive", label: "+12 h vs. August" }} icon="icon-clock-line" iconTheme="blue"
             action={<IconButton appearance="main" level="tertiary" size="xs" icon="icon-chevron-right-line" aria-label="Open hours logged"
               onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId("hours"))} />} />
@@ -846,39 +950,49 @@ const [openId, setOpenId] = useState<string | null>(null);
         {/* Tasks done, Reviews given… then "This year": Leave left, Learning budget left, Expenses claimed */}
       </Stack>
     </Stack>
-  </Stack>
+  </AppShell>
 </PlatformPhone>
 
 // The next screen: Back returns to the chevron it came from
-<PlatformPhone key="hours" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact-alt" title="Hours logged" scrollRef={screenRef}
+<PlatformPhone key="hours" screenRef={screenRef}>
+  <AppShell topNavigation={<TopNavigation type="compact-alt" title="Hours logged" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[aria-label="Open hours logged"]', () => setOpenId(null)) }} />}>
-  <Stack gap="lg" padding="lg">
     <Metric size="lg" icon={false} label="September" value="164 h" trend={{ direction: "positive", label: "+12 h vs. August" }} />
     <Stack as="section" gap="xs" aria-labelledby={groupId}>
       <Heading level={2} id={groupId} textStyle="Body/Small/Bold" tone="light">By project</Heading>
       <List aria-labelledby={groupId}>{/* ListItem per project: DockIcon + hours */}</List>
     </Stack>
-  </Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
   {
     title: "Summary above a table",
     wide: true,
     screen: true,
-    description: "Small Metrics above the invoices Table add up the same rows, so sending an invoice or recording a payment moves its amount at once, with Undo in the Toast. The three Dock-Icons share one background (Subtle); their colour tells them apart.",
+    description: "The studio's Invoices page: small Metrics above the invoices Table add up the same rows, so sending an invoice, recording a payment or adding a draft (New invoice, in the PageHeader of the header's Main row) moves its amount at once, with Undo in the Toast; the Search in the header's top row filters the table. The three Dock-Icons share one background (Subtle); their colour tells them apart.",
     render: () => <InvoiceSummaryExample />,
     code: `const outstanding = sumOf(rows, ["Sent", "Overdue"]);
 const overdue = sumOf(rows, ["Overdue"]);
 const paid = sumOf(rows, ["Paid"]);
 
-<PageHeader title="Invoices" description="What Đìzai Studio has billed its clients since July." />
-<Grid as="section" aria-label="Summary" minColumnWidth="200px" gap="sm">
-  <Metric size="sm" label="Outstanding" value={formatMoney(outstanding, true)} icon="icon-hourglass-line" iconTheme="blue" />
-  <Metric size="sm" label="Overdue" value={formatMoney(overdue, true)} icon="icon-alert-triangle-line" iconTheme="red" />
-  <Metric size="sm" label="Paid" value={formatMoney(paid, true)} icon="icon-check-circle-line" iconTheme="green" />
-</Grid>
-<Table aria-label="Invoices" columns={columns} rows={rows} />
+<AppShell
+  sidebar={<Sidebar logo={logo} sections={places} selectedId="invoices" onItemClick={go} />}
+  header={
+    <AppShellHeader
+      leading={<Search placeholder="Search invoices" aria-label="Search invoices" value={query} onValueChange={setQuery} />}
+      actions={<>{notifications}{account}</>}
+      main={<PageHeader title="Invoices" description="What Đìzai Studio has billed its clients since July."
+        actions={<Button level="primary" startIcon="icon-plus-line" onClick={newInvoice}>New invoice</Button>} />}
+    />
+  }
+>
+  <Grid as="section" aria-label="Summary" minColumnWidth="200px" gap="sm">
+    <Metric size="sm" label="Outstanding" value={formatMoney(outstanding, true)} icon="icon-hourglass-line" iconTheme="blue" />
+    <Metric size="sm" label="Overdue" value={formatMoney(overdue, true)} icon="icon-alert-triangle-line" iconTheme="red" />
+    <Metric size="sm" label="Paid" value={formatMoney(paid, true)} icon="icon-check-circle-line" iconTheme="green" />
+  </Grid>
+  <Table aria-label="Invoices" columns={columns} rows={shown} empty={noMatches} />
+</AppShell>
 
 // Actions column: record a payment, then offer Undo
 <IconButton appearance="flat" level="primary" size="md" icon="icon-check-circle-line"
@@ -966,37 +1080,44 @@ const dark = look === "dark";
   },
   {
     title: "Stat tiles on a phone",
-    description: "Two Medium tiles share the screen's width (Display/3 numbers), three Small ones a row (Heading/3). The dark Solid Neutral tile is the week's one highlight, its content Inverse. A tile without a trend is shorter inside; the row's cards still share one height.",
+    description: "Two Medium tiles share the screen's width (Display/3 numbers), three Small ones a row (Heading/3). The dark Solid Neutral tile is the week's one highlight, its content Inverse. A tile without a trend is shorter inside; the row's cards still share one height. The week is a screen pushed from Numbers (Back, no bottom bar), with what comes up next under the tiles.",
     render: () => <PhoneTiles />,
-    code: `<PlatformPhone header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
-  <Stack gap="md" padding="lg">
-    <Grid columns="repeat(2, minmax(0, 1fr))" gap="sm">
-      <MetricCard type="tile" theme="solid" color="neutral" label="Billable" value="82%" icon="icon-pie-chart-01-line"
-        trend={{ direction: "positive", label: "+4%" }} />
-      <MetricCard type="tile" theme="flat" label="Hours logged" value="164 h" icon="icon-clock-line" trend={{ direction: "positive", label: "+12 h" }} />
-    </Grid>
-    <Grid columns="repeat(3, minmax(0, 1fr))" gap="sm">
-      <MetricCard type="tile" size="sm" theme="flat" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
-      <MetricCard type="tile" size="sm" theme="flat" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
-      <MetricCard type="tile" size="sm" theme="flat" label="Days off left" value="9" icon="icon-plane-line" />
-    </Grid>
-  </Stack>
+    code: `<PlatformPhone screenRef={screenRef}>
+  <AppShell topNavigation={<TopNavigation type="compact-alt" title="This week" scrollRef={screenRef}
+    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToNumbers }} />}>
+    <Stack gap="md">
+      <Grid columns="repeat(2, minmax(0, 1fr))" gap="sm">
+        <MetricCard type="tile" theme="solid" color="neutral" label="Billable" value="82%" icon="icon-pie-chart-01-line"
+          trend={{ direction: "positive", label: "+4%" }} />
+        <MetricCard type="tile" theme="flat" label="Hours logged" value="164 h" icon="icon-clock-line" trend={{ direction: "positive", label: "+12 h" }} />
+      </Grid>
+      <Grid columns="repeat(3, minmax(0, 1fr))" gap="sm">
+        <MetricCard type="tile" size="sm" theme="flat" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
+        <MetricCard type="tile" size="sm" theme="flat" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
+        <MetricCard type="tile" size="sm" theme="flat" label="Days off left" value="9" icon="icon-plane-line" />
+      </Grid>
+    </Stack>
+    {/* Coming up: a List under a Body/Small/Bold kicker */}
+  </AppShell>
 </PlatformPhone>`,
   },
   {
     title: "Metric types on a phone",
-    description: "On the studio's phone app the typed cards fill the screen's width: the sparkline and the category bar take the card's width, and the comparison stacks its columns with a rule above each.",
+    description: "On the studio's phone app the typed cards fill the screen's width: the sparkline and the category bar take the card's width, and the comparison stacks its columns with a rule above each. September is a screen pushed from Numbers (Back, no bottom bar), so the cards stay flat on the grey Canvas.",
     render: () => <PhoneMetricTypes />,
-    code: `<PlatformPhone header={<TopNavigation type="alt" title="September" largeTitle="September" scrollRef={screenRef} />}>
-  <Stack gap="md" padding="lg">
-    <MetricCard theme="flat" spacing="small" type="sparkline" label="Revenue" value="$105,700" series={invoiced} format={formatCompactMoney}
-      trend={{ direction: "positive", label: "+9% vs. August" }} />
-    <MetricCard theme="flat" spacing="small" type="comparison" label="Cash flow" headingLevel={2} comparison={[
-      { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },
-      { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },
-    ]} />
-    <MetricCard theme="flat" spacing="small" type="category-bar" label="Invoices by status" value="$95,520.50" categories={byStatus} format={formatMoney} />
-  </Stack>
+    code: `<PlatformPhone screenRef={screenRef}>
+  <AppShell topNavigation={<TopNavigation type="compact-alt" title="September" scrollRef={screenRef}
+    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToNumbers }} />}>
+    <Stack gap="md">
+      <MetricCard theme="flat" spacing="small" type="sparkline" label="Revenue" value="$105,700" series={invoiced} format={formatCompactMoney}
+        trend={{ direction: "positive", label: "+9% vs. August" }} />
+      <MetricCard theme="flat" spacing="small" type="comparison" label="Cash flow" headingLevel={2} comparison={[
+        { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },
+        { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },
+      ]} />
+      <MetricCard theme="flat" spacing="small" type="category-bar" label="Invoices by status" value="$95,520.50" categories={byStatus} format={formatMoney} />
+    </Stack>
+  </AppShell>
 </PlatformPhone>`,
   },
   {

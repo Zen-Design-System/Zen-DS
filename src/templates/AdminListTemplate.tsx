@@ -2,28 +2,33 @@
  * Template: admin list (the team members of a workspace). Copy it into your app and replace the sample data and handlers.
  * Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  *
- * - Top bar: Breadcrumbs, Notifications (a docked Side Panel) and the account menu.
- * - PageHeader: seat usage in the description, Export (Tertiary) and Invite members (Primary → a validated ModalForm).
+ * - AppShell, Sidebar pattern. The header's top row: Breadcrumbs, Notifications (a docked Side Panel) and the account
+ *   menu. Its Main row: the PageHeader, with seat usage in the description, Export (Tertiary) and Invite members
+ *   (Primary → a validated ModalForm).
  * - Toolbar: Search by name or email, Role and Status filter chips, and Clear all once both filters are on.
  * - Table: select rows, sort by member, role, status or last active; each row's Menu copies the email, resends or revokes an
  *   invite, changes the role, suspends or restores access and removes the member (negative Dialog). Undoable changes
  *   act at once and offer Undo in a Toast. Inline Pagination below.
  * - Selected rows bring up a sticky ActionBar: Change role and Remove members for the whole selection.
- * - Phone: the members are a List; a row opens its actions in a Bottom Sheet, and the filter chips open theirs in one.
+ * - Phone and upright tablet (the shell's mobile layout, below 1024px): a TopNavigation with the account (its menu in a
+ *   Bottom Sheet), Invite members, Notifications and More (Export), the seat usage at the top of the page, and a Bottom
+ *   Navigation with the Sidebar's first four rows and More (the rest in a sheet). On a phone the members are a List; a row
+ *   opens its actions in a Bottom Sheet, and the filter chips open theirs in one.
  */
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ActionBar,
   AppShell,
   AppShellAccount,
   AppShellAction,
+  AppShellHeader,
   Avatar,
   Badge,
+  BottomNavigation,
   BottomSheet,
   Breadcrumbs,
   Button,
   Chip,
-  Container,
   Dialog,
   DockIcon,
   EmptyState,
@@ -50,9 +55,11 @@ import {
   TableText,
   Text,
   TextAreaField,
+  TopNavigation,
   VisuallyHidden,
   plural,
   useFormState,
+  useAppShell,
   useToast,
   useZen,
   type AvatarTheme,
@@ -167,7 +174,7 @@ const nav: SidebarSection[] = [
   { items: [
     { id: "home", label: "Home", icon: "icon-home-03-line" },
     { id: "projects", label: "Projects", icon: "icon-folder-line" },
-    { id: "reports", label: "Reports", icon: "icon-bar-chart-01-line" },
+    { id: "reports", label: "Reports", icon: "icon-bar-chart-square-01-line" },
   ] },
   { label: "Admin", items: [
     { id: "members", label: "Team members", icon: "icon-users-line" },
@@ -176,6 +183,29 @@ const nav: SidebarSection[] = [
     { id: "settings", label: "Settings", icon: "icon-settings-01-line" },
   ] },
 ];
+/** Phone: the Bottom Navigation holds the Sidebar's first four rows and More, which lists these. */
+const morePages: Array<{ id: string; label: string; icon: IconName }> = [
+  { id: "billing", label: "Billing", icon: "icon-credit-card-line" },
+  { id: "security", label: "Security", icon: "icon-shield-tick-line" },
+  { id: "settings", label: "Settings", icon: "icon-settings-01-line" },
+];
+
+/* ── Layout parts ────────────────────────────────────────────────────── */
+/** Only in the shell's mobile layout (below 1024px), where the TopNavigation shows the title alone: the rest of the
+ *  PageHeader (its description) opens the page instead. */
+function MobileOnly({ children }: { children: ReactNode }) {
+  return useAppShell()?.layout === "mobile" ? <>{children}</> : null;
+}
+/** A Menu's commands in an action Bottom Sheet (popovers are for pointers): no separators and nothing that's off;
+ *  choosing one closes the sheet and runs it. */
+function ActionSheet({ title, entries, open, onOpenChange }: { title: string; entries: MenuEntry[]; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const items = entries.filter((entry): entry is MenuItemData => entry.type !== "separator" && entry.type !== "group" && !entry.disabled);
+  return (
+    <BottomSheet type="action" open={open} onOpenChange={onOpenChange} title={title}
+      items={items.map(({ id, label, icon, danger }) => ({ id, label, icon, destructive: danger }))}
+      onSelect={(item) => { onOpenChange(false); items.find((entry) => entry.id === item.id)?.onSelect?.(); }} />
+  );
+}
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 /** Avatar text: two initials ("Minh Anh Vo" → "MV"). */
@@ -239,6 +269,8 @@ export function AdminListTemplate() {
   // Phone: the open filter's Bottom Sheet, and the member whose actions are open.
   const [sheet, setSheet] = useState<"Role" | "Status" | null>(null);
   const [acting, setActing] = useState<Member | null>(null);
+  // The mobile layout's action sheets: the account menu, the page's other actions (More) and the rest of the navigation.
+  const [phoneSheet, setPhoneSheet] = useState<"account" | "actions" | "pages" | null>(null);
   // A new page brings the top of the members back into view (the Table, or the List on a phone).
   const tableRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -332,6 +364,15 @@ export function AdminListTemplate() {
     },
   });
   const startInvite = () => { invite.reset(); setInviting(true); };
+  const exportList = () => toast({ title: "Member list exported", children: `${plural(shown.length, "member")} · dizai-studio-members.csv` });
+  const toggleInbox = () => { setUnread(0); setInboxOpen((open) => !open); };
+  const closePhoneSheet = (open: boolean) => { if (!open) setPhoneSheet(null); };
+  const accountItems: MenuEntry[] = [
+    { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => notInDemo("Profile") },
+    { type: "separator" },
+    { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
+  ];
+  const description = `Everyone with access to the ${workspace.name} workspace. ${seatsUsed} of ${workspace.seats} seats are in use.`;
 
   const roleForm = useFormState({
     initialValues: { role: "Member" },
@@ -409,8 +450,6 @@ export function AdminListTemplate() {
   const empty = filtered || !query.trim()
     ? <EmptyState title="No members match" headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another role or status.</EmptyState>
     : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => { refine(() => setQuery("")); searchRef.current?.focus(); } }}>Search by name or email address.</EmptyState>;
-  /** Phone: a member's actions in a Bottom Sheet (the Menu's items, without the ones that are locked). */
-  const sheetActions = (person: Member) => rowActions(person).filter((entry): entry is MenuItemData => entry.type !== "separator" && entry.type !== "group" && !entry.disabled);
 
   return (
     <AppShell
@@ -424,16 +463,48 @@ export function AdminListTemplate() {
           onItemClick={(item) => { if (item.id !== "members") notInDemo(item.label); }}
         />
       )}
-      header={<Breadcrumbs master={false} items={[{ id: "admin", label: "Admin" }, { id: "members", label: "Team members" }]} onNavigate={(item, event) => { event.preventDefault(); if (item.id !== "members") notInDemo(String(item.label)); }} />}
-      headerActions={<>
-        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={inboxOpen} onClick={() => { setUnread(0); setInboxOpen((open) => !open); }} />
-        <Menu align="end" trigger={<AppShellAccount name="Linh Hoang" theme="yellow" />} items={[
-          { id: "profile", label: "Profile", icon: "icon-user-circle-line", onSelect: () => notInDemo("Profile") },
-          { type: "separator" },
-          { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => notInDemo("Signing out") },
-        ]} />
-      </>}
-      aside={inboxOpen ? (
+      header={(
+        <AppShellHeader
+          // The top row: where you are (no Master crumb beside the collapse toggle), then utilities only.
+          leading={<Breadcrumbs master={false} items={[{ id: "admin", label: "Admin" }, { id: "members", label: "Team members" }]} onNavigate={(item, event) => { event.preventDefault(); if (item.id !== "members") notInDemo(String(item.label)); }} />}
+          actions={<>
+            <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} aria-expanded={inboxOpen} onClick={toggleInbox} />
+            <Menu align="end" trigger={<AppShellAccount name="Linh Hoang" theme="yellow" />} items={accountItems} />
+          </>}
+          // The Main row: the page's own header with its actions (one Primary).
+          main={(
+            <PageHeader title="Team members" description={description}
+              actions={<>
+                <Button level="tertiary" startIcon="icon-download-01-line" onClick={exportList}>Export</Button>
+                <Button level="primary" startIcon="icon-user-plus-line" onClick={startInvite}>Invite members</Button>
+              </>} />
+          )}
+        />
+      )}
+      // Mobile layout: the same header as a TopNavigation (a root: the account leads, Invite members is "+", Export moves
+      // to More) and the Sidebar as the Bottom Navigation.
+      topNavigation={(
+        <TopNavigation title="Team members" largeTitle="Team members"
+          leading={<AppShellAccount name="Linh Hoang" theme="yellow" aria-haspopup="dialog" aria-expanded={phoneSheet === "account"} onClick={() => setPhoneSheet("account")} />}
+          trailing={[
+            { icon: "icon-plus-line", label: "Invite members", onClick: startInvite },
+            { icon: "icon-bell-01-line", label: unread ? `Notifications, ${unread} new` : "Notifications", dot: unread > 0, onClick: toggleInbox },
+            { icon: "icon-dots-horizontal-line", label: "More actions", onClick: () => setPhoneSheet("actions") },
+          ]} />
+      )}
+      bottomNavigation={(
+        <BottomNavigation aria-label={workspace.name} value="members" showLabels
+          onValueChange={(id) => { if (id === "more") setPhoneSheet("pages"); else if (id !== "members") notInDemo(nav[0].items.find((item) => item.id === id)?.label ?? "This page"); }}
+          items={[
+            { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+            { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
+            { id: "reports", label: "Reports", icon: "icon-bar-chart-square-01-line", selectedIcon: "icon-bar-chart-square-01-solid" },
+            // One word under the icon: five tabs leave no room for "Team members".
+            { id: "members", label: "Members", icon: "icon-users-line", selectedIcon: "icon-users-solid" },
+            { id: "more", label: "More", icon: "icon-dots-horizontal-line" },
+          ]} />
+      )}
+      sidePanel={inboxOpen ? (
         <SidePanel type="standard" title="Notifications" open onOpenChange={setInboxOpen}>
           <List aria-label="Notifications">
             {notices.map((notice) => {
@@ -448,62 +519,51 @@ export function AdminListTemplate() {
         </SidePanel>
       ) : undefined}
     >
-      <Container maxWidth="full">
-        <Stack gap="lg" paddingY="sm">
-          <PageHeader
-            title="Team members"
-            description={`Everyone with access to the ${workspace.name} workspace. ${seatsUsed} of ${workspace.seats} seats are in use.`}
-            actions={<>
-              <Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Member list exported", children: `${plural(shown.length, "member")} · dizai-studio-members.csv` })}>Export</Button>
-              <Button level="primary" startIcon="icon-user-plus-line" onClick={startInvite}>Invite members</Button>
-            </>}
-          />
-
-          <Stack gap="md">
-            {/* Search fills its column; the filter chips (and Clear all, once both are on) share the rest. */}
-            <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
-              <Search ref={searchRef} aria-label="Search members" placeholder="Search members" value={query} onValueChange={(value) => refine(() => setQuery(value))} />
-              <Stack direction="row" gap="xs" align="center" wrap>
-                {filterChip("Role")}
-                {filterChip("Status")}
-                {roleFilter.length > 0 && statusFilter.length > 0 ? <Button level="tertiary" onClick={() => { refine(() => { setRoleFilter([]); setStatusFilter([]); }); searchRef.current?.focus(); }}>Clear all</Button> : null}
-              </Stack>
-            </Grid>
-
-            {phone ? (
-              // Phone: the same page of members as a List (role over the status at the end); a row opens its actions.
-              rows.length ? (
-                <List ref={listRef} aria-label="Team members">
-                  {rows.map((row) => (
-                    <ListItem key={row.id} title={row.id === ME ? `${row.name} (you)` : row.name} selected={acting?.id === row.id} onClick={() => setActing(row)}
-                      // A long email breaks onto a second line instead of running out of the row (it is the member's only ID here).
-                      caption={<Text as="span" textStyle="Body/Small/Regular" tone="light" style={{ overflowWrap: "anywhere" }}>{row.email}</Text>}
-                      leading={<Avatar size="md" theme={row.theme} background="subtle" src={row.photo} alt="">{initials(row.name)}</Avatar>}
-                      trailing={(
-                        <Stack gap="2xs" align="end">
-                          <Text as="span" textStyle="Body/Small/Regular" tone="base">{row.role}</Text>
-                          <Badge size="sm" theme={statusTheme[row.status]} background="subtle">{row.status}</Badge>
-                        </Stack>
-                      )} />
-                  ))}
-                </List>
-              ) : empty
-            ) : (
-              <Table ref={tableRef} aria-label="Team members" rows={rows} getRowId={(row) => row.id} columns={columns}
-                sort={sort} onSortChange={(next) => { setSort(next); setPage(1); }}
-                selectable selectedIds={selected} onSelectionChange={setSelected} empty={empty} />
-            )}
-
-            {shown.length > 10 ? (
-              <Stack direction="row" justify="end">
-                <Pagination theme="inline" aria-label="Team members pages" page={current} total={shown.length} pageSize={pageSize} pageSizeOptions={[10, 25, 50]}
-                  onPageChange={(next) => { setPage(next); (tableRef.current ?? listRef.current)?.scrollIntoView({ block: "nearest" }); }}
-                  onPageSizeChange={(size) => { setPageSize(size); setPage(1); }} />
-              </Stack>
-            ) : null}
+      {/* The Body already pads the page margins: the content sits straight in it, no Container. */}
+      <Stack gap="md">
+        <MobileOnly><Text tone="base">{description}</Text></MobileOnly>
+        {/* Search fills its column; the filter chips (and Clear all, once both are on) share the rest. */}
+        <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
+          <Search ref={searchRef} aria-label="Search members" placeholder="Search members" value={query} onValueChange={(value) => refine(() => setQuery(value))} />
+          <Stack direction="row" gap="xs" align="center" wrap>
+            {filterChip("Role")}
+            {filterChip("Status")}
+            {roleFilter.length > 0 && statusFilter.length > 0 ? <Button level="tertiary" onClick={() => { refine(() => { setRoleFilter([]); setStatusFilter([]); }); searchRef.current?.focus(); }}>Clear all</Button> : null}
           </Stack>
-        </Stack>
-      </Container>
+        </Grid>
+
+        {phone ? (
+          // Phone: the same page of members as a List (role over the status at the end); a row opens its actions.
+          rows.length ? (
+            <List ref={listRef} aria-label="Team members">
+              {rows.map((row) => (
+                <ListItem key={row.id} title={row.id === ME ? `${row.name} (you)` : row.name} selected={acting?.id === row.id} onClick={() => setActing(row)}
+                  // A long email breaks onto a second line instead of running out of the row (it is the member's only ID here).
+                  caption={<Text as="span" textStyle="Body/Small/Regular" tone="light" style={{ overflowWrap: "anywhere" }}>{row.email}</Text>}
+                  leading={<Avatar size="md" theme={row.theme} background="subtle" src={row.photo} alt="">{initials(row.name)}</Avatar>}
+                  trailing={(
+                    <Stack gap="2xs" align="end">
+                      <Text as="span" textStyle="Body/Small/Regular" tone="base">{row.role}</Text>
+                      <Badge size="sm" theme={statusTheme[row.status]} background="subtle">{row.status}</Badge>
+                    </Stack>
+                  )} />
+              ))}
+            </List>
+          ) : empty
+        ) : (
+          <Table ref={tableRef} aria-label="Team members" rows={rows} getRowId={(row) => row.id} columns={columns}
+            sort={sort} onSortChange={(next) => { setSort(next); setPage(1); }}
+            selectable selectedIds={selected} onSelectionChange={setSelected} empty={empty} />
+        )}
+
+        {shown.length > 10 ? (
+          <Stack direction="row" justify="end">
+            <Pagination theme="inline" aria-label="Team members pages" page={current} total={shown.length} pageSize={pageSize} pageSizeOptions={[10, 25, 50]}
+              onPageChange={(next) => { setPage(next); (tableRef.current ?? listRef.current)?.scrollIntoView({ block: "nearest" }); }}
+              onPageSizeChange={(size) => { setPageSize(size); setPage(1); }} />
+          </Stack>
+        ) : null}
+      </Stack>
 
       {picked.length ? (
         <ActionBar direction="horizontal" aria-label="Selected members"
@@ -533,9 +593,14 @@ export function AdminListTemplate() {
           </List>
         ) : null}
       </BottomSheet>
-      <BottomSheet type="action" open={acting !== null} onOpenChange={(open) => { if (!open) setActing(null); }} title={acting?.name ?? "Member"}
-        items={acting ? sheetActions(acting).map(({ id, label, icon, danger }) => ({ id, label, icon, destructive: danger })) : []}
-        onSelect={(item) => { const entry = acting ? sheetActions(acting).find((action) => action.id === item.id) : undefined; setActing(null); entry?.onSelect?.(); }} />
+      {/* Phone: a member's actions (the row Menu's, without the locked ones). */}
+      <ActionSheet title={acting?.name ?? "Member"} entries={acting ? rowActions(acting) : []} open={acting !== null} onOpenChange={(open) => { if (!open) setActing(null); }} />
+      {/* Mobile layout: the account menu, the page's other actions and the rest of the navigation. */}
+      <ActionSheet title="Linh Hoang" entries={accountItems} open={phoneSheet === "account"} onOpenChange={closePhoneSheet} />
+      <ActionSheet title="Team members" open={phoneSheet === "actions"} onOpenChange={closePhoneSheet}
+        entries={[{ id: "export", label: "Export member list", icon: "icon-download-01-line", onSelect: exportList }]} />
+      <ActionSheet title="More" open={phoneSheet === "pages"} onOpenChange={closePhoneSheet}
+        entries={morePages.map((item) => ({ ...item, onSelect: () => notInDemo(item.label) }))} />
 
       <ModalForm open={inviting} onOpenChange={setInviting} title="Invite members" onSubmit={invite.handleSubmit}
         description={`${plural(seatsLeft, "seat")} left on the ${workspace.plan} plan. Guests don't need one.`}

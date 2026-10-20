@@ -2,32 +2,40 @@
    Duong, Wednesday Sep 30, 2026, 10:30 am. Each example teaches one Description List decision: one emphasised total
    closes a calculation, a row action is named after its row, long values stack and edit in place, a receipt in a
    phone's Bottom Sheet, values load in place under their terms in a docked panel, and a narrow column stacks the rows
-   by itself. */
+   by itself. The two screens sit in an AppShell: the studio's Projects page (pattern top-bar, the panel docked) and
+   the Phin & Co app's Orders root on a phone (the mobile Bar with the bottom bar). */
 import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Badge } from "../../../components/Badge";
+import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
+import { ChipGroup } from "../../../components/ChipGroup";
 import { DescriptionList, type DescriptionListItem } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
+import { EmptyState } from "../../../components/EmptyState";
 import { Form, FormActions } from "../../../components/Form";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { InputField, TextAreaField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
-import { List, ListItem } from "../../../components/ListItem";
+import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { SidePanel } from "../../../components/SidePanel";
 import { SkeletonShape, SkeletonText } from "../../../components/Skeleton";
+import { Tabs } from "../../../components/Tabs";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
-import { PreviewWindow } from "../../PlatformFrames";
+import { DemoFieldDialog } from "../../PlatformDemoActions";
+import { PreviewAppFrame, StudioLogo } from "../../PlatformFrames";
 import {
-  TODAY, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, invoiceStatusTheme, people, projects, projectStatusTheme,
-  taskStatusTheme, type InvoiceStatus, type TaskStatus,
+  TODAY, activity, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, invoiceStatusTheme, me, people, projects, projectStatusTheme, studio,
+  taskStatusTheme, type InvoiceStatus, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -257,28 +265,66 @@ function ContactDetails() {
 
 // ——— 4. Details load in place: the terms stay, the values arrive ————————————————————————————————
 type Phase = "loading" | "ready" | "failed";
-/** The list keeps at least this much room beside the docked panel; narrower, the same panel opens as a Modal. */
-const dockMinWidth = 640;
+type ProjectRow = (typeof projects)[number];
+/** The studio app's places as the top bar's Tabs: the Top-Bar pattern has no Sidebar, so the side panel keeps its room. */
+const studioTabs = [{ id: "home", label: "Home" }, { id: "projects", label: "Projects" }, { id: "invoices", label: "Invoices" }, { id: "people", label: "People" }];
+const statusFilters = [{ value: "all", label: "All" }, ...(["Active", "Planning", "On hold", "Completed"] as const).map((status) => ({ value: status, label: status }))];
+/* The Side-Panel docks while the page keeps a Tablet width (744) beside it (Small, 360): from 1104. Narrower, the
+   AppShell opens the same SidePanel as a Modal, which never opens by itself. */
+const DOCK_MIN_WIDTH = 360 + 744;
+const unread = activity.filter((item) => item.unread);
+
+/** The top row's utilities: notifications (the count clears once read) and the account menu, last. */
+function StudioActions() {
+  const { toast } = useToast();
+  const [count, setCount] = useState(unread.length);
+  const latest = unread[0];
+  return (
+    <>
+      <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={count} onClick={() => {
+        setCount(0);
+        toast({ title: count ? plural(count, "new notification") : "You're all caught up", children: `${people[latest.actor].name} ${latest.verb} ${latest.object} · ${formatRelative(latest.at)}` });
+      }} />
+      <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+        { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
+        { id: "settings", label: "Settings", icon: "icon-settings-01-line", onSelect: () => toast({ title: "Settings", children: "Workspace, notifications and billing." }) },
+        { type: "separator" },
+        { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+      ]} />
+    </>
+  );
+}
 
 function ProjectPanels() {
+  const { toast } = useToast();
+  const listId = useId();
   const frameRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLSpanElement>(null);
+  const [list, setList] = useState<ProjectRow[]>(projects);
+  const [filter, setFilter] = useState("all");
+  const [creating, setCreating] = useState(false);
   const [docked, setDocked] = useState(true);
+  // Under 1024 the shell leaves the Top-Bar pattern for its narrow layout: the places move under the page title, as
+  // its sections row; in a phone-wide window a row's status joins its caption, so no title is cut.
+  const [frameWidth, setFrameWidth] = useState(0);
+  const narrow = frameWidth > 0 && frameWidth < 1024;
+  const compact = frameWidth > 0 && frameWidth < 640;
   // Docked beside the list, the first project's details are open from the start. A Modal never opens by itself, so a
-  // narrow frame starts with the list alone.
+  // narrow window starts with the list alone.
   const [openId, setOpenId] = useState<string | null>(projects[0].id);
   const [phase, setPhase] = useState<Phase>("ready");
   // Shipment tracking's first request times out, so the panel shows its error once; Try again then succeeds.
   const timedOut = useRef(new Set<string>());
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
-  // Measured before the first paint, so a narrow frame never shows the docked panel or opens the Modal.
+  // Measured before the first paint, so a narrow window never shows the docked panel or opens the Modal.
   useLayoutEffect(() => {
     const frame = frameRef.current;
     if (!frame) return undefined;
     let wasDocked = true;
     const update = (width: number) => {
-      const next = width >= dockMinWidth;
+      setFrameWidth(width);
+      const next = width >= DOCK_MIN_WIDTH;
       if (wasDocked && !next) setOpenId(null);
       wasDocked = next;
       setDocked(next);
@@ -289,7 +335,9 @@ function ProjectPanels() {
     observer.observe(frame);
     return () => observer.disconnect();
   }, []);
-  const opened = projects.find((project) => project.id === openId);
+  const opened = list.find((project) => project.id === openId);
+  const shown = list.filter((project) => filter === "all" || project.status === filter);
+  const notHere = (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the projects and their details." });
   const load = (id: string) => {
     setPhase("loading");
     window.clearTimeout(timer.current);
@@ -308,6 +356,17 @@ function ProjectPanels() {
   };
   // Try again goes away with its message, so focus moves to the panel title (tabIndex -1), which stays in the panel.
   const retry = (id: string) => { titleRef.current?.focus(); load(id); };
+  // New project: the row joins the top of the list and its details load into the panel.
+  const create = (name: string) => {
+    const id = `new-${list.length}`;
+    setList((rows) => [{ ...projects[0], id, name, client: studio.name, icon: "icon-folder-line", theme: "indigo", status: "Planning", lead: me.id as PersonId, members: [me.id as PersonId], progress: 0, start: daysFromToday(7), due: daysFromToday(97), budget: 0, spent: 0 }, ...rows]);
+    setFilter("all");
+    if (docked) open(id);
+  };
+  const places = (
+    <Tabs variant="subtle" aria-label={studio.name} items={studioTabs} value="projects"
+      onValueChange={(id) => { if (id !== "projects") notHere(studioTabs.find((tab) => tab.id === id)?.label ?? id); }} />
+  );
   // While loading, each term is already in place and a Skeleton as tall as the value holds it: a pill the height of the
   // Status Badge, a one-line bar for text, so no row moves when the data arrives.
   const placeholder = (row: DescriptionListItem): DescriptionListItem => ({
@@ -316,7 +375,7 @@ function ProjectPanels() {
       ? <SkeletonShape shape="pill" className="px-description-list-badge-skeleton" />
       : <SkeletonText lines={1} className="px-description-list-skeleton" />,
   });
-  const rows = (project: (typeof projects)[number]): DescriptionListItem[] => [
+  const rows = (project: ProjectRow): DescriptionListItem[] => [
     { id: "status", term: "Status", description: <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge> },
     { id: "lead", term: "Lead", description: people[project.lead].name },
     { id: "dates", term: "Dates", description: formatRange(project.start, project.due) },
@@ -324,35 +383,73 @@ function ProjectPanels() {
     { id: "spent", term: "Spent", description: project.budget ? formatMoney(project.spent) : "Not tracked" },
   ];
   return (
-    <PreviewWindow ref={frameRef} direction="row">
-      <Box width="fill">
-        <Stack padding="xl" gap="xl">
-          <PageHeader title="Projects" description={`${plural(projects.length, "project")} · Đìzai Studio`} />
-          <List aria-label="Projects">
-            {projects.map((project) => (
-              <ListItem key={project.id} data-project={project.id} title={project.name} caption={project.client} selected={project.id === openId}
-                leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />} onClick={() => open(project.id)} />
-            ))}
-          </List>
-        </Stack>
-      </Box>
-      <SidePanel type={docked ? "standard" : "modal"} size="small" className="px-description-list-panel" open={Boolean(opened)} onOpenChange={(next) => { if (!next) close(); }}
-        title={opened ? <span ref={titleRef} tabIndex={-1} className="px-description-list-focus-target">{opened.name}</span> : ""}
-        description={opened?.client}>
-        {opened ? (
-          <Stack gap="md" aria-busy={phase === "loading" || undefined}>
-            {phase === "failed" ? (
-              <InlineMessage theme="negative" title="Details didn’t load" action={{ label: "Try again", onClick: () => retry(opened.id) }}>
-                The project service took too long to answer.
-              </InlineMessage>
-            ) : (
-              <DescriptionList divider items={phase === "loading" ? rows(opened).map(placeholder) : rows(opened)} />
-            )}
-            <VisuallyHidden role="status">{phase === "loading" ? "Loading project details" : phase === "failed" ? "" : "Project details loaded"}</VisuallyHidden>
+    <>
+      <PreviewAppFrame frameRef={frameRef}>
+        {/* Top-Bar on the Canvas: the studio's places are the header's Tabs, so the page keeps the room the docked
+            Side-Panel (Standard, Small 360) needs beside it. The PageHeader with the one Primary sits in the Main row. */}
+        <AppShell pattern="top-bar"
+          header={(
+            <AppShellHeader
+              leading={(
+                <Stack direction="row" gap="xl" align="center">
+                  <StudioLogo src={studio.logo} name={studio.name} />
+                  {narrow ? null : places}
+                </Stack>
+              )}
+              sections={narrow ? places : undefined}
+              actions={<StudioActions />}
+              main={(
+                <PageHeader title="Projects" description={`${plural(list.length, "project")} · ${studio.name}`}
+                  actions={<Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>New project</Button>} />
+              )}
+            />
+          )}
+          sidePanel={(
+            <SidePanel type="standard" size="small" open={Boolean(opened)} onOpenChange={(next) => { if (!next) close(); }}
+              title={opened ? <span ref={titleRef} tabIndex={-1} className="px-description-list-focus-target">{opened.name}</span> : ""}
+              description={opened?.client}
+              primaryAction={opened ? { label: "Open project", onClick: () => notHere(`The ${opened.name} page`) } : undefined}>
+              {opened ? (
+                <Stack gap="md" aria-busy={phase === "loading" || undefined}>
+                  {phase === "failed" ? (
+                    <InlineMessage theme="negative" title="Details didn’t load" action={{ label: "Try again", onClick: () => retry(opened.id) }}>
+                      The project service took too long to answer.
+                    </InlineMessage>
+                  ) : (
+                    <DescriptionList divider items={phase === "loading" ? rows(opened).map(placeholder) : rows(opened)} />
+                  )}
+                  <VisuallyHidden role="status">{phase === "loading" ? "Loading project details" : phase === "failed" ? "" : "Project details loaded"}</VisuallyHidden>
+                </Stack>
+              ) : null}
+            </SidePanel>
+          )}
+        >
+          {/* The Body pads the page: the filter and the list start at the page margin, md apart. */}
+          <Stack gap="md">
+            <ChipGroup aria-label="Status" size="md" level="secondary" options={statusFilters} value={filter} onValueChange={setFilter} />
+            <ListBox as="section" theme="flat" aria-labelledby={listId}
+              header={<Heading level={2} id={listId} textStyle="Heading/Subheading">{filter === "all" ? "All projects" : filter}</Heading>}>
+              {shown.length ? (
+                <List aria-labelledby={listId}>
+                  {shown.map((project) => (
+                    <ListItem key={project.id} data-project={project.id} title={project.name} selected={project.id === openId}
+                      caption={(compact ? [project.status, project.client] : [project.client, people[project.lead].name]).join(" · ")}
+                      leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
+                      trailing={compact ? undefined : <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>}
+                      onClick={() => open(project.id)} />
+                  ))}
+                </List>
+              ) : (
+                <EmptyState size="sm" headingLevel={3} icon="icon-folder-line" title={`No ${filter.toLowerCase()} projects`}
+                  secondaryAction={{ label: "Show all projects", onClick: () => setFilter("all") }}>Pick another status.</EmptyState>
+              )}
+            </ListBox>
           </Stack>
-        ) : null}
-      </SidePanel>
-    </PreviewWindow>
+        </AppShell>
+      </PreviewAppFrame>
+      <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New project" field={{ kind: "name", label: "Project name", placeholder: "Saola trail guide" }}
+        submitLabel="Create project" confirm={(name) => `${name} created`} onSubmit={create} />
+    </>
   );
 }
 
@@ -451,10 +548,26 @@ const lineTotal = ([item, quantity]: [MenuId, number]) => menu[item].price * qua
 const totalOf = (o: Order) => o.lines.reduce((sum, line) => sum + lineTotal(line), 0) - (o.reward ? menu[o.reward].price : 0);
 const itemsOf = (o: Order) => o.lines.map(([item, quantity]) => (quantity > 1 ? `${menu[item].name} × ${quantity}` : menu[item].name)).join(", ");
 
+/** The Phin & Co app's roots on a phone; Orders is this screen. */
+const phinRoots: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
+  { id: "menu", label: "Menu", icon: "icon-coffee-cup-line", selectedIcon: "icon-coffee-cup-solid" },
+  { id: "orders", label: "Orders", icon: "icon-receipt-line", selectedIcon: "icon-receipt-solid" },
+  { id: "rewards", label: "Rewards", icon: "icon-gift-01-line", selectedIcon: "icon-gift-01-solid" },
+];
+/** Orders from the last 7 days, then the rest: one group each. */
+const weekStart = daysFromToday(-6, 0, 0).getTime();
+const orderGroups = [
+  { id: "week", label: "This week", orders: orders.filter((o) => o.at.getTime() >= weekStart) },
+  { id: "earlier", label: "Earlier", orders: orders.filter((o) => o.at.getTime() < weekStart) },
+];
+
 function PhoneReceipts() {
   const { toast } = useToast();
   const screen = usePhoneScreen();
   const screenRef = useRef<HTMLDivElement>(null);
+  const baseId = useId();
+  const [root, setRoot] = useState("orders");
   const [openId, setOpenId] = useState<string | null>(null);
   // The sheet keeps its last order while it slides away.
   const [last, setLast] = useState(orders[0]);
@@ -463,20 +576,35 @@ function PhoneReceipts() {
   // Closing hands focus back to the row the receipt came from.
   const close = () => screen.go(`[data-order="${last.id}"] .zen-list-item__wrapper`, () => setOpenId(null));
   const total = totalOf(last);
+  const spentThisWeek = orderGroups[0].orders.reduce((sum, o) => sum + totalOf(o), 0);
   return (
-    <PlatformPhone key="orders" label="Phin & Co orders" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
-      {screen.anchor}
-      {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
-      <Box paddingX="lg" paddingY="xs">
-        <List aria-label="Orders">
-          {orders.map((o) => (
-            <ListItem key={o.id} data-order={o.id} title={itemsOf(o)} titleLines={2} caption={`${formatRelative(o.at)} · ${o.store}`}
-              trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(totalOf(o), true)}</Text>}
-              onClick={() => open(o)} />
-          ))}
-        </List>
-      </Box>
+    // A tab root on the AppShell's mobile Bar: the large title folds as the orders scroll under it, and the bottom bar
+    // holds the app's roots. It casts a shadow, so each group of orders is a Shadow ListBox on the grey Canvas.
+    <PlatformPhone key="orders" label="Phin & Co orders" canvas="default" screenRef={screenRef}>
+      <AppShell
+        topNavigation={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef}
+          trailing={[{ icon: "icon-search-medium-line", label: "Search orders", onClick: () => toast({ title: "Search orders", children: "By drink, store or date." }) }]} />}
+        bottomNavigation={<BottomNavigation aria-label="Phin & Co" showLabels items={phinRoots} value={root} onValueChange={setRoot} />}
+      >
+        {screen.anchor}
+        <Text as="p" textStyle="Body/Small/Regular" tone="base">{`${plural(orderGroups[0].orders.length, "order")} this week · ${formatMoney(spentThisWeek, true)}`}</Text>
+        {orderGroups.map((group) => (
+          // The kicker lines up with the row text: the ListBox pads its rows 20 (Card-padding-medium on a phone).
+          <Stack key={group.id} as="section" gap="xs" aria-labelledby={`${baseId}-${group.id}`}>
+            <Box paddingX="lg"><Heading level={2} id={`${baseId}-${group.id}`} textStyle="Body/Small/Bold" tone="light">{group.label}</Heading></Box>
+            <ListBox theme="shadow">
+              <List aria-labelledby={`${baseId}-${group.id}`}>
+                {group.orders.map((o) => (
+                  // Each value keeps its words together, so the caption wraps between the time and the store.
+                  <ListItem key={o.id} data-order={o.id} title={itemsOf(o)} titleLines={2} caption={[formatRelative(o.at), o.store].map((value) => value.replace(/ /g, "\u00a0")).join(" · ")}
+                    trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(totalOf(o), true)}</Text>}
+                    onClick={() => open(o)} />
+                ))}
+              </List>
+            </ListBox>
+          </Stack>
+        ))}
+      </AppShell>
       <BottomSheet inline open={Boolean(opened)} onOpenChange={(next) => { if (!next) close(); }} title={`Order ${last.id}`} actionsDirection="vertical"
         primaryAction={{ label: "Order again", onClick: () => { close(); toast({ title: "Order added to your cart", children: itemsOf(last) }); } }}
         secondaryAction={{ label: "Close" }}>
@@ -577,21 +705,31 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Receipt on a phone",
-    description: "In the Phin & Co app every past order opens its receipt in a Bottom Sheet: the items and a reward closed by one total row, then a second list for how it was paid. Order again adds the items to the cart; closing returns focus to the order's row.",
+    description: "In the Phin & Co app's Orders root (the AppShell's mobile Bar with the bottom bar), every past order opens its receipt in a Bottom Sheet: the items and a reward closed by one total row, then a second list for how it was paid. Order again adds the items to the cart; closing returns focus to the order's row.",
     render: () => <PhoneReceipts />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-<PlatformPhone key="orders" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
-  <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
-    <List aria-label="Orders">
-      {orders.map((order) => (
-        <ListItem key={order.id} title={itemsOf(order)} titleLines={2} caption={\`\${formatRelative(order.at)} · \${order.store}\`}
-          trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(totalOf(order), true)}</Text>}
-          onClick={() => setOpenId(order.id)} />
-      ))}
-    </List>
-  </Box>
+<PlatformPhone canvas="default" screenRef={screenRef}>
+  <AppShell
+    topNavigation={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef}
+      trailing={[{ icon: "icon-search-medium-line", label: "Search orders", onClick: searchOrders }]} />}
+    bottomNavigation={<BottomNavigation aria-label="Phin & Co" showLabels items={roots} value={root} onValueChange={setRoot} />}
+  >
+    {groups.map((group) => (
+      <Stack key={group.id} as="section" gap="xs" aria-labelledby={group.id}>
+        <Box paddingX="lg"><Heading level={2} id={group.id} textStyle="Body/Small/Bold" tone="light">{group.label}</Heading></Box>
+        <ListBox theme="shadow">{/* the bottom bar's elevation */}
+          <List aria-labelledby={group.id}>
+            {group.orders.map((order) => (
+              <ListItem key={order.id} title={itemsOf(order)} titleLines={2} caption={\`\${formatRelative(order.at)} · \${order.store}\`}
+                trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(totalOf(order), true)}</Text>}
+                onClick={() => setOpenId(order.id)} />
+            ))}
+          </List>
+        </ListBox>
+      </Stack>
+    ))}
+  </AppShell>
   <BottomSheet inline open={Boolean(opened)} onOpenChange={(open) => !open && setOpenId(null)}
     title={\`Order \${order.id}\`} actionsDirection="vertical"
     primaryAction={{ label: "Order again", onClick: orderAgain }} secondaryAction={{ label: "Close" }}>
@@ -612,9 +750,9 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Load details in a panel",
     screen: true,
-    description: "Project details come from the server into a Side Panel docked beside the list, with the first project open. The terms are there at once and a Skeleton as tall as each value holds it (a pill for the Status Badge), so nothing moves when the data arrives; a request that fails shows a Negative Inline Message with Try again. When the list would get narrower than a tablet, the same panel opens as a Modal.",
+    description: "The studio's Projects page in the AppShell's Top-Bar pattern: project details come from the server into the shell's Side Panel, docked beside the list, with the first project open. The terms are there at once and a Skeleton as tall as each value holds it (a pill for the Status Badge), so nothing moves when the data arrives; a request that fails shows a Negative Inline Message with Try again. When the page would get narrower than a tablet beside it, the AppShell opens the same panel as a Modal.",
     render: () => <ProjectPanels />,
-    code: `const docked = frameWidth >= 640; // the list keeps room beside the panel; narrower, it opens as a Modal
+    code: `const docked = frameWidth >= 360 + 744; // the AppShell docks the panel while the page keeps a tablet's width
 // Docked, the first project is open from the start (a Modal never opens by itself).
 const [openId, setOpenId] = useState(docked ? projects[0].id : null);
 
@@ -633,33 +771,43 @@ const placeholder = (row) => ({
 // Try again goes away with its message: focus moves to the panel title (tabIndex -1), inside the panel.
 const retry = () => { titleRef.current?.focus(); load(opened.id); };
 
-<div className="projects-frame"> {/* display: flex; the panel keeps the full height */}
-  <main>
-    {/* The page pads xl: the rows (no side padding of their own) sit 24px in, their fill 12px off the frame and the panel. */}
-    <Stack padding="xl" gap="xl">
-      <PageHeader title="Projects" description="6 projects · Đìzai Studio" />
-      <List aria-label="Projects">
-        {projects.map((project) => (
-          <ListItem key={project.id} title={project.name} caption={project.client} selected={project.id === openId}
-            leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />} onClick={() => open(project.id)} />
+<AppShell
+  pattern="top-bar" // no Sidebar: the places are the header's Tabs, and the page keeps room for the panel
+  header={<AppShellHeader leading={<>{logo}<Tabs variant="subtle" aria-label="Đìzai Studio" items={places} value="projects" onValueChange={go} /></>}
+    actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /><Menu align="end" trigger={account} items={accountItems} /></>}
+    main={<PageHeader title="Projects" description="6 projects · Đìzai Studio" actions={<Button level="primary" startIcon="icon-plus-line" onClick={create}>New project</Button>} />} />}
+  sidePanel={
+    <SidePanel type="standard" size="small" open={Boolean(opened)} onOpenChange={(open) => !open && close()}
+      title={<span ref={titleRef} tabIndex={-1}>{opened?.name}</span>} description={opened?.client}
+      primaryAction={{ label: "Open project", onClick: openProject }}>
+      <Stack gap="md" aria-busy={phase === "loading" || undefined}>
+        {phase === "failed" ? (
+          <InlineMessage theme="negative" title="Details didn’t load" action={{ label: "Try again", onClick: retry }}>
+            The project service took too long to answer.
+          </InlineMessage>
+        ) : (
+          <DescriptionList divider items={phase === "loading" ? rows.map(placeholder) : rows} />
+        )}
+        <VisuallyHidden role="status">{phase === "loading" ? "Loading project details" : "Project details loaded"}</VisuallyHidden>
+      </Stack>
+    </SidePanel>
+  }
+>
+  {/* The Body pads the page: the filter and the list start at the margin. */}
+  <Stack gap="md">
+    <ChipGroup aria-label="Status" size="md" level="secondary" options={statuses} value={filter} onValueChange={setFilter} />
+    <ListBox as="section" theme="flat" aria-labelledby="projects" header={<Heading level={2} id="projects" textStyle="Heading/Subheading">All projects</Heading>}>
+      <List aria-labelledby="projects">
+        {shown.map((project) => (
+          <ListItem key={project.id} title={project.name} caption={\`\${project.client} · \${lead(project)}\`} selected={project.id === openId}
+            leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
+            trailing={<Badge theme={statusTheme[project.status]} background="subtle">{project.status}</Badge>}
+            onClick={() => open(project.id)} />
         ))}
       </List>
-    </Stack>
-  </main>
-  <SidePanel type={docked ? "standard" : "modal"} size="small" open={Boolean(opened)} onOpenChange={(open) => !open && close()}
-    title={<span ref={titleRef} tabIndex={-1}>{opened?.name}</span>} description={opened?.client}>
-    <Stack gap="md" aria-busy={phase === "loading" || undefined}>
-      {phase === "failed" ? (
-        <InlineMessage theme="negative" title="Details didn’t load" action={{ label: "Try again", onClick: retry }}>
-          The project service took too long to answer.
-        </InlineMessage>
-      ) : (
-        <DescriptionList divider items={phase === "loading" ? rows.map(placeholder) : rows} />
-      )}
-      <VisuallyHidden role="status">{phase === "loading" ? "Loading project details" : "Project details loaded"}</VisuallyHidden>
-    </Stack>
-  </SidePanel>
-</div>`,
+    </ListBox>
+  </Stack>
+</AppShell>`,
   },
   {
     title: "Narrow side column",

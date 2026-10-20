@@ -2243,6 +2243,7 @@ function applyWrap(code, bom, text, ast, element, ops, { snippets, file, eol, li
   if (!WRAP_TAGS.includes(tag) && !component) return fail("invalid", `wrap puts the element in ${WRAP_TAGS.join(", ")} (not ${JSON.stringify(op.tag)})`);
   const props = op.props ?? {};
   if (props === null || typeof props !== "object" || Array.isArray(props)) return fail("invalid", "wrap `props` must be an object of { name: EditValue }");
+  if (op.parent !== undefined) return applyWrapWithParent(code, ast, element, op, { tag, props, file });
   if (op.with !== undefined) return applyWrapMany(code, bom, text, ast, element, op, { tag, props, snippets, file, eol, lineCommentEnds });
   const name = jsxName(element.openingElement.name);
   let attrs;
@@ -2286,6 +2287,39 @@ function applyWrap(code, bom, text, ast, element, ops, { snippets, file, eol, li
   const check = findElement(reparsed, moved);
   if (!check || jsxName(check.openingElement.name) !== tag) return { ...result, snippet: { synced: false, reason: "updating the snippet would move the wrapper (a bug)" } };
   return { code: bom + synced, changed: { from: changed.from + shift, to: changed.to + shift }, wrapped: { loc: `${moved.line}:${moved.column}` }, snippet: sync.snippet };
+}
+
+/**
+ * Op "wrap" + `parent`: setProp / removeProp ops on the element's JSX parent, written before the wrap in the same edit
+ * (one undo step). A layer that floats in a Box of its own (Ignore auto layout's wrapper) and is resized from its left
+ * or top edge goes into a Stack that takes its size while the Box's insets move with the edge (select/ResizeLayer.tsx,
+ * Figma's X / Y). The answer is the wrap's (`wrapped.loc`: the new wrapper in the final text); no example snippet
+ * follows (floating layers live on pages you made).
+ */
+function applyWrapWithParent(code, ast, element, op, { tag, props, file }) {
+  const ops = op.parent;
+  if (!Array.isArray(ops) || !ops.length || ops.some((inner) => inner?.op !== "setProp" && inner?.op !== "removeProp")) return fail("invalid", "wrap `parent` takes setProp / removeProp ops");
+  if (op.with !== undefined) return fail("invalid", "wrap `parent` cannot be combined with `with`");
+  const parent = (pathTo(ast.program, element) ?? []).findLast((node) => node.type === "JSXElement" && node !== element);
+  const index = parent ? parent.children.filter((child) => child.type === "JSXElement").indexOf(element) : -1;
+  if (!parent || index < 0) return fail("invalid", "wrap `parent` needs the element right inside a JSX element");
+  const at = (node) => `${node.openingElement.loc.start.line}:${node.openingElement.loc.start.column}`;
+  const name = jsxName(element.openingElement.name);
+  const first = applyOps(code, at(parent), jsxName(parent.openingElement.name), ops, { snippets: false, file });
+  if (first.error) return first;
+  // The parent's tag starts where it did: its prop edits leave its children in the same order.
+  const next = parseSource(first.code.startsWith(BOM) ? first.code.slice(1) : first.code);
+  const moved = next && findElement(next, parseLoc(at(parent)));
+  const child = moved?.children.filter((node) => node.type === "JSXElement")[index];
+  if (!child || jsxName(child.openingElement.name) !== name) return fail("invalid", "The element could not be located after its parent's props changed (a bug); nothing was written.");
+  // Shared code was confirmed (or is not shared) by the request already.
+  const wrapped = applyOps(first.code, at(child), name, [{ op: "wrap", tag, props }], { snippets: false, file, shared: true });
+  if (wrapped.error) return wrapped;
+  // The change runs from the parent's tag (its props) to the end of the wrapper; the import change is not part of it.
+  const final = parseSource(wrapped.code.startsWith(BOM) ? wrapped.code.slice(1) : wrapped.code);
+  const wrapper = final && findElement(final, parseLoc(wrapped.wrapped.loc));
+  const holder = wrapper && (pathTo(final.program, wrapper) ?? []).findLast((node) => node.type === "JSXElement" && node !== wrapper);
+  return { ...wrapped, changed: { from: Math.min(holder?.openingElement.loc.start.line ?? wrapped.changed.from, wrapped.changed.from), to: wrapped.changed.to } };
 }
 
 /** A wrap's props as attributes (formatted like setProp); `key` and `children` are refused. Throws EditError. */

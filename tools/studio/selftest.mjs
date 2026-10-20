@@ -2020,7 +2020,7 @@ const wrapTsc = [];
       '    <ChatMessage side="you"><ChatFile name="Brief.pdf" /><ChatCall kind="video" /></ChatMessage>',
       '    <Stack><ChatCall state="in-missed" /></Stack>',
       '    <ListItem title="Task" trailing={<Badge theme="green" background="subtle">Done</Badge>} />',
-      "    <AppShell sidebar={<Sidebar items={[]} />} aside={(<SidePanel open />) as never} />",
+      "    <AppShell sidebar={<Sidebar items={[]} />} sidePanel={(<SidePanel open />) as never} />",
       "  </Stack>",
       ");",
       "function bodyOf(kind: string) {",
@@ -2069,8 +2069,8 @@ const wrapTsc = [];
     refused("wrap a ChatCall outside a ChatMessage (anywhere)", "<ChatCall state=\"in-missed", "ChatCall", chatBody("<ChatCall>"));
     refused("wrap the ChatPhotos a helper returns from a switch (anywhere)", "<ChatPhotos photos={moodboard}", "ChatPhotos", chatBody("<ChatPhotos>"));
     refused("wrap the ChatCall a helper returns from a switch (anywhere)", "<ChatCall type=\"audio", "ChatCall", chatBody("<ChatCall>"));
-    refused("wrap AppShell sidebar", "<Sidebar", "Sidebar", "<Sidebar> is the AppShell's sidebar, which AppShell checks by type and clones; change it in code.");
-    refused("wrap AppShell aside through ( ) as", "<SidePanel", "SidePanel", "<SidePanel> is the AppShell's aside, which AppShell checks by type and clones; change it in code.");
+    refused("wrap AppShell sidebar", "<Sidebar", "Sidebar", "<Sidebar> is the AppShell's sidebar, which AppShell checks by type; change it in code.");
+    refused("wrap AppShell sidePanel through ( ) as", "<SidePanel", "SidePanel", "<SidePanel> is the AppShell's side panel, which AppShell checks by type and clones; change it in code.");
     check("cloned: no reason suggests a size of the element's own", reasons.filter((reason) => /own size/i.test(reason)), []);
     const allowed = (label, needle, name, nth = 0) => {
       const result = wrapAt(label, cloned, needle, name, op, { nth });
@@ -2106,7 +2106,7 @@ const wrapTsc = [];
     check("wrap a ListItem's trailing Badge: inline in the attribute", changedRows(trailing), ['    <ListItem title="Task" trailing={<Stack fillChildren width={120}><Badge theme="green" background="subtle">Done</Badge></Stack>} />']);
     // The shared list: every entry says why and gives a reason that names the element or the owner, never its own size.
     const entries = [...Object.entries(cloning.props), ...Object.entries(cloning.parents)];
-    check("cloning.json: the props and parents the components clone", [Object.keys(cloning.props), Object.keys(cloning.parents)], [["Menu.trigger", "AppShell.sidebar", "AppShell.aside"], ["Tooltip", "FormField", "FormActions", "ChatMessage"]]);
+    check("cloning.json: the props and parents the components clone", [Object.keys(cloning.props), Object.keys(cloning.parents)], [["Menu.trigger", "AppShell.sidebar", "AppShell.sidePanel", "AppShell.topNavigation"], ["Tooltip", "FormField", "FormActions", "ChatMessage"]]);
     check("cloning.json: every entry has a why and a reason, none suggests its own size", entries.filter(([, entry]) => !(typeof entry.why === "string" && entry.why && typeof entry.reason === "string" && entry.reason && !/own size/i.test(entry.reason))).map(([key]) => key), []);
     check("cloning.json: anywhere only on ChatMessage, which names its bodies", Object.entries(cloning.parents).filter(([, entry]) => "anywhere" in entry).map(([key, entry]) => [key, entry.anywhere, entry.only]), [["ChatMessage", true, ["ChatPhotos", "ChatCall"]]]);
     // The verdict covers the nesting refusals too; docs chrome is never wrapped.
@@ -2198,6 +2198,25 @@ const wrapTsc = [];
     check("wrap crlf bom: BOM and CRLF kept", [result.code.startsWith("﻿"), !/[^\r]\n/.test(result.code)], [true, true]);
     check("wrap crlf bom: output and loc without the BOM", [changedRows(result), result.wrapped.loc], [["    <Box>", "      <Card>", "        <Text>Hi</Text>", "      </Card>", "    </Box>"], "4:4"]);
     check("wrap snippets: false gives the same text", applyOps(src, locOf(src, "<Card"), "Card", [{ op: "wrap", tag: "Box", props: {} }], { file: PAGE, snippets: false }).code, wrapAt("wrap no snippets", src, "<Card", "Card").code);
+  }
+  // wrap + parent: the floating Box's insets move in the same edit as the wrap of the layer it holds (a resize from the
+  // left edge, select/ResizeLayer.tsx); one undo step.
+  {
+    const floating = ['import { Button } from "../../../components/Button";', 'import { Box } from "../../../components/Layout";', "export const F = () => (", "  <Box width={358} height={200}>", '    <Box position="absolute" insetLeft={140} insetTop={40}>', '      <Button level="primary">Save</Button>', "    </Box>", "  </Box>", ");", ""].join("\n");
+    const num = (value) => ({ kind: "number", value });
+    const stack = { tag: "Stack", props: { direction: str("row"), fillChildren: { kind: "boolean", value: true }, width: num(120) } };
+    const resized = wrapAt("wrap parent", floating, "<Button", "Button", { ...stack, parent: [{ op: "setProp", name: "insetLeft", value: num(100) }] });
+    check("wrap parent: the Box's inset and the Stack around the layer, one change", changedRows(resized), ['    <Box position="absolute" insetLeft={100} insetTop={40}>', '      <Stack direction="row" fillChildren width={120}>', '        <Button level="primary">Save</Button>', "      </Stack>"]);
+    check("wrap parent: Stack imported, wrapped.loc in the final text", [importLines(resized)[1], resized.wrapped.loc], ['import { Box, Stack } from "../../../components/Layout";', "6:6"]);
+    const removed = applyOps(floating, locOf(floating, "<Button"), "Button", [{ op: "wrap", ...stack, parent: [{ op: "removeProp", name: "insetTop" }] }], { file: PAGE });
+    check("wrap parent: removeProp too", removed.code.includes('<Box position="absolute" insetLeft={140}>'), true);
+    const err = (result) => ("error" in result ? [result.code, result.error] : ["no error", ""]);
+    const refused = (op, code = floating, needle = "<Button", name = "Button") => err(applyOps(code, locOf(code, needle), name, [{ op: "wrap", ...stack, ...op }], { file: PAGE }));
+    check("wrap parent: prop ops only", refused({ parent: [{ op: "wrap", tag: "Box", props: {} }] }), ["invalid", "wrap `parent` takes setProp / removeProp ops"]);
+    check("wrap parent: an empty list is refused", refused({ parent: [] }), ["invalid", "wrap `parent` takes setProp / removeProp ops"]);
+    check("wrap parent: not with `with`", refused({ parent: [{ op: "removeProp", name: "insetTop" }], with: [] }), ["invalid", "wrap `parent` cannot be combined with `with`"]);
+    const inside = floating.replace('      <Button level="primary">Save</Button>', '      {true && <Button level="primary">Save</Button>}');
+    check("wrap parent: an element inside an expression has no JSX parent to change", refused({ parent: [{ op: "removeProp", name: "insetTop" }] }, inside), ["invalid", "wrap `parent` needs the element right inside a JSX element"]);
   }
   // The example snippet follows: wrapped the same way on its own lines (escapes kept), or a reason.
   {

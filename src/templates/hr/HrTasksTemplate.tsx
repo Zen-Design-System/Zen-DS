@@ -23,7 +23,6 @@ import {
   Card,
   Checkbox,
   Chip,
-  Container,
   DateField,
   DescriptionList,
   EmptyState,
@@ -36,7 +35,6 @@ import {
   ListItem,
   Menu,
   ModalForm,
-  PageHeader,
   ProgressBar,
   ProgressCircle,
   Search,
@@ -512,18 +510,14 @@ export function HrTasksTemplate() {
   })() : undefined;
 
   return (
-    <HrShell module="workbench" page="tasks" onNavigate={navigate} aside={panel}>
-      <Container maxWidth="full">
-        <Stack gap="xl" paddingY="sm">
-          <PageHeader title="All tasks" description={`Work across ${spaceNames.slice(0, -1).join(", ")} and ${spaceNames[spaceNames.length - 1]}.`}
-            actions={<Button ref={newTaskRef} level="primary" startIcon="icon-plus-line" onClick={() => startTask()}>New task</Button>} />
-          <Stack gap="lg">
-            {toolbar}
-            <VisuallyHidden role="status">{plural(shown.length, "task")}</VisuallyHidden>
-            {shown.length ? (view === "list" ? listView : boardView) : noMatch}
-          </Stack>
-        </Stack>
-      </Container>
+    <HrShell module="workbench" page="tasks" onNavigate={navigate} sidePanel={panel}
+      pageHeader={{ title: "All tasks", description: `Work across ${spaceNames.slice(0, -1).join(", ")} and ${spaceNames[spaceNames.length - 1]}.`,
+        primary: { label: "New task", onClick: () => startTask(), ref: newTaskRef } }}>
+      <Stack gap="lg">
+        {toolbar}
+        <VisuallyHidden role="status">{plural(shown.length, "task")}</VisuallyHidden>
+        {shown.length ? (view === "list" ? listView : boardView) : noMatch}
+      </Stack>
 
       <ModalForm open={creating} onOpenChange={setCreating} title="New task" onSubmit={form.handleSubmit}
         primaryAction={{ label: "Create task" }} secondaryAction={{ label: "Cancel" }}>

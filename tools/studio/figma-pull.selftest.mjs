@@ -97,15 +97,15 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("live: Breadcrumbs' Item-List is its items, ids its own (not the Sidebar's); its one crumb at the Item's Sub level: master off", page.includes('<Breadcrumbs items={[{ id: "overviews", label: "Overviews" }]} master={false} />'));
   ok("live: icon-only Segments: an empty label, the icon as leading, an aria-label from it; Select = Yes the defaultValue",
     page.includes('<Segmented options={[{ id: "sun", label: "", leading: "icon-sun-solid", "aria-label": "Sun" }, { id: "moon", label: "", leading: "icon-moon-01-solid", "aria-label": "Moon" }]} defaultValue="sun" />'));
-  ok("live: the app frame's Dashboard/Header Type=Navigation is AppShell's top bar: Leading-Slots its header (no toggle in Figma: sidebarToggle off), Trailing-Slots its headerActions",
-    /<AppShell sidebar=\{<Sidebar [\s\S]*?\/>\} sidebarToggle=\{false\} header=\{<Stack direction="row"><Breadcrumbs items=\{\[\{ id: "overviews", label: "Overviews" \}\]\} master=\{false\} \/><\/Stack>\} headerActions=\{<Stack direction="row" gap="xs"><Segmented /.test(page));
+  ok("live: the app frame's Dashboard/Header Type=Navigation is AppShell's top bar: an AppShellHeader, Leading-Slots its leading (no toggle in Figma: collapse none), Trailing-Slots its actions",
+    /<AppShell sidebar=\{<Sidebar [\s\S]*?\/>\} collapse="none" header=\{<AppShellHeader leading=\{<Stack direction="row"><Breadcrumbs items=\{\[\{ id: "overviews", label: "Overviews" \}\]\} master=\{false\} \/><\/Stack>\} actions=\{<Stack direction="row" gap="xs"><Segmented /.test(page));
   ok("live: a Type=Main row whose Header-Text holds a cover of its own is a custom row that keeps it", /<DashboardHeader type="custom">[\s\S]*?ZEN DESIGN SYSTEM[\s\S]*?<\/DashboardHeader>/.test(page) && notesWith("its Header-Text holds layers of its own (_Cover)") === 1);
   ok("live: span-2 cards on 8 columns, 2 to a row: a Grid of 2 columns", page.includes("<Grid columns={2} width=\"fill\">"));
   check("live: the cards in Figma's placement order (row by row), not the layers panel's",
     [...page.matchAll(/<Text textStyle="Heading\/4">(?:\{")?([^<"]+)/g)].map((match) => match[1]), ["Foundation", "Components", "Patterns", "Resources & Tools", "Development"]);
-  ok("live: an app frame (the Sidebar pattern beside Main-Container under Header/Dashboard) is an AppShell straight in the Screen, Header/Dashboard's other row its sections, Body's layers its page with Body's padding (bound to Margin-Comfortable in Figma: the page margin, since 2026-10-17)",
-    /<Screen[^>]*>\s*<AppShell sidebar=\{<Sidebar /.test(page) && /sections=\{<DashboardHeader type="custom">/.test(page) && /\}>\s*<Stack gap="xs" padding="margin-comfortable">/.test(page));
-  ok("live: Floating-Actions (outside the auto layout) is AppShell's floatingAction; the icon button without a layer name is named by its icon", page.includes('floatingAction={<IconButton level="accent" icon="icon-zen" aria-label="Zen" />}') && notesWith('aria-label "Zen" comes from its icon') === 1);
+  ok("live: an app frame (the Sidebar pattern beside Main-Container under Header/Dashboard) is an AppShell straight in the Screen, Header/Dashboard's other row its header's sections, Body's layers its page without Body's padding (Margin-Comfortable: AppShell's Body pads the page itself)",
+    /<Screen[^>]*>\s*<AppShell sidebar=\{<Sidebar /.test(page) && /sections=\{<DashboardHeader type="custom">/.test(page) && /\}>\s*<Stack gap="xs">/.test(page) && !/padding="margin-comfortable"/.test(page));
+  ok("live: Floating-Actions (outside the auto layout) is AppShell's floatingActions; the icon button without a layer name is named by its icon", page.includes('floatingActions={<IconButton level="accent" icon="icon-zen" aria-label="Zen" />}') && notesWith('aria-label "Zen" comes from its icon') === 1);
   ok("live: Figma's soft line break is a space; a centred text is align=\"center\"", page.includes('<Text align="center">ZEN DESIGN SYSTEM</Text>'));
   ok("live: text alignment: the tagline centred, a right-aligned text at the end", page.includes('<Text textStyle="Display/3" align="center">') && page.includes('<Text textStyle="All-Caps/M-BOLD" align="end" width="fill">2026</Text>'));
   ok("live: an absolute text is wrapped in a Stack that takes its constraints and insets (32 px = 2xl)", /<Stack position="absolute" constraintX="right" constraintY="top" insetRight="2xl" insetTop="2xl">\s*<Text textStyle="All-Caps\/M-BOLD" align="end">kaiz<\/Text>/.test(page));
@@ -242,15 +242,18 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
         { type: "RECTANGLE", name: "Rectangle", shape: { w: 100, h: 60, fill: "Color/Background/Support/Neutral/Soft", stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 2, strokeAlign: "INSIDE", radius: 12, radiusVar: "Corner-Radius/Base", rotation: 90, opacity: 0.8 }, absolute: { x: 180, y: 110, w: 100, h: 60, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
         { type: "LINE", name: "Arrow", shape: { w: 140, h: 0, fill: null, stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 1, strokeAlign: "CENTER", cap: "ARROW_LINES", rotation: 0, opacity: 1 }, absolute: { x: 20, y: 200, w: 140, h: 0, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
         { type: "STAR", name: "Star", shape: { w: 90, h: 90, fill: "#fc0", stroke: null, strokeWeight: 1, pointCount: 6, innerRadius: 0.382, rotation: 0, opacity: 1 }, absolute: { x: 280, y: 160, w: 90, h: 90, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
+        // Figma's own arrow (⇧L; the direct paste writes the same): a two-vertex VECTOR capped at its end.
+        { type: "VECTOR", name: "Arrow 2", shape: { w: 120, h: 0, fill: null, stroke: "Color/Border/Neutral/Solid/Default", strokeWeight: 2, strokeAlign: "CENTER", cap: null, arrowLine: true, paths: [{ windingRule: "NONE", data: "M 0 0 L 120 0" }], rotation: 30, opacity: 1 }, absolute: { x: 40, y: 260, w: 120, h: 0, pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true } },
       ] },
     ],
   };
   const pulled = pageFromFigma(shapes, { mapping });
   const shapeLines = pulled.text.split("\n").filter((line) => line.includes("<Shape"));
-  check("shapes: four Shapes", shapeLines.length === 4, true);
+  check("shapes: five Shapes", shapeLines.length === 5, true);
   check("shapes: ellipse arc and fill", shapeLines.some((line) => /type="ellipse"/.test(line) && /arcSweep=\{75\}/.test(line) && /arcRatio=\{50\}/.test(line) && /fill="accent-solid"/.test(line) && /insetLeft=\{20\}/.test(line) && /insetTop=\{30\}/.test(line)), true);
   check("shapes: turned rectangle at its unrotated box", shapeLines.some((line) => /type="rectangle"/.test(line) && /insetLeft=\{160\}/.test(line) && /insetTop=\{30\}/.test(line) && /rotation=\{90\}/.test(line) && /radius="md"/.test(line) && /stroke="neutral-solid"/.test(line) && /strokeWeight=\{2\}/.test(line) && /opacity=\{80\}/.test(line) && !/fill=/.test(line)), true);
   check("shapes: arrow from a LINE's cap", shapeLines.some((line) => /type="arrow"/.test(line) && /width=\{140\}/.test(line) && !/height=/.test(line) && !/stroke=/.test(line)), true);
+  check("shapes: arrow from Figma's arrow vector (⇧L)", shapeLines.some((line) => /type="arrow"/.test(line) && /width=\{120\}/.test(line) && /rotation=\{30\}/.test(line) && /strokeWeight=\{2\}/.test(line) && !/ d=/.test(line)), true);
   check("shapes: star count, unbound fill noted", shapeLines.some((line) => /type="star"/.test(line) && /pointCount=\{6\}/.test(line)) && pulled.notes.some((note) => /"Star": its fill/.test(note)), true);
   check("shapes: no drawings note", !pulled.notes.some((note) => /drawings/.test(note)), true);
   check("shapes: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
@@ -425,6 +428,21 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
     '<Use of="toolbar" />',
   ]);
   check("deep overrides (live): no notes, valid dialect", [pulled.notes, validateDialect(pulled.text, { components: new Set(["Icon", "Stack", "Text"]) })], [[], []]);
+}
+
+// The live read (2026-10-20): Zen components in a page's own mains, overridden by an instance: a Button's level and
+// label, a Badge's theme (only what differs from the main's own), a Pagination's Next by its nest() name (only its
+// level: its own size and icon are the main's), an untouched instance bringing nothing back.
+{
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-library-layers.json", import.meta.url), "utf8"));
+  const pulled = pageFromFigma(live.frame, { mapping });
+  const uses = pulled.text.split("\n").map((line) => line.trim()).filter((line) => line.startsWith("<Use "));
+  check("library layers (live): a Zen component's props and label, and its own nested layer, by path", uses, [
+    '<Use of="cta" overrides={{ Button: { level: "secondary", children: "Buy" }, Badge: { theme: "red" } }} />',
+    '<Use of="pager" overrides={{ "Pagination/Next": { level: "secondary" } }} />',
+    '<Use of="cta" />',
+  ]);
+  check("library layers (live): no notes, valid dialect", [pulled.notes, validateDialect(pulled.text, { components: new Set(["Badge", "Button", "Pagination", "Stack"]) })], [[], []]);
 }
 
 if (failures.length) {

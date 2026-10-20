@@ -307,7 +307,10 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   const t = lineNode?.transform ?? {};
   check(lineNode?.type === "LINE" && lineNode.size.x === 120 && lineNode.size.y === 0 && lineNode.strokeAlign === "CENTER" && lineNode.strokeWeight === 2 && varOf(lineNode.strokePaints) === pack.variables[border][0] && !lineNode.strokeCap, "a line: Figma's LINE, its length, a centred border stroke");
   check(Math.abs(t.m02 - 80) < 1e-9 && Math.abs(t.m12 - 100) < 1e-9 && Math.abs(t.m01 - 1) < 1e-9, `a line turns about its centre (${t.m02}, ${t.m12})`);
-  check(arrow?.strokeCap === "ARROW_LINES", "an arrow is a LINE with Figma's ARROW_LINES cap");
+  // An arrow as Figma draws it (⇧L): a VECTOR whose end vertex alone has the cap (a LINE's strokeCap capped both ends).
+  const arrowNet = arrow ? new DataView(Uint8Array.from(message.blobs[arrow.vectorData.vectorNetworkBlob].bytes).buffer) : null;
+  check(arrow?.type === "VECTOR" && !arrow.strokeCap && arrow.size.x === 120 && arrow.size.y === 0 && arrow.vectorData.styleOverrideTable.map((s) => `${s.styleID}:${s.strokeCap}`).join() === "1:NONE,2:ARROW_LINES", "an arrow is Figma's: a VECTOR with its cap on the end vertex only");
+  check(arrowNet && arrowNet.getUint32(0, true) === 2 && arrowNet.getUint32(4, true) === 1 && arrowNet.getUint32(8, true) === 0 && arrowNet.getUint32(12, true) === 1 && arrowNet.getUint32(24, true) === 2 && arrowNet.getFloat32(28, true) === 120, "its network: two vertices (style 1, style 2 at its length), one segment, no region");
   const polygon = named("Polygon"), star = named("Star");
   check(polygon?.type === "REGULAR_POLYGON" && polygon.count === 5 && varOf(polygon.fillPaints) === pack.variables[fill][0] && polygon.strokePaints.length === 0, "a polygon: REGULAR_POLYGON with its count");
   check(star?.type === "STAR" && star.count === 6 && star.starInnerScale === 0.38 && varOf(star.strokePaints) === pack.variables[border][0] && star.strokeAlign === "INSIDE", "a star: its count, inner scale and border");
