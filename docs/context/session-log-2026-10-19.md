@@ -624,6 +624,21 @@ Then "Các example Appshell nên build như trong Figma ◇ Master-Layout · Exa
     turns it into Back on a phone.
   - Merged main 36c866ce (#156, #157). Conflicts in CHANGELOG and this log were resolved keeping both sides. tsc, all
     67 studio selftests and the E2E selftest are green.
+- **Gate run 2, 2026-10-20 14:26–15:30 (`ZEN_QA_SHARDS=4`, main fe5dc9b9 + b60bedb8 merged): FAIL.** Report
+  `.qa/reports/2026-10-20T07-26-04-26060f06.md`.
+  - The 21 rows re-ran first: 21 works (MC-02 included).
+  - Static: all green. Behaviour: 0 errors. The audit finished in 1546 s (4 shards keep app-shell under the cap) and
+    found 25 errors, fixed in 265d5a69 and 1cd7394e:
+    - AppShellHeader on a phone: `min-width: 0` on every action squeezed Badges and AvatarStacks at 320 Comfortable.
+      Now only a Search (or its fixed box) shrinks. Header niceties (`.pf-wide-only`: the studio plan Badge, B4's
+      editors) step aside on a phone.
+    - Chat at 320: the composer keeps only plus under 340px (container query). A desktop thread under 480px drops the
+      104px hover gutter, and the toolbar sits over the bubble's top corner. The call card went from 80 to 208px.
+    - The tabs logo box no longer pins 24px; the toggle footer button is Small.
+  - E1's chip popover covered at 1512 (smoke) does not reproduce: all four sample points hit the popover.
+  - Studio E2E: 334 works · 2 broken.
+    - B-28 passes alone.
+    - MC-02…07 fail after MC-08 in `--only=main` and pass without it. This waits for a debug slot.
 - **Open:**
   - Image has no frameless option for the E1 mascot; this needs the user's approval for a new prop.
   - Designer questions:
