@@ -349,3 +349,13 @@ of the live clipboard (4/4 types). Selftest figma-native 116.
   copy was 16783:70965 with Avatar/Single + Button/Icon-Flat). `capture` now reads which node a copy is of, tries once
   more, then refuses (`copiedNode`); `--keep` (documented, never built) saves the copies to `.qa/native-pack/`.
   Selftest figma-native 119. Its own PR (Giám sát, Bug), ahead of Bug's Header/AppShell PR.
+
+## A frame's look in the direct paste (Session C) — tier S, branch `zen/feat/native-frame-look-20261021`
+BACKLOG P2 "Figma's native clipboard path misses a frame's look" (no owner; the user's "tiếp tục" after I offered it
+twice, 2026-10-21). figma-native `frame()` now writes what figma-push `frameLook` gives and the importer's
+`applyFrameLook` sets: stroke paint inside at its weight, one side (`border*Weight` + independent), Zen's dash 2 / 2,
+corners one by one (TL TR BR BL) on their Corner-Radius variables, the effect style, opacity, and rotation / flip about
+the centre (`turned`, as shapes). Figma's copies write an effect style's id beside its effects (as a paint style's
+paints), so the pack now holds them: `native-pack effects-code` (use_figma, read only) + `effects --files=` → 15 effect
+styles' `effects` (the drop shadows equal a Figma copy's of Effect/Popover; glass styles skipped); a full capture
+stores them from the style nodes too. Selftest figma-native 130. Built on the native-pack merge fix (merged in).
