@@ -433,7 +433,7 @@ function CutOutMascot() {
   return (
     <Grid columns={{ mobile: 1, desktop: "repeat(2, minmax(0, 1fr))" }} gap="md" maxWidth={640}>
       {[{ frame: true, caption: "Default frame: a pale square around the cut-out" }, { frame: false, caption: "frame={false}: the mascot on the card itself" }].map((item) => (
-        <Card key={String(item.frame)} theme="shadow" as="section" aria-label={item.caption}>
+        <Card key={String(item.frame)} theme="flat" as="section" aria-label={item.caption}>
           <Stack gap="sm" align="center">
             <Stack width={160}>
               <Image src={mascot.src} alt={mascot.alt} ratio="1:1" fit="contain" frame={item.frame} radius="none" />

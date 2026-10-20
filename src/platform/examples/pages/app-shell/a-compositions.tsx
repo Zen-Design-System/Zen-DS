@@ -225,7 +225,7 @@ function Workspace({ look }: { look: Look }) {
           )}
           header={(
             <AppShellHeader
-              leading={<Breadcrumbs items={[{ id: "workspace", label: "Workspace" }, { id: "overview", label: "Overview" }]} onNavigate={(_, event) => event.preventDefault()} />}
+              leading={<Breadcrumbs items={[{ id: "workspace", label: "Workspace" }, { id: "overview", label: "Overview" }]} onNavigate={(item, event) => { event.preventDefault(); notHere(String(item.label)); }} />}
               actions={<>
                 <AppShellAction icon="icon-bell-01-solid" aria-label="Notifications" count={3} onClick={() => toast({ title: "3 notifications", children: "Lia, John and Paul wrote since Friday." })} />
                 <Menu align="end" trigger={<AppShellAccount name={maya.name} src={maya.photo} />} items={[

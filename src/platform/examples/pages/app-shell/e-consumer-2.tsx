@@ -300,7 +300,7 @@ function BigNumberPhone() {
   return (
     <PlatformPhone label="Nutrition app" canvas="surface" statusBar="light" homeIndicator="dark">
       {/* Band-Sheet on Accent/Solid: the week with today on White, a White-Overlay Segmented for the view (Figma E7; since
-          2026-10-20 its labels are On-White-Overlay/Strongest in every state, readable on a bright Accent), one
+          2026-10-20 its labels are On-White-Overlay/Light at rest, Strongest when selected, hovered or focused), one
           Display-Extra number and three tiles on the band; the Surface sheet carries the day's updates (a Segmented and
           one Pale measurement card). The glass bar floats over the sheet. */}
       <AppShell mobileTop="band-sheet" band="accent"
