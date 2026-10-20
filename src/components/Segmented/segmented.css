@@ -32,18 +32,22 @@
 /* Level=Black-Overlay (the default overlay) and White-Overlay (on a solid colour): the control on a colour band or photo,
    as Button's overlay levels. Only static tokens, which do not switch with the mode, because the surface under it does
    not either. The selected segment is Background/White/Solid with On-White-Overlay text in both. Hover darkens a
-   Black-Overlay segment and lightens a White-Overlay one (its label turns dark there, as it will once selected). */
+   Black-Overlay segment and lightens a White-Overlay one. A White-Overlay label is On-White-Overlay/Strongest in every
+   state (Figma 2026-10-20, the user: the white unselected label was 1.96:1 on a bright Accent band). */
 .zen-segmented[data-level="black-overlay"] { background: var(--zen-color-background-black-overlay-default, rgb(0 0 0 / 40%)); }
 .zen-segmented[data-level="white-overlay"] { background: var(--zen-color-background-white-overlay-default, rgb(255 255 255 / 40%)); }
 .zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item { background: transparent; }
 .zen-segmented[data-level="black-overlay"] .zen-segmented__item { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 82%)); }
-.zen-segmented[data-level="white-overlay"] .zen-segmented__item { color: var(--zen-color-content-on-colors, #fff); }
+.zen-segmented[data-level="white-overlay"] .zen-segmented__item { color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
 .zen-segmented[data-level="black-overlay"] .zen-segmented__item:not([data-selected="true"]):is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)); color: var(--zen-color-content-on-black-overlay-strongest, rgb(255 255 255 / 96%)); }
 .zen-segmented[data-level="white-overlay"] .zen-segmented__item:not([data-selected="true"]):is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-white-overlay-default, rgb(255 255 255 / 40%)); color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
 .zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item[data-selected="true"] { background: var(--zen-color-background-white-solid-default, #fff); color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
-/* The ring takes the segment's label colour (currentColor): no Color/Focus token is static, Focus/Accent vanishes on a
-   Brand/Accent band and Focus/Neutral turns white in dark mode, invisible on the white selected segment. */
-.zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item:is(:focus-visible, [data-state="focused"]) { box-shadow: inset 0 0 0 3px currentColor; }
+/* Figma Focused (both overlay levels, 2026-10-20): a 3px inside ring of Border/Overlay/Solid/Default, which is static
+   (the dark ramp's step 12 in both modes), so it reads on a colour band or photo in light and dark alike. */
+.zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item:is(:focus-visible, [data-state="focused"]) { box-shadow: inset 0 0 0 3px var(--zen-color-border-overlay-solid-default, #fdfdfd); }
+/* Figma draws Focused unselected only: on the white selected segment that ring would vanish, so it takes the dark label
+   colour there (currentColor, On-White-Overlay/Strongest). */
+.zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item[data-selected="true"]:is(:focus-visible, [data-state="focused"]) { box-shadow: inset 0 0 0 3px currentColor; }
 /* The selected segment's counter is Neutral/Solid, which turns light in dark mode: pin it to Black/Solid on the white segment. */
 .zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item[data-selected="true"] .zen-badge--counter { --zen-badge-bg: var(--zen-color-background-black-solid-default, #202020); --zen-badge-icon: var(--zen-color-content-on-black-overlay-strongest, #fff); --zen-badge-content: var(--zen-color-content-on-black-overlay-strongest, #fff); }
 

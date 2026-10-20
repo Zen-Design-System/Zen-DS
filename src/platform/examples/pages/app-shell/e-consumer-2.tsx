@@ -301,9 +301,8 @@ function BigNumberPhone() {
   const updatesId = useId();
   return (
     <PlatformPhone label="Nutrition app" canvas="surface" statusBar="light" homeIndicator="dark">
-      {/* Band-Sheet on Accent/Solid: the week with today on White, a Black-Overlay Segmented for the view (Figma E7
-          draws White-Overlay, whose unselected label is Content/On-Colors white: 1.96:1 and below its APCA pick on a
-          bright Accent; the Black-Overlay track keeps its light label readable on any brand), one
+      {/* Band-Sheet on Accent/Solid: the week with today on White, a White-Overlay Segmented for the view (Figma E7; since
+          2026-10-20 its labels are On-White-Overlay/Strongest in every state, readable on a bright Accent), one
           Display-Extra number and three tiles on the band; the Surface sheet carries the day's updates (a Segmented and
           one Pale measurement card). The glass bar floats over the sheet. */}
       <AppShell mobileTop="band-sheet" band="accent"
@@ -321,7 +320,7 @@ function BigNumberPhone() {
                   </Box>
                 ))}
               </Stack>
-              <Segmented level="black-overlay" aria-label="View" value={view} onValueChange={(value) => setView(value as HeroView)}
+              <Segmented level="white-overlay" aria-label="View" value={view} onValueChange={(value) => setView(value as HeroView)}
                 options={[{ id: "nutrition", label: "Nutrition" }, { id: "activity", label: "Activity" }]} />
               <Stack gap="2xs" align="center">
                 <Text textStyle="Display-Extra/1" tone="on-accent" tabularNumbers>{hero.value}</Text>
@@ -495,7 +494,7 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "E7 · Big number",
-    description: "One huge value on a Solid band: a Background/Accent/Solid band from the top edge with a week strip (today on White), a White + Black Overlay Segmented for the view (its light label stays readable on any brand's Accent), one Display-Extra number and three tiles. A Surface sheet carries the day's updates: a Segmented and a Pale measurement card with range, last reading and status. Shell: AppShell/Mobile · Phone · Top=Band-Sheet · Bottom=Floating. Fits: Health / Nutrition, Fitness, Energy, Budget.",
+    description: "One huge value on a Solid band: a Background/Accent/Solid band from the top edge with a week strip (today on White), a White-Overlay Segmented for the view (its dark label stays readable on any brand's Accent), one Display-Extra number and three tiles. A Surface sheet carries the day's updates: a Segmented and a Pale measurement card with range, last reading and status. Shell: AppShell/Mobile · Phone · Top=Band-Sheet · Bottom=Floating. Fits: Health / Nutrition, Fitness, Energy, Budget.",
     render: () => <BigNumberPhone />,
     code: `<PlatformPhone canvas="surface" statusBar="light" homeIndicator="dark">
   <AppShell
@@ -519,7 +518,7 @@ export const examples: ExampleDef[] = [
             </Box>
             …Thu 17 · Fri 18
           </Stack>
-          <Segmented level="black-overlay" aria-label="View" value={view} onValueChange={setView}
+          <Segmented level="white-overlay" aria-label="View" value={view} onValueChange={setView}
             options={[{ id: "nutrition", label: "Nutrition" }, { id: "activity", label: "Activity" }]} />
           <Stack gap="2xs" align="center">
             <Text textStyle="Display-Extra/1" tone="on-accent" tabularNumbers>1,644</Text>

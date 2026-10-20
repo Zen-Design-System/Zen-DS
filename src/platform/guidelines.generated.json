@@ -808,7 +808,7 @@
       [
         "Level",
         "level",
-        "secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment) · black-overlay (also level=\"overlay\", the default overlay: a Black-Overlay track with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay track with light text); both select with a White/Solid segment, static tokens, the same in light and dark mode"
+        "secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment) · black-overlay (also level=\"overlay\", the default overlay: a Black-Overlay track with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay track with dark text); both select with a White/Solid segment, static tokens, the same in light and dark mode"
       ],
       [
         "Size",
