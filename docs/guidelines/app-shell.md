@@ -78,7 +78,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `ref` | `Ref<HTMLDivElement>` | — | The root `<div>` element. |
 
 ### AppShellHeader
-Figma Header/AppShell (16243:290461), the header of Pattern/AppShell/Desktop. The Main frame pads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below, Spacing/Gap/Medium between its rows: - Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while the AppShell has `collapse="header"`) or, on a narrow shell, the menu button that opens the navigation drawer; then Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart. - Main-Element: `main`, the page's own header. Under the Main frame, Sections: `sections`. Pass it as the AppShell's `header`; on a phone the shell shows its `topNavigation` instead.
+Figma Header/AppShell (16243:290461), the header of Pattern/AppShell/Desktop. The Main frame pads Margin-Comfortable above and at the sides and Spacing/Padding/Small below, Spacing/Gap/Medium between its rows: - Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while the AppShell has `collapse="header"`) or, on a narrow shell, the menu button that opens the navigation drawer; then Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart. - Main-Element: `main`, the page's own header. Under the Main frame, Sections: `sections`. Pass it as the AppShell's `header`; on a phone the shell shows its `topNavigation` instead.
 
 Also accepts `Omit<HTMLAttributes<HTMLElement>, "children">`.
 

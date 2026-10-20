@@ -76,6 +76,7 @@ export const tokens = {
   "Button/Spacing/XSmall/Vertical-Padding": "var(--zen-button-spacing-xsmall-vertical-padding)",
   "Card-padding-medium": "var(--zen-card-padding-medium)",
   "Card-padding-small": "var(--zen-card-padding-small)",
+  "Card-padding-xsmall": "var(--zen-card-padding-xsmall)",
   "Card/Border/Active": "var(--zen-card-border-active)",
   "Chart/Sector/Primary": "var(--zen-chart-sector-primary)",
   "Chart/Sector/Secondary": "var(--zen-chart-sector-secondary)",
@@ -2320,7 +2321,7 @@ export const tokenCollections = {
       "Tablet",
       "Mobile"
     ],
-    "variableCount": 11
+    "variableCount": 12
   },
   "typography-configuration": {
     "name": "Typography Configuration",

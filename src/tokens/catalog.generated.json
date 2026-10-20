@@ -88,7 +88,7 @@
         "Tablet",
         "Mobile"
       ],
-      "variableCount": 11
+      "variableCount": 12
     },
     "typography-configuration": {
       "name": "Typography Configuration",
@@ -31607,6 +31607,22 @@
         "Desktop": "{Spacing/Padding/Medium}",
         "Tablet": "{Spacing/Padding/Medium}",
         "Mobile": "{Spacing/Padding/Medium}"
+      },
+      "collectionSlug": "breakpoint-grids",
+      "collectionName": "Breakpoint & Grids",
+      "modes": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ]
+    },
+    {
+      "name": "Card-padding-xsmall",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Desktop": "{Spacing/Padding/XSmall}",
+        "Tablet": "{Spacing/Padding/XSmall}",
+        "Mobile": "{Spacing/Padding/XSmall}"
       },
       "collectionSlug": "breakpoint-grids",
       "collectionName": "Breakpoint & Grids",

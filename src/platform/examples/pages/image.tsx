@@ -1,7 +1,7 @@
 /* Image & Thumbnail examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio, signed in as Alex
    Duong, Wednesday Sep 30, 2026, 10:30 am. Each example teaches one picture decision: a Thumbnail strip inside a named
    radio group, a frame that holds its place while loading and keeps it when a file fails, Thumbnails in list rows and
-   table cells, cover or contain in fixed channel ratios, and lazy pictures in a phone feed. */
+   table cells, cover or contain in fixed channel ratios, a cut-out without its frame, and lazy pictures in a phone feed. */
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Avatar } from "../../../components/Avatar";
 import { Button, IconButton } from "../../../components/Button";
@@ -426,6 +426,26 @@ function PhoneFeed() {
   );
 }
 
+/** A client's mascot with its backdrop removed, as it goes into the brand kit: on the default frame a faint Neutral/Pale
+    square shows around the cut-out; frame={false} puts the picture on the card itself. */
+function CutOutMascot() {
+  const mascot = platformMedia.food.mascot;
+  return (
+    <Grid columns={{ mobile: 1, desktop: "repeat(2, minmax(0, 1fr))" }} gap="md" maxWidth={640}>
+      {[{ frame: true, caption: "Default frame: a pale square around the cut-out" }, { frame: false, caption: "frame={false}: the mascot on the card itself" }].map((item) => (
+        <Card key={String(item.frame)} theme="flat" as="section" aria-label={item.caption}>
+          <Stack gap="sm" align="center">
+            <Stack width={160}>
+              <Image src={mascot.src} alt={mascot.alt} ratio="1:1" fit="contain" frame={item.frame} radius="none" />
+            </Stack>
+            <Text textStyle="Body/Small/Regular" tone="base" align="center">{item.caption}</Text>
+          </Stack>
+        </Card>
+      ))}
+    </Grid>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Moodboard strip",
@@ -522,6 +542,12 @@ const compactColumns = [photo((item) => \`\${formatBytes(item.bytes)} · \${form
   <Image src={photo.src} alt={photo.alt} ratio="1:1" fit={fit} caption="Instagram post · 1:1" />
   <Image src={photo.src} alt={photo.alt} ratio={9 / 16} fit={fit} caption="Story · 9:16" />
 </Grid>`,
+  },
+  {
+    title: "A cut-out picture",
+    description: "A mascot with its backdrop removed, for a client's brand kit. On the default frame (Neutral/Pale with a hairline, so a light photo keeps its edge) a faint square shows around the cut-out; frame={false} drops the fill and the hairline and the picture sits on the card itself. The Skeleton and the error placeholder still fill the box.",
+    render: () => <CutOutMascot />,
+    code: `<Image src={mascot.src} alt="A smiling cartoon burger waving hello" ratio="1:1" fit="contain" frame={false} radius="none" />`,
   },
   {
     title: "Feed on a phone",

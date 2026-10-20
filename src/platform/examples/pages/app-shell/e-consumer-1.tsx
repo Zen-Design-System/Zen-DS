@@ -149,9 +149,10 @@ function DeliveryHomePhone() {
           <Stack gap="md">
             <Stack direction="row" justify="between" align="center" gap="md">
               <Heading level={1} textStyle="Display/2">Hi,<br />fellow!</Heading>
-              {/* Figma Character: the 100 × 100 cut-out mascot (Fit), beside the greeting it illustrates. */}
+              {/* Figma Character: the 100 × 100 cut-out mascot (Fit), beside the greeting it illustrates; a bare image fill in
+                  Figma, so frame={false}: no Neutral/Pale square around it. */}
               <Box width={100}>
-                <Image src={platformMedia.food.mascot.src} alt="" ratio="1:1" fit="contain" radius="none" loading="eager" />
+                <Image src={platformMedia.food.mascot.src} alt="" ratio="1:1" fit="contain" frame={false} radius="none" loading="eager" />
               </Box>
             </Stack>
             <Search placeholder="Burgers, bubble tea, phở…" aria-label="Search food and stores" value={query} onValueChange={setQuery}
@@ -456,7 +457,7 @@ export const examples: ExampleDef[] = [
       <Stack gap="md">
         <Stack direction="row" justify="between" align="center" gap="md">
           <Heading level={1} textStyle="Display/2">Hi,<br />fellow!</Heading>
-          <Box width={100}><Image src={mascot.src} alt="" ratio="1:1" fit="contain" radius="none" loading="eager" /></Box>
+          <Box width={100}><Image src={mascot.src} alt="" ratio="1:1" fit="contain" frame={false} radius="none" loading="eager" /></Box>
         </Stack>
         <Search placeholder="Burgers, bubble tea, phở…" aria-label="Search food and stores" value={query} onValueChange={setQuery} />
       </Stack>

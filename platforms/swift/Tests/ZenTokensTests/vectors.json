@@ -720,6 +720,54 @@
   "expected": 16
  },
  {
+  "name": "Card-padding-xsmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Card-padding-xsmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Card-padding-xsmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Card-padding-xsmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Card-padding-xsmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
   "name": "Checkbox/Background/Seclected/Default",
   "context": {},
   "type": "COLOR",

@@ -602,7 +602,7 @@
       ],
       "dont": [
         "Don't use Segmented as a filter.",
-        "Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.",
+        "Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a dark colour or photo: its dark labels need a bright, saturated colour under it (black-overlay goes on dark colours and photos).",
         "Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).",
         "Don't mix icon-only and labelled items in one control.",
         "Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again."
@@ -2383,7 +2383,7 @@
           "children?: ReactNode",
           "theme?: shadow|flat|pale|border|on-container|solid|subtle|semi-pale = shadow",
           "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple|accent = neutral",
-          "spacing?: md|sm|medium|small = md",
+          "spacing?: md|sm|xs|medium|small|xsmall = md",
           "selected?: boolean",
           "active?: boolean (deprecated)",
           "surface?: default|alt|flat",
@@ -3050,7 +3050,7 @@
           "theme?: shadow|flat|pale|border|on-container|solid|subtle|semi-pale",
           "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple|accent",
           "subAction?: CardSubAction|ReactNode",
-          "spacing?: md|sm|medium|small",
+          "spacing?: md|sm|xs|medium|small|xsmall",
           "ref?: Ref<HTMLDivElement>",
           "type?: kpi|sparkline|spark-bars|goal-progress|comparison|category-bar|hero|tile = kpi",
           "seriesLabel?: string",
@@ -5256,6 +5256,7 @@
           "alt: string",
           "ratio?: ImageRatioName|number",
           "fit?: cover|contain = cover",
+          "frame?: boolean = true",
           "radius?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full = md",
           "loading?: lazy|eager = lazy",
           "caption?: ReactNode",
@@ -5276,6 +5277,7 @@
         ]
       },
       "do": [
+        "Use frame={false} for a cut-out picture on a transparent background (a mascot, a product without its backdrop): the frame would show as a faint square around it.",
         "Always pass alt: what the picture shows in context; alt=\"\" only when it is decorative or text beside it names it (harness: image/needs-alt).",
         "Set ratio so the frame keeps its size while loading and nothing jumps when the picture arrives.",
         "Use loading=\"eager\" only for the first picture on screen; keep the rest lazy.",

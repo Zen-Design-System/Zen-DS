@@ -483,7 +483,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "On a colour band",
-    description: "On a colour band or a photo the switch takes an overlay level: black-overlay (the default, also level=\"overlay\"), a dark track with light text, or white-overlay on a solid colour, a light track with light text. The selected segment is white with dark text. These tokens do not switch with the mode, like the band under them, so the control looks the same in light and dark mode.",
+    description: "On a colour band or a photo the switch takes an overlay level: black-overlay (the default, also level=\"overlay\"), a dark track with light text, or white-overlay on a solid colour, a light track with dark text (On-White-Overlay Light, Strongest on hover and focus). The selected segment is white with dark text. These tokens do not switch with the mode, like the band under them, so the control looks the same in light and dark mode.",
     render: () => <ColourBandExample />,
     code: `const [measure, setMeasure] = useState("hours");
 
