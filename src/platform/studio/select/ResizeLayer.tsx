@@ -21,6 +21,9 @@ import type { ParentLayout } from "../inspector/sizingModel";
 import { ladderOf } from "../position/PositionSection";
 import { pinOfConstraint, snap, snapText, type Ladder, type Pin, type PositionAxis, type Snap } from "../position/positionModel";
 import { srcAttr, srcProp } from "./srcIds";
+import { freeFrameBoxes, guidesOn, publishDragView } from "../edit/drag";
+import { SNAP_PX, type FrameBox, type SnapGuide } from "../builder/render/framePlace";
+import { snapResize } from "./resizeSnap";
 
 /*
  * Resize handles on the selected element (Figma-like): 4 corner squares and 4 edge strips on its outline (Text and
@@ -42,7 +45,9 @@ import { srcAttr, srcProp } from "./srcIds";
  * that column (resize.ts withColumn): the preview sets the Grid's track list, so its neighbours move with the edge.
  * A floating Stack, Grid or Box (position="absolute") resizes from the edge under the pointer, as in Figma: an edge its
  * constraint pins moves that inset too (snapped to the Spacing/Padding ladder, the far edge stays), a stretched axis
- * (left-right, top-bottom) writes the inset of the dragged side only, a centred one grows on both sides.
+ * (left-right, top-bottom) writes the inset of the dragged side only, a centred one grows on both sides. In a free
+ * frame its moving edges snap to the frame's and its other layers' edges and centres, with Figma's red guides
+ * (select/resizeSnap.ts; ⌘ held: no snapping), also from the centre (⌥) and keeping the ratio (⇧).
  */
 
 type Props = {
@@ -76,7 +81,7 @@ type Drag = {
   captor: Element;
   handle: Handle;
   start: { x: number; y: number };
-  last: { x: number; y: number; shift: boolean; alt: boolean };
+  last: { x: number; y: number; shift: boolean; alt: boolean; mod: boolean };
   /** Screen px per CSS px of the element at the press, and the canvas zoom then (a wheel zoom mid-drag rescales). */
   scale: number;
   zoom: number;
@@ -108,6 +113,11 @@ type Drag = {
   float: FloatAxes | null;
   /** The insets the drag moves (a pinned or stretched edge under the pointer), snapped. */
   insets: FloatInset[];
+  /** A floating layer in a free frame: its box at the press and what its edges snap to, in the frame's px. */
+  snap: { block: HTMLElement; scale: number; box: FrameBox; others: FrameBox[] } | null;
+  /** The smart guides the moving edges meet now (frame px), and whether the canvas shows some. */
+  guides: SnapGuide[];
+  guidesShown: boolean;
 };
 
 /** `free`: in a free frame (a Screen or a Box without auto layout) the edges move by the px and write px offsets. */
@@ -852,6 +862,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     stopListening.current = () => undefined;
     setLive(null);
     if (!drag) return null;
+    if (drag.guidesShown) publishDragView(null);
     try { if (drag.captor.hasPointerCapture(drag.pointerId)) drag.captor.releasePointerCapture(drag.pointerId); } catch { /* already released */ }
     if (keepPreview) hold(drag);
     else restoreDrag(drag);
@@ -864,7 +875,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   useEffect(() => () => { releaseHeld(); window.clearTimeout(announceTimer.current); }, [releaseHeld]);
 
   /** The values a pointer position gives (only the handle's axes; a corner counts an axis once moved along it). */
-  const valuesAt = useCallback((drag: Drag, x: number, y: number, shift: boolean, alt = false): Values => {
+  const valuesAt = useCallback((drag: Drag, x: number, y: number, shift: boolean, alt = false, mod = false): Values => {
     const zoomNow = getViewport().zoom || drag.zoom;
     const scale = drag.scale * (zoomNow / drag.zoom);
     const dx = (x - drag.start.x) / scale;
@@ -872,6 +883,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const corner = drag.handle.sx !== 0 && drag.handle.sy !== 0;
     const values: Values = {};
     drag.insets = [];
+    drag.guides = [];
     const xOn = Boolean(drag.handle.sx && drag.target.width && (!corner || Math.abs(x - drag.start.x) >= DRAG_START));
     const yOn = Boolean(drag.handle.sy && drag.target.height && (!corner || Math.abs(y - drag.start.y) >= DRAG_START));
     // ⇧ keeps the ratio (Figma): on a corner both sides take the larger of the two changes; on an edge the other side
@@ -888,6 +900,21 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       if (ratioLocked) {
         const sized = keepRatio(drag.w0 + drag.handle.sx * dx, drag.h0 + drag.handle.sy * dy);
         deltas = { x: drag.handle.sx * (sized.width - drag.w0), y: drag.handle.sy * (sized.height - drag.h0) };
+      }
+      // In a free frame the moving edges snap to the frame's and its other layers' lines (Figma's smart guides while
+      // resizing); ⌘ turns it off. ⌥ moves both edges (either may snap), ⇧ on a corner keeps the ratio through the snap.
+      if (drag.snap && !mod) {
+        const pins = drag.float.pins;
+        const snapped = snapResize({
+          box: drag.snap.box,
+          axes: {
+            x: { side: xOn ? drag.handle.sx : 0, centred: alt || pins.x === "center", min: Math.max(MIN_SIZE, drag.min.width) },
+            y: { side: yOn ? drag.handle.sy : 0, centred: alt || pins.y === "center", min: Math.max(MIN_SIZE, drag.min.height) },
+          },
+          delta: deltas, others: drag.snap.others, threshold: SNAP_PX / scale, ratio: ratioLocked,
+        });
+        deltas = snapped.delta;
+        drag.guides = snapped.guides;
       }
       for (const [axis, on, side, delta, size0, floor, key] of [["x", xOn, drag.handle.sx, deltas.x, drag.w0, drag.min.width, "width"], ["y", yOn, drag.handle.sy, deltas.y, drag.h0, drag.min.height, "height"]] as const) {
         if (!on || !side) continue;
@@ -915,13 +942,13 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     return values;
   }, []);
 
-  const update = useCallback((x: number, y: number, shift: boolean, alt = false) => {
+  const update = useCallback((x: number, y: number, shift: boolean, alt = false, mod = false) => {
     const drag = dragRef.current;
     if (!drag) return;
-    drag.last = { x, y, shift, alt };
+    drag.last = { x, y, shift, alt, mod };
     if (!drag.active && Math.hypot(x - drag.start.x, y - drag.start.y) < DRAG_START) return;
     drag.active = true;
-    const values = valuesAt(drag, x, y, shift, alt);
+    const values = valuesAt(drag, x, y, shift, alt, mod);
     // fullWidth: near the parent's content width an edge drag snaps to it (Fill); anywhere else, and a corner, is a wrap.
     const corner = drag.handle.sx !== 0 && drag.handle.sy !== 0;
     const fullWidth = !corner && drag.target.width?.kind === "fullWidth" && values.width !== undefined && reachesParent(values.width, drag.parentWidth);
@@ -932,6 +959,11 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const column = plan?.grid && drag.target.column ? drag.target.column.index + 1 : null;
     // The component itself at the dragged size, also when a Stack takes the size (the component fills it).
     preview(drag, values);
+    // The red guides where the moving edges meet the frame's or another layer's line (DragLayer draws them).
+    if (drag.snap && (drag.guides.length || drag.guidesShown)) {
+      publishDragView(drag.guides.length ? { line: null, into: null, pointer: { x, y }, label: null, tone: "info", guides: guidesOn(drag.snap.block, drag.snap.scale, drag.guides) } : null);
+      drag.guidesShown = drag.guides.length > 0;
+    }
     setLive({ values, fill: fullWidth, stack: drag.stack, count: drag.count, column });
   }, [valuesAt]);
 
@@ -1084,18 +1116,25 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const pointerId = event.pointerId;
     const captor = event.currentTarget;
     try { captor.setPointerCapture(pointerId); } catch { /* the pointer may already be gone */ }
+    // A floating Box / Stack / Grid, or a Shape at X / Y in a free frame: the dragged edge moves its inset (Figma).
+    const float = shown.kind === "layout" || hit.name === "Shape" ? floatAxes(host, selection) : null;
+    // In a free frame, what its moving edges snap to: the frame and its other layers, measured once at the press.
+    const block = float?.free ? host.offsetParent : null;
+    const blockScale = block instanceof HTMLElement && block.offsetWidth ? block.getBoundingClientRect().width / block.offsetWidth || 1 : 1;
+    const snapTo = float && block instanceof HTMLElement
+      ? { block, scale: blockScale, box: { x: float.start.x, y: float.start.y, width: block.clientWidth - float.start.x - float.end.x, height: block.clientHeight - float.start.y - float.end.y }, others: freeFrameBoxes([host], block, blockScale) }
+      : null;
     dragRef.current = {
-      pointerId, captor, handle, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey, alt: event.altKey },
+      pointerId, captor, handle, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey, alt: event.altKey, mod: event.metaKey || event.ctrlKey },
       scale, zoom, w0, h0, host, hit, element, target: shown, selection, parentWidth: contentWidth(parent), mainAxis,
       values: {}, active: false, saved: new Map(), stack: false, min, cross, count,
-      // A floating Box / Stack / Grid, or a Shape at X / Y in a free frame: the dragged edge moves its inset (Figma).
-      float: shown.kind === "layout" || hit.name === "Shape" ? floatAxes(host, selection) : null, insets: [],
+      float, insets: [], snap: snapTo, guides: [], guidesShown: false,
       grid: shown.width?.kind === "column" && gridCellNow ? { element: gridCellNow.element, saved: new Map() } : null,
     };
-    const onMove = (move: PointerEvent) => { if (move.pointerId === pointerId) update(move.clientX, move.clientY, move.shiftKey, move.altKey); };
+    const onMove = (move: PointerEvent) => { if (move.pointerId === pointerId) update(move.clientX, move.clientY, move.shiftKey, move.altKey, move.metaKey || move.ctrlKey); };
     const onUp = (up: PointerEvent) => {
       if (up.pointerId !== pointerId) return;
-      update(up.clientX, up.clientY, up.shiftKey, up.altKey);
+      update(up.clientX, up.clientY, up.shiftKey, up.altKey, up.metaKey || up.ctrlKey);
       void commit();
     };
     const onCancel = (cancel: PointerEvent) => { if (cancel.pointerId === pointerId) finish(false); };
@@ -1108,9 +1147,11 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
         key.stopPropagation();
         finish(false);
         if (drag.active) announce("Resize canceled");
-      } else if (key.key === "Shift") update(drag.last.x, drag.last.y, key.type === "keydown", drag.last.alt);
+      } else if (key.key === "Shift") update(drag.last.x, drag.last.y, key.type === "keydown", drag.last.alt, drag.last.mod);
       // ⌥ resizes from the centre (Figma), held or let go mid-drag.
-      else if (key.key === "Alt") update(drag.last.x, drag.last.y, drag.last.shift, key.type === "keydown");
+      else if (key.key === "Alt") update(drag.last.x, drag.last.y, drag.last.shift, key.type === "keydown", drag.last.mod);
+      // ⌘ / Ctrl turns snapping off while held (Figma).
+      else if (key.key === "Meta" || key.key === "Control") update(drag.last.x, drag.last.y, drag.last.shift, drag.last.alt, key.metaKey || key.ctrlKey);
     };
     const onBlur = () => finish(false);
     window.addEventListener("pointermove", onMove);
