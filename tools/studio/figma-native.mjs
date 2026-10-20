@@ -304,6 +304,14 @@ class Writer {
     this.pictures = pictures;
     /** The pictures this paste uses: hash → bytes (one message blob each). */
     this.pictureBytes = new Map();
+    /** Page-local components (planLocals): by the page's component id, and by their spec. */
+    this.locals = new Map();
+    this.localSpecs = new Map();
+    /** The main whose layers are being written (their property refs name its definitions). */
+    this.mainNow = null;
+    /** Each written parent's children in order, and the main layers bound to a property (key → [defId, field]). */
+    this.kids = new Map();
+    this.bound = new Map();
     this.notes = [];
     this.next = 1;
     this.scene = [];
@@ -368,7 +376,17 @@ class Writer {
 
   /** Every node of a spec under `parent` (a guid), at `index` among its siblings. */
   build(spec, parent, parentInfo) {
+    const node = this.buildNode(spec, parent, parentInfo);
+    if (node && spec.propRefs) this.bindProps(node, spec);
+    if (node && spec.hidden === true) node.visible = false;
+    if (spec.slot) this.note(`${spec.name || spec.type}: a slot in a page's component is not in a direct paste yet (Import from Studio makes it)`);
+    return node;
+  }
+  buildNode(spec, parent, parentInfo) {
     const where = spec.name || spec.type;
+    if (spec.type === "COMPONENT_SET") return this.componentSet(spec, parent, parentInfo);
+    if (spec.type === "COMPONENT") return this.component(spec, parent, parentInfo);
+    if (spec.type === "INSTANCE" && spec.local) return this.localInstance(spec, parent, parentInfo);
     if (spec.type === "FRAME") return this.frame(spec, parent, parentInfo);
     if (spec.type === "TEXT") return this.text(spec, parent, parentInfo);
     // A Studio Shape (figma-push shapeNode, `shape: true`) as Figma's own rectangle or ellipse; a chart mark's ELLIPSE
@@ -382,7 +400,12 @@ class Writer {
     return null;
   }
 
-  push(node, parentInfo) { (parentInfo?.internal ? this.internal : this.scene).push(node); return node; }
+  push(node, parentInfo) {
+    (parentInfo?.internal ? this.internal : this.scene).push(node);
+    const parent = node.parentIndex ? key(node.parentIndex.guid) : null;
+    if (parent) { if (!this.kids.has(parent)) this.kids.set(parent, []); this.kids.get(parent).push(node); }
+    return node;
+  }
 
   /** The sizing a node takes in its parent (the importer's applyPlacement) as Figma's child fields. */
   /**
@@ -524,8 +547,8 @@ class Writer {
     return { fields, vars, mode: fields.stackMode, tracks };
   }
 
-  frame(spec, parent, parentInfo, { root = false } = {}) {
-    const id = this.fresh();
+  frame(spec, parent, parentInfo, { root = false, id: given = null } = {}) {
+    const id = given ?? this.fresh();
     const fill = this.fills(spec, parentInfo);
     const sizing = root ? { w: "FIXED", h: "HUG" } : { w: fill.w ? "FILL" : spec.fixedWidth ? "FIXED" : "HUG", h: fill.h ? "FILL" : "HUG" };
     const { fields, vars = [], mode, tracks } = this.layout(spec, spec.layout, sizing);
@@ -871,6 +894,147 @@ class Writer {
   }
 
   /** The skeleton nodes of every symbol used, and their sets (the internal canvas). */
+  // --- page-local components (Studio <Component>, <ComponentSet>, <Use>; figma-push COMPONENT, COMPONENT_SET) --------
+
+  /**
+   * Ids for the page's components before anything is written (an instance may come before its main): a lone main's
+   * symbol and property definitions; a set's frame, its definitions (variant ones too) and, per variant, its symbol and
+   * its own definitions of the set's (Figma's copy of a set: `parentPropDefId`, 2026-10-20).
+   */
+  planLocals(frame) {
+    const walk = (spec) => {
+      if (!spec || typeof spec !== "object") return;
+      if (spec.type === "COMPONENT_SET") {
+        const defs = new Map();
+        for (const property of spec.properties ?? []) if (LOCAL_PROP_TYPES[property.type]) defs.set(property.name, { id: this.fresh(), type: LOCAL_PROP_TYPES[property.type], initial: property.default });
+        const orders = new Map();
+        for (const variant of spec.children ?? []) for (const [name, value] of Object.entries(variant.variant ?? {})) { if (!orders.has(name)) orders.set(name, []); if (!orders.get(name).includes(String(value))) orders.get(name).push(String(value)); }
+        const variantDefs = new Map([...orders.keys()].map((name) => [name, this.fresh()]));
+        const record = { kind: "set", spec, guid: this.fresh(), defs, orders, variantDefs, variants: [] };
+        for (const child of spec.children ?? []) {
+          const variant = { kind: "variant", spec: child, set: record, guid: this.fresh(), values: child.variant ?? {}, own: new Map([...defs.keys()].map((name) => [name, this.fresh()])) };
+          record.variants.push(variant);
+          this.localSpecs.set(child, variant);
+        }
+        this.localSpecs.set(spec, record);
+        if (spec.local) this.locals.set(spec.local, record);
+      } else if (spec.type === "COMPONENT" && !this.localSpecs.has(spec)) {
+        const defs = new Map();
+        for (const property of spec.properties ?? []) if (LOCAL_PROP_TYPES[property.type]) defs.set(property.name, { id: this.fresh(), type: LOCAL_PROP_TYPES[property.type], initial: property.default });
+        const record = { kind: "main", spec, guid: this.fresh(), defs };
+        this.localSpecs.set(spec, record);
+        if (spec.local) this.locals.set(spec.local, record);
+      }
+      for (const child of spec.children ?? []) walk(child);
+      for (const slot of spec.slots ?? []) for (const child of slot.children ?? []) walk(child);
+    };
+    walk(frame);
+  }
+  /** A definition as Figma's copy writes it (its initial value twice: value and varValue). */
+  propDef(name, def, at) {
+    return { id: def.id, name, initialValue: localValue(def.type, def.initial).value, sortPosition: position(at), type: def.type, preferredValues: {}, varValue: localValue(def.type, def.initial).varValue };
+  }
+  /** Property names a main's layers may use, and the definition each names in this main (a variant's own). */
+  defOf(main, name) {
+    if (main.kind === "main") return main.defs.get(name) ? { id: main.defs.get(name).id, type: main.defs.get(name).type } : null;
+    const def = main.set.defs.get(name);
+    return def ? { id: main.own.get(name), type: def.type } : null;
+  }
+  /** A Studio main (<Component>): Figma's SYMBOL, laid out as a frame; a lone one defines its properties, a variant names its values. */
+  component(spec, parent, parentInfo) {
+    const record = this.localSpecs.get(spec);
+    const outer = this.mainNow;
+    this.mainNow = record;
+    const node = this.frame(spec, parent, parentInfo, { id: record.guid });
+    this.mainNow = outer;
+    node.type = "SYMBOL";
+    node.name = spec.name || "Component";
+    if (record.kind === "main") {
+      const defs = [...record.defs].map(([name, def], i) => this.propDef(name, def, i + 1));
+      if (defs.length) node.componentPropDefs = defs;
+      for (const property of spec.properties ?? []) if (!LOCAL_PROP_TYPES[property.type]) this.note(`${node.name}: its ${property.type.toLowerCase()} property ${property.name} is not in a direct paste yet (Import from Studio defines it)`);
+    } else {
+      if (record.own.size) node.componentPropDefs = [...record.own].map(([name, own]) => ({ id: own, parentPropDefId: record.set.defs.get(name).id }));
+      node.variantPropSpecs = Object.entries(record.values).map(([name, value]) => ({ propDefId: record.set.variantDefs.get(name), value: String(value) }));
+    }
+    return node;
+  }
+  /** A Studio <ComponentSet>: Figma's state group frame (its variants in it), its definitions and variant value orders. */
+  componentSet(spec, parent, parentInfo) {
+    const record = this.localSpecs.get(spec);
+    const node = this.frame(spec, parent, parentInfo, { id: record.guid });
+    node.name = spec.name || "Component set";
+    node.isStateGroup = true;
+    node.stateGroupPropertyValueOrders = [...record.orders].map(([property, values]) => ({ property, values }));
+    node.componentPropDefs = [
+      ...[...record.defs].map(([name, def], i) => this.propDef(name, def, i + 1)),
+      ...[...record.variantDefs].map(([name, id], i) => ({ id, name, initialValue: {}, sortPosition: position(record.defs.size + i + 1), type: "VARIANT", preferredValues: {}, varValue: { value: { textValue: "" }, dataType: "STRING", resolvedDataType: "STRING" } })),
+    ];
+    for (const property of spec.properties ?? []) if (!LOCAL_PROP_TYPES[property.type]) this.note(`${node.name}: its ${property.type.toLowerCase()} property ${property.name} is not in a direct paste yet (Import from Studio defines it)`);
+    return node;
+  }
+  /** A layer of a main bound to its properties (figma-push `propRefs`: characters, visible): Figma's refs and PROP_REF links. */
+  bindProps(node, spec) {
+    const main = this.mainNow;
+    if (!main) return;
+    for (const [field, name] of Object.entries(spec.propRefs)) {
+      const kind = { characters: ["TEXT_DATA", "TEXT_DATA"], visible: ["VISIBLE", "BOOLEAN"] }[field];
+      const def = this.defOf(main, name);
+      if (!kind || !def || (field === "characters" && node.type !== "TEXT")) { this.note(`${node.name}: its ${field} bound to ${name} is not in a direct paste yet`); continue; }
+      (node.componentPropRefs ??= []).push({ defID: def.id, componentPropNodeField: kind[0] });
+      consume(node, "parameterConsumptionMap", [{ variableData: { value: { propRefValue: { defId: def.id } }, dataType: "PROP_REF", resolvedDataType: kind[1] }, variableField: kind[0] }]);
+      this.bound.set(`${key(node.guid)}|${kind[0]}`, def.id);
+    }
+  }
+  /**
+   * A Studio <Use> of the page's own component. Figma links a pasted instance only to a component already in the file
+   * (its own copy of a main and its instances, pasted back, lost every link, 2026-10-20), so the user chose a frame
+   * that copies its variant's layers with its values: its property values on the layers bound to them, its overrides
+   * of its main's layers (figma-push `layerOverrides`: `at` = child indexes in the main). It looks as the instance;
+   * Import from Studio places a linked instance.
+   */
+  localInstance(spec, parent, parentInfo) {
+    const where = spec.name || "Instance";
+    const record = this.locals.get(spec.local);
+    if (!record) { this.note(`${where}: its component ${spec.local} is not in this paste (copy the frame that holds it too)`); return this.placeholder({ ...spec, set: { name: spec.name } }, parent, parentInfo, where); }
+    const wanted = spec.variant ?? {};
+    const main = record.kind === "set" ? record.variants.find((v) => Object.entries(wanted).every(([name, value]) => String(v.values[name]) === String(value))) ?? record.variants[0] : record;
+    if (!main) { this.note(`${where}: its component set ${spec.local} has no variants`); return null; }
+    const copy = structuredClone(main.spec);
+    for (const field of ["local", "variant", "properties", "description", "link"]) delete copy[field];
+    copy.type = "FRAME";
+    copy.name = spec.name || main.spec.name || "Instance";
+    for (const field of ["absolute", "fillW", "fillH", "hugW", "hugH", "cell", "place", "minW", "minH", "maxW", "maxH", "fixedWidth", "fixedHeight", "key", "id"]) { if (spec[field] !== undefined) copy[field] = spec[field]; else if (["absolute", "cell", "place"].includes(field)) delete copy[field]; }
+    // Its property values on the layers bound to them; the copy binds nothing of its own (it is no main).
+    const values = spec.props ?? {};
+    const walk = (node) => {
+      if (node.propRefs) {
+        if (node.propRefs.characters && values[node.propRefs.characters] !== undefined && node.type === "TEXT") node.characters = String(values[node.propRefs.characters]);
+        if (node.propRefs.visible && values[node.propRefs.visible] === false) node.hidden = true;
+        delete node.propRefs;
+      }
+      delete node.slot;
+      (node.children ?? []).forEach(walk);
+    };
+    walk(copy);
+    for (const override of spec.layerOverrides ?? []) {
+      let layer = copy;
+      for (const index of override.at ?? []) layer = layer?.children?.[index] ?? null;
+      if (!layer || layer === copy) { this.note(`${where}: an override of a layer its main does not draw`); continue; }
+      if (typeof override.characters === "string" && layer.type === "TEXT") layer.characters = override.characters;
+      if (typeof override.visible === "boolean") layer.hidden = !override.visible;
+      if (override.fill) layer.fill = override.fill;
+      if (override.variant || override.props) this.note(`${where}: a nested instance's variant or properties in its main are not in a direct paste yet`);
+    }
+    if (spec.slots?.length) this.note(`${where}: what it puts in its component's slots is not in a direct paste yet (Import from Studio fills them)`);
+    this.localCopies = (this.localCopies ?? 0) + 1;
+    return this.frame(copy, parent, parentInfo);
+  }
+  /** One note for the instances of the page's own components that came as frames. */
+  finishLocals() {
+    if (this.localCopies) this.note(`${this.localCopies} instance${this.localCopies > 1 ? "s" : ""} of the page's own components came as frames (Figma links a pasted instance only to a component already in the file): Import from Studio places linked instances`);
+  }
+
   skeletons() {
     const out = [];
     const done = new Set(), sets = new Set();
@@ -944,6 +1108,20 @@ function definitionOverrides(row) {
   }
   if (row.more.keep?.self) Object.assign(at([row.main]), structuredClone(row.more.keep.self));
   return [...byPath.values()];
+}
+
+/** figma-push's local property types → Figma's (its clipboard calls a boolean BOOL); swaps and slots wait. */
+const LOCAL_PROP_TYPES = { TEXT: "TEXT", BOOLEAN: "BOOL" };
+/** A local property value as Figma's definition (value) and assignment (varValue) carry it. */
+function localValue(type, value) {
+  if (type === "BOOL") { const on = value === undefined ? true : value === true || value === "true"; return { value: { boolValue: on }, varValue: { value: { boolValue: on }, dataType: "BOOLEAN", resolvedDataType: "BOOLEAN" } }; }
+  const text = textData(value === undefined ? "" : String(value));
+  return { value: { textValue: text }, varValue: { value: { textDataValue: text }, dataType: "TEXT_DATA", resolvedDataType: "TEXT_DATA" } };
+}
+/** An instance's assignment of a local property (Figma's copy: its definition id, value and varValue). */
+function localAssignment(def, value) {
+  const { value: v, varValue } = localValue(def.type, value);
+  return { defID: def.id, value: v, varValue };
 }
 
 function initialValue(type, initial) {
@@ -1518,7 +1696,9 @@ function swappedPath(pathText, setName) {
 export function nativeMessage(pkg, pack, pictures = new Map()) {
   if (!pkg || pkg.format !== "zen-studio-figma" || !pkg.frame) throw new Error("Not a Zen Studio export");
   const writer = new Writer(pkg, indexPack(pack), pictures);
+  writer.planLocals(pkg.frame);
   const root = writer.frame(pkg.frame, PAGE, null, { root: true });
+  writer.finishLocals();
   writer.finishContents();
   const skeletons = writer.skeletons();
   const nodeChanges = [
