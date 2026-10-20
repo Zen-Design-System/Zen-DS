@@ -61,6 +61,21 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "position": "legendPosition"
     }
   },
+  "CalendarAgendaItem": {
+    "AvatarStack": {
+      "items": "attendees"
+    }
+  },
+  "CalendarDayCell": {
+    "CalendarDate": {
+      "day": "day"
+    }
+  },
+  "CalendarToolbar": {
+    "Segmented": {
+      "value": "view"
+    }
+  },
   "ChannelField": {
     "InputField": {
       "value": "value"

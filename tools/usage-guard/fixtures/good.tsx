@@ -280,6 +280,10 @@ export const Good = () => <>
   <DatePicker value={date} onValueChange={setDate} month={month} onMonthChange={setMonth} />
   {/* With actions, onApply commits the draft: it is the handler of value and range. */}
   <DatePicker value={date} showActions onApply={(picked) => setDate(picked)} />
+  <CalendarToolbar date={day} view={view} onViewChange={setView} onToday={goToday} onPrevious={() => setDay(shiftPeriod(day, view, -1))} onNext={() => setDay(shiftPeriod(day, view, 1))} />
+  <CalendarToolbar date={day} views={[]} onPrevious={previousWeek} onNext={nextWeek} />
+  <CalendarTimeGrid device="mobile" view="3-day" date={day} events={events} />
+  <CalendarMonth month={day} events={events} selectedEventId={open} onEventClick={(event) => setOpen(event.id)} />
   <DatePicker calendar="dual" selectionMode="range" range={period} showActions onApply={(_, picked) => picked && setPeriod(picked)} />
   <Pagination theme="inline" page={page} onPageChange={setPage} total={120} pageSize={pageSize} onPageSizeChange={setPageSize} aria-label="Invoice pages" />
   {/* A pin (expanded only while pinned, uncontrolled otherwise) and a disabled preview are not frozen controls. */}

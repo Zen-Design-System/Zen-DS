@@ -3566,6 +3566,149 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       ]
     }
   ],
+  "CalendarToolbar": [
+    {
+      "name": "Calendar/Toolbar",
+      "figma": "16125:399",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "CalendarWeekStrip": [
+    {
+      "name": "Calendar/Week-Strip",
+      "figma": "16125:520",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        },
+        {
+          "prop": "variant",
+          "label": "Style",
+          "names": [
+            "Dot",
+            "Tile"
+          ],
+          "values": [
+            "dot",
+            "tile"
+          ],
+          "default": "dot"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "CalendarMonth": [
+    {
+      "name": "Calendar/Month",
+      "figma": "16126:1093",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "CalendarTimeGrid": [
+    {
+      "name": "Calendar/Time-Grid",
+      "figma": "16127:1172",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        },
+        {
+          "prop": "view",
+          "label": "View",
+          "names": [
+            "Week",
+            "Day",
+            "3-Day"
+          ],
+          "values": [
+            "week",
+            "day",
+            "3-day"
+          ],
+          "default": "week"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "CalendarAgenda": [
+    {
+      "name": "Calendar/Agenda",
+      "figma": "16128:1036",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "DatePicker": [
     {
       "name": "Date-Picker/Single-Calendar",

@@ -1884,6 +1884,28 @@ export const rules = [
       return null;
     } },
   // The behaviour probes (2026-09-28): an inline "Report period" whose Cancel and Submit both only closed, doing nothing.
+  { id: "calendar/toolbar-navigation", components: ["CalendarToolbar"], severity: "warn", allow: "calendar-navigation", guideline: "docs/guidelines/calendar.md",
+    summary: "A CalendarToolbar moves the period and switches the view: without onPrevious / onNext its arrows are disabled, and while its view switch is shown (views not empty) it needs onViewChange, or pressing a view does nothing.",
+    check: ({ attrs, src }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      const own = topAttrs(attrs);
+      const missing = ["onPrevious", "onNext"].filter((name) => !own.has(name));
+      const views = own.get("views");
+      if (!(views?.expr && /^\s*\[\s*\]\s*$/.test(views.expr)) && !own.has("onViewChange")) missing.push("onViewChange");
+      return missing.length ? `has no ${missing.join(" / ")}: wire Previous / Next with shiftPeriod(date, view, ±1) and the switch with onViewChange (or pass views={[]} to hide it).` : null;
+    } },
+  { id: "calendar/week-on-phone", components: ["CalendarTimeGrid"], severity: "warn", allow: "calendar-week-phone", guideline: "docs/guidelines/calendar.md",
+    summary: "A week does not fit a phone: CalendarTimeGrid device=\"mobile\" draws view=\"week\" as the 3-Day grid (Figma Time-Grid Mobile has 3-Day and Day). Write view=\"3-day\" so the code says what the screen shows.",
+    check: ({ attrs }) => literal(attrs, "device") === "mobile" && literal(attrs, "view") === "week" && "asks for a week on a phone, which draws the 3-Day grid: write view=\"3-day\" (or \"day\")." },
+  { id: "calendar/selected-needs-handler", components: ["CalendarMonth", "CalendarTimeGrid"], severity: "warn", allow: "calendar-selected", guideline: "docs/guidelines/calendar.md",
+    summary: "selectedEventId marks the event whose details are open (Figma State=Selected); without onEventClick the events are not buttons, so nothing opens or closes the details and the selection never changes.",
+    check: ({ attrs, src }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      const own = topAttrs(attrs);
+      const selected = own.get("selectedEventId");
+      if (!selected || /^\s*null\s*$/.test(selected.expr ?? "") || own.has("onEventClick")) return null;
+      return "passes selectedEventId without onEventClick: the events are static, so the selection can never change — open the details from onEventClick.";
+    } },
   { id: "date-picker/actions-need-apply", components: ["DatePicker"], severity: "warn", allow: "date-apply", guideline: "docs/guidelines/date-picker.md",
     summary: "A DatePicker with showActions commits in onApply(value, range): picks are a draft that Submit applies and Cancel drops. Without onApply the app never hears what Submit applied.",
     check: ({ attrs, src, end }) => {
