@@ -196,6 +196,19 @@ Last updated: 2026-10-19.
   from the documents the row found. Since 2026-10-20: the React export turns overrides no property carries into props
   (#155), and the Figma pull brings overrides and slot content back (live fixture `figma-overrides.json`). Open:
   BACKLOG "Studio components, after F7a/F7b".
+  **F2 + F3 + F9 (Session A, done 2026-10-20):** F2 (#140): several layers align, distribute, tidy up, nudge and move
+  (`edit/arrangeModel.ts`, `edit/alignLayers.ts`), resize from the centre / ⇧ ratio, equal-spacing snaps
+  (`edit/spacingModel.ts`), several frames (`select/frameSelection.ts`: ⌘A, marquee, ⇧-click). F3 (#142, #145): Delete
+  selects nothing, Copy / Paste properties (visual props only), paste at a point or into the frame most in view, ⌘D
+  repeats a move, Frame selection / Remove frame (slot ops `group` / `ungroup`), ⌥⌘K on several layers, Copy as code /
+  CSS; Layers nests frames under Sections. F9 (#146, #148): Pen and Pencil vectors, ⌘G groups that hug their layers
+  (Box `group`), ⇧H / ⇧V flip, rotate handles, live boolean groups (`Shape type="boolean"`, ⌥⇧U / S / I / E), ⌘E
+  Flatten, ⌥⌘O Outline stroke (Skia PathOps, `pathkit-wasm` loaded on first use: `draw/pathKit.ts`, `edit/pathOps.ts`,
+  `tools/studio/path-ops.mjs`); push / pull fixed against the live Zen file. ⇧⌘C Copy as PNG / SVG (#156,
+  `edit/copyAs.ts` on B's `layerPicture`). Use as mask ⌃⌘M (#161): Box `mask` (`Layout/mask.tsx`, an inline clipPath
+  from the first layer's outline), a Mask group in Studio, `isMask` in push / pull and the Zen plugin (`studio-import`
+  3f0cf52). E2E `--only=figma` FW-20…39, FW-110…127. A worktree without `pathkit-wasm` makes ⌥⇧S / ⌘E say "could not
+  load the path engine".
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures
