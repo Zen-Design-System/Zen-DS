@@ -239,3 +239,18 @@ Tier M (server op + two canvas paths). The two gaps #164 left:
   (style, usage, Studio self-tests, guidelines, tsc); Studio E2E 335/336, the broken NO-07 (nested Reset all, timed out
   under load) ✓ alone. figma FW-25/27/28/42/128/129/130/131 8/0 (an earlier pass of the set had FW-129's ⌘Z time out
   once; ✓ alone twice and in the set). ai-ui, guidelines, mcp, usage checks ✓. Shipped with `--skip-gate` (this run).
+
+## Arrows with one head (Session C) — tier S, branch `zen/fix/studio-arrow-one-head-20261020`
+BACKLOG finding (2026-10-20): a Studio arrow got a head at both ends in Figma (plugin import and direct paste).
+- Figma's ⇧L arrow is a VECTOR "Arrow N", two vertices, the cap on the end vertex only (read-only look at the user's
+  UI Foundations file; Figma's copy of a probe built with setVectorNetworkAsync: styles 1 NONE / 2 ARROW_LINES in
+  styleOverrideTable). A LINE's strokeCap caps both ends.
+- figma-native writes that VECTOR (`arrowVector`); figma-pull reads a two-vertex VECTOR capped at its end as
+  `<Shape type="arrow">` (`arrowLineOf` in the reader). Live paste: one head (screenshot); the reader's detection on the
+  pasted node: Arrow yes, the rest no. Importer: Session B's plugin studio-import eed5057 (a LINE spec with an endCap
+  becomes that VECTOR; checked live, mock test updated). Selftests: native 114, pull 111, push 335.
+- Slip, fixed: a capture's clipboard restore failed and left the user's clipboard empty (it held a 0.5 MB picture: the
+  saved base64 went inline into osascript). Put back at once from the saved copy (8/8 types); the scratch capture and
+  paste scripts now save and restore through files.
+- Gate (Giám sát's slot after the snap session, on c7d8613a with main b2f2e019): `qa --isolated` PASS — static ✓, Studio
+  E2E 336 works · 0 broken (1951 s). Report `.qa/reports/2026-10-20T13-57-08-ee53b0aa.md`.
