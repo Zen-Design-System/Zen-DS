@@ -80,9 +80,14 @@ Last updated: 2026-10-19.
     trail turns into Back (`_shared/trail-back.tsx`).
   - The audit and harness follow the user's 2026-10-19 rules: APCA contrast, h1 ≥ Heading/1 (Display allowed), and
     Gap/3XSmall on the ladder.
-  - main 02dd4dca is merged (8dd57911): static gates, vitest (1126) and the 67 studio selftests are green.
-  - The scoped gate (41 pages), the audit of the other 39 pages and the full Studio E2E wait for a slot from Giám sát.
-    The PR follows them.
+  - Three gate runs on 2026-10-20 (session-log-2026-10-19, the AppShell section) found the following, all fixed at their
+    owners:
+    - The Sidebar collapse button remounted.
+    - The phone header squeezed its actions; header niceties now step aside (`.pf-wide-only`).
+    - ChatComposer and a narrow desktop ChatThread at 320.
+    - E2E rows read the old padded content Stack.
+    - A JSX-text comment in B4.
+  - E2E shards are 336/0. The PR follows the app-shell and ai-ui re-audit.
   - Detail in session-log-2026-10-19.
 - **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
   16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:

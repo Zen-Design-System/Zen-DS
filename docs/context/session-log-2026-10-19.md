@@ -639,6 +639,17 @@ Then "Các example Appshell nên build như trong Figma ◇ Master-Layout · Exa
   - Studio E2E: 334 works · 2 broken.
     - B-28 passes alone.
     - MC-02…07 fail after MC-08 in `--only=main` and pass without it. This waits for a debug slot.
+- **Gate run 3, 17:53–19:15 (main dcd5fe11 merged, 65f7130c): FAIL, then targeted re-runs.** Report
+  `.qa/reports/2026-10-20T10-53-22-26060f06.md`.
+  - The debug slot first: after main's #163/#164/#166, `--only=main --no-retry` passes 8/0 (MC-02…07 no longer fail after
+    MC-08). The dump showed the Layers tree had held 0 variant rows.
+  - Static all green; behaviour 0 errors.
+  - Audit: 448 errors, 441 of them from one slip. A `// …` line written between JSX children in B4 rendered as text and
+    tripped every smoke edge at 320. Fixed in beadc41f; a Babel scan of all 434 TSX files finds no other JSX-text
+    comment. The ai-ui model Tag spilled out of the phone top row; it is now `.pf-wide-only`.
+  - E2E hit the 40-min cap under load. Re-run in sequential shards: 1/2 168/0 (661 s), 2/2 168/0 (922 s).
+  - The supervisor agreed that targeted re-verification is enough: the app-shell and ai-ui audit at 1512/390/320 with
+    smoke, quality and density, then the PR.
 - **Open:**
   - Image has no frameless option for the E1 mascot; this needs the user's approval for a new prop.
   - Designer questions:

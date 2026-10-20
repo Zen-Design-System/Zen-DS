@@ -58,6 +58,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   On colours; High Contrast mode raises every pair.
 - **No Breadcrumbs on a phone** (2026-10-19, user): under 744px, AppShellHeader's top row and PageHeader turn a
   Breadcrumbs into a Back to the parent crumb on a child page and drop it on a root. Pass the full trail.
+- AppShellHeader on a phone: only a Search (or a fixed-width box holding one) shrinks in the top row's actions; a Badge,
+  an Avatar or AvatarStack and a Button keep their size instead of spilling their content.
+- Sidebar: with `brand` and `logoCollapsed`, the collapse button stays the same element when the brand gives way to the
+  rail mark, so focus stays on it and its aria-expanded flips.
+- Chat at narrow widths: a ChatComposer under 340px keeps only plus, as typing does. A desktop ChatThread under 480px
+  drops the hover-toolbar gutter, and the toolbar sits over the bubble's top corner instead.
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
