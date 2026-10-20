@@ -184,6 +184,13 @@ Branch `zen/feat/studio-blend-mode-20261020` (from main 4b5bb818). Tier M. Spec 
   - Its inactive light label is 3.73:1 (#7f7f7f on #f7f7f7). Axe reports that alone and in `tests/smoke` (twice), but
     calls it incomplete in the gate's loaded full run: the same case as TabItem.
   - SegmentedItem joins `ENVIRONMENT_DEPENDENT` in `tests/smoke/components.test.tsx`; the baseline is unchanged.
+- Gate finding, fixed: E2E B-45 (C's Frame tool click) failed once in the full matrix with an empty tag. It passes
+  3/3 alone. One read of the stored page came back null, so the row now waits for the frame's tag to settle
+  (`builder.mjs`).
+- Gate warnings, not from this change: they are on the representative pages a Layout edit adds, and both are already
+  in BACKLOG.
+  - templates rhythm, 9 text styles: seen in gates since 2026-10-13.
+  - chat inbox dead click (Duy Le row).
 
 ## Direct paste of the page's own components (Session C) — tier S, branch `zen/feat/studio-native-local-components-20261020`
 BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studio Shapes and page-local components").

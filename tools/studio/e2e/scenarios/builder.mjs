@@ -714,9 +714,15 @@ export const rows = [
       await page.mouse.up();
       await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a second frame" });
       if (await page.getByRole("menu", { name: "New frame" }).count()) throw new Error("a click still asks for a frame kind");
-      const text = (await pageText(page, id)) ?? "";
-      const frame = text.match(/<Screen id="screen-2"[^>]*>/)?.[0] ?? "";
-      if (!/width=\{100\} height=\{100\}/.test(frame)) throw new Error(`the frame is not 100 × 100: ${frame}`);
+      // Read until the frame's tag settles: one read of the stored page can come back empty (null) under a loaded matrix
+      // run, which failed this row with an empty tag (gate 2026-10-20).
+      let text = "";
+      let frame = "";
+      await until(async () => {
+        text = (await pageText(page, id)) ?? "";
+        frame = text.match(/<Screen id="screen-2"[^>]*>/)?.[0] ?? "";
+        return /width=\{100\} height=\{100\}/.test(frame);
+      }, { message: "a 100 × 100 frame" }).catch(() => { throw new Error(`the frame is not 100 × 100: ${frame}`); });
       if (/device="(phone|tablet)"/.test(frame)) throw new Error(`the frame has a device: ${frame}`);
       if (!/title="Frame 2"/.test(frame)) throw new Error(`the frame is not named Frame 2: ${frame}`);
       const own = text.slice(text.indexOf('<Screen id="screen-2"')).split(/(?=<Screen )/)[0];
