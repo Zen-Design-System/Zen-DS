@@ -35,7 +35,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | --- | --- | --- | --- |
 | `title` (required) | `ReactNode` | — | The page title (an h1 by default: one per page). |
 | `childTitle` | `ReactNode` | — | Figma Child-Heading (Primitives/Dashboard/Header Type=Main, 4122:33399): a second title after the title, in the title's type and Content/Neutral/Light, Spacing/Gap/XSmall after it — where the page is inside its parent ("Members" › "Design team"). Part of the heading, so the page's title reads both. |
-| `description` | `ReactNode` | — | One or two sentences under the title. |
+| `description` | `ReactNode` | — | One or two sentences under the title: Figma SubHeading (Primitives/Dashboard/Header Type=Main, 4122:33399), Body/Base/Regular in Content/Neutral/Light (read 2026-10-21). |
 | `breadcrumbs` | `ReactNode` | — | Above the title: `<Breadcrumbs>` for nested pages. |
 | `eyebrow` | `ReactNode` | — | Above the title when there are no breadcrumbs: a short section label. |
 | `actions` | `ReactNode` | — | Page actions on the right of the title: Tertiary buttons first, then at most one Primary. They wrap under the title on narrow screens; on phones (ZenProvider breakpoint mobile) the Primary is shown first. |
