@@ -24,6 +24,9 @@ export type BooleanOperation = "union" | "subtract" | "intersect" | "exclude";
 
 const WORDS: Readonly<Record<BooleanOperation, string>> = { union: "Union", subtract: "Subtract", intersect: "Intersect", exclude: "Exclude" };
 const say = (message: string) => { inspectorStatus.set("neutral", message); return false; };
+/** Skia's PathOps, or null with the reason on the status line (its wasm did not load: offline, or a missing install). */
+const pathKitFor = (what: string): Promise<unknown | null> =>
+  loadPathKit().catch(() => { say(`${what} could not load the path engine: reload the page`); return null; });
 const baseName = (name: string) => name.slice(name.lastIndexOf(".") + 1);
 const string = (value: string): EditValue => ({ kind: "string", value });
 
@@ -57,7 +60,7 @@ export async function booleanSelection(operation: BooleanOperation): Promise<boo
   const props: Record<string, EditValue> = { type: string("boolean"), operation: string(operation) };
   for (const name of ["fill", "stroke"]) if (typeof first[name] === "string") props[name] = string(first[name] as string);
   if (typeof first.strokeWeight === "number") props.strokeWeight = { kind: "number", value: first.strokeWeight };
-  await loadPathKit();
+  if (!(await pathKitFor(label))) return false;
   return boxFloating(items, props, label, `${WORDS[operation]}: the shapes stay editable inside it`, undefined, false, "Shape");
 }
 
@@ -90,7 +93,8 @@ export async function flattenSelection(): Promise<boolean> {
   if (!floatingGroup(layers)) return say("Flatten works on shapes placed at X / Y in one frame");
   const all = layers.map(propsOf);
   if (all.some((props) => !props)) return say("A shape is not on the canvas right now");
-  const [kit, engine] = await Promise.all([loadPathKit(), loadEngine()]);
+  const [kit, engine] = await Promise.all([pathKitFor("Flatten"), loadEngine()]);
+  if (!kit) return false;
   const vector = engine.flattenResult(kit, all as Array<Record<string, unknown>>);
   if (!vector) return say("Nothing to flatten: lines and arrows have no outline");
   const first = all[0]!;
@@ -114,7 +118,8 @@ export async function outlineStrokeSelection(): Promise<boolean> {
   const fill = typeof props.fill === "string" ? props.fill : unfilled ? "none" : "support-neutral-soft";
   if (fill !== "none") return say("Outline stroke works on a stroke without a fill: set its fill to none first");
   if (!(shapeFills as readonly string[]).includes(stroke)) return say(`Outline stroke: the stroke color ${stroke} has no fill color of the same name`);
-  const [kit, engine] = await Promise.all([loadPathKit(), loadEngine()]);
+  const [kit, engine] = await Promise.all([pathKitFor("Outline stroke"), loadEngine()]);
+  if (!kit) return false;
   const vector = engine.outlineStrokeResult(kit, props);
   if (!vector) return say("Outline stroke: nothing to outline");
   return replaceWithVector(layers, vector, { fill: string(stroke as ShapeFill), stroke: string("none") }, `Outline stroke of ${layers[0].name}`);

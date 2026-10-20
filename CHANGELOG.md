@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Box `mask` (Figma's mask): the box's first layer is the mask and draws nothing; the layers after it show only
+  inside its outline, turned and flipped as drawn. Zen Studio's Use as mask (⌃⌘M, the canvas menu, Quick actions)
+  makes a Mask group of two or more floating layers, the bottom one the mask, and on a mask group removes it.
+  Figma push / pull carry it as the group's bottom layer with isMask (Zen plugin updated).
 - Zen Studio's Copy as PNG (⇧⌘C) and Copy as SVG, as Figma's (the rest of F3 of the parity plan): the selected layer
   or frame as a picture on the clipboard at 2x (or at its first export setting's scale), or as SVG markup; in the
   layer menu's Copy as list, the frame menu and Quick actions. ⇧⌘C no longer says "not in Zen Studio yet".
@@ -146,6 +150,13 @@ removed (four unused colour ramps were, see Removed).
   instance only (`<Use overrides>`); Reset changes / Reset all changes; Push changes to main component; an instance's
   slot content (`<Use slots>`); Assets › Local components shows a set as one tile with its description. The React export
   passes bound overrides and slots as props; the Figma push carries overrides and slot content (Zen plugin).
+- Zen Studio's Figma pull brings an instance's overrides and slot content back: a layer's words, visibility and
+  colour, a nested instance switched to another variant or given other values, and what it puts in its main's slots
+  (`<Use overrides>`, `<Use slots>`). A page with its own components now imports `Component`, `ComponentSet` and
+  `Use` from `@zen-ds/react/builder` when the Studio prints it; before, a pulled page with them failed the dialect check.
+- Zen Studio's Figma push and pull carry an override inside a nested instance of a page's own component (the text in
+  a Chip inside a Toolbar: `overrides={{ "Chip/Text": { children: "Done" } }}`), in the variant that instance shows. A
+  layer inside a nested instance switched to another variant now opens in that variant in the panel.
 - EmptyState `size="sm"` draws a 200 illustration with a 36 icon (Popular/XLarge), up from 120 / 24 (2026-10-18, user:
   "120 thì bé quá … 200"), as Figma Empty-State Size=Small; the circles and the icon sit on Figma's centre (149, 130) and
   the icon takes Content/Placeholder. Studio's Properties panel and Figma push/pull carry Empty-State's Size.

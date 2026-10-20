@@ -7484,6 +7484,11 @@
         "Figma's Group (Zen Studio ⌘G): holds its layers at their X / Y, sized to them; no fill, stroke, corners, effect, padding (ignored); moves, turns, flips and fades as one"
       ],
       [
+        "Mask (Box)",
+        "mask",
+        "Figma's mask (Zen Studio ⌃⌘M Use as mask): the first layer is the mask and draws nothing; the layers after it show only inside its outline (a Shape's outline, or a layer's box with its corners, turned and flipped as drawn); mostly on a group: <Box group mask>"
+      ],
+      [
         "Gap (Spacing/Gap)",
         "gap · rowGap · columnGap",
         "none · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 (default) · lg 24 · xl 32 · 2xl 40 · 3xl 48 · giant 64 · xgiant 88 · 2xgiant 144 (long names like small also work)"

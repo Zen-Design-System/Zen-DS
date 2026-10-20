@@ -18,7 +18,8 @@ export const ID_PROP = "data-zen-id";
 const ID_ATTRIBUTE = / data-zen-id="[^"]*"/g;
 const PACKAGE = "@zen-ds/react";
 const BUILDER_PACKAGE = "@zen-ds/react/builder";
-const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "Section"]);
+// The builder's own elements (dialect.mjs BUILDER_NAMES): a page's components and instances import from it too.
+const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "Section", "Component", "ComponentSet", "Use"]);
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 
 let counter = 0;
@@ -146,7 +147,8 @@ function namesOf(doc) {
 export function printPage(doc, { ids = false } = {}) {
   const ctx = { ids };
   const names = namesOf(doc);
-  const builder = ["Board", ...(names.has("Overlay") ? ["Overlay"] : []), "Screen", ...(names.has("Section") ? ["Section"] : []), "proto"];
+  const used = (name) => (names.has(name) ? [name] : []);
+  const builder = ["Board", ...used("Component"), ...used("ComponentSet"), ...used("Overlay"), "Screen", ...used("Section"), ...used("Use"), "proto"];
   const zen = [...names].filter((name) => !BUILDER_NAMES.has(name)).sort();
   const lines = [
     `// @zen-page ${JSON.stringify(doc.header ?? { format: 1 })}`,

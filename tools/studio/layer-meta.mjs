@@ -57,8 +57,8 @@ export function textWordsOf(node, max = 60) {
 
 /** The kind an automatic name counts in ("Frame", "Rectangle"…), or null for layers named otherwise. */
 export function autoNameBase(node) {
-  // A Box marked as a group (Figma's Group, ⌘G) counts as "Group N".
-  if (node.name === "Box" && literalOf(node.props?.group) === true) return "Group";
+  // A Box marked as a group (Figma's Group, ⌘G) counts as "Group N"; a mask group (⌃⌘M) is Figma's "Mask group".
+  if (node.name === "Box" && literalOf(node.props?.group) === true) return literalOf(node.props?.mask) === true ? "Mask group" : "Group";
   if (FRAME_COMPONENTS.has(node.name)) return "Frame";
   // A boolean group is named by its operation, as Figma names it ("Union 1", "Subtract 2").
   if (node.name === "Shape" && literalOf(node.props?.type) === "boolean") return BOOLEAN_NAMES[String(literalOf(node.props?.operation) ?? "union")] ?? "Union";
@@ -81,7 +81,8 @@ export function autoLayerNames(board) {
     if (base) {
       const next = (counts.get(base) ?? 0) + 1;
       counts.set(base, next);
-      names.set(node.loc, `${base} ${next}`);
+      // Figma names every mask group "Mask group", without a number.
+      names.set(node.loc, base === "Mask group" ? base : `${base} ${next}`);
     } else if (node.name === "Text" || node.name === "Heading") {
       const words = textWordsOf(node);
       if (words) names.set(node.loc, words);
@@ -116,7 +117,7 @@ export function autoLayerNames(board) {
  */
 export function isAutomaticName(name, node) {
   if (typeof name !== "string" || !name.trim()) return true;
-  if (/^(?:Frame|Group|Rectangle|Ellipse|Line|Arrow|Polygon|Star|Vector|Image|Section)(?: \d+)?$/.test(name.trim())) return true;
+  if (/^(?:Frame|Group|Mask group|Rectangle|Ellipse|Line|Arrow|Polygon|Star|Vector|Image|Section)(?: \d+)?$/.test(name.trim())) return true;
   const words = textWordsOf(node, Infinity);
   return words !== null && name.trim() === words;
 }

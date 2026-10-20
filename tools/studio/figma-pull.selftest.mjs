@@ -350,6 +350,20 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   const pinnedText = pageFromFigma(pinned, { mapping }).text;
   const pinnedBox = pinnedText.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? "";
   check("groups: a group out of an auto layout keeps px X / Y", [/insetLeft=\{16\}/.test(pinnedBox), /insetTop=\{80\}/.test(pinnedBox), /constraintX|insetLeft="/.test(pinnedText)], [true, true, false]);
+  // Figma's mask (isMask on the group's bottom layer, read by maskOf): a Zen mask group; a mask higher up is noted.
+  const masked = structuredClone(grouped);
+  masked.children[0].children[0].children[0].isMask = true;
+  const maskBox = pageFromFigma(masked, { mapping }).text.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? "";
+  check("groups: a GROUP whose bottom layer is a mask is a Box group mask", /\bmask\b/.test(maskBox), true);
+  const high = structuredClone(grouped);
+  high.children[0].children[0].children[1].isMask = true;
+  const highPull = pageFromFigma(high, { mapping });
+  check("groups: a mask that is not the bottom layer is left unmasked, with a note", [/\bmask\b/.test(highPull.text.split("\n").find((line) => /<Box[^>]*group/.test(line)) ?? ""), highPull.notes.some((note) => /mask is not its bottom layer/.test(note))], [false, true]);
+  const inFlow = structuredClone(grouped);
+  inFlow.children[0].layout = { mode: "VERTICAL" };
+  inFlow.children[0].children = [{ type: "FRAME", name: "Row", layout: { mode: "HORIZONTAL" }, children: [{ ...grouped.children[0].children[0].children[0], isMask: true, absolute: undefined }, { ...grouped.children[0].children[0].children[1], absolute: undefined }] }];
+  check("groups: a mask in an auto layout frame is noted", pageFromFigma(inFlow, { mapping }).notes.some((note) => /mask in an auto layout frame/.test(note)), true);
+  check("figmaReadCode reads isMask in its own function", /const maskOf = \(out, child\) =>/.test(figmaReadCode("1:2")) && /maskOf\(read_, child\)/.test(figmaReadCode("1:2")), true);
   check("figmaReadCode writes a GROUP's width and height", /if \(node\.type === "GROUP"\) Object\.assign\(out, \{ width:/.test(figmaReadCode("1:2")), true);
 }
 
@@ -372,6 +386,45 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("booleans: a boolean group with its operation, result and fill, at its X / Y", [/operation="subtract"/.test(head), /d="M 0 0 L 120 0 L 120 60 L 0 60 Z"/.test(head), /viewBox="0 0 120 60"/.test(head), /fill="accent-solid"/.test(head), /insetLeft=\{20\}/.test(head)], [true, true, true, true, true]);
   check("booleans: its shapes inside it", pulled.text.split("\n").filter((line) => /type="(rectangle|ellipse)"/.test(line)).map((line) => /insetLeft=\{(\d+)\}/.exec(line)?.[1]), ["0", "80"]);
   check("booleans: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
+}
+
+// The live read (2026-10-20): a QA frame the Zen plugin imported from a Studio page with its own components, read back
+// by figmaReadCode through use_figma. Words, colour and visibility come from instance.overrides; the Toolbar's nested
+// Chip switched to Large is found against the main (Figma lists no override for it); slot content differs from the
+// main's; the untouched Panel and Toolbar bring nothing back.
+{
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-overrides.json", import.meta.url), "utf8"));
+  const pulled = pageFromFigma(live.frame, { mapping });
+  const uses = pulled.text.split("\n").map((line) => line.trim()).filter((line) => line.startsWith("<Use "));
+  check("overrides (live): each instance's overrides and slot content, by the Studio's layer paths", uses, [
+    '<Use of="tag" overrides={{ Icon: { hidden: true }, Text: { children: "Hi", tone: "accent-base" } }} />',
+    '<Use of="panel" slots={{ Content: <Text>Filled</Text> }} />',
+    '<Use of="chip" />',
+    '<Use of="toolbar" overrides={{ Chip: { "variant.Size": "Large" } }} />',
+    '<Use of="panel" />',
+    '<Use of="toolbar" />',
+  ]);
+  check("overrides (live): the components import from the builder", pulled.text.split("\n").filter((line) => line.startsWith("import ")), [
+    'import { Board, Component, ComponentSet, Screen, Use, proto } from "@zen-ds/react/builder";',
+    'import { Icon, Stack, Text } from "@zen-ds/react";',
+  ]);
+  check("overrides (live): the page passes the dialect with the Zen components", validateDialect(pulled.text, { components: new Set(["Icon", "Stack", "Text"]) }), []);
+  check("overrides (live): no notes", pulled.notes, []);
+}
+
+// The live read (2026-10-20): overrides inside nested instances of the page's own components (figma-push layerOverrides
+// through them), read back by Figma's child indices: the layers inside a nested instance switched to another variant
+// are that variant's (Pill/Text in Bold), in its own variant otherwise (Pill/Text in Plain).
+{
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-deep-overrides.json", import.meta.url), "utf8"));
+  const pulled = pageFromFigma(live.frame, { mapping });
+  const uses = pulled.text.split("\n").map((line) => line.trim()).filter((line) => line.startsWith('<Use of="toolbar"'));
+  check("deep overrides (live): paths through the nested instances, in the variant they show", uses, [
+    '<Use of="toolbar" overrides={{ "Pill/Text": { children: "Bolder" }, "Tag/Icon": { hidden: true }, "Tag/Text": { children: "Inner" }, Pill: { "variant.Tone": "Bold" } }} />',
+    '<Use of="toolbar" overrides={{ "Pill/Text": { children: "Plainer" } }} />',
+    '<Use of="toolbar" />',
+  ]);
+  check("deep overrides (live): no notes, valid dialect", [pulled.notes, validateDialect(pulled.text, { components: new Set(["Icon", "Stack", "Text"]) })], [[], []]);
 }
 
 if (failures.length) {

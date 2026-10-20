@@ -16572,6 +16572,14 @@
           "deprecated": null
         },
         {
+          "name": "mask",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma's mask (Zen Studio ⌃⌘M \"Use as mask\", Figma `isMask` on the group's bottom layer): the box's first layer is\nthe mask and the layers after it show only inside its outline (a Shape's outline, or a layer's box with its\ncorners, turned and flipped as drawn). The mask layer itself draws nothing. Mostly on a `group`.",
+          "deprecated": null
+        },
+        {
           "name": "as",
           "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
           "required": false,

@@ -401,6 +401,8 @@ const setsText = (title) => [
   '          <Component id="toolbar" name="Toolbar">',
   '            <Stack direction="row" gap="sm" padding="sm">',
   '              <Use of="chip" />',
+  // A nested instance whose text is no property (FW-97: an override inside it is a path through it).
+  '              <Use of="tag-small" />',
   "            </Stack>",
   "          </Component>",
   '          <Use of="toolbar" />',
@@ -2692,6 +2694,25 @@ export const rows = [
     },
   },
   {
+    id: "FW-97", feature: "A layer inside a nested instance (⌘-click through the Toolbar into its Tag's text): its words change for this Toolbar only", wp: "F7b 2026-10-20", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await setsPage(ctx);
+      return restoring(page, id, async () => {
+        const toolbar = marked(page, id, "data-zen-instance", "toolbar");
+        await deepInto(page, toolbar.getByText("Small", { exact: true }));
+        await until(async () => (await sections(page)).includes("Layer"), { message: "the layer inside the nested instance selected (Layer section)" }).catch(async (error) => { throw new Error(`${error.message} · header ${await selectedName(page)} · sections ${(await sections(page)).join(", ")}`); });
+        await typeText(page, "Text", "Deep");
+        await written(page, id, /<Use of="toolbar" overrides=\{\{ "Tag small\/Text": \{ children: "Deep" \} \}\} \/>/, "the Toolbar's override of the Text inside its Tag");
+        await until(async () => (await toolbar.innerText()).includes("Deep"), { message: "the Toolbar reads Deep" });
+        const main = await marked(page, id, "data-zen-main", "toolbar").innerText();
+        if (main.includes("Deep")) throw new Error(`the Toolbar main reads ${main.trim()}`);
+        await shot(page, "fw-97-deep-layer");
+        await expectPanelFits(page, "the deep layer's panel");
+        return "Toolbar › Tag small › Text Deep: an override of this Toolbar only (main unchanged)";
+      });
+    },
+  },
+  {
     id: "FW-96", feature: "Assets › Local components shows a component set as one tile; a click adds an instance of the set", wp: "F7b 2026-10-19", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await setsPage(ctx);
@@ -2912,6 +2933,37 @@ export const rows = [
       }).catch(() => null)), { timeout: 20_000, message: "the frame's PNG on the clipboard" });
       if (picture[0] !== frameWidth * 2) throw new Error(`frame PNG ${picture.join(" × ")}, the frame is ${frameWidth} wide (2x expected)`);
       return `SVG ${svg.length} chars (${size.join(" × ")}) · Screen ${frameWidth} wide → PNG ${picture.join(" × ")}`;
+    },
+  },
+  {
+    id: "FW-127", feature: "⌃⌘M (Use as mask) on two floating shapes: one mask group (Box group mask) whose bottom shape masks the other — the mask draws nothing, the rest is clipped to it — named Mask group in Layers; ⌃⌘M on it removes the mask; ⌘Z", wp: "F9 2026-10-20 · decision 6", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const maskKey = process.platform === "darwin" ? "Control+Meta+KeyM" : "Control+Alt+KeyM";
+      const maskTag = (text) => (text.match(/<Box\b[^>]*\bgroup\b[^>]*>/g) ?? []).find((tag) => /\bmask\b/.test(tag)) ?? null;
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      try {
+        await page.keyboard.press(maskKey);
+        await until(async () => Boolean(maskTag((await pageText(page, id)) ?? "")), { message: "a mask group in the page" });
+        const drawn = await page.evaluate(() => {
+          const box = document.querySelector('.zen-box[data-mask="true"]');
+          const first = box?.firstElementChild;
+          return box ? { clip: getComputedStyle(box).clipPath, mask: first ? getComputedStyle(first).visibility : null, path: Boolean(box.querySelector("clipPath path")?.getAttribute("d")) } : null;
+        });
+        if (!drawn || !/^url\(/.test(drawn.clip) || drawn.mask !== "hidden" || !drawn.path) throw new Error(`the mask is not drawn: ${JSON.stringify(drawn)}`);
+        await showLeftTab(page, "layers");
+        await until(async () => (await page.locator(".studio-layers__tree [role='treeitem']", { hasText: /^\s*Mask group\s*$/ }).count()) > 0 || (await page.locator(".studio-layers__tree").innerText()).includes("Mask group"), { message: "Mask group in Layers" });
+        // Again on the mask group: the mask goes, the layers stay a group.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press(maskKey);
+        await until(async () => { const text = (await pageText(page, id)) ?? ""; return !maskTag(text) && /<Box\b[^>]*\bgroup\b/.test(text); }, { message: "the mask removed, the group kept" });
+      } finally {
+        await undoTo(page, id, before, 6).catch(() => undefined);
+      }
+      if (((await pageText(page, id)) ?? "") !== before) throw new Error("⌘Z did not bring the page back");
+      return `⌃⌘M → ${maskTag(before) ? "?" : "<Box group mask>"} · clip-path url(#…) · the mask hidden · Mask group in Layers · ⌃⌘M again → group · ⌘Z`;
     },
   },
 ];

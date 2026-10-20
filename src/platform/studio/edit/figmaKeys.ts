@@ -6,12 +6,13 @@ import { inspectorStatus } from "../inspector/status";
 import { layerOfHit, multiSelection, selectLayers } from "../select/multiSelection";
 import { childHits, findBySrc, isTypingTarget, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
 import { canEdit, studioStore } from "../store";
+import { isMaskKey } from "../shell/modKey";
 import type { EditOp, StudioSelection } from "../types";
 import { alignLayers, distributeLayers, tidyUpLayers } from "./alignLayers";
 import { stepLayer } from "./arrange";
 import { copyAsPng } from "./copyAs";
 import { flipLayers } from "./flipLayers";
-import { groupSelection, ungroupSelection } from "./groupLayers";
+import { groupSelection, maskSelection, ungroupSelection } from "./groupLayers";
 import { booleanSelection, flattenSelection, outlineStrokeSelection, type BooleanOperation } from "./pathOps";
 import { textEditSession } from "./textEdit";
 
@@ -179,6 +180,8 @@ export function useFigmaKeys() {
       // ⌃⌥H / ⌃⌥V distribute, ⌃⌥T tidy up (Figma's; several layers: edit/alignLayers.ts).
       const arrange = event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey ? ARRANGE_KEYS[event.code] : undefined;
       const ungroup = mod && event.shiftKey && !event.altKey && event.code === "KeyG";
+      // ⌃⌘M (Ctrl+Alt+M elsewhere): Figma's Use as mask (edit/groupLayers.ts maskSelection).
+      const mask = isMaskKey(event);
       // ⌘G: Figma's Group selection (edit/groupLayers.ts).
       const group = mod && !event.shiftKey && !event.altKey && event.code === "KeyG";
       // ⌥⇧U / S / I / E: Union, Subtract, Intersect, Exclude selection; ⌘E Flatten; ⌥⌘O Outline stroke (edit/pathOps.ts).
@@ -188,7 +191,7 @@ export function useFigmaKeys() {
       // ⇧H / ⇧V: Figma's Flip horizontal / vertical (edit/flipLayers.ts).
       const flip = event.shiftKey && !mod && !event.altKey && (event.code === "KeyH" || event.code === "KeyV") ? (event.code === "KeyH" ? "horizontal" : "vertical") : null;
       if (!canEdit(state) || running) {
-        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange || ungroup || group || flip || booleanKey || flatten || outline) event.preventDefault();
+        if ((mod && (event.code === "BracketRight" || event.code === "BracketLeft")) || (event.altKey && !mod && ALIGN_KEYS[event.code]) || arrange || ungroup || group || mask || flip || booleanKey || flatten || outline) event.preventDefault();
         return;
       }
       if (flip) {
@@ -199,6 +202,11 @@ export function useFigmaKeys() {
       if (group) {
         event.preventDefault();
         run(groupSelection());
+        return;
+      }
+      if (mask) {
+        event.preventDefault();
+        run(maskSelection());
         return;
       }
       if (booleanKey || flatten || outline) {
