@@ -324,9 +324,11 @@ export type EditOp =
    * setProp (never `key` or `children`; the element's `key` moves to the wrapper). The file gains the tag in its Layout
    * import. Must be the request's only op; the answer's `wrapped.loc` is the wrapper, to select it. The client sends "Box".
    * `with`: the opening-tag locs of more layers of the same JSX parent, wrapped together in source order (Frame selection /
-   * Add auto layout on a multi-selection; tools/studio/README.md "Wrap several layers").
+   * Add auto layout on a multi-selection; tools/studio/README.md "Wrap several layers"). `parent`: setProp / removeProp
+   * ops on the element's JSX parent in the same edit (a floating Box's insets while the layer it holds is resized into a
+   * Stack from its left or top edge: select/ResizeLayer.tsx).
    */
-  | { op: "wrap"; tag: "Box" | "Stack" | "Grid" | "SidebarMenuSection" | "Component" | "ComponentSet"; props: Record<string, EditValue>; with?: string[] }
+  | { op: "wrap"; tag: "Box" | "Stack" | "Grid" | "SidebarMenuSection" | "Component" | "ComponentSet"; props: Record<string, EditValue>; with?: string[]; parent?: EditOp[] }
   /**
    * A one-layer wrap undone (the Studio's Ignore auto layout off on a Box it made float): the Box, Stack or Grid that
    * holds exactly one element is replaced by it, the wrapper's props going with it (its `key` back onto the element). Must

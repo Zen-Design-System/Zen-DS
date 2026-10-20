@@ -14,7 +14,7 @@ import cloning from "../cloning.json";
 import { childHits, nameOf, onSourceUpdate, selectionInstances, type FiberHit } from "./picker";
 import { liveSrc, expectRender, mapSrc, noteEditTarget, renderedNow, sameSelectedElement } from "./remap";
 import { breakpointOf, columnsSource, pxTrack, soleColumn, splitTracks, withTrackPx } from "./gridTracks";
-import { axisText, cloneReason, cloningParent, cloningProp, contentWidth, currentMode, layoutParent, lockBound, MIN_SIZE, noCross, pillReason, planFill, planHug, planHugAxis, planResize, reachesParent, refuseWrap, resizeTarget, snapSize, specimenOnly, stackAxes, stackFill, studioWrapper, withColumn, withoutAxes, withWrapper, wrappedChildLoc, wrapperCandidate, wrapRefusal, type AxisMode, type CloningList, type CrossFits, type ResizeAxis, type ResizePlan, type ResizeTarget } from "./resize";
+import { axisText, cloneReason, cloningParent, cloningProp, contentWidth, currentMode, layoutParent, lockBound, MIN_SIZE, noCross, pillReason, planFill, planHug, planHugAxis, planResize, reachesParent, refuseWrap, resizeTarget, snapSize, specimenOnly, stackAxes, stackFill, studioWrapper, withColumn, withoutAxes, withWrapper, wrappedChildLoc, wrapperCandidate, wrapRefusal, type AxisMode, type CloningList, type CrossFits, type ResizeAxis, type ResizePlan, type ResizeTarget, type WrapOp } from "./resize";
 import type { Box } from "./spacing";
 import { instanceSizing, type InstanceAxis, type InstanceSizingInput } from "./instanceSizing";
 import type { ParentLayout } from "../inspector/sizingModel";
@@ -47,7 +47,9 @@ import { snapResize } from "./resizeSnap";
  * constraint pins moves that inset too (snapped to the Spacing/Padding ladder, the far edge stays), a stretched axis
  * (left-right, top-bottom) writes the inset of the dragged side only, a centred one grows on both sides. In a free
  * frame its moving edges snap to the frame's and its other layers' edges and centres, with Figma's red guides
- * (select/resizeSnap.ts; ⌘ held: no snapping), also from the centre (⌥) and keeping the ratio (⇧).
+ * (select/resizeSnap.ts; ⌘ held: no snapping), also from the centre (⌥) and keeping the ratio (⇧). Any other layer
+ * floats in a Box of its own (a library component placed in a frame): its edges move that Box's insets the same way,
+ * while its size is written as above (one request: op wrap `parent` with a first wrap, else op many).
  */
 
 type Props = {
@@ -113,6 +115,8 @@ type Drag = {
   float: FloatAxes | null;
   /** The insets the drag moves (a pinned or stretched edge under the pointer), snapped. */
   insets: FloatInset[];
+  /** The floating Box that carries the layer's insets (a layer that cannot float itself), and the styles replaced there. */
+  floatBox: { element: HTMLElement; src: string; saved: Saved } | null;
   /** A floating layer in a free frame: its box at the press and what its edges snap to, in the frame's px. */
   snap: { block: HTMLElement; scale: number; box: FrameBox; others: FrameBox[] } | null;
   /** The smart guides the moving edges meet now (frame px), and whether the canvas shows some. */
@@ -147,6 +151,16 @@ function floatAxes(host: HTMLElement, selection: NodeSelection): FloatAxes | nul
 }
 
 /**
+ * The floating Box (position="absolute") that holds only `host`, or only the Studio wrap Stack around it (`wrapped`):
+ * where a layer that cannot float itself keeps its X / Y (position/float.ts isFloatWrapper, edit/drag.ts floatOf).
+ */
+function floatBoxOf(host: HTMLElement, wrapped: boolean): HTMLElement | null {
+  const holder = wrapped && host.parentElement ? host.parentElement : host;
+  const box = holder.parentElement;
+  return box?.matches('.zen-box[data-position="absolute"]') && box.children.length === 1 ? box : null;
+}
+
+/**
  * A floating layout's drag on one axis: the edge under the pointer (side -1 start, 1 end) moved by `delta` CSS px.
  * A pinned edge moves its inset (snapped) and the size keeps the far edge; a stretched axis moves the inset only (no
  * size); a centred one grows on both sides; the free edge of a pinned axis is a plain size change.
@@ -174,6 +188,23 @@ function floatAxis(float: FloatAxes, axis: PositionAxis, side: -1 | 1, delta: nu
   if (pin === "stretch") return { insets: [inset] };
   const was = side < 0 ? float.start[axis] : float.end[axis];
   return { insets: [inset], size: Math.max(floor, Math.round(size0 + (was - snapped.px))) };
+}
+
+/**
+ * A layer that floats in a Box of its own, resized from an edge the Box's constraint pins: its size as planResize writes
+ * it and the Box's insets in one request (one ⌘Z). A first wrap takes the insets along (op wrap `parent`: the Box is the
+ * layer's JSX parent); props on the layer or on its Studio wrap Stack go with them as one op many.
+ */
+function withFloatBox(name: string, sized: ResizePlan | null, box: string, insetOps: EditOp[], moved: string, layer: string): ResizePlan | null {
+  const label = sized ? `${sized.label} · ${moved}` : `${name} ${moved}`;
+  const announce = sized ? `${sized.announce} · ${moved}` : `${name} ${moved}`;
+  const wrap = sized?.wrap ? sized.ops.find((op): op is WrapOp => op.op === "wrap") : undefined;
+  if (sized?.wrap) return wrap ? { ...sized, ops: [{ ...wrap, parent: insetOps }], label, announce } : null;
+  const boxLoc = parseSrc(box)?.loc;
+  const sizeLoc = parseSrc(sized?.grid ?? sized?.wrapper ?? layer)?.loc;
+  if (!boxLoc || !sizeLoc) return null;
+  const opsByLoc: Record<string, EditOp[]> = { [boxLoc]: insetOps, ...(sized ? { [sizeLoc]: sized.ops } : {}) };
+  return { ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc }], wrap: false, wrapper: null, float: box, label, announce };
 }
 
 /** What the pill shows while dragging: the values, Fill (fullWidth), in a Stack (a wrap or its Stack), all N. */
@@ -348,14 +379,15 @@ function preview(drag: Drag, values: Values) {
     // Only a cap relative to the parent (max-width: 100%): a px cap (a number Chip's 40px) also holds in the Stack.
     if (rule && (rule.kind === "wrap" || rule.kind === "wrapper" || rule.kind === "fullWidth") && /%$/.test(drag.host.style.getPropertyValue(cap) || getComputedStyle(drag.host).getPropertyValue(cap))) setStyle(drag.host, drag.saved, cap, "none");
   }
-  // A floating layout's moved edges, at their snapped insets.
-  for (const inset of drag.insets) setStyle(drag.host, drag.saved, inset.css, `${inset.snap.px}px`);
+  // A floating layout's moved edges, at their snapped insets (on the floating Box that holds the layer, if any).
+  for (const inset of drag.insets) setStyle(drag.floatBox?.element ?? drag.host, drag.floatBox?.saved ?? drag.saved, inset.css, `${inset.snap.px}px`);
 }
 
-/** The drag's preview styles go: the element's, and the Grid's track list. */
-function restoreDrag(drag: Pick<Drag, "host" | "saved" | "grid">) {
+/** The drag's preview styles go: the element's, the Grid's track list and the floating Box's insets. */
+function restoreDrag(drag: Pick<Drag, "host" | "saved" | "grid" | "floatBox">) {
   restore(drag.host, drag.saved);
   if (drag.grid) restore(drag.grid.element, drag.grid.saved);
+  if (drag.floatBox) restore(drag.floatBox.element, drag.floatBox.saved);
 }
 
 /**
@@ -972,10 +1004,10 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
    * `keep` (the Inspector's Size group) the element inside it; an unwrap selects the element where the Stack was.
    */
   const write = useCallback(async (drag: Pick<Drag, "hit" | "element" | "selection">, plan: ResizePlan, keep = false) => {
-    const parsed = parseSrc(plan.grid ?? plan.wrapper ?? drag.hit.src);
+    const parsed = parseSrc(plan.grid ?? plan.wrapper ?? plan.float ?? drag.hit.src);
     if (!parsed) return false;
     const fresh = await studioApi.element(parsed.file, parsed.loc);
-    if (!fresh || fresh.name !== (plan.grid ? "Grid" : plan.wrapper ? "Stack" : drag.element.name)) {
+    if (!fresh || fresh.name !== (plan.grid ? "Grid" : plan.wrapper ? "Stack" : plan.float ? "Box" : drag.element.name)) {
       inspectorStatus.set("negative", `${drag.hit.name} moved before the change was saved; nothing was written`);
       return false;
     }
@@ -1000,7 +1032,8 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       return true;
     }
     if (!plan.wrap) {
-      const done = noteEditTarget(`${parsed.file}:${parsed.loc}`);
+      // Op many on a floating Box and its layer: the layer is the selection that stays.
+      const done = noteEditTarget(plan.float ? drag.hit.src : `${parsed.file}:${parsed.loc}`);
       try {
         const response = await applyEdit(request, plan.label);
         if (response.ok && response.before !== response.after) announce(plan.announce);
@@ -1055,8 +1088,10 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const insetOps: EditOp[] = insets.map((inset) => (free ? { op: "setProp", name: inset.prop, value: { kind: "number", value: inset.snap.px } }
       : inset.snap.key === "none" ? { op: "removeProp", name: inset.prop } : { op: "setProp", name: inset.prop, value: { kind: "string", value: inset.snap.key } }));
     const moved = insets.map((inset) => (free ? `${inset.prop.replace("inset", "").toLowerCase()} ${inset.snap.px}` : snapText(inset))).join(", ");
-    // The inset ops go with the size to the floating layout itself (its own size props, never a wrap).
+    // The inset ops go with the size to the floating layout itself (its own size props, never a wrap), or to the floating
+    // Box that holds the layer (one request with the layer's size).
     const plan: ResizePlan | null = !insetOps.length ? sized
+      : drag.floatBox ? withFloatBox(drag.hit.name, sized, drag.floatBox.src, insetOps, moved, drag.hit.src)
       : sized && !sized.wrap && !sized.wrapper && !sized.grid ? { ...sized, ops: [...sized.ops, ...insetOps], label: `${sized.label} · ${moved}`, announce: `${sized.announce} · ${moved}` }
       : !sized ? { ops: insetOps, wrap: false, wrapper: null, label: `${drag.hit.name} ${moved}`, announce: `${drag.hit.name} ${moved}` } : sized;
     if (!plan) {
@@ -1116,19 +1151,25 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const pointerId = event.pointerId;
     const captor = event.currentTarget;
     try { captor.setPointerCapture(pointerId); } catch { /* the pointer may already be gone */ }
-    // A floating Box / Stack / Grid, or a Shape at X / Y in a free frame: the dragged edge moves its inset (Figma).
-    const float = shown.kind === "layout" || hit.name === "Shape" ? floatAxes(host, selection) : null;
+    // A floating Box / Stack / Grid, or a Shape at X / Y in a free frame: the dragged edge moves its inset (Figma). Any
+    // other layer floats in a Box of its own (a library component placed in a frame): the edge moves that Box's inset.
+    const own = shown.kind === "layout" || hit.name === "Shape" ? floatAxes(host, selection) : null;
+    const boxElement = own ? null : floatBoxOf(host, Boolean(shown.wrapper));
+    const boxSrc = boxElement ? srcAttr(boxElement) : null;
+    const floatBox = boxElement && boxSrc ? { element: boxElement, src: boxSrc, saved: new Map() } : null;
+    const float = own ?? (floatBox ? floatAxes(floatBox.element, { ...selection, src: floatBox.src, name: "Box" }) : null);
+    const floating = floatBox?.element ?? host;
     // In a free frame, what its moving edges snap to: the frame and its other layers, measured once at the press.
-    const block = float?.free ? host.offsetParent : null;
+    const block = float?.free ? floating.offsetParent : null;
     const blockScale = block instanceof HTMLElement && block.offsetWidth ? block.getBoundingClientRect().width / block.offsetWidth || 1 : 1;
     const snapTo = float && block instanceof HTMLElement
-      ? { block, scale: blockScale, box: { x: float.start.x, y: float.start.y, width: block.clientWidth - float.start.x - float.end.x, height: block.clientHeight - float.start.y - float.end.y }, others: freeFrameBoxes([host], block, blockScale) }
+      ? { block, scale: blockScale, box: { x: float.start.x, y: float.start.y, width: block.clientWidth - float.start.x - float.end.x, height: block.clientHeight - float.start.y - float.end.y }, others: freeFrameBoxes([floating], block, blockScale) }
       : null;
     dragRef.current = {
       pointerId, captor, handle, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey, alt: event.altKey, mod: event.metaKey || event.ctrlKey },
       scale, zoom, w0, h0, host, hit, element, target: shown, selection, parentWidth: contentWidth(parent), mainAxis,
       values: {}, active: false, saved: new Map(), stack: false, min, cross, count,
-      float, insets: [], snap: snapTo, guides: [], guidesShown: false,
+      float, insets: [], floatBox: float ? floatBox : null, snap: snapTo, guides: [], guidesShown: false,
       grid: shown.width?.kind === "column" && gridCellNow ? { element: gridCellNow.element, saved: new Map() } : null,
     };
     const onMove = (move: PointerEvent) => { if (move.pointerId === pointerId) update(move.clientX, move.clientY, move.shiftKey, move.altKey, move.metaKey || move.ctrlKey); };

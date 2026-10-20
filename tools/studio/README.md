@@ -106,6 +106,8 @@ Ops (applied back to front on the element at `loc`):
 - `wrap { tag, props }` (alone in its request): the element goes inside `<tag …props>` (see "Wrap" below); the answer
   carries `wrapped: { loc }`, the wrapper's opening tag in the new text.
   `with: ["<line>:<column>", …]` adds sibling layers of the same file (see "Wrap several layers" below).
+  `parent: [setProp / removeProp ops]` changes the element's JSX parent in the same edit, before the wrap (one undo
+  step): a layer floating in a Box of its own, resized into a Stack from its left or top edge, moves the Box's insets.
 - `unwrap {}` (alone): a Box, Stack or Grid holding one element is replaced by it (see "Unwrap" below); the answer
   carries `unwrapped: { loc }`, the element's opening tag in the new text.
 - `detach { measured?, instance? }` (alone in its request): §3.

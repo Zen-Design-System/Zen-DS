@@ -2199,6 +2199,25 @@ const wrapTsc = [];
     check("wrap crlf bom: output and loc without the BOM", [changedRows(result), result.wrapped.loc], [["    <Box>", "      <Card>", "        <Text>Hi</Text>", "      </Card>", "    </Box>"], "4:4"]);
     check("wrap snippets: false gives the same text", applyOps(src, locOf(src, "<Card"), "Card", [{ op: "wrap", tag: "Box", props: {} }], { file: PAGE, snippets: false }).code, wrapAt("wrap no snippets", src, "<Card", "Card").code);
   }
+  // wrap + parent: the floating Box's insets move in the same edit as the wrap of the layer it holds (a resize from the
+  // left edge, select/ResizeLayer.tsx); one undo step.
+  {
+    const floating = ['import { Button } from "../../../components/Button";', 'import { Box } from "../../../components/Layout";', "export const F = () => (", "  <Box width={358} height={200}>", '    <Box position="absolute" insetLeft={140} insetTop={40}>', '      <Button level="primary">Save</Button>', "    </Box>", "  </Box>", ");", ""].join("\n");
+    const num = (value) => ({ kind: "number", value });
+    const stack = { tag: "Stack", props: { direction: str("row"), fillChildren: { kind: "boolean", value: true }, width: num(120) } };
+    const resized = wrapAt("wrap parent", floating, "<Button", "Button", { ...stack, parent: [{ op: "setProp", name: "insetLeft", value: num(100) }] });
+    check("wrap parent: the Box's inset and the Stack around the layer, one change", changedRows(resized), ['    <Box position="absolute" insetLeft={100} insetTop={40}>', '      <Stack direction="row" fillChildren width={120}>', '        <Button level="primary">Save</Button>', "      </Stack>"]);
+    check("wrap parent: Stack imported, wrapped.loc in the final text", [importLines(resized)[1], resized.wrapped.loc], ['import { Box, Stack } from "../../../components/Layout";', "6:6"]);
+    const removed = applyOps(floating, locOf(floating, "<Button"), "Button", [{ op: "wrap", ...stack, parent: [{ op: "removeProp", name: "insetTop" }] }], { file: PAGE });
+    check("wrap parent: removeProp too", removed.code.includes('<Box position="absolute" insetLeft={140}>'), true);
+    const err = (result) => ("error" in result ? [result.code, result.error] : ["no error", ""]);
+    const refused = (op, code = floating, needle = "<Button", name = "Button") => err(applyOps(code, locOf(code, needle), name, [{ op: "wrap", ...stack, ...op }], { file: PAGE }));
+    check("wrap parent: prop ops only", refused({ parent: [{ op: "wrap", tag: "Box", props: {} }] }), ["invalid", "wrap `parent` takes setProp / removeProp ops"]);
+    check("wrap parent: an empty list is refused", refused({ parent: [] }), ["invalid", "wrap `parent` takes setProp / removeProp ops"]);
+    check("wrap parent: not with `with`", refused({ parent: [{ op: "removeProp", name: "insetTop" }], with: [] }), ["invalid", "wrap `parent` cannot be combined with `with`"]);
+    const inside = floating.replace('      <Button level="primary">Save</Button>', '      {true && <Button level="primary">Save</Button>}');
+    check("wrap parent: an element inside an expression has no JSX parent to change", refused({ parent: [{ op: "removeProp", name: "insetTop" }] }, inside), ["invalid", "wrap `parent` needs the element right inside a JSX element"]);
+  }
   // The example snippet follows: wrapped the same way on its own lines (escapes kept), or a reason.
   {
     const page = (extra = "", button = '<Button level="primary">Send</Button>') => [
