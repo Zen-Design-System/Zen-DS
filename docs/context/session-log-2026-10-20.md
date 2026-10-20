@@ -211,6 +211,35 @@ Plan §5 F2 "snapping and guides while resizing": ⌥ centre and ⇧ ratio were 
 - Not covered (follow-up): a component in a free frame (its floating Box wrapper) still resizes without snapping, and
   frame resizing (FrameHandles) snaps but draws no guides.
 
+## Resize snapping: a component's floating Box and frames (F2 follow-up to #164; worktree `awesome-goldwasser-782002`, started by local_6898c836)
+
+Tier M (server op + two canvas paths). The two gaps #164 left:
+- A library component in a free frame floats in a single-child Box (`floatingCode`); selected (double-click or its
+  Layers row, the Box is folded into it) it took ResizeLayer's non-float path: no snapping, and the left / top handles
+  only changed its width (probe: w-drag wrote "Width 115, fixed (in a Stack)", X unchanged). Now `floatBoxOf` finds the
+  Box (around the layer, or around its Studio wrap Stack) and `floatAxes` runs on it: the dragged edge moves the Box's
+  inset where its constraint pins it, the moving edges snap through `snapResize` with red guides (⌘ off, ⌥, ⇧), and the
+  inset preview goes on the Box (`Drag.floatBox`, restored with the rest).
+- One write per drag: a Button has no size props, so its first resize is op `wrap` (structural), which `many` cannot
+  carry. New on the server: op `wrap` `parent` (setProp / removeProp on the element's JSX parent, applied first, then the
+  child is found again by index and wrapped; `wrapped.loc` and `changed` read on the final text; jsx-source.mjs
+  `applyWrapWithParent`, 7 selftest rows). Later resizes (props on the layer or on its Studio wrap Stack) go as one op
+  `many` setProps with `opsByLoc` (`ResizePlan.float`: the request is sent on the Box, the layer stays the edit target).
+- `board/FrameHandles.tsx` snapped through `snapBox` only without ⌥ / ⇧ and dropped its guides. It now uses the same
+  `snapResize` (min 100), so ⌥ and ⇧ snap as in Figma, and draws `resizeGuides` (read before rounding) through
+  `publishDragView` / `guidesOn` on the frames container (its px are the board's world px), cleared on every end.
+- E2E FW-130 (Button: w-drag 102 → 100 on the Rectangle's edge with a guide there: Box X 100, Stack width +40; ⌥ e: X 130,
+  width +20; ⌘: X 102, no guide; in its Stack: X 80, width +22 by op many, the Button stays selected; one ⌘Z each),
+  FW-131 (frame e-drag to the second frame's edge with a guide: 390 → 486; ⌘: 483, no guide; ⌥: X −96, width 582).
+  resizeSnap's model is unchanged (no new rows). The guide runs under the blue selection outline where they overlap,
+  as for shapes since #164.
+- A Box with constraint left-right (stretch) still writes the layer's size: the layer never fills its floating Box, so
+  insets alone would only move it (`floatAxis` `sized`).
+- Gate (slot 20:23–21:03, after AppShell; main ca9784a6 merged first): `qa --isolated --files=<7 sources>` static all ✓
+  (style, usage, Studio self-tests, guidelines, tsc); Studio E2E 335/336, the broken NO-07 (nested Reset all, timed out
+  under load) ✓ alone. figma FW-25/27/28/42/128/129/130/131 8/0 (an earlier pass of the set had FW-129's ⌘Z time out
+  once; ✓ alone twice and in the set). ai-ui, guidelines, mcp, usage checks ✓. Shipped with `--skip-gate` (this run).
+
 ## Arrows with one head (Session C) — tier S, branch `zen/fix/studio-arrow-one-head-20261020`
 BACKLOG finding (2026-10-20): a Studio arrow got a head at both ends in Figma (plugin import and direct paste).
 - Figma's ⇧L arrow is a VECTOR "Arrow N", two vertices, the cap on the end vertex only (read-only look at the user's

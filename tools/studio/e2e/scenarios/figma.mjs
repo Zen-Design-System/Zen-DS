@@ -243,6 +243,62 @@ async function dragHandle(page, handle, dx, dy, keys = []) {
 }
 
 
+/** A phone page with a free frame: a Rectangle, and a Button placed in the frame (it floats in a Box of its own). */
+const floatingText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={200}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />\n<Box position="absolute" insetLeft={140} insetTop={40}>\n<Button level="primary">Save</Button>\n</Box>\n</Box>');
+let floatingMade = null;
+async function floatingPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!floatingMade) {
+    const seeded = await seededPage(ctx, floatingText, /Save<\/Button>/);
+    floatingMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${floatingMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${floatingMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await showLeftTab(page, "layers");
+  await deselect(page);
+  return { page, id: floatingMade };
+}
+/** Selects the floating Button with a double-click (Figma: into the frame; its Box is folded into it in Layers) and gives
+ *  its box in frame px. */
+async function selectFloating(page, id, frame) {
+  await deselect(page);
+  const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox();
+  // Each double-click goes one frame deeper (Screen content → the free frame → the Button).
+  for (let k = 0; k < 4 && (await selectedName(page)) !== "Button"; k++) {
+    await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
+    await sleep(400);
+  }
+  await until(async () => (await selectedName(page)) === "Button", { message: `the Button selected (${await selectedName(page)})` });
+  return { width: box.width / frame.scale, height: box.height / frame.scale };
+}
+/** The floating Box's X / Y and the width of the Stack the Button went into: { x, y, width } (null before a wrap). */
+const floatingIn = (text) => {
+  const match = /<Box position="absolute" insetLeft=\{(-?\d+)\} insetTop=\{(-?\d+)\}>\s*<Stack [^>]*\bwidth=\{(\d+)\}[^>]*>\s*<Button/.exec(text);
+  return match ? { x: Number(match[1]), y: Number(match[2]), width: Number(match[3]) } : null;
+};
+/** Drags a resize handle of the selection by `dx` screen px in steps, `during` run before the release (keys held). */
+async function dragHandleWith(page, handle, dx, { keys = [], midKeys = [], during = async () => null } = {}) {
+  const box = await until(() => page.locator(`.studio-resize__handle[data-handle="${handle}"]`).first().boundingBox(), { message: `the ${handle} handle` });
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  for (const key of keys) await page.keyboard.down(key);
+  await page.mouse.down();
+  try {
+    for (let step = 1; step <= 3; step++) { await page.mouse.move(x + (dx * step) / 5, y); await sleep(30); }
+    for (const key of midKeys) await page.keyboard.down(key);
+    for (let step = 4; step <= 5; step++) { await page.mouse.move(x + (dx * step) / 5, y); await sleep(30); }
+    await sleep(120);
+    return await during();
+  } finally {
+    await page.mouse.up();
+    for (const key of [...keys, ...midKeys]) await page.keyboard.up(key);
+  }
+}
+
+
 /** A page with two phone Screens side by side (for several frames). */
 const twoScreensText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Board", '<Screen id="screen-2" title="Second" device="phone" />');
 let twoMade = null;
@@ -3051,6 +3107,112 @@ export const rows = [
       if (ratio.width !== 120 || ratio.height !== 90 || ratio.x !== 20 || ratio.y !== 20) throw new Error(`⇧: X ${ratio.x}, Y ${ratio.y}, ${ratio.width} × ${ratio.height} (want 20, 20, 120 × 90)`);
       await undoTo(page, id, before);
       return `⌘: width ${exact.width} (no snap, no guide) · ⌥: X 0, width 120 · ⇧ corner: 120 × 90 · ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-130", feature: "Resizing a library component placed in a free frame (a Button in its floating Box) moves its X from the left edge, which snaps to another layer's edge with a red guide; ⌥ grows it from the centre, ⌘ held: no snap; one write, one ⌘Z each", wp: "F2 2026-10-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await floatingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const frame = await freeFrame(page, id);
+      const written = async () => {
+        await until(async () => (await pageText(page, id)) !== before, { message: "the resize written" });
+        return floatingIn((await pageText(page, id)) ?? "");
+      };
+      // The left edge (X 140) dragged 38 px of the frame: 2 px short of the Rectangle's right edge (X 100).
+      const size = await selectFloating(page, id, frame);
+      const guide = await dragHandleWith(page, "w", -38 * frame.scale, { during: () => until(() => page.locator(".studio-drag__guide").first().boundingBox(), { timeout: 3000, message: "a red guide while dragging" }) });
+      const want = frame.at(100, 0).x;
+      if (Math.abs(guide.x - want) > 1.5) throw new Error(`the guide is at x ${Math.round(guide.x)}, not on the Rectangle's right edge (${Math.round(want)})`);
+      const snapped = await written();
+      if (!snapped || snapped.x !== 100 || snapped.y !== 40 || Math.abs(snapped.width - (size.width + 40)) > 1.5) throw new Error(`not X 100 and width ${Math.round(size.width + 40)}: ${JSON.stringify(snapped)} · ${((await pageText(page, id)) ?? "").match(/<Box position="absolute"[^]*?<Button/)?.[0]}`);
+      await until(async () => (await page.locator(".studio-drag__guide").count()) === 0, { timeout: 2000, message: "the guide gone after the release" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+      // ⌥ on the right edge: both edges move by 10, the centre stays (X 130, width + 20).
+      await selectFloating(page, id, frame);
+      await dragHandleWith(page, "e", 10 * frame.scale, { keys: ["Alt"] });
+      const centred = await written();
+      if (!centred || centred.x !== 130 || Math.abs(centred.width - (size.width + 20)) > 1.5) throw new Error(`⌥: ${JSON.stringify(centred)} (want X 130, width ${Math.round(size.width + 20)})`);
+      await undoTo(page, id, before, 1);
+      // ⌘ pressed mid-drag: no snap, no guide (the left edge stays at X 102).
+      await selectFloating(page, id, frame);
+      const guides = await dragHandleWith(page, "w", -38 * frame.scale, { midKeys: ["ControlOrMeta"], during: () => page.locator(".studio-drag__guide").count() });
+      if (guides) throw new Error("a guide shows with ⌘ held");
+      const exact = await written();
+      if (!exact || Math.abs(exact.x - 102) > 1 || Math.abs(exact.width - (size.width + 38)) > 1.5) throw new Error(`⌘ held: ${JSON.stringify(exact)} (want X 102, width ${Math.round(size.width + 38)})`);
+      // Once in its Stack, the Button's left edge moves the Box's X and the Stack's width together (one op many); the
+      // Button stays selected.
+      const wrapped = (await pageText(page, id)) ?? "";
+      await selectFloating(page, id, frame);
+      await dragHandleWith(page, "w", -22 * frame.scale);
+      await until(async () => (await pageText(page, id)) !== wrapped, { message: "the second resize written" });
+      const again = floatingIn((await pageText(page, id)) ?? "");
+      if (!again || Math.abs(again.x - 80) > 1 || Math.abs(again.width - (exact.width + 22)) > 1.5) throw new Error(`in its Stack: ${JSON.stringify(again)} (want X 80, width ${exact.width + 22})`);
+      if ((await selectedName(page)) !== "Button") throw new Error(`${await selectedName(page)} selected after the write, not the Button`);
+      await undoTo(page, id, wrapped, 1);
+      await undoTo(page, id, before, 1);
+      return `left edge 102 → 100 (the Rectangle's right edge) with a red guide: X 100, width ${Math.round(size.width)} → ${snapped.width} in a Stack · ⌥: X 130, width ${centred.width} · ⌘: X ${exact.x} · in its Stack: X ${again.x}, width ${again.width} · one ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-131", feature: "Resizing a frame snaps its moving edge to another frame's edge with a red guide while dragging (Figma's smart guides); ⌘ held: no snap, no guide; ⌥ snaps from the centre; one write, one ⌘Z each", wp: "F2 2026-10-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await twoScreensPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const measure = () => page.evaluate(() => {
+        const one = document.querySelector('[data-studio-frame="screen:screen-1"]');
+        const two = document.querySelector('[data-studio-frame="screen:screen-2"]');
+        const rect = one.getBoundingClientRect();
+        return { zoom: rect.width / one.offsetWidth, x: one.offsetLeft, width: one.offsetWidth, gap: two.offsetLeft - one.offsetLeft - one.offsetWidth, left: two.getBoundingClientRect().left };
+      });
+      const start = await measure();
+      if (start.gap <= 12) throw new Error(`the frames are ${start.gap} px apart: no room to snap`);
+      const written = async () => {
+        await until(async () => (await pageText(page, id)) !== before, { message: "the resize written" });
+        const tag = boardTag((await pageText(page, id)) ?? "", "Screen", "screen-1");
+        return { width: numberAttr(tag, "width"), x: numberAttr(tag, "x") };
+      };
+      const drag = async (options) => {
+        await selectFrame(page, "screen:screen-1");
+        const handle = await until(() => page.locator('.studio-frame-handle[data-handle="e"]').boundingBox(), { message: "the frame's e handle" });
+        const x = handle.x + handle.width / 2;
+        const y = handle.y + handle.height / 2;
+        const dx = (start.gap - 3) * start.zoom;
+        await page.mouse.move(x, y);
+        for (const key of options.keys ?? []) await page.keyboard.down(key);
+        await page.mouse.down();
+        try {
+          for (let step = 1; step <= 3; step++) { await page.mouse.move(x + (dx * step) / 5, y); await sleep(40); }
+          for (const key of options.midKeys ?? []) await page.keyboard.down(key);
+          for (let step = 4; step <= 5; step++) { await page.mouse.move(x + (dx * step) / 5, y); await sleep(40); }
+          await sleep(150);
+          return await options.during?.();
+        } finally {
+          await page.mouse.up();
+          for (const key of [...(options.keys ?? []), ...(options.midKeys ?? [])]) await page.keyboard.up(key);
+        }
+      };
+      // The right edge dragged to 3 px short of the second frame's left edge: it snaps there, with a red guide.
+      const guide = await drag({ during: () => until(() => page.locator(".studio-drag__guide").first().boundingBox(), { timeout: 3000, message: "a red guide while dragging" }) });
+      if (Math.abs(guide.x - start.left) > 1.5) throw new Error(`the guide is at x ${Math.round(guide.x)}, not on the second frame's left edge (${Math.round(start.left)})`);
+      const snapped = await written();
+      if (snapped.width !== start.width + start.gap) throw new Error(`width ${snapped.width}, not ${start.width + start.gap} (snapped to the second frame)`);
+      await until(async () => (await page.locator(".studio-drag__guide").count()) === 0, { timeout: 2000, message: "the guide gone after the release" });
+      await undoTo(page, id, before, 1);
+      // ⌘ pressed mid-drag: the exact px, no guide.
+      const shown = await drag({ midKeys: ["ControlOrMeta"], during: () => page.locator(".studio-drag__guide").count() });
+      if (shown) throw new Error("a guide shows with ⌘ held");
+      const exact = await written();
+      if (Math.abs(exact.width - (start.width + start.gap - 3)) > 1.5) throw new Error(`⌘ held: width ${exact.width}, not the exact ${start.width + start.gap - 3}`);
+      await undoTo(page, id, before, 1);
+      // ⌥ from the centre: the right edge snaps, the left edge mirrors it.
+      await drag({ keys: ["Alt"] });
+      const centred = await written();
+      if (centred.width !== start.width + 2 * start.gap || centred.x !== start.x - start.gap) throw new Error(`⌥: X ${centred.x}, width ${centred.width} (want ${start.x - start.gap}, ${start.width + 2 * start.gap})`);
+      await undoTo(page, id, before, 1);
+      return `right edge → the second frame's left edge with a red guide (width ${start.width} → ${snapped.width}) · ⌘: ${exact.width} · ⌥: X ${centred.x}, width ${centred.width} · one ⌘Z each`;
     },
   },
 ];

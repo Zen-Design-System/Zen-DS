@@ -2,15 +2,18 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { setFrameBoxes } from "../builder/frameEdit";
 import { dropLivePlace, showLivePlace } from "../builder/frameMove";
-import { snapBox, SNAP_PX, type FrameBox } from "../builder/render/framePlace";
+import { SNAP_PX, type FrameBox } from "../builder/render/framePlace";
 import { canvasApi, getViewport } from "../canvas/viewport";
+import { guidesOn, publishDragView } from "../edit/drag";
+import { resizeGuides, snapResize } from "../select/resizeSnap";
 import { notifyFramesMoved, onFramesMoved } from "./frames";
 
 /*
  * Figma's resize handles on a selected top-level frame or Section of a page you made (F4): four corners and four edges.
  * A drag sets the frame's width / height (and its X / Y from the left or top), shown live with its size under it, then
  * written as one edit (builder/frameEdit.ts setFrameBoxes, one ⌘Z). ⇧ keeps the ratio, ⌥ resizes from the centre,
- * ⌘ / Ctrl turns snapping off; the moving edges snap to the other frames' edges and centres. Esc puts it back. A
+ * ⌘ / Ctrl turns snapping off; the moving edges snap to the other frames' edges and centres, with Figma's red guides
+ * (edit/DragLayer draws them in client px). Esc puts it back. A
  * Screen's height is the least it takes (its content may keep it taller); a frame is at least 100 × 100 (Zen's
  * smallest frame). Pointer-only: the right panel's X / Y / W / H are the keyboard path (builder/FrameGeometry.tsx).
  */
@@ -121,34 +124,49 @@ export function FrameHandles({ frameId, localPage }: { frameId: string; localPag
     let box = start;
     let active = false;
     let request = 0;
+    let guidesShown = false;
+    const clearGuides = () => {
+      if (guidesShown) publishDragView(null);
+      guidesShown = false;
+    };
     const apply = () => {
       request = 0;
       const zoom = getViewport().zoom || 1;
       const dx = (pointer.x - startClient.x) / zoom;
       const dy = (pointer.y - startClient.y) / zoom;
       const grow = keys.alt ? 2 : 1;
+      const corner = Boolean(handle.sx && handle.sy);
+      const ratio = start.width / start.height;
       let width = handle.sx ? start.width + handle.sx * dx * grow : start.width;
       let height = handle.sy ? start.height + handle.sy * dy * grow : start.height;
       // ⇧ keeps the ratio (an edge drags the other side along).
       if (keys.shift) {
-        const ratio = start.width / start.height;
-        if (handle.sx && handle.sy) { if (Math.abs(width / start.width) > Math.abs(height / start.height)) height = width / ratio; else width = height * ratio; }
+        if (corner) { if (Math.abs(width / start.width) > Math.abs(height / start.height)) height = width / ratio; else width = height * ratio; }
         else if (handle.sx) height = width / ratio;
         else width = height * ratio;
+      }
+      const axes = { x: { side: handle.sx, centred: keys.alt, min: MIN }, y: { side: handle.sy, centred: keys.alt, min: MIN } };
+      if (!keys.mod) {
+        // The moving edges snap to the other frames' edges and centres (Figma's smart guides while resizing), also from
+        // the centre (⌥) and keeping the ratio (⇧ on a corner), as a layer does (select/resizeSnap.ts).
+        const delta = { x: handle.sx ? (width - start.width) / (handle.sx * grow) : 0, y: handle.sy ? (height - start.height) / (handle.sy * grow) : 0 };
+        const snap = snapResize({ box: start, axes, delta, others, threshold: SNAP_PX / zoom, ratio: keys.shift && corner });
+        if (handle.sx) width = start.width + handle.sx * snap.delta.x * grow;
+        if (handle.sy) height = start.height + handle.sy * snap.delta.y * grow;
+        if (keys.shift && !corner) { if (handle.sx) height = width / ratio; else width = height * ratio; }
       }
       width = Math.max(MIN, width);
       height = Math.max(MIN, height);
       // Anchored at the opposite side, or the centre with ⌥.
       const x = keys.alt ? start.x + (start.width - width) / 2 : handle.sx < 0 ? start.x + start.width - width : start.x;
       const y = keys.alt ? start.y + (start.height - height) / 2 : handle.sy < 0 ? start.y + start.height - height : start.y;
-      box = { x, y, width, height };
-      if (!keys.mod && !keys.alt && !keys.shift) {
-        // The moving edges snap to the other frames (Figma's smart guides while resizing).
-        const snap = snapBox(box, others, SNAP_PX / zoom, { x: handle.sx < 0 ? [0] : handle.sx > 0 ? [2] : [], y: handle.sy < 0 ? [0] : handle.sy > 0 ? [2] : [] });
-        if (handle.sx < 0) { box.x += snap.dx; box.width -= snap.dx; } else if (handle.sx > 0) box.width += snap.dx;
-        if (handle.sy < 0) { box.y += snap.dy; box.height -= snap.dy; } else if (handle.sy > 0) box.height += snap.dy;
+      // The red guides where the moving edges meet another frame's line (read before rounding, as the snap left them).
+      const guides = keys.mod ? [] : resizeGuides({ x, y, width, height }, axes, others);
+      if (guides.length || guidesShown) {
+        publishDragView(guides.length ? { line: null, into: null, pointer, label: null, tone: "info", guides: guidesOn(container, zoom, guides) } : null);
+        guidesShown = guides.length > 0;
       }
-      box = { x: Math.round(box.x), y: Math.round(box.y), width: Math.round(Math.max(MIN, box.width)), height: Math.round(Math.max(MIN, box.height)) };
+      box = { x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) };
       showSize(element, box.width, box.height);
       // The left or top edge (or ⌥) moves the frame's place too.
       if (handle.sx < 0 || handle.sy < 0 || keys.alt) showLivePlace(frameId, element, { x: box.x, y: box.y });
@@ -168,6 +186,7 @@ export function FrameHandles({ frameId, localPage }: { frameId: string; localPag
       if (!active) return;
       if (!commit) { restore(); return; }
       apply();
+      clearGuides();
       const section = element.dataset.kind === "section";
       // Only what the drag changed is written (a width drag leaves a Screen's height to its content).
       const change = Object.fromEntries((["x", "y", "width", "height"] as const).filter((name) => box[name] !== start[name]).map((name) => [name, box[name]]));
@@ -200,6 +219,7 @@ export function FrameHandles({ frameId, localPage }: { frameId: string; localPag
     stop.current = () => {
       cancelAnimationFrame(request);
       request = 0;
+      clearGuides();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onCancel);
