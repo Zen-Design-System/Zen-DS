@@ -114,6 +114,40 @@ Branch `zen/feat/studio-deep-overrides-20261020`, stacked on `zen/feat/studio-pu
   - The QA frame was removed. Fixture `tools/studio/fixtures/figma-deep-overrides.json`.
 - Selftests: push 334, pull 106; studio:selftest passes; tsc is clean.
 
+## Session B · Overrides of Zen components in a main, push and pull (user, 2026-10-20: "làm mục 1 trước", item 1 of the two left)
+
+Branch `zen/feat/studio-library-layer-overrides-20261020` (from main fe5dc9b9). Plugin `studio-import` 1352a72.
+
+- The item the user picked was the push of a Zen component's own layer (`Badge/Dot`). An instance's override of the
+  Zen component's own props in a main (`Button: { level }`) was not pushed either: the panel writes it, and the
+  push only noted it. Both are in now.
+- `dialect.mjs`:
+  - `layerChain` returns `inner` for a path that goes on inside a Zen component.
+  - `opensInside` lets a path go inside a Zen component even when the page puts content in it (`Card/Sub-Action`).
+    Before, only leaf layers could be opened.
+- Push (`figma-push.mjs`): a Zen component layer in a main (byCode, not a frame or text) becomes:
+  - its fields → Figma properties (`figmaProps`, only the fields given);
+  - `children` → `text`;
+  - an inner path → a `nested` entry (owner chain through NESTED_LAYERS, as a placed component's own overrides);
+  - one override entry per layer.
+  - A prop with no Figma property is noted. `hidden` inside a Zen component is noted.
+- Plugin: `applyNested` is shared by a placed instance's `nested` and `applyLayerOverrides`, which now also applies
+  `text` and `nested` on an INSTANCE. A mock test is added; the full `npm test` passes.
+- Pull reader (`readLocalInstance`):
+  - The overrides loop skips layers inside a Zen component.
+  - A new pass reads each Zen component in the instance: the props this instance changed (diffed against the main's
+    layer), its label, and its nested instances. A nested instance's props are diffed against the same layer in the
+    main's: Pagination's Next keeps its own size and icon, and only the instance's level comes back.
+- Converter: `pathAt` returns `{ path, target }`. `libraryOverride` turns the props into code props against the main
+  layer's own; `nested` uses `instanceProps`. An instance that is not Zen's (an icon) keeps only `hidden`.
+- Live Zen file test:
+  - The real importer, with the plugin change, placed CTA (Button + Badge) and Pager (Pagination), with no notes.
+  - The screenshot matched: Buy in Secondary, a red Badge, Next in Secondary.
+  - The read came back as the same `<Use overrides>`.
+  - The QA frame was removed. Fixture `figma-library-layers.json`.
+- Found and noted (BACKLOG P3): a Card's `subAction` is not pushed or pulled.
+- Selftests: push 339, pull 112, dialect 48; studio:selftest passes; tsc is clean.
+
 ## Direct paste of the page's own components (Session C) — tier S, branch `zen/feat/studio-native-local-components-20261020`
 BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studio Shapes and page-local components").
 - Figma's encoding read from its own copy of a probe (lone main with TEXT + BOOL properties, a 2-variant set with a
