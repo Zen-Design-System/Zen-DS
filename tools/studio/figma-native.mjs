@@ -593,8 +593,8 @@ class Writer {
       if (spec.radiusVar) vars.push(["RECTANGLE_TOP_LEFT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_TOP_RIGHT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_BOTTOM_LEFT_CORNER_RADIUS", spec.radiusVar], ["RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS", spec.radiusVar]);
     }
     // The rest of a frame's look (figma-push frameLook; the importer's applyFrameLook): its stroke inside at a weight
-    // (one side, or Zen's dash), its corners one by one on Corner-Radius variables, its effect style (by its node id,
-    // as Figma's copies name one), its opacity, and its rotation and flip about its centre.
+    // (one side, or Zen's dash), its corners one by one on Corner-Radius variables, its effect style (its node id and
+    // its effects, as Figma's copies write one: the pack's `effects`), its opacity, and its rotation and flip about its centre.
     const where = spec.name || "Frame";
     if (spec.stroke) {
       node.strokePaints = this.paint(spec.stroke, where);
@@ -613,7 +613,11 @@ class Writer {
       });
       node.rectangleCornerRadiiIndependent = true;
     }
-    if (spec.effectStyle) { const style = this.style(spec.effectStyle, where); if (style) node.styleIdForEffect = { guid: guid(style[0]) }; }
+    if (spec.effectStyle) {
+      const style = this.style(spec.effectStyle, where);
+      if (style) node.styleIdForEffect = { guid: guid(style[0]) };
+      if (style?.[2]?.effects) node.effects = structuredClone(style[2].effects);
+    }
     if (typeof spec.opacity === "number") node.opacity = spec.opacity;
     if (!root && ((typeof spec.rotation === "number" && spec.rotation % 360) || spec.flip)) node.transform = turned(pos.x, pos.y, pos.w, pos.h, spec.rotation, spec.flip);
     if (spec.scroll && spec.scroll !== "NONE") node.scrollDirection = spec.scroll;

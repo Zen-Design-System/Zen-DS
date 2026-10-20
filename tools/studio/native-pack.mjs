@@ -22,12 +22,16 @@
 //   node tools/studio/native-pack.mjs images-code --part=N  use_figma code: the layers that show a picture in every
 //                                                           component (an Avatar's Image), without a full capture
 //   node tools/studio/native-pack.mjs images --files=a.txt,b.txt   its answers → the pack's `img` fields
+//   node tools/studio/native-pack.mjs effects-code          use_figma code: every local effect style's effects (read only)
+//   node tools/studio/native-pack.mjs effects --files=a.txt its answer → each effect style's `effects` in the pack (a
+//                                                           paste repeats a style's effects beside its id, as Figma's copies do)
 //
 // Pack (docs/figma-contracts/native-pack.json): `sets` {id: {name, props: [[name, type, id, initial]]}}, `symbols`
 // {id: {set?, name, w, h, mode?, bound? (its size fields bound to variables), defs: {setLevelPropId: ownPropId}, props? (a lone component's), nodes: [[id, parent, type, name, visible, w, h, x, y,
 // main, refs, more]]}} (parent: a row index, -1 for the symbol; refs: [[ownPropId, field]]; more: a slot's layout
 // fields, a grid's track ids, a frame's auto layout `mode`, a nested instance's own assignments and the overrides its
-// component sets below it, `img`: the fills of a layer that shows a picture; a symbol's own `img` likewise), `styles` {name: [id, type]}, `variables` {name: [id,
+// component sets below it, `img`: the fills of a layer that shows a picture; a symbol's own `img` likewise), `styles` {name: [id, type, values?]} (a text style's font fields, a paint style's
+// `fillPaints`, an effect style's `effects`), `variables` {name: [id,
 // type]}; a set lists its `variants` in layer order (the first is Figma's default). `contents` {id: [node…]} are the slot
 // contents a component sets on its nested instances, in full (a paste that edits one carries its own copy, as Figma
 // does); their style and variable refs are node ids, their vector data inline (`{blob: base64}`). The schema Figma wrote
@@ -104,6 +108,53 @@ for (const setId of ids) {
 }
 return frames.map((f) => f.id).join(",");
 `.trim();
+}
+
+/** The use_figma code that answers every local effect style's effects (read only; Plugin API names, ASCII JSON). */
+export function effectsCode() {
+  return `
+// Zen Studio · native-pack effects (read only): every local effect style's effects.
+const out = {};
+for (const style of await figma.getLocalEffectStylesAsync()) out[style.name] = style.effects;
+return JSON.stringify(out).replace(/[^\\x20-\\x7e]/g, (c) => "\\\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
+`.trim();
+}
+
+/**
+ * A Plugin API effect as Figma's clipboard writes it (its copies of a Shadow/Bottom/Level-N layer): a shadow with its
+ * colour variable; a blur with the shadow fields at Figma's defaults. Other kinds (glass, noise, texture, a progressive
+ * blur) give null: the style keeps only its id.
+ */
+export function effectFromPlugin(effect) {
+  const shadow = effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW";
+  if (!shadow && !((effect.type === "LAYER_BLUR" || effect.type === "BACKGROUND_BLUR") && (effect.blurType ?? "NORMAL") === "NORMAL")) return null;
+  const alias = shadow ? effect.boundVariables?.color?.id : null;
+  const [sessionID, localID] = String(alias ?? "").replace(/^VariableID:/, "").split(":").map(Number);
+  return {
+    type: effect.type,
+    offset: shadow ? { x: effect.offset.x, y: effect.offset.y } : { x: 0, y: 0 },
+    radius: effect.radius,
+    visible: effect.visible !== false,
+    blendMode: shadow ? effect.blendMode ?? "NORMAL" : "NORMAL",
+    spread: shadow ? effect.spread ?? 0 : 0,
+    showShadowBehindNode: shadow ? effect.showShadowBehindNode === true : false,
+    ...(alias ? { colorVar: { value: { alias: { guid: { sessionID, localID } } }, dataType: "ALIAS", resolvedDataType: "COLOR" } } : {}),
+    color: shadow ? { ...effect.color } : { r: 0, g: 0, b: 0, a: 0.25 },
+  };
+}
+
+/** effectsCode's answer → each effect style's `effects` in the pack; a style with an effect Figma's copies write otherwise is skipped. */
+export function withEffects(pack, answer) {
+  const out = { ...pack, styles: { ...pack.styles } }, counts = { styles: 0, skipped: [] };
+  for (const [name, effects] of Object.entries(JSON.parse(answer))) {
+    const style = out.styles[name];
+    if (!style || style[1] !== "EFFECT") { counts.skipped.push(`${name} (not in the pack)`); continue; }
+    const written = effects.map(effectFromPlugin);
+    if (written.some((effect) => !effect)) { counts.skipped.push(`${name} (${effects.map((effect) => effect.type).join(" + ")})`); continue; }
+    out.styles[name] = [style[0], "EFFECT", { effects: written }];
+    counts.styles++;
+  }
+  return { pack: out, ...counts };
 }
 
 /** The use_figma code that adds an instance of every icon component (the icon page) to the probe, in frames of PROBE_FRAME_SIZE, and a "Styles" frame that uses every local style once (their node ids). */
@@ -217,7 +268,7 @@ export function packFrom(copies, { read }) {
       };
     }
     if (ownOf.has(id(node.guid))) continue;
-    if (node.styleType && node.key && node.styleType !== "NONE") styles[node.name] ??= node.styleType === "TEXT" ? [id(node.guid), node.styleType, textProps(node)] : node.styleType === "FILL" ? [id(node.guid), node.styleType, { fillPaints: localRefs(node.fillPaints ?? []) }] : [id(node.guid), node.styleType];
+    if (node.styleType && node.key && node.styleType !== "NONE") styles[node.name] ??= node.styleType === "TEXT" ? [id(node.guid), node.styleType, textProps(node)] : node.styleType === "FILL" ? [id(node.guid), node.styleType, { fillPaints: localRefs(node.fillPaints ?? []) }] : node.styleType === "EFFECT" && node.effects?.length ? [id(node.guid), node.styleType, { effects: localRefs(node.effects) }] : [id(node.guid), node.styleType];
     // [id, type, key, version]: a paste binds by id in its own layers; in an instance override Figma writes the key.
     if (node.type === "VARIABLE" && !node.isDeleted) variables[node.name] ??= [id(node.guid), node.variableResolvedType ?? "", node.key ?? "", node.version ?? ""];
   }
@@ -522,7 +573,13 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     }
     await write(htmls);
   } else if (command === "write" && option("files")) await write(option("files").split(",").map((file) => fs.readFileSync(file, "utf8")));
-  else if (command === "images-code" || command === "images") {
+  else if (command === "effects-code") console.log(effectsCode());
+  else if (command === "effects" && option("files")) {
+    const file = path.join(root, PACK_FILE);
+    const result = withEffects(JSON.parse(fs.readFileSync(file, "utf8")), fs.readFileSync(option("files"), "utf8").trim().replace(/^"|"$/g, ""));
+    fs.writeFileSync(file, `${JSON.stringify(result.pack)}\n`);
+    console.log(`native-pack: the effects of ${result.styles} effect styles${result.skipped.length ? `; skipped: ${result.skipped.join(", ")}` : ""}`);
+  } else if (command === "images-code" || command === "images") {
     const pack = JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8"));
     // Sets and the components outside them, icons aside (an icon shows no picture).
     const components = [...Object.keys(pack.sets), ...Object.entries(pack.symbols).filter(([, symbol]) => !symbol.set && !/^(icon|ic)-/.test(symbol.name)).map(([key]) => key)].sort();
@@ -539,7 +596,7 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     if (missing.length) { console.error(`native-pack: ${missing.length} set(s) the push can write are not in the pack (${missing.join(", ")}): rebuild with probe-code + capture`); process.exit(1); }
     console.log(`native-pack: every set the push can write (${ids.length}) is in the pack (read ${pack.read})`);
   } else {
-    console.error("usage: native-pack.mjs probe-code --part=N | probe-code --ids=<ids> | capture --frames=<ids> [--merge] | write --files=<html files> [--merge] | check | images-code --part=N | images --files=<answers>");
+    console.error("usage: native-pack.mjs probe-code --part=N | probe-code --ids=<ids> | capture --frames=<ids> [--merge] | write --files=<html files> [--merge] | check | images-code --part=N | images --files=<answers> | effects-code | effects --files=<answer>");
     process.exit(1);
   }
 }

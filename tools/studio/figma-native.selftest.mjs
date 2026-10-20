@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { nativeMessage, nativePictures, pictureKind, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
-import { mergePacks, copiedNode } from "./native-pack.mjs";
+import { mergePacks, copiedNode, effectFromPlugin, withEffects } from "./native-pack.mjs";
 import { diffMessages } from "./native-diff.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -348,7 +348,13 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(bottom.borderBottomWeight === 1 && bottom.borderTopWeight === 0 && bottom.borderLeftWeight === 0 && bottom.borderRightWeight === 0 && bottom.borderStrokeWeightsIndependent === true, "a stroke on one side: that side's weight, 0 on the others");
   check(JSON.stringify(lookOf("Dashed").dashPattern) === "[2,2]" && !("dashPattern" in stroked), "Zen's dash 2 / 2, only where the code dashes");
   check(cornered.rectangleTopLeftCornerRadius === 16 && cornered.rectangleTopRightCornerRadius === 0 && cornered.rectangleBottomRightCornerRadius === 16 && cornered.rectangleBottomLeftCornerRadius === 0 && cornered.rectangleCornerRadiiIndependent && JSON.stringify(bound(cornered).sort()) === JSON.stringify(["RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS", "RECTANGLE_TOP_LEFT_CORNER_RADIUS"]), "corners one by one (TL TR BR BL), each step on its Corner-Radius variable");
-  check(id(lookOf("Shadowed").styleIdForEffect?.guid) === pack.styles["Shadow/Bottom/Level-2"][0], "the effect style by its node id");
+  const shadowed = lookOf("Shadowed");
+  check(id(shadowed.styleIdForEffect?.guid) === pack.styles["Shadow/Bottom/Level-2"][0] && shadowed.effects?.length === 3 && shadowed.effects.every((effect) => effect.type === "DROP_SHADOW" && effect.colorVar?.value.alias.guid) && shadowed.effects[0].radius === 40 && shadowed.effects[0].offset.y === 12, "the effect style by its node id, with its effects (bound to their colour variables), as Figma's copies write it");
+  // native-pack effects: a Plugin API shadow as Figma's clipboard writes it; glass is left out.
+  const popover = effectFromPlugin({ type: "DROP_SHADOW", visible: true, radius: 32, boundVariables: { color: { type: "VARIABLE_ALIAS", id: "VariableID:70:44326" } }, color: { r: 0, g: 0, b: 0, a: 0.04 }, offset: { x: 0, y: 12 }, spread: -16, blendMode: "NORMAL", showShadowBehindNode: true });
+  check(JSON.stringify(popover) === JSON.stringify({ type: "DROP_SHADOW", offset: { x: 0, y: 12 }, radius: 32, visible: true, blendMode: "NORMAL", spread: -16, showShadowBehindNode: true, colorVar: { value: { alias: { guid: { sessionID: 70, localID: 44326 } } }, dataType: "ALIAS", resolvedDataType: "COLOR" }, color: { r: 0, g: 0, b: 0, a: 0.04 } }) && effectFromPlugin({ type: "GLASS", radius: 4 }) === null, "a Plugin API shadow as Figma's clipboard writes it; glass gives none");
+  const effected = withEffects({ styles: { "Effect/X": ["1:1", "EFFECT"], Glass: ["1:2", "EFFECT"] } }, JSON.stringify({ "Effect/X": [{ type: "LAYER_BLUR", radius: 4, visible: true, blurType: "NORMAL" }], Glass: [{ type: "GLASS", radius: 4 }], Gone: [] }));
+  check(effected.styles === 1 && effected.pack.styles["Effect/X"][2].effects[0].type === "LAYER_BLUR" && effected.pack.styles.Glass.length === 2 && effected.skipped.length === 2, `effects into the pack's styles; glass and unknown styles skipped (${effected.skipped.join("; ")})`);
   check(lookOf("Faded").opacity === 0.5 && plain.opacity === 1, "its opacity; 1 when the code sets none");
   check(Math.abs(turn.transform?.m00) < 1e-9 && turn.transform?.m10 === -1 && turn.transform?.m01 === 1 && Math.abs(turn.transform?.m02 - 40) < 1e-9 && Math.abs(turn.transform?.m12 - 120) < 1e-9, `turned 90° about its centre (${JSON.stringify(turn.transform)})`);
   check(!plain.strokePaints?.length && !plain.styleIdForEffect && !plain.dashPattern && plain.transform?.m00 === 1 && plain.transform?.m02 === 20, "a frame without a look keeps Figma's defaults");
