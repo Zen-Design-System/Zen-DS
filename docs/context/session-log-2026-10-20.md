@@ -138,6 +138,31 @@ BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studi
   1 works (`.qa/studio-e2e/2026-10-20T08-52-16.md`; the runner keeps only its last report, the shard summaries are
   from their run output).
 
+## Smart guides while resizing a layer (F2's last item; worktree `festive-chebyshev-fbfcb8`, started by local_3ff40721)
+
+Plan §5 F2 "snapping and guides while resizing": ⌥ centre and ⇧ ratio were built (F2b), snapping only for frames (C's F4).
+- Model `select/resizeSnap.ts` (pure, `resizeSnap.selftest.mjs` 22 checks, in `studio:selftest`): works on the dragged
+  edges' deltas, so ResizeLayer's pin / inset logic (`floatAxis`) stays as it is. Per axis the moving edges (the dragged
+  one; with ⌥ or a centred constraint both, the far one mirrored) snap to the nearest line (start, centre, end) of the
+  frame and its other layers within 6 screen px; ⇧ on a corner picks the closest snap on either axis and the other
+  follows the ratio (the same side·delta/size coupling as `keepRatio`); a snap below the least size gives way to the
+  next one, and the result is clamped there so the guides sit where the edges really are.
+- `ResizeLayer.tsx`: a floating layer in a free frame (`floatAxes(...).free`) measures the frame and its siblings at the
+  press; `valuesAt` snaps the deltas unless ⌘ / Ctrl is held (tracked on pointer events and Meta / Control keys, as
+  Shift and Alt); the guides go through `publishDragView` (DragLayer's red `.studio-drag__guide`) and are cleared at
+  the end of the drag. Still one applyEdit per drag.
+- `edit/drag.ts`: the sibling measuring of a free move and of a group move is now one `freeFrameBoxes`, and `guidesOn`
+  (was private, duplicated by `freeGuides`) is exported; no behaviour change.
+- E2E FW-128 (e: the Rectangle's right edge 138 → 140 on the Ellipse, a red guide at it mid-drag, gone after, one ⌘Z),
+  FW-129 (⌘ mid-drag: 118 exact, no guide; ⌥: X 0 / width 120; ⇧ corner: 120 × 90). FW-129 first failed in the test
+  itself: after a ⌘Z the Rectangle stays selected, so the next ⌘-click deep-selects its part (no handles); each part
+  now starts with nothing selected.
+- Gate (slot 15:57–16:26, after AppShell): `qa --isolated` static all ✓ (style, usage, studio selftests, guidelines,
+  tsc); Studio E2E 335/336, the one broken B-20 (frame presets, the load flake C fixes in #163; alone on this branch ✓).
+  figma rows FW-25/27/28/128/129 5/0. usage, guidelines, mcp, ai-ui checks ✓.
+- Not covered (follow-up): a component in a free frame (its floating Box wrapper) still resizes without snapping, and
+  frame resizing (FrameHandles) snaps but draws no guides.
+
 ## Arrows with one head (Session C) — tier S, branch `zen/fix/studio-arrow-one-head-20261020`
 BACKLOG finding (2026-10-20): a Studio arrow got a head at both ends in Figma (plugin import and direct paste).
 - Figma's ⇧L arrow is a VECTOR "Arrow N", two vertices, the cap on the end vertex only (read-only look at the user's
