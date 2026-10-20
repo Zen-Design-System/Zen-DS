@@ -171,3 +171,42 @@ BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studi
   then `--rows=B-20` on c5f4f362 (main b60bedb8): 168 + 168 works, 0 broken (B-20 ✓ inside shard 1), and B-20 alone
   1 works (`.qa/studio-e2e/2026-10-20T08-52-16.md`; the runner keeps only its last report, the shard summaries are
   from their run output).
+
+## Session "Bug" · Appearance on one row (tier S; user: "Appearance 2 ô nhập lại nằm 2 hàng khác nhau, figma đang để cùng 1 hàng" + "nếu để 2 hàng thì phải cho chiều dài bằng nhau" + "nên có icon bên trong input cho corner radius")
+- B's area (appearance/), told through the supervisor; no worktree had edits there. `AppearanceFields` replaces
+  `CornerRadiusField`: one InspectorFields row (Opacity · Corner radius, labels above, ⛶ Independent corners in the icon
+  column), the radius a ScaleField with `icon-maximize-02-line` inside (Figma's glyph is the same four corners), the four
+  corners as two InspectorFields rows of ScaleFields (fallback = the uniform radius, in the placeholder tone). Each field
+  keeps `data-prop` on a wrapper (AP-01 finds `radiusBottomRight`). One field (Image: radius only) stays half width.
+  ShapeSections uses the same row (radius only on rectangles). Mixed corners read "Mixed" in the field.
+- Probe on a private server (5189, own Vite cache, the E2E host fixture's box): fields 128 + 128 on one row, corners
+  2×2 at the same widths; figma.mjs panelFits clean closed, open and at 3XLarge.
+- Popover icon tiles (user: "icon trong popover bị lệch tâm"): popover.css put every Icon-tone leading at align-self
+  flex-start (first line of a label), so a leading-only item (Studio icon picker Recent/Related) drew its icon 4px from
+  the top of a 36px tile. The rule now needs `:has(> .zen-popover__item-content)`, as its own comment said. Measured on
+  the private server: 10 / 10 px top and bottom, 9.7 / 9.6 px sides.
+
+## Smart guides while resizing a layer (F2's last item; worktree `festive-chebyshev-fbfcb8`, started by local_3ff40721)
+
+Plan §5 F2 "snapping and guides while resizing": ⌥ centre and ⇧ ratio were built (F2b), snapping only for frames (C's F4).
+- Model `select/resizeSnap.ts` (pure, `resizeSnap.selftest.mjs` 22 checks, in `studio:selftest`): works on the dragged
+  edges' deltas, so ResizeLayer's pin / inset logic (`floatAxis`) stays as it is. Per axis the moving edges (the dragged
+  one; with ⌥ or a centred constraint both, the far one mirrored) snap to the nearest line (start, centre, end) of the
+  frame and its other layers within 6 screen px; ⇧ on a corner picks the closest snap on either axis and the other
+  follows the ratio (the same side·delta/size coupling as `keepRatio`); a snap below the least size gives way to the
+  next one, and the result is clamped there so the guides sit where the edges really are.
+- `ResizeLayer.tsx`: a floating layer in a free frame (`floatAxes(...).free`) measures the frame and its siblings at the
+  press; `valuesAt` snaps the deltas unless ⌘ / Ctrl is held (tracked on pointer events and Meta / Control keys, as
+  Shift and Alt); the guides go through `publishDragView` (DragLayer's red `.studio-drag__guide`) and are cleared at
+  the end of the drag. Still one applyEdit per drag.
+- `edit/drag.ts`: the sibling measuring of a free move and of a group move is now one `freeFrameBoxes`, and `guidesOn`
+  (was private, duplicated by `freeGuides`) is exported; no behaviour change.
+- E2E FW-128 (e: the Rectangle's right edge 138 → 140 on the Ellipse, a red guide at it mid-drag, gone after, one ⌘Z),
+  FW-129 (⌘ mid-drag: 118 exact, no guide; ⌥: X 0 / width 120; ⇧ corner: 120 × 90). FW-129 first failed in the test
+  itself: after a ⌘Z the Rectangle stays selected, so the next ⌘-click deep-selects its part (no handles); each part
+  now starts with nothing selected.
+- Gate (slot 15:57–16:26, after AppShell): `qa --isolated` static all ✓ (style, usage, studio selftests, guidelines,
+  tsc); Studio E2E 335/336, the one broken B-20 (frame presets, the load flake C fixes in #163; alone on this branch ✓).
+  figma rows FW-25/27/28/128/129 5/0. usage, guidelines, mcp, ai-ui checks ✓.
+- Not covered (follow-up): a component in a free frame (its floating Box wrapper) still resizes without snapping, and
+  frame resizing (FrameHandles) snaps but draws no guides.

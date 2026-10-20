@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
+  free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
+  while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
+  one ⌘Z per drag.
 - Box `mask` (Figma's mask): the box's first layer is the mask and draws nothing; the layers after it show only
   inside its outline, turned and flipped as drawn. Zen Studio's Use as mask (⌃⌘M, the canvas menu, Quick actions)
   makes a Mask group of two or more floating layers, the bottom one the mask, and on a mask group removes it.
@@ -186,6 +190,11 @@ removed (four unused colour ramps were, see Removed).
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Popover: an item with only a leading icon (no label) centres the icon; the first-line alignment is for labelled items
+  only (2026-10-20, user: "icon trong popover bị lệch tâm", Studio's Recent / Related icon tiles).
+- Zen Studio Appearance as Figma's (2026-10-20, user: "Appearance 2 ô nhập lại nằm 2 hàng khác nhau, figma đang để cùng 1
+  hàng"): Opacity and Corner radius on one row, two equal fields with their labels above, the corners glyph inside the
+  radius field and Independent corners beside it; the four corners show two by two (frames, rectangles, images).
 - Zen Studio Properties: a ProgressBar has Figma's Progress select (None 0, Low 20, Medium 40, Good 80, Done 100; another
   number shows as itself) above its Value slider (2026-10-19, user: "thêm ô chọn Progress cho ProgressBar"). Number
   props with a known range get their slider in Figma-grouped Properties too (Rating, Slider, ProgressCircle).
