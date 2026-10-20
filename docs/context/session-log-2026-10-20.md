@@ -131,3 +131,9 @@ BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studi
   B-20 waits 12 s for it. B confirmed the failing step: "Timed out waiting for the new frame selected" (the 6 s until,
   after every earlier check passed; both tries of the row; alone 8 s and the builder group 45/45 pass): the selection, as
   both leads say.
+- Gate (Giám sát's slot): the first full run (13:21–14:18) passed every static step but its Studio E2E hit the gate's
+  cap under machine load (load ~10, macOS replayd at ~90% CPU: "no summary · 3377s"). Report
+  `.qa/reports/2026-10-20T06-21-28-ee53b0aa.md`. In the next slot, Giám sát's plan: `studio:e2e --shard=1/2` then `2/2`
+  then `--rows=B-20` on c5f4f362 (main b60bedb8): 168 + 168 works, 0 broken (B-20 ✓ inside shard 1), and B-20 alone
+  1 works (`.qa/studio-e2e/2026-10-20T08-52-16.md`; the runner keeps only its last report, the shard summaries are
+  from their run output).
