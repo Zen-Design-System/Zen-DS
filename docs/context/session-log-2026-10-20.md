@@ -254,3 +254,18 @@ BACKLOG finding (2026-10-20): a Studio arrow got a head at both ends in Figma (p
   paste scripts now save and restore through files.
 - Gate (Giám sát's slot after the snap session, on c7d8613a with main b2f2e019): `qa --isolated` PASS — static ✓, Studio
   E2E 336 works · 0 broken (1951 s). Report `.qa/reports/2026-10-20T13-57-08-ee53b0aa.md`.
+
+## Image `frame` (AppShell session, follow-up to #168) — tier S, branch `zen/feat/image-frameless-20261020`
+
+The user approved it on 2026-10-20, answering the open #168 questions ("Image không khung … -> OK"). Figma has no
+Image component; E1's Character is a 100 × 100 frame with an IMAGE fill (Fit), no fill behind it and no stroke
+(use_figma on 15991:9673).
+- `Image frame` (default true). `false` sets `data-frame="none"`: no Neutral/Pale fill and no hairline `::after`;
+  the Skeleton and the error placeholder are unchanged.
+- E1's mascot (render and code) now uses `frame={false}`. The Image page has a new example, "A cut-out picture",
+  showing both frames.
+- Guideline: the api row and a do line. Docs, api and ai-ui regenerated. Test: `tests/interaction/image-frame.test.tsx`.
+- Other #168 answers: Card spacing xs is approved, but Figma's Card has Spacing Medium | Small only, and E6's
+  Intent tiles are plain frames (padding 8/12, radius 20). This needs the user's call on Figma first. The E7
+  Segmented and the F4 crop are explained to the user again.
+

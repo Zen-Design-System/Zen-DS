@@ -9529,6 +9529,11 @@
           "default": "cover",
           "description": "cover (default): fills the frame and crops."
         },
+        "frame": {
+          "type": "boolean",
+          "default": true,
+          "description": "The frame behind the picture: Neutral/Pale with a 1px Border/Neutral/Pale hairline (default true), so a light photo keeps its edge."
+        },
         "radius": {
           "enum": [
             "none",
@@ -20174,6 +20179,7 @@
       "title": "Image & Thumbnail",
       "file": "docs/guidelines/image.md",
       "do": [
+        "Use frame={false} for a cut-out picture on a transparent background (a mascot, a product without its backdrop): the frame would show as a faint square around it.",
         "Always pass alt: what the picture shows in context; alt=\"\" only when it is decorative or text beside it names it (harness: image/needs-alt).",
         "Set ratio so the frame keeps its size while loading and nothing jumps when the picture arrives.",
         "Use loading=\"eager\" only for the first picture on screen; keep the rest lazy.",

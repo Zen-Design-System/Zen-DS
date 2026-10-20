@@ -19094,6 +19094,17 @@
                 ],
                 "description": "cover (default): fills the frame and crops."
               },
+              "frame": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The frame behind the picture: Neutral/Pale with a 1px Border/Neutral/Pale hairline (default true), so a light photo keeps its edge."
+              },
               "radius": {
                 "anyOf": [
                   {

@@ -18640,6 +18640,14 @@
           "deprecated": null
         },
         {
+          "name": "frame",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The frame behind the picture: Neutral/Pale with a 1px Border/Neutral/Pale hairline (default true), so a light photo\nkeeps its edge. `false` for a cut-out picture on a transparent background (a mascot, a product without its backdrop,\nFigma's bare image fill): no fill and no hairline, so no faint square shows around it. The Skeleton and the error\nplaceholder still fill the box.",
+          "deprecated": null
+        },
+        {
           "name": "radius",
           "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
           "required": false,
