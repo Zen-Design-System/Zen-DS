@@ -359,3 +359,9 @@ the centre (`turned`, as shapes). Figma's copies write an effect style's id besi
 paints), so the pack now holds them: `native-pack effects-code` (use_figma, read only) + `effects --files=` → 15 effect
 styles' `effects` (the drop shadows equal a Figma copy's of Effect/Popover; glass styles skipped); a full capture
 stores them from the style nodes too. Selftest figma-native 130. Built on the native-pack merge fix (merged in).
+- Live paste (Zen file, 8 frames, one look each), read back with use_figma: stroke bound to Border/Neutral/Subtle
+  inside at 2; one side `[0, 0, 1, 0]`; dash 2 / 2; corners TL / BR on Corner-Radius/XLarge (Figma shows the
+  variable's 20); Shadow/Bottom/Level-2 bound with its 3 shadows on their colour variables; opacity 0.5; 30° and
+  flip + 15° about the frame's centre (360, 180 / 500, 180). The first try (02:42) never landed; the second (20 s
+  wait) landed on the user's own page ◇ Master-Layout, not the QA page (the node-id link did not switch pages): read
+  and removed at once, the user told. The user's clipboard put back 6/6 both times.
