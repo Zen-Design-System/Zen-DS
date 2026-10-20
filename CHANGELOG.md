@@ -64,6 +64,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   rail mark, so focus stays on it and its aria-expanded flips.
 - Chat at narrow widths: a ChatComposer under 340px keeps only plus, as typing does. A desktop ChatThread under 480px
   drops the hover-toolbar gutter, and the toolbar sits over the bubble's top corner instead.
+- Popover: when a surface fits on neither side in view, it opens towards the side the page can scroll to, not the side
+  a clipping frame cuts off for good (a chip at the top of a phone preview at the window's bottom edge lost its menu).
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
