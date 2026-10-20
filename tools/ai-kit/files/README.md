@@ -12,6 +12,7 @@ Figma's MCP server.
 | `skills/zen-figma-design/SKILL.md` | The skill: setup, hard rules, how to build a screen, the audit loop, the report |
 | `skills/zen-figma-design/harness/zen-figma-audit.js` | The harness: a read-only Figma Plugin API script the agent runs with `use_figma` after every screen (unbound colours, spacing, radii, text styles, effects, overrides inside instances, lost icon colours, overflow, clipping, crushed text, placeholder copy) |
 | `skills/zen-figma-design/references/screen-rules.md` | Surfaces, the spacing ladder, which component for which need, patterns that went wrong before, the review checklist |
+| `skills/zen-figma-design/references/design-principles.md`, `responsive-principles.md` | The design principles behind the rules (principles, not checks): colour pairing and balance, hierarchy and composition, responsive and adaptive layouts |
 | `skills/zen-figma-design/references/figma-components.md` | Every Zen component set with its exact property names and values (generated from the live Figma file) |
 | `skills/zen-figma-design/references/figma-tokens.md` | The variables and styles to bind: semantic colours, spacing, radii, breakpoints, text and effect styles (generated) |
 | `skills/zen-figma-design/references/figma-gotchas.md` | Plugin API behaviours that broke Zen screens, and what works |

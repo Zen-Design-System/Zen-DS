@@ -5,7 +5,14 @@ import { zipFiles } from "../../tools/studio/zip.mjs";
 import { buildKit, KIT_NAME } from "../../tools/ai-kit/kit.mjs";
 
 const textFiles = import.meta.glob<string>(
-  ["/tools/ai-kit/files/*", "/skills/zen-figma-design/**/*", "/docs/component-usage-rules.md", "/docs/guidelines/*.md"],
+  [
+    "/tools/ai-kit/files/*",
+    "/skills/zen-figma-design/**/*",
+    "/docs/component-usage-rules.md",
+    "/skills/zen-component-usage/references/design-principles.md",
+    "/skills/zen-responsive-screens/references/responsive-principles.md",
+    "/docs/guidelines/*.md",
+  ],
   { query: "?raw", import: "default" },
 );
 const contractFile = import.meta.glob<unknown>("/docs/figma-contracts/component-properties.json", { import: "default" });

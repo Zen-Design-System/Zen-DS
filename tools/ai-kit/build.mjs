@@ -33,6 +33,7 @@ export function readKitInputs() {
     ...walk(KIT_SOURCES.root),
     ...walk(KIT_SOURCES.skill),
     KIT_SOURCES.rules,
+    ...KIT_SOURCES.principles,
     ...walk(KIT_SOURCES.guidelines).filter((file) => file.endsWith(".md")),
   ];
   const sources = Object.fromEntries(files.map((file) => [file, read(file)]));
@@ -98,7 +99,7 @@ expect("figma-tokens.md resolves dm-N", /\| `Spacing\/Gap\/Medium` \| 16 \|/.tes
 
 // The browser build (src/platform/aiKit.ts) must read the same sources.
 const browser = read("src/platform/aiKit.ts");
-for (const source of [KIT_SOURCES.root, KIT_SOURCES.skill, KIT_SOURCES.rules, KIT_SOURCES.guidelines, KIT_SOURCES.contract, KIT_SOURCES.tokens, KIT_SOURCES.styles, KIT_SOURCES.textStyles]) {
+for (const source of [KIT_SOURCES.root, KIT_SOURCES.skill, KIT_SOURCES.rules, ...KIT_SOURCES.principles, KIT_SOURCES.guidelines, KIT_SOURCES.contract, KIT_SOURCES.tokens, KIT_SOURCES.styles, KIT_SOURCES.textStyles]) {
   expect(`aiKit.ts reads ${source}`, browser.includes(`/${source}`));
 }
 for (const name of [...KIT_SOURCES.tokenFiles, "global-dimensions"]) expect(`aiKit.ts reads the ${name} tokens`, browser.includes(name));

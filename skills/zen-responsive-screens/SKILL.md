@@ -1,12 +1,16 @@
 ---
 name: zen-responsive-screens
-description: Make one Zen screen work on desktop and on phones — turn the desktop header (AppShell top bar, Sidebar, PageHeader / DashboardHeader rows) into the phone's TopNavigation and BottomNavigation by Zen's mapping, in code, in Zen Studio or in a Zen Figma file. Use when a page needs a mobile version, a template must run on phones, a desktop and a phone frame of the same screen disagree, or someone asks where a header element goes on mobile.
+description: Make one Zen screen work on desktop and on phones — turn the desktop header (AppShell top bar, Sidebar, PageHeader / DashboardHeader rows) into the phone's TopNavigation and BottomNavigation by Zen's mapping, in code, in Zen Studio or in a Zen Figma file. Use when a page needs a mobile version, a template must run on phones, a desktop and a phone frame of the same screen disagree, someone asks where a header element goes on mobile, or a UI must adapt across widths (responsive and adaptive layout principles).
 ---
 
 # Zen responsive screens
 
 A page that runs on desktop and on phones keeps **one set of parts and moves each one to its place**. The mapping
 table and the rules are `docs/component-usage-rules.md` §17; read it first. This skill is the procedure.
+
+For the decisions the mapping leaves open (responsive or adaptive, which canonical layout and how it folds, what to
+drop when the space shrinks, touch versus pointer, text that must flex), read `references/responsive-principles.md`.
+It holds principles, not rules: nothing checks them, and the brief or the designer may choose otherwise.
 
 ## 1. Read the desktop screen as parts
 
@@ -80,5 +84,7 @@ instead of leaving default content. Then run the Zen audit (`skills/zen-figma-de
 - [ ] ≤ 3 trailing places; Back is the chevron; no Primary in the bar of a detail or form screen.
 - [ ] Every desktop header action reachable on the phone; one way to create.
 - [ ] Desktop 1512, tablet 744 and phone 390 screenshots look right (`npm run qa` takes 1512 + 390 shots).
+- [ ] The widths in between hold too (360, 600, 900, 1280; responsive-principles §9), and the wide layout shows more
+      instead of only stretching.
 
 Worked examples: `references/worked-examples.md`.
