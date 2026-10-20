@@ -114,6 +114,30 @@ Branch `zen/feat/studio-deep-overrides-20261020`, stacked on `zen/feat/studio-pu
   - The QA frame was removed. Fixture `tools/studio/fixtures/figma-deep-overrides.json`.
 - Selftests: push 334, pull 106; studio:selftest passes; tsc is clean.
 
+## Direct paste of the page's own components (Session C) — tier S, branch `zen/feat/studio-native-local-components-20261020`
+BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studio Shapes and page-local components").
+- Figma's encoding read from its own copy of a probe (lone main with TEXT + BOOL properties, a 2-variant set with a
+  BOOL property, three instances): figma-native writes sets, variants, lone mains and bound layers the same way.
+- A live paste gave the set and its properties right but instances with no main. Figma's own copy pasted back (its
+  mains deleted) did the same: a paste never links an instance to a main pasted with it. User choice (2026-10-20):
+  "Main thật + Use thành frame": a `<Use>` is a frame copy of its variant with its values and overrides, one note.
+- Live paste (QA page, removed): Chip set with Label / Show icon / Size and bound layers, the Note main, three frames
+  with their values. Selftest figma-native 113. Slots and swap properties stay notes.
+- B-20 again (Giám sát: B's full gate 03:31–03:56, 335/1, on a tree with #149; its report is gone, only "B-20
+  regressed"). Two leads read from the code: BuilderBoard.tsx drops a frame selection whenever the board's tree lacks
+  the frame, and under load the pin-row edit's older text can render after the preset frame's; the row waited 6 s for
+  the selection where the app waits 10 s. Fix (`zen/fix/studio-new-frame-selection-20261020`, folded in here): a frame
+  the Studio just added keeps its selection a few seconds (`arrivingFor`, board/frames.ts), then the check runs again;
+  B-20 waits 12 s for it. B confirmed the failing step: "Timed out waiting for the new frame selected" (the 6 s until,
+  after every earlier check passed; both tries of the row; alone 8 s and the builder group 45/45 pass): the selection, as
+  both leads say.
+- Gate (Giám sát's slot): the first full run (13:21–14:18) passed every static step but its Studio E2E hit the gate's
+  cap under machine load (load ~10, macOS replayd at ~90% CPU: "no summary · 3377s"). Report
+  `.qa/reports/2026-10-20T06-21-28-ee53b0aa.md`. In the next slot, Giám sát's plan: `studio:e2e --shard=1/2` then `2/2`
+  then `--rows=B-20` on c5f4f362 (main b60bedb8): 168 + 168 works, 0 broken (B-20 ✓ inside shard 1), and B-20 alone
+  1 works (`.qa/studio-e2e/2026-10-20T08-52-16.md`; the runner keeps only its last report, the shard summaries are
+  from their run output).
+
 ## Smart guides while resizing a layer (F2's last item; worktree `festive-chebyshev-fbfcb8`, started by local_3ff40721)
 
 Plan §5 F2 "snapping and guides while resizing": ⌥ centre and ⇧ ratio were built (F2b), snapping only for frames (C's F4).

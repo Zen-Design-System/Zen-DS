@@ -53,6 +53,10 @@ removed (four unused colour ramps were, see Removed).
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
   and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
+- The direct paste places a page's own components (`<Component>`, `<ComponentSet>`) as Figma components with their
+  variants and text / boolean properties, the layers bound to them. Figma links a pasted instance only to a component
+  already in the file, so a `<Use>` lands as a frame showing its variant with its values (Import from Studio places
+  linked instances; the paste says so in a note).
 - `TextRun`: words of a Text or Heading with a style of their own (bold, italic, underline, strikethrough, a tone,
   another text style), Figma's mixed styles (`<Text>Renews on <TextRun bold>Nov 2</TextRun></Text>`). In Zen Studio
   (F6b) ⌘B / ⌘I / ⌘U / ⇧⌘X style the selected words of a text being edited and write TextRuns; the text stays one layer
