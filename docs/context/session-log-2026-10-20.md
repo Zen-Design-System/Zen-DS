@@ -316,3 +316,14 @@ Image component; E1's Character is a 100 × 100 frame with an IMAGE fill (Fit), 
       - Only these three were written, not the whole `variables` command. A dry run showed ~110 other variables
         would also change: the stored `&#39;` escapes, and source edits that other sessions have not written yet.
         Spacing/Gap/3XSmall still says "outside the ladder" in Figma.
+- Gate 2026-10-21 (follow-ups): PASS with 50 new warnings.
+  - Fixed in 3a26589a:
+    - The Image cut-out example now uses Flat cards.
+    - The xs Card playground slot has concentric corners (4px).
+    - Two dead clicks (A1–A4 Workspace crumb, B2 rail items) now show a toast.
+    - app-shell gets 6× the behaviour budget. It had timed out at 2× in every gate run, so its later screens were never checked.
+  - Moved into `quality-baseline.json` (40 keys), on the user's answers:
+    - E7's White-Overlay "Activity" label (Lc 38.6 on the #F755C9 band): "Giữ Light như Figma".
+    - The rhythm counts of A1–A4, B5, E2, E7, the App Shell playground's side-panel state and three templates:
+      "Baseline, giữ như Figma". Figma's own A1 uses ~13 styles; the check also counts component-owned text
+      (Table headers, Metric values).
