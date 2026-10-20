@@ -76,7 +76,8 @@ export interface SegmentedProps {
  * Primary with Inverse/Solid (its outlined track became filled in the live file, 2026-10-18). Black-Overlay and White-Overlay put it on a colour band or photo
  * in static tokens that do not switch with the mode (as Button's overlay levels): a Background/Black-Overlay or
  * White-Overlay track, with light text on Black-Overlay (Content/On-Black-Overlay) and dark text on White-Overlay
- * (Content/On-White-Overlay/Strongest, every state: Figma 2026-10-20), a Background/White/Solid selected segment with
+ * (Content/On-White-Overlay/Light at rest, Strongest hovered, focused or selected: Figma 2026-10-20), a
+ * Background/White/Solid selected segment with
  * On-White-Overlay text and a Border/Overlay/Solid focus ring. An icon-only segment (Item Label=false:
  * `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
  */

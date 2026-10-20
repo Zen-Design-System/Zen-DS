@@ -69,8 +69,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Image `frame` (2026-10-20, user-approved): `frame={false}` drops the Neutral/Pale fill and the hairline behind a
   cut-out picture on a transparent background (a mascot, a product without its backdrop), so no faint square shows
   around it. App Shell E1's mascot uses it, and the Image page shows both frames side by side.
-- Segmented White-Overlay follows Figma's update (2026-10-20): its labels are On-White-Overlay/Strongest (dark) in every
-  state, readable on a bright Accent band where the white label was 1.96:1. Both overlay levels' Focused ring is
+- Segmented White-Overlay follows Figma's update (2026-10-20): its labels are dark, On-White-Overlay/Light at rest and
+  Strongest when hovered, focused or selected, readable on a bright Accent band where the white label was 1.96:1. Both overlay levels' Focused ring is
   Border/Overlay/Solid (static), with the dark label colour on the white selected segment. App Shell E7 uses
   White-Overlay again, as Figma draws it.
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a

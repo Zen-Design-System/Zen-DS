@@ -32,13 +32,15 @@
 /* Level=Black-Overlay (the default overlay) and White-Overlay (on a solid colour): the control on a colour band or photo,
    as Button's overlay levels. Only static tokens, which do not switch with the mode, because the surface under it does
    not either. The selected segment is Background/White/Solid with On-White-Overlay text in both. Hover darkens a
-   Black-Overlay segment and lightens a White-Overlay one. A White-Overlay label is On-White-Overlay/Strongest in every
-   state (Figma 2026-10-20, the user: the white unselected label was 1.96:1 on a bright Accent band). */
+   Black-Overlay segment and lightens a White-Overlay one. White-Overlay labels are dark (Figma 2026-10-20, the user: the
+   white unselected label was 1.96:1 on a bright Accent band): On-White-Overlay/Light at rest, Strongest when hovered,
+   focused or selected. */
 .zen-segmented[data-level="black-overlay"] { background: var(--zen-color-background-black-overlay-default, rgb(0 0 0 / 40%)); }
 .zen-segmented[data-level="white-overlay"] { background: var(--zen-color-background-white-overlay-default, rgb(255 255 255 / 40%)); }
 .zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item { background: transparent; }
 .zen-segmented[data-level="black-overlay"] .zen-segmented__item { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 82%)); }
-.zen-segmented[data-level="white-overlay"] .zen-segmented__item { color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
+.zen-segmented[data-level="white-overlay"] .zen-segmented__item { color: var(--zen-color-content-on-white-overlay-light, rgb(0 0 0 / 45%)); }
+.zen-segmented[data-level="white-overlay"] .zen-segmented__item:not([data-selected="true"]):is(:focus-visible, [data-state="focused"]) { color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
 .zen-segmented[data-level="black-overlay"] .zen-segmented__item:not([data-selected="true"]):is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)); color: var(--zen-color-content-on-black-overlay-strongest, rgb(255 255 255 / 96%)); }
 .zen-segmented[data-level="white-overlay"] .zen-segmented__item:not([data-selected="true"]):is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-white-overlay-default, rgb(255 255 255 / 40%)); color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
 .zen-segmented:is([data-level="black-overlay"], [data-level="white-overlay"]) .zen-segmented__item[data-selected="true"] { background: var(--zen-color-background-white-solid-default, #fff); color: var(--zen-color-content-on-white-overlay-strongest, rgb(0 0 0 / 93%)); }
