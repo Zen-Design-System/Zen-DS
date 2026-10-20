@@ -3033,7 +3033,9 @@ export const rows = [
       const exact = await rectangle();
       if (exact.width === 120 || Math.abs(exact.width - 118) > 1) throw new Error(`⌘ held: width ${exact.width}, not the exact 118`);
       await undoTo(page, id, before);
-      // ⌥: both edges move; the left one (X 2) snaps to the frame's left edge and the right one mirrors it.
+      // ⌥: both edges move; the left one (X 2) snaps to the frame's left edge and the right one mirrors it. Nothing
+      // selected first: a ⌘-click on the selected Shape would select its part (deep select), which has no handles.
+      await deselect(page);
       await selectShape(page, id, 0);
       await dragHandle(page, "e", 18 * frame.scale, 0, ["Alt"]);
       await written();
@@ -3041,6 +3043,7 @@ export const rows = [
       if (centred.x !== 0 || centred.width !== 120) throw new Error(`⌥: X ${centred.x}, width ${centred.width} (want X 0, width 120: the centre 60 kept, the left edge on the frame's)`);
       await undoTo(page, id, before);
       // ⇧ on a corner: the right edge (138) snaps to the Ellipse (140) and the height follows the ratio (80 × 60 → 120 × 90).
+      await deselect(page);
       await selectShape(page, id, 0);
       await dragHandle(page, "se", 38 * frame.scale, 10 * frame.scale, ["Shift"]);
       await written();
