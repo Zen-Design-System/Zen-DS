@@ -332,3 +332,20 @@ MULTIPLY, a star LINEAR_DODGE, the outer frame PASS_THROUGH.
 - After #171: a Studio page's `blendMode` (Box multiply, star plus-lighter) goes through figma-push into the paste as
   MULTIPLY / LINEAR_DODGE, nothing at the default. Gate (Giám sát's slot, on 0d551f9f with main e99c5408): `qa --isolated`
   PASS — static ✓, Studio E2E 336 works · 0 broken (1793 s); report `.qa/reports/2026-10-20T18-27-33-ee53b0aa.md`.
+
+## native-pack: merge a set into the pack; capture keeps the clipboard (Session C) — tier XS, branch `zen/feat/native-pack-merge-20261021`
+Asked by Bug (the user's Header/AppShell in Studio needs 16243:290461 in the pack; `native-pack check` failed): `write
+--merge` / `capture --merge` add new copies' sets, symbols, styles, variables and contents to the existing pack
+(`mergePacks`, `merged` records each), the schema module stays; `probe-code --ids=` probes just those components. Fix
+at its owner: `capture` cleared the user's clipboard and never put it back — it now saves every type to files and puts
+it back after the copies, also when one fails (`clipboardFiles`; inline osascript failed on a large picture on
+2026-10-20). Checked offline: a probe copy merged onto the pack (230 → 231 sets, base kept), a save → restore round trip
+of the live clipboard (4/4 types). Selftest figma-native 116.
+- Bug's live run (2026-10-21, shared checkout) found two faults, both fixed here: (1) "new ids win" replaced six sets
+  the pack held (Avatar/Single, five Button sets) with the copy's partial versions (only the variants Header/AppShell
+  nests): selftest 2/117 ✗. A merge now keeps what the pack holds and adds only what it lacks, a held set gaining the
+  copy's missing variants and properties after its own. (2) Header/AppShell never came in because Figma copied the
+  person's own selection, not the probe frame (meta `selectedNodeData`; the same slip as my frame-look probe, whose
+  copy was 16783:70965 with Avatar/Single + Button/Icon-Flat). `capture` now reads which node a copy is of, tries once
+  more, then refuses (`copiedNode`); `--keep` (documented, never built) saves the copies to `.qa/native-pack/`.
+  Selftest figma-native 119. Its own PR (Giám sát, Bug), ahead of Bug's Header/AppShell PR.

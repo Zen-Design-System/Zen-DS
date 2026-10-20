@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { nativeMessage, nativePictures, pictureKind, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
+import { mergePacks, copiedNode } from "./native-pack.mjs";
 import { diffMessages } from "./native-diff.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -421,6 +422,21 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(shows(pictureAt(cover, ["1603:4720"])), "a Photo-Cell's picture fills its Photo");
   check(missing && !overrides(missing).some((entry) => entry.fillPaints) && notes.length === 1 && notes[0].includes("Lost") && notes[0].includes("not in the export"), `a picture without bytes is named in a note (${notes.join("; ")})`);
   check(message.blobs.filter((blob) => Buffer.from(blob.bytes).equals(logoBytes)).length === 1, "one blob for a picture used three times");
+}
+
+// --- native-pack --merge: a set added to the library joins the pack without a full capture ------------------------
+{
+  const base = { file: "f", read: "2026-10-18", sets: { "1:1": { name: "A", props: [["Size", "VARIANT", "1:90", null]], variants: ["1:2", "1:3"] } }, symbols: { "1:2": { name: "A1" }, "1:3": { name: "A2" } }, styles: { S: ["5:5", "TEXT"] }, variables: { V: ["6:6", "COLOR"] }, contents: {} };
+  // A copy of one Header/AppShell instance: its own set, and the one variant of A it nests (plus one A lacked).
+  const added = { read: "2026-10-21", sets: { "2:1": { name: "Header/AppShell", props: [], variants: ["2:2"] }, "1:1": { name: "A", props: [["Size", "VARIANT", "1:90", null], ["Icon", "BOOLEAN", "1:91", true]], variants: ["1:3", "1:4"] } }, symbols: { "2:2": { name: "B1" }, "1:3": { name: "partial" }, "1:4": { name: "A3" } }, styles: { S2: ["7:7", "FILL"], S: ["9:9", "TEXT"] }, variables: {}, contents: { "2:9": [] } };
+  const merged = mergePacks(base, added);
+  check(merged.sets["2:1"] && merged.symbols["2:2"] && merged.styles.S2 && merged.contents["2:9"] && merged.read === "2026-10-18", "a merge adds the copies' new sets, symbols, styles and contents");
+  check(merged.symbols["1:3"].name === "A2" && merged.styles.S[0] === "5:5" && merged.symbols["1:2"], "what the pack holds stays (a copy carries partial nested sets)");
+  check(JSON.stringify(merged.sets["1:1"].variants) === JSON.stringify(["1:2", "1:3", "1:4"]) && merged.sets["1:1"].props.map((prop) => prop[2]).join() === "1:90,1:91" && merged.symbols["1:4"], "a set the pack holds gains only the variants and properties it lacks, after its own");
+  check(JSON.stringify(merged.merged) === JSON.stringify([{ read: "2026-10-21", sets: ["2:1"], symbols: 2 }]) && Object.keys(merged.symbols).join() === "1:2,1:3,1:4,2:2", "it records what it added; keys stay sorted");
+  // capture: the copy must be of the probe frame (Figma can keep the person's own selection).
+  const probeCopy = await figmaPasteHtml(exportOf([{ type: "FRAME", name: "Probe", layout: { mode: "VERTICAL" }, children: [] }]), pack);
+  check(/^\d+:\d+$/.test(await copiedNode(probeCopy.html)) && (await copiedNode("<p>text</p>")) === "", "a copy names the node it was made of; other html names none");
 }
 
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------
