@@ -578,6 +578,9 @@ class Writer {
       size: { x: pos.w, y: pos.h }, transform: at(pos.x, pos.y), ...FRAME_FIELDS,
       fillPaints: spec.fill ? this.paint(spec.fill, spec.name) : [],
       frameMaskDisabled: spec.clip !== true,
+      // Its layer blend mode (figma-push writes Figma's enum only off the default, PASS_THROUGH for a frame): Figma's own
+      // copies leave the field out at the default.
+      ...(spec.blendMode ? { blendMode: spec.blendMode } : {}),
       ...fields,
       ...(root ? {} : this.childFields(spec, parentInfo)),
       // The page frame's own minimum (the Screen's height): no parent to place it in, but its size limits apply.
@@ -747,6 +750,8 @@ class Writer {
       transform: (typeof spec.rotation === "number" && spec.rotation) || spec.flip ? turned(pos.x, pos.y, pos.w, line ? 0 : pos.h, spec.rotation, spec.flip) : at(pos.x, pos.y),
       strokeWeight: spec.stroke && typeof spec.strokeWeight === "number" ? spec.strokeWeight : 1, strokeAlign: (spec.stroke && spec.strokeAlign) || (line || path ? "CENTER" : "INSIDE"), strokeJoin: "MITER",
       fillPaints: spec.fill ? this.paint(spec.fill, name) : [], strokePaints: spec.stroke ? this.paint(spec.stroke, name) : [],
+      // Its layer blend mode, off a shape's default NORMAL (figma-push); paints keep NORMAL.
+      ...(spec.blendMode ? { blendMode: spec.blendMode } : {}),
       ...this.childFields(spec, parentInfo),
     };
     if (spec.type === "RECTANGLE" && typeof spec.radius === "number") {
