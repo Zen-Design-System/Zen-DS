@@ -9,12 +9,15 @@
 //                                                           a frame that uses every text, paint and effect style, and one
 //                                                           that binds every variable but the Global Colors primitives
 //   node tools/studio/native-pack.mjs capture --frames=a:b,c:d [--keep]   macOS + Figma desktop: copy each probe frame,
-//                                                           then write the pack (needs Accessibility for the terminal app)
+//                                                           then write the pack (needs Accessibility for the terminal app);
+//                                                           --keep saves the copies to .qa/native-pack/<frame>.html (write
+//                                                           --files reads them again). A copy of another node is refused
 //   node tools/studio/native-pack.mjs write --files=a.html,b.html   copies saved by hand → the pack
 //   node tools/studio/native-pack.mjs probe-code --ids=a:b,c:d   use_figma code: a probe of just these sets / components
-//   … capture --frames=… --merge | write --files=… --merge      add the copies' sets, symbols, styles, variables and
-//                                                           contents to the existing pack (a set added to the library)
-//                                                           instead of rebuilding it; the schema module stays
+//   … capture --frames=… --merge | write --files=… --merge      add what the existing pack lacks (a set added to the
+//                                                           library): the copies' new sets, symbols, styles, variables and
+//                                                           contents, and the variants a set it holds lacks. What it holds
+//                                                           stays (a full capture refreshes it); the schema module stays
 //   node tools/studio/native-pack.mjs check                 sets the push writes that the pack lacks
 //   node tools/studio/native-pack.mjs images-code --part=N  use_figma code: the layers that show a picture in every
 //                                                           component (an Avatar's Image), without a full capture
@@ -365,8 +368,16 @@ export function withImages(pack, answers) {
 export function mergePacks(base, added) {
   const sortedKeys = (object) => Object.fromEntries(Object.entries(object).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
   const merged = { ...base };
-  for (const field of ["sets", "symbols", "styles", "variables", "contents"]) merged[field] = sortedKeys({ ...(base[field] ?? {}), ...(added[field] ?? {}) });
-  merged.merged = [...(base.merged ?? []), { read: added.read, sets: Object.keys(added.sets ?? {}).sort(), symbols: Object.keys(added.symbols ?? {}).length }];
+  // What the pack already holds stays: a copy of one instance carries only the variants of the nested sets it shows
+  // (2026-10-21: six Button and Avatar sets came back with two or three variants each). A full capture refreshes them.
+  for (const field of ["sets", "symbols", "styles", "variables", "contents"]) merged[field] = sortedKeys({ ...(added[field] ?? {}), ...(base[field] ?? {}) });
+  // A set both hold gains the copy's variants and properties it lacks, after its own (its first variant is Figma's default).
+  for (const [key, set] of Object.entries(added.sets ?? {})) {
+    const own = base.sets?.[key];
+    if (!own) continue;
+    merged.sets[key] = { ...own, props: [...(own.props ?? []), ...(set.props ?? []).filter((prop) => !(own.props ?? []).some((mine) => mine[2] === prop[2]))], variants: [...(own.variants ?? []), ...(set.variants ?? []).filter((variant) => !(own.variants ?? []).includes(variant))] };
+  }
+  merged.merged = [...(base.merged ?? []), { read: added.read, sets: Object.keys(added.sets ?? {}).filter((key) => !base.sets?.[key]).sort(), symbols: Object.keys(added.symbols ?? {}).filter((key) => !base.symbols?.[key]).length }];
   return merged;
 }
 
@@ -431,7 +442,16 @@ export async function clipboardFiles(dir) {
   };
 }
 
-/** macOS: select `nodeId` in Figma desktop, Edit › Copy, and return the clipboard's html (Esc first: a focused field would copy its text). */
+/** The node a Figma copy was made of (its meta's selectedNodeData, "id|…"), or "" when the html is not Figma's. */
+export async function copiedNode(html) {
+  return (await readFigmaClipboard(html))?.meta?.selectedNodeData?.split("|")[0] ?? "";
+}
+
+/**
+ * macOS: select `nodeId` in Figma desktop, Edit › Copy, and return the clipboard's html (Esc first: a focused field would
+ * copy its text). The copy must be of `nodeId`: when the file's tab is already open, Figma can keep the person's own
+ * selection instead of going to the link's node (2026-10-21: a probe capture copied a layer of Header/AppShell).
+ */
 async function copyFromFigma(nodeId, retry = true) {
   const { execFileSync } = await nodeModule("child_process");
   const osa = (...lines) => execFileSync("osascript", lines.flatMap((line) => ["-e", line]), { encoding: "utf8" }).trim();
@@ -445,7 +465,11 @@ async function copyFromFigma(nodeId, retry = true) {
   for (let tries = 0; tries < 60; tries++) {
     await sleep(2000);
     const html = jxa('ObjC.import("AppKit"); const d = $.NSPasteboard.generalPasteboard.stringForType("public.html"); d.isNil() ? "" : d.js');
-    if (html) return html;
+    if (!html) continue;
+    const copied = await copiedNode(html);
+    if (copied === nodeId) return html;
+    if (retry) { await sleep(10000); return copyFromFigma(nodeId, false); }
+    throw new Error(`native-pack: Figma copied ${copied || "something else"}, not ${nodeId} (it kept another selection): nothing written`);
   }
   // A copy right after use_figma built the frame can miss it (Figma desktop syncs a few seconds later): once more.
   if (retry) { await sleep(10000); return copyFromFigma(nodeId, false); }
@@ -470,7 +494,7 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     const pack = merge ? mergePacks(JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8")), fresh) : fresh;
     fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(pack)}\n`);
     if (!merge) fs.writeFileSync(path.join(root, SCHEMA_MODULE), schemaModule(copies[copies.length - 1], read));
-    if (merge) console.log(`native-pack: merged ${Object.keys(fresh.sets).length} sets, ${Object.keys(fresh.symbols).length} symbols from the copies`);
+    if (merge) { const last = pack.merged[pack.merged.length - 1]; console.log(`native-pack: added ${last.sets.length} sets (${last.sets.join(", ") || "none"}) and ${last.symbols} symbols from the copies; the ${Object.keys(fresh.symbols).length - last.symbols} the pack had stay`); }
     const missing = ids.filter((key) => !pack.sets[key] && !pack.symbols[key]);
     console.log(`native-pack: ${Object.keys(pack.symbols).length} symbols in ${Object.keys(pack.sets).length} sets, ${Object.keys(pack.styles).length} styles, ${Object.keys(pack.variables).length} variables; ${(fs.statSync(path.join(root, PACK_FILE)).size / 1e6).toFixed(1)} MB${missing.length ? `; missing: ${missing.join(", ")}` : ""}`);
   };
@@ -483,7 +507,16 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     console.log(`native-pack: saved the clipboard (${clip.save()} types)`);
     const htmls = [];
     try {
-      for (const frame of option("frames").split(",")) { htmls.push(await copyFromFigma(frame)); console.log(`native-pack: copied ${frame} (${(htmls[htmls.length - 1].length / 1e6).toFixed(1)} MB)`); }
+      for (const frame of option("frames").split(",")) {
+        htmls.push(await copyFromFigma(frame));
+        console.log(`native-pack: copied ${frame} (${(htmls[htmls.length - 1].length / 1e6).toFixed(1)} MB)`);
+        if (process.argv.includes("--keep")) {
+          const file = path.join(root, ".qa/native-pack", `${frame.replace(":", "-")}.html`);
+          fs.mkdirSync(path.dirname(file), { recursive: true });
+          fs.writeFileSync(file, htmls[htmls.length - 1]);
+          console.log(`native-pack: kept the copy in ${path.relative(root, file)}`);
+        }
+      }
     } finally {
       console.log(`native-pack: put the clipboard back (${clip.restore()} types)`);
     }
