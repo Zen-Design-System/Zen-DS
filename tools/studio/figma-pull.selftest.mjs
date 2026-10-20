@@ -430,6 +430,21 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("deep overrides (live): no notes, valid dialect", [pulled.notes, validateDialect(pulled.text, { components: new Set(["Icon", "Stack", "Text"]) })], [[], []]);
 }
 
+// The live read (2026-10-20): Zen components in a page's own mains, overridden by an instance: a Button's level and
+// label, a Badge's theme (only what differs from the main's own), a Pagination's Next by its nest() name (only its
+// level: its own size and icon are the main's), an untouched instance bringing nothing back.
+{
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-library-layers.json", import.meta.url), "utf8"));
+  const pulled = pageFromFigma(live.frame, { mapping });
+  const uses = pulled.text.split("\n").map((line) => line.trim()).filter((line) => line.startsWith("<Use "));
+  check("library layers (live): a Zen component's props and label, and its own nested layer, by path", uses, [
+    '<Use of="cta" overrides={{ Button: { level: "secondary", children: "Buy" }, Badge: { theme: "red" } }} />',
+    '<Use of="pager" overrides={{ "Pagination/Next": { level: "secondary" } }} />',
+    '<Use of="cta" />',
+  ]);
+  check("library layers (live): no notes, valid dialect", [pulled.notes, validateDialect(pulled.text, { components: new Set(["Badge", "Button", "Pagination", "Stack"]) })], [[], []]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);

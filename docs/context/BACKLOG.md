@@ -33,11 +33,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
+- **P3 · Card `subAction` to and from Figma (2026-10-20, Session B):** the push writes no Sub-Action for a Card's
+  `subAction` ("data with no Figma slot"), so Figma's Card shows none and an override of `Card/Sub-Action` lands on a
+  hidden layer; the pull notes a shown Sub-Action instead of reading it. Map it as Sub-Action on + the IconButton's
+  icon (label: its aria). Pointer: figma-push.mjs Card node, figma-pull.mjs "shows in Figma; set it on the Card".
 - **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
   changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*); Figma pull of overrides and
-  slot content and overrides inside nested instances since 2026-10-20. Open:
-  - The push of an override of a Zen component's own layer inside a main (`Badge/Dot`): it needs that component's
-    Figma layers (NESTED_LAYERS); a note says it is not pushed.
+  slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20. Open:
   - Putting layers into an instance's slot from the canvas (drag-and-drop target; F7c, needs A's or C's drop code).
   Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
 - **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,

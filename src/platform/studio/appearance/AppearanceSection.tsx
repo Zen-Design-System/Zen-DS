@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu, type MenuEntry } from "../../../components/Menu";
@@ -6,7 +6,8 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import type { FieldApi } from "../inspector/fieldApi";
 import { PropField } from "../inspector/PropField";
 import type { PropSpec, PropValue } from "../inspector/propSchema";
-import { InspectorRow, InspectorSection } from "../inspector/Section";
+import { InspectorFields, InspectorRow, InspectorSection } from "../inspector/Section";
+import { ScaleField } from "../inspector/controls/ScaleField";
 import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
 import { RowSelectField } from "../inspector/rowFields";
 import type { EditOp } from "../types";
@@ -52,62 +53,70 @@ function writtenRadius(api: FieldApi): WrittenRadius {
   return { radius: literalOf(api.valueFor("radius")), corners };
 }
 
-/** The rendered corner radii in px ("12" or "4–20" when they differ), read from the element on the canvas. */
-function measuredRadius(host: HTMLElement | null): string | null {
-  if (!host) return null;
-  const style = getComputedStyle(host);
-  const values = [style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomRightRadius, style.borderBottomLeftRadius].map((value) => Math.round(parseFloat(value) || 0));
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const shown = (px: number) => (px >= 999 ? "full" : String(px));
-  return min === max ? `${shown(min)} px` : `${shown(min)}–${shown(max)} px`;
-}
-
-const enumSpec = (base: PropSpec | undefined, name: string): PropSpec => ({
-  name,
-  type: base?.type ?? "string",
-  description: base?.description ?? "",
-  defaultValue: base?.defaultValue ?? null,
-  editor: { kind: "enum", options: [...RADIUS_STEPS] },
-});
-
-/** Corner radius: the uniform token, and the four corners when "Independent corners" is on (Figma's ⛶ button). */
-export function CornerRadiusField({ api, specs, host }: { api: FieldApi; specs: PropSpec[]; host: HTMLElement | null }) {
-  const base = specs.find((spec) => spec.name === "radius");
+/**
+ * Figma UI3's Appearance fields: Opacity and Corner radius side by side on the field grid (labels above, two equal fields),
+ * Independent corners (⛶) in the icon column, then the four corners two by two while it is on (user 2026-10-20:
+ * "Appearance 2 ô nhập lại nằm 2 hàng khác nhau, figma đang để cùng 1 hàng"; "nếu để 2 hàng thì phải cho chiều dài bằng
+ * nhau"; "nên có icon bên trong input cho corner radius"). The radius fields are token fields (ScaleField): the corners
+ * glyph inside, as Figma's. `opacity`: the opacity field, or null (Image has corner radius only); `radius`: false where
+ * the layer has no corners (an ellipse). One field keeps its half width, so the panel's fields stay one length.
+ */
+export function AppearanceFields({ api, specs, opacity, radius: withRadius = true }: { api: FieldApi; specs: PropSpec[]; opacity: ReactNode | null; radius?: boolean }) {
+  const base = withRadius ? specs.find((spec) => spec.name === "radius") : undefined;
   const w = writtenRadius(api);
   const anyCorner = CORNERS.some((corner) => w.corners[corner] !== undefined);
   const [open, setOpen] = useState(anyCorner);
   useEffect(() => { if (anyCorner) setOpen(true); }, [anyCorner]);
-  if (!base) return null;
-  const mixed = isMixed(w);
-  const px = measuredRadius(host);
-  const uniform: PropValue = mixed ? { state: "unset" } : api.valueFor("radius");
   const send = (ops: ReturnType<typeof uniformPick>, label: string) => { if (ops.length) void api.apply(ops, label); };
+  const fallback = typeof base?.defaultValue === "string" ? base.defaultValue : undefined;
+  const radius = base ? (
+    <ScaleField
+      label="Corner radius"
+      prop="radius"
+      scale="radius"
+      options={[...RADIUS_STEPS]}
+      value={isMixed(w) ? undefined : w.radius}
+      fallback={fallback}
+      disabled={api.disabled}
+      leading="icon-maximize-02-line"
+      placeholder={isMixed(w) ? "Mixed" : undefined}
+      onSet={(next) => send(uniformPick(w, next), `Corner radius → ${next}`)}
+      onReset={w.radius !== undefined || anyCorner ? () => send(uniformClear(w), "Corner radius → default") : undefined}
+    />
+  ) : null;
+  // Each field keeps its prop on a wrapper (data-prop: the E2E rows and "Edit …" pointers find the field by it).
+  const cell = (prop: string, field: ReactNode) => <div key={prop} className="studio-appearance-field" data-prop={prop}>{field}</div>;
+  const corner = (key: Corner) => cell(key, (
+    <ScaleField
+      label={`${cornerLabels[key]} radius`}
+      prop={key}
+      scale="radius"
+      options={[...RADIUS_STEPS]}
+      value={w.corners[key]}
+      fallback={w.radius ?? fallback}
+      disabled={api.disabled}
+      onSet={(next) => send(cornerPick(w, key, next), `${cornerLabels[key]} radius → ${next}`)}
+      onReset={w.corners[key] !== undefined ? () => send(cornerClear(w, key), `${cornerLabels[key]} radius → corner radius`) : undefined}
+    />
+  ));
+  const fields: ReactNode[] = [];
+  if (opacity) fields.push(cell("opacity", opacity));
+  if (radius) fields.push(cell("radius", radius));
+  if (!fields.length) return null;
   return (
     <>
-      <PropField
-        spec={enumSpec(base, "radius")}
-        label="Corner radius"
-        value={uniform}
-        disabled={api.disabled}
-        hint={mixed ? `Mixed · ${px ?? "corners differ"}` : undefined}
-        onSet={(next) => send(uniformPick(w, String(next)), `Corner radius → ${next}`)}
-        onReset={() => send(uniformClear(w), "Corner radius → default")}
-        // Figma UI3's ⛶ beside the radius field, in the icon column (not a row of its own off the grid).
-        action={<IconButton icon="icon-maximize-02-line" aria-label="Independent corners" tooltip="Independent corners" aria-pressed={open} appearance="flat" level={open ? "secondary" : "primary"} size="xs" onClick={() => setOpen((value) => !value)} />}
+      <InspectorFields
+        labels={[opacity ? "Opacity" : null, radius ? "Corner radius" : null].filter((label): label is string => Boolean(label))}
+        // One field stays in the first column (an empty second), so it is as long as every other field.
+        fields={fields.length === 1 ? [fields[0], null] : fields}
+        icon={radius ? <IconButton icon="icon-maximize-02-line" aria-label="Independent corners" tooltip="Independent corners" aria-pressed={open} appearance="flat" level={open ? "secondary" : "primary"} size="xs" onClick={() => setOpen((value) => !value)} /> : undefined}
       />
-      {open ? CORNERS.map((corner: Corner) => (
-        <PropField
-          key={corner}
-          spec={enumSpec(specs.find((spec) => spec.name === corner), corner)}
-          label={cornerLabels[corner]}
-          value={w.corners[corner] !== undefined ? api.valueFor(corner) : { state: "unset" }}
-          disabled={api.disabled}
-          hint={w.corners[corner] === undefined && w.radius ? `From corner radius · ${w.radius}` : undefined}
-          onSet={(next) => send(cornerPick(w, corner, String(next)), `${cornerLabels[corner]} radius → ${next}`)}
-          onReset={() => send(cornerClear(w, corner), `${cornerLabels[corner]} radius → corner radius`)}
-        />
-      )) : null}
+      {radius && open ? (
+        <>
+          <InspectorFields labels={[cornerLabels.radiusTopLeft, cornerLabels.radiusTopRight]} fields={[corner("radiusTopLeft"), corner("radiusTopRight")]} />
+          <InspectorFields labels={[cornerLabels.radiusBottomLeft, cornerLabels.radiusBottomRight]} fields={[corner("radiusBottomLeft"), corner("radiusBottomRight")]} />
+        </>
+      ) : null}
     </>
   );
 }
@@ -124,7 +133,7 @@ function VisibilityToggle({ src, name, disabled }: { src: string; name: string; 
 
 /** Appearance (Figma UI3): the layer's opacity and its corner radius (a frame); corner radius only (Image). The header's
  *  eye shows or hides the layer. */
-export function AppearanceSection({ api, specs, host, layer }: { api: FieldApi; specs: PropSpec[]; component: string; host: HTMLElement | null; layer?: { src: string; name: string } }) {
+export function AppearanceSection({ api, specs, layer }: { api: FieldApi; specs: PropSpec[]; component: string; host: HTMLElement | null; layer?: { src: string; name: string } }) {
   const opacitySpec = specs.find((candidate) => candidate.name === "opacity");
   const opacity = api.valueFor("opacity");
   const setOpacity = (value: number) => {
@@ -133,14 +142,11 @@ export function AppearanceSection({ api, specs, host, layer }: { api: FieldApi; 
     void api.apply(shown === 100 ? [{ op: "removeProp", name: "opacity" }] : [{ op: "setProp", name: "opacity", value: { kind: "number", value: shown } }], `Opacity → ${shown}%`);
   };
   return (
-    <InspectorSection title="Appearance" fieldGrid={Boolean(opacitySpec)} actions={layer && canHideSrc(layer.src) ? <VisibilityToggle src={layer.src} name={layer.name} disabled={api.disabled} /> : undefined}>
-      {opacitySpec ? (
-        <div className="studio-shape__pair" data-prop="opacity">
-          <ScrubNumberField label={<Icon name="icon-drop-line" size="sm" decorative />} name="Opacity" suffix="%" min={0} max={100} value={numberOf(opacity) ?? 100}
-            disabled={api.disabled || boundOrSpread(opacity)} onCommit={setOpacity} />
-        </div>
-      ) : null}
-      <CornerRadiusField api={api} specs={specs} host={host} />
+    <InspectorSection title="Appearance" fieldGrid actions={layer && canHideSrc(layer.src) ? <VisibilityToggle src={layer.src} name={layer.name} disabled={api.disabled} /> : undefined}>
+      <AppearanceFields api={api} specs={specs} opacity={opacitySpec ? (
+        <ScrubNumberField label={<Icon name="icon-drop-line" size="sm" decorative />} name="Opacity" suffix="%" min={0} max={100} value={numberOf(opacity) ?? 100}
+          disabled={api.disabled || boundOrSpread(opacity)} onCommit={setOpacity} />
+      ) : null} />
     </InspectorSection>
   );
 }
