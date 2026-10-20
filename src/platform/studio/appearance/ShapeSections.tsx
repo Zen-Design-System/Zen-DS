@@ -1,6 +1,6 @@
 import { Icon, type IconName } from "../../../components/Icon";
 import { CORNERS } from "./appearanceModel";
-import { CornerRadiusField } from "./AppearanceSection";
+import { AppearanceFields } from "./AppearanceSection";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL } from "../../../components/Shape/paint";
 import { STAR_RATIO } from "../../../components/Shape/geometry";
 import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
@@ -78,11 +78,10 @@ export function ShapeSections({ api, specs, host }: { api: FieldApi; specs: Prop
         </InspectorSection>
       ) : null}
       <InspectorSection title="Appearance" fieldGrid>
-        <div className="studio-shape__pair">
+        <AppearanceFields api={api} specs={specs} radius={type === "rectangle"} opacity={
           <ScrubNumberField label={mark("icon-drop-line")} name="Opacity" suffix="%" min={0} max={100} value={number("opacity", 100)} disabled={api.disabled || bound("opacity")}
             onCommit={(value) => write("opacity", value, 100, `Opacity → ${value}%`)} />
-        </div>
-        {type === "rectangle" ? <CornerRadiusField api={api} specs={specs} host={host} /> : null}
+        } />
       </InspectorSection>
       {line ? null : (
         <InspectorSection title="Fill">

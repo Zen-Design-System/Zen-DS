@@ -138,6 +138,20 @@ BACKLOG item the user approved 2026-10-17 (second half of "Direct paste of Studi
   1 works (`.qa/studio-e2e/2026-10-20T08-52-16.md`; the runner keeps only its last report, the shard summaries are
   from their run output).
 
+## Session "Bug" · Appearance on one row (tier S; user: "Appearance 2 ô nhập lại nằm 2 hàng khác nhau, figma đang để cùng 1 hàng" + "nếu để 2 hàng thì phải cho chiều dài bằng nhau" + "nên có icon bên trong input cho corner radius")
+- B's area (appearance/), told through the supervisor; no worktree had edits there. `AppearanceFields` replaces
+  `CornerRadiusField`: one InspectorFields row (Opacity · Corner radius, labels above, ⛶ Independent corners in the icon
+  column), the radius a ScaleField with `icon-maximize-02-line` inside (Figma's glyph is the same four corners), the four
+  corners as two InspectorFields rows of ScaleFields (fallback = the uniform radius, in the placeholder tone). Each field
+  keeps `data-prop` on a wrapper (AP-01 finds `radiusBottomRight`). One field (Image: radius only) stays half width.
+  ShapeSections uses the same row (radius only on rectangles). Mixed corners read "Mixed" in the field.
+- Probe on a private server (5189, own Vite cache, the E2E host fixture's box): fields 128 + 128 on one row, corners
+  2×2 at the same widths; figma.mjs panelFits clean closed, open and at 3XLarge.
+- Popover icon tiles (user: "icon trong popover bị lệch tâm"): popover.css put every Icon-tone leading at align-self
+  flex-start (first line of a label), so a leading-only item (Studio icon picker Recent/Related) drew its icon 4px from
+  the top of a 36px tile. The rule now needs `:has(> .zen-popover__item-content)`, as its own comment said. Measured on
+  the private server: 10 / 10 px top and bottom, 9.7 / 9.6 px sides.
+
 ## Smart guides while resizing a layer (F2's last item; worktree `festive-chebyshev-fbfcb8`, started by local_3ff40721)
 
 Plan §5 F2 "snapping and guides while resizing": ⌥ centre and ⇧ ratio were built (F2b), snapping only for frames (C's F4).

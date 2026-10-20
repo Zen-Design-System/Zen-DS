@@ -109,8 +109,9 @@
 .zen-popover__item:is([data-tone="avatar-small"], [data-tone="avatar-big"]) .zen-popover__item-leading > .zen-avatar { --zen-avatar-size: 100%; }
 .zen-popover__item-leading > img { display: block; }
 /* Content primitive: Icon and Photo Small align MIN (the 20px leading sits on the first line of a wrapped label or caption);
-   Avatar, Photo Big and Dock Icon centre (Figma counter-axis CENTER). */
-.zen-popover__item:is([data-tone="icon"], [data-tone="photo-small"]) .zen-popover__item-leading { align-self: flex-start; }
+   Avatar, Photo Big and Dock Icon centre (Figma counter-axis CENTER). Only beside a label: a leading-only item (Studio's
+   icon tiles) centres its icon in the item (user 2026-10-20: "icon trong popover bị lệch tâm"). */
+.zen-popover__item:is([data-tone="icon"], [data-tone="photo-small"]):has(> .zen-popover__item-content) .zen-popover__item-leading { align-self: flex-start; }
 /* …centred on that first line: a type scale whose Body/Base line is taller than the leading (Mobile and Marketing, 24px
    line around a 20px icon) drops it by half the difference, so the icon no longer sits 2px above the label. A
    leading-only item has no line to centre on and keeps the plain centring. */

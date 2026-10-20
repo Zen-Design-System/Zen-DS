@@ -186,6 +186,11 @@ removed (four unused colour ramps were, see Removed).
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Popover: an item with only a leading icon (no label) centres the icon; the first-line alignment is for labelled items
+  only (2026-10-20, user: "icon trong popover bị lệch tâm", Studio's Recent / Related icon tiles).
+- Zen Studio Appearance as Figma's (2026-10-20, user: "Appearance 2 ô nhập lại nằm 2 hàng khác nhau, figma đang để cùng 1
+  hàng"): Opacity and Corner radius on one row, two equal fields with their labels above, the corners glyph inside the
+  radius field and Independent corners beside it; the four corners show two by two (frames, rectangles, images).
 - Zen Studio Properties: a ProgressBar has Figma's Progress select (None 0, Low 20, Medium 40, Good 80, Done 100; another
   number shows as itself) above its Value slider (2026-10-19, user: "thêm ô chọn Progress cho ProgressBar"). Number
   props with a known range get their slider in Figma-grouped Properties too (Rating, Slider, ProgressCircle).
