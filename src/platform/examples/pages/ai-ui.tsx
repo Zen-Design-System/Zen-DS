@@ -388,7 +388,8 @@ function Suggestions({ demo }: { demo: Demo }) {
 /** Who answers typed prompts: the model behind /ai-ui when one is configured (ANTHROPIC_API_KEY before npm run dev), the
     demo composer otherwise. */
 function ModelTag({ demo }: { demo: Demo }) {
-  return <Tag>{demo.server?.enabled ? demo.server.model : "Demo composer"}</Tag>;
+  // In the header's top row it steps aside on a phone (.pf-wide-only), where the row keeps the panel and the account.
+  return <Tag className="pf-wide-only">{demo.server?.enabled ? demo.server.model : "Demo composer"}</Tag>;
 }
 
 /* ───────────── Composing while typing (the user's decision, 2026-10-15: the UI appears as the sentence forms) ───────────── */
