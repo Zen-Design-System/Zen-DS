@@ -21,6 +21,14 @@
 .zen-chat-thread[data-device="desktop"] { --zen-chat-hover-room: calc(3 * var(--zen-button-size-small, 32px) + var(--zen-spacing-gap-xsmall, 8px)); }
 .zen-chat-thread[data-device="desktop"] > .zen-chat-message[data-side="you"] { padding-inline-start: var(--zen-chat-hover-room); }
 .zen-chat-thread[data-device="desktop"] > .zen-chat-message[data-side="others"] { padding-inline-end: var(--zen-chat-hover-room); }
+/* A narrow desktop thread (a desktop app in a phone-width window, under 480px) has no gutter to spare: the bubbles keep the
+   row and the Hover toolbar sits over the bubble's top corner instead (with the gutter at 320 a call card got 80px). */
+.zen-chat-thread[data-device="desktop"] { container-type: inline-size; }
+@container (max-width: 480px) {
+  .zen-chat-thread[data-device="desktop"] > .zen-chat-message[data-side] { padding-inline: 0; }
+  .zen-chat-thread[data-device="desktop"] .zen-chat-message__hover[data-side="others"] { top: 0; right: 0; left: auto; }
+  .zen-chat-thread[data-device="desktop"] .zen-chat-message__hover[data-side="you"] { top: 0; right: auto; left: 0; }
+}
 .zen-chat-message[data-reacted="true"] { padding-bottom: var(--zen-spacing-padding-medium, 16px); }
 /* The avatar column follows Avatar XSmall (Image-Size/XSmall: 24 Compact · 32 Comfortable), so the 8px gap to the bubble holds in every density. */
 .zen-chat-message__avatar { display: flex; width: var(--zen-image-size-xsmall, 24px); flex: 0 0 var(--zen-image-size-xsmall, 24px); align-self: flex-end; }
