@@ -372,3 +372,7 @@ Image component; E1's Character is a 100 × 100 frame with an IMAGE fill (Fit), 
     - The rhythm counts of A1–A4, B5, E2, E7, the App Shell playground's side-panel state and three templates:
       "Baseline, giữ như Figma". Figma's own A1 uses ~13 styles; the check also counts component-owned text
       (Table headers, Metric values).
+- 2026-10-21, Header/AppShell drift (the Bug session found it; I checked it with use_figma). Sections/Main pads
+  24·24·12·24, with the bottom bound to Spacing/Padding/Small. app-shell.css had XSmall (8); now Small, in 0b91bed4.
+  Bug's Studio mapping (Header/AppShell in component-properties.json) will conflict textually with this branch's Card
+  Spacing patch. Whoever lands second re-applies it (guidelines:build, then figma-props-build and variant-sets-build).
