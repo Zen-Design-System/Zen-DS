@@ -45,10 +45,11 @@ export function setSpace(space: "document" | "studio", reopen: (id: string) => b
 }
 
 /** Opens a builder page kept in this browser (?page=local:<id>). */
-export function openLocalPage(id: string) {
+export function openLocalPage(id: string, { made = false }: { made?: boolean } = {}) {
   const state = studioStore.getState();
   if (state.localPage === id) { if (state.drawer === "left") studioStore.setState({ drawer: null }); return; }
-  studioStore.setState({ localPage: id, space: "studio", selection: null, presenting: null, drawer: state.drawer === "left" ? null : state.drawer });
+  // A page just made shows its Layers, as a new Figma file does (walk 2026-10-21: the left panel stayed on Pages).
+  studioStore.setState({ localPage: id, space: "studio", selection: null, presenting: null, drawer: state.drawer === "left" ? null : state.drawer, ...(made ? { leftTab: "layers" as const } : {}) });
 }
 
 export const collectionName = (slug: string | null) => (slug ? collections.find((item) => item.slug === slug)?.name ?? slug : null);

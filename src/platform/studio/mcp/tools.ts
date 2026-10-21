@@ -464,7 +464,7 @@ async function createPage(args: Args): Promise<ToolAnswer> {
   const [engine, id] = await Promise.all([loadEngine(), freeId(title)]);
   // In a Studio project (the page or the home open in the tab), the page is the project's and draws in its theme.
   await putPage(id, withHeaderProject(engine.newPageText({ title, device, chrome: args.chrome !== false }), activeProjectId()), { title });
-  openLocalPage(id);
+  openLocalPage(id, { made: true });
   const page = await openPage();
   if (!page || page.id !== id) return answer(`Made the page "${title}" (${id}); open it with open_page.`);
   return answer(`Made and opened the page "${title}" (${id}). To remove it, the person moves it to the Trash in Pages.\n${outline(page.board, { depth: 6 })}`);

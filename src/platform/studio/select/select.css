@@ -5,6 +5,10 @@
 /* A playground in its own full screen (App Shell) or a presented frame is used, not picked. */
 .studio-viewport:has(.studio-world [data-fullscreen="true"]) > .studio-selection { display: none; }
 .studio-selection__capture { position: absolute; inset: 0; cursor: default; pointer-events: auto; touch-action: none; }
+/* A line or an arrow has no height (Figma's LINE), so nothing of it lay under the pointer and a click picked its frame.
+   On the canvas a band 4 screen px either side of it takes the pick (elementsFromPoint counts the pseudo-element), as
+   Figma picks a line within a few px; it turns and flips with the layer. Walk 2026-10-21. */
+.studio-world .zen-shape:is([data-type="line"], [data-type="arrow"])::after { content: ""; position: absolute; inset: calc(-4px / var(--studio-zoom, 1)) 0; }
 
 .studio-selection__outline,
 .studio-selection__padding,
