@@ -244,7 +244,7 @@ export function TimelineGantt({ groups, start: startProp, weeks = 9, today: toda
     const node = scrollRef.current;
     if (!node || !mobile || !todayInside || !width) return;
     node.scrollLeft = Math.max(0, Math.floor(todayAt / 7) * week);
-  }, [mobile, width > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mobile, week]); // eslint-disable-line react-hooks/exhaustive-deps
   const bar = (key: string, from: Date, to: Date, element: (style: CSSProperties) => ReactNode) => {
     const left = days(from);
     const span = Math.max(0, (to.getTime() - from.getTime()) / DAY);
