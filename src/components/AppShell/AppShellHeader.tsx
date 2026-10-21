@@ -58,11 +58,13 @@ function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, tog
   const [stacked, setStacked] = useState(false);
   const measure = useCallback(() => {
     if (!row || !content) { setStacked(false); return; }
-    const room = row.clientWidth;
+    // The row's own padding is not room (theme="border-divider" pads the top row Margin-Comfortable on both sides).
+    const rowStyle = getComputedStyle(row);
+    const room = row.clientWidth - (parseFloat(rowStyle.paddingLeft) || 0) - (parseFloat(rowStyle.paddingRight) || 0);
     if (room <= 0) return;
     const leading = content.parentElement;
     const leadingGap = leading ? parseFloat(getComputedStyle(leading).columnGap) || 0 : 0;
-    const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0;
+    const rowGap = parseFloat(rowStyle.columnGap) || 0;
     // Rendered widths ÷ the scale the row is drawn at (a CSS transform around the shell): CSS px, as `room` is.
     const scale = row.offsetWidth > 0 ? row.getBoundingClientRect().width / row.offsetWidth || 1 : 1;
     const toggleWidth = (toggle?.getBoundingClientRect().width ?? 0) / scale;
@@ -79,10 +81,11 @@ function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, tog
   useIsomorphicLayoutEffect(measure);
   useIsomorphicLayoutEffect(() => {
     if (!row || typeof ResizeObserver === "undefined") return undefined;
+    // The row keeps its width when a density switch grows the trail or the actions: watch them too.
     const observer = new ResizeObserver(() => measure());
-    observer.observe(row);
+    for (const element of [row, content, actions]) if (element) observer.observe(element);
     return () => observer.disconnect();
-  }, [row, measure]);
+  }, [row, content, actions, measure]);
   return stacked;
 }
 
