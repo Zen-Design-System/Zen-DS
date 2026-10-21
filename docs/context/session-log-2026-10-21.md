@@ -116,3 +116,36 @@ Studio:
 
 The Bug session wires Patterns/Sidebar into Properties and the Main component, and captures the native pack together
 with Header/AppShell.
+
+### Standalone Sidebar → Patterns/Sidebar (same branch; user: "Có, sửa push Sidebar đứng riêng luôn")
+
+- Live set read (use_figma, read-only): 16 variants. Border, Borderless, Carved and Carved-Floating exist only at
+  Density=Small, and their Shadow is fixed (No when open, Yes on the flush rails). The Side-Bar inside is named
+  Patterns/Density/Comfortable/Sidebar/Yes|No.
+- Push (`figma-push.mjs`):
+  - `sidebarPatternProps(look)` picks the nearest variant: Theme and Expand first, then Density, then Shadow.
+  - `sidebarPatternNode` wraps a Basic Side-Bar on its own: its props go to nested "Patterns", its slots and edits move
+    inside the Sidebar/Yes|No layer, and that layer fills the pattern's height. Workspace and Small-Density stay as
+    they are.
+  - The AppShell master writes the same variant (`pattern="grid"` gives Border · Small). Its frames fallback wraps too.
+  - Rail widths follow the look: 80 · 72 (Small) · 64 (flush).
+- Pull (`figma-pull.mjs`):
+  - The composition read keeps its variant (`compositionProps`), and `sidebarPattern` reads a placed pattern or the
+    push's instance.
+  - `sidebarLookProps` gives back theme, density and shadow. Shadow=No is read on Default only.
+  - `instanceIn` and the master frame carry the look, so it survives the AppShell read too.
+- Checks:
+  - Push selftest 347 (5 new: variant choice, a carved small rail, the grid master, two round trips). `studio:selftest`
+    exit 0. library-keys check: all 176 sets keyed.
+  - Live-shaped reads of three placed patterns (16783:66571 Border·Small, 16272:135322, 16256:1944) give
+    `theme="border" density="small"`, `density="small"` and `collapsed density="small"`.
+- BACKLOG P2 "A standalone Sidebar pushes without its theme" removed.
+- Real Figma: the plugin's importer was run on "Studio exports — QA" (unused paths stubbed, one use_figma call) with
+  three Sidebars: carved small, a border rail, and default with shadow={false}.
+  - Each became Patterns/Sidebar with its exact variant: 240 / 64 / 240 wide, the Side-Bar filling 982, rows and
+    selection right.
+  - The screenshot matches: a flush Carved column, the rail with its line, the inset panel without a shadow.
+  - The frame was removed afterwards.
+  - The bed's notes about Footer-Container and Divider are use_figma skipping hidden layers. The Footer boolean already
+    hides them, and the plugin finds hidden layers.
+

@@ -29,11 +29,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P2 · A standalone Sidebar pushes without its theme (2026-10-21, AppShell session; found by the Bug session):**
-  `figma-push` writes a Sidebar outside an AppShell master as Side-Bar/Master/Basic, which has no Theme, Density or
-  Shadow, so a carved, border or small Sidebar lands in Figma as the default. The master-layout path already writes
-  Patterns/Sidebar. Writing a standalone Sidebar as a Patterns/Sidebar instance (its props, then the Side-Bar's slots
-  inside it), with the pull reading it back, is a push/pull change in Session B's files; it waits for the user's go.
 - **P3 · Card Spacing=XSmall follow-ups (2026-10-20, AppShell session):**
   - The 40 XSmall variants and `Card-padding-xsmall` are in Figma, code and the Studio props.
   - Still to do: `docs/figma-contracts/native-pack.json` has no XSmall Card. It needs a probe-frame rebuild

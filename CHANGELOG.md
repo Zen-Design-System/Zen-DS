@@ -24,6 +24,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   use Patterns/Sidebar's new name (was "Patterns/Sidebar/Density-Medium").
   `density="small"` now means Figma's Patterns/Sidebar Density=Small on the Basic panel (36px rows, a 72px rail);
   the old Small-Density look is `variant="small-density"`, which density alone no longer picks.
+- Zen Studio pushes a Sidebar on its own (beside the page, the Screen's chrome) as Figma's Patterns/Sidebar, so its
+  theme, density, shadow and rail reach Figma; it was the plain Side-Bar, always the default look (user 2026-10-21:
+  "sửa push Sidebar đứng riêng luôn"). The set has 16 of its 40 combinations, so the push takes the nearest one: the
+  themes other than Default exist only at Density=Small. An AppShell's master writes the same variant (`pattern="grid"`
+  gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
