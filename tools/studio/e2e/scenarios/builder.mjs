@@ -123,7 +123,7 @@ export async function selectStack(page, id) {
   await focusScreen(page);
   await clickNamed(page, id, "Text");
   await page.keyboard.press("Escape");
-  await until(async () => (await selectedName(page)) === "Stack", { message: "the Stack selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)}; status: ${await statusText(page)})`); });
+  await until(async () => (await selectedName(page)) === "Frame", { message: "the Stack selected (its panel heads it Frame, as Figma)" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)}; status: ${await statusText(page)})`); });
 }
 
 async function insertAsset(page, label) {
@@ -842,7 +842,7 @@ export const rows = [
       const items = await menu.getByRole("menuitem").allInnerTexts();
       await page.keyboard.press("Escape");
       if (!items.some((item) => /Add auto layout/.test(item))) throw new Error(`not the layer menu (${items.slice(0, 4).join(", ")})`);
-      if ((await selectedName(page)) !== "Stack") throw new Error(`the selection moved to ${await selectedName(page)}`);
+      if ((await selectedName(page)) !== "Frame") throw new Error(`the selection moved to ${await selectedName(page)}`);
       return `${items.length} items, the Stack still selected`;
     },
   },
@@ -857,7 +857,7 @@ export const rows = [
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Shift+KeyA");
       await until(async () => /<Stack[^>]*>\s*<Stack[^>]*>\s*<Text/.test((await pageText(page, id)) ?? ""), { message: "the Text in a new Stack" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
-      await until(async () => (await selectedName(page)) === "Stack", { message: "the new Stack selected" });
+      await until(async () => (await selectedName(page)) === "Frame", { message: "the new Stack selected (heading Frame)" });
       return "Text → Stack › Text, the Stack selected";
     },
   },
