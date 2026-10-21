@@ -7,11 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P2 · Figma ◇ Master-Layout · Example: 9 more screens break the section rules (2026-10-21, question for the user):**
-  C1, C2, C7, D3, D4 were fixed (open closing lists, grouped sections, Section-Gap). The audit's `spacing/section-gap` /
-  `section/title-apart` still flag B3 (two rows of one widget grid at 24), B5 (docs steps: titles apart from their
-  content), C4, C5, C6, D2, D5 (Section-Header over loose List-Items), E4, E7 (title, Segmented and Card as siblings):
-  group each into whole sections and bind the gap? Code examples follow. Session log 2026-10-21.
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
   HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: the Code properties rows move to the Code
   tab (§3a "Properties", structural); Present (⌥⌘↵) from a selected Overlay frame, as Figma presents any frame (needs

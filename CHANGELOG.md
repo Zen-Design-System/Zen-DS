@@ -28,6 +28,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (usage rules §13, user rule 2026-10-21). Figma audit `spacing/section-gap` now reads the AppShell Content slot and
   desktop, and `section/title-apart` warns on a title alone. AppShell C1, C2, C7 group their widgets into one section
   above the closing list, in code and in Figma (◇ Master-Layout · Example, also D3, D4 opened).
+- Nine more AppShell screens follow the section rules, in Figma (◇ Master-Layout · Example) and in code: B3's two
+  widget rows are one grid (cards 16 apart), B5's docs steps are sections 32 apart with the React 19 note inside step 1,
+  C5's Segmented sits with the groups it switches, D5's closing quiz list is open (title row over a List); C4, C6, D2,
+  E4, E7 keep their rhythm as one section each. The Figma audit no longer reads a heading over its own paragraph as a
+  lone title, a floating bar's own scrim as a painted gradient, or a Large Indicator Tab-Bar's even bleed out of a
+  header row as an overflow.
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`

@@ -195,22 +195,23 @@ function ColourBandPhone() {
         bottomNavigation={<BottomNavigation type="floating" aria-label="Quiz app" value={root} onValueChange={setRoot} items={quizRoots}
           action={{ icon: "icon-plus-line", label: "Create a quiz", theme: "primary", onClick: () => toast({ title: "Create a quiz", children: "Pick a topic, add questions, invite players." }) }} />}
       >
-        <Stack as="section" gap="sm" aria-labelledby={liveId}>
+        {/* The list that closes the sheet is an open section (usage rules §19, §13): its title row over a List, Spacing/Gap/
+            Medium apart, as Figma D5's "Live quizzes" (Title-Row over a List frame, rows 2 apart). */}
+        <Stack as="section" gap="md" aria-labelledby={liveId}>
           <Stack direction="row" justify="between" align="center" gap="xs">
             <Heading level={2} id={liveId} textStyle="Heading/4">Live quizzes</Heading>
             <Text as="span" textStyle="Body/Base/Bold">
               <Link as="button" tone="inherit" onClick={() => setRoot("search")}>See All</Link>
             </Text>
           </Stack>
-          {/* Figma's Content slot keeps Spacing/Gap/Small between the rows too (a List packs them 2 apart). */}
-          <Stack as="ul" gap="sm" aria-labelledby={liveId}>
+          <List aria-labelledby={liveId}>
             {liveQuizzes.map((quiz) => (
               <ListItem key={quiz.id} title={quiz.title} caption={quiz.caption}
                 leading={<Avatar size="md" shape="square" theme={quiz.theme} background="subtle" alt="">{quiz.initials}</Avatar>}
                 trailing={<Icon name="icon-chevron-right-line-medium" decorative />}
                 onClick={() => toast({ title: quiz.title, children: `${quiz.caption} · join the live round` })} />
             ))}
-          </Stack>
+          </List>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -328,17 +329,18 @@ export const examples: ExampleDef[] = [
     bottomNavigation={<BottomNavigation type="floating" aria-label="Quiz app" value={root} onValueChange={setRoot} items={roots}
       action={{ icon: "icon-plus-line", label: "Create a quiz", theme: "primary", onClick: createQuiz }} />}
   >
-    <Stack as="section" gap="sm" aria-labelledby="live">
+    {/* The closing list is an open section: its title row over a List, md apart. */}
+    <Stack as="section" gap="md" aria-labelledby="live">
       <Stack direction="row" justify="between" align="center" gap="xs">
         <Heading level={2} id="live" textStyle="Heading/4">Live quizzes</Heading>
         <Text as="span" textStyle="Body/Base/Bold"><Link as="button" tone="inherit" onClick={openSearch}>See All</Link></Text>
       </Stack>
-      <Stack as="ul" gap="sm" aria-labelledby="live">
+      <List aria-labelledby="live">
         <ListItem title="Statistics math quiz" caption="Math · 12 quizzes" onClick={openQuiz}
           leading={<Avatar size="md" shape="square" theme="violet" background="subtle" alt="">St</Avatar>}
           trailing={<Icon name="icon-chevron-right-line-medium" decorative />} />
         …Integers quiz · Music theory basics
-      </Stack>
+      </List>
     </Stack>
   </AppShell>
 </PlatformPhone>`,
