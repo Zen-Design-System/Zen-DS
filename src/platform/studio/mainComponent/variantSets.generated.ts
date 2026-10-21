@@ -987,11 +987,13 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Theme",
           "names": [
             "Default",
-            "Border & Divider"
+            "Border & Divider",
+            "Borderless"
           ],
           "values": [
             "default",
-            "border-divider"
+            "border-divider",
+            "borderless"
           ],
           "default": "default"
         },

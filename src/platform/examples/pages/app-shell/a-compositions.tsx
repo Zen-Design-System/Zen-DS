@@ -214,8 +214,9 @@ function Workspace({ look }: { look: Look }) {
           canvas={look.canvas}
           // The trail starts with the workspace's Master crumb (its home icon): the toggle sits in the Sidebar's header.
           collapse="sidebar"
+          // Figma A1–A4 (15904:1616 / 2813 / 6185 / 8996): Patterns/Sidebar and Header/AppShell both Density=Small.
           sidebar={(
-            <Sidebar shadow={look.sidebarShadow} brand={brand} logoCollapsed={mark} sections={navSections} selectedId="overview"
+            <Sidebar density="small" shadow={look.sidebarShadow} brand={brand} logoCollapsed={mark} sections={navSections} selectedId="overview"
               onItemClick={(item) => { if (item.id !== "overview") notHere(item.label); }}
               footer={<>
                 <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
@@ -225,6 +226,7 @@ function Workspace({ look }: { look: Look }) {
           )}
           header={(
             <AppShellHeader
+              density="small"
               leading={<Breadcrumbs items={[{ id: "workspace", label: "Workspace" }, { id: "overview", label: "Overview" }]} onNavigate={(item, event) => { event.preventDefault(); notHere(String(item.label)); }} />}
               actions={<>
                 <AppShellAction icon="icon-bell-01-solid" aria-label="Notifications" count={3} onClick={() => toast({ title: "3 notifications", children: "Lia, John and Paul wrote since Friday." })} />
@@ -317,12 +319,13 @@ function Workspace({ look }: { look: Look }) {
 }
 
 // ——— The four compositions ————————————————————————————————————————————————————————————————————————————————
-const shell = "Shell: AppShell/Desktop · Layout=Sidebar · Collapse=Sidebar.";
+const shell = "Shell: AppShell/Desktop · Layout=Sidebar · Collapse=Sidebar; Sidebar and header Density=Small.";
 const codeFor = ({ canvas, sidebarShadow, cards, lists, hue }: Look & { hue?: boolean }) => `<AppShell${canvas === "default" ? "" : ` canvas="${canvas}"`}
   collapse="sidebar" // the trail starts with the Master crumb, so the toggle sits in the Sidebar
-  sidebar={<Sidebar${sidebarShadow ? "" : " shadow={false}"} brand={workspace} logoCollapsed={mark} sections={nav} selectedId="overview" footer={helpRows} />}
+  sidebar={<Sidebar density="small"${sidebarShadow ? "" : " shadow={false}"} brand={workspace} logoCollapsed={mark} sections={nav} selectedId="overview" footer={helpRows} />}
   header={
     <AppShellHeader
+      density="small"
       leading={<Breadcrumbs items={[{ id: "workspace", label: "Workspace" }, { id: "overview", label: "Overview" }]} />}
       actions={<>
         <AppShellAction icon="icon-bell-01-solid" aria-label="Notifications" count={3} onClick={openNotifications} />

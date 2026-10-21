@@ -77,6 +77,52 @@ ${Array.from({ length: 40 }, (_, index) => `          <Text>Expense ${index + 1}
 }
 `;
 
+/** An Android page (header `os`) whose phone Screen is at the iPhone's size (PT-16). */
+const androidPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title, os: "android" })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="phone" width={390} height={844}>
+        <Stack gap="md" padding="lg">
+          <Text>Android</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** Two phone Screens, Next on the first leading to the second (PT-17). */
+const phonePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Home" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>First screen</Text>
+          <Button onClick={proto.navigate("screen-2")}>Next</Button>
+        </Stack>
+      </Screen>
+      <Screen id="screen-2" title="Details" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>Second screen</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** Scrolls what scrolls the shown page (the window's layer, or a box under Present's / Play's bar: the nearest ancestor of
  *  its Sidebar that really scrolls) 400px and checks the AppShell Sidebar stays at the top of that box, at its height,
  *  its rows scrolling inside (PT-11 Play, PT-14 Present). In CSS px, so a scaled fixed viewport measures the same;
@@ -512,6 +558,87 @@ export const rows = [
       await page.keyboard.press("Escape");
       await present.waitFor({ state: "detached", timeout: 5000 });
       return "Present: iPhone in its frame → iPad, portrait (tablet, mobile layout, 744 × 1133) → frame off/on → Duo open (side status, fold)";
+    },
+  },
+  {
+    id: "PT-16", feature: "Android in the simulator (user 2026-10-21: \"thêm máy Android vào simulator\"): Present on an Android page's 390 × 844 phone Screen plays it on the Android phone (412 × 917, Android's bars and safe areas, its device frame); Viewport › Device › Android tablet, landscape lays it out as a desktop tablet with Android's bars and Rotate turns it to portrait; Device › iPhone draws iOS bars whatever the page's OS", wp: "simulator android 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, androidPage, /"os":"android"/);
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id="frame:screen:screen-1"]').click();
+      await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      const present = page.locator(".studio-present");
+      await present.waitFor({ state: "visible", timeout: 5000 });
+      const screen = present.locator(".studio-builder-screen").first();
+      const read = () => screen.evaluate((node) => {
+        const style = getComputedStyle(node);
+        const status = node.querySelector(".studio-device-status");
+        return { device: node.getAttribute("data-device"), layout: node.getAttribute("data-layout"), os: node.getAttribute("data-os"), status: status ? `${status.getAttribute("data-os")}/${status.getAttribute("data-device")}` : null, safe: `${style.getPropertyValue("--zen-safe-area-top").trim()}/${style.getPropertyValue("--zen-safe-area-bottom").trim()}` };
+      });
+      const expect = async (want, message) => {
+        const got = await until(async () => { const value = await read(); return Object.entries(want).every(([key, wanted]) => value[key] === wanted) ? value : null; }, { message }).catch(async () => { throw new Error(`${message}: ${JSON.stringify(await read())}`); });
+        return got;
+      };
+      const ratio = async (width, height, what) => {
+        const box = await present.locator(".studio-present__viewport").boundingBox();
+        if (!box || Math.abs(box.width / box.height - width / height) > 0.01) throw new Error(`the ${what} viewport is not ${width} × ${height} (${box ? `${Math.round(box.width)} × ${Math.round(box.height)}` : "none"})`);
+      };
+      // Auto: the Android page's Screen plays on the Android phone, not the iPhone of its size.
+      await until(async () => (await screen.getAttribute("data-hardware")) === "android-phone", { message: "Auto takes the Android phone for the Android page's Screen" });
+      await expect({ device: "phone", os: "android", status: "android/phone", safe: "24px/24px" }, "the Android phone's bars");
+      await present.locator(".studio-device-status__camera").waitFor({ state: "attached", timeout: 5000 });
+      await present.locator(".studio-device-frame").waitFor({ state: "visible", timeout: 5000 });
+      await ratio(412, 917, "Android phone");
+      const pick = async (label) => {
+        const trigger = present.locator('[id$="-viewport-device-trigger"]');
+        await trigger.waitFor({ state: "visible", timeout: 5000 });
+        await trigger.click();
+        await page.getByRole("option", { name: new RegExp(`^${label}`) }).first().click();
+      };
+      await present.getByRole("button", { name: /^Viewport:/ }).click();
+      await pick("Android tablet, landscape");
+      await expect({ device: "tablet", layout: "desktop", os: "android", status: "android/tablet" }, "Android tablet, landscape");
+      await ratio(1280, 800, "Android tablet");
+      await present.getByRole("button", { name: "Rotate", exact: true }).click();
+      await expect({ device: "tablet", layout: "mobile", os: "android" }, "Rotate turns the Android tablet to portrait");
+      await ratio(800, 1280, "Android tablet, portrait");
+      await pick("iPhone");
+      await expect({ device: "phone", os: "ios", status: "ios/phone", safe: "50px/28px" }, "the iPhone draws iOS bars on the Android page");
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await present.waitFor({ state: "detached", timeout: 5000 });
+      return "Android page: Auto on the Android phone (412 × 917, bars 24/24, camera, frame) → Android tablet, landscape (desktop layout) → Rotate (portrait) → iPhone (iOS bars 50/28)";
+    },
+  },
+  {
+    id: "PT-17", feature: "Open on phone (user 2026-10-21: Play on a real phone, \"Tương tác (Play)\"): Play's bar shares the page and shows a QR code of a network link; Escape closes that dialog and keeps Play; the link opened in a phone-sized browser plays the page from the Screen Play is on, with no simulated bars, and its proto actions run (Next → screen-2)", wp: "open on phone 2026-10-21", timeout: 90_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, phonePage, /proto\.navigate\("screen-2"\)/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await playing(page).getByRole("button", { name: "Open on phone" }).click();
+      const dialog = page.locator(".studio-open-phone");
+      await dialog.locator("svg.studio-open-phone__qr").waitFor({ state: "visible", timeout: 15_000 });
+      const link = (await dialog.locator(".studio-open-phone__url").innerText()).trim();
+      if (!/^http:\/\/\d+\.\d+\.\d+\.\d+:\d+\/d\/[\w-]+$/.test(link)) throw new Error(`not a network link: ${link}`);
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({ state: "detached", timeout: 5000 });
+      if (!(await playing(page).isVisible())) throw new Error("Escape left Play instead of closing the dialog");
+      const phone = await ctx.browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
+      try {
+        const tab = await phone.newPage();
+        await tab.goto(link, { waitUntil: "domcontentloaded", timeout: 60_000 });
+        await tab.waitForSelector(".studio-builder-screen", { timeout: 60_000 });
+        const first = await tab.evaluate(() => ({ screen: document.querySelector("[data-screen-id]")?.getAttribute("data-screen-id"), bars: document.querySelectorAll(".studio-device-status, .studio-device-home").length }));
+        if (first.screen !== "screen-1" || first.bars) throw new Error(`the phone: ${JSON.stringify(first)}`);
+        await tab.getByRole("button", { name: "Next" }).tap();
+        await until(async () => (await tab.locator("[data-screen-id]").getAttribute("data-screen-id")) === "screen-2", { message: "Next → screen-2 on the phone" });
+      } finally {
+        await phone.close();
+      }
+      await page.keyboard.press("Escape");
+      return "Play › Open on phone: QR + network link → Esc keeps Play → a 390 × 844 phone plays screen-1 (no simulated bars) → Next → screen-2";
     },
   },
 ];
