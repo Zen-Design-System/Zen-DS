@@ -72,6 +72,15 @@ Studio's Theme/Density mapping waits for this merge (Bug session).
   4 old variants) with their 149 symbols and 0 slot contents; probe 16897:29494 (164 instances: charts 145, Patterns/
   Sidebar 16, Header/AppShell 3) captured with `--merge --keep`: 21 sets + 164 symbols added, the 211 sets kept stay,
   clipboard put back 6/6, probe removed. check 177/177, figma-native selftest 130 ✓, studio:selftest exit 0.
+- Probe (private server): Header/AppShell draws its 4 Theme × Density cells; Patterns/Sidebar switches all 5 themes
+  through the variant panel, Medium rail 80, expanded 240; the Small rails measured 60 / 52 (Figma 72 / 64) without a
+  logo → AppShell fixed sidebar.css at its owner (e94c0f3c, min-width 72 / 64), stacked under this branch.
+- Stack gate (one run for AppShell's #181 + this branch, Supervisor's plan; report .qa/reports/2026-10-21T07-13-11-
+  92715053.md): static ✓, Vitest 76/76, behaviour 0 errors, runtime 0 errors + 4 new [rhythm] warnings on AppShell's
+  G1 · Grid (10 text styles, already on main), Studio E2E 329 works / 7 broken. B-28 passes on a rerun (flaky under
+  load); MC-02…07 fail on main as well (shared checkout at 51dffc2b, and b454389b / 3c77ff96 / e94c0f3c without this
+  branch's commits): the click selects the variant but the Layers row never shows selected. Last worked 12:09 today
+  (Zen-DS-appshell); handed to B (mainComponent / Layers) and the Supervisor.
 
 ## Session "Bug" · Chart responsive in Figma (Figma library only; user: "kiểm tra lại responsive tất cả các chart trong figma", "tất cả các chiều", "Sửa hết")
 
