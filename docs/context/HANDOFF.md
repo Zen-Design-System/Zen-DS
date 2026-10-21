@@ -230,7 +230,8 @@ Last updated: 2026-10-21.
   `edit/copyAs.ts` on B's `layerPicture`). Use as mask ⌃⌘M (#161): Box `mask` (`Layout/mask.tsx`, an inline clipPath
   from the first layer's outline), a Mask group in Studio, `isMask` in push / pull and the Zen plugin (`studio-import`
   3f0cf52). E2E `--only=figma` FW-20…39, FW-110…127. A worktree without `pathkit-wasm` makes ⌥⇧S / ⌘E say "could not
-  load the path engine".
+  load the path engine". Since 2026-10-22: ⌥⌘A Select matching layers and Select all with same › (`edit/matchModel.ts`,
+  `edit/selectMatching.ts`, FW-175…179; the user's rule is in the model's note).
 - **Zen Studio → native Figma (2026-10-17, user: "convert người dùng từ Figma"):** research + plan
   `docs/research/studio-figma-native-parity-2026-10-17.md` (P1–P5, status §8). Built: `Shape` (Rectangle, Ellipse +
   arc, Line, Arrow, Polygon, Star; token paints), px insets for free frames, Figma's drawing tools and gestures

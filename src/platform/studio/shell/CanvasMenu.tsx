@@ -13,6 +13,8 @@ import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem
 import { copyAsCode, copyAsCss, copyAsPng, copyAsPngShortcut, copyAsSvg } from "../edit/copyAs";
 import { groupSelection, inMaskGroup, maskSelection, ungroupSelection } from "../edit/groupLayers";
 import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../edit/pathOps";
+import type { SameKind } from "../edit/matchModel";
+import { SAME_LABELS, selectAllWithSame, selectMatchingLayers, selectMatchingShortcut } from "../edit/selectMatching";
 import { selectedFrames } from "../select/frameSelection";
 import { findBySrc } from "../select/picker";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
@@ -54,7 +56,7 @@ type MenuTarget = { kind: "node"; selection: NodeSelection } | { kind: "frame"; 
 /** A layer under the pointer that "Select layer" offers (Figma's submenu): its name and how to select it. */
 export type LayerUnderPointer = { name: string; icon: IconName; selected: boolean; select: () => void };
 /** `listing`: the menu shows only the layers under the pointer ("Select layer ›" chosen). */
-type MenuState = { x: number; y: number; target: MenuTarget; at: number; layers?: readonly LayerUnderPointer[]; listing?: boolean; copyAs?: boolean };
+type MenuState = { x: number; y: number; target: MenuTarget; at: number; layers?: readonly LayerUnderPointer[]; listing?: boolean; copyAs?: boolean; same?: boolean };
 /** What Menu's placement keeps between the anchor and the window edge: its 8px margin, its 4px gap and the 1px anchor
  * (.studio-canvas-menu__anchor). Leaving out the gap and the anchor made Menu find 5px too little room below the moved
  * anchor and open the menu above it, cut off by the window's top (2026-10-09). */
@@ -269,13 +271,24 @@ export function CanvasMenu() {
     { id: "select-layer", label: "Select layer", icon: "icon-layers-three-01-line", shortcut: "›", onSelect: () => { const current = menu; window.setTimeout(() => set({ ...current, listing: true, at: Date.now() }), 0); } },
     { type: "separator", id: "select-layer-separator" },
   ] : [];
+  // Figma's Select matching layers (⌥⌘A) and Select all with same › on a page you made (edit/selectMatching.ts). The
+  // list opens in place, as Select layer and Copy as do.
+  const matchable = Boolean(menu && selection && !selection.part && studioStore.getState().localPage);
+  const selectItems: MenuEntry[] = matchable && menu ? [
+    { id: "select-matching", label: "Select matching layers", icon: "icon-target-04-line", shortcut: selectMatchingShortcut, onSelect: () => { selectMatchingLayers(); } },
+    { id: "select-same", label: "Select all with same", icon: "icon-layers-three-01-line", shortcut: "›", onSelect: () => { const current = menu; window.setTimeout(() => set({ ...current, same: true, at: Date.now() }), 0); } },
+    { type: "separator", id: "select-same-separator" },
+  ] : [];
+  const SAME_ICONS: Readonly<Record<SameKind, IconName>> = { properties: "icon-sliders-01-line", fill: "icon-droplets-01-line", stroke: "icon-circle-line", effect: "icon-stars-01-line", text: "icon-type-square-line", font: "icon-type-01-line", instance: "icon-diamond-line" };
+  const sameItems: MenuEntry[] = [{ type: "group", id: "select-same-list", label: "Select all with same", items: (Object.keys(SAME_LABELS) as SameKind[]).map((kind) => ({ id: `select-same-${kind}`, label: SAME_LABELS[kind], icon: SAME_ICONS[kind], onSelect: () => { selectAllWithSame(kind); } })) }];
   const layerItems: MenuEntry[] = [{ type: "group", id: "select-layer-list", label: "Select layer", items: under.map((layer, index) => ({ id: `select-layer-${index}`, label: layer.name, icon: layer.icon, caption: layer.selected ? "Selected" : undefined, onSelect: layer.select })) }];
   const entries: MenuEntry[] = menu?.listing ? layerItems
     : menu?.copyAs ? copyAsItems
+    : menu?.same ? sameItems
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...zenInstanceItems, ...shapeItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
+        : [...selectLayer, ...selectItems, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...zenInstanceItems, ...shapeItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 
@@ -315,7 +328,7 @@ export function CanvasMenu() {
         <Menu
           open={Boolean(menu)}
           onOpenChange={(open) => { if (!open) set(null); }}
-          aria-label={menu?.listing ? "Select layer" : menu?.target.kind === "canvas" ? "Canvas actions" : frame ? `${frame.label} actions` : several ? "Selection actions" : selection ? `${selection.name} actions` : "Layer actions"}
+          aria-label={menu?.listing ? "Select layer" : menu?.same ? "Select all with same" : menu?.target.kind === "canvas" ? "Canvas actions" : frame ? `${frame.label} actions` : several ? "Selection actions" : selection ? `${selection.name} actions` : "Layer actions"}
           items={items}
           trigger={<button type="button" tabIndex={-1} aria-label="Canvas menu" className="studio-canvas-menu__anchor" style={{ left: point.x, top: anchorY ?? point.y }} />}
         />

@@ -1216,6 +1216,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio: ⌥⌘A Select matching layers, as Figma's: the same layer in the other frames (its Section's only), with
+  automatic names compared without their number. Also Select all with same › Properties, Fill, Stroke, Effect, Text
+  properties, Font and Instance, from the layer menu and Quick actions.
 - TopNavigation `largeTitleCapline` and `largeTitleSubheading` (2026-10-19): Figma Main-Heading-Text's Capline and
   Subheading, a Body/Base/Regular line above and below the large title ("Welcome home" / "Hi, Mai Anh", "Apple" /
   "HomePod mini" / "Living room"), grouped with it in an hgroup; they fold away with it.

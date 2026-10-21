@@ -3425,4 +3425,159 @@ export const rows = [
       return "New page › Create → Layers";
     },
   },
+  {
+    id: "FW-175", feature: "⌥⌘A (Select matching layers) selects the same layer in the other frames (its automatic name compared without its page-wide number), never one in a Section the frame is not in", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickIn(page, id, "screen:one", 1);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+ControlOrMeta+KeyA");
+      await until(async () => /Selected 2 matching layers/.test(await statusText(page)), { message: "two matching layers" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
+      const extra = await page.locator(".studio-selection__outline[data-kind='extra']").count();
+      if (extra !== 1) throw new Error(`${extra} other layers outlined (want the Ellipse of screen two)`);
+      const extraBox = await page.locator(".studio-selection__outline[data-kind='extra']").first().boundingBox();
+      const twin = await layerIn(page, id, "screen:two", 1).boundingBox();
+      if (Math.abs(extraBox.x - twin.x) > 3 || Math.abs(extraBox.y - twin.y) > 3) throw new Error("the outlined layer is not screen two's Ellipse");
+      return "Ellipse 1 (screen one) + Ellipse 2 (screen two); screen three sits in a Section";
+    },
+  },
+  {
+    id: "FW-176", feature: "⌥⌘A: a layer the person renamed matches only that name (Hero ≠ Rectangle), and a frame in a Section matches only frames in it: both say there is no match", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickIn(page, id, "screen:one", 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+ControlOrMeta+KeyA");
+      await until(async () => /No matching layers in other frames/.test(await statusText(page)), { message: "no match for the Rectangle (screen two's is Hero)" });
+      await deselect(page);
+      await pickIn(page, id, "screen:three", 1);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+ControlOrMeta+KeyA");
+      await until(async () => /No matching layers in other frames/.test(await statusText(page)) && (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 0, { message: "no match from inside the Section" });
+      return "Rectangle vs Hero: none · Section frame: none";
+    },
+  },
+  {
+    id: "FW-177", feature: "Right-click › Select all with same › Fill selects every layer of the page painted with that fill, in every frame", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickIn(page, id, "screen:one", 0);
+      await sameFromMenu(page, id, "screen:one", 0, "Fill");
+      await until(async () => /Selected 3 layers with the same fill/.test(await statusText(page)), { message: "the three accent rectangles" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
+      return "Fill › 3 accent rectangles (Hero and the Section's included)";
+    },
+  },
+  {
+    id: "FW-178", feature: "Select all with same › Instance selects every instance of the component, whatever its variant; Text properties selects the texts of that style", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickNamedIn(page, id, "screen:one", "Button");
+      await sameFromMenu(page, id, "screen:one", null, "Instance", "Button");
+      await until(async () => /Selected 3 layers with the same instance/.test(await statusText(page)), { message: "the three Buttons" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
+      await deselect(page);
+      await pickNamedIn(page, id, "screen:one", "Text");
+      await sameFromMenu(page, id, "screen:one", null, "Text properties", "Text");
+      await until(async () => /Selected 2 layers with the same text properties/.test(await statusText(page)), { message: "the two Caption texts" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
+      return "Instance › 3 Buttons (primary and secondary) · Text properties › 2 Captions";
+    },
+  },
+  {
+    id: "FW-179", feature: "Select all with same › Stroke on a layer without one says so and keeps the selection; ⌥⌘A is in Quick actions and no longer a 'not in Zen Studio yet' key", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickIn(page, id, "screen:one", 1);
+      await sameFromMenu(page, id, "screen:one", 1, "Stroke");
+      await until(async () => /This layer has no stroke/.test(await statusText(page)), { message: "no stroke said" });
+      if (await page.locator(".studio-selection__outline[data-kind='extra']").count()) throw new Error("other layers got selected");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyK");
+      const dialog = page.getByRole("dialog").last();
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await page.keyboard.type("Select matching");
+      await dialog.getByText("Select matching layers", { exact: true }).first().waitFor({ state: "visible", timeout: 5000 });
+      await page.keyboard.press("Escape");
+      if (/isn't in Zen Studio yet/.test(await statusText(page))) throw new Error("⌥⌘A still says not yet");
+      return "Stroke › none said · Quick actions lists Select matching layers";
+    },
+  },
 ];
+
+/* ── Select matching layers / Select all with same › helpers ─────────────────────────────────────────────────────── */
+
+/** Three phone Screens with a free frame (an accent Rectangle, an Ellipse), a Caption text and a Button; screen two's
+ *  Rectangle is named Hero and its Button secondary; screen three sits in a Section. */
+const matchText = (title) => {
+  const screen = (frame, x, { name = "", level = "primary", caption = "Caption/Regular" } = {}) => [
+    `      <Screen id="${frame}" title="${frame}" device="phone" x={${x}} y={0} width={390} height={844}>`,
+    "        <Box width={358} height={200}>",
+    `          <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} fill="accent-solid"${name ? ` data-name="${name}"` : ""} />`,
+    '          <Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />',
+    "        </Box>",
+    `        <Text textStyle="${caption}">Hello</Text>`,
+    `        <Button level="${level}">Save</Button>`,
+    "      </Screen>",
+  ].join("\n");
+  return [
+    `// @zen-page ${JSON.stringify({ format: 1, title })}`,
+    'import { Board, Screen, Section } from "@zen-ds/react/builder";',
+    'import { Box, Button, Shape, Text } from "@zen-ds/react";',
+    "export const mock = {};",
+    "",
+    "export default function Page() {",
+    "  return (",
+    "    <Board>",
+    screen("one", 0),
+    screen("two", 500, { name: "Hero", level: "secondary" }),
+    '      <Section id="later" title="Later" x={960} y={-80} width={480} height={1020} />',
+    screen("three", 1000, { caption: "Body/Base/Bold" }),
+    "    </Board>",
+    "  );",
+    "}",
+    "",
+  ].join("\n");
+};
+let matchMade = null;
+async function matchPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!matchMade) matchMade = (await seededPage(ctx, matchText, /id="later"/)).id;
+  else if (!page.url().includes(encodeURIComponent(`local:${matchMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${matchMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await deselect(page);
+  return { page, id: matchMade };
+}
+/** The n-th Shape of a frame on the match page. */
+const layerIn = (page, id, frameId, index, name = "Shape") => page.locator(`[data-studio-frame="${frameId}"] [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).nth(index);
+/** ⌘-clicks the n-th Shape of a frame (Figma's deep select). */
+async function pickIn(page, id, frameId, index) {
+  const box = await layerIn(page, id, frameId, index).boundingBox();
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("ControlOrMeta");
+  await until(async () => (await selectedSrc(page)).length === 1, { timeout: 4000, message: "a layer selected" });
+}
+/** ⌘-clicks the first `name` layer of a frame. */
+async function pickNamedIn(page, id, frameId, name) {
+  const box = await layerIn(page, id, frameId, 0, name).boundingBox();
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("ControlOrMeta");
+  await until(async () => (await selectedSrc(page)).length === 1, { timeout: 4000, message: `${name} selected` });
+}
+/** Right-click on the layer › Select all with same › `item`. */
+async function sameFromMenu(page, id, frameId, index, item, name = "Shape") {
+  const box = await layerIn(page, id, frameId, index ?? 0, name).boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+  const menu = page.getByRole("menu").last();
+  await menu.waitFor({ state: "visible", timeout: 5000 });
+  await menu.getByRole("menuitem", { name: /^Select all with same/ }).click();
+  const list = page.getByRole("menu", { name: "Select all with same" });
+  await list.waitFor({ state: "visible", timeout: 5000 });
+  await list.getByRole("menuitem", { name: new RegExp(`^${item}`) }).click();
+}
