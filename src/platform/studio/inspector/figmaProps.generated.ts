@@ -624,6 +624,41 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ]
   },
+  "AppShellHeader": {
+    "figma": "16783:71068",
+    "own": [
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Border & Divider": "border-divider"
+        }
+      },
+      {
+        "prop": "density",
+        "label": "Density",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Main",
+        "prop": "main",
+        "on": "slot"
+      },
+      {
+        "label": "Sections",
+        "prop": "sections",
+        "on": "slot"
+      }
+    ]
+  },
   "Card": {
     "figma": "6643:51021",
     "own": [
@@ -1944,9 +1979,45 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Default": "default",
           "Inverse": "inverse"
         }
+      },
+      {
+        "prop": "shadow",
+        "label": "Shadow",
+        "type": "VARIANT",
+        "options": {
+          "Yes": "true",
+          "No": "false"
+        }
+      },
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Border": "border",
+          "Carved": "carved",
+          "Carved-Floating": "carved-floating",
+          "Borderless": "borderless"
+        }
+      },
+      {
+        "prop": "density",
+        "label": "Density",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Footer",
+        "prop": "footer",
+        "on": "slot"
+      }
+    ]
   },
   "SkeletonText": {
     "figma": "1556:17566",

@@ -1056,7 +1056,7 @@
           "background?: default|alt|flat|inverse = default",
           "divider?: boolean = false",
           "shadow?: boolean = true",
-          "theme?: default|border",
+          "theme?: default|border|borderless|carved|carved-floating",
           "subHeader?: ReactNode",
           "workspaceBrand?: ReactNode",
           "workspaceItems?: SidebarItem[] = []",

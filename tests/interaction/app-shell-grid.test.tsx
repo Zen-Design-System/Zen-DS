@@ -58,6 +58,36 @@ describe("Sidebar Theme=Border and the sub-header", () => {
     expect(getComputedStyle(nav, "::after").width).toBe("1px");
   });
 
+  it("borderless, carved and carved-floating follow Figma's Patterns/Sidebar themes", async () => {
+    const carved = getComputedStyle(document.documentElement).getPropertyValue("--zen-color-background-carved").trim();
+    const { container } = await render(<ZenProvider>
+      <div style={{ height: 400, display: "flex" }}><Sidebar aria-label="A" theme="borderless" sections={sections} /></div>
+      <div style={{ height: 400, display: "flex" }}><Sidebar aria-label="B" theme="carved" sections={sections} /></div>
+      <div style={{ height: 400, display: "flex" }}><Sidebar aria-label="C" theme="carved-floating" sections={sections} /></div>
+    </ZenProvider>);
+    const [borderless, carvedNav, floating] = [...container.querySelectorAll(".zen-sidebar")];
+    expect(px(borderless, "padding-left")).toBe(0);
+    expect(getComputedStyle(borderless, "::after").content).toBe("none");
+    expect(px(carvedNav, "padding-left")).toBe(0);
+    const probe = document.createElement("div"); probe.style.background = `var(--zen-color-background-carved)`; container.appendChild(probe);
+    const want = getComputedStyle(probe).backgroundColor;
+    expect(carved).not.toBe("");
+    expect(getComputedStyle(carvedNav.querySelector(".zen-sidebar__surface")!).backgroundColor).toBe(want);
+    expect(px(floating, "padding-left")).toBe(8);
+    const panel = floating.querySelector(".zen-sidebar__surface")!;
+    expect(getComputedStyle(panel).backgroundColor).toBe(want);
+    expect(getComputedStyle(panel).boxShadow).toBe("none");
+    expect(px(panel, "border-top-left-radius")).toBe(20);
+  });
+
+  it("density=\"small\" alone is the Basic panel at Density=Small, not the old Small-Density variant", async () => {
+    const { container } = await render(<ZenProvider><div style={{ height: 400 }}><Sidebar aria-label="Main" density="small" sections={sections} /></div></ZenProvider>);
+    const nav = container.querySelector(".zen-sidebar")!;
+    expect(nav.getAttribute("data-variant")).toBe("basic");
+    expect(nav.getAttribute("data-sidebar-density")).toBe("small");
+    expect(container.querySelector(".zen-sidebar__item")!.getBoundingClientRect().height).toBe(36);
+  });
+
   it("subHeader: the back control over the level's title, at the top of the body", async () => {
     let back = 0;
     const { container, getByRole } = await render(<ZenProvider><Sidebar aria-label="Main" sections={sections} subHeader={<SidebarSubHeader title="Brand refresh" onBack={() => { back += 1; }} />} /></ZenProvider>);
@@ -78,6 +108,18 @@ describe("Sidebar rail, Density=Medium (Patterns/Sidebar Expand=No; user 2026-10
     expect(nav.getBoundingClientRect().width).toBe(80);
     expect([px(nav, "padding-left"), px(nav, "padding-right")]).toEqual([8, 0]);
     expect(px(nav.querySelector(".zen-sidebar__default-brand")!, "row-gap")).toBe(24);
+  });
+});
+
+describe("Sidebar rail, Density=Small and the flush themes (Patterns/Sidebar Expand=No)", () => {
+  // Figma's rails are fixed whatever the logo (Bug session's probe, 2026-10-21: 60 and 52 without a 32px logo).
+  it("is 72 at Density=Small (default, carved-floating) and 64 on border, borderless and carved", async () => {
+    const rail = (props: Partial<React.ComponentProps<typeof Sidebar>>) => <div style={{ height: 400, display: "flex" }}><Sidebar aria-label="Main" collapsed onCollapsedChange={() => undefined} sections={sections} {...props} /></div>;
+    const { container } = await render(<ZenProvider>
+      {rail({ density: "small" })}{rail({ density: "small", theme: "carved-floating" })}
+      {rail({ theme: "border" })}{rail({ density: "small", theme: "borderless" })}{rail({ density: "small", theme: "carved" })}
+    </ZenProvider>);
+    expect([...container.querySelectorAll(".zen-sidebar")].map((nav) => nav.getBoundingClientRect().width)).toEqual([72, 72, 64, 64, 64]);
   });
 });
 

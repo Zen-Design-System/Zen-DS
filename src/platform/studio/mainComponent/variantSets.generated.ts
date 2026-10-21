@@ -976,6 +976,42 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       ]
     }
   ],
+  "AppShellHeader": [
+    {
+      "name": "Header/AppShell",
+      "figma": "16783:71068",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Default",
+            "Border & Divider"
+          ],
+          "values": [
+            "default",
+            "border-divider"
+          ],
+          "default": "default"
+        },
+        {
+          "prop": "density",
+          "label": "Density",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "Card": [
     {
       "name": "Card",
@@ -2701,7 +2737,21 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "fixed": {
         "variant": "basic"
       },
-      "axes": [],
+      "axes": [
+        {
+          "prop": "collapsed",
+          "label": "Expand",
+          "names": [
+            "No",
+            "Yes"
+          ],
+          "values": [
+            "true",
+            "false"
+          ],
+          "default": "false"
+        }
+      ],
       "toggles": []
     },
     {
@@ -2735,7 +2785,89 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "fixed": {
         "variant": "small-density"
       },
-      "axes": [],
+      "axes": [
+        {
+          "prop": "collapsed",
+          "label": "Expand",
+          "names": [
+            "No",
+            "Yes"
+          ],
+          "values": [
+            "true",
+            "false"
+          ],
+          "default": "false"
+        }
+      ],
+      "toggles": []
+    },
+    {
+      "name": "Patterns/Sidebar",
+      "figma": "6040:67524",
+      "fixed": {
+        "variant": "basic"
+      },
+      "axes": [
+        {
+          "prop": "collapsed",
+          "label": "Expand",
+          "names": [
+            "No",
+            "Yes"
+          ],
+          "values": [
+            "true",
+            "false"
+          ],
+          "default": "false"
+        },
+        {
+          "prop": "shadow",
+          "label": "Shadow",
+          "names": [
+            "Yes",
+            "No"
+          ],
+          "values": [
+            "true",
+            "false"
+          ],
+          "default": "true"
+        },
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Default",
+            "Border",
+            "Carved",
+            "Carved-Floating",
+            "Borderless"
+          ],
+          "values": [
+            "default",
+            "border",
+            "carved",
+            "carved-floating",
+            "borderless"
+          ],
+          "default": "default"
+        },
+        {
+          "prop": "density",
+          "label": "Density",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
       "toggles": []
     }
   ],
