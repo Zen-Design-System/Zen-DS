@@ -38,6 +38,11 @@ Spec card `docs/research/studio-instance-panel-parity-spec-2026-10-21.md`. Plugi
   - Selftests: push 345, compile 77, the new layerNames selftest 7; studio:selftest passes and tsc is clean.
   - Conformance 180/180; the plugin's full `npm test` passes.
   - New E2E rows FW-99, FW-141 and FW-142 (figma group).
+- Gate (15:16–15:52, main 51dffc2b): static checks, TypeScript and browser tests (76/76) pass. Studio E2E is
+  332 / 336: MC-02…05 fail as on main. The cause is LayersPanel watching a stale canvas world, and A fixes it
+  (53e87642). FW-99/141/142 pass alone, and every changed heading check passes. FW-100/101 were renumbered to
+  FW-141/142 because they collided with F10's rows.
+- BACKLOG P3 (waits for the user): AppShellHeader `theme` / `density` (#179) are not pushed to Figma yet.
 
 ## AppShell session · Figma sync: Grid, Header Theme/Density, Sidebar Theme, Sub-Header (tier M, branch `zen/feat/appshell-figma-sync-20261021`)
 
