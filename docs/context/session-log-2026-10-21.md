@@ -324,3 +324,5 @@ compared with the hidden originals in the next call (all identical), then remove
   deliberate (tabs.css: the indicator sits on the header's bottom border), now skipped.
 - Minified audit on the 9 screens: 0 errors, 0 section findings (43 warnings, all older: canvas overrides, chart shapes,
   sparkline absolutes, docs "Yes").
+- Met while taking the after shots: C6's Checkbox/Text was fixed at 141, so "Matches my ID" wrapped onto two lines in
+  some renders. Its Container, Content and Label now hug (143 wide, one line), checked on a fresh screenshot.
