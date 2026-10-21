@@ -2863,7 +2863,7 @@
     ],
     "avoid": [
       "Non-blocking feedback → Toast.",
-      "Long forms → a page or Side Panel.",
+      "A data-entry form (two or more fields) → ModalForm on desktop and tablet, BottomSheet on a phone; a long form → a page.",
       "Hints → Tooltip/Popover."
     ],
     "api": [
@@ -2875,7 +2875,7 @@
       [
         "Actions direction",
         "actionsDirection",
-        "horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical"
+        "horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical. Dialog only: a ModalForm keeps its actions in a row at every width"
       ],
       [
         "Modal/Forms",
@@ -2932,8 +2932,9 @@
       ]
     ],
     "do": [
-      "Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.",
-      "Use actionsDirection=\"vertical\" when the choices deserve equal weight or labels are long.",
+      "Use Dialog for a notice or a quick confirm, with one field at most (type the name to delete). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet (harness: dialog/form-uses-modal-form) and in a BottomSheet on a phone (harness: modal-form/not-on-phone).",
+      "Use actionsDirection=\"vertical\" on a Dialog when the choices deserve equal weight or labels are long; a ModalForm keeps its actions in a row (harness: modal-form/actions-horizontal).",
+      "Keep a ModalForm's side column (side) no taller than the form, a summary or an illustration, so the actions sit under the fields with no empty band; longer side content belongs in the form.",
       "Phrase the title as the question (\"Delete “Marketing site”?\") and repeat the verb in the primary action.",
       "Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: \"Cancel\", autoFocus: true }}` (otherwise the primary action takes it).",
       "Require typing the name for high-impact deletes.",
@@ -2949,6 +2950,7 @@
       "Don't use a dialog for information the user can ignore.",
       "Don't hide the only way out (always Escape or a cancel action).",
       "Don't open a dialog from a dialog (harness: dialog/no-nested).",
+      "Don't put a form in a Dialog, and don't open a ModalForm on a phone.",
       "Don't open a dialog on page load without a user action.",
       "Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser."
     ],
@@ -2994,6 +2996,18 @@
         "severity": "error",
         "summary": "Never stack dialogs: a Dialog does not open another Dialog.",
         "allow": "nested-dialog"
+      },
+      {
+        "id": "dialog/form-uses-modal-form",
+        "severity": "error",
+        "summary": "Dialog is for a notice or a quick confirm (one field at most, such as typing a name to confirm). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet and in a BottomSheet on a phone.",
+        "allow": "dialog-form"
+      },
+      {
+        "id": "modal-form/actions-horizontal",
+        "severity": "error",
+        "summary": "A ModalForm's footer keeps its actions in a row (Tertiary cancel, Primary submit): actionsDirection=\"vertical\" belongs to a Dialog's equal-weight choices, never to a form.",
+        "allow": "modal-form-actions"
       },
       {
         "id": "api/deprecated-prop",
@@ -7036,6 +7050,7 @@
     ],
     "do": [
       "Keep one task per sheet and one primary action.",
+      "On a phone, open a form in a BottomSheet (its title, the fields, the actions in its footer), never in a ModalForm (harness: modal-form/not-on-phone).",
       "Let the user drag, tap the scrim or press Escape to dismiss.",
       "For a single choice, fill the sheet with List + ListItem: the picked row is `selected` (Active/Neutral/Subtle) with a trailing check, and picking closes the sheet. The Action type's `selectedId` row (Accent/Subtle) is Figma's state, not the house pattern for choices (user, 2026-09-30).",
       "Lists inside the sheet use List/ListItem (the sheet sets --zen-list-inset: 0).",
@@ -7069,6 +7084,12 @@
     ],
     "file": "docs/guidelines/bottom-sheet.md",
     "rules": [
+      {
+        "id": "modal-form/not-on-phone",
+        "severity": "error",
+        "summary": "On a phone a form opens in a BottomSheet, never a ModalForm (Figma's Modal/Forms has no Mobile device). A phone is a PlatformPhone frame or a Studio Screen with device=\"phone\".",
+        "allow": "modal-form-phone"
+      },
       {
         "id": "segmented/control-bar-full-width",
         "severity": "warn",
