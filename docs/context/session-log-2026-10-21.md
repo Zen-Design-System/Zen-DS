@@ -510,3 +510,5 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   density @320 Comfortable: a person chip had 54px beside the 154px label (remove button 5.6px out) → a value under
   5 × Element-Size wraps below its label (row gap 0); APG: Escape from the + left focus on the first chip → the picker
   returns focus to its opener, and a second press on the + closes the list (it counted as outside, then reopened).
+- Contact sheets: badge@390 Release checklist pushed Status off the phone (Owner 160px) → on a phone the owner joins
+  the caption, as in Task status. Gate 3 (badge + input, files after run 2): PASS; run 2 Studio E2E 338 works · 0 broken.

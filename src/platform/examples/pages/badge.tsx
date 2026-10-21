@@ -348,7 +348,12 @@ const releaseSteps: ReleaseStep[] = [
   { id: "r7", title: "Keep the old Status pill", owner: "alex", status: "cancelled", note: "Replaced by Badge-Status" },
 ];
 function ReleaseChecklist() {
-  const columns: TableColumn<ReleaseStep>[] = [
+  // On a phone the owner joins the step's caption and only Status stays beside it, as in Task status.
+  const phone = useZen()?.breakpoint === "mobile";
+  const columns: TableColumn<ReleaseStep>[] = phone ? [
+    { id: "step", header: "Step", cell: (step) => <TableText caption={[people[step.owner].name, step.note].filter(Boolean).join(" · ")}>{step.title}</TableText> },
+    { id: "status", header: "Status", cell: (step) => <TableBadges><BadgeStatus status={step.status} progress={step.progress} /></TableBadges> },
+  ] : [
     { id: "step", header: "Step", cell: (step) => <TableText caption={step.note}>{step.title}</TableText> },
     { id: "owner", header: "Owner", width: "160px", cell: (step) => <TableText>{people[step.owner].name}</TableText> },
     { id: "status", header: "Status", width: "160px", cell: (step) => <TableBadges><BadgeStatus status={step.status} progress={step.progress} /></TableBadges> },
