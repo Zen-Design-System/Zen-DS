@@ -347,6 +347,9 @@ export const FIGMA_PROPS = {
       "Sub-Item": skip("data slot"),
       "Sub-Menu": skip("the sub-menu object"),
       Expand: skip("collapsed is the opposite of Expand"),
+      // Figma Side-Bar/Master Footer (2026-10-21): shows Footer-Container (and its Divider) = the Sidebar has a footer.
+      Footer: { toggle: "footer", on: "slot" },
+      "Collapse Button": skip("the collapse control has no prop: it shows with onCollapsedChange, or where the AppShell puts the toggle (collapse=\"sidebar\")"),
       "Child-Header-Content": skip("content slot"),
       "Child-Body-Content": skip("data slot"),
       "Child-Footer-Content": skip("content slot"),

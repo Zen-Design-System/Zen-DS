@@ -90,6 +90,69 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
   tokens:native:check and high contrast (0 failures) all pass.
 - No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
 
+## AppShell session · Patterns/Sidebar → Studio, Sidebar themes (tier M, branch `zen/feat/studio-patterns-sidebar-20261021`, stacked on #179)
+
+The user asked: "Update cả Patterns/Sidebar từ figma lên Studio", "Cập nhật boolean cho footer của sidebar từ figma lên
+studio", and (through the Bug session) "bổ sung variant của Patterns/Sidebar". They approved Carved and
+Carved-Floating: "Có, cùng đợt Studio". Borderless appeared in Figma while I worked.
+
+Live Patterns/Sidebar 6040:67524, renamed from "…/Density-Medium":
+- Theme = Default | Border | Borderless | Carved | Carved-Floating; Density = Medium | Small; plus Shadow and Expand.
+- The flush themes (Border, Borderless, Carved): inset 0, rail 64, header gap 24, body padding 4·8.
+- Carved-Floating: inset 8·0·8·8, panel in Background/Carved, radius 20, no shadow.
+
+Code:
+- `sidebarThemes` has all five values, with CSS for each.
+- New test in app-shell-grid.test.tsx.
+- Guideline row updated.
+
+Studio:
+- Contract: the ❖ Sidebar page re-read (Basic and Small-Density gained Collapse Button and Footer, Workspace gained
+  Footer) and Patterns/Sidebar added under ◇ Master-Layout.
+- Map: Footer → { toggle: "footer", on: "slot" }; Collapse Button → skip.
+- figmaProps regenerated (48 toggles).
+- MASTER_SIDEBAR_PATTERN, library-keys and the push selftest use the new name.
+- `studio:selftest` exit 0.
+
+The Bug session wires Patterns/Sidebar into Properties and the Main component, and captures the native pack together
+with Header/AppShell.
+
+### Standalone Sidebar → Patterns/Sidebar (same branch; user: "Có, sửa push Sidebar đứng riêng luôn")
+
+- Live set read (use_figma, read-only): 16 variants. Border, Borderless, Carved and Carved-Floating exist only at
+  Density=Small, and their Shadow is fixed (No when open, Yes on the flush rails). The Side-Bar inside is named
+  Patterns/Density/Comfortable/Sidebar/Yes|No.
+- Push (`figma-push.mjs`):
+  - `sidebarPatternProps(look)` picks the nearest variant: Theme and Expand first, then Density, then Shadow.
+  - `sidebarPatternNode` wraps a Basic Side-Bar on its own: its props go to nested "Patterns", its slots and edits move
+    inside the Sidebar/Yes|No layer, and that layer fills the pattern's height. Workspace and Small-Density stay as
+    they are.
+  - The AppShell master writes the same variant (`pattern="grid"` gives Border · Small). Its frames fallback wraps too.
+  - Rail widths follow the look: 80 · 72 (Small) · 64 (flush).
+- Pull (`figma-pull.mjs`):
+  - The composition read keeps its variant (`compositionProps`), and `sidebarPattern` reads a placed pattern or the
+    push's instance.
+  - `sidebarLookProps` gives back theme, density and shadow. Shadow=No is read on Default only.
+  - `instanceIn` and the master frame carry the look, so it survives the AppShell read too.
+- Checks:
+  - Push selftest 347 (5 new: variant choice, a carved small rail, the grid master, two round trips). `studio:selftest`
+    exit 0. library-keys check: all 176 sets keyed.
+  - Live-shaped reads of three placed patterns (16783:66571 Border·Small, 16272:135322, 16256:1944) give
+    `theme="border" density="small"`, `density="small"` and `collapsed density="small"`.
+- BACKLOG P2 "A standalone Sidebar pushes without its theme" removed.
+- Real Figma: the plugin's importer was run on "Studio exports — QA" (unused paths stubbed, one use_figma call) with
+  three Sidebars: carved small, a border rail, and default with shadow={false}.
+  - Each became Patterns/Sidebar with its exact variant: 240 / 64 / 240 wide, the Side-Bar filling 982, rows and
+    selection right.
+  - The screenshot matches: a flush Carved column, the rail with its line, the inset panel without a shadow.
+  - The frame was removed afterwards.
+  - The bed's notes about Footer-Container and Divider are use_figma skipping hidden layers. The Footer boolean already
+    hides them, and the plugin finds hidden layers.
+- Fix from Bug's gate on 3af0dfb9 (Studio Main component probe). Collapsed without a 32px logo, the Density=Small rail
+  hugged its content: 60 for default/carved-floating, 52 for the flush themes. Figma's rails are a fixed 72 and 64.
+  sidebar.css now gives the small rail min-width 72 and the flush rails 64, as Medium has 80. The new test in
+  app-shell-grid.test.tsx runs in Bug's re-run; I ran no browser test, so as not to overlap Bug's gate.
+
 ## Copy a Section with its frames (Session C) — tier S, branch `zen/feat/studio-section-duplicate-20261021`
 The user picked it (2026-10-21) from the BACKLOG P1 "Studio design page = Figma" leftovers (F4, C's area). ⌥-drag, ⌘D
 and ⌘C ⌘V of a Section copy it with the frames and Sections it holds (board/sections.ts, any depth), all moved by the
