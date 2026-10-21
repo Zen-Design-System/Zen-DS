@@ -100,6 +100,9 @@ Last updated: 2026-10-21.
   Conventions they set: date props take ISO strings (Studio pages hold literals), data objects say `kind` (an object
   with a string `type` reads as an AI UI node), array props are plain arrays (build-api reads no `readonly`), wide
   views keep a minimum column and scroll or wrap in a narrow box. Open: BACKLOG P2 (designer) on the mobile Toolbar title.
+- **Studio simulator + Open on phone (2026-10-21, on main):** Android phone 412×917 and tablet 1280×800 (#190); Open on
+  phone, Play's QR to a real phone over the Wi-Fi through a token proxy, dev server stays on localhost (#191; `uqr`
+  devDependency).
 - **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
   gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
   Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
