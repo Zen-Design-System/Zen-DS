@@ -1,0 +1,16 @@
+/* Open on phone (OpenOnPhone.tsx): the QR code on a light square (data-theme="light"), the link beside Copy link. */
+.studio-open-phone__body { display: flex; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+/* zen-allow-slot-size: a QR code a phone camera reads from arm's length. */
+.studio-open-phone__qr { display: block; width: 200px; height: 200px; border-radius: var(--zen-corner-radius-small, 8px); }
+.studio-open-phone__qr-paper { fill: var(--zen-color-background-surface-default); }
+.studio-open-phone__qr-ink { fill: var(--zen-color-content-neutral-strongest); }
+.studio-open-phone__link { display: flex; align-self: stretch; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-open-phone__url { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; user-select: all; }
+
+/* The phone's page (DevicePlay.tsx): the Screen fills the window; the phone draws its own system bars. */
+.studio-device-play { min-height: 100dvh; }
+.studio-device-play__page { position: relative; min-height: 100dvh; }
+.studio-device-play__message { display: flex; min-height: 100dvh; box-sizing: border-box; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); text-align: center; }
+/* An AppShell runs as an app here, as in Play (builder.css): its Sidebar, panes and docked side panel stick to the
+   window at its height and their items scroll inside. */
+.studio-device-play .studio-builder-screen :is(.zen-app-shell__sidebar, .zen-app-shell__pane, .zen-app-shell__side-panel:not([data-stacked="true"])) { height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); }

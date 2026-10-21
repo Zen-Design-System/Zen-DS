@@ -633,7 +633,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Default": "default",
-          "Border & Divider": "border-divider"
+          "Border & Divider": "border-divider",
+          "Borderless": "borderless"
         }
       },
       {

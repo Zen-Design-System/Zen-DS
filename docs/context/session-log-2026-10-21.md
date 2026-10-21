@@ -1,5 +1,35 @@
 # Session log 2026-10-21
 
+## Simulator Android (tier S; user: "Ừ, thêm máy Android vào simulator đi"), worktree `../Zen-DS-android`, branch `zen/feat/studio-android-devices-20261021`
+- `tools/studio/screen-devices.mjs`: Android phone 412 × 917 (Figma Android Compact), Android tablet 1280 × 800 / 800 × 1280
+  (Figma Android Expanded, turned), `os: "android"`, `deviceOs()`. Radii 39 / 20 are estimates (Google publishes none;
+  the phone's from the Pixel 8's reported 102 px at 2.625), noted in the file.
+- `deviceOfScreen(…, os)`: the device of a Screen's size among the page OS's (the Duo whatever the OS), else the OS's own.
+  So a 390 × 844 Screen on an Android page plays on the Android phone, and a 412 × 917 one on an iOS page on the iPhone.
+- Bars: the page's OS on the canvas, the simulated device's in Present and Play (runtime Screen, Play's overlay safe areas).
+- Bug fixed at its owner: Present renders a frame outside BuilderBoard's PageOsContext, so an Android page's Screen showed
+  iOS bars in Present. BuilderBoard now wraps each frame's render in the page's OS.
+- New page on an Android device writes header `os: "android"`; Screen › Device switch resizes to the page OS's device.
+- E2E PT-16 (Android page: Auto on the Android phone, tablet landscape → Rotate, iPhone draws iOS bars). tsc ✓,
+  studio:selftest ✓.
+
+## Open on phone (tier M; user: "có thể làm trong Studio được không?" → A, "Tương tác (Play)"), branch `zen/feat/studio-phone-preview-20261021` (stacked on the Android branch)
+- Correction given to the user first: Export HTML is static markup, so the phone runs Play's own runtime instead.
+- Server: `tools/studio/device-share.mjs` (POST /device/share with the token, any role; GET /device/page by share token;
+  a proxy on a free port of every address, only for a browser holding a live share's cookie, GET/HEAD of device.html,
+  /src, tools/studio/*.mjs, /node_modules, /@vite, /@id, /@fs and the share route, loopback Host; closes with no share).
+  The dev server stays on localhost. Selftest `device-share.selftest.mjs` (38) in studio:selftest.
+- Client: `builder/proto/playFlow.tsx` (the flow taken out of Player: history, overlay, actions, After delay, drawing),
+  `device/OpenOnPhone.tsx` (Play bar QR button, dialog, uqr loaded on demand), `device/DevicePlay.tsx` + `device.html`
+  (no AuthGate: the share token is the key), `RealDeviceContext` (no simulated bars, env() safe areas, 100dvh),
+  `rememberUploads` (photos travel as base64, 6 MB).
+- Escape in Play closes the dialog first (it sits in the chrome portal, outside the layer).
+- New dev dependency `uqr@0.1.3` (MIT, no dependencies). Shared checkouts need `npm install` after the merge; until then
+  the dialog shows the link without a QR code.
+- Probe (private Vite on :5297, own cache and pages dir): LAN link → phone 390 × 844 plays screen-1, no bars, Next →
+  screen-2, 0 errors; Studio dialog QR + link; Escape keeps Play. First run found tools/studio modules refused by the
+  proxy (fixed, test added). E2E PT-17.
+
 ## Session "Bug" · PageHeader description tone (tier XS; user: "trong Figma dòng subtext dưới header là tone Light chứ không phải base")
 
 - Read live (use_figma): Primitives/Dashboard/Header Type=Main 4122:33399 SubHeading = Body/Base/Regular,
@@ -198,6 +228,57 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
   tokens:native:check and high contrast (0 failures) all pass.
 - No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
 
+## AppShell session · Chart/Metric text follows Chart/Line-Chart (tier M, branch `zen/fix/chart-metric-text-20261021`)
+
+The user asked:
+- "Kiểm tra lại đồng bộ cách sắp vị trí và spacing giữa description và value … theo cách sắp của Chart/Line-Chart"
+- "value luôn nằm dưới segmented"
+- "Chart/Bar-List còn xót"
+- "Vừa update lại text style của các metric widget và chart card", with the scope "Chỉ Chart và Metric".
+
+Figma, done with use_figma once the user added the permission:
+- Bar, Area, Combo, Gauge, Funnel, Bullet, Bar-List, Donut, Radial and Heatmap now each have a Metric frame below the
+  Segmented, as Line-Chart has: Padding/Small above, Gap/3XSmall between, Description Body/Small/Regular over Value
+  Display/4. Combo's Value was Heading/2.
+- The Metric frame shows with Show Value, as on Line-Chart; on Radial and Heatmap it shows with Show Description.
+- Funnel and Bullet variants are fixed at 318 / 294. They were HUG with a Fill body, which overflowed.
+- Checked: same Metric signature in all 10 sets, and no overlaps.
+
+Code:
+- ChartCard: header, then the Segmented, then the Metric; title Body/Extra/Medium.
+- MetricWidget: the Title-Highlight and comparison titles are Body/Extra/Medium; Tile number Display/4; Hero number
+  Display/1, unless the card sets a size.
+- Guidelines and JSDoc updated. New test: `tests/interaction/chart-card-metric.test.tsx`.
+- Card, ListBox and table-in-card titles keep Heading/Subheading. The harness rule is unchanged.
+- A1–A4 drift (reported by the Bug session, which re-read 15904:1616 / 2813 / 6185 / 8996 for the user):
+  - In Figma, Patterns/Sidebar and Header/AppShell are both Density=Small. Canvas, Shadow (A1 only) and
+    Collapse=Sidebar already matched.
+  - `a-compositions.tsx` now sets `density="small"` on the Sidebar and the AppShellHeader, in the render and in
+    codeFor. Bug's Card/List-Box rename covers the cards' "flat" → "default".
+  - It needs #181 (bce44e61) in main: before that, `density="small"` alone picks the old Small-Density variant. Merge
+    main after #181 lands, before this branch's gate.
+- Header/AppShell re-read live (Session B asked about the push):
+  - Theme=Border & Divider's Main-Element now pads 20 (Padding/Large) above and 16 below; the code had 16 above.
+    Fixed in app-shell.css, the JSDoc and the app-shell-grid test.
+  - Figma also has a new Theme=Borderless at Density=Small: the Border & Divider rows without the 1px line. The user
+    said "Thêm theme=\"borderless\"". Added: the AppShellHeader theme value, the CSS shared with border-divider
+    (the line on border-divider only), JSDoc, guideline, contract option, Studio map, figmaProps, and a test (top 12 ·
+    24 with no line, 64 high; Main 20 · 24 · 16).
+- G1 · Grid's rhythm warnings ("10 text styles" at 1512 / 390 / 320 and dark, found by Bug's stack gate): G1 is
+  Figma's 16817:58511, and the user chose "Baseline, giữ như Figma". Baseline G1's warnings with the count this
+  branch's gate measures; ChartCard's Display/4 and Body/Extra/Medium may change the 10.
+- Gate (2026-10-21 18:21, main b0c48b29 merged in; `ZEN_QA_SHARDS=4 --isolated --pages=chart,metric,widgets,app-shell,templates`) **PASS**:
+  - Static checks green; Vitest 78/78.
+  - Platform audit: 0 errors. Dark: 0 errors. Behaviour: 0 errors.
+  - Studio E2E 336 works · 0 broken (full run, no shards).
+  - 31 new warnings, all caused by the ChartCard text styles: rhythm on A1–A4, F6, G1, Widgets and HR Home / My leaves
+    / Expense overview, and outline-siblings on the Finance dashboard and the Dashboard template (a ChartCard title in
+    Body/Extra/Medium beside a Card title in Heading/Subheading).
+  - The user answered "Baseline, giữ như Figma" (rhythm) and "Giữ khác nhau, baseline" (card titles). Baselined
+    with `audit.mjs --baseline-update=rhythm,outline-siblings` for chart, app-shell, widgets and templates (light at
+    1512 / 390 / 320, dark at 1512): 159 keys.
+  - Contact sheets reviewed: chart 1512 shows header · Segmented · description · Display/4 value on every card.
+
 ## AppShell session · Patterns/Sidebar → Studio, Sidebar themes (tier M, branch `zen/feat/studio-patterns-sidebar-20261021`, stacked on #179)
 
 The user asked: "Update cả Patterns/Sidebar từ figma lên Studio", "Cập nhật boolean cho footer của sidebar từ figma lên
@@ -324,6 +405,29 @@ transaction". Read from Figma ◆ Finance (4595:17267, "Transactions" I16342:386
   Gradient by `theme/navigation-surface` ×3, D3's streak Badge "3" `badge/count-uses-counter`). Page scan: B3, B5, C4,
   C5, C6, D2, D5, E4, E7 still break the section rules (BACKLOG, asked the user).
 
+## Section rules on 9 more Master-Layout screens — tier M, branch `zen/feat/section-rules-9-screens-20261021` (on #188)
+Task from the "List-box mobile layout rule" session (BACKLOG P2): B3, B5, C4, C5, C6, D2, D5, E4, E7 of Figma
+◇ Master-Layout · Example (15902:109717). Method as C1–D4: `instance.clone()` into a new auto-layout frame (fills none,
+no clip), originals hidden, Component Size Compact → Comfortable → cleared on the frame, texts/sizes/nested mains
+compared with the hidden originals in the next call (all identical), then removed.
+- B3: Row-1 and Row-2 rebuilt inside one `Widgets` section (Gap/Medium); slot gap → Gap/XLarge. Code: `<Stack gap="md">`.
+- B5: the React 19 Inline-Message moved into step 1 (its install note); slot gap → Gap/XLarge, so the intro and steps are
+  32 apart. Code: article `gap="xl"`, the note inside the first DocSection, sample rewritten to match.
+- C5: Summary stays a section; Segmented + Customer + Items cards → `Details` (Gap/Medium). Code: the total, then a
+  `<Stack gap="md">` with the Segmented and its groups, straight in the AppShell body.
+- D5: open closing list: `Live quizzes` = Title-Row (the old Section-Header) over a `List` frame (Gap/3XSmall), as C1.
+  Code: section `gap="md"` over `<List>` (was a `ul` Stack at sm).
+- C4 (`Tour`), C6 (`Identity`, Gap/Large), D2 (`Sign-in`, Gap/Small), E4 (`Get started`), E7 (`Daily updates`): one
+  section each, same rhythm; the code already was one Stack. All nine slots bound to Section-Gap / XLarge.
+- Audit fixes met (false positives): `section/title-apart` read B5's "2. Wrap your app" (Heading/3 + its paragraph) as a
+  lone title: a text after the first past 60 characters or wrapping is copy, not a title. `theme/navigation-surface` read
+  the Liquid-Overlay top bar (C4) and Floating bottom bar (D5) scrims as painted gradients: a bar's own, unoverridden
+  gradient passes. `bounds/overflow` flagged B3's Large Indicator Tab-Bar (64) spilling 12/12 out of the 40 header row:
+  deliberate (tabs.css: the indicator sits on the header's bottom border), now skipped.
+- Minified audit on the 9 screens: 0 errors, 0 section findings (43 warnings, all older: canvas overrides, chart shapes,
+  sparkline absolutes, docs "Yes").
+- Met while taking the after shots: C6's Checkbox/Text was fixed at 141, so "Matches my ID" wrapped onto two lines in
+  some renders. Its Container, Content and Label now hug (143 wide, one line), checked on a fresh screenshot.
 
 ## Calendar in code + Studio (session "Calendar", tier L; user: "Đã duyệt, làm Calendar trước")
 
@@ -349,6 +453,10 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+- Gate (run at once on the user's word, isolated, `ZEN_QA_SHARDS=4 --pages=app-shell --files=<4 tsx>`): PASS, static ✓,
+  audit 1512/390/320 + smoke/quality/density 0 errors (33 baseline), dark 0 (9 baseline), behaviour 0; B3, B5, C5, D5
+  shots match Figma (B3's ChartCard now has #189's metric under the Segmented). PR #192.
+
 
 ## A Grid in a Grid cell stretches in Figma (Session C) — tier S, branch `zen/fix/figma-grid-in-grid-20261021`
 The user picked BACKLOG P3 "Export › Figma: a Grid inside a Grid cell does not stretch to its row" (Dashboard: the

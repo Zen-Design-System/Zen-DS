@@ -525,7 +525,8 @@ function AnalyticsApp() {
           />
         )}
       >
-        <Stack gap="lg">
+        {/* One widget grid, one section: its two rows keep the cards' Spacing/Gap/Medium (usage rules §13). */}
+        <Stack gap="md">
           <Grid columns="400px 1fr" stackBelow={720} gap="md">
             <MetricCard type="hero" theme="subtle" color="brand" label="Total balance" value="$248,930"
               trend={{ direction: "positive", label: "+4.2% this month" }} format={formatCompactMoney}
@@ -742,7 +743,8 @@ export const examples: ExampleDef[] = [
     />
   }
 >
-  <Stack gap="lg">
+  {/* One widget grid, one section: the rows keep the cards' md gap. */}
+  <Stack gap="md">
     <Grid columns="400px 1fr" stackBelow={720} gap="md">
       <MetricCard type="hero" theme="subtle" color="brand" label="Total balance" value="$248,930" trend={{ direction: "positive", label: "+4.2% this month" }}
         series={balance} format={formatCompactMoney} subAction={more} footer={<Button size="sm" level="tertiary" onClick={openStatement}>View statement</Button>} />
