@@ -3489,7 +3489,7 @@
         "name": "Color/Background/Carved",
         "type": "COLOR",
         "valuesByMode": {
-          "Light": "{Light/Neutral-Alpha/3}",
+          "Light": "{Light/Neutral-Alpha/2}",
           "Dark": "{Dark/Carved}"
         }
       },
