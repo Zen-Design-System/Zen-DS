@@ -70,7 +70,12 @@
 /* Schedule/Resource-Grid (16135:145822): one scroll box; the resource column stays while the scale scrolls. Bars and the
    now line are placed from --zen-schedule-from / -span / -at (columns) × --zen-schedule-column. */
 .zen-schedule-grid { min-width: 0; box-sizing: border-box; overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
-.zen-schedule-grid__scroll { overflow-x: auto; }
+/* The columns split the box's own width, so the scroll box must not size itself from them (a hugging parent would grow
+   it without end): its width never depends on its content, and the sizer gives the grid Figma's width (1120 desktop,
+   358 phone) where nothing else sets one. */
+.zen-schedule-grid__scroll { overflow-x: auto; contain: inline-size; }
+.zen-schedule-grid__sizer { display: block; width: 1120px; max-width: 100%; height: 0; }
+.zen-schedule-grid[data-device="mobile"] .zen-schedule-grid__sizer { width: 358px; }
 .zen-schedule-grid__table { width: calc(var(--zen-schedule-resource-width) + var(--zen-schedule-columns) * var(--zen-schedule-column)); }
 .zen-schedule-grid__header, .zen-schedule-grid__row { display: grid; grid-template-columns: var(--zen-schedule-resource-width) repeat(var(--zen-schedule-columns), var(--zen-schedule-column)); }
 .zen-schedule-grid__header { height: 40px; border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }

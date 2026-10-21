@@ -106,6 +106,7 @@ export function ScheduleResourceGrid({ resources, bookings = [], scale = "hours"
   const vars = { "--zen-schedule-resource-width": `${resourceWidth}px`, "--zen-schedule-column": `${column}px`, "--zen-schedule-columns": columns.length } as CSSProperties;
   return (
     <div {...rest} ref={mergedRef} className={["zen-schedule-grid", className].filter(Boolean).join(" ")} data-device={device} data-scale={scale} style={{ ...vars, ...style }}>
+      <span className="zen-schedule-grid__sizer" aria-hidden="true" />
       <div ref={scrollRef} className="zen-schedule-grid__scroll">
         <div className="zen-schedule-grid__table" role="table" aria-label={label} aria-colcount={columns.length + 1}>
           <div className="zen-schedule-grid__header" role="row">
