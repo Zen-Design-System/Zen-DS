@@ -13,6 +13,13 @@ import { useZenLabels } from "../_shared/zen-context";
 import { AppShellChromeContext } from "./context";
 import "../Icon/core";
 
+/** Figma Header/AppShell Theme (16783:71068). */
+export const appShellHeaderThemes = ["default", "border-divider"] as const;
+export type AppShellHeaderTheme = (typeof appShellHeaderThemes)[number];
+/** Figma Header/AppShell Density. */
+export const appShellHeaderDensities = ["medium", "small"] as const;
+export type AppShellHeaderDensity = (typeof appShellHeaderDensities)[number];
+
 export interface AppShellHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "children"> {
   /** Figma Top-Elements › Leading-Slots: where the user is, usually `<Breadcrumbs size="sm">`, or a Search. It grows. */
   leading?: ReactNode;
@@ -27,6 +34,16 @@ export interface AppShellHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "
   main?: ReactNode;
   /** Figma Sections: rows under the Main row, e.g. `<Tabs>` for the page's views or a toolbar of Search + filters. */
   sections?: ReactNode;
+  /**
+   * Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,
+   * Spacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads
+   * Padding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Medium ·
+   * Margin-Comfortable). Unset follows the AppShell: `pattern="grid"` draws border-divider, other patterns default.
+   */
+  theme?: AppShellHeaderTheme;
+  /** Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows
+   *  the AppShell: `pattern="grid"` draws small, other patterns medium. The border-divider theme pads its rows itself. */
+  density?: AppShellHeaderDensity;
   /** Figma instance overrides, by layer (`{ Collapse: { level: "secondary" } }`). Written by Zen Studio. */
   overrides?: NestedOverrides;
   /** The root `<header>` element. */
@@ -70,8 +87,9 @@ function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, tog
 }
 
 /**
- * Figma Header/AppShell (16243:290461), the header of Pattern/AppShell/Desktop. The Main frame pads Margin-Comfortable
- * above and at the sides and Spacing/Padding/Small below, Spacing/Gap/Medium between its rows:
+ * Figma Header/AppShell (16783:71068; Theme=Default 16243:290461), the header of Pattern/AppShell/Desktop. The Main frame
+ * pads Margin-Comfortable above (Margin-Compact at Density=Small) and at the sides and Spacing/Padding/Small below,
+ * Spacing/Gap/Large between its rows (`theme="border-divider"` pads each row itself, a Pale line under the top row):
  * - Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while
  *   the AppShell has `collapse="header"`) or, on a narrow shell, the menu button that opens the navigation drawer; then
  *   Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart.
@@ -79,10 +97,12 @@ function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, tog
  * Under the Main frame, Sections: `sections`. Pass it as the AppShell's `header`; on a phone the shell shows its
  * `topNavigation` instead.
  */
-export function AppShellHeader({ leading, center, actions, main, sections, className, overrides, ref, ...rest }: AppShellHeaderProps) {
+export function AppShellHeader({ leading, center, actions, main, sections, theme: themeProp, density: densityProp, className, overrides, ref, ...rest }: AppShellHeaderProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const chrome = useContext(AppShellChromeContext);
+  const theme = themeProp ?? chrome?.headerTheme ?? "default";
+  const density = densityProp ?? chrome?.headerDensity ?? "medium";
   // On a phone the top row's trail gives way: Back to the parent crumb on a child page, nothing on a root (§17).
   const shownLeading = chrome?.phone ? phoneTrail(leading) : leading;
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null);
@@ -108,7 +128,8 @@ export function AppShellHeader({ leading, center, actions, main, sections, class
   const hasTop = Boolean(toggle || shownLeading || center || actions);
   return (
     <header {...rest} ref={headerRef} className={["zen-app-shell-header", className].filter(Boolean).join(" ")} data-stacked={stacked || undefined}
-      data-stack-center={chrome?.phone && center ? "true" : undefined} data-phone={chrome?.phone || undefined}>
+      data-stack-center={chrome?.phone && center ? "true" : undefined} data-phone={chrome?.phone || undefined}
+      data-theme={theme === "default" ? undefined : theme} data-density={density === "medium" ? undefined : density}>
       {hasTop || main ? (
         <div className="zen-app-shell-header__main">
           {hasTop ? (
