@@ -64,7 +64,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title">`.
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### TimelineMilestones
-Figma `Timeline/Milestones` (16132:777): a row (desktop, Horizontal) or a column (phone, Vertical) of `.Primitives/Timeline/Milestone` — Done ones in Accent, exactly one Current (with its description), the rest Upcoming; the last one has no connector. An ordered list; the Current milestone carries `aria-current="step"`.
+Figma `Timeline/Milestones` (16132:777): a row (desktop, Horizontal) or a column (phone, Vertical) of `.Primitives/Timeline/Milestone` — Done ones in Accent, exactly one Current (with its description), the rest Upcoming; the last one has no connector. A desktop box too narrow for 96px per milestone stacks them as the phone does. An ordered list; the Current milestone carries `aria-current="step"`.
 
 Also accepts `HTMLAttributes<HTMLOListElement>`.
 

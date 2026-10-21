@@ -109,10 +109,15 @@ export interface TimelineMilestonesProps extends HTMLAttributes<HTMLOListElement
   ref?: Ref<HTMLOListElement>;
 }
 
+/** The narrowest a milestone gets in a row (its title's longest word and padding): a narrower box stacks the milestones
+ * in a column, as a phone does, instead of squeezing their titles. */
+const MIN_MILESTONE = 96;
+
 /**
  * Figma `Timeline/Milestones` (16132:777): a row (desktop, Horizontal) or a column (phone, Vertical) of
- * `.Primitives/Timeline/Milestone` — Done ones in Accent, exactly one Current (with its description), the rest Upcoming;
- * the last one has no connector. An ordered list; the Current milestone carries `aria-current="step"`.
+ * `.Primitives/Timeline/Milestone` — Done ones in Accent, exactly one Current (with its description), the rest
+ * Upcoming; the last one has no connector. A desktop box too narrow for 96px per milestone stacks them as the phone
+ * does. An ordered list; the Current milestone carries `aria-current="step"`.
  */
 export function TimelineMilestones({ milestones, today: todayProp, currentId, device: deviceProp, className, ref, ...rest }: TimelineMilestonesProps) {
   const locale = useZenLocale();
@@ -123,13 +128,24 @@ export function TimelineMilestones({ milestones, today: todayProp, currentId, de
   const read = milestones.map((milestone) => ({ milestone, date: toDate(milestone.date) }));
   const current = currentId ?? read.find((item) => dayKey(item.date) >= dayKey(today))?.milestone.id;
   const currentIndex = read.findIndex((item) => item.milestone.id === current);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const node = rootRef.current;
+    if (!node) return undefined;
+    const measure = () => setWidth(node.clientWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  const row = device === "desktop" && !(width > 0 && width / Math.max(1, read.length) < MIN_MILESTONE);
   return (
-    <ol {...rest} ref={mergedRef} className={["zen-timeline-milestones", className].filter(Boolean).join(" ")} data-device={device}>
+    <ol {...rest} ref={mergedRef} className={["zen-timeline-milestones", className].filter(Boolean).join(" ")} data-device={device} data-layout={row ? "row" : "column"}>
       {read.map(({ milestone, date }, index) => {
         const status = index === currentIndex ? "current" : currentIndex < 0 || index < currentIndex ? "done" : "upcoming";
         return (
           <li key={milestone.id}>
-            <TimelineMilestone orientation={device === "mobile" ? "vertical" : "horizontal"} status={status} date={new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(date)}
+            <TimelineMilestone orientation={row ? "horizontal" : "vertical"} status={status} date={new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(date)}
               title={milestone.title} description={status === "current" ? milestone.description : undefined} connector={index < read.length - 1} />
           </li>
         );
