@@ -216,6 +216,17 @@ Code:
 - G1 · Grid's rhythm warnings ("10 text styles" at 1512 / 390 / 320 and dark, found by Bug's stack gate): G1 is
   Figma's 16817:58511, and the user chose "Baseline, giữ như Figma". Baseline G1's warnings with the count this
   branch's gate measures; ChartCard's Display/4 and Body/Extra/Medium may change the 10.
+- Gate (2026-10-21 18:21, main b0c48b29 merged in; `ZEN_QA_SHARDS=4 --isolated --pages=chart,metric,widgets,app-shell,templates`) **PASS**:
+  - Static checks green; Vitest 78/78.
+  - Platform audit: 0 errors. Dark: 0 errors. Behaviour: 0 errors.
+  - Studio E2E 336 works · 0 broken (full run, no shards).
+  - 31 new warnings, all caused by the ChartCard text styles: rhythm on A1–A4, F6, G1, Widgets and HR Home / My leaves
+    / Expense overview, and outline-siblings on the Finance dashboard and the Dashboard template (a ChartCard title in
+    Body/Extra/Medium beside a Card title in Heading/Subheading).
+  - The user answered "Baseline, giữ như Figma" (rhythm) and "Giữ khác nhau, baseline" (card titles). Baselined
+    with `audit.mjs --baseline-update=rhythm,outline-siblings` for chart, app-shell, widgets and templates (light at
+    1512 / 390 / 320, dark at 1512): 159 keys.
+  - Contact sheets reviewed: chart 1512 shows header · Segmented · description · Display/4 value on every card.
 
 ## AppShell session · Patterns/Sidebar → Studio, Sidebar themes (tier M, branch `zen/feat/studio-patterns-sidebar-20261021`, stacked on #179)
 
