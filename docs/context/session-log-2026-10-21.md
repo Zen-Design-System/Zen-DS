@@ -405,6 +405,29 @@ transaction". Read from Figma ◆ Finance (4595:17267, "Transactions" I16342:386
   Gradient by `theme/navigation-surface` ×3, D3's streak Badge "3" `badge/count-uses-counter`). Page scan: B3, B5, C4,
   C5, C6, D2, D5, E4, E7 still break the section rules (BACKLOG, asked the user).
 
+## Section rules on 9 more Master-Layout screens — tier M, branch `zen/feat/section-rules-9-screens-20261021` (on #188)
+Task from the "List-box mobile layout rule" session (BACKLOG P2): B3, B5, C4, C5, C6, D2, D5, E4, E7 of Figma
+◇ Master-Layout · Example (15902:109717). Method as C1–D4: `instance.clone()` into a new auto-layout frame (fills none,
+no clip), originals hidden, Component Size Compact → Comfortable → cleared on the frame, texts/sizes/nested mains
+compared with the hidden originals in the next call (all identical), then removed.
+- B3: Row-1 and Row-2 rebuilt inside one `Widgets` section (Gap/Medium); slot gap → Gap/XLarge. Code: `<Stack gap="md">`.
+- B5: the React 19 Inline-Message moved into step 1 (its install note); slot gap → Gap/XLarge, so the intro and steps are
+  32 apart. Code: article `gap="xl"`, the note inside the first DocSection, sample rewritten to match.
+- C5: Summary stays a section; Segmented + Customer + Items cards → `Details` (Gap/Medium). Code: the total, then a
+  `<Stack gap="md">` with the Segmented and its groups, straight in the AppShell body.
+- D5: open closing list: `Live quizzes` = Title-Row (the old Section-Header) over a `List` frame (Gap/3XSmall), as C1.
+  Code: section `gap="md"` over `<List>` (was a `ul` Stack at sm).
+- C4 (`Tour`), C6 (`Identity`, Gap/Large), D2 (`Sign-in`, Gap/Small), E4 (`Get started`), E7 (`Daily updates`): one
+  section each, same rhythm; the code already was one Stack. All nine slots bound to Section-Gap / XLarge.
+- Audit fixes met (false positives): `section/title-apart` read B5's "2. Wrap your app" (Heading/3 + its paragraph) as a
+  lone title: a text after the first past 60 characters or wrapping is copy, not a title. `theme/navigation-surface` read
+  the Liquid-Overlay top bar (C4) and Floating bottom bar (D5) scrims as painted gradients: a bar's own, unoverridden
+  gradient passes. `bounds/overflow` flagged B3's Large Indicator Tab-Bar (64) spilling 12/12 out of the 40 header row:
+  deliberate (tabs.css: the indicator sits on the header's bottom border), now skipped.
+- Minified audit on the 9 screens: 0 errors, 0 section findings (43 warnings, all older: canvas overrides, chart shapes,
+  sparkline absolutes, docs "Yes").
+- Met while taking the after shots: C6's Checkbox/Text was fixed at 141, so "Matches my ID" wrapped onto two lines in
+  some renders. Its Container, Content and Label now hug (143 wide, one line), checked on a fresh screenshot.
 
 ## Calendar in code + Studio (session "Calendar", tier L; user: "Đã duyệt, làm Calendar trước")
 
@@ -430,6 +453,54 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+- Gate (run at once on the user's word, isolated, `ZEN_QA_SHARDS=4 --pages=app-shell --files=<4 tsx>`): PASS, static ✓,
+  audit 1512/390/320 + smoke/quality/density 0 errors (33 baseline), dark 0 (9 baseline), behaviour 0; B3, B5, C5, D5
+  shots match Figma (B3's ChartCard now has #189's metric under the Segmented). PR #192.
+
+## A Grid in a Grid cell stretches in Figma (Session C) — tier S, branch `zen/fix/figma-grid-in-grid-20261021`
+The user picked BACKLOG P3 "Export › Figma: a Grid inside a Grid cell does not stretch to its row" (Dashboard: the
+second metric pair at 168 where CSS gives all four cards 248). Measured in Figma with use_figma on the QA page (every
+test node removed in the same call), with raw frames and then real Card instances:
+- the push hugged a frame cell, so the inner Grid kept its own height and its cards theirs (63 / 198 reproduced);
+- a Grid with Flex rows keeps whatever height it has, Hug or not (100, 400, 10 as left); with Hug rows it hugs;
+- what works: the inner Grid measured with Hug rows, given that minimum and Fill, then its Flex rows back: four
+  cards at the row's tallest (138), stable when settled again.
+Changes: `figma-push.mjs` gives a Grid in a stretching grid cell `fillH` and Flex rows (another frame cell still hugs);
+the Zen plugin's `settleGridRows` settles such a Grid as it settles a card, with Hug rows while measuring (plugin
+7a996a8 on studio-import, its test, full `npm test`; `dist/` rebuilt, the old one in
+`backups/dist-before-grid-in-grid-20261021.tgz`). The direct paste cannot measure, and a pasted Grid with Flex rows
+would stay at its estimated 100: `figma-native` keeps it hugging with Hug rows, as before (selftest). Pull reads no
+cell height or row sizes, so the page round-trips unchanged. Selftests: push 343, native 131, pull 114.
+
+## Search Rounded in the Figma library (session "Search shape variant rounded", tier S; user: "có")
+- Answer to the 2026-10-17 question (mobile library searches default to Rounded). Code already did it (1a89304b:
+  SearchShapeContext in TopNavigation's control bar and BottomSheet, so the Input phone sheet too); this is the Figma side.
+- Scan of every component on the mobile, Master-Layout, Input, Calendar/Schedule/Timeline, Chat, AI-Chat, Side Panel and
+  Sidebar pages for a Search/Default held directly: Bottom-Sheet (4059:14161, Type=Action Flex + Max-Fixed: Search
+  4435:20701, 9818:7099) → `setProperties({ Shape: "Rounded" })`, size and text kept, no placed instances of those
+  variants. Top-Navigation/Mobile's Control-Bar is an empty SLOT (Control-Slot, 24 variants): nothing to set.
+  Dashboard Header Control-Bar and Side-Bar Small-Density are desktop: Default kept.
+- Templates: no Search in phone frames on ◆ Social/Finance/Logistic/HR/Ecommerce; ◇ Master-Layout · Example has three
+  in Pattern/AppShell/Mobile slot content (E1 · Delivery home, E2 · Shop home, E6 · Discover) → Rounded (texts and
+  trailing scan/mic kept, screenshots checked).
+- Then the user: "AppShell mobile cũng mặc định Rounded", "nhưng cho phép đổi". AppShell.tsx gives SearchShapeContext
+  `rounded` to its frame, stacked/modal side panel and drawer when `layout === "mobile"` or the phone drawer
+  (`chrome.phone`, under TABLET_MIN_WIDTH); `shape="default"` still wins. So the E1/E2/E6 code twins need no prop.
+  Studio's push draws no mobile AppShell yet (Sidebar pattern only), so it needs no Shape rule. Test
+  search-shape-on-phones +1 (mobile rounded, explicit default, desktop default); app-shell tests 61/61.
+- Docs: Figma skill screen-rules row, CHANGELOG, BACKLOG (P2 → archive; new P3: native-pack's Bottom-Sheet still
+  draws Search/Popover from its 2026-10-18 read, re-probe incremental).
+- Gate (user: "chạy gate luôn đi, đừng chờ"): PASS, report .qa/reports/2026-10-21T14-53-08-c9cbf549.md (isolated,
+  ZEN_QA_SHARDS=4, app-shell/search/templates/sidebar + representative set; Vitest 78/78, all Figma suites, audits 0
+  new); CI job-1 steps run locally (build, verify:package …). PR #194; GitHub auto-merge is off for the repo, so Giám sát
+  merges it on green.
+- Native pack (user: "chụp lại native pack Bottom-Sheet luôn đi"), branch zen/fix/native-pack-bottom-sheet-20261021 on
+  top of #194: probe frame of the 4 Bottom-Sheet variants on the QA page (17022:4), copied from Figma desktop (the
+  clipboard was empty and was put back empty), set 4059:14161 and its 4 variant symbols REPLACED (the add-only merge
+  keeps stale entries), 1 missing nested symbol added (16327:6722 Style=Black Overlay); the Action variants' Search now
+  points at Search/Default Size=Small, Shape=Rounded. Probe removed; native-pack check + figma-native selftest 130 ✓.
+  BACKLOG P3 archived.
+
 
 ## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
 
