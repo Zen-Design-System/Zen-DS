@@ -267,3 +267,38 @@ page opened directly) was never watched, so the async variant cells never rebuil
 re-pointed whenever `attachCanvas` notifies (`canvasApi.onChange`), and a rebuild is scheduled each time it starts
 watching a world.
 
+## A list that closes a phone page is an open section — tier M, branch `zen/feat/list-section-rule-20261021`
+User (2026-10-21): "Thêm rule và hardness là nếu list-box (hoặc danh sách các list item) nằm cuối trang ở mobile thì
+không bỏ vào list box mà đưa thành 1 danh sách nối thành 1 section giống trong example Finance trong Figma", then
+"cuối trang nghĩa là bên dưới nó không nằm trong grid của các widget, mà là 1 danh sách độc lập liệt kê như task,
+transaction". Read from Figma ◆ Finance (4595:17267, "Transactions" I16342:3863;…;16342:4266): a Heading frame
+(Heading/4 + See All, Margin-Comfortable sideways, Padding/Medium above and below), then a frame of List-Item
+(Interactive=Yes) padded Margin-Comfortable, gap 0, straight on Canvas/Default; the List-Box set has no open variant.
+- Rule: usage rules §19, ListItem guideline Do/Don't, Figma skill (screen-rules table + §4, audit-rules row, SKILL.md).
+- Code harness `listbox/closing-list-on-phone` (error, allow `closing-list`): a ListBox in a PlatformPhone or Studio
+  `<Screen device="phone">` with nothing after it up to the phone, outside Grid / row Stack / box, the only ListBox of
+  a Canvas/Default screen and not a §15 group (a kicker over it and an earlier kicker over a Card or ListBox). A ListBox
+  at a component's root is judged where it is used. Fixtures: 4 bad, 6 good.
+- Fixes met: `openRepeat` missed `(…).map(` receivers (a cast: layout's task groups read as one list); `tagClose` read
+  the apostrophe in `hero={<Text>I'm …</Text>}` as a string and ended AppShell's tag in its children (D3 was missed;
+  the new apostrophe fixture fails without the fix). Neither changed another rule's findings on the repo.
+- Opened 13 lists on phones: Button (Also off), Chart (Budget left, Entries, Six-week totals), VisuallyHidden (Inbox),
+  AppShell C1, C2, C7, D3, D4, F10, F11, F12 (render and code samples). Toggle and ColorPicker settings screens stay
+  boxed (§15 groups).
+- Figma audit `list-box/closing-list-on-phone`: checked by id (instance sublayers are new objects, indexOf = -1). Run on
+  ◆ Finance: 0; on ◇ Master-Layout · Example: C1, C2, C7, D3, D4 (15921:7245, 15921:8204, 15942:120713, 15950:9324,
+  15950:9696) still box their closing list. Not changed in Figma: waits for the user (BACKLOG).
+- Static: usage selftest + check, tsc, guidelines build/check, ai-kit check, mcp selftest, style check ✓.
+- Figma (user: "Sửa luôn 5 màn C1, C2, C7, D3, D4 trong Figma"): each closing List-Box became an open section (the
+  Header-Slot Title-Row cloned, a `List` frame Gap/3XSmall of the same List-Items via `instance.clone()`), old box hidden,
+  checked next call, then removed. Clones rendered at the components page's mode (Avatar 40, rows 70) until a Component
+  Size mode was set and cleared on the new frame (rows 72). C1's See all was a Button/Flat: now the underlined text link.
+- Then (user: section spacing 32 on phone and desktop; a widget grid keeps its gap; related content in one section;
+  never a title apart from its list): C1 Progress (Card + Stats), C2 Balance (Card + Quick-Actions, as Finance "Main"),
+  C7 Today (date line + Card + Stats) grouped (clones verified against the hidden originals), Content slot gap →
+  Layout-Mobile/Section-Gap (was 24 / 16 / 16). Code C1, C2, C7 match (groups in `<Stack gap="md">`, sections straight
+  in the AppShell body). Usage rules §13, screen-rules, audit-rules updated; audit `spacing/section-gap` extended to
+  AppShell Content slots and desktop (XLarge), skips panes with a FILL child and Dividers; new `section/title-apart`.
+- Full audit on the 5 screens: 0 findings from these rules; 4 older ones left (Liquid/Floating-Glass bars read as
+  Gradient by `theme/navigation-surface` ×3, D3's streak Badge "3" `badge/count-uses-counter`). Page scan: B3, B5, C4,
+  C5, C6, D2, D5, E4, E7 still break the section rules (BACKLOG, asked the user).
