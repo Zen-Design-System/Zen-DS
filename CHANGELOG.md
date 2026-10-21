@@ -46,6 +46,21 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   E4, E7 keep their rhythm as one section each. The Figma audit no longer reads a heading over its own paragraph as a
   lone title, a floating bar's own scrim as a painted gradient, or a Large Indicator Tab-Bar's even bleed out of a
   header row as an overflow.
+- Zen Studio places and round-trips `BadgeStatus` and `PropertyField` (2026-10-21): Assets items (Badge status, Property
+  field, Task properties), Figma-named properties (Badge-Status Status/Size; Property-Field Label, Icon, Action), and the
+  Figma push/pull — a row's cell is the nested Property-Value's Type, State and content (figma-property.mjs); contract,
+  library keys and the native-paste pack hold the three sets. `PropertyDate` takes ISO strings ("2026-06-07").
+- New `PropertyField` (2026-10-21, Figma Input/Property-Field 16923:6031, user-approved): a record's property edited in
+  place — a 128px label column (icon, label, the + Action) and one value cell: `PropertyText` (an input in place),
+  `PropertySelect` (options with icon + tone), `PropertyStatus` (BadgeStatus steps), `PropertyDate` (DatePicker),
+  `PropertyPeople` (Tag photos, `single`), `PropertyTags` (Subtle Badges, `onCreate`); each `value`/`defaultValue`/
+  `onValueChange`, `readOnly`, `placeholder` ("Empty"/"Trống"). Documented with the Input fields; four examples on the
+  Input page; harness `property-field/one-value` (usage rules §21).
+- New `BadgeStatus` (2026-10-21, Figma Badge-Status 16932:195, user-approved): a task's or project's workflow step —
+  to-do · in-progress · in-review · done · blocked · cancelled, sm/md — with a progress ring that fills as the work moves
+  on; `progress` (0–100) sets an exact value and is read after the label; the label defaults from the locale (en/vi).
+  The Badge page shows it in five examples and a playground; harness `badge/workflow-status-uses-badge-status` (error)
+  flags a Badge whose text is a workflow step (usage rules §20).
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`

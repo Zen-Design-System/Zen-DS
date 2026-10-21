@@ -23,6 +23,8 @@ export * from "./components/Avatar";
 export * from "./components/Checkbox";
 export * from "./components/RadioButton";
 export * from "./components/Badge";
+export * from "./components/BadgeStatus";
+export * from "./components/PropertyField";
 export * from "./components/Tag";
 export * from "./components/Toggle";
 export * from "./components/Tooltip";

@@ -1485,6 +1485,22 @@ export const rules = [
   { id: "badge/count-uses-counter", components: ["Badge"], severity: "error", allow: "badge-count", guideline: "docs/guidelines/badge.md",
     summary: "A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height.",
     check: ({ children }) => { const c = (children ?? "").trim(); const numeric = /^\d+\+?$/.test(c) || /^\{\s*(String\()?[\w.$]*(count|length|total|unread|countIn)\b[^}]*\}$/i.test(c); return numeric && `shows a count (\`${c.slice(0, 40)}\`) — use <BadgeCounter value={…} />.`; } },
+  // User 2026-10-21 (Badge-Status approved): a workflow step is BadgeStatus, whose ring shows how far the work moved.
+  { id: "badge/workflow-status-uses-badge-status", components: ["Badge"], severity: "error", allow: "badge-workflow-status", guideline: "docs/guidelines/badge.md",
+    summary: "A workflow step (To Do, In Progress, In Review, Done, Blocked, Cancelled; vi Cần làm, Đang làm, Đang duyệt, Hoàn thành, Bị chặn, Đã huỷ) is a BadgeStatus: its ring shows how far the work has moved and the step picks its colours. Other statuses (Live, Paid, Draft) stay Badges.",
+    check: ({ children }) => {
+      const c = (children ?? "").trim().replace(/^\{\s*["'`]|["'`]\s*\}$/g, "").trim().toLowerCase();
+      const step = { "to do": "to-do", todo: "to-do", "cần làm": "to-do", "in progress": "in-progress", "đang làm": "in-progress", "in review": "in-review", "đang duyệt": "in-review", done: "done", "hoàn thành": "done", blocked: "blocked", "bị chặn": "blocked", cancelled: "cancelled", canceled: "cancelled", "đã huỷ": "cancelled", "đã hủy": "cancelled" }[c];
+      return step && `shows the workflow step \`${c}\` — use <BadgeStatus status="${step}" /> (its ring and colours come from the step).`;
+    } },
+  { id: "property-field/one-value", components: ["PropertyField"], severity: "error", allow: "property-value", guideline: "docs/guidelines/input.md",
+    summary: "A PropertyField holds exactly one value cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags — the borderless cell that edits the value in place; a bordered field or loose text breaks the row's alignment and its keyboard pattern.",
+    check: ({ children }) => {
+      const c = children ?? "";
+      if (!c.trim() || /^\s*\{[^}]*\}\s*$/.test(c)) return false;
+      const cells = (c.match(/<Property(Text|Select|Status|Date|People|Tags)\b/g) ?? []).length;
+      return cells !== 1 && (cells === 0 ? "has no Property* value cell — put one of PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags inside." : `has ${cells} value cells — one PropertyField per property.`);
+    } },
   { id: "badge/count-text-uses-counter", components: ["span", "Text"], severity: "error", allow: "count-text", guideline: "docs/guidelines/badge.md",
     summary: "A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something.",
     check: ({ attrs, children }) => {

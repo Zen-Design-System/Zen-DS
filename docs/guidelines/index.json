@@ -209,8 +209,8 @@
       "title": "Input fields",
       "file": "docs/guidelines/input.md",
       "apiFile": "docs/api/input.json",
-      "figma": "Input/Text-Field, Select-Field, Date-Field, Color-Field, Inline-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading (page 373:97258)",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "figma": "Input/Text-Field, Select-Field, Date-Field, Color-Field, Inline-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading, Property-Field (+ .Primitives/Input/Property-Value, Property-Icon) (page 373:97258)",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -221,7 +221,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -436,6 +437,96 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ],
+        "PropertyField": [
+          "ref?: Ref<HTMLDivElement>",
+          "label: ReactNode",
+          "icon?: IconName|ReactNode",
+          "action?: { label: string; onClick?: () => void }",
+          "children?: ReactNode",
+          "className?: string"
+        ],
+        "PropertyText": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "value?: string",
+          "defaultValue?: string = ",
+          "onValueChange?: (value: string) => void"
+        ],
+        "PropertySelect": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "options: PropertyFieldOption[]",
+          "value?: string|null",
+          "defaultValue?: string|null = null",
+          "onValueChange?: (value: string) => void",
+          "popoverLabel?: ReactNode"
+        ],
+        "PropertyStatus": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "value?: BadgeStatusValue|null",
+          "defaultValue?: BadgeStatusValue|null = null",
+          "onValueChange?: (value: BadgeStatusValue) => void",
+          "labels?: Partial<Record<BadgeStatusValue, ReactNode>>",
+          "progress?: number",
+          "popoverLabel?: ReactNode"
+        ],
+        "PropertyDate": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "value?: PropertyDateValue|null",
+          "defaultValue?: PropertyDateValue|null = null",
+          "onValueChange?: (value: Date|null) => void",
+          "format?: Intl.DateTimeFormatOptions = { dateStyle: long }",
+          "minDate?: Date",
+          "maxDate?: Date"
+        ],
+        "PropertyPeople": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "options: PropertyFieldOption[]",
+          "value?: string[]",
+          "defaultValue?: string[]",
+          "onValueChange?: (value: string[]) => void",
+          "addLabel?: string",
+          "popoverLabel?: ReactNode",
+          "single?: boolean"
+        ],
+        "PropertyTags": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "options: PropertyFieldOption[]",
+          "value?: string[]",
+          "defaultValue?: string[]",
+          "onValueChange?: (value: string[]) => void",
+          "addLabel?: string",
+          "popoverLabel?: ReactNode",
+          "onCreate?: (label: string) => void"
         ]
       },
       "do": [
@@ -456,7 +547,9 @@
         "RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.",
         "RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.",
         "RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.",
-        "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view."
+        "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view.",
+        "PropertyField: one value cell per row (harness: property-field/one-value), one label column for the whole list, two columns Spacing/Gap/XLarge apart; an empty value says the locale's \"Empty\"; give a select option's icon a tone by meaning (Urgent Negative, High Warning, Normal Info, Low Neutral).",
+        "PropertyField: pass readOnly for people who may not change the record, so nothing looks clickable."
       ],
       "dont": [
         "Don't disable a field whose value people need to read or copy; use Read-only (disabled text is faint, skipped by Tab and not submitted).",
@@ -467,13 +560,15 @@
         "Don't open a Date/Select popover on a read-only or disabled field.",
         "Don't repeat the label as placeholder; show an example or the format (harness: input/placeholder-not-label).",
         "Don't use RichTextField for plain notes (→ TextAreaField) or single-line input (→ InputField).",
-        "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange)."
+        "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange).",
+        "Don't put a bordered InputField or SelectField in a PropertyField: the borderless value cell is the field."
       ],
       "rules": [
         "input/no-disabled",
         "input/needs-label",
         "input/placeholder-not-label",
         "richtext/value-not-onchange",
+        "property-field/one-value",
         "color-picker/hex-value",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -782,20 +877,22 @@
     },
     {
       "slug": "badge",
-      "title": "Badge & Badge-Counter",
+      "title": "Badge, Badge-Counter & Badge-Status",
       "file": "docs/guidelines/badge.md",
       "apiFile": "docs/api/badge.json",
-      "figma": "Badge, Badge-Counter (page 239:18960)",
-      "import": "import { Badge, BadgeCounter } from \"@zen-ds/react\";",
-      "purpose": "Non-interactive status, category or count labels.",
+      "figma": "Badge, Badge-Counter, Badge-Status + .Primitives/Badge/Progress-Icon (page 239:18960)",
+      "import": "import { Badge, BadgeCounter, BadgeStatus } from \"@zen-ds/react\";",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "use": [
         "Status in lists (Live, Failed).",
         "Unread/notification counts (BadgeCounter).",
-        "Removable labels on an item (remove + onRemove)."
+        "Removable labels on an item (remove + onRemove).",
+        "A task's or project's workflow step — To Do, In Progress, In Review, Done, Blocked, Cancelled — in tables, boards, detail views and status pickers (BadgeStatus)."
       ],
       "avoid": [
         "Selectable filters → Chip.",
-        "Values inside an input → Tag."
+        "Values inside an input → Tag.",
+        "A percentage people read as a number → ProgressBar / ProgressCircle."
       ],
       "props": {
         "Badge": [
@@ -815,6 +912,14 @@
         ],
         "BadgeCounter": [
           "value?: ReactNode"
+        ],
+        "BadgeStatus": [
+          "ref?: Ref<HTMLSpanElement>",
+          "status?: to-do|in-progress|in-review|done|blocked|cancelled = to-do",
+          "size?: sm|md|small|medium = md",
+          "progress?: number",
+          "children?: ReactNode",
+          "className?: string"
         ]
       },
       "do": [
@@ -822,10 +927,14 @@
         "Use Subtle backgrounds in dense tables and Solid for emphasis.",
         "Cap counters at \"99+\" and hide them at zero.",
         "Show counts (unread, items, filters applied, a section's or folder's item count) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height — never a Badge holding a number nor bare text beside a label; keep Badge for words and statuses (harness: badge/count-uses-counter, badge/count-text-uses-counter; component-usage-rules §18).",
-        "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count)."
+        "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count).",
+        "Show a workflow step with BadgeStatus, never a Badge themed by hand: the step sets the colour and the ring, so every screen reads one workflow the same way (harness: badge/workflow-status-uses-badge-status).",
+        "Keep one workflow per product, in order: To Do → In Progress → In Review → Done; Blocked and Cancelled sit outside it. Rename a step only by its label (children), never by repainting another step.",
+        "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough."
       ],
       "dont": [
         "Don't make a badge clickable (use Chip).",
+        "Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).",
         "Don't rely on colour alone; keep the text.",
         "Don't use more than two badges on one row item; summarise the rest.",
         "Don't show counters at zero."
@@ -835,6 +944,7 @@
         "badge-counter/cap",
         "flag/no-emoji-flag",
         "badge/count-uses-counter",
+        "badge/workflow-status-uses-badge-status",
         "badge/count-text-uses-counter",
         "api/deprecated-prop",
         "api/overrides-studio-only",

@@ -23,6 +23,7 @@ import { pruneHidden } from "./visibility.mjs";
 import { FIGMA_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
+import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma } from "./figma-property.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { textSegments } from "./text-runs.mjs";
@@ -1996,6 +1997,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const texts = Object.fromEntries([["Label", code.label], ["Message", code.helpText], ["Text", code.text], ["Internal Caption", code.caption]].filter(([, text]) => typeof text === "string" && text));
       if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
     }
+    if (element.name === "PropertyField") {
+      const cell = element.children.find((child) => child.kind === "element" && PROPERTY_CELL_TYPE[child.name]);
+      if (!cell) notes.push(`${where}: no value cell (PropertyText … PropertyTags): its Value keeps Figma's sample`);
+      else {
+        const drawn = propertyValueFigma(cell.name, Object.fromEntries(Object.entries(cell.props).map(([name, value]) => [name, plain(value)])));
+        node.nested = [...(node.nested ?? []), ...drawn.nested];
+        if (drawn.hide.length) node.hide = [...(node.hide ?? []), ...drawn.hide];
+        for (const note of drawn.notes) notes.push(`${where}: ${note}`);
+      }
+    }
     // InlineMessage: its title in Title, its words in Caption (not the first text layer), its action's label.
     if (element.name === "InlineMessage") {
       const words = deepText(element).trim();
@@ -2030,7 +2041,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // A photo Avatar only comes with a Subtle background in Figma (Theme=Photo, Background=Solid is no variant).
       if (element.name === "Avatar") Object.assign(node.props, { Theme: "Photo", ...("Background" in node.props ? { Background: "Subtle" } : {}) });
     }
-    const layers = element.children.filter((child) => child.kind === "element");
+    // A PropertyField's cell is its nested Value (above), not slot content.
+    const layers = element.name === "PropertyField" ? [] : element.children.filter((child) => child.kind === "element");
     if (layers.length) {
       const taken = new Set(slots.map((slot) => slot.name));
       const own = CHILD_SLOT[element.name];

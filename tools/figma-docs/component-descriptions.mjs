@@ -71,7 +71,7 @@ export const componentDescriptions = {
   "Badge": card({
     what: "A non-interactive label for a status, category or attribute (Live, Failed, Draft).",
     use: ["Statuses in tables and lists (Badge-Cell), categories, short attributes."],
-    instead: ["Selectable filters → Chip.", "Values chosen inside a field → Tag.", "Counts → Badge-Counter."],
+    instead: ["Selectable filters → Chip.", "Values chosen inside a field → Tag.", "Counts → Badge-Counter.", "A workflow step (To Do → Done, Blocked, Cancelled) → Badge-Status."],
     props: [["Theme", "the colour family; pick it by meaning (Green done, Red failed, Yellow waiting), Neutral for plain labels"], ["Background", "Subtle (default, text in the family's Strongest) · Solid (high emphasis, On-Colors text)"], ["Size", "XSmall–Medium; match the row's text size"]],
     rules: ["Never colour alone: the text says the status.", "Keep it to one or two words."],
     code: "`<Badge>`",
@@ -82,6 +82,15 @@ export const componentDescriptions = {
     props: [["Theme", "Accent or Red for attention, Neutral for plain totals"], ["Size", "XSmall–Medium, one step smaller than its host's text"]],
     code: "`<BadgeCounter>`",
   }),
+  "Badge-Status": card({
+    what: "The status of a task or project as a badge with a progress ring that fills as the work moves on: To Do (empty), In Progress (a quarter), In Review (half), Done (full); Blocked and Cancelled mark work that stopped.",
+    use: ["Task and project statuses in tables (Badge-Cell), boards, lists, detail views and Input/Property-Field Type=Status.", "The options of a status picker (Popover/Default with Badge items)."],
+    instead: ["Categories and attributes without a workflow order → Badge.", "A percentage people read as a number → Progress.", "A count → Badge-Counter."],
+    props: [["Status", "To Do (Neutral) · In Progress (Info) · In Review (Warning) · Done (Positive) · Blocked (Negative, icon-slash-circle-01-line) · Cancelled (Neutral, icon-x-circle-line, the label in Content/Neutral/Base)"], ["Size", "Medium 28 (ring 20) · Small 20 (ring 16), the Badge sizes; the ring sits as far from the left edge as from the top"], ["Leading", "the nested .Primitives/Badge/Progress-Icon: each status sets its arc (0 · 25 · 50 · 100); drag the Progress layer's arc for an exact value"]],
+    rules: ["One workflow per product, in this order and these colours; rename a step only by its label.", "Never removable or clickable: a status changes through its picker."],
+    code: "`<BadgeStatus status=\"in-progress\" size=\"md\" progress={60}>`",
+  }),
+  ".Primitives/Badge/Progress-Icon": part("The progress ring of Badge-Status (Ring + Progress arc), drawn in Comfortable at 24 and bound to Element-Size/Popular/Base; the value is the Progress layer's arc.", "Badge-Status"),
 
   // ❖ Breadcrumbs
   "Breadcrumbs": card({
@@ -706,6 +715,16 @@ export const componentDescriptions = {
     ],
     code: "`<InputField layout=\"inline\">` · `<SelectField layout=\"inline\">` · `<ColorField layout=\"inline\">` · `<NumberField layout=\"inline\">`",
   }),
+  "Input/Property-Field": card({
+    what: "A property row of a record (a task, ticket, deal or file): an icon and a label on the left, the value on the right, edited in place. Rows stack in one or two columns of a detail view.",
+    use: ["Task, ticket and record details people scan and change one value at a time: status, priority, dates, assignee, reporter, labels.", "Side panels and the header area of a detail page."],
+    instead: ["Read-only details → Description List.", "A form people fill in one go → Input/Text-Field, Input/Select-Field, Input/Date-Field (label above).", "Dense settings and inspectors → Input/Inline-Field."],
+    props: [["Label", "the property name (Body/Base/Regular, Content/Neutral/Base)"], ["Icon · Icon-Src", "the property's line icon (Content/Neutral/Light)"], ["Action", "the + (Button/Icon-Main XSmall Tertiary) that adds a value to a Person or Tags list"], ["Value", "the nested .Primitives/Input/Property-Value: Type (Text, Select, Status, Date, Person, Tags) and State (Default empty, Inputted, Hover, Editing)"]],
+    rules: ["One label column (128) for every row of a list; rows Spacing/Gap/2XSmall apart, two columns Spacing/Gap/XLarge apart.", "An empty value reads \"Empty\" (Content/Placeholder), never a dash.", "Clicking the value opens its picker under the cell with the cell in State=Editing; Text turns into an input in place."],
+    code: "`<PropertyField label icon>` + one of `<PropertyText>` · `<PropertySelect>` · `<PropertyStatus>` · `<PropertyDate>` · `<PropertyPeople>` · `<PropertyTags>`",
+  }),
+  ".Primitives/Input/Property-Value": part("The value cell of Input/Property-Field: borderless at rest, Flat/Hover on hover, Flat/Pressed while its picker is open, the Input focus look while Text is typed; Type picks the content (Text, Select, Status = Badge-Status, Date, Person = Tag photos, Tags = Subtle Badges).", "Input/Property-Field"),
+  ".Primitives/Input/Property-Icon": part("The 20px icon of a Select option (a priority flag, a project glyph), Tone by meaning in Content/<Tone>/Light — status and priority icons always take the Light tone.", "Input/Property-Field"),
   "Input/Color-Field": card({
     what: "Pick or type one colour (any hex): the field shows the value as a Color-Swatch (leading) and its hex; clicking it opens Color-Picker under the field (State=Focused), typing edits the hex (State=Typing).",
     use: ["Brand, theme, chart or shadow colours where any value is allowed, in a form or settings."],
