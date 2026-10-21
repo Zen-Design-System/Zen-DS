@@ -16,17 +16,17 @@ in a Chart-Card's (or a Card's) Content slot, and the box takes the theme.
 
 | Canvas (light / dark) | Header, top bar | Sidebar, bottom bar | Boxes | Shadow |
 | --- | --- | --- | --- | --- |
-| `Canvas/Default` (#f7f7f7 / #121212) | on the canvas (top bar `Type=Alt` = Surface/Alt) | on the canvas, or a Surface/Default panel | `Theme=Flat` or `Shadow` (Surface=Default); `Border` allowed; colour on a box is `Theme=Subtle` (any `Color`), never Pale | only all together: Sidebar `Shadow=Yes` (bottom bar Shadow/Top/Level-1), every box `Theme=Shadow`, standalone charts Shadow/Bottom/Level-1 |
-| `Canvas/Alt` (#ffffff / #1c1c1c) | on the canvas (top bar `Type=Default` = Surface/Default) | on the canvas | `Pale` (any `Color`), `Border` (Surface=Default + Pale border), or `Flat` with `Surface=Alt` | none |
-| `Canvas/Flat` (#ffffff / #121212) | on the canvas (Surface/Flat) | on the canvas (Surface/Flat) | `Pale`, or `Border` with `Surface=Flat` | none |
+| `Canvas/Default` (#f7f7f7 / #121212) | on the canvas (top bar `Type=Alt` = Surface/Alt) | on the canvas, or a Surface/Default panel | `Theme=Default` or `Shadow` (Surface=Default); `Border` allowed; colour on a box is `Theme=Subtle` (any `Color`), never Pale | only all together: Sidebar `Shadow=Yes` (bottom bar Shadow/Top/Level-1), every box `Theme=Shadow`, standalone charts Shadow/Bottom/Level-1 |
+| `Canvas/Alt` (#ffffff / #1c1c1c) | on the canvas (top bar `Type=Default` = Surface/Default) | on the canvas | `Pale` (any `Color`), `Border` (Surface=Default + Pale border), or `Default` with `Surface=Alt` | none |
+| `Canvas/Flat` (#ffffff / #121212) | on the canvas (Surface/Flat) | on the canvas (Surface/Flat) | `Flat-Border` (Surface/Flat inside a Pale border), or `Pale` | none |
 | Inside a Modal, Side-Panel or Bottom-Sheet | — | — | `Theme=On-Container` | none |
 
 - "On the canvas" = no fill (desktop Sidebar: the Placeholder fill hidden) or the Surface of the canvas's colour in both
   modes: Canvas/Default ↔ Surface/Alt, Canvas/Alt ↔ Surface/Default, Canvas/Flat ↔ Surface/Flat. A bar on Surface/Default
   over Canvas/Flat melts in light but turns into a #1c1c1c block in dark.
 - Why the boxes: Surface/Alt equals Canvas/Default (boxes vanish), Surface/Default equals Canvas/Alt (needs the Pale
-  border), Surface/Default equals Canvas/Flat in light (use Pale or a bordered Surface=Flat box).
-- One family per screen (Flat, Border, Pale or Subtle); colours may vary inside Pale or Subtle (KPI hues).
+  border), Surface/Default equals Canvas/Flat in light (use `Theme=Flat-Border` or Pale).
+- One family per screen (Default, Border, Flat-Border, Pale or Subtle); colours may vary inside Pale or Subtle (KPI hues).
 - Colour on a box follows the Canvas (user, 2026-10-17: "nếu nền canvas là default thì Card không dùng pale mà dùng
   subtle"): `Theme=Subtle` (Support/<Hue>/Subtle) on Canvas/Default, where a Pale tint fades into the grey;
   `Theme=Pale` on the white Canvas/Alt and Canvas/Flat and on imagery.

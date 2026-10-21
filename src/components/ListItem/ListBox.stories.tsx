@@ -14,8 +14,8 @@ const meta = {
   title: "Components/ListBox",
   component: ListBox,
   tags: ["autodocs"],
-  parameters: { layout: "padded", docs: { description: { component: "Figma Component/List-Box (14922:75297): the box of List-Item rows with optional Header-Slot and Footer-Slot, the same on every device (only the tokens change by mode). `theme` picks its elevation like Card's: flat (default), shadow, pale or border." } } },
-  args: { theme: "flat", header: <Heading level={3} textStyle="Heading/Subheading">Team</Heading>, children: rows },
+  parameters: { layout: "padded", docs: { description: { component: "Figma Component/List-Box (14922:75297): the box of List-Item rows with optional Header-Slot and Footer-Slot, the same on every device (only the tokens change by mode). `theme` picks its elevation like Card's: default, shadow, pale, border, flat-border (a Canvas/Flat page) or on-container." } } },
+  args: { theme: "default", header: <Heading level={3} textStyle="Heading/Subheading">Team</Heading>, children: rows },
   argTypes: { theme: { control: "inline-radio", options: [...listBoxThemes] } },
   decorators: [(Story) => <div style={{ width: 375 }}><Story /></div>],
 } satisfies Meta<typeof ListBox>;

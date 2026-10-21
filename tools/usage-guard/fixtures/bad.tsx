@@ -188,7 +188,7 @@ export const Bad = () => <>
   {/* expect: card/on-container-in-overlay */}
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="border">Brief</Card></SidePanel>
   {/* expect: card/color-ignored */}
-  <div><Card theme="flat" color="brand">Revenue</Card></div>
+  <div><Card theme="default" color="brand">Revenue</Card></div>
   {/* expect: card/color-ignored */}
   <MetricCard color="cyan" label="Invoiced" value="$48,200" />
   {/* expect: card/solid-color */}
@@ -196,7 +196,7 @@ export const Bad = () => <>
   {/* expect: card/solid-color */}
   <div><Card theme="pale" color="accent">Payout</Card></div>
   {/* expect: card/surface-ignored */}
-  <div><Card theme="flat" surface="flat">Hours</Card></div>
+  <div><Card theme="default" surface="flat">Hours</Card></div>
   {/* expect: card/pale-on-canvas-default */}
   <AppShell sidebar={null}><Card theme="pale" color="cyan">Invoiced</Card></AppShell>
   {/* expect: card/pale-on-canvas-default */}
@@ -552,5 +552,5 @@ export const Bad = () => <>
 
 // A component's root card is judged where the component is used: three side by side take Small.
 // expect: card/spacing-by-count
-function StatCard({ label }: { label: string }) { return <Card theme="flat">{label}</Card>; }
+function StatCard({ label }: { label: string }) { return <Card theme="default">{label}</Card>; }
 export const Stats = () => <PlatformPhone label="Home"><Grid columns={3} gap="md"><StatCard label="Inside" /><StatCard label="Humidity" /><StatCard label="kWh today" /></Grid></PlatformPhone>;

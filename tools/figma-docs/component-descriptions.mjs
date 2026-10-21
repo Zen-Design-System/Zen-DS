@@ -110,7 +110,7 @@ export const componentDescriptions = {
     what: "A surface that groups the content about one object: a project, a plan, a KPI, a widget.",
     use: ["Grids of objects people scan and pick.", "Dashboard widgets (title in Heading/Subheading).", "A selectable option with rich content (Active=Yes marks the choice).", "Non-row content inside overlays (Description List, labelled toggles)."],
     instead: ["Page sections that are only spacing → auto layout, no card.", "Rows of List-Items → Component/List-Box.", "Comparable rows → a Table on the canvas.", "Messages → Inline-Message."],
-    props: [["Theme", "pick by where it sits — Flat on Canvas/Default (the default pairing) · Shadow beside a default (shadowed) Sidebar · Border on a white page, inside another surface or when clickable · On-Container inside a Modal, Side-Panel or Bottom-Sheet · colour: Subtle on Canvas/Default (Pale fades into the grey), Pale on a white page or imagery"], ["Spacing", "Medium (Card-padding-medium, 2XLarge corners) · Small (Card-padding-small, Large corners) · XSmall (Card-padding-xsmall, Base corners) for compact tiles, e.g. a row of choices on a phone"], ["Active", "Yes only for the selected card of a choice; never as decoration"]],
+    props: [["Theme", "pick by where it sits — Default on Canvas/Default (the default pairing) · Shadow beside a default (shadowed) Sidebar · Border on a white page, inside another surface or when clickable · Flat-Border on Canvas/Flat (Surface/Flat in a Pale border) · On-Container inside a Modal, Side-Panel or Bottom-Sheet · colour: Subtle on Canvas/Default (Pale fades into the grey), Pale on a white page or imagery"], ["Spacing", "Medium (Card-padding-medium, 2XLarge corners) · Small (Card-padding-small, Large corners) · XSmall (Card-padding-xsmall, Base corners) for compact tiles, e.g. a row of choices on a phone"], ["Active", "Yes only for the selected card of a choice; never as decoration"]],
     rules: ["One theme per grid.", "No card inside a card, and no shadow on a Pale or Subtle card.", "A clickable card holds no buttons, links or inputs."],
     code: "`<Card>`",
   }),
@@ -235,7 +235,7 @@ export const componentDescriptions = {
     what: "The box that holds a group of List-Item rows, with an optional header and footer; one component for every device.",
     use: ["Lists of people, approvals, files, settings groups on desktop and phones."],
     instead: ["Content that is not List-Item rows (a Description List, labelled toggles, a form) → Card."],
-    props: [["Theme", "pick by where it sits — Flat on Canvas/Default and on a Surface-Alt phone screen · Shadow beside a default Sidebar · Border on a white page or inside another surface · On-Container inside a Modal, Side-Panel or Bottom-Sheet · Pale on imagery"], ["Header / Footer", "a title row (kicker or Subheading) and a footer action (View all)"]],
+    props: [["Theme", "pick by where it sits — Default on Canvas/Default and on a Surface-Alt phone screen · Shadow beside a default Sidebar · Border on a white page or inside another surface · Flat-Border on Canvas/Flat (Surface/Flat in a Pale border) · On-Container inside a Modal, Side-Panel or Bottom-Sheet · Pale on imagery"], ["Header / Footer", "a title row (kicker or Subheading) and a footer action (View all)"]],
     rules: ["Grouped settings: one List-Box per group, a kicker (Body/Small/Bold, Light) above it.", "Rows are spaced by its Body-Slot; never add padding to rows."],
     code: "`<ListBox>`",
   }),
@@ -266,7 +266,7 @@ export const componentDescriptions = {
     what: "A dashboard KPI tile: one key number with its label, an identifying icon and how it changed.",
     use: ["KPI rows at the top of a dashboard, next to Chart cards."],
     instead: ["A series over time → Chart.", "Many comparable numbers → Table.", "Progress toward a goal → Progress-Bar."],
-    rules: ["Theme follows the screen's pairing (Flat on Canvas/Default, Shadow beside a default Sidebar).", "Type=KPI is a Title-Highlight Metric (Large), laid out like the other types: the title on top, the number and trend at the foot, the Dock-Icon in the corner.", "Its Dock-Icon is Background=Solid.", "The value is not a heading; the trend says up or down in text, not only colour."],
+    rules: ["Theme follows the screen's pairing (Default on Canvas/Default, Shadow beside a default Sidebar, Flat-Border on Canvas/Flat).", "Type=KPI is a Title-Highlight Metric (Large), laid out like the other types: the title on top, the number and trend at the foot, the Dock-Icon in the corner.", "Its Dock-Icon is Background=Solid.", "The value is not a heading; the trend says up or down in text, not only colour."],
     code: "`<MetricCard>`",
   }),
   "Primitives/Metric/Metric-Inline/Icon-Highlight": card({
@@ -817,5 +817,6 @@ export const componentDescriptions = {
 export const GENERIC = [/\*\*Overview:\*\*/, /Original Notes/, /^Data visualization elements/, /^Purpose-specific voice component/, /^\s*$/];
 // Sets whose Figma description is replaced even when it is specific: the property-panel sets drafted in Figma on
 // 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55; Accordion/Text since Size=Small (2026-10-15);
-// Search/Default since Shape (2026-10-17).
-export const FORCE = new Set(["Card", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default", "Empty-State"]);
+// Search/Default since Shape (2026-10-17); Card, List-Box and Metric-Card since the Theme rename (Flat → Default,
+// Flat-Border; 2026-10-21).
+export const FORCE = new Set(["Card", "Component/List-Box", "Metric-Card", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default", "Empty-State"]);

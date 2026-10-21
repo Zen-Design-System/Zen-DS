@@ -1673,8 +1673,8 @@ function chartCardElement(chart, header, cardProps, where, ctx) {
   if (header.range) props.range = literal(header.range);
   if (header.open) props.onOpen = OPEN_REPORT;
   const { theme, color, surface, ...rest } = cardProps;
-  // ChartCard's own default is Flat (the Card's is Shadow).
-  if (theme && !(theme.kind === "literal" && theme.value === "flat")) props.theme = theme;
+  // ChartCard's own default is Default (the Card's is Shadow).
+  if (theme && !(theme.kind === "literal" && theme.value === "default")) props.theme = theme;
   else if (!theme) props.theme = literal("shadow");
   // Its Card's Color (Pale and Solid widgets): ChartCard passes it to its Card.
   if (color) props.color = color;

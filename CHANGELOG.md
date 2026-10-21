@@ -31,6 +31,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
+- **Breaking: Card and ListBox themes renamed, Figma and code** (2026-10-21, user: "Flat hiện tại nên là default, còn
+  flat phải là dùng đổ màu surface-flat … Khi phối card flat (surface-flat) thì cũng nên dùng canvas-flat"; "làm tương tự
+  cho cả box list"). Figma Card 6643:51021 and Component/List-Box 14922:75297: Theme=Flat is now **Default** (the
+  Surface alone, unchanged look); Border × Surface=Flat is its own Theme **Flat-Border** (Surface/Flat inside a
+  Border/Neutral/Pale frame: the box of a Canvas/Flat page); Surface keeps Default | Alt. Code: `theme="flat"` →
+  `theme="default"` (no alias: every example, template and doc migrated), `theme="border" surface="flat"` →
+  `theme="flat-border"`, and `surface="flat"` is gone (CardSurface is default | alt). MetricCard and ChartCard take the
+  same themes (ChartCard's default is `default`). On-Container is unchanged. Studio's Properties, Main component,
+  effects row and detach follow; the Figma audit and screen rules name Default and Flat-Border.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
   làm lại từ đầu", "Phá hẳn, migrate hết": no deprecated aliases). Figma Pattern/AppShell/Desktop 16258:1857, Mobile
   16261:136204, Header/AppShell 16243:290461, .Primitives/AppShell/Pane 16254:1099.

@@ -75,9 +75,9 @@ Props are strict literal unions: let TypeScript autocomplete values instead of g
    `primaryAction={{ label: "Delete project", onClick }}`.
 7. **Background layers:** the page is Canvas (ZenProvider paints it); cards and panels are Surface; modals and
    sheets are Container; floating menus are Popover. Components never paint Canvas. With nothing else deciding, the
-   page is `canvas-default` and its boxes are flat Surface/Default, no border and no shadow (`<Card theme="flat">`,
-   `<MetricCard theme="flat">`); a Sidebar's shadow, a white page, a Surface inside a Surface or a clickable card
-   changes that (`docs/component-usage-rules.md` §16).
+   page is `canvas-default` and its boxes are plain Surface/Default, no border and no shadow (`<Card theme="default">`,
+   `<MetricCard theme="default">`); a Sidebar's shadow, a white page, a Surface inside a Surface or a clickable card
+   changes that, and a `canvas-flat` page takes `theme="flat-border"` (`docs/component-usage-rules.md` §16).
 8. **Borders:** a closed box that is clickable uses `--zen-color-border-neutral-subtle-default`, a static box
    `--zen-color-border-neutral-pale-default`; dashed lines are at least Subtle.
 9. **Text colour** comes from tokens: `--zen-color-content-neutral-strongest` (primary text), `-base`

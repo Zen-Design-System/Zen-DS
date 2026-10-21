@@ -221,3 +221,24 @@ original stays, one ⌘Z each) waits for a gate slot.
   start) and passed the row's 20 s. Fixed at its owner, the shared helper: each ⌘Z waits for its own step (the page
   changes). FW-66 + FW-106 ✓ in 12 s. The whole Figma walk again: 125 / 126, FW-02 (⌘F) timed out once and passed
   alone (8 s; it passed in the first walk run).
+## Session "Bug" · Card and List-Box theme rename (tier M; worktree ../Zen-DS-card-themes, branch zen/feat/card-theme-names-20261021)
+
+- User 2026-10-21: "Flat hiện tại nên là default, còn flat phải là dùng đổ màu surface-flat" → decided with the user:
+  Flat → Default (same look); the Surface/Flat card gets a Pale border and the name Flat-Border (it existed as Border ×
+  Surface=Flat, so that variant became the theme; no duplicate); On-Container stays for overlays; no alias, migrate all.
+  Then "làm tương tự cho cả box list": List-Box the same.
+- Figma (live, use_figma): Card 12 Flat variants → Theme=Default, 6 Border×Flat → Theme=Flat-Border with Surface=Default
+  (themes with their own fill keep Surface=Default, as On-Container); List-Box 8 + 4 likewise (its default Theme is now
+  Default). Option order is not settable by API: Default and Flat-Border list last. Descriptions of Card, List-Box and
+  Metric-Card rewritten with tools/figma-docs (FORCE gained List-Box and Metric-Card; backup frame on page 15:814).
+- Code: Card cardThemes/CardSurface/cardSurfaces, card.css flat-border (Surface/Flat + Pale ring; clickable steps to
+  Subtle like Border); ListBox listBoxThemes + list-item.css; ChartCard default "default". A tag-scoped script migrated
+  330 Card/MetricCard/ChartCard tags and 8 ListBox tags (JSX and shown code); hand fixes in a-compositions,
+  e-consumer-2, Chart.tsx, card-color.test, ListBox story, PlatformExamples playground.
+- Harness card/color-ignored + card/surface-ignored (Default, Flat-Border; surface="flat" → use flat-border);
+  guidelines, usage rules §16 (+ a Canvas/Flat row), AGENTS.consumer, Figma skill screen-rules/audit-rules and the
+  audit's family names; Studio map note, appearance effects (Default theme), detach (flat-border = Box surface + pale
+  border, approx), selftests, MCP E2E AI-04, nested pull row, handoff fixture, registry login page; ai-ui catalog rebuilt.
+- Not changed: AppShellPane (its own Figma Pane set still has Flat / Border × Surface=Flat) — question for the user.
+  figma-push/pull Card mapping and their selftests are B's (asked); native-pack names are C's (asked).
+

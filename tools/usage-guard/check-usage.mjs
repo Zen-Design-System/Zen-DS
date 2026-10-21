@@ -1282,22 +1282,22 @@ export const rules = [
     summary: "A Card right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
     check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "shadow") },
   { id: "card/color-ignored", components: ["Card", "MetricCard", "ChartCard"], severity: "warn", allow: "card-color", guideline: "docs/guidelines/card.md",
-    summary: "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+    summary: "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Default, Border, Flat-Border and On-Container have no Color and ignore it.",
     check: ({ tag, attrs }) => {
       const own = topLevel(attrs);
       if (!has(own, "color") || opaque(attrs) || (has(own, "theme") && literal(own, "theme") === undefined)) return false;
-      const theme = literal(own, "theme") ?? (tag === "ChartCard" ? "flat" : "shadow");
+      const theme = literal(own, "theme") ?? (tag === "ChartCard" ? "default" : "shadow");
       return !["pale", "semi-pale", "subtle", "solid"].includes(theme) && `sets color on theme="${theme}", which has no Color in Figma — use theme="subtle" (colour on a box on Canvas/Default), theme="pale" (on a white page) or theme="solid" (the one widget that stands out), or drop color.`;
     } },
   { id: "card/surface-ignored", components: ["Card", "ChartCard"], severity: "warn", allow: "card-surface", guideline: "docs/guidelines/card.md",
-    summary: "Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill.",
+    summary: "Figma Card Surface per theme: alt on Default and Border (Shadow on alt renders as Default); Pale, Subtle, Flat-Border, On-Container and Solid keep their own fill. A card on a Canvas/Flat page is theme=\"flat-border\".",
     check: ({ tag, attrs }) => {
       const own = topLevel(attrs);
       const surface = literal(own, "surface");
       if (!surface || surface === "default" || opaque(attrs) || (has(own, "theme") && literal(own, "theme") === undefined)) return false;
-      const theme = literal(own, "theme") ?? (tag === "ChartCard" ? "flat" : "shadow");
-      const takes = { shadow: ["alt"], flat: ["alt"], border: ["alt", "flat"] }[theme === "semi-pale" ? "pale" : theme] ?? [];
-      return !takes.includes(surface) && `sets surface="${surface}" on theme="${theme}", which Figma draws without it — ${surface === "flat" ? "Surface=Flat is a Border card's (theme=\"border\")" : "Pale, On-Container and Solid keep their own fill"}; drop surface or change the theme.`;
+      const theme = literal(own, "theme") ?? (tag === "ChartCard" ? "default" : "shadow");
+      const takes = { shadow: ["alt"], default: ["alt"], border: ["alt"] }[theme === "semi-pale" ? "pale" : theme] ?? [];
+      return !takes.includes(surface) && `sets surface="${surface}" on theme="${theme}", which Figma draws without it — ${surface === "flat" ? "Surface/Flat in a Pale frame is theme=\"flat-border\" (Border × Surface=Flat until 2026-10-21)" : "Pale, Subtle, Flat-Border, On-Container and Solid keep their own fill"}; drop surface or change the theme.`;
     } },
   { id: "card/solid-color", components: ["Card", "MetricCard", "ChartCard"], severity: "error", allow: "card-color", guideline: "docs/guidelines/card.md",
     summary: "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",

@@ -81,11 +81,11 @@ export const EFFECT_STYLES: readonly EffectStyle[] = [
 ];
 export const effectStyleOf = (name: string | undefined) => EFFECT_STYLES.find((style) => style.name === name) ?? null;
 /** A card's default theme, when the source does not write one (Card.tsx, Chart.tsx, MetricWidget.tsx). */
-const CARD_DEFAULT_THEME: Record<string, string> = { Card: "shadow", MetricCard: "shadow", ChartCard: "flat" };
+const CARD_DEFAULT_THEME: Record<string, string> = { Card: "shadow", MetricCard: "shadow", ChartCard: "default" };
 
 /**
  * The effect a card's theme draws (spec §4.2: Card, MetricCard and ChartCard show it read-only): shadow → the Level-1
- * drop shadow, pale and semi-pale → the background blur, flat and border → none. null: not a card.
+ * drop shadow, pale and semi-pale → the background blur, default, border and flat-border → none. null: not a card.
  */
 export function cardThemeEffect(component: string, theme: string | undefined): { theme: string; style: string | null } | null {
   if (!(component in CARD_DEFAULT_THEME)) return null;

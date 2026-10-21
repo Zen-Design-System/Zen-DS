@@ -111,14 +111,14 @@ export const Good = () => <>
   <Grid columns={4} gap="md"><MetricCard label="Revenue" value="$12.4K" /><MetricCard label="Orders" value="320" /><MetricCard label="Refunds" value="4" /><MetricCard label="Visitors" value="9.1K" /></Grid>
   <PlatformPhone label="Energy"><Grid columns={3} gap="sm"><MetricCard spacing="small" label="Today" value="12 kWh" /><MetricCard spacing="small" label="Week" value="80 kWh" /><MetricCard spacing="small" label="Month" value="320 kWh" /></Grid></PlatformPhone>
   <PlatformPhone label="Stats"><Grid columns={2} gap="sm"><MetricCard type="tile" label="Success rate" value="56%" /><MetricCard type="tile" label="Sessions" value="1.2K" /></Grid></PlatformPhone>
-  <PlatformPhone label="Voice"><Stack gap="md"><Card theme="flat" spacing="small"><VoiceRecorder state="ready" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} /></Card></Stack></PlatformPhone>
+  <PlatformPhone label="Voice"><Stack gap="md"><Card theme="default" spacing="small"><VoiceRecorder state="ready" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} /></Card></Stack></PlatformPhone>
   <div><Card onClick={open} aria-label="Zen website"><Text>Zen website</Text></Card></div>
   <div><Card theme="pale" color="violet"><Text>Design hours</Text></Card></div>
   <AppShell sidebar={null}><Card theme="subtle" color="cyan"><Text>Invoiced</Text></Card></AppShell>
   <AppShell sidebar={null} canvas="alt"><Card theme="pale" color="cyan"><Text>Invoiced</Text></Card></AppShell>
   <PlatformPhone label="Budget" canvas="alt"><MetricCard theme="pale" color="green" label="Saved" value="$1,240" /></PlatformPhone>
   <div><Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card></div>
-  <div><Card theme="border" surface="flat"><Text>Hours this week</Text></Card></div>
+  <div><Card theme="flat-border"><Text>Hours this week</Text></Card></div>
   <div><Card theme="shadow" surface="alt"><Text>Outstanding</Text></Card></div>
   <MetricCard theme="solid" color="yellow" label="Next payout" value="$12,400" />
   <MetricCard theme="solid" color="accent" type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "+24%" }} />
@@ -340,7 +340,7 @@ export const Good = () => <>
 </>;
 
 // A component's root card is judged where the component is used: three side by side take Small, one keeps Medium.
-function DeviceCard({ label }: { label: string }) { return <Card theme="flat" spacing="small">{label}</Card>; }
+function DeviceCard({ label }: { label: string }) { return <Card theme="default" spacing="small">{label}</Card>; }
 export const Devices = () => <PlatformPhone label="Devices"><Grid columns={3} gap="md"><DeviceCard label="HomePod mini" /><DeviceCard label="Ceiling light" /><DeviceCard label="Blinds" /></Grid></PlatformPhone>;
-function RoomsCard() { return <Card theme="flat">Rooms</Card>; }
+function RoomsCard() { return <Card theme="default">Rooms</Card>; }
 export const Home = () => <PlatformPhone label="Home"><Stack gap="md"><RoomsCard /></Stack></PlatformPhone>;
