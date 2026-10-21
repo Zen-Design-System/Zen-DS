@@ -374,6 +374,10 @@ export const Bad = () => <>
   <FileUpload label="Avatar" caption="PNG or JPG. Max 2 MB" accept="image/*" files={files} onReplace={() => {}} />
   {/* expect: badge/count-uses-counter */}
   <Badge size="small">12</Badge>
+  {/* expect: property-field/one-value */}
+  <PropertyField label="Due Date" icon="icon-calendar-line"><InputField label="Due" defaultValue="06/07/2026" /></PropertyField>
+  {/* expect: badge/workflow-status-uses-badge-status */}
+  <Badge theme="blue" background="subtle">In progress</Badge>
   {/* expect: badge/count-text-uses-counter */}
   <span className="panel__count">{items.length}</span>
   {/* expect: button/filter-is-chip */}

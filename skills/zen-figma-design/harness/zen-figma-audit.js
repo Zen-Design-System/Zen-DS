@@ -26,7 +26,8 @@
 //   shape/loose              warning  a hand-drawn shape outside any component (use a Zen component or a local one)
 //   component/detached       warning  a frame named like a Zen component that is not an instance (detached)
 //   bounds/overflow          error    a layer sticking out of its parent (also when the parent does not clip; a centred
-//                                     button bleeding out of a non-clipping icon-size wrapper is Zen's design)
+//                                     button bleeding out of a non-clipping icon-size wrapper, and a Large Indicator
+//                                     Tab-Bar spilling evenly out of a header row, are Zen's design)
 //   bounds/clipped           error    a layer cut off by a clipping parent
 //   bounds/stroke-clip-gap   warning  a clipping frame with an inside stroke and a radius over a filled child that reaches
 //                                     a corner: Figma clips the child 1px in with the outer radius, a gap shows at the corner
@@ -50,7 +51,7 @@
 //                                     with Solid (or Subtle on a white page)
 //   theme/navigation-surface error    a header, Sidebar or top/bottom bar that does not match the Canvas (no fill, or
 //                                     the Surface of the Canvas's colour); only on Canvas/Default may the Sidebar or the
-//                                     Bottom-Navigation be a Surface/Default panel
+//                                     Bottom-Navigation be a Surface/Default panel; a floating bar's own scrim passes
 //   theme/mixed-elevation    error    a shadow on a Canvas/Alt or Canvas/Flat screen, or on Canvas/Default some of the
 //                                     Sidebar, bars and boxes cast one and others do not
 //   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale, Subtle)
@@ -315,6 +316,18 @@ function isBleed(node, own, frame) {
 }
 
 /**
+ * A Large Indicator Tab-Bar (64) in a header row (40) spills evenly above and below the row: its indicator sits on the
+ * header's bottom border (tabs.css "the indicator sits on the bar's bottom border"; Master-Layout B3), so the row keeps
+ * its height. Deliberate, so not an overflow.
+ */
+function isTabBleed(node, own, frame) {
+  const above = frame.y - own.y, below = own.y + own.height - frame.y - frame.height;
+  if (above <= TOLERANCE || Math.abs(above - below) > TOLERANCE || own.x < frame.x - TOLERANCE || own.x + own.width > frame.x + frame.width + TOLERANCE) return false;
+  const tabs = node.type === "INSTANCE" ? [node] : "findAll" in node ? node.findAll((child) => child.type === "INSTANCE" && child.name === "Tab-Bar") : [];
+  return tabs.some((tab) => tab.name === "Tab-Bar" && tab.variantProperties?.Style === "Indicator" && Math.abs(tab.height - own.height) <= TOLERANCE);
+}
+
+/**
  * Scroll content: a clipping frame set to scroll (Figma prototype overflow) shows the rest of its content when the
  * user scrolls, so a layer that runs on only past its far end (bottom for Vertical, right for Horizontal) is not cut.
  * A phone screen whose Body is longer than 844, or a Chip row wider than the screen, scrolls this way; so does the
@@ -352,7 +365,7 @@ function checkBounds(node) {
   const frame = box(parent);
   if (!own || !frame) return;
   if (sticksOut(own, frame, tolerance)) {
-    if (isBleed(node, own, frame) || scrollsPast(node, own, frame, tolerance)) return;
+    if (isBleed(node, own, frame) || isTabBleed(node, own, frame) || scrollsPast(node, own, frame, tolerance)) return;
     report(parent.clipsContent ? "bounds/clipped" : "bounds/overflow", ERROR, node, `${side(own, frame, tolerance)} past ${parent.name}`);
     return;
   }
@@ -532,7 +545,10 @@ async function checkThemePairingOf(root) {
   }
   for (const { node, role, panel } of bars) {
     const kind = await surfaceKind(node);
-    const seamless = kind === "none" || kind === `Canvas/${canvas}` || kind === CANVAS_TWIN[canvas];
+    // A bar that floats over the page (Top-Navigation Liquid-Overlay over a photo, Bottom-Navigation Floating) draws
+    // its own scrim gradient: the component's fill, not one the screen painted (Master-Layout C4, D5).
+    const ownScrim = kind === "Gradient" && node.type === "INSTANCE" && !(node.overrides ?? []).some((change) => change.id === node.id && change.overriddenFields.includes("fills"));
+    const seamless = kind === "none" || kind === `Canvas/${canvas}` || kind === CANVAS_TWIN[canvas] || ownScrim;
     const allowedPanel = panel && canvas === "Default" && kind === "Surface/Default";
     if (!seamless && !allowedPanel) report("theme/navigation-surface", ERROR, node, `${role} is ${kind} on Canvas/${canvas}: match the canvas (no fill or ${CANVAS_TWIN[canvas]})${panel ? "; only on Canvas/Default may it be a Surface/Default panel" : ""}`);
     if (panel && kind !== "none" && !seamless) (dropShadow(node) ? elevated : flat).push(node);
@@ -770,6 +786,10 @@ async function isLoneTitle(node) {
   const shown = node.findAll((child) => child.visible !== false);
   for (const child of shown) if (child.type === "INSTANCE" && !/^(Button\/Flat|Link)/.test(await setNameOf(child))) return false;
   const texts = shown.filter((child) => child.type === "TEXT");
+  // A heading over its paragraph (a docs step, an intro) is a section of text, not a title: copy is a text after the
+  // first one that runs past 60 characters or wraps (Master-Layout B5's "2. Wrap your app in ZenProvider").
+  const isCopy = (text) => text.characters.length > 60 || text.height > 1.5 * (typeof text.fontSize === "number" ? text.fontSize : 16) * 1.4;
+  if (texts.slice(1).some(isCopy)) return false;
   return texts.length > 0 && texts.length <= 3 && TITLE_STYLE.test(await textStyleName(texts[0]));
 }
 async function checkSectionGap(root) {

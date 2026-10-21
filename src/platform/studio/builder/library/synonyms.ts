@@ -33,6 +33,8 @@ export const SYNONYM_ROWS: ReadonlyArray<readonly [terms: readonly string[], ids
   [["avatars", "facepile", "nhóm ảnh đại diện"], ["avatar-stack"]],
   [["counter", "pill", "status", "label", "huy hiệu", "nhãn", "trạng thái"], ["badge", "tag-group"]],
   [["tags", "chips", "keywords", "thẻ"], ["tag-group", "chip-row", "card"]],
+  [["workflow", "task status", "progress ring", "to do", "in progress", "quy trình", "trạng thái công việc"], ["badge-status"]],
+  [["task details", "issue fields", "inline edit", "property", "thuộc tính", "chi tiết công việc", "sửa tại chỗ"], ["property-field", "task-properties"]],
   [["app icon", "biểu tượng ứng dụng"], ["dock-icon"]],
   [["listview", "rows", "danh sách"], ["list", "list-box", "description-list"]],
   [["key value", "details", "properties", "thông tin chi tiết"], ["description-list"]],

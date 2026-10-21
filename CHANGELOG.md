@@ -40,6 +40,27 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (usage rules §13, user rule 2026-10-21). Figma audit `spacing/section-gap` now reads the AppShell Content slot and
   desktop, and `section/title-apart` warns on a title alone. AppShell C1, C2, C7 group their widgets into one section
   above the closing list, in code and in Figma (◇ Master-Layout · Example, also D3, D4 opened).
+- Nine more AppShell screens follow the section rules, in Figma (◇ Master-Layout · Example) and in code: B3's two
+  widget rows are one grid (cards 16 apart), B5's docs steps are sections 32 apart with the React 19 note inside step 1,
+  C5's Segmented sits with the groups it switches, D5's closing quiz list is open (title row over a List); C4, C6, D2,
+  E4, E7 keep their rhythm as one section each. The Figma audit no longer reads a heading over its own paragraph as a
+  lone title, a floating bar's own scrim as a painted gradient, or a Large Indicator Tab-Bar's even bleed out of a
+  header row as an overflow.
+- Zen Studio places and round-trips `BadgeStatus` and `PropertyField` (2026-10-21): Assets items (Badge status, Property
+  field, Task properties), Figma-named properties (Badge-Status Status/Size; Property-Field Label, Icon, Action), and the
+  Figma push/pull — a row's cell is the nested Property-Value's Type, State and content (figma-property.mjs); contract,
+  library keys and the native-paste pack hold the three sets. `PropertyDate` takes ISO strings ("2026-06-07").
+- New `PropertyField` (2026-10-21, Figma Input/Property-Field 16923:6031, user-approved): a record's property edited in
+  place — a 128px label column (icon, label, the + Action) and one value cell: `PropertyText` (an input in place),
+  `PropertySelect` (options with icon + tone), `PropertyStatus` (BadgeStatus steps), `PropertyDate` (DatePicker),
+  `PropertyPeople` (Tag photos, `single`), `PropertyTags` (Subtle Badges, `onCreate`); each `value`/`defaultValue`/
+  `onValueChange`, `readOnly`, `placeholder` ("Empty"/"Trống"). Documented with the Input fields; four examples on the
+  Input page; harness `property-field/one-value` (usage rules §21).
+- New `BadgeStatus` (2026-10-21, Figma Badge-Status 16932:195, user-approved): a task's or project's workflow step —
+  to-do · in-progress · in-review · done · blocked · cancelled, sm/md — with a progress ring that fills as the work moves
+  on; `progress` (0–100) sets an exact value and is read after the label; the label defaults from the locale (en/vi).
+  The Badge page shows it in five examples and a playground; harness `badge/workflow-status-uses-badge-status` (error)
+  flags a Badge whose text is a workflow step (usage rules §20).
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
@@ -222,6 +243,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
   and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
+- Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
+  tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
   (⌘D on a Section copied only the Section before, under a Screen's id).
 - The direct paste brings a frame's whole look: its stroke inside at its weight (one side, or Zen's dash), each corner
@@ -476,6 +499,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   TopNavigation control bar or a BottomSheet (so also the Input family's phone sheet) takes `shape="rounded"` unless it
   sets its own `shape`; elsewhere Search keeps the default shape. Zen Studio pushes a control-bar Search as
   Shape=Rounded and pulls it back without the prop.
+  - The Figma library matches (2026-10-21, user: "có"): Bottom-Sheet's search is Shape=Rounded, and the phone
+    examples E1 · Delivery home, E2 · Shop home and E6 · Discover use a Rounded Search. Top-Navigation/Mobile's
+    Control-Bar is an empty slot: the Search a designer puts there takes Rounded.
+  - An AppShell on a phone does the same (2026-10-21, user: "AppShell mobile cũng mặc định Rounded … nhưng cho phép
+    đổi"): in its mobile structure, or its drawer layout under tablet width, every Search that sets no `shape` is a pill;
+    `shape="default"` keeps the square field. Desktop AppShells are unchanged.
 - AppShell collapses a customised Sidebar (2026-10-18, user: "lỗi sidebar lúc expand và collapse khi dùng template"):
   the Sidebar now tells the shell what it is wherever it sits, so one wrapped in an app component, a Stack or a Studio
   component gets the top-bar toggle, starts from its own `collapsed`, and a Sidebar with its own `onCollapsedChange`

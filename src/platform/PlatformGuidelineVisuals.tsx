@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 import { typographyStyles } from "../tokens/typography.generated";
 import { Avatar, AvatarStack } from "../components/Avatar";
 import { Badge, BadgeCounter } from "../components/Badge";
+import { BadgeStatus } from "../components/BadgeStatus";
+import { PropertyDate, PropertyField, PropertyStatus } from "../components/PropertyField";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { CalendarEvent, CalendarToolbar, CalendarWeekStrip } from "../components/Calendar";
 import { AppShellAction, AppShellHeader } from "../components/AppShell";
@@ -145,6 +147,9 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-field"><InputField label="Workspace ID" disabled value="zen-7f3k2" /></div>, caption: "Disabled text is faint, skipped by Tab and can't be copied: a value to read is Read-only." } },
     { do: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Enter a full address, like name@company.com" /></div>, caption: "Errors say how to fix the value." },
       dont: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Invalid input" /></div>, caption: "A generic error leaves users guessing." } },
+    { do: { preview: <div className="pgv-wide"><PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus defaultValue="in-progress" /></PropertyField><PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate defaultValue={new Date(2026, 5, 7)} /></PropertyField></div>, caption: "A record's properties are PropertyFields: the value is the field, edited in place." },
+      // zen-allow-property-value: the Don't preview shows the rule broken.
+      dont: { preview: <div className="pgv-wide"><PropertyField label="Due Date" icon="icon-calendar-line"><InputField aria-label="Due Date" size="small" defaultValue="06/07/2026" /></PropertyField></div>, caption: "A bordered field in the value column breaks the row's alignment and its keyboard pattern." } },
   ],
   "app-shell": [
     // User rule 2026-10-18 (Figma audit navigation/collapse-beside-master-crumb, harness app-shell/collapse-beside-master-crumb).
@@ -186,6 +191,9 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   badge: [
     { do: { preview: <Row><Badge size="small" theme="green" background="subtle" leading={<Icon name="icon-check-line" decorative />}>Live</Badge><BadgeCounter size="small" theme="red" value="99+" /></Row>, caption: "Semantic colour + text; counters cap at 99+." },
       dont: { preview: <Row><Badge size="small" theme="green" background="subtle" leadingIcon={false}> </Badge><BadgeCounter size="small" theme="red" value={1284} /></Row>, caption: "Colour alone carries no meaning; raw big numbers overflow." } },
+    { do: { preview: <Row><BadgeStatus status="in-progress" /><BadgeStatus status="in-review" /><BadgeStatus status="done" /></Row>, caption: "Workflow steps are BadgeStatus: the step sets the colour and the ring." },
+      // zen-allow-badge-workflow-status: the Don't preview shows the rule broken.
+      dont: { preview: <Row><Badge theme="blue" background="subtle">In progress</Badge><Badge theme="purple" background="subtle">In review</Badge><Badge theme="green" background="subtle">Done</Badge></Row>, caption: "Don't theme a Badge by hand for a step: each screen paints it differently." } },
   ],
   tag: [
     { do: { preview: <Row><Tag remove onRemove={noop}>react</Tag><Tag remove onRemove={noop}>tokens</Tag></Row>, caption: "Tags are values the user entered, removable in place." },
