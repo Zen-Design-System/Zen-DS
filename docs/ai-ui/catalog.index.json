@@ -885,6 +885,54 @@
       "props": "src? alt size? shape? fit? loading? aria-label? aria-labelledby? aria-describedby?"
     },
     {
+      "name": "TimelineActivity",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "entries today? size? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineGantt",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "groups start? weeks? today? defaultCollapsed? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineGanttBar",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "title kind? color? hideTitle? onClick? aria-label? aria-labelledby? aria-describedby? disabled?"
+    },
+    {
+      "name": "TimelineGanttLabel",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "name level? assignee? expanded? onToggle? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineItem",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "actor? title time? description? attachment? connector? size? marker? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineMarker",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "type? tone? icon? avatarName? avatarSrc? avatarTheme? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineMilestone",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "date title description? status? orientation? connector? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineMilestones",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "milestones today? currentId? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
       "name": "Toast",
       "status": "stable",
       "purpose": "Brief, non-blocking feedback about something the user just did or something the system just finished.",
