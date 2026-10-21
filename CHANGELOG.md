@@ -966,6 +966,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
+- Zen Studio: a click on a Line or an Arrow selects it, as in Figma. Before, a horizontal line had no height to click
+  and the click selected its frame.
 - TopNavigation `subtitle` without `titleLeading` centres the title and its subtitle, as Figma Heading-Text Type=Sub
   draws them (◇ Master-Layout · Example C2, C5); with `titleLeading` the conversation identity stays left-aligned.
 - TopNavigation `controlBar` hugs its control: the side margin and Spacing/Padding/XSmall above and below (a Progress
