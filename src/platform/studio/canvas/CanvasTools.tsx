@@ -51,7 +51,7 @@ const isPenTool = (tool: StudioTool): tool is StudioPenTool => penTools.some((en
  * have Stack (placed in a layout) and Interact (use the examples).
  */
 export const canvasToolGroups: ReadonlyArray<ReadonlyArray<ToolEntry>> = [
-  [{ id: "select", label: "Move", key: "V", icon: "icon-cursor-line" }, { id: "hand", label: "Hand", key: "H", icon: "icon-hand-line" }],
+  [{ id: "select", label: "Move", key: "V", icon: "icon-cursor-line" }, { id: "hand", label: "Hand", key: "H", icon: "icon-hand-line" }, { id: "scale", label: "Scale", key: "K", icon: "icon-scale-02-line" }],
   frameTools,
   shapeTools,
   penTools,

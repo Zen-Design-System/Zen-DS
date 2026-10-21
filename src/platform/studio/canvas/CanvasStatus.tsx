@@ -14,6 +14,7 @@ const hints: Record<StudioTool, string> = {
   select: "Move V · click to select, ⌘-click inside a frame, drag to move, ⌥-drag to duplicate",
   interact: "Interact · try the components · V for Move",
   hand: "Hand H · drag to pan",
+  scale: "Scale K · drag a corner, or type a scale in the right panel · Zen steps stay · V for Move",
   frame: "Frame F · drag to draw a frame, click for 100 × 100, or pick a preset · ⇧ square · ⌥ from center",
   section: "Section ⇧S · drag to draw a section around frames, or click · ⇧ square · ⌥ from center",
   rectangle: "Rectangle R · drag, or click for 100 × 100 · ⇧ square · ⌥ from center · Space to move",
