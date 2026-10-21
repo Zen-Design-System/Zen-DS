@@ -182,7 +182,7 @@ export const FIGMA_PROPS = {
       "Main-Element": skip("content slot (the Main switch)"),
       Main: { toggle: "main", on: "slot" },
       Sections: { toggle: "sections", on: "slot" },
-      Theme: { prop: "theme", values: { Default: "default", "Border & Divider": "border-divider" } },
+      Theme: { prop: "theme", values: { Default: "default", "Border & Divider": "border-divider", Borderless: "borderless" } },
       Density: "density",
     },
   },

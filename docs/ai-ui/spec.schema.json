@@ -3491,7 +3491,8 @@
                   {
                     "enum": [
                       "default",
-                      "border-divider"
+                      "border-divider",
+                      "borderless"
                     ]
                   },
                   {
@@ -10173,7 +10174,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Header Label (Heading/Subheading)."
+                "description": "Figma Header Label (Body/Extra/Medium, 2026-10-21)."
               },
               "headingLevel": {
                 "anyOf": [
@@ -10248,7 +10249,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "One line under the title that says what the figure is (\"Available revenue in your wallet\"), Body/Small/Regular."
+                "description": "What the figure is (\"Available revenue in your wallet\"), Body/Small/Regular: the top of Figma's Metric, under the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to t"
               },
               "value": {
                 "anyOf": [
@@ -10278,7 +10279,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/2 (Figma Chart-Card Heading > Value)."
+                "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the description and the Segmented."
               },
               "onOpen": {
                 "anyOf": [
