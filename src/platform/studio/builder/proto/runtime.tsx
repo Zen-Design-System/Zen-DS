@@ -1,7 +1,7 @@
 import { Children, cloneElement, createContext, isValidElement, useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactElement, type ReactNode, type RefObject } from "react";
 import { AppShell } from "../../../../components/AppShell";
 import { ZenPortalProvider } from "../../../../components/Portal";
-import { deviceOfScreen, type ScreenDevice } from "../../../../../tools/studio/screen-devices.mjs";
+import { deviceOfScreen, deviceOs, type ScreenDevice } from "../../../../../tools/studio/screen-devices.mjs";
 import { DeviceBars, duoStatusOf, safeAreasOf, type DeviceOs } from "./DeviceBars";
 
 /*
@@ -127,15 +127,16 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
   const presentScroll = usePresentScroller(rootRef);
   // The hardware: the device Present or Play simulates, else the one the Screen is drawn for (its size, its type's own).
   const simulated = useContext(SimulatedDeviceContext);
-  const own = deviceOfScreen(drawnDevice, layout, width, height);
+  const os = useContext(PageOsContext);
+  const own = deviceOfScreen(drawnDevice, layout, width, height, os);
   const hardware = simulated ?? own;
   const device: PageDevice = simulated?.device ?? drawnDevice;
   const phone = device === "phone";
-  // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone). An
-  // iPhone Duo is iOS whatever the page's OS.
+  // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone).
+  // The page's OS on the canvas; the simulated device's in Present and Play (an Android phone, an iPad); an iPhone Duo
+  // is iOS whatever the page's OS.
   const duo = duoStatusOf(hardware?.bars);
-  const os = useContext(PageOsContext);
-  const barsOs: DeviceOs = duo ? "ios" : os;
+  const barsOs: DeviceOs = simulated ? deviceOs(simulated) : duo ? "ios" : os;
   const bars = device === "desktop" ? null : safeAreasOf(barsOs, device, duo);
   const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
   const tall = simulated ? simulated.height : height;

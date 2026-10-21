@@ -1,5 +1,18 @@
 # Session log 2026-10-21
 
+## Simulator Android (tier S; user: "Ừ, thêm máy Android vào simulator đi"), worktree `../Zen-DS-android`, branch `zen/feat/studio-android-devices-20261021`
+- `tools/studio/screen-devices.mjs`: Android phone 412 × 917 (Figma Android Compact), Android tablet 1280 × 800 / 800 × 1280
+  (Figma Android Expanded, turned), `os: "android"`, `deviceOs()`. Radii 39 / 20 are estimates (Google publishes none;
+  the phone's from the Pixel 8's reported 102 px at 2.625), noted in the file.
+- `deviceOfScreen(…, os)`: the device of a Screen's size among the page OS's (the Duo whatever the OS), else the OS's own.
+  So a 390 × 844 Screen on an Android page plays on the Android phone, and a 412 × 917 one on an iOS page on the iPhone.
+- Bars: the page's OS on the canvas, the simulated device's in Present and Play (runtime Screen, Play's overlay safe areas).
+- Bug fixed at its owner: Present renders a frame outside BuilderBoard's PageOsContext, so an Android page's Screen showed
+  iOS bars in Present. BuilderBoard now wraps each frame's render in the page's OS.
+- New page on an Android device writes header `os: "android"`; Screen › Device switch resizes to the page OS's device.
+- E2E PT-16 (Android page: Auto on the Android phone, tablet landscape → Rotate, iPhone draws iOS bars). tsc ✓,
+  studio:selftest ✓.
+
 ## Session "Bug" · PageHeader description tone (tier XS; user: "trong Figma dòng subtext dưới header là tone Light chứ không phải base")
 
 - Read live (use_figma): Primitives/Dashboard/Header Type=Main 4122:33399 SubHeading = Body/Base/Regular,
