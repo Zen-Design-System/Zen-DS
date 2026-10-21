@@ -47,6 +47,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Web, SwiftUI and Flutter tokens regenerated.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
+- **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
+  CalendarMonth, CalendarTimeGrid (Week / Day, Mobile 3-Day), CalendarAgenda and CalendarWeekStrip (Dot / Tile) take
+  events as data (`CalendarEventData`: id, title, start, end, allDay, color, meta, attendees); the primitives
+  CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem and
+  CalendarDayTile are public too. Dates are a `Date` or an ISO string read in local time ("2026-09-30T09:00"), so Studio
+  pages and AI UI specs can hold them. Month: one date in the tab order, arrows a day / a week, Home / End; overlapping
+  Time-Grid events share the column in lanes; the now line only in today's column. Platform page `calendar`,
+  guideline, harness rules `calendar/toolbar-navigation`, `calendar/week-on-phone`, `calendar/selected-needs-handler`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys, native paste pack).
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
   làm lại từ đầu", "Phá hẳn, migrate hết": no deprecated aliases). Figma Pattern/AppShell/Desktop 16258:1857, Mobile
   16261:136204, Header/AppShell 16243:290461, .Primitives/AppShell/Pane 16254:1099.
