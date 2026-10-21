@@ -72,12 +72,17 @@ async function selectShape(page, id, index) {
   await page.keyboard.up("ControlOrMeta");
   await sleep(300);
 }
-/** The walk page's text without the edit just made: ⌘Z until it is `text` again. */
+/**
+ * The walk page's text without the edits just made: ⌘Z until it is `text` again. Each ⌘Z waits for its step to land
+ * (the page changes), not for `text`: a row of five edits waited 4 s on each of the first four and passed the row's
+ * 20 s (FW-66, 2026-10-21).
+ */
 async function undoTo(page, id, text, tries = 3) {
   for (let k = 0; k < tries && (await pageText(page, id)) !== text; k++) {
+    const now = await pageText(page, id);
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("ControlOrMeta+KeyZ");
-    await until(async () => (await pageText(page, id)) === text, { timeout: 4000, message: "⌘Z" }).catch(() => undefined);
+    await until(async () => { const next = await pageText(page, id); return next === text || next !== now; }, { timeout: 4000, message: "⌘Z" }).catch(() => undefined);
   }
   if ((await pageText(page, id)) !== text) throw new Error("⌘Z did not bring the page back");
 }
