@@ -1571,6 +1571,113 @@
       ]
     },
     {
+      "slug": "timeline",
+      "title": "Timeline",
+      "file": "docs/guidelines/timeline.md",
+      "apiFile": "docs/api/timeline.json",
+      "figma": "Timeline/Item, Activity, Milestones, Gantt and .Primitives/Timeline/* (page ❖ Timeline 16121:9)",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "props": {
+        "TimelineActivity": [
+          "today?: Date|string",
+          "size?: md|sm|medium|small = md",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "TimelineItem": [
+          "actor?: ReactNode",
+          "title: ReactNode",
+          "time?: ReactNode",
+          "description?: ReactNode",
+          "attachment?: ReactNode",
+          "connector?: boolean = true",
+          "size?: md|sm|medium|small = md",
+          "marker?: Pick<TimelineMarkerProps, type|tone|icon|avatarName|avatarSrc|avatarTheme>",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "TimelineMilestones": [
+          "today?: Date|string",
+          "currentId?: string",
+          "device?: desktop|mobile",
+          "ref?: Ref<HTMLOListElement>"
+        ],
+        "TimelineGantt": [
+          "start?: Date|string",
+          "weeks?: number = 9",
+          "today?: Date|string",
+          "onTaskClick?: (task: TimelineTaskData, target: HTMLElement) => void",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "TimelineMarker": [
+          "type?: dot|icon|avatar = dot",
+          "tone?: neutral|accent|positive|warning|negative = neutral",
+          "icon?: IconName",
+          "avatarName?: string = ",
+          "avatarSrc?: string",
+          "avatarTheme?: Exclude<AvatarTheme, photo> = teal",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLSpanElement>"
+        ],
+        "TimelineMilestone": [
+          "date: ReactNode",
+          "title: ReactNode",
+          "description?: ReactNode",
+          "status?: done|current|upcoming = upcoming",
+          "orientation?: horizontal|vertical = horizontal",
+          "connector?: boolean = true",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "TimelineGanttBar": [
+          "title: ReactNode",
+          "kind?: task|summary|milestone = task",
+          "color?: brand|blue|violet|teal|green|orange|pink = brand",
+          "hideTitle?: boolean = false",
+          "onClick?: MouseEventHandler<HTMLButtonElement>",
+          "ref?: Ref<HTMLElement>"
+        ],
+        "TimelineGanttLabel": [
+          "name: ReactNode",
+          "level?: group|task = task",
+          "assignee?: { src?: string; alt?: string }",
+          "expanded?: boolean = true",
+          "onToggle?: () => void",
+          "ref?: Ref<HTMLDivElement>"
+        ]
+      },
+      "do": [
+        "Use an Avatar marker when a person acted, an Icon when the system did, a Dot in compact logs.",
+        "Let the tone carry status: Positive approved, Negative rejected, Warning waiting, Accent the newest or current.",
+        "Name the Gantt after the plan (aria-label) so its table reads as more than \"Tasks\".",
+        "Keep bars on their real dates: the track scrolls; never squeeze a bar to fit."
+      ],
+      "dont": [
+        "Don't colour markers for decoration: tone is status.",
+        "Don't use Milestones or the Gantt for a form the user steps through: use Stepper.",
+        "Don't mark more than one milestone Current."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "timeline/gantt-names-plan"
+      ]
+    },
+    {
       "slug": "tooltip",
       "title": "Tooltip",
       "file": "docs/guidelines/tooltip.md",

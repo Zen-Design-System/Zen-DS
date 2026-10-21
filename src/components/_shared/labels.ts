@@ -131,6 +131,11 @@ export type ZenLabels = {
   noTimes: string;
   /** The Day-Planner's month selector. */
   chooseMonth: string;
+  // Timeline (Activity, Gantt)
+  /** The activity feed's "Yesterday" kicker. */
+  yesterday: string;
+  /** The Gantt's task column header and the plan's name. */
+  tasks: string;
   // Forms and fields
   fieldsNeedAttention: (count: number) => string;
   /** After an optional field's label or legend: "(Optional)". */
@@ -473,6 +478,8 @@ const en: ZenLabels = {
   unavailable: "unavailable",
   noTimes: "No times left on this day",
   chooseMonth: "Choose month",
+  yesterday: "Yesterday",
+  tasks: "Tasks",
   fieldsNeedAttention: (count) => `${count} ${count === 1 ? "field needs" : "fields need"} attention`,
   optional: "(Optional)",
   somethingWentWrong: "Something went wrong. Try again.",
@@ -758,6 +765,8 @@ const vi: ZenLabels = {
   unavailable: "đã kín",
   noTimes: "Ngày này đã hết giờ trống",
   chooseMonth: "Chọn tháng",
+  yesterday: "Hôm qua",
+  tasks: "Công việc",
   fieldsNeedAttention: (count) => `${count} trường cần xem lại`,
   optional: "(Không bắt buộc)",
   somethingWentWrong: "Đã có lỗi xảy ra. Hãy thử lại.",

@@ -736,6 +736,20 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "src": "src"
     }
   },
+  "TimelineActivity": {
+    "TimelineItem": {
+      "size": "size"
+    }
+  },
+  "TimelineMarker": {
+    "Avatar": {
+      "alt": "avatarName",
+      "src": "avatarSrc"
+    },
+    "DockIcon": {
+      "icon": "icon"
+    }
+  },
   "ToastProvider": {
     "ToastStack": {
       "duration": "duration",

@@ -3711,6 +3711,111 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "TimelineItem": [
+    {
+      "name": "Timeline/Item",
+      "figma": "16131:1090",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
+      "toggles": [
+        {
+          "prop": "description",
+          "label": "Description",
+          "on": "Annual leave · Oct 12 – Oct 16",
+          "default": true
+        },
+        {
+          "prop": "attachment",
+          "label": "Attachment",
+          "on": "Can we move the review to Thursday?",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "TimelineActivity": [
+    {
+      "name": "Timeline/Activity",
+      "figma": "16131:1311",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "TimelineMilestones": [
+    {
+      "name": "Timeline/Milestones",
+      "figma": "16132:777",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "TimelineGantt": [
+    {
+      "name": "Timeline/Gantt",
+      "figma": "16136:859",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "ScheduleResourceGrid": [
     {
       "name": "Schedule/Resource-Grid",

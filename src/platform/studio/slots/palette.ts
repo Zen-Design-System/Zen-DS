@@ -117,6 +117,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch", SliderField: "SliderField", CurvePreview: "CurvePreview",
+  TimelineActivity: "Timeline", TimelineMilestones: "Timeline", TimelineGantt: "Timeline", TimelineItem: "Timeline",
   ScheduleResourceGrid: "Schedule", ScheduleItinerary: "Schedule", ScheduleSlotPicker: "Schedule", ScheduleDayPlanner: "Schedule",
   CalendarToolbar: "Calendar", CalendarMonth: "Calendar", CalendarTimeGrid: "Calendar", CalendarAgenda: "Calendar", CalendarWeekStrip: "Calendar",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
@@ -917,6 +918,19 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "calendar-toolbar", label: "Calendar toolbar", group: "Navigation", caption: "Period and view", root: "CalendarToolbar", components: ["CalendarToolbar"], interactive: true, input: false,
     build: () => `<CalendarToolbar title="September 2026" view="month" />`,
+  },
+  // ❖ Timeline (16121:9): the same demo day, ISO dates.
+  {
+    id: "timeline-activity", label: "Activity feed", group: "Data display", caption: "Who did what, by day", root: "TimelineActivity", components: ["TimelineActivity"], interactive: false, input: false,
+    build: () => `<TimelineActivity today="2026-09-30" entries={[{ id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { type: "avatar", avatarName: "Maya Chen", tone: "positive" } }, { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday?", marker: { type: "icon", tone: "accent" } }, { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", marker: { type: "icon", tone: "neutral" } }]} />`,
+  },
+  {
+    id: "timeline-milestones", label: "Milestones", group: "Data display", caption: "Project phases", root: "TimelineMilestones", components: ["TimelineMilestones"], interactive: false, input: false,
+    build: () => `<TimelineMilestones today="2026-09-30" milestones={[{ id: "kickoff", date: "2026-08-03", title: "Kickoff" }, { id: "signoff", date: "2026-09-25", title: "Design sign-off" }, { id: "beta", date: "2026-10-23", title: "Beta launch", description: "Invite 40 studio clients" }, { id: "launch", date: "2026-11-16", title: "Public launch" }]} />`,
+  },
+  {
+    id: "timeline-gantt", label: "Gantt roadmap", group: "Data display", caption: "Tasks across weeks", root: "TimelineGantt", components: ["TimelineGantt"], interactive: true, input: false,
+    build: () => `<TimelineGantt aria-label="Lotus banking redesign" start="2026-08-31" today="2026-09-30" groups={[{ id: "design", name: "Design", tasks: [{ id: "wire", name: "Wireframes", start: "2026-09-14", end: "2026-09-26" }, { id: "ui", name: "UI design", start: "2026-09-21", end: "2026-10-10" }, { id: "signoff", name: "Design sign-off", start: "2026-10-09", kind: "milestone" }] }, { id: "build", name: "Build", tasks: [{ id: "fe", name: "Frontend", start: "2026-09-28", end: "2026-10-17", color: "teal" }] }]} />`,
   },
   // ❖ Schedule (16121:6): the same demo day, ISO dates.
   {

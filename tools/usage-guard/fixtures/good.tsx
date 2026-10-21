@@ -286,6 +286,7 @@ export const Good = () => <>
   <CalendarToolbar date={day} views={[]} onPrevious={previousWeek} onNext={nextWeek} />
   <CalendarTimeGrid device="mobile" view="3-day" date={day} events={events} />
   <ScheduleSlotPicker slots={slots} value={slot} onValueChange={setSlot} aria-label="Review times" />
+  <TimelineGantt groups={plan} aria-label="Lotus banking redesign" />
   <ScheduleResourceGrid resources={resources} bookings={bookings} selectedBookingId={open} onBookingClick={(booking) => setOpen(booking.id)} />
   <CalendarMonth month={day} events={events} selectedEventId={open} onEventClick={(event) => setOpen(event.id)} />
   <DatePicker calendar="dual" selectionMode="range" range={period} showActions onApply={(_, picked) => picked && setPeriod(picked)} />

@@ -58,7 +58,7 @@ import { PlatformCode } from "./PlatformCode";
 import { ComponentGuidelines } from "./PlatformGuidelines";
 import { ComponentApi, ComponentKeyboard, ComponentProps, PlatformOnThisPage, PlatformSection } from "./PlatformReference";
 import { VoicePlayground } from "./PlatformVoicePlayground";
-import { CalendarPlayground, SchedulePlayground } from "./PlatformCalendarPlayground";
+import { CalendarPlayground, SchedulePlayground, TimelinePlayground } from "./PlatformCalendarPlayground";
 import { AiChatPlayground, BottomNavigationPlayground, BottomSheetPlayground, ChartPlayground, ChatPlayground, TopNavigationPlayground } from "./PlatformMobilePlaygrounds";
 import { figmaSidebarBrand } from "./PlatformSidebarBrand";
 import { appLayerPages } from "./PlatformAppLayer";
@@ -72,7 +72,7 @@ import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from 
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
-export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "calendar" | "schedule" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "shape" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "slider-field" | "curve-preview" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
+export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "calendar" | "schedule" | "timeline" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "shape" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "slider-field" | "curve-preview" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
 
 /**
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
@@ -1353,6 +1353,10 @@ import { Icon } from "@zen-ds/react";` : ""}
 </Tag>`} />
       </ComponentPreview>
     </ExamplePage>;
+  }
+
+  if (page === "timeline") {
+    return <ExamplePage page="timeline" eyebrow="Components / Timeline" title="Timeline" description="Time as a history or a plan: an Activity feed of Items (who did what, newest first), Milestones of a project, and a Gantt roadmap of grouped tasks by week. Markers carry status, never decoration."><TimelinePlayground /></ExamplePage>;
   }
 
   if (page === "schedule") {

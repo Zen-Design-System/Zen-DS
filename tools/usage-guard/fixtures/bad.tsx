@@ -469,6 +469,8 @@ export const Bad = () => <>
   <DatePicker value={date} onValueChange={setDate} month={new Date(1995, 5, 1)} />
   {/* expect: interaction/controlled-needs-handler */}
   <DatePicker selectionMode="range" range={period} />
+  {/* expect: timeline/gantt-names-plan */}
+  <TimelineGantt groups={plan} />
   {/* expect: schedule/slot-picker-confirm */}
   <ScheduleSlotPicker slots={slots} aria-label="Review times" />
   {/* expect: schedule/selected-needs-handler */}

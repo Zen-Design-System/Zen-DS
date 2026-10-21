@@ -1885,6 +1885,9 @@ export const rules = [
       return null;
     } },
   // The behaviour probes (2026-09-28): an inline "Report period" whose Cancel and Submit both only closed, doing nothing.
+  { id: "timeline/gantt-names-plan", components: ["TimelineGantt"], severity: "warn", allow: "gantt-name", guideline: "docs/guidelines/timeline.md",
+    summary: "Name the Gantt after its plan (aria-label=\"Lotus banking redesign\"): without it the table is only \"Tasks\", and a page with two plans reads them the same.",
+    check: ({ attrs, src }) => (/@storybook\//.test(src) || spreadsProps(attrs) || present(attrs, "aria-label") || present(attrs, "aria-labelledby")) ? null : "has no aria-label: name it after the plan." },
   { id: "schedule/slot-picker-confirm", components: ["ScheduleSlotPicker"], severity: "warn", allow: "schedule-confirm", guideline: "docs/guidelines/schedule.md",
     summary: "A Slot-Picker only chooses a time: without onValueChange the app never hears the choice, and the confirm action (\"Book 10:00\") in the page or sheet footer has nothing to book.",
     check: ({ attrs, src }) => {
