@@ -42,7 +42,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`
 | `value` | `CalendarDateInput \| null` | — | The selected day (controlled): Day-Cell State=Selected on desktop, Single-Selected on mobile. |
 | `defaultValue` | `CalendarDateInput \| null` | `null` | The selected day at first (uncontrolled). Default: none on desktop. |
 | `onValueChange` | `(date: Date) => void` | — | Called with the day the person presses. |
-| `events` | _HTML attribute_ | `[]` | The events to show: chips in the desktop cells, a dot under the mobile days. |
+| `events` | `CalendarEventData[]` | `[]` | The events to show: chips in the desktop cells, a dot under the mobile days. |
 | `onEventClick` | `(event: CalendarEventData, target: HTMLElement) => void` | — | Pressing an event chip (desktop): open its details, anchored to `target`. Without it the chips are static. |
 | `selectedEventId` | `string \| null` | `null` | The event whose details are open: its chip shows State=Selected. |
 | `onMoreClick` | `(date: Date) => void` | — | Pressing "+N more" (desktop): show the whole day (its Agenda or Day view). Without it "+N more" is text. |
@@ -64,7 +64,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title">`.
 | `today` | `Date \| string` | — | The day treated as today: while the shown period already holds it, Today is disabled (pressing it would change nothing). Default: the device clock. |
 | `titleLevel` | `2 \| 3 \| 4` | `2` | Heading level of the title: one below the page heading. Default 2. |
 | `view` | `"month" \| "week" \| "day" \| "3-day" \| "agenda"` | `"month"` | The selected view of the switch. |
-| `views` | _HTML attribute_ | `["month", "week", "day", "agenda"]` | The views the switch offers, in order (Figma: Month · Week · Day · Agenda). Hide views the product does not offer; an empty list hides the switch. |
+| `views` | `CalendarView[]` | `["month", "week", "day", "agenda"]` | The views the switch offers, in order (Figma: Month · Week · Day · Agenda). Hide views the product does not offer; an empty list hides the switch. |
 | `onViewChange` | `(view: CalendarView) => void` | — | Called with the view the person picks. |
 | `onToday` | `() => void` | — | Today (Tertiary button): back to today's period. Without it the button is left out. |
 | `onPrevious` | `() => void` | — | Previous period (Tertiary icon button). |
@@ -82,7 +82,7 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 | --- | --- | --- | --- |
 | `view` | `"week" \| "day" \| "3-day"` | — | Figma View: `week` (Monday to Sunday), `day`, or `3-day` (the day before, the day, the day after). Default `week` on desktop and `3-day` on mobile; `week` on a phone draws the 3-Day grid (a week does not fit). |
 | `date` | `Date \| string` | — | The day the view is built around ("2026-09-30" or a Date). Default: today. |
-| `events` | _HTML attribute_ | `[]` | The events: all-day ones in the all-day row, timed ones as blocks at their hours. |
+| `events` | `CalendarEventData[]` | `[]` | The events: all-day ones in the all-day row, timed ones as blocks at their hours. |
 | `startHour` | `number` | `8` | First hour shown (default 8: 08:00). |
 | `endHour` | `number` | `18` | Hour the grid ends at (default 18: the last row is 17:00–18:00). Extend it for longer days. |
 | `now` | `Date \| string` | — | The current time: the now line in today's column. Default: the device clock, updated every minute. |
@@ -102,7 +102,7 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `events` | _HTML attribute_ | `[]` | The events; they are listed day by day, all-day first, then by start time. |
+| `events` | `CalendarEventData[]` | `[]` | The events; they are listed day by day, all-day first, then by start time. |
 | `from` | `Date \| string` | — | First day of the range ("2026-09-30" or a Date). Default: today. |
 | `days` | `number` | `7` | How many days the range covers (default 7). Days without events are left out. |
 | `onEventClick` | `(event: CalendarEventData, target: HTMLElement) => void` | — | Pressing an event: open its details, anchored to `target`. Without it the rows are static. |
@@ -123,7 +123,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`
 | `value` | `CalendarDateInput \| null` | — | The selected day (controlled). |
 | `defaultValue` | `CalendarDateInput \| null` | — | The selected day at first (uncontrolled). Default: today. |
 | `onValueChange` | `(date: Date) => void` | — | Called with the day the person picks. |
-| `events` | _HTML attribute_ | `[]` | The events of the period: a day with any shows the event dot (Dot style). |
+| `events` | `CalendarEventData[]` | `[]` | The events of the period: a day with any shows the event dot (Dot style). |
 | `variant` | `"dot" \| "tile"` | `"dot"` | Figma Style: `dot` (date-picker days with an event dot, default) or `tile` (weekday and date in one tile; the selected day a bordered Surface tile, as Schedule/Day-Planner uses it). |
 | `device` | `"desktop" \| "mobile"` | — | Figma Device: `desktop` (32px days, a side panel or picker) or `mobile` (40px days, above the day's events on a phone). Default: from the breakpoint. |
 | `today` | `Date \| string` | — | The day treated as today (Today ring / Accent date). Default: the device clock. |

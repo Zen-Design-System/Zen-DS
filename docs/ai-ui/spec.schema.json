@@ -7478,7 +7478,12 @@
             "properties": {
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarEventData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -8896,7 +8901,12 @@
               },
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarEventData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -9143,7 +9153,12 @@
               },
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarEventData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -9422,7 +9437,18 @@
               },
               "views": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "month",
+                        "week",
+                        "day",
+                        "3-day",
+                        "agenda"
+                      ]
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -9659,7 +9685,12 @@
               },
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarEventData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -40408,6 +40439,62 @@
           "type": "string"
         }
       ]
+    },
+    "CalendarEventData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "allDay": {
+          "type": "boolean"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "meta": {
+          "type": "string"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start"
+      ],
+      "additionalProperties": false
     },
     "CardSubAction": {
       "type": "object",

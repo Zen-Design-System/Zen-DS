@@ -22,7 +22,7 @@ export interface CalendarMonthProps extends Omit<HTMLAttributes<HTMLDivElement>,
   /** Called with the day the person presses. */
   onValueChange?: (date: Date) => void;
   /** The events to show: chips in the desktop cells, a dot under the mobile days. */
-  events?: readonly CalendarEventData[];
+  events?: CalendarEventData[];
   /** Pressing an event chip (desktop): open its details, anchored to `target`. Without it the chips are static. */
   onEventClick?: (event: CalendarEventData, target: HTMLElement) => void;
   /** The event whose details are open: its chip shows State=Selected. */

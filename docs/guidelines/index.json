@@ -1299,6 +1299,7 @@
           "value?: CalendarDateInput|null",
           "defaultValue?: CalendarDateInput|null = null",
           "onValueChange?: (date: Date) => void",
+          "events?: CalendarEventData[] = []",
           "onEventClick?: (event: CalendarEventData, target: HTMLElement) => void",
           "selectedEventId?: string|null = null",
           "onMoreClick?: (date: Date) => void",
@@ -1314,6 +1315,7 @@
           "today?: Date|string",
           "titleLevel?: 2|3|4 = 2",
           "view?: month|week|day|3-day|agenda = month",
+          "views?: CalendarView[] = [month, week, day, agenda]",
           "onViewChange?: (view: CalendarView) => void",
           "onToday?: () => void",
           "onPrevious?: () => void",
@@ -1325,6 +1327,7 @@
         "CalendarTimeGrid": [
           "view?: week|day|3-day",
           "date?: Date|string",
+          "events?: CalendarEventData[] = []",
           "startHour?: number = 8",
           "endHour?: number = 18",
           "now?: Date|string",
@@ -1338,6 +1341,7 @@
           "ref?: Ref<HTMLDivElement>"
         ],
         "CalendarAgenda": [
+          "events?: CalendarEventData[] = []",
           "from?: Date|string",
           "days?: number = 7",
           "onEventClick?: (event: CalendarEventData, target: HTMLElement) => void",
@@ -1352,6 +1356,7 @@
           "value?: CalendarDateInput|null",
           "defaultValue?: CalendarDateInput|null",
           "onValueChange?: (date: Date) => void",
+          "events?: CalendarEventData[] = []",
           "variant?: dot|tile = dot",
           "device?: desktop|mobile",
           "today?: Date|string",
