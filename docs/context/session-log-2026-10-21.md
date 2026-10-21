@@ -405,6 +405,29 @@ transaction". Read from Figma ◆ Finance (4595:17267, "Transactions" I16342:386
   Gradient by `theme/navigation-surface` ×3, D3's streak Badge "3" `badge/count-uses-counter`). Page scan: B3, B5, C4,
   C5, C6, D2, D5, E4, E7 still break the section rules (BACKLOG, asked the user).
 
+## Section rules on 9 more Master-Layout screens — tier M, branch `zen/feat/section-rules-9-screens-20261021` (on #188)
+Task from the "List-box mobile layout rule" session (BACKLOG P2): B3, B5, C4, C5, C6, D2, D5, E4, E7 of Figma
+◇ Master-Layout · Example (15902:109717). Method as C1–D4: `instance.clone()` into a new auto-layout frame (fills none,
+no clip), originals hidden, Component Size Compact → Comfortable → cleared on the frame, texts/sizes/nested mains
+compared with the hidden originals in the next call (all identical), then removed.
+- B3: Row-1 and Row-2 rebuilt inside one `Widgets` section (Gap/Medium); slot gap → Gap/XLarge. Code: `<Stack gap="md">`.
+- B5: the React 19 Inline-Message moved into step 1 (its install note); slot gap → Gap/XLarge, so the intro and steps are
+  32 apart. Code: article `gap="xl"`, the note inside the first DocSection, sample rewritten to match.
+- C5: Summary stays a section; Segmented + Customer + Items cards → `Details` (Gap/Medium). Code: the total, then a
+  `<Stack gap="md">` with the Segmented and its groups, straight in the AppShell body.
+- D5: open closing list: `Live quizzes` = Title-Row (the old Section-Header) over a `List` frame (Gap/3XSmall), as C1.
+  Code: section `gap="md"` over `<List>` (was a `ul` Stack at sm).
+- C4 (`Tour`), C6 (`Identity`, Gap/Large), D2 (`Sign-in`, Gap/Small), E4 (`Get started`), E7 (`Daily updates`): one
+  section each, same rhythm; the code already was one Stack. All nine slots bound to Section-Gap / XLarge.
+- Audit fixes met (false positives): `section/title-apart` read B5's "2. Wrap your app" (Heading/3 + its paragraph) as a
+  lone title: a text after the first past 60 characters or wrapping is copy, not a title. `theme/navigation-surface` read
+  the Liquid-Overlay top bar (C4) and Floating bottom bar (D5) scrims as painted gradients: a bar's own, unoverridden
+  gradient passes. `bounds/overflow` flagged B3's Large Indicator Tab-Bar (64) spilling 12/12 out of the 40 header row:
+  deliberate (tabs.css: the indicator sits on the header's bottom border), now skipped.
+- Minified audit on the 9 screens: 0 errors, 0 section findings (43 warnings, all older: canvas overrides, chart shapes,
+  sparkline absolutes, docs "Yes").
+- Met while taking the after shots: C6's Checkbox/Text was fixed at 141, so "Matches my ID" wrapped onto two lines in
+  some renders. Its Container, Content and Label now hug (143 wide, one line), checked on a fresh screenshot.
 
 ## Calendar in code + Studio (session "Calendar", tier L; user: "Đã duyệt, làm Calendar trước")
 
@@ -430,6 +453,26 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+- Gate (run at once on the user's word, isolated, `ZEN_QA_SHARDS=4 --pages=app-shell --files=<4 tsx>`): PASS, static ✓,
+  audit 1512/390/320 + smoke/quality/density 0 errors (33 baseline), dark 0 (9 baseline), behaviour 0; B3, B5, C5, D5
+  shots match Figma (B3's ChartCard now has #189's metric under the Segmented). PR #192.
+
+
+## A Grid in a Grid cell stretches in Figma (Session C) — tier S, branch `zen/fix/figma-grid-in-grid-20261021`
+The user picked BACKLOG P3 "Export › Figma: a Grid inside a Grid cell does not stretch to its row" (Dashboard: the
+second metric pair at 168 where CSS gives all four cards 248). Measured in Figma with use_figma on the QA page (every
+test node removed in the same call), with raw frames and then real Card instances:
+- the push hugged a frame cell, so the inner Grid kept its own height and its cards theirs (63 / 198 reproduced);
+- a Grid with Flex rows keeps whatever height it has, Hug or not (100, 400, 10 as left); with Hug rows it hugs;
+- what works: the inner Grid measured with Hug rows, given that minimum and Fill, then its Flex rows back: four
+  cards at the row's tallest (138), stable when settled again.
+Changes: `figma-push.mjs` gives a Grid in a stretching grid cell `fillH` and Flex rows (another frame cell still hugs);
+the Zen plugin's `settleGridRows` settles such a Grid as it settles a card, with Hug rows while measuring (plugin
+7a996a8 on studio-import, its test, full `npm test`; `dist/` rebuilt, the old one in
+`backups/dist-before-grid-in-grid-20261021.tgz`). The direct paste cannot measure, and a pasted Grid with Flex rows
+would stay at its estimated 100: `figma-native` keeps it hugging with Hug rows, as before (selftest). Pull reads no
+cell height or row sizes, so the page round-trips unchanged. Selftests: push 343, native 131, pull 114.
+
 
 ## Figma's Scale tool K (Session C) — tier M, branch `zen/feat/studio-scale-tool-20261021`
 The user picked it (2026-10-21) from the four Figma keys still "not yet" (K, S, C, ⌥⌘A), and chose "Giữ nguyên

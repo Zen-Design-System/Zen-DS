@@ -380,7 +380,9 @@ function DocsApp() {
         <Stack gap="xl">
           <Breadcrumbs items={[{ id: "docs", label: "Docs" }, { id: "getting-started", label: "Getting started" }, { id: "installation", label: "Installation" }]}
             onNavigate={(item) => open(item.id === "docs" ? "The docs home" : "Getting started")} />
-          <Stack as="article" gap="lg">
+          {/* The article's sections (the intro, then one per step) are Spacing/Gap/XLarge apart; a step keeps its title,
+              copy, code and note together (Figma B5, usage rules §13). */}
+          <Stack as="article" gap="xl">
             <Stack gap="sm">
               <Heading level={1} textStyle="Display/3">Install Zen in a React app</Heading>
               <Text textStyle="Body/Extra/Regular" tone="base">Zen ships as one package with its tokens, fonts and icons. Five minutes from now your app renders Zen components in light and dark, in English and Vietnamese.</Text>
@@ -393,12 +395,12 @@ function DocsApp() {
             <DocSection id={`${base}-add`} title="1. Add the package">
               <Text tone="base">Install the library and its peer dependency. The package includes the CSS tokens, so there is nothing else to copy.</Text>
               <CodeBlock lines={["npm install @zen-ds/react react@19"]} />
+              {noteOpen ? (
+                <InlineMessage theme="info" title="Zen needs React 19" onClose={() => { closedOnce.current = true; setNoteOpen(false); }}>Components take ref as a prop, so React 18 apps upgrade first.</InlineMessage>
+              ) : (
+                <Box><Button ref={reopenRef} level="tertiary" size="sm" startIcon="icon-info-circle-line" onClick={() => setNoteOpen(true)}>Show the React 19 note</Button></Box>
+              )}
             </DocSection>
-            {noteOpen ? (
-              <InlineMessage theme="info" title="Zen needs React 19" onClose={() => { closedOnce.current = true; setNoteOpen(false); }}>Components take ref as a prop, so React 18 apps upgrade first.</InlineMessage>
-            ) : (
-              <Box><Button ref={reopenRef} level="tertiary" size="sm" startIcon="icon-info-circle-line" onClick={() => setNoteOpen(true)}>Show the React 19 note</Button></Box>
-            )}
             <DocSection id={`${base}-wrap`} title="2. Wrap your app in ZenProvider">
               <Text tone="base">ZenProvider sets the token modes (light or dark, density, locale) and the portal for overlays. Put it once, at the root.</Text>
             </DocSection>
@@ -673,15 +675,23 @@ function DocsActions() {
     </AppShellPane>
   }
 >
-  <Breadcrumbs items={[{ id: "docs", label: "Docs" }, { id: "getting-started", label: "Getting started" }, { id: "installation", label: "Installation" }]} onNavigate={navigate} />
-  <Stack as="article" gap="lg">
-    <Heading level={1} textStyle="Display/3">Install Zen in a React app</Heading>
-    <Text textStyle="Body/Extra/Regular" tone="base">Zen ships as one package with its tokens, fonts and icons. …</Text>
-    <Divider />
-    <Heading level={2} textStyle="Heading/3">1. Add the package</Heading>
-    <Box surface="pale" radius="lg" paddingX="lg" paddingY="md"><Text as="code" textStyle="Body/Code/Regular">npm install @zen-ds/react react@19</Text></Box>
-    <InlineMessage theme="info" title="Zen needs React 19" onClose={closeNote}>Components take ref as a prop, so React 18 apps upgrade first.</InlineMessage>
-    …
+  <Stack gap="xl">
+    <Breadcrumbs items={[{ id: "docs", label: "Docs" }, { id: "getting-started", label: "Getting started" }, { id: "installation", label: "Installation" }]} onNavigate={navigate} />
+    {/* Sections Spacing/Gap/XLarge apart: the intro, then one per step with its title, copy, code and note. */}
+    <Stack as="article" gap="xl">
+      <Stack gap="sm">
+        <Heading level={1} textStyle="Display/3">Install Zen in a React app</Heading>
+        <Text textStyle="Body/Extra/Regular" tone="base">Zen ships as one package with its tokens, fonts and icons. …</Text>
+      </Stack>
+      <Divider />
+      <Stack as="section" gap="sm" aria-labelledby="add">
+        <Heading level={2} id="add" textStyle="Heading/3">1. Add the package</Heading>
+        <Text tone="base">Install the library and its peer dependency. …</Text>
+        <Box surface="pale" radius="lg" paddingX="lg" paddingY="md"><Text as="code" textStyle="Body/Code/Regular">npm install @zen-ds/react react@19</Text></Box>
+        <InlineMessage theme="info" title="Zen needs React 19" onClose={closeNote}>Components take ref as a prop, so React 18 apps upgrade first.</InlineMessage>
+      </Stack>
+      …
+    </Stack>
   </Stack>
 </AppShell>`,
   },

@@ -40,6 +40,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (usage rules §13, user rule 2026-10-21). Figma audit `spacing/section-gap` now reads the AppShell Content slot and
   desktop, and `section/title-apart` warns on a title alone. AppShell C1, C2, C7 group their widgets into one section
   above the closing list, in code and in Figma (◇ Master-Layout · Example, also D3, D4 opened).
+- Nine more AppShell screens follow the section rules, in Figma (◇ Master-Layout · Example) and in code: B3's two
+  widget rows are one grid (cards 16 apart), B5's docs steps are sections 32 apart with the React 19 note inside step 1,
+  C5's Segmented sits with the groups it switches, D5's closing quiz list is open (title row over a List); C4, C6, D2,
+  E4, E7 keep their rhythm as one section each. The Figma audit no longer reads a heading over its own paragraph as a
+  lone title, a floating bar's own scrim as a painted gradient, or a Large Indicator Tab-Bar's even bleed out of a
+  header row as an overflow.
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
@@ -212,6 +218,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   1.5x, 200%) with an anchor point, or drag a corner: the layer, or a Screen, and everything in it scale by that
   factor, its ratio kept, in one ⌘Z. What is written in px scales (sizes, positions in free frames, strokes); Zen
   steps stay (gap, padding, radius, text styles, component sizes), and the status line names them.
+- Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
+  tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
   (⌘D on a Section copied only the Section before, under a Screen's id).
 - The direct paste brings a frame's whole look: its stroke inside at its weight (one side, or Zen's dash), each corner
