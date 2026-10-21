@@ -12,7 +12,7 @@
       "props": [
         {
           "name": "entries",
-          "type": "unknown",
+          "type": "TimelineEntryData[]",
           "required": true,
           "default": null,
           "description": "The entries (any order): shown newest first, grouped by day.",
@@ -125,10 +125,10 @@
         },
         {
           "name": "marker",
-          "type": "Pick<TimelineMarkerProps, \"type\" | \"tone\" | \"icon\" | \"avatarName\" | \"avatarSrc\" | \"avatarTheme\">",
+          "type": "TimelineMarkerData",
           "required": false,
           "default": null,
-          "description": "The marker (Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small).",
+          "description": "The marker (Kind = Figma Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small).",
           "deprecated": null
         },
         {
@@ -158,7 +158,7 @@
       "props": [
         {
           "name": "milestones",
-          "type": "unknown",
+          "type": "TimelineMilestoneData[]",
           "required": true,
           "default": null,
           "description": "The milestones, in date order.",
@@ -207,7 +207,7 @@
       "props": [
         {
           "name": "groups",
-          "type": "unknown",
+          "type": "TimelineGroupData[]",
           "required": true,
           "default": null,
           "description": "The plan: groups of tasks. A group's summary bar spans its tasks.",
@@ -247,7 +247,7 @@
         },
         {
           "name": "defaultCollapsed",
-          "type": "unknown",
+          "type": "string[]",
           "required": false,
           "default": "[]",
           "description": "Groups collapsed at first (by id).",
@@ -544,6 +544,10 @@
     "AvatarTheme": "type AvatarTheme = \"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
     "CalendarColor": "type CalendarColor = \"brand\" | \"blue\" | \"violet\" | \"teal\" | \"green\" | \"orange\" | \"pink\"",
     "CalendarDateInput": "type CalendarDateInput = Date | string",
+    "TimelineEntryData": "interface TimelineEntryData { id: string; at: CalendarDateInput; actor?: string; title: string; description?: string; attachment?: ReactNode; marker?: TimelineMarkerData; }",
+    "TimelineGroupData": "interface TimelineGroupData { id: string; name: string; tasks: TimelineTaskData[]; }",
+    "TimelineMarkerData": "interface TimelineMarkerData extends Pick<TimelineMarkerProps, \"tone\" | \"icon\" | \"avatarName\" | \"avatarSrc\" | \"avatarTheme\"> { kind?: TimelineMarkerProps[\"type\"]; }",
+    "TimelineMilestoneData": "interface TimelineMilestoneData { id: string; date: CalendarDateInput; title: string; description?: string; }",
     "TimelineTaskData": "interface TimelineTaskData { id: string; name: string; start: CalendarDateInput; end?: CalendarDateInput; kind?: \"task\" | \"milestone\"; color?: CalendarColor; assignee?: { src?: string; alt?: string }; }"
   }
 }

@@ -922,7 +922,7 @@ export const PALETTE: readonly PaletteItem[] = [
   // ❖ Timeline (16121:9): the same demo day, ISO dates.
   {
     id: "timeline-activity", label: "Activity feed", group: "Data display", caption: "Who did what, by day", root: "TimelineActivity", components: ["TimelineActivity"], interactive: false, input: false,
-    build: () => `<TimelineActivity today="2026-09-30" entries={[{ id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { type: "avatar", avatarName: "Maya Chen", tone: "positive" } }, { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday?", marker: { type: "icon", tone: "accent" } }, { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", marker: { type: "icon", tone: "neutral" } }]} />`,
+    build: () => `<TimelineActivity today="2026-09-30" entries={[{ id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { kind: "avatar", avatarName: "Maya Chen", tone: "positive" } }, { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday?", marker: { kind: "icon", tone: "accent" } }, { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", marker: { kind: "icon", tone: "neutral" } }]} />`,
   },
   {
     id: "timeline-milestones", label: "Milestones", group: "Data display", caption: "Project phases", root: "TimelineMilestones", components: ["TimelineMilestones"], interactive: false, input: false,

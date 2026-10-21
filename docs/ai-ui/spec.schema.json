@@ -39337,7 +39337,12 @@
             "properties": {
               "entries": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/TimelineEntryData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -39458,7 +39463,12 @@
             "properties": {
               "groups": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/TimelineGroupData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -39516,7 +39526,12 @@
               },
               "defaultCollapsed": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -40111,12 +40126,14 @@
               },
               "marker": {
                 "anyOf": [
-                  {},
+                  {
+                    "$ref": "#/$defs/TimelineMarkerData"
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The marker (Type, Tone, icon, avatar)."
+                "description": "The marker (Kind = Figma Type, Tone, icon, avatar)."
               },
               "aria-label": {
                 "anyOf": [
@@ -40535,7 +40552,12 @@
             "properties": {
               "milestones": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/TimelineMilestoneData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -45900,6 +45922,164 @@
       },
       "required": [
         "id"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineEntryData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "at": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "attachment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/node"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/child"
+              }
+            }
+          ]
+        },
+        "marker": {
+          "$ref": "#/$defs/TimelineMarkerData"
+        }
+      },
+      "required": [
+        "id",
+        "at",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineGroupData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineTaskData"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "tasks"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineMarkerData": {
+      "type": "object",
+      "properties": {
+        "kind": {}
+      },
+      "required": [],
+      "additionalProperties": true
+    },
+    "TimelineMilestoneData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineTaskData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "kind": {
+          "enum": [
+            "task",
+            "milestone"
+          ]
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "assignee": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "alt": {
+              "type": "string"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "start"
       ],
       "additionalProperties": false
     },

@@ -22,7 +22,8 @@ export const STYLE_ON_ROOT = new Set([
   "ScheduleHourLabel", "ScheduleItinerary", "ScheduleItineraryItem", "ScheduleResource", "ScheduleResourceGrid",
   "ScheduleSlotPicker", "Search", "SegmentedItem", "SelectField",
   "SkeletonHeading", "SkeletonShape", "SkeletonText", "Stepper", "TabItem", "Table", "Tag", "TextAreaField",
-  "ToggleListItem", "TooltipSurface",
+  "TimelineActivity", "TimelineGantt", "TimelineGanttBar", "TimelineGanttLabel", "TimelineItem", "TimelineMarker",
+  "TimelineMilestone", "TimelineMilestones", "ToggleListItem", "TooltipSurface",
 ]);
 
 /** Components the conformance test sees forwarding `style` that are no instance: their own look, or not a layer. */

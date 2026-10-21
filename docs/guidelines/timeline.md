@@ -21,7 +21,7 @@ Show what happened and what is planned: an activity history (TimelineActivity of
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Size | `TimelineItem size · TimelineActivity size` | md · sm |
-| Type / Tone | `marker.type · marker.tone` | dot · icon · avatar; neutral · accent · positive · warning · negative |
+| Kind / Tone | `marker.kind · marker.tone` | dot · icon · avatar; neutral · accent · positive · warning · negative |
 | Status | `(from today) · TimelineMilestone status` | done · current · upcoming |
 | Orientation | `TimelineMilestone orientation (device)` | horizontal · vertical |
 | Kind | `TimelineGanttBar kind · tasks[].kind` | task · summary · milestone |
@@ -38,7 +38,7 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `entries` (required) | _HTML attribute_ | — | The entries (any order): shown newest first, grouped by day. |
+| `entries` (required) | `TimelineEntryData[]` | — | The entries (any order): shown newest first, grouped by day. |
 | `today` | `Date \| string` | — | The day treated as today ("Today", "Yesterday" kickers). Default: the device clock. |
 | `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Item size: `md` (default) or `sm` (a compact log). |
 | `device` | `"desktop" \| "mobile"` | — | Figma Device: `desktop` (640) or `mobile` (358); the items are the same. Default: from the breakpoint. |
@@ -59,7 +59,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title">`.
 | `attachment` | `ReactNode` | — | Figma Attachment + Attachment-Slot: a comment, a file, a change. A string draws the comment box (Surface/Alt, Padding/Small, Corner-Radius/Base); pass a node for your own. |
 | `connector` | `boolean` | `true` | Figma Connector: the rail down to the next item (off on a group's last item). Default true. |
 | `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Figma Size: `md` (24px marker, Large after each item, default) or `sm` (Small after; a Dot marker suits it). |
-| `marker` | `Pick<TimelineMarkerProps, "type" \| "tone" \| "icon" \| "avatarName" \| "avatarSrc" \| "avatarTheme">` | — | The marker (Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small). |
+| `marker` | `TimelineMarkerData` | — | The marker (Kind = Figma Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small). |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of the marker (`{ "Marker": { tone: "positive" } }`). Written by Zen Studio. |
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
@@ -70,7 +70,7 @@ Also accepts `HTMLAttributes<HTMLOListElement>`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `milestones` (required) | _HTML attribute_ | — | The milestones, in date order. |
+| `milestones` (required) | `TimelineMilestoneData[]` | — | The milestones, in date order. |
 | `today` | `Date \| string` | — | The day treated as today: milestones before it are Done, the first on or after it is Current, the rest Upcoming. Default: the device clock. |
 | `currentId` | `string` | — | The Current milestone by id, when it is not the date's (a late phase). |
 | `device` | `"desktop" \| "mobile"` | — | Figma Device: `desktop` (a row; items share the width) or `mobile` (a column). Default: from the breakpoint. |
@@ -83,12 +83,12 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `groups` (required) | _HTML attribute_ | — | The plan: groups of tasks. A group's summary bar spans its tasks. |
+| `groups` (required) | `TimelineGroupData[]` | — | The plan: groups of tasks. A group's summary bar spans its tasks. |
 | `start` | `Date \| string` | — | First day of the scale (rounded to its Monday). Default: the Monday of the earliest task. |
 | `weeks` | `number` | `9` | How many weeks the scale shows (default 9). |
 | `today` | `Date \| string` | — | The day treated as today: the vertical now line. Default: the device clock. |
 | `onTaskClick` | `(task: TimelineTaskData, target: HTMLElement) => void` | — | Pressing a task or milestone bar: open it, anchored to `target`. Without it the bars are static. |
-| `defaultCollapsed` | _HTML attribute_ | `[]` | Groups collapsed at first (by id). |
+| `defaultCollapsed` | `string[]` | `[]` | Groups collapsed at first (by id). |
 | `device` | `"desktop" \| "mobile"` | — | Figma Device: `desktop` (240px task column, the whole scale) or `mobile` (128px column, three weeks visible; the track scrolls and opens at today, else the plan's start). Default: from the breakpoint. |
 | `aria-label` | `string` | — | Names the plan (default the locale's "Tasks"). |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of the labels and bars (`{ "Bar[ui]": { color: "teal" } }`). Written by Zen Studio. |
@@ -160,6 +160,10 @@ Object shapes the props above refer to.
 type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | "green" | "indigo" | "neutral" | "orange" | "pink" | "plum" | "purple" | "red" | "teal" | "violet" | "yellow" | "sky" | "mint" | "bronze" | "golden"
 type CalendarColor = "brand" | "blue" | "violet" | "teal" | "green" | "orange" | "pink"
 type CalendarDateInput = Date | string
+interface TimelineEntryData { id: string; at: CalendarDateInput; actor?: string; title: string; description?: string; attachment?: ReactNode; marker?: TimelineMarkerData; }
+interface TimelineGroupData { id: string; name: string; tasks: TimelineTaskData[]; }
+interface TimelineMarkerData extends Pick<TimelineMarkerProps, "tone" | "icon" | "avatarName" | "avatarSrc" | "avatarTheme"> { kind?: TimelineMarkerProps["type"]; }
+interface TimelineMilestoneData { id: string; date: CalendarDateInput; title: string; description?: string; }
 interface TimelineTaskData { id: string; name: string; start: CalendarDateInput; end?: CalendarDateInput; kind?: "task" | "milestone"; color?: CalendarColor; assignee?: { src?: string; alt?: string }; }
 ```
 

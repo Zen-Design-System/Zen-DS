@@ -66,6 +66,15 @@ export function TimelineMarker({ type = "dot", tone = "neutral", icon, avatarNam
 
 const itemSizes = ["medium", "small"] as const;
 
+/**
+ * A marker as data (TimelineItem `marker`, TimelineActivity entries): `kind` is the marker's Figma Type. A data object
+ * says `kind`, not `type`: an object with a string `type` reads as a component node in an AI UI spec.
+ */
+export interface TimelineMarkerData extends Pick<TimelineMarkerProps, "tone" | "icon" | "avatarName" | "avatarSrc" | "avatarTheme"> {
+  /** Figma Type: `dot`, `icon` or `avatar`. */
+  kind?: TimelineMarkerProps["type"];
+}
+
 export interface TimelineItemProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   /** The actor, in Body/Small/Bold ("Maya Chen"). */
   actor?: ReactNode;
@@ -82,8 +91,8 @@ export interface TimelineItemProps extends Omit<HTMLAttributes<HTMLDivElement>, 
   connector?: boolean;
   /** Figma Size: `md` (24px marker, Large after each item, default) or `sm` (Small after; a Dot marker suits it). */
   size?: "md" | "sm" | "medium" | "small";
-  /** The marker (Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small). */
-  marker?: Pick<TimelineMarkerProps, "type" | "tone" | "icon" | "avatarName" | "avatarSrc" | "avatarTheme">;
+  /** The marker (Kind = Figma Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small). */
+  marker?: TimelineMarkerData;
   /** Figma instance overrides of the marker (`{ "Marker": { tone: "positive" } }`). Written by Zen Studio. */
   overrides?: NestedOverrides;
   /** Ref to the root `<div>`. */
@@ -100,11 +109,11 @@ export interface TimelineItemProps extends Omit<HTMLAttributes<HTMLDivElement>, 
 export function TimelineItem({ actor, title, time, description, attachment, connector = true, size: sizeProp = "md", marker, overrides, className, ref, ...rest }: TimelineItemProps) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, itemSizes);
-  const markerProps = marker ?? (size === "small" ? { type: "dot" as const, tone: "neutral" as const } : { type: "icon" as const, tone: "accent" as const });
+  const { kind, ...look }: TimelineMarkerData = marker ?? (size === "small" ? { kind: "dot", tone: "neutral" } : { kind: "icon", tone: "accent" });
   return (
     <div {...rest} ref={ref} className={join("zen-timeline-item", className)} data-size={size}>
       <span className="zen-timeline-item__rail">
-        {nest("Marker", <TimelineMarker {...markerProps} />)}
+        {nest("Marker", <TimelineMarker type={kind} {...look} />)}
         {connector ? <b className="zen-timeline-item__connector" aria-hidden="true" /> : null}
       </span>
       <span className="zen-timeline-item__body">

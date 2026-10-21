@@ -1612,6 +1612,7 @@
       ],
       "props": {
         "TimelineActivity": [
+          "entries: TimelineEntryData[]",
           "today?: Date|string",
           "size?: md|sm|medium|small = md",
           "device?: desktop|mobile",
@@ -1626,21 +1627,24 @@
           "attachment?: ReactNode",
           "connector?: boolean = true",
           "size?: md|sm|medium|small = md",
-          "marker?: Pick<TimelineMarkerProps, type|tone|icon|avatarName|avatarSrc|avatarTheme>",
+          "marker?: TimelineMarkerData",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "ref?: Ref<HTMLDivElement>"
         ],
         "TimelineMilestones": [
+          "milestones: TimelineMilestoneData[]",
           "today?: Date|string",
           "currentId?: string",
           "device?: desktop|mobile",
           "ref?: Ref<HTMLOListElement>"
         ],
         "TimelineGantt": [
+          "groups: TimelineGroupData[]",
           "start?: Date|string",
           "weeks?: number = 9",
           "today?: Date|string",
           "onTaskClick?: (task: TimelineTaskData, target: HTMLElement) => void",
+          "defaultCollapsed?: string[] = []",
           "device?: desktop|mobile",
           "aria-label?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",

@@ -5,7 +5,7 @@ import { useMergedRefs } from "../_shared/merge-refs";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
-import { TimelineGanttBar, TimelineGanttLabel, TimelineItem, TimelineMilestone, type TimelineMarkerProps } from "./Timeline";
+import { TimelineGanttBar, TimelineGanttLabel, TimelineItem, TimelineMilestone, type TimelineMarkerData } from "./Timeline";
 import "./timeline.css";
 
 const DAY = 86_400_000;
@@ -26,12 +26,12 @@ export interface TimelineEntryData {
   /** A comment (text) or your own attachment node. */
   attachment?: ReactNode;
   /** The marker: Avatar when a person acted, Icon when the system did, Dot in compact logs; Tone is status. */
-  marker?: Pick<TimelineMarkerProps, "type" | "tone" | "icon" | "avatarName" | "avatarSrc" | "avatarTheme">;
+  marker?: TimelineMarkerData;
 }
 
 export interface TimelineActivityProps extends HTMLAttributes<HTMLDivElement> {
   /** The entries (any order): shown newest first, grouped by day. */
-  entries: readonly TimelineEntryData[];
+  entries: TimelineEntryData[];
   /** The day treated as today ("Today", "Yesterday" kickers). Default: the device clock. */
   today?: CalendarDateInput;
   /** Item size: `md` (default) or `sm` (a compact log). */
@@ -97,7 +97,7 @@ export interface TimelineMilestoneData {
 
 export interface TimelineMilestonesProps extends HTMLAttributes<HTMLOListElement> {
   /** The milestones, in date order. */
-  milestones: readonly TimelineMilestoneData[];
+  milestones: TimelineMilestoneData[];
   /** The day treated as today: milestones before it are Done, the first on or after it is Current, the rest Upcoming.
    * Default: the device clock. */
   today?: CalendarDateInput;
@@ -157,12 +157,12 @@ export interface TimelineTaskData {
 export interface TimelineGroupData {
   id: string;
   name: string;
-  tasks: readonly TimelineTaskData[];
+  tasks: TimelineTaskData[];
 }
 
 export interface TimelineGanttProps extends HTMLAttributes<HTMLDivElement> {
   /** The plan: groups of tasks. A group's summary bar spans its tasks. */
-  groups: readonly TimelineGroupData[];
+  groups: TimelineGroupData[];
   /** First day of the scale (rounded to its Monday). Default: the Monday of the earliest task. */
   start?: CalendarDateInput;
   /** How many weeks the scale shows (default 9). */
@@ -172,7 +172,7 @@ export interface TimelineGanttProps extends HTMLAttributes<HTMLDivElement> {
   /** Pressing a task or milestone bar: open it, anchored to `target`. Without it the bars are static. */
   onTaskClick?: (task: TimelineTaskData, target: HTMLElement) => void;
   /** Groups collapsed at first (by id). */
-  defaultCollapsed?: readonly string[];
+  defaultCollapsed?: string[];
   /** Figma Device: `desktop` (240px task column, the whole scale) or `mobile` (128px column, three weeks visible; the
    * track scrolls and opens at today, else the plan's start). Default: from the breakpoint. */
   device?: CalendarDevice;

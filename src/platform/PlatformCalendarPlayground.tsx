@@ -144,10 +144,10 @@ ${code}`} />
 /* The Timeline page playground: an Activity feed, the Milestones or the Gantt, on desktop or mobile. */
 
 const ENTRIES = [
-  { id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { type: "avatar" as const, avatarName: "Maya Chen", tone: "positive" as const } },
-  { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday?", marker: { type: "icon" as const, tone: "accent" as const } },
-  { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", description: "Shared with 12 people", marker: { type: "icon" as const, tone: "neutral" as const } },
-  { id: "rejected", at: "2026-09-29T11:00", actor: "Finance", title: "rejected the invoice draft", marker: { type: "icon" as const, tone: "negative" as const } },
+  { id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { kind: "avatar" as const, avatarName: "Maya Chen", tone: "positive" as const } },
+  { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday?", marker: { kind: "icon" as const, tone: "accent" as const } },
+  { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", description: "Shared with 12 people", marker: { kind: "icon" as const, tone: "neutral" as const } },
+  { id: "rejected", at: "2026-09-29T11:00", actor: "Finance", title: "rejected the invoice draft", marker: { kind: "icon" as const, tone: "negative" as const } },
 ];
 const MILESTONES = [
   { id: "kickoff", date: "2026-08-03", title: "Kickoff" },

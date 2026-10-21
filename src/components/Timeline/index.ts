@@ -7,6 +7,7 @@ export {
   type TimelineGanttBarProps,
   type TimelineGanttLabelProps,
   type TimelineItemProps,
+  type TimelineMarkerData,
   type TimelineMarkerProps,
   type TimelineMilestoneProps,
   type TimelineTone,

@@ -36,7 +36,7 @@ export const fixtures: Record<string, Fixture> = {
   SidePanel: { props: { open: true, title: "Order details", children: "Panel body" } },
   BottomSheet: { props: { open: true, title: "Share", children: "Sheet body" } },
   // Calendar views with events, today fixed (Wed 30 Sep 2026) so the Today date and the now line render.
-  TimelineActivity: { props: { today: "2026-09-30", entries: [{ id: "a", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", marker: { type: "avatar", avatarName: "Maya Chen", tone: "positive" } }, { id: "b", at: "2026-09-29T09:00", actor: "Zen Studio", title: "shared the file", marker: { type: "icon", tone: "neutral" } }] } },
+  TimelineActivity: { props: { today: "2026-09-30", entries: [{ id: "a", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", marker: { kind: "avatar", avatarName: "Maya Chen", tone: "positive" } }, { id: "b", at: "2026-09-29T09:00", actor: "Zen Studio", title: "shared the file", marker: { kind: "icon", tone: "neutral" } }] } },
   TimelineMilestones: { props: { today: "2026-09-30", milestones: [{ id: "a", date: "2026-08-03", title: "Kickoff" }, { id: "b", date: "2026-10-23", title: "Beta launch", description: "Invite 40 clients" }] } },
   TimelineGantt: { props: { "aria-label": "Lotus banking redesign", start: "2026-08-31", today: "2026-09-30", groups: [{ id: "g", name: "Design", tasks: [{ id: "t", name: "Wireframes", start: "2026-09-14", end: "2026-09-26", assignee: { alt: "Alex Duong" } }, { id: "m", name: "Sign-off", start: "2026-10-09", kind: "milestone" }] }], onTaskClick: noop } },
   TimelineItem: { props: { actor: "Maya Chen", title: "approved your leave request", time: "10:42" } },

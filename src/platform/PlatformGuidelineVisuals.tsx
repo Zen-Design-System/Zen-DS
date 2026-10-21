@@ -282,8 +282,8 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-field"><CalendarWeekStrip device="desktop" defaultValue={new Date(2026, 8, 30)} today={new Date(2026, 8, 30)} onValueChange={noop} aria-label="Due date" /></div>, caption: "A week strip is not a form's date input: use DateField or DatePicker." } },
   ],
   timeline: [
-    { do: { preview: <div className="pgv-wide"><TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" marker={{ type: "avatar", avatarName: "Maya Chen", tone: "positive" }} connector={false} /></div>, caption: "Tone is status: Positive for an approval, an Avatar because a person acted." },
-      dont: { preview: <div className="pgv-wide"><TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" marker={{ type: "icon", tone: "negative" }} connector={false} /></div>, caption: "A Negative flag on an approval reads as a failure." } },
+    { do: { preview: <div className="pgv-wide"><TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" marker={{ kind: "avatar", avatarName: "Maya Chen", tone: "positive" }} connector={false} /></div>, caption: "Tone is status: Positive for an approval, an Avatar because a person acted." },
+      dont: { preview: <div className="pgv-wide"><TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" marker={{ kind: "icon", tone: "negative" }} connector={false} /></div>, caption: "A Negative flag on an approval reads as a failure." } },
   ],
   schedule: [
     { do: { preview: <div className="pgv-field"><ScheduleSlotPicker device="mobile" today="2026-09-30" defaultValue="2026-09-30T10:00" onValueChange={noop} aria-label="Review times" slots={[{ id: "2026-09-30T09:00", start: "2026-09-30T09:00", disabled: true }, { id: "2026-09-30T10:00", start: "2026-09-30T10:00" }, { id: "2026-09-30T11:00", start: "2026-09-30T11:00" }]} /></div>, caption: "Taken times stay in place, struck through: the day keeps its rhythm." },

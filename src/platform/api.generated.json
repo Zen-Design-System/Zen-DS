@@ -6691,7 +6691,7 @@
       "props": [
         {
           "name": "entries",
-          "type": "unknown",
+          "type": "TimelineEntryData[]",
           "required": true,
           "default": null,
           "description": "The entries (any order): shown newest first, grouped by day.",
@@ -6801,10 +6801,10 @@
         },
         {
           "name": "marker",
-          "type": "Pick<TimelineMarkerProps, \"type\" | \"tone\" | \"icon\" | \"avatarName\" | \"avatarSrc\" | \"avatarTheme\">",
+          "type": "TimelineMarkerData",
           "required": false,
           "default": null,
-          "description": "The marker (Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small).",
+          "description": "The marker (Kind = Figma Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small).",
           "deprecated": null
         },
         {
@@ -6831,7 +6831,7 @@
       "props": [
         {
           "name": "milestones",
-          "type": "unknown",
+          "type": "TimelineMilestoneData[]",
           "required": true,
           "default": null,
           "description": "The milestones, in date order.",
@@ -6877,7 +6877,7 @@
       "props": [
         {
           "name": "groups",
-          "type": "unknown",
+          "type": "TimelineGroupData[]",
           "required": true,
           "default": null,
           "description": "The plan: groups of tasks. A group's summary bar spans its tasks.",
@@ -6917,7 +6917,7 @@
         },
         {
           "name": "defaultCollapsed",
-          "type": "unknown",
+          "type": "string[]",
           "required": false,
           "default": "[]",
           "description": "Groups collapsed at first (by id).",

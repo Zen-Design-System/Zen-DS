@@ -2363,8 +2363,8 @@
         "md · sm"
       ],
       [
-        "Type / Tone",
-        "marker.type · marker.tone",
+        "Kind / Tone",
+        "marker.kind · marker.tone",
         "dot · icon · avatar; neutral · accent · positive · warning · negative"
       ],
       [

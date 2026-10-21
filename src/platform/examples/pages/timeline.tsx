@@ -20,12 +20,12 @@ export const page: PlatformPage = "timeline";
 const TODAY = "2026-09-30";
 
 const entries: TimelineEntryData[] = [
-  { id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { type: "avatar", avatarName: "Maya Chen", tone: "positive" } },
-  { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday? The client asked for one more day.", marker: { type: "icon", tone: "accent" } },
-  { id: "moved", at: "2026-09-30T08:50", actor: "Alex Duong", title: "moved Public launch to Nov 16", description: "Moved the launch one week after the beta feedback.", marker: { type: "avatar", avatarName: "Alex Duong", avatarSrc: people.alex.photo } },
-  { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", description: "Shared with 12 people at Lotus Bank", marker: { type: "icon", tone: "neutral" } },
-  { id: "created", at: "2026-09-29T09:00", actor: "Bao Nguyen", title: "created the project", marker: { type: "avatar", avatarName: "Bao Nguyen" } },
-  { id: "rejected", at: "2026-09-25T14:10", actor: "Finance", title: "rejected the invoice draft", description: "Missing purchase order number", marker: { type: "icon", tone: "negative" } },
+  { id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { kind: "avatar", avatarName: "Maya Chen", tone: "positive" } },
+  { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday? The client asked for one more day.", marker: { kind: "icon", tone: "accent" } },
+  { id: "moved", at: "2026-09-30T08:50", actor: "Alex Duong", title: "moved Public launch to Nov 16", description: "Moved the launch one week after the beta feedback.", marker: { kind: "avatar", avatarName: "Alex Duong", avatarSrc: people.alex.photo } },
+  { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", description: "Shared with 12 people at Lotus Bank", marker: { kind: "icon", tone: "neutral" } },
+  { id: "created", at: "2026-09-29T09:00", actor: "Bao Nguyen", title: "created the project", marker: { kind: "avatar", avatarName: "Bao Nguyen" } },
+  { id: "rejected", at: "2026-09-25T14:10", actor: "Finance", title: "rejected the invoice draft", description: "Missing purchase order number", marker: { kind: "icon", tone: "negative" } },
 ];
 
 const milestones: TimelineMilestoneData[] = [
@@ -83,13 +83,13 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "Newest first, grouped by day: an Avatar when a person acted, an Icon when the system did; the tone carries the status (approved, rejected). Each day's last item has no connector.",
     render: () => <TimelineActivity entries={entries} today={TODAY} />,
     code: `<TimelineActivity entries={entries} />
-// entries: { id, at, actor, title, description?, attachment?, marker?: { type: "avatar" | "icon" | "dot", tone } }[]`,
+// entries: { id, at, actor, title, description?, attachment?, marker?: { kind: "avatar" | "icon" | "dot", tone } }[]`,
   },
   {
     title: "Compact log",
     description: "Size Small with Dot markers suits a dense audit log in a side panel; long details wrap.",
-    render: () => <Card theme="flat"><Stack gap="md"><Heading level={3} textStyle="Heading/Subheading">Audit log</Heading><TimelineActivity size="sm" entries={entries.map((entry) => ({ ...entry, attachment: undefined, marker: { type: "dot", tone: entry.marker?.tone ?? "neutral" } }))} today={TODAY} /></Stack></Card>,
-    code: `<TimelineActivity size="sm" entries={entries.map((entry) => ({ ...entry, marker: { type: "dot", tone: entry.marker?.tone } }))} />`,
+    render: () => <Card theme="flat"><Stack gap="md"><Heading level={3} textStyle="Heading/Subheading">Audit log</Heading><TimelineActivity size="sm" entries={entries.map((entry) => ({ ...entry, attachment: undefined, marker: { kind: "dot", tone: entry.marker?.tone ?? "neutral" } }))} today={TODAY} /></Stack></Card>,
+    code: `<TimelineActivity size="sm" entries={entries.map((entry) => ({ ...entry, marker: { kind: "dot", tone: entry.marker?.tone } }))} />`,
   },
   {
     title: "Project phases",
