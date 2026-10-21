@@ -7,6 +7,33 @@
 - PageHeader `description` Text tone base → light (DashboardHeader type="main" renders PageHeader, so its subheading
   follows). JSDoc cites the node; guidelines + api docs rebuilt.
 
+## Session B · AppShellHeader theme / density to and from Figma (tier M; user picked it from #184's BACKLOG P3)
+
+Branch zen/feat/appshell-header-figma-look-20261021. Spec card: docs/research/studio-appshell-header-figma-spec-2026-10-21.md.
+
+- Push: an AppShellHeader is Header/AppShell (16783:71068) with Theme × Density by the map (Border & Divider / Borderless at
+  Medium → Small, noted); leading · center · actions as Top-Elements' Leading/Center/Trailing frames (the centre's layers
+  fill its 400 as dashboard-header.css does), main in Main-Element, sections padded in Sections. In an AppShell the
+  master's Header/Dashboard is swapped to it (nested + slots `within` Header/AppShell); Dashboard rows and
+  TOP_BAR_PADDING are gone.
+- Found in the live test and fixed in the same change:
+  - Sections holds two sample rows and has no switch: a header with none sends it empty.
+  - Primitives/Dashboard/Header lost Child-Heading; Header-Text is a slot, so Child and SubHeading show by `edits`
+    (visible). The pull reads the shown texts. Contracts still list Child-Heading: BACKLOG P3.
+  - The master centres its row: a short page sat mid-height. Plugin `studio-import` bf300bc adds `edits.counter` (an
+    empty path is the instance); the push sends `{ layer: [], counter: "MIN" }` (instance-root alignment overrides are
+    allowed; min-size is not).
+  - Side-Bar/Master's Collapse Button (default on) drew a second toggle: the push sets it from onCollapsedChange or
+    collapse="sidebar" and drops the old IconButton in Header-Content; the pull reads collapse="sidebar" from it.
+  - A placed master reads as compositions: the pull takes a Header/AppShell composition frame too, so a real read comes
+    back as `<AppShell>` (it did not before). The reader also keeps a nested instance set to another variant (a first
+    crumb at Level Master), which Figma lists no override for.
+- Live (Zen file, QA page, frames removed): AppShell with a Border & Divider / Small header (three rounds until clean),
+  and a standalone Default / Medium header (Search 400, centre 400, a section): no notes. Read back →
+  fixtures/figma-appshell-header.json.
+- Checks: push selftest 368, pull 121, studio:selftest, tsc, usage, ai-ui, style, guidelines, figma-props --check; the
+  plugin's full npm test.
+
 ## Session B · Instance menu, instance Appearance, Frame / Group heading (user, 2026-10-21: three of A's re-measure gaps)
 
 A's re-measure on main e99c5408: §2 keys 65 ✅ · 7 🟡 · 4 ❌ (2026-10-18: 36 · 14 · 26); §6.3 14/14 in 44 steps against

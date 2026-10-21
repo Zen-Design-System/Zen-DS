@@ -100,6 +100,21 @@ const swappedIn = async (child, owner) => {
   const original = main ? main.findOne((n) => n.id === local) : null;
   return Boolean(original && original.type === "INSTANCE" && (await setOf(original))?.id !== set.id);
 };
+// A nested instance set to another variant of its set (a crumb's Item at Level Master where the primitive draws Sub):
+// Figma lists no componentProperties override for it either, so it too is told from its owner's main component.
+const ownLayers = new Map();
+const variantIn = async (child, owner) => {
+  if ((child.componentPropertyReferences || {}).mainComponent || !child.id.startsWith(owner.id + ";")) return false;
+  const local = child.id.slice(owner.id.length + 1);
+  if (local.includes(";")) return false;
+  const main = await owner.getMainComponentAsync();
+  if (!main) return false;
+  if (!ownLayers.has(main.id)) ownLayers.set(main.id, new Map(main.findAll((n) => n.type === "INSTANCE").map((n) => [n.id, n])));
+  const original = ownLayers.get(main.id).get(local);
+  if (!original) return false;
+  const [now, was] = [await child.getMainComponentAsync(), await original.getMainComponentAsync()];
+  return Boolean(now && was && now.id !== was.id && now.parent && now.parent.type === "COMPONENT_SET" && now.parent.id === (was.parent && was.parent.id));
+};
 const propsOf = async (instance) => {
   const out = {};
   for (const [key, prop] of Object.entries(instance.componentProperties || {})) {
@@ -223,7 +238,7 @@ const readInstance = async (instance) => {
       else if (child.type === "TEXT" && changed.has(child.id)) { out.texts = out.texts || []; out.texts.push({ name: child.name, characters: child.characters, path: trail.join("/") }); }
       const next = child.type === "INSTANCE" ? [...trail, layerKey(child.name)] : trail;
       const avatarNamed = child.type === "INSTANCE" && renamed.has(child.id) && (await setOf(child))?.name === "Avatar/Single";
-      if (child.type === "INSTANCE" && (changed.has(child.id) || avatarNamed || (await swappedIn(child, owner)))) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
+      if (child.type === "INSTANCE" && (changed.has(child.id) || avatarNamed || (await swappedIn(child, owner)) || (await variantIn(child, owner)))) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
       await walk(child, next, child.type === "INSTANCE" ? child : owner);
     }
   };
@@ -1133,13 +1148,16 @@ function dashboardHeaderParts(node, props, ctx) {
       const named = (name) => texts.find((text) => text.name === name)?.characters;
       const title = texts.find((text) => text.name !== "Child" && text.name !== "SubHeading")?.characters;
       if (title) props.title = literal(title.replace(/\u2028/g, " "));
-      if (node.props?.["Child-Heading"] === true && named("Child")) props.childTitle = literal(named("Child"));
-      if (node.props?.Subheading === true && named("SubHeading")) props.subheading = literal(named("SubHeading"));
+      // The read keeps the layers that show: Child and SubHeading show by their own eyes since Header-Text is a slot.
+      if (named("Child")) props.childTitle = literal(named("Child"));
+      if (named("SubHeading")) props.subheading = literal(named("SubHeading"));
     } else {
-      // No Header-Text read (the push's own JSON): the row's first text is the title, its `texts` the others.
+      // No Header-Text read (the push's own JSON): the row's first text is the title, its `texts` the others, shown by
+      // its edits (or by Child-Heading and Subheading, the switches before Header-Text became a slot).
+      const shows = (layer, toggle) => node.edits?.find((edit) => edit.layer?.at?.(-1) === layer)?.visible ?? node.props?.[toggle] === true;
       if (typeof node.text === "string" && node.text) props.title = literal(node.text);
-      if (node.props?.["Child-Heading"] === true && node.texts?.Child) props.childTitle = literal(node.texts.Child);
-      if (node.props?.Subheading === true && node.texts?.SubHeading) props.subheading = literal(node.texts.SubHeading);
+      if (shows("Child", "Child-Heading") && node.texts?.Child) props.childTitle = literal(node.texts.Child);
+      if (shows("SubHeading", "Subheading") && node.texts?.SubHeading) props.subheading = literal(node.texts.SubHeading);
     }
   }
   if (type === "control-bar") {
@@ -1325,6 +1343,61 @@ function oneOf(elements, { name, layout, source }, ctx) {
   if (id) element.id = id;
   return element;
 }
+/** Figma's Header/AppShell (16783:71068): AppShellHeader on its own and the AppShell's header (figma-push HEADER_APPSHELL). */
+const HEADER_APPSHELL = "Header/AppShell";
+/** A header's actions: an Avatar named after a person at the end is the account (AppShellAccount; the push names it so). */
+function headerActions(nodes, ctx) {
+  return nodes.map((child, index) => {
+    const element = convert(child, ctx);
+    const name = child.name ?? "";
+    if (element?.name === "Avatar" && index === nodes.length - 1 && name && !name.includes("/")) {
+      const fields = { name: literal(name) };
+      for (const prop of ["src", "theme"]) if (element.props[prop]) fields[prop] = element.props[prop];
+      return { ...element, name: "AppShellAccount", props: fields, children: [] };
+    }
+    return element;
+  }).filter(Boolean);
+}
+/**
+ * Figma's Header/AppShell as AppShellHeader (figma-push appShellHeaderParts, the other way): its Theme and Density by the
+ * map; Top-Elements' Leading-Slots, Center-Slots and Trailing-Slots its leading, center and actions while Top-Header
+ * shows; Main-Element its main while Main shows; Sections its rows (the push's padding frame around each one dropped).
+ * `collapse`: the Collapse Button's switch, which an AppShell reads as collapse="header" (on), else "sidebar" or "none" by the Side-Bar's own.
+ */
+/**
+ * Header/AppShell in either shape: the push's instance (its slots listed), or the read of a placed one, a composition
+ * frame whose slots sit in its layers (Sections › Main › Top-Header › Top-Elements, Main-Element, Sections).
+ */
+function appShellHeaderNode(node) {
+  if (node?.type === "INSTANCE" && node.set?.name === HEADER_APPSHELL) return node;
+  if (node?.type !== "FRAME" || node.composition !== HEADER_APPSHELL) return null;
+  const slots = [];
+  const walk = (layer) => { for (const child of layer.children ?? []) child.type === "SLOT" ? slots.push(child) : child.type !== "INSTANCE" && walk(child); };
+  walk(node);
+  return { type: "INSTANCE", id: node.id, name: node.name, set: { name: HEADER_APPSHELL }, props: node.compositionProps ?? {}, slots };
+}
+function appShellHeaderElement(node, ctx) {
+  const { mapping, notes } = ctx;
+  const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(node.set.name) : null;
+  const own = set ? instanceProps(node, set, mapping, notes, `"${node.name}" (${HEADER_APPSHELL})`) : {};
+  const props = Object.fromEntries(["theme", "density"].filter((name) => own[name]).map((name) => [name, own[name]]));
+  const slot = (name) => (node.slots ?? []).find((entry) => entry.name === name);
+  const elements = (nodes) => (nodes ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+  const place = (prop, element) => { if (element) props[prop] = { kind: "element", node: element }; };
+  const top = node.props?.["Top-Header"] === false ? null : slot("Top-Elements");
+  if (top) {
+    const frame = (name) => (top.children ?? []).find((child) => child.name === name && child.visible !== false);
+    const lead = frame("Leading-Slots"), centre = frame("Center-Slots"), trail = frame("Trailing-Slots");
+    place("leading", oneOf(elements(lead?.children), { name: "Leading-Slots", layout: lead?.layout, source: lead }, ctx));
+    place("center", centre ? oneOf(elements(centre.children), { name: "Center-Slots", layout: centre.layout, source: centre }, ctx) : null);
+    place("actions", trail ? oneOf(headerActions(trail.children ?? [], ctx), { name: "Trailing-Slots", layout: trail.layout, source: trail }, ctx) : null);
+  }
+  const main = node.props?.Main === false ? null : slot("Main-Element");
+  if (main) place("main", oneOf(elements(main.children), { name: "Main-Element", layout: main.layout, source: main }, ctx));
+  const rows = elements(slot("Sections")?.children).map(unpadded);
+  if (rows.length) place("sections", rows.length === 1 ? rows[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: rows });
+  return { element: { kind: "element", name: "AppShellHeader", props, children: [] }, collapse: node.props?.["Collapse Button"] !== false };
+}
 /** The one instance a wrapper holds (Figma's Floating-Actions › Floating-Item › Button/Icon-Main), else the layer. */
 const innermost = (node) => (node.type === "INSTANCE" || node.children?.length !== 1 ? node : innermost(node.children[0]));
 
@@ -1346,47 +1419,48 @@ function appShellElement(node, ctx) {
   const asideNode = layers[2] ? instanceIn(layers[2], "SidePanel", ctx) : null;
   if (!sidebarNode || column.type === "INSTANCE" || column.layout?.mode !== "VERTICAL" || (layers[2] && !asideNode)) return null;
   const [headerNode, ...rest] = column.children ?? [];
-  const rows = headerNode ? rowsIn(headerNode) : [];
-  if (!isNavigation(rows[0], ctx)) return null;
   const props = { sidebar: { kind: "element", node: convert(sidebarNode, ctx) } };
-  const headerProps = {};
-  const nav = rows[0];
-  const slotOf = (name) => (nav.slots ?? []).find((slot) => slot.name === name);
-  // Top bar: Leading-Slots without the toggle (AppShell draws it; a design without one says collapse="none").
-  const leadingSlot = slotOf("Leading-Slots");
-  const leading = (leadingSlot?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
-  if (leading[0]?.name === "IconButton" && TOGGLE_ICON.test(leading[0].props.icon?.value ?? "")) leading.shift();
-  else props.collapse = literal("none");
-  const header = oneOf(leading, { name: "Leading-Slots", layout: leadingSlot?.layout, source: leadingSlot }, ctx);
-  if (header) headerProps.leading = { kind: "element", node: unpadded(header) };
-  const centerSlot = nav.props?.["Nav-Center-Block"] === false ? null : slotOf("Center-Slots");
-  const center = centerSlot ? oneOf((centerSlot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), { name: "Center-Slots", layout: centerSlot.layout, source: centerSlot }, ctx) : null;
-  if (center) headerProps.center = { kind: "element", node: center };
-  const trailingSlot = slotOf("Trailing-Slots");
-  const trailingNodes = trailingSlot?.children ?? [];
-  const trailing = trailingNodes.map((child, index) => {
-    const element = convert(child, ctx);
-    // The account: an Avatar named after the person at the end of the actions (the push names it so).
-    const name = child.name ?? "";
-    if (element?.name === "Avatar" && index === trailingNodes.length - 1 && name && !name.includes("/")) {
-      const fields = { name: literal(name) };
-      for (const prop of ["src", "theme"]) if (element.props[prop]) fields[prop] = element.props[prop];
-      return { ...element, name: "AppShellAccount", props: fields, children: [] };
-    }
-    return element;
-  }).filter(Boolean);
-  const actions = oneOf(trailing, { name: "Trailing-Slots", layout: trailingSlot?.layout, source: trailingSlot }, ctx);
-  if (actions) headerProps.actions = { kind: "element", node: actions };
-  // Sections: Header/Dashboard's other rows, or the push's Sections frame.
-  const sectionNodes = rows.slice(1);
   let after = rest;
-  if (after[0]?.type === "FRAME" && after[0].name === "Sections") { sectionNodes.push(...(after[0].children ?? [])); after = after.slice(1); }
-  const rowElements = sectionNodes.map((row) => unpadded(convert(row, ctx))).filter(Boolean);
-  // The Main row: the first PageHeader; the rows after it are the section rows.
-  const sections = rowElements[0]?.name === "PageHeader" ? rowElements.slice(1) : rowElements;
-  if (rowElements[0]?.name === "PageHeader") headerProps.main = { kind: "element", node: rowElements[0] };
-  if (sections.length) headerProps.sections = { kind: "element", node: sections.length === 1 ? sections[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: sections } };
-  if (Object.keys(headerProps).length) props.header = { kind: "element", node: { kind: "element", name: "AppShellHeader", props: headerProps, children: [] } };
+  const appHeader = appShellHeaderNode(headerNode);
+  if (appHeader) {
+    // The header as Figma's Header/AppShell (pushed since 2026-10-21): its Collapse Button is the AppShell's toggle.
+    const header = appShellHeaderElement(appHeader, ctx);
+    if (Object.keys(header.element.props).length) props.header = { kind: "element", node: header.element };
+    // No toggle in the header: the Side-Bar's own Collapse Button is collapse="sidebar", neither is "none".
+    const sideBar = sidebarPattern(sidebarNode)?.inner ?? sidebarNode;
+    if (!header.collapse) props.collapse = literal(sideBar.props?.["Collapse Button"] === true ? "sidebar" : "none");
+  } else {
+    // The Dashboard header rows pushed before it: the navigation row first.
+    if (!isNavigation((headerNode ? rowsIn(headerNode) : [])[0], ctx)) return null;
+    const rows = headerNode ? rowsIn(headerNode) : [];
+    const headerProps = {};
+    const nav = rows[0];
+    const slotOf = (name) => (nav.slots ?? []).find((slot) => slot.name === name);
+    // Top bar: Leading-Slots without the toggle (AppShell draws it; a design without one says collapse="none").
+    const leadingSlot = slotOf("Leading-Slots");
+    const leading = (leadingSlot?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+    if (leading[0]?.name === "IconButton" && TOGGLE_ICON.test(leading[0].props.icon?.value ?? "")) leading.shift();
+    else props.collapse = literal("none");
+    const header = oneOf(leading, { name: "Leading-Slots", layout: leadingSlot?.layout, source: leadingSlot }, ctx);
+    if (header) headerProps.leading = { kind: "element", node: unpadded(header) };
+    const centerSlot = nav.props?.["Nav-Center-Block"] === false ? null : slotOf("Center-Slots");
+    const center = centerSlot ? oneOf((centerSlot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), { name: "Center-Slots", layout: centerSlot.layout, source: centerSlot }, ctx) : null;
+    if (center) headerProps.center = { kind: "element", node: center };
+    const trailingSlot = slotOf("Trailing-Slots");
+    // The account: an Avatar named after the person at the end of the actions (the push names it so).
+    const trailing = headerActions(trailingSlot?.children ?? [], ctx);
+    const actions = oneOf(trailing, { name: "Trailing-Slots", layout: trailingSlot?.layout, source: trailingSlot }, ctx);
+    if (actions) headerProps.actions = { kind: "element", node: actions };
+    // Sections: Header/Dashboard's other rows, or the push's Sections frame.
+    const sectionNodes = rows.slice(1);
+    if (after[0]?.type === "FRAME" && after[0].name === "Sections") { sectionNodes.push(...(after[0].children ?? [])); after = after.slice(1); }
+    const rowElements = sectionNodes.map((row) => unpadded(convert(row, ctx))).filter(Boolean);
+    // The Main row: the first PageHeader; the rows after it are the section rows.
+    const sections = rowElements[0]?.name === "PageHeader" ? rowElements.slice(1) : rowElements;
+    if (rowElements[0]?.name === "PageHeader") headerProps.main = { kind: "element", node: rowElements[0] };
+    if (sections.length) headerProps.sections = { kind: "element", node: sections.length === 1 ? sections[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: sections } };
+    if (Object.keys(headerProps).length) props.header = { kind: "element", node: { kind: "element", name: "AppShellHeader", props: headerProps, children: [] } };
+  }
   // The page: the next frame's layers (Body's padding kept in a Stack around them); pinned layers are the floating action.
   const pinned = [];
   let children = [];
@@ -1485,7 +1559,7 @@ function masterLayoutFrame(node) {
   const nested = node.nested ?? [];
   const slots = node.slots ?? [];
   const firstOf = (slot) => (Array.isArray(slot.within) ? slot.within[0] : slot.within);
-  const slotNamed = (name) => slots.find((slot) => slot.name === name && firstOf(slot) !== MASTER_SIDEBAR_PATTERN);
+  const slotNamed = (name) => slots.find((slot) => slot.name === name && firstOf(slot) !== MASTER_SIDEBAR_PATTERN && firstOf(slot) !== HEADER_APPSHELL);
   const partAt = (path, layers, fallbackSet) => partOf(node, path, layers, fallbackSet);
   const layers = [];
   if (props.Sidebar !== false) {
@@ -1499,11 +1573,17 @@ function masterLayoutFrame(node) {
   }
   // The rows as the read gives them: Dashboard header instances (their padding is the master's own).
   const rows = (slotNamed("Sections")?.children ?? []).map(({ padding, paddingVars, ...row }) => row);
+  // The header: the master's Header/Dashboard swapped to Header/AppShell (pushed since 2026-10-21), its slots at its own
+  // root again; else the Dashboard header rows pushed before it.
+  const swapped = nested.find((entry) => entry.path === "Header/Dashboard" && entry.set?.name === HEADER_APPSHELL);
+  const headerAt = () => (swapped
+    ? { type: "INSTANCE", name: HEADER_APPSHELL, set: swapped.set, props: swapped.props ?? {}, slots: slots.filter((slot) => firstOf(slot) === HEADER_APPSHELL).map(({ within, ...slot }) => ({ ...slot, ...(within.length > 1 ? { within: within.slice(1) } : {}) })) }
+    : { type: "FRAME", name: "Header/Dashboard", layout: { mode: "VERTICAL" }, children: rows });
   const floating = slotNamed("Floating-Item")?.children?.[0];
   layers.push({
     type: "FRAME", name: "Main-Container", layout: { mode: "VERTICAL" },
     children: [
-      { type: "FRAME", name: "Header/Dashboard", layout: { mode: "VERTICAL" }, children: rows },
+      headerAt(),
       { type: "FRAME", name: "Body", layout: { mode: "VERTICAL", padding: [0, 0, 0, 0] }, children: slotNamed("Content")?.children ?? [] },
       ...(floating ? [{ ...floating, absolute: { cx: "MAX", cy: "MAX" } }] : []),
     ],
@@ -1767,6 +1847,9 @@ function convertNode(node, ctx) {
   // Figma's ◇ Master-Layout written by the push: AppShell (the read of a placed one comes as frames, below).
   const master = masterLayoutFrame(node);
   if (master) { const shell = appShellElement(master, ctx); if (shell) return shell; }
+  // Figma's Header/AppShell on its own: AppShellHeader with its slots.
+  const appHeader = appShellHeaderNode(node);
+  if (appHeader) return appShellHeaderElement(appHeader, ctx).element;
   // Figma's Patterns/Sidebar: the Sidebar it holds, with the pattern's theme, density and shadow.
   const pattern = sidebarPattern(node);
   if (pattern && codeOf(pattern.inner, ctx) === "Sidebar") {

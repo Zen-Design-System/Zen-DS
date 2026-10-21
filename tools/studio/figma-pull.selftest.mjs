@@ -116,6 +116,23 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("live: the compiled page has no usage-harness errors", checkSource(compiled, "Overviews.tsx").filter((finding) => finding.severity === "error").map((finding) => `${finding.rule}: ${finding.message}`), []);
 }
 
+// A pushed AppShell read back from the Zen file (2026-10-21, QA frame 16981:293, fixtures/figma-appshell-header.json): the
+// placed master reads as compositions, its Header/AppShell (swapped in for Header/Dashboard) a composition frame whose
+// slots sit in its layers; a crumb's Item set to Level Master, which Figma lists no override for, read from the main.
+{
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-appshell-header.json", import.meta.url), "utf8"));
+  const pulled = pageFromFigma(live, { mapping });
+  const page = unnamed(pulled.text);
+  check("live AppShell header: the page is valid dialect", validateDialect(page), []);
+  ok("live AppShell header: Header/AppShell is the AppShell's AppShellHeader with its theme and density", /<AppShell sidebar=\{<Sidebar [\s\S]*?\/>\} header=\{<AppShellHeader theme="border-divider" density="small" /.test(page));
+  ok("live AppShell header: Leading-Slots its leading, the first crumb at Level Master (no master={false})", page.includes('leading={<Breadcrumbs items={[{ id: "shop", label: "Shop" }, { id: "orders", label: "Orders" }]} />}'));
+  ok("live AppShell header: Trailing-Slots its actions, the named Avatar the account", page.includes('<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot /><AppShellAccount name="Khoa Dang" />'));
+  ok("live AppShell header: Main-Element its main, a PageHeader whose shown Child and SubHeading are childTitle and description", page.includes('main={<PageHeader title="Orders" childTitle="Q4" actions={<Button>New order</Button>} description="24 open" />}'));
+  ok("live AppShell header: the Collapse Button on is the AppShell's own toggle (no collapse)", !page.includes("collapse="));
+  const side = JSON.parse(JSON.stringify(live).replace('"Collapse Button":false,"Expand"', '"Collapse Button":true,"Expand"').replace('"compositionProps":{"Main":true,"Top-Header":true,"Collapse Button":true', '"compositionProps":{"Main":true,"Top-Header":true,"Collapse Button":false'));
+  ok("live AppShell header: the header's Collapse Button off and the Side-Bar's on is collapse=\"sidebar\"", pageFromFigma(side, { mapping }).text.includes('collapse="sidebar"'));
+}
+
 // The live Table (2026-10-11): Table-Example 14730:78776 on the Demo page, a frame of Primitives/Table/Data-Row instances
 // (a header row of Table/Cell/Header, nine rows of Table/Cell/Default holding Dock-Icon, Text, Badge and Actions cells).
 {

@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio ↔ Figma: AppShellHeader arrives as Figma's Header/AppShell with its `theme` and `density` (Border & Divider
+  is Small-only in Figma: a Medium one goes as Small, with a note), on its own or swapped into the master layout, its
+  leading · center · actions in Top-Elements, `main` in Main-Element and `sections` in Sections (emptied when there are
+  none), and reads back, also from a placed master. The collapse toggle is the header's or the Side-Bar's Collapse Button
+  (`collapse="sidebar"`); a short page's main column starts at the top (plugin `studio-import` bf300bc, `edits.counter`);
+  a PageHeader's childTitle and description show their Header-Text layers; the read keeps a nested variant change (a
+  first crumb at Level Master).
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`

@@ -258,20 +258,23 @@ export default function Page() {
   const slotOf = (name) => shell.slots.find((slot) => slot.name === name);
   const inner = ["Patterns/Sidebar", "Patterns/Density/Comfortable/Sidebar/Yes"];
   check("AppShell: the Sidebar pattern Expand=Yes (Default · Medium, the Sidebar's look); its Side-Bar's rows in Body-Content (the selected one Select Yes), no logo: Header-Content emptied, no footer: Footer-Content emptied, its container hidden inside the Side-Bar (not the master's first layer of that name)", { expand: shell.nested.find((entry) => entry.path === "Patterns")?.props, slots: shell.slots.filter((slot) => slot.within?.[0] === inner[0]).map((slot) => [slot.name, slot.within, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), hide: shell.hide, hidden: shell.edits.filter((edit) => edit.visible === false).map((edit) => edit.layer) }, { expand: { Expand: "Yes", Shadow: "Yes", Theme: "Default", Density: "Medium" }, slots: [["Header-Content", inner, []], ["Body-Content", inner, ["Home:No", "People:Yes"]], ["Footer-Content", inner, []]], hide: undefined, hidden: [[...inner, "Divider"], [...inner, "Footer-Container"]] });
-  const sections = slotOf("Sections");
-  const bar = sections.children[0];
-  check("AppShell: Header/Dashboard's Sections hold the top bar (the Dashboard header Type=Navigation padded as the master's own row: Margin-Comfortable, Padding/Small below), then the header's Main row", { within: sections.within, rows: sections.children.length, set: bar.set.name, type: bar.props.Type, padding: bar.padding, vars: bar.paddingVars }, { within: ["Header/Dashboard"], rows: 2, set: "Primitives/Dashboard/Header", type: "Navigation", padding: [24, 24, 12, 24], vars: ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/Small", "Margin-Comfortable"] });
-  check("AppShell: Leading-Slots the collapse toggle and the header, Trailing-Slots the actions and the account's Avatar", bar.slots.map((slot) => [slot.name, slot.children.map((child) => child.set.name)]), [["Leading-Slots", ["Button/Icon-Flat", "Breadcrumbs"]], ["Trailing-Slots", ["Primitives/Dashboard/Header/Action-Item", "Avatar/Single"]]]);
-  check("a slot with content turns its block on (Nav-Trailing-Block), one without stays off", [bar.props["Nav-Trailing-Block"], bar.props["Nav-Center-Block"]], [true, false]);
-  const account = find(bar, (node) => node.set?.name === "Avatar/Single");
+  // The header: Figma's Header/AppShell (16783:71068). The master predates it, so its Header/Dashboard is swapped per instance.
+  const swap = shell.nested.find((entry) => entry.path === "Header/Dashboard");
+  check("AppShell: the master's Header/Dashboard swapped to Header/AppShell, its Collapse Button the AppShell's toggle, Top-Header and Main on", { set: swap?.set?.name, name: swap?.name, props: swap?.props }, { set: "Header/AppShell", name: "Header/AppShell", props: { Main: true, "Top-Header": true, "Collapse Button": true } });
+  check("AppShell: a header with no sections empties Header/AppShell's Sections slot (it holds two sample rows)", slotOf("Sections") && { within: slotOf("Sections").within, children: slotOf("Sections").children }, { within: ["Header/AppShell"], children: [] });
+  const top = slotOf("Top-Elements");
+  check("AppShell: Top-Elements in Header/AppShell: Leading-Slots the header's leading (Fill, Gap/Medium), Trailing-Slots the actions and the account's Avatar (Fill, right, Gap/Small); no center, no Center-Slots", [top?.within, top?.children.map((frame) => [frame.name, frame.fillW, frame.layout.gapVar, frame.layout.primary, frame.children.map((child) => child.set.name)])], [["Header/AppShell"], [["Leading-Slots", true, "Spacing/Gap/Medium", "MIN", ["Breadcrumbs"]], ["Trailing-Slots", true, "Spacing/Gap/Small", "MAX", ["Primitives/Dashboard/Header/Action-Item", "Avatar/Single"]]]]);
+  check("AppShell: no Dashboard header rows, no hidden header", [shell.slots.some((slot) => slot.within?.[0] === "Header/Dashboard"), shell.edits.some((edit) => edit.layer?.[0] === "Header/Dashboard")], [false, false]);
+  const account = find({ children: top.children }, (node) => node.set?.name === "Avatar/Single");
   check("AppShellAccount (a Menu's trigger): its Avatar, named by the person, the initials", [account?.name, account?.text, account?.props.Size], ["Khoa Dang", "KD", "Medium"]);
   const content = slotOf("Content");
   const main = content.children[0];
   check("Container: in Body's Content slot, a frame of its layers with the gutter (Margin-Comfortable each side); Body keeps the master's padding as AppShell's Body pads", [content.within, main?.name, main?.layout.padding, main?.fillW, shell.edits.find((edit) => edit.padding) ?? null], [["Body"], "Container", [0, 24, 0, 24], true, null]);
   // Figma's master is one viewport tall (982) with its Content filling it: a longer page was cut off (2026-10-17).
   check("AppShell grows with its page: Main-Container, Body and the Content slot hug, the Side-Bar is as tall, the viewport's 982 stays the minimum", { min: shell.minH, content: content.hugH, hug: shell.edits.filter((edit) => edit.hugH).map((edit) => edit.layer.join(" › ")), fill: shell.edits.filter((edit) => edit.fillH).map((edit) => edit.layer.join(" › ")) }, { min: 982, content: true, hug: ["Main-Container", "Body"], fill: [inner.join(" › ")] });
-  const header = find(sections.children[1], (node) => node.props?.Type === "Main");
-  check("PageHeader (the header's Main row): the Dashboard header Type=Main, its title, SubHeading and actions (Actions on)", [header?.text, header?.texts?.SubHeading, header?.props.Actions, header?.slots?.[0]?.name, header?.slots?.[0]?.children.map((button) => button.text)], ["Team members", "12 people", true, "Action-Slots", ["Export", "Invite"]]);
+  const header = slotOf("Main-Element")?.children[0];
+  check("PageHeader (the header's Main row, in Main-Element, filling it): the Dashboard header Type=Main, its title, SubHeading and actions (Actions on)", [header?.text, header?.texts?.SubHeading, header?.props.Actions, header?.slots?.[0]?.name, header?.slots?.[0]?.children.map((button) => button.text)], ["Team members", "12 people", true, "Action-Slots", ["Export", "Invite"]]);
+  check("PageHeader: Header-Text is a slot, so its SubHeading shows and its Child hides by their own eyes; no Child-Heading (Figma dropped it)", [header?.edits, "Child-Heading" in (header?.props ?? {})], [[{ layer: ["Header-Text", "Heading-Wrapper", "Child"], visible: false }, { layer: ["Header-Text", "SubHeading"], visible: true }], false]);
   check("Heading: text in its level's style (h2 Heading/4)", find(main, (node) => node.type === "TEXT" && node.characters === "Admins")?.textStyle, "Heading/4");
   const list = find(main, (node) => node.name === "List");
   check("List: a frame of its rows, Gap/3XSmall", [list?.type, list?.layout.gap, list?.children.map((row) => row.set.name)], ["FRAME", 2, ["List-Item", "List-Item"]]);
@@ -291,6 +294,61 @@ export default function Page() {
   check("AppShell pattern=\"grid\": the master's Sidebar pattern Border · Small", masterSidebar(frame)?.pattern, { Expand: "Yes", Shadow: "No", Theme: "Border", Density: "Small" });
   const tag = pageFromFigma(frame, { mapping }).text.match(/<Sidebar\b[^>]*>/)?.[0] ?? "";
   check("round trip: the AppShell's Sidebar comes back with the pattern's look", ['theme="border"', 'density="small"'].map((attr) => tag.includes(attr)), [true, true]);
+}
+{
+  // AppShellHeader as Figma's Header/AppShell (spec docs/research/studio-appshell-header-figma-spec-2026-10-21.md): its
+  // theme and density, Figma's variant (Border & Divider is Small only), inside the master and on its own, and back.
+  const themed = SHELL.replace("header={<AppShellHeader\n", 'header={<AppShellHeader theme="border-divider" density="small"\n');
+  const { frame } = push(themed);
+  const swap = frame.children[0].nested.find((entry) => entry.path === "Header/Dashboard");
+  check("AppShell header: Theme Border & Divider, Density Small on the swapped Header/AppShell", [swap?.props.Theme, swap?.props.Density], ["Border & Divider", "Small"]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  const tag = back.match(/<AppShellHeader\b[^>]*?(?=\s(leading|actions|main)=)/)?.[0] ?? back.match(/<AppShellHeader\b[^>]*>/)?.[0] ?? "";
+  check("round trip: the AppShell's header comes back with its theme and density, its leading, actions and main", ['theme="border-divider"', 'density="small"'].map((attr) => tag.includes(attr)).concat(["leading={<Breadcrumbs", "<AppShellAccount", "main={<PageHeader"].map((part) => back.includes(part))), [true, true, true, true, true]);
+  check("round trip: the toggle comes back as the AppShell's own (no collapse=\"none\")", back.includes('collapse="none"'), false);
+  const medium = push(SHELL.replace("header={<AppShellHeader\n", 'header={<AppShellHeader theme="border-divider"\n'));
+  const mediumSwap = medium.frame.children[0].nested.find((entry) => entry.path === "Header/Dashboard");
+  check("Border & Divider at Density Medium: Figma's Small variant, with a note", [mediumSwap?.props.Theme, mediumSwap?.props.Density, medium.notes.some((note) => /no Border & Divider header at Density Medium/.test(note))], ["Border & Divider", "Small", true]);
+  const none = push(SHELL.replace("<AppShell\n", '<AppShell collapse="none"\n'));
+  check("collapse=\"none\": the Collapse Button off", none.frame.children[0].nested.find((entry) => entry.path === "Header/Dashboard")?.props["Collapse Button"], false);
+  const noneBack = pageFromFigma(none.frame, { mapping }).text;
+  check("round trip: collapse=\"none\" comes back", noneBack.includes('collapse="none"'), true);
+  // The Side-Bar's own Collapse Button (on by default in Figma): off unless the AppShell puts the toggle there.
+  const sideBar = (shell) => shell.nested.find((entry) => entry.path === "Patterns/Patterns")?.props["Collapse Button"];
+  check("collapse=\"header\" (the default) and \"none\": the Side-Bar's Collapse Button off", [sideBar(frame.children[0]), sideBar(none.frame.children[0])], [false, false]);
+  const side = push(SHELL.replace("<AppShell\n", '<AppShell collapse="sidebar"\n'));
+  check("collapse=\"sidebar\": the Side-Bar's Collapse Button on, the header's off", [sideBar(side.frame.children[0]), side.frame.children[0].nested.find((entry) => entry.path === "Header/Dashboard")?.props["Collapse Button"]], [true, false]);
+  check("round trip: collapse=\"sidebar\" comes back", pageFromFigma(side.frame, { mapping }).text.includes('collapse="sidebar"'), true);
+  check("the master's row starts at the top (it centres its layers: a short page sat mid-height)", frame.children[0].edits.find((edit) => edit.layer.length === 0), { layer: [], counter: "MIN" });
+}
+{
+  // A standalone AppShellHeader: Header/AppShell with its slots (no "no Figma slot" note any more).
+  const page = `// @zen-page {"format":1,"title":"Header"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShellHeader, Breadcrumbs, Button, PageHeader, Search, Stack, Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Header" device="desktop">
+        <Stack>
+          <AppShellHeader density="small" leading={<Search placeholder="Search" />} center={<Text>Q4</Text>} actions={<Button>New</Button>} main={<PageHeader title="Orders" childTitle="Q4" description="24 open" />} sections={<Text>Filters</Text>} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const header = frame.children[0];
+  const slot = (name) => header.slots?.find((entry) => entry.name === name);
+  check("AppShellHeader on its own: Header/AppShell, Density Small, Top-Header and Main on, no Collapse Button", [header.set?.name, header.props.Density, header.props["Top-Header"], header.props.Main, header.props["Collapse Button"]], ["Header/AppShell", "Small", true, true, false]);
+  check("its Top-Elements: Leading-Slots (the Search filling up to 400), Center-Slots 400 wide (its layers filling it), Trailing-Slots", slot("Top-Elements")?.children.map((row) => [row.name, row.fixedWidth ?? null, row.children.map((child) => [child.set?.name ?? child.type, child.fillW ?? false, child.maxW ?? null])]), [["Leading-Slots", null, [["Search/Default", true, 400]]], ["Center-Slots", 400, [["TEXT", true, null]]], ["Trailing-Slots", null, [["Button/Main", false, null]]]]);
+  check("its Main-Element the PageHeader (filling), its Sections the rows padded Padding/Small · Margin-Comfortable", [slot("Main-Element")?.children.map((child) => [child.set?.name, child.fillW]), slot("Sections")?.children.map((row) => [row.name, row.layout.padding, row.layout.paddingVars?.[0]])], [[["Primitives/Dashboard/Header", true]], [["Section", [12, 24, 12, 24], "Spacing/Padding/Small"]]]);
+  ok("no slot of it is left out", !notes.some((note) => /AppShellHeader: .* no Figma slot/.test(note)));
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("round trip: the header comes back with its density and its five parts", ['density="small"', "leading={<Search", "center={<Text", "actions={<Button", "main={<PageHeader", "sections={<Text"].map((part) => back.includes(part)), [true, true, true, true, true, true]);
+  check("round trip: the PageHeader's Child and SubHeading shown by their eyes come back as childTitle and description", [back.includes('childTitle="Q4"'), back.includes('description="24 open"')], [true, true]);
 }
 {
   // The Screen's app frame (screen-chrome.mjs): Sidebar beside a column of the Page header and the page.

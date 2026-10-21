@@ -33,11 +33,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   - Still to do: `docs/figma-contracts/native-pack.json` has no XSmall Card. It needs a probe-frame rebuild
     (`node tools/studio/native-pack.mjs --help`), so a direct paste of an xs Card notes "no variant"; the plugin import
     works.
-- **P3 · AppShellHeader `theme` / `density` to and from Figma (2026-10-21, Session B; waits for the user):** since #179 the
-  header takes `theme="border-divider"` and `density="small"` (Figma Header/AppShell 16783:71068 Theme × Density), but
-  the push still draws an AppShell's header as Dashboard header rows in the master layout, so either look arrives in
-  Figma as the default, and the pull has nothing to read back. Pointer: figma-push.mjs appShellNode; AppShell's notes in
-  session-log-2026-10-21.md.
+- **P3 · Dashboard header Child-Heading left Figma (2026-10-21, Session B):** Primitives/Dashboard/Header no longer has
+  the Child-Heading boolean (Header-Text is a slot whose Child and SubHeading show by their own eyes), but
+  `docs/figma-contracts/component-properties.json` and `dashboard-header.json` still list it, so the Studio panel's
+  Child-Heading toggle and the Figma parity contract follow the old read. The push and pull already use the eyes.
+  Pointer: re-read the ❖ Dashboard page with `tools/studio/figma-props-read.js`, then `figma-props-build.mjs`; the
+  contract re-capture in `tools/figma-contract/README.md`.
 - **P3 · Card `subAction` to and from Figma (2026-10-20, Session B):** the push writes no Sub-Action for a Card's
   `subAction` ("data with no Figma slot"), so Figma's Card shows none and an override of `Card/Sub-Action` lands on a
   hidden layer; the pull notes a shown Sub-Action instead of reading it. Map it as Sub-Action on + the IconButton's

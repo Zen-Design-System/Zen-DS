@@ -241,6 +241,9 @@ Last updated: 2026-10-19.
   keeps the Screen's Top/Bottom navigation and draws the AppShell's content only (runtime, compile, push). Since
   2026-10-19 the header parts (`leading`, `center`, `actions`, `main`) live on `header={<AppShellHeader …/>}` (FRAME_PARTS
   `host`), and old pages move to the new props on load (`migrateAppShellProps`).
+  Since 2026-10-21 (Session B) the header goes to Figma as Header/AppShell with its theme and density, swapped into the
+  master layout's Header/Dashboard, and comes back from a placed master's read; the toggle is the header's or the
+  Side-Bar's Collapse Button (plugin `studio-import` bf300bc for the master's top alignment).
 - **Zen Studio MCP M0 (2026-10-15, user):** AI clients (Claude Code first) read and edit the open Studio page live
   through `/__zen-studio/mcp` (relayed to the tab over Vite's HMR socket, one ⌘Z per change, AI chip Stop/Resume).
   Merged in #72 (baafbf8). Tools: get_studio_state, get_tree, update, get_screenshot, on pages made in the Studio;
