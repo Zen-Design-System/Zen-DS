@@ -100,4 +100,6 @@ Branch `zen/feat/timeline-20261021` (worktree `../Zen-DS-timeline`, on top of Sc
 - Platform page `timeline` (playground + 6 examples incl. PlatformPhone), Do/Don't visuals, guideline + keyboard map,
   harness rule (1, fixtures), smoke fixtures, axe baseline (colour-contrast only), 3 interaction tests; Studio
   contract page ❖ Timeline (4 public sets), figma-props map, 3 Assets items, library keys.
+- Native pack (user: "Làm luôn"): probe of the 4 Timeline sets, one Figma desktop copy (clipboard empty before and after),
+  merged additively (8 sets, 36 symbols), no picture layers, probe removed. Figma descriptions of the 8 sets updated.
 
