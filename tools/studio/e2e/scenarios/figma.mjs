@@ -582,6 +582,80 @@ async function typeText(page, name, value, index = 0) {
   await field.press("Enter");
 }
 
+/* ── Gap / padding drag (Figma's auto layout handles) helpers ──────────────────────────────────────────────────────── */
+
+/** A phone page with a row Stack (gap Small, paddingX Medium, paddingY XSmall), a 2-column Grid and a free frame (Box). */
+const spacingText = (title) => {
+  let text = newPageText({ title, device: "phone", chrome: true });
+  text = grow(text, "Stack", '<Stack direction="row" gap="sm" paddingX="md" paddingY="xs">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="ellipse" width={60} height={40} />\n</Stack>');
+  text = grow(text, "Stack", '<Grid columns={2} gap="sm" padding="sm">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="star" width={40} height={40} />\n</Grid>');
+  return grow(text, "Stack", '<Box width={200} height={64} padding="md">\n<Shape type="ellipse" position="absolute" insetLeft={20} insetTop={12} width={40} height={40} />\n</Box>');
+};
+let spacingMade = null;
+async function spacingPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!spacingMade) {
+    const seeded = await seededPage(ctx, spacingText, /<Box width=\{200\} height=\{64\}/);
+    spacingMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${spacingMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${spacingMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: spacingMade };
+}
+/** The spacing page's innermost `name` layout (the one holding Shapes). */
+const layoutOf = (page, id, name) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).filter({ has: page.locator('[data-zen-name="Shape"]') }).last();
+const shapeBox = (page, id, index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index).boundingBox();
+/** Selects the layout holding Shape `shape` (⌘-click the Shape, Esc to its parent, as Figma's Select parent). */
+async function selectLayout(page, id, name, shape) {
+  await selectShape(page, id, shape);
+  await page.keyboard.press("Escape");
+  const want = await layoutOf(page, id, name).boundingBox();
+  await until(async () => {
+    const box = await page.locator('.studio-selection__outline[data-kind="selected"]').first().boundingBox().catch(() => null);
+    return box && Math.abs(box.x - want.x) < 3 && Math.abs(box.width - want.width) < 3 ? box : null;
+  }, { message: `the ${name} selected` });
+  await until(async () => (await page.locator(".studio-selection__spacing-hit").count()) > 0, { message: `the ${name}'s spacing areas` });
+  await sleep(300);
+  return want;
+}
+/** The draggable spacing areas on the canvas: axis and box (screen px). */
+const dragAreas = (page) => page.locator(".studio-selection__spacing-hit[data-drag]").evaluateAll((nodes) => nodes.map((node) => {
+  const r = node.getBoundingClientRect();
+  return { axis: node.getAttribute("data-drag"), x: r.x, y: r.y, width: r.width, height: r.height, cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
+}));
+const spacingPill = async (page) => (await page.locator(".studio-selection__spacing-label").allInnerTexts()).join(" | ");
+/** How many padding / gap tints are pink (hovered or set by the drag). */
+const pinkTints = (page, kind) => page.locator(`.studio-selection__${kind}[data-drag][data-hover="true"]`).count();
+/** Presses at `from`, drags by `dx` / `dy` screen px in steps (`keys` held from before the press), runs `during` before the release. */
+async function dragSpacing(page, from, { dx = 0, dy = 0, keys = [], during } = {}) {
+  await page.mouse.move(from.x, from.y);
+  for (const key of keys) await page.keyboard.down(key);
+  await page.mouse.down();
+  let seen;
+  try {
+    for (let step = 1; step <= 6; step++) { await page.mouse.move(from.x + (dx * step) / 6, from.y + (dy * step) / 6); await sleep(30); }
+    await sleep(250);
+    seen = during ? await during() : undefined;
+  } finally {
+    await page.mouse.up();
+    for (const key of [...keys].reverse()) await page.keyboard.up(key);
+  }
+  return seen;
+}
+/** The open tag of the spacing page's first `<name …` whose text matches `marker`. */
+const tagWith = (text, name, marker) => [...text.matchAll(new RegExp(`<${name}\\b[^>]*>`, "g"))].map(([tag]) => tag).find((tag) => marker.test(tag)) ?? "";
+/** One ⌘Z puts the page back to `before` (the drag was one write). */
+async function oneUndo(page, id, before) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+KeyZ");
+  await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+}
+
 /** Before a row's retry (run.mjs): the pages this module made are forgotten, so the retry seeds them again from scratch
  *  (the runner removes the files the first try added). */
 export function forgetPages() {
@@ -590,6 +664,7 @@ export function forgetPages() {
   shapesMade = null;
   twoMade = null;
   setsMade = null;
+  spacingMade = null;
 }
 
 export const rows = [
@@ -3423,6 +3498,154 @@ export const rows = [
         .catch(async (error) => { throw new Error(`${error.message} (shown: ${(await tab.innerText().catch(() => "?")).trim()})`); });
       await page.locator(".studio-layers__tree").waitFor({ state: "visible", timeout: 5000 });
       return "New page › Create → Layers";
+    },
+  },
+  {
+    id: "FW-155", feature: "Hovering a selected auto layout frame's gap or padding shows Figma's pink area, a handle and its value as a variable pill (Gap · Small · 12); a click still opens the scale", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      await selectLayout(page, id, "Stack", 0);
+      const [a, b] = [await shapeBox(page, id, 0), await shapeBox(page, id, 1)];
+      const gap = { x: (a.x + a.width + b.x) / 2, y: a.y + a.height / 2 };
+      await page.mouse.move(gap.x - 1, gap.y);
+      await page.mouse.move(gap.x, gap.y);
+      const gapPill = await until(async () => { const text = await spacingPill(page); return /Gap · Small · 12/.test(text) ? text : null; }, { message: 'the "Gap · Small · 12" pill' });
+      const look = await page.evaluate(() => {
+        const probe = document.createElement("div");
+        probe.style.color = "var(--zen-color-background-support-pink-solid)";
+        document.body.append(probe);
+        const pink = getComputedStyle(probe).color;
+        probe.remove();
+        const handle = document.querySelector(".studio-selection__spacing-handle");
+        const label = document.querySelector(".studio-selection__spacing-label[data-drag]");
+        const hit = document.querySelector('.studio-selection__spacing-hit[data-drag="x"]');
+        return { pink, handle: handle ? getComputedStyle(handle).backgroundColor : null, label: label ? getComputedStyle(label).backgroundColor : null, hexagon: Boolean(label?.querySelector("svg")), tint: document.querySelectorAll('.studio-selection__gap[data-drag][data-hover="true"]').length, cursor: hit ? getComputedStyle(hit).cursor : null };
+      });
+      if (look.handle !== look.pink || look.label !== look.pink) throw new Error(`not Figma's pink: handle ${look.handle}, pill ${look.label} (Support/Pink/Solid ${look.pink})`);
+      if (!look.tint || !look.hexagon || look.cursor !== "ew-resize") throw new Error(`gap hover: ${JSON.stringify(look)}`);
+      const stack = await layoutOf(page, id, "Stack").boundingBox();
+      const scale = a.width / 60;
+      await page.mouse.move(stack.x + 8 * scale, stack.y + stack.height / 2);
+      await page.mouse.move(stack.x + 7 * scale, stack.y + stack.height / 2);
+      const padPill = await until(async () => { const text = await spacingPill(page); return /Horizontal padding · Medium · 16/.test(text) ? text : null; }, { message: 'the "Horizontal padding · Medium · 16" pill' });
+      if (!(await pinkTints(page, "padding"))) throw new Error("the hovered padding is not pink");
+      // A click without moving: the scale opens where it was clicked, as before the drag handles.
+      await page.mouse.move(gap.x, gap.y);
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.getByRole("option", { name: /^XLarge\b/ }).waitFor({ state: "visible", timeout: 4000 });
+      await page.keyboard.press("Escape");
+      return `gap "${gapPill}" (pink, handle, hexagon, ew-resize) · padding "${padPill}" · click → the scale`;
+    },
+  },
+  {
+    id: "FW-156", feature: "Dragging the gap of an auto layout frame changes it, snapped to the Spacing/Gap ladder and previewed while dragging (Small 12 + 20 → XLarge 32); one write, one ⌘Z; the status line names it Gap XLarge", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectLayout(page, id, "Stack", 0);
+      const [a, b] = [await shapeBox(page, id, 0), await shapeBox(page, id, 1)];
+      const scale = a.width / 60;
+      const gap = { x: (a.x + a.width + b.x) / 2, y: a.y + a.height / 2 };
+      const during = await dragSpacing(page, gap, { dx: 20 * scale, during: async () => ({ pill: await spacingPill(page), moved: ((await shapeBox(page, id, 1)).x - b.x) / scale, text: await pageText(page, id) }) });
+      if (!/Gap · XLarge · 32/.test(during.pill)) throw new Error(`the pill while dragging reads "${during.pill}"`);
+      if (Math.abs(during.moved - 20) > 1.5) throw new Error(`the preview moved the second layer ${during.moved.toFixed(1)} px, not 20`);
+      if (during.text !== before) throw new Error("written before the release");
+      await until(async () => /gap="xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'the row Stack at gap="xl"' });
+      const tag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingX="md"/.test(tag) || !/paddingY="xs"/.test(tag)) throw new Error(`the padding changed too: ${tag}`);
+      const status = await until(async () => { const text = await statusText(page); return /Gap XLarge/.test(text) ? text : null; }, { timeout: 5000, message: 'the status line "Gap XLarge"' });
+      await oneUndo(page, id, before);
+      return `pill "${during.pill}" · the Ellipse moved ${during.moved.toFixed(0)} px · ${tag} · "${status.split(" | ").find((line) => /Gap XLarge/.test(line))}" · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-157", feature: "Dragging an auto layout frame's left padding changes Horizontal padding (Zen's paddingX: the right side moves with it), snapped to Spacing/Padding (Medium 16 + 8 → XLarge 24); one write, one ⌘Z", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const stack = await selectLayout(page, id, "Stack", 0);
+      const scale = (await shapeBox(page, id, 0)).width / 60;
+      const host = layoutOf(page, id, "Stack");
+      const during = await dragSpacing(page, { x: stack.x + 8 * scale, y: stack.y + stack.height / 2 }, { dx: 8 * scale, during: async () => ({
+        pill: await spacingPill(page), tints: await pinkTints(page, "padding"),
+        padding: await host.evaluate((el) => { const style = getComputedStyle(el); return [style.paddingLeft, style.paddingRight, style.paddingTop].join(" "); }),
+      }) });
+      if (!/Horizontal padding · XLarge · 24/.test(during.pill)) throw new Error(`the pill while dragging reads "${during.pill}"`);
+      if (during.padding !== "24px 24px 8px") throw new Error(`the preview's padding (left right top) is ${during.padding}, not 24px 24px 8px`);
+      if (during.tints !== 2) throw new Error(`${during.tints} padding areas pink while dragging, not 2 (left and right)`);
+      await until(async () => /paddingX="xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'paddingX="xl"' });
+      const tag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingY="xs"/.test(tag) || !/gap="sm"/.test(tag)) throw new Error(`more than paddingX changed: ${tag}`);
+      await until(async () => /Horizontal padding XLarge/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Horizontal padding XLarge"' });
+      await oneUndo(page, id, before);
+      return `pill "${during.pill}" · preview ${during.padding} · ${tag} · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-158", feature: "Modifiers as Figma's: ⌥ dragging the top padding sets the bottom too (Vertical padding Small); ⇧ dragging the left padding sets all four (padding Large, paddingX / paddingY removed in the same edit); one ⌘Z each", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      let stack = await selectLayout(page, id, "Stack", 0);
+      const scale = (await shapeBox(page, id, 0)).width / 60;
+      const alt = await dragSpacing(page, { x: stack.x + stack.width / 2, y: stack.y + 4 * scale }, { dy: 4 * scale, keys: ["Alt"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
+      if (!/Vertical padding · Small · 12/.test(alt.pill) || alt.tints !== 2) throw new Error(`⌥: pill "${alt.pill}", ${alt.tints} padding areas pink (want top and bottom)`);
+      await until(async () => /paddingY="sm"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⌥: paddingY="sm"' });
+      const altTag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingX="md"/.test(altTag)) throw new Error(`⌥ changed the sides too: ${altTag}`);
+      await oneUndo(page, id, before);
+      stack = await selectLayout(page, id, "Stack", 0);
+      const all = await dragSpacing(page, { x: stack.x + 8 * scale, y: stack.y + stack.height / 2 }, { dx: 4 * scale, keys: ["Shift"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
+      if (!/^Padding · Large · 20/.test(all.pill) || all.tints !== 4) throw new Error(`⇧: pill "${all.pill}", ${all.tints} padding areas pink (want all four)`);
+      await until(async () => /\spadding="lg"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⇧: padding="lg"' });
+      const allTag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (/paddingX=|paddingY=/.test(allTag)) throw new Error(`⇧ kept a side prop: ${allTag}`);
+      await until(async () => /Padding Large/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Padding Large"' });
+      await oneUndo(page, id, before);
+      return `⌥ top: "${alt.pill}" → ${altTag} · ⇧ left: "${all.pill}" → ${allTag} · one ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-159", feature: "A Grid's column gap drags too (gap Small → Large); Escape mid-drag writes nothing and drops the preview; a free frame (Box) has no drag handles and a drag on its padding writes nothing", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const grid = await selectLayout(page, id, "Grid", 2);
+      const scale = (await shapeBox(page, id, 2)).width / 60;
+      const columnGap = (await dragAreas(page)).filter((area) => area.axis === "x").sort((p, q) => Math.abs(p.cx - (grid.x + grid.width / 2)) - Math.abs(q.cx - (grid.x + grid.width / 2)))[0];
+      if (!columnGap) throw new Error("no draggable column gap on the Grid");
+      const from = { x: columnGap.cx, y: columnGap.cy };
+      const pill = await dragSpacing(page, from, { dx: 12 * scale, during: () => spacingPill(page) });
+      if (!/Gap · Large · 24/.test(pill)) throw new Error(`the Grid's pill while dragging reads "${pill}"`);
+      await until(async () => /gap="lg"/.test(tagWith((await pageText(page, id)) ?? "", "Grid", /columns=/)), { message: 'the Grid at gap="lg"' });
+      await oneUndo(page, id, before);
+      // Escape while the button is still down: the drag ends, nothing is written, the Grid lays out as before.
+      await selectLayout(page, id, "Grid", 2);
+      const gridHost = layoutOf(page, id, "Grid");
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      let preview = "";
+      try {
+        for (let step = 1; step <= 6; step++) { await page.mouse.move(from.x + (20 * scale * step) / 6, from.y); await sleep(30); }
+        preview = await gridHost.evaluate((el) => getComputedStyle(el).columnGap);
+        await page.keyboard.press("Escape");
+      } finally {
+        await page.mouse.up();
+      }
+      await sleep(600);
+      const after = await gridHost.evaluate((el) => getComputedStyle(el).columnGap);
+      if (preview === after || after !== "12px") throw new Error(`Escape: column gap ${preview} while dragging, ${after} after (want back to 12px)`);
+      if ((await pageText(page, id)) !== before) throw new Error("Escape still wrote the drag");
+      // A free frame: its padding shows (and clicks to the scale), but nothing drags.
+      const box = await selectLayout(page, id, "Box", 4);
+      const handles = await page.locator(".studio-selection__spacing-hit[data-drag]").count();
+      if (handles) throw new Error(`${handles} drag handles on a free frame`);
+      await dragSpacing(page, { x: box.x + box.width / 2, y: box.y + 8 * scale }, { dy: 10 * scale });
+      await page.keyboard.press("Escape");
+      await sleep(400);
+      if ((await pageText(page, id)) !== before) throw new Error("a drag on the free frame's padding wrote something");
+      return `Grid "${pill}" → gap="lg", one ⌘Z · Escape: ${preview} → ${after}, nothing written · free frame: no handles, nothing written`;
     },
   },
 ];
