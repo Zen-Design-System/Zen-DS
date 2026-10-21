@@ -1023,7 +1023,7 @@
       "file": "docs/guidelines/sidebar.md",
       "apiFile": "docs/api/sidebar.json",
       "figma": "Patterns/Sidebar (page 1536:27287)",
-      "import": "import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu } from \"@zen-ds/react\";",
+      "import": "import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubHeader, SidebarSubMenu } from \"@zen-ds/react\";",
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
       "use": [
         "App shells with 5+ destinations."
@@ -1056,6 +1056,8 @@
           "background?: default|alt|flat|inverse = default",
           "divider?: boolean = false",
           "shadow?: boolean = true",
+          "theme?: default|border",
+          "subHeader?: ReactNode",
           "workspaceBrand?: ReactNode",
           "workspaceItems?: SidebarItem[] = []",
           "workspaceFooter?: ReactNode",
@@ -1091,6 +1093,14 @@
           "action?: ReactNode",
           "children?: ReactNode",
           "ref?: Ref<HTMLElement>"
+        ],
+        "SidebarSubHeader": [
+          "title: ReactNode",
+          "onBack?: () => void",
+          "backLabel?: string",
+          "headingLevel?: (typeof headingLevels)[number] = 2",
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -4746,10 +4756,10 @@
       "apiFile": "docs/api/app-shell.json",
       "figma": "◇ Master-Layout AppShell patterns (16254:1057): Pattern/AppShell/Desktop (16258:1857), Pattern/AppShell/Mobile (16261:136204), Header/AppShell (16243:290461), .Primitives/AppShell/Pane (16254:1099), Action-Bar/Mobile (16326:6489); Header/Action-Item (12280:19532) + Notification-Dot (4116:21789)",
       "import": "import { AppShell, AppShellHeader, AppShellPane, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
-      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus · Grid, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
       "use": [
         "Every app screen: one AppShell at the root, inside ZenProvider.",
-        "Navigation between a few roots → pattern=\"sidebar\" (the default); a list beside its detail (inbox, requests) → \"list-detail\"; one company or product without navigation → \"top-bar\"; tools around a canvas → \"workspace\"; reading → \"docs\"; one task with steps → \"focus\".",
+        "Navigation between a few roots → pattern=\"sidebar\" (the default); a list beside its detail (inbox, requests) → \"list-detail\"; one company or product without navigation → \"top-bar\"; tools around a canvas → \"workspace\"; reading → \"docs\"; one task with steps → \"focus\"; the Sidebar workspace drawn in lines (dense dashboards, analytics, admin) → \"grid\".",
         "A phone or an upright iPad → topNavigation with bottomNavigation (roots) or actionBar (a task's actions); a brand band → mobileTop=\"band\" with hero; a profile or a summary rising over colour → \"band-sheet\"; a photo, video or map → \"media\" with backdrop.",
         "Header icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger."
       ],
@@ -4761,7 +4771,7 @@
       ],
       "props": {
         "AppShell": [
-          "pattern?: sidebar|list-detail|top-bar|workspace|docs|focus = sidebar",
+          "pattern?: sidebar|list-detail|top-bar|workspace|docs|focus|grid = sidebar",
           "collapse?: header|sidebar|none = header",
           "sidebar?: ReactNode",
           "header?: ReactNode",
@@ -4798,6 +4808,8 @@
           "actions?: ReactNode",
           "main?: ReactNode",
           "sections?: ReactNode",
+          "theme?: default|border-divider",
+          "density?: medium|small",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "ref?: Ref<HTMLElement>"
         ],
@@ -4832,6 +4844,7 @@
       },
       "do": [
         "Put one AppShell at the root of each app screen, inside ZenProvider, and pick the pattern from the screen's job (see Use).",
+        "With pattern=\"grid\", build the page from Boxes and Flat Cards (MetricCard, ChartCard and Card keep theme flat) on the grey Canvas, and give Subtle only to a metric card that should stand out (◇ Master-Layout Rule, 16823:85229).",
         "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards and panes; Canvas alt (white) + a Surface-alt or Flat Sidebar + bordered cards and panes (theme=\"border\"); Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
         "Lead the header's top row with Breadcrumbs (master={false} beside the toggle) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.",
         "Put the page's PageHeader in the header's main (one h1) and its views (Tabs) in sections; the Body holds the content at the page margin, with no Container.",

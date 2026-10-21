@@ -95,6 +95,7 @@ describe("AppShell › Sidebar context", () => {
     await expect.element(nav).toHaveAttribute("data-collapsed", "true");
     await expect.element(screen.getByRole("button", { name: "Apps" })).toBeInTheDocument();
     expect(getComputedStyle(nav.element().querySelector(".zen-sidebar__footer-content .zen-sidebar__item-label")!).display).toBe("none");
-    expect(Math.round(nav.element().getBoundingClientRect().width)).toBe(84);
+    // Patterns/Sidebar Expand=No, Density=Medium: 80 (user 2026-10-21: "Sửa rail Medium theo Figma luôn"; was 84).
+    expect(Math.round(nav.element().getBoundingClientRect().width)).toBe(80);
   });
 });

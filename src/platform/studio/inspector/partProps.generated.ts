@@ -624,7 +624,8 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "footer": "footer",
       "search": "search",
       "searchCollapsed": "searchCollapsed",
-      "sections": "sections"
+      "sections": "sections",
+      "subHeader": "subHeader"
     },
     "WorkspaceHeader": {
       "action": "headerAction",
@@ -661,6 +662,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     },
     "SidebarCollapseButton": {
       "collapsed": "collapsed"
+    }
+  },
+  "SidebarSubHeader": {
+    "Heading": {
+      "level": "headingLevel"
     }
   },
   "SidebarSubMenu": {
