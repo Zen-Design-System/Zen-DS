@@ -75,10 +75,11 @@ const UPDATE = Boolean(arg("baseline-update", false));
 const NO_BASELINE = Boolean(arg("no-baseline", false));
 const BUDGET = Number(arg("budget", 90)) * 1000;
 /** Pages with many phone screens and sheets run past 90s when the full gate shares the machine with other sessions
- *  (templates, bottom-sheet, chat: ~40s alone, 90s+ under load; app-shell: Figma's 41 Master-Layout screens since
- *  2026-10-19): they get twice the budget instead of a `timeout`. */
-const HEAVY_PAGES = new Set(["templates", "bottom-sheet", "chat", "app-shell"]);
-const budgetOf = (id) => (HEAVY_PAGES.has(id) ? 2 : 1) * BUDGET;
+ *  (templates, bottom-sheet, chat: ~40s alone, 90s+ under load): they get twice the budget instead of a `timeout`.
+ *  app-shell holds Figma's 41 Master-Layout screens (since 2026-10-19) and timed out at twice in every gate run, so
+ *  its later screens were never checked (2026-10-21): it gets six times. */
+const HEAVY_PAGES = new Map([["templates", 2], ["bottom-sheet", 2], ["chat", 2], ["app-shell", 6]]);
+const budgetOf = (id) => (HEAVY_PAGES.get(id) ?? 1) * BUDGET;
 const VERBOSE = Boolean(arg("verbose", false));
 const BASELINE = path.join(root, "tools/platform-audit/behaviour-baseline.json");
 

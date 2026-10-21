@@ -324,6 +324,59 @@ skill không phải rule hay hardness", then "Nghiên cứu cả những princip
   `tools/ai-kit/kit.mjs` copies both into `skills/zen-figma-design/references/`; `build.mjs` reads and checks them,
   `src/platform/aiKit.ts` globs them; kit README and AGENTS.md mention them. `ai-kit:check` 164 ✓, 85 files.
 
+## Image `frame` (AppShell session, follow-up to #168) — tier S, branch `zen/feat/image-frameless-20261020`
+
+The user approved it on 2026-10-20, answering the open #168 questions ("Image không khung … -> OK"). Figma has no
+Image component; E1's Character is a 100 × 100 frame with an IMAGE fill (Fit), no fill behind it and no stroke
+(use_figma on 15991:9673).
+- `Image frame` (default true). `false` sets `data-frame="none"`: no Neutral/Pale fill and no hairline `::after`;
+  the Skeleton and the error placeholder are unchanged.
+- E1's mascot (render and code) now uses `frame={false}`. The Image page has a new example, "A cut-out picture",
+  showing both frames.
+- Guideline: the api row and a do line. Docs, api and ai-ui regenerated. Test: `tests/interaction/image-frame.test.tsx`.
+- Other #168 answers: Card spacing xs is approved, but Figma's Card has Spacing Medium | Small only, and E6's
+  Intent tiles are plain frames (padding 8/12, radius 20). This needs the user's call on Figma first. The E7
+  Segmented and the F4 crop are explained to the user again.
+- The user's answers, then the work:
+  - **E7.** The user updated Segmented in Figma twice. White-Overlay labels are now On-White-Overlay Light at rest,
+    Strongest when hovered, focused or selected; the overlay Focused ring is Border/Overlay/Solid.
+    - Code: `segmented.css`. The ring stays currentColor on the white selected segment.
+    - The contract's changed variants were re-captured by a sub-agent; the hashes match the live file.
+    - E7 is back on White-Overlay.
+  - **F4: "Xuất ảnh crop riêng cho F4".** `device-robot-vacuum-f4.webp` (867 × 595) is cut from the 1024 source with
+    the Device Crop fill's imageTransform, encoded with Chromium's canvas. The cut-out devices in F1, F3, F4 and F5
+    take `frame={false}`: Figma draws no fill behind them.
+  - **Card XSmall: "Thêm Spacing=XSmall vào Figma trước", padding "8px đều", radius 12 (Corner-Radius/Base).**
+    - A sub-agent added the variable `Card-padding-xsmall` (VariableID:16772:3, Breakpoint & Grids, Spacing/Padding/XSmall
+      in every mode) and 40 Spacing=XSmall variants (rows 15–22 of the set). It checked them against the Small sources
+      by tree signature: 40/40 pass, and the Sub-Action top padding follows the card padding.
+    - Code: `cardSpacings` xsmall, card.css xsmall (the mobile radius rule is now Medium-only), the token source, the
+      Studio props (`component-properties.json`), the harness spacing-by-count (xs counts as compact) and its good
+      fixture.
+    - E6's intents are four xs cards in a row.
+
+    - Figma descriptions (2026-10-21): `tools/figma-docs` sources now name XSmall. Written to the live file:
+      the Card set, `Card-padding-xsmall` and Corner-Radius/Base. The old text is backed up in frame 16784:3
+      ("Description backup 2026-10-21") on 🔒 ARCHIVED.
+      - Only these three were written, not the whole `variables` command. A dry run showed ~110 other variables
+        would also change: the stored `&#39;` escapes, and source edits that other sessions have not written yet.
+        Spacing/Gap/3XSmall still says "outside the ladder" in Figma.
+- Gate 2026-10-21 (follow-ups): PASS with 50 new warnings.
+  - Fixed in 3a26589a:
+    - The Image cut-out example now uses Flat cards.
+    - The xs Card playground slot has concentric corners (4px).
+    - Two dead clicks (A1–A4 Workspace crumb, B2 rail items) now show a toast.
+    - app-shell gets 6× the behaviour budget. It had timed out at 2× in every gate run, so its later screens were never checked.
+  - Moved into `quality-baseline.json` (40 keys), on the user's answers:
+    - E7's White-Overlay "Activity" label (Lc 38.6 on the #F755C9 band): "Giữ Light như Figma".
+    - The rhythm counts of A1–A4, B5, E2, E7, the App Shell playground's side-panel state and three templates:
+      "Baseline, giữ như Figma". Figma's own A1 uses ~13 styles; the check also counts component-owned text
+      (Table headers, Metric values).
+- 2026-10-21, Header/AppShell drift (the Bug session found it; I checked it with use_figma). Sections/Main pads
+  24·24·12·24, with the bottom bound to Spacing/Padding/Small. app-shell.css had XSmall (8); now Small, in 0b91bed4.
+  Bug's Studio mapping (Header/AppShell in component-properties.json) will conflict textually with this branch's Card
+  Spacing patch. Whoever lands second re-applies it (guidelines:build, then figma-props-build and variant-sets-build).
+
 ## Blend mode in the direct paste (Session C) — tier XS, branch `zen/feat/studio-native-blend-mode-20261020`
 Session B's Blend mode (user-given; push / pull / plugin on B's branch) left the native ⌘C → ⌘V to C. figma-native writes
 a frame's or a shape's `blendMode` (Figma's enum, as figma-push writes it off the default) on the node, nothing at the
@@ -332,3 +385,36 @@ MULTIPLY, a star LINEAR_DODGE, the outer frame PASS_THROUGH.
 - After #171: a Studio page's `blendMode` (Box multiply, star plus-lighter) goes through figma-push into the paste as
   MULTIPLY / LINEAR_DODGE, nothing at the default. Gate (Giám sát's slot, on 0d551f9f with main e99c5408): `qa --isolated`
   PASS — static ✓, Studio E2E 336 works · 0 broken (1793 s); report `.qa/reports/2026-10-20T18-27-33-ee53b0aa.md`.
+
+## native-pack: merge a set into the pack; capture keeps the clipboard (Session C) — tier XS, branch `zen/feat/native-pack-merge-20261021`
+Asked by Bug (the user's Header/AppShell in Studio needs 16243:290461 in the pack; `native-pack check` failed): `write
+--merge` / `capture --merge` add new copies' sets, symbols, styles, variables and contents to the existing pack
+(`mergePacks`, `merged` records each), the schema module stays; `probe-code --ids=` probes just those components. Fix
+at its owner: `capture` cleared the user's clipboard and never put it back — it now saves every type to files and puts
+it back after the copies, also when one fails (`clipboardFiles`; inline osascript failed on a large picture on
+2026-10-20). Checked offline: a probe copy merged onto the pack (230 → 231 sets, base kept), a save → restore round trip
+of the live clipboard (4/4 types). Selftest figma-native 116.
+- Bug's live run (2026-10-21, shared checkout) found two faults, both fixed here: (1) "new ids win" replaced six sets
+  the pack held (Avatar/Single, five Button sets) with the copy's partial versions (only the variants Header/AppShell
+  nests): selftest 2/117 ✗. A merge now keeps what the pack holds and adds only what it lacks, a held set gaining the
+  copy's missing variants and properties after its own. (2) Header/AppShell never came in because Figma copied the
+  person's own selection, not the probe frame (meta `selectedNodeData`; the same slip as my frame-look probe, whose
+  copy was 16783:70965 with Avatar/Single + Button/Icon-Flat). `capture` now reads which node a copy is of, tries once
+  more, then refuses (`copiedNode`); `--keep` (documented, never built) saves the copies to `.qa/native-pack/`.
+  Selftest figma-native 119. Its own PR (Giám sát, Bug), ahead of Bug's Header/AppShell PR.
+
+## A frame's look in the direct paste (Session C) — tier S, branch `zen/feat/native-frame-look-20261021`
+BACKLOG P2 "Figma's native clipboard path misses a frame's look" (no owner; the user's "tiếp tục" after I offered it
+twice, 2026-10-21). figma-native `frame()` now writes what figma-push `frameLook` gives and the importer's
+`applyFrameLook` sets: stroke paint inside at its weight, one side (`border*Weight` + independent), Zen's dash 2 / 2,
+corners one by one (TL TR BR BL) on their Corner-Radius variables, the effect style, opacity, and rotation / flip about
+the centre (`turned`, as shapes). Figma's copies write an effect style's id beside its effects (as a paint style's
+paints), so the pack now holds them: `native-pack effects-code` (use_figma, read only) + `effects --files=` → 15 effect
+styles' `effects` (the drop shadows equal a Figma copy's of Effect/Popover; glass styles skipped); a full capture
+stores them from the style nodes too. Selftest figma-native 130. Built on the native-pack merge fix (merged in).
+- Live paste (Zen file, 8 frames, one look each), read back with use_figma: stroke bound to Border/Neutral/Subtle
+  inside at 2; one side `[0, 0, 1, 0]`; dash 2 / 2; corners TL / BR on Corner-Radius/XLarge (Figma shows the
+  variable's 20); Shadow/Bottom/Level-2 bound with its 3 shadows on their colour variables; opacity 0.5; 30° and
+  flip + 15° about the frame's centre (360, 180 / 500, 180). The first try (02:42) never landed; the second (20 s
+  wait) landed on the user's own page ◇ Master-Layout, not the QA page (the node-id link did not switch pages): read
+  and removed at once, the user told. The user's clipboard put back 6/6 both times.

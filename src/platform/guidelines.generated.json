@@ -808,7 +808,7 @@
       [
         "Level",
         "level",
-        "secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment) · black-overlay (also level=\"overlay\", the default overlay: a Black-Overlay track with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay track with light text); both select with a White/Solid segment, static tokens, the same in light and dark mode"
+        "secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment) · black-overlay (also level=\"overlay\", the default overlay: a Black-Overlay track with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay track with dark text); both select with a White/Solid segment, static tokens, the same in light and dark mode"
       ],
       [
         "Size",
@@ -871,7 +871,7 @@
     ],
     "dont": [
       "Don't use Segmented as a filter.",
-      "Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.",
+      "Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a dark colour or photo: its dark labels need a bright, saturated colour under it (black-overlay goes on dark colours and photos).",
       "Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).",
       "Don't mix icon-only and labelled items in one control.",
       "Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again."
@@ -4173,7 +4173,7 @@
       [
         "Spacing",
         "spacing",
-        "medium (default: Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large): on a phone, small once three or more cards sit side by side and medium for one or two; desktop cards keep medium (harness card/spacing-by-count)"
+        "medium (default: Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large) · xsmall (Card-padding-xsmall 8, Radius Base 12: compact tiles, e.g. a row of choices on a phone): on a phone, small once three or more cards sit side by side and medium for one or two; desktop cards keep medium (harness card/spacing-by-count)"
       ],
       [
         "Active",
@@ -9276,6 +9276,11 @@
         "cover (default, crops) · contain (the whole picture on Neutral/Pale)"
       ],
       [
+        "Frame",
+        "frame",
+        "true (default: Neutral/Pale fill + 1px Border/Neutral/Pale hairline) · false (a cut-out picture with no fill or hairline)"
+      ],
+      [
         "Corner-Radius",
         "radius",
         "none · 2xs … 3xl · full; default md (Corner-Radius/Base)"
@@ -9308,6 +9313,7 @@
     ],
     "keyboard": [],
     "do": [
+      "Use frame={false} for a cut-out picture on a transparent background (a mascot, a product without its backdrop): the frame would show as a faint square around it.",
       "Always pass alt: what the picture shows in context; alt=\"\" only when it is decorative or text beside it names it (harness: image/needs-alt).",
       "Set ratio so the frame keeps its size while loading and nothing jumps when the picture arrives.",
       "Use loading=\"eager\" only for the first picture on screen; keep the rest lazy.",

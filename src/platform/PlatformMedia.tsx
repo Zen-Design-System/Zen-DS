@@ -45,6 +45,7 @@ import deviceCeilingLight from "../assets/media/device-ceiling-light.webp";
 import deviceAirConditioner from "../assets/media/device-air-conditioner.webp";
 import deviceSmartSpeaker from "../assets/media/device-smart-speaker.webp";
 import deviceRobotVacuum from "../assets/media/device-robot-vacuum.webp";
+import deviceRobotVacuumF4 from "../assets/media/device-robot-vacuum-f4.webp";
 import roomRollerBlind from "../assets/media/room-roller-blind.webp";
 import porchLiveView from "../assets/media/porch-live-view.webp";
 
@@ -109,6 +110,8 @@ export const platformMedia = {
     airConditioner: { src: deviceAirConditioner, alt: "White wall-mounted air conditioner" },
     smartSpeaker: { src: deviceSmartSpeaker, alt: "Round grey smart speaker with a coloured light on top" },
     robotVacuum: { src: deviceRobotVacuum, alt: "White robot vacuum" },
+    /** F4's close crop of the same cut-out (Figma Device: a Crop fill, about 1.18× in). */
+    robotVacuumClose: { src: deviceRobotVacuumF4, alt: "White robot vacuum, close up" },
     rollerBlind: { src: roomRollerBlind, alt: "Bedroom window with a grey roller blind partly down" },
     porchCamera: { src: porchLiveView, alt: "Wide-angle camera view of the porch and the wooden front door" },
   } satisfies Record<string, PlatformPhoto>,

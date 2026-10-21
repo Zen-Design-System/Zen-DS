@@ -17,6 +17,8 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
+  read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
   làm lại từ đầu", "Phá hẳn, migrate hết": no deprecated aliases). Figma Pattern/AppShell/Desktop 16258:1857, Mobile
   16261:136204, Header/AppShell 16243:290461, .Primitives/AppShell/Pane 16254:1099.
@@ -66,6 +68,19 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   drops the hover-toolbar gutter, and the toolbar sits over the bubble's top corner instead.
 - Popover: when a surface fits on neither side in view, it opens towards the side the page can scroll to, not the side
   a clipping frame cuts off for good (a chip at the top of a phone preview at the window's bottom edge lost its menu).
+- Image `frame` (2026-10-20, user-approved): `frame={false}` drops the Neutral/Pale fill and the hairline behind a
+  cut-out picture on a transparent background (a mascot, a product without its backdrop), so no faint square shows
+  around it. App Shell E1's mascot uses it, and the Image page shows both frames side by side.
+- Segmented White-Overlay follows Figma's update (2026-10-20): its labels are dark, On-White-Overlay/Light at rest and
+  Strongest when hovered, focused or selected, readable on a bright Accent band where the white label was 1.96:1. Both overlay levels' Focused ring is
+  Border/Overlay/Solid (static), with the dark label colour on the white selected segment. App Shell E7 uses
+  White-Overlay again, as Figma draws it.
+- Card `spacing="xs"` (Figma Spacing=XSmall, 2026-10-20, user-approved: "8px đều", radius 12): Card-padding-xsmall (8 on
+  every device) with Corner-Radius/Base, for compact tiles such as a row of choices on a phone. Figma has the 40 XSmall
+  variants; harness card/spacing-by-count counts XSmall as compact; App Shell E6's intent tiles use it (four in a row,
+  as Figma draws them).
+- AppShellHeader: the Main frame pads Spacing/Padding/Small (12) below, as Figma Header/AppShell (16243:290461) binds it,
+  instead of XSmall (8); found by the Bug session on 2026-10-21.
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
@@ -126,6 +141,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
   and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
+- The direct paste brings a frame's whole look: its stroke inside at its weight (one side, or Zen's dash), each corner
+  on its Corner-Radius variable, its effect style with its shadows, its opacity, and its rotation and flip (it had the
+  fill, one corner radius and the blend mode).
 - A Studio arrow lands in Figma with one head, at its end, as Figma's own arrow (⇧L) draws it (it had a head at both
   ends); pulling Figma's arrows brings them back as Shape arrows.
 - The direct paste places a page's own components (`<Component>`, `<ComponentSet>`) as Figma components with their
@@ -955,6 +973,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
+- Zen Studio: a click on a Line or an Arrow selects it, as in Figma. Before, a horizontal line had no height to click
+  and the click selected its frame.
 - TopNavigation `subtitle` without `titleLeading` centres the title and its subtitle, as Figma Heading-Text Type=Sub
   draws them (◇ Master-Layout · Example C2, C5); with `titleLeading` the conversation identity stays left-aligned.
 - TopNavigation `controlBar` hugs its control: the side margin and Spacing/Padding/XSmall above and below (a Progress
