@@ -607,20 +607,6 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
             "default": "control-bar"
           }
         ]
-      },
-      {
-        "label": "Child-Heading",
-        "prop": "childTitle",
-        "on": "2026",
-        "when": [
-          {
-            "prop": "type",
-            "oneOf": [
-              "main"
-            ],
-            "default": "control-bar"
-          }
-        ]
       }
     ]
   },

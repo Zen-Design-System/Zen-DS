@@ -966,12 +966,6 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Subheading",
           "on": "96 results",
           "default": false
-        },
-        {
-          "prop": "childTitle",
-          "label": "Child-Heading",
-          "on": "2026",
-          "default": false
         }
       ]
     }
