@@ -8,6 +8,7 @@ import { Badge, BadgeCounter } from "../components/Badge";
 import { BadgeStatus } from "../components/BadgeStatus";
 import { PropertyDate, PropertyField, PropertyStatus } from "../components/PropertyField";
 import { Breadcrumbs } from "../components/Breadcrumbs";
+import { CalendarEvent, CalendarToolbar, CalendarWeekStrip } from "../components/Calendar";
 import { AppShellAction, AppShellHeader } from "../components/AppShell";
 import { PageHeader } from "../components/PageHeader";
 import { Button, IconButton } from "../components/Button";
@@ -279,6 +280,12 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   "inline-message": [
     { do: { preview: <div className="pgv-wide"><Stack><InlineMessage theme="warning" title="You're editing production">Changes publish to 12 live sites on save.</InlineMessage><InputField label="Site title" size="small" defaultValue="Zen Studio" /></Stack></div>, caption: "Right above the content it describes." },
       dont: { preview: <div className="pgv-wide"><Stack><InlineMessage theme="info" title="Heads up" /><InlineMessage theme="warning" title="Check this" /><InlineMessage theme="negative" title="Also this" /></Stack></div>, caption: "Stacked messages compete; merge them or show the most severe." } },
+  ],
+  calendar: [
+    { do: { preview: <div className="pgv-wide"><CalendarToolbar device="desktop" title="September 2026" view="week" onViewChange={noop} onToday={noop} onPrevious={noop} onNext={noop} /></div>, caption: "Only Tertiary buttons and a Segmented view switch; New event lives in the page header." },
+      dont: { preview: <div className="pgv-wide"><LayoutStack direction="row" gap="xs" align="center"><Button level="primary" size="sm" onClick={noop}>New event</Button><Button level="tertiary" size="sm" onClick={noop}>Month</Button><Button level="secondary" size="sm" onClick={noop}>Week</Button><Button level="tertiary" size="sm" onClick={noop}>Day</Button></LayoutStack></div>, caption: "Buttons as a view switch, and the page action squeezed into the row." } },
+    { do: { preview: <div className="pgv-field"><LayoutStack gap="3xs"><CalendarEvent time="09:00" title="Daily standup" /><CalendarEvent time="11:00" title="Design review" color="violet" /><CalendarEvent time="14:00" title="1:1 Maya Chen" color="teal" /></LayoutStack></div>, caption: "One hue per calendar: Brand for the main one, others only to tell calendars apart." },
+      dont: { preview: <div className="pgv-field"><CalendarWeekStrip device="desktop" defaultValue={new Date(2026, 8, 30)} today={new Date(2026, 8, 30)} onValueChange={noop} aria-label="Due date" /></div>, caption: "A week strip is not a form's date input: use DateField or DatePicker." } },
   ],
   "empty-state": [
     { do: { preview: <EmptyState title="No projects yet" size="sm" icon="icon-folder-line" primaryAction={{ label: "Create project", onClick: noop }}>Projects you create show up here.</EmptyState>, caption: "Say what's empty and offer the next step." },

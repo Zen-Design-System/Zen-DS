@@ -6668,6 +6668,952 @@
       ]
     }
   ],
+  "calendar": [
+    {
+      "name": "CalendarMonth",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"defaultValue\" | \"onChange\">",
+      "props": [
+        {
+          "name": "month",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The month to show (any day in it). Default: the selected day's month, else today's. Move it with the Toolbar.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "CalendarDateInput | null",
+          "required": false,
+          "default": null,
+          "description": "The selected day (controlled): Day-Cell State=Selected on desktop, Single-Selected on mobile.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "CalendarDateInput | null",
+          "required": false,
+          "default": "null",
+          "description": "The selected day at first (uncontrolled). Default: none on desktop.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(date: Date) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the day the person presses.",
+          "deprecated": null
+        },
+        {
+          "name": "events",
+          "type": "CalendarEventData[]",
+          "required": false,
+          "default": "[]",
+          "description": "The events to show: chips in the desktop cells, a dot under the mobile days.",
+          "deprecated": null
+        },
+        {
+          "name": "onEventClick",
+          "type": "(event: CalendarEventData, target: HTMLElement) => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing an event chip (desktop): open its details, anchored to `target`. Without it the chips are static.",
+          "deprecated": null
+        },
+        {
+          "name": "selectedEventId",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "The event whose details are open: its chip shows State=Selected.",
+          "deprecated": null
+        },
+        {
+          "name": "onMoreClick",
+          "type": "(date: Date) => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing \"+N more\" (desktop): show the whole day (its Agenda or Day view). Without it \"+N more\" is text.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (a 7-column grid of Day-Cells with event chips) or `mobile` (date-picker days with an\nevent dot; list the selected day below with CalendarAgenda). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today (\"2026-09-30\" or a Date). Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the month (default: the month and year, \"September 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the cells and days it draws (`{ \"Week[0]/Day[2]\": { more: 2 } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarToolbar",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"title\">",
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Title: the visible period (\"September 2026\"). Default: the period around `date` for `view` (Week\n\"Sep 28 – Oct 4, 2026\", Day \"Wednesday, September 30, 2026\"); on mobile the short form (\"Sep 2026\"), which fits\nbeside the buttons in the Mobile typography.",
+          "deprecated": null
+        },
+        {
+          "name": "date",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day the views show (\"2026-09-30\" or a Date); with no `title` it names the period.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today: while the shown period already holds it, Today is disabled (pressing it would change\nnothing). Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "titleLevel",
+          "type": "2 | 3 | 4",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the title: one below the page heading. Default 2.",
+          "deprecated": null
+        },
+        {
+          "name": "view",
+          "type": "\"month\" | \"week\" | \"day\" | \"3-day\" | \"agenda\"",
+          "required": false,
+          "default": "\"month\"",
+          "description": "The selected view of the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "views",
+          "type": "CalendarView[]",
+          "required": false,
+          "default": "[\"month\", \"week\", \"day\", \"agenda\"]",
+          "description": "The views the switch offers, in order (Figma: Month · Week · Day · Agenda). Hide views the product does not\noffer; an empty list hides the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "onViewChange",
+          "type": "(view: CalendarView) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the view the person picks.",
+          "deprecated": null
+        },
+        {
+          "name": "onToday",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Today (Tertiary button): back to today's period. Without it the button is left out.",
+          "deprecated": null
+        },
+        {
+          "name": "onPrevious",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Previous period (Tertiary icon button).",
+          "deprecated": null
+        },
+        {
+          "name": "onNext",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Next period (Tertiary icon button).",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (one row: Today, arrows, title; the switch at the end) or `mobile` (title and the 40px\nbuttons, then a full-width switch). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the buttons and switch it draws (`{ \"Today\": { level: \"secondary\" } }`). Written by\nZen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarTimeGrid",
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "view",
+          "type": "\"week\" | \"day\" | \"3-day\"",
+          "required": false,
+          "default": null,
+          "description": "Figma View: `week` (Monday to Sunday), `day`, or `3-day` (the day before, the day, the day after). Default `week`\non desktop and `3-day` on mobile; `week` on a phone draws the 3-Day grid (a week does not fit).",
+          "deprecated": null
+        },
+        {
+          "name": "date",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day the view is built around (\"2026-09-30\" or a Date). Default: today.",
+          "deprecated": null
+        },
+        {
+          "name": "events",
+          "type": "CalendarEventData[]",
+          "required": false,
+          "default": "[]",
+          "description": "The events: all-day ones in the all-day row, timed ones as blocks at their hours.",
+          "deprecated": null
+        },
+        {
+          "name": "startHour",
+          "type": "number",
+          "required": false,
+          "default": "8",
+          "description": "First hour shown (default 8: 08:00).",
+          "deprecated": null
+        },
+        {
+          "name": "endHour",
+          "type": "number",
+          "required": false,
+          "default": "18",
+          "description": "Hour the grid ends at (default 18: the last row is 17:00–18:00). Extend it for longer days.",
+          "deprecated": null
+        },
+        {
+          "name": "now",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The current time: the now line in today's column. Default: the device clock, updated every minute.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today (the Accent date, the now line). Default: `now`'s day.",
+          "deprecated": null
+        },
+        {
+          "name": "onEventClick",
+          "type": "(event: CalendarEventData, target: HTMLElement) => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing an event: open its details, anchored to `target`. Without it the blocks are static.",
+          "deprecated": null
+        },
+        {
+          "name": "selectedEventId",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "The event whose details are open: its block (or chip) shows State=Selected.",
+          "deprecated": null
+        },
+        {
+          "name": "onSlotPress",
+          "type": "(start: Date) => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing an empty slot (pointer): the start of that half hour, to create an event there. Keyboard users create\nevents from the page's main action.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (56px hour gutter) or `mobile` (44px). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the grid (default: the period, \"Sep 28 – Oct 4, 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the blocks and dates it draws (`{ \"Day[2]/Date\": { size: \"md\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarAgenda",
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "events",
+          "type": "CalendarEventData[]",
+          "required": false,
+          "default": "[]",
+          "description": "The events; they are listed day by day, all-day first, then by start time.",
+          "deprecated": null
+        },
+        {
+          "name": "from",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "First day of the range (\"2026-09-30\" or a Date). Default: today.",
+          "deprecated": null
+        },
+        {
+          "name": "days",
+          "type": "number",
+          "required": false,
+          "default": "7",
+          "description": "How many days the range covers (default 7). Days without events are left out.",
+          "deprecated": null
+        },
+        {
+          "name": "onEventClick",
+          "type": "(event: CalendarEventData, target: HTMLElement) => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing an event: open its details, anchored to `target`. Without it the rows are static.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (a date column beside each day's rows, in a bordered box) or `mobile` (a kicker over each\nday's rows). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today (Accent date and kicker, \"Today ·\"). Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "empty",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Shown when the range has no events. Default: an Empty-State Small, \"No events\".",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the rows it draws (`{ \"Day[0]/Item[1]\": { color: \"teal\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarWeekStrip",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"defaultValue\" | \"onChange\">",
+      "props": [
+        {
+          "name": "week",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "Any day of the week to show (Monday first). Default: the selected day, else today.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "CalendarDateInput | null",
+          "required": false,
+          "default": null,
+          "description": "The selected day (controlled).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "CalendarDateInput | null",
+          "required": false,
+          "default": null,
+          "description": "The selected day at first (uncontrolled). Default: today.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(date: Date) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the day the person picks.",
+          "deprecated": null
+        },
+        {
+          "name": "events",
+          "type": "CalendarEventData[]",
+          "required": false,
+          "default": "[]",
+          "description": "The events of the period: a day with any shows the event dot (Dot style).",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"dot\" | \"tile\"",
+          "required": false,
+          "default": "\"dot\"",
+          "description": "Figma Style: `dot` (date-picker days with an event dot, default) or `tile` (weekday and date in one tile; the\nselected day a bordered Surface tile, as Schedule/Day-Planner uses it).",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (32px days, a side panel or picker) or `mobile` (40px days, above the day's events on a\nphone). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today (Today ring / Accent date). Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the strip (default: none; name it when a screen has more than one).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the days it draws (`{ \"Day[3]\": { event: false } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarEvent",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"title\" | \"color\">",
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Title: one line, truncated with \"…\".",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Time (\"09:00\"); not shown on an all-day event.",
+          "deprecated": null
+        },
+        {
+          "name": "kind",
+          "type": "\"timed\" | \"all-day\"",
+          "required": false,
+          "default": "\"timed\"",
+          "description": "Figma Kind: `timed` (Subtle fill, time + title) or `all-day` (Solid fill, title only).",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"brand\" | \"blue\" | \"violet\" | \"teal\" | \"green\" | \"orange\" | \"pink\"",
+          "required": false,
+          "default": "\"brand\"",
+          "description": "Figma Color: the event's calendar. Brand is the default; other hues only tell calendars apart.",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=Selected: while the event's details popover is open (Solid fill; Rich for all-day). Pair it with the\npopover's open state and pass `aria-expanded` yourself.",
+          "deprecated": null
+        },
+        {
+          "name": "onClick",
+          "type": "MouseEventHandler<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Pressing the chip (open its details). Without it the chip is static text, not a button.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root element (a `<button>` when pressable, else a `<div>`).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarEventBlock",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"title\" | \"color\">",
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Title: up to two lines, truncated.",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Time (\"11:00 – 12:00\"): one line, truncated.",
+          "deprecated": null
+        },
+        {
+          "name": "showTime",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Show-Time (default true). The Time-Grid hides it on a block too short for two lines.",
+          "deprecated": null
+        },
+        {
+          "name": "titleLines",
+          "type": "1 | 2",
+          "required": false,
+          "default": "2",
+          "description": "How many lines the title may take before \"…\": 2 (Figma, default) or 1. The Time-Grid sets 1 on blocks shorter\nthan an hour, whose height holds one title line (and the time from 45 minutes).",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"brand\" | \"blue\" | \"violet\" | \"teal\" | \"green\" | \"orange\" | \"pink\"",
+          "required": false,
+          "default": "\"brand\"",
+          "description": "Figma Color (default brand).",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=Selected: while its details popover is open (Solid fill, On-Colors text).",
+          "deprecated": null
+        },
+        {
+          "name": "onClick",
+          "type": "MouseEventHandler<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Pressing the block (open its details). Without it the block is static.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root element (a `<button>` when pressable, else a `<div>`).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarDate",
+      "extends": "HTMLAttributes<HTMLSpanElement>",
+      "props": [
+        {
+          "name": "day",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Day: the day number.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: `md` (24, month cells and agenda) or `lg` (36, week / day column headers); short or Figma spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"today\" | \"muted\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma State: `default`, `today` (Accent Solid circle) or `muted` (a day of the previous or next month).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<span>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarNowLine",
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "Figma Orientation: `horizontal` (across today's Time-Grid column) or `vertical` (down a resource or Gantt track).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarDayCell",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"onSelect\">",
+      "props": [
+        {
+          "name": "day",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Day: the day number.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The full date: names the date button in the locale (\"Wednesday, September 30, 2026, 3 events\").",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"today\" | \"selected\" | \"outside\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma State: `default`, `today` (Accent date), `selected` (Accent Flat tint: the day the user pressed) or `outside`\n(a day of the previous or next month: Surface Alt, muted date, no events).",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "With `state=\"selected\"`: draw the date as Today too (today is the selected day).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Events slot: the day's `CalendarEvent` chips (at most three; with more, two and `more`).",
+          "deprecated": null
+        },
+        {
+          "name": "more",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "Figma More: how many events do not fit. Above 0 it shows \"+N more\".",
+          "deprecated": null
+        },
+        {
+          "name": "onMoreClick",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing \"+N more\" (show the whole day). Without it \"+N more\" is text.",
+          "deprecated": null
+        },
+        {
+          "name": "onSelect",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing the date or the cell: select the day. Without it the date is not a button.",
+          "deprecated": null
+        },
+        {
+          "name": "focusable",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Whether the date button is in the tab order (the month keeps one day there and moves focus with the arrows).\nDefault true.",
+          "deprecated": null
+        },
+        {
+          "name": "dateProps",
+          "type": "ButtonHTMLAttributes<HTMLButtonElement> & { ref?: Ref<HTMLButtonElement> } & Record<`data-${string}`, string | number | undefined>",
+          "required": false,
+          "default": null,
+          "description": "Props of the date button (`data-*` the month's arrow keys read, `ref`).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the date it draws (`{ \"Date\": { size: \"lg\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarAgendaItem",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"title\" | \"color\">",
+      "props": [
+        {
+          "name": "start",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Start (\"09:00\", or \"All day\").",
+          "deprecated": null
+        },
+        {
+          "name": "end",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma End (\"09:30\"); leave it out for an all-day event.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Title (one line, truncated).",
+          "deprecated": null
+        },
+        {
+          "name": "meta",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Meta: place · link (one line, truncated).",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"brand\" | \"blue\" | \"violet\" | \"teal\" | \"green\" | \"orange\" | \"pink\"",
+          "required": false,
+          "default": "\"brand\"",
+          "description": "Figma Color: the rule's hue (default brand).",
+          "deprecated": null
+        },
+        {
+          "name": "attendees",
+          "type": "Array<{ src?: string; alt?: string }>",
+          "required": false,
+          "default": null,
+          "description": "Figma Attendees (desktop only): AvatarStack items (Size Small, Background Subtle, up to 3).",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": "\"desktop\"",
+          "description": "Figma Device: `desktop` (72px time column, attendees) or `mobile` (48px).",
+          "deprecated": null
+        },
+        {
+          "name": "onClick",
+          "type": "MouseEventHandler<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Pressing the row (open the event). Without it the row is static.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the AvatarStack it draws (`{ \"Attendees\": { max: 4 } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root element (a `<button>` when pressable, else a `<div>`).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CalendarDayTile",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "weekday",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Weekday (\"Wed\").",
+          "deprecated": null
+        },
+        {
+          "name": "day",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Day (\"30\").",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=Selected: a Surface/Default tile with a Pale border, readable on any canvas.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Today=Yes: the date in Accent.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The full date, the tile's accessible name (\"Wednesday, September 30, 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<button>`.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
   "tooltip": [
     {
       "name": "Tooltip",
@@ -11748,7 +12694,7 @@
           "type": "\"icon-highlight\" | \"title-highlight\"",
           "required": false,
           "default": "\"icon-highlight\"",
-          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
+          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Body/Extra/Medium at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
           "deprecated": null
         },
         {
@@ -11898,7 +12844,7 @@
           "type": "\"kpi\" | \"sparkline\" | \"spark-bars\" | \"goal-progress\" | \"comparison\" | \"category-bar\" | \"hero\" | \"tile\"",
           "required": false,
           "default": "\"kpi\"",
-          "description": "Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): a Title-Highlight Metric, Large (`variant` picks\nIcon-Highlight). Every other\ntype draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart\n(Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)\nbars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;\n`comparison` (15481:1848) the `label` as a Heading/Subheading title over the `comparison` columns; `category-bar`\n(15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral\ntrend line from `series` on a Brand Pale card (theme=\"solid\" for the dark widget), with `footer` for its button;\n`tile` (16104:4827) a phone stat tile, Figma Metric-Tile in a Card Spacing=Small: the title, number and trend over\nthe Dock-Icon. Its `size` is Medium (default: two-up, Display/3) or Small (three-up, Heading/3), and its content follows\nthe card's fill (Figma Content: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on\nYellow).",
+          "description": "Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): a Title-Highlight Metric, Large (`variant` picks\nIcon-Highlight). Every other\ntype draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart\n(Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)\nbars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;\n`comparison` (15481:1848) the `label` as a Body/Extra/Medium title over the `comparison` columns; `category-bar`\n(15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral\ntrend line from `series` on a Brand Pale card (theme=\"solid\" for the dark widget), with `footer` for its button;\n`tile` (16104:4827) a phone stat tile, Figma Metric-Tile in a Card Spacing=Small: the title, number and trend over\nthe Dock-Icon. Its `size` is Medium (default: two-up, Display/4) or Small (three-up, Heading/3), and its content follows\nthe card's fill (Figma Content: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on\nYellow).",
           "deprecated": null
         },
         {
@@ -11962,7 +12908,7 @@
           "type": "2 | 3 | 4",
           "required": false,
           "default": "3",
-          "description": "comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under\n the page h1), as ChartCard's. The look stays Heading/Subheading: the level follows the outline, not the size.",
+          "description": "comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under\n the page h1), as ChartCard's. The look stays Body/Extra/Medium: the level follows the outline, not the size.",
           "deprecated": null
         },
         {
@@ -15932,7 +16878,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "Figma Header Label (Heading/Subheading).",
+          "description": "Figma Header Label (Body/Extra/Medium, 2026-10-21).",
           "deprecated": null
         },
         {
@@ -15940,7 +16886,7 @@
           "type": "2 | 3 | 4",
           "required": false,
           "default": "3",
-          "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
+          "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Body/Extra/Medium — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
           "deprecated": null
         },
         {
@@ -15956,7 +16902,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "One line under the title that says what the figure is (\"Available revenue in your wallet\"), Body/Small/Regular.",
+          "description": "What the figure is (\"Available revenue in your wallet\"), Body/Small/Regular: the top of Figma's Metric, under the\n Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
           "deprecated": null
         },
         {
@@ -15964,7 +16910,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/2 (Figma Chart-Card Heading > Value).",
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the\n description and the Segmented.",
           "deprecated": null
         },
         {
@@ -18147,10 +19093,10 @@
         },
         {
           "name": "theme",
-          "type": "\"default\" | \"border-divider\"",
+          "type": "\"default\" | \"border-divider\" | \"borderless\"",
           "required": false,
           "default": null,
-          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Medium ·\nMargin-Comfortable). Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
+          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Large\nabove, Padding/Medium below, Margin-Comfortable at the sides) · `borderless` (Theme=Borderless: the same rows\nwithout the line). Figma draws both only at Density=Small. Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
           "deprecated": null
         },
         {
@@ -18158,7 +19104,7 @@
           "type": "\"medium\" | \"small\"",
           "required": false,
           "default": null,
-          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider theme pads its rows itself.",
+          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider and borderless themes pad their rows themselves.",
           "deprecated": null
         },
         {

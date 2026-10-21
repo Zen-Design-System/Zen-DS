@@ -23,12 +23,25 @@ const members = [
   { id: "minh", name: "Minh Tran", role: "Editor" },
 ];
 
+const calendarEvents = [
+  { id: "standup", title: "Daily standup", start: new Date(2026, 8, 30, 9), end: new Date(2026, 8, 30, 9, 30) },
+  { id: "q4", title: "Q4 planning", start: new Date(2026, 8, 30, 10, 30), end: new Date(2026, 8, 30, 12), color: "blue", meta: "Room 2" },
+  { id: "kickoff", title: "Q4 kickoff", start: new Date(2026, 9, 1), allDay: true },
+];
+
 export const fixtures: Record<string, Fixture> = {
   // Overlays: render them open so their content is covered.
   Dialog: { props: { open: true, title: "Delete project?", children: "This removes the project for everyone." } },
   ModalForm: { props: { open: true, title: "Invite member", children: "Form body" } },
   SidePanel: { props: { open: true, title: "Order details", children: "Panel body" } },
   BottomSheet: { props: { open: true, title: "Share", children: "Sheet body" } },
+  // Calendar views with events, today fixed (Wed 30 Sep 2026) so the Today date and the now line render.
+  CalendarMonth: { props: { month: new Date(2026, 8, 1), today: new Date(2026, 8, 30), events: calendarEvents, onEventClick: noop, onMoreClick: noop } },
+  CalendarTimeGrid: { props: { date: new Date(2026, 8, 30), now: new Date(2026, 8, 30, 13, 15), events: calendarEvents, onEventClick: noop } },
+  CalendarAgenda: { props: { from: new Date(2026, 8, 30), today: new Date(2026, 8, 30), events: calendarEvents, onEventClick: noop } },
+  CalendarWeekStrip: { props: { today: new Date(2026, 8, 30), events: calendarEvents, "aria-label": "Pick a day" } },
+  CalendarToolbar: { props: { date: new Date(2026, 8, 30), onToday: noop, onPrevious: noop, onNext: noop, onViewChange: noop } },
+  CalendarDayCell: { props: { day: 30, label: "Wednesday, September 30, 2026", onSelect: noop, more: 2, onMoreClick: noop }, wrap: (element) => <div role="table" aria-label="September 2026"><div role="row"><div role="cell">{element}</div></div></div> },
   DatePickerSheet: { props: { open: true, title: "Your stay", selectionMode: "range", monthCount: 2, today: new Date(2026, 0, 4) } },
   Popover: { props: { open: true, "aria-label": "Sort by", items: [{ id: "new", label: "Newest" }, { id: "old", label: "Oldest" }] } },
   PopoverSearch: { props: { open: true, "aria-label": "Assign to", items: [{ id: "ava", label: "Ava Nguyen" }, { id: "minh", label: "Minh Tran" }] } },

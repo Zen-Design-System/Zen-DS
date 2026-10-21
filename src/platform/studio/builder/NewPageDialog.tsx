@@ -11,9 +11,9 @@ import { snapshotTemplate, templateChoices, type TemplateChoice } from "./starte
 import { pageFromSnapshot } from "./starters/newPageFromFrame";
 import { TemplateThumb } from "./starters/TemplateThumb";
 import { freeId, listPages, movePage, putPage } from "./store/pageStore";
-import { withHeaderProject } from "./store/pageModel";
+import { withHeaderOs, withHeaderProject } from "./store/pageModel";
 import { activeProjectId } from "../project/activeProject";
-import { FRAME_DEVICES, deviceSize, screenDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { FRAME_DEVICES, deviceOs, deviceSize, screenDevice } from "../../../../tools/studio/screen-devices.mjs";
 
 /*
  * New page (Studio builder GĐ2; spec §5 M1): a blank page on a device, or (GĐ3b M3) one of the platform's page templates
@@ -83,9 +83,10 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
     const name = await untitledName();
     const [engine, page] = await Promise.all([loadEngine(), freeId(name)]);
     // "empty": one Screen with nothing in it, as Figma's new frame (user, 2026-10-16); "blank": with the app frame. Either
-    // on the device picked, at its size (tools/studio/screen-devices.mjs).
+    // on the device picked, at its size (tools/studio/screen-devices.mjs); an Android one makes an Android page (header os).
     const entry = screenDevice(deviceId) ?? FRAME_DEVICES[0];
-    await putPage(page, withHeaderProject(engine.newPageText({ title: name, device: entry.device, layout: entry.layout, width: entry.width, height: entry.height, empty: start === "empty" }), project), { title: name, folder });
+    const text = engine.newPageText({ title: name, device: entry.device, layout: entry.layout, width: entry.width, height: entry.height, empty: start === "empty" });
+    await putPage(page, withHeaderProject(withHeaderOs(text, deviceOs(entry)), project), { title: name, folder });
     reset();
     onOpenChange(false);
     openLocalPage(page, { made: true });

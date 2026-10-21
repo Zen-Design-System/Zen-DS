@@ -87,6 +87,28 @@ export type ZenLabels = {
   allDay: string;
   /** A time field that could not be read. */
   invalidTime: string;
+  // Calendar (Calendar/Toolbar, Month, Time-Grid, Agenda, Week-Strip)
+  /** The Toolbar's Today button and the agenda's "Today · Wed, Sep 30" kicker. */
+  today: string;
+  /** The agenda's "Tomorrow · Thu, Oct 1" kicker. */
+  tomorrow: string;
+  previousWeek: string;
+  nextWeek: string;
+  previousDay: string;
+  nextDay: string;
+  /** A view of the Toolbar's switch: Month, Week, Day, 3 days, Agenda. */
+  calendarView: (view: "month" | "week" | "day" | "3-day" | "agenda") => string;
+  /** Names the Toolbar's view switch. */
+  calendarViews: string;
+  /** A month cell's "+2 more" (the events that do not fit). */
+  moreEvents: (count: number) => string;
+  /** The accessible name of "+2 more": "Show 2 more events". */
+  showMoreEvents: (count: number) => string;
+  /** After a day's date in its accessible name: "Wednesday, September 30, 2026, 3 events". */
+  eventCount: (count: number) => string;
+  /** The agenda with no events in its range: title and caption. */
+  noEvents: string;
+  noEventsDescription: string;
   // Forms and fields
   fieldsNeedAttention: (count: number) => string;
   /** After an optional field's label or legend: "(Optional)". */
@@ -417,6 +439,19 @@ const en: ZenLabels = {
   timePm: "PM",
   allDay: "All day",
   invalidTime: "Enter a time like 9:30",
+  today: "Today",
+  tomorrow: "Tomorrow",
+  previousWeek: "Previous week",
+  nextWeek: "Next week",
+  previousDay: "Previous day",
+  nextDay: "Next day",
+  calendarView: (view) => ({ month: "Month", week: "Week", day: "Day", "3-day": "3 days", agenda: "Agenda" })[view],
+  calendarViews: "Calendar view",
+  moreEvents: (count) => `+${count} more`,
+  showMoreEvents: (count) => `Show ${count} more ${count === 1 ? "event" : "events"}`,
+  eventCount: (count) => `${count} ${count === 1 ? "event" : "events"}`,
+  noEvents: "No events",
+  noEventsDescription: "Nothing is planned for these days.",
   fieldsNeedAttention: (count) => `${count} ${count === 1 ? "field needs" : "fields need"} attention`,
   optional: "(Optional)",
   somethingWentWrong: "Something went wrong. Try again.",
@@ -686,6 +721,19 @@ const vi: ZenLabels = {
   timePm: "CH",
   allDay: "Cả ngày",
   invalidTime: "Nhập giờ dạng 9:30",
+  today: "Hôm nay",
+  tomorrow: "Ngày mai",
+  previousWeek: "Tuần trước",
+  nextWeek: "Tuần sau",
+  previousDay: "Ngày trước",
+  nextDay: "Ngày sau",
+  calendarView: (view) => ({ month: "Tháng", week: "Tuần", day: "Ngày", "3-day": "3 ngày", agenda: "Lịch trình" })[view],
+  calendarViews: "Chế độ xem lịch",
+  moreEvents: (count) => `+${count} nữa`,
+  showMoreEvents: (count) => `Xem thêm ${count} sự kiện`,
+  eventCount: (count) => `${count} sự kiện`,
+  noEvents: "Không có sự kiện",
+  noEventsDescription: "Chưa có lịch nào trong những ngày này.",
   fieldsNeedAttention: (count) => `${count} trường cần xem lại`,
   optional: "(Không bắt buộc)",
   somethingWentWrong: "Đã có lỗi xảy ra. Hãy thử lại.",

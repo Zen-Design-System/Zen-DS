@@ -331,12 +331,13 @@ check("clickable Card: every item listed", ids(cardClickable), everyIdInCard);
 check("clickable Card: controls and fields warned", cardClickable.items.filter((item) => (item.interactive || item.input) && !cardClickable.warnings[item.id]).map((item) => item.id), []);
 check("clickable Card: warnings", reasons(cardClickable), [
   "Actions: The card is one click target, so it holds no controls or fields (Button, Primary button, Button row, Icon button, Link, Menu)",
-  "Navigation: The card is one click target, so it holds no controls or fields (Tabs, Segmented, Tab bar, Breadcrumbs, Pagination)",
+  "Navigation: The card is one click target, so it holds no controls or fields (Tabs, Segmented, Tab bar, Breadcrumbs, Pagination, Calendar toolbar, Week strip)",
   "Navigation: Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout (Menu item, Menu section)",
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
   WIDGETS_IN_A_CARD,
   "Inputs: The card is one click target, so it holds no controls or fields (Text field, Property field, Task properties, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Slider field, Color field, Color picker, Inline field, Color selector, File upload)",
+  "Data display: The card is one click target, so it holds no controls or fields (Month calendar, Week calendar)",
   "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Popover, Tooltip)",
   "Layout: The card is one click target, so it holds no controls or fields (Accordion)",
   "Page: The card is one click target, so it holds no controls or fields (Page header, Dashboard header, Top navigation, Bottom navigation, Sidebar, App shell, Action bar)",

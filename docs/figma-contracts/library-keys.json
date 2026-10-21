@@ -924,6 +924,31 @@
       "type": "COMPONENT_SET",
       "key": "1081dfd359857098adc72fea249d83052f82aed4"
     },
+    "16125:399": {
+      "name": "Calendar/Toolbar",
+      "type": "COMPONENT_SET",
+      "key": "e0515bb0839091ebb50693388a59b7753911f98e"
+    },
+    "16125:520": {
+      "name": "Calendar/Week-Strip",
+      "type": "COMPONENT_SET",
+      "key": "a6bfa42118c42f8800d3cac1a25240333d765484"
+    },
+    "16126:1093": {
+      "name": "Calendar/Month",
+      "type": "COMPONENT_SET",
+      "key": "27b59b78271b1a9deef577d27a725aaf8009918a"
+    },
+    "16127:1172": {
+      "name": "Calendar/Time-Grid",
+      "type": "COMPONENT_SET",
+      "key": "c9c76299083ef525c42e194ddf46979907cdcc3d"
+    },
+    "16128:1036": {
+      "name": "Calendar/Agenda",
+      "type": "COMPONENT_SET",
+      "key": "c476ea4f61e9bc9f52df537aa6f0bc7545ca6b68"
+    },
     "16932:195": {
       "name": "Badge-Status",
       "type": "COMPONENT_SET",

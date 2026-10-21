@@ -26,7 +26,8 @@
 //   shape/loose              warning  a hand-drawn shape outside any component (use a Zen component or a local one)
 //   component/detached       warning  a frame named like a Zen component that is not an instance (detached)
 //   bounds/overflow          error    a layer sticking out of its parent (also when the parent does not clip; a centred
-//                                     button bleeding out of a non-clipping icon-size wrapper is Zen's design)
+//                                     button bleeding out of a non-clipping icon-size wrapper, and a Large Indicator
+//                                     Tab-Bar spilling evenly out of a header row, are Zen's design)
 //   bounds/clipped           error    a layer cut off by a clipping parent
 //   bounds/stroke-clip-gap   warning  a clipping frame with an inside stroke and a radius over a filled child that reaches
 //                                     a corner: Figma clips the child 1px in with the outer radius, a gap shows at the corner
@@ -50,7 +51,7 @@
 //                                     with Solid (or Subtle on a white page)
 //   theme/navigation-surface error    a header, Sidebar or top/bottom bar that does not match the Canvas (no fill, or
 //                                     the Surface of the Canvas's colour); only on Canvas/Default may the Sidebar or the
-//                                     Bottom-Navigation be a Surface/Default panel
+//                                     Bottom-Navigation be a Surface/Default panel; a floating bar's own scrim passes
 //   theme/mixed-elevation    error    a shadow on a Canvas/Alt or Canvas/Flat screen, or on Canvas/Default some of the
 //                                     Sidebar, bars and boxes cast one and others do not
 //   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale, Subtle)
@@ -90,8 +91,12 @@
 //                                     fills an empty page, Small (200) a region (card, table, pane, panel, sheet, dialog)
 //   navigation/collapse-beside-master-crumb  error  the header's sidebar toggle beside a Breadcrumbs Master item (two
 //                                     icons in a row): a Sub first crumb, or the toggle in the sidebar (Collapse=Sidebar)
-//   spacing/section-gap      error    a phone screen's Body (the frame that stacks its sections) not spaced by
-//                                     Component Size Layout-Mobile/Section-Gap (Compact 24, Comfortable 32)
+//   spacing/section-gap      error    a screen's section stack (its Body, or a page pattern's Content slot) not spaced
+//                                     by Layout-Mobile/Section-Gap on a phone (Compact 24, Comfortable 32) or
+//                                     Spacing/Gap/XLarge (32) on desktop
+//   section/title-apart      warning  a title row on its own in the section stack, a section gap away from its content
+//   list-box/closing-list-on-phone  error  a List-Box that closes a phone screen (the last section, not in a row or grid
+//                                     of widgets, not one of several grouped List-Boxes): an open section as ◆ Finance
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
 // is scroll content, not bounds/clipped.
 
@@ -305,6 +310,18 @@ function isBleed(node, own, frame) {
 }
 
 /**
+ * A Large Indicator Tab-Bar (64) in a header row (40) spills evenly above and below the row: its indicator sits on the
+ * header's bottom border (tabs.css "the indicator sits on the bar's bottom border"; Master-Layout B3), so the row keeps
+ * its height. Deliberate, so not an overflow.
+ */
+function isTabBleed(node, own, frame) {
+  const above = frame.y - own.y, below = own.y + own.height - frame.y - frame.height;
+  if (above <= TOLERANCE || Math.abs(above - below) > TOLERANCE || own.x < frame.x - TOLERANCE || own.x + own.width > frame.x + frame.width + TOLERANCE) return false;
+  const tabs = node.type === "INSTANCE" ? [node] : "findAll" in node ? node.findAll((child) => child.type === "INSTANCE" && child.name === "Tab-Bar") : [];
+  return tabs.some((tab) => tab.name === "Tab-Bar" && tab.variantProperties?.Style === "Indicator" && Math.abs(tab.height - own.height) <= TOLERANCE);
+}
+
+/**
  * Scroll content: a clipping frame set to scroll (Figma prototype overflow) shows the rest of its content when the
  * user scrolls, so a layer that runs on only past its far end (bottom for Vertical, right for Horizontal) is not cut.
  * A phone screen whose Body is longer than 844, or a Chip row wider than the screen, scrolls this way; so does the
@@ -342,7 +359,7 @@ function checkBounds(node) {
   const frame = box(parent);
   if (!own || !frame) return;
   if (sticksOut(own, frame, tolerance)) {
-    if (isBleed(node, own, frame) || scrollsPast(node, own, frame, tolerance)) return;
+    if (isBleed(node, own, frame) || isTabBleed(node, own, frame) || scrollsPast(node, own, frame, tolerance)) return;
     report(parent.clipsContent ? "bounds/clipped" : "bounds/overflow", ERROR, node, `${side(own, frame, tolerance)} past ${parent.name}`);
     return;
   }
@@ -522,7 +539,10 @@ async function checkThemePairingOf(root) {
   }
   for (const { node, role, panel } of bars) {
     const kind = await surfaceKind(node);
-    const seamless = kind === "none" || kind === `Canvas/${canvas}` || kind === CANVAS_TWIN[canvas];
+    // A bar that floats over the page (Top-Navigation Liquid-Overlay over a photo, Bottom-Navigation Floating) draws
+    // its own scrim gradient: the component's fill, not one the screen painted (Master-Layout C4, D5).
+    const ownScrim = kind === "Gradient" && node.type === "INSTANCE" && !(node.overrides ?? []).some((change) => change.id === node.id && change.overriddenFields.includes("fills"));
+    const seamless = kind === "none" || kind === `Canvas/${canvas}` || kind === CANVAS_TWIN[canvas] || ownScrim;
     const allowedPanel = panel && canvas === "Default" && kind === "Surface/Default";
     if (!seamless && !allowedPanel) report("theme/navigation-surface", ERROR, node, `${role} is ${kind} on Canvas/${canvas}: match the canvas (no fill or ${CANVAS_TWIN[canvas]})${panel ? "; only on Canvas/Default may it be a Surface/Default panel" : ""}`);
     if (panel && kind !== "none" && !seamless) (dropShadow(node) ? elevated : flat).push(node);
@@ -744,18 +764,96 @@ async function checkTouchSpacing(root) {
 // Phone sections (user 2026-10-17: "thêm rule spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn
 // là 32px. Compact là 24px. tạo token để áp dụng"): the Body that stacks a phone screen's sections binds its gap to
 // Component Size's Layout-Mobile/Section-Gap (Compact 24, Comfortable 32), so it follows the mode the domain picks.
+// User 2026-10-21: "Spacing giữa các section trong mobile nên là 32px", "section khác với spacing trong 1 nhóm grid
+// widget", "trong Desktop cũng vậy": desktop sections are Spacing/Gap/XLarge (32) apart. The section stack is the
+// screen's Body / Content frame or a page pattern's Content slot (Pattern/AppShell/…), whose children are the sections;
+// a widget grid inside a section keeps its own, smaller gap.
+// "Các nhóm nội dung cùng nhau nên gom vào cùng 1 section", "không để title riêng, listing riêng": a section's title row
+// and the content it names are one section frame, never two siblings of the stack (section/title-apart).
 const SECTION_BODY = /^(Body|Content|Sections)$/i;
+const TITLE_STYLE = /^(Heading\/(2|3|4|Subheading)|Body\/Small\/Bold|All-Caps)/;
+const textStyleName = async (node) => (typeof node.textStyleId === "string" && node.textStyleId ? (await figma.getStyleByIdAsync(node.textStyleId))?.name ?? "" : "");
+/** True when `node` holds only a title: a heading or kicker text, alone or in a row with a See all link. */
+async function isLoneTitle(node) {
+  if (node.type === "TEXT") return TITLE_STYLE.test(await textStyleName(node));
+  if (node.type !== "FRAME" || node.layoutMode === "NONE") return false;
+  const shown = node.findAll((child) => child.visible !== false);
+  for (const child of shown) if (child.type === "INSTANCE" && !/^(Button\/Flat|Link)/.test(await setNameOf(child))) return false;
+  const texts = shown.filter((child) => child.type === "TEXT");
+  // A heading over its paragraph (a docs step, an intro) is a section of text, not a title: copy is a text after the
+  // first one that runs past 60 characters or wraps (Master-Layout B5's "2. Wrap your app in ZenProvider").
+  const isCopy = (text) => text.characters.length > 60 || text.height > 1.5 * (typeof text.fontSize === "number" ? text.fontSize : 16) * 1.4;
+  if (texts.slice(1).some(isCopy)) return false;
+  return texts.length > 0 && texts.length <= 3 && TITLE_STYLE.test(await textStyleName(texts[0]));
+}
 async function checkSectionGap(root) {
   const screens = screensOf(root);
   for (const screen of screens) {
+    if (!("findAll" in screen)) continue;
     const phone = screen.width < 744 || screen.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(node.name)).length > 0;
-    if (!phone) continue;
-    for (const body of screen.children) {
-      if (body.type !== "FRAME" || !SECTION_BODY.test(body.name) || body.layoutMode !== "VERTICAL" || body.visible === false) continue;
-      if (body.children.filter((child) => child.visible !== false).length < 2) continue;
+    const stacks = screen.children.filter((body) => body.type === "FRAME" && SECTION_BODY.test(body.name) && body.layoutMode === "VERTICAL" && body.visible !== false);
+    for (const slot of screen.findAll((node) => node.type === "SLOT" && node.name === "Content" && node.layoutMode === "VERTICAL" && node.visible !== false)) {
+      let owner = slot.parent;
+      while (owner && owner.type !== "INSTANCE") owner = owner.parent;
+      if (owner && PAGE_PATTERN.test(await setNameOf(owner))) stacks.push(slot);
+    }
+    const want = phone ? "Layout-Mobile/Section-Gap" : "Spacing/Gap/XLarge";
+    for (const body of stacks) {
+      const shown = body.children.filter((child) => child.visible !== false && child.layoutPositioning !== "ABSOLUTE");
+      // A pane (a thread that fills down to its composer) is not a page of sections; a Divider separates, it is no section.
+      if (shown.some((child) => child.layoutSizingVertical === "FILL")) continue;
+      const sections = [];
+      for (const child of shown) if (!(child.type === "INSTANCE" && /^Divider/.test(await setNameOf(child)))) sections.push(child);
+      if (sections.length < 2) continue;
       const id = body.boundVariables?.itemSpacing?.id;
       const name = id ? await variableName(id) : null;
-      if (name !== "Layout-Mobile/Section-Gap") report("spacing/section-gap", ERROR, body, `gap ${body.itemSpacing}${name ? ` (${name})` : ""}: a phone screen's sections are spaced by Layout-Mobile/Section-Gap (Component Size: Compact 24, Comfortable 32), never less`);
+      if (name !== want) report("spacing/section-gap", ERROR, body, `gap ${body.itemSpacing}${name ? ` (${name})` : ""}: ${phone ? "a phone screen's sections are spaced by Layout-Mobile/Section-Gap (Component Size: Compact 24, Comfortable 32), never less" : "a desktop page's sections are spaced by Spacing/Gap/XLarge (32)"}; a widget grid keeps its own gap inside its section`);
+      for (let i = 0; i < sections.length - 1; i++) {
+        if (await isLoneTitle(sections[i])) report("section/title-apart", WARNING, sections[i], `“${sections[i].name}” is a title on its own, a section gap away from the content it names: put the title row and its content in one section frame (Spacing/Gap/Medium between them)`);
+      }
+    }
+  }
+}
+
+// A list that closes a phone screen (user 2026-10-21: "nếu list-box nằm cuối trang ở mobile thì không bỏ vào list box mà
+// đưa thành 1 danh sách nối thành 1 section giống example Finance"; "cuối trang nghĩa là bên dưới nó không nằm trong grid
+// của các widget, mà là 1 danh sách độc lập liệt kê như task, transaction"): on a phone, a List-Box that is the last
+// section of the screen's content, and not in a row or grid of widgets, is an open section instead, as ◆ Finance's
+// Transactions: a Heading row (Heading/4 + See All, Margin-Comfortable sideways, Padding/Medium above and below) over the
+// List-Items in a frame padded Margin-Comfortable sideways, straight on the Canvas. Grouped lists (more than one List-Box
+// in the content: settings, profile, screen-rules §4) keep their boxes.
+const PAGE_PATTERN = /^Pattern\/|AppShell|Master-Layout/;
+const SCREEN_BAR = /^(Bottom-Navigation|Top-Navigation|Action-Bar|Status-bar|Home-Indicator|System|Tab-Bar)/;
+async function checkClosingList(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen)) continue;
+    const phone = screen.width < 744 || screen.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(node.name)).length > 0;
+    if (!phone) continue;
+    const closing = [];
+    const perContent = new Map();
+    for (const box of screen.findAll((node) => node.type === "INSTANCE" && node.visible !== false)) {
+      if ((await setNameOf(box)) !== "Component/List-Box") continue;
+      // Walk up to the screen's content (a page pattern's slot, or the screen frame): every level must end with the box.
+      let current = box, content = null, last = true;
+      for (let parent = box.parent; parent && parent.type !== "PAGE"; current = parent, parent = parent.parent) {
+        if (parent.type === "SLOT") {
+          let owner = parent.parent;
+          while (owner && owner.type !== "INSTANCE") owner = owner.parent;
+          if (!owner || !PAGE_PATTERN.test(await setNameOf(owner))) { last = false; break; } // in a Card, a sheet or a panel
+        } else if (parent.type === "INSTANCE") { last = false; break; } // inside another component
+        if (parent.layoutMode === "HORIZONTAL" || parent.layoutMode === "GRID" || parent.layoutWrap === "WRAP") { last = false; break; } // a row or grid of widgets
+        // By id: layers inside an instance are new objects on every read, so indexOf misses them.
+        const flow = parent.children.filter((child) => child.visible !== false && child.layoutPositioning !== "ABSOLUTE" && !SCREEN_BAR.test(child.name));
+        if (flow.findIndex((child) => child.id === current.id) !== flow.length - 1) last = false; // a section follows
+        if (parent.type === "SLOT" || parent.id === screen.id) { content = parent; break; }
+      }
+      if (!content) continue;
+      perContent.set(content.id, (perContent.get(content.id) ?? 0) + 1);
+      if (last) closing.push([box, content]);
+    }
+    for (const [box, content] of closing) {
+      if (perContent.get(content.id) > 1) continue;
+      report("list-box/closing-list-on-phone", ERROR, box, "the last section of a phone screen is in a List-Box: make it an open section as ◆ Finance Transactions (a Heading row with See All over the List-Items in a frame padded Margin-Comfortable, no box)");
     }
   }
 }
@@ -1149,6 +1247,7 @@ for (const root of roots) await checkBackChevron(root);
 for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkSectionGap(root);
+for (const root of roots) await checkClosingList(root);
 for (const root of roots) await checkNavIcons(root);
 for (const root of roots) await checkFloatingBarFit(root);
 for (const root of roots) await checkStatusInBar(root);

@@ -17,7 +17,7 @@ import { DateField, InputField, SelectField } from "../../../../components/Input
 import { Thumbnail } from "../../../../components/Image";
 import { Stack } from "../../../../components/Layout";
 import { Link } from "../../../../components/Link";
-import { List, ListBox, ListItem } from "../../../../components/ListItem";
+import { List, ListItem } from "../../../../components/ListItem";
 import { ProgressBar } from "../../../../components/Progress";
 import { Segmented } from "../../../../components/Segmented";
 import { Heading, Text } from "../../../../components/Text";
@@ -83,12 +83,14 @@ function OrderDetailPhone() {
             ? { label: "Track shipment", onClick: () => toast({ title: "Parcel with GHN Express", children: "Out for delivery Thu, Oct 2" }) }
             : { label: "Mark as shipped", onClick: () => { setShipped(true); toast({ title: "Order #10428 shipped", children: "Lia gets the tracking link by email.", action: { label: "Undo", onClick: () => setShipped(false) } }); } }} />}
       >
-        <Stack gap="lg">
-          <Stack gap="xs">
-            <Badge size="sm" leadingIcon={false} theme={shipped ? "green" : "orange"}>{shipped ? "Shipped" : "Ready to ship"}</Badge>
-            <Text as="p" textStyle="Display/4" tabularNumbers>$110.00</Text>
-            <Text textStyle="Body/Small/Regular" tone="light">2 items · Paid with Visa ·· 42</Text>
-          </Stack>
+        {/* Two sections, a section gap apart (the AppShell body spaces them): the order's total, then the Segmented with
+            the groups it switches, Spacing/Gap/Medium between them (Figma C5, usage rules §13). */}
+        <Stack gap="xs">
+          <Badge size="sm" leadingIcon={false} theme={shipped ? "green" : "orange"}>{shipped ? "Shipped" : "Ready to ship"}</Badge>
+          <Text as="p" textStyle="Display/4" tabularNumbers>$110.00</Text>
+          <Text textStyle="Body/Small/Regular" tone="light">2 items · Paid with Visa ·· 42</Text>
+        </Stack>
+        <Stack gap="md">
           <Segmented fullWidth aria-label="Order sections" value={tab} onValueChange={(next) => setTab(next as OrderTab)}
             options={[{ id: "details", label: "Details" }, { id: "items", label: "Items" }, { id: "activity", label: "Activity" }]} />
           {tab === "details" ? (
@@ -226,6 +228,7 @@ function GreetingHomePhone() {
             { id: "profile", label: "Profile", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
           ]} />}
       >
+        {/* One section per group of content (a section gap apart, from the AppShell body); the widgets inside keep md. */}
         <Stack gap="md">
           <Text as="p" tone="light">Thursday, Oct 16 · 3 things need you today</Text>
           <Card theme="flat" as="section" aria-label="Up next">
@@ -258,22 +261,21 @@ function GreetingHomePhone() {
               </Card>
             ))}
           </Stack>
-          <ListBox as="section" aria-labelledby={todoId} header={(
-            <Stack direction="row" gap="xs" align="center" justify="between">
-              <Heading level={2} id={todoId} textStyle="Heading/4">To do today</Heading>
-              <Text as="span" textStyle="Body/Base/Bold">
-                <Link as="button" tone="inherit" onClick={() => toast({ title: "All to-dos", children: "3 today · 5 this week" })}>See All</Link>
-              </Text>
-            </Stack>
-          )}>
-            <List aria-labelledby={todoId}>
-              {todos.map((todo) => (
-                <ListItem key={todo.id} title={todo.title} caption={todo.caption} onClick={() => toast({ title: todo.title, children: todo.caption })}
-                  leading={<Avatar size="md" shape="square" theme={todo.theme} background="subtle" alt="">{todo.initials}</Avatar>}
-                  trailing={<Icon name="icon-chevron-right-line-medium" size="lg" decorative />} />
-              ))}
-            </List>
-          </ListBox>
+        </Stack>
+        <Stack as="section" gap="md" aria-labelledby={todoId}>
+          <Stack direction="row" gap="xs" align="center" justify="between">
+            <Heading level={2} id={todoId} textStyle="Heading/4">To do today</Heading>
+            <Text as="span" textStyle="Body/Base/Bold">
+              <Link as="button" tone="inherit" onClick={() => toast({ title: "All to-dos", children: "3 today · 5 this week" })}>See All</Link>
+            </Text>
+          </Stack>
+          <List aria-labelledby={todoId}>
+            {todos.map((todo) => (
+              <ListItem key={todo.id} title={todo.title} caption={todo.caption} onClick={() => toast({ title: todo.title, children: todo.caption })}
+                leading={<Avatar size="md" shape="square" theme={todo.theme} background="subtle" alt="">{todo.initials}</Avatar>}
+                trailing={<Icon name="icon-chevron-right-line-medium" size="lg" decorative />} />
+            ))}
+          </List>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -294,12 +296,13 @@ export const examples: ExampleDef[] = [
       secondaryAction={{ label: "Contact", onClick: contact }}
       primaryAction={{ label: "Mark as shipped", onClick: ship }} />}
   >
-    <Stack gap="lg">
-      <Stack gap="xs">
-        <Badge size="sm" leadingIcon={false} theme="orange">Ready to ship</Badge>
-        <Text as="p" textStyle="Display/4">$110.00</Text>
-        <Text textStyle="Body/Small/Regular" tone="light">2 items · Paid with Visa ·· 42</Text>
-      </Stack>
+    {/* Two sections (the body spaces them): the total, then the Segmented with the groups it switches. */}
+    <Stack gap="xs">
+      <Badge size="sm" leadingIcon={false} theme="orange">Ready to ship</Badge>
+      <Text as="p" textStyle="Display/4">$110.00</Text>
+      <Text textStyle="Body/Small/Regular" tone="light">2 items · Paid with Visa ·· 42</Text>
+    </Stack>
+    <Stack gap="md">
       <Segmented fullWidth aria-label="Order sections" value={tab} onValueChange={setTab}
         options={[{ id: "details", label: "Details" }, { id: "items", label: "Items" }, { id: "activity", label: "Activity" }]} />
       <Card theme="pale" as="section" aria-labelledby="customer">
@@ -412,19 +415,18 @@ export const examples: ExampleDef[] = [
         </Card>
         …
       </Stack>
-      <ListBox as="section" aria-labelledby="todo" header={
-        <Stack direction="row" gap="xs" align="center" justify="between">
-          <Heading level={2} id="todo" textStyle="Heading/4">To do today</Heading>
-          <Text as="span" textStyle="Body/Base/Bold"><Link as="button" tone="inherit" onClick={seeAll}>See All</Link></Text>
-        </Stack>
-      }>
-        <List aria-labelledby="todo">
-          <ListItem title="Pay electricity bill" caption="Due today · ₫850,000" onClick={open}
-            leading={<Avatar size="md" shape="square" theme="orange" background="subtle" alt="">EB</Avatar>}
-            trailing={<Icon name="icon-chevron-right-line-medium" size="lg" decorative />} />
-          …
-        </List>
-      </ListBox>
+    </Stack>
+    <Stack as="section" gap="md" aria-labelledby="todo">
+      <Stack direction="row" gap="xs" align="center" justify="between">
+        <Heading level={2} id="todo" textStyle="Heading/4">To do today</Heading>
+        <Text as="span" textStyle="Body/Base/Bold"><Link as="button" tone="inherit" onClick={seeAll}>See All</Link></Text>
+      </Stack>
+      <List aria-labelledby="todo">
+        <ListItem title="Pay electricity bill" caption="Due today · ₫850,000" onClick={open}
+          leading={<Avatar size="md" shape="square" theme="orange" background="subtle" alt="">EB</Avatar>}
+          trailing={<Icon name="icon-chevron-right-line-medium" size="lg" decorative />} />
+        …
+      </List>
     </Stack>
   </AppShell>
 </PlatformPhone>`,

@@ -13,7 +13,7 @@ import { DockIcon } from "../../../../components/DockIcon";
 import { Icon } from "../../../../components/Icon";
 import { Box, Stack } from "../../../../components/Layout";
 import { Link } from "../../../../components/Link";
-import { List, ListBox, ListItem } from "../../../../components/ListItem";
+import { List, ListItem } from "../../../../components/ListItem";
 import { MetricCard } from "../../../../components/MetricWidget";
 import { ProgressBar } from "../../../../components/Progress";
 import { Heading, Text } from "../../../../components/Text";
@@ -112,14 +112,13 @@ function GreetingTilesPhone() {
             </Stack>
           </Card>
         </Stack>
-        <ListBox as="section" theme="shadow" aria-labelledby={doctorsId} header={(
+        <Stack as="section" gap="md" aria-labelledby={doctorsId}>
           <Stack direction="row" justify="between" align="center" gap="xs">
             <Heading level={2} id={doctorsId} textStyle="Heading/4">Top doctors</Heading>
             <Text as="span" textStyle="Body/Base/Bold">
               <Link as="button" tone="inherit" onClick={() => setRoot("doctors")}>View All</Link>
             </Text>
           </Stack>
-        )}>
           <List aria-labelledby={doctorsId}>
             {doctors.map((doctor) => (
               // The call button is the row's action, so the row itself is not clickable (Zen: no button in a clickable row).
@@ -129,7 +128,7 @@ function GreetingTilesPhone() {
                   onClick={() => toast({ title: `Calling ${doctor.name}…`, children: doctor.caption })} />} />
             ))}
           </List>
-        </ListBox>
+        </Stack>
       </AppShell>
     </PlatformPhone>
   );
@@ -196,22 +195,23 @@ function ColourBandPhone() {
         bottomNavigation={<BottomNavigation type="floating" aria-label="Quiz app" value={root} onValueChange={setRoot} items={quizRoots}
           action={{ icon: "icon-plus-line", label: "Create a quiz", theme: "primary", onClick: () => toast({ title: "Create a quiz", children: "Pick a topic, add questions, invite players." }) }} />}
       >
-        <Stack as="section" gap="sm" aria-labelledby={liveId}>
+        {/* The list that closes the sheet is an open section (usage rules §19, §13): its title row over a List, Spacing/Gap/
+            Medium apart, as Figma D5's "Live quizzes" (Title-Row over a List frame, rows 2 apart). */}
+        <Stack as="section" gap="md" aria-labelledby={liveId}>
           <Stack direction="row" justify="between" align="center" gap="xs">
             <Heading level={2} id={liveId} textStyle="Heading/4">Live quizzes</Heading>
             <Text as="span" textStyle="Body/Base/Bold">
               <Link as="button" tone="inherit" onClick={() => setRoot("search")}>See All</Link>
             </Text>
           </Stack>
-          {/* Figma's Content slot keeps Spacing/Gap/Small between the rows too (a List packs them 2 apart). */}
-          <Stack as="ul" gap="sm" aria-labelledby={liveId}>
+          <List aria-labelledby={liveId}>
             {liveQuizzes.map((quiz) => (
               <ListItem key={quiz.id} title={quiz.title} caption={quiz.caption}
                 leading={<Avatar size="md" shape="square" theme={quiz.theme} background="subtle" alt="">{quiz.initials}</Avatar>}
                 trailing={<Icon name="icon-chevron-right-line-medium" decorative />}
                 onClick={() => toast({ title: quiz.title, children: `${quiz.caption} · join the live round` })} />
             ))}
-          </Stack>
+          </List>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -221,7 +221,7 @@ function ColourBandPhone() {
 export const examples: ExampleDef[] = [
   {
     title: "D4 · Greeting + colour tiles",
-    description: "A warm service home: a two-line greeting (name in a lighter colour) with a privacy note, two big number tiles (one Solid with On-Colors text, one Subtle: one strong colour per row) and the next appointment as a Shadow card with time and price badges. Menu in Top-Leading, the person's photo in Top-Trailing. Shell: AppShell/Mobile · Phone · Top=Bar · Bottom=Tab-Bar. Fits: Healthcare booking, Beauty / Services, Fitness studio, Education.",
+    description: "A warm service home: a two-line greeting (name in a lighter colour) with a privacy note, two big number tiles (one Solid with On-Colors text, one Subtle: one strong colour per row) and the next appointment as a Shadow card with time and price badges; the top doctors close the screen as an open list. Menu in Top-Leading, the person's photo in Top-Trailing. Shell: AppShell/Mobile · Phone · Top=Bar · Bottom=Tab-Bar. Fits: Healthcare booking, Beauty / Services, Fitness studio, Education.",
     render: () => <GreetingTilesPhone />,
     code: `<PlatformPhone canvas="default">
   <AppShell
@@ -273,14 +273,15 @@ export const examples: ExampleDef[] = [
         </Stack>
       </Card>
     </Stack>
-    <ListBox as="section" theme="shadow" aria-labelledby="doctors" header={…Top doctors · View All…}>
+    <Stack as="section" gap="md" aria-labelledby="doctors">
+      …Top doctors · View All (the title row)…
       <List aria-labelledby="doctors">
         <ListItem title="Dr. Richard Kim" caption="Cardiology · ★ 4.8"
           leading={<Avatar size="md" shape="square" theme="teal" background="subtle" alt="">RK</Avatar>}
           trailing={<IconButton appearance="flat" level="primary" icon="icon-phone-line" aria-label="Call Dr. Richard Kim" onClick={call} />} />
         …
       </List>
-    </ListBox>
+    </Stack>
   </AppShell>
 </PlatformPhone>`,
   },
@@ -328,17 +329,18 @@ export const examples: ExampleDef[] = [
     bottomNavigation={<BottomNavigation type="floating" aria-label="Quiz app" value={root} onValueChange={setRoot} items={roots}
       action={{ icon: "icon-plus-line", label: "Create a quiz", theme: "primary", onClick: createQuiz }} />}
   >
-    <Stack as="section" gap="sm" aria-labelledby="live">
+    {/* The closing list is an open section: its title row over a List, md apart. */}
+    <Stack as="section" gap="md" aria-labelledby="live">
       <Stack direction="row" justify="between" align="center" gap="xs">
         <Heading level={2} id="live" textStyle="Heading/4">Live quizzes</Heading>
         <Text as="span" textStyle="Body/Base/Bold"><Link as="button" tone="inherit" onClick={openSearch}>See All</Link></Text>
       </Stack>
-      <Stack as="ul" gap="sm" aria-labelledby="live">
+      <List aria-labelledby="live">
         <ListItem title="Statistics math quiz" caption="Math · 12 quizzes" onClick={openQuiz}
           leading={<Avatar size="md" shape="square" theme="violet" background="subtle" alt="">St</Avatar>}
           trailing={<Icon name="icon-chevron-right-line-medium" decorative />} />
         …Integers quiz · Music theory basics
-      </Stack>
+      </List>
     </Stack>
   </AppShell>
 </PlatformPhone>`,

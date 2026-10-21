@@ -2154,6 +2154,10 @@ abstract final class ZenToken {
   static const String modalRadius = 'Modal-Radius';
   static const String interactiveListItemRadius = 'Interactive-List-Item-Radius';
   static const String listContainerVerticalPadding = 'List-Container-Vertical-Padding';
+  static const String marginBentoGrid = 'Margin-Bento-Grid';
+  static const String marginBentoLayout = 'Margin-Bento-Layout';
+  static const String gutterBentoGrid = 'Gutter-Bento-Grid';
+  static const String modalPaddingBento = 'Modal-Padding-Bento';
   static const String typographyFontFamilyDisplay = 'Typography/Font-Family/Display';
   static const String typographyFontFamilyHeading = 'Typography/Font-Family/Heading';
   static const String typographyFontFamilySans = 'Typography/Font-Family/Sans';

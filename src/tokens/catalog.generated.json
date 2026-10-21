@@ -88,7 +88,7 @@
         "Tablet",
         "Mobile"
       ],
-      "variableCount": 12
+      "variableCount": 16
     },
     "typography-configuration": {
       "name": "Typography Configuration",
@@ -31669,6 +31669,70 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Desktop": "{Spacing/Padding/Small}",
+        "Tablet": "{Spacing/Padding/XSmall}",
+        "Mobile": "{Spacing/Padding/XSmall}"
+      },
+      "collectionSlug": "breakpoint-grids",
+      "collectionName": "Breakpoint & Grids",
+      "modes": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ]
+    },
+    {
+      "name": "Margin-Bento-Grid",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Desktop": "{Spacing/Padding/XSmall}",
+        "Tablet": "{Spacing/Padding/XSmall}",
+        "Mobile": "{Spacing/Padding/XSmall}"
+      },
+      "collectionSlug": "breakpoint-grids",
+      "collectionName": "Breakpoint & Grids",
+      "modes": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ]
+    },
+    {
+      "name": "Margin-Bento-Layout",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Desktop": "{Spacing/Padding/Medium}",
+        "Tablet": "{Spacing/Padding/Medium}",
+        "Mobile": "{Spacing/Padding/Medium}"
+      },
+      "collectionSlug": "breakpoint-grids",
+      "collectionName": "Breakpoint & Grids",
+      "modes": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ]
+    },
+    {
+      "name": "Gutter-Bento-Grid",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Desktop": "{Spacing/Gap/XSmall}",
+        "Tablet": "{Spacing/Gap/XSmall}",
+        "Mobile": "{Spacing/Gap/XSmall}"
+      },
+      "collectionSlug": "breakpoint-grids",
+      "collectionName": "Breakpoint & Grids",
+      "modes": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ]
+    },
+    {
+      "name": "Modal-Padding-Bento",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Desktop": "{Spacing/Padding/XSmall}",
         "Tablet": "{Spacing/Padding/XSmall}",
         "Mobile": "{Spacing/Padding/XSmall}"
       },

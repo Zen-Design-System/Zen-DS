@@ -4308,6 +4308,10 @@
   --zen-modal-radius: var(--zen-corner-radius-xgiant);
   --zen-interactive-list-item-radius: var(--zen-corner-radius-base);
   --zen-list-container-vertical-padding: var(--zen-spacing-padding-small);
+  --zen-margin-bento-grid: var(--zen-spacing-padding-xsmall);
+  --zen-margin-bento-layout: var(--zen-spacing-padding-medium);
+  --zen-gutter-bento-grid: var(--zen-spacing-gap-xsmall);
+  --zen-modal-padding-bento: var(--zen-spacing-padding-xsmall);
 }
 
 /* Breakpoint & Grids / Tablet */
@@ -4324,6 +4328,10 @@
   --zen-modal-radius: var(--zen-corner-radius-giant);
   --zen-interactive-list-item-radius: var(--zen-corner-radius-large);
   --zen-list-container-vertical-padding: var(--zen-spacing-padding-xsmall);
+  --zen-margin-bento-grid: var(--zen-spacing-padding-xsmall);
+  --zen-margin-bento-layout: var(--zen-spacing-padding-medium);
+  --zen-gutter-bento-grid: var(--zen-spacing-gap-xsmall);
+  --zen-modal-padding-bento: var(--zen-spacing-padding-xsmall);
 }
 
 /* Breakpoint & Grids / Mobile */
@@ -4340,6 +4348,10 @@
   --zen-modal-radius: var(--zen-corner-radius-giant);
   --zen-interactive-list-item-radius: var(--zen-corner-radius-large);
   --zen-list-container-vertical-padding: var(--zen-spacing-padding-xsmall);
+  --zen-margin-bento-grid: var(--zen-spacing-padding-xsmall);
+  --zen-margin-bento-layout: var(--zen-spacing-padding-medium);
+  --zen-gutter-bento-grid: var(--zen-spacing-gap-xsmall);
+  --zen-modal-padding-bento: var(--zen-spacing-padding-xsmall);
 }
 
 /* Typography Configuration / Dashboard */
