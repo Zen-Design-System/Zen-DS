@@ -477,6 +477,13 @@ export const Bad = () => <>
   <DatePicker value={date} onValueChange={setDate} month={new Date(1995, 5, 1)} />
   {/* expect: interaction/controlled-needs-handler */}
   <DatePicker selectionMode="range" range={period} />
+  {/* A toolbar whose arrows and view switch do nothing. */}
+  {/* expect: calendar/toolbar-navigation */}
+  <CalendarToolbar date={day} view="month" onToday={goToday} />
+  {/* expect: calendar/week-on-phone */}
+  <CalendarTimeGrid device="mobile" view="week" date={day} events={events} />
+  {/* expect: calendar/selected-needs-handler */}
+  <CalendarMonth month={day} events={events} selectedEventId="standup" />
   {/* Actions without onApply: Cancel and Submit cannot differ, and the app never hears what was applied. */}
   {/* expect: date-picker/actions-need-apply */}
   <DatePicker calendar="dual" selectionMode="range" showActions onRangeChange={setRange} />

@@ -169,6 +169,27 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
     14 / 14 in 40 steps, the same as Figma's 40, with 0 refusals.
   - FW-132 / FW-133: 2 / 2.
 
+## AppShell session · Breakpoint & Grids tokens (tier XS, branch `zen/fix/tokens-breakpoint-bento-20261021`; user: "Kiểm tra update thêm token trong Breakpoints từ Figma")
+
+- Read live (use_figma, the Breakpoint & Grids collection: Desktop · Tablet · Mobile, 16 variables). The repo's 12
+  tokens match Figma value for value, aliases included.
+- New in Figma, the same in every mode:
+  - Margin-Bento-Grid {Spacing/Padding/XSmall};
+  - Margin-Bento-Layout {Spacing/Padding/Medium};
+  - Gutter-Bento-Grid {Spacing/Gap/XSmall};
+  - Modal-Padding-Bento {Spacing/Padding/XSmall}.
+- Added to tokens/source/figma/breakpoint-grids.json, then `tokens:build` for web, Swift and Flutter (2234 tokens,
+  830 vectors). Checks pass: tokens:check, tokens:native:check, style, tsc, studio:selftest, ai-kit, guidelines and
+  usage.
+- No component uses them yet. They reach apps, the Design Tokens page and Studio's Variables.
+- Gate (2026-10-21 18:13, main b0c48b29 merged in) **PASS**:
+  - The token scope saw no diff against HEAD, so it checked the representative set (button, card, dialog, popover,
+    list-item, chat, templates).
+  - Static checks green.
+  - Platform audit 1512 + 390 + 320: 0 errors, 0 new warnings. Dark: 0 errors.
+  - Behaviour: 0 errors.
+  - I looked at the dialog 390 sheet: unchanged, as expected for unused tokens.
+
 ## AppShell session · Token Color/Background/Carved (tier XS; user: "Update token background-carved")
 
 - Read live (use_figma, Mode Colors (Semantic), VariableID:12082:86877): Light {Light/Neutral-Alpha/2} (the repo had
@@ -176,6 +197,57 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
 - tokens/source/figma/mode-colors-semantic.json, then `tokens:build`: web, Swift and Flutter. tokens:check,
   tokens:native:check and high contrast (0 failures) all pass.
 - No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
+
+## AppShell session · Chart/Metric text follows Chart/Line-Chart (tier M, branch `zen/fix/chart-metric-text-20261021`)
+
+The user asked:
+- "Kiểm tra lại đồng bộ cách sắp vị trí và spacing giữa description và value … theo cách sắp của Chart/Line-Chart"
+- "value luôn nằm dưới segmented"
+- "Chart/Bar-List còn xót"
+- "Vừa update lại text style của các metric widget và chart card", with the scope "Chỉ Chart và Metric".
+
+Figma, done with use_figma once the user added the permission:
+- Bar, Area, Combo, Gauge, Funnel, Bullet, Bar-List, Donut, Radial and Heatmap now each have a Metric frame below the
+  Segmented, as Line-Chart has: Padding/Small above, Gap/3XSmall between, Description Body/Small/Regular over Value
+  Display/4. Combo's Value was Heading/2.
+- The Metric frame shows with Show Value, as on Line-Chart; on Radial and Heatmap it shows with Show Description.
+- Funnel and Bullet variants are fixed at 318 / 294. They were HUG with a Fill body, which overflowed.
+- Checked: same Metric signature in all 10 sets, and no overlaps.
+
+Code:
+- ChartCard: header, then the Segmented, then the Metric; title Body/Extra/Medium.
+- MetricWidget: the Title-Highlight and comparison titles are Body/Extra/Medium; Tile number Display/4; Hero number
+  Display/1, unless the card sets a size.
+- Guidelines and JSDoc updated. New test: `tests/interaction/chart-card-metric.test.tsx`.
+- Card, ListBox and table-in-card titles keep Heading/Subheading. The harness rule is unchanged.
+- A1–A4 drift (reported by the Bug session, which re-read 15904:1616 / 2813 / 6185 / 8996 for the user):
+  - In Figma, Patterns/Sidebar and Header/AppShell are both Density=Small. Canvas, Shadow (A1 only) and
+    Collapse=Sidebar already matched.
+  - `a-compositions.tsx` now sets `density="small"` on the Sidebar and the AppShellHeader, in the render and in
+    codeFor. Bug's Card/List-Box rename covers the cards' "flat" → "default".
+  - It needs #181 (bce44e61) in main: before that, `density="small"` alone picks the old Small-Density variant. Merge
+    main after #181 lands, before this branch's gate.
+- Header/AppShell re-read live (Session B asked about the push):
+  - Theme=Border & Divider's Main-Element now pads 20 (Padding/Large) above and 16 below; the code had 16 above.
+    Fixed in app-shell.css, the JSDoc and the app-shell-grid test.
+  - Figma also has a new Theme=Borderless at Density=Small: the Border & Divider rows without the 1px line. The user
+    said "Thêm theme=\"borderless\"". Added: the AppShellHeader theme value, the CSS shared with border-divider
+    (the line on border-divider only), JSDoc, guideline, contract option, Studio map, figmaProps, and a test (top 12 ·
+    24 with no line, 64 high; Main 20 · 24 · 16).
+- G1 · Grid's rhythm warnings ("10 text styles" at 1512 / 390 / 320 and dark, found by Bug's stack gate): G1 is
+  Figma's 16817:58511, and the user chose "Baseline, giữ như Figma". Baseline G1's warnings with the count this
+  branch's gate measures; ChartCard's Display/4 and Body/Extra/Medium may change the 10.
+- Gate (2026-10-21 18:21, main b0c48b29 merged in; `ZEN_QA_SHARDS=4 --isolated --pages=chart,metric,widgets,app-shell,templates`) **PASS**:
+  - Static checks green; Vitest 78/78.
+  - Platform audit: 0 errors. Dark: 0 errors. Behaviour: 0 errors.
+  - Studio E2E 336 works · 0 broken (full run, no shards).
+  - 31 new warnings, all caused by the ChartCard text styles: rhythm on A1–A4, F6, G1, Widgets and HR Home / My leaves
+    / Expense overview, and outline-siblings on the Finance dashboard and the Dashboard template (a ChartCard title in
+    Body/Extra/Medium beside a Card title in Heading/Subheading).
+  - The user answered "Baseline, giữ như Figma" (rhythm) and "Giữ khác nhau, baseline" (card titles). Baselined
+    with `audit.mjs --baseline-update=rhythm,outline-siblings` for chart, app-shell, widgets and templates (light at
+    1512 / 390 / 320, dark at 1512): 159 keys.
+  - Contact sheets reviewed: chart 1512 shows header · Segmented · description · Display/4 value on every card.
 
 ## AppShell session · Patterns/Sidebar → Studio, Sidebar themes (tier M, branch `zen/feat/studio-patterns-sidebar-20261021`, stacked on #179)
 
@@ -326,3 +398,28 @@ compared with the hidden originals in the next call (all identical), then remove
   sparkline absolutes, docs "Yes").
 - Met while taking the after shots: C6's Checkbox/Text was fixed at 141, so "Matches my ID" wrapped onto two lines in
   some renders. Its Container, Content and Label now hug (143 wide, one line), checked on a fresh screenshot.
+
+## Calendar in code + Studio (session "Calendar", tier L; user: "Đã duyệt, làm Calendar trước")
+
+Branch `zen/feat/calendar-20261021`, worktree `../Zen-DS-calendar` (from main e99c5408). Spec card, page manifest and
+API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:3 with read-only use_figma dumps).
+
+- Library `src/components/Calendar/`: views CalendarToolbar, CalendarWeekStrip, CalendarMonth, CalendarTimeGrid,
+  CalendarAgenda; primitives CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell,
+  CalendarAgendaItem, CalendarDayTile (Slot = the time grid's rows). Reuses DatePickerItem (Week-Strip Dot, mobile
+  Month), Button / IconButton, Segmented, AvatarStack, EmptyState. `calendarDates.ts`: Monday-first weeks, lanes for
+  overlapping events, Intl formats, `shiftPeriod`, `calendarTitle`, `toDate` (ISO strings in local time).
+- Figma choices kept: event hues Support/<Hue>, Brand text Content/Accent; hover steps one ramp step (Subtle → Soft,
+  Solid → Rich; Figma draws none); Day-Tile Selected keeps its Pale border (zen-allow, Figma 16142:3915).
+- Found and fixed while building: `font: inherit` on calendar buttons overrode "+N more"'s Caption style; the phone
+  toolbar title clipped ("Septemb…": Heading/3 is 26px in the Mobile typography) → short default title on mobile
+  ("Sep 2026") + BACKLOG P2 question for the designer; the phone example offers three views (a fourth label clips at
+  Comfortable). Studio's page dialect drops `new Date(…)` props → every date prop also takes an ISO string.
+- Platform page `calendar` (playground + 6 examples incl. PlatformPhone and keyboard), Do/Don't visuals, guideline +
+  keyboard map, harness rules (3, fixtures), smoke fixtures, axe baseline (colour-contrast only: Neutral/Light text,
+  white on Zen/9 and Support Orange/Pink Solid — token level, as DatePicker), tests/interaction/calendar.test.tsx (9).
+- Studio: component-properties.json page ❖ Calendar (5 public sets), figma-props.map entries, generated props / variant
+  sets, 5 Assets items (ISO dates), library keys (5), native pack: a probe frame of the 5 sets on the QA page, copied
+  from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
+  88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
+- Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".

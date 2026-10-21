@@ -17,6 +17,18 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- AppShellHeader `theme="borderless"` (Figma Header/AppShell Theme=Borderless, user-approved 2026-10-21): the
+  border-divider rows without the 1px line under the top row. Zen Studio maps it both ways.
+- AppShellHeader `theme="border-divider"`: the Main row pads Padding/Large (20) above and Padding/Medium (16) below,
+  as Figma's Header/AppShell Theme=Border & Divider now draws it (was 16 above; re-read 2026-10-21).
+- Chart and Metric text follow Figma (2026-10-21, user: every chart's description and value as Chart/Line-Chart, "value
+  luôn nằm dưới segmented", and the updated chart card and metric widget text styles):
+  - ChartCard is now header · Segmented · Metric, the Metric being the description (Body/Small/Regular) over the value
+    (Display/4, was Heading/2), Gap/3XSmall apart, Padding/Small above. Its title is Body/Extra/Medium (was Heading/Subheading).
+  - MetricCard: the Title-Highlight and comparison titles are Body/Extra/Medium, the Tile number is Display/4 (was
+    Display/3), the Hero number is Display/1.
+  - Other card, ListBox and table-in-card titles keep Heading/Subheading (the user: "Chỉ Chart và Metric").
+  - In Figma, every chart set now has the Line-Chart Metric frame below its Segmented.
 - A list that closes a phone page (transactions, tasks, activity: nothing after it, not in a widget grid) is an open
   section, not a ListBox, as Figma's ◆ Finance Transactions: the title row over a List at the page margin (usage rules
   §19, user rule 2026-10-21). Harness `listbox/closing-list-on-phone` (error) and Figma audit
@@ -46,8 +58,22 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   "sửa push Sidebar đứng riêng luôn"). The set has 16 of its 40 combinations, so the push takes the nearest one: the
   themes other than Default exist only at Density=Small. An AppShell's master writes the same variant (`pattern="grid"`
   gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
+- Four Breakpoint & Grids tokens from Figma, for Bento layouts (2026-10-21, user: "Kiểm tra update thêm token trong
+  Breakpoints từ Figma"), the same in Desktop, Tablet and Mobile: `--zen-margin-bento-grid` (Padding/XSmall 8),
+  `--zen-margin-bento-layout` (Padding/Medium 16), `--zen-gutter-bento-grid` (Gap/XSmall 8) and
+  `--zen-modal-padding-bento` (Padding/XSmall 8). The other twelve Breakpoint & Grids tokens already matched Figma.
+  Web, SwiftUI and Flutter tokens regenerated.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
+- **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
+  CalendarMonth, CalendarTimeGrid (Week / Day, Mobile 3-Day), CalendarAgenda and CalendarWeekStrip (Dot / Tile) take
+  events as data (`CalendarEventData`: id, title, start, end, allDay, color, meta, attendees); the primitives
+  CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem and
+  CalendarDayTile are public too. Dates are a `Date` or an ISO string read in local time ("2026-09-30T09:00"), so Studio
+  pages and AI UI specs can hold them. Month: one date in the tab order, arrows a day / a week, Home / End; overlapping
+  Time-Grid events share the column in lanes; the now line only in today's column. Platform page `calendar`,
+  guideline, harness rules `calendar/toolbar-navigation`, `calendar/week-on-phone`, `calendar/selected-needs-handler`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys, native paste pack).
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
   làm lại từ đầu", "Phá hẳn, migrate hết": no deprecated aliases). Figma Pattern/AppShell/Desktop 16258:1857, Mobile
   16261:136204, Header/AppShell 16243:290461, .Primitives/AppShell/Pane 16254:1099.

@@ -1258,6 +1258,7 @@ export const tokens = {
   "Emphasis/Font-Weight/Semi-Bold": "var(--zen-emphasis-font-weight-semi-bold)",
   "Global-Control-Bar/Size": "var(--zen-global-control-bar-size)",
   "Gutter": "var(--zen-gutter)",
+  "Gutter-Bento-Grid": "var(--zen-gutter-bento-grid)",
   "Image-Size/2XLarge": "var(--zen-image-size-2-xlarge)",
   "Image-Size/2XSmall": "var(--zen-image-size-2-xsmall)",
   "Image-Size/3XLarge": "var(--zen-image-size-3-xlarge)",
@@ -1934,9 +1935,12 @@ export const tokens = {
   "Light/Zen/8": "var(--zen-light-zen-8)",
   "Light/Zen/9": "var(--zen-light-zen-9)",
   "List-Container-Vertical-Padding": "var(--zen-list-container-vertical-padding)",
+  "Margin-Bento-Grid": "var(--zen-margin-bento-grid)",
+  "Margin-Bento-Layout": "var(--zen-margin-bento-layout)",
   "Margin-Comfortable": "var(--zen-margin-comfortable)",
   "Margin-Compact": "var(--zen-margin-compact)",
   "Modal-Padding": "var(--zen-modal-padding)",
+  "Modal-Padding-Bento": "var(--zen-modal-padding-bento)",
   "Modal-Radius": "var(--zen-modal-radius)",
   "Navigation-Action/Icon/Spacing/Gap": "var(--zen-navigation-action-icon-spacing-gap)",
   "Navigation-Action/Icon/Spacing/Horizontal-Padding": "var(--zen-navigation-action-icon-spacing-horizontal-padding)",
@@ -2321,7 +2325,7 @@ export const tokenCollections = {
       "Tablet",
       "Mobile"
     ],
-    "variableCount": 12
+    "variableCount": 16
   },
   "typography-configuration": {
     "name": "Typography Configuration",
