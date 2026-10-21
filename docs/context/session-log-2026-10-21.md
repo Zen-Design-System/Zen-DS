@@ -84,3 +84,5 @@ Branch `zen/feat/schedule-20261021` (worktree `../Zen-DS-schedule`, on top of th
 - Platform page `schedule` (playground + 6 examples incl. PlatformPhone booking), Do/Don't visuals, guideline + keyboard
   map, harness rules (2, fixtures), smoke fixtures, axe baseline (colour-contrast only: Neutral/Light text), 4 interaction
   tests. Studio: component-properties page ❖ Schedule (4 public sets), figma-props map, 4 Assets items, library keys.
+- Native pack (user: "Làm luôn"): probe of the 4 sets on the QA page, one Figma desktop copy (the clipboard was empty and
+  stays empty), merged additively (9 sets, 34 symbols), no picture layers, probe removed; native-pack check green.
