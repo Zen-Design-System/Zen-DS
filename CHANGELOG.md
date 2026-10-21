@@ -29,6 +29,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   "sửa push Sidebar đứng riêng luôn"). The set has 16 of its 40 combinations, so the push takes the nearest one: the
   themes other than Default exist only at Density=Small. An AppShell's master writes the same variant (`pattern="grid"`
   gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
+- Four Breakpoint & Grids tokens from Figma, for Bento layouts (2026-10-21, user: "Kiểm tra update thêm token trong
+  Breakpoints từ Figma"), the same in Desktop, Tablet and Mobile: `--zen-margin-bento-grid` (Padding/XSmall 8),
+  `--zen-margin-bento-layout` (Padding/Medium 16), `--zen-gutter-bento-grid` (Gap/XSmall 8) and
+  `--zen-modal-padding-bento` (Padding/XSmall 8). The other twelve Breakpoint & Grids tokens already matched Figma.
+  Web, SwiftUI and Flutter tokens regenerated.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra

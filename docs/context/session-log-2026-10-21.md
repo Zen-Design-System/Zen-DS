@@ -169,6 +169,20 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
     14 / 14 in 40 steps, the same as Figma's 40, with 0 refusals.
   - FW-132 / FW-133: 2 / 2.
 
+## AppShell session · Breakpoint & Grids tokens (tier XS, branch `zen/fix/tokens-breakpoint-bento-20261021`; user: "Kiểm tra update thêm token trong Breakpoints từ Figma")
+
+- Read live (use_figma, the Breakpoint & Grids collection: Desktop · Tablet · Mobile, 16 variables). The repo's 12
+  tokens match Figma value for value, aliases included.
+- New in Figma, the same in every mode:
+  - Margin-Bento-Grid {Spacing/Padding/XSmall};
+  - Margin-Bento-Layout {Spacing/Padding/Medium};
+  - Gutter-Bento-Grid {Spacing/Gap/XSmall};
+  - Modal-Padding-Bento {Spacing/Padding/XSmall}.
+- Added to tokens/source/figma/breakpoint-grids.json, then `tokens:build` for web, Swift and Flutter (2234 tokens,
+  830 vectors). Checks pass: tokens:check, tokens:native:check, style, tsc, studio:selftest, ai-kit, guidelines and
+  usage.
+- No component uses them yet. They reach apps, the Design Tokens page and Studio's Variables.
+
 ## AppShell session · Token Color/Background/Carved (tier XS; user: "Update token background-carved")
 
 - Read live (use_figma, Mode Colors (Semantic), VariableID:12082:86877): Light {Light/Neutral-Alpha/2} (the repo had
