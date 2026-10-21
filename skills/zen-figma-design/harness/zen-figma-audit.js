@@ -90,8 +90,10 @@
 //                                     fills an empty page, Small (200) a region (card, table, pane, panel, sheet, dialog)
 //   navigation/collapse-beside-master-crumb  error  the header's sidebar toggle beside a Breadcrumbs Master item (two
 //                                     icons in a row): a Sub first crumb, or the toggle in the sidebar (Collapse=Sidebar)
-//   spacing/section-gap      error    a phone screen's Body (the frame that stacks its sections) not spaced by
-//                                     Component Size Layout-Mobile/Section-Gap (Compact 24, Comfortable 32)
+//   spacing/section-gap      error    a screen's section stack (its Body, or a page pattern's Content slot) not spaced
+//                                     by Layout-Mobile/Section-Gap on a phone (Compact 24, Comfortable 32) or
+//                                     Spacing/Gap/XLarge (32) on desktop
+//   section/title-apart      warning  a title row on its own in the section stack, a section gap away from its content
 //   list-box/closing-list-on-phone  error  a List-Box that closes a phone screen (the last section, not in a row or grid
 //                                     of widgets, not one of several grouped List-Boxes): an open section as ◆ Finance
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
@@ -746,18 +748,49 @@ async function checkTouchSpacing(root) {
 // Phone sections (user 2026-10-17: "thêm rule spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn
 // là 32px. Compact là 24px. tạo token để áp dụng"): the Body that stacks a phone screen's sections binds its gap to
 // Component Size's Layout-Mobile/Section-Gap (Compact 24, Comfortable 32), so it follows the mode the domain picks.
+// User 2026-10-21: "Spacing giữa các section trong mobile nên là 32px", "section khác với spacing trong 1 nhóm grid
+// widget", "trong Desktop cũng vậy": desktop sections are Spacing/Gap/XLarge (32) apart. The section stack is the
+// screen's Body / Content frame or a page pattern's Content slot (Pattern/AppShell/…), whose children are the sections;
+// a widget grid inside a section keeps its own, smaller gap.
+// "Các nhóm nội dung cùng nhau nên gom vào cùng 1 section", "không để title riêng, listing riêng": a section's title row
+// and the content it names are one section frame, never two siblings of the stack (section/title-apart).
 const SECTION_BODY = /^(Body|Content|Sections)$/i;
+const TITLE_STYLE = /^(Heading\/(2|3|4|Subheading)|Body\/Small\/Bold|All-Caps)/;
+const textStyleName = async (node) => (typeof node.textStyleId === "string" && node.textStyleId ? (await figma.getStyleByIdAsync(node.textStyleId))?.name ?? "" : "");
+/** True when `node` holds only a title: a heading or kicker text, alone or in a row with a See all link. */
+async function isLoneTitle(node) {
+  if (node.type === "TEXT") return TITLE_STYLE.test(await textStyleName(node));
+  if (node.type !== "FRAME" || node.layoutMode === "NONE") return false;
+  const shown = node.findAll((child) => child.visible !== false);
+  for (const child of shown) if (child.type === "INSTANCE" && !/^(Button\/Flat|Link)/.test(await setNameOf(child))) return false;
+  const texts = shown.filter((child) => child.type === "TEXT");
+  return texts.length > 0 && texts.length <= 3 && TITLE_STYLE.test(await textStyleName(texts[0]));
+}
 async function checkSectionGap(root) {
   const screens = screensOf(root);
   for (const screen of screens) {
+    if (!("findAll" in screen)) continue;
     const phone = screen.width < 744 || screen.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(node.name)).length > 0;
-    if (!phone) continue;
-    for (const body of screen.children) {
-      if (body.type !== "FRAME" || !SECTION_BODY.test(body.name) || body.layoutMode !== "VERTICAL" || body.visible === false) continue;
-      if (body.children.filter((child) => child.visible !== false).length < 2) continue;
+    const stacks = screen.children.filter((body) => body.type === "FRAME" && SECTION_BODY.test(body.name) && body.layoutMode === "VERTICAL" && body.visible !== false);
+    for (const slot of screen.findAll((node) => node.type === "SLOT" && node.name === "Content" && node.layoutMode === "VERTICAL" && node.visible !== false)) {
+      let owner = slot.parent;
+      while (owner && owner.type !== "INSTANCE") owner = owner.parent;
+      if (owner && PAGE_PATTERN.test(await setNameOf(owner))) stacks.push(slot);
+    }
+    const want = phone ? "Layout-Mobile/Section-Gap" : "Spacing/Gap/XLarge";
+    for (const body of stacks) {
+      const shown = body.children.filter((child) => child.visible !== false && child.layoutPositioning !== "ABSOLUTE");
+      // A pane (a thread that fills down to its composer) is not a page of sections; a Divider separates, it is no section.
+      if (shown.some((child) => child.layoutSizingVertical === "FILL")) continue;
+      const sections = [];
+      for (const child of shown) if (!(child.type === "INSTANCE" && /^Divider/.test(await setNameOf(child)))) sections.push(child);
+      if (sections.length < 2) continue;
       const id = body.boundVariables?.itemSpacing?.id;
       const name = id ? await variableName(id) : null;
-      if (name !== "Layout-Mobile/Section-Gap") report("spacing/section-gap", ERROR, body, `gap ${body.itemSpacing}${name ? ` (${name})` : ""}: a phone screen's sections are spaced by Layout-Mobile/Section-Gap (Component Size: Compact 24, Comfortable 32), never less`);
+      if (name !== want) report("spacing/section-gap", ERROR, body, `gap ${body.itemSpacing}${name ? ` (${name})` : ""}: ${phone ? "a phone screen's sections are spaced by Layout-Mobile/Section-Gap (Component Size: Compact 24, Comfortable 32), never less" : "a desktop page's sections are spaced by Spacing/Gap/XLarge (32)"}; a widget grid keeps its own gap inside its section`);
+      for (let i = 0; i < sections.length - 1; i++) {
+        if (await isLoneTitle(sections[i])) report("section/title-apart", WARNING, sections[i], `“${sections[i].name}” is a title on its own, a section gap away from the content it names: put the title row and its content in one section frame (Spacing/Gap/Medium between them)`);
+      }
     }
   }
 }

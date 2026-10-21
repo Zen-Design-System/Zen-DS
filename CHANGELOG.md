@@ -23,6 +23,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   `list-box/closing-list-on-phone`; the phone examples that boxed it (Button, Chart, VisuallyHidden, AppShell C1, C2, C7,
   D3, D4, F10–F12) now show it open. Grouped settings lists (§15) and lists in a widget grid keep their ListBox. The
   harness no longer reads an apostrophe in a prop's JSX text (`hero={<Text>I'm …</Text>}`) as an open string.
+- A section is a group of content that belongs together, 32 apart on phones (Layout-Mobile/Section-Gap, Comfortable)
+  and on desktop (Gap/XLarge): a widget grid keeps its own gap inside, a title row and its list share one section
+  (usage rules §13, user rule 2026-10-21). Figma audit `spacing/section-gap` now reads the AppShell Content slot and
+  desktop, and `section/title-apart` warns on a title alone. AppShell C1, C2, C7 group their widgets into one section
+  above the closing list, in code and in Figma (◇ Master-Layout · Example, also D3, D4 opened).
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`

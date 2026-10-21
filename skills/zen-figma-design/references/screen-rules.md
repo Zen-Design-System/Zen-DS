@@ -71,9 +71,16 @@ Components own their inner padding and gap; never change them. Between elements,
 | Sections of a page (the Content slot's sections) | `Spacing/Gap/XLarge` | 32 |
 
 - Page margins come from Breakpoint & Grids: `Margin-Comfortable` (24 desktop) and `Margin-Compact` (20 phone).
-- **Phone sections:** bind the Body's gap (the frame that stacks the sections under the Top-Navigation) to Component
-  Size `Layout-Mobile/Section-Gap`: Compact 24, Comfortable 32, never less (user rule 2026-10-17; audit
-  `spacing/section-gap`).
+- **Phone sections:** bind the Body's gap (the frame that stacks the sections under the Top-Navigation, or the
+  AppShell pattern's Content slot) to Component Size `Layout-Mobile/Section-Gap`: Compact 24, Comfortable 32, never
+  less (user rule 2026-10-17; audit `spacing/section-gap`). Desktop: the Content slot's gap is `Spacing/Gap/XLarge` 32
+  (user 2026-10-21: "trong Desktop cũng vậy").
+- **One section per group of content** (user 2026-10-21: "Các nhóm nội dung cùng nhau nên gom vào cùng 1 section",
+  "không để title riêng, listing riêng", "section khác với spacing trong 1 nhóm grid widget"): every child of the
+  Content slot is a section frame. Content that belongs together shares one (◆ Finance "Main": the balance with its
+  quick actions; a day's summary line with its cards), a widget grid is one section with its own `Spacing/Gap/Medium`
+  (or Small) between cards, and a title row sits in the same frame as the list or cards it names (`Spacing/Gap/Medium`
+  between them), never alone a section gap above them (audit `section/title-apart`).
   - The domain picks the Component Size and Typography modes, so a screen must hold up in each: bind sizes and gaps,
     let text wrap or truncate, and keep rows that may grow scrollable.
   - A Body longer than the screen sits in a screen set to scroll vertically, with the bars fixed.

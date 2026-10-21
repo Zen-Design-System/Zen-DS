@@ -244,3 +244,16 @@ transaction". Read from Figma ◆ Finance (4595:17267, "Transactions" I16342:386
   ◆ Finance: 0; on ◇ Master-Layout · Example: C1, C2, C7, D3, D4 (15921:7245, 15921:8204, 15942:120713, 15950:9324,
   15950:9696) still box their closing list. Not changed in Figma: waits for the user (BACKLOG).
 - Static: usage selftest + check, tsc, guidelines build/check, ai-kit check, mcp selftest, style check ✓.
+- Figma (user: "Sửa luôn 5 màn C1, C2, C7, D3, D4 trong Figma"): each closing List-Box became an open section (the
+  Header-Slot Title-Row cloned, a `List` frame Gap/3XSmall of the same List-Items via `instance.clone()`), old box hidden,
+  checked next call, then removed. Clones rendered at the components page's mode (Avatar 40, rows 70) until a Component
+  Size mode was set and cleared on the new frame (rows 72). C1's See all was a Button/Flat: now the underlined text link.
+- Then (user: section spacing 32 on phone and desktop; a widget grid keeps its gap; related content in one section;
+  never a title apart from its list): C1 Progress (Card + Stats), C2 Balance (Card + Quick-Actions, as Finance "Main"),
+  C7 Today (date line + Card + Stats) grouped (clones verified against the hidden originals), Content slot gap →
+  Layout-Mobile/Section-Gap (was 24 / 16 / 16). Code C1, C2, C7 match (groups in `<Stack gap="md">`, sections straight
+  in the AppShell body). Usage rules §13, screen-rules, audit-rules updated; audit `spacing/section-gap` extended to
+  AppShell Content slots and desktop (XLarge), skips panes with a FILL child and Dividers; new `section/title-apart`.
+- Full audit on the 5 screens: 0 findings from these rules; 4 older ones left (Liquid/Floating-Glass bars read as
+  Gradient by `theme/navigation-surface` ×3, D3's streak Badge "3" `badge/count-uses-counter`). Page scan: B3, B5, C4,
+  C5, C6, D2, D5, E4, E7 still break the section rules (BACKLOG, asked the user).

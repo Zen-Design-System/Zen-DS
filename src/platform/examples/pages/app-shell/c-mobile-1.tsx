@@ -59,7 +59,8 @@ function LearningHubPhone() {
           trailing={[{ icon: "icon-bell-01-line", label: "Notifications", onClick: () => toast({ title: "You're all caught up", children: "New lessons and replies show here." }) }]} />}
         bottomNavigation={<BottomNavigation aria-label="Learning app" value={root} onValueChange={setRoot} showLabels items={learningRoots} />}
       >
-        <Stack gap="lg">
+        {/* One section per group of content (a section gap apart, from the AppShell body); the widgets inside keep md. */}
+        <Stack gap="md">
           <Card theme="shadow">
             <Stack gap="md" align="stretch">
               <Text textStyle="All-Caps/S" tone="light">Continue learning</Text>
@@ -84,23 +85,23 @@ function LearningHubPhone() {
               </Card>
             ))}
           </Stack>
-          <Stack as="section" gap="md" aria-labelledby={coursesId}>
-            <Stack direction="row" justify="between" align="center" gap="xs">
-              <Heading level={2} id={coursesId} textStyle="Heading/4">Your courses</Heading>
-              {/* A section head's See all is underlined text, not a button (Zen rule); it opens the Courses tab. */}
-              <Text as="span" textStyle="Body/Base/Bold">
-                <Link as="button" tone="inherit" onClick={() => setRoot("courses")}>See all</Link>
-              </Text>
-            </Stack>
-            <List aria-labelledby={coursesId}>
-              {courses.map((course) => (
-                <ListItem key={course.id} title={course.title} caption={course.progress}
-                  leading={<Avatar size="md" shape="square" theme={course.theme} background="subtle" alt="">{course.initials}</Avatar>}
-                  trailing={<Icon name="icon-chevron-right-line-medium" decorative />}
-                  onClick={() => toast({ title: course.title, children: `${course.progress} done` })} />
-              ))}
-            </List>
+        </Stack>
+        <Stack as="section" gap="md" aria-labelledby={coursesId}>
+          <Stack direction="row" justify="between" align="center" gap="xs">
+            <Heading level={2} id={coursesId} textStyle="Heading/4">Your courses</Heading>
+            {/* A section head's See all is underlined text, not a button (Zen rule); it opens the Courses tab. */}
+            <Text as="span" textStyle="Body/Base/Bold">
+              <Link as="button" tone="inherit" onClick={() => setRoot("courses")}>See all</Link>
+            </Text>
           </Stack>
+          <List aria-labelledby={coursesId}>
+            {courses.map((course) => (
+              <ListItem key={course.id} title={course.title} caption={course.progress}
+                leading={<Avatar size="md" shape="square" theme={course.theme} background="subtle" alt="">{course.initials}</Avatar>}
+                trailing={<Icon name="icon-chevron-right-line-medium" decorative />}
+                onClick={() => toast({ title: course.title, children: `${course.progress} done` })} />
+            ))}
+          </List>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -142,6 +143,7 @@ function HeroWalletPhone() {
         bottomNavigation={<BottomNavigation type="floating" aria-label="Wallet" value={root} onValueChange={setRoot} items={walletRoots}
           action={{ icon: "icon-plus-line", label: "Scan or pay", theme: "primary", onClick: () => toast({ title: "Scan a QR code to pay", children: "Or pick a contact to send money." }) }} />}
       >
+        {/* One section per group of content (a section gap apart, from the AppShell body); the widgets inside keep md. */}
         <Stack gap="md">
           <Card theme="solid" color="neutral">
             <Stack gap="md">
@@ -165,21 +167,21 @@ function HeroWalletPhone() {
               </Stack>
             ))}
           </Stack>
-          <Stack as="section" gap="md" aria-labelledby={transactionsId}>
-            <Stack direction="row" justify="between" align="center" gap="xs">
-              <Heading level={2} id={transactionsId} textStyle="Heading/4">Transactions</Heading>
-              <Text as="span" textStyle="Body/Base/Bold">
-                <Link as="button" tone="inherit" onClick={() => setRoot("insights")}>See All</Link>
-              </Text>
-            </Stack>
-            <List aria-labelledby={transactionsId}>
-              {walletTransactions.map((entry) => (
-                <ListItem key={entry.id} title={entry.title} caption={entry.caption} value={entry.amount}
-                  leading={<Avatar size="md" theme={entry.theme} background="subtle" alt="">{entry.initials}</Avatar>}
-                  onClick={() => toast({ title: entry.title, children: `${entry.amount} · ${entry.caption}` })} />
-              ))}
-            </List>
+        </Stack>
+        <Stack as="section" gap="md" aria-labelledby={transactionsId}>
+          <Stack direction="row" justify="between" align="center" gap="xs">
+            <Heading level={2} id={transactionsId} textStyle="Heading/4">Transactions</Heading>
+            <Text as="span" textStyle="Body/Base/Bold">
+              <Link as="button" tone="inherit" onClick={() => setRoot("insights")}>See All</Link>
+            </Text>
           </Stack>
+          <List aria-labelledby={transactionsId}>
+            {walletTransactions.map((entry) => (
+              <ListItem key={entry.id} title={entry.title} caption={entry.caption} value={entry.amount}
+                leading={<Avatar size="md" theme={entry.theme} background="subtle" alt="">{entry.initials}</Avatar>}
+                onClick={() => toast({ title: entry.title, children: `${entry.amount} · ${entry.caption}` })} />
+            ))}
+          </List>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -345,7 +347,7 @@ export const examples: ExampleDef[] = [
     topNavigation={<TopNavigation title="Today" largeTitle="Today" trailing={[{ icon: "icon-bell-01-line", label: "Notifications", onClick: openNotifications }]} />}
     bottomNavigation={<BottomNavigation aria-label="Learning app" value={root} onValueChange={setRoot} showLabels items={roots} />}
   >
-    <Stack gap="lg">
+    <Stack gap="md">
       <Card theme="shadow">
         <Stack gap="md" align="stretch">
           <Text textStyle="All-Caps/S" tone="light">Continue learning</Text>
@@ -369,15 +371,15 @@ export const examples: ExampleDef[] = [
         </Card>
         …
       </Stack>
-      <Stack as="section" gap="md" aria-labelledby={coursesId}>
-        …Your courses · See all (the title row)…
-        <List aria-labelledby={coursesId}>
-          <ListItem title="UX writing basics" caption="8 of 12 lessons" onClick={open}
-            leading={<Avatar size="md" shape="square" theme="violet" background="subtle" alt="">UX</Avatar>}
-            trailing={<Icon name="icon-chevron-right-line-medium" decorative />} />
-          …
-        </List>
-      </Stack>
+    </Stack>
+    <Stack as="section" gap="md" aria-labelledby={coursesId}>
+      …Your courses · See all (the title row)…
+      <List aria-labelledby={coursesId}>
+        <ListItem title="UX writing basics" caption="8 of 12 lessons" onClick={open}
+          leading={<Avatar size="md" shape="square" theme="violet" background="subtle" alt="">UX</Avatar>}
+          trailing={<Icon name="icon-chevron-right-line-medium" decorative />} />
+        …
+      </List>
     </Stack>
   </AppShell>
 </PlatformPhone>`,
@@ -414,14 +416,14 @@ export const examples: ExampleDef[] = [
       </Stack>
       …Scan · Savings · More
     </Stack>
-    <Stack as="section" gap="md" aria-labelledby={transactionsId}>
-      …Transactions · See All (the title row)…
-      <List aria-labelledby={transactionsId}>
-        <ListItem title="From Sea Group" caption="Received · Today" value="+40,000,000" onClick={open}
-          leading={<Avatar size="md" theme="blue" background="subtle" alt="">SG</Avatar>} />
-        …
-      </List>
-    </Stack>
+  </Stack>
+  <Stack as="section" gap="md" aria-labelledby={transactionsId}>
+    …Transactions · See All (the title row)…
+    <List aria-labelledby={transactionsId}>
+      <ListItem title="From Sea Group" caption="Received · Today" value="+40,000,000" onClick={open}
+        leading={<Avatar size="md" theme="blue" background="subtle" alt="">SG</Avatar>} />
+      …
+    </List>
   </Stack>
 </AppShell>`,
   },

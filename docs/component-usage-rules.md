@@ -320,6 +320,20 @@ picks the step, and the same relationship gets the same step on every screen:
 - **Phone sections** (user rule 2026-10-17) are spaced by `--zen-layout-mobile-section-gap` (Figma Component Size
   `Layout-Mobile/Section-Gap`): Compact 24, Comfortable 32, never less. The domain picks the Component Size and
   Typography modes, and the section gap follows them. Groups inside a section keep their own ladder step.
+- **A section is a group of content that belongs together** (user rule 2026-10-21: "Spacing giữa các section trong
+  mobile nên là 32px", "section khác với spacing trong 1 nhóm grid widget", "trong Desktop cũng vậy", "Các nhóm nội
+  dung cùng nhau nên gom vào cùng 1 section", "không để title riêng, listing riêng"):
+  - sections are 32 apart on phones (Comfortable; the section gap above) and on desktop (`xl`, Figma Spacing/Gap/XLarge
+    in the AppShell Content slot);
+  - a widget grid is one section: its cards keep `md` 16 between them (and between rows of one grid), never the
+    section gap;
+  - content that belongs together is one section: a balance card and its quick actions, a day's summary line with its
+    cards (Figma ◆ Finance "Main" holds the balance and its actions);
+  - a title row and the content it names are one section (`<Stack as="section" gap="md">` title row + List or cards),
+    never a title alone a section gap above its list.
+  On a phone in an AppShell, put the sections straight in the AppShell (its body spaces them); a wrapping
+  `<Stack gap="md">` around every section squeezes them to 16. Figma audit: `spacing/section-gap` (the Content slot's
+  gap) and `section/title-apart`.
 - A surface is a Card with `spacing` (small 16, medium 24); content inside keeps the surface's inset. A strip inside a
   surface (toolbar, summary, footer) has `sm` block padding and the surface's horizontal inset.
 - The gap between groups is always at least one step larger than the gap inside them. Siblings are spaced by the
