@@ -43,7 +43,7 @@ export const fixtures: Record<string, Fixture> = {
   TimelineMilestone: { props: { date: "Sep 25", title: "Design sign-off" } },
   TimelineGanttBar: { props: { title: "Wireframes" } },
   TimelineGanttLabel: { props: { name: "Wireframes" } },
-  ScheduleResourceGrid: { props: { date: "2026-09-30", now: "2026-09-30T13:15", resources: [{ id: "alex", name: "Alex Duong", meta: "Designer" }, { id: "lotus", name: "Room 2 · Lotus", type: "room" }], bookings: [{ id: "q4", resourceId: "alex", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue" }], onBookingClick: noop } },
+  ScheduleResourceGrid: { props: { date: "2026-09-30", now: "2026-09-30T13:15", resources: [{ id: "alex", name: "Alex Duong", meta: "Designer" }, { id: "lotus", name: "Room 2 · Lotus", kind: "room" }], bookings: [{ id: "q4", resourceId: "alex", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue" }], onBookingClick: noop } },
   ScheduleItinerary: { props: { title: "Design Day", now: "2026-09-30T13:15", stops: [{ id: "a", title: "Keynote", start: "2026-09-30T09:00", end: "2026-09-30T09:45" }, { id: "b", title: "Workshop", start: "2026-09-30T13:00", end: "2026-09-30T14:30" }] } },
   ScheduleSlotPicker: { props: { today: "2026-09-30", "aria-label": "Review times", slots: [{ id: "a", start: "2026-09-30T14:00" }, { id: "b", start: "2026-09-30T15:00", disabled: true }], onValueChange: noop } },
   ScheduleDayPlanner: { props: { defaultValue: "2026-09-30", now: "2026-09-30T13:15", events: [{ id: "a", title: "Exploration phase", start: "2026-09-30T13:00", end: "2026-09-30T16:00", status: "In progress" }], onCardMenu: noop } },

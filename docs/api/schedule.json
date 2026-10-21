@@ -12,7 +12,7 @@
       "props": [
         {
           "name": "resources",
-          "type": "unknown",
+          "type": "ScheduleResourceData[]",
           "required": true,
           "default": null,
           "description": "The rows: people and rooms, in order.",
@@ -20,7 +20,7 @@
         },
         {
           "name": "bookings",
-          "type": "unknown",
+          "type": "ScheduleBookingData[]",
           "required": false,
           "default": "[]",
           "description": "The bookings, shifts and leave on them (by `resourceId`).",
@@ -141,7 +141,7 @@
       "props": [
         {
           "name": "stops",
-          "type": "unknown",
+          "type": "ScheduleStopData[]",
           "required": true,
           "default": null,
           "description": "The stops, in order.",
@@ -198,7 +198,7 @@
       "props": [
         {
           "name": "slots",
-          "type": "unknown",
+          "type": "ScheduleSlotData[]",
           "required": true,
           "default": null,
           "description": "The bookable times (any days); a day shows its slots in time order.",
@@ -206,7 +206,7 @@
         },
         {
           "name": "days",
-          "type": "unknown",
+          "type": "CalendarDateInput[]",
           "required": false,
           "default": null,
           "description": "The days to offer (desktop columns, the phone's week strip). Default: the days the slots fall on, at most five.",
@@ -311,7 +311,7 @@
       "props": [
         {
           "name": "events",
-          "type": "unknown",
+          "type": "ScheduleCardData[]",
           "required": false,
           "default": "[]",
           "description": "The cards (any days); the planner shows the selected day's.",
@@ -764,6 +764,8 @@
     "ScheduleBookingData": "interface ScheduleBookingData { id: string; resourceId: string; title: string; start: CalendarDateInput; end: CalendarDateInput; color?: CalendarColor; time?: string; }",
     "ScheduleCardData": "interface ScheduleCardData { id: string; title: string; start: CalendarDateInput; end: CalendarDateInput; color?: ScheduleColor; status?: string; note?: string; attendees?: Array<{ src?: string; alt?: string }>; }",
     "ScheduleColor": "type ScheduleColor = CalendarColor | \"neutral\"",
-    "ScheduleSlotData": "interface ScheduleSlotData { id: string; start: CalendarDateInput; disabled?: boolean; }"
+    "ScheduleResourceData": "interface ScheduleResourceData { id: string; name: string; shortName?: string; meta?: string; kind?: \"person\" | \"room\"; avatarSrc?: string; }",
+    "ScheduleSlotData": "interface ScheduleSlotData { id: string; start: CalendarDateInput; disabled?: boolean; }",
+    "ScheduleStopData": "interface ScheduleStopData { id: string; title: string; start: CalendarDateInput; end: CalendarDateInput; meta?: string; }"
   }
 }

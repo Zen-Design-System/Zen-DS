@@ -5963,7 +5963,7 @@
       "props": [
         {
           "name": "resources",
-          "type": "unknown",
+          "type": "ScheduleResourceData[]",
           "required": true,
           "default": null,
           "description": "The rows: people and rooms, in order.",
@@ -5971,7 +5971,7 @@
         },
         {
           "name": "bookings",
-          "type": "unknown",
+          "type": "ScheduleBookingData[]",
           "required": false,
           "default": "[]",
           "description": "The bookings, shifts and leave on them (by `resourceId`).",
@@ -6089,7 +6089,7 @@
       "props": [
         {
           "name": "stops",
-          "type": "unknown",
+          "type": "ScheduleStopData[]",
           "required": true,
           "default": null,
           "description": "The stops, in order.",
@@ -6143,7 +6143,7 @@
       "props": [
         {
           "name": "slots",
-          "type": "unknown",
+          "type": "ScheduleSlotData[]",
           "required": true,
           "default": null,
           "description": "The bookable times (any days); a day shows its slots in time order.",
@@ -6151,7 +6151,7 @@
         },
         {
           "name": "days",
-          "type": "unknown",
+          "type": "CalendarDateInput[]",
           "required": false,
           "default": null,
           "description": "The days to offer (desktop columns, the phone's week strip). Default: the days the slots fall on, at most five.",
@@ -6253,7 +6253,7 @@
       "props": [
         {
           "name": "events",
-          "type": "unknown",
+          "type": "ScheduleCardData[]",
           "required": false,
           "default": "[]",
           "description": "The cards (any days); the planner shows the selected day's.",
@@ -7237,7 +7237,7 @@
         },
         {
           "name": "events",
-          "type": "unknown",
+          "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
           "description": "The events to show: chips in the desktop cells, a dot under the mobile days.",
@@ -7355,7 +7355,7 @@
         },
         {
           "name": "views",
-          "type": "unknown",
+          "type": "CalendarView[]",
           "required": false,
           "default": "[\"month\", \"week\", \"day\", \"agenda\"]",
           "description": "The views the switch offers, in order (Figma: Month · Week · Day · Agenda). Hide views the product does not\noffer; an empty list hides the switch.",
@@ -7441,7 +7441,7 @@
         },
         {
           "name": "events",
-          "type": "unknown",
+          "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
           "description": "The events: all-day ones in the all-day row, timed ones as blocks at their hours.",
@@ -7543,7 +7543,7 @@
       "props": [
         {
           "name": "events",
-          "type": "unknown",
+          "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
           "description": "The events; they are listed day by day, all-day first, then by start time.",
@@ -7653,7 +7653,7 @@
         },
         {
           "name": "events",
-          "type": "unknown",
+          "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
           "description": "The events of the period: a day with any shows the event dot (Dot style).",

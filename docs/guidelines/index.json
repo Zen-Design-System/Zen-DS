@@ -1299,6 +1299,7 @@
           "value?: CalendarDateInput|null",
           "defaultValue?: CalendarDateInput|null = null",
           "onValueChange?: (date: Date) => void",
+          "events?: CalendarEventData[] = []",
           "onEventClick?: (event: CalendarEventData, target: HTMLElement) => void",
           "selectedEventId?: string|null = null",
           "onMoreClick?: (date: Date) => void",
@@ -1314,6 +1315,7 @@
           "today?: Date|string",
           "titleLevel?: 2|3|4 = 2",
           "view?: month|week|day|3-day|agenda = month",
+          "views?: CalendarView[] = [month, week, day, agenda]",
           "onViewChange?: (view: CalendarView) => void",
           "onToday?: () => void",
           "onPrevious?: () => void",
@@ -1325,6 +1327,7 @@
         "CalendarTimeGrid": [
           "view?: week|day|3-day",
           "date?: Date|string",
+          "events?: CalendarEventData[] = []",
           "startHour?: number = 8",
           "endHour?: number = 18",
           "now?: Date|string",
@@ -1338,6 +1341,7 @@
           "ref?: Ref<HTMLDivElement>"
         ],
         "CalendarAgenda": [
+          "events?: CalendarEventData[] = []",
           "from?: Date|string",
           "days?: number = 7",
           "onEventClick?: (event: CalendarEventData, target: HTMLElement) => void",
@@ -1352,6 +1356,7 @@
           "value?: CalendarDateInput|null",
           "defaultValue?: CalendarDateInput|null",
           "onValueChange?: (date: Date) => void",
+          "events?: CalendarEventData[] = []",
           "variant?: dot|tile = dot",
           "device?: desktop|mobile",
           "today?: Date|string",
@@ -1466,6 +1471,8 @@
       ],
       "props": {
         "ScheduleResourceGrid": [
+          "resources: ScheduleResourceData[]",
+          "bookings?: ScheduleBookingData[] = []",
           "scale?: hours|days = hours",
           "date?: Date|string",
           "startHour?: number = 9",
@@ -1481,6 +1488,7 @@
           "ref?: Ref<HTMLDivElement>"
         ],
         "ScheduleItinerary": [
+          "stops: ScheduleStopData[]",
           "title?: ReactNode",
           "now?: Date|string",
           "device?: desktop|mobile",
@@ -1488,6 +1496,8 @@
           "ref?: Ref<HTMLDivElement>"
         ],
         "ScheduleSlotPicker": [
+          "slots: ScheduleSlotData[]",
+          "days?: CalendarDateInput[]",
           "value?: string|null",
           "defaultValue?: string|null = null",
           "onValueChange?: (id: string, slot: ScheduleSlotData) => void",
@@ -1501,6 +1511,7 @@
           "ref?: Ref<HTMLDivElement>"
         ],
         "ScheduleDayPlanner": [
+          "events?: ScheduleCardData[] = []",
           "value?: CalendarDateInput|null",
           "defaultValue?: CalendarDateInput|null",
           "onValueChange?: (day: Date) => void",

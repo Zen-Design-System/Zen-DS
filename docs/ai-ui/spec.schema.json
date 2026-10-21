@@ -7529,7 +7529,12 @@
             "properties": {
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarEventData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -8947,7 +8952,12 @@
               },
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarEventData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -9194,7 +9204,12 @@
               },
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarEventData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -9473,7 +9488,18 @@
               },
               "views": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "month",
+                        "week",
+                        "day",
+                        "3-day",
+                        "agenda"
+                      ]
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -9710,7 +9736,12 @@
               },
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarEventData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -28858,7 +28889,12 @@
             "properties": {
               "events": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/ScheduleCardData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -29479,7 +29515,12 @@
             "properties": {
               "stops": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/ScheduleStopData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -30030,7 +30071,12 @@
             "properties": {
               "resources": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/ScheduleResourceData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -30039,7 +30085,12 @@
               },
               "bookings": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/ScheduleBookingData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -30522,7 +30573,12 @@
             "properties": {
               "slots": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/ScheduleSlotData"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -30531,7 +30587,12 @@
               },
               "days": {
                 "anyOf": [
-                  {},
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/CalendarDateInput"
+                    }
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }
@@ -43651,6 +43712,62 @@
         }
       ]
     },
+    "CalendarEventData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "allDay": {
+          "type": "boolean"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "meta": {
+          "type": "string"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start"
+      ],
+      "additionalProperties": false
+    },
     "CardSubAction": {
       "type": "object",
       "properties": {
@@ -44822,6 +44939,137 @@
       ],
       "additionalProperties": false
     },
+    "ScheduleBookingData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "resourceId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "time": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "resourceId",
+        "title",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleCardData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink",
+            "neutral"
+          ]
+        },
+        "status": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleResourceData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "shortName": {
+          "type": "string"
+        },
+        "meta": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "person",
+            "room"
+          ]
+        },
+        "avatarSrc": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
     "ScheduleSlotData": {
       "type": "object",
       "properties": {
@@ -44838,6 +45086,33 @@
       "required": [
         "id",
         "start"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleStopData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "meta": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start",
+        "end"
       ],
       "additionalProperties": false
     },

@@ -19,7 +19,7 @@ export interface CalendarWeekStripProps extends Omit<HTMLAttributes<HTMLDivEleme
   /** Called with the day the person picks. */
   onValueChange?: (date: Date) => void;
   /** The events of the period: a day with any shows the event dot (Dot style). */
-  events?: readonly CalendarEventData[];
+  events?: CalendarEventData[];
   /** Figma Style: `dot` (date-picker days with an event dot, default) or `tile` (weekday and date in one tile; the
    * selected day a bordered Surface tile, as Schedule/Day-Planner uses it). */
   variant?: "dot" | "tile";

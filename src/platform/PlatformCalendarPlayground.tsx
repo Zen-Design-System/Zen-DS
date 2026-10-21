@@ -85,7 +85,7 @@ const RESOURCES = [
   { id: "alex", name: "Alex Duong", meta: "Design Lead" },
   { id: "maya", name: "Maya Chen", meta: "Product lead" },
   { id: "linh", name: "Linh Tran", meta: "Engineer" },
-  { id: "lotus", name: "Room 2 · Lotus", shortName: "Lotus", meta: "8 seats", type: "room" as const },
+  { id: "lotus", name: "Room 2 · Lotus", shortName: "Lotus", meta: "8 seats", kind: "room" as const },
 ];
 const BOOKINGS = [
   { id: "q4", resourceId: "alex", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue" as const },

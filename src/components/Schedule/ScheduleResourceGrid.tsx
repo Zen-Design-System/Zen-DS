@@ -11,9 +11,9 @@ import "./schedule.css";
 
 export interface ScheduleResourceGridProps extends HTMLAttributes<HTMLDivElement> {
   /** The rows: people and rooms, in order. */
-  resources: readonly ScheduleResourceData[];
+  resources: ScheduleResourceData[];
   /** The bookings, shifts and leave on them (by `resourceId`). */
-  bookings?: readonly ScheduleBookingData[];
+  bookings?: ScheduleBookingData[];
   /** Figma Scale: `hours` (one day, a column per hour) or `days` (one week, Monday first). Default hours. */
   scale?: "hours" | "days";
   /** The day shown (Hours) or any day of the week shown (Days). Default: today. */
@@ -121,7 +121,7 @@ export function ScheduleResourceGrid({ resources, bookings = [], scale = "hours"
             {resources.map((resource) => (
               <div key={resource.id} className="zen-schedule-grid__row" role="row">
                 <div className="zen-schedule-grid__resource" role="rowheader">
-                  {nest("Resource", <ScheduleResource device={device} type={resource.type} name={mobile ? resource.shortName ?? resource.name.split(/\s+/)[0] : resource.name} meta={resource.meta} avatarSrc={resource.avatarSrc} aria-label={mobile ? resource.name : undefined} />, resource.id)}
+                  {nest("Resource", <ScheduleResource device={device} type={resource.kind} name={mobile ? resource.shortName ?? resource.name.split(/\s+/)[0] : resource.name} meta={resource.meta} avatarSrc={resource.avatarSrc} aria-label={mobile ? resource.name : undefined} />, resource.id)}
                 </div>
                 <div className="zen-schedule-grid__track" role="cell" aria-colspan={columns.length}>
                   {columns.map((col) => <span key={col.start.toISOString()} className="zen-schedule-grid__cell" aria-hidden="true" />)}

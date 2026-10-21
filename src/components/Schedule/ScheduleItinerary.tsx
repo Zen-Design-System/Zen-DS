@@ -11,7 +11,7 @@ import "./schedule.css";
 
 export interface ScheduleItineraryProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   /** The stops, in order. */
-  stops: readonly ScheduleStopData[];
+  stops: ScheduleStopData[];
   /** Figma Kicker: the day and the plan's name ("Wed, Sep 30 · Design Day"). */
   title?: ReactNode;
   /** The current time: stops that ended are Past, the running one Now, the rest Upcoming. Default: the device clock. */

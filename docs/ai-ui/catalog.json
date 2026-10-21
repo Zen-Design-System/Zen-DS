@@ -3350,6 +3350,10 @@
       "description": "Figma `Calendar/Agenda` (16128:1036): days in order, each with its events as `.Primitives/Calendar/Agenda-Item` rows.",
       "props": {
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
           "default": [],
           "description": "The events; they are listed day by day, all-day first, then by start time."
         },
@@ -3969,6 +3973,10 @@
           "description": "Called with the day the person presses."
         },
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
           "default": [],
           "description": "The events to show: chips in the desktop cells, a dot under the mobile days."
         },
@@ -4122,6 +4130,10 @@
           "description": "The day the view is built around (\"2026-09-30\" or a Date)."
         },
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
           "default": [],
           "description": "The events: all-day ones in the all-day row, timed ones as blocks at their hours."
         },
@@ -4272,6 +4284,16 @@
           "description": "The selected view of the switch."
         },
         "views": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "month",
+              "week",
+              "day",
+              "3-day",
+              "agenda"
+            ]
+          },
           "default": [
             "month",
             "week",
@@ -4391,6 +4413,10 @@
           "description": "Called with the day the person picks."
         },
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
           "default": [],
           "description": "The events of the period: a day with any shows the event dot (Dot style)."
         },
@@ -14023,6 +14049,10 @@
       "description": "Figma `Schedule/Day-Planner` (16143:1439): a person's day — the month as a Heading/3 title with a selector (Button/Icon-Main Small Tertiary, Gap/XSmall), a Calendar/Week-Strip Styl",
       "props": {
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleCardData"
+          },
           "default": [],
           "description": "The cards (any days); the planner shows the selected day's."
         },
@@ -14310,6 +14340,10 @@
       "description": "Figma `Schedule/Itinerary` (16135:13820): a day's programme — a Body/Small/Bold kicker (Neutral/Light) over `.Primitives/Schedule/Itinerary-Item` stops, Gap/XSmall; stops that ende",
       "props": {
         "stops": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleStopData"
+          },
           "x-required": true,
           "description": "The stops, in order."
         },
@@ -14553,10 +14587,18 @@
       "description": "Figma `Schedule/Resource-Grid` (16135:145822): a resource timeline.",
       "props": {
         "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleResourceData"
+          },
           "x-required": true,
           "description": "The rows: people and rooms, in order."
         },
         "bookings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleBookingData"
+          },
           "default": [],
           "description": "The bookings, shifts and leave on them (by `resourceId`)."
         },
@@ -14807,10 +14849,18 @@
       "description": "Figma `Schedule/Slot-Picker` (16135:14046): a booking picker, one `.Primitives/Schedule/Slot` chosen at a time (a radio group).",
       "props": {
         "slots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleSlotData"
+          },
           "x-required": true,
           "description": "The bookable times (any days); a day shows its slots in time order."
         },
         "days": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarDateInput"
+          },
           "description": "The days to offer (desktop columns, the phone's week strip)."
         },
         "value": {
@@ -23432,6 +23482,62 @@
         }
       ]
     },
+    "CalendarEventData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "allDay": {
+          "type": "boolean"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "meta": {
+          "type": "string"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start"
+      ],
+      "additionalProperties": false
+    },
     "CardSubAction": {
       "type": "object",
       "properties": {
@@ -24244,6 +24350,137 @@
       ],
       "additionalProperties": false
     },
+    "ScheduleBookingData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "resourceId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "time": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "resourceId",
+        "title",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleCardData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink",
+            "neutral"
+          ]
+        },
+        "status": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleResourceData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "shortName": {
+          "type": "string"
+        },
+        "meta": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "person",
+            "room"
+          ]
+        },
+        "avatarSrc": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
     "ScheduleSlotData": {
       "type": "object",
       "properties": {
@@ -24260,6 +24497,33 @@
       "required": [
         "id",
         "start"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleStopData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "meta": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start",
+        "end"
       ],
       "additionalProperties": false
     },
