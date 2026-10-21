@@ -460,7 +460,7 @@ function PhoneInbox() {
 
   return (
     // The Inbox root: the large title folds into the bar as the threads scroll, the app's roots sit in the bottom bar. The
-    // bar casts a shadow, so the threads' block takes the same Shadow elevation.
+    // threads are the list that closes the phone screen, so they sit open on the Canvas, not in a box (usage rules §19).
     <PlatformPhone key="inbox" label="Zen app" screenRef={screenRef}>
       <AppShell
         topNavigation={<TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={screenRef}
@@ -470,21 +470,19 @@ function PhoneInbox() {
       >
         {screen.anchor}
         {/* The list's name carries the total; each counter is aria-hidden and its hidden text says what it counts. */}
-        <ListBox theme="shadow">
-          <List aria-label={unread ? `Inbox, ${plural(unread, "unread comment")}` : "Inbox"}>
-            {threads.map((item) => {
-              const last = item.comments[0];
-              return (
-                <ListItem key={item.id} data-thread={item.id} title={item.title} titleLines={2} caption={`${item.key} · ${people[last.by].name} · ${formatRelative(last.at)}`}
-                  leading={personAvatar(last.by)} onClick={() => open(item.id)}
-                  trailing={item.unread ? <>
-                    <BadgeCounter value={item.unread} theme="red" aria-hidden="true" />
-                    <VisuallyHidden>{plural(item.unread, "unread comment")}</VisuallyHidden>
-                  </> : undefined} />
-              );
-            })}
-          </List>
-        </ListBox>
+        <List aria-label={unread ? `Inbox, ${plural(unread, "unread comment")}` : "Inbox"}>
+          {threads.map((item) => {
+            const last = item.comments[0];
+            return (
+              <ListItem key={item.id} data-thread={item.id} title={item.title} titleLines={2} caption={`${item.key} · ${people[last.by].name} · ${formatRelative(last.at)}`}
+                leading={personAvatar(last.by)} onClick={() => open(item.id)}
+                trailing={item.unread ? <>
+                  <BadgeCounter value={item.unread} theme="red" aria-hidden="true" />
+                  <VisuallyHidden>{plural(item.unread, "unread comment")}</VisuallyHidden>
+                </> : undefined} />
+            );
+          })}
+        </List>
       </AppShell>
     </PlatformPhone>
   );
@@ -634,17 +632,16 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     topNavigation={<TopNavigation title="Inbox" largeTitle="Inbox" largeTitleSubheading="New comments in 6 threads" scrollRef={screenRef} />}
     bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" showLabels items={roots} value="inbox" onValueChange={go} />}
   >
-    <ListBox theme="shadow">
-      <List aria-label={unread ? \`Inbox, \${plural(unread, "unread comment")}\` : "Inbox"}>
-        {threads.map((item) => (
-          <ListItem key={item.id} title={item.title} titleLines={2} caption={\`\${item.key} · \${lastBy.name} · \${formatRelative(last.at)}\`} leading={avatar(item)} onClick={() => open(item.id)}
-            trailing={item.unread ? <>
-              <BadgeCounter value={item.unread} theme="red" aria-hidden="true" />
-              <VisuallyHidden>{plural(item.unread, "unread comment")}</VisuallyHidden>
-            </> : undefined} />
-        ))}
-      </List>
-    </ListBox>
+    {/* The list closes the phone screen: open on the Canvas, at the body's margin, no ListBox (usage rules §19) */}
+    <List aria-label={unread ? \`Inbox, \${plural(unread, "unread comment")}\` : "Inbox"}>
+      {threads.map((item) => (
+        <ListItem key={item.id} title={item.title} titleLines={2} caption={\`\${item.key} · \${lastBy.name} · \${formatRelative(last.at)}\`} leading={avatar(item)} onClick={() => open(item.id)}
+          trailing={item.unread ? <>
+            <BadgeCounter value={item.unread} theme="red" aria-hidden="true" />
+            <VisuallyHidden>{plural(item.unread, "unread comment")}</VisuallyHidden>
+          </> : undefined} />
+      ))}
+    </List>
   </AppShell>
 </PlatformPhone>`,
   },
