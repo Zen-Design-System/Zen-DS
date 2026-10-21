@@ -200,6 +200,15 @@ export async function copySection(localPage: string, sectionId: string, offset: 
   return copied;
 }
 
+/** A frame of the board as the source writes it: its file, loc and tag, and where it is (the row's place if unplaced). */
+export async function frameNodeOf(localPage: string, frameId: string): Promise<{ file: string; loc: string; name: string; place: FramePlace; width: number } | null> {
+  const board = await readBoard(localPage);
+  const index = board ? board.frames.findIndex((frame) => frame.id === frameId) : -1;
+  if (!board || index < 0) return null;
+  const frame = board.frames[index];
+  return { file: board.file, loc: frame.loc, name: board.nodes[index].name, place: frame.place ?? board.places[index], width: frame.width };
+}
+
 /** A frame copied from the page it is on (⌘C): its element, and its code without its place for the system clipboard. */
 export async function frameClip(localPage: string, frameId: string): Promise<FrameClip | null> {
   const board = await readBoard(localPage);
