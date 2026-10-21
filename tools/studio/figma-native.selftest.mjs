@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { nativeMessage, nativePictures, pictureKind, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
+import { mergePacks, copiedNode, effectFromPlugin, withEffects } from "./native-pack.mjs";
 import { diffMessages } from "./native-diff.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -331,6 +332,32 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   const blended = nativeMessage(exportOf([{ type: "FRAME", name: "Multiplied", layout: { mode: "VERTICAL" }, blendMode: "MULTIPLY", children: [] }, { type: "STAR", shape: true, name: "Dodged", fill, blendMode: "LINEAR_DODGE", fixedWidth: 40, fixedHeight: 40 }, { type: "RECTANGLE", shape: true, name: "Plain", fill, fixedWidth: 40, fixedHeight: 40 }]), pack).message.nodeChanges;
   const blendOf = (name) => blended.find((n) => n.name === name);
   check(blendOf("Multiplied")?.blendMode === "MULTIPLY" && blendOf("Dodged")?.blendMode === "LINEAR_DODGE" && !("blendMode" in (blendOf("Plain") ?? {})) && blendOf("Dodged")?.fillPaints?.[0]?.blendMode === "NORMAL", "a layer blend mode on frames and shapes; none at the default; paints stay NORMAL");
+  // A frame's look (figma-push frameLook): its stroke inside at a weight, on one side or dashed, its corners one by one
+  // on their variables, its effect style by its node id, its opacity, and its rotation about its centre.
+  const edge = "Border/Neutral/Subtle/Default";
+  const looks = { type: "FRAME", name: "Looks", layout: { mode: "NONE" }, fixedWidth: 600, fixedHeight: 300, children: [
+    ["Stroked", { stroke: edge, strokeWeight: 2, strokeAlign: "INSIDE" }], ["Bottom", { stroke: edge, strokeWeight: 1, strokeSides: "bottom" }],
+    ["Dashed", { stroke: edge, strokeWeight: 1, dash: [2, 2] }], ["Cornered", { radii: [16, 0, 16, 0], radiiVars: ["Corner-Radius/XLarge", null, "Corner-Radius/XLarge", null] }],
+    ["Shadowed", { effectStyle: "Shadow/Bottom/Level-2" }], ["Faded", { opacity: 0.5 }], ["Turned", { rotation: 90 }], ["Plain", {}],
+  ].map(([name, look]) => ({ type: "FRAME", name, layout: { mode: "NONE" }, fixedWidth: 120, fixedHeight: 80, children: [], absolute: { cx: "MIN", cy: "MIN", left: 20, top: 20, right: 0, bottom: 0 }, ...look })) };
+  const looked = nativeMessage(exportOf([looks]), pack).message.nodeChanges;
+  const lookOf = (name) => looked.find((n) => n.name === name) ?? {};
+  const bound = (node) => (node.parameterConsumptionMap?.entries ?? []).map((entry) => entry.variableField);
+  const [stroked, bottom, cornered, turn, plain] = ["Stroked", "Bottom", "Cornered", "Turned", "Plain"].map(lookOf);
+  check(varOf(stroked.strokePaints) === pack.variables[`Color/${edge}`][0] && stroked.strokeWeight === 2 && stroked.strokeAlign === "INSIDE" && !stroked.borderStrokeWeightsIndependent, "a frame's stroke: its Border variable inside at its weight");
+  check(bottom.borderBottomWeight === 1 && bottom.borderTopWeight === 0 && bottom.borderLeftWeight === 0 && bottom.borderRightWeight === 0 && bottom.borderStrokeWeightsIndependent === true, "a stroke on one side: that side's weight, 0 on the others");
+  check(JSON.stringify(lookOf("Dashed").dashPattern) === "[2,2]" && !("dashPattern" in stroked), "Zen's dash 2 / 2, only where the code dashes");
+  check(cornered.rectangleTopLeftCornerRadius === 16 && cornered.rectangleTopRightCornerRadius === 0 && cornered.rectangleBottomRightCornerRadius === 16 && cornered.rectangleBottomLeftCornerRadius === 0 && cornered.rectangleCornerRadiiIndependent && JSON.stringify(bound(cornered).sort()) === JSON.stringify(["RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS", "RECTANGLE_TOP_LEFT_CORNER_RADIUS"]), "corners one by one (TL TR BR BL), each step on its Corner-Radius variable");
+  const shadowed = lookOf("Shadowed");
+  check(id(shadowed.styleIdForEffect?.guid) === pack.styles["Shadow/Bottom/Level-2"][0] && shadowed.effects?.length === 3 && shadowed.effects.every((effect) => effect.type === "DROP_SHADOW" && effect.colorVar?.value.alias.guid) && shadowed.effects[0].radius === 40 && shadowed.effects[0].offset.y === 12, "the effect style by its node id, with its effects (bound to their colour variables), as Figma's copies write it");
+  // native-pack effects: a Plugin API shadow as Figma's clipboard writes it; glass is left out.
+  const popover = effectFromPlugin({ type: "DROP_SHADOW", visible: true, radius: 32, boundVariables: { color: { type: "VARIABLE_ALIAS", id: "VariableID:70:44326" } }, color: { r: 0, g: 0, b: 0, a: 0.04 }, offset: { x: 0, y: 12 }, spread: -16, blendMode: "NORMAL", showShadowBehindNode: true });
+  check(JSON.stringify(popover) === JSON.stringify({ type: "DROP_SHADOW", offset: { x: 0, y: 12 }, radius: 32, visible: true, blendMode: "NORMAL", spread: -16, showShadowBehindNode: true, colorVar: { value: { alias: { guid: { sessionID: 70, localID: 44326 } } }, dataType: "ALIAS", resolvedDataType: "COLOR" }, color: { r: 0, g: 0, b: 0, a: 0.04 } }) && effectFromPlugin({ type: "GLASS", radius: 4 }) === null, "a Plugin API shadow as Figma's clipboard writes it; glass gives none");
+  const effected = withEffects({ styles: { "Effect/X": ["1:1", "EFFECT"], Glass: ["1:2", "EFFECT"] } }, JSON.stringify({ "Effect/X": [{ type: "LAYER_BLUR", radius: 4, visible: true, blurType: "NORMAL" }], Glass: [{ type: "GLASS", radius: 4 }], Gone: [] }));
+  check(effected.styles === 1 && effected.pack.styles["Effect/X"][2].effects[0].type === "LAYER_BLUR" && effected.pack.styles.Glass.length === 2 && effected.skipped.length === 2, `effects into the pack's styles; glass and unknown styles skipped (${effected.skipped.join("; ")})`);
+  check(lookOf("Faded").opacity === 0.5 && plain.opacity === 1, "its opacity; 1 when the code sets none");
+  check(Math.abs(turn.transform?.m00) < 1e-9 && turn.transform?.m10 === -1 && turn.transform?.m01 === 1 && Math.abs(turn.transform?.m02 - 40) < 1e-9 && Math.abs(turn.transform?.m12 - 120) < 1e-9, `turned 90° about its centre (${JSON.stringify(turn.transform)})`);
+  check(!plain.strokePaints?.length && !plain.styleIdForEffect && !plain.dashPattern && plain.transform?.m00 === 1 && plain.transform?.m02 === 20, "a frame without a look keeps Figma's defaults");
   const back = await readFigmaClipboard((await figmaPasteHtml(exportOf([free]), pack)).html);
   check(back?.message.nodeChanges.filter((n) => ["LINE", "REGULAR_POLYGON", "STAR", "VECTOR", "BOOLEAN_OPERATION"].includes(n.type)).length === 7, "the shapes survive Figma's clipboard encoding");
 }
@@ -401,6 +428,21 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(shows(pictureAt(cover, ["1603:4720"])), "a Photo-Cell's picture fills its Photo");
   check(missing && !overrides(missing).some((entry) => entry.fillPaints) && notes.length === 1 && notes[0].includes("Lost") && notes[0].includes("not in the export"), `a picture without bytes is named in a note (${notes.join("; ")})`);
   check(message.blobs.filter((blob) => Buffer.from(blob.bytes).equals(logoBytes)).length === 1, "one blob for a picture used three times");
+}
+
+// --- native-pack --merge: a set added to the library joins the pack without a full capture ------------------------
+{
+  const base = { file: "f", read: "2026-10-18", sets: { "1:1": { name: "A", props: [["Size", "VARIANT", "1:90", null]], variants: ["1:2", "1:3"] } }, symbols: { "1:2": { name: "A1" }, "1:3": { name: "A2" } }, styles: { S: ["5:5", "TEXT"] }, variables: { V: ["6:6", "COLOR"] }, contents: {} };
+  // A copy of one Header/AppShell instance: its own set, and the one variant of A it nests (plus one A lacked).
+  const added = { read: "2026-10-21", sets: { "2:1": { name: "Header/AppShell", props: [], variants: ["2:2"] }, "1:1": { name: "A", props: [["Size", "VARIANT", "1:90", null], ["Icon", "BOOLEAN", "1:91", true]], variants: ["1:3", "1:4"] } }, symbols: { "2:2": { name: "B1" }, "1:3": { name: "partial" }, "1:4": { name: "A3" } }, styles: { S2: ["7:7", "FILL"], S: ["9:9", "TEXT"] }, variables: {}, contents: { "2:9": [] } };
+  const merged = mergePacks(base, added);
+  check(merged.sets["2:1"] && merged.symbols["2:2"] && merged.styles.S2 && merged.contents["2:9"] && merged.read === "2026-10-18", "a merge adds the copies' new sets, symbols, styles and contents");
+  check(merged.symbols["1:3"].name === "A2" && merged.styles.S[0] === "5:5" && merged.symbols["1:2"], "what the pack holds stays (a copy carries partial nested sets)");
+  check(JSON.stringify(merged.sets["1:1"].variants) === JSON.stringify(["1:2", "1:3", "1:4"]) && merged.sets["1:1"].props.map((prop) => prop[2]).join() === "1:90,1:91" && merged.symbols["1:4"], "a set the pack holds gains only the variants and properties it lacks, after its own");
+  check(JSON.stringify(merged.merged) === JSON.stringify([{ read: "2026-10-21", sets: ["2:1"], symbols: 2 }]) && Object.keys(merged.symbols).join() === "1:2,1:3,1:4,2:2", "it records what it added; keys stay sorted");
+  // capture: the copy must be of the probe frame (Figma can keep the person's own selection).
+  const probeCopy = await figmaPasteHtml(exportOf([{ type: "FRAME", name: "Probe", layout: { mode: "VERTICAL" }, children: [] }]), pack);
+  check(/^\d+:\d+$/.test(await copiedNode(probeCopy.html)) && (await copiedNode("<p>text</p>")) === "", "a copy names the node it was made of; other html names none");
 }
 
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------

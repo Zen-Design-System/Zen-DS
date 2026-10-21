@@ -9,18 +9,29 @@
 //                                                           a frame that uses every text, paint and effect style, and one
 //                                                           that binds every variable but the Global Colors primitives
 //   node tools/studio/native-pack.mjs capture --frames=a:b,c:d [--keep]   macOS + Figma desktop: copy each probe frame,
-//                                                           then write the pack (needs Accessibility for the terminal app)
+//                                                           then write the pack (needs Accessibility for the terminal app);
+//                                                           --keep saves the copies to .qa/native-pack/<frame>.html (write
+//                                                           --files reads them again). A copy of another node is refused
 //   node tools/studio/native-pack.mjs write --files=a.html,b.html   copies saved by hand → the pack
+//   node tools/studio/native-pack.mjs probe-code --ids=a:b,c:d   use_figma code: a probe of just these sets / components
+//   … capture --frames=… --merge | write --files=… --merge      add what the existing pack lacks (a set added to the
+//                                                           library): the copies' new sets, symbols, styles, variables and
+//                                                           contents, and the variants a set it holds lacks. What it holds
+//                                                           stays (a full capture refreshes it); the schema module stays
 //   node tools/studio/native-pack.mjs check                 sets the push writes that the pack lacks
 //   node tools/studio/native-pack.mjs images-code --part=N  use_figma code: the layers that show a picture in every
 //                                                           component (an Avatar's Image), without a full capture
 //   node tools/studio/native-pack.mjs images --files=a.txt,b.txt   its answers → the pack's `img` fields
+//   node tools/studio/native-pack.mjs effects-code          use_figma code: every local effect style's effects (read only)
+//   node tools/studio/native-pack.mjs effects --files=a.txt its answer → each effect style's `effects` in the pack (a
+//                                                           paste repeats a style's effects beside its id, as Figma's copies do)
 //
 // Pack (docs/figma-contracts/native-pack.json): `sets` {id: {name, props: [[name, type, id, initial]]}}, `symbols`
 // {id: {set?, name, w, h, mode?, bound? (its size fields bound to variables), defs: {setLevelPropId: ownPropId}, props? (a lone component's), nodes: [[id, parent, type, name, visible, w, h, x, y,
 // main, refs, more]]}} (parent: a row index, -1 for the symbol; refs: [[ownPropId, field]]; more: a slot's layout
 // fields, a grid's track ids, a frame's auto layout `mode`, a nested instance's own assignments and the overrides its
-// component sets below it, `img`: the fills of a layer that shows a picture; a symbol's own `img` likewise), `styles` {name: [id, type]}, `variables` {name: [id,
+// component sets below it, `img`: the fills of a layer that shows a picture; a symbol's own `img` likewise), `styles` {name: [id, type, values?]} (a text style's font fields, a paint style's
+// `fillPaints`, an effect style's `effects`), `variables` {name: [id,
 // type]}; a set lists its `variants` in layer order (the first is Figma's default). `contents` {id: [node…]} are the slot
 // contents a component sets on its nested instances, in full (a paste that edits one carries its own copy, as Figma
 // does); their style and variable refs are node ids, their vector data inline (`{blob: base64}`). The schema Figma wrote
@@ -97,6 +108,53 @@ for (const setId of ids) {
 }
 return frames.map((f) => f.id).join(",");
 `.trim();
+}
+
+/** The use_figma code that answers every local effect style's effects (read only; Plugin API names, ASCII JSON). */
+export function effectsCode() {
+  return `
+// Zen Studio · native-pack effects (read only): every local effect style's effects.
+const out = {};
+for (const style of await figma.getLocalEffectStylesAsync()) out[style.name] = style.effects;
+return JSON.stringify(out).replace(/[^\\x20-\\x7e]/g, (c) => "\\\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
+`.trim();
+}
+
+/**
+ * A Plugin API effect as Figma's clipboard writes it (its copies of a Shadow/Bottom/Level-N layer): a shadow with its
+ * colour variable; a blur with the shadow fields at Figma's defaults. Other kinds (glass, noise, texture, a progressive
+ * blur) give null: the style keeps only its id.
+ */
+export function effectFromPlugin(effect) {
+  const shadow = effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW";
+  if (!shadow && !((effect.type === "LAYER_BLUR" || effect.type === "BACKGROUND_BLUR") && (effect.blurType ?? "NORMAL") === "NORMAL")) return null;
+  const alias = shadow ? effect.boundVariables?.color?.id : null;
+  const [sessionID, localID] = String(alias ?? "").replace(/^VariableID:/, "").split(":").map(Number);
+  return {
+    type: effect.type,
+    offset: shadow ? { x: effect.offset.x, y: effect.offset.y } : { x: 0, y: 0 },
+    radius: effect.radius,
+    visible: effect.visible !== false,
+    blendMode: shadow ? effect.blendMode ?? "NORMAL" : "NORMAL",
+    spread: shadow ? effect.spread ?? 0 : 0,
+    showShadowBehindNode: shadow ? effect.showShadowBehindNode === true : false,
+    ...(alias ? { colorVar: { value: { alias: { guid: { sessionID, localID } } }, dataType: "ALIAS", resolvedDataType: "COLOR" } } : {}),
+    color: shadow ? { ...effect.color } : { r: 0, g: 0, b: 0, a: 0.25 },
+  };
+}
+
+/** effectsCode's answer → each effect style's `effects` in the pack; a style with an effect Figma's copies write otherwise is skipped. */
+export function withEffects(pack, answer) {
+  const out = { ...pack, styles: { ...pack.styles } }, counts = { styles: 0, skipped: [] };
+  for (const [name, effects] of Object.entries(JSON.parse(answer))) {
+    const style = out.styles[name];
+    if (!style || style[1] !== "EFFECT") { counts.skipped.push(`${name} (not in the pack)`); continue; }
+    const written = effects.map(effectFromPlugin);
+    if (written.some((effect) => !effect)) { counts.skipped.push(`${name} (${effects.map((effect) => effect.type).join(" + ")})`); continue; }
+    out.styles[name] = [style[0], "EFFECT", { effects: written }];
+    counts.styles++;
+  }
+  return { pack: out, ...counts };
 }
 
 /** The use_figma code that adds an instance of every icon component (the icon page) to the probe, in frames of PROBE_FRAME_SIZE, and a "Styles" frame that uses every local style once (their node ids). */
@@ -210,7 +268,7 @@ export function packFrom(copies, { read }) {
       };
     }
     if (ownOf.has(id(node.guid))) continue;
-    if (node.styleType && node.key && node.styleType !== "NONE") styles[node.name] ??= node.styleType === "TEXT" ? [id(node.guid), node.styleType, textProps(node)] : node.styleType === "FILL" ? [id(node.guid), node.styleType, { fillPaints: localRefs(node.fillPaints ?? []) }] : [id(node.guid), node.styleType];
+    if (node.styleType && node.key && node.styleType !== "NONE") styles[node.name] ??= node.styleType === "TEXT" ? [id(node.guid), node.styleType, textProps(node)] : node.styleType === "FILL" ? [id(node.guid), node.styleType, { fillPaints: localRefs(node.fillPaints ?? []) }] : node.styleType === "EFFECT" && node.effects?.length ? [id(node.guid), node.styleType, { effects: localRefs(node.effects) }] : [id(node.guid), node.styleType];
     // [id, type, key, version]: a paste binds by id in its own layers; in an instance override Figma writes the key.
     if (node.type === "VARIABLE" && !node.isDeleted) variables[node.name] ??= [id(node.guid), node.variableResolvedType ?? "", node.key ?? "", node.version ?? ""];
   }
@@ -354,6 +412,26 @@ export function withImages(pack, answers) {
   return { pack, layers: counts.layers, symbols: counts.symbols.size, skipped: counts.skipped };
 }
 
+/**
+ * `added` (packFrom of new copies) on top of `base` (the pack): their sets, symbols, styles, variables and contents
+ * replace the same ids and add the rest; `merged` records what each merge brought.
+ */
+export function mergePacks(base, added) {
+  const sortedKeys = (object) => Object.fromEntries(Object.entries(object).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  const merged = { ...base };
+  // What the pack already holds stays: a copy of one instance carries only the variants of the nested sets it shows
+  // (2026-10-21: six Button and Avatar sets came back with two or three variants each). A full capture refreshes them.
+  for (const field of ["sets", "symbols", "styles", "variables", "contents"]) merged[field] = sortedKeys({ ...(added[field] ?? {}), ...(base[field] ?? {}) });
+  // A set both hold gains the copy's variants and properties it lacks, after its own (its first variant is Figma's default).
+  for (const [key, set] of Object.entries(added.sets ?? {})) {
+    const own = base.sets?.[key];
+    if (!own) continue;
+    merged.sets[key] = { ...own, props: [...(own.props ?? []), ...(set.props ?? []).filter((prop) => !(own.props ?? []).some((mine) => mine[2] === prop[2]))], variants: [...(own.variants ?? []), ...(set.variants ?? []).filter((variant) => !(own.variants ?? []).includes(variant))] };
+  }
+  merged.merged = [...(base.merged ?? []), { read: added.read, sets: Object.keys(added.sets ?? {}).filter((key) => !base.sets?.[key]).sort(), symbols: Object.keys(added.symbols ?? {}).filter((key) => !base.symbols?.[key]).length }];
+  return merged;
+}
+
 /** A lone component's own property definitions (a set's live on the set). */
 function propsOf(node) {
   const props = (node.componentPropDefs ?? []).filter((def) => def.name && !def.isDeleted).map((def) => [def.name, def.type, id(def.id), initialOf(def.initialValue)]);
@@ -395,7 +473,36 @@ export const FIGMA_CLIPBOARD_SCHEMA = {
 
 const nodeModule = (name) => import(/* @vite-ignore */ `node:${name}`);
 
-/** macOS: select `nodeId` in Figma desktop, Edit › Copy, and return the clipboard's html (Esc first: a focused field would copy its text). */
+/**
+ * The user's clipboard saved to files (every type, NSData) and put back from them: a capture clears it. Files, never an
+ * inline osascript argument: a restore that passed a large picture inline failed and left the clipboard empty
+ * (2026-10-20). Returns the number of types saved / put back.
+ */
+export async function clipboardFiles(dir) {
+  const { execFileSync } = await nodeModule("child_process");
+  const { default: fs } = await nodeModule("fs");
+  const jxa = (code) => execFileSync("osascript", ["-l", "JavaScript", "-e", code], { encoding: "utf8", maxBuffer: 1 << 30 }).trim();
+  return {
+    save() {
+      fs.mkdirSync(dir, { recursive: true });
+      return Number(jxa(`ObjC.import("AppKit"); ObjC.import("Foundation"); const pb = $.NSPasteboard.generalPasteboard; const t = pb.types; const order = []; for (let i = 0; i < t.count; i++) { const k = t.objectAtIndex(i).js; const d = pb.dataForType(k); if (d.isNil()) continue; const p = ${JSON.stringify(dir)} + "/" + order.length + ".bin"; d.writeToFileAtomically(p, true); order.push([k, p]); } $(JSON.stringify(order)).writeToFileAtomicallyEncodingError(${JSON.stringify(`${dir}/order.json`)}, true, $.NSUTF8StringEncoding, null); order.length + ""`));
+    },
+    restore() {
+      return jxa(`ObjC.import("AppKit"); ObjC.import("Foundation"); const pb = $.NSPasteboard.generalPasteboard; pb.clearContents; const order = JSON.parse($.NSString.stringWithContentsOfFileEncodingError(${JSON.stringify(`${dir}/order.json`)}, $.NSUTF8StringEncoding, null).js); if (order.length) pb.declareTypesOwner($(order.map((o) => o[0])), null); let n = 0; for (const [t, p] of order) { const d = $.NSData.dataWithContentsOfFile(p); if (!d.isNil() && pb.setDataForType(d, t)) n++; } n + "/" + order.length`);
+    },
+  };
+}
+
+/** The node a Figma copy was made of (its meta's selectedNodeData, "id|…"), or "" when the html is not Figma's. */
+export async function copiedNode(html) {
+  return (await readFigmaClipboard(html))?.meta?.selectedNodeData?.split("|")[0] ?? "";
+}
+
+/**
+ * macOS: select `nodeId` in Figma desktop, Edit › Copy, and return the clipboard's html (Esc first: a focused field would
+ * copy its text). The copy must be of `nodeId`: when the file's tab is already open, Figma can keep the person's own
+ * selection instead of going to the link's node (2026-10-21: a probe capture copied a layer of Header/AppShell).
+ */
 async function copyFromFigma(nodeId, retry = true) {
   const { execFileSync } = await nodeModule("child_process");
   const osa = (...lines) => execFileSync("osascript", lines.flatMap((line) => ["-e", line]), { encoding: "utf8" }).trim();
@@ -409,7 +516,11 @@ async function copyFromFigma(nodeId, retry = true) {
   for (let tries = 0; tries < 60; tries++) {
     await sleep(2000);
     const html = jxa('ObjC.import("AppKit"); const d = $.NSPasteboard.generalPasteboard.stringForType("public.html"); d.isNil() ? "" : d.js');
-    if (html) return html;
+    if (!html) continue;
+    const copied = await copiedNode(html);
+    if (copied === nodeId) return html;
+    if (retry) { await sleep(10000); return copyFromFigma(nodeId, false); }
+    throw new Error(`native-pack: Figma copied ${copied || "something else"}, not ${nodeId} (it kept another selection): nothing written`);
   }
   // A copy right after use_figma built the frame can miss it (Figma desktop syncs a few seconds later): once more.
   if (retry) { await sleep(10000); return copyFromFigma(nodeId, false); }
@@ -425,23 +536,50 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
   const keys = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/library-keys.json"), "utf8"));
   const ids = pushIdsFrom(keys);
   const read = option("date") ?? new Date().toISOString().slice(0, 10);
+  const merge = process.argv.includes("--merge");
   const write = async (htmls) => {
     const copies = [];
     for (const html of htmls) { const copy = await readFigmaClipboard(html); if (!copy) throw new Error("native-pack: a copy without Figma's buffer"); copies.push(copy); }
-    const pack = packFrom(copies, { read });
+    const fresh = packFrom(copies, { read });
+    // --merge: the copies' definitions on top of the existing pack (and its schema, which pastes still read).
+    const pack = merge ? mergePacks(JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8")), fresh) : fresh;
     fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(pack)}\n`);
-    fs.writeFileSync(path.join(root, SCHEMA_MODULE), schemaModule(copies[copies.length - 1], read));
+    if (!merge) fs.writeFileSync(path.join(root, SCHEMA_MODULE), schemaModule(copies[copies.length - 1], read));
+    if (merge) { const last = pack.merged[pack.merged.length - 1]; console.log(`native-pack: added ${last.sets.length} sets (${last.sets.join(", ") || "none"}) and ${last.symbols} symbols from the copies; the ${Object.keys(fresh.symbols).length - last.symbols} the pack had stay`); }
     const missing = ids.filter((key) => !pack.sets[key] && !pack.symbols[key]);
     console.log(`native-pack: ${Object.keys(pack.symbols).length} symbols in ${Object.keys(pack.sets).length} sets, ${Object.keys(pack.styles).length} styles, ${Object.keys(pack.variables).length} variables; ${(fs.statSync(path.join(root, PACK_FILE)).size / 1e6).toFixed(1)} MB${missing.length ? `; missing: ${missing.join(", ")}` : ""}`);
   };
   if (command === "probe-code" && process.argv.includes("--icons")) console.log(iconProbeCode());
-  else if (command === "probe-code") console.log(probeCode(ids, Number(option("part") ?? 0)));
+  else if (command === "probe-code") console.log(probeCode(option("ids") ? option("ids").split(",") : ids, Number(option("part") ?? 0)));
   else if (command === "capture" && option("frames")) {
+    // The user's clipboard: saved before the copies, put back after them (also when a copy fails).
+    const { default: os } = await nodeModule("os");
+    const clip = await clipboardFiles(path.join(os.tmpdir(), `zen-native-pack-clipboard-${process.pid}`));
+    console.log(`native-pack: saved the clipboard (${clip.save()} types)`);
     const htmls = [];
-    for (const frame of option("frames").split(",")) { htmls.push(await copyFromFigma(frame)); console.log(`native-pack: copied ${frame} (${(htmls[htmls.length - 1].length / 1e6).toFixed(1)} MB)`); }
+    try {
+      for (const frame of option("frames").split(",")) {
+        htmls.push(await copyFromFigma(frame));
+        console.log(`native-pack: copied ${frame} (${(htmls[htmls.length - 1].length / 1e6).toFixed(1)} MB)`);
+        if (process.argv.includes("--keep")) {
+          const file = path.join(root, ".qa/native-pack", `${frame.replace(":", "-")}.html`);
+          fs.mkdirSync(path.dirname(file), { recursive: true });
+          fs.writeFileSync(file, htmls[htmls.length - 1]);
+          console.log(`native-pack: kept the copy in ${path.relative(root, file)}`);
+        }
+      }
+    } finally {
+      console.log(`native-pack: put the clipboard back (${clip.restore()} types)`);
+    }
     await write(htmls);
   } else if (command === "write" && option("files")) await write(option("files").split(",").map((file) => fs.readFileSync(file, "utf8")));
-  else if (command === "images-code" || command === "images") {
+  else if (command === "effects-code") console.log(effectsCode());
+  else if (command === "effects" && option("files")) {
+    const file = path.join(root, PACK_FILE);
+    const result = withEffects(JSON.parse(fs.readFileSync(file, "utf8")), fs.readFileSync(option("files"), "utf8").trim().replace(/^"|"$/g, ""));
+    fs.writeFileSync(file, `${JSON.stringify(result.pack)}\n`);
+    console.log(`native-pack: the effects of ${result.styles} effect styles${result.skipped.length ? `; skipped: ${result.skipped.join(", ")}` : ""}`);
+  } else if (command === "images-code" || command === "images") {
     const pack = JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8"));
     // Sets and the components outside them, icons aside (an icon shows no picture).
     const components = [...Object.keys(pack.sets), ...Object.entries(pack.symbols).filter(([, symbol]) => !symbol.set && !/^(icon|ic)-/.test(symbol.name)).map(([key]) => key)].sort();
@@ -458,7 +596,7 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     if (missing.length) { console.error(`native-pack: ${missing.length} set(s) the push can write are not in the pack (${missing.join(", ")}): rebuild with probe-code + capture`); process.exit(1); }
     console.log(`native-pack: every set the push can write (${ids.length}) is in the pack (read ${pack.read})`);
   } else {
-    console.error("usage: native-pack.mjs probe-code --part=N | capture --frames=<ids> | write --files=<html files> | check | images-code --part=N | images --files=<answers>");
+    console.error("usage: native-pack.mjs probe-code --part=N | probe-code --ids=<ids> | capture --frames=<ids> [--merge] | write --files=<html files> [--merge] | check | images-code --part=N | images --files=<answers> | effects-code | effects --files=<answer>");
     process.exit(1);
   }
 }
