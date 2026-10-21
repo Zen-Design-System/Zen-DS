@@ -11982,7 +11982,7 @@
           "type": "\"icon-highlight\" | \"title-highlight\"",
           "required": false,
           "default": "\"icon-highlight\"",
-          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
+          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Body/Extra/Medium at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
           "deprecated": null
         },
         {
@@ -12132,7 +12132,7 @@
           "type": "\"kpi\" | \"sparkline\" | \"spark-bars\" | \"goal-progress\" | \"comparison\" | \"category-bar\" | \"hero\" | \"tile\"",
           "required": false,
           "default": "\"kpi\"",
-          "description": "Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): a Title-Highlight Metric, Large (`variant` picks\nIcon-Highlight). Every other\ntype draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart\n(Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)\nbars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;\n`comparison` (15481:1848) the `label` as a Heading/Subheading title over the `comparison` columns; `category-bar`\n(15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral\ntrend line from `series` on a Brand Pale card (theme=\"solid\" for the dark widget), with `footer` for its button;\n`tile` (16104:4827) a phone stat tile, Figma Metric-Tile in a Card Spacing=Small: the title, number and trend over\nthe Dock-Icon. Its `size` is Medium (default: two-up, Display/3) or Small (three-up, Heading/3), and its content follows\nthe card's fill (Figma Content: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on\nYellow).",
+          "description": "Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): a Title-Highlight Metric, Large (`variant` picks\nIcon-Highlight). Every other\ntype draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart\n(Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)\nbars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;\n`comparison` (15481:1848) the `label` as a Body/Extra/Medium title over the `comparison` columns; `category-bar`\n(15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral\ntrend line from `series` on a Brand Pale card (theme=\"solid\" for the dark widget), with `footer` for its button;\n`tile` (16104:4827) a phone stat tile, Figma Metric-Tile in a Card Spacing=Small: the title, number and trend over\nthe Dock-Icon. Its `size` is Medium (default: two-up, Display/4) or Small (three-up, Heading/3), and its content follows\nthe card's fill (Figma Content: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on\nYellow).",
           "deprecated": null
         },
         {
@@ -12196,7 +12196,7 @@
           "type": "2 | 3 | 4",
           "required": false,
           "default": "3",
-          "description": "comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under\n the page h1), as ChartCard's. The look stays Heading/Subheading: the level follows the outline, not the size.",
+          "description": "comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under\n the page h1), as ChartCard's. The look stays Body/Extra/Medium: the level follows the outline, not the size.",
           "deprecated": null
         },
         {
@@ -16166,7 +16166,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "Figma Header Label (Heading/Subheading).",
+          "description": "Figma Header Label (Body/Extra/Medium, 2026-10-21).",
           "deprecated": null
         },
         {
@@ -16174,7 +16174,7 @@
           "type": "2 | 3 | 4",
           "required": false,
           "default": "3",
-          "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
+          "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Body/Extra/Medium — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
           "deprecated": null
         },
         {
@@ -16190,7 +16190,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "One line under the title that says what the figure is (\"Available revenue in your wallet\"), Body/Small/Regular.",
+          "description": "What the figure is (\"Available revenue in your wallet\"), Body/Small/Regular: the top of Figma's Metric, under the\n Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
           "deprecated": null
         },
         {
@@ -16198,7 +16198,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/2 (Figma Chart-Card Heading > Value).",
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the\n description and the Segmented.",
           "deprecated": null
         },
         {
@@ -18381,10 +18381,10 @@
         },
         {
           "name": "theme",
-          "type": "\"default\" | \"border-divider\"",
+          "type": "\"default\" | \"border-divider\" | \"borderless\"",
           "required": false,
           "default": null,
-          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Medium ·\nMargin-Comfortable). Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
+          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Large\nabove, Padding/Medium below, Margin-Comfortable at the sides) · `borderless` (Theme=Borderless: the same rows\nwithout the line). Figma draws both only at Density=Small. Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
           "deprecated": null
         },
         {
@@ -18392,7 +18392,7 @@
           "type": "\"medium\" | \"small\"",
           "required": false,
           "default": null,
-          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider theme pads its rows itself.",
+          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider and borderless themes pad their rows themselves.",
           "deprecated": null
         },
         {
