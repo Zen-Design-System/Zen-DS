@@ -18,6 +18,10 @@ Last updated: 2026-10-21.
 
 ## State in short
 
+- **BadgeStatus + PropertyField (2026-10-21):** branch `zen/feat/property-field-20261021` (worktree
+  `../Zen-DS-badge-status`): Figma Badge-Status 16932:195 and Input/Property-Field 16923:6031 approved by the user, then
+  code, platform pages (Badge, Input), harness rules, Studio palette + push/pull. Rule since then: new components go
+  Figma draft → user review → code + Studio. Open items in BACKLOG (themed-Badge migration, Figma gaps).
 - **Component best-practice refactor (2026-10-14):** branch `zen/refactor/component-best-practices` in worktree
   `../Zen-DS-refactor`, not merged. Shared helpers in `_shared` (controllable state, stable callback, merged refs,
   layers, modal isolation, HTML sanitiser), every component takes `ref` as a prop, conformance test. Details: session log
@@ -92,7 +96,9 @@ Last updated: 2026-10-21.
 - **Calendar / Schedule / Timeline:** Figma pages ❖ Calendar 16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (2026-10-17,
   approved by the user 2026-10-21). **Calendar is in code + Studio** (branch `zen/feat/calendar-20261021`, worktree
   `../Zen-DS-calendar`): 5 views + 7 primitives, platform page `calendar`; spec `docs/research/calendar-2026-10-21.md`,
-  detail session-log-2026-10-21. Schedule, then Timeline, come next (tier L each).
+  detail session-log-2026-10-21. **Schedule is in code + Studio** on `zen/feat/schedule-20261021` (worktree
+  `../Zen-DS-schedule`, on top of Calendar): 4 views + 5 primitives, page `schedule`, spec
+  `docs/research/schedule-2026-10-21.md`. Timeline comes next (tier L).
 - **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
   gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
   Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,

@@ -7,11 +7,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P2 · Figma ◇ Master-Layout · Example: 9 more screens break the section rules (2026-10-21, question for the user):**
-  C1, C2, C7, D3, D4 were fixed (open closing lists, grouped sections, Section-Gap). The audit's `spacing/section-gap` /
-  `section/title-apart` still flag B3 (two rows of one widget grid at 24), B5 (docs steps: titles apart from their
-  content), C4, C5, C6, D2, D5 (Section-Header over loose List-Items), E4, E7 (title, Segmented and Card as siblings):
-  group each into whole sections and bind the gap? Code examples follow. Session log 2026-10-21.
+- **P2 · Workflow steps still drawn as themed Badges (2026-10-21, BadgeStatus in code; multi-file migration):** other
+  platform pages and the HR templates show a task's step as `Badge theme={taskStatusTheme[…]}`; the new rule
+  `badge/workflow-status-uses-badge-status` flags new ones only. Move them to `<BadgeStatus>` (and Figma instances to
+  Badge-Status). Pointer: `grep -rn taskStatusTheme src/platform`.
+- **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
+  Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
+  Figma). Pointer: `tools/studio/figma-property.mjs`.
 - **P2 · Calendar/Toolbar Mobile in the Mobile typography — question for the designer (2026-10-21, Calendar in code):**
   Figma drew the Mobile variant (16125:399) in the desktop type sizes; with Mobile typography Heading/3 is 26px, so
   "September 2026" (~200px) and a fourth view label ("Agenda") no longer fit 358px beside Today and the arrows, in
@@ -64,13 +66,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   the primary selection only: edit/groupLayers.ts `ungroupSelection`). The rest shipped (⌘G, Enter = all children,
   Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles, frame presets, gap /
   padding drag handles 2026-10-21). Pointer: same doc §8.
-- **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) settled 2026-10-17 (user:
-  "mặc định nhưng cho sửa"): TopNavigation control bars and BottomSheets give their Search `rounded` in code and
-  Studio; for the designer: set Shape=Rounded on the Search instance in Figma Top-Navigation/Mobile's Control-Bar and
-  Bottom-Sheet's search so the library matches. (b) native
-  paste: `docs/figma-contracts/native-pack.json` has no Search/Default Shape yet, so a direct ⌘V of `shape="rounded"`
-  lands as Default with a note (the plugin import is right); re-capture the Search/Default probe (`native-pack.mjs
-  probe-code` + `capture`, Figma desktop).
 - **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
   unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
   (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).
@@ -150,10 +145,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   + 8 Nav-Action sets), ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat parts, Metric
   (re-capture); the chart family now belongs to session "Chart components với animation". P4: raw HTML and className in
   examples. Audit and numbers: `docs/research/studio-figma-push-spec-2026-10-12.md` §8.
-- **P3 · Export › Figma: a Grid inside a Grid cell does not stretch to its row (2026-10-14, seen on Dashboard):** CSS
-  stretches both inner Grids of the metric row, so all four MetricCards match the tallest. Figma keeps the second pair
-  at its own height (168 vs 248 when one card has `custom`). The push hugs frame cells on purpose (figma-push.mjs: "Fill
-  inside Fill leaves Figma a height it cannot settle"). A fix needs push, importer (FLEX rows) and pull, plus a live check.
 - **P3 · Zen plugin `code.js` Swap Project Colors reads `getVariableById` (sync) (2026-10-14):** under the manifest's
   `dynamic-page` it throws (caught), so a Global Color that is an alias derives from nothing (`getBgColor`, ~line 5655).
   Import from Studio no longer uses any sync API (`tests/plugin-source-safety.test.js` checks it).

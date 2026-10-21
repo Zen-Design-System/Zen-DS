@@ -209,8 +209,8 @@
       "title": "Input fields",
       "file": "docs/guidelines/input.md",
       "apiFile": "docs/api/input.json",
-      "figma": "Input/Text-Field, Select-Field, Date-Field, Color-Field, Inline-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading (page 373:97258)",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "figma": "Input/Text-Field, Select-Field, Date-Field, Color-Field, Inline-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading, Property-Field (+ .Primitives/Input/Property-Value, Property-Icon) (page 373:97258)",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -221,7 +221,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -436,6 +437,96 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ],
+        "PropertyField": [
+          "ref?: Ref<HTMLDivElement>",
+          "label: ReactNode",
+          "icon?: IconName|ReactNode",
+          "action?: { label: string; onClick?: () => void }",
+          "children?: ReactNode",
+          "className?: string"
+        ],
+        "PropertyText": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "value?: string",
+          "defaultValue?: string = ",
+          "onValueChange?: (value: string) => void"
+        ],
+        "PropertySelect": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "options: PropertyFieldOption[]",
+          "value?: string|null",
+          "defaultValue?: string|null = null",
+          "onValueChange?: (value: string) => void",
+          "popoverLabel?: ReactNode"
+        ],
+        "PropertyStatus": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "value?: BadgeStatusValue|null",
+          "defaultValue?: BadgeStatusValue|null = null",
+          "onValueChange?: (value: BadgeStatusValue) => void",
+          "labels?: Partial<Record<BadgeStatusValue, ReactNode>>",
+          "progress?: number",
+          "popoverLabel?: ReactNode"
+        ],
+        "PropertyDate": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "value?: PropertyDateValue|null",
+          "defaultValue?: PropertyDateValue|null = null",
+          "onValueChange?: (value: Date|null) => void",
+          "format?: Intl.DateTimeFormatOptions = { dateStyle: long }",
+          "minDate?: Date",
+          "maxDate?: Date"
+        ],
+        "PropertyPeople": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "options: PropertyFieldOption[]",
+          "value?: string[]",
+          "defaultValue?: string[]",
+          "onValueChange?: (value: string[]) => void",
+          "addLabel?: string",
+          "popoverLabel?: ReactNode",
+          "single?: boolean"
+        ],
+        "PropertyTags": [
+          "ref?: Ref<HTMLElement>",
+          "placeholder?: ReactNode",
+          "readOnly?: boolean",
+          "state?: default|inputted|hover|editing",
+          "aria-label?: string",
+          "className?: string",
+          "options: PropertyFieldOption[]",
+          "value?: string[]",
+          "defaultValue?: string[]",
+          "onValueChange?: (value: string[]) => void",
+          "addLabel?: string",
+          "popoverLabel?: ReactNode",
+          "onCreate?: (label: string) => void"
         ]
       },
       "do": [
@@ -456,7 +547,9 @@
         "RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.",
         "RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.",
         "RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.",
-        "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view."
+        "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view.",
+        "PropertyField: one value cell per row (harness: property-field/one-value), one label column for the whole list, two columns Spacing/Gap/XLarge apart; an empty value says the locale's \"Empty\"; give a select option's icon a tone by meaning (Urgent Negative, High Warning, Normal Info, Low Neutral).",
+        "PropertyField: pass readOnly for people who may not change the record, so nothing looks clickable."
       ],
       "dont": [
         "Don't disable a field whose value people need to read or copy; use Read-only (disabled text is faint, skipped by Tab and not submitted).",
@@ -467,13 +560,15 @@
         "Don't open a Date/Select popover on a read-only or disabled field.",
         "Don't repeat the label as placeholder; show an example or the format (harness: input/placeholder-not-label).",
         "Don't use RichTextField for plain notes (→ TextAreaField) or single-line input (→ InputField).",
-        "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange)."
+        "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange).",
+        "Don't put a bordered InputField or SelectField in a PropertyField: the borderless value cell is the field."
       ],
       "rules": [
         "input/no-disabled",
         "input/needs-label",
         "input/placeholder-not-label",
         "richtext/value-not-onchange",
+        "property-field/one-value",
         "color-picker/hex-value",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -530,7 +625,7 @@
       },
       "do": [
         "Describe the scope in the placeholder (\"Search components\").",
-        "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded); a Search in a TopNavigation control bar or a BottomSheet is rounded by default (set shape=\"default\" to keep the square field). Desktop toolbars keep the default shape.",
+        "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded); a Search in a TopNavigation control bar, a BottomSheet or an AppShell on a phone is rounded by default (set shape=\"default\" to keep the square field). Desktop toolbars keep the default shape.",
         "Filter live and show an empty state that echoes the query.",
         "Let Enter open the first result; the clear button resets to recent items.",
         "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",
@@ -782,20 +877,22 @@
     },
     {
       "slug": "badge",
-      "title": "Badge & Badge-Counter",
+      "title": "Badge, Badge-Counter & Badge-Status",
       "file": "docs/guidelines/badge.md",
       "apiFile": "docs/api/badge.json",
-      "figma": "Badge, Badge-Counter (page 239:18960)",
-      "import": "import { Badge, BadgeCounter } from \"@zen-ds/react\";",
-      "purpose": "Non-interactive status, category or count labels.",
+      "figma": "Badge, Badge-Counter, Badge-Status + .Primitives/Badge/Progress-Icon (page 239:18960)",
+      "import": "import { Badge, BadgeCounter, BadgeStatus } from \"@zen-ds/react\";",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "use": [
         "Status in lists (Live, Failed).",
         "Unread/notification counts (BadgeCounter).",
-        "Removable labels on an item (remove + onRemove)."
+        "Removable labels on an item (remove + onRemove).",
+        "A task's or project's workflow step — To Do, In Progress, In Review, Done, Blocked, Cancelled — in tables, boards, detail views and status pickers (BadgeStatus)."
       ],
       "avoid": [
         "Selectable filters → Chip.",
-        "Values inside an input → Tag."
+        "Values inside an input → Tag.",
+        "A percentage people read as a number → ProgressBar / ProgressCircle."
       ],
       "props": {
         "Badge": [
@@ -815,6 +912,14 @@
         ],
         "BadgeCounter": [
           "value?: ReactNode"
+        ],
+        "BadgeStatus": [
+          "ref?: Ref<HTMLSpanElement>",
+          "status?: to-do|in-progress|in-review|done|blocked|cancelled = to-do",
+          "size?: sm|md|small|medium = md",
+          "progress?: number",
+          "children?: ReactNode",
+          "className?: string"
         ]
       },
       "do": [
@@ -822,10 +927,14 @@
         "Use Subtle backgrounds in dense tables and Solid for emphasis.",
         "Cap counters at \"99+\" and hide them at zero.",
         "Show counts (unread, items, filters applied, a section's or folder's item count) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height — never a Badge holding a number nor bare text beside a label; keep Badge for words and statuses (harness: badge/count-uses-counter, badge/count-text-uses-counter; component-usage-rules §18).",
-        "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count)."
+        "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count).",
+        "Show a workflow step with BadgeStatus, never a Badge themed by hand: the step sets the colour and the ring, so every screen reads one workflow the same way (harness: badge/workflow-status-uses-badge-status).",
+        "Keep one workflow per product, in order: To Do → In Progress → In Review → Done; Blocked and Cancelled sit outside it. Rename a step only by its label (children), never by repainting another step.",
+        "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough."
       ],
       "dont": [
         "Don't make a badge clickable (use Chip).",
+        "Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).",
         "Don't rely on colour alone; keep the text.",
         "Don't use more than two badges on one row item; summarise the rest.",
         "Don't show counters at zero."
@@ -835,6 +944,7 @@
         "badge-counter/cap",
         "flag/no-emoji-flag",
         "badge/count-uses-counter",
+        "badge/workflow-status-uses-badge-status",
         "badge/count-text-uses-counter",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -1450,6 +1560,148 @@
       ]
     },
     {
+      "slug": "schedule",
+      "title": "Schedule",
+      "file": "docs/guidelines/schedule.md",
+      "apiFile": "docs/api/schedule.json",
+      "figma": "Schedule/Resource-Grid, Itinerary, Slot-Picker, Day-Planner and .Primitives/Schedule/* (page ❖ Schedule 16121:6)",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "props": {
+        "ScheduleResourceGrid": [
+          "resources: ScheduleResourceData[]",
+          "bookings?: ScheduleBookingData[] = []",
+          "scale?: hours|days = hours",
+          "date?: Date|string",
+          "startHour?: number = 9",
+          "endHour?: number = 17",
+          "now?: Date|string",
+          "today?: Date|string",
+          "resourcesLabel?: ReactNode",
+          "onBookingClick?: (booking: ScheduleBookingData, target: HTMLElement) => void",
+          "selectedBookingId?: string|null = null",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleItinerary": [
+          "stops: ScheduleStopData[]",
+          "title?: ReactNode",
+          "now?: Date|string",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleSlotPicker": [
+          "slots: ScheduleSlotData[]",
+          "days?: CalendarDateInput[]",
+          "value?: string|null",
+          "defaultValue?: string|null = null",
+          "onValueChange?: (id: string, slot: ScheduleSlotData) => void",
+          "day?: Date|string",
+          "onDayChange?: (day: Date) => void",
+          "today?: Date|string",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "name?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleDayPlanner": [
+          "events?: ScheduleCardData[] = []",
+          "value?: CalendarDateInput|null",
+          "defaultValue?: CalendarDateInput|null",
+          "onValueChange?: (day: Date) => void",
+          "title?: ReactNode",
+          "titleLevel?: 2|3|4 = 2",
+          "onMonthClick?: () => void",
+          "onCardMenu?: (card: ScheduleCardData, target: HTMLElement) => void",
+          "startHour?: number = 9",
+          "endHour?: number = 18",
+          "now?: Date|string",
+          "today?: Date|string",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleResource": [
+          "name: ReactNode",
+          "meta?: ReactNode",
+          "type?: person|room = person",
+          "avatarSrc?: string",
+          "avatarTheme?: Exclude<AvatarTheme, photo> = violet",
+          "icon?: IconName = icon-building-02-line",
+          "device?: desktop|mobile = desktop",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleSlot": [
+          "time: ReactNode",
+          "size?: md|sm|medium|small = md",
+          "checked?: boolean",
+          "disabled?: boolean",
+          "ref?: Ref<HTMLInputElement>"
+        ],
+        "ScheduleItineraryItem": [
+          "start: ReactNode",
+          "duration?: ReactNode",
+          "title: ReactNode",
+          "meta?: ReactNode",
+          "status?: past|now|upcoming = upcoming",
+          "connector?: boolean = true",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleHourLabel": [
+          "hour: ReactNode",
+          "now?: boolean = false",
+          "ref?: Ref<HTMLSpanElement>"
+        ],
+        "ScheduleEventCard": [
+          "title: ReactNode",
+          "status?: ReactNode",
+          "time?: ReactNode",
+          "color?: CalendarColor|neutral = brand",
+          "attendees?: Array<{ src?: string; alt?: string }>",
+          "note?: ReactNode",
+          "onMenuClick?: MouseEventHandler<HTMLButtonElement>",
+          "menuLabel?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
+        ]
+      },
+      "do": [
+        "Keep the confirm action (\"Book 10:00\") in the page or sheet footer, enabled once a time is chosen.",
+        "Keep taken or past times in place (disabled, struck through) so the day keeps its rhythm.",
+        "Pass `now` (and `today`) when your app's clock is not the device's, so Past / Now and the now line agree with your data.",
+        "Give bars real start and end dates: a bar past the visible range scrolls with the track."
+      ],
+      "dont": [
+        "Don't hide taken slots: people then cannot tell a full day from an empty one.",
+        "Don't use a Slot-Picker for filters or scopes: that is Chip advanced.",
+        "Don't put several Now stops in an itinerary: one stop runs at a time.",
+        "Don't stack many overlapping events in a Day-Planner: use CalendarTimeGrid, which splits the column."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "schedule/slot-picker-confirm",
+        "schedule/selected-needs-handler"
+      ]
+    },
+    {
       "slug": "tooltip",
       "title": "Tooltip",
       "file": "docs/guidelines/tooltip.md",
@@ -1701,7 +1953,7 @@
       ],
       "avoid": [
         "Non-blocking feedback → Toast.",
-        "Long forms → a page or Side Panel.",
+        "A data-entry form (two or more fields) → ModalForm on desktop and tablet, BottomSheet on a phone; a long form → a page.",
         "Hints → Tooltip/Popover."
       ],
       "props": {
@@ -1754,8 +2006,9 @@
         ]
       },
       "do": [
-        "Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.",
-        "Use actionsDirection=\"vertical\" when the choices deserve equal weight or labels are long.",
+        "Use Dialog for a notice or a quick confirm, with one field at most (type the name to delete). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet (harness: dialog/form-uses-modal-form) and in a BottomSheet on a phone (harness: modal-form/not-on-phone).",
+        "Use actionsDirection=\"vertical\" on a Dialog when the choices deserve equal weight or labels are long; a ModalForm keeps its actions in a row (harness: modal-form/actions-horizontal).",
+        "Keep a ModalForm's side column (side) no taller than the form, a summary or an illustration, so the actions sit under the fields with no empty band; longer side content belongs in the form.",
         "Phrase the title as the question (\"Delete “Marketing site”?\") and repeat the verb in the primary action.",
         "Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: \"Cancel\", autoFocus: true }}` (otherwise the primary action takes it).",
         "Require typing the name for high-impact deletes.",
@@ -1771,6 +2024,7 @@
         "Don't use a dialog for information the user can ignore.",
         "Don't hide the only way out (always Escape or a cancel action).",
         "Don't open a dialog from a dialog (harness: dialog/no-nested).",
+        "Don't put a form in a Dialog, and don't open a ModalForm on a phone.",
         "Don't open a dialog on page load without a user action.",
         "Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser."
       ],
@@ -1778,6 +2032,8 @@
         "dialog/needs-title",
         "dialog/negative-uses-danger",
         "dialog/no-nested",
+        "dialog/form-uses-modal-form",
+        "modal-form/actions-horizontal",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
@@ -3875,6 +4131,7 @@
       },
       "do": [
         "Keep one task per sheet and one primary action.",
+        "On a phone, open a form in a BottomSheet (its title, the fields, the actions in its footer), never in a ModalForm (harness: modal-form/not-on-phone).",
         "Let the user drag, tap the scrim or press Escape to dismiss.",
         "For a single choice, fill the sheet with List + ListItem: the picked row is `selected` (Active/Neutral/Subtle) with a trailing check, and picking closes the sheet. The Action type's `selectedId` row (Accent/Subtle) is Figma's state, not the house pattern for choices (user, 2026-09-30).",
         "Lists inside the sheet use List/ListItem (the sheet sets --zen-list-inset: 0).",
@@ -3889,6 +4146,7 @@
         "Don't nest a <Form> inside a BottomSheet that has onSubmit, and don't submit from primaryAction.onClick; pass form.handleSubmit to onSubmit instead."
       ],
       "rules": [
+        "modal-form/not-on-phone",
         "segmented/control-bar-full-width",
         "bottom-sheet/action-needs-items",
         "bottom-sheet/choice-uses-list-item",
@@ -4816,7 +5074,7 @@
           "actions?: ReactNode",
           "main?: ReactNode",
           "sections?: ReactNode",
-          "theme?: default|border-divider",
+          "theme?: default|border-divider|borderless",
           "density?: medium|small",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "ref?: Ref<HTMLElement>"

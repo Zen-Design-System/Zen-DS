@@ -133,6 +133,12 @@ export const FIGMA_PROPS = {
     // Theme and Background come from BadgeProps (inspector/inheritedProps.ts).
     props: { Text: "value", Size: "size", Theme: "theme", Background: "background" },
   },
+  // Figma Badge-Status (16932:195, read 2026-10-21): Status × Size; the ring's exact value (the Progress layer's arc) is
+  // the code's `progress`, which no Figma property holds.
+  BadgeStatus: {
+    sets: { "Badge-Status": null },
+    props: { Status: "status", Size: "size" },
+  },
   BottomSheet: {
     sets: { "Bottom-Sheet": null },
     props: {
@@ -182,7 +188,7 @@ export const FIGMA_PROPS = {
       "Main-Element": skip("content slot (the Main switch)"),
       Main: { toggle: "main", on: "slot" },
       Sections: { toggle: "sections", on: "slot" },
-      Theme: { prop: "theme", values: { Default: "default", "Border & Divider": "border-divider" } },
+      Theme: { prop: "theme", values: { Default: "default", "Border & Divider": "border-divider", Borderless: "borderless" } },
       Density: "density",
     },
   },
@@ -212,6 +218,17 @@ export const FIGMA_PROPS = {
   DescriptionList: {
     sets: { "Description List": null },
     props: { Items: skip("data slot (items list)"), Layout: "layout", Divider: { prop: "divider", bool: true } },
+  },
+  // Figma Input/Property-Field (16923:6031, a lone component, read 2026-10-21): the row. Its Value is the nested
+  // .Primitives/Input/Property-Value, whose Type is the child cell (PropertyText … PropertyTags): figma-push draws it.
+  PropertyField: {
+    sets: { "Input/Property-Field": null },
+    props: {
+      Label: "label",
+      Icon: { toggle: "icon", on: { swap: "Icon-Src" } },
+      "Icon-Src": "icon",
+      Action: { toggle: "action", on: { code: '{ label: "Add" }' } },
+    },
   },
   InputField: {
     sets: { "Input/Text-Field": null },
@@ -485,6 +502,11 @@ export const FIGMA_PROPS = {
   CalendarMonth: { sets: { "Calendar/Month": null }, props: { Device: "device", "Sixth-Week": skip("the month's own weeks: six when it spans six") } },
   CalendarTimeGrid: { sets: { "Calendar/Time-Grid": null }, props: { Device: "device", View: "view" } },
   CalendarAgenda: { sets: { "Calendar/Agenda": null }, props: { Device: "device" } },
+  // ❖ Schedule (16121:6, approved 2026-10-21): the public sets; .Primitives/Schedule/* are drawn inside them.
+  ScheduleResourceGrid: { sets: { "Schedule/Resource-Grid": null }, props: { Device: "device", Scale: "scale" } },
+  ScheduleItinerary: { sets: { "Schedule/Itinerary": null }, props: { Device: "device" } },
+  ScheduleSlotPicker: { sets: { "Schedule/Slot-Picker": null }, props: { Device: "device" } },
+  ScheduleDayPlanner: { sets: { "Schedule/Day-Planner": null }, props: { Device: "device" } },
   DatePicker: {
     // Date-Picker/Mobile is the device prop (device="mobile"), not a third calendar: left out.
     sets: { "Date-Picker/Single-Calendar": "single", "Date-Picker/Dual-Calendar": "dual" },

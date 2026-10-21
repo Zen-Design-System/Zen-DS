@@ -213,7 +213,7 @@ describe("Dialog / ModalForm inside a device frame ([data-zen-overlay-root])", (
     expect(getComputedStyle(panel.querySelector(".zen-dialog__actions")!).flexDirection).toBe("row");
   });
 
-  it("ModalForm opens in the frame too", async () => {
+  it("ModalForm opens in the frame too, its actions still in a row", async () => {
     const screen = await render(
       <ZenProvider>
         <div data-zen-overlay-root="" data-testid="phone" style={frame}>
@@ -225,8 +225,29 @@ describe("Dialog / ModalForm inside a device frame ([data-zen-overlay-root])", (
     );
     const panel = screen.getByRole("dialog", { name: "Rename file" }).element() as HTMLElement;
     expect(panel.parentElement?.parentElement).toBe(screen.getByTestId("phone").element());
-    expect(getComputedStyle(panel.querySelector(".zen-modal-form__footer")!).flexDirection).toBe("column-reverse");
+    // A form keeps its actions in a row at every width (user rule 2026-10-21: a form never stacks them; a phone opens
+    // the form in a BottomSheet instead).
+    expect(getComputedStyle(panel.querySelector(".zen-modal-form__footer")!).flexDirection).toBe("row");
     await expect.element(screen.getByLabelText("File name")).toHaveFocus();
+  });
+});
+
+describe("ModalForm footer in a narrow frame", () => {
+  const frame: CSSProperties = { position: "relative", width: 390, height: 844, overflow: "hidden" };
+  it("keeps three actions in a row that wraps, never past the panel", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <div data-zen-overlay-root="" style={frame}>
+          <ModalForm open onOpenChange={() => undefined} layout="big" title="New project" primaryAction={{ label: "Create project" }}
+            secondaryAction={{ label: "Cancel" }} tertiaryAction={{ label: "Back" }}>
+            <InputField label="Project name" />
+          </ModalForm>
+        </div>
+      </ZenProvider>,
+    );
+    const footer = screen.getByRole("dialog", { name: "New project" }).element().querySelector(".zen-modal-form__footer") as HTMLElement;
+    expect(getComputedStyle(footer).flexDirection).toBe("row");
+    expect(footer.scrollWidth).toBeLessThanOrEqual(footer.clientWidth);
   });
 });
 

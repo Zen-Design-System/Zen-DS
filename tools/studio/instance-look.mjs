@@ -12,13 +12,15 @@
  */
 export const STYLE_ON_ROOT = new Set([
   "ActionBar", "AppShell", "AppShellAccount", "AppShellAction", "AppShellHeader", "AppShellPane", "AvatarStack", "Badge",
-  "BadgeCounter", "Button", "CalendarAgenda", "CalendarAgendaItem", "CalendarDate", "CalendarDayCell", "CalendarDayTile",
+  "BadgeCounter", "BadgeStatus", "Button", "CalendarAgenda", "CalendarAgendaItem", "CalendarDate", "CalendarDayCell", "CalendarDayTile",
   "CalendarEvent", "CalendarEventBlock", "CalendarMonth", "CalendarNowLine", "CalendarTimeGrid", "CalendarToolbar",
   "CalendarWeekStrip", "Card", "Chip", "ChipGroup", "ColorField", "ColorSwatch", "ControlBarSelectItem", "CurvePreview",
   "DashboardHeader", "DateField", "DatePickerItem", "DescriptionList", "EmptyState", "FileIcon", "Flag", "Form",
   "FormActions", "FormField", "FormFieldset", "HeadingField", "Icon", "IconButton", "InputField", "Link", "List", "ListBox",
   "ListItem", "NumberField", "PageHeader", "PaginationItem", "Popover", "PopoverBunkAction", "PopoverBunkActionDivider",
-  "PopoverBunkActionGroup", "PopoverItem", "PopoverManualAddNew", "PopoverSearch", "Search", "SegmentedItem", "SelectField",
+  "PopoverBunkActionGroup", "PopoverItem", "PopoverManualAddNew", "PopoverSearch", "PropertyField",
+  "ScheduleDayPlanner", "ScheduleEventCard", "ScheduleHourLabel", "ScheduleItinerary", "ScheduleItineraryItem",
+  "ScheduleResource", "ScheduleResourceGrid", "ScheduleSlotPicker", "Search", "SegmentedItem", "SelectField",
   "SkeletonHeading", "SkeletonShape", "SkeletonText", "Stepper", "TabItem", "Table", "Tag", "TextAreaField",
   "ToggleListItem", "TooltipSurface",
 ]);

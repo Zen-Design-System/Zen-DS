@@ -278,6 +278,33 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   "RowActions": {
     "Button": "IconButton"
   },
+  "ScheduleDayPlanner": {
+    "Card": "ScheduleEventCard",
+    "Month": "IconButton",
+    "Week": "CalendarWeekStrip"
+  },
+  "ScheduleEventCard": {
+    "Attendees": "AvatarStack",
+    "Menu": "IconButton"
+  },
+  "ScheduleItinerary": {
+    "Stop": "ScheduleItineraryItem"
+  },
+  "ScheduleItineraryItem": {
+    "Badge": "Badge"
+  },
+  "ScheduleResource": {
+    "Avatar": "Avatar",
+    "Icon": "DockIcon"
+  },
+  "ScheduleResourceGrid": {
+    "Booking": "CalendarEventBlock",
+    "Resource": "ScheduleResource"
+  },
+  "ScheduleSlotPicker": {
+    "Slot": "ScheduleSlot",
+    "Week": "CalendarWeekStrip"
+  },
   "Search": {
     "Filter": "InputLeadingTrailing",
     "Leading": "Icon",

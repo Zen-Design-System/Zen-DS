@@ -11,6 +11,7 @@ import { Menu } from "../components/Menu";
 import { Checkbox, type CheckboxSide } from "../components/Checkbox";
 import { RadioButton, type RadioSide } from "../components/RadioButton";
 import { Badge, BadgeCounter, badgeThemes, type BadgeBackground, type BadgeSize, type BadgeTheme } from "../components/Badge";
+import { BadgeStatus, badgeStatuses, type BadgeStatusSize, type BadgeStatusValue } from "../components/BadgeStatus";
 import { Toggle, type ToggleSize, type ToggleTheme } from "../components/Toggle";
 import type { PopoverItemData } from "../components/Popover";
 import { Tag, type TagTheme } from "../components/Tag";
@@ -58,7 +59,7 @@ import { PlatformCode } from "./PlatformCode";
 import { ComponentGuidelines } from "./PlatformGuidelines";
 import { ComponentApi, ComponentKeyboard, ComponentProps, PlatformOnThisPage, PlatformSection } from "./PlatformReference";
 import { VoicePlayground } from "./PlatformVoicePlayground";
-import { CalendarPlayground } from "./PlatformCalendarPlayground";
+import { CalendarPlayground, SchedulePlayground } from "./PlatformCalendarPlayground";
 import { AiChatPlayground, BottomNavigationPlayground, BottomSheetPlayground, ChartPlayground, ChatPlayground, TopNavigationPlayground } from "./PlatformMobilePlaygrounds";
 import { figmaSidebarBrand } from "./PlatformSidebarBrand";
 import { appLayerPages } from "./PlatformAppLayer";
@@ -72,7 +73,7 @@ import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from 
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
-export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "calendar" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "shape" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "slider-field" | "curve-preview" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
+export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "calendar" | "schedule" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "shape" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "slider-field" | "curve-preview" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
 
 /**
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
@@ -270,6 +271,9 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [badgeRemove, setBadgeRemove] = useState<string | undefined>("no");
   const [badgeRemoved, setBadgeRemoved] = useState(false);
   const [badgeCount, setBadgeCount] = useState<string | undefined>("7");
+  const [badgeStatusStep, setBadgeStatusStep] = useState<string | undefined>("in-progress");
+  const [badgeStatusSize, setBadgeStatusSize] = useState<string | undefined>("medium");
+  const [badgeStatusProgress, setBadgeStatusProgress] = useState<string | undefined>(undefined);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarBackground, setSidebarBackground] = useState<string | undefined>(undefined);
   const [sidebarCanvas, setSidebarCanvas] = useState<string | undefined>(undefined);
@@ -1169,7 +1173,7 @@ const rules = [
     const resolvedBackground = (badgeBackground ?? "solid") as BadgeBackground;
     const showLeading = badgeLeading === "yes";
     const showRemove = badgeRemove === "yes";
-    return <ExamplePage page="badge" eyebrow="Components / Badge" title="Badge" description="Badge and Badge-Counter for compact status, category and count communication.">
+    return <ExamplePage page="badge" eyebrow="Components / Badge" title="Badge" description="Badge, Badge-Counter and Badge-Status for compact status, category, count and workflow-step communication.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Badge</h2>
         <PlaygroundControls aria-label="Badge playground controls">
@@ -1202,6 +1206,20 @@ import { Icon } from "@zen-ds/react";` : ""}
 </Badge>
 
 <BadgeCounter size="${resolvedSize}" theme="${resolvedTheme}" background="${resolvedBackground}" value={${badgeCount === "99+" ? `"99+"` : badgeCount ?? 7}} />`} />
+      </ComponentPreview>
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Badge-Status</h2>
+        <PlaygroundControls aria-label="Badge-Status playground controls">
+          <PlaygroundFilterChip label="Status" value={badgeStatusStep} onChange={(value) => setBadgeStatusStep(String(value) || undefined)} options={badgeStatuses.map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Size" value={badgeStatusSize} onChange={(value) => setBadgeStatusSize(String(value) || undefined)} options={["small", "medium"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Progress" value={badgeStatusProgress} onChange={(value) => setBadgeStatusProgress(String(value) || undefined)} options={["10", "60", "90"].map((id) => ({ id, label: `${id}%` }))} />
+        </PlaygroundControls>
+        <div data-typography={previewTypography} className="platform-example-row">
+          <BadgeStatus status={(badgeStatusStep ?? "in-progress") as BadgeStatusValue} size={(badgeStatusSize ?? "medium") as BadgeStatusSize} progress={badgeStatusProgress ? Number(badgeStatusProgress) : undefined} />
+        </div>
+        <PlatformCode code={`import { BadgeStatus } from "@zen-ds/react";
+
+<BadgeStatus status="${badgeStatusStep ?? "in-progress"}" size="${badgeStatusSize ?? "medium"}"${badgeStatusProgress ? ` progress={${badgeStatusProgress}}` : ""} />`} />
       </ComponentPreview>
     </ExamplePage>;
   }
@@ -1353,6 +1371,10 @@ import { Icon } from "@zen-ds/react";` : ""}
 </Tag>`} />
       </ComponentPreview>
     </ExamplePage>;
+  }
+
+  if (page === "schedule") {
+    return <ExamplePage page="schedule" eyebrow="Components / Schedule" title="Schedule" description="Time around people, rooms and stops: a Resource-Grid of bookings by hour or by day, an Itinerary of timed stops, a Slot-Picker for booking a time and a Day-Planner of cards. Built on the Calendar parts."><SchedulePlayground /></ExamplePage>;
   }
 
   if (page === "calendar") {

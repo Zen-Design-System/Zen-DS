@@ -475,6 +475,34 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "BadgeStatus": {
+    "figma": "16932:195",
+    "own": [
+      {
+        "prop": "status",
+        "label": "Status",
+        "type": "VARIANT",
+        "options": {
+          "To Do": "to-do",
+          "In Progress": "in-progress",
+          "In Review": "in-review",
+          "Done": "done",
+          "Blocked": "blocked",
+          "Cancelled": "cancelled"
+        }
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "BottomSheet": {
     "figma": "4059:14161",
     "own": [
@@ -633,7 +661,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Default": "default",
-          "Border & Divider": "border-divider"
+          "Border & Divider": "border-divider",
+          "Borderless": "borderless"
         }
       },
       {
@@ -934,6 +963,36 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ],
     "toggles": []
+  },
+  "PropertyField": {
+    "figma": "16923:6031",
+    "own": [
+      {
+        "prop": "label",
+        "label": "Label",
+        "type": "TEXT"
+      },
+      {
+        "prop": "icon",
+        "label": "Icon-Src",
+        "type": "INSTANCE_SWAP",
+        "default": "icon-loading-02-line"
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Icon",
+        "prop": "icon",
+        "on": "icon-loading-02-line"
+      },
+      {
+        "label": "Action",
+        "prop": "action",
+        "on": {
+          "code": "{ label: \"Add\" }"
+        }
+      }
+    ]
   },
   "InputField": {
     "figma": "421:4108",
@@ -2740,6 +2799,75 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
   },
   "CalendarAgenda": {
     "figma": "16128:1036",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleResourceGrid": {
+    "figma": "16135:145822",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      },
+      {
+        "prop": "scale",
+        "label": "Scale",
+        "type": "VARIANT",
+        "options": {
+          "Hours": "hours",
+          "Days": "days"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleItinerary": {
+    "figma": "16135:13820",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleSlotPicker": {
+    "figma": "16135:14046",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleDayPlanner": {
+    "figma": "16143:1439",
     "own": [
       {
         "prop": "device",

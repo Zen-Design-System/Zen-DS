@@ -9,6 +9,7 @@ export type ScreenDevice = {
   width: number;
   height: number;
   icon: string;
+  os?: "ios" | "android";
   bars: ScreenDeviceBars;
   radius: number;
   turn?: string;
@@ -20,7 +21,8 @@ export const SCREEN_DEVICES: ReadonlyArray<ScreenDevice>;
 export const FRAME_DEVICES: ReadonlyArray<ScreenDevice>;
 export function screenDevice(id: string | null | undefined): ScreenDevice | undefined;
 export function deviceOfSize(width: number | undefined, height: number | undefined): ScreenDevice | undefined;
-export function deviceOfScreen(device: string | undefined, layout: string | undefined, width: unknown, height: unknown): ScreenDevice | undefined;
+export function deviceOs(entry: ScreenDevice | null | undefined): "ios" | "android";
+export function deviceOfScreen(device: string | undefined, layout: string | undefined, width: unknown, height: unknown, os?: "ios" | "android"): ScreenDevice | undefined;
 export function deviceSize(entry: ScreenDevice): string;
 
 export type FramePreset = { id: string; label: string; width: number; height: number; device: "phone" | "tablet" | "desktop"; layout?: "mobile" | "desktop"; zen?: string };

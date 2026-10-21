@@ -109,6 +109,28 @@ export type ZenLabels = {
   /** The agenda with no events in its range: title and caption. */
   noEvents: string;
   noEventsDescription: string;
+  // Schedule (Resource-Grid, Itinerary, Slot-Picker, Day-Planner)
+  /** The running stop's badge (Itinerary) — "Now". */
+  now: string;
+  /** A card's ⋮ menu: "Actions for Exploration phase". */
+  actionsFor: (name: string) => string;
+  /** A stop's length: "90 min". */
+  minutes: (count: number) => string;
+  /** The Slot-Picker's groups on a phone. */
+  morning: string;
+  afternoon: string;
+  evening: string;
+  /** The Resource-Grid's resource column: "Team & rooms" (desktop), "Team" (phone). */
+  teamAndRooms: string;
+  team: string;
+  /** Names the Slot-Picker's radio group. */
+  availableTimes: string;
+  /** After a taken slot's time: "unavailable". */
+  unavailable: string;
+  /** A day without slots. */
+  noTimes: string;
+  /** The Day-Planner's month selector. */
+  chooseMonth: string;
   // Forms and fields
   fieldsNeedAttention: (count: number) => string;
   /** After an optional field's label or legend: "(Optional)". */
@@ -153,6 +175,19 @@ export type ZenLabels = {
   stepError: string;
   /** Stepper's screen-reader status after a passed step's title. */
   stepCompleted: string;
+  /** BadgeStatus's default labels, one per workflow step (Figma Badge-Status). */
+  statusToDo: string;
+  statusInProgress: string;
+  statusInReview: string;
+  statusDone: string;
+  statusBlocked: string;
+  statusCancelled: string;
+  /** BadgeStatus: the ring's value read after the label when `progress` is set ("60% complete"). */
+  statusPercent: (percent: number) => string;
+  /** PropertyField: an empty value (Figma State=Default). */
+  propertyEmpty: string;
+  /** PropertyField: the + after the label that adds a value to its People or Tags ("Add Labels"). */
+  propertyAdd: (label: string) => string;
   rating: string;
   stars: (count: number) => string;
   /** RatingDisplay: "4.5 out of 5 stars"; `value` arrives formatted for the locale. */
@@ -439,6 +474,18 @@ const en: ZenLabels = {
   eventCount: (count) => `${count} ${count === 1 ? "event" : "events"}`,
   noEvents: "No events",
   noEventsDescription: "Nothing is planned for these days.",
+  now: "Now",
+  actionsFor: (name) => (name ? `Actions for ${name}` : "Actions"),
+  minutes: (count) => `${count} min`,
+  morning: "Morning",
+  afternoon: "Afternoon",
+  evening: "Evening",
+  teamAndRooms: "Team & rooms",
+  team: "Team",
+  availableTimes: "Available times",
+  unavailable: "unavailable",
+  noTimes: "No times left on this day",
+  chooseMonth: "Choose month",
   fieldsNeedAttention: (count) => `${count} ${count === 1 ? "field needs" : "fields need"} attention`,
   optional: "(Optional)",
   somethingWentWrong: "Something went wrong. Try again.",
@@ -477,6 +524,15 @@ const en: ZenLabels = {
   progress: "Progress",
   stepError: "(error)",
   stepCompleted: "(completed)",
+  statusToDo: "To Do",
+  statusInProgress: "In Progress",
+  statusInReview: "In Review",
+  statusDone: "Done",
+  statusBlocked: "Blocked",
+  statusCancelled: "Cancelled",
+  statusPercent: (percent) => `${percent}% complete`,
+  propertyEmpty: "Empty",
+  propertyAdd: (label) => `Add ${label}`,
   rating: "Rating",
   stars: (count) => `${count} ${count === 1 ? "star" : "stars"}`,
   ratingValue: (value, max) => `${value} out of ${max} stars`,
@@ -712,6 +768,18 @@ const vi: ZenLabels = {
   eventCount: (count) => `${count} sự kiện`,
   noEvents: "Không có sự kiện",
   noEventsDescription: "Chưa có lịch nào trong những ngày này.",
+  now: "Đang diễn ra",
+  actionsFor: (name) => (name ? `Thao tác cho ${name}` : "Thao tác"),
+  minutes: (count) => `${count} phút`,
+  morning: "Buổi sáng",
+  afternoon: "Buổi chiều",
+  evening: "Buổi tối",
+  teamAndRooms: "Nhóm & phòng",
+  team: "Nhóm",
+  availableTimes: "Giờ còn trống",
+  unavailable: "đã kín",
+  noTimes: "Ngày này đã hết giờ trống",
+  chooseMonth: "Chọn tháng",
   fieldsNeedAttention: (count) => `${count} trường cần xem lại`,
   optional: "(Không bắt buộc)",
   somethingWentWrong: "Đã có lỗi xảy ra. Hãy thử lại.",
@@ -750,6 +818,15 @@ const vi: ZenLabels = {
   progress: "Tiến độ",
   stepError: "(lỗi)",
   stepCompleted: "(đã hoàn thành)",
+  statusToDo: "Cần làm",
+  statusInProgress: "Đang làm",
+  statusInReview: "Đang duyệt",
+  statusDone: "Hoàn thành",
+  statusBlocked: "Bị chặn",
+  statusCancelled: "Đã huỷ",
+  statusPercent: (percent) => `hoàn thành ${percent}%`,
+  propertyEmpty: "Trống",
+  propertyAdd: (label) => `Thêm ${label}`,
   rating: "Đánh giá",
   stars: (count) => `${count} sao`,
   ratingValue: (value, max) => `${value} trên ${max} sao`,
