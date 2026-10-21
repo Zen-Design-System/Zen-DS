@@ -1,5 +1,35 @@
 # Session log 2026-10-21
 
+## Simulator Android (tier S; user: "Ừ, thêm máy Android vào simulator đi"), worktree `../Zen-DS-android`, branch `zen/feat/studio-android-devices-20261021`
+- `tools/studio/screen-devices.mjs`: Android phone 412 × 917 (Figma Android Compact), Android tablet 1280 × 800 / 800 × 1280
+  (Figma Android Expanded, turned), `os: "android"`, `deviceOs()`. Radii 39 / 20 are estimates (Google publishes none;
+  the phone's from the Pixel 8's reported 102 px at 2.625), noted in the file.
+- `deviceOfScreen(…, os)`: the device of a Screen's size among the page OS's (the Duo whatever the OS), else the OS's own.
+  So a 390 × 844 Screen on an Android page plays on the Android phone, and a 412 × 917 one on an iOS page on the iPhone.
+- Bars: the page's OS on the canvas, the simulated device's in Present and Play (runtime Screen, Play's overlay safe areas).
+- Bug fixed at its owner: Present renders a frame outside BuilderBoard's PageOsContext, so an Android page's Screen showed
+  iOS bars in Present. BuilderBoard now wraps each frame's render in the page's OS.
+- New page on an Android device writes header `os: "android"`; Screen › Device switch resizes to the page OS's device.
+- E2E PT-16 (Android page: Auto on the Android phone, tablet landscape → Rotate, iPhone draws iOS bars). tsc ✓,
+  studio:selftest ✓.
+
+## Open on phone (tier M; user: "có thể làm trong Studio được không?" → A, "Tương tác (Play)"), branch `zen/feat/studio-phone-preview-20261021` (stacked on the Android branch)
+- Correction given to the user first: Export HTML is static markup, so the phone runs Play's own runtime instead.
+- Server: `tools/studio/device-share.mjs` (POST /device/share with the token, any role; GET /device/page by share token;
+  a proxy on a free port of every address, only for a browser holding a live share's cookie, GET/HEAD of device.html,
+  /src, tools/studio/*.mjs, /node_modules, /@vite, /@id, /@fs and the share route, loopback Host; closes with no share).
+  The dev server stays on localhost. Selftest `device-share.selftest.mjs` (38) in studio:selftest.
+- Client: `builder/proto/playFlow.tsx` (the flow taken out of Player: history, overlay, actions, After delay, drawing),
+  `device/OpenOnPhone.tsx` (Play bar QR button, dialog, uqr loaded on demand), `device/DevicePlay.tsx` + `device.html`
+  (no AuthGate: the share token is the key), `RealDeviceContext` (no simulated bars, env() safe areas, 100dvh),
+  `rememberUploads` (photos travel as base64, 6 MB).
+- Escape in Play closes the dialog first (it sits in the chrome portal, outside the layer).
+- New dev dependency `uqr@0.1.3` (MIT, no dependencies). Shared checkouts need `npm install` after the merge; until then
+  the dialog shows the link without a QR code.
+- Probe (private Vite on :5297, own cache and pages dir): LAN link → phone 390 × 844 plays screen-1, no bars, Next →
+  screen-2, 0 errors; Studio dialog QR + link; Escape keeps Play. First run found tools/studio modules refused by the
+  proxy (fixed, test added). E2E PT-17.
+
 ## Session "Bug" · PageHeader description tone (tier XS; user: "trong Figma dòng subtext dưới header là tone Light chứ không phải base")
 
 - Read live (use_figma): Primitives/Dashboard/Header Type=Main 4122:33399 SubHeading = Body/Base/Regular,
