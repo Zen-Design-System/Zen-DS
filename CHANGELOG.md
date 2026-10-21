@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- **Timeline** (2026-10-21, approved with Calendar and Schedule; Figma ❖ Timeline 16121:9): TimelineActivity (an
+  activity feed of TimelineItem rows, newest first by day; Avatar / Icon / Dot markers whose tone is status),
+  TimelineMilestones (Done / Current / Upcoming from `today`, a row on desktop, a column on a phone) and TimelineGantt
+  (groups that collapse, task / summary / milestone bars by date that keep their real dates, today's line; a phone keeps
+  a 128px task column and scrolls three weeks, opening at today); primitives TimelineMarker, TimelineMilestone,
+  TimelineGanttBar, TimelineGanttLabel. Platform page `timeline`, guideline, harness rule `timeline/gantt-names-plan`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys).
 - **Schedule** (2026-10-21, user: "xong gate thì làm tiếp Schedule"; Figma ❖ Schedule 16121:6): ScheduleResourceGrid
   (people and rooms by hour or by day, bookings as Event-Block bars, the vertical now line; a phone keeps the resource
   column and scrolls four hours, opening at now), ScheduleItinerary (Past / Now / Upcoming stops from `now`),
