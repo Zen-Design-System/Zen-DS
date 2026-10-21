@@ -20,10 +20,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (its Figma name is its component's or carries content, which pull reads as such).
 - **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
   the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
-  rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4), and since 2026-10-20 a layer's
-  blend mode (Session B; asked of C: `blendMode: spec.blendMode ?? PASS_THROUGH | NORMAL` in the node change);
-  `tools/studio/figma-native.mjs` / `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet. Giám sát raises it with
-  the user.
+  rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4);
+  `tools/studio/figma-native.mjs` / `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet (a layer's blend mode goes
+  since 2026-10-20, Session C). Giám sát raises it with the user.
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
@@ -40,6 +39,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
+- **P3 · Card Spacing=XSmall follow-ups (2026-10-20, AppShell session):**
+  - The 40 XSmall variants and `Card-padding-xsmall` are in Figma, code and the Studio props.
+  - Still to do: `docs/figma-contracts/native-pack.json` has no XSmall Card. It needs a probe-frame rebuild
+    (`node tools/studio/native-pack.mjs --help`), so a direct paste of an xs Card notes "no variant"; the plugin import
+    works.
 - **P3 · Card `subAction` to and from Figma (2026-10-20, Session B):** the push writes no Sub-Action for a Card's
   `subAction` ("data with no Figma slot"), so Figma's Card shows none and an override of `Card/Sub-Action` lands on a
   hidden layer; the pull notes a shown Sub-Action instead of reading it. Map it as Sub-Action on + the IconButton's

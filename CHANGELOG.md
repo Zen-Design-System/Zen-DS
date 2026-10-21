@@ -75,6 +75,19 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   drops the hover-toolbar gutter, and the toolbar sits over the bubble's top corner instead.
 - Popover: when a surface fits on neither side in view, it opens towards the side the page can scroll to, not the side
   a clipping frame cuts off for good (a chip at the top of a phone preview at the window's bottom edge lost its menu).
+- Image `frame` (2026-10-20, user-approved): `frame={false}` drops the Neutral/Pale fill and the hairline behind a
+  cut-out picture on a transparent background (a mascot, a product without its backdrop), so no faint square shows
+  around it. App Shell E1's mascot uses it, and the Image page shows both frames side by side.
+- Segmented White-Overlay follows Figma's update (2026-10-20): its labels are dark, On-White-Overlay/Light at rest and
+  Strongest when hovered, focused or selected, readable on a bright Accent band where the white label was 1.96:1. Both overlay levels' Focused ring is
+  Border/Overlay/Solid (static), with the dark label colour on the white selected segment. App Shell E7 uses
+  White-Overlay again, as Figma draws it.
+- Card `spacing="xs"` (Figma Spacing=XSmall, 2026-10-20, user-approved: "8px đều", radius 12): Card-padding-xsmall (8 on
+  every device) with Corner-Radius/Base, for compact tiles such as a row of choices on a phone. Figma has the 40 XSmall
+  variants; harness card/spacing-by-count counts XSmall as compact; App Shell E6's intent tiles use it (four in a row,
+  as Figma draws them).
+- AppShellHeader: the Main frame pads Spacing/Padding/Small (12) below, as Figma Header/AppShell (16243:290461) binds it,
+  instead of XSmall (8); found by the Bug session on 2026-10-21.
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
@@ -267,6 +280,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- PageHeader's description (and DashboardHeader Main's subheading) is Content/Neutral/Light, as Figma's SubHeading
+  (4122:33399) (2026-10-21, user: "trong Figma dòng subtext dưới header là tone Light chứ không phải base").
 - Popover: an item with only a leading icon (no label) centres the icon; the first-line alignment is for labelled items
   only (2026-10-20, user: "icon trong popover bị lệch tâm", Studio's Recent / Related icon tiles).
 - Zen Studio Appearance as Figma's (2026-10-20, user: "Appearance 2 ô nhập lại nằm 2 hàng khác nhau, figma đang để cùng 1
@@ -953,6 +968,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
+- Zen Studio: a click on a Line or an Arrow selects it, as in Figma. Before, a horizontal line had no height to click
+  and the click selected its frame.
 - TopNavigation `subtitle` without `titleLeading` centres the title and its subtitle, as Figma Heading-Text Type=Sub
   draws them (◇ Master-Layout · Example C2, C5); with `titleLeading` the conversation identity stays left-aligned.
 - TopNavigation `controlBar` hugs its control: the side margin and Spacing/Padding/XSmall above and below (a Progress

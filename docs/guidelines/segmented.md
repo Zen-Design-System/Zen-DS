@@ -18,7 +18,7 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Level | `level` | secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment) · black-overlay (also level="overlay", the default overlay: a Black-Overlay track with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay track with light text); both select with a White/Solid segment, static tokens, the same in light and dark mode |
+| Level | `level` | secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment) · black-overlay (also level="overlay", the default overlay: a Black-Overlay track with light text, on a colour band or photo) · white-overlay (on a solid colour: a White-Overlay track with dark text); both select with a White/Solid segment, static tokens, the same in light and dark mode |
 | Size | `size` | sm · md (or small · medium) |
 | Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
 | Item | `options[] {id, label, leading, badge, disabled}` | icon, label or both; Badge-Counter |
@@ -31,7 +31,7 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 Generated from the TypeScript source; full JSON in `docs/api/segmented.json`.
 
 ### Segmented
-Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill track (Spacing/Padding/3XSmall) of toggle segments (Segmented/Size/Small or Medium) on a Neutral/Subtle track; Secondary (default) selects with Neutral/Solid, Primary with Inverse/Solid (its outlined track became filled in the live file, 2026-10-18). Black-Overlay and White-Overlay put it on a colour band or photo in static tokens that do not switch with the mode (as Button's overlay levels): a Background/Black-Overlay or White-Overlay track, light text (Content/On-Black-Overlay, Content/On-Colors) and a Background/White/Solid selected segment with On-White-Overlay text. An icon-only segment (Item Label=false: `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
+Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill track (Spacing/Padding/3XSmall) of toggle segments (Segmented/Size/Small or Medium) on a Neutral/Subtle track; Secondary (default) selects with Neutral/Solid, Primary with Inverse/Solid (its outlined track became filled in the live file, 2026-10-18). Black-Overlay and White-Overlay put it on a colour band or photo in static tokens that do not switch with the mode (as Button's overlay levels): a Background/Black-Overlay or White-Overlay track, with light text on Black-Overlay (Content/On-Black-Overlay) and dark text on White-Overlay (Content/On-White-Overlay/Light at rest, Strongest hovered, focused or selected: Figma 2026-10-20), a Background/White/Solid selected segment with On-White-Overlay text and a Border/Overlay/Solid focus ring. An icon-only segment (Item Label=false: `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill t
 | `defaultValue` | `string` | — |  |
 | `onValueChange` | `(value: string) => void` | — | Called with the selected option's id. |
 | `onChange` | `(value: string) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
-| `level` | `"primary" \| "secondary" \| "black-overlay" \| "white-overlay" \| "overlay"` | `"secondary"` | Secondary (default) is the common case; Primary (the same filled track, an Inverse solid selected segment) adds emphasis. On a colour band or photo: `black-overlay` (or `"overlay"`, the default overlay: a Black-Overlay track, light text) or `white-overlay` (on a solid colour: a White-Overlay track, light text); both select with a White/Solid segment and look the same in light and dark mode. |
+| `level` | `"primary" \| "secondary" \| "black-overlay" \| "white-overlay" \| "overlay"` | `"secondary"` | Secondary (default) is the common case; Primary (the same filled track, an Inverse solid selected segment) adds emphasis. On a colour band or photo: `black-overlay` (or `"overlay"`, the default overlay: a Black-Overlay track, light text) or `white-overlay` (on a solid colour: a White-Overlay track, dark text); both select with a White/Solid segment and look the same in light and dark mode. |
 | `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `children` | `ReactNode` | — |  |
 | `className` | `string` | — |  |
@@ -93,7 +93,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 
 ## ❌ Don't
 - Don't use Segmented as a filter.
-- Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a light colour or photo: its light text needs a dark or saturated colour under it.
+- Don't use an overlay level on a page surface (Canvas, Surface, a Pale card), and don't put white-overlay on a dark colour or photo: its dark labels need a bright, saturated colour under it (black-overlay goes on dark colours and photos).
 - Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).
 - Don't mix icon-only and labelled items in one control.
 - Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again.

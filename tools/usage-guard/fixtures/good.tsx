@@ -104,6 +104,8 @@ export const Good = () => <>
   <PlatformPhone label="Home"><Grid columns={3} gap="md">{["Inside", "Humidity", "kWh today"].map((label) => <Card key={label} spacing="small">{label}</Card>)}</Grid></PlatformPhone>
   <PlatformPhone label="Home"><Grid columns={3} gap="md">{rooms.map((room) => <Card key={room} spacing="small">{room}</Card>)}</Grid></PlatformPhone>
   <PlatformPhone label="Home"><Stack gap="md"><Card>Devices</Card></Stack></PlatformPhone>
+  {/* A row of four compact choice tiles: XSmall is as compact as Small (card/spacing-by-count). */}
+  <PlatformPhone label="Discover"><Grid columns={4} gap="xs"><Card spacing="xs">Find ancestors</Card><Card spacing="xs">Explain my DNA</Card><Card spacing="xs">Find records</Card><Card spacing="xsmall">Family stories</Card></Grid></PlatformPhone>
   {/* Desktop cards keep Medium whatever their number: the rule is for phones only. */}
   <Grid columns={3} gap="md"><Card>Revenue</Card><Card>Expenses</Card><Card>Profit</Card></Grid>
   <Grid columns={4} gap="md"><MetricCard label="Revenue" value="$12.4K" /><MetricCard label="Orders" value="320" /><MetricCard label="Refunds" value="4" /><MetricCard label="Visitors" value="9.1K" /></Grid>

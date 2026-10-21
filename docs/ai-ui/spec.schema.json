@@ -9879,15 +9879,17 @@
                     "enum": [
                       "md",
                       "sm",
+                      "xs",
                       "medium",
-                      "small"
+                      "small",
+                      "xsmall"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large)."
+                "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large) · XSmall (Card-padding-xsmall 8, Corner-Radius/Base 12: a compa"
               },
               "selected": {
                 "anyOf": [
@@ -21491,6 +21493,17 @@
                 ],
                 "description": "cover (default): fills the frame and crops."
               },
+              "frame": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The frame behind the picture: Neutral/Pale with a 1px Border/Neutral/Pale hairline (default true), so a light photo keeps its edge."
+              },
               "radius": {
                 "anyOf": [
                   {
@@ -24576,8 +24589,10 @@
                     "enum": [
                       "md",
                       "sm",
+                      "xs",
                       "medium",
-                      "small"
+                      "small",
+                      "xsmall"
                     ]
                   },
                   {
@@ -26557,7 +26572,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "One or two sentences under the title."
+                "description": "One or two sentences under the title: Figma SubHeading (Primitives/Dashboard/Header Type=Main, 4122:33399), Body/Base/Regular in Content/Neutral/Light (read 2026-10-21)."
               },
               "breadcrumbs": {
                 "anyOf": [

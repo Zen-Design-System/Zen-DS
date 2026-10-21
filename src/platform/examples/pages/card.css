@@ -5,9 +5,10 @@
 .px-card-plan__cta { margin-top: auto; }
 /* Every title row keeps the Badge's height (Badge/Size/Medium follows the density: 28, 32 at Comfortable). */
 .px-card-plan__title { min-height: var(--zen-badge-size-medium, 28px); }
-/* Playground (Spacing=small): the dashed content slot fills the card, so its corners follow the card's (outer radius
-   minus the inset: 16 − 16 = square corners) instead of the slot's own 12px, and the nested corners stay concentric. */
-.zen-card[data-spacing="small"] .platform-slot { border-radius: max(0px, calc(var(--zen-card-radius) - var(--zen-card-padding))); }
+/* Playground (Spacing=small, xsmall): the dashed content slot fills the card, so its corners follow the card's (outer
+   radius minus the inset: 16 − 16 = square corners; xsmall 12 − 8 = 4) instead of the slot's own 12px, and the nested
+   corners stay concentric. */
+.zen-card:is([data-spacing="small"], [data-spacing="xsmall"]) .platform-slot { border-radius: max(0px, calc(var(--zen-card-radius) - var(--zen-card-padding))); }
 /* Settings section: the example stands in for a Canvas/Flat settings page (pe-shell data-canvas="flat" paints it). */
 .px-card-flat-page { padding: var(--zen-spacing-padding-2-xlarge, 24px); border-radius: var(--zen-corner-radius-xlarge, 20px); }
 /* On a phone the page fills the screen, as the screen examples do: no frame corners for the cards' 16px inset to nest in. */

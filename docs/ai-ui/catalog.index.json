@@ -520,7 +520,7 @@
       "name": "Image",
       "status": "stable",
       "purpose": "Shows a picture in a ratio frame that keeps its size while loading (Skeleton) and fails gracefully (neutral placeholder, alt kept). Thumbnail is the fixed square for list rows, tables and pickers.",
-      "props": "radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? src? alt ratio? fit? radius? loading? caption? aria-label? aria-labelledby? aria-describedby?"
+      "props": "radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? src? alt ratio? fit? frame? radius? loading? caption? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "InlineMessage",

@@ -3037,7 +3037,7 @@
           "type": "\"primary\" | \"secondary\" | \"black-overlay\" | \"white-overlay\" | \"overlay\"",
           "required": false,
           "default": "\"secondary\"",
-          "description": "Secondary (default) is the common case; Primary (the same filled track, an Inverse solid selected segment) adds emphasis.\n On a colour band or photo: `black-overlay` (or `\"overlay\"`, the default overlay: a Black-Overlay track, light text)\n or `white-overlay` (on a solid colour: a White-Overlay track, light text); both select with a White/Solid segment\n and look the same in light and dark mode.",
+          "description": "Secondary (default) is the common case; Primary (the same filled track, an Inverse solid selected segment) adds emphasis.\n On a colour band or photo: `black-overlay` (or `\"overlay\"`, the default overlay: a Black-Overlay track, light text)\n or `white-overlay` (on a solid colour: a White-Overlay track, dark text); both select with a White/Solid segment\n and look the same in light and dark mode.",
           "deprecated": null
         },
         {
@@ -9907,10 +9907,10 @@
         },
         {
           "name": "spacing",
-          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "type": "\"md\" | \"sm\" | \"xs\" | \"medium\" | \"small\" | \"xsmall\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large) ·\n XSmall (Card-padding-xsmall 8, Corner-Radius/Base 12: a compact tile, such as a row of choices on a phone; the user,\n 2026-10-20). Short (xs, sm, md) or Figma (xsmall, small, medium) spelling.",
           "deprecated": null
         },
         {
@@ -12043,7 +12043,7 @@
         },
         {
           "name": "spacing",
-          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "type": "\"md\" | \"sm\" | \"xs\" | \"medium\" | \"small\" | \"xsmall\"",
           "required": false,
           "default": null,
           "description": "Figma Metric-Card's Card Spacing (it is an exposed Card): Medium (default; Card-padding-medium, Corner-Radius/2XLarge)\n or Small (Card-padding-small, Corner-Radius/Large). `type=\"tile\"` defaults to Small. On a phone, three or more\n cards side by side take Small (harness card/spacing-by-count; desktop cards keep Medium). Short (sm, md) or Figma\n (small, medium) spelling.",
@@ -18556,7 +18556,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "One or two sentences under the title.",
+          "description": "One or two sentences under the title: Figma SubHeading (Primitives/Dashboard/Header Type=Main, 4122:33399), Body/Base/Regular\n in Content/Neutral/Light (read 2026-10-21).",
           "deprecated": null
         },
         {
@@ -19615,6 +19615,14 @@
           "required": false,
           "default": "\"cover\"",
           "description": "cover (default): fills the frame and crops. contain: shows the whole picture on Neutral/Pale bars (logos, documents).",
+          "deprecated": null
+        },
+        {
+          "name": "frame",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The frame behind the picture: Neutral/Pale with a 1px Border/Neutral/Pale hairline (default true), so a light photo\nkeeps its edge. `false` for a cut-out picture on a transparent background (a mascot, a product without its backdrop,\nFigma's bare image fill): no fill and no hairline, so no faint square shows around it. The Skeleton and the error\nplaceholder still fill the box.",
           "deprecated": null
         },
         {
