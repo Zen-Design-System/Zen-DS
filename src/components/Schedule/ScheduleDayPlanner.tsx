@@ -3,6 +3,7 @@ import { IconButton } from "../Button";
 import { CalendarWeekStrip, useCalendarDevice, type CalendarDevice } from "../Calendar";
 import { calendarTitle, dayKey, formatTimeRange, MINUTE, startOfDay, toDate, toDateOr, type CalendarDateInput } from "../Calendar/calendarDates";
 import { Divider } from "../Divider";
+import "../Icon/core";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { useNested, type NestedOverrides } from "../_shared/nested";
