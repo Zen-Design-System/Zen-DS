@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-19.
+Last updated: 2026-10-21.
 
 ## Read order
 
@@ -89,9 +89,10 @@ Last updated: 2026-10-19.
     - A JSX-text comment in B4.
   - E2E shards are 336/0. The PR follows the app-shell and ai-ui re-audit.
   - Detail in session-log-2026-10-19.
-- **Calendar / Schedule / Timeline (2026-10-17, Figma only, waiting for the user's review):** pages ❖ Calendar
-  16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (desktop + mobile variants, drafts "not yet in code"). User order:
-  Figma first, review, then code (tier L each). Ids: session-log-2026-10-17 "Calendar / Schedule / Timeline in Figma".
+- **Calendar / Schedule / Timeline:** Figma pages ❖ Calendar 16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (2026-10-17,
+  approved by the user 2026-10-21). **Calendar is in code + Studio** (branch `zen/feat/calendar-20261021`, worktree
+  `../Zen-DS-calendar`): 5 views + 7 primitives, platform page `calendar`; spec `docs/research/calendar-2026-10-21.md`,
+  detail session-log-2026-10-21. Schedule, then Timeline, come next (tier L each).
 - **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
   gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
   Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
