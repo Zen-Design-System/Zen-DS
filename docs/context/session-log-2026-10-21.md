@@ -119,6 +119,9 @@ Code:
     codeFor. Bug's Card/List-Box rename covers the cards' "flat" → "default".
   - It needs #181 (bce44e61) in main: before that, `density="small"` alone picks the old Small-Density variant. Merge
     main after #181 lands, before this branch's gate.
+- G1 · Grid's rhythm warnings ("10 text styles" at 1512 / 390 / 320 and dark, found by Bug's stack gate): G1 is
+  Figma's 16817:58511, and the user chose "Baseline, giữ như Figma". Baseline G1's warnings with the count this
+  branch's gate measures; ChartCard's Display/4 and Body/Extra/Medium may change the 10.
 
 ## Copy a Section with its frames (Session C) — tier S, branch `zen/feat/studio-section-duplicate-20261021`
 The user picked it (2026-10-21) from the BACKLOG P1 "Studio design page = Figma" leftovers (F4, C's area). ⌥-drag, ⌘D
