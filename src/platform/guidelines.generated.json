@@ -2078,6 +2078,146 @@
       }
     ]
   },
+  "calendar": {
+    "title": "Calendar",
+    "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+    "use": [
+      "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+      "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+      "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+    ],
+    "avoid": [
+      "Picking a date in a form → DatePicker / DateField.",
+      "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+      "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+    ],
+    "api": [
+      [
+        "Views",
+        "CalendarMonth · CalendarTimeGrid view · CalendarAgenda",
+        "Month · Week / Day (Mobile 3-Day) · Agenda"
+      ],
+      [
+        "Device",
+        "device",
+        "desktop · mobile; unset follows the breakpoint"
+      ],
+      [
+        "Color",
+        "events[].color · CalendarEvent color",
+        "brand (default) · blue · violet · teal · green · orange · pink"
+      ],
+      [
+        "Kind",
+        "events[].allDay · CalendarEvent kind",
+        "timed · all-day"
+      ],
+      [
+        "State=Selected",
+        "selectedEventId · selected",
+        "the event whose details are open"
+      ],
+      [
+        "Sixth-Week",
+        "(automatic)",
+        "a month that spans six weeks"
+      ],
+      [
+        "Style",
+        "CalendarWeekStrip variant",
+        "dot · tile"
+      ],
+      [
+        "Title",
+        "CalendarToolbar title · date",
+        "the period; default from date and view"
+      ]
+    ],
+    "keyboard": [
+      [
+        "Tab / Shift+Tab",
+        "Move between the Toolbar's buttons, the view switch, the month's one focusable date and the events"
+      ],
+      [
+        "← / →",
+        "Month and week strip: the previous / next day"
+      ],
+      [
+        "↑ / ↓",
+        "Month: the same day a week before / after"
+      ],
+      [
+        "Home / End",
+        "Month and week strip: the first / last day of the week"
+      ],
+      [
+        "Enter / Space",
+        "Select the focused day; open the focused event"
+      ]
+    ],
+    "do": [
+      "Put CalendarToolbar above the view and move the period with shiftPeriod(date, view, ±1); Today returns to today's period.",
+      "Give every calendar a colour and keep it: Brand for the main calendar, the other hues only to tell calendars apart.",
+      "Pass `today` (and `now` for the Time-Grid) when your app's date is not the device clock, so Today and the now line agree with your data.",
+      "Open an event's details from onEventClick and set selectedEventId while they are open (State=Selected).",
+      "Give the Time-Grid a height (or max-height) so the hours scroll under the fixed day header."
+    ],
+    "dont": [
+      "Don't put the page's main action (New event) in the Toolbar: it belongs to the page header; the Toolbar has only Tertiary buttons.",
+      "Don't use buttons for the view switch: the Toolbar's switch is a Segmented.",
+      "Don't put filters (which calendars) in the Toolbar: they are Chip advanced in the page's Control-Bar.",
+      "Don't colour events with Accent: Today and the now line are the only Accent on a grid.",
+      "Don't draw a week CalendarTimeGrid on a phone: it shows the 3-Day grid there."
+    ],
+    "a11y": [
+      "The Toolbar title is a heading with aria-live, so Previous, Next and Today announce the new period; the arrows are named \"Previous month\" / \"Next week\" by the view.",
+      "The month is an APG grid (weekday column headers, a row per week): each date is a button named with its full date and event count (\"Wednesday, September 30, 2026, 3 events\"), aria-pressed on the selected day and aria-current=\"date\" on today.",
+      "One date of the month (and of the week strip) is in the tab order; the arrow keys move a day or a week, Home / End to the week's ends.",
+      "Time-Grid day columns are groups named with their date; event blocks are buttons with onEventClick, named by title and time. Hours, slots and the now line are decorative.",
+      "Pressing an empty slot (onSlotPress) is pointer-only: offer New event in the page header for keyboard users."
+    ],
+    "content": [
+      "Event titles are short and specific (\"Q4 planning\", \"1:1 Maya Chen\"); the place or link goes in meta.",
+      "Times are 24-hour in the locale (09:00); all-day events say \"All day\"."
+    ],
+    "refs": [
+      [
+        "Material 3 — Date pickers",
+        "https://m3.material.io/components/date-pickers/guidelines"
+      ],
+      [
+        "WAI-ARIA APG — Grid pattern (day navigation keys)",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/grid/"
+      ]
+    ],
+    "file": "docs/guidelines/calendar.md",
+    "rules": [
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      },
+      {
+        "id": "calendar/toolbar-navigation",
+        "severity": "warn",
+        "summary": "A CalendarToolbar moves the period and switches the view: without onPrevious / onNext its arrows are disabled, and while its view switch is shown (views not empty) it needs onViewChange, or pressing a view does nothing.",
+        "allow": "calendar-navigation"
+      },
+      {
+        "id": "calendar/week-on-phone",
+        "severity": "warn",
+        "summary": "A week does not fit a phone: CalendarTimeGrid device=\"mobile\" draws view=\"week\" as the 3-Day grid (Figma Time-Grid Mobile has 3-Day and Day). Write view=\"3-day\" so the code says what the screen shows.",
+        "allow": "calendar-week-phone"
+      },
+      {
+        "id": "calendar/selected-needs-handler",
+        "severity": "warn",
+        "summary": "selectedEventId marks the event whose details are open (Figma State=Selected); without onEventClick the events are not buttons, so nothing opens or closes the details and the selection never changes.",
+        "allow": "calendar-selected"
+      }
+    ]
+  },
   "tooltip": {
     "title": "Tooltip",
     "purpose": "Name or briefly describe a control on hover and keyboard focus.",

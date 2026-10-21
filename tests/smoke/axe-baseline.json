@@ -14,6 +14,27 @@
   "BarList": [
     "color-contrast"
   ],
+  "CalendarAgenda": [
+    "color-contrast",
+    "color-contrast:dark"
+  ],
+  "CalendarDayTile": [
+    "color-contrast"
+  ],
+  "CalendarMonth": [
+    "color-contrast",
+    "color-contrast:dark"
+  ],
+  "CalendarTimeGrid": [
+    "color-contrast",
+    "color-contrast:dark"
+  ],
+  "CalendarToolbar": [
+    "color-contrast"
+  ],
+  "CalendarWeekStrip": [
+    "color-contrast"
+  ],
   "ChatComposerReply": [
     "color-contrast"
   ],
