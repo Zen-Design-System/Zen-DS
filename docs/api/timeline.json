@@ -290,7 +290,7 @@
     {
       "name": "TimelineMarker",
       "file": "src/components/Timeline/Timeline.tsx",
-      "description": "Figma `.Primitives/Timeline/Marker` (16130:55): the 24px marker on a timeline rail. Dot: 10px —\n`Color/Background/<Tone>/Solid/Default`, Neutral a Surface dot with a 2px Border/Neutral/Solid ring. Icon: Dock-Icon\nXSmall Subtle (Neutral, Accent, Green, Orange, Red). Avatar: Avatar/Single XSmall Subtle. Decorative: the item says what\nhappened.",
+      "description": "Figma `.Primitives/Timeline/Marker` (16130:55): the marker on a timeline rail, Image-Size/XSmall (24px). Dot: 10px —\n`Color/Background/<Tone>/Solid/Default`, Neutral a Surface dot with a 2px Border/Neutral/Solid ring. Icon: Dock-Icon\nXSmall Subtle (Neutral, Accent, Green, Orange, Red). Avatar: Avatar/Single XSmall Subtle. Decorative: the item says what\nhappened.",
       "deprecated": null,
       "extends": "HTMLAttributes<HTMLSpanElement>",
       "props": [

@@ -20643,7 +20643,7 @@
         "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
         "A chat thread → Chat."
       ],
-      "description": "Figma `.Primitives/Timeline/Marker` (16130:55): the 24px marker on a timeline rail.",
+      "description": "Figma `.Primitives/Timeline/Marker` (16130:55): the marker on a timeline rail, Image-Size/XSmall (24px).",
       "props": {
         "type": {
           "enum": [

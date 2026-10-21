@@ -95,7 +95,7 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### TimelineMarker
-Figma `.Primitives/Timeline/Marker` (16130:55): the 24px marker on a timeline rail. Dot: 10px — `Color/Background/`<Tone>`/Solid/Default`, Neutral a Surface dot with a 2px Border/Neutral/Solid ring. Icon: Dock-Icon XSmall Subtle (Neutral, Accent, Green, Orange, Red). Avatar: Avatar/Single XSmall Subtle. Decorative: the item says what happened.
+Figma `.Primitives/Timeline/Marker` (16130:55): the marker on a timeline rail, Image-Size/XSmall (24px). Dot: 10px — `Color/Background/`<Tone>`/Solid/Default`, Neutral a Surface dot with a 2px Border/Neutral/Solid ring. Icon: Dock-Icon XSmall Subtle (Neutral, Accent, Green, Orange, Red). Avatar: Avatar/Single XSmall Subtle. Decorative: the item says what happened.
 
 Also accepts `HTMLAttributes<HTMLSpanElement>`.
 

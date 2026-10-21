@@ -28,6 +28,13 @@ const entries: TimelineEntryData[] = [
   { id: "rejected", at: "2026-09-25T14:10", actor: "Finance", title: "rejected the invoice draft", description: "Missing purchase order number", marker: { kind: "icon", tone: "negative" } },
 ];
 
+const billing: TimelineEntryData[] = [
+  { id: "retry", at: "2026-09-30T11:20", actor: "Finance", title: "retried the payment", description: "Paid · $12,000.00 to Saola Outdoor", marker: { kind: "icon", tone: "positive" } },
+  { id: "failed", at: "2026-09-30T09:05", actor: "Finance", title: "payment failed for INV-2026-0143", description: "The bank declined the transfer; retry after 11:00", marker: { kind: "icon", tone: "negative" } },
+  { id: "pending", at: "2026-09-29T16:40", actor: "Legal", title: "contract review is pending", description: "Due Oct 2 · Lan Vu signs off", marker: { kind: "icon", tone: "warning" } },
+  { id: "sent", at: "2026-09-29T10:15", actor: "Alex Duong", title: "sent the contract for review", marker: { kind: "avatar", avatarName: "Alex Duong", avatarSrc: people.alex.photo } },
+];
+
 const milestones: TimelineMilestoneData[] = [
   { id: "kickoff", date: "2026-08-03", title: "Kickoff" },
   { id: "research", date: "2026-08-28", title: "Research wrap-up" },
@@ -84,6 +91,16 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     render: () => <TimelineActivity entries={entries} today={TODAY} />,
     code: `<TimelineActivity entries={entries} />
 // entries: { id, at, actor, title, description?, attachment?, marker?: { kind: "avatar" | "icon" | "dot", tone } }[]`,
+  },
+  {
+    title: "Pending and failed steps",
+    description: "Tone is the status, so the reader scans the log for what needs action: Warning for a step still pending, Negative for one that failed, Positive once it succeeded.",
+    render: () => <TimelineActivity entries={billing} today={TODAY} />,
+    code: `<TimelineActivity entries={[
+  { id: "retry", at: "2026-09-30T11:20", actor: "Finance", title: "retried the payment", marker: { kind: "icon", tone: "positive" } },
+  { id: "failed", at: "2026-09-30T09:05", actor: "Finance", title: "payment failed for INV-2026-0143", marker: { kind: "icon", tone: "negative" } },
+  { id: "pending", at: "2026-09-29T16:40", actor: "Legal", title: "contract review is pending", marker: { kind: "icon", tone: "warning" } },
+]} />`,
   },
   {
     title: "Compact log",

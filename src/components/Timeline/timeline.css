@@ -1,8 +1,9 @@
 /* Timeline (Figma ❖ Timeline 16121:9). The now line comes from Calendar (calendar.css). */
 
 /* .Primitives/Timeline/Marker (16130:55) */
-/* 24px at Compact (Figma); a larger density's Avatar or Dock-Icon grows the marker instead of spilling out of it. */
-.zen-timeline-marker { display: inline-flex; min-width: 24px; min-height: 24px; flex: 0 0 auto; align-items: center; justify-content: center; }
+/* The marker and its rail are Image-Size/XSmall (24 at Compact, Figma), the size of its Avatar / Dock-Icon at every
+   density, so a dot, an icon and an avatar row keep one rail line. */
+.zen-timeline-marker { display: inline-flex; width: var(--zen-image-size-xsmall, 24px); height: var(--zen-image-size-xsmall, 24px); flex: 0 0 auto; align-items: center; justify-content: center; }
 .zen-timeline-marker__dot { display: block; width: 10px; height: 10px; box-sizing: border-box; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-accent-solid-default); }
 .zen-timeline-marker[data-tone="neutral"] .zen-timeline-marker__dot { border: 2px solid var(--zen-color-border-neutral-solid-default); background: var(--zen-color-background-surface-default); }
 .zen-timeline-marker[data-tone="positive"] .zen-timeline-marker__dot { background: var(--zen-color-background-positive-solid-default); }
@@ -12,7 +13,7 @@
 /* Timeline/Item (16131:1090) */
 .zen-timeline-item { display: flex; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-timeline-item[data-size="small"] { gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-timeline-item__rail { display: flex; width: 24px; flex: 0 0 auto; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-timeline-item__rail { display: flex; width: var(--zen-image-size-xsmall, 24px); flex: 0 0 auto; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-timeline-item__connector { display: block; width: 2px; flex: 1 1 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-border-neutral-subtle-default); }
 .zen-timeline-item__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-3-xsmall, 2px) 0 var(--zen-spacing-padding-large, 20px); }
 .zen-timeline-item[data-size="small"] .zen-timeline-item__body { padding-bottom: var(--zen-spacing-padding-small, 12px); }
