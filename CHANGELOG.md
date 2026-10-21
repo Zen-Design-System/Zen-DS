@@ -29,6 +29,17 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
     Display/3), the Hero number is Display/1.
   - Other card, ListBox and table-in-card titles keep Heading/Subheading (the user: "Chỉ Chart và Metric").
   - In Figma, every chart set now has the Line-Chart Metric frame below its Segmented.
+- A list that closes a phone page (transactions, tasks, activity: nothing after it, not in a widget grid) is an open
+  section, not a ListBox, as Figma's ◆ Finance Transactions: the title row over a List at the page margin (usage rules
+  §19, user rule 2026-10-21). Harness `listbox/closing-list-on-phone` (error) and Figma audit
+  `list-box/closing-list-on-phone`; the phone examples that boxed it (Button, Chart, VisuallyHidden, AppShell C1, C2, C7,
+  D3, D4, F10–F12) now show it open. Grouped settings lists (§15) and lists in a widget grid keep their ListBox. The
+  harness no longer reads an apostrophe in a prop's JSX text (`hero={<Text>I'm …</Text>}`) as an open string.
+- A section is a group of content that belongs together, 32 apart on phones (Layout-Mobile/Section-Gap, Comfortable)
+  and on desktop (Gap/XLarge): a widget grid keeps its own gap inside, a title row and its list share one section
+  (usage rules §13, user rule 2026-10-21). Figma audit `spacing/section-gap` now reads the AppShell Content slot and
+  desktop, and `section/title-apart` warns on a title alone. AppShell C1, C2, C7 group their widgets into one section
+  above the closing list, in code and in Figma (◇ Master-Layout · Example, also D3, D4 opened).
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
@@ -128,6 +139,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   frame's `normal` keeps its layers' blending inside it. Zen Studio's Appearance header has Figma UI3's ◐ before the eye
   (frames and shapes): the list in Figma's groups, the current one checked, one ⌘Z. Figma push / pull carry it (Zen
   plugin updated; a row page frame is now placed the device wide, not hugging its row).
+- Zen Studio, three gaps from the Figma walk's re-measure (14 tasks in 44 steps against Figma's 39):
+  - A Zen instance's layer menu has Go to main component (it opens the component's page on its Main component) and
+    Reset all changes (the panel's reset, one ⌘Z). A page's own instance also gets Go to main component.
+  - A Zen instance on a page you made has Appearance: opacity, the ◐ blend and the eye. The page writes `opacity` and
+    `blendMode` as a frame does. The canvas, the exported code (`style={{ opacity, mixBlendMode }}`) and Figma push /
+    pull carry them (Zen plugin updated). This covers the 59 components whose `style` reaches their root; the
+    conformance test keeps that list exact.
+  - The Design panel heads a frame "Frame" and a group "Group", as Figma; the code name shows on hover, and Layers keep
+    it.
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and
@@ -1008,6 +1028,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: Layers lists the Main component's variants also when the page opens straight on them (their rows
+  were sometimes empty).
 - Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
 - Zen Studio: a click on a Line or an Arrow selects it, as in Figma. Before, a horizontal line had no height to click
   and the click selected its frame.

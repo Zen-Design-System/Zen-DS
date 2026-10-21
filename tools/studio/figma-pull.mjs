@@ -26,6 +26,7 @@ import { runsFromSegments } from "./text-runs.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
 import { zenBlendOf } from "./blend-modes.mjs";
+import { takesInstanceLook } from "./instance-look.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { arcFromData, parseVectorPath, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
@@ -252,6 +253,9 @@ const readInstance = async (instance) => {
     const glyph = instance.findOne((n) => n.type === "INSTANCE" && n.visible && /^(icon|ic)-/.test(n.name));
     if (glyph) out.icon = glyph.name;
   }
+  // The instance's own layer opacity and blend (Figma's Appearance), when not the defaults (instance-look.mjs).
+  if (typeof instance.opacity === "number" && instance.opacity < 1) out.opacity = instance.opacity;
+  if (typeof instance.blendMode === "string" && instance.blendMode !== "PASS_THROUGH") out.blendMode = instance.blendMode;
   return out;
 };
 // What the Zen plugin's Import from Studio left on a layer (shared plugin data "zenstudio"): its Studio key (the element
@@ -1537,6 +1541,13 @@ function bindings(element, node) {
 }
 function convert(node, ctx) {
   let element = convertNode(node, ctx);
+  // A Zen instance's own opacity and blend (Figma's Appearance): `opacity` / `blendMode` on it, as a frame's
+  // (instance-look.mjs; the code draws them on its style).
+  if (element && node.type === "INSTANCE" && !node.local && takesInstanceLook(element.name)) {
+    if (typeof node.opacity === "number" && node.opacity < 1) element.props.opacity = literal(Math.round(node.opacity * 100));
+    const blend = zenBlendOf(node.blendMode, true);
+    if (blend) element.props.blendMode = literal(blend);
+  }
   bindings(element, node);
   if (element && !element.id) { const id = idOf(node, ctx); if (id) element.id = id; }
   // The layer's own element (not a wrapper that places it): an instance's overrides find its main's layers by it.

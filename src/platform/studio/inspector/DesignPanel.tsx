@@ -1,7 +1,7 @@
 import { valueWords } from "./controls/scale";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
 import { ComponentSection } from "./ComponentSection";
-import { layerIcon, layerName } from "../select/layerNames";
+import { layerIcon, layerName, panelTitle } from "../select/layerNames";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
@@ -61,6 +61,9 @@ import { InstanceSizeGroup, useInstanceSizing } from "./InstanceSizeGroup";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { resetAllProps } from "./resetAll";
+import { publishInstanceActions } from "./instanceActions";
+import { takesInstanceLook } from "../../../../tools/studio/instance-look.mjs";
+import { zenBlendModes } from "../../../components/Layout";
 import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "./status";
 import { alignmentHint, hostTextTags, useRenderedText, type RenderedText } from "./textInfo";
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, type WritePlan } from "./writePlan";
@@ -124,6 +127,12 @@ function pageHref(page: PlatformPage) {
 }
 
 /** One prop row; `component` scopes its label ("sticky" is "Pin to bottom" on FormActions, "Pin to top" on TopNavigation). */
+/** The look a Zen instance takes on a page (instance-look.mjs): AppearanceSection's opacity and blend. */
+const INSTANCE_LOOK_SPECS: PropSpec[] = [
+  { name: "opacity", type: "number", description: "The layer's opacity, 0–100 %.", defaultValue: 100, editor: { kind: "number" } },
+  { name: "blendMode", type: "ZenBlendMode", description: "The layer blend (Figma's Appearance).", defaultValue: "pass-through", editor: { kind: "enum", options: [...zenBlendModes] } },
+];
+
 function Field({ spec, api, label, component, hint }: { spec: PropSpec; api: FieldApi; label?: string; component?: string; hint?: string }) {
   return (
     <PropField
@@ -671,6 +680,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const textSpecs = isText ? specs.filter((spec) => textProps.has(spec.name)) : [];
   // Box fill, border, corners and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.
   const appearanceSpecs = specs.filter((spec) => (appearancePropNames[name] ?? []).includes(spec.name));
+  // A Zen instance that forwards `style`, on a page made in the Studio: Figma's Appearance on an instance (opacity, blend,
+  // the eye), written as a frame's opacity / blendMode; the canvas and the export draw them on its style (instance-look.mjs).
+  const instanceLook = Boolean(element && /^local:/.test(element.file) && nodeKind(name) === "zen" && takesInstanceLook(name));
   // A shape's Arc, Count, Appearance, Fill and Stroke (Figma UI3's shape panel); its rotation is in Position.
   const shapeSpecs = name === "Shape" ? specs.filter((spec) => shapePropNames.includes(spec.name) || spec.name === "rotation") : [];
   // A frame's rotation and flip: Position's rotation field and its Rotate / Flip buttons (Figma UI3).
@@ -845,6 +857,14 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     const optimistic = Object.fromEntries(resetNames.map((prop): [string, PropValue] => [prop, { state: "unset" }]));
     void runPlan(planFor(element.attributes), `${element.name} reset all overrides`, optimistic, (attributes) => planFor(attributes).ops);
   };
+  // The layer menu's Reset all changes on this Zen instance runs this same reset (instanceActions.ts, K-70).
+  const resettable = Boolean(element && kind === "zen" && editable);
+  useEffect(() => {
+    if (!resettable) return;
+    const at = { src: selection.src, instance: selection.instance };
+    publishInstanceActions({ ...at, changes: resetNames.length + nestedCount, reset: resetAll });
+    return () => publishInstanceActions(null, at);
+  });
 
   // Properties (instance properties, nested instances, slots): right under the header for an instance, as Figma UI3
   // shows them; a frame's, text's or shape's code-only properties and its layers stay at the end.
@@ -911,7 +931,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" data-component={headComponent || undefined} aria-hidden="true"><Icon name={headIcon} size={16} /></span>
           {/* Cut to one line: its full name on hover. */}
-          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{layerName(name, headProps)}</Heading>
+          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{panelTitle(name, headProps)}</Heading>
           {repeats ? (
             <span className={`studio-inspector__count ${typographyStyles["Body/Small/Medium"]}`} title={repeats}>
               <span aria-hidden="true">{`×${instances}`}</span>
@@ -1014,6 +1034,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {layoutSection}
 
       {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} layer={{ src: selection.src, name: element.name }} /> : null}
+      {/* A Zen instance on a page made in the Studio: its own opacity, blend and eye (Figma's Appearance on an instance). */}
+      {element && instanceLook ? <AppearanceSection api={api} specs={INSTANCE_LOOK_SPECS} component={name} host={sourceHost(selection)} layer={{ src: selection.src, name: element.name }} /> : null}
       {element && shapeSpecs.length ? <ShapeSections api={api} specs={shapeSpecs} host={sourceHost(selection)} /> : null}
       {textFirst ? null : textSection}
       {textFirst ? null : textFill}
