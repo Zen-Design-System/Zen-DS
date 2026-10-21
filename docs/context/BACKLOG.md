@@ -7,6 +7,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P2 · Figma ◇ Master-Layout · Example: 9 more screens break the section rules (2026-10-21, question for the user):**
+  C1, C2, C7, D3, D4 were fixed (open closing lists, grouped sections, Section-Gap). The audit's `spacing/section-gap` /
+  `section/title-apart` still flag B3 (two rows of one widget grid at 24), B5 (docs steps: titles apart from their
+  content), C4, C5, C6, D2, D5 (Section-Header over loose List-Items), E4, E7 (title, Segmented and Card as siblings):
+  group each into whole sections and bind the gap? Code examples follow. Session log 2026-10-21.
 - **P2 · Calendar/Toolbar Mobile in the Mobile typography — question for the designer (2026-10-21, Calendar in code):**
   Figma drew the Mobile variant (16125:399) in the desktop type sizes; with Mobile typography Heading/3 is 26px, so
   "September 2026" (~200px) and a fourth view label ("Agenda") no longer fit 358px beside Today and the arrows, in
