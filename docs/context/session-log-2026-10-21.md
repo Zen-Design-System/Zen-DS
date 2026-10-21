@@ -423,3 +423,6 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+- Gate (run at once on the user's word, isolated, `ZEN_QA_SHARDS=4 --pages=app-shell --files=<4 tsx>`): PASS, static ✓,
+  audit 1512/390/320 + smoke/quality/density 0 errors (33 baseline), dark 0 (9 baseline), behaviour 0; B3, B5, C5, D5
+  shots match Figma (B3's ChartCard now has #189's metric under the Segmented). PR #192.
