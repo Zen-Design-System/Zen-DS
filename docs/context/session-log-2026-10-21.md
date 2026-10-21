@@ -182,6 +182,13 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
   830 vectors). Checks pass: tokens:check, tokens:native:check, style, tsc, studio:selftest, ai-kit, guidelines and
   usage.
 - No component uses them yet. They reach apps, the Design Tokens page and Studio's Variables.
+- Gate (2026-10-21 18:13, main b0c48b29 merged in) **PASS**:
+  - The token scope saw no diff against HEAD, so it checked the representative set (button, card, dialog, popover,
+    list-item, chat, templates).
+  - Static checks green.
+  - Platform audit 1512 + 390 + 320: 0 errors, 0 new warnings. Dark: 0 errors.
+  - Behaviour: 0 errors.
+  - I looked at the dialog 390 sheet: unchanged, as expected for unused tokens.
 
 ## AppShell session · Token Color/Background/Carved (tier XS; user: "Update token background-carved")
 
