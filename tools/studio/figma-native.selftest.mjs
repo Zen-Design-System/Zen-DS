@@ -358,6 +358,12 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(lookOf("Faded").opacity === 0.5 && plain.opacity === 1, "its opacity; 1 when the code sets none");
   check(Math.abs(turn.transform?.m00) < 1e-9 && turn.transform?.m10 === -1 && turn.transform?.m01 === 1 && Math.abs(turn.transform?.m02 - 40) < 1e-9 && Math.abs(turn.transform?.m12 - 120) < 1e-9, `turned 90° about its centre (${JSON.stringify(turn.transform)})`);
   check(!plain.strokePaints?.length && !plain.styleIdForEffect && !plain.dashPattern && plain.transform?.m00 === 1 && plain.transform?.m02 === 20, "a frame without a look keeps Figma's defaults");
+  // A Grid in a grid cell: the push stretches it with Flex rows (the plugin settles it by measuring); a paste cannot
+  // measure and a Grid with Flex rows keeps the height it lands at, so it hugs with Hug rows here, as before.
+  const pair = (col) => ({ type: "FRAME", name: `Pair ${col}`, layout: { mode: "GRID", gap: 16, padding: [0, 0, 0, 0], grid: { columns: 2, rows: 1, sizes: [{ type: "FLEX", value: 1 }, { type: "FLEX", value: 1 }], rowSizes: [{ type: "FLEX", value: 1 }] } }, fillW: true, fillH: true, cell: { col, row: 0, span: 1 }, children: [] });
+  const nested = nativeMessage(exportOf([{ type: "FRAME", name: "Pairs", layout: { mode: "GRID", gap: 16, padding: [0, 0, 0, 0], grid: { columns: 2, rows: 1 } }, fillW: true, children: [pair(0), pair(1)] }]), pack).message.nodeChanges;
+  const pairs = nested.filter((n) => /^Pair /.test(n.name));
+  check(pairs.length === 2 && pairs.every((n) => n.stackChildAlignSelf !== "STRETCH" && n.gridRowsSizing?.entries.every((entry) => entry.trackSize.minSizing.type === "HUG")), "a Grid in a grid cell hugs with Hug rows in a paste (no Fill, no Flex rows)");
   const back = await readFigmaClipboard((await figmaPasteHtml(exportOf([free]), pack)).html);
   check(back?.message.nodeChanges.filter((n) => ["LINE", "REGULAR_POLYGON", "STAR", "VECTOR", "BOOLEAN_OPERATION"].includes(n.type)).length === 7, "the shapes survive Figma's clipboard encoding");
 }
