@@ -17,6 +17,18 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
+  default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
+  carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
+  slot (Collapse Button has no prop: the collapse control follows onCollapsedChange or the AppShell), and the push/pull
+  use Patterns/Sidebar's new name (was "Patterns/Sidebar/Density-Medium").
+  `density="small"` now means Figma's Patterns/Sidebar Density=Small on the Basic panel (36px rows, a 72px rail);
+  the old Small-Density look is `variant="small-density"`, which density alone no longer picks.
+- Zen Studio pushes a Sidebar on its own (beside the page, the Screen's chrome) as Figma's Patterns/Sidebar, so its
+  theme, density, shadow and rail reach Figma; it was the plain Side-Bar, always the default look (user 2026-10-21:
+  "sửa push Sidebar đứng riêng luôn"). The set has 16 of its 40 combinations, so the push takes the nearest one: the
+  themes other than Default exist only at Density=Small. An AppShell's master writes the same variant (`pattern="grid"`
+  gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
@@ -297,6 +309,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Zen Studio draws Figma's Header/AppShell (16783:71068; 2026-10-21, user: "Update Header/AppShell component từ Figma
+  lên studio"): the AppShell page's Main component shows it at Figma's 1272 with the Collapse button, the Properties panel
+  has its Theme (Default · Border & Divider), Density (Medium · Small), Main and Sections rows and the Leading, Center and
+  Trailing slots, and the direct paste to Figma knows the set (native pack).
+- Zen Studio draws every variant of Figma's Patterns/Sidebar (6040:67524; 2026-10-21, user: "Studio vẽ đủ các variant"):
+  the Sidebar page's Main component shows its Theme (Default · Border · Borderless · Carved · Carved-Floating), Density,
+  Shadow and Expand (Expand=No draws `collapsed`), and the Properties panel has Theme, Density and Shadow for every
+  Sidebar. The Side-Bar/Master sets draw Expand too.
 - PageHeader's description (and DashboardHeader Main's subheading) is Content/Neutral/Light, as Figma's SubHeading
   (4122:33399) (2026-10-21, user: "trong Figma dòng subtext dưới header là tone Light chứ không phải base").
 - Popover: an item with only a leading icon (no label) centres the icon; the first-line alignment is for labelled items

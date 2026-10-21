@@ -626,7 +626,7 @@
       "key": "1cca393d971c48ed570d8f3e6d8b5ed97990b9d1"
     },
     "6040:67524": {
-      "name": "Patterns/Sidebar/Density-Medium",
+      "name": "Patterns/Sidebar",
       "type": "COMPONENT_SET",
       "key": "1a3970adbd847f87ba2981bf0ddda11c5704aafc"
     },
@@ -918,6 +918,11 @@
       "name": "Empty-State/Illustration/Placeholder",
       "type": "COMPONENT_SET",
       "key": "09ea4ac5b12913c32261277c9a9a04a021404df3"
+    },
+    "16783:71068": {
+      "name": "Header/AppShell",
+      "type": "COMPONENT_SET",
+      "key": "1081dfd359857098adc72fea249d83052f82aed4"
     }
   },
   "missing": [
