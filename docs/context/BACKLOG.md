@@ -38,12 +38,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   - Still to do: `docs/figma-contracts/native-pack.json` has no XSmall Card. It needs a probe-frame rebuild
     (`node tools/studio/native-pack.mjs --help`), so a direct paste of an xs Card notes "no variant"; the plugin import
     works.
-- **P3 · Dashboard header Child-Heading left Figma (2026-10-21, Session B):** Primitives/Dashboard/Header no longer has
-  the Child-Heading boolean (Header-Text is a slot whose Child and SubHeading show by their own eyes), but
-  `docs/figma-contracts/component-properties.json` and `dashboard-header.json` still list it, so the Studio panel's
-  Child-Heading toggle and the Figma parity contract follow the old read. The push and pull already use the eyes.
-  Pointer: re-read the ❖ Dashboard page with `tools/studio/figma-props-read.js`, then `figma-props-build.mjs`; the
-  contract re-capture in `tools/figma-contract/README.md`.
+- **P3 · Card contract predates Figma's Sub-Action wrapper (2026-10-21, Session B):** since 2026-10-18 Figma's Card draws
+  Sub-Action › Wrapper › Button/Icon-Flat, but `docs/figma-contracts/card.json` still has Sub-Action as the instance, so
+  `nested-paths.mjs --check` passes on the old shape. The push, pull and plugin (833ea0e) handle the wrapper already.
+  Pointer: re-capture the Card set with `tools/figma-contract/mcp-capture` (about 1 MB, several calls).
 - **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
   changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*); Figma pull of overrides and
   slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20. Open:

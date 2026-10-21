@@ -1,5 +1,13 @@
 # Session log 2026-10-21
 
+## Session B · Dashboard header Child-Heading in the contracts (tier S; from the header work's BACKLOG P3)
+
+Branch zen/fix/dashboard-header-child-heading-20261021, merged into the header branch (one gate).
+- component-properties.json and dashboard-header.json drop Child-Heading (the live read of 4122:33402, 2026-10-21: only
+  that property left); figma-props.map.mjs drops its toggle; figmaProps.generated.ts and variantSets.generated.ts rebuilt.
+- Checks: figma-props --check, variant-sets --check, run-all.mjs 44/44 (Dashboard header 64/64), nested-paths --check,
+  studio:selftest, tsc. New BACKLOG P3: the Card contract predates Figma's Sub-Action wrapper.
+
 ## Session B · Card subAction to and from Figma (tier S; user: "làm hết" while the header PR waits for its gate)
 
 Branch zen/feat/card-subaction-figma-20261021 (from main 73e88b15).

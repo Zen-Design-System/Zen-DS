@@ -58,6 +58,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   has no words for it; a different label is noted on push). Since Figma wraps the button in a Sub-Action › Wrapper
   frame, the plugin's nested paths go through wrapper frames (`studio-import` 833ea0e) and the pull maps the read's
   "Button" back to "Sub-Action". A Card or ListBox `width` goes to Figma as its Fixed width and comes back.
+- Zen Studio: Figma's Primitives/Dashboard/Header no longer has Child-Heading (Header-Text is a slot whose Child and
+  SubHeading show by their own visibility), so the Studio panel and Main component drop its toggle; the props read and
+  the dashboard-header contract follow the live file.
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
