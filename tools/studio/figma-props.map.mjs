@@ -479,6 +479,12 @@ export const FIGMA_PROPS = {
     },
     nested: FIELD_NESTED,
   },
+  // ❖ Calendar (16121:3, approved 2026-10-21): the public sets; the .Primitives/Calendar/* parts are drawn inside them.
+  CalendarToolbar: { sets: { "Calendar/Toolbar": null }, props: { Title: "title", Device: "device" } },
+  CalendarWeekStrip: { sets: { "Calendar/Week-Strip": null }, props: { Device: "device", Style: "variant" } },
+  CalendarMonth: { sets: { "Calendar/Month": null }, props: { Device: "device", "Sixth-Week": skip("the month's own weeks: six when it spans six") } },
+  CalendarTimeGrid: { sets: { "Calendar/Time-Grid": null }, props: { Device: "device", View: "view" } },
+  CalendarAgenda: { sets: { "Calendar/Agenda": null }, props: { Device: "device" } },
   DatePicker: {
     // Date-Picker/Mobile is the device prop (device="mobile"), not a third calendar: left out.
     sets: { "Date-Picker/Single-Calendar": "single", "Date-Picker/Dual-Calendar": "dual" },

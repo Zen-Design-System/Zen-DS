@@ -53,6 +53,30 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Leading-Icon": "Icon",
     "Trailing-Icon": "Icon"
   },
+  "CalendarAgenda": {
+    "Item": "CalendarAgendaItem"
+  },
+  "CalendarAgendaItem": {
+    "Attendees": "AvatarStack"
+  },
+  "CalendarDayCell": {
+    "Date": "CalendarDate"
+  },
+  "CalendarMonth": {
+    "Day": "DatePickerItem"
+  },
+  "CalendarTimeGrid": {
+    "Date": "CalendarDate"
+  },
+  "CalendarToolbar": {
+    "Next": "IconButton",
+    "Previous": "IconButton",
+    "Today": "Button",
+    "View": "Segmented"
+  },
+  "CalendarWeekStrip": {
+    "Day": "CalendarDayTile"
+  },
   "Card": {
     "Sub-Action": "IconButton"
   },

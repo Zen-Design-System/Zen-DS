@@ -3331,6 +3331,1150 @@
         "ref (not for a generated UI)"
       ]
     },
+    "CalendarAgenda": {
+      "name": "CalendarAgenda",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `Calendar/Agenda` (16128:1036): days in order, each with its events as `.Primitives/Calendar/Agenda-Item` rows.",
+      "props": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
+          "default": [],
+          "description": "The events; they are listed day by day, all-day first, then by start time."
+        },
+        "from": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "First day of the range (\"2026-09-30\" or a Date)."
+        },
+        "days": {
+          "type": "number",
+          "default": 7,
+          "description": "How many days the range covers (default 7)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (a date column beside each day's rows, in a bordered box) or `mobile` (a kicker over each day's rows)."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today (Accent date and kicker, \"Today ·\")."
+        },
+        "empty": {
+          "x-kind": "node",
+          "description": "Shown when the range has no events."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "onEventClick ((event: CalendarEventData, target: HTMLE)",
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarAgendaItem": {
+      "name": "CalendarAgendaItem",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `.Primitives/Calendar/Agenda-Item` (16124:373): Padding XSmall · Small (mobile XSmall), Gap/Small, Corner-Radius/Small.",
+      "props": {
+        "start": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Start (\"09:00\", or \"All day\")."
+        },
+        "end": {
+          "x-kind": "node",
+          "description": "Figma End (\"09:30\"); leave it out for an all-day event."
+        },
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title (one line, truncated)."
+        },
+        "meta": {
+          "x-kind": "node",
+          "description": "Figma Meta: place · link (one line, truncated)."
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ],
+          "default": "brand",
+          "description": "Figma Color: the rule's hue (default brand)."
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "description": "Figma Attendees (desktop only): AvatarStack items (Size Small, Background Subtle, up to 3)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop",
+          "description": "Figma Device: `desktop` (72px time column, attendees) or `mobile` (48px)."
+        },
+        "onClick": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "event",
+              "type": "MouseEventHandler<HTMLButtonElement>",
+              "json": false
+            }
+          ],
+          "description": "Pressing the row (open the event)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarDate": {
+      "name": "CalendarDate",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `.Primitives/Calendar/Date` (16123:146): the day number in a Corner-Radius/Rounded square, Medium 24 in Body/Small/Medium, Large 36 in Heading/4.",
+      "props": {
+        "day": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Day: the day number."
+        },
+        "size": {
+          "enum": [
+            "md",
+            "lg",
+            "medium",
+            "large"
+          ],
+          "default": "md",
+          "description": "Figma Size: `md` (24, month cells and agenda) or `lg` (36, week / day column headers); short or Figma spelling."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "state (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarDayCell": {
+      "name": "CalendarDayCell",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `.Primitives/Calendar/Day-Cell` (16124:105): one day of the desktop month — Padding/XSmall, Gap/2XSmall, the date (Medium), the Events slot (Gap/3XSmall) and \"+N more\" (Capti",
+      "props": {
+        "day": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Day: the day number."
+        },
+        "label": {
+          "type": "string",
+          "description": "The full date: names the date button in the locale (\"Wednesday, September 30, 2026, 3 events\")."
+        },
+        "today": {
+          "type": "boolean",
+          "default": false,
+          "description": "With `state=\"selected\"`: draw the date as Today too (today is the selected day)."
+        },
+        "children": {
+          "x-kind": "node",
+          "description": "Figma Events slot: the day's `CalendarEvent` chips (at most three; with more, two and `more`)."
+        },
+        "more": {
+          "type": "number",
+          "default": 0,
+          "description": "Figma More: how many events do not fit."
+        },
+        "onMoreClick": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Pressing \"+N more\" (show the whole day)."
+        },
+        "onSelect": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Pressing the date or the cell: select the day."
+        },
+        "focusable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the date button is in the tab order (the month keeps one day there and moves focus with the arrows)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "state (not for a generated UI)",
+        "dateProps (ButtonHTMLAttributes<HTMLButtonElement> )",
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarDayTile": {
+      "name": "CalendarDayTile",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `.Primitives/Calendar/Day-Tile` (16142:3915): one day of Calendar/Week-Strip Style=Tile — Padding/XSmall, Gap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Lig",
+      "props": {
+        "weekday": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Weekday (\"Wed\")."
+        },
+        "day": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Day (\"30\")."
+        },
+        "selected": {
+          "type": "boolean",
+          "default": false,
+          "description": "Figma State=Selected: a Surface/Default tile with a Pale border, readable on any canvas."
+        },
+        "today": {
+          "type": "boolean",
+          "default": false,
+          "description": "Figma Today=Yes: the date in Accent."
+        },
+        "label": {
+          "type": "string",
+          "description": "The full date, the tile's accessible name (\"Wednesday, September 30, 2026\")."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "x-html": true
+        },
+        "onClick": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "event",
+              "type": "MouseEvent<HTMLButtonElement>",
+              "json": false
+            }
+          ],
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarEvent": {
+      "name": "CalendarEvent",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `.Primitives/Calendar/Event` (16123:87): an event chip in a month cell.",
+      "props": {
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title: one line, truncated with \"…\"."
+        },
+        "time": {
+          "x-kind": "node",
+          "description": "Figma Time (\"09:00\"); not shown on an all-day event."
+        },
+        "kind": {
+          "enum": [
+            "timed",
+            "all-day"
+          ],
+          "default": "timed",
+          "description": "Figma Kind: `timed` (Subtle fill, time + title) or `all-day` (Solid fill, title only)."
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ],
+          "default": "brand",
+          "description": "Figma Color: the event's calendar."
+        },
+        "selected": {
+          "type": "boolean",
+          "default": false,
+          "description": "Figma State=Selected: while the event's details popover is open (Solid fill; Rich for all-day)."
+        },
+        "onClick": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "event",
+              "type": "MouseEventHandler<HTMLButtonElement>",
+              "json": false
+            }
+          ],
+          "description": "Pressing the chip (open its details)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarEventBlock": {
+      "name": "CalendarEventBlock",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `.Primitives/Calendar/Event-Block` (16123:130): a timed event in the week / day grid.",
+      "props": {
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title: up to two lines, truncated."
+        },
+        "time": {
+          "x-kind": "node",
+          "description": "Figma Time (\"11:00 – 12:00\"): one line, truncated."
+        },
+        "showTime": {
+          "type": "boolean",
+          "default": true,
+          "description": "Figma Show-Time (default true)."
+        },
+        "titleLines": {
+          "enum": [
+            1,
+            2
+          ],
+          "default": 2,
+          "description": "How many lines the title may take before \"…\": 2 (Figma, default) or 1."
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ],
+          "default": "brand",
+          "description": "Figma Color (default brand)."
+        },
+        "selected": {
+          "type": "boolean",
+          "default": false,
+          "description": "Figma State=Selected: while its details popover is open (Solid fill, On-Colors text)."
+        },
+        "onClick": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "event",
+              "type": "MouseEventHandler<HTMLButtonElement>",
+              "json": false
+            }
+          ],
+          "description": "Pressing the block (open its details)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarMonth": {
+      "name": "CalendarMonth",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `Calendar/Month` (16126:1093).",
+      "props": {
+        "month": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The month to show (any day in it)."
+        },
+        "value": {
+          "$ref": "#/$defs/CalendarDateInput",
+          "x-nullable": true,
+          "description": "The selected day (controlled): Day-Cell State=Selected on desktop, Single-Selected on mobile."
+        },
+        "defaultValue": {
+          "$ref": "#/$defs/CalendarDateInput",
+          "x-nullable": true,
+          "default": null,
+          "description": "The selected day at first (uncontrolled)."
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "date",
+              "type": "Date",
+              "json": true
+            }
+          ],
+          "description": "Called with the day the person presses."
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
+          "default": [],
+          "description": "The events to show: chips in the desktop cells, a dot under the mobile days."
+        },
+        "selectedEventId": {
+          "type": "string",
+          "x-nullable": true,
+          "default": null,
+          "description": "The event whose details are open: its chip shows State=Selected."
+        },
+        "onMoreClick": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "date",
+              "type": "Date",
+              "json": true
+            }
+          ],
+          "description": "Pressing \"+N more\" (desktop): show the whole day (its Agenda or Day view)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (a 7-column grid of Day-Cells with event chips) or `mobile` (date-picker days with an event dot; list the selected day below with CalendarAgenda)."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today (\"2026-09-30\" or a Date)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the month (default: the month and year, \"September 2026\")."
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "onEventClick ((event: CalendarEventData, target: HTMLE)",
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarNowLine": {
+      "name": "CalendarNowLine",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `.Primitives/Calendar/Now-Line` (16123:153): an 8px Accent dot and a 2px Accent line (`Color/Background/Accent/Solid/Default`).",
+      "props": {
+        "orientation": {
+          "enum": [
+            "horizontal",
+            "vertical"
+          ],
+          "default": "horizontal",
+          "description": "Figma Orientation: `horizontal` (across today's Time-Grid column) or `vertical` (down a resource or Gantt track)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarTimeGrid": {
+      "name": "CalendarTimeGrid",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `Calendar/Time-Grid` (16127:1172): the week and day views.",
+      "props": {
+        "view": {
+          "enum": [
+            "week",
+            "day",
+            "3-day"
+          ],
+          "description": "Figma View: `week` (Monday to Sunday), `day`, or `3-day` (the day before, the day, the day after)."
+        },
+        "date": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day the view is built around (\"2026-09-30\" or a Date)."
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
+          "default": [],
+          "description": "The events: all-day ones in the all-day row, timed ones as blocks at their hours."
+        },
+        "startHour": {
+          "type": "number",
+          "default": 8,
+          "description": "First hour shown (default 8: 08:00)."
+        },
+        "endHour": {
+          "type": "number",
+          "default": 18,
+          "description": "Hour the grid ends at (default 18: the last row is 17:00–18:00)."
+        },
+        "now": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The current time: the now line in today's column."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today (the Accent date, the now line)."
+        },
+        "selectedEventId": {
+          "type": "string",
+          "x-nullable": true,
+          "default": null,
+          "description": "The event whose details are open: its block (or chip) shows State=Selected."
+        },
+        "onSlotPress": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "start",
+              "type": "Date",
+              "json": true
+            }
+          ],
+          "description": "Pressing an empty slot (pointer): the start of that half hour, to create an event there."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (56px hour gutter) or `mobile` (44px)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the grid (default: the period, \"Sep 28 – Oct 4, 2026\")."
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "onEventClick ((event: CalendarEventData, target: HTMLE)",
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarToolbar": {
+      "name": "CalendarToolbar",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `Calendar/Toolbar` (16125:399): the control row above a calendar view.",
+      "props": {
+        "title": {
+          "x-kind": "node",
+          "description": "Figma Title: the visible period (\"September 2026\")."
+        },
+        "date": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day the views show (\"2026-09-30\" or a Date); with no `title` it names the period."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today: while the shown period already holds it, Today is disabled (pressing it would change nothing)."
+        },
+        "titleLevel": {
+          "enum": [
+            2,
+            3,
+            4
+          ],
+          "default": 2,
+          "description": "Heading level of the title: one below the page heading."
+        },
+        "view": {
+          "enum": [
+            "month",
+            "week",
+            "day",
+            "3-day",
+            "agenda"
+          ],
+          "default": "month",
+          "description": "The selected view of the switch."
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "month",
+              "week",
+              "day",
+              "3-day",
+              "agenda"
+            ]
+          },
+          "default": [
+            "month",
+            "week",
+            "day",
+            "agenda"
+          ],
+          "description": "The views the switch offers, in order (Figma: Month · Week · Day · Agenda)."
+        },
+        "onViewChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "view",
+              "type": "CalendarView",
+              "json": true
+            }
+          ],
+          "description": "Called with the view the person picks."
+        },
+        "onToday": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Today (Tertiary button): back to today's period."
+        },
+        "onPrevious": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Previous period (Tertiary icon button)."
+        },
+        "onNext": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Next period (Tertiary icon button)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (one row: Today, arrows, title; the switch at the end) or `mobile` (title and the 40px buttons, then a full-width switch)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "view",
+          "handler": "onViewChange"
+        }
+      ],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "CalendarWeekStrip": {
+      "name": "CalendarWeekStrip",
+      "slug": "calendar",
+      "folder": "Calendar",
+      "status": "stable",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "description": "Figma `Calendar/Week-Strip` (16125:520): one week of selectable days.",
+      "props": {
+        "week": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Any day of the week to show (Monday first)."
+        },
+        "value": {
+          "$ref": "#/$defs/CalendarDateInput",
+          "x-nullable": true,
+          "description": "The selected day (controlled)."
+        },
+        "defaultValue": {
+          "$ref": "#/$defs/CalendarDateInput",
+          "x-nullable": true,
+          "description": "The selected day at first (uncontrolled)."
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "date",
+              "type": "Date",
+              "json": true
+            }
+          ],
+          "description": "Called with the day the person picks."
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
+          "default": [],
+          "description": "The events of the period: a day with any shows the event dot (Dot style)."
+        },
+        "variant": {
+          "enum": [
+            "dot",
+            "tile"
+          ],
+          "default": "dot",
+          "description": "Figma Style: `dot` (date-picker days with an event dot, default) or `tile` (weekday and date in one tile; the selected day a bordered Surface tile, as Schedule/Day-Planner uses it)"
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (32px days, a side panel or picker) or `mobile` (40px days, above the day's events on a phone)."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today (Today ring / Accent date)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the strip (default: none; name it when a screen has more than one)."
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
     "Card": {
       "name": "Card",
       "slug": "card",
@@ -18955,6 +20099,30 @@
         "date-picker/actions-need-apply"
       ]
     },
+    "calendar": {
+      "title": "Calendar",
+      "file": "docs/guidelines/calendar.md",
+      "do": [
+        "Put CalendarToolbar above the view and move the period with shiftPeriod(date, view, ±1); Today returns to today's period.",
+        "Give every calendar a colour and keep it: Brand for the main calendar, the other hues only to tell calendars apart.",
+        "Pass `today` (and `now` for the Time-Grid) when your app's date is not the device clock, so Today and the now line agree with your data.",
+        "Open an event's details from onEventClick and set selectedEventId while they are open (State=Selected).",
+        "Give the Time-Grid a height (or max-height) so the hours scroll under the fixed day header."
+      ],
+      "dont": [
+        "Don't put the page's main action (New event) in the Toolbar: it belongs to the page header; the Toolbar has only Tertiary buttons.",
+        "Don't use buttons for the view switch: the Toolbar's switch is a Segmented.",
+        "Don't put filters (which calendars) in the Toolbar: they are Chip advanced in the page's Control-Bar.",
+        "Don't colour events with Accent: Today and the now line are the only Accent on a grid.",
+        "Don't draw a week CalendarTimeGrid on a phone: it shows the 3-Day grid there."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "calendar/toolbar-navigation",
+        "calendar/week-on-phone",
+        "calendar/selected-needs-handler"
+      ]
+    },
     "tooltip": {
       "title": "Tooltip",
       "file": "docs/guidelines/tooltip.md",
@@ -20685,6 +21853,73 @@
       "required": [
         "id",
         "label"
+      ],
+      "additionalProperties": false
+    },
+    "CalendarDateInput": {
+      "anyOf": [
+        {
+          "type": "string",
+          "x-kind": "date"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "CalendarEventData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "allDay": {
+          "type": "boolean"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "meta": {
+          "type": "string"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start"
       ],
       "additionalProperties": false
     },
