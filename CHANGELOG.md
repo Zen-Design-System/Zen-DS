@@ -24,6 +24,18 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (`collapse="sidebar"`); a short page's main column starts at the top (plugin `studio-import` bf300bc, `edits.counter`);
   a PageHeader's childTitle and description show their Header-Text layers; the read keeps a nested variant change (a
   first crumb at Level Master).
+- AppShellHeader `theme="borderless"` (Figma Header/AppShell Theme=Borderless, user-approved 2026-10-21): the
+  border-divider rows without the 1px line under the top row. Zen Studio maps it both ways.
+- AppShellHeader `theme="border-divider"`: the Main row pads Padding/Large (20) above and Padding/Medium (16) below,
+  as Figma's Header/AppShell Theme=Border & Divider now draws it (was 16 above; re-read 2026-10-21).
+- Chart and Metric text follow Figma (2026-10-21, user: every chart's description and value as Chart/Line-Chart, "value
+  luôn nằm dưới segmented", and the updated chart card and metric widget text styles):
+  - ChartCard is now header · Segmented · Metric, the Metric being the description (Body/Small/Regular) over the value
+    (Display/4, was Heading/2), Gap/3XSmall apart, Padding/Small above. Its title is Body/Extra/Medium (was Heading/Subheading).
+  - MetricCard: the Title-Highlight and comparison titles are Body/Extra/Medium, the Tile number is Display/4 (was
+    Display/3), the Hero number is Display/1.
+  - Other card, ListBox and table-in-card titles keep Heading/Subheading (the user: "Chỉ Chart và Metric").
+  - In Figma, every chart set now has the Line-Chart Metric frame below its Segmented.
 - A list that closes a phone page (transactions, tasks, activity: nothing after it, not in a widget grid) is an open
   section, not a ListBox, as Figma's ◆ Finance Transactions: the title row over a List at the page margin (usage rules
   §19, user rule 2026-10-21). Harness `listbox/closing-list-on-phone` (error) and Figma audit

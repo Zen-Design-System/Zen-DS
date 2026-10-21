@@ -193,17 +193,19 @@ export function StackBarChart({ data, series, format = defaultFormat, height = 2
 }
 
 export interface ChartCardProps {
-  /** Figma Header Label (Heading/Subheading). */
+  /** Figma Header Label (Body/Extra/Medium, 2026-10-21). */
   title: ReactNode;
   /** Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2
-   *  when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,
+   *  when the card sits directly under the page h1). The look stays Body/Extra/Medium — the level follows the outline,
    *  not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. */
   headingLevel?: 2 | 3 | 4;
   /** Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card. */
   icon?: IconName | ReactNode;
-  /** One line under the title that says what the figure is ("Available revenue in your wallet"), Body/Small/Regular. */
+  /** What the figure is ("Available revenue in your wallet"), Body/Small/Regular: the top of Figma's Metric, under the
+   *  Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value). */
   description?: ReactNode;
-  /** The headline figure the chart explains ("$4,346.00"), Heading/2 (Figma Chart-Card Heading > Value). */
+  /** The headline figure the chart explains ("$4,346.00"), Display/4 (Figma Chart-Card Metric > Value), under the
+   *  description and the Segmented. */
   value?: ReactNode;
   /** Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. */
   onOpen?: () => void;
@@ -274,19 +276,25 @@ export function ChartCard({ title, headingLevel = 3, icon, description, value, o
   const Title = `h${headingLevel}` as const;
   const body = useRef<HTMLDivElement>(null);
   useChartGrow(body);
+  const hasValue = value !== undefined && value !== null && value !== false;
   return (
     <Card ref={ref} theme={theme} color={color} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
       <div ref={body} className="zen-chart-card__body">
         <div className="zen-chart-card__header">
           <div className="zen-chart-card__titlebar">
             {icon ? <span className="zen-chart-card__icon" aria-hidden="true">{renderIcon(icon, { size: 20 })}</span> : null}
-            <Title className={`zen-chart-card__title ${typographyStyles["Heading/Subheading"]}`}>{nest.slot(title)}</Title>
+            <Title className={`zen-chart-card__title ${typographyStyles["Body/Extra/Medium"]}`}>{nest.slot(title)}</Title>
             {onOpen ? nest("Open", <IconButton appearance="main" level="tertiary" size="2xs" aria-label={openLabel} onClick={onOpen} icon={<Icon name="icon-chevron-right-line-small" />} />) : null}
           </div>
-          {description ? <p className={`zen-chart-card__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
-          {value !== undefined && value !== null && value !== false ? <p className={`zen-chart-card__value ${typographyStyles["Heading/2"]}`}>{value}</p> : null}
         </div>
         {ranges?.length ? nest("Ranges", <Segmented options={ranges} value={range} onValueChange={onRangeChange} fullWidth={rangesFullWidth} aria-label={t.range} />) : null}
+        {/* Figma Metric (Chart/Line-Chart, 2026-10-21): the description over the value, always under the Segmented. */}
+        {description || hasValue ? (
+          <div className="zen-chart-card__metric">
+            {description ? <p className={`zen-chart-card__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
+            {hasValue ? <p className={`zen-chart-card__value ${typographyStyles["Display/4"]}`}>{value}</p> : null}
+          </div>
+        ) : null}
         <EmptyStateCardContext.Provider value={headingLevel}>{nest.slot(children)}</EmptyStateCardContext.Provider>
       </div>
     </Card>

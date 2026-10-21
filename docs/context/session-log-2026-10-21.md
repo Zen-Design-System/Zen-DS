@@ -225,6 +225,57 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
   tokens:native:check and high contrast (0 failures) all pass.
 - No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
 
+## AppShell session · Chart/Metric text follows Chart/Line-Chart (tier M, branch `zen/fix/chart-metric-text-20261021`)
+
+The user asked:
+- "Kiểm tra lại đồng bộ cách sắp vị trí và spacing giữa description và value … theo cách sắp của Chart/Line-Chart"
+- "value luôn nằm dưới segmented"
+- "Chart/Bar-List còn xót"
+- "Vừa update lại text style của các metric widget và chart card", with the scope "Chỉ Chart và Metric".
+
+Figma, done with use_figma once the user added the permission:
+- Bar, Area, Combo, Gauge, Funnel, Bullet, Bar-List, Donut, Radial and Heatmap now each have a Metric frame below the
+  Segmented, as Line-Chart has: Padding/Small above, Gap/3XSmall between, Description Body/Small/Regular over Value
+  Display/4. Combo's Value was Heading/2.
+- The Metric frame shows with Show Value, as on Line-Chart; on Radial and Heatmap it shows with Show Description.
+- Funnel and Bullet variants are fixed at 318 / 294. They were HUG with a Fill body, which overflowed.
+- Checked: same Metric signature in all 10 sets, and no overlaps.
+
+Code:
+- ChartCard: header, then the Segmented, then the Metric; title Body/Extra/Medium.
+- MetricWidget: the Title-Highlight and comparison titles are Body/Extra/Medium; Tile number Display/4; Hero number
+  Display/1, unless the card sets a size.
+- Guidelines and JSDoc updated. New test: `tests/interaction/chart-card-metric.test.tsx`.
+- Card, ListBox and table-in-card titles keep Heading/Subheading. The harness rule is unchanged.
+- A1–A4 drift (reported by the Bug session, which re-read 15904:1616 / 2813 / 6185 / 8996 for the user):
+  - In Figma, Patterns/Sidebar and Header/AppShell are both Density=Small. Canvas, Shadow (A1 only) and
+    Collapse=Sidebar already matched.
+  - `a-compositions.tsx` now sets `density="small"` on the Sidebar and the AppShellHeader, in the render and in
+    codeFor. Bug's Card/List-Box rename covers the cards' "flat" → "default".
+  - It needs #181 (bce44e61) in main: before that, `density="small"` alone picks the old Small-Density variant. Merge
+    main after #181 lands, before this branch's gate.
+- Header/AppShell re-read live (Session B asked about the push):
+  - Theme=Border & Divider's Main-Element now pads 20 (Padding/Large) above and 16 below; the code had 16 above.
+    Fixed in app-shell.css, the JSDoc and the app-shell-grid test.
+  - Figma also has a new Theme=Borderless at Density=Small: the Border & Divider rows without the 1px line. The user
+    said "Thêm theme=\"borderless\"". Added: the AppShellHeader theme value, the CSS shared with border-divider
+    (the line on border-divider only), JSDoc, guideline, contract option, Studio map, figmaProps, and a test (top 12 ·
+    24 with no line, 64 high; Main 20 · 24 · 16).
+- G1 · Grid's rhythm warnings ("10 text styles" at 1512 / 390 / 320 and dark, found by Bug's stack gate): G1 is
+  Figma's 16817:58511, and the user chose "Baseline, giữ như Figma". Baseline G1's warnings with the count this
+  branch's gate measures; ChartCard's Display/4 and Body/Extra/Medium may change the 10.
+- Gate (2026-10-21 18:21, main b0c48b29 merged in; `ZEN_QA_SHARDS=4 --isolated --pages=chart,metric,widgets,app-shell,templates`) **PASS**:
+  - Static checks green; Vitest 78/78.
+  - Platform audit: 0 errors. Dark: 0 errors. Behaviour: 0 errors.
+  - Studio E2E 336 works · 0 broken (full run, no shards).
+  - 31 new warnings, all caused by the ChartCard text styles: rhythm on A1–A4, F6, G1, Widgets and HR Home / My leaves
+    / Expense overview, and outline-siblings on the Finance dashboard and the Dashboard template (a ChartCard title in
+    Body/Extra/Medium beside a Card title in Heading/Subheading).
+  - The user answered "Baseline, giữ như Figma" (rhythm) and "Giữ khác nhau, baseline" (card titles). Baselined
+    with `audit.mjs --baseline-update=rhythm,outline-siblings` for chart, app-shell, widgets and templates (light at
+    1512 / 390 / 320, dark at 1512): 159 keys.
+  - Contact sheets reviewed: chart 1512 shows header · Segmented · description · Display/4 value on every card.
+
 ## AppShell session · Patterns/Sidebar → Studio, Sidebar themes (tier M, branch `zen/feat/studio-patterns-sidebar-20261021`, stacked on #179)
 
 The user asked: "Update cả Patterns/Sidebar từ figma lên Studio", "Cập nhật boolean cho footer của sidebar từ figma lên
