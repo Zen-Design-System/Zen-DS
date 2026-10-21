@@ -55,6 +55,7 @@ import { examples as consumer2 } from "./app-shell/e-consumer-2";
 import { examples as smartHome1 } from "./app-shell/f-smart-home-1";
 import { examples as smartHome2 } from "./app-shell/f-smart-home-2";
 import { examples as smartHome3 } from "./app-shell/f-smart-home-3";
+import { examples as grid } from "./app-shell/g-grid";
 
 export const page: PlatformPage = "app-shell";
 
@@ -597,7 +598,7 @@ function TabletPortraitApp() {
 /** The screens of Figma ◇ Master-Layout · Example (15902:109717), section by section: A background compositions, B desktop
  *  structures, C mobile structures, D expressive mobile, E consumer apps from references, F the smart-home concept on every
  *  device (user, 2026-10-19: "Các example Appshell nên build như trong Figma ◇ Master-Layout · Example"). */
-const figmaExamples: ExampleDef[] = [...compositions, ...desktop1, ...desktop2, ...mobile1, ...mobile2, ...expressive1, ...expressive2, ...consumer1, ...consumer2, ...smartHome1, ...smartHome2, ...smartHome3];
+const figmaExamples: ExampleDef[] = [...compositions, ...desktop1, ...desktop2, ...mobile1, ...mobile2, ...expressive1, ...expressive2, ...consumer1, ...consumer2, ...smartHome1, ...smartHome2, ...smartHome3, ...grid];
 
 /** What the shell does beyond the Figma screens: the toggle in the Sidebar, the docked panel, the narrow window, the banner. */
 const behaviourExamples: ExampleDef[] = [

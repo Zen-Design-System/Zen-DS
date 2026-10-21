@@ -30,6 +30,10 @@ export interface SidebarShellState {
   toggleHere?: (collapsed: boolean) => void;
   /** Tells the shell what the Sidebar is; returns the call that takes it back (on unmount or a change). */
   register?: (registration: SidebarRegistration) => () => void;
+  /** The Sidebar's Theme and Density when it sets none: Figma Layout=Grid draws Patterns/Sidebar Theme=Border,
+   *  Density=Small (AppShell `pattern="grid"`); unset elsewhere. */
+  theme?: "border";
+  density?: "small";
 }
 
 export const SidebarShellContext = createContext<SidebarShellState | null>(null);

@@ -105,6 +105,16 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   as Figma draws them).
 - AppShellHeader: the Main frame pads Spacing/Padding/Small (12) below, as Figma Header/AppShell (16243:290461) binds it,
   instead of XSmall (8); found by the Bug session on 2026-10-21.
+- AppShell `pattern="grid"` (Figma Layout=Grid, user-approved 2026-10-21): the Sidebar workspace drawn in lines. The
+  Sidebar takes the new `theme="border"` (flush, no fill, a Pale line on its inner edge, a 64px rail) with Density=Small
+  rows, and the header the new `theme="border-divider"` (a Pale line under the top row) with `density="small"`; props set
+  on either win. AppShellHeader's Main frame now spaces its rows Spacing/Gap/Large (24), as Figma draws it. New
+  `SidebarSubHeader` (Figma Primitives/Sub-Header-Sidebar) through the Sidebar's `subHeader`: the back control over the
+  title of a level inside the app. App Shell examples G1 · Grid and G2 · Grid, a level inside the app; the Rule "Boxes
+  and Flat Cards, Subtle only for a metric card that stands out" is in the guideline and both skills.
+- Sidebar rail at Density=Medium follows Figma's Patterns/Sidebar (user 2026-10-21: "Sửa rail Medium theo Figma"): 80
+  wide (was 84 / 88), the Padding/XSmall inset on the outer edge only, the logo and collapse control Spacing/Gap/Large
+  apart (was Medium); the AppShell no longer pulls the page over the rail. The Studio push writes the 80px rail.
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
@@ -156,6 +166,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
   and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
+- Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
+  (⌘D on a Section copied only the Section before, under a Screen's id).
 - The direct paste brings a frame's whole look: its stroke inside at its weight (one side, or Zen's dash), each corner
   on its Corner-Radius variable, its effect style with its shadows, its opacity, and its rotation and flip (it had the
   fill, one corner radius and the blend mode).

@@ -12,10 +12,10 @@
       "props": [
         {
           "name": "pattern",
-          "type": "\"sidebar\" | \"list-detail\" | \"top-bar\" | \"workspace\" | \"docs\" | \"focus\"",
+          "type": "\"sidebar\" | \"list-detail\" | \"top-bar\" | \"workspace\" | \"docs\" | \"focus\" | \"grid\"",
           "required": false,
           "default": "\"sidebar\"",
-          "description": "Figma Layout, the desktop structure (from 1024px: desktops and iPad landscape):\n- `sidebar` (default): Sidebar · header + page · docked side panel.\n- `list-detail`: the Sidebar's rail · `leadingPane` (a 360 list) · header + the selected item.\n- `top-bar`: no Sidebar; the header across, its sections or centre holding the navigation.\n- `workspace`: the header across the top · `leadingPane` · page · `trailingPane` (tools, properties).\n- `docs`: as workspace, the page a centred 720 column for reading, the panes on the Canvas.\n- `focus`: one task: the header across · `progress` · a 680 column with the `trailingPane` (a summary) beside it.",
+          "description": "Figma Layout, the desktop structure (from 1024px: desktops and iPad landscape):\n- `sidebar` (default): Sidebar · header + page · docked side panel.\n- `list-detail`: the Sidebar's rail · `leadingPane` (a 360 list) · header + the selected item.\n- `top-bar`: no Sidebar; the header across, its sections or centre holding the navigation.\n- `workspace`: the header across the top · `leadingPane` · page · `trailingPane` (tools, properties).\n- `docs`: as workspace, the page a centred 720 column for reading, the panes on the Canvas.\n- `focus`: one task: the header across · `progress` · a 680 column with the `trailingPane` (a summary) beside it.\n- `grid`: as `sidebar`, drawn in lines instead of surfaces (Layout=Grid, 16258:1857): the Sidebar takes Theme=Border,\n  Density=Small (no fill, a Pale line on its inner edge) and the header Theme=Border & Divider, Density=Small (a\n  Pale line under its top row), unless they set their own `theme` / `density`. Pair it with Boxes and Flat Cards;\n  keep Subtle for the metric cards that should stand out (◇ Master-Layout Rule, 16823:85229).",
           "deprecated": null
         },
         {
@@ -255,7 +255,7 @@
     {
       "name": "AppShellHeader",
       "file": "src/components/AppShell/AppShellHeader.tsx",
-      "description": "Figma Header/AppShell (16243:290461), the header of Pattern/AppShell/Desktop. The Main frame pads Margin-Comfortable\nabove and at the sides and Spacing/Padding/Small below, Spacing/Gap/Medium between its rows:\n- Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while\n  the AppShell has `collapse=\"header\"`) or, on a narrow shell, the menu button that opens the navigation drawer; then\n  Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart.\n- Main-Element: `main`, the page's own header.\nUnder the Main frame, Sections: `sections`. Pass it as the AppShell's `header`; on a phone the shell shows its\n`topNavigation` instead.",
+      "description": "Figma Header/AppShell (16783:71068; Theme=Default 16243:290461), the header of Pattern/AppShell/Desktop. The Main frame\npads Margin-Comfortable above (Margin-Compact at Density=Small) and at the sides and Spacing/Padding/Small below,\nSpacing/Gap/Large between its rows (`theme=\"border-divider\"` pads each row itself, a Pale line under the top row):\n- Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while\n  the AppShell has `collapse=\"header\"`) or, on a narrow shell, the menu button that opens the navigation drawer; then\n  Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart.\n- Main-Element: `main`, the page's own header.\nUnder the Main frame, Sections: `sections`. Pass it as the AppShell's `header`; on a phone the shell shows its\n`topNavigation` instead.",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\">",
       "props": [
@@ -297,6 +297,22 @@
           "required": false,
           "default": null,
           "description": "Figma Sections: rows under the Main row, e.g. `<Tabs>` for the page's views or a toolbar of Search + filters.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"default\" | \"border-divider\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Medium ·\nMargin-Comfortable). Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
+          "deprecated": null
+        },
+        {
+          "name": "density",
+          "type": "\"medium\" | \"small\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider theme pads its rows itself.",
           "deprecated": null
         },
         {

@@ -201,6 +201,13 @@ The user rebuilt parts of the generated screens by hand. These are their choices
 - **Empty State size from where it sits** (user 2026-10-18): Size=Medium (240 illustration) fills an empty page's
   main content; Size=Small (200) fills one region of a page that still shows other content (a card, table or list, a
   pane, side panel, sheet, popover or dialog, a block under summary cards). Audit `empty-state/size-by-container`.
+- **Layout=Grid is drawn in lines, its boxes Flat** (user 2026-10-21, ◇ Master-Layout Rule 16823:85229: "Nếu dùng Theme
+  grid thì ưu tiên các Box, Card Flat, Chỉ dùng Subtle cho các metric card để nhấn"): a Pattern/AppShell/Desktop
+  Layout=Grid screen keeps Patterns/Sidebar Theme=Border · Density=Small and Header/AppShell Theme=Border & Divider ·
+  Density=Small, and builds the page from Boxes and Card Theme=Flat (Metric-Card, Chart-Card and List-Box too). Only a
+  metric card that should stand out takes Theme=Subtle. A design principle, not an audit check.
+- **A level inside the app leads the Sidebar with Primitives/Sub-Header-Sidebar** (16823:88101, example 16823:89311):
+  the back control over the level's title at the top of Body-Content, its Density matching the Sidebar's.
 - **The status bar lives in the top bar** (user 2026-10-18): on an iPad portrait screen the Top-Navigation's own
   Status-bar is swapped to `Status-bar/IOS/Tablet` (Fill width) rather than a separate bar placed above it, so a
   gradient, a colour band or a photo runs under the clock. Audit `navigation/status-in-bar`.
