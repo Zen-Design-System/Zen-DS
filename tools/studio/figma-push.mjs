@@ -231,8 +231,34 @@ const SHELL_ROW_PADDING_VARS = ["Spacing/Padding/Small", "Margin-Comfortable", "
 const MASTER_LAYOUT_SET = { id: "4122:41886", name: "Patterns/Pages/Density-Medium" };
 /** The master layout's own height (its Viewport-Height): a shorter page keeps it, a longer one grows it. */
 const MASTER_LAYOUT_HEIGHT = 982;
-const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar/Density-Medium";
+/** Figma Patterns/Sidebar (6040:67524), renamed from "Patterns/Sidebar/Density-Medium" on 2026-10-21. */
+const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar";
 const MASTER_SIDEBAR = "Side-Bar/Master/Basic";
+const SIDEBAR_PATTERN_SET = { id: "6040:67524", name: MASTER_SIDEBAR_PATTERN };
+/** Patterns/Sidebar's variants as "Expand,Shadow,Theme,Density" (read 2026-10-21): 16 of the 40 combinations, the themes
+ *  other than Default only at Density=Small. */
+const SIDEBAR_PATTERN_VARIANTS = [
+  "Yes,Yes,Default,Medium", "Yes,No,Default,Medium", "Yes,Yes,Default,Small", "Yes,No,Default,Small",
+  "Yes,No,Carved-Floating,Small", "Yes,No,Border,Small", "Yes,No,Borderless,Small", "Yes,No,Carved,Small",
+  "No,Yes,Default,Medium", "No,No,Default,Medium", "No,Yes,Default,Small", "No,No,Default,Small",
+  "No,No,Carved-Floating,Small", "No,Yes,Border,Small", "No,Yes,Borderless,Small", "No,Yes,Carved,Small",
+].map((name) => Object.fromEntries(name.split(",").map((value, index) => [["Expand", "Shadow", "Theme", "Density"][index], value])));
+/** Sidebar.tsx theme → Patterns/Sidebar Theme. */
+const SIDEBAR_PATTERN_THEME = { default: "Default", border: "Border", borderless: "Borderless", carved: "Carved", "carved-floating": "Carved-Floating" };
+/** The themes whose Sidebar sits flush with the page edge (sidebar.css): their rail is the 64px panel alone. */
+const FLUSH_SIDEBAR_THEMES = new Set(["border", "borderless", "carved"]);
+
+/**
+ * The Patterns/Sidebar variant that draws a Sidebar's look ({ theme, density, shadow, collapsed }, Sidebar.tsx): its
+ * Theme and Expand, then the nearest Density and Shadow the set has (Border at Density=Medium is Border · Small; the
+ * flush rails are Shadow=Yes in Figma).
+ */
+export function sidebarPatternProps({ theme = "default", density = "medium", shadow = true, collapsed = false } = {}) {
+  const want = { Expand: collapsed ? "No" : "Yes", Shadow: shadow === false ? "No" : "Yes", Theme: SIDEBAR_PATTERN_THEME[theme] ?? "Default", Density: density === "small" ? "Small" : "Medium" };
+  const score = (variant) => (variant.Density === want.Density ? 2 : 0) + (variant.Shadow === want.Shadow ? 1 : 0);
+  const [best] = SIDEBAR_PATTERN_VARIANTS.filter((variant) => variant.Expand === want.Expand && variant.Theme === want.Theme).sort((a, b) => score(b) - score(a));
+  return { ...best };
+}
 /** The top bar's Search at its widest (app-shell.css). */
 const HEADER_SEARCH_MAX = 400;
 /** Container's content width by maxWidth (layout.css .zen-container[data-width]). */
@@ -241,10 +267,10 @@ const CONTAINER_MAX = { sm: 640, md: 960, lg: 1280, xl: 1440 };
 const AI_GREETING_LAYER = "How can I help you today?";
 const AI_BLOCK_MAX = 800;
 /** Sidebar's width open (sidebar.css --zen-sidebar-width; Figma's Side-Bar measures the same) and as the collapsed rail
- *  (basic: min-width 80px, Figma Patterns/Sidebar Expand=No · Density=Medium, 2026-10-21; small-density: 20px + 4 ×
- *  Padding/XSmall). */
+ *  (basic: min-width 80px, Figma Patterns/Sidebar Expand=No · Density=Medium, 2026-10-21; at Density=Small 72, on the
+ *  flush themes 64, as the pattern's rails measure; small-density: 20px + 4 × Padding/XSmall). */
 const SIDEBAR_WIDTH = 240;
-const SIDEBAR_RAIL_WIDTH = { basic: 80, "small-density": 52 };
+const SIDEBAR_RAIL_WIDTH = { basic: 80, "basic-small": 72, flush: 64, "small-density": 52 };
 /** Margin-Comfortable: Container's gutter (layout.css) and the floating action's inset (app-shell.css). */
 const MARGIN_COMFORTABLE = 24;
 
@@ -578,6 +604,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "Metric") node = instanceNode(element, code, id);
     // A Menu draws its trigger on the page; its items open in a popover.
     else if (element.name === "Menu" && element.props.trigger?.kind === "element") node = convertElement(element.props.trigger.node, parent);
+    // A Sidebar on its own is Figma's Patterns/Sidebar around its Side-Bar (an AppShell's: appShellNode places it).
+    else if (element.name === "Sidebar" && !parent?.inShell) node = sidebarPatternNode(instanceNode(element, code, id, parent), sidebarLook(element, code.collapsed === true));
     else node = instanceNode(element, code, id, parent);
     if (node && code.position === "absolute") node.absolute = absoluteOf(code);
     return node;
@@ -765,7 +793,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     }
     // The column's width: the shell's less the open Sidebar (another sidebar, a collapsed one or a side panel: unknown).
     const aside = layerOf(element, "sidePanel") ? convert(layerOf(element, "sidePanel"), { direction: "row", stretch: true }) : null;
-    const sideWidth = !sidebar ? 0 : sidebarWidth(sidebar, collapsed);
+    const sideWidth = !sidebar ? 0 : sidebarWidth(sidebar, collapsed, code.pattern);
     const columnWidth = typeof parent?.width === "number" && sideWidth !== null && !aside ? parent.width - sideWidth : null;
     const filling = (layers, width = columnWidth) => layers.map((layer) => convert(layer, { direction: "column", stretch: true, width })).filter(Boolean).map((node) => (node.absolute ? node : { ...node, fillW: true }));
     const stretch = { direction: "column", stretch: true, width: columnWidth };
@@ -776,12 +804,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const footer = [];
     // A Sidebar the AppShell collapses (defaultSidebarCollapsed) is drawn as the rail too.
     const shellSidebar = sidebar?.name === "Sidebar" && collapsed && literalOf(sidebar.props.collapsed) === undefined ? { ...sidebar, props: { ...sidebar.props, collapsed: literal(true) } } : sidebar;
-    const sidebarNode = shellSidebar ? convert(shellSidebar, { direction: "row", stretch: true }) : null;
+    // Its Side-Bar alone (inShell): the master or the row puts it in Patterns/Sidebar with its look.
+    const sidebarNode = shellSidebar ? convert(shellSidebar, { direction: "row", stretch: true, inShell: true }) : null;
+    const look = shellSidebar?.name === "Sidebar" ? sidebarLook(shellSidebar, collapsed, code.pattern) : null;
     const banner = layersOf(element, "banner");
     // The page is Canvas (app-shell.css; canvas="alt" | "flat" the other two).
     const canvas = { fill: `Background/Canvas/${{ alt: "Alt", flat: "Flat" }[code.canvas] ?? "Default"}` };
     // Figma's ◇ Master-Layout, when every part has its place in it.
-    const master = masterLayoutNode({ sidebar: sidebarNode, collapsed, topBar, sections, page, footer, floating, aside, canvas: code.canvas });
+    const master = masterLayoutNode({ sidebar: sidebarNode, collapsed, look, topBar, sections, page, footer, floating, aside, canvas: code.canvas });
     if (master && !banner.length) return { ...master, ...(id ? { id } : {}) };
     if (master) return shellFrame("AppShell", "VERTICAL", [...filling(banner), { ...master, fillW: true }], { ...(id ? { id } : {}), ...canvas });
     const column = shellFrame("Column", "VERTICAL", [
@@ -792,21 +822,21 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       ...footer,
       floating && { ...floating, absolute: { cx: "MAX", cy: "MAX", left: 0, right: MARGIN_COMFORTABLE, top: 0, bottom: MARGIN_COMFORTABLE } },
     ], { fillW: true });
-    const row = [sidebarNode, column, aside].filter(Boolean).map((node) => (node === column ? node : { ...node, fillH: true }));
+    const row = [look ? sidebarPatternNode(sidebarNode, look) : sidebarNode, column, aside].filter(Boolean).map((node) => (node === column ? node : { ...node, fillH: true }));
     if (!banner.length) return shellFrame("AppShell", "HORIZONTAL", row, { ...(id ? { id } : {}), ...canvas });
     return shellFrame("AppShell", "VERTICAL", [...filling(banner), shellFrame("Frame", "HORIZONTAL", row, { fillW: true })], { ...(id ? { id } : {}), ...canvas });
   }
 
   /**
    * AppShell as Figma's ◇ Master-Layout (Patterns/Pages/Density-Medium Level=Master, read 2026-10-17; user: "app shell và
-   * master layout không khớp với nhau thành component master layout"): the Sidebar pattern (Expand by the collapsed state)
-   * around the Side-Bar the Sidebar converts to; Header/Dashboard's Sections slot with the top bar and the section rows,
+   * master layout không khớp với nhau thành component master layout"): the Sidebar pattern (its variant by the Sidebar's
+   * look, sidebarPatternProps) around the Side-Bar the Sidebar converts to; Header/Dashboard's Sections slot with the top bar and the section rows,
    * Dashboard header rows padded as the master's own rows are (the top bar Margin-Comfortable · Padding/Small below, a
    * section Padding/Small · Margin-Comfortable); Body's Content slot with the page, Body padded Margin-Comfortable and
    * Gap/XSmall apart as AppShell's Body is (app-shell.css .zen-app-shell__body); Floating-Item; the Side-Panel. Null when
    * a part has no place in it (an aside that is no SidePanel, a sidebar that is no instance): the frames then.
    */
-  function masterLayoutNode({ sidebar, collapsed, topBar, sections, page, footer, floating, aside, canvas }) {
+  function masterLayoutNode({ sidebar, collapsed, look, topBar, sections, page, footer, floating, aside, canvas }) {
     if (sidebar && sidebar.type !== "INSTANCE") return null;
     if (aside && !(aside.type === "INSTANCE" && aside.set?.name === "Side-Panel")) return null;
     const list = (value) => (Array.isArray(value) ? value : value ? [value] : []);
@@ -822,8 +852,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       for (const name of spec.hide ?? []) edits.push({ layer: [...layers, name], visible: false });
     };
     if (sidebar) {
-      const expand = collapsed ? "No" : "Yes";
-      nested.push({ path: "Patterns", props: { Expand: expand } });
+      // The pattern's variant by the Sidebar's look (theme, density, shadow; Expand by the collapsed state).
+      const pattern = look ? sidebarPatternProps(look) : { Expand: collapsed ? "No" : "Yes" };
+      const expand = pattern.Expand;
+      nested.push({ path: "Patterns", props: pattern });
       // The pattern's Side-Bar (Patterns/Density/Comfortable/Sidebar/Yes|No): a nested path matches it by its first part.
       const { set, ...rest } = sidebar;
       const layers = [MASTER_SIDEBAR_PATTERN, `Patterns/Density/Comfortable/Sidebar/${expand}`];
@@ -862,6 +894,32 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       type: "INSTANCE", name: "AppShell", set: MASTER_LAYOUT_SET,
       props: { Level: "Master", Sidebar: Boolean(sidebar), "Side-Panel": Boolean(aside), "Floating-Actions": Boolean(floating) },
       ...(nested.length ? { nested } : {}), slots, edits, ...(fill ? { fill } : {}), fillW: true, minH: MASTER_LAYOUT_HEIGHT,
+    };
+  }
+
+  /**
+   * A Sidebar as Figma draws one on its own (beside the page, the Screen's chrome, an AppShell drawn as frames): its
+   * Side-Bar inside Patterns/Sidebar (6040:67524), whose variant gives the theme, density, shadow and rail
+   * (sidebarPatternProps), the Side-Bar's own writes at its place there (the Patterns/Density/Comfortable/Sidebar/Yes|No
+   * layer), as masterLayoutNode places it in the master. Another set (Workspace, Small-Density) stays as it is: the
+   * pattern holds the Basic panel only.
+   */
+  function sidebarPatternNode(sideBar, look) {
+    if (sideBar?.type !== "INSTANCE" || sideBar.set?.name !== MASTER_SIDEBAR) return sideBar;
+    const props = sidebarPatternProps(look);
+    const layer = `Patterns/Density/Comfortable/Sidebar/${props.Expand}`;
+    const within = (value) => [layer, ...(Array.isArray(value) ? value : value ? [value] : [])];
+    const { set, name, props: own, text, texts, textList, swapIcon, nested = [], slots = [], edits = [], hide = [], ...place } = sideBar;
+    return {
+      ...place, name: name === MASTER_SIDEBAR ? MASTER_SIDEBAR_PATTERN : name, set: SIDEBAR_PATTERN_SET, props,
+      // The pattern's Side-Bar: a nested path matches it by its first part.
+      nested: [
+        { path: "Patterns", props: own ?? {}, ...Object.fromEntries(Object.entries({ text, texts, textList, swapIcon }).filter(([, value]) => value !== undefined)) },
+        ...nested.map((entry) => ({ ...entry, path: `Patterns/${entry.path}` })),
+      ],
+      ...(slots.length ? { slots: slots.map((slot) => ({ ...slot, within: within(slot.within) })) } : {}),
+      // Its hidden layers inside it (a name alone would hide the pattern's first layer of that name); as tall as the pattern.
+      edits: [...edits.map((edit) => ({ ...edit, layer: within(edit.layer) })), ...hide.map((hidden) => ({ layer: [layer, hidden], visible: false })), { layer: [layer], fillH: true }],
     };
   }
 
@@ -1290,11 +1348,23 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const max = px(code.maxWidth);
     return width !== null && max !== null ? Math.min(width, max) : width;
   };
+  /**
+   * A Zen Sidebar's look as Patterns/Sidebar draws it (sidebarPatternProps): its theme and density, else those an AppShell
+   * of `pattern="grid"` gives it (Border · Small, AppShell.tsx), its shadow, collapsed or not.
+   */
+  const sidebarLook = (sidebar, collapsed, shellPattern = null) => ({
+    theme: literalOf(sidebar.props.theme) ?? (shellPattern === "grid" ? "border" : "default"),
+    density: literalOf(sidebar.props.density) ?? (shellPattern === "grid" ? "small" : "medium"),
+    shadow: literalOf(sidebar.props.shadow) !== false,
+    collapsed,
+  });
   /** A Zen Sidebar's width, open or as the rail (another sidebar, a workspace one or one of its own width: unknown). */
-  const sidebarWidth = (sidebar, collapsed) => {
+  const sidebarWidth = (sidebar, collapsed, shellPattern = null) => {
     const variant = literalOf(sidebar.props.variant) ?? "basic";
     if (sidebar.name !== "Sidebar" || variant === "workspace" || sidebar.props.width !== undefined) return null;
-    return collapsed ? SIDEBAR_RAIL_WIDTH[variant] ?? null : SIDEBAR_WIDTH;
+    const look = sidebarLook(sidebar, collapsed, shellPattern);
+    const rail = variant !== "basic" ? variant : FLUSH_SIDEBAR_THEMES.has(look.theme) ? "flush" : look.density === "small" ? "basic-small" : "basic";
+    return collapsed ? SIDEBAR_RAIL_WIDTH[rail] ?? null : SIDEBAR_WIDTH;
   };
   /** Each grid column's width (Figma's tracks: Fixed px, Flex shares what is left after the gaps); unknown without a width. */
   const trackWidths = (columns, inner, gap) => {

@@ -71,6 +71,17 @@ export const MAIN_SAMPLES: Readonly<Record<string, PaletteItem>> = {
     `  { id: "profile", label: "Profile", icon: "icon-user-circle-line", selectedIcon: "icon-user-circle-solid" },`,
     `]} />`,
   )),
+  // Figma Header/AppShell Theme=Default (16243:290461 in set 16783:71068): Breadcrumbs in Leading-Slots, a Tertiary action with a dot and the
+  // account photo in Trailing-Slots, the page header with Icon-Main Tertiary · Secondary · Main Action in Main-Element;
+  // Sections empty. The Collapse Button comes from the shell (MainComponentFrame PREVIEW_CHROME).
+  AppShellHeader: sample("AppShellHeader", lines(
+    `<AppShellHeader`,
+    `  leading={<Breadcrumbs items={[{ id: "workspace", label: "Workspace", href: "#" }, { id: "projects", label: "Projects" }]} />}`,
+    `  actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot /><AppShellAccount name="Ava Chen" src="zen-media:avatar-ava" /></>}`,
+    `  main={<PageHeader title="Projects"`,
+    `    actions={<><IconButton icon="icon-dots-horizontal-line" level="tertiary" aria-label="More" /><Button level="tertiary">Export</Button><Button level="primary">New project</Button></>} />}`,
+    `/>`,
+  ), { components: ["AppShellHeader", "Breadcrumbs", "AppShellAction", "AppShellAccount", "PageHeader", "IconButton", "Button"] }),
   // Every type reads its own props: Main the title and actions, Control-Bar the search, filters and actions, Navigation the
   // breadcrumbs and the bell, Custom its children.
   DashboardHeader: sample("DashboardHeader", lines(

@@ -23,7 +23,7 @@ import { useStableCallback } from "../_shared/use-stable-callback";
 
 export type SidebarVariant = "basic" | "workspace" | "small-density";
 /** Figma Patterns/Sidebar Theme. */
-export const sidebarThemes = ["default", "border"] as const;
+export const sidebarThemes = ["default", "border", "borderless", "carved", "carved-floating"] as const;
 export type SidebarTheme = (typeof sidebarThemes)[number];
 /** Layer 2 (Surface) of the page it sits on: default = Surface/Default (on a Canvas/Default page), alt = Surface/Alt
  *  (on a white Canvas/Alt page), flat = Surface/Flat (navigation on a Canvas/Flat page, seamless in both modes),
@@ -79,7 +79,10 @@ export type SidebarSection = {
 
 export interface SidebarProps {
   variant?: SidebarVariant;
-  /** Compatibility alias for the earlier component API. */
+  /** Figma Patterns/Sidebar Density (6040:67524): `small` is the Basic panel with 36px rows and a Padding/Medium header
+   *  (the rail 72, 64 for the flush themes). Unset follows the AppShell (`pattern="grid"` draws small), else medium.
+   *  Figma's separate Side-Bar/Master/Small-Density is `variant="small-density"` (since 2026-10-21 `density="small"` alone
+   *  no longer picks it). */
   density?: "medium" | "small";
   /** The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it
    *  from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps
@@ -141,10 +144,14 @@ export interface SidebarProps {
    */
   shadow?: boolean;
   /**
-   * Figma Patterns/Sidebar Theme (6040:67524): `default` (a Surface panel inset Padding/XSmall from the page edge) ·
-   * `border` (Theme=Border: no fill, no corners and no shadow, the Sidebar flush with the page edge and a 1px
-   * Border/Neutral/Pale line on its inner edge; the rail is the panel's own 64px). Unset follows the AppShell:
-   * `pattern="grid"` draws border (and Density=Small: 36px rows), other patterns default.
+   * Figma Patterns/Sidebar Theme (6040:67524):
+   * - `default`: a Surface panel inset Padding/XSmall from the page edge (8 · 0 · 8 · 8).
+   * - `carved-floating`: the same inset panel in Background/Carved, never shadowed.
+   * - `border`: flush with the page edge, no fill, corners or shadow, a 1px Border/Neutral/Pale line on its inner edge.
+   * - `borderless`: flush like border, without the line.
+   * - `carved`: flush, the whole column in Background/Carved.
+   * The flush themes' rail is the panel's own 64px. Unset follows the AppShell: `pattern="grid"` draws border (and
+   * Density=Small: 36px rows), other patterns default.
    */
   theme?: SidebarTheme;
   /** Figma Primitives/Sub-Header-Sidebar (16823:88101): a `<SidebarSubHeader>` at the top of Body-Content, the back
@@ -665,7 +672,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   const rootRef = useRef<HTMLElement>(null);
   const navRef = useMergedRefs(ref, rootRef);
   const flyout = subMenu ? <SidebarFlyout label={subMenuLabel} onClose={onSubMenuClose} rootRef={rootRef}>{subMenu}</SidebarFlyout> : null;
-  const variant = requestedVariant ?? (requestedDensity === "small" ? "small-density" : "basic");
+  const variant = requestedVariant ?? "basic";
   // AppShell pattern="grid" (Figma Layout=Grid) draws Patterns/Sidebar Theme=Border, Density=Small: Basic rows at 36px.
   const theme = themeProp ?? shell?.theme ?? "default";
   const density = requestedDensity ?? shell?.density ?? (variant === "small-density" ? "small" : "medium");
@@ -712,7 +719,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   }
 
   return (
-    <nav ref={navRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-shadow={shadow ? undefined : "false"} data-theme={theme === "border" ? "border" : undefined} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={density} aria-label={ariaLabel ?? t.mainNavigation}>
+    <nav ref={navRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-shadow={shadow ? undefined : "false"} data-theme={theme === "default" ? undefined : theme} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={density} aria-label={ariaLabel ?? t.mainNavigation}>
       <SidebarNavContext value={nav}>
         {nest.scope(<SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} searchCollapsed={searchCollapsed} subHeader={subHeader} collapsed={collapsed} onCollapsedChange={onCollapsedChange} expandRail={expandRail} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</SidebarPanel>)}
         {flyout}
