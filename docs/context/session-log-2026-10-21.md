@@ -89,3 +89,22 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
 - tokens/source/figma/mode-colors-semantic.json, then `tokens:build`: web, Swift and Flutter. tokens:check,
   tokens:native:check and high contrast (0 failures) all pass.
 - No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
+
+## Copy a Section with its frames (Session C) — tier S, branch `zen/feat/studio-section-duplicate-20261021`
+The user picked it (2026-10-21) from the BACKLOG P1 "Studio design page = Figma" leftovers (F4, C's area). ⌥-drag, ⌘D
+and ⌘C ⌘V of a Section copy it with the frames and Sections it holds (board/sections.ts, any depth), all moved by the
+same amount, in one edit and one ⌘Z; the copy is selected. `frameEdit.ts` `copySection`: one `insertChild` `paste` of
+the Section copies first (they draw behind the frames) then the frame copies, after the original Section; each copy a
+new id (`freeFrameId` per kind); links stay as written (Figma's copies on a page keep pointing at the originals:
+forum reports). `copyFrame` hands a Section to it, so ⌥-drag (`frameMove.ts`, the Section no longer refuses ⌥), ⌘D
+and paste all take it; a Section's ⌘C clip carries what it holds (`frameClip` `held`). Fix met on the way: ⌘D on a
+Section copied only the Section, under a Screen's id (`freeFrameId("screen")`). Checked in Node: the paste edit on a
+builder page puts Section 2 after Section 1, then its Screen. E2E FW-106 (⌘D beside, ⌥-drag where it ends, the
+original stays, one ⌘Z each) waits for a gate slot.
+- Gate (13:05–13:36, main 3c77ff96 merged in): static ✓; Studio E2E 335 / 336, B-28 timed out (AppShellHeader
+  selection) and passed alone (52 s): load flake. The matrix leaves the Figma walk out, so `--only=figma` ran apart:
+  FW-106 ✓ with FW-44/45/46. FW-66 (F6 text Resizing, mine) failed there and on main 3c77ff96 too: its steps take
+  under 1 s, but `restoring`'s `undoTo` waited 4 s after each of the first four of five ⌘Z (until the page equals the
+  start) and passed the row's 20 s. Fixed at its owner, the shared helper: each ⌘Z waits for its own step (the page
+  changes). FW-66 + FW-106 ✓ in 12 s. The whole Figma walk again: 125 / 126, FW-02 (⌘F) timed out once and passed
+  alone (8 s; it passed in the first walk run).
