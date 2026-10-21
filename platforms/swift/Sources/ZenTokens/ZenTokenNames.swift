@@ -2150,6 +2150,7 @@ public enum ZenToken {
     public static let cardPaddingMedium = "Card-padding-medium"
     public static let marginCompact = "Margin-Compact"
     public static let cardPaddingSmall = "Card-padding-small"
+    public static let cardPaddingXsmall = "Card-padding-xsmall"
     public static let modalRadius = "Modal-Radius"
     public static let interactiveListItemRadius = "Interactive-List-Item-Radius"
     public static let listContainerVerticalPadding = "List-Container-Vertical-Padding"

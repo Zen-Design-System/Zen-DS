@@ -52,7 +52,7 @@ export function describeVariable(name, collection, current) {
 
   if (collection === "Corner Radius") {
     const USE = {
-      "2XSmall": "tiny marks (progress fills, chart bars)", XSmall: "small elements: badges, small tags, checkbox marks", Small: "small controls and chart bars", Base: "controls and a clickable List-Item's fill on desktop (Interactive-List-Item-Radius)",
+      "2XSmall": "tiny marks (progress fills, chart bars)", XSmall: "small elements: badges, small tags, checkbox marks", Small: "small controls and chart bars", Base: "controls, a clickable List-Item's fill on desktop (Interactive-List-Item-Radius) and XSmall cards (Card Spacing=XSmall)",
       Large: "small cards (Card Spacing=Small) and a clickable List-Item's fill on tablets and phones", XLarge: "medium panels and popovers", "2XLarge": "cards and List-Boxes (Card Spacing=Medium)", "3XLarge": "large panels and sheets",
       Giant: "modals on tablets and phones (Modal-Radius)", XGiant: "modals on desktop (Modal-Radius)", Rounded: "pills and circles (1000)",
     };
@@ -69,6 +69,7 @@ export function describeVariable(name, collection, current) {
       "Modal-Padding": "Inner padding of Modal/Dialog and Modal/Forms: 24 on desktop, 20 on tablets and phones.",
       "Card-padding-medium": "Padding of Cards with Spacing=Medium and of List-Box slots (sideways): 24 on desktop, 20 on tablets and phones.",
       "Card-padding-small": "Padding of Cards with Spacing=Small: 16 on every device.",
+      "Card-padding-xsmall": "Padding of Cards with Spacing=XSmall: Spacing/Padding/XSmall (8) on every device.",
       "Modal-Radius": "Corner radius of modal panels: Corner-Radius/XGiant on desktop, Giant on tablets and phones.",
       "Interactive-List-Item-Radius": "Corner radius of a clickable List-Item's fill: Corner-Radius/Base (12) on desktop, Large (16) on tablets and phones.",
       "List-Container-Vertical-Padding": "Padding above and below the rows inside a List-Box: 12 on desktop, 8 on tablets and phones.",

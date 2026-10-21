@@ -71,7 +71,7 @@ function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, tog
 
 /**
  * Figma Header/AppShell (16243:290461), the header of Pattern/AppShell/Desktop. The Main frame pads Margin-Comfortable
- * above and at the sides and Spacing/Padding/XSmall below, Spacing/Gap/Medium between its rows:
+ * above and at the sides and Spacing/Padding/Small below, Spacing/Gap/Medium between its rows:
  * - Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while
  *   the AppShell has `collapse="header"`) or, on a narrow shell, the menu button that opens the navigation drawer; then
  *   Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart.

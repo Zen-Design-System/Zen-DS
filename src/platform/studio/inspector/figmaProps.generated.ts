@@ -674,7 +674,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Medium": "medium",
-          "Small": "small"
+          "Small": "small",
+          "XSmall": "xsmall"
         }
       },
       {

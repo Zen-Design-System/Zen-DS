@@ -1054,11 +1054,13 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Spacing",
           "names": [
             "Medium",
-            "Small"
+            "Small",
+            "XSmall"
           ],
           "values": [
             "medium",
-            "small"
+            "small",
+            "xsmall"
           ],
           "default": "medium"
         },

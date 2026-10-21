@@ -562,11 +562,15 @@ async function run() {
         // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a
         // wrapper sized in px around a token-sized child (memory: density-safe slots). New layout errors count too.
         const setDensity = (d) => page.evaluate((d) => { const els = document.querySelectorAll(".official-platform, .official-portal-root"); const before = [...els].map((e) => e.getAttribute("data-density")); els.forEach((e) => e.setAttribute("data-density", d)); return before; }, d);
-        const original = await setDensity("compact"); await page.waitForTimeout(200);
-        const compact = await page.evaluate(densitySnapshot);
+        // A fixed wait can read a layout that is still moving under load (2026-10-21: the full gate failed on a 3–4px
+        // "overflow" in Image's media Table that two runs of the page alone did not find). Snapshot until two reads 150ms
+        // apart agree, up to 3s.
+        const settled = async (min) => { await page.waitForTimeout(min); let last = JSON.stringify(await page.evaluate(densitySnapshot)); for (let t = 0; t < 20; t++) { await page.waitForTimeout(150); const next = JSON.stringify(await page.evaluate(densitySnapshot)); if (next === last) break; last = next; } return JSON.parse(last); };
+        const original = await setDensity("compact");
+        const compact = await settled(200);
         const fitCompact = await page.evaluate(textFit, { scopeSel: ".official-platform" }).catch(() => null);
-        await setDensity("comfortable"); await page.waitForTimeout(300);
-        const comfortable = await page.evaluate(densitySnapshot);
+        await setDensity("comfortable");
+        const comfortable = await settled(300);
         // Text that outgrows its box only at Comfortable (larger type and padding in the same width).
         const fitRoomy = await page.evaluate(textFit, { scopeSel: ".official-platform" }).catch(() => null);
         (fitRoomy?.fit ?? []).forEach((item, i) => { const msg = `at Comfortable: ${item}`; if (!fitCompact?.where.includes(fitRoomy.where[i]) && !entry.fit.includes(msg)) entry.fit.push(msg); });
