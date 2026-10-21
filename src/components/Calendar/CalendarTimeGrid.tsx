@@ -17,7 +17,7 @@ export interface CalendarTimeGridProps extends HTMLAttributes<HTMLDivElement> {
   /** The day the view is built around ("2026-09-30" or a Date). Default: today. */
   date?: CalendarDateInput;
   /** The events: all-day ones in the all-day row, timed ones as blocks at their hours. */
-  events?: readonly CalendarEventData[];
+  events?: CalendarEventData[];
   /** First hour shown (default 8: 08:00). */
   startHour?: number;
   /** Hour the grid ends at (default 18: the last row is 17:00–18:00). Extend it for longer days. */

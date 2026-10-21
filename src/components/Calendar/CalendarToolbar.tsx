@@ -26,7 +26,7 @@ export interface CalendarToolbarProps extends Omit<HTMLAttributes<HTMLDivElement
   view?: CalendarView;
   /** The views the switch offers, in order (Figma: Month · Week · Day · Agenda). Hide views the product does not
    * offer; an empty list hides the switch. */
-  views?: readonly CalendarView[];
+  views?: CalendarView[];
   /** Called with the view the person picks. */
   onViewChange?: (view: CalendarView) => void;
   /** Today (Tertiary button): back to today's period. Without it the button is left out. */
@@ -45,7 +45,7 @@ export interface CalendarToolbarProps extends Omit<HTMLAttributes<HTMLDivElement
   ref?: Ref<HTMLDivElement>;
 }
 
-const DEFAULT_VIEWS: readonly CalendarView[] = ["month", "week", "day", "agenda"];
+const DEFAULT_VIEWS: CalendarView[] = ["month", "week", "day", "agenda"];
 
 /**
  * Figma `Calendar/Toolbar` (16125:399): the control row above a calendar view. Desktop: Today (Button/Main Small

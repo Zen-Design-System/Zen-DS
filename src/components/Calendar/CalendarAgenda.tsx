@@ -11,7 +11,7 @@ import "./calendar.css";
 
 export interface CalendarAgendaProps extends HTMLAttributes<HTMLDivElement> {
   /** The events; they are listed day by day, all-day first, then by start time. */
-  events?: readonly CalendarEventData[];
+  events?: CalendarEventData[];
   /** First day of the range ("2026-09-30" or a Date). Default: today. */
   from?: CalendarDateInput;
   /** How many days the range covers (default 7). Days without events are left out. */

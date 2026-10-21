@@ -6723,7 +6723,7 @@
         },
         {
           "name": "events",
-          "type": "unknown",
+          "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
           "description": "The events to show: chips in the desktop cells, a dot under the mobile days.",
@@ -6841,7 +6841,7 @@
         },
         {
           "name": "views",
-          "type": "unknown",
+          "type": "CalendarView[]",
           "required": false,
           "default": "[\"month\", \"week\", \"day\", \"agenda\"]",
           "description": "The views the switch offers, in order (Figma: Month · Week · Day · Agenda). Hide views the product does not\noffer; an empty list hides the switch.",
@@ -6927,7 +6927,7 @@
         },
         {
           "name": "events",
-          "type": "unknown",
+          "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
           "description": "The events: all-day ones in the all-day row, timed ones as blocks at their hours.",
@@ -7029,7 +7029,7 @@
       "props": [
         {
           "name": "events",
-          "type": "unknown",
+          "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
           "description": "The events; they are listed day by day, all-day first, then by start time.",
@@ -7139,7 +7139,7 @@
         },
         {
           "name": "events",
-          "type": "unknown",
+          "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
           "description": "The events of the period: a day with any shows the event dot (Dot style).",

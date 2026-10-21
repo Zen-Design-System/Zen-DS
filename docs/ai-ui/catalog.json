@@ -3350,6 +3350,10 @@
       "description": "Figma `Calendar/Agenda` (16128:1036): days in order, each with its events as `.Primitives/Calendar/Agenda-Item` rows.",
       "props": {
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
           "default": [],
           "description": "The events; they are listed day by day, all-day first, then by start time."
         },
@@ -3969,6 +3973,10 @@
           "description": "Called with the day the person presses."
         },
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
           "default": [],
           "description": "The events to show: chips in the desktop cells, a dot under the mobile days."
         },
@@ -4122,6 +4130,10 @@
           "description": "The day the view is built around (\"2026-09-30\" or a Date)."
         },
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
           "default": [],
           "description": "The events: all-day ones in the all-day row, timed ones as blocks at their hours."
         },
@@ -4272,6 +4284,16 @@
           "description": "The selected view of the switch."
         },
         "views": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "month",
+              "week",
+              "day",
+              "3-day",
+              "agenda"
+            ]
+          },
           "default": [
             "month",
             "week",
@@ -4391,6 +4413,10 @@
           "description": "Called with the day the person picks."
         },
         "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarEventData"
+          },
           "default": [],
           "description": "The events of the period: a day with any shows the event dot (Dot style)."
         },
@@ -22773,6 +22799,62 @@
           "type": "string"
         }
       ]
+    },
+    "CalendarEventData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "allDay": {
+          "type": "boolean"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "meta": {
+          "type": "string"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start"
+      ],
+      "additionalProperties": false
     },
     "CardSubAction": {
       "type": "object",
