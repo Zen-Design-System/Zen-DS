@@ -61,7 +61,10 @@ button.zen-calendar-block:hover:not([data-selected]) { background: var(--zen-cal
 .zen-calendar-cell__date { display: inline-flex; align-self: flex-start; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; }
 button.zen-calendar-cell__date:hover .zen-calendar-date:not([data-state="today"]) { background: var(--zen-color-background-neutral-flat-hover); }
 button.zen-calendar-cell__date:active .zen-calendar-date:not([data-state="today"]) { background: var(--zen-color-background-neutral-flat-pressed); }
-.zen-calendar-cell__events { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-calendar-cell__events { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); container-type: inline-size; }
+/* A narrow month cell (a half-width column) gives the chip's room to its title: the time leaves the face, stays in the name. */
+.zen-calendar-event { position: relative; }
+@container (max-width: 96px) { .zen-calendar-event[data-kind="timed"] > .zen-calendar-event__time { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
 .zen-calendar-cell__more { align-self: flex-start; padding: 0 var(--zen-spacing-padding-3-xsmall, 2px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-base); }
 button.zen-calendar-cell__more:hover { background: var(--zen-color-background-neutral-flat-hover); }
 button.zen-calendar-cell__more:active { background: var(--zen-color-background-neutral-flat-pressed); }
