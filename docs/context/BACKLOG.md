@@ -10,8 +10,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
   HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: the Code properties rows move to the Code
   tab (§3a "Properties", structural); Present (⌥⌘↵) from a selected Overlay frame, as Figma presents any frame (needs
-  `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); ⌥-drag / ⌘D of a Section with its
-  frames (F4 moves, resizes, deletes and wraps them; a copy is not built); an instance's data-name stays in the page
+  `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); an instance's data-name stays in the page
   (its Figma name is its component's or carries content, which pull reads as such).
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
