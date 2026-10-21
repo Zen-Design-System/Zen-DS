@@ -117,12 +117,16 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch", SliderField: "SliderField", CurvePreview: "CurvePreview",
+  CalendarToolbar: "Calendar", CalendarMonth: "Calendar", CalendarTimeGrid: "Calendar", CalendarAgenda: "Calendar", CalendarWeekStrip: "Calendar",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", DashboardHeader: "DashboardHeader", TopNavigation: "TopNavigation",
   BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", SidebarMenuItem: "Sidebar", SidebarMenuSection: "Sidebar", AppShell: "AppShell", AppShellHeader: "AppShell", AppShellPane: "AppShell", AppShellAction: "AppShell", AppShellAccount: "AppShell", ActionBar: "ActionBar",
   ChatThread: "Chat", ChatMessage: "Chat", ChatComposer: "Chat", AiChatThread: "AiChat", AiChatBubble: "AiChat",
   AiChatField: "AiChat", VoiceRecorder: "Voice", AiVoiceConversation: "Voice",
 };
+
+/** The Calendar items' events (Wed 30 Sep 2026 and the days around it), as page code. */
+const CALENDAR_EVENTS = `[{ id: "standup", title: "Daily standup", start: "2026-09-30T09:00", end: "2026-09-30T09:30" }, { id: "q4", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue", meta: "Room 2" }, { id: "maya", title: "1:1 Maya Chen", start: "2026-09-30T14:00", end: "2026-09-30T14:45", color: "teal" }, { id: "kickoff", title: "Q4 kickoff", start: "2026-10-01", allDay: true }, { id: "review", title: "Design review", start: "2026-09-29T11:00", end: "2026-09-29T12:00", color: "violet" }]`;
 
 const level = (ctx: PaletteContext) => Math.min(6, Math.max(2, Math.round(ctx.headingLevel) || 3));
 const uidOf = (ctx: PaletteContext) => ctx.uid.toLowerCase().replace(/[^a-z0-9]/g, "") || "1";
@@ -895,6 +899,27 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<DatePicker aria-label="Due date" today={new Date(2026, 8, 30)} defaultValue={new Date(2026, 9, 14)} />`,
     // No Date code on a page you make: the calendar opens on this month.
     builder: () => `<DatePicker aria-label="Due date" />`,
+  },
+  // ❖ Calendar (16121:3): event views on fixed demo dates (Wed 30 Sep 2026), so the Today date and the now line show. Dates are ISO strings: a page holds only literals.
+  {
+    id: "calendar-month", label: "Month calendar", group: "Data display", caption: "Events by day", root: "CalendarMonth", components: ["CalendarMonth"], interactive: true, input: false,
+    build: () => `<CalendarMonth month="2026-09-01" today="2026-09-30" events={${CALENDAR_EVENTS}} />`,
+  },
+  {
+    id: "calendar-time-grid", label: "Week calendar", group: "Data display", caption: "Hours of a week or day", root: "CalendarTimeGrid", components: ["CalendarTimeGrid"], interactive: true, input: false,
+    build: () => `<CalendarTimeGrid date="2026-09-30" now="2026-09-30T13:15" events={${CALENDAR_EVENTS}} />`,
+  },
+  {
+    id: "calendar-agenda", label: "Agenda", group: "Data display", caption: "Events day by day", root: "CalendarAgenda", components: ["CalendarAgenda"], interactive: false, input: false,
+    build: () => `<CalendarAgenda from="2026-09-30" days={3} today="2026-09-30" events={${CALENDAR_EVENTS}} />`,
+  },
+  {
+    id: "calendar-toolbar", label: "Calendar toolbar", group: "Navigation", caption: "Period and view", root: "CalendarToolbar", components: ["CalendarToolbar"], interactive: true, input: false,
+    build: () => `<CalendarToolbar title="September 2026" view="month" />`,
+  },
+  {
+    id: "calendar-week-strip", label: "Week strip", group: "Navigation", caption: "Pick a day of the week", root: "CalendarWeekStrip", components: ["CalendarWeekStrip"], interactive: true, input: false,
+    build: () => `<CalendarWeekStrip aria-label="Pick a day" today="2026-09-30" defaultValue="2026-09-30" events={${CALENDAR_EVENTS}} />`,
   },
   {
     id: "number-field", label: "Number field", group: "Inputs", root: "NumberField", components: ["NumberField"], interactive: true, input: true,

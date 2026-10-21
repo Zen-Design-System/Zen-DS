@@ -1,0 +1,5 @@
+/* Calendar page examples (prefix px-calendar-). */
+.px-calendar-split { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
+.px-calendar-scroll { max-height: 560px; }
+.px-calendar-planner { max-width: 420px; }
+@media (max-width: 900px) { .px-calendar-split { grid-template-columns: minmax(0, 1fr); } }

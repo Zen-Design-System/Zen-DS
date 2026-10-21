@@ -1,0 +1,173 @@
+/* Calendar (Figma ❖ Calendar 16121:3). Event hues: Color/Background/Support/<Hue>/{Subtle,Soft,Solid,Rich}, the rule
+   Color/Border/Support/<Hue>/Solid, text Color/Content/Support/<Hue>/{Strongest,Base}; Brand has no Support content, so
+   its text is Color/Content/Accent/*. Figma draws no hover: a pressable event steps one ramp step up (Subtle → Soft,
+   Solid → Rich); fill-less rows and tiles take the Flat ramp. */
+:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item) {
+  --zen-calendar-subtle: var(--zen-color-background-support-brand-subtle);
+  --zen-calendar-soft: var(--zen-color-background-support-brand-soft);
+  --zen-calendar-solid: var(--zen-color-background-support-brand-solid);
+  --zen-calendar-rich: var(--zen-color-background-support-brand-rich);
+  --zen-calendar-rule: var(--zen-color-border-support-brand-solid);
+  --zen-calendar-strongest: var(--zen-color-content-accent-strongest);
+  --zen-calendar-base: var(--zen-color-content-accent-base);
+}
+[data-color="blue"]:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item) { --zen-calendar-subtle: var(--zen-color-background-support-blue-subtle); --zen-calendar-soft: var(--zen-color-background-support-blue-soft); --zen-calendar-solid: var(--zen-color-background-support-blue-solid); --zen-calendar-rich: var(--zen-color-background-support-blue-rich); --zen-calendar-rule: var(--zen-color-border-support-blue-solid); --zen-calendar-strongest: var(--zen-color-content-support-blue-strongest); --zen-calendar-base: var(--zen-color-content-support-blue-base); }
+[data-color="violet"]:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item) { --zen-calendar-subtle: var(--zen-color-background-support-violet-subtle); --zen-calendar-soft: var(--zen-color-background-support-violet-soft); --zen-calendar-solid: var(--zen-color-background-support-violet-solid); --zen-calendar-rich: var(--zen-color-background-support-violet-rich); --zen-calendar-rule: var(--zen-color-border-support-violet-solid); --zen-calendar-strongest: var(--zen-color-content-support-violet-strongest); --zen-calendar-base: var(--zen-color-content-support-violet-base); }
+[data-color="teal"]:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item) { --zen-calendar-subtle: var(--zen-color-background-support-teal-subtle); --zen-calendar-soft: var(--zen-color-background-support-teal-soft); --zen-calendar-solid: var(--zen-color-background-support-teal-solid); --zen-calendar-rich: var(--zen-color-background-support-teal-rich); --zen-calendar-rule: var(--zen-color-border-support-teal-solid); --zen-calendar-strongest: var(--zen-color-content-support-teal-strongest); --zen-calendar-base: var(--zen-color-content-support-teal-base); }
+[data-color="green"]:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item) { --zen-calendar-subtle: var(--zen-color-background-support-green-subtle); --zen-calendar-soft: var(--zen-color-background-support-green-soft); --zen-calendar-solid: var(--zen-color-background-support-green-solid); --zen-calendar-rich: var(--zen-color-background-support-green-rich); --zen-calendar-rule: var(--zen-color-border-support-green-solid); --zen-calendar-strongest: var(--zen-color-content-support-green-strongest); --zen-calendar-base: var(--zen-color-content-support-green-base); }
+[data-color="orange"]:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item) { --zen-calendar-subtle: var(--zen-color-background-support-orange-subtle); --zen-calendar-soft: var(--zen-color-background-support-orange-soft); --zen-calendar-solid: var(--zen-color-background-support-orange-solid); --zen-calendar-rich: var(--zen-color-background-support-orange-rich); --zen-calendar-rule: var(--zen-color-border-support-orange-solid); --zen-calendar-strongest: var(--zen-color-content-support-orange-strongest); --zen-calendar-base: var(--zen-color-content-support-orange-base); }
+[data-color="pink"]:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item) { --zen-calendar-subtle: var(--zen-color-background-support-pink-subtle); --zen-calendar-soft: var(--zen-color-background-support-pink-soft); --zen-calendar-solid: var(--zen-color-background-support-pink-solid); --zen-calendar-rich: var(--zen-color-background-support-pink-rich); --zen-calendar-rule: var(--zen-color-border-support-pink-solid); --zen-calendar-strongest: var(--zen-color-content-support-pink-strongest); --zen-calendar-base: var(--zen-color-content-support-pink-base); }
+
+/* Pressable calendar items share the 3px Focus/Accent ring (inset where a clipping parent would cut an outer one). */
+:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item, .zen-calendar-tile, .zen-calendar-cell__date, .zen-calendar-cell__more):is(button):focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
+:is(.zen-calendar-event, .zen-calendar-block, .zen-calendar-agenda-item, .zen-calendar-tile, .zen-calendar-cell__date, .zen-calendar-cell__more):is(button) { margin: 0; text-align: start; cursor: pointer; }
+
+/* .Primitives/Calendar/Event (16123:87) */
+.zen-calendar-event { display: flex; min-width: 0; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-calendar-subtle); color: var(--zen-calendar-strongest); }
+.zen-calendar-event__time { flex: 0 0 auto; white-space: nowrap; }
+.zen-calendar-event__title { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-calendar-event[data-selected], .zen-calendar-event[data-kind="all-day"] { background: var(--zen-calendar-solid); color: var(--zen-color-content-on-colors); }
+.zen-calendar-event[data-kind="all-day"][data-selected] { background: var(--zen-calendar-rich); }
+button.zen-calendar-event:hover:not([data-selected]) { background: var(--zen-calendar-soft); }
+button.zen-calendar-event[data-kind="all-day"]:hover { background: var(--zen-calendar-rich); }
+
+/* .Primitives/Calendar/Event-Block (16123:130): the leading rule is an inside stroke, Effect/Overlay blurs the rules behind. */
+.zen-calendar-block { display: flex; min-width: 0; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow: hidden; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-calendar-subtle); box-shadow: inset 2px 0 0 var(--zen-calendar-rule); color: var(--zen-calendar-strongest); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+/* Two lines, then "…"; a word longer than a narrow lane breaks instead of running out of the block. */
+.zen-calendar-block__title { display: -webkit-box; flex: 0 0 auto; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
+.zen-calendar-block[data-title-lines="1"] .zen-calendar-block__title { display: block; text-overflow: ellipsis; white-space: nowrap; }
+.zen-calendar-block__time { flex: 0 0 auto; overflow: hidden; color: var(--zen-calendar-base); text-overflow: ellipsis; white-space: nowrap; }
+.zen-calendar-block[data-selected] { background: var(--zen-calendar-solid); color: var(--zen-color-content-on-colors); backdrop-filter: none; }
+.zen-calendar-block[data-selected] .zen-calendar-block__time { color: var(--zen-color-content-on-colors); }
+button.zen-calendar-block:hover:not([data-selected]) { background: var(--zen-calendar-soft); }
+
+/* .Primitives/Calendar/Date (16123:146) */
+.zen-calendar-date { display: inline-flex; width: 24px; height: 24px; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-rounded, 1000px); color: var(--zen-color-content-neutral-strongest); }
+.zen-calendar-date[data-size="large"] { width: 36px; height: 36px; }
+.zen-calendar-date[data-state="muted"] { color: var(--zen-color-content-neutral-light); }
+.zen-calendar-date[data-state="today"] { background: var(--zen-color-background-accent-solid-default); color: var(--zen-color-content-on-accent-default); }
+
+/* .Primitives/Calendar/Now-Line (16123:153): the 8px dot, then the 2px line, centred on the current minute. */
+.zen-calendar-now { display: flex; align-items: center; pointer-events: none; }
+.zen-calendar-now > i { width: 8px; height: 8px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-accent-solid-default); }
+.zen-calendar-now > b { height: 2px; flex: 1 1 auto; background: var(--zen-color-background-accent-solid-default); }
+.zen-calendar-now[data-orientation="vertical"] { flex-direction: column; }
+.zen-calendar-now[data-orientation="vertical"] > b { width: 2px; height: auto; }
+
+/* .Primitives/Calendar/Day-Cell (16124:105) */
+.zen-calendar-cell { display: flex; min-width: 0; min-height: 120px; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px); border-right: 1px solid var(--zen-color-border-neutral-pale-default); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-calendar-cell[data-state="selected"] { background: var(--zen-color-background-accent-flat-default); }
+.zen-calendar-cell[data-state="outside"] { background: var(--zen-color-background-surface-alt); }
+.zen-calendar-cell__date { display: inline-flex; align-self: flex-start; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; }
+button.zen-calendar-cell__date:hover .zen-calendar-date:not([data-state="today"]) { background: var(--zen-color-background-neutral-flat-hover); }
+button.zen-calendar-cell__date:active .zen-calendar-date:not([data-state="today"]) { background: var(--zen-color-background-neutral-flat-pressed); }
+.zen-calendar-cell__events { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); container-type: inline-size; }
+/* A narrow month cell (a half-width column) gives the chip's room to its title: the time leaves the face, stays in the name. */
+.zen-calendar-event { position: relative; }
+@container (max-width: 96px) { .zen-calendar-event[data-kind="timed"] > .zen-calendar-event__time { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
+.zen-calendar-cell__more { align-self: flex-start; padding: 0 var(--zen-spacing-padding-3-xsmall, 2px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-base); }
+button.zen-calendar-cell__more:hover { background: var(--zen-color-background-neutral-flat-hover); }
+button.zen-calendar-cell__more:active { background: var(--zen-color-background-neutral-flat-pressed); }
+
+/* .Primitives/Calendar/Agenda-Item (16124:373) */
+.zen-calendar-agenda-item { display: flex; width: 100%; min-width: 0; box-sizing: border-box; align-items: stretch; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: var(--zen-color-content-neutral-strongest); }
+.zen-calendar-agenda-item[data-device="mobile"] { padding: var(--zen-spacing-padding-xsmall, 8px); }
+button.zen-calendar-agenda-item:hover { background: var(--zen-color-background-neutral-flat-hover); }
+button.zen-calendar-agenda-item:active { background: var(--zen-color-background-neutral-flat-pressed); }
+.zen-calendar-agenda-item__time { display: flex; width: 72px; flex: 0 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-calendar-agenda-item[data-device="mobile"] .zen-calendar-agenda-item__time { width: 48px; }
+.zen-calendar-agenda-item__end { color: var(--zen-color-content-neutral-light); }
+.zen-calendar-agenda-item__rule { width: 4px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-calendar-solid); }
+.zen-calendar-agenda-item__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-calendar-agenda-item__title, .zen-calendar-agenda-item__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-calendar-agenda-item__meta { color: var(--zen-color-content-neutral-base); }
+.zen-calendar-agenda-item__people { flex: 0 0 auto; align-self: center; }
+
+/* .Primitives/Calendar/Day-Tile (16142:3915): the selected tile's border is outside the layout (strokes not in layout). */
+.zen-calendar-tile { display: inline-flex; min-width: 0; box-sizing: border-box; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: transparent; }
+.zen-calendar-tile__weekday { color: var(--zen-color-content-neutral-light); }
+.zen-calendar-tile__day { color: var(--zen-color-content-neutral-strongest); }
+.zen-calendar-tile[data-today] .zen-calendar-tile__day { color: var(--zen-color-content-accent-base); }
+/* zen-allow-pale-actionable-box: Figma .Primitives/Calendar/Day-Tile 16142:3915 State=Selected binds Color/Border/Neutral/Pale/Default
+   (the selected day, readable on a white Canvas/Alt; user-reviewed 2026-10-17). */
+.zen-calendar-tile[data-selected] { background: var(--zen-color-background-surface-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+.zen-calendar-tile:not([data-selected]):hover { background: var(--zen-color-background-neutral-flat-hover); }
+.zen-calendar-tile:not([data-selected]):active { background: var(--zen-color-background-neutral-flat-pressed); }
+
+/* Calendar/Toolbar (16125:399) */
+/* Desktop: one row; when the period and the switch no longer fit side by side, the switch moves under them. */
+.zen-calendar-toolbar { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-calendar-toolbar__navigation { display: flex; min-width: 0; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-calendar-toolbar__arrows, .zen-calendar-toolbar__actions { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-calendar-toolbar__title { min-width: 0; margin: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
+.zen-calendar-toolbar__views { flex: 0 0 auto; }
+.zen-calendar-toolbar[data-device="mobile"] { flex-direction: column; align-items: stretch; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-calendar-toolbar[data-device="mobile"] .zen-calendar-toolbar__navigation { justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* Calendar/Week-Strip (16125:520) */
+.zen-calendar-week-strip { display: flex; min-width: 0; justify-content: space-between; container-type: inline-size; }
+.zen-calendar-week-strip__day { display: flex; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-calendar-week-strip__weekday { color: var(--zen-color-content-neutral-light); }
+.zen-calendar-week-strip[data-device="mobile"] .zen-calendar-week-strip__day > .zen-date-picker__day { width: 40px; aspect-ratio: auto; height: 40px; }
+.zen-calendar-week-strip[data-variant="tile"] { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-calendar-week-strip[data-variant="tile"] > .zen-calendar-tile { flex: 1 1 0; }
+/* Narrower than seven 44px tiles (a card on a small phone): the tiles keep their content and lose side padding. */
+@container (max-width: 331px) { .zen-calendar-week-strip[data-variant="tile"] > .zen-calendar-tile { padding-right: 0; padding-left: 0; } }
+
+/* Calendar/Month (16126:1093) */
+.zen-calendar-month[data-device="desktop"] { display: flex; min-width: 0; box-sizing: border-box; flex-direction: column; overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
+.zen-calendar-month[data-device="desktop"] .zen-calendar-month__weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-calendar-month[data-device="desktop"] .zen-calendar-month__weekdays > span { padding: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
+/* A desktop month squeezed narrower than its weekday names (a phone-width preview) writes them as single letters. Each
+   header cell is its own size container: its width comes from the grid track, never from the text. */
+.zen-calendar-month__weekday { min-width: 0; container-type: inline-size; }
+.zen-calendar-month__weekday-narrow { display: none; }
+@container (max-width: 44px) {
+  .zen-calendar-month__weekday-short { display: none; }
+  .zen-calendar-month__weekday-narrow { display: inline; }
+}
+.zen-calendar-month[data-device="desktop"] .zen-calendar-month__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.zen-calendar-month[data-device="desktop"] .zen-calendar-month__week > .zen-calendar-cell:last-child { border-right: 0; }
+.zen-calendar-month[data-device="desktop"] .zen-calendar-month__week:last-child > .zen-calendar-cell { border-bottom: 0; }
+.zen-calendar-month[data-device="mobile"] { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-calendar-month[data-device="mobile"] :is(.zen-calendar-month__weekdays, .zen-calendar-month__week) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); justify-items: center; }
+.zen-calendar-month[data-device="mobile"] .zen-calendar-month__weekdays { color: var(--zen-color-content-neutral-light); }
+.zen-calendar-month[data-device="mobile"] .zen-calendar-month__week > [role="gridcell"] { display: flex; justify-content: center; }
+.zen-calendar-month[data-device="mobile"] .zen-calendar-month__week .zen-date-picker__day { width: 40px; height: 40px; aspect-ratio: auto; }
+
+/* Calendar/Time-Grid (16127:1172): 64px per hour; blocks and the now line are placed from --zen-calendar-top / -length
+   (minutes from the first hour) and share the column in lanes. */
+.zen-calendar-time-grid { --zen-calendar-hour: 64px; --zen-calendar-rail-width: 56px; display: flex; min-width: 0; min-height: 0; box-sizing: border-box; flex-direction: column; overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
+.zen-calendar-time-grid[data-device="mobile"] { --zen-calendar-rail-width: 44px; }
+/* The 44px phone rail holds "08:00" and "All day" only with 4px sides (Figma's XSmall sides overflow its own frame). */
+.zen-calendar-time-grid[data-device="mobile"] :is(.zen-calendar-time-grid__hour, .zen-calendar-time-grid__all-day > .zen-calendar-time-grid__gutter) { padding-right: var(--zen-spacing-padding-2-xsmall, 4px); padding-left: var(--zen-spacing-padding-2-xsmall, 4px); }
+:is(.zen-calendar-time-grid__days, .zen-calendar-time-grid__all-day, .zen-calendar-time-grid__hours) { display: grid; flex: 0 0 auto; grid-template-columns: var(--zen-calendar-rail-width) repeat(var(--zen-calendar-days, 7), minmax(0, 1fr)); }
+:is(.zen-calendar-time-grid__days, .zen-calendar-time-grid__all-day) { border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-calendar-time-grid__day { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-xsmall, 8px); border-left: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-calendar-time-grid__weekday { color: var(--zen-color-content-neutral-base); }
+.zen-calendar-time-grid__all-day > .zen-calendar-time-grid__gutter { display: flex; min-height: 24px; box-sizing: border-box; justify-content: flex-end; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-light); white-space: nowrap; }
+.zen-calendar-time-grid__all-day-cell { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-2-xsmall, 4px); border-left: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-calendar-time-grid__hours { flex: 1 1 auto; min-height: 0; overflow-y: auto; grid-template-rows: calc(var(--zen-calendar-hours, 10) * var(--zen-calendar-hour)); }
+.zen-calendar-time-grid__hours > .zen-calendar-time-grid__gutter { display: flex; flex-direction: column; }
+.zen-calendar-time-grid__hour { display: flex; height: var(--zen-calendar-hour); box-sizing: border-box; flex: 0 0 auto; justify-content: flex-end; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px) 0; color: var(--zen-color-content-neutral-light); }
+/* The day column: .Primitives/Calendar/Slot rows, the hour rule (Line=Hour) on top of every second one. */
+.zen-calendar-time-grid__column { position: relative; min-width: 0; container-type: inline-size; border-left: 1px solid var(--zen-color-border-neutral-pale-default); background-image: linear-gradient(var(--zen-color-border-neutral-pale-default) 1px, transparent 1px); background-size: 100% var(--zen-calendar-hour); }
+.zen-calendar-time-grid__block { position: absolute; top: calc(var(--zen-calendar-top) * var(--zen-calendar-hour) / 60 + 1px); left: calc(1px + (100% - 5px) * var(--zen-calendar-lane) / var(--zen-calendar-lanes)); width: calc((100% - 5px) / var(--zen-calendar-lanes) - (var(--zen-calendar-lanes) - 1) * 2px / var(--zen-calendar-lanes)); height: calc(var(--zen-calendar-length) * var(--zen-calendar-hour) / 60 - 2px); }
+/* A column narrower than a phone's (a squeezed desktop week) keeps a block's text by trimming its side padding. */
+@container (max-width: 64px) { .zen-calendar-time-grid__block { padding-right: var(--zen-spacing-padding-3-xsmall, 2px); padding-left: var(--zen-spacing-padding-2-xsmall, 4px); } }
+.zen-calendar-time-grid__now { position: absolute; z-index: 1; top: calc(var(--zen-calendar-top) * var(--zen-calendar-hour) / 60 - 4px); right: 0; left: 0; }
+
+/* Calendar/Agenda (16128:1036) */
+.zen-calendar-agenda { display: flex; min-width: 0; box-sizing: border-box; flex-direction: column; }
+.zen-calendar-agenda__events { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
+.zen-calendar-agenda[data-device="desktop"]:not([data-empty]) { overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
+.zen-calendar-agenda[data-device="desktop"] .zen-calendar-agenda__day { display: flex; min-width: 0; gap: var(--zen-spacing-gap-large, 24px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-large, 20px); }
+.zen-calendar-agenda[data-device="desktop"] .zen-calendar-agenda__day + .zen-calendar-agenda__day { border-top: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-calendar-agenda__date { display: flex; width: 48px; flex: 0 0 auto; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-calendar-agenda__weekday { color: var(--zen-color-content-neutral-base); }
+.zen-calendar-agenda__day[data-today] .zen-calendar-agenda__weekday { color: var(--zen-color-content-accent-base); }
+.zen-calendar-agenda[data-device="mobile"] { gap: var(--zen-spacing-gap-large, 24px); }
+.zen-calendar-agenda[data-device="mobile"] .zen-calendar-agenda__day { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-calendar-agenda[data-device="mobile"] .zen-calendar-agenda__events { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-calendar-agenda__kicker { color: var(--zen-color-content-neutral-light); }
+.zen-calendar-agenda__day[data-today] .zen-calendar-agenda__kicker { color: var(--zen-color-content-accent-base); }
