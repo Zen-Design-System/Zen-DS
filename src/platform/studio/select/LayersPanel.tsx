@@ -867,9 +867,8 @@ export function LayersPanel() {
   // Text changes count too: a text layer is named by its text ("3 items" → "4 items" in Interact).
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const world = canvasApi.getWorldElement();
     const root = rootRef.current;
-    if (!world || !root) return undefined;
+    if (!root) return undefined;
     let timer = 0;
     let visible = true;
     let dirty = false;
@@ -878,12 +877,27 @@ export function LayersPanel() {
       if (visible && dirty) { dirty = false; refresh(); }
     });
     visibility.observe(root);
-    const observer = new MutationObserver(() => {
+    const schedule = () => {
       window.clearTimeout(timer);
       timer = window.setTimeout(() => { if (visible) refresh(); else dirty = true; }, 700);
-    });
-    observer.observe(world, { subtree: true, childList: true, characterData: true });
-    return () => { observer.disconnect(); visibility.disconnect(); window.clearTimeout(timer); };
+    };
+    const observer = new MutationObserver(schedule);
+    // The world the canvas shows, watched again whenever the canvas mounts a new one (attachCanvas notifies): a page
+    // opened directly can mount it after this effect ran, and the Main component frame's variant cells come in later
+    // (parsed async). Watching a world that is gone listed its sets without variants (MC-02 alone, 2026-10-21).
+    let watched: Element | null = null;
+    const watch = () => {
+      const world = canvasApi.getWorldElement();
+      if (world === watched) return;
+      observer.disconnect();
+      watched = world;
+      if (!world) return;
+      observer.observe(world, { subtree: true, childList: true, characterData: true });
+      schedule();
+    };
+    watch();
+    const off = canvasApi.onChange(watch);
+    return () => { off(); observer.disconnect(); visibility.disconnect(); window.clearTimeout(timer); };
   }, [refresh, ready, page]);
   useEffect(() => () => layerHover.set(null), []);
   // Shown (Layers tab) or hidden (Pages tab): the selected row is revealed when the panel is visible.
