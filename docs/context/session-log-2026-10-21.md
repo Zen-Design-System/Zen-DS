@@ -35,3 +35,12 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
   - The menus' missing items.
   - The Content section.
   - Instance panels without Appearance / Fill / Stroke / Effects.
+- **The user's three fixes** (relayed 2026-10-21: "⇧-click thêm layer trong frame, click vào layer trong group thì chọn
+  group, và mở Layers sau khi tạo trang"):
+  - Layers after a new page was real. `openLocalPage(id, { made: true })` from New page, a template or frame page and
+    MCP create_page; E2E FW-133.
+  - The other two were the script's. It passed `modifiers` to `page.mouse.click`, which Playwright ignores, and it
+    pressed Esc after each task. The probe on layers that do not overlap showed that Studio already does both as Figma.
+  - Re-run on `main` 1bd55975 with the script fixed (keys held, the ⌘D copy moved aside, the page made with New page):
+    14 / 14 in 40 steps, the same as Figma's 40, with 0 refusals.
+  - FW-132 / FW-133: 2 / 2.

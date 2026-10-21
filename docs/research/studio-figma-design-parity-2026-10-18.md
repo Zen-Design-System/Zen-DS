@@ -102,8 +102,9 @@ What is still not Figma's:
   - A Button's panel has no Appearance, Fill, Stroke or Effects, so its look comes from its variants only.
 
 Found on the way (not graded rows):
-- **A Line cannot be clicked on the canvas.** A horizontal line's box is 0 px high, so ⌘-clicking its middle selects the
-  frame around it (Figma clicks a line within a few px). The walk reached it by Tab or by Enter on its frame.
+- **A Line could not be clicked on the canvas.** A horizontal line's box is 0 px high, so ⌘-clicking its middle selected
+  the frame around it (Figma clicks a line within a few px), and the walk reached it by Tab or by Enter on its frame.
+  Fixed in the same change: a band 4 screen px either side takes the click (`select/select.css`, E2E FW-132).
 - **The group's panel heading reads "Box".** Layers says "Group 1", and Figma's header says "Group".
 
 ## 3. UX writing (every UI string of the design page)
@@ -267,7 +268,7 @@ component, Rename, Paste here, Copy as ›), and a frame's and the empty canvas'
 | Since | Copy as PNG #156, Use as mask #161, Blend mode #171 |
 
 The hands-on walk (§2a) reads 65 ✅ · 7 🟡 · 4 ❌ of 76; on 2026-10-18 it was 36 · 14 · 26. The first-ten-minutes walk
-(§6) finishes 14 / 14 tasks in 44 steps, against Figma's 39, with no refusal. What is left is listed in §2a and §6 and
+(§6) finishes 14 / 14 tasks in Figma's 40 steps, with no refusal. What is left is listed in §2a and §6 and
 in BACKLOG P1.
 
 **F1 · Layers like Figma (M).** Names (decision 4) with Figma's auto names and icons (Frame #, auto layout icons,
@@ -337,9 +338,10 @@ F7 / F9 are the longest. Parallel agents only for F2, F5, F7, F9 (tier L), one a
    preset, draw, type text, group, rename, auto layout, fill, align three layers, make a component, export), counting
    steps and refusals against Figma's.
 
-   **2026-10-21, the first run** (`main` e99c5408, private Studio server):
-   - Tasks: the ten above, plus duplicate, frame W 400, place an image (⇧⌘K) and a text style.
-   - Setup: one sitting on a new phone page.
+   **2026-10-21** (`main` 1bd55975, private Studio server):
+   - Tasks: the ten above, plus duplicate (moving the copy aside, as Figma's copy lands on the original), frame W 400,
+     place an image (⇧⌘K) and a text style.
+   - Setup: one sitting on a page made with New page › Create page.
    - Counting: a click, a double-click, a key, a drag, a typed string and a picked option are one step each. Figma's
      steps are UI3's, counted the same way.
 
@@ -348,23 +350,25 @@ F7 / F9 are the longest. Parallel agents only for F2, F5, F7, F9 (tier L), one a
 | T-01 Make a frame from a preset (iPhone 16) | 2 | 2 | 0 | F · click iPhone 16 | F · click iPhone 16 in the right panel |
 | T-02 Draw a rectangle in it | 2 | 2 | 0 | R · drag in the frame | R · drag in the frame |
 | T-03 Type a text | 4 | 4 | 0 | T · click in the frame · type Hello · Esc | T · click in the frame · type · Esc |
-| T-04 Rename the rectangle | 4 (+1) | 3 | 0 | open Layers · double-click its name in Layers · type Hero · Enter | double-click the layer's name · type · Enter |
+| T-04 Rename the rectangle | 3 | 3 | 0 | double-click its name in Layers · type Hero · Enter | double-click the layer's name · type · Enter |
 | T-05 Fill the rectangle with a colour | 3 | 3 | 0 | click · click the fill colour · pick Accent | click the shape · click its fill colour · pick a colour (library variable) |
-| T-06 Duplicate the rectangle | 2 | 2 | 0 | click · ⌘D | click the shape · ⌘D |
-| T-07 Align three layers left | 6 (+2) | 4 | 0 | click · ⇧-click · ⇧⌘-click (⇧-click did not add it) · ⇧-click · ⇧⌘-click (⇧-click did not add it) · ⌥A | click · ⇧-click · ⇧-click · ⌥A |
-| T-08 Group two layers | 4 (+1) | 3 | 0 | click · ⇧-click · ⇧⌘-click (⇧-click did not add it) · ⌘G | click · ⇧-click · ⌘G |
-| T-09 Make the group a component | 3 (+1) | 2 | 0 | click · ⇧Enter (Rectangle was selected) · ⌥⌘K | click the group · ⌥⌘K |
+| T-06 Duplicate the rectangle and move the copy aside | 3 | 3 | 0 | click · ⌘D · drag the copy down | click the shape · ⌘D · drag the copy aside (Figma's copy lands on the original) |
+| T-07 Align three layers left | 4 | 4 | 0 | click · ⇧-click · ⇧-click · ⌥A | click · ⇧-click · ⇧-click · ⌥A |
+| T-08 Group two layers | 3 | 3 | 0 | click · ⇧-click · ⌘G | click · ⇧-click · ⌘G |
+| T-09 Make the group a component | 2 | 2 | 0 | click · ⌥⌘K | click the group · ⌥⌘K |
 | T-10 Resize the frame to W 400 | 3 | 3 | 0 | click the frame's name · click W · type 400 ↵ | click the frame's name · click W · type 400 ↵ |
 | T-11 Add auto layout to the frame | 2 | 2 | 0 | click the frame's name · ⇧A | click the frame's name · ⇧A |
 | T-12 Place an image | 3 | 3 | 0 | ⇧⌘K · pick the file · click in the frame | ⇧⌘K · pick the file · click in the frame |
 | T-13 Give the text a text style | 3 | 3 | 0 | click Hello in Layers · open the text style list · pick a Heading style | click the text · open the text style list · pick a style |
 | T-14 Export the frame as PNG | 3 | 3 | 0 | click the frame's name · Export + · Export | click the frame's name · Export + · Export |
-| **14 / 14 done** | **44** | **39** | **0** | | |
+| **14 / 14 done** | **40** | **40** | **0** | | |
 
-   The 5 extra steps:
-   - **⇧-click does not add** a layer that sits inside a frame; it takes ⇧⌘-click (+3 in T-07 and T-08). In Figma,
-     ⇧-click adds the layer you click.
-   - **A click on a grouped layer selects that layer**, not its group, so it takes ⇧Enter to reach the group (+1 in
-     T-09). In Figma, the first click selects the group and a double-click goes in.
-   - **The left panel stays on Pages** after a page is made, so Layers takes a click (+1 in T-04). Figma shows Layers.
+   The first run (44 steps against 39) had 5 extra steps:
+   - **Layers after a new page (+1), real:** the left panel stayed on Pages after a new page. Fixed: a page just made
+     opens on Layers (`openLocalPage(id, { made: true })`, E2E FW-133).
+   - **⇧-click (+3), the script's:** it passed `modifiers` to Playwright's `page.mouse.click`, which ignores them, so its
+     ⇧-clicks were plain clicks. Studio's ⇧-click adds a layer, as the hands-on walk's K-31 shows.
+   - **Click on a group (+1), the script's:** its own Esc after each task selected the parent. A click on a grouped
+     layer selects the group and a double-click goes in, as in Figma.
+
 4. Engine matrices (`npm run studio:dnd`) extended per phase (group / ungroup, multi-move, text runs, vector paths).
