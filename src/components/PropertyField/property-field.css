@@ -1,7 +1,11 @@
 /* Figma Input/Property-Field (16923:6031): a 128px label column (icon + name + optional Action), Gap/XSmall, the value.
    The column scales with Component Size like its icon (6.4 × Element-Size/Popular/Base: 128 in Compact, 154 in
-   Comfortable), so a label beside the + still fits on a phone; --zen-property-field-label-width sets one width for a list. */
-.zen-property-field { display: flex; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); min-width: 0; }
+   Comfortable), so a label beside the + still fits on a phone; --zen-property-field-label-width sets one width for a list.
+   A value narrower than 5 × Element-Size/Popular/Base (a person chip with its remove button) wraps under the label: a
+   320 phone in Comfortable leaves it 86px beside the 154px label. No row gap: the wrapped value stays closer to its own
+   label than to the next row. */
+.zen-property-field { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0 var(--zen-spacing-gap-xsmall, 8px); min-width: 0; }
+.zen-property-field > .zen-property-value { flex-basis: calc(var(--zen-element-size-popular-base, 20px) * 5); }
 .zen-property-field__label { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); width: var(--zen-property-field-label-width, calc(var(--zen-element-size-popular-base, 20px) * 6.4)); height: var(--zen-input-size-medium, 40px); min-width: 0; color: var(--zen-color-content-neutral-base); }
 .zen-property-field__icon { display: inline-flex; flex-shrink: 0; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); color: var(--zen-color-content-neutral-light); }
 .zen-property-field__icon > .zen-icon { width: 100%; height: 100%; }

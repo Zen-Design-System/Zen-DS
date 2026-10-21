@@ -506,3 +506,7 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
 - PropertyDate takes ISO strings (Studio dialect drops Date objects); PropertyField action.onClick optional.
 - Checks: studio:selftest ✓ (2447+), figma-push 356 ✓, figma-pull 114 ✓, tsc, usage, guidelines, ai-ui, tests ✓.
   studio:e2e (BL-01/02 etc.) runs in the gate.
+- Gate (merged main 73e88b15): conformance asked for BadgeStatus/PropertyField in STYLE_ON_ROOT (instance-look.mjs);
+  density @320 Comfortable: a person chip had 54px beside the 154px label (remove button 5.6px out) → a value under
+  5 × Element-Size wraps below its label (row gap 0); APG: Escape from the + left focus on the first chip → the picker
+  returns focus to its opener, and a second press on the + closes the list (it counted as outside, then reopened).

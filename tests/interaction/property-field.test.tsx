@@ -56,6 +56,21 @@ describe("PropertyField", () => {
     expect(value).toEqual(["alex", "linh"]);
   });
 
+  it("the + toggles the list, and Escape returns focus to it", async () => {
+    const screen = await render(<ZenProvider><PropertyField label="Assignee"><PropertyPeople options={people} defaultValue={["alex"]} /></PropertyField></ZenProvider>);
+    const add = screen.getByRole("button", { name: "Add Assignee" });
+    await userEvent.click(add);
+    await expect.element(add).toHaveAttribute("aria-expanded", "true");
+    await userEvent.click(add);
+    await expect.element(add).toHaveAttribute("aria-expanded", "false");
+    add.element().focus();
+    await userEvent.keyboard("{Enter}");
+    await expect.element(add).toHaveAttribute("aria-expanded", "true");
+    await userEvent.keyboard("{Escape}");
+    await expect.element(add).toHaveAttribute("aria-expanded", "false");
+    await expect.element(add).toHaveFocus();
+  });
+
   it("creates a label that is not listed", async () => {
     let created = "";
     const screen = await render(<ZenProvider><PropertyField label="Labels"><PropertyTags options={[{ value: "ds", label: "Design System", theme: "blue" }]} onCreate={(label) => { created = label; }} /></PropertyField></ZenProvider>);

@@ -73,7 +73,10 @@ export function PropertyField({ ref, label, icon, action, children, className, .
         {icon ? <span className="zen-property-field__icon" aria-hidden="true">{renderIcon(icon)}</span> : null}
         <span id={labelId} className={`zen-property-field__name ${typographyStyles["Body/Base/Regular"]}`}>{label}</span>
         {plus ? (
+          // An open list counts a press on this + as outside it and closes; the click would then open it again, so the
+          // press stays here and the click closes it.
           <IconButton size="xs" level="tertiary" icon="icon-plus-line" aria-label={plus.label} onClick={plus.open}
+            onPointerDown={plus.expanded ? (event) => event.stopPropagation() : undefined}
             aria-haspopup={plus.controls ? "listbox" : undefined} aria-expanded={plus.controls ? plus.expanded : undefined} aria-controls={plus.expanded ? plus.controls : undefined} />
         ) : null}
       </div>
@@ -345,9 +348,26 @@ function MultiCell({ type, options, value, defaultValue = [], onValueChange, add
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const cellRef = useRef<HTMLSpanElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
   const name = addLabel ?? t.propertyAdd(row?.labelText ?? ariaLabel ?? "");
   // The + after the row's label opens the picker (Figma Action); outside a PropertyField it ends the cell.
-  const openPicker = () => { setQuery(""); setOpen((was) => !was); };
+  const openPicker = () => {
+    const active = document.activeElement;
+    openerRef.current = active instanceof HTMLElement && active !== document.body ? active : null;
+    setQuery("");
+    setOpen((was) => !was);
+  };
+  // Closing returns focus to the + that opened the list: Popover's own Escape focuses the cell's first chip instead.
+  // Focus that moved elsewhere (a click on another field, Tab) stays where it went.
+  const setPickerOpen = (next: boolean) => {
+    setOpen(next);
+    if (next) return;
+    const opener = openerRef.current;
+    requestAnimationFrame(() => {
+      const active = document.activeElement;
+      if (opener?.isConnected && (!active || active === document.body || cellRef.current?.contains(active))) opener.focus({ preventScroll: true });
+    });
+  };
   const setAdd = row?.setAdd;
   useIsomorphicLayoutEffect(() => {
     if (!setAdd || readOnly) return;
@@ -379,13 +399,13 @@ function MultiCell({ type, options, value, defaultValue = [], onValueChange, add
         {!row && !readOnly ? <IconButton size="xs" level="tertiary" icon="icon-plus-line" aria-label={name} aria-haspopup="listbox" aria-expanded={open} onClick={openPicker} /> : null}
       </span>
       {readOnly ? null : (
-        <Popover id={popoverId} open={open} onOpenChange={setOpen} anchorRef={cellRef} autoFocus multiple={!single} label={popoverLabel}
+        <Popover id={popoverId} open={open} onOpenChange={setPickerOpen} anchorRef={cellRef} autoFocus multiple={!single} label={popoverLabel}
           aria-labelledby={popoverLabel ? undefined : row?.labelId} aria-label={popoverLabel || row ? undefined : ariaLabel}
           search searchValue={query} onSearchChange={setQuery}
           items={items} onSelect={(item) => {
             if (item.value === "__create") { onCreate?.(query.trim()); setQuery(""); return; }
             if (item.value) toggle(item.value);
-            if (single) setOpen(false);
+            if (single) setPickerOpen(false);
           }} />
       )}
     </>
