@@ -12,7 +12,9 @@
  */
 export const STYLE_ON_ROOT = new Set([
   "ActionBar", "AppShell", "AppShellAccount", "AppShellAction", "AppShellHeader", "AppShellPane", "AvatarStack", "Badge",
-  "BadgeCounter", "Button", "Card", "Chip", "ChipGroup", "ColorField", "ColorSwatch", "ControlBarSelectItem", "CurvePreview",
+  "BadgeCounter", "Button", "CalendarAgenda", "CalendarAgendaItem", "CalendarDate", "CalendarDayCell", "CalendarDayTile",
+  "CalendarEvent", "CalendarEventBlock", "CalendarMonth", "CalendarNowLine", "CalendarTimeGrid", "CalendarToolbar",
+  "CalendarWeekStrip", "Card", "Chip", "ChipGroup", "ColorField", "ColorSwatch", "ControlBarSelectItem", "CurvePreview",
   "DashboardHeader", "DateField", "DatePickerItem", "DescriptionList", "EmptyState", "FileIcon", "Flag", "Form",
   "FormActions", "FormField", "FormFieldset", "HeadingField", "Icon", "IconButton", "InputField", "Link", "List", "ListBox",
   "ListItem", "NumberField", "PageHeader", "PaginationItem", "Popover", "PopoverBunkAction", "PopoverBunkActionDivider",
