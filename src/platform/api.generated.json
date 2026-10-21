@@ -4436,7 +4436,7 @@
           "type": "\"medium\" | \"small\"",
           "required": false,
           "default": null,
-          "description": "Compatibility alias for the earlier component API.",
+          "description": "Figma Patterns/Sidebar Density (6040:67524): `small` is the Basic panel with 36px rows and a Padding/Medium header\n (the rail 72, 64 for the flush themes). Unset follows the AppShell (`pattern=\"grid\"` draws small), else medium.\n Figma's separate Side-Bar/Master/Small-Density is `variant=\"small-density\"` (since 2026-10-21 `density=\"small\"` alone\n no longer picks it).",
           "deprecated": null
         },
         {
@@ -4601,10 +4601,10 @@
         },
         {
           "name": "theme",
-          "type": "\"default\" | \"border\"",
+          "type": "\"default\" | \"border\" | \"borderless\" | \"carved\" | \"carved-floating\"",
           "required": false,
           "default": null,
-          "description": "Figma Patterns/Sidebar Theme (6040:67524): `default` (a Surface panel inset Padding/XSmall from the page edge) ·\n`border` (Theme=Border: no fill, no corners and no shadow, the Sidebar flush with the page edge and a 1px\nBorder/Neutral/Pale line on its inner edge; the rail is the panel's own 64px). Unset follows the AppShell:\n`pattern=\"grid\"` draws border (and Density=Small: 36px rows), other patterns default.",
+          "description": "Figma Patterns/Sidebar Theme (6040:67524):\n- `default`: a Surface panel inset Padding/XSmall from the page edge (8 · 0 · 8 · 8).\n- `carved-floating`: the same inset panel in Background/Carved, never shadowed.\n- `border`: flush with the page edge, no fill, corners or shadow, a 1px Border/Neutral/Pale line on its inner edge.\n- `borderless`: flush like border, without the line.\n- `carved`: flush, the whole column in Background/Carved.\nThe flush themes' rail is the panel's own 64px. Unset follows the AppShell: `pattern=\"grid\"` draws border (and\nDensity=Small: 36px rows), other patterns default.",
           "deprecated": null
         },
         {
