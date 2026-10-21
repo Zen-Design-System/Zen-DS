@@ -45,6 +45,14 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
     14 / 14 in 40 steps, the same as Figma's 40, with 0 refusals.
   - FW-132 / FW-133: 2 / 2.
 
+## AppShell session · Token Color/Background/Carved (tier XS; user: "Update token background-carved")
+
+- Read live (use_figma, Mode Colors (Semantic), VariableID:12082:86877): Light {Light/Neutral-Alpha/2} (the repo had
+  /3); Dark {Dark/Carved} #0505058C in the Zen, Chat, VT and Ecom-Demo modes, unchanged.
+- tokens/source/figma/mode-colors-semantic.json, then `tokens:build`: web, Swift and Flutter. tokens:check,
+  tokens:native:check and high contrast (0 failures) all pass.
+- No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
+
 ## Copy a Section with its frames (Session C) — tier S, branch `zen/feat/studio-section-duplicate-20261021`
 The user picked it (2026-10-21) from the BACKLOG P1 "Studio design page = Figma" leftovers (F4, C's area). ⌥-drag, ⌘D
 and ⌘C ⌘V of a Section copy it with the frames and Sections it holds (board/sections.ts, any depth), all moved by the
