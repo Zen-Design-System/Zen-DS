@@ -17435,10 +17435,10 @@
         },
         {
           "name": "theme",
-          "type": "\"default\" | \"border-divider\"",
+          "type": "\"default\" | \"border-divider\" | \"borderless\"",
           "required": false,
           "default": null,
-          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Large\nabove, Padding/Medium below, Margin-Comfortable at the sides). Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
+          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Large\nabove, Padding/Medium below, Margin-Comfortable at the sides) · `borderless` (Theme=Borderless: the same rows\nwithout the line). Figma draws both only at Density=Small. Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
           "deprecated": null
         },
         {
@@ -17446,7 +17446,7 @@
           "type": "\"medium\" | \"small\"",
           "required": false,
           "default": null,
-          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider theme pads its rows itself.",
+          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider and borderless themes pad their rows themselves.",
           "deprecated": null
         },
         {

@@ -45,6 +45,19 @@ describe("AppShellHeader Theme and Density", () => {
   });
 });
 
+describe("AppShellHeader Theme=Borderless", () => {
+  it("pads its rows as Border & Divider does, with no line under the top row", async () => {
+    const { container } = await render(shell({}, undefined, <AppShellHeader theme="borderless" density="small" leading={<span>Top</span>} main={<span>Page</span>} />));
+    const header = container.querySelector(".zen-app-shell-header")!;
+    expect(header.getAttribute("data-theme")).toBe("borderless");
+    const top = header.querySelector(".zen-app-shell-header__top")!;
+    expect([px(top, "padding-top"), px(top, "padding-left"), px(top, "border-bottom-width")]).toEqual([12, 24, 0]);
+    expect(top.getBoundingClientRect().height).toBe(64);
+    const element = header.querySelector(".zen-app-shell-header__element")!;
+    expect([px(element, "padding-top"), px(element, "padding-left"), px(element, "padding-bottom")]).toEqual([20, 24, 16]);
+  });
+});
+
 describe("Sidebar Theme=Border and the sub-header", () => {
   it("theme=\"border\": flush with the edge, no fill, corners or shadow, a 1px line on the inner edge", async () => {
     const { container } = await render(<ZenProvider><div style={{ height: 600 }}><Sidebar aria-label="Main" theme="border" sections={sections} /></div></ZenProvider>);

@@ -14,7 +14,7 @@ import { AppShellChromeContext } from "./context";
 import "../Icon/core";
 
 /** Figma Header/AppShell Theme (16783:71068). */
-export const appShellHeaderThemes = ["default", "border-divider"] as const;
+export const appShellHeaderThemes = ["default", "border-divider", "borderless"] as const;
 export type AppShellHeaderTheme = (typeof appShellHeaderThemes)[number];
 /** Figma Header/AppShell Density. */
 export const appShellHeaderDensities = ["medium", "small"] as const;
@@ -38,11 +38,12 @@ export interface AppShellHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "
    * Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,
    * Spacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads
    * Padding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Large
-   * above, Padding/Medium below, Margin-Comfortable at the sides). Unset follows the AppShell: `pattern="grid"` draws border-divider, other patterns default.
+   * above, Padding/Medium below, Margin-Comfortable at the sides) · `borderless` (Theme=Borderless: the same rows
+   * without the line). Figma draws both only at Density=Small. Unset follows the AppShell: `pattern="grid"` draws border-divider, other patterns default.
    */
   theme?: AppShellHeaderTheme;
   /** Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows
-   *  the AppShell: `pattern="grid"` draws small, other patterns medium. The border-divider theme pads its rows itself. */
+   *  the AppShell: `pattern="grid"` draws small, other patterns medium. The border-divider and borderless themes pad their rows themselves. */
   density?: AppShellHeaderDensity;
   /** Figma instance overrides, by layer (`{ Collapse: { level: "secondary" } }`). Written by Zen Studio. */
   overrides?: NestedOverrides;
@@ -58,7 +59,7 @@ function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, tog
   const [stacked, setStacked] = useState(false);
   const measure = useCallback(() => {
     if (!row || !content) { setStacked(false); return; }
-    // The row's own padding is not room (theme="border-divider" pads the top row Margin-Comfortable on both sides).
+    // The row's own padding is not room (theme="border-divider" or "borderless" pads the top row Margin-Comfortable on both sides).
     const rowStyle = getComputedStyle(row);
     const room = row.clientWidth - (parseFloat(rowStyle.paddingLeft) || 0) - (parseFloat(rowStyle.paddingRight) || 0);
     if (room <= 0) return;
@@ -92,7 +93,7 @@ function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, tog
 /**
  * Figma Header/AppShell (16783:71068; Theme=Default 16243:290461), the header of Pattern/AppShell/Desktop. The Main frame
  * pads Margin-Comfortable above (Margin-Compact at Density=Small) and at the sides and Spacing/Padding/Small below,
- * Spacing/Gap/Large between its rows (`theme="border-divider"` pads each row itself, a Pale line under the top row):
+ * Spacing/Gap/Large between its rows (`theme="border-divider"` pads each row itself, a Pale line under the top row; `borderless` the same without the line):
  * - Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while
  *   the AppShell has `collapse="header"`) or, on a narrow shell, the menu button that opens the navigation drawer; then
  *   Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart.

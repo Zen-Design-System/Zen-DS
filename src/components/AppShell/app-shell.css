@@ -151,12 +151,13 @@
 .zen-app-shell-header__element > * { min-width: 0; flex: 1 1 auto; }
 /* Density=Small (16823:76454): Margin-Compact above the Main frame. */
 .zen-app-shell-header[data-density="small"] .zen-app-shell-header__main { padding-top: var(--zen-margin-compact, 20px); }
-/* Theme=Border & Divider (16783:72140): the Main frame adds nothing; the top row pads Padding/Small · Margin-Comfortable
-   with a 1px Border/Neutral/Pale line under it (40 + 2 × 12 + 1 = 65), the Main row Padding/Medium · Margin-Comfortable. */
-.zen-app-shell-header[data-theme="border-divider"] .zen-app-shell-header__main { gap: 0; padding: 0; }
-.zen-app-shell-header[data-theme="border-divider"] .zen-app-shell-header__top { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
-/* Main-Element pads Padding/Large above, Padding/Medium below (Figma Header/AppShell Theme=Border & Divider, re-read 2026-10-21). */
-.zen-app-shell-header[data-theme="border-divider"] .zen-app-shell-header__element { padding: var(--zen-spacing-padding-large, 20px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-medium, 16px); }
+/* Theme=Border & Divider (16783:72140) and Borderless: the Main frame adds nothing; the top row pads Padding/Small ·
+   Margin-Comfortable, with a 1px Border/Neutral/Pale line under it on Border & Divider only (40 + 2 × 12 + 1 = 65). */
+.zen-app-shell-header:is([data-theme="border-divider"], [data-theme="borderless"]) .zen-app-shell-header__main { gap: 0; padding: 0; }
+.zen-app-shell-header:is([data-theme="border-divider"], [data-theme="borderless"]) .zen-app-shell-header__top { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); }
+.zen-app-shell-header[data-theme="border-divider"] .zen-app-shell-header__top { border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* Main-Element pads Padding/Large above, Padding/Medium below (Figma Header/AppShell Theme=Border & Divider and Borderless, re-read 2026-10-21). */
+.zen-app-shell-header:is([data-theme="border-divider"], [data-theme="borderless"]) .zen-app-shell-header__element { padding: var(--zen-spacing-padding-large, 20px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-medium, 16px); }
 /* Sections: rows under the Main frame (Tabs, a toolbar), at the page margins. */
 .zen-app-shell-header__sections { display: flex; box-sizing: border-box; min-width: 0; flex-direction: column; padding-inline: var(--zen-margin-comfortable, 24px); }
 

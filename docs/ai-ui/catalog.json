@@ -1105,7 +1105,8 @@
         "theme": {
           "enum": [
             "default",
-            "border-divider"
+            "border-divider",
+            "borderless"
           ],
           "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below, Spacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divid"
         },

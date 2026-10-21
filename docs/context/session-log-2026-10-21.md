@@ -172,8 +172,10 @@ Code:
 - Header/AppShell re-read live (Session B asked about the push):
   - Theme=Border & Divider's Main-Element now pads 20 (Padding/Large) above and 16 below; the code had 16 above.
     Fixed in app-shell.css, the JSDoc and the app-shell-grid test.
-  - Figma also has a new Theme=Borderless at Density=Small: the Border & Divider rows without the 1px line. That's a
-    new API value, so it waits for the user's word.
+  - Figma also has a new Theme=Borderless at Density=Small: the Border & Divider rows without the 1px line. The user
+    said "Thêm theme=\"borderless\"". Added: the AppShellHeader theme value, the CSS shared with border-divider
+    (the line on border-divider only), JSDoc, guideline, contract option, Studio map, figmaProps, and a test (top 12 ·
+    24 with no line, 64 high; Main 20 · 24 · 16).
 - G1 · Grid's rhythm warnings ("10 text styles" at 1512 / 390 / 320 and dark, found by Bug's stack gate): G1 is
   Figma's 16817:58511, and the user chose "Baseline, giữ như Figma". Baseline G1's warnings with the count this
   branch's gate measures; ChartCard's Display/4 and Body/Extra/Medium may change the 10.

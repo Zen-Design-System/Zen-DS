@@ -7987,7 +7987,7 @@
       [
         "Header/AppShell",
         "header = <AppShellHeader leading center actions main sections>",
-        "top row: the toggle (or the drawer's menu button), leading (Breadcrumbs size sm, master={false} beside the toggle; or a Search), center (≤ 400, a Search), actions (plan Badge, AppShellAction, the account); main: the page's PageHeader; sections: Tabs or a toolbar. Sticks to the top. theme: default (Main pads Margin-Comfortable above, Padding/Small below, Gap/Large between rows) · border-divider (the top row pads Padding/Small with a Pale line under it, the Main row Padding/Medium); density: medium · small (Margin-Compact above). Unset follows the pattern (grid → border-divider, small)"
+        "top row: the toggle (or the drawer's menu button), leading (Breadcrumbs size sm, master={false} beside the toggle; or a Search), center (≤ 400, a Search), actions (plan Badge, AppShellAction, the account); main: the page's PageHeader; sections: Tabs or a toolbar. Sticks to the top. theme: default (Main pads Margin-Comfortable above, Padding/Small below, Gap/Large between rows) · border-divider (the top row pads Padding/Small with a Pale line under it, the Main row Padding/Large above · Padding/Medium below) · borderless (the same rows without the line); density: medium · small (Margin-Compact above). Unset follows the pattern (grid → border-divider, small)"
       ],
       [
         "Pane",
