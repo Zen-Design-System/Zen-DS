@@ -75,7 +75,9 @@ for (const [component, spec] of Object.entries(FIGMA_PROPS)) {
     const options = {};
     for (const [name, value] of Object.entries(spec.sets)) {
       if (!literals(type ?? "").has(value)) errors.push(`${component}: ${spec.setProp}="${value}" (set ${name}) is not a value of ${spec.setProp}`);
-      options[name] = value;
+      // A second set with the same value (Patterns/Sidebar wraps Side-Bar/Master/Basic) adds its properties and its Main
+      // component variants, not a choice: the first set is the one the push writes and the pull maps.
+      if (!Object.values(options).includes(value)) options[name] = value;
     }
     entry.own.push({ prop: spec.setProp, type: "SET", options });
   }
@@ -97,7 +99,8 @@ for (const [component, spec] of Object.entries(FIGMA_PROPS)) {
       // row shows only on those sets, then while the map's own conditions hold (a Type, a Size).
       const when = [];
       const inSets = setNames.filter((name, index) => found[index].props.some((other) => other.name === prop.name));
-      if (spec.setProp && inSets.length < setNames.length) when.push({ prop: spec.setProp, oneOf: inSets.map((name) => spec.sets[name]), default: setDefault });
+      const inValues = [...new Set(inSets.map((name) => spec.sets[name]))];
+      if (spec.setProp && inValues.length < new Set(Object.values(spec.sets)).size) when.push({ prop: spec.setProp, oneOf: inValues, default: setDefault });
       for (const condition of mapping.when ?? []) {
         if (!own.has(condition.prop)) { errors.push(`${component}: toggle "${prop.name}" shows when "${condition.prop}", not a code prop`); continue; }
         const values = literals(own.get(condition.prop));

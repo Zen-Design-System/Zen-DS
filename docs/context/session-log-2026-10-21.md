@@ -44,6 +44,42 @@ The Medium rail: code had 84 / 88 (an 8px right inset, header gap 16), while the
 - test: `Sidebar rail, Density=Medium`.
 Studio's Theme/Density mapping waits for this merge (Bug session).
 
+## Session "Bug" · Header/AppShell to Studio (tier M; user: "Update Header/AppShell component từ Figma lên studio")
+
+- Live read: Header/AppShell became a set 16783:71068 (Theme Default 16243:290461 · Border 16783:71137 · Border &
+  Divider 16783:72140) while the work ran; props Collapse Button, Top-Elements, Main-Element, Top-Header, Main,
+  Sections. Contract (◇ Master-Layout) and library-keys (set key 1081dfd3…) hold the set.
+- Map AppShellHeader: Main / Sections switches (slot), leading · center · actions as the Slots rows (propSchema
+  names), Collapse Button / Top-Header / Top-Elements / Main-Element skipped with reasons, Theme skipped until
+  AppShell ships `theme` (approved by the user, its own PR). Main component: MAIN_SAMPLES.AppShellHeader (Figma's
+  default content), FIXED_WIDTHS 1272, an AppShellChromeContext preview (toggle "collapse") so the Collapse button draws.
+- Native pack: C added `--merge` / `probe-code --ids` (#176). First capture copied the user's selection (C now checks
+  the copied node); second capture of the set merged 1 set + 3 symbols, clipboard put back 4/4, probe frame removed.
+  Drift found and handed over: header bottom padding 12 (Figma) vs 8 (code) → AppShell; the push's top bar → B.
+- Next (agreed with AppShell, user: "Studio vẽ đủ các variant" of Patterns/Sidebar): after #179 and AppShell's
+  patterns-sidebar branch, map Header Theme/Density; Sidebar.sets gains "Patterns/Sidebar": "basic" (6040:67524,
+  16 variants, wraps Side-Bar/Master/Basic) with Theme/Density/Shadow rows and Expand as `main` collapsed (inverted);
+  one desktop capture refreshes Header/AppShell + Patterns/Sidebar + 19 chart sets (drop then `--merge`).
+- Built (worktree `../Zen-DS-header-sidebar`, branch `zen/feat/studio-header-sidebar-20261021` on AppShell's
+  426a569a): Header Theme {Default, Border & Divider → border-divider} / Density; Sidebar Theme · Density · Shadow
+  rows, Expand `main` (Yes → false, No → true). Found by figma-push.selftest (crash at the AppShell master): the push's
+  entryFor() picks a set by `setValue`, and a second "basic" set took Side-Bar/Master/Basic's place (the first set is
+  re-registered without its setProp). Fix at the owner of the SET row, figma-props-build.mjs: a set that repeats a
+  value adds its props and Main component variants, not a choice (first wins), and a boolean's `when` counts values,
+  not sets. Push selftest 342 ✓ again; Sidebar is the only map entry with a repeated value.
+
+## Session "Bug" · Chart responsive in Figma (Figma library only; user: "kiểm tra lại responsive tất cả các chart trong figma", "tất cả các chiều", "Sửa hết")
+
+- Audit: temporary instances of every chart variant on the QA page 15872:3 at 280/343/600/1200 wide (and 0.8×/1.6×
+  height for fixed-height ones), clip-aware, shapes by render bounds; flags x/y overflow > 1.5px and a gap > 24px below.
+- Fixes: .Primitives/Chart/Sector 4388:8677 last grid row → HUG (labels hung 12px under Line/Multi-Line), Trend
+  4401:7782 Sector overrides too; the selected sector (tooltip) moved to the middle in 4 Line Trend + 8 Stack-Bar
+  variants (instance constraints cannot be overridden); Radial/Donut Chart frame HUG + minWidth per Size (ring
+  120/168/240/320, +124 Start/End legend; Radial End 286–486); Bar Vertical 12-sector minWidth 324, Horizontal minHeight
+  290/370/410/610 (4 Secondary made FIXED 290 like Primary); Funnel minHeight 318, Bullet 294.
+- Re-audit: 580 instances, 0 issues. The native pack still holds the old chart skeletons (merge keeps what it holds):
+  refresh them with the Header/AppShell capture after AppShell's #179 lands.
+
 ## Figma walks re-measured (Session A, worktree `../Zen-DS-f9b`, branch `zen/docs/figma-walk-remeasure-20261020`)
 
 User (2026-10-20, relayed by the progress session): "Giao Blend mode (Appearance) cho phiên B, rồi đo lại 14 tác vụ Figma."

@@ -918,6 +918,11 @@
       "name": "Empty-State/Illustration/Placeholder",
       "type": "COMPONENT_SET",
       "key": "09ea4ac5b12913c32261277c9a9a04a021404df3"
+    },
+    "16783:71068": {
+      "name": "Header/AppShell",
+      "type": "COMPONENT_SET",
+      "key": "1081dfd359857098adc72fea249d83052f82aed4"
     }
   },
   "missing": [

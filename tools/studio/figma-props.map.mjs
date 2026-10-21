@@ -20,9 +20,9 @@
 //                                           only on the sets that have the boolean (generated), and while every
 //                                           `when: [{ prop, oneOf, default? }]` holds (the layer exists only at those values)
 //     { skip: "why" }                       Figma-only (a preview state, a device frame, content written elsewhere)
-//     { skip: "why", main: { prop, values } } a variant the Properties panel leaves out (the value is a number) that the
-//                                           Main component frame still draws: each Figma option → that number
-//                                           (Progress=Low → value 20, read from the Figma variant)
+//     { skip: "why", main: { prop, values } } a variant the Properties panel leaves out (the value is a number, or the
+//                                           opposite of a boolean) that the Main component frame still draws: each Figma
+//                                           option → that value (Progress=Low → value 20; Sidebar Expand=No → collapsed)
 //   nested: Figma nested layer name → { when, set?, props?, code? }: a group shown while code prop `when` is set, with
 //           the nested set's properties mapped as above, then `code` rows ({ prop, label }) for code props that set has
 //           no property for.
@@ -166,6 +166,24 @@ export const FIGMA_PROPS = {
       "Action-Slots": skip("content slot (Slots section)"),
       "Custome-Elements": skip("the row's children (Slots section)"),
       "Header-Text": skip("the title text (title prop)"),
+    },
+  },
+  // Figma ◇ Master-Layout Header/AppShell (16783:71068, read 2026-10-21; user: "Update Header/AppShell component từ Figma
+  // lên studio"): Theme Default · Border & Divider, Density Medium · Small. Top-Header holds the Collapse Button and Top-Elements (Dashboard header
+  // Type=Navigation: Leading · Center · Trailing slots = leading · center · actions); Main holds Main-Element (the page's
+  // PageHeader); Sections are the rows under it. The slots Figma has no switch for (leading · center · actions) show as
+  // the Slots rows of the Properties panel, by their Figma names (propSchema).
+  AppShellHeader: {
+    sets: { "Header/AppShell": null },
+    props: {
+      "Collapse Button": skip("the AppShell's collapse=\"header\" draws it beside its Sidebar (an AppShell prop)"),
+      "Top-Elements": skip("its Leading, Center and Trailing slots (leading · center · actions)"),
+      "Top-Header": skip("the top row shows while leading, center or actions hold content"),
+      "Main-Element": skip("content slot (the Main switch)"),
+      Main: { toggle: "main", on: "slot" },
+      Sections: { toggle: "sections", on: "slot" },
+      Theme: { prop: "theme", values: { Default: "default", "Border & Divider": "border-divider" } },
+      Density: "density",
     },
   },
   Card: {
@@ -338,7 +356,9 @@ export const FIGMA_PROPS = {
     },
   },
   Sidebar: {
-    sets: { "Side-Bar/Master/Basic": "basic", "Side-Bar/Master/Workspace": "workspace", "Side-Bar/Master/Small-Density": "small-density" },
+    // Figma ◇ Master-Layout Patterns/Sidebar (6040:67524; user 2026-10-21: "Studio vẽ đủ các variant") wraps Side-Bar/
+    // Master/Basic in its Theme, Density, Shadow and Expand: variant "basic" with those props (the select shows Basic once).
+    sets: { "Side-Bar/Master/Basic": "basic", "Side-Bar/Master/Workspace": "workspace", "Side-Bar/Master/Small-Density": "small-density", "Patterns/Sidebar": "basic" },
     setProp: "variant",
     props: {
       "Header-Content": skip("content slot"),
@@ -346,7 +366,11 @@ export const FIGMA_PROPS = {
       "Footer-Content": skip("content slot"),
       "Sub-Item": skip("data slot"),
       "Sub-Menu": skip("the sub-menu object"),
-      Expand: skip("collapsed is the opposite of Expand"),
+      // A switch cannot show the opposite of its prop: the Properties panel leaves Expand out, the Main component draws it.
+      Expand: { ...skip("collapsed is the opposite of Expand"), main: { prop: "collapsed", values: { Yes: false, No: true } } },
+      Theme: "theme",
+      Density: "density",
+      Shadow: { prop: "shadow", bool: true },
       // Figma Side-Bar/Master Footer (2026-10-21): shows Footer-Container (and its Divider) = the Sidebar has a footer.
       Footer: { toggle: "footer", on: "slot" },
       "Collapse Button": skip("the collapse control has no prop: it shows with onCollapsedChange, or where the AppShell puts the toggle (collapse=\"sidebar\")"),
