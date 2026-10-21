@@ -69,6 +69,8 @@ export const Good = () => <>
   <Chip variant="advanced" selectionMode="multiple" popoverMultiple popoverLabel="Status" popoverItems={[{ id: "open", label: "Open", selected: true }, { id: "done", label: "Done" }]}>Status</Chip>
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><InputField label="Workspace name" /></Dialog>
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="on-container">Brief</Card></SidePanel>
+  <ListBox theme="pale" color="green"><List aria-label="Approved"><ListItem title="Time off" /></List></ListBox>
+  <ListBox theme="border" surface="alt"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox>
   <Dialog open={open} onOpenChange={setOpen} title="Project"><Card theme="on-container"><ListBox theme="border"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox></Card></Dialog>
   <BottomSheet open={open} onOpenChange={setOpen} title="Members"><ListBox theme="on-container"><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></BottomSheet>
   <ListBox><List aria-label="Recent"><ListItem title="Brief.pdf" /></List></ListBox>

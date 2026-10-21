@@ -159,6 +159,7 @@ type ContentTone = (typeof contentTones)[number]
 - Don't make a row title a heading, and don't signal unread by weight alone.
 - Don't make group labels inside a Menu, Popover, Select or Listbox headings; they are labels.
 - Don't put content that is not List-Item rows (a DescriptionList, Toggles, a form) in a ListBox — use a Card. Don't frame a ListBox on Canvas/Default with border or shadow when no condition asks for it, and never give a ListBox on Surface-Alt or a Pale fill a drop shadow (§9).
+- Don't give a ListBox a color unless it is theme="pale", or surface="alt" unless it is default or border: Figma's List-Box has no such variant and the code ignores it (harness: listbox/color-ignored, listbox/surface-ignored).
 
 ## Accessibility
 - A clickable row is one `<button>`/`<a>` covering the row with a visible focus ring; the selected row exposes aria-current="true" (a button row is never a toggle, so no aria-pressed).
@@ -172,6 +173,8 @@ type ContentTone = (typeof contentTones)[number]
 | --- | --- | --- | --- |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `list-item/inset-not-padding` | warn | List rows keep the padding Figma sets inside List-Item (Padding/Small 12px above and below, none at the sides, for Interactive=Yes and No alike), never a padding override on .zen-list-item — the layout around the List decides where it sits (leave 12px around clickable rows for their fill). | `zen-allow-list-inset: <reason>` |
+| `listbox/color-ignored` | warn | ListBox color is Figma List-Box's Color, the hue of theme="pale" (Support/<Hue>/Pale); Default, Shadow, Border, Flat-Border and On-Container have no Color and ignore it. | `zen-allow-listbox-color: <reason>` |
+| `listbox/surface-ignored` | warn | Figma List-Box Surface per theme: alt on Default and Border; Shadow, Pale, Flat-Border and On-Container keep their own fill (a box on a Canvas/Flat page is theme="flat-border"). | `zen-allow-listbox-surface: <reason>` |
 | `listbox/on-container-in-overlay` | warn | A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme="on-container": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12). | `zen-allow-overlay-theme: <reason>` |
 | `listbox/footer-action-tertiary` | error | A ListBox footer action ("Open calendar", "Go to Inbox") is a Tertiary Button, the Button default: it fills the box on desktop and tablet and hugs its label on mobile, never plain text or a Link (user rule 2026-10-16). | `zen-allow-footer-action: <reason>` |
 | `list-item/clickable-row-toggle` | warn | A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions). | `zen-allow-row-toggle: <reason>` |

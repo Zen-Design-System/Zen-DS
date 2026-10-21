@@ -1299,6 +1299,24 @@ export const rules = [
       const takes = { shadow: ["alt"], default: ["alt"], border: ["alt"] }[theme === "semi-pale" ? "pale" : theme] ?? [];
       return !takes.includes(surface) && `sets surface="${surface}" on theme="${theme}", which Figma draws without it — ${surface === "flat" ? "Surface/Flat in a Pale frame is theme=\"flat-border\" (Border × Surface=Flat until 2026-10-21)" : "Pale, Subtle, Flat-Border, On-Container and Solid keep their own fill"}; drop surface or change the theme.`;
     } },
+  { id: "listbox/color-ignored", components: ["ListBox"], severity: "warn", allow: "listbox-color", guideline: "docs/guidelines/list-item.md",
+    summary: "ListBox color is Figma List-Box's Color, the hue of theme=\"pale\" (Support/<Hue>/Pale); Default, Shadow, Border, Flat-Border and On-Container have no Color and ignore it.",
+    check: ({ attrs }) => {
+      const own = topLevel(attrs);
+      const color = literal(own, "color");
+      if (!has(own, "color") || color === "neutral" || opaque(attrs) || (has(own, "theme") && literal(own, "theme") === undefined)) return false;
+      const theme = literal(own, "theme") ?? "default";
+      return theme !== "pale" && `sets color on theme="${theme}", which has no Color in Figma's List-Box — a tinted box is theme="pale" color="…"; drop color or change the theme.`;
+    } },
+  { id: "listbox/surface-ignored", components: ["ListBox"], severity: "warn", allow: "listbox-surface", guideline: "docs/guidelines/list-item.md",
+    summary: "Figma List-Box Surface per theme: alt on Default and Border; Shadow, Pale, Flat-Border and On-Container keep their own fill (a box on a Canvas/Flat page is theme=\"flat-border\").",
+    check: ({ attrs }) => {
+      const own = topLevel(attrs);
+      const surface = literal(own, "surface");
+      if (!surface || surface === "default" || opaque(attrs) || (has(own, "theme") && literal(own, "theme") === undefined)) return false;
+      const theme = literal(own, "theme") ?? "default";
+      return !["default", "border"].includes(theme) && `sets surface="${surface}" on theme="${theme}", which Figma's List-Box draws without it — only default and border take Surface/Alt; drop surface or change the theme.`;
+    } },
   { id: "card/solid-color", components: ["Card", "MetricCard", "ChartCard"], severity: "error", allow: "card-color", guideline: "docs/guidelines/card.md",
     summary: "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow, Orange and Accent only; other hues render as Solid Neutral (they would fail contrast). Accent is Solid only: a Pale accent renders as Pale Neutral.",
     check: ({ attrs }) => {

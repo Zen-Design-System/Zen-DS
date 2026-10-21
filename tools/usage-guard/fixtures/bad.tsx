@@ -216,6 +216,10 @@ export const Bad = () => <>
   <PlatformPhone label="Energy"><Grid columns={3} gap="sm"><MetricCard label="Today" value="12 kWh" /><MetricCard spacing="small" label="Week" value="80 kWh" /><MetricCard spacing="small" label="Month" value="320 kWh" /></Grid></PlatformPhone>
   {/* expect: listbox/on-container-in-overlay */}
   <Dialog open={open} onOpenChange={setOpen} title="Members"><ListBox><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></Dialog>
+  {/* expect: listbox/color-ignored */}
+  <ListBox theme="shadow" color="green"><List aria-label="Approvals"><ListItem title="Time off" /></List></ListBox>
+  {/* expect: listbox/surface-ignored */}
+  <ListBox theme="pale" surface="alt"><List aria-label="Approvals"><ListItem title="Time off" /></List></ListBox>
   {/* expect: listbox/footer-action-tertiary */}
   <ListBox footer={<Link href="/time-off/calendar">Open calendar</Link>}><List aria-label="Out this week"><ListItem title="Sarah Kim" /></List></ListBox>
   {/* expect: listbox/footer-action-tertiary */}
