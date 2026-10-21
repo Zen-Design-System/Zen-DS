@@ -349,3 +349,26 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+
+## Menus: Flip in the layer menu, Paste here on the empty canvas (tier S, branch `zen/feat/studio-menu-flip-paste-20261021`)
+Two gaps of the re-measure §2a "Menus" (the user opened one session per remaining piece, 2026-10-21).
+- Layer menu: `edit/flipLayers.ts` `flipMenuItems` — Flip horizontal ⇧H / Flip vertical ⇧V right after Lock, in the
+  one-layer and the several-layers menus (`shell/CanvasMenu.tsx`). Offered on every layer as Figma does, dimmed where
+  `flipLayers` would refuse (not a Box / Stack / Grid / Shape) or for a viewer.
+- Empty canvas menu: `builder/boardPaste.ts` — Paste here first, on a page you made only (a component page's board
+  takes nothing). Dimmed with nothing to paste: no frame or layer copied in the Studio and an empty system clipboard
+  where the browser lets the page read it without asking (where it would ask, the item stays on). The later ⌘C wins:
+  a frame's (`frameKeys.ts` `copiedFrame`) goes through `copyFrame` at the pointer's board place
+  (`frameMove.ts` `boardPlaceAt`); layers' (`edit/clipboard.ts` `copiedLayers`: the clip now keeps its box with the
+  zoom undone, whether the layers floated and were several) go into a new empty "Frame N" of their size (100 at least),
+  one `insertChild` of the Screen with the layers inside (`addFrame` `content`). The Board holds frames only, so
+  Figma's loose layer is a frame here. One layer, or floating ones, float from its corner (`floatAt` from the browser
+  engine); several flow layers stay in its flow. Code or text from elsewhere: a 400 × 300 frame (its size is unknown).
+- Fix met on the way: a frame placed on a page whose frames had no x / y (every new page) pinned the row in an edit of
+  its own, so the Frame tool's click, ⌘D / paste of a frame, a Section and this paste took two ⌘Z. `frameEdit.ts`
+  `joinPin` squashes the pin and the frame's edit into one undo step (`squashEdits`, only when the step below is that
+  pin); `addFrame`, `addSection`, `copyFrame`, `copySection` use it.
+- E2E (figma walk): FW-150 shape menu order + flip + one ⌘Z; FW-151 two shapes Flip vertical (Y 40 · 20) + one ⌘Z;
+  FW-152 Button: Flip dimmed; FW-153 Paste here dimmed after a fresh load and an empty clipboard, then a shape's paste
+  → Frame 2, 100 × 100 at the pointer, the rectangle at 0, 0, selected, one ⌘Z; FW-154 a frame's paste at the pointer.
+- Static: tsc, studio:selftest, usage:check ✓.

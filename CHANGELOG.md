@@ -150,6 +150,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
     conformance test keeps that list exact.
   - The Design panel heads a frame "Frame" and a group "Group", as Figma; the code name shows on hover, and Layers keep
     it.
+- Zen Studio's menus, two more gaps from the re-measure: the layer menu has Flip horizontal ⇧H and Flip vertical ⇧V
+  after Lock, as Figma's (dimmed on a layer that has no flip: only frames and shapes turn). The empty canvas menu of a
+  page you made starts with Paste here (dimmed with nothing to paste): a copied frame lands there as a frame, copied
+  layers in a new frame of their size, both with their corner at the pointer, one ⌘Z. A frame placed on a page whose
+  frames had no place yet (drawn, pasted, duplicated, a Section) is now one ⌘Z with the pin of the others, not two.
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and

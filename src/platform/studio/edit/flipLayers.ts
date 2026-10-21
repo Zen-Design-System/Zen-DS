@@ -1,3 +1,4 @@
+import type { MenuItemData } from "../../../components/Menu";
 import { announceEditStatus, parseSrc, studioApi } from "../api";
 import { flipTurn, turnOps } from "../position/positionModel";
 import { selectedLayers, type ExtraLayer } from "../select/multiSelection";
@@ -56,4 +57,18 @@ export async function flipLayers(axis: "horizontal" | "vertical"): Promise<boole
   }
   if (!targets.length) return true;
   return setOwnPropsOnLayers(targets, opsByLoc, label);
+}
+
+/**
+ * The layer menu's Flip horizontal ⇧H / Flip vertical ⇧V, in Figma's place after Lock (shell/CanvasMenu.tsx): offered
+ * on every layer as Figma does, dimmed when a selected layer has no flip (only frames and shapes turn) or for a viewer.
+ */
+export function flipMenuItems(): MenuItemData[] {
+  const layers = selectedLayers();
+  if (!layers.length) return [];
+  const off = !canEdit() || layers.some((layer) => !TURNABLE.has(baseName(layer.name)));
+  return [
+    { id: "flip-horizontal", label: "Flip horizontal", icon: "icon-flip-horizontal-line", shortcut: "⇧H", disabled: off, onSelect: () => { void flipLayers("horizontal"); } },
+    { id: "flip-vertical", label: "Flip vertical", icon: "icon-flip-vertical-line", shortcut: "⇧V", disabled: off, onSelect: () => { void flipLayers("vertical"); } },
+  ];
 }

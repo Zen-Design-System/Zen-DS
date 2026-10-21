@@ -19,6 +19,7 @@ import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { visibilityMenuItems } from "../edit/visibility";
 import { lockMenuItems } from "../edit/lock";
+import { flipMenuItems } from "../edit/flipLayers";
 import { renameShortcut, startRename } from "../edit/rename";
 import { findFrame } from "../board/frames";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
@@ -31,6 +32,7 @@ import { maskShortcut, modKey, presentShortcut } from "./modKey";
 import { combineAsVariants, createComponent, createComponentOfLayers, createComponents, goToMain, pushChangesToMain, resetInstance } from "../edit/localComponents";
 import { goToZenMain, instanceActionsFor, instanceActionsVersion, mainPageOf, subscribeInstanceActions } from "../inspector/instanceActions";
 import { removeFrames, wrapInSection } from "../builder/proto/addFrame";
+import { boardPasteItems, boardPasteReady } from "../builder/boardPaste";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
 import type { StudioSelection } from "../types";
@@ -40,11 +42,11 @@ import "./shell.css";
  * The canvas context menu (right-click, Select tool), like Figma's, for what is under the pointer:
  * - a layer: Copy, Cut, Paste, Paste to replace, Copy / Paste properties (edit/clipboard.ts), Add to {Slot}…, Duplicate,
  *   Move up / down (slots/menu.ts), Add auto layout ⇧A / Remove auto layout ⌥⇧A / Frame selection ⌥⌘G (edit/autoLayout.ts,
- *   select/wrapSelection.ts), Detach instance, then
- *   Remove (destructive, last);
+ *   select/wrapSelection.ts), Show / Hide, Lock, Flip horizontal ⇧H / vertical ⇧V (edit/flipLayers.ts), Detach
+ *   instance, then Remove (destructive, last);
  * - several selected layers: Copy, Cut, Duplicate, Move up / down, Remove for all of them (edit/multi.ts), then the wrap items;
  * - a frame: Zoom to frame, Present, Zoom to fit;
- * - the empty canvas: Zoom to fit, Zoom to 100%, Hide / show UI.
+ * - the empty canvas: Paste here on a page you made (builder/boardPaste.ts), Zoom to fit, Zoom to 100%, Hide / show UI.
  * The selection layer opens it at the pointer; it renders in its own window-sized layer (chrome modes) and anchors to
  * an invisible point there, moved up when the menu is taller than the room on either side (Figma keeps it whole).
  */
@@ -118,6 +120,15 @@ export function CanvasMenu() {
     return () => { alive = false; };
   }, [menu, offered, selection]);
 
+  // Paste here on the empty canvas is on when something can be pasted (the clipboard may take a moment to read).
+  const [pasteReady, setPasteReady] = useState<{ at: number; ready: boolean } | null>(null);
+  useEffect(() => {
+    if (menu?.target.kind !== "canvas") return undefined;
+    let alive = true;
+    void boardPasteReady().then((ready) => { if (alive) setPasteReady({ at: menu.at, ready }); });
+    return () => { alive = false; };
+  }, [menu]);
+
   const reply = plan && menu && plan.at === menu.at ? plan.reply : null;
   const reason = !selection ? null
     : !canEdit() ? (studioStore.getState().role === "admin" ? "Can't detach right now" : "View only")
@@ -155,7 +166,8 @@ export function CanvasMenu() {
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
   // Show / Hide, Lock / Unlock and Rename, as Figma's layer menu (edit/visibility.ts, edit/lock.ts, edit/rename.ts).
   const renameItem = (label: string): MenuItemData => ({ id: "rename", label, icon: "icon-text-input-line", shortcut: renameShortcut, disabled: Boolean(canEdit() ? undefined : "View only"), onSelect: () => { requestAnimationFrame(startRename); } });
-  const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), ...lockMenuItems(selection), ...(studioStore.getState().localPage && selection && !selection.part ? [renameItem("Rename")] : [])] : [];
+  // Flip horizontal ⇧H / vertical ⇧V after Lock, as in Figma's layer menu (edit/flipLayers.ts).
+  const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), ...lockMenuItems(selection), ...flipMenuItems(), ...(studioStore.getState().localPage && selection && !selection.part ? [renameItem("Rename")] : [])] : [];
   // Copy / Cut / Paste / Paste to replace / properties first, as in Figma's layer menu (edit/clipboard.ts).
   const clipboard = clipboardMenuItems(selection, menu ? { x: menu.x, y: menu.y } : null);
   // Figma's Copy/Paste as ›: one item opens the list in place (the Menu has no submenus), as Select layer does (F3).
@@ -183,6 +195,7 @@ export function CanvasMenu() {
     // Floats every selected Stack / Grid / Box at its own offsets (or puts them back in the flow): edit/ignoreAutoLayout.ts.
     { id: "multi-float", label: "Ignore auto layout", icon: "icon-transform-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void toggleIgnoreAutoLayout(); } },
     ...lockMenuItems(selection),
+    ...flipMenuItems(),
     ...(studioStore.getState().localPage ? [renameItem("Rename…")] : []),
     // Figma's boolean groups and Flatten on several shapes of a page you made (edit/pathOps.ts, F9b).
     ...(studioStore.getState().localPage && extraShapes() ? [
@@ -255,7 +268,10 @@ export function CanvasMenu() {
       { id: "frame-delete", label: "Delete", icon: "icon-trash-line" as const, shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), onSelect: () => { void removeFrames(localPage, framesOf(frame.id)); } },
     ] : []),
   ] : [];
+  // Figma's Paste here: what was copied last, on the board with its corner at the pointer (builder/boardPaste.ts).
+  const boardPaste = menu ? boardPasteItems({ x: menu.x, y: menu.y }, Boolean(pasteReady && pasteReady.at === menu.at && pasteReady.ready)) : [];
   const canvasItems: MenuEntry[] = [
+    ...(boardPaste.length ? [...boardPaste, { type: "separator" as const, id: "canvas-paste-separator" }] : []),
     { id: "canvas-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
     { id: "canvas-100", label: "Zoom to 100%", icon: "icon-zoom-in-line", shortcut: "⇧0", onSelect: () => canvasApi.setZoom(1) },
     { type: "separator", id: "canvas-separator" },
