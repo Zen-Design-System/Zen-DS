@@ -252,5 +252,10 @@ original stays, one ⌘Z each) waits for a gate slot.
 - Native pack: re-captured Card (Figma 120 variants; the pack had 80) and List-Box with the new names instead of a
   name-only rename (user OK'd the clipboard; dropped 2 sets / 144 symbols, merged 184; check 177/177, native 130 ✓).
 - ListBox `color` / `surface` (user: "Thêm luôn trong đợt này"): Pale hues and Surface=Alt as Figma's variants, playground
-  chips, Studio map rows, push listBoxVariant (push selftest 348 ✓). No new harness rule (asked the user separately).
+  chips, Studio map rows, push listBoxVariant (push selftest 348 ✓). Harness listbox/color-ignored and
+  listbox/surface-ignored (user: "Thêm"), each with its bad/good fixture case (usage selftest 223 rules).
+- AppShellPane (user: "Đổi theo Card"; AppShell handed it over): Figma Pane 16254:1099 variants renamed (Theme=Default ·
+  Default/Alt, Flat-Border · Default) and its description rewritten; code appShellPaneThemes default / flat-border,
+  Surface default | alt, app-shell.css, b-desktop-1, the app layer's Canvas/Flat → flat-border panes and cards. The
+  BACKLOG question is closed. Pane is not in the contract, pack or library keys (no Studio mapping).
 

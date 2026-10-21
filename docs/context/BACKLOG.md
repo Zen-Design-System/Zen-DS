@@ -12,10 +12,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   tab (§3a "Properties", structural); Present (⌥⌘↵) from a selected Overlay frame, as Figma presents any frame (needs
   `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); an instance's data-name stays in the page
   (its Figma name is its component's or carries content, which pull reads as such).
-- **P2 · AppShellPane themes after the Card / List-Box rename (2026-10-21, question for the user):** Card and List-Box
-  renamed Flat → Default and Border × Surface=Flat → Flat-Border (CHANGELOG); `.Primitives/AppShell/Pane` (16254:1099,
-  "Pane = Card Neutral themes") and `AppShellPane theme="flat"` / `surface="flat"` still use the old names. Rename the
-  Pane the same way? Pointer: session-log-2026-10-21 "Card and List-Box theme rename".
 - **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
   the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
   rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4);
