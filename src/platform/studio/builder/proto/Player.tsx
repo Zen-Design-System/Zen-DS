@@ -16,38 +16,35 @@ import { useUploadsVersion } from "../assets/uploads";
 import { duoStatusOf, safeAreasOf } from "./DeviceBars";
 import { frameMotion, motionProps } from "./playMotion";
 import { CLICKABLE, itemElement, layerElements } from "./protoDom";
-import { DEFAULT_DELAY, optionsOf, protoSourcesOf, type ProtoOptions } from "./protoModel";
+import { DEFAULT_DELAY, openerOf, optionsOf, overlayTitleOf, protoSourcesOf, type ProtoOptions } from "./protoModel";
 import { placesItself } from "./protoTriggers";
-import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, protoHandler, SimulatedDeviceContext, type PageDevice, type ProtoActions } from "./runtime";
+import { isPlaying, OVERLAY_START, PLAY_PREFIX, stopPlay } from "./playStart";
+import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, protoHandler, Screen, SimulatedDeviceContext, type PageDevice, type ProtoActions, type ScreenCanvas, type ScreenLayout } from "./runtime";
 import { useCanvasPreview } from "../../project/activeProject";
+
+export { isPlaying, PLAY_PREFIX, playStartOf, startPlay, stopPlay } from "./playStart";
 
 /*
  * Play (Studio builder GĐ2 M3, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d): the page runs full
  * screen from its first Screen (or the one named), and its proto actions are live: navigate opens a Screen's default
  * state, open shows an Overlay over the current Screen, close / back undo them, toast shows a Toast, link opens the URL
  * in a new tab. ⌥⌘↵ (Figma's Present) starts it on a builder page, R restarts, Esc leaves. Play is Present's layer
- * under the name `presenting: "play:<screen>"`, so the Studio behind it is inert and its shortcuts wait, as for Present.
+ * under the name `presenting: "play:<start>"` (playStart.ts), so the Studio behind it is inert and its shortcuts wait,
+ * as for Present.
+ *
+ * Present from a selected Overlay frame (Figma presents any frame): the Overlay opens at once over the Screen that opens
+ * it, which plays on from there once it closes; an Overlay no Screen opens shows over a blank screen of the page's
+ * device (its first Screen's), and closing it leaves Present, as there is nothing under it.
  */
-
-export const PLAY_PREFIX = "play:";
-export const isPlaying = (presenting: string | null | undefined) => Boolean(presenting?.startsWith(PLAY_PREFIX));
-
-/** Starts Play on the open builder page (at `screen`, else its first Screen). */
-export function startPlay(screen?: string | null) {
-  const state = studioStore.getState();
-  if (!state.localPage) return;
-  studioStore.setState({ presenting: `${PLAY_PREFIX}${screen ?? ""}` });
-}
-
-export const stopPlay = () => { if (isPlaying(studioStore.getState().presenting)) studioStore.setState({ presenting: null }); };
 
 /** How long the hotspot hints stay (their fade is in builder.css). */
 const HINT_MS = 900;
 type HintBox = { x: number; y: number; width: number; height: number; radius: string };
 /** A step of the flow: the Screen shown and the options of the action that showed it (Back plays them backwards). */
 type Step = { screen: string; options?: ProtoOptions };
-/** The open overlay: shown by a press (`options`: its animation) or while the pointer stays on a layer (`hover`). */
-type OpenOverlay = { id: string; options?: ProtoOptions; hover?: boolean };
+/** The open overlay: shown by a press (`options`: its animation), while the pointer stays on a layer (`hover`), or as
+ *  the presented frame (`start`). */
+type OpenOverlay = { id: string; options?: ProtoOptions; hover?: boolean; start?: boolean };
 /** The frame going away while the next one comes in (`reverse`: Back). */
 type Leaving = { key: string; screen: string; options?: ProtoOptions; reverse: boolean };
 /** A frame going away is dropped after this long even if its animation never reports its end (no animation running). */
@@ -75,16 +72,23 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   useUploadsVersion();
   const frames = useMemo(() => elements(tree), [tree]);
   const screens = frames.filter((node) => node.name === "Screen");
-  const first = start && screens.some((node) => literal(node, "id") === start) ? start : String(literal(screens[0] ?? { props: {} } as PageNode, "id") ?? "");
+  const firstScreen = String(literal(screens[0] ?? { props: {} } as PageNode, "id") ?? "");
+  // Present from an Overlay frame: it starts open (no animation) over the Screen that opens it, else alone.
+  const presented = start?.startsWith(OVERLAY_START) ? start.slice(OVERLAY_START.length) : null;
+  const presentedNode = presented ? frames.find((node) => node.name === "Overlay" && literal(node, "id") === presented) : undefined;
+  const opener = useMemo(() => (presented ? openerOf(tree, presented) : null), [presented, tree]);
+  const alone = Boolean(presentedNode) && !opener;
+  const startOverlay = useMemo<OpenOverlay | null>(() => (presented ? { id: presented, options: { animation: "instant" }, start: true } : null), [presented]);
+  const first = presentedNode ? opener ?? "" : start && screens.some((node) => literal(node, "id") === start) ? start : firstScreen;
   const [history, setHistory] = useState<Step[]>([]);
-  const [overlay, setOverlay] = useState<OpenOverlay | null>(null);
+  const [overlay, setOverlay] = useState<OpenOverlay | null>(startOverlay);
   const current = history.at(-1)?.screen ?? first;
   const currentKey = `${history.length}:${current}`;
   // The animation between two frames: the one going away stays drawn under (or over) the one coming in until it ends.
   const [leaving, setLeaving] = useState<Leaving | null>(null);
   const [entering, setEntering] = useState<{ options?: ProtoOptions; reverse: boolean } | null>(null);
-  const flow = useRef({ history, current, currentKey, overlay });
-  flow.current = { history, current, currentKey, overlay };
+  const flow = useRef({ history, current, currentKey, overlay, alone });
+  flow.current = { history, current, currentKey, overlay, alone };
   useEffect(() => {
     if (!leaving) return undefined;
     const timer = window.setTimeout(() => { setLeaving(null); setEntering(null); }, LEAVE_MS);
@@ -138,8 +142,14 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
     if (boxes.length) setHints({ key: Date.now(), boxes });
   };
 
-  const restart = useCallback(() => { setHistory([]); setOverlay(null); setLeaving(null); setEntering(null); }, []);
+  const restart = useCallback(() => { setHistory([]); setOverlay(startOverlay); setLeaving(null); setEntering(null); }, [startOverlay]);
   const exit = useCallback(() => stopPlay(), []);
+  // An overlay closing over nothing (the presented Overlay alone, before any Screen) leaves Present.
+  const closeOverlay = useCallback(() => {
+    const { alone: lone, history: stack } = flow.current;
+    if (lone && !stack.length) exit();
+    else setOverlay(null);
+  }, [exit]);
   const screenOf = useCallback((screenId: string) => screens.find((node) => literal(node, "id") === screenId && literal(node, "state") === undefined) ?? screens.find((node) => literal(node, "id") === screenId), [screens]);
   const missing = useCallback((what: string, target: string) => toast({ title: `No ${what} “${target}” on this page`, type: "warning" }), [toast]);
 
@@ -152,16 +162,17 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       setOverlay(null);
       setLeaving(options.animation === "instant" ? null : { key: fromKey, screen: from, options, reverse: false });
       setEntering(options.animation === "instant" ? null : { options, reverse: false });
-      setHistory([...(stack.length ? stack : [{ screen: first }]), { screen: String(target), options }]);
+      // The presented Overlay alone has no Screen to come back to: Back returns to it (below).
+      setHistory([...(stack.length || !first ? stack : [{ screen: first }]), { screen: String(target), options }]);
     },
     open: (target, raw) => {
       if (!hasOverlay(String(target))) { missing("overlay", String(target)); return; }
       setOverlay({ id: String(target), options: optionsOf("open", [target, raw]) });
     },
-    close: () => setOverlay(null),
+    close: closeOverlay,
     back: () => {
-      const { history: stack, overlay: open, currentKey: fromKey } = flow.current;
-      if (open) { setOverlay(null); return; }
+      const { history: stack, overlay: open, currentKey: fromKey, alone: lone } = flow.current;
+      if (open) { closeOverlay(); return; }
       const step = stack.at(-1);
       if (!step) return;
       // Back plays the way in backwards: the frame leaves the way it came.
@@ -169,6 +180,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       setLeaving(instant ? null : { key: fromKey, screen: step.screen, options: step.options, reverse: true });
       setEntering(instant ? null : { options: step.options, reverse: true });
       setHistory(stack.slice(0, -1));
+      if (lone && stack.length === 1) setOverlay(startOverlay);
     },
     toast: (options) => toast((options && typeof options === "object" ? options : { title: String(options ?? "") }) as ToastOptions),
     link: (url) => { if (/^(https?:|mailto:)/i.test(String(url))) window.open(String(url), "_blank", "noopener,noreferrer"); },
@@ -177,7 +189,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       enter: (target, raw) => { if (hasOverlay(target)) setOverlay({ id: target, options: optionsOf("open", [target, raw]), hover: true }); },
       leave: () => setOverlay((open) => (open?.hover ? null : open)),
     },
-  }), [first, hasOverlay, missing, screenOf, toast]);
+  }), [closeOverlay, first, hasOverlay, missing, screenOf, startOverlay, toast]);
 
   useEffect(() => {
     layerRef.current?.focus({ preventScroll: true });
@@ -194,7 +206,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       if (event.key === "Escape") {
         // An open overlay (Dialog, Menu…) takes Escape first; one the Overlay places (a Card…) closes.
         if (layerRef.current?.querySelector(presentEscapeOwners)) return;
-        if (layerRef.current?.querySelector(".studio-player__overlay")) { event.preventDefault(); setOverlay(null); return; }
+        if (layerRef.current?.querySelector(".studio-player__overlay")) { event.preventDefault(); closeOverlay(); return; }
         event.preventDefault();
         exit();
       } else if (event.key.toLowerCase() === "r" && !event.shiftKey) {
@@ -211,17 +223,20 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       window.history.replaceState(window.history.state, "", back);
       requestAnimationFrame(() => { if (!studioStore.getState().presenting) canvasApi.getViewportElement()?.focus({ preventScroll: true }); });
     };
-  }, [exit, restart, start]);
+  }, [closeOverlay, exit, restart, start]);
 
   const screen = screenOf(current);
+  // The presented Overlay alone shows over a blank screen of the page's device and size (its first Screen's).
+  const blank = !screen && alone ? screenOf(firstScreen) : undefined;
+  const base = screen ?? blank;
   const overlayNode = overlay ? frames.find((node) => node.name === "Overlay" && literal(node, "id") === overlay.id) : undefined;
   const overlayChild = overlayNode?.children.find((child): child is PageNode => child.kind === "element");
-  const device = (screen ? (literal(screen, "device") as PageDevice | undefined) : undefined) ?? "desktop";
+  const device = (base ? (literal(base, "device") as PageDevice | undefined) : undefined) ?? "desktop";
   const leavingNode = leaving ? screenOf(leaving.screen) : undefined;
   const os = pageOsOf(tree?.header);
   // The device simulator (presentViewport.tsx): the Screen plays on the shown device, which takes its type, layout and
   // bars (SimulatedDeviceContext); a typed size keeps the Screen's own.
-  const drawnOn = screen ? deviceOfScreen(device, literal(screen, "layout") as string | undefined, literal(screen, "width"), literal(screen, "height")) : undefined;
+  const drawnOn = base ? deviceOfScreen(device, literal(base, "layout") as string | undefined, literal(base, "width"), literal(base, "height")) : undefined;
   const shown = viewport ?? deviceViewport(drawnOn);
   const shownDevice = viewportDevice(shown);
   const fit = useViewportFit(shown, stageRef, bezelOf(shownDevice, framed), shownDevice?.radius);
@@ -241,14 +256,15 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   }, [currentKey, delayed]);
   const ctx = { file: pageFile(id), mock: tree?.mock ?? {}, proto: actions, components: componentsOf(tree?.board ?? null) };
   const title = page?.title ?? id;
-  const screenTitle = screen ? String(literal(screen, "title") ?? current) : "";
+  const screenTitle = screen ? String(literal(screen, "title") ?? current) : alone && presentedNode ? overlayTitleOf(presentedNode) ?? presented ?? "" : "";
+  const blankSize = (prop: string) => { const value = blank ? literal(blank, prop) : undefined; return typeof value === "number" ? value : undefined; };
 
   return (
     <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes, brand)}>
       <PresentBar title={screenTitle && screenTitle !== title ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
         viewport={shown} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop} framed={framed} onFramedChange={setFramed}
         leading={<>
-          <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && !overlay} onClick={() => actions.back()} />
+          <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && (!overlayNode || alone)} onClick={() => actions.back()} />
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />
         </>} />
       {/* The page under the bar (Present's): the device scrolls in it, never under the bar. */}
@@ -265,6 +281,10 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
                 {screen ? (
                   <div key={currentKey} className="studio-player__screen" {...motionProps(entering ? frameMotion(entering.options, "enter", entering.reverse) : null)}>
                     {renderNode(screen, { mock: ctx.mock }, ctx)}
+                  </div>
+                ) : alone ? (
+                  <div className="studio-player__screen" data-blank="">
+                    <Screen device={device} layout={blank ? literal(blank, "layout") as ScreenLayout | undefined : undefined} canvas={blank ? literal(blank, "canvas") as ScreenCanvas | undefined : undefined} width={blankSize("width")} height={blankSize("height")} />
                   </div>
                 ) : <p className="studio-player__empty">{tree ? "This page has no Screen to play." : ""}</p>}
                 {leaving && leavingNode ? (
@@ -283,7 +303,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
               </div>
               {overlayChild && overlayNode && overlay ? (placesItself(overlayChild.name)
                 // A Dialog, Side Panel, Bottom Sheet… places and animates itself.
-                ? renderNode(overlayChild, { mock: ctx.mock }, ctx, `overlay:${overlay.id}`, { open: true, onOpenChange: (open: boolean) => { if (!open) setOverlay(null); } })
+                ? renderNode(overlayChild, { mock: ctx.mock }, ctx, `overlay:${overlay.id}`, { open: true, onOpenChange: (open: boolean) => { if (!open) closeOverlay(); } })
                 : (
                   // Any other layer: where the Overlay says (Figma's overlay position), over a dimmed screen when asked;
                   // a press outside it closes it unless the Overlay says not to.
@@ -293,7 +313,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
                     data-background={literal(overlayNode, "background") === true || undefined}
                     data-hover={overlay.hover || undefined}
                     style={overlaySafe ? { "--zen-safe-area-top": `${overlaySafe.top}px`, "--zen-safe-area-bottom": `${overlaySafe.bottom}px` } as CSSProperties : undefined}
-                    onPointerDown={(event) => { if (event.target === event.currentTarget && literal(overlayNode, "closeOnOutside") !== false) setOverlay(null); }}
+                    onPointerDown={(event) => { if (event.target === event.currentTarget && literal(overlayNode, "closeOnOutside") !== false) closeOverlay(); }}
                   >
                     <div key={overlay.id} className="studio-player__overlay-content" {...motionProps(overlay.hover ? null : frameMotion(overlay.options, "enter"))}>
                       {renderNode(overlayChild, { mock: ctx.mock }, ctx, `overlay:${overlay.id}`)}

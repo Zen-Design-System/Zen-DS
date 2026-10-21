@@ -150,6 +150,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
     conformance test keeps that list exact.
   - The Design panel heads a frame "Frame" and a group "Group", as Figma; the code name shows on hover, and Layers keep
     it.
+- Zen Studio presents an Overlay frame as Figma presents any frame: with a Dialog, Bottom Sheet, Side Panel or Card
+  Overlay selected, ⌥⌘↵, the Present buttons (Prototype and Design tabs), the canvas menu and ⌘K › Present open it at
+  once over the Screen that opens it, on that Screen's device, size and device frame; its interactions run, and closing
+  it (Esc, its close action, a press outside) goes on from that Screen. An Overlay no Screen opens shows over a blank
+  screen of the page's device, and closing it leaves Present. A reload keeps it (`?play=overlay:<id>`).
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and

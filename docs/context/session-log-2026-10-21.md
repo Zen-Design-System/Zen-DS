@@ -349,3 +349,20 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+
+## Present from a selected Overlay frame (tier S, branch `claude/compassionate-ardinghelli-fde6d6`)
+
+The last Present item of BACKLOG P1 "Studio design page = Figma" (user 2026-10-21: "mở phiên nhận các phần đó").
+- `builder/proto/playStart.ts` holds Play's start (`presenting: "play:<start>"`): a Screen id, `overlay:<id>`, or empty.
+  `playStartOf(frameId)` (protoModel.ts, Node-tested) maps the selected frame; ⌥⌘↵, the canvas menu, the Prototype tab's
+  Present and `presentFrame` (the Design tab's Present, ⌘K › Present) use it. A Screen frame keeps its old path (the
+  Design tab and ⌘K still present it as a frame; ⌥⌘↵ plays it).
+- Player: the Overlay starts open, no animation, over `openerOf(tree, id)` — the first Screen (default state first)
+  with a layer or After delay that opens it — on that Screen's device, size and frame; closing it (Esc, its close
+  action, a press outside, Back) goes on from that Screen; R restarts on it. With no opener it shows over a blank Screen
+  of the first Screen's device; closing it leaves Present, Back is off, and Back from a Screen it led to re-opens it.
+- `?play=overlay:<id>` keeps it through a reload. ⌘K › Interact stays on pages you made: templates' forms are tried in
+  place with it (SP-23 / SP-24), but it is no longer the way to try an Overlay.
+- E2E (figma.mjs, own seeded page): FW-170 ⌥⌘↵ + reload + Esc ×2, FW-171 Prototype › Present + Move to trash / Back / R /
+  Cancel, FW-172 alone (Design › Present, blank phone, Done leaves), FW-173 Card via ⌘K (no animation, outside press),
+  FW-174 normal frames unchanged. protoModel selftest +3 checks.
