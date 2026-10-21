@@ -232,6 +232,25 @@ describe("Dialog / ModalForm inside a device frame ([data-zen-overlay-root])", (
   });
 });
 
+describe("ModalForm footer in a narrow frame", () => {
+  const frame: CSSProperties = { position: "relative", width: 390, height: 844, overflow: "hidden" };
+  it("keeps three actions in a row that wraps, never past the panel", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <div data-zen-overlay-root="" style={frame}>
+          <ModalForm open onOpenChange={() => undefined} layout="big" title="New project" primaryAction={{ label: "Create project" }}
+            secondaryAction={{ label: "Cancel" }} tertiaryAction={{ label: "Back" }}>
+            <InputField label="Project name" />
+          </ModalForm>
+        </div>
+      </ZenProvider>,
+    );
+    const footer = screen.getByRole("dialog", { name: "New project" }).element().querySelector(".zen-modal-form__footer") as HTMLElement;
+    expect(getComputedStyle(footer).flexDirection).toBe("row");
+    expect(footer.scrollWidth).toBeLessThanOrEqual(footer.clientWidth);
+  });
+});
+
 describe("focusFirstInvalidField: AutocompleteField in error", () => {
   const people = [{ id: "ava", label: "Ava Chen" }, { id: "ben", label: "Ben Ortiz" }, { id: "cara", label: "Cara Lim" }];
 

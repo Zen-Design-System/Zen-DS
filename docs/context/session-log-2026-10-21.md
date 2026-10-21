@@ -187,7 +187,8 @@ Code harness (check-usage.mjs; bad and good fixtures; 224 rules self-tested):
   submits, and E2E FW-14 keeps its names (dialog "Rename 2 layers", "Rename to", the Preview list, Rename).
 
 ModalForm CSS: the footer no longer stacks its actions vertically below 720px or in a ≤ 688px device frame. The side
-column still stacks. dialog-modal.test expects a row now.
+column still stacks. dialog-modal.test expects a row now. Where three actions don't fit (narrow window or frame), the row wraps instead of
+running out of the panel: a new dialog-modal test covers a Big form with three actions in a 390 frame.
 
 Guidelines, AGENTS.consumer rule 11, the zen-component-usage skill, and the Figma screen rules and audit table are
 updated.

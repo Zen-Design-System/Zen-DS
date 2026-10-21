@@ -134,8 +134,10 @@
 .zen-modal-form__close { position: absolute; top: var(--zen-spacing-padding-large, 20px); right: var(--zen-spacing-padding-large, 20px); }
 /* Figma: "DO NOT use for mobile" (a phone opens the form in a BottomSheet) — below 720px the side column stacks above the
    form so it still works. The footer keeps its actions in a row at every width: a form never stacks them (user rule
-   2026-10-21, "form thì không dùng Action direction vertical"). */
+   2026-10-21, "form thì không dùng Action direction vertical"); where three do not fit, the row wraps instead of
+   running out of the panel. */
 @media (max-width: 720px) {
+  .zen-modal-form__footer.zen-modal-actions, .zen-modal-form__footer .zen-modal-actions__main { flex-wrap: wrap; justify-content: flex-end; }
   .zen-modal-form[data-side="true"] .zen-modal-form__content { grid-template-columns: minmax(0, 1fr) !important; }
   .zen-modal-form__side { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
 }
@@ -164,6 +166,7 @@
   .zen-dialog__actions .zen-button { width: 100%; }
 }
 @container zen-modal-frame (max-width: 688px) {
+  .zen-modal-form__footer.zen-modal-actions, .zen-modal-form__footer .zen-modal-actions__main { flex-wrap: wrap; justify-content: flex-end; }
   .zen-modal-form[data-side="true"] .zen-modal-form__content { grid-template-columns: minmax(0, 1fr) !important; }
   .zen-modal-form__side { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
 }
