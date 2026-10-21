@@ -300,6 +300,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (278 Dark values; step 1, brand step 9, steps 10–12 and every Light value unchanged). Dark surfaces, subtle fills
   and borders read a little lighter. Zen-High-Contrast is recomputed from them. Studio's ramp copy
   (tools/studio/zen-ramp.generated.mjs) follows the plugin, so a project's custom ramps get the lift too.
+- Zen Studio draws Figma's Header/AppShell (16783:71068; 2026-10-21, user: "Update Header/AppShell component từ Figma
+  lên studio"): the AppShell page's Main component shows it at Figma's 1272 with the Collapse button, the Properties panel
+  has its Theme (Default · Border & Divider), Density (Medium · Small), Main and Sections rows and the Leading, Center and
+  Trailing slots, and the direct paste to Figma knows the set (native pack).
+- Zen Studio draws every variant of Figma's Patterns/Sidebar (6040:67524; 2026-10-21, user: "Studio vẽ đủ các variant"):
+  the Sidebar page's Main component shows its Theme (Default · Border · Borderless · Carved · Carved-Floating), Density,
+  Shadow and Expand (Expand=No draws `collapsed`), and the Properties panel has Theme, Density and Shadow for every
+  Sidebar. The Side-Bar/Master sets draw Expand too.
 - PageHeader's description (and DashboardHeader Main's subheading) is Content/Neutral/Light, as Figma's SubHeading
   (4122:33399) (2026-10-21, user: "trong Figma dòng subtext dưới header là tone Light chứ không phải base").
 - Popover: an item with only a leading icon (no label) centres the icon; the first-line alignment is for labelled items
