@@ -219,7 +219,7 @@ function DiscoverPhone() {
           action={{ icon: "icon-stars-01-line", label: "Ask AI", onClick: () => toast({ title: "Ask AI", children: "Ask about a person, a place or a record." }) }} />}
       >
         <Stack gap="xl">
-          <Search aria-label="Search ancestors or places" placeholder="Search ancestors or places" value={query} onValueChange={setQuery}
+          <Search shape="rounded" aria-label="Search ancestors or places" placeholder="Search ancestors or places" value={query} onValueChange={setQuery}
             trailing={<InputLeadingTrailing icon="icon-microphone-line" aria-label="Search by voice" onClick={() => toast({ title: "Listening…", children: "Say a name or a place." })} />} />
           <Stack as="section" gap="sm" aria-labelledby={intentsId}>
             <Heading level={2} id={intentsId} textStyle="Heading/4">What to explore?</Heading>
@@ -448,7 +448,7 @@ export const examples: ExampleDef[] = [
     action={{ icon: "icon-stars-01-line", label: "Ask AI", onClick: askAi }} />}
 >
   <Stack gap="xl">
-    <Search aria-label="Search ancestors or places" placeholder="Search ancestors or places" value={query} onValueChange={setQuery}
+    <Search shape="rounded" aria-label="Search ancestors or places" placeholder="Search ancestors or places" value={query} onValueChange={setQuery}
       trailing={<InputLeadingTrailing icon="icon-microphone-line" aria-label="Search by voice" onClick={listen} />} />
     <Stack as="section" gap="sm" aria-labelledby="intents">
       <Heading level={2} id="intents" textStyle="Heading/4">What to explore?</Heading>

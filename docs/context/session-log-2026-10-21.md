@@ -349,3 +349,17 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+
+## Search Rounded in the Figma library (session "Search shape variant rounded", tier S; user: "có")
+- Answer to the 2026-10-17 question (mobile library searches default to Rounded). Code already did it (1a89304b:
+  SearchShapeContext in TopNavigation's control bar and BottomSheet, so the Input phone sheet too); this is the Figma side.
+- Scan of every component on the mobile, Master-Layout, Input, Calendar/Schedule/Timeline, Chat, AI-Chat, Side Panel and
+  Sidebar pages for a Search/Default held directly: Bottom-Sheet (4059:14161, Type=Action Flex + Max-Fixed: Search
+  4435:20701, 9818:7099) → `setProperties({ Shape: "Rounded" })`, size and text kept, no placed instances of those
+  variants. Top-Navigation/Mobile's Control-Bar is an empty SLOT (Control-Slot, 24 variants): nothing to set.
+  Dashboard Header Control-Bar and Side-Bar Small-Density are desktop: Default kept.
+- Templates: no Search in phone frames on ◆ Social/Finance/Logistic/HR/Ecommerce; ◇ Master-Layout · Example has three
+  in Pattern/AppShell/Mobile slot content (E1 · Delivery home, E2 · Shop home, E6 · Discover) → Rounded (texts and
+  trailing scan/mic kept, screenshots checked); their code twins (app-shell/e-consumer-1, -2) take `shape="rounded"`.
+- Docs: Figma skill screen-rules row, CHANGELOG, BACKLOG (P2 → archive; new P3: native-pack's Bottom-Sheet still
+  draws Search/Popover from its 2026-10-18 read, re-probe incremental).

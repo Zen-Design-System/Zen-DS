@@ -155,7 +155,7 @@ function DeliveryHomePhone() {
                 <Image src={platformMedia.food.mascot.src} alt="" ratio="1:1" fit="contain" frame={false} radius="none" loading="eager" />
               </Box>
             </Stack>
-            <Search placeholder="Burgers, bubble tea, phở…" aria-label="Search food and stores" value={query} onValueChange={setQuery}
+            <Search shape="rounded" placeholder="Burgers, bubble tea, phở…" aria-label="Search food and stores" value={query} onValueChange={setQuery}
               onKeyDown={(event) => { if (event.key === "Enter" && query) toast({ title: `Searching “${query}”`, children: `Near ${campusLabel}` }); }} />
           </Stack>
         )}
@@ -246,7 +246,7 @@ function ShopHomePhone() {
             { icon: "icon-bell-01-line", label: "Notifications", onClick: () => toast({ title: "Flash sale at 20:00", children: "Up to 40% off Vintas and Basas." }) },
             { icon: "icon-shopping-cart-line", label: cartSeen ? "Cart, 2 items" : "Cart, 2 items, updated", dot: !cartSeen, onClick: () => { setCartSeen(true); toast({ title: "2 items in your cart", children: "Urbas Love+ Slip On · Vintas Soda Pop High" }); } },
           ]} />}
-        hero={<Search placeholder="What are you looking for?" aria-label="Search the shop"
+        hero={<Search shape="rounded" placeholder="What are you looking for?" aria-label="Search the shop"
           trailing={<InputLeadingTrailing icon={<Icon name="icon-scan-line" decorative />} aria-label="Scan a product code" onClick={() => toast({ title: "Point the camera at a barcode", children: "We find the pair and its sizes." })} />} />}
         bottomNavigation={<BottomNavigation aria-label="Sneaker shop" value={root} onValueChange={setRoot} showLabels items={shopRoots} />}
       >
@@ -459,7 +459,7 @@ export const examples: ExampleDef[] = [
           <Heading level={1} textStyle="Display/2">Hi,<br />fellow!</Heading>
           <Box width={100}><Image src={mascot.src} alt="" ratio="1:1" fit="contain" frame={false} radius="none" loading="eager" /></Box>
         </Stack>
-        <Search placeholder="Burgers, bubble tea, phở…" aria-label="Search food and stores" value={query} onValueChange={setQuery} />
+        <Search shape="rounded" placeholder="Burgers, bubble tea, phở…" aria-label="Search food and stores" value={query} onValueChange={setQuery} />
       </Stack>
     )}
     bottomNavigation={<BottomNavigation aria-label="Delivery app" value={root} onValueChange={setRoot} showLabels items={[
@@ -519,7 +519,7 @@ export const examples: ExampleDef[] = [
       { icon: "icon-bell-01-line", label: "Notifications", onClick: openNotifications },
       { icon: "icon-shopping-cart-line", label: "Cart, 2 items", dot: true, onClick: openCart },
     ]} />}
-  hero={<Search placeholder="What are you looking for?" aria-label="Search the shop"
+  hero={<Search shape="rounded" placeholder="What are you looking for?" aria-label="Search the shop"
     trailing={<InputLeadingTrailing icon={<Icon name="icon-scan-line" decorative />} aria-label="Scan a product code" onClick={scan} />} />}
   bottomNavigation={<BottomNavigation aria-label="Sneaker shop" value={root} onValueChange={setRoot} showLabels items={roots} />}
 >
