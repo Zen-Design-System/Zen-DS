@@ -1772,7 +1772,7 @@
   --zen-color-background-liquid-glass-white-overlay-default: #FFFFFF66;
   --zen-color-background-liquid-glass-white-overlay-hover: #FFFFFF80;
   --zen-color-background-liquid-glass-white-overlay-pressed: #FFFFFFB2;
-  --zen-color-background-carved: var(--zen-light-neutral-alpha-3);
+  --zen-color-background-carved: var(--zen-light-neutral-alpha-2);
   --zen-color-content-inverse-disabled: var(--zen-dark-neutral-alpha-8);
   --zen-color-background-surface-hover: var(--zen-light-neutral-alpha-1);
   --zen-color-background-surface-pressed: var(--zen-light-neutral-alpha-2);
