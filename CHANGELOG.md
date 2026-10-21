@@ -54,6 +54,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   - The 1-3, Half-Half and 3-4 Side-Content columns hug theirs. Their placeholder was Fill, which kept the slot from
     growing.
   - Default sizes are unchanged.
+- Four Breakpoint & Grids tokens from Figma, for Bento layouts (2026-10-21, user: "Kiểm tra update thêm token trong
+  Breakpoints từ Figma"), the same in Desktop, Tablet and Mobile: `--zen-margin-bento-grid` (Padding/XSmall 8),
+  `--zen-margin-bento-layout` (Padding/Medium 16), `--zen-gutter-bento-grid` (Gap/XSmall 8) and
+  `--zen-modal-padding-bento` (Padding/XSmall 8). The other twelve Breakpoint & Grids tokens already matched Figma.
+  Web, SwiftUI and Flutter tokens regenerated.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
