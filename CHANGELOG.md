@@ -1014,6 +1014,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: Layers lists the Main component's variants also when the page opens straight on them (their rows
+  were sometimes empty).
 - Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
 - Zen Studio: a click on a Line or an Arrow selects it, as in Figma. Before, a horizontal line had no height to click
   and the click selected its frame.
