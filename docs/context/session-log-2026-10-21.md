@@ -67,6 +67,11 @@ Studio's Theme/Density mapping waits for this merge (Bug session).
   re-registered without its setProp). Fix at the owner of the SET row, figma-props-build.mjs: a set that repeats a
   value adds its props and Main component variants, not a choice (first wins), and a boolean's `when` counts values,
   not sets. Push selftest 342 ✓ again; Sidebar is the only map entry with a repeated value.
+- Native pack refresh (user: Patterns/Sidebar final, clipboard OK): a drop script took 20 sets out of the pack (19 chart
+  sets incl. .Primitives/Chart/Sector, Trend, Hatch, Legend-Item, Stack-Bar Single/Value-Sector, and Patterns/Sidebar's
+  4 old variants) with their 149 symbols and 0 slot contents; probe 16897:29494 (164 instances: charts 145, Patterns/
+  Sidebar 16, Header/AppShell 3) captured with `--merge --keep`: 21 sets + 164 symbols added, the 211 sets kept stay,
+  clipboard put back 6/6, probe removed. check 177/177, figma-native selftest 130 ✓, studio:selftest exit 0.
 
 ## Session "Bug" · Chart responsive in Figma (Figma library only; user: "kiểm tra lại responsive tất cả các chart trong figma", "tất cả các chiều", "Sửa hết")
 
