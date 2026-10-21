@@ -1511,10 +1511,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const children = element.children.map((child) => {
       const node = convert(child, grid && child.kind === "element" ? { ...context, cell: true, width: cellWidths?.[cellIndex++ % columns.count] ?? null } : context);
       if (!node || node.absolute) return node;
-      // A grid's cells fill their column; Grid's default align (stretch) makes a row's cards as tall as its tallest (a
-      // frame cell hugs: Fill inside Fill leaves Figma a height it cannot settle). Columns that fit keep their minimum on
-      // each cell (figma-pull reads them back as minColumnWidth).
-      if (grid) return { ...node, fillW: true, ...(align === "stretch" && node.type === "INSTANCE" ? { fillH: true } : {}), ...(columns.min ? { minW: Math.min(columns.min, frameWidth - 32) } : {}) };
+      // A grid's cells fill their column; Grid's default align (stretch) makes a row's cards as tall as its tallest. A
+      // Grid in a cell stretches too, its rows sharing the height (Flex, as CSS stretches auto rows), so its cards match
+      // the row's tallest (Dashboard's metric pairs, 2026-10-21: measured in Figma); another frame cell hugs (Fill
+      // inside Fill leaves Figma a height it cannot settle). Columns that fit keep their minimum on each cell
+      // (figma-pull reads them back as minColumnWidth).
+      if (grid) {
+        const innerGrid = align === "stretch" && node.type === "FRAME" && node.layout?.mode === "GRID" && node.layout.grid;
+        const stretched = innerGrid ? { ...node, layout: { ...node.layout, grid: { ...node.layout.grid, rowSizes: Array.from({ length: node.layout.grid.rows }, () => ({ type: "FLEX", value: 1 })) } } } : node;
+        return { ...stretched, fillW: true, ...(align === "stretch" && (node.type === "INSTANCE" || innerGrid) ? { fillH: true } : {}), ...(columns.min ? { minW: Math.min(columns.min, frameWidth - 32) } : {}) };
+      }
       const { fillW, fillH } = fills(child, context);
       // fillChildren (layout.css): in a row every child without its own width takes an equal share; in a column only
       // when the column has a height of its own (else they keep their content height).

@@ -607,6 +607,7 @@ export default function Page() {
               <Grid columns="repeat(auto-fill, minmax(360px, 1fr))"><Card><Text>A</Text></Card><Card><Text>B</Text></Card></Grid>
               <Grid columns="repeat(auto-fit, minmax(360px, 1fr))"><Card><Text>A</Text></Card><Card><Text>B</Text></Card></Grid>
               <Grid columns="2fr 1fr"><Grid><Card><Text>One</Text></Card></Grid><Grid><Card><Text>Two</Text></Card></Grid></Grid>
+              <Grid columns={2}><Stack><Text>Left</Text></Stack><Card><Text>Right</Text></Card></Grid>
               <Card><Grid><Text>In a card</Text></Grid></Card>
               <InlineMessage theme="warning" title="Overdue">Send a reminder.</InlineMessage>
               <InlineMessage theme="info" title="Closable" onClose={proto.close()}>It closes.</InlineMessage>
@@ -623,7 +624,7 @@ export default function Page() {
 {
   const { frame } = push(WIDTHS);
   const stack = find(frame, (node) => node.name === "Stack" && node.children?.filter((child) => child.name === "Grid").length >= 4);
-  const [halves, fill, fitted, tracks] = stack.children.filter((child) => child.name === "Grid");
+  const [halves, fill, fitted, tracks, mixed] = stack.children.filter((child) => child.name === "Grid");
   const columnsOf = (grid) => [grid.layout.mode, grid.layout.grid?.columns, grid.layout.grid?.rows, grid.layout.grid?.sizes?.map((size) => `${size.type} ${size.value}`)];
   // 1440 − 240 (Sidebar) − 2 × 24 (Container's gutter) = 1152: (1152 + 24) / (480 + 24) → 2 columns of 564.
   check("Grid minColumnWidth 480 in AppShell › Container (1152 wide): 2 even columns, a cell each", [columnsOf(halves), halves.children.map((cell) => [cell.cell.col, cell.cell.row, cell.minW])], [["GRID", 2, 1, ["FLEX 1", "FLEX 1"]], [[0, 0, 480], [1, 0, 480]]]);
@@ -631,6 +632,9 @@ export default function Page() {
   check("auto-fit lets the cards take them: 2 columns", columnsOf(fitted), ["GRID", 2, 1, ["FLEX 1", "FLEX 1"]]);
   // "2fr 1fr" of 1152: (1152 − 16) × 2/3 = 757 takes 3 columns of 240, 379 one.
   check("a grid track's share is the width inside it (2fr: 3 columns of 240, 1fr: 1)", tracks.children.map((cell) => cell.layout.grid?.columns), [3, 1]);
+  // CSS stretches a Grid in a cell to its row and shares the height among its auto rows: Fill, rows Flex (measured in
+  // Figma, 2026-10-21: the Dashboard's second pair of cards came out at their own height). Another frame cell hugs.
+  check("a Grid in a grid cell stretches to its row, its rows Flex; a Stack cell hugs, a Card fills", [tracks.children.map((cell) => [cell.fillH, cell.layout.grid?.rowSizes?.map((size) => `${size.type} ${size.value}`)]), mixed.children.map((cell) => cell.fillH)], [[[true, ["FLEX 1"]], [true, ["FLEX 1"]]], [undefined, true]]);
   const inCard = find(frame, (node) => node.name === "Grid" && node.children?.some((child) => child.characters === "In a card"));
   check("in an instance's slot the width is unknown: a wrapping row of cells no narrower than the minimum", [inCard.layout.mode, inCard.layout.wrap, inCard.children[0].minW], ["HORIZONTAL", true, 240]);
   const crumbs = find(frame, (node) => node.set?.name === "Breadcrumbs")?.slots[0].children ?? [];
