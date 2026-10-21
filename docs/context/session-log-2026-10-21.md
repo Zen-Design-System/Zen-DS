@@ -69,3 +69,18 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+
+## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
+
+Branch `zen/feat/schedule-20261021` (worktree `../Zen-DS-schedule`, on top of the Calendar branch). Spec card:
+`docs/research/schedule-2026-10-21.md` (read from ❖ Schedule 16121:6 with read-only use_figma dumps).
+
+- `src/components/Schedule/`: ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner and the
+  primitives; dates through Calendar's `toDate` (ISO strings for Studio pages). Reuses Event-Block, Now-Line, Week-Strip,
+  Avatar / AvatarStack, Dock-Icon, Badge, Divider, IconButton.
+- Choices: Slot heights from Select-Item Medium / Small (Comfortable 40 / 32 on phones; Figma's text says 44); Past stop
+  titles Neutral/Base (zen-allow, Figma 16133:1131); the Slot label keeps Corner-Radius/Action/Small (it is the radio's
+  box); Event-Card meta wraps on a narrow card; bars and the now line are placed through CSS variables.
+- Platform page `schedule` (playground + 6 examples incl. PlatformPhone booking), Do/Don't visuals, guideline + keyboard
+  map, harness rules (2, fixtures), smoke fixtures, axe baseline (colour-contrast only: Neutral/Light text), 4 interaction
+  tests. Studio: component-properties page ❖ Schedule (4 public sets), figma-props map, 4 Assets items, library keys.
