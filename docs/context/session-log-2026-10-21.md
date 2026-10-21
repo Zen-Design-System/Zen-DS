@@ -220,6 +220,13 @@ ModalForm CSS: the footer no longer stacks its actions vertically below 720px or
 column still stacks. dialog-modal.test expects a row now. Where three actions don't fit (narrow window or frame), the row wraps instead of
 running out of the panel: a new dialog-modal test covers a Big form with three actions in a 390 frame.
 
+Gate (2026-10-22 03:00, main 9a43884d merged in; `ZEN_QA_SHARDS=4 --isolated --pages=dialog,bottom-sheet,card,empty-state,menu,page-header`) **PASS**:
+- Static checks green; Vitest 79/79.
+- Platform audit 1512 + 390 + 320: 0 errors, 0 new warnings. Dark: 0. Behaviour: 0.
+- Studio E2E: 338 works · 0 broken (full run, no shards).
+- `studio:e2e --only=figma --rows=FW-14`: works. Rename layers is now a ModalForm: Dot $n → Dot 1, Dot 2, one ⌘Z.
+- Contact sheets reviewed (dialog 390 / 1512).
+
 Guidelines, AGENTS.consumer rule 11, the zen-component-usage skill, and the Figma screen rules and audit table are
 updated.
 
