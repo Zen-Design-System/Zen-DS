@@ -208,14 +208,14 @@
 .zen-chart__legend li { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chart__swatch { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); }
 
-/* Chart card: header (title bar · description · value) · Segmented · chart, gap 16. */
+/* Chart card: header (title bar) · Segmented · Metric (description · value) · chart, gap 16 (Figma Chart/Line-Chart). */
 .zen-chart-card__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 /* A Chart Card stretched by its grid row (the user 2026-10-16: "scale the chart", Figma Chart-Card: the chart fills): the
    free height reaches the chart as --zen-chart-grow (ChartCard useChartGrow), so the charts of a row end together
    instead of leaving an empty band under the shorter one (audit card-gap). A ring that already fills the card's width
    cannot grow more: the chart sits in the middle of what is left. */
 .zen-chart-card > .zen-card__content { flex: 1 1 auto; }
-.zen-chart-card__body > :last-child:not(.zen-chart-card__header) { margin-block: auto; }
+.zen-chart-card__body > :last-child:not(.zen-chart-card__header, .zen-chart-card__metric) { margin-block: auto; }
 /* Beside its legend (start / end, total start) a ring grows with the card too (the user 2026-10-16: "Chart nên scale
    ra"), up to the width the row leaves it: the legend keeps its 100px basis (the total column 160px) and the gap, so a
    grown ring never pushes it under. Below its own size it wraps as before. Once the width stops it, what is left of the
@@ -228,7 +228,9 @@
 .zen-chart-card__icon { display: inline-flex; flex: none; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chart-card__title { min-width: 0; flex: 1; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chart-card__description { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
-.zen-chart-card__value { margin: var(--zen-spacing-gap-2-xsmall, 4px) 0 0; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
+/* Metric: Padding/Small above (Figma adds it to the card's 16 gap), the description and the value Gap/3XSmall apart. */
+.zen-chart-card__metric { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-top: var(--zen-spacing-padding-small, 12px); }
+.zen-chart-card__value { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
 
 /* Colour and opacity follow the pointer and the keys in Fast (nothing moves). */
 .zen-chart__x, .zen-chart__hlabel, .zen-chart__hvalue, .zen-chart__sector::before, .zen-chart__bar, .zen-chart__stack, .zen-chart__slice, .zen-chart__arc, .zen-chart__pill, .zen-chart__heat-label, .zen-chart__cell {

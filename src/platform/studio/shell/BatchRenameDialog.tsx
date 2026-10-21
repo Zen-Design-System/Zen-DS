@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../../../components/Button";
-import { Dialog } from "../../../components/Dialog";
+import { ModalForm } from "../../../components/Dialog";
 import { InputField } from "../../../components/Input";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { batchNames, renamableLayers, renameLayers, setBatchRenameOpen, useBatchRenameOpen } from "../edit/rename";
@@ -12,6 +12,8 @@ const PREVIEW = 6;
 /**
  * Figma's Rename layers (⌘R with several layers selected): "Rename to" with the current name ($&) and numbers counting up
  * ($n) or down ($N), "Match" to replace only part of each name, "Start from" for the numbers, and a preview. One ⌘Z.
+ * Three fields make it a form, so it is a ModalForm, not a Dialog (user rule 2026-10-21: a Dialog is for a notice or a
+ * quick confirm): Enter or Rename submits.
  */
 export function BatchRenameDialog() {
   const open = useBatchRenameOpen();
@@ -24,17 +26,17 @@ export function BatchRenameDialog() {
   const add = (token: string) => setPattern((current) => `${current}${token}`);
   const apply = () => { void renameLayers(layers, names).then((done) => { if (done) setBatchRenameOpen(false); }); };
   return (
-    <Dialog
+    <ModalForm
       open={open}
       onOpenChange={setBatchRenameOpen}
       title={`Rename ${layers.length} layers`}
-      icon={false}
       className="studio-rename"
-      primaryAction={{ label: "Rename", onClick: apply, disabled: !layers.length }}
+      primaryAction={{ label: "Rename", disabled: !layers.length }}
       secondaryAction={{ label: "Cancel" }}
+      onSubmit={() => { if (layers.length) apply(); }}
     >
       <div className="studio-rename__fields">
-        <InputField size="sm" label="Rename to" value={pattern} onValueChange={setPattern} autoFocus onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); apply(); } }} />
+        <InputField size="sm" label="Rename to" value={pattern} onValueChange={setPattern} autoFocus />
         <div className="studio-rename__tokens" role="group" aria-label="Add to the name">
           <Button size="sm" level="tertiary" onClick={() => add("$&")}>Current name</Button>
           <Button size="sm" level="tertiary" onClick={() => add("$n")}>Number ↑</Button>
@@ -49,6 +51,6 @@ export function BatchRenameDialog() {
         ))}
         {layers.length > PREVIEW ? <li className="studio-rename__from">{`${layers.length - PREVIEW} more`}</li> : null}
       </ul>
-    </Dialog>
+    </ModalForm>
   );
 }

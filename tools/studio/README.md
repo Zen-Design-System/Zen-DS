@@ -328,6 +328,20 @@ The result must parse at least as well as the original, or the edit is refused (
 - **E2E:** the E2E server keeps its projects beside its pages (`ZEN_STUDIO_PROJECTS_DIR`).
 - **Spec:** `docs/research/studio-projects-theme-2026-10-17.md`.
 
+### Open on phone (2026-10-21)
+
+Play's bar (QR button) plays the page on a real phone on the same Wi-Fi, in the phone's own browser (`device-share.mjs`).
+- **Endpoints:**
+  - `POST /device/share` with `{ title, text, start, modes, brand, themeCss, uploads }`: keeps the page for two hours
+    under a random share token; answers `{ ok, urls, local, expires }` (`urls`: this computer's network addresses).
+    Needs the token, any role.
+  - `GET /device/page?t=<share token>`: the shared page, for `device.html` (`src/platform/studio/device/`).
+- **Network proxy:** the dev server stays on localhost. The first share opens a proxy on a free port of every address.
+  It lets through only a browser that opened a live share's link (`/d/<token>` sets a cookie), only GET and HEAD of
+  the device page's modules and the share's route, with a loopback Host. It closes when no share is left.
+- **QR code:** `uqr`, loaded only when the dialog opens. A checkout without it still runs, and the dialog shows the link.
+- **Checks:** `node tools/studio/device-share.selftest.mjs`; E2E PT-17.
+
 ## 3. Detach component (`detach.mjs`, op `{ op: "detach", measured?, instance? }`)
 
 Figma's Detach instance, at source level: a presentational component instance becomes Zen layout primitives with token
@@ -502,6 +516,7 @@ Tab: `src/platform/studio/agent/` (`AgentPanel.tsx`, `agentStore.ts`, `agent.css
 node tools/studio/mcp/mcp.selftest.mjs   # relay, token, endpoint guards, the SDK client through the endpoint to a fake tab, the tab's layer outline
 npm run studio:e2e -- --only=mcp         # AI-01…06: the SDK client on a real tab (read, update + ⌘Z, insert, batch, folder edit live, Stop)
 node tools/studio/agent/agent.selftest.mjs   # Zen Agent offline: transcript, harness diff, whole turns through the real Tool Runner (scripted fetch) on a fake tab, Stop, routes, zen-ds over stdio
+node tools/studio/device-share.selftest.mjs  # Open on phone: the proxy's paths, methods and cookie, share expiry, a real proxy before a stand-in server
 npm run studio:e2e -- --only=agent       # AG-01…12: the panel on a real tab with the scripted model (change + ⌘Z, selection, picture, Stop, harness fix, no key; V1a: model picker, undo turn, canvas flash, ask_person, attached picture, parts in order)
 node tools/studio/selftest.mjs     # pure functions + detach (style-guard/usage-guard on its outputs) + wrap + drafts (rebase fuzz) + history + frame-scope + slots
 node tools/studio/slots.selftest.mjs   # slot ops alone (tsc, style-guard and usage-guard on realistic outputs through src/platform/examples/drafts)

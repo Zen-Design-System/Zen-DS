@@ -117,7 +117,7 @@ Components own their inner padding and gap; never change them. Between elements,
 | Destructive action | Level=Danger or Danger Subtle | a red-painted Primary |
 | Filter, sort, scope, status, owner, period | `Chip/Advanced` (with its popover), in the header's `Type=Control-Bar` row | a Button or a Segmented |
 | Switching views or sections | `Segmented` or `Tab-Bar` | Chips |
-| Search | `Search/Default`; on phone screens prefer `Shape=Rounded` (a pill; recommended, not required) | a Text-Field with a magnifier |
+| Search | `Search/Default`; on phone screens `Shape=Rounded` (a pill) is the default: Bottom-Sheet's search has it, and a Search you put in Top-Navigation/Mobile's Control-Slot or a phone screen takes it; Default stays allowed | a Text-Field with a magnifier |
 | A list of people, items, approvals, settings | `Component/List-Box` holding `List-Item` rows | a Card with hand-made rows |
 | The list that closes a phone screen (transactions, tasks, activity: nothing after it, not in a widget grid) | an open section as `◆ Finance` Transactions: a `Heading` row (Heading/4 + See All, `Margin-Comfortable` sideways, `Spacing/Padding/Medium` above and below) over the `List-Item` rows in a frame padded `Margin-Comfortable` sideways, gap 0, straight on the Canvas (audit `list-box/closing-list-on-phone`) | a `Component/List-Box` at the end of the phone screen |
 | Tabular data | Table cells (`Table/Cell/*`, `Primitives/Table/*`) on the canvas, full width | a Table inside a Card (unless it is a dashboard widget) |
@@ -133,7 +133,9 @@ Components own their inner padding and gap; never change them. Between elements,
 | Nothing to show | `Empty-State` | an empty table |
 | Loading | `Skeleton/*` | a spinner over the page |
 | A record's side details | `Side-Panel` | a Modal for reading |
-| Confirm or a short form | `Modal/Dialog`, `Modal/Forms` | a Side-Panel |
+| A notice or a quick confirm (one field at most) | `Modal/Dialog` | a Modal/Forms |
+| A data-entry form (two or more fields), desktop or tablet | `Modal/Forms`, its Actions `Direction=Horizontal`, the Side-Content no taller than the form | a Modal/Dialog, a Side-Panel |
+| A form on a phone | `Bottom Sheet` (title, the fields, the actions in its footer) | `Modal/Forms` (it has no Mobile device) |
 | Back on phone and tablet | the left chevron in `Top-Navigation/Mobile` | an arrow |
 
 Pick each component's guideline (`guidelines/<slug>.md`) before placing it.

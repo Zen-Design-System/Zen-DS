@@ -12,6 +12,7 @@ import "../Motion/motion.css";
 import "./app-shell.css";
 import { SidebarShellContext, type SidebarRegistration, type SidebarShellState } from "../_shared/sidebar-shell";
 import { InlineOverlayContext } from "../_shared/overlay";
+import { SearchShapeContext } from "../_shared/search-shape";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
@@ -406,6 +407,10 @@ export function AppShell({
   const sidePanelPart = sidePanel && sidePanelDocked ? <div ref={setSidePanelEl} className="zen-app-shell__side-panel">{sidePanel}</div> : null;
   const floatingPart = floatingActions ? <div className="zen-app-shell__floating" data-hidden={floatingHidden ? "true" : undefined}><div className="zen-app-shell__floating-items">{nest.slot(floatingActions)}</div></div> : null;
   const pane = (part: ReactNode, side: "leading" | "trailing") => (part ? <div className="zen-app-shell__pane" data-side={side}>{nest.slot(part)}</div> : null);
+  // On a phone (the mobile structure, or the drawer under tablet width) a Search that sets no `shape` is Rounded; a
+  // Search can still say shape="default" (SearchShapeContext; user 2026-10-21: "AppShell mobile cũng mặc định Rounded",
+  // "nhưng cho phép đổi").
+  const phoneSearches = (part: ReactNode) => (mobile || chrome.phone ? <SearchShapeContext value="rounded">{part}</SearchShapeContext> : part);
 
   let frame: ReactNode;
   if (mobile) {
@@ -485,19 +490,19 @@ export function AppShell({
           data-bottom={mobile ? (actionBar ? "actions" : bottomNavigation ? "navigation" : "none") : undefined} inert={open || undefined}>
           {skip}
           {bannerPart}
-          {frame}
+          {phoneSearches(frame)}
           {/* A side panel that is not a SidePanel (no modal of its own) stacks under the page when it cannot dock. */}
-          {sidePanel && !sidePanelDocked && !sidePanelElement ? <div className="zen-app-shell__side-panel" data-stacked="true">{sidePanel}</div> : null}
+          {sidePanel && !sidePanelDocked && !sidePanelElement ? <div className="zen-app-shell__side-panel" data-stacked="true">{phoneSearches(sidePanel)}</div> : null}
         </div>
         {/* The modal panel renders next to the shell, as the drawer does (InlineOverlayContext), so a preview frame holds it. */}
-        {sidePanelElement && !sidePanelDocked ? <InlineOverlayContext value>{cloneElement(sidePanelElement, { type: "modal" })}</InlineOverlayContext> : null}
+        {sidePanelElement && !sidePanelDocked ? <InlineOverlayContext value>{phoneSearches(cloneElement(sidePanelElement, { type: "modal" }))}</InlineOverlayContext> : null}
         {/* The drawer sits next to the shell, outside its inert subtree and inside the provider (so it keeps the token
             modes). Fixed to the viewport in an app; a preview frame that contains layout (container-type) holds it. */}
         {sidebar && presence.mounted ? (
           <div className="zen-app-shell__overlay" data-state={presence.phase}>
             <div className="zen-app-shell__scrim" aria-hidden="true" onPointerDown={() => setNavOpen(false)} />
             <div ref={drawerRef} className="zen-app-shell__drawer" role="dialog" aria-modal="true" aria-label={navLabel} tabIndex={-1} data-state={presence.phase} inert={presence.phase === "closing" || undefined} onClick={onDrawerClick}>
-              <div className="zen-app-shell__drawer-panel"><SidebarShellContext value={DRAWER_SHELL}>{sidebar}</SidebarShellContext></div>
+              <div className="zen-app-shell__drawer-panel"><SidebarShellContext value={DRAWER_SHELL}>{phoneSearches(sidebar)}</SidebarShellContext></div>
               <div className="zen-app-shell__drawer-close">
                 {nest("Close", <IconButton level="tertiary" size="md" icon={<Icon name="icon-x-medium-line" />} aria-label={t.closeNavigation} onClick={() => setNavOpen(false)} />)}
               </div>
