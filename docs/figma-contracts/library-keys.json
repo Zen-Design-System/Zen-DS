@@ -626,7 +626,7 @@
       "key": "1cca393d971c48ed570d8f3e6d8b5ed97990b9d1"
     },
     "6040:67524": {
-      "name": "Patterns/Sidebar/Density-Medium",
+      "name": "Patterns/Sidebar",
       "type": "COMPONENT_SET",
       "key": "1a3970adbd847f87ba2981bf0ddda11c5704aafc"
     },
