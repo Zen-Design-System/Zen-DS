@@ -92,6 +92,8 @@
 //                                     icons in a row): a Sub first crumb, or the toggle in the sidebar (Collapse=Sidebar)
 //   spacing/section-gap      error    a phone screen's Body (the frame that stacks its sections) not spaced by
 //                                     Component Size Layout-Mobile/Section-Gap (Compact 24, Comfortable 32)
+//   list-box/closing-list-on-phone  error  a List-Box that closes a phone screen (the last section, not in a row or grid
+//                                     of widgets, not one of several grouped List-Boxes): an open section as ◆ Finance
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
 // is scroll content, not bounds/clipped.
 
@@ -760,6 +762,49 @@ async function checkSectionGap(root) {
   }
 }
 
+// A list that closes a phone screen (user 2026-10-21: "nếu list-box nằm cuối trang ở mobile thì không bỏ vào list box mà
+// đưa thành 1 danh sách nối thành 1 section giống example Finance"; "cuối trang nghĩa là bên dưới nó không nằm trong grid
+// của các widget, mà là 1 danh sách độc lập liệt kê như task, transaction"): on a phone, a List-Box that is the last
+// section of the screen's content, and not in a row or grid of widgets, is an open section instead, as ◆ Finance's
+// Transactions: a Heading row (Heading/4 + See All, Margin-Comfortable sideways, Padding/Medium above and below) over the
+// List-Items in a frame padded Margin-Comfortable sideways, straight on the Canvas. Grouped lists (more than one List-Box
+// in the content: settings, profile, screen-rules §4) keep their boxes.
+const PAGE_PATTERN = /^Pattern\/|AppShell|Master-Layout/;
+const SCREEN_BAR = /^(Bottom-Navigation|Top-Navigation|Action-Bar|Status-bar|Home-Indicator|System|Tab-Bar)/;
+async function checkClosingList(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen)) continue;
+    const phone = screen.width < 744 || screen.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(node.name)).length > 0;
+    if (!phone) continue;
+    const closing = [];
+    const perContent = new Map();
+    for (const box of screen.findAll((node) => node.type === "INSTANCE" && node.visible !== false)) {
+      if ((await setNameOf(box)) !== "Component/List-Box") continue;
+      // Walk up to the screen's content (a page pattern's slot, or the screen frame): every level must end with the box.
+      let current = box, content = null, last = true;
+      for (let parent = box.parent; parent && parent.type !== "PAGE"; current = parent, parent = parent.parent) {
+        if (parent.type === "SLOT") {
+          let owner = parent.parent;
+          while (owner && owner.type !== "INSTANCE") owner = owner.parent;
+          if (!owner || !PAGE_PATTERN.test(await setNameOf(owner))) { last = false; break; } // in a Card, a sheet or a panel
+        } else if (parent.type === "INSTANCE") { last = false; break; } // inside another component
+        if (parent.layoutMode === "HORIZONTAL" || parent.layoutMode === "GRID" || parent.layoutWrap === "WRAP") { last = false; break; } // a row or grid of widgets
+        // By id: layers inside an instance are new objects on every read, so indexOf misses them.
+        const flow = parent.children.filter((child) => child.visible !== false && child.layoutPositioning !== "ABSOLUTE" && !SCREEN_BAR.test(child.name));
+        if (flow.findIndex((child) => child.id === current.id) !== flow.length - 1) last = false; // a section follows
+        if (parent.type === "SLOT" || parent.id === screen.id) { content = parent; break; }
+      }
+      if (!content) continue;
+      perContent.set(content.id, (perContent.get(content.id) ?? 0) + 1);
+      if (last) closing.push([box, content]);
+    }
+    for (const [box, content] of closing) {
+      if (perContent.get(content.id) > 1) continue;
+      report("list-box/closing-list-on-phone", ERROR, box, "the last section of a phone screen is in a List-Box: make it an open section as ◆ Finance Transactions (a Heading row with See All over the List-Items in a frame padded Margin-Comfortable, no box)");
+    }
+  }
+}
+
 // Navigation icons (user 2026-10-17: "Dùng icon không đồng bộ"): in a Bottom-Navigation the selected item shows the
 // solid icon and every other item the line icon of the same family; an icon without a solid version is not a tab icon.
 async function checkNavIcons(root) {
@@ -1149,6 +1194,7 @@ for (const root of roots) await checkBackChevron(root);
 for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkSectionGap(root);
+for (const root of roots) await checkClosingList(root);
 for (const root of roots) await checkNavIcons(root);
 for (const root of roots) await checkFloatingBarFit(root);
 for (const root of roots) await checkStatusInBar(root);

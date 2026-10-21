@@ -17,7 +17,7 @@ import { DateField, InputField, SelectField } from "../../../../components/Input
 import { Thumbnail } from "../../../../components/Image";
 import { Stack } from "../../../../components/Layout";
 import { Link } from "../../../../components/Link";
-import { List, ListBox, ListItem } from "../../../../components/ListItem";
+import { List, ListItem } from "../../../../components/ListItem";
 import { ProgressBar } from "../../../../components/Progress";
 import { Segmented } from "../../../../components/Segmented";
 import { Heading, Text } from "../../../../components/Text";
@@ -258,14 +258,13 @@ function GreetingHomePhone() {
               </Card>
             ))}
           </Stack>
-          <ListBox as="section" aria-labelledby={todoId} header={(
+          <Stack as="section" gap="md" aria-labelledby={todoId}>
             <Stack direction="row" gap="xs" align="center" justify="between">
               <Heading level={2} id={todoId} textStyle="Heading/4">To do today</Heading>
               <Text as="span" textStyle="Body/Base/Bold">
                 <Link as="button" tone="inherit" onClick={() => toast({ title: "All to-dos", children: "3 today · 5 this week" })}>See All</Link>
               </Text>
             </Stack>
-          )}>
             <List aria-labelledby={todoId}>
               {todos.map((todo) => (
                 <ListItem key={todo.id} title={todo.title} caption={todo.caption} onClick={() => toast({ title: todo.title, children: todo.caption })}
@@ -273,7 +272,7 @@ function GreetingHomePhone() {
                   trailing={<Icon name="icon-chevron-right-line-medium" size="lg" decorative />} />
               ))}
             </List>
-          </ListBox>
+          </Stack>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -412,19 +411,18 @@ export const examples: ExampleDef[] = [
         </Card>
         …
       </Stack>
-      <ListBox as="section" aria-labelledby="todo" header={
+      <Stack as="section" gap="md" aria-labelledby="todo">
         <Stack direction="row" gap="xs" align="center" justify="between">
           <Heading level={2} id="todo" textStyle="Heading/4">To do today</Heading>
           <Text as="span" textStyle="Body/Base/Bold"><Link as="button" tone="inherit" onClick={seeAll}>See All</Link></Text>
         </Stack>
-      }>
         <List aria-labelledby="todo">
           <ListItem title="Pay electricity bill" caption="Due today · ₫850,000" onClick={open}
             leading={<Avatar size="md" shape="square" theme="orange" background="subtle" alt="">EB</Avatar>}
             trailing={<Icon name="icon-chevron-right-line-medium" size="lg" decorative />} />
           …
         </List>
-      </ListBox>
+      </Stack>
     </Stack>
   </AppShell>
 </PlatformPhone>`,

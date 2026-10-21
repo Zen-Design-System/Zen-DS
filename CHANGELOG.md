@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- A list that closes a phone page (transactions, tasks, activity: nothing after it, not in a widget grid) is an open
+  section, not a ListBox, as Figma's ◆ Finance Transactions: the title row over a List at the page margin (usage rules
+  §19, user rule 2026-10-21). Harness `listbox/closing-list-on-phone` (error) and Figma audit
+  `list-box/closing-list-on-phone`; the phone examples that boxed it (Button, Chart, VisuallyHidden, AppShell C1, C2, C7,
+  D3, D4, F10–F12) now show it open. Grouped settings lists (§15) and lists in a widget grid keep their ListBox. The
+  harness no longer reads an apostrophe in a prop's JSX text (`hero={<Text>I'm …</Text>}`) as an open string.
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`

@@ -574,17 +574,16 @@ function PhoneProjectsExample() {
             data={septemberByProject.map(({ project, value }) => ({ label: project.name, value }))} format={hours} />
         </Stack>
         {/* What the ranking leaves out: the client projects' budgets, so the hours read against what each can still take. */}
+        {/* It closes the phone screen, so the list is open on the Canvas at the body's margin (usage rules §19). */}
         <Stack as="section" gap="xs" aria-labelledby={`${headingId}-budget`}>
-          <Box paddingX="lg"><Heading level={2} id={`${headingId}-budget`} textStyle="Body/Small/Bold" tone="light">Budget left</Heading></Box>
-          <ListBox>
-            <List aria-labelledby={`${headingId}-budget`}>
-              {septemberByProject.filter(({ project }) => project.spent > 0).map(({ project }) => (
-                <ListItem key={project.id} title={project.name} caption={`${project.client} · ${Math.round((project.spent / project.budget) * 100)}% used`}
-                  leading={<DockIcon size="md" icon={project.icon} theme={project.theme} background="subtle" />}
-                  trailing={<Text as="span" textStyle="Body/Base/Medium">{formatCompactMoney(project.budget - project.spent)}</Text>} />
-              ))}
-            </List>
-          </ListBox>
+          <Heading level={2} id={`${headingId}-budget`} textStyle="Body/Small/Bold" tone="light">Budget left</Heading>
+          <List aria-labelledby={`${headingId}-budget`}>
+            {septemberByProject.filter(({ project }) => project.spent > 0).map(({ project }) => (
+              <ListItem key={project.id} title={project.name} caption={`${project.client} · ${Math.round((project.spent / project.budget) * 100)}% used`}
+                leading={<DockIcon size="md" icon={project.icon} theme={project.theme} background="subtle" />}
+                trailing={<Text as="span" textStyle="Body/Base/Medium">{formatCompactMoney(project.budget - project.spent)}</Text>} />
+            ))}
+          </List>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -666,7 +665,7 @@ function PhoneWeekGaugeExample() {
   });
   return (
     // A pushed screen from Hours: Back and the compact bar, the week's one action in the Action bar (Figma Bottom=Actions).
-    // One main chart goes straight on the screen; the entries are a white block on the grey Canvas.
+    // One main chart goes straight on the screen; the entries close it, open on the grey Canvas (usage rules §19).
     <PlatformPhone label="This week" canvas="default" screenRef={screenRef}>
       <AppShell
         topNavigation={<TopNavigation type="compact-alt" title="This week" scrollRef={screenRef} leading={back} />}
@@ -678,16 +677,14 @@ function PhoneWeekGaugeExample() {
             caption={logged >= weekHours ? "Week complete" : `${hours(weekHours - logged)} to go`} />
         </Stack>
         <Stack as="section" gap="xs" aria-labelledby={listId}>
-          <Box paddingX="lg"><Heading level={2} id={listId} textStyle="Body/Small/Bold" tone="light">Entries</Heading></Box>
-          <ListBox>
-            <List aria-labelledby={listId}>
-              {entries.map((entry) => (
-                <ListItem key={entry.id} title={entry.note} caption={`${entry.day} · ${entry.project.client}`}
-                  leading={<DockIcon size="md" icon={entry.project.icon} theme={entry.project.theme} background="subtle" />}
-                  trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(entry.value)}</Text>} />
-              ))}
-            </List>
-          </ListBox>
+          <Heading level={2} id={listId} textStyle="Body/Small/Bold" tone="light">Entries</Heading>
+          <List aria-labelledby={listId}>
+            {entries.map((entry) => (
+              <ListItem key={entry.id} title={entry.note} caption={`${entry.day} · ${entry.project.client}`}
+                leading={<DockIcon size="md" icon={entry.project.icon} theme={entry.project.theme} background="subtle" />}
+                trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(entry.value)}</Text>} />
+            ))}
+          </List>
         </Stack>
       </AppShell>
       <BottomSheet inline open={logging} onOpenChange={(open) => { setLogging(open); if (!open) form.reset(); }} title="Log time" onSubmit={form.handleSubmit}
@@ -772,7 +769,8 @@ function PhoneTimeSplitExample() {
   const totalsId = useId();
   const back = useBackTo("Hours");
   return (
-    // A pushed screen from Hours: one main chart straight on the screen; the totals are a white block on the grey Canvas.
+    // A pushed screen from Hours: one main chart straight on the screen; the totals close it, open on the grey Canvas
+    // (usage rules §19).
     <PlatformPhone label="Billable time" canvas="default" screenRef={screenRef}>
       <AppShell topNavigation={<TopNavigation type="compact-alt" title="Billable time" scrollRef={screenRef} leading={back} />}>
         <Stack as="section" gap="md" aria-labelledby={chartId}>
@@ -784,13 +782,11 @@ function PhoneTimeSplitExample() {
             series={[{ id: "billable", label: "Billable" }, { id: "internal", label: "Internal" }]} format={hours} height={220} />
         </Stack>
         <Stack as="section" gap="xs" aria-labelledby={totalsId}>
-          <Box paddingX="lg"><Heading level={2} id={totalsId} textStyle="Body/Small/Bold" tone="light">Six-week totals</Heading></Box>
-          <ListBox>
-            <List aria-labelledby={totalsId}>
-              <ListItem title="Billable" caption={`${Math.round((myBillable / (myBillable + myInternal)) * 100)}% of logged time`} trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(myBillable)}</Text>} />
-              <ListItem title="Internal" caption="Reviews, critiques and office hours" trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(myInternal)}</Text>} />
-            </List>
-          </ListBox>
+          <Heading level={2} id={totalsId} textStyle="Body/Small/Bold" tone="light">Six-week totals</Heading>
+          <List aria-labelledby={totalsId}>
+            <ListItem title="Billable" caption={`${Math.round((myBillable / (myBillable + myInternal)) * 100)}% of logged time`} trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(myBillable)}</Text>} />
+            <ListItem title="Internal" caption="Reviews, critiques and office hours" trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(myInternal)}</Text>} />
+          </List>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -1099,7 +1095,7 @@ const retry = () => {
       <BarList aria-label="Your hours by project, September 2026" headers={{ label: "Project", value: "Hours" }} format={hours}
         data={[{ label: "Online banking redesign", value: 92 }, { label: "Zen design system", value: 48 }, /* … */]} />
     </Stack>
-    {/* Budget left: a ListBox under a Body/Small/Bold kicker */}
+    {/* Budget left: it closes the screen, so a List under a Body/Small/Bold kicker, open on the Canvas (no ListBox) */}
   </AppShell>
 </PlatformPhone>`,
   },
@@ -1149,7 +1145,7 @@ const retry = () => {
       <Heading level={2} id={gaugeId} textStyle="Heading/Subheading" align="center">Hours logged</Heading>
       <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={logged} max={40} format={hours} actualLabel="Logged" caption={\`\${hours(40 - logged)} to go\`} />
     </Stack>
-    {/* … the week's entries: a ListBox under a Body/Small/Bold kicker */}
+    {/* … the week's entries close the screen: a List under a Body/Small/Bold kicker, open on the Canvas (no ListBox) */}
   </AppShell>
   <BottomSheet inline open={logging} onOpenChange={setLogging} title="Log time" onSubmit={form.handleSubmit}
     primaryAction={{ label: "Log hours" }} secondaryAction={{ label: "Cancel" }}>…</BottomSheet>
@@ -1223,7 +1219,7 @@ const retry = () => {
         series={[{ id: "billable", label: "Billable" }, { id: "internal", label: "Internal" }]}
         data={[{ label: "Aug 17", values: { billable: 32, internal: 6 } }, /* … */]} />
     </Stack>
-    {/* Six-week totals: a ListBox under a Body/Small/Bold kicker */}
+    {/* Six-week totals close the screen: a List under a Body/Small/Bold kicker, open on the Canvas (no ListBox) */}
   </AppShell>
 </PlatformPhone>`,
   },

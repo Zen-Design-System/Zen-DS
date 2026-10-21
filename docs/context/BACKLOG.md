@@ -7,6 +7,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P2 · Figma ◇ Master-Layout · Example boxes the closing list of 5 phone screens (2026-10-21, question for the user):**
+  usage rules §19 opens the list that ends a phone page (◆ Finance Transactions); code C1, C2, C7, D3, D4 are open since
+  branch `zen/feat/list-section-rule-20261021`, Figma's C1 15921:7245, C2 15921:8204, C7 15942:120713, D3 15950:9324,
+  D4 15950:9696 still hold a List-Box (audit `list-box/closing-list-on-phone`). Rebuild them in Figma? Session log 2026-10-21.
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
   HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: the Code properties rows move to the Code
   tab (§3a "Properties", structural); Present (⌥⌘↵) from a selected Overlay frame, as Figma presents any frame (needs
