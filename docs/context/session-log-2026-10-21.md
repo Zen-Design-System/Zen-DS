@@ -349,3 +349,24 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+
+## F7c: layers into a local instance's slot from the canvas — tier M, branch `zen/feat/studio-slot-drop-20261021`
+Approved scope (user 2026-10-21: "mở phiên nhận các phần đó"; BACKLOG P2 "Studio components, after F7a/F7b"). A layer
+drag or an Assets drag over a slot of an instance of the page's own component now targets that slot, as Figma's: the
+slot is outlined in the component colour with its name (DragView `slot`, DragLayer, edit.css), the insertion line shows
+the place, and the drop writes the instance's `slots`. One write, one ⌘Z; the main is never touched.
+- Canvas: renderPage marks a main's slot layer drawn in a page instance (`data-zen-slot`, `data-zen-slot-of`, only for
+  a `<Use>` of the page, not one nested in a main). `dropTargetAt` takes that slot as a container when the caller opts
+  in (`DropContext.slots`: the layer drag and the Assets drag; paste-here, draw and place keep their targets). Units are
+  the layers the instance puts there (placed by their marks), else its main's own layers (placed by `index`).
+  `insertion` was split into `placeAmong` so both share the line and the before/after logic.
+- Engine: `tools/studio/slot-fill.mjs`; arrange.mjs moveTo / pasteCode take `slot` (+ `index`) and write the
+  `<Use>`'s `slots` again (one layer `<X />`, several `<>…</>`, the Use's line giving the indentation). A slot the
+  instance puts nothing in yet keeps its main's layers on the first drop (Figma keeps a slot's default content, and
+  figma-pull reads them back that way). A layer moves out of a slot, or within it, as from any frame; the slot's last
+  layer takes its entry (and `slots`) away. A removal inside the rewritten `slots` is applied to the layer it falls in
+  (a layer inside the slot's one layer dragged beside it). `many` refuses a slot ("Drop one layer at a time").
+- editDoc's second run on the engine text keeps the layer ids in every slot case (checked in Node).
+- Checks: arrange selftest +7 slot cases (58); `studio:dnd` slot section (667 cases: every Assets item into every slot
+  place, loose layers in and ⌥ copies, slot layers out to every place and to the other slot; 0 findings; 21 143 in
+  all); engine-iso lists slot-fill; E2E FW-160…164.
