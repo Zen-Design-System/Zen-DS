@@ -167,6 +167,78 @@
       "props": "level? size? appearance? startIcon? endIcon? children type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
     },
     {
+      "name": "CalendarAgenda",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "events? from? days? device? today? empty? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "CalendarAgendaItem",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "start end? title meta? color? attendees? device? onClick? aria-label? aria-labelledby? aria-describedby? disabled?"
+    },
+    {
+      "name": "CalendarDate",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "day size? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "CalendarDayCell",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "day label? today? children? more? onMoreClick? onSelect? focusable? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "CalendarDayTile",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "weekday day selected? today? label? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
+    },
+    {
+      "name": "CalendarEvent",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "title time? kind? color? selected? onClick? aria-label? aria-labelledby? aria-describedby? disabled?"
+    },
+    {
+      "name": "CalendarEventBlock",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "title time? showTime? titleLines? color? selected? onClick? aria-label? aria-labelledby? aria-describedby? disabled?"
+    },
+    {
+      "name": "CalendarMonth",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "month? value? defaultValue? onValueChange? events? selectedEventId? onMoreClick? device? today? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "CalendarNowLine",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "orientation? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "CalendarTimeGrid",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "view? date? events? startHour? endHour? now? today? selectedEventId? onSlotPress? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "CalendarToolbar",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "title? date? today? titleLevel? view? views? onViewChange? onToday? onPrevious? onNext? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "CalendarWeekStrip",
+      "status": "stable",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "props": "week? value? defaultValue? onValueChange? events? variant? device? today? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
       "name": "Card",
       "status": "stable",
       "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
