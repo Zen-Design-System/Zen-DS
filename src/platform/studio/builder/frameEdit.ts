@@ -4,14 +4,15 @@ import type { EditOp } from "../types";
 import { loadEngine, zenComponents } from "./engine";
 import { frameOf, literalOf, type PageFrame } from "./render/frames";
 import { selectFrameWhenShown } from "../board/frames";
+import { boardBoxes, sectionContents } from "../board/sections";
 import { FRAME_GAP, placeFrames, type FramePlace } from "./render/framePlace";
 import type { PageNode, PageTree } from "./render/renderPage";
 import { getPage, pageFile } from "./store/pageStore";
 
 /*
  * Writes of free frames on a builder page (user, 2026-10-15: "kéo frame đi mọi nơi", "cho phép copy"): a move sets the
- * frames' x / y; a copy (⌥-drag, ⌘D, ⌘C ⌘V) adds the frame again under a new id at its own place. Each is one edit and
- * one undo step. Frames still in the row of unplaced frames are pinned where they show (in a move's edit; before an
+ * frames' x / y; a copy (⌥-drag, ⌘D, ⌘C ⌘V) adds the frame again under a new id at its own place, a Section's copy
+ * with everything it holds (copySection). Each is one edit and one undo step. Frames still in the row of unplaced frames are pinned where they show (in a move's edit; before an
  * added frame, as its own step), so placing one frame never moves another (render/framePlace.ts).
  */
 
@@ -104,8 +105,14 @@ const copyOf = (node: PageNode, props: Record<string, string | number>): PageNod
   props: { ...node.props, ...Object.fromEntries(Object.entries(props).map(([name, value]) => [name, { kind: "literal" as const, value }])) },
 });
 
-/** A copied frame (⌘C on a frame): its element as parsed, and as code for the system clipboard. */
-export type FrameClip = { page: string; frameId: string; node: PageNode; code: string };
+/** A layer of the board at its place (what a Section's copy carries). */
+type Placed = { node: PageNode; place: FramePlace };
+
+/**
+ * A copied frame (⌘C on a frame): its element as parsed, and as code for the system clipboard. A Section's also carries
+ * what it holds (`held`: its frames and Sections, any depth, at their places).
+ */
+export type FrameClip = { page: string; frameId: string; node: PageNode; code: string; held?: Placed[] };
 
 /**
  * Adds a copy of `frameId` at `at` (null: beside the original) on `localPage`, after the original in Layers; selects it.
@@ -118,6 +125,11 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
   const index = options.source ? -1 : board.frames.findIndex((frame) => frame.id === frameId);
   if (!options.source && index < 0) { announceEditStatus({ kind: "error", message: "That frame is no longer on the page", at: Date.now() }); return null; }
   const original = options.source?.node ?? board.nodes[index];
+  // A Section copies with everything it holds (⌥-drag, ⌘D, ⌘C ⌘V alike).
+  if (original.name === "Section") {
+    const own = frameOf(original).place ?? { x: 0, y: 0 };
+    return copySection(localPage, frameId, at ? { dx: at.x - own.x, dy: at.y - own.y } : null, { ...options, label: options.label?.replace("frame", "section") });
+  }
   const kind = original.name === "Overlay" ? "overlay" : "screen";
   const id = engine.freeFrameId(kind, board.nodes.map((node) => String(literalOf(node, "id") ?? "")));
   const place = at ?? (index >= 0 ? besidePlace(board, index, options.heights ?? new Map()) : placeFrames([...board.frames, { width: 0, place: null }]).at(-1)!);
@@ -138,6 +150,56 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
   return newFrame;
 }
 
+/** Section `sectionId` and what it holds on the board as shown (board/sections.ts), in board order, at their places. */
+function heldBy(board: Board, sectionId: string): Placed[] {
+  const held = new Set([sectionId, ...sectionContents(sectionId, boardBoxes())]);
+  return board.frames.flatMap((frame, index) => (held.has(frame.id) ? [{ node: board.nodes[index], place: frame.place ?? board.places[index] }] : []));
+}
+
+/**
+ * Adds a copy of Section `sectionId` with everything it holds (its frames and Sections, any depth), all moved by
+ * `offset` (null: the copy beside the Section, Figma's Duplicate), in one edit and one undo step; selects the copy.
+ * Each copy takes a new id; links stay as written (a link to a frame copied with it still opens that frame, as Figma's
+ * copies on a page keep theirs). The Section copies go first, so they draw behind the frames. `source` copies a Section
+ * from another page (⌘C there, ⌘V here). Returns the copy's frame id.
+ */
+export async function copySection(localPage: string, sectionId: string, offset: { dx: number; dy: number } | null, options: { label?: string; heights?: ReadonlyMap<string, number>; source?: FrameClip } = {}): Promise<string | null> {
+  let board = await readBoard(localPage);
+  if (!board) return null;
+  // Frames still in the row are pinned first (one more undo step, only on a page written before free frames).
+  if (board.frames.some((frame) => !frame.place)) {
+    if (!(await pinRow(localPage))) return null;
+    board = await readBoard(localPage);
+    if (!board) return null;
+  }
+  const { engine } = board;
+  const index = options.source ? -1 : board.frames.findIndex((frame) => frame.id === sectionId);
+  if (!options.source && index < 0) { announceEditStatus({ kind: "error", message: "That section is no longer on the page", at: Date.now() }); return null; }
+  const parts = options.source ? [{ node: options.source.node, place: frameOf(options.source.node).place ?? { x: 0, y: 0 } }, ...(options.source.held ?? [])] : heldBy(board, sectionId);
+  const own = parts[0].place;
+  const to = index >= 0 ? besidePlace(board, index, options.heights ?? new Map()) : placeFrames([...board.frames, { width: frameOf(parts[0].node).width, place: null }]).at(-1)!;
+  const move = offset ?? { dx: to.x - own.x, dy: to.y - own.y };
+  const taken = board.nodes.map((node) => String(literalOf(node, "id") ?? ""));
+  const sections: string[] = [];
+  const frames: string[] = [];
+  let copied = "";
+  for (const part of parts) {
+    const kind = part.node.name === "Section" ? "section" : part.node.name === "Overlay" ? "overlay" : "screen";
+    const id = engine.freeFrameId(kind, taken);
+    taken.push(id);
+    if (!copied) copied = `section:${id}`;
+    // Printed again without document ids: the engine gives each copy and its layers their own.
+    const code = engine.elementText(copyOf(part.node, { id, x: Math.round(part.place.x + move.dx), y: Math.round(part.place.y + move.dy) }), { ids: false });
+    (kind === "section" ? sections : frames).push(code);
+  }
+  // After the original in Layers; from another page, before the frames (a Section draws behind them).
+  const after = index >= 0 ? board.nodes[index].loc : undefined;
+  const response = await applyEdit({ file: board.file, loc: board.tree.board.loc, name: "Board", ops: [{ op: "insertChild", code: [...sections, ...frames].join("\n"), paste: true, ...(after ? { after } : { index: 0 }) }], hash: board.hash }, options.label ?? "Duplicate section");
+  if (!response.ok) return null;
+  selectFrameWhenShown(copied, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
+  return copied;
+}
+
 /** A frame copied from the page it is on (⌘C): its element, and its code without its place for the system clipboard. */
 export async function frameClip(localPage: string, frameId: string): Promise<FrameClip | null> {
   const board = await readBoard(localPage);
@@ -145,5 +207,8 @@ export async function frameClip(localPage: string, frameId: string): Promise<Fra
   if (!board || index < 0) return null;
   const node = board.nodes[index];
   const props = Object.fromEntries(Object.entries(node.props).filter(([name]) => name !== "x" && name !== "y"));
-  return { page: localPage, frameId, node, code: board.engine.elementText({ ...node, props }, { ids: false }) };
+  const code = board.engine.elementText({ ...node, props }, { ids: false });
+  if (node.name !== "Section") return { page: localPage, frameId, node, code };
+  const held = heldBy(board, frameId).slice(1);
+  return { page: localPage, frameId, node, code: [code, ...held.map((part) => board.engine.elementText(part.node, { ids: false }))].join("\n"), held };
 }
