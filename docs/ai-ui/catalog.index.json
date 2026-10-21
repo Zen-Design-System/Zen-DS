@@ -230,7 +230,7 @@
       "name": "CalendarToolbar",
       "status": "stable",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
-      "props": "title? date? titleLevel? view? views? onViewChange? onToday? onPrevious? onNext? device? aria-label? aria-labelledby? aria-describedby?"
+      "props": "title? date? today? titleLevel? view? views? onViewChange? onToday? onPrevious? onNext? device? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "CalendarWeekStrip",

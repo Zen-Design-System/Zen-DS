@@ -51,7 +51,7 @@ export interface CalendarMonthProps extends Omit<HTMLAttributes<HTMLDivElement>,
  * (Caption/Medium Neutral/Light) over weeks of `.Primitives/Mobile-Date-Picker/Item` (DatePickerItem) with the event dot,
  * Gap/2XSmall between rows; days outside the month are blank.
  *
- * Semantics: desktop is a `role="table"` (weekday column headers, a row per week); each day's date is a button named
+ * Semantics: an APG grid — desktop: weekday column headers and a row per week of gridcells; each day's date is a button named
  * "Wednesday, September 30, 2026, 3 events" that selects the day (`aria-pressed`; today `aria-current="date"`). One date is
  * in the tab order; the arrow keys move a day or a week, Home / End to the week's ends. Event chips are buttons with
  * `onEventClick`. Mobile days are the date-picker buttons with the same keys.
@@ -78,15 +78,14 @@ export function CalendarMonth({ month: monthProp, value, defaultValue = null, on
 
   if (device === "mobile") {
     return (
-      <div {...rest} ref={mergedRef} role="group" aria-label={label} className={["zen-calendar-month", className].filter(Boolean).join(" ")} data-device="mobile" onKeyDown={keys}>
+      <div {...rest} ref={mergedRef} role="grid" aria-label={label} className={["zen-calendar-month", className].filter(Boolean).join(" ")} data-device="mobile" onKeyDown={keys}>
         <div className="zen-calendar-month__weekdays" aria-hidden="true">
           {weeks[0].map((date) => <span key={date.getDay()} className={typographyStyles["Caption/Medium"]}>{formatWeekdayNarrow(date, locale)}</span>)}
         </div>
         {weeks.map((week, row) => (
-          <div className="zen-calendar-month__week" key={week[0].toISOString()}>
-            {week.map((date, column) => inMonth(date)
+          <div className="zen-calendar-month__week" role="row" key={week[0].toISOString()}>
+            {week.map((date, column) => <span key={date.toISOString()} role="gridcell">{inMonth(date)
               ? nest("Day", <DatePickerItem
-                  key={date.toISOString()}
                   data-calendar-day={row * 7 + column}
                   device="mobile"
                   day={date.getDate()}
@@ -98,7 +97,7 @@ export function CalendarMonth({ month: monthProp, value, defaultValue = null, on
                   tabIndex={dayKey(date) === dayKey(focusKey) ? 0 : -1}
                   onClick={() => pick(date)}
                 />, row * 7 + column)
-              : <DatePickerItem key={date.toISOString()} device="mobile" state="blank" />)}
+              : <DatePickerItem device="mobile" state="blank" />}</span>)}
           </div>
         ))}
       </div>
@@ -106,7 +105,7 @@ export function CalendarMonth({ month: monthProp, value, defaultValue = null, on
   }
 
   return (
-    <div {...rest} ref={mergedRef} role="table" aria-label={label} className={["zen-calendar-month", className].filter(Boolean).join(" ")} data-device="desktop" onKeyDown={keys}>
+    <div {...rest} ref={mergedRef} role="grid" aria-label={label} className={["zen-calendar-month", className].filter(Boolean).join(" ")} data-device="desktop" onKeyDown={keys}>
       <div className="zen-calendar-month__weekdays" role="row">
         {weeks[0].map((date) => (
           <span key={date.getDay()} role="columnheader" className={typographyStyles["Caption/Medium"]} aria-label={new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date)}>{formatWeekday(date, locale)}</span>
@@ -116,14 +115,14 @@ export function CalendarMonth({ month: monthProp, value, defaultValue = null, on
         <div className="zen-calendar-month__week" role="row" key={week[0].toISOString()}>
           {week.map((date, column) => {
             const index = row * 7 + column;
-            if (!inMonth(date)) return nest("Day", <CalendarDayCell key={date.toISOString()} role="cell" day={date.getDate()} label={formatFullDate(date, locale)} state="outside" />, index);
+            if (!inMonth(date)) return nest("Day", <CalendarDayCell key={date.toISOString()} role="gridcell" day={date.getDate()} label={formatFullDate(date, locale)} state="outside" />, index);
             const dayEvents = eventsOnDay(list, date);
             const shown = dayEvents.length > CELL_EVENTS ? dayEvents.slice(0, CELL_EVENTS - 1) : dayEvents;
             const isToday = dayKey(date) === dayKey(today);
             return nest("Day", (
               <CalendarDayCell
                 key={date.toISOString()}
-                role="cell"
+                role="gridcell"
                 day={date.getDate()}
                 label={[formatFullDate(date, locale), dayEvents.length ? t.eventCount(dayEvents.length) : null].filter(Boolean).join(", ")}
                 state={isSelected(date) ? "selected" : isToday ? "today" : "default"}

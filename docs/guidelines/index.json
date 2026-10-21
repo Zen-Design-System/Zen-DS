@@ -1300,7 +1300,8 @@
         ],
         "CalendarToolbar": [
           "title?: ReactNode",
-          "date?: Date",
+          "date?: Date|string",
+          "today?: Date|string",
           "titleLevel?: 2|3|4 = 2",
           "view?: month|week|day|3-day|agenda = month",
           "onViewChange?: (view: CalendarView) => void",

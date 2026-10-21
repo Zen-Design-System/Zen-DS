@@ -1,6 +1,6 @@
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import {
-  CalendarAgenda, CalendarMonth, CalendarTimeGrid, CalendarToolbar, CalendarWeekStrip, shiftPeriod,
+  CalendarAgenda, CalendarMonth, CalendarTimeGrid, CalendarToolbar, CalendarWeekStrip, shiftPeriod, useCalendarDevice,
   type CalendarDevice, type CalendarEventData, type CalendarView,
 } from "../components/Calendar";
 import { Stack } from "../components/Layout";
@@ -35,9 +35,12 @@ export function CalendarPlayground() {
   const previewTypography = useContext(PlatformTypographyContext);
   const [view, setView] = useState<CalendarView>("month");
   const [deviceChoice, setDeviceChoice] = useState<string | undefined>(undefined);
-  const device = (deviceChoice ?? "desktop") as CalendarDevice;
+  // Unset: the views follow the breakpoint (desktop here, mobile in a phone-width preview).
+  const device = deviceChoice as CalendarDevice | undefined;
+  const previewRef = useRef<HTMLDivElement>(null);
+  const resolved = useCalendarDevice(device, previewRef);
   const [date, setDate] = useState(new Date(2026, 8, 30));
-  const mobile = device === "mobile";
+  const mobile = resolved === "mobile";
   // On a phone Week is the 3-Day grid, and Previous / Next move three days.
   const step = mobile && view === "week" ? "3-day" : view;
   return (
@@ -47,9 +50,9 @@ export function CalendarPlayground() {
         <PlaygroundFilterChip label="View" value={view} onChange={(value) => setView((String(value) || "month") as CalendarView)} options={VIEWS.map((id) => ({ id, label: id === "agenda" ? "Agenda" : id[0].toUpperCase() + id.slice(1) }))} />
         <PlaygroundFilterChip label="Device" value={deviceChoice} onChange={(value) => setDeviceChoice(String(value) || undefined)} options={[{ id: "desktop", label: "Desktop" }, { id: "mobile", label: "Mobile" }]} />
       </PlaygroundControls>
-      <div data-typography={previewTypography} className="platform-example-row platform-calendar-preview" data-device={device}>
+      <div ref={previewRef} data-typography={previewTypography} className="platform-example-row platform-calendar-preview" data-device={resolved}>
         <Stack gap="md" width="fill">
-          <CalendarToolbar device={device} date={date} view={view} onViewChange={setView}
+          <CalendarToolbar device={device} date={date} today={TODAY} view={view} onViewChange={setView}
             onToday={() => setDate(new Date(2026, 8, 30))} onPrevious={() => setDate(shiftPeriod(date, step, -1))} onNext={() => setDate(shiftPeriod(date, step, 1))} />
           {view === "month" ? <CalendarMonth device={device} month={date} value={date} onValueChange={setDate} events={EVENTS} today={TODAY}
             onMoreClick={(day) => { setDate(day); setView("day"); }} /> : null}

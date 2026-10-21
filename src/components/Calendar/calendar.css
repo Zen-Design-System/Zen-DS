@@ -33,8 +33,9 @@ button.zen-calendar-event[data-kind="all-day"]:hover { background: var(--zen-cal
 
 /* .Primitives/Calendar/Event-Block (16123:130): the leading rule is an inside stroke, Effect/Overlay blurs the rules behind. */
 .zen-calendar-block { display: flex; min-width: 0; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow: hidden; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-calendar-subtle); box-shadow: inset 2px 0 0 var(--zen-calendar-rule); color: var(--zen-calendar-strongest); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
-.zen-calendar-block__title { display: -webkit-box; flex: 0 0 auto; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-.zen-calendar-block[data-title-lines="1"] .zen-calendar-block__title { -webkit-line-clamp: 1; line-clamp: 1; }
+/* Two lines, then "…"; a word longer than a narrow lane breaks instead of running out of the block. */
+.zen-calendar-block__title { display: -webkit-box; flex: 0 0 auto; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
+.zen-calendar-block[data-title-lines="1"] .zen-calendar-block__title { display: block; text-overflow: ellipsis; white-space: nowrap; }
 .zen-calendar-block__time { flex: 0 0 auto; overflow: hidden; color: var(--zen-calendar-base); text-overflow: ellipsis; white-space: nowrap; }
 .zen-calendar-block[data-selected] { background: var(--zen-calendar-solid); color: var(--zen-color-content-on-colors); backdrop-filter: none; }
 .zen-calendar-block[data-selected] .zen-calendar-block__time { color: var(--zen-color-content-on-colors); }
@@ -101,12 +102,14 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 .zen-calendar-toolbar[data-device="mobile"] .zen-calendar-toolbar__navigation { justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
 
 /* Calendar/Week-Strip (16125:520) */
-.zen-calendar-week-strip { display: flex; min-width: 0; justify-content: space-between; }
+.zen-calendar-week-strip { display: flex; min-width: 0; justify-content: space-between; container-type: inline-size; }
 .zen-calendar-week-strip__day { display: flex; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-calendar-week-strip__weekday { color: var(--zen-color-content-neutral-light); }
 .zen-calendar-week-strip[data-device="mobile"] .zen-calendar-week-strip__day > .zen-date-picker__day { width: 40px; aspect-ratio: auto; height: 40px; }
 .zen-calendar-week-strip[data-variant="tile"] { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-calendar-week-strip[data-variant="tile"] > .zen-calendar-tile { flex: 1 1 0; }
+/* Narrower than seven 44px tiles (a card on a small phone): the tiles keep their content and lose side padding. */
+@container (max-width: 331px) { .zen-calendar-week-strip[data-variant="tile"] > .zen-calendar-tile { padding-right: 0; padding-left: 0; } }
 
 /* Calendar/Month (16126:1093) */
 .zen-calendar-month[data-device="desktop"] { display: flex; min-width: 0; box-sizing: border-box; flex-direction: column; overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
@@ -118,12 +121,15 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 .zen-calendar-month[data-device="mobile"] { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-calendar-month[data-device="mobile"] :is(.zen-calendar-month__weekdays, .zen-calendar-month__week) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); justify-items: center; }
 .zen-calendar-month[data-device="mobile"] .zen-calendar-month__weekdays { color: var(--zen-color-content-neutral-light); }
-.zen-calendar-month[data-device="mobile"] .zen-calendar-month__week > .zen-date-picker__day { width: 40px; height: 40px; aspect-ratio: auto; }
+.zen-calendar-month[data-device="mobile"] .zen-calendar-month__week > [role="gridcell"] { display: flex; justify-content: center; }
+.zen-calendar-month[data-device="mobile"] .zen-calendar-month__week .zen-date-picker__day { width: 40px; height: 40px; aspect-ratio: auto; }
 
 /* Calendar/Time-Grid (16127:1172): 64px per hour; blocks and the now line are placed from --zen-calendar-top / -length
    (minutes from the first hour) and share the column in lanes. */
 .zen-calendar-time-grid { --zen-calendar-hour: 64px; --zen-calendar-rail-width: 56px; display: flex; min-width: 0; min-height: 0; box-sizing: border-box; flex-direction: column; overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
 .zen-calendar-time-grid[data-device="mobile"] { --zen-calendar-rail-width: 44px; }
+/* The 44px phone rail holds "08:00" and "All day" only with 4px sides (Figma's XSmall sides overflow its own frame). */
+.zen-calendar-time-grid[data-device="mobile"] :is(.zen-calendar-time-grid__hour, .zen-calendar-time-grid__all-day > .zen-calendar-time-grid__gutter) { padding-right: var(--zen-spacing-padding-2-xsmall, 4px); padding-left: var(--zen-spacing-padding-2-xsmall, 4px); }
 :is(.zen-calendar-time-grid__days, .zen-calendar-time-grid__all-day, .zen-calendar-time-grid__hours) { display: grid; flex: 0 0 auto; grid-template-columns: var(--zen-calendar-rail-width) repeat(var(--zen-calendar-days, 7), minmax(0, 1fr)); }
 :is(.zen-calendar-time-grid__days, .zen-calendar-time-grid__all-day) { border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
 .zen-calendar-time-grid__day { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-xsmall, 8px); border-left: 1px solid var(--zen-color-border-neutral-pale-default); }

@@ -2156,7 +2156,7 @@
     ],
     "a11y": [
       "The Toolbar title is a heading with aria-live, so Previous, Next and Today announce the new period; the arrows are named \"Previous month\" / \"Next week\" by the view.",
-      "The desktop month is a table: each date is a button named with its full date and event count (\"Wednesday, September 30, 2026, 3 events\"), aria-pressed on the selected day and aria-current=\"date\" on today.",
+      "The month is an APG grid (weekday column headers, a row per week): each date is a button named with its full date and event count (\"Wednesday, September 30, 2026, 3 events\"), aria-pressed on the selected day and aria-current=\"date\" on today.",
       "One date of the month (and of the week strip) is in the tab order; the arrow keys move a day or a week, Home / End to the week's ends.",
       "Time-Grid day columns are groups named with their date; event blocks are buttons with onEventClick, named by title and time. Hours, slots and the now line are decorative.",
       "Pressing an empty slot (onSlotPress) is pointer-only: offer New event in the page header for keyboard users."

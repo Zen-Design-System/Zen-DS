@@ -32,7 +32,7 @@ Show events over time: a month of days, a week or day of hours, or an agenda lis
 Generated from the TypeScript source; full JSON in `docs/api/calendar.json`.
 
 ### CalendarMonth
-Figma `Calendar/Month` (16126:1093). Desktop: a Border box (`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) holding the weekday row (Caption/Medium Neutral/Base, Padding/XSmall, a Pale rule under it) and 5 weeks — 6 when the month spans six (Figma Sixth-Week) — of `.Primitives/Calendar/Day-Cell`, Monday first; days of the next and previous month are Outside. A cell shows its events as `.Primitives/Calendar/Event` chips: all up to three, else two and "+N more". Mobile: single-letter weekdays (Caption/Medium Neutral/Light) over weeks of `.Primitives/Mobile-Date-Picker/Item` (DatePickerItem) with the event dot, Gap/2XSmall between rows; days outside the month are blank. Semantics: desktop is a `role="table"` (weekday column headers, a row per week); each day's date is a button named "Wednesday, September 30, 2026, 3 events" that selects the day (`aria-pressed`; today `aria-current="date"`). One date is in the tab order; the arrow keys move a day or a week, Home / End to the week's ends. Event chips are buttons with `onEventClick`. Mobile days are the date-picker buttons with the same keys.
+Figma `Calendar/Month` (16126:1093). Desktop: a Border box (`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) holding the weekday row (Caption/Medium Neutral/Base, Padding/XSmall, a Pale rule under it) and 5 weeks — 6 when the month spans six (Figma Sixth-Week) — of `.Primitives/Calendar/Day-Cell`, Monday first; days of the next and previous month are Outside. A cell shows its events as `.Primitives/Calendar/Event` chips: all up to three, else two and "+N more". Mobile: single-letter weekdays (Caption/Medium Neutral/Light) over weeks of `.Primitives/Mobile-Date-Picker/Item` (DatePickerItem) with the event dot, Gap/2XSmall between rows; days outside the month are blank. Semantics: an APG grid — desktop: weekday column headers and a row per week of gridcells; each day's date is a button named "Wednesday, September 30, 2026, 3 events" that selects the day (`aria-pressed`; today `aria-current="date"`). One date is in the tab order; the arrow keys move a day or a week, Home / End to the week's ends. Event chips are buttons with `onEventClick`. Mobile days are the date-picker buttons with the same keys.
 
 Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`.
 
@@ -60,7 +60,8 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title">`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `title` | `ReactNode` | — | Figma Title: the visible period ("September 2026"). Default: the period around `date` for `view` (Week "Sep 28 – Oct 4, 2026", Day "Wednesday, September 30, 2026"); on mobile the short form ("Sep 2026"), which fits beside the buttons in the Mobile typography. |
-| `date` | `Date` | — | The day the views show; with no `title` it names the period. |
+| `date` | `Date \| string` | — | The day the views show ("2026-09-30" or a Date); with no `title` it names the period. |
+| `today` | `Date \| string` | — | The day treated as today: while the shown period already holds it, Today is disabled (pressing it would change nothing). Default: the device clock. |
 | `titleLevel` | `2 \| 3 \| 4` | `2` | Heading level of the title: one below the page heading. Default 2. |
 | `view` | `"month" \| "week" \| "day" \| "3-day" \| "agenda"` | `"month"` | The selected view of the switch. |
 | `views` | _HTML attribute_ | `["month", "week", "day", "agenda"]` | The views the switch offers, in order (Figma: Month · Week · Day · Agenda). Hide views the product does not offer; an empty list hides the switch. |
@@ -270,7 +271,7 @@ type CalendarView = "month" | "week" | "day" | "3-day" | "agenda"
 
 ## Accessibility
 - The Toolbar title is a heading with aria-live, so Previous, Next and Today announce the new period; the arrows are named "Previous month" / "Next week" by the view.
-- The desktop month is a table: each date is a button named with its full date and event count ("Wednesday, September 30, 2026, 3 events"), aria-pressed on the selected day and aria-current="date" on today.
+- The month is an APG grid (weekday column headers, a row per week): each date is a button named with its full date and event count ("Wednesday, September 30, 2026, 3 events"), aria-pressed on the selected day and aria-current="date" on today.
 - One date of the month (and of the week strip) is in the tab order; the arrow keys move a day or a week, Home / End to the week's ends.
 - Time-Grid day columns are groups named with their date; event blocks are buttons with onEventClick, named by title and time. Hours, slots and the now line are decorative.
 - Pressing an empty slot (onSlotPress) is pointer-only: offer New event in the page header for keyboard users.

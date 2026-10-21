@@ -6,7 +6,7 @@ import { useMergedRefs } from "../_shared/merge-refs";
 import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import { useCalendarDevice, type CalendarDevice } from "./Calendar";
-import { calendarTitle, type CalendarView } from "./calendarDates";
+import { addDays, calendarTitle, dayKey, startOfDay, startOfWeek, toDateOr, type CalendarDateInput, type CalendarView } from "./calendarDates";
 import "./calendar.css";
 import "../Icon/core";
 
@@ -15,8 +15,11 @@ export interface CalendarToolbarProps extends Omit<HTMLAttributes<HTMLDivElement
    * "Sep 28 – Oct 4, 2026", Day "Wednesday, September 30, 2026"); on mobile the short form ("Sep 2026"), which fits
    * beside the buttons in the Mobile typography. */
   title?: ReactNode;
-  /** The day the views show; with no `title` it names the period. */
-  date?: Date;
+  /** The day the views show ("2026-09-30" or a Date); with no `title` it names the period. */
+  date?: CalendarDateInput;
+  /** The day treated as today: while the shown period already holds it, Today is disabled (pressing it would change
+   * nothing). Default: the device clock. */
+  today?: CalendarDateInput;
   /** Heading level of the title: one below the page heading. Default 2. */
   titleLevel?: 2 | 3 | 4;
   /** The selected view of the switch. */
@@ -52,7 +55,7 @@ const DEFAULT_VIEWS: readonly CalendarView[] = ["month", "week", "day", "agenda"
  * Only Tertiary buttons: the page's main action (New event) belongs to the page header. The title is an `aria-live`
  * heading, so moving to another period is announced.
  */
-export function CalendarToolbar({ title, date, titleLevel = 2, view = "month", views = DEFAULT_VIEWS, onViewChange, onToday, onPrevious, onNext, device: deviceProp, overrides, className, ref, ...rest }: CalendarToolbarProps) {
+export function CalendarToolbar({ title, date: dateProp, today: todayProp, titleLevel = 2, view = "month", views = DEFAULT_VIEWS, onViewChange, onToday, onPrevious, onNext, device: deviceProp, overrides, className, ref, ...rest }: CalendarToolbarProps) {
   const t = useZenLabels();
   const locale = useZenLocale();
   const nest = useNested(overrides);
@@ -60,6 +63,10 @@ export function CalendarToolbar({ title, date, titleLevel = 2, view = "month", v
   const mergedRef = useMergedRefs(rootRef, ref);
   const device = useCalendarDevice(deviceProp, rootRef);
   const mobile = device === "mobile";
+  const date = toDateOr(dateProp);
+  const today = toDateOr(todayProp) ?? new Date();
+  const period = mobile && view === "week" ? "3-day" : view;
+  const showsToday = date ? inPeriod(today, date, period) : false;
   const size = mobile ? "md" : "sm";
   const Heading = `h${titleLevel}` as const;
   const unit = view === "month" ? "month" : view === "week" || view === "agenda" ? "week" : "day";
@@ -67,10 +74,10 @@ export function CalendarToolbar({ title, date, titleLevel = 2, view = "month", v
   const nextLabel = unit === "month" ? t.nextMonth : unit === "week" ? t.nextWeek : t.nextDay;
   const heading = (
     <Heading className={["zen-calendar-toolbar__title", typographyStyles["Heading/3"]].join(" ")} aria-live="polite">
-      {title ?? (date ? calendarTitle(date, mobile && view === "week" ? "3-day" : view, locale, { short: mobile }) : null)}
+      {title ?? (date ? calendarTitle(date, period, locale, { short: mobile }) : null)}
     </Heading>
   );
-  const today = onToday ? nest("Today", <Button appearance="main" level="tertiary" size={size} onClick={onToday}>{t.today}</Button>) : null;
+  const todayButton = onToday ? nest("Today", <Button appearance="main" level="tertiary" size={size} onClick={onToday} disabled={showsToday}>{t.today}</Button>) : null;
   const arrows = (
     <div className="zen-calendar-toolbar__arrows">
       {nest("Previous", <IconButton appearance="main" level="tertiary" size={size} icon="icon-chevron-left-line-small" aria-label={previousLabel} onClick={onPrevious} disabled={!onPrevious} />)}
@@ -94,16 +101,24 @@ export function CalendarToolbar({ title, date, titleLevel = 2, view = "month", v
         <>
           <div className="zen-calendar-toolbar__navigation">
             {heading}
-            <div className="zen-calendar-toolbar__actions">{today}{arrows}</div>
+            <div className="zen-calendar-toolbar__actions">{todayButton}{arrows}</div>
           </div>
           {switcher}
         </>
       ) : (
         <>
-          <div className="zen-calendar-toolbar__navigation">{today}{arrows}{heading}</div>
+          <div className="zen-calendar-toolbar__navigation">{todayButton}{arrows}{heading}</div>
           {switcher}
         </>
       )}
     </div>
   );
+}
+
+/** Whether `day` falls in the period `view` shows around `date` (the month, the week, the three days, the day). */
+function inPeriod(day: Date, date: Date, view: CalendarView) {
+  if (view === "month") return day.getFullYear() === date.getFullYear() && day.getMonth() === date.getMonth();
+  if (view === "week" || view === "agenda") return dayKey(startOfWeek(day)) === dayKey(startOfWeek(date));
+  if (view === "3-day") return dayKey(day) >= dayKey(addDays(startOfDay(date), -1)) && dayKey(day) <= dayKey(addDays(startOfDay(date), 1));
+  return dayKey(day) === dayKey(date);
 }

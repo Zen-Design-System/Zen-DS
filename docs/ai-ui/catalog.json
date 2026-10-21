@@ -4213,9 +4213,28 @@
           "description": "Figma Title: the visible period (\"September 2026\")."
         },
         "date": {
-          "type": "string",
-          "x-kind": "date",
-          "description": "The day the views show; with no `title` it names the period."
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day the views show (\"2026-09-30\" or a Date); with no `title` it names the period."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today: while the shown period already holds it, Today is disabled (pressing it would change nothing)."
         },
         "titleLevel": {
           "enum": [

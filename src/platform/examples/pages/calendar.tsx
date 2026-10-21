@@ -65,7 +65,7 @@ function TeamCalendarExample() {
   const mobile = useCalendarDevice(undefined, rootRef) === "mobile";
   return (
     <Stack gap="md" ref={rootRef}>
-      <CalendarToolbar date={date} view={view} views={mobile ? ["month", "week", "day"] : undefined} onViewChange={setView}
+      <CalendarToolbar date={date} today={TODAY} view={view} views={mobile ? ["month", "week", "day"] : undefined} onViewChange={setView}
         onToday={() => setDate(day(0))} onPrevious={() => setDate(shiftPeriod(date, view, -1))} onNext={() => setDate(shiftPeriod(date, view, 1))} />
       {view === "month" ? <CalendarMonth month={date} value={date} onValueChange={setDate} events={events} today={TODAY}
         onMoreClick={(picked) => { setDate(picked); setView("day"); }} /> : null}
@@ -83,7 +83,7 @@ function WeekDetailsExample() {
     <div className="px-calendar-split">
       <CalendarTimeGrid view="week" date={day(0)} events={events} now={TODAY} className="px-calendar-scroll"
         selectedEventId={selected} onEventClick={(picked) => setSelected(picked.id === selected ? null : picked.id)} />
-      <Card theme="border" className="px-calendar-details" aria-live="polite">
+      <Card theme="flat" className="px-calendar-details" aria-live="polite">
         {event ? (
           <Stack gap="sm">
             <Heading level={3} textStyle="Heading/Subheading">{event.title}</Heading>
@@ -116,7 +116,7 @@ function EmptyWeekExample() {
 function DayPlannerExample() {
   const [picked, setPicked] = useState(day(0));
   return (
-    <Card theme="border" className="px-calendar-planner">
+    <Card theme="flat" className="px-calendar-planner">
       <Stack gap="md">
         <Heading level={3} textStyle="Heading/Subheading">My week</Heading>
         <CalendarWeekStrip variant="tile" device="desktop" value={picked} onValueChange={setPicked} events={events} today={TODAY} aria-label="Pick a day" />
@@ -137,7 +137,7 @@ function PhoneCalendarExample() {
       <Stack gap="lg" padding="md">
         {/* Three views: in the Mobile typography and Comfortable density a fourth label ("Agenda") no longer fits 358px;
             the month lists the picked day's agenda under it. */}
-        <CalendarToolbar device="mobile" date={date} view={view} views={["month", "week", "day"]} onViewChange={setView}
+        <CalendarToolbar device="mobile" date={date} today={TODAY} view={view} views={["month", "week", "day"]} onViewChange={setView}
           onToday={() => setDate(day(0))} onPrevious={() => setDate(shiftPeriod(date, view === "week" ? "3-day" : view, -1))} onNext={() => setDate(shiftPeriod(date, view === "week" ? "3-day" : view, 1))} />
         {view === "month" ? (
           <>
@@ -196,7 +196,7 @@ const event = events.find((item) => item.id === selected);
 
 <CalendarTimeGrid view="week" date={today} events={events} style={{ maxHeight: 560 }}
   selectedEventId={selected} onEventClick={(picked) => setSelected(picked.id === selected ? null : picked.id)} />
-<Card theme="border" aria-live="polite">
+<Card theme="flat" aria-live="polite">
   {event ? <EventDetails event={event} /> : <Text tone="light">Select an event to see its details.</Text>}
 </Card>`,
   },
@@ -215,7 +215,7 @@ const event = events.find((item) => item.id === selected);
     render: () => <DayPlannerExample />,
     code: `const [day, setDay] = useState(today);
 
-<Card theme="border">
+<Card theme="flat">
   <Stack gap="md">
     <Heading level={3} textStyle="Heading/Subheading">My week</Heading>
     <CalendarWeekStrip variant="tile" value={day} onValueChange={setDay} events={events} aria-label="Pick a day" />
