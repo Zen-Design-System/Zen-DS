@@ -187,6 +187,9 @@ Last updated: 2026-10-21.
   (meta URLs only work for pictures Figma already has; a WebP goes as PNG), Shape rectangles / ellipses as Figma's own
   layers, an Avatar's photo and the table's Avatar / Photo cells through the pack's `img` layers
   (`native-pack.mjs images-code` / `images`); research studio-native-paste §7c.
+  The direct paste also carries a frame's whole look (stroke + sides / dash, corners on their variables, the effect
+  style with its effects from the pack's `native-pack.mjs effects-code` / `effects`, opacity, rotation, flip; #177),
+  and `native-pack --merge` adds a set to the pack without a full capture (#176).
   **F5a (Session B):** Box, Stack and Grid take one look (fill, stroke + weight / sides / dash, corners, effect,
   opacity, rotation, flip: `src/components/Layout/appearance.ts`), so a Figma auto layout frame with a fill is one Stack
   in code, push / pull and the Zen plugin; the right panel is in Figma's order.

@@ -385,3 +385,36 @@ MULTIPLY, a star LINEAR_DODGE, the outer frame PASS_THROUGH.
 - After #171: a Studio page's `blendMode` (Box multiply, star plus-lighter) goes through figma-push into the paste as
   MULTIPLY / LINEAR_DODGE, nothing at the default. Gate (Giám sát's slot, on 0d551f9f with main e99c5408): `qa --isolated`
   PASS — static ✓, Studio E2E 336 works · 0 broken (1793 s); report `.qa/reports/2026-10-20T18-27-33-ee53b0aa.md`.
+
+## native-pack: merge a set into the pack; capture keeps the clipboard (Session C) — tier XS, branch `zen/feat/native-pack-merge-20261021`
+Asked by Bug (the user's Header/AppShell in Studio needs 16243:290461 in the pack; `native-pack check` failed): `write
+--merge` / `capture --merge` add new copies' sets, symbols, styles, variables and contents to the existing pack
+(`mergePacks`, `merged` records each), the schema module stays; `probe-code --ids=` probes just those components. Fix
+at its owner: `capture` cleared the user's clipboard and never put it back — it now saves every type to files and puts
+it back after the copies, also when one fails (`clipboardFiles`; inline osascript failed on a large picture on
+2026-10-20). Checked offline: a probe copy merged onto the pack (230 → 231 sets, base kept), a save → restore round trip
+of the live clipboard (4/4 types). Selftest figma-native 116.
+- Bug's live run (2026-10-21, shared checkout) found two faults, both fixed here: (1) "new ids win" replaced six sets
+  the pack held (Avatar/Single, five Button sets) with the copy's partial versions (only the variants Header/AppShell
+  nests): selftest 2/117 ✗. A merge now keeps what the pack holds and adds only what it lacks, a held set gaining the
+  copy's missing variants and properties after its own. (2) Header/AppShell never came in because Figma copied the
+  person's own selection, not the probe frame (meta `selectedNodeData`; the same slip as my frame-look probe, whose
+  copy was 16783:70965 with Avatar/Single + Button/Icon-Flat). `capture` now reads which node a copy is of, tries once
+  more, then refuses (`copiedNode`); `--keep` (documented, never built) saves the copies to `.qa/native-pack/`.
+  Selftest figma-native 119. Its own PR (Giám sát, Bug), ahead of Bug's Header/AppShell PR.
+
+## A frame's look in the direct paste (Session C) — tier S, branch `zen/feat/native-frame-look-20261021`
+BACKLOG P2 "Figma's native clipboard path misses a frame's look" (no owner; the user's "tiếp tục" after I offered it
+twice, 2026-10-21). figma-native `frame()` now writes what figma-push `frameLook` gives and the importer's
+`applyFrameLook` sets: stroke paint inside at its weight, one side (`border*Weight` + independent), Zen's dash 2 / 2,
+corners one by one (TL TR BR BL) on their Corner-Radius variables, the effect style, opacity, and rotation / flip about
+the centre (`turned`, as shapes). Figma's copies write an effect style's id beside its effects (as a paint style's
+paints), so the pack now holds them: `native-pack effects-code` (use_figma, read only) + `effects --files=` → 15 effect
+styles' `effects` (the drop shadows equal a Figma copy's of Effect/Popover; glass styles skipped); a full capture
+stores them from the style nodes too. Selftest figma-native 130. Built on the native-pack merge fix (merged in).
+- Live paste (Zen file, 8 frames, one look each), read back with use_figma: stroke bound to Border/Neutral/Subtle
+  inside at 2; one side `[0, 0, 1, 0]`; dash 2 / 2; corners TL / BR on Corner-Radius/XLarge (Figma shows the
+  variable's 20); Shadow/Bottom/Level-2 bound with its 3 shadows on their colour variables; opacity 0.5; 30° and
+  flip + 15° about the frame's centre (360, 180 / 500, 180). The first try (02:42) never landed; the second (20 s
+  wait) landed on the user's own page ◇ Master-Layout, not the QA page (the node-id link did not switch pages): read
+  and removed at once, the user told. The user's clipboard put back 6/6 both times.
