@@ -657,4 +657,7 @@ plan's remaining pieces (user, 2026-10-21: "mở phiên nhận các phần đó"
   Code tab (`showDesignTab` after). New FW-165 (instance type → submit, ⌘Z), FW-166 (frame `as` → section), FW-167
   (text `as` → span), FW-168 (aria-label / data-testid by their written names, Show code, edit), FW-169 (panelFits on
   the Code tab for an instance, a frame and a text; Properties above Code).
-- Static: tsc, words lint (1823 UI strings), e2e selftest (478 rows), propGroups selftest, usage:check, style:check ✓.
+- Static: tsc, words lint (1851 UI strings after main c548520a), e2e selftest (480 rows), propGroups selftest,
+  usage:check, style:check ✓. Gate (`qa --isolated --files=…`, 2026-10-22 05:10): PASS, Studio E2E 338/0 (1505 s, I-02
+  in it); `studio:e2e --only=figma --rows=FW-10,FW-142,FW-165…169` 7/0 (34 s); the FW-165/169 panel shots read right.
+- Left as is: PartPanel (a Table part) still titles its rows "Props" / "Attributes" (§3a glossary row, not this item).
