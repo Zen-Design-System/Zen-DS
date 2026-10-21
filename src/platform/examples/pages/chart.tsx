@@ -1080,7 +1080,7 @@ const retry = () => {
   },
   {
     title: "Ranking on a phone",
-    description: "On a phone the screen's one ranking goes straight on the screen, no Chart Card: a heading with its total, then the list at full width. Project names sit inside the bars (a short bar lets its name run past its end, a name too long for the column ends in an ellipsis) and the values keep their own column. The screen is pushed from Hours: Back in the compact bar, no bottom bar, and the budgets left follow as a white block.",
+    description: "On a phone the screen's one ranking goes straight on the screen, no Chart Card: a heading with its total, then the list at full width. Project names sit inside the bars (a short bar lets its name run past its end, a name too long for the column ends in an ellipsis) and the values keep their own column. The screen is pushed from Hours: Back in the compact bar, no bottom bar, and the budgets left close it as an open list on the Canvas (no box: the list ends the phone page).",
     render: () => <PhoneProjectsExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
@@ -1133,7 +1133,7 @@ const retry = () => {
   },
   {
     title: "Hours this week on a phone",
-    description: "A gauge with no target: the week's 40 hours are the scale, format reads hours at the figure and both ends, and the caption says what is left. On a phone the screen's one main chart goes straight on the screen, without a Chart Card; the week's entries follow as a white block on the grey Canvas. Log time in the Action bar adds an entry from a Bottom Sheet, and the gauge moves with it (Undo in the toast).",
+    description: "A gauge with no target: the week's 40 hours are the scale, format reads hours at the figure and both ends, and the caption says what is left. On a phone the screen's one main chart goes straight on the screen, without a Chart Card; the week's entries close it as an open list on the grey Canvas (no box: the list ends the phone page). Log time in the Action bar adds an entry from a Bottom Sheet, and the gauge moves with it (Undo in the toast).",
     render: () => <PhoneWeekGaugeExample />,
     code: `<PlatformPhone screenRef={screenRef}>
   <AppShell
@@ -1205,7 +1205,7 @@ const retry = () => {
   },
   {
     title: "Grouped bars on a phone",
-    description: "On a phone the chart goes straight on the screen under its heading, without a Chart Card. Six weeks of two bars still fit 390px: each bar narrows with its column. Touching a week shows its Tooltip; the totals below are a white block on the grey Canvas of a screen pushed from Hours (Back, no bottom bar).",
+    description: "On a phone the chart goes straight on the screen under its heading, without a Chart Card. Six weeks of two bars still fit 390px: each bar narrows with its column. Touching a week shows its Tooltip; the totals below close the screen as an open list on the grey Canvas of a screen pushed from Hours (Back, no bottom bar).",
     render: () => <PhoneTimeSplitExample />,
     code: `<PlatformPhone screenRef={screenRef}>
   <AppShell topNavigation={<TopNavigation type="compact-alt" title="Billable time" scrollRef={screenRef}
