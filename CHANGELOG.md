@@ -443,8 +443,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   sets its own `shape`; elsewhere Search keeps the default shape. Zen Studio pushes a control-bar Search as
   Shape=Rounded and pulls it back without the prop.
   - The Figma library matches (2026-10-21, user: "có"): Bottom-Sheet's search is Shape=Rounded, and the phone
-    examples E1 · Delivery home, E2 · Shop home and E6 · Discover use a Rounded Search in Figma and on the AppShell
-    page. Top-Navigation/Mobile's Control-Bar is an empty slot: the Search a designer puts there takes Rounded.
+    examples E1 · Delivery home, E2 · Shop home and E6 · Discover use a Rounded Search. Top-Navigation/Mobile's
+    Control-Bar is an empty slot: the Search a designer puts there takes Rounded.
+  - An AppShell on a phone does the same (2026-10-21, user: "AppShell mobile cũng mặc định Rounded … nhưng cho phép
+    đổi"): in its mobile structure, or its drawer layout under tablet width, every Search that sets no `shape` is a pill;
+    `shape="default"` keeps the square field. Desktop AppShells are unchanged.
 - AppShell collapses a customised Sidebar (2026-10-18, user: "lỗi sidebar lúc expand và collapse khi dùng template"):
   the Sidebar now tells the shell what it is wherever it sits, so one wrapped in an app component, a Stack or a Studio
   component gets the top-bar toggle, starts from its own `collapsed`, and a Sidebar with its own `onCollapsedChange`

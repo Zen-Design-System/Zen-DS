@@ -360,6 +360,11 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   Dashboard Header Control-Bar and Side-Bar Small-Density are desktop: Default kept.
 - Templates: no Search in phone frames on ◆ Social/Finance/Logistic/HR/Ecommerce; ◇ Master-Layout · Example has three
   in Pattern/AppShell/Mobile slot content (E1 · Delivery home, E2 · Shop home, E6 · Discover) → Rounded (texts and
-  trailing scan/mic kept, screenshots checked); their code twins (app-shell/e-consumer-1, -2) take `shape="rounded"`.
+  trailing scan/mic kept, screenshots checked).
+- Then the user: "AppShell mobile cũng mặc định Rounded", "nhưng cho phép đổi". AppShell.tsx gives SearchShapeContext
+  `rounded` to its frame, stacked/modal side panel and drawer when `layout === "mobile"` or the phone drawer
+  (`chrome.phone`, under TABLET_MIN_WIDTH); `shape="default"` still wins. So the E1/E2/E6 code twins need no prop.
+  Studio's push draws no mobile AppShell yet (Sidebar pattern only), so it needs no Shape rule. Test
+  search-shape-on-phones +1 (mobile rounded, explicit default, desktop default); app-shell tests 61/61.
 - Docs: Figma skill screen-rules row, CHANGELOG, BACKLOG (P2 → archive; new P3: native-pack's Bottom-Sheet still
   draws Search/Popover from its 2026-10-18 read, re-probe incremental).
