@@ -18,6 +18,10 @@ Last updated: 2026-10-21.
 
 ## State in short
 
+- **BadgeStatus + PropertyField (2026-10-21):** branch `zen/feat/property-field-20261021` (worktree
+  `../Zen-DS-badge-status`): Figma Badge-Status 16932:195 and Input/Property-Field 16923:6031 approved by the user, then
+  code, platform pages (Badge, Input), harness rules, Studio palette + push/pull. Rule since then: new components go
+  Figma draft → user review → code + Studio. Open items in BACKLOG (themed-Badge migration, Figma gaps).
 - **Component best-practice refactor (2026-10-14):** branch `zen/refactor/component-best-practices` in worktree
   `../Zen-DS-refactor`, not merged. Shared helpers in `_shared` (controllable state, stable callback, merged refs,
   layers, modal isolation, HTML sanitiser), every component takes `ref` as a prop, conformance test. Details: session log

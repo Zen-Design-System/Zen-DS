@@ -501,6 +501,63 @@ cell height or row sizes, so the page round-trips unchanged. Selftests: push 343
   points at Search/Default Size=Small, Shape=Rounded. Probe removed; native-pack check + figma-native selftest 130 ✓.
   BACKLOG P3 archived.
 
+## BadgeStatus (session "Inline input component types", worktree ../Zen-DS-badge-status, tier L)
+
+- Figma first (user rule "Figma trước, duyệt rồi qua Studio"): Badge-Status 16932:195 promoted from ◆ HR-Platform's
+  `.HR/Workbend/Task/Status- old` (deleted with its local Icon-Progress after its 32 placements + 16 row icons moved);
+  6 statuses × Medium|Small, `.Primitives/Badge/Progress-Icon` 16943:171 is one component whose value is its Progress arc
+  (drawn in Comfortable at 24, 2px ring, bound to Element-Size/Popular/Base). User approved: "duyệt, làm code BadgeStatus".
+- Code: `src/components/BadgeStatus` (SVG ring on the same 24 grid, so 1.67px in Compact; Blocked/Cancelled use
+  icon-slash-circle-01-line / icon-x-circle-line), `export *` in src/index.ts, labels statusToDo…statusCancelled +
+  statusPercent (en/vi), Badge guideline extended (+ tagsFor), harness `badge/workflow-status-uses-badge-status` with
+  bad/good fixtures, usage rules §19, figma-docs cards for Badge-Status and Progress-Icon, ai-ui catalog rebuilt.
+- Platform: Badge page playground panel + examples (Task status and Status on a phone moved to BadgeStatus; new Release
+  checklist, Project progress, Board columns), a Do/Don't pair. The new rule found a hand-themed "Done" Badge on the
+  Empty State page: fixed there (both task-status Badges on that page are BadgeStatus now).
+- Checks: tsc, usage:selftest/check, guidelines:check, ai-ui/ai-kit/icons/styles/tokens checks, style:check on the
+  edited files, smoke + conformance for BadgeStatus; shots of the Badge page at 1512, 390 and dark looked right.
+- Not done here (proposed as follow-ups): other platform pages and the HR templates still show task statuses as
+  `Badge theme={taskStatusTheme[…]}` (dynamic text, not caught by the rule); Studio support (Main board, push/pull);
+  Input/Property-Field code.
+
+## PropertyField (same session, stacked branch zen/feat/property-field-20261021 on badge-status)
+
+- Started while BadgeStatus waits in the gate queue (Giám sát: 7th). User approval: "duyệt, làm code BadgeStatus
+  trước" (both Figma drafts approved; BadgeStatus first).
+- API: composition, one-to-one with Figma — `PropertyField` (row: label, icon, action) + one value cell (`PropertyText`,
+  `PropertySelect`, `PropertyStatus`, `PropertyDate`, `PropertyPeople`, `PropertyTags`), each value/defaultValue/
+  onValueChange, placeholder ("Empty"/"Trống"), readOnly, state (Figma State, docs only). A union prop on one component was
+  dropped: react-docgen would not document it.
+- People and Tags always show the + (the keyboard path to add; a Tag with onClick around a Remove button would nest
+  interactives). The label column scales with Component Size (6.4 × Element-Size/Popular/Base: 128 Compact, 154
+  Comfortable) after "Assignee" was cut beside the + on a phone; Figma's column stays 128 (Compact).
+- Docs live with the Input fields (as Inline-Field): input guideline + tagsFor, harness property-field/one-value, usage
+  rules §20, figma-docs cards, four Input-page examples, a Do/Don't pair; smoke fixtures + tests/interaction/property-field
+  (6 tests: names, text Enter/Escape, status pick, people remove/add, create label, readOnly).
+
+## Studio for BadgeStatus + PropertyField (same session, same branch zen/feat/property-field-20261021)
+
+- User: "làm tiếp Studio trong lúc chờ gate". studio:selftest required it anyway (palette "every library component
+  folder is offered" failed for the two new folders), so Studio lands in the same PR.
+- Map: BadgeStatus ↔ Badge-Status (Status, Size); PropertyField ↔ Input/Property-Field (Label, Icon/Icon-Src toggle,
+  Action toggle → `{ label: "Add" }`). One Figma set maps to one code component, so the six cells are not mapped: push
+  draws a cell as the nested Value (.Primitives/Input/Property-Value Type/State + Badge-Status / texts / Tag / Badges via
+  `nested`), pull rebuilds the cell from `nested`/`texts` (tools/studio/figma-property.mjs). Gotchas: figmaFromPage has a
+  local PROPERTY_TYPE (import aliased); the row's child must not also go to a Content slot; pull drops a TEXT equal to
+  Figma's default, so PropertyField's required label is put back.
+- Contract (component-properties.json, one line), library-keys (append, order kept), native pack: probe 16977:125164
+  (37 instances) captured with clipboard save/restore (8/8 types back), merged additively (+3 sets, +44 symbols), probe
+  removed; copy kept in this session's scratchpad pack/probe-badge-property.html for re-merges.
+- PropertyDate takes ISO strings (Studio dialect drops Date objects); PropertyField action.onClick optional.
+- Checks: studio:selftest ✓ (2447+), figma-push 356 ✓, figma-pull 114 ✓, tsc, usage, guidelines, ai-ui, tests ✓.
+  studio:e2e (BL-01/02 etc.) runs in the gate.
+- Gate (merged main 73e88b15): conformance asked for BadgeStatus/PropertyField in STYLE_ON_ROOT (instance-look.mjs);
+  density @320 Comfortable: a person chip had 54px beside the 154px label (remove button 5.6px out) → a value under
+  5 × Element-Size wraps below its label (row gap 0); APG: Escape from the + left focus on the first chip → the picker
+  returns focus to its opener, and a second press on the + closes the list (it counted as outside, then reopened).
+- Contact sheets: badge@390 Release checklist pushed Status off the phone (Owner 160px) → on a phone the owner joins
+  the caption, as in Task status. Gate 3 (badge + input, files after run 2): PASS; run 2 Studio E2E 338 works · 0 broken.
+
 
 ## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
 

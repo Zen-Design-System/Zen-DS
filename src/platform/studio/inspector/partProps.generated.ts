@@ -512,6 +512,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "tertiaryAction": "tertiaryAction"
     }
   },
+  "MultiCell": {
+    "Popover": {
+      "label": "popoverLabel"
+    }
+  },
   "PageHeader": {
     "Heading": {
       "level": "headingLevel"
@@ -529,6 +534,42 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   "Popover": {
     "Search": {
       "clearable": "searchClearable"
+    }
+  },
+  "PropertyDate": {
+    "DatePicker": {
+      "maxDate": "maxDate",
+      "minDate": "minDate"
+    },
+    "PickerCell": {
+      "ariaLabel": "aria-label",
+      "readOnly": "readOnly"
+    }
+  },
+  "PropertyPeople": {
+    "MultiCell": {
+      "single": "single"
+    }
+  },
+  "PropertySelect": {
+    "PickerCell": {
+      "ariaLabel": "aria-label",
+      "readOnly": "readOnly"
+    },
+    "Popover": {
+      "label": "popoverLabel"
+    }
+  },
+  "PropertyStatus": {
+    "BadgeStatus": {
+      "progress": "progress"
+    },
+    "PickerCell": {
+      "ariaLabel": "aria-label",
+      "readOnly": "readOnly"
+    },
+    "Popover": {
+      "label": "popoverLabel"
     }
   },
   "RadialChart": {

@@ -133,6 +133,12 @@ export const FIGMA_PROPS = {
     // Theme and Background come from BadgeProps (inspector/inheritedProps.ts).
     props: { Text: "value", Size: "size", Theme: "theme", Background: "background" },
   },
+  // Figma Badge-Status (16932:195, read 2026-10-21): Status × Size; the ring's exact value (the Progress layer's arc) is
+  // the code's `progress`, which no Figma property holds.
+  BadgeStatus: {
+    sets: { "Badge-Status": null },
+    props: { Status: "status", Size: "size" },
+  },
   BottomSheet: {
     sets: { "Bottom-Sheet": null },
     props: {
@@ -212,6 +218,17 @@ export const FIGMA_PROPS = {
   DescriptionList: {
     sets: { "Description List": null },
     props: { Items: skip("data slot (items list)"), Layout: "layout", Divider: { prop: "divider", bool: true } },
+  },
+  // Figma Input/Property-Field (16923:6031, a lone component, read 2026-10-21): the row. Its Value is the nested
+  // .Primitives/Input/Property-Value, whose Type is the child cell (PropertyText … PropertyTags): figma-push draws it.
+  PropertyField: {
+    sets: { "Input/Property-Field": null },
+    props: {
+      Label: "label",
+      Icon: { toggle: "icon", on: { swap: "Icon-Src" } },
+      "Icon-Src": "icon",
+      Action: { toggle: "action", on: { code: '{ label: "Add" }' } },
+    },
   },
   InputField: {
     sets: { "Input/Text-Field": null },
