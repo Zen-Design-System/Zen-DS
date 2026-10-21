@@ -787,10 +787,10 @@ const MAIN_SLOT = /<Stack data-prop-slot="Content" gap="lg" padding="lg" border=
 /** A text layer of the slots page by its words (`n`: which one with those words). */
 const wordsOn = (page, id, words, n = 0) => page.locator(`[data-studio-frame="screen:screen-1"]`).getByText(words, { exact: true }).nth(n);
 /**
- * A drag in small steps from `from` to `to` (screen px; ⌥ held with `copy`); `during` reads the canvas just before the
- * drop: what the overlay draws there (the slot's outline and its tag, the insertion line).
+ * A drag in small steps from `from` to `to` (screen px; ⌥ held with `copy`); answers what the overlay draws just before
+ * the drop (the slot's outline and its tag, the insertion line). With ZEN_E2E_SHOTS, `shotName` saves the canvas then.
  */
-async function slotDrag(page, from, to, { copy = false } = {}) {
+async function slotDrag(page, from, to, { copy = false, shotName = null } = {}) {
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
   if (copy) await page.keyboard.down("Alt");
@@ -800,6 +800,7 @@ async function slotDrag(page, from, to, { copy = false } = {}) {
       await sleep(16);
     }
     await sleep(150);
+    if (process.env.ZEN_E2E_SHOTS && shotName) await page.locator(".studio-viewport").screenshot({ path: `${process.env.ZEN_E2E_SHOTS}/${shotName}.png` }).catch(() => {});
     return await page.evaluate(() => {
       const into = document.querySelector(".studio-drag__into");
       return {
@@ -3195,7 +3196,7 @@ export const rows = [
         await tile.waitFor({ state: "visible", timeout: 5000 });
         const slot = await slotOf(page, id, 0).boundingBox();
         if (!slot) throw new Error("the empty instance's slot is not on the canvas (no data-zen-slot)");
-        const seen = await slotDrag(page, middle(await tile.boundingBox()), { x: slot.x + slot.width / 2, y: slot.y + slot.height - 6 });
+        const seen = await slotDrag(page, middle(await tile.boundingBox()), { x: slot.x + slot.width / 2, y: slot.y + slot.height - 6 }, { shotName: "fw-160-slot-target" });
         if (!seen.slot || seen.tag !== "Content") throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
         await written(page, id, /<Use of="panel" slots=\{\{ Content: <>\s*<Text>Empty<\/Text>\s*<Badge[^>]*>Active<\/Badge>\s*<\/> \}\} \/>/, "the slot: the main's Empty, then the Badge");
         const after = (await pageText(page, id)) ?? "";
@@ -3213,19 +3214,20 @@ export const rows = [
       const { page, id } = await slotsPage(ctx);
       return restoring(page, id, async () => {
         const before = (await pageText(page, id)) ?? "";
-        await selectDeep(page, wordsOn(page, id, "Loose"), "Badge");
-        const badge = await wordsOn(page, id, "Loose").boundingBox();
+        // A Text (⌘-click on a Badge picks its words, a part of it, as Figma's deepest select does).
+        await selectDeep(page, wordsOn(page, id, "Spare"), "Text");
+        const spare = await wordsOn(page, id, "Spare").boundingBox();
         const filled = await panelAt(page, id, 1).getByText("Filled", { exact: true }).boundingBox();
         const second = await panelAt(page, id, 1).getByText("Second", { exact: true }).boundingBox();
         // Between the two layers of the slot (their gap's middle).
-        const seen = await slotDrag(page, middle(badge), { x: filled.x + filled.width / 2, y: (filled.y + filled.height + second.y) / 2 });
+        const seen = await slotDrag(page, middle(spare), { x: filled.x + filled.width / 2, y: (filled.y + filled.height + second.y) / 2 }, { shotName: "fw-161-slot-line" });
         if (!seen.slot || !seen.line) throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
-        await written(page, id, /slots=\{\{ Content: <>\s*<Text>Filled<\/Text>\s*<Badge>Loose<\/Badge>\s*<Text>Second<\/Text>\s*<\/> \}\}/, "Loose between Filled and Second");
+        await written(page, id, /slots=\{\{ Content: <>\s*<Text>Filled<\/Text>\s*<Text>Spare<\/Text>\s*<Text>Second<\/Text>\s*<\/> \}\}/, "Spare between Filled and Second");
         const after = (await pageText(page, id)) ?? "";
-        if (after.split("<Badge>Loose</Badge>").length !== 2) throw new Error("the Badge was copied, not moved");
+        if (after.split("<Text>Spare</Text>").length !== 2) throw new Error("Spare was copied, not moved");
         if (!MAIN_SLOT.test(after)) throw new Error("the main's slot layer changed");
         await oneUndo(page, id, before);
-        return "Loose → between Filled and Second · main untouched · one ⌘Z";
+        return "Spare → between Filled and Second · main untouched · one ⌘Z";
       });
     },
   },
