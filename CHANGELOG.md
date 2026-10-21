@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio: the Design tab shows only Figma's sections; what only code reads (an HTML element, Scroll, a button's
+  type, ids, aria-* and the attributes no API lists) moved from the closed "Code properties" section to the Code tab's
+  Properties, above the layer's code, edited there the same way (2026-10-21, parity plan §3a; E2E FW-165…169).
 - A list that closes a phone page (transactions, tasks, activity: nothing after it, not in a widget grid) is an open
   section, not a ListBox, as Figma's ◆ Finance Transactions: the title row over a List at the page margin (usage rules
   §19, user rule 2026-10-21). Harness `listbox/closing-list-on-phone` (error) and Figma audit

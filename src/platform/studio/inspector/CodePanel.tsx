@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { EmptyState } from "../../../components/EmptyState";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc, studioApi } from "../api";
@@ -12,8 +12,9 @@ import { InspectorSection } from "./Section";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 
 /*
- * Code tab (spec §6): the snippet a person would copy (the playground's live code or the example's code) above the
- * git-style source of the selected element's file, scrolled to and highlighting the element.
+ * Code tab (spec §6): the snippet a person would copy (the playground's live code or the example's code), the layer's
+ * code properties (what only code reads, edited here: CodeProperties.tsx), then the git-style source of the selected
+ * element's file, scrolled to and highlighting the element.
  */
 
 /** The element's line range, re-read after edits and HMR updates. */
@@ -33,7 +34,8 @@ function useElementRange(src: string | null) {
   return element;
 }
 
-export function CodePanel({ selection, codeSlot }: { selection: StudioSelection | null; codeSlot: HTMLElement }) {
+/** `properties`: the selected layer's code properties (DesignPanel's code view), drawn above its source. */
+export function CodePanel({ selection, codeSlot, properties }: { selection: StudioSelection | null; codeSlot: HTMLElement; properties?: ReactNode }) {
   const page = useStudio((state) => state.page);
   const nodeSrc = selection?.kind === "node" ? selection.src : null;
   const element = useElementRange(nodeSrc);
@@ -71,6 +73,7 @@ export function CodePanel({ selection, codeSlot }: { selection: StudioSelection 
       {selection.kind === "frame" && !inPlayground && !example ? (
         <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Select a layer to see its code</p>
       ) : null}
+      {properties}
       {parsed ? (
         <InspectorSection title="Code" className="studio-inspector__section--fill">
           <SourcePanel file={parsed.file} highlight={highlight} />
