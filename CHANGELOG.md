@@ -17,6 +17,17 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- A list that closes a phone page (transactions, tasks, activity: nothing after it, not in a widget grid) is an open
+  section, not a ListBox, as Figma's ◆ Finance Transactions: the title row over a List at the page margin (usage rules
+  §19, user rule 2026-10-21). Harness `listbox/closing-list-on-phone` (error) and Figma audit
+  `list-box/closing-list-on-phone`; the phone examples that boxed it (Button, Chart, VisuallyHidden, AppShell C1, C2, C7,
+  D3, D4, F10–F12) now show it open. Grouped settings lists (§15) and lists in a widget grid keep their ListBox. The
+  harness no longer reads an apostrophe in a prop's JSX text (`hero={<Text>I'm …</Text>}`) as an open string.
+- A section is a group of content that belongs together, 32 apart on phones (Layout-Mobile/Section-Gap, Comfortable)
+  and on desktop (Gap/XLarge): a widget grid keeps its own gap inside, a title row and its list share one section
+  (usage rules §13, user rule 2026-10-21). Figma audit `spacing/section-gap` now reads the AppShell Content slot and
+  desktop, and `section/title-apart` warns on a title alone. AppShell C1, C2, C7 group their widgets into one section
+  above the closing list, in code and in Figma (◇ Master-Layout · Example, also D3, D4 opened).
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
@@ -1029,6 +1040,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: Layers lists the Main component's variants also when the page opens straight on them (their rows
+  were sometimes empty).
 - Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
 - Zen Studio: a click on a Line or an Arrow selects it, as in Figma. Before, a horizontal line had no height to click
   and the click selected its frame.

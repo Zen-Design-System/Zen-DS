@@ -108,7 +108,10 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 .zen-calendar-week-strip { display: flex; min-width: 0; justify-content: space-between; container-type: inline-size; }
 .zen-calendar-week-strip__day { display: flex; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-calendar-week-strip__weekday { color: var(--zen-color-content-neutral-light); }
-.zen-calendar-week-strip[data-device="mobile"] .zen-calendar-week-strip__day > .zen-date-picker__day { width: 40px; aspect-ratio: auto; height: 40px; }
+/* Mobile days are Figma's 40px circles; a strip narrower than seven of them (a card on a small phone) shrinks the days,
+   still round, instead of running past its edge. */
+.zen-calendar-week-strip[data-device="mobile"] > .zen-calendar-week-strip__day { min-width: 0; flex: 0 1 40px; }
+.zen-calendar-week-strip[data-device="mobile"] .zen-calendar-week-strip__day > .zen-date-picker__day { width: min(40px, 100%); aspect-ratio: 1; height: auto; }
 .zen-calendar-week-strip[data-variant="tile"] { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-calendar-week-strip[data-variant="tile"] > .zen-calendar-tile { flex: 1 1 0; }
 /* Narrower than seven 44px tiles (a card on a small phone): the tiles keep their content and lose side padding. */

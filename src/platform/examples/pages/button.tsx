@@ -541,19 +541,18 @@ function PhoneApproveExample() {
             <Text>{request.note}</Text>
           </Stack>
         ) : null}
-        {/* What an approver checks before saying yes: who else on the team is away on those days. */}
+        {/* What an approver checks before saying yes: who else on the team is away on those days. The list closes the
+            phone screen, so it is open on the Canvas at the body's margin, not a box (usage rules §19). */}
         <Stack as="section" gap="xs" aria-labelledby={overlapId}>
-          <Box paddingX="lg"><Heading level={2} id={overlapId} textStyle="Body/Small/Bold" tone="light">Also off on these days</Heading></Box>
-          <ListBox theme="flat">
-            {overlap.length ? (
-              <List aria-labelledby={overlapId}>
-                {overlap.map((other) => (
-                  <ListItem key={other.id} title={people[other.person].name} caption={`${leaveDays(other)} · ${other.status}`}
-                    leading={<Avatar size="md" {...avatarOf(people[other.person])} />} />
-                ))}
-              </List>
-            ) : <Text textStyle="Body/Small/Regular" tone="base">{`No one else on the ${person.team} team is off then.`}</Text>}
-          </ListBox>
+          <Heading level={2} id={overlapId} textStyle="Body/Small/Bold" tone="light">Also off on these days</Heading>
+          {overlap.length ? (
+            <List aria-labelledby={overlapId}>
+              {overlap.map((other) => (
+                <ListItem key={other.id} title={people[other.person].name} caption={`${leaveDays(other)} · ${other.status}`}
+                  leading={<Avatar size="md" {...avatarOf(people[other.person])} />} />
+              ))}
+            </List>
+          ) : <Text textStyle="Body/Small/Regular" tone="base">{`No one else on the ${person.team} team is off then.`}</Text>}
         </Stack>
       </AppShell>
     </PlatformPhone>
