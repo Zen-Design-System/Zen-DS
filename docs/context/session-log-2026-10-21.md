@@ -349,3 +349,20 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
   88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
 - Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".
+
+## Code properties move to the Code tab (tier S, branch `zen/feat/studio-code-props-code-tab-20261021`)
+
+Parity plan §3a ("Properties: code-only ones on the Code tab"), the BACKLOG P1 item; one of the sessions opened for the
+plan's remaining pieces (user, 2026-10-21: "mở phiên nhận các phần đó").
+
+- The Design tab lost both code blocks: the closed "Code properties" disclosure (a frame's, text's or shape's own props;
+  a component's code-only props inside Properties) and the "Code properties" section of attributes no API lists.
+- The Code tab has them as **Properties**, between Example code and Code: `DesignPanel view="code"` renders only those
+  rows with the Design tab's own FieldApi (queue, hash, optimistic values, .map rows), so every edit writes as before;
+  `Inspector` hands it to `CodePanel`. `GroupedProperties view="code"` gives a component's code-only rows;
+  `propGroups.codeOnlyProps` is the one rule (selftest). The disclosure CSS went; no detach plan is read on the Code tab.
+- E2E: I-02 checks the Design tab has no button type and finds it on the Code tab; lib `openCodeProperties` opens the
+  Code tab (`showDesignTab` after). New FW-165 (instance type → submit, ⌘Z), FW-166 (frame `as` → section), FW-167
+  (text `as` → span), FW-168 (aria-label / data-testid by their written names, Show code, edit), FW-169 (panelFits on
+  the Code tab for an instance, a frame and a text; Properties above Code).
+- Static: tsc, words lint (1823 UI strings), e2e selftest (478 rows), propGroups selftest, usage:check, style:check ✓.
