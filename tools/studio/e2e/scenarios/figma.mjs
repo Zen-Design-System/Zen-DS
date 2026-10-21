@@ -729,6 +729,9 @@ async function presentOverlayPage(ctx) {
   await page.locator(".studio-viewport").focus();
   await page.keyboard.press("Escape");
   await page.keyboard.press("Escape");
+  // The whole board in view: a row clicks its layers where they are drawn.
+  await page.keyboard.press("Shift+Digit1");
+  await sleep(400);
   return { page, id: presentMade };
 }
 const player = (page) => page.locator(".studio-player");

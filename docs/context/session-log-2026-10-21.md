@@ -690,3 +690,9 @@ The last Present item of BACKLOG P1 "Studio design page = Figma" (user 2026-10-2
 - E2E (figma.mjs, own seeded page): FW-170 ⌥⌘↵ + reload + Esc ×2, FW-171 Prototype › Present + Move to trash / Back / R /
   Cancel, FW-172 alone (Design › Present, blank phone, Done leaves), FW-173 Card via ⌘K (no animation, outside press),
   FW-174 normal frames unchanged. protoModel selftest +3 checks.
+- Gate (slot from the Code-tab session, main f5d1ecce merged): static ✓, Studio E2E 338 / 338. FW rows: 4 / 6 at first.
+  FW-174's page was not zoomed to fit (its Button off screen): the helper now presses ⇧1. FW-170 found a real bug: after
+  a reload into Present, Esc did not close the Dialog. The canvas draws Overlay frames open, and its copy of the Dialog
+  (inert under Play) mounted last, so useModal's stack made it the topmost and gave it Escape and Tab. Fixed at its
+  owner, `Dialog.tsx` useModal: a modal whose parent is inert is never the topmost. Interaction test added in
+  dialog-modal.test.tsx; it fails without the fix.

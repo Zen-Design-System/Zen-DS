@@ -75,10 +75,13 @@ function isSameTabStop(active: Element | null, node: HTMLElement, root: ParentNo
 export const openPopupTrigger = '[aria-expanded="true"]:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"])';
 
 /** Open modals, oldest first. Only the last (topmost) one answers Escape and traps Tab: a Dialog opened over a ModalForm
- * closes alone, and the form underneath does not pull focus back into itself. */
-const modalStack: object[] = [];
+ * closes alone, and the form underneath does not pull focus back into itself. A modal in an inert part of the page (one
+ * drawn open on a Studio canvas while Present covers it) cannot be used, so it is never the topmost, even if it opened
+ * last. */
+const modalStack: Array<{ panel: HTMLElement | null }> = [];
 /** True while a Dialog, ModalForm, modal SidePanel or BottomSheet is open (a docked SidePanel leaves Escape to it). */
 export const modalIsOpen = () => modalStack.length > 0;
+const topModal = () => [...modalStack].reverse().find((entry) => !entry.panel?.parentElement?.closest("[inert]"));
 
 /**
  * Shared modal behaviour: focus the first target, trap Tab, Escape closes, body scroll is locked, focus returns to the opener.
@@ -101,10 +104,10 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
   const preview = useContext(OverlayPreviewContext);
   useEffect(() => {
     if (!open || preview) return undefined;
-    const entry = {};
+    const panel = panelRef.current;
+    const entry = { panel };
     modalStack.push(entry);
     openerRef.current = document.activeElement;
-    const panel = panelRef.current;
     // The first enabled, tabbable match wins; a disabled target (Send before the form is valid) falls through to the
     // next one, then to the first control that can take focus. With no preferred target at all (BottomSheet) the panel
     // itself takes focus, so a pointer-opened sheet shows no stray ring on Close. A radio match lands where Tab would:
@@ -123,7 +126,7 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
       popupEscape = event.key === "Escape" && event.target instanceof Element && event.target.matches(openPopupTrigger) ? event : null;
     };
     const onKey = (event: KeyboardEvent) => {
-      if (modalStack[modalStack.length - 1] !== entry) return;
+      if (topModal() !== entry) return;
       if (event.key === "Escape") {
         if (!dismissible || event.defaultPrevented || event === popupEscape) return;
         event.preventDefault();

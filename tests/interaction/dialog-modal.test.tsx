@@ -114,6 +114,36 @@ describe("useModal: Escape goes to the innermost open thing", () => {
     await userEvent.keyboard("{Escape}");
     await expect.element(screen.getByRole("alertdialog", { name: "Discard changes?" })).toBeVisible();
   });
+
+  it("a modal open in an inert part of the page (a Studio canvas under Present) never takes Escape or Tab, even when it opened last", async () => {
+    function Covered() {
+      const [front, setFront] = useState(true);
+      const [behind, setBehind] = useState(false);
+      // The one behind opens after the one in front, so it is last in the stack.
+      useEffect(() => { setBehind(true); }, []);
+      return (
+        <>
+          <Dialog open={front} onOpenChange={setFront} title="In front" primaryAction={{ label: "Continue" }} secondaryAction={{ label: "Cancel" }} />
+          <div inert>
+            <div data-zen-overlay-root="">
+              <Dialog open={behind} onOpenChange={setBehind} title="Behind" primaryAction={{ label: "Got it" }} />
+            </div>
+          </div>
+        </>
+      );
+    }
+    const screen = await render(<ZenProvider><Covered /></ZenProvider>);
+    const front = screen.getByRole("dialog", { name: "In front" });
+    await expect.element(front).toBeVisible();
+    await expect.element(screen.getByRole("dialog", { name: "Behind", includeHidden: true })).toBeInTheDocument();
+    for (let i = 0; i < 3; i += 1) {
+      await userEvent.tab();
+      expect(front.element().contains(document.activeElement)).toBe(true);
+    }
+    await userEvent.keyboard("{Escape}");
+    await expect.element(front).not.toBeInTheDocument();
+    await expect.element(screen.getByRole("dialog", { name: "Behind", includeHidden: true })).toBeInTheDocument();
+  });
 });
 
 describe("ModalForm: a blocked submit focuses the first invalid field", () => {
