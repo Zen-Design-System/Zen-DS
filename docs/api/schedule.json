@@ -1,0 +1,769 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "schedule",
+  "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+  "components": [
+    {
+      "name": "ScheduleResourceGrid",
+      "file": "src/components/Schedule/ScheduleResourceGrid.tsx",
+      "description": "Figma `Schedule/Resource-Grid` (16135:145822): a resource timeline. A Border box (`Color/Background/Surface/Default`, 1px\n`Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped): a 40px header (the resource column's label and the\nscale, Caption/Medium Neutral/Base; today in Accent on the Days scale) over rows of `.Primitives/Schedule/Resource`\nbeside their track, one fixed height (56 desktop, 64 mobile), split by Pale rules that sit outside the layout. Bookings\nare `.Primitives/Calendar/Event-Block` bars: x = start on the scale × column + 2, width = length × column − 4, 4px from\nthe row's top and bottom; a bar that runs past the range scrolls with the track and is never squeezed to its edge; under\n80px it hides its time. A vertical `.Primitives/Calendar/Now-Line` crosses the tracks at now.\n\nSemantics: a `role=\"table\"` — the header row's column headers, then per resource a row header and one cell with the\nbars (buttons with `onBookingClick`, named by title and time). On a phone the resource column stays while the scale\nscrolls.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "resources",
+          "type": "unknown",
+          "required": true,
+          "default": null,
+          "description": "The rows: people and rooms, in order.",
+          "deprecated": null
+        },
+        {
+          "name": "bookings",
+          "type": "unknown",
+          "required": false,
+          "default": "[]",
+          "description": "The bookings, shifts and leave on them (by `resourceId`).",
+          "deprecated": null
+        },
+        {
+          "name": "scale",
+          "type": "\"hours\" | \"days\"",
+          "required": false,
+          "default": "\"hours\"",
+          "description": "Figma Scale: `hours` (one day, a column per hour) or `days` (one week, Monday first). Default hours.",
+          "deprecated": null
+        },
+        {
+          "name": "date",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day shown (Hours) or any day of the week shown (Days). Default: today.",
+          "deprecated": null
+        },
+        {
+          "name": "startHour",
+          "type": "number",
+          "required": false,
+          "default": "9",
+          "description": "First hour of the Hours scale (default 9).",
+          "deprecated": null
+        },
+        {
+          "name": "endHour",
+          "type": "number",
+          "required": false,
+          "default": "17",
+          "description": "Hour the Hours scale ends at (default 17: eight working hours).",
+          "deprecated": null
+        },
+        {
+          "name": "now",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The current time: the vertical now line while it is inside the range. Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today (the Days scale writes it in Accent). Default: `now`'s day.",
+          "deprecated": null
+        },
+        {
+          "name": "resourcesLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The header of the resource column (default the locale's \"Team & rooms\"; \"Team\" on a phone).",
+          "deprecated": null
+        },
+        {
+          "name": "onBookingClick",
+          "type": "(booking: ScheduleBookingData, target: HTMLElement) => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing a bar: open the booking, anchored to `target`. Without it the bars are static.",
+          "deprecated": null
+        },
+        {
+          "name": "selectedBookingId",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "The booking whose details are open: its bar shows State=Selected.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours\nvisible: the track scrolls sideways and opens at the current hour). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the grid (default: \"Team & rooms\" and the period).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the rows' Resource and the bars (`{ \"Row[alex]/Resource\": { device: \"mobile\" } }`).\nWritten by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ScheduleItinerary",
+      "file": "src/components/Schedule/ScheduleItinerary.tsx",
+      "description": "Figma `Schedule/Itinerary` (16135:13820): a day's programme — a Body/Small/Bold kicker (Neutral/Light) over\n`.Primitives/Schedule/Itinerary-Item` stops, Gap/XSmall; stops that ended are Past (Accent rail) up to the one happening\nNow; the last stop has no connector. An ordered list: the running stop carries `aria-current=\"step\"`.\nNot a calendar of unrelated events (CalendarAgenda) or a history of actions.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"title\">",
+      "props": [
+        {
+          "name": "stops",
+          "type": "unknown",
+          "required": true,
+          "default": null,
+          "description": "The stops, in order.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Kicker: the day and the plan's name (\"Wed, Sep 30 · Design Day\").",
+          "deprecated": null
+        },
+        {
+          "name": "now",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The current time: stops that ended are Past, the running one Now, the rest Upcoming. Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (640) or `mobile` (358); the stops are the same. Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the stops (`{ \"Stop[keynote]\": { connector: false } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ScheduleSlotPicker",
+      "file": "src/components/Schedule/ScheduleSlotPicker.tsx",
+      "description": "Figma `Schedule/Slot-Picker` (16135:14046): a booking picker, one `.Primitives/Schedule/Slot` chosen at a time (a radio\ngroup). Desktop: day columns Gap/Small apart, each a header (weekday Caption/Medium Neutral/Light — \"Today\" in\nAccent/Base — over the date in Body/Base/Medium) and its slots Gap/XSmall, filling the column. Mobile: a Calendar/\nWeek-Strip (Dot) Gap/Medium over Morning / Afternoon / Evening groups — a Body/Small/Bold Light kicker, Gap/XSmall, then\nslots three per row Gap/Small apart. Booked or past times are Disabled, struck through, still in place. Each radio is\nnamed with its day and time; the arrow keys move between them.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"defaultValue\" | \"onChange\">",
+      "props": [
+        {
+          "name": "slots",
+          "type": "unknown",
+          "required": true,
+          "default": null,
+          "description": "The bookable times (any days); a day shows its slots in time order.",
+          "deprecated": null
+        },
+        {
+          "name": "days",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The days to offer (desktop columns, the phone's week strip). Default: the days the slots fall on, at most five.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string | null",
+          "required": false,
+          "default": null,
+          "description": "The chosen slot's id (controlled).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "The chosen slot at first (uncontrolled).",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(id: string, slot: ScheduleSlotData) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the slot the person picks. The confirm action (\"Book 10:00\") belongs to the page or sheet footer.",
+          "deprecated": null
+        },
+        {
+          "name": "day",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "Phone: the day the slots show (controlled). Default: the chosen slot's day, else the first day.",
+          "deprecated": null
+        },
+        {
+          "name": "onDayChange",
+          "type": "(day: Date) => void",
+          "required": false,
+          "default": null,
+          "description": "Phone: called with the day picked on the week strip.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today (\"Today\" in Accent). Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (day columns) or `mobile` (a week strip, then Morning / Afternoon groups of three per row,\n44px touch targets). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the times (default the locale's \"Available times\").",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The radios' group name (default a generated one).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the slots (`{ \"Slot[2026-10-01T10:00]\": { size: \"sm\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ScheduleDayPlanner",
+      "file": "src/components/Schedule/ScheduleDayPlanner.tsx",
+      "description": "Figma `Schedule/Day-Planner` (16143:1439): a person's day — the month as a Heading/3 title with a selector\n(Button/Icon-Main Small Tertiary, Gap/XSmall), a Calendar/Week-Strip Style=Tile, a Divider, then an hour rail of\n`.Primitives/Schedule/Hour-Label` (the current hour Now) beside `.Primitives/Schedule/Event-Card` cards at their start\ntime, Gap/Medium between the parts and Gap/Small between rail and cards. A card's top is (start − first hour) × the hour\nheight and its height the longer of length × hour height − 8 and its content; the hour height (64) grows so cards\nnever overlap. Cards and the selected day are Border boxes, so the planner reads on any canvas.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"title\" | \"defaultValue\" | \"onChange\">",
+      "props": [
+        {
+          "name": "events",
+          "type": "unknown",
+          "required": false,
+          "default": "[]",
+          "description": "The cards (any days); the planner shows the selected day's.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "CalendarDateInput | null",
+          "required": false,
+          "default": null,
+          "description": "The selected day (controlled).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "CalendarDateInput | null",
+          "required": false,
+          "default": null,
+          "description": "The selected day at first (uncontrolled). Default: today.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(day: Date) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the day picked on the week strip.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Title: the month (\"September 2026\"). Default: the selected day's month.",
+          "deprecated": null
+        },
+        {
+          "name": "titleLevel",
+          "type": "2 | 3 | 4",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the title (default 2).",
+          "deprecated": null
+        },
+        {
+          "name": "onMonthClick",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "The month selector beside the title (Button/Icon-Main Small Tertiary): open your month picker. Without it the\nbutton is left out.",
+          "deprecated": null
+        },
+        {
+          "name": "onCardMenu",
+          "type": "(card: ScheduleCardData, target: HTMLElement) => void",
+          "required": false,
+          "default": null,
+          "description": "A card's ⋮: open its actions, anchored to `target`. Without it the cards have no menu.",
+          "deprecated": null
+        },
+        {
+          "name": "startHour",
+          "type": "number",
+          "required": false,
+          "default": "9",
+          "description": "First hour on the rail (default 9).",
+          "deprecated": null
+        },
+        {
+          "name": "endHour",
+          "type": "number",
+          "required": false,
+          "default": "18",
+          "description": "Last hour on the rail (default 18).",
+          "deprecated": null
+        },
+        {
+          "name": "now",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The current time: the current hour's label is Now (on today). Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today. Default: `now`'s day.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (420, a side panel) or `mobile` (a phone screen). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the cards, week strip and month button (`{ \"Card[explore]\": { color: \"teal\" } }`).\nWritten by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ScheduleResource",
+      "file": "src/components/Schedule/Schedule.tsx",
+      "description": "Figma `.Primitives/Schedule/Resource` (16133:1070): the row header of Schedule/Resource-Grid. Desktop: Padding XSmall ·\nSmall, Gap/XSmall, an Avatar/Single Small (Circle, Subtle) or Dock-Icon Small (Neutral Subtle) beside Name\n(Body/Small/Medium, Strongest) over Meta (Caption/Regular, Light). Mobile: Padding/2XSmall, Gap/2XSmall, the avatar over\nthe name in Caption/Medium, centred.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "name",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Name (\"Alex Duong\"; on mobile a short name, \"Alex\"). One line, truncated.",
+          "deprecated": null
+        },
+        {
+          "name": "meta",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Meta: a role or a capacity (\"Designer\", \"8 seats\"). Desktop only.",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"person\" | \"room\"",
+          "required": false,
+          "default": "\"person\"",
+          "description": "Figma Type: `person` (an Avatar Small with initials or a photo) or `room` (a Dock-Icon Small, Neutral Subtle,\nbuilding icon: any resource — a room, a vehicle, a device).",
+          "deprecated": null
+        },
+        {
+          "name": "avatarSrc",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Person: the photo. Without it the Avatar shows the name's initials.",
+          "deprecated": null
+        },
+        {
+          "name": "avatarTheme",
+          "type": "Exclude<AvatarTheme, \"photo\">",
+          "required": false,
+          "default": "\"violet\"",
+          "description": "Person: the initials' theme (Figma exposes it on the Avatar). Default `violet`.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName",
+          "required": false,
+          "default": "\"icon-building-02-line\"",
+          "description": "Room: the icon (default `icon-building-02-line`).",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": "\"desktop\"",
+          "description": "Figma Device: `desktop` (200 wide: name and meta) or `mobile` (64 wide: the avatar over a short name).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the Avatar / Dock-Icon it draws (`{ \"Avatar\": { theme: \"teal\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ScheduleSlot",
+      "file": "src/components/Schedule/Schedule.tsx",
+      "description": "Figma `.Primitives/Schedule/Slot` (16133:1087): one bookable time, a radio of the picker's single-choice group, in the\nDate-Picker day's colours: `--zen-date-picker-item-background-unselected-*` with a 1px Border/Neutral/Subtle (Hover:\nSubtle/Hover), Selected `--zen-date-picker-item-background-seclected-default` with its Selected content, Disabled a\nBorder/Disabled outline and Content/Disabled struck through. Corner-Radius/Action/Small, Padding 0 · Small, Medium 32\n(Body/Small/Medium) or Small 24 (Caption/Medium). A native radio inside a label: the arrow keys move within its group.",
+      "deprecated": null,
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\" | \"type\">",
+      "props": [
+        {
+          "name": "time",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Time (\"10:30\").",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: `md` (Select-Item Medium height; phones and the main picker, default) or `sm`.",
+          "deprecated": null
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma State=Selected: the chosen time (`checked` of its radio).",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma State=Disabled: taken or past — struck through, never hidden, so the day keeps its rhythm.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the radio `<input>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ScheduleItineraryItem",
+      "file": "src/components/Schedule/Schedule.tsx",
+      "description": "Figma `.Primitives/Schedule/Itinerary-Item` (16133:1131): one stop of a timed plan. Gap/Small between a 56px time column\n(Start Body/Small/Bold over Duration Caption/Regular Light, Gap/3XSmall), a 16px rail (the marker, then a 2px connector,\nPadding-top 2XSmall, Gap/2XSmall) and the content (Title Body/Base/Medium, Meta Caption/Regular, Gap/2XSmall,\nPadding-bottom Large). Past: Accent/Solid dot and connector, Start / Title / Meta quiet (Light, Base, Light). Now: a\n16px Surface ring with a 2px Accent/Solid stroke and a 6px Accent dot, a Badge Small Accent Subtle \"Now\". Upcoming: a 12px\nSurface dot with a 2px Border/Neutral/Solid stroke. Connectors after Now are Border/Neutral/Subtle.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"title\">",
+      "props": [
+        {
+          "name": "start",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Start (\"13:00\").",
+          "deprecated": null
+        },
+        {
+          "name": "duration",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Duration (\"90 min\").",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Title.",
+          "deprecated": null
+        },
+        {
+          "name": "meta",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Meta: place · who (\"Room 2 · Linh Tran\").",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "\"past\" | \"now\" | \"upcoming\"",
+          "required": false,
+          "default": "\"upcoming\"",
+          "description": "Figma Status: `past` (Accent dot and rail, quiet text), `now` (Accent ring and a Now badge) or `upcoming` (a hollow\nneutral dot).",
+          "deprecated": null
+        },
+        {
+          "name": "connector",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Connector: the rail down to the next stop (off on the last one). Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the Now badge (`{ \"Badge\": { theme: \"positive\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ScheduleHourLabel",
+      "file": "src/components/Schedule/Schedule.tsx",
+      "description": "Figma `.Primitives/Schedule/Hour-Label` (16143:488): an hour on the day planner's rail — Padding 3XSmall · XSmall,\nCorner-Radius/Rounded, Caption/Medium Neutral/Light; Now on `Color/Background/Accent/Flat/Default`.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLSpanElement>",
+      "props": [
+        {
+          "name": "hour",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Hour (\"13:00\").",
+          "deprecated": null
+        },
+        {
+          "name": "now",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=Now: the current hour — an Accent Flat pill, Caption/Bold Accent/Strongest.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<span>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ScheduleEventCard",
+      "file": "src/components/Schedule/Schedule.tsx",
+      "description": "Figma `.Primitives/Schedule/Event-Card` (16143:817): an event as a card on the day planner — a Border box\n(`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Default`, Corner-Radius/2XLarge, Padding/Medium, so\nit reads on Canvas/Default and Canvas/Alt), a 4px rule in `Color/Background/Support/<Hue>/Solid`, then Gap/XSmall: Title\n(Body/Base/Medium, 2 lines) over Status (Body/Small/Regular, Light) beside the ⋮, the attendees and the time (clock icon,\nCaption/Medium Neutral/Base), and an optional note (Surface/Alt, Padding/Small, Corner-Radius/Small = 24 − 16).",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\" | \"color\">",
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Title (two lines, truncated).",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Status, in words (\"Done\", \"In progress\", \"Upcoming\"): Light; colour stays on the rule.",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Time (\"13:00 – 16:00\"), after the clock icon.",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "CalendarColor | \"neutral\"",
+          "required": false,
+          "default": "\"brand\"",
+          "description": "Figma Color: the rule's hue (default brand; `neutral` for personal blocks).",
+          "deprecated": null
+        },
+        {
+          "name": "attendees",
+          "type": "Array<{ src?: string; alt?: string }>",
+          "required": false,
+          "default": null,
+          "description": "Figma Attendees: AvatarStack items (Small, Subtle, up to 3).",
+          "deprecated": null
+        },
+        {
+          "name": "note",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Note + Note-Text: a Surface/Alt box under the meta.",
+          "deprecated": null
+        },
+        {
+          "name": "onMenuClick",
+          "type": "MouseEventHandler<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Figma Menu: the ⋮ (Button/Icon-Flat Small Secondary in a 20px wrapper, the Card Sub-Action). Its name is the\nlocale's \"Actions for {title}\" unless `menuLabel` says otherwise. Without it the menu is left out.",
+          "deprecated": null
+        },
+        {
+          "name": "menuLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The ⋮ button's accessible name.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the menu button and avatars (`{ \"Menu\": { icon: \"icon-dots-horizontal-line\" } }`).\nWritten by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<article>`.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "AvatarTheme": "type AvatarTheme = \"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
+    "CalendarColor": "type CalendarColor = \"brand\" | \"blue\" | \"violet\" | \"teal\" | \"green\" | \"orange\" | \"pink\"",
+    "CalendarDateInput": "type CalendarDateInput = Date | string",
+    "ScheduleBookingData": "interface ScheduleBookingData { id: string; resourceId: string; title: string; start: CalendarDateInput; end: CalendarDateInput; color?: CalendarColor; time?: string; }",
+    "ScheduleCardData": "interface ScheduleCardData { id: string; title: string; start: CalendarDateInput; end: CalendarDateInput; color?: ScheduleColor; status?: string; note?: string; attendees?: Array<{ src?: string; alt?: string }>; }",
+    "ScheduleColor": "type ScheduleColor = CalendarColor | \"neutral\"",
+    "ScheduleSlotData": "interface ScheduleSlotData { id: string; start: CalendarDateInput; disabled?: boolean; }"
+  }
+}

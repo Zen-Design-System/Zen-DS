@@ -117,6 +117,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch", SliderField: "SliderField", CurvePreview: "CurvePreview",
+  ScheduleResourceGrid: "Schedule", ScheduleItinerary: "Schedule", ScheduleSlotPicker: "Schedule", ScheduleDayPlanner: "Schedule",
   CalendarToolbar: "Calendar", CalendarMonth: "Calendar", CalendarTimeGrid: "Calendar", CalendarAgenda: "Calendar", CalendarWeekStrip: "Calendar",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", DashboardHeader: "DashboardHeader", TopNavigation: "TopNavigation",
@@ -916,6 +917,23 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "calendar-toolbar", label: "Calendar toolbar", group: "Navigation", caption: "Period and view", root: "CalendarToolbar", components: ["CalendarToolbar"], interactive: true, input: false,
     build: () => `<CalendarToolbar title="September 2026" view="month" />`,
+  },
+  // ❖ Schedule (16121:6): the same demo day, ISO dates.
+  {
+    id: "schedule-resource-grid", label: "Resource schedule", group: "Data display", caption: "People and rooms by hour", root: "ScheduleResourceGrid", components: ["ScheduleResourceGrid"], interactive: false, input: false,
+    build: () => `<ScheduleResourceGrid date="2026-09-30" now="2026-09-30T13:15" resources={[{ id: "alex", name: "Alex Duong", meta: "Designer" }, { id: "maya", name: "Maya Chen", meta: "Product lead" }, { id: "lotus", name: "Room 2 · Lotus", meta: "8 seats", type: "room" }]} bookings={[{ id: "q4", resourceId: "alex", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue" }, { id: "hiring", resourceId: "maya", title: "Hiring panel", start: "2026-09-30T15:00", end: "2026-09-30T17:00", color: "pink" }, { id: "room", resourceId: "lotus", title: "Design critique", start: "2026-09-30T16:00", end: "2026-09-30T17:00", color: "violet" }]} />`,
+  },
+  {
+    id: "schedule-itinerary", label: "Itinerary", group: "Data display", caption: "A day's timed stops", root: "ScheduleItinerary", components: ["ScheduleItinerary"], interactive: false, input: false,
+    build: () => `<ScheduleItinerary title="Wed, Sep 30 · Design Day" now="2026-09-30T13:15" stops={[{ id: "keynote", title: "Opening keynote", start: "2026-09-30T09:00", end: "2026-09-30T09:45", meta: "Hall A" }, { id: "workshop", title: "Workshop: prototyping", start: "2026-09-30T13:00", end: "2026-09-30T14:30", meta: "Room 2" }, { id: "closing", title: "Closing talk", start: "2026-09-30T15:00", end: "2026-09-30T15:45", meta: "Hall A" }]} />`,
+  },
+  {
+    id: "schedule-slot-picker", label: "Time slots", group: "Inputs", caption: "Book a time", root: "ScheduleSlotPicker", components: ["ScheduleSlotPicker"], interactive: true, input: true,
+    build: () => `<ScheduleSlotPicker aria-label="Review times" today="2026-09-30" slots={[{ id: "a", start: "2026-09-30T14:00" }, { id: "b", start: "2026-09-30T15:00", disabled: true }, { id: "c", start: "2026-10-01T09:00" }, { id: "d", start: "2026-10-01T10:00" }, { id: "e", start: "2026-10-02T11:00" }]} />`,
+  },
+  {
+    id: "schedule-day-planner", label: "Day planner", group: "Data display", caption: "A person's day as cards", root: "ScheduleDayPlanner", components: ["ScheduleDayPlanner"], interactive: true, input: false,
+    build: () => `<ScheduleDayPlanner defaultValue="2026-09-30" now="2026-09-30T13:15" events={[{ id: "a", title: "Wireframing and brainstorming", start: "2026-09-30T09:00", end: "2026-09-30T10:00", color: "violet", status: "Done" }, { id: "b", title: "Exploration phase", start: "2026-09-30T13:00", end: "2026-09-30T16:00", status: "In progress" }]} />`,
   },
   {
     id: "calendar-week-strip", label: "Week strip", group: "Navigation", caption: "Pick a day of the week", root: "CalendarWeekStrip", components: ["CalendarWeekStrip"], interactive: true, input: false,

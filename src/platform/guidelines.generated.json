@@ -2203,6 +2203,130 @@
       }
     ]
   },
+  "schedule": {
+    "title": "Schedule",
+    "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+    "use": [
+      "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+      "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+      "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+      "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+    ],
+    "avoid": [
+      "One person's week of hours → CalendarTimeGrid.",
+      "Unrelated events in date order → CalendarAgenda.",
+      "Any time of day in a form → DatePicker with timePicker.",
+      "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+    ],
+    "api": [
+      [
+        "Device",
+        "device",
+        "desktop · mobile; unset follows the breakpoint"
+      ],
+      [
+        "Scale",
+        "ScheduleResourceGrid scale",
+        "hours · days"
+      ],
+      [
+        "Type",
+        "resources[].type · ScheduleResource type",
+        "person · room"
+      ],
+      [
+        "Status",
+        "(from now) · ScheduleItineraryItem status",
+        "past · now · upcoming"
+      ],
+      [
+        "State=Selected",
+        "ScheduleSlotPicker value · ScheduleSlot checked",
+        "the chosen time"
+      ],
+      [
+        "State=Disabled",
+        "slots[].disabled",
+        "taken or past, struck through"
+      ],
+      [
+        "Color",
+        "bookings[].color · cards[].color",
+        "brand · blue · violet · teal · green · orange · pink (cards also neutral)"
+      ]
+    ],
+    "keyboard": [
+      [
+        "Tab / Shift+Tab",
+        "Move between bookings, the slot group, the week strip and the cards' menus"
+      ],
+      [
+        "← / → · ↑ / ↓",
+        "Slot-Picker: the previous / next time (the radio group)"
+      ],
+      [
+        "← / →",
+        "Week strip: the previous / next day"
+      ],
+      [
+        "Enter / Space",
+        "Open the focused booking; pick the focused day"
+      ]
+    ],
+    "do": [
+      "Keep the confirm action (\"Book 10:00\") in the page or sheet footer, enabled once a time is chosen.",
+      "Keep taken or past times in place (disabled, struck through) so the day keeps its rhythm.",
+      "Pass `now` (and `today`) when your app's clock is not the device's, so Past / Now and the now line agree with your data.",
+      "Give bars real start and end dates: a bar past the visible range scrolls with the track."
+    ],
+    "dont": [
+      "Don't hide taken slots: people then cannot tell a full day from an empty one.",
+      "Don't use a Slot-Picker for filters or scopes: that is Chip advanced.",
+      "Don't put several Now stops in an itinerary: one stop runs at a time.",
+      "Don't stack many overlapping events in a Day-Planner: use CalendarTimeGrid, which splits the column."
+    ],
+    "a11y": [
+      "The Resource-Grid is a table: the scale's column headers, then a row header (the resource) and one cell of bars per row; bars are buttons with onBookingClick, named by title and time.",
+      "The Slot-Picker is a radio group of native radios, each named with its day and time (\"…, unavailable\" when taken); the arrow keys move between them.",
+      "The Itinerary is an ordered list; the running stop carries aria-current=\"step\" and a Now badge.",
+      "Day-Planner cards are a list named by the day; a card's ⋮ is named \"Actions for {title}\"."
+    ],
+    "content": [
+      "Statuses in words (Done, In progress, Upcoming); colour stays on the rule.",
+      "Times are 24-hour in the locale (09:00); durations in minutes (90 min)."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Radio group",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/radio/"
+      ],
+      [
+        "WAI-ARIA APG — Table",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/table/"
+      ]
+    ],
+    "file": "docs/guidelines/schedule.md",
+    "rules": [
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      },
+      {
+        "id": "schedule/slot-picker-confirm",
+        "severity": "warn",
+        "summary": "A Slot-Picker only chooses a time: without onValueChange the app never hears the choice, and the confirm action (\"Book 10:00\") in the page or sheet footer has nothing to book.",
+        "allow": "schedule-confirm"
+      },
+      {
+        "id": "schedule/selected-needs-handler",
+        "severity": "warn",
+        "summary": "selectedBookingId marks the booking whose details are open; without onBookingClick the bars are static, so the selection can never change.",
+        "allow": "schedule-selected"
+      }
+    ]
+  },
   "tooltip": {
     "title": "Tooltip",
     "purpose": "Name or briefly describe a control on hover and keyboard focus.",

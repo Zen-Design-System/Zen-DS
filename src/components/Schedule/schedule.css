@@ -1,0 +1,120 @@
+/* Schedule (Figma ❖ Schedule 16121:6). Bars, the now line and the hour rail come from Calendar (calendar.css). */
+
+/* .Primitives/Schedule/Resource (16133:1070) */
+.zen-schedule-resource { display: flex; min-width: 0; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
+.zen-schedule-resource[data-device="mobile"] { flex-direction: column; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-2-xsmall, 4px); text-align: center; }
+.zen-schedule-resource__visual { display: inline-flex; flex: 0 0 auto; }
+.zen-schedule-resource__text { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+.zen-schedule-resource__name, .zen-schedule-resource__meta { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-schedule-resource__name { color: var(--zen-color-content-neutral-strongest); }
+.zen-schedule-resource__meta { color: var(--zen-color-content-neutral-light); }
+
+/* .Primitives/Schedule/Slot (16133:1087): a native radio inside the label; the label paints the Date-Picker day's colours.
+   Heights follow Select-Item Medium / Small (32 / 24 Compact, 40 / 32 Comfortable: phones get the larger targets).
+   zen-allow-radius-role: the label is the radio's control box — Figma binds Corner-Radius/Action/Small. */
+.zen-schedule-slot { position: relative; display: inline-flex; min-width: 0; height: var(--zen-select-item-size-medium, 32px); box-sizing: border-box; align-items: center; justify-content: center; padding: 0 var(--zen-spacing-padding-small, 12px); border: 1px solid var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-action-small, 1000px); background: var(--zen-date-picker-item-background-unselected-default); color: var(--zen-color-content-neutral-strongest); cursor: pointer; }
+.zen-schedule-slot[data-size="small"] { height: var(--zen-select-item-size-small, 24px); }
+.zen-schedule-slot:hover:not([data-disabled]):not([data-checked]) { border-color: var(--zen-color-border-neutral-subtle-hover); background: var(--zen-date-picker-item-background-unselected-hover); }
+.zen-schedule-slot[data-checked] { border-color: transparent; background: var(--zen-date-picker-item-background-seclected-default); color: var(--zen-date-picker-item-content-selected); }
+.zen-schedule-slot[data-disabled] { border-color: var(--zen-color-border-disabled); background: transparent; color: var(--zen-color-content-disabled); cursor: default; text-decoration: line-through; }
+.zen-schedule-slot__input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit; }
+/* zen-allow-focus-ring: the radio is invisible; the label draws the ring when it has keyboard focus. */
+.zen-schedule-slot:has(.zen-schedule-slot__input:focus-visible) { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
+
+/* .Primitives/Schedule/Itinerary-Item (16133:1131) */
+.zen-schedule-stop { display: flex; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-schedule-stop__time { display: flex; width: 56px; flex: 0 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-schedule-stop__start { color: var(--zen-color-content-neutral-strongest); }
+.zen-schedule-stop__duration { color: var(--zen-color-content-neutral-light); }
+.zen-schedule-stop__rail { display: flex; width: 16px; flex: 0 0 auto; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-schedule-stop__marker { display: block; width: 12px; height: 12px; box-sizing: border-box; flex: 0 0 auto; border: 2px solid var(--zen-color-border-neutral-solid-default); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default); }
+.zen-schedule-stop__connector { display: block; width: 2px; flex: 1 1 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-border-neutral-subtle-default); }
+.zen-schedule-stop__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding-bottom: var(--zen-spacing-padding-large, 20px); }
+.zen-schedule-stop__header { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-schedule-stop__title { min-width: 0; color: var(--zen-color-content-neutral-strongest); }
+.zen-schedule-stop__meta { color: var(--zen-color-content-neutral-base); }
+.zen-schedule-stop[data-status="past"] :is(.zen-schedule-stop__start, .zen-schedule-stop__meta) { color: var(--zen-color-content-neutral-light); }
+/* zen-allow-title-level: Figma Itinerary-Item Status=Past (16133:1131) quiets the title to Neutral/Base. */
+.zen-schedule-stop[data-status="past"] .zen-schedule-stop__title { color: var(--zen-color-content-neutral-base); }
+.zen-schedule-stop[data-status="past"] .zen-schedule-stop__marker { border: 0; background: var(--zen-color-background-accent-solid-default); }
+.zen-schedule-stop[data-status="past"] .zen-schedule-stop__connector { background: var(--zen-color-background-accent-solid-default); }
+.zen-schedule-stop[data-status="now"] .zen-schedule-stop__marker { display: grid; width: 16px; height: 16px; place-items: center; border-color: var(--zen-color-background-accent-solid-default); }
+.zen-schedule-stop[data-status="now"] .zen-schedule-stop__marker::after { width: 6px; height: 6px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-accent-solid-default); content: ""; }
+
+/* .Primitives/Schedule/Hour-Label (16143:488) */
+.zen-schedule-hour { display: inline-flex; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-rounded, 1000px); color: var(--zen-color-content-neutral-light); white-space: nowrap; }
+.zen-schedule-hour[data-now] { background: var(--zen-color-background-accent-flat-default); color: var(--zen-color-content-accent-strongest); }
+
+/* .Primitives/Schedule/Event-Card (16143:817): a Border box with 2XLarge corners; the note's corners are concentric (24 − 16). */
+.zen-schedule-card { --zen-schedule-rule: var(--zen-color-background-support-brand-solid); display: flex; min-width: 0; box-sizing: border-box; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px); border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-color-background-surface-default); }
+.zen-schedule-card[data-color="neutral"] { --zen-schedule-rule: var(--zen-color-background-support-neutral-solid); }
+.zen-schedule-card[data-color="blue"] { --zen-schedule-rule: var(--zen-color-background-support-blue-solid); }
+.zen-schedule-card[data-color="violet"] { --zen-schedule-rule: var(--zen-color-background-support-violet-solid); }
+.zen-schedule-card[data-color="teal"] { --zen-schedule-rule: var(--zen-color-background-support-teal-solid); }
+.zen-schedule-card[data-color="green"] { --zen-schedule-rule: var(--zen-color-background-support-green-solid); }
+.zen-schedule-card[data-color="orange"] { --zen-schedule-rule: var(--zen-color-background-support-orange-solid); }
+.zen-schedule-card[data-color="pink"] { --zen-schedule-rule: var(--zen-color-background-support-pink-solid); }
+.zen-schedule-card__rule { width: 4px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-schedule-rule); }
+.zen-schedule-card__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-schedule-card__header { display: flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-schedule-card__text { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-schedule-card__title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; color: var(--zen-color-content-neutral-strongest); }
+.zen-schedule-card__status { overflow: hidden; color: var(--zen-color-content-neutral-light); text-overflow: ellipsis; white-space: nowrap; }
+/* The Card Sub-Action: a Small Icon-Flat in a 20px Element-Size/Popular/Base wrapper. */
+.zen-schedule-card__menu { display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; }
+/* A narrow card (a small phone) puts the time under the attendees instead of past its edge. */
+.zen-schedule-card__meta { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-schedule-card__time { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.zen-schedule-card__note { padding: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-surface-alt); color: var(--zen-color-content-neutral-strongest); }
+
+/* Schedule/Resource-Grid (16135:145822): one scroll box; the resource column stays while the scale scrolls. Bars and the
+   now line are placed from --zen-schedule-from / -span / -at (columns) × --zen-schedule-column. */
+.zen-schedule-grid { min-width: 0; box-sizing: border-box; overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
+.zen-schedule-grid__scroll { overflow-x: auto; }
+.zen-schedule-grid__table { width: calc(var(--zen-schedule-resource-width) + var(--zen-schedule-columns) * var(--zen-schedule-column)); }
+.zen-schedule-grid__header, .zen-schedule-grid__row { display: grid; grid-template-columns: var(--zen-schedule-resource-width) repeat(var(--zen-schedule-columns), var(--zen-schedule-column)); }
+.zen-schedule-grid__header { height: 40px; border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-schedule-grid__corner, .zen-schedule-grid__resource { position: sticky; z-index: 2; left: 0; box-sizing: border-box; border-right: 1px solid var(--zen-color-border-neutral-pale-default); background: var(--zen-color-background-surface-default); }
+.zen-schedule-grid__corner { display: flex; align-items: center; padding: 0 var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-base); }
+.zen-schedule-grid[data-device="mobile"] .zen-schedule-grid__corner { padding: 0 var(--zen-spacing-padding-xsmall, 8px); }
+.zen-schedule-grid__scale { display: flex; min-width: 0; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.zen-schedule-grid__scale + .zen-schedule-grid__scale { border-left: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-schedule-grid__scale[data-today] { color: var(--zen-color-content-accent-base); }
+.zen-schedule-grid__body { position: relative; }
+.zen-schedule-grid__row { height: 56px; border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-schedule-grid[data-device="mobile"] .zen-schedule-grid__row { height: 64px; }
+.zen-schedule-grid__row:last-child { border-bottom: 0; }
+.zen-schedule-grid__resource > .zen-schedule-resource { height: 100%; }
+.zen-schedule-grid__track { position: relative; display: grid; grid-column: 2 / -1; grid-template-columns: repeat(var(--zen-schedule-columns), var(--zen-schedule-column)); }
+.zen-schedule-grid__cell + .zen-schedule-grid__cell { border-left: 1px solid var(--zen-color-border-neutral-pale-default); }
+.zen-schedule-grid__bar { position: absolute; top: 4px; bottom: 4px; left: calc(var(--zen-schedule-from) * var(--zen-schedule-column) + 2px); width: calc(var(--zen-schedule-span) * var(--zen-schedule-column) - 4px); }
+.zen-schedule-grid__now { position: absolute; z-index: 1; top: 0; bottom: 0; left: calc(var(--zen-schedule-resource-width) + var(--zen-schedule-at) * var(--zen-schedule-column) - 4px); }
+
+/* Schedule/Itinerary (16135:13820) */
+.zen-schedule-itinerary { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-schedule-itinerary__kicker { color: var(--zen-color-content-neutral-light); }
+.zen-schedule-itinerary__stops { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+
+/* Schedule/Slot-Picker (16135:14046) */
+.zen-schedule-picker[data-device="desktop"] { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-schedule-picker__day { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-schedule-picker__header { display: flex; flex-direction: column; }
+.zen-schedule-picker__weekday { color: var(--zen-color-content-neutral-light); }
+.zen-schedule-picker__weekday[data-today] { color: var(--zen-color-content-accent-base); }
+.zen-schedule-picker__date { color: var(--zen-color-content-neutral-strongest); }
+.zen-schedule-picker[data-device="mobile"] { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-schedule-picker__groups { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-schedule-picker__group { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-schedule-picker__kicker, .zen-schedule-picker__none { color: var(--zen-color-content-neutral-light); }
+.zen-schedule-picker__slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+
+/* Schedule/Day-Planner (16143:1439): cards sit at (start − first hour) × --zen-schedule-hour, at least their length tall. */
+.zen-schedule-planner { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-schedule-planner__header { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-schedule-planner__title { min-width: 0; margin: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
+.zen-schedule-planner__day { display: flex; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-schedule-planner__rail { display: flex; width: 56px; flex: 0 0 auto; flex-direction: column; }
+.zen-schedule-planner__hour { display: flex; height: var(--zen-schedule-hour, 64px); flex: 0 0 auto; }
+.zen-schedule-planner__cards { position: relative; min-width: 0; flex: 1 1 auto; }
+.zen-schedule-planner__card { position: absolute; top: calc(var(--zen-schedule-top) * var(--zen-schedule-hour, 64px)); right: 0; left: 0; display: flex; min-height: calc(var(--zen-schedule-length) * var(--zen-schedule-hour, 64px) - 8px); }
+.zen-schedule-planner__card > .zen-schedule-card { flex: 1 1 auto; }
