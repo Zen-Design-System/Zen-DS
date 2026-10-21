@@ -1,5 +1,6 @@
 import { useMemo, useRef, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { EmptyState } from "../EmptyState";
+import "../Icon/core";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useZenLabels, useZenLocale } from "../_shared/zen-context";

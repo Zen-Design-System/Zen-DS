@@ -240,6 +240,7 @@ const event = events.find((item) => item.id === selected);
   },
   {
     title: "Keyboard and screen readers",
+    wide: true,
     description: "One day of the month is in the tab order; the arrow keys move a day or a week and Home / End jump to the week's ends. Each date is named with its full date and event count, and today is announced as the current date.",
     render: () => <KeyboardMonthExample />,
     code: `<CalendarMonth month={today} value={picked} onValueChange={setPicked} events={events} aria-label="September 2026, team calendar" />
