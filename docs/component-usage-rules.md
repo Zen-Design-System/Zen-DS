@@ -528,3 +528,25 @@ never bare text beside the label. A count inside a sentence ("3 files", "12 of 4
 
 Harness (`npm run usage:check`): `badge/count-uses-counter` and `badge/count-text-uses-counter` (errors). Figma audit
 (`skills/zen-figma-design`): `badge/count-uses-counter` on a Badge instance whose label is a number.
+
+## 19. A workflow step is a BadgeStatus
+
+A task's or project's step in one workflow (To Do → In Progress → In Review → Done, plus Blocked and Cancelled outside
+the order) is a **BadgeStatus** (Figma Badge-Status, page ❖ Badge): the step picks the colour (Neutral, Info, Warning,
+Positive, Negative) and the progress ring, so every screen reads the workflow the same way. Rename a step only by its
+label (`children`, default from the locale); pass `progress` only for an exact share (a project at 60%). Statuses that
+are not workflow steps (Live, Paid, Draft, Overdue) stay Badges.
+
+- **Applies to:** `Badge` whose text is a workflow step, in English or Vietnamese.
+- User decision 2026-10-21: a component of its own, like BadgeCounter; the ring's value is free (no fixed presets).
+
+```tsx
+// ✅
+<BadgeStatus status="in-progress" />
+<BadgeStatus status="in-progress" progress={60} />
+<BadgeStatus status="blocked">On hold</BadgeStatus>
+// ❌
+<Badge theme="blue" background="subtle">In progress</Badge>
+```
+
+Harness (`npm run usage:check`): `badge/workflow-status-uses-badge-status` (error).

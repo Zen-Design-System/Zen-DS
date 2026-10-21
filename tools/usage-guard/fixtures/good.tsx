@@ -19,6 +19,9 @@ export const Good = () => <>
   <Badge remove onRemove={() => drop("design")}>Design</Badge>
   <Tag remove onRemove={remove}>react</Tag>
   <BadgeCounter value="99+" />
+  {/* A workflow step is a BadgeStatus; other statuses stay Badges (badge/workflow-status-uses-badge-status). */}
+  <BadgeStatus status="in-progress" progress={60} />
+  <Badge theme="green" background="subtle">Paid</Badge>
   <Avatar theme="photo" src={url} alt="Ava Chen" />
   <Avatar theme="blue" alt="">AC</Avatar>
   <Avatar theme="green" background="subtle" alt="Ava Chen">AC</Avatar>

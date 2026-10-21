@@ -782,20 +782,22 @@
     },
     {
       "slug": "badge",
-      "title": "Badge & Badge-Counter",
+      "title": "Badge, Badge-Counter & Badge-Status",
       "file": "docs/guidelines/badge.md",
       "apiFile": "docs/api/badge.json",
-      "figma": "Badge, Badge-Counter (page 239:18960)",
-      "import": "import { Badge, BadgeCounter } from \"@zen-ds/react\";",
-      "purpose": "Non-interactive status, category or count labels.",
+      "figma": "Badge, Badge-Counter, Badge-Status + .Primitives/Badge/Progress-Icon (page 239:18960)",
+      "import": "import { Badge, BadgeCounter, BadgeStatus } from \"@zen-ds/react\";",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "use": [
         "Status in lists (Live, Failed).",
         "Unread/notification counts (BadgeCounter).",
-        "Removable labels on an item (remove + onRemove)."
+        "Removable labels on an item (remove + onRemove).",
+        "A task's or project's workflow step — To Do, In Progress, In Review, Done, Blocked, Cancelled — in tables, boards, detail views and status pickers (BadgeStatus)."
       ],
       "avoid": [
         "Selectable filters → Chip.",
-        "Values inside an input → Tag."
+        "Values inside an input → Tag.",
+        "A percentage people read as a number → ProgressBar / ProgressCircle."
       ],
       "props": {
         "Badge": [
@@ -815,6 +817,14 @@
         ],
         "BadgeCounter": [
           "value?: ReactNode"
+        ],
+        "BadgeStatus": [
+          "ref?: Ref<HTMLSpanElement>",
+          "status?: to-do|in-progress|in-review|done|blocked|cancelled = to-do",
+          "size?: sm|md|small|medium = md",
+          "progress?: number",
+          "children?: ReactNode",
+          "className?: string"
         ]
       },
       "do": [
@@ -822,10 +832,14 @@
         "Use Subtle backgrounds in dense tables and Solid for emphasis.",
         "Cap counters at \"99+\" and hide them at zero.",
         "Show counts (unread, items, filters applied, a section's or folder's item count) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height — never a Badge holding a number nor bare text beside a label; keep Badge for words and statuses (harness: badge/count-uses-counter, badge/count-text-uses-counter; component-usage-rules §18).",
-        "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count)."
+        "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count).",
+        "Show a workflow step with BadgeStatus, never a Badge themed by hand: the step sets the colour and the ring, so every screen reads one workflow the same way (harness: badge/workflow-status-uses-badge-status).",
+        "Keep one workflow per product, in order: To Do → In Progress → In Review → Done; Blocked and Cancelled sit outside it. Rename a step only by its label (children), never by repainting another step.",
+        "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough."
       ],
       "dont": [
         "Don't make a badge clickable (use Chip).",
+        "Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).",
         "Don't rely on colour alone; keep the text.",
         "Don't use more than two badges on one row item; summarise the rest.",
         "Don't show counters at zero."
@@ -835,6 +849,7 @@
         "badge-counter/cap",
         "flag/no-emoji-flag",
         "badge/count-uses-counter",
+        "badge/workflow-status-uses-badge-status",
         "badge/count-text-uses-counter",
         "api/deprecated-prop",
         "api/overrides-studio-only",

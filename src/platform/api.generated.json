@@ -3801,6 +3801,60 @@
           "deprecated": null
         }
       ]
+    },
+    {
+      "name": "BadgeStatus",
+      "extends": "Omit<HTMLAttributes<HTMLSpanElement>, \"children\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>`.",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "\"to-do\" | \"in-progress\" | \"in-review\" | \"done\" | \"blocked\" | \"cancelled\"",
+          "required": false,
+          "default": "\"to-do\"",
+          "description": "The workflow step: to-do (Neutral) · in-progress (Info) · in-review (Warning) · done (Positive) · blocked (Negative) · cancelled (Neutral, muted label).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md) or Figma (small, medium) spelling. Medium is 28 high with a 20px ring, Small 20 with a 16px ring.",
+          "deprecated": null
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "How full the ring is, 0–100 (Figma: the Progress layer's arc). Default: the step's own value (to-do 0, in-progress 25,\nin-review 50, done 100). Set it for an exact value (a project at 60%); it is then read after the label. Blocked and\nCancelled have no ring and ignore it.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The label. Default: the step's name from the locale's labels (en \"In Progress\", vi \"Đang làm\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
     }
   ],
   "tag": [

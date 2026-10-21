@@ -81,6 +81,9 @@
           "$ref": "#/$defs/components/BadgeCounter"
         },
         {
+          "$ref": "#/$defs/components/BadgeStatus"
+        },
+        {
           "$ref": "#/$defs/components/BarChart"
         },
         {
@@ -4715,6 +4718,142 @@
               "size": {
                 "anyOf": [
                   {},
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "BadgeStatus": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "BadgeStatus"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "to-do",
+                      "in-progress",
+                      "in-review",
+                      "done",
+                      "blocked",
+                      "cancelled"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The workflow step: to-do (Neutral) · in-progress (Info) · in-review (Warning) · done (Positive) · blocked (Negative) · cancelled (Neutral, muted label)."
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "sm",
+                      "md",
+                      "small",
+                      "medium"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Short (sm, md) or Figma (small, medium) spelling."
+              },
+              "progress": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How full the ring is, 0–100 (Figma: the Progress layer's arc)."
+              },
+              "children": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The label."
+              },
+              "aria-label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-labelledby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-describedby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
                   {
                     "$ref": "#/$defs/marker"
                   }

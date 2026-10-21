@@ -16,7 +16,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Toggle](toggle.md) | `choice/needs-label`, `toggle/label-names-setting`, `api/deprecated-prop`, `mobile/full-size-controls`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Checkbox](checkbox.md) | `choice/needs-label`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Radio Button](radio-button.md) | `choice/needs-label`, `radio/needs-name`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [Badge & Badge-Counter](badge.md) | `removable/needs-handler`, `badge-counter/cap`, `flag/no-emoji-flag`, `badge/count-uses-counter`, `badge/count-text-uses-counter`, `api/deprecated-prop`, `api/overrides-studio-only`, `copy/plural-count`, `interaction/no-noop-handler` |
+| [Badge, Badge-Counter & Badge-Status](badge.md) | `removable/needs-handler`, `badge-counter/cap`, `flag/no-emoji-flag`, `badge/count-uses-counter`, `badge/workflow-status-uses-badge-status`, `badge/count-text-uses-counter`, `api/deprecated-prop`, `api/overrides-studio-only`, `copy/plural-count`, `interaction/no-noop-handler` |
 | [Tag](tag.md) | `removable/needs-handler`, `flag/no-emoji-flag`, `api/overrides-studio-only`, `copy/plural-count`, `interaction/no-noop-handler` |
 | [Avatar & Avatar Stack](avatar.md) | `avatar/needs-alt`, `avatar/solid-initials-contrast`, `flag/no-emoji-flag`, `api/overrides-studio-only`, `interaction/no-noop-handler` |
 | [Popover](popover.md) | `popover/controlled-close`, `popover/explicit-open`, `popover/bulk-action-limit`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/action-without-handler`, `focus/selected-fill-only` |

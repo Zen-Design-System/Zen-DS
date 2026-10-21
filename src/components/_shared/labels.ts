@@ -131,6 +131,15 @@ export type ZenLabels = {
   stepError: string;
   /** Stepper's screen-reader status after a passed step's title. */
   stepCompleted: string;
+  /** BadgeStatus's default labels, one per workflow step (Figma Badge-Status). */
+  statusToDo: string;
+  statusInProgress: string;
+  statusInReview: string;
+  statusDone: string;
+  statusBlocked: string;
+  statusCancelled: string;
+  /** BadgeStatus: the ring's value read after the label when `progress` is set ("60% complete"). */
+  statusPercent: (percent: number) => string;
   rating: string;
   stars: (count: number) => string;
   /** RatingDisplay: "4.5 out of 5 stars"; `value` arrives formatted for the locale. */
@@ -442,6 +451,13 @@ const en: ZenLabels = {
   progress: "Progress",
   stepError: "(error)",
   stepCompleted: "(completed)",
+  statusToDo: "To Do",
+  statusInProgress: "In Progress",
+  statusInReview: "In Review",
+  statusDone: "Done",
+  statusBlocked: "Blocked",
+  statusCancelled: "Cancelled",
+  statusPercent: (percent) => `${percent}% complete`,
   rating: "Rating",
   stars: (count) => `${count} ${count === 1 ? "star" : "stars"}`,
   ratingValue: (value, max) => `${value} out of ${max} stars`,
@@ -702,6 +718,13 @@ const vi: ZenLabels = {
   progress: "Tiến độ",
   stepError: "(lỗi)",
   stepCompleted: "(đã hoàn thành)",
+  statusToDo: "Cần làm",
+  statusInProgress: "Đang làm",
+  statusInReview: "Đang duyệt",
+  statusDone: "Hoàn thành",
+  statusBlocked: "Bị chặn",
+  statusCancelled: "Đã huỷ",
+  statusPercent: (percent) => `hoàn thành ${percent}%`,
   rating: "Đánh giá",
   stars: (count) => `${count} sao`,
   ratingValue: (value, max) => `${value} trên ${max} sao`,

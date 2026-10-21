@@ -11,6 +11,7 @@ import { Menu } from "../components/Menu";
 import { Checkbox, type CheckboxSide } from "../components/Checkbox";
 import { RadioButton, type RadioSide } from "../components/RadioButton";
 import { Badge, BadgeCounter, badgeThemes, type BadgeBackground, type BadgeSize, type BadgeTheme } from "../components/Badge";
+import { BadgeStatus, badgeStatuses, type BadgeStatusSize, type BadgeStatusValue } from "../components/BadgeStatus";
 import { Toggle, type ToggleSize, type ToggleTheme } from "../components/Toggle";
 import type { PopoverItemData } from "../components/Popover";
 import { Tag, type TagTheme } from "../components/Tag";
@@ -269,6 +270,9 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [badgeRemove, setBadgeRemove] = useState<string | undefined>("no");
   const [badgeRemoved, setBadgeRemoved] = useState(false);
   const [badgeCount, setBadgeCount] = useState<string | undefined>("7");
+  const [badgeStatusStep, setBadgeStatusStep] = useState<string | undefined>("in-progress");
+  const [badgeStatusSize, setBadgeStatusSize] = useState<string | undefined>("medium");
+  const [badgeStatusProgress, setBadgeStatusProgress] = useState<string | undefined>(undefined);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarBackground, setSidebarBackground] = useState<string | undefined>(undefined);
   const [sidebarCanvas, setSidebarCanvas] = useState<string | undefined>(undefined);
@@ -1168,7 +1172,7 @@ const rules = [
     const resolvedBackground = (badgeBackground ?? "solid") as BadgeBackground;
     const showLeading = badgeLeading === "yes";
     const showRemove = badgeRemove === "yes";
-    return <ExamplePage page="badge" eyebrow="Components / Badge" title="Badge" description="Badge and Badge-Counter for compact status, category and count communication.">
+    return <ExamplePage page="badge" eyebrow="Components / Badge" title="Badge" description="Badge, Badge-Counter and Badge-Status for compact status, category, count and workflow-step communication.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Badge</h2>
         <PlaygroundControls aria-label="Badge playground controls">
@@ -1201,6 +1205,20 @@ import { Icon } from "@zen-ds/react";` : ""}
 </Badge>
 
 <BadgeCounter size="${resolvedSize}" theme="${resolvedTheme}" background="${resolvedBackground}" value={${badgeCount === "99+" ? `"99+"` : badgeCount ?? 7}} />`} />
+      </ComponentPreview>
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Badge-Status</h2>
+        <PlaygroundControls aria-label="Badge-Status playground controls">
+          <PlaygroundFilterChip label="Status" value={badgeStatusStep} onChange={(value) => setBadgeStatusStep(String(value) || undefined)} options={badgeStatuses.map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Size" value={badgeStatusSize} onChange={(value) => setBadgeStatusSize(String(value) || undefined)} options={["small", "medium"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Progress" value={badgeStatusProgress} onChange={(value) => setBadgeStatusProgress(String(value) || undefined)} options={["10", "60", "90"].map((id) => ({ id, label: `${id}%` }))} />
+        </PlaygroundControls>
+        <div data-typography={previewTypography} className="platform-example-row">
+          <BadgeStatus status={(badgeStatusStep ?? "in-progress") as BadgeStatusValue} size={(badgeStatusSize ?? "medium") as BadgeStatusSize} progress={badgeStatusProgress ? Number(badgeStatusProgress) : undefined} />
+        </div>
+        <PlatformCode code={`import { BadgeStatus } from "@zen-ds/react";
+
+<BadgeStatus status="${badgeStatusStep ?? "in-progress"}" size="${badgeStatusSize ?? "medium"}"${badgeStatusProgress ? ` progress={${badgeStatusProgress}}` : ""} />`} />
       </ComponentPreview>
     </ExamplePage>;
   }

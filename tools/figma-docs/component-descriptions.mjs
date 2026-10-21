@@ -71,7 +71,7 @@ export const componentDescriptions = {
   "Badge": card({
     what: "A non-interactive label for a status, category or attribute (Live, Failed, Draft).",
     use: ["Statuses in tables and lists (Badge-Cell), categories, short attributes."],
-    instead: ["Selectable filters → Chip.", "Values chosen inside a field → Tag.", "Counts → Badge-Counter."],
+    instead: ["Selectable filters → Chip.", "Values chosen inside a field → Tag.", "Counts → Badge-Counter.", "A workflow step (To Do → Done, Blocked, Cancelled) → Badge-Status."],
     props: [["Theme", "the colour family; pick it by meaning (Green done, Red failed, Yellow waiting), Neutral for plain labels"], ["Background", "Subtle (default, text in the family's Strongest) · Solid (high emphasis, On-Colors text)"], ["Size", "XSmall–Medium; match the row's text size"]],
     rules: ["Never colour alone: the text says the status.", "Keep it to one or two words."],
     code: "`<Badge>`",
@@ -82,6 +82,15 @@ export const componentDescriptions = {
     props: [["Theme", "Accent or Red for attention, Neutral for plain totals"], ["Size", "XSmall–Medium, one step smaller than its host's text"]],
     code: "`<BadgeCounter>`",
   }),
+  "Badge-Status": card({
+    what: "The status of a task or project as a badge with a progress ring that fills as the work moves on: To Do (empty), In Progress (a quarter), In Review (half), Done (full); Blocked and Cancelled mark work that stopped.",
+    use: ["Task and project statuses in tables (Badge-Cell), boards, lists, detail views and Input/Property-Field Type=Status.", "The options of a status picker (Popover/Default with Badge items)."],
+    instead: ["Categories and attributes without a workflow order → Badge.", "A percentage people read as a number → Progress.", "A count → Badge-Counter."],
+    props: [["Status", "To Do (Neutral) · In Progress (Info) · In Review (Warning) · Done (Positive) · Blocked (Negative, icon-slash-circle-01-line) · Cancelled (Neutral, icon-x-circle-line, the label in Content/Neutral/Base)"], ["Size", "Medium 28 (ring 20) · Small 20 (ring 16), the Badge sizes; the ring sits as far from the left edge as from the top"], ["Leading", "the nested .Primitives/Badge/Progress-Icon: each status sets its arc (0 · 25 · 50 · 100); drag the Progress layer's arc for an exact value"]],
+    rules: ["One workflow per product, in this order and these colours; rename a step only by its label.", "Never removable or clickable: a status changes through its picker."],
+    code: "`<BadgeStatus status=\"in-progress\" size=\"md\" progress={60}>`",
+  }),
+  ".Primitives/Badge/Progress-Icon": part("The progress ring of Badge-Status (Ring + Progress arc), drawn in Comfortable at 24 and bound to Element-Size/Popular/Base; the value is the Progress layer's arc.", "Badge-Status"),
 
   // ❖ Breadcrumbs
   "Breadcrumbs": card({

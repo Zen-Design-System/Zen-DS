@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { typographyStyles } from "../tokens/typography.generated";
 import { Avatar, AvatarStack } from "../components/Avatar";
 import { Badge, BadgeCounter } from "../components/Badge";
+import { BadgeStatus } from "../components/BadgeStatus";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { AppShellAction, AppShellHeader } from "../components/AppShell";
 import { PageHeader } from "../components/PageHeader";
@@ -185,6 +186,9 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   badge: [
     { do: { preview: <Row><Badge size="small" theme="green" background="subtle" leading={<Icon name="icon-check-line" decorative />}>Live</Badge><BadgeCounter size="small" theme="red" value="99+" /></Row>, caption: "Semantic colour + text; counters cap at 99+." },
       dont: { preview: <Row><Badge size="small" theme="green" background="subtle" leadingIcon={false}> </Badge><BadgeCounter size="small" theme="red" value={1284} /></Row>, caption: "Colour alone carries no meaning; raw big numbers overflow." } },
+    { do: { preview: <Row><BadgeStatus status="in-progress" /><BadgeStatus status="in-review" /><BadgeStatus status="done" /></Row>, caption: "Workflow steps are BadgeStatus: the step sets the colour and the ring." },
+      // zen-allow-badge-workflow-status: the Don't preview shows the rule broken.
+      dont: { preview: <Row><Badge theme="blue" background="subtle">In progress</Badge><Badge theme="purple" background="subtle">In review</Badge><Badge theme="green" background="subtle">Done</Badge></Row>, caption: "Don't theme a Badge by hand for a step: each screen paints it differently." } },
   ],
   tag: [
     { do: { preview: <Row><Tag remove onRemove={noop}>react</Tag><Tag remove onRemove={noop}>tokens</Tag></Row>, caption: "Tags are values the user entered, removable in place." },

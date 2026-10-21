@@ -221,3 +221,22 @@ original stays, one ⌘Z each) waits for a gate slot.
   start) and passed the row's 20 s. Fixed at its owner, the shared helper: each ⌘Z waits for its own step (the page
   changes). FW-66 + FW-106 ✓ in 12 s. The whole Figma walk again: 125 / 126, FW-02 (⌘F) timed out once and passed
   alone (8 s; it passed in the first walk run).
+
+## BadgeStatus (session "Inline input component types", worktree ../Zen-DS-badge-status, tier L)
+
+- Figma first (user rule "Figma trước, duyệt rồi qua Studio"): Badge-Status 16932:195 promoted from ◆ HR-Platform's
+  `.HR/Workbend/Task/Status- old` (deleted with its local Icon-Progress after its 32 placements + 16 row icons moved);
+  6 statuses × Medium|Small, `.Primitives/Badge/Progress-Icon` 16943:171 is one component whose value is its Progress arc
+  (drawn in Comfortable at 24, 2px ring, bound to Element-Size/Popular/Base). User approved: "duyệt, làm code BadgeStatus".
+- Code: `src/components/BadgeStatus` (SVG ring on the same 24 grid, so 1.67px in Compact; Blocked/Cancelled use
+  icon-slash-circle-01-line / icon-x-circle-line), `export *` in src/index.ts, labels statusToDo…statusCancelled +
+  statusPercent (en/vi), Badge guideline extended (+ tagsFor), harness `badge/workflow-status-uses-badge-status` with
+  bad/good fixtures, usage rules §19, figma-docs cards for Badge-Status and Progress-Icon, ai-ui catalog rebuilt.
+- Platform: Badge page playground panel + examples (Task status and Status on a phone moved to BadgeStatus; new Release
+  checklist, Project progress, Board columns), a Do/Don't pair. The new rule found a hand-themed "Done" Badge on the
+  Empty State page: fixed there (both task-status Badges on that page are BadgeStatus now).
+- Checks: tsc, usage:selftest/check, guidelines:check, ai-ui/ai-kit/icons/styles/tokens checks, style:check on the
+  edited files, smoke + conformance for BadgeStatus; shots of the Badge page at 1512, 390 and dark looked right.
+- Not done here (proposed as follow-ups): other platform pages and the HR templates still show task statuses as
+  `Badge theme={taskStatusTheme[…]}` (dynamic text, not caught by the rule); Studio support (Main board, push/pull);
+  Input/Property-Field code.

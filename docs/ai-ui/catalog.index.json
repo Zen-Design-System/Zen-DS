@@ -102,14 +102,20 @@
     {
       "name": "Badge",
       "status": "verified",
-      "purpose": "Non-interactive status, category or count labels.",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "props": "children? size? theme? background? leading? leadingIcon? remove? onRemove? removeLabel? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BadgeCounter",
       "status": "verified",
-      "purpose": "Non-interactive status, category or count labels.",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "props": "value? size?"
+    },
+    {
+      "name": "BadgeStatus",
+      "status": "stable",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
+      "props": "status? size? progress? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BarChart",
