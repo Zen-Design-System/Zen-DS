@@ -4157,7 +4157,7 @@
     "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
     "use": [
       "Grids of objects users scan and pick (projects, templates, plans).",
-      "KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).",
+      "KPI / stat tiles (theme=\"default\", the Surface alone, with nothing else deciding; Shadow beside a shadowed Sidebar).",
       "A selectable option with rich content (Active marks the choice).",
       "Framing a List or a group of settings (Border).",
       "A dashboard widget in colour: Subtle on the grey Canvas/Default, Pale on a white page, in any of the nine hues; or the one widget of a row that stands out (Solid)."
@@ -4173,17 +4173,17 @@
       [
         "Theme",
         "theme",
-        "shadow (default) · flat · border · pale (colour on a white page: Canvas/Alt, Canvas/Flat) · subtle (colour on the grey Canvas/Default, Support/<Color>/Subtle; harness card/pale-on-canvas-default) · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet) · solid (the one widget of a row that stands out); semi-pale is deprecated and renders as pale"
+        "shadow (default) · default (the Surface alone: no border, no shadow; `flat` until 2026-10-21) · border · flat-border (Surface/Flat inside a Border/Neutral/Pale frame: the card of a Canvas/Flat page) · pale (colour on a white page: Canvas/Alt, Canvas/Flat) · subtle (colour on the grey Canvas/Default, Support/<Color>/Subtle; harness card/pale-on-canvas-default) · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet) · solid (the one widget of a row that stands out); semi-pale is deprecated and renders as pale"
       ],
       [
         "Color",
         "color",
-        "neutral (default) · brand · cyan · violet · green · yellow · orange · blue · purple · accent, for pale and subtle (Support/<Color>/Pale or /Subtle, the nine hues; a Pale or Subtle accent renders as Neutral) and solid (neutral: Background/Neutral/Solid with Content/Inverse/* content; brand · cyan · orange: Support/<Color>/Solid with Content/On-Colors; yellow: with Content/On-Brights; accent: Background/Accent/Solid with Content/On-Accent; violet, green, blue and purple render as Solid Neutral, harness card/solid-color). Shadow, Flat, Border and On-Container ignore it (harness card/color-ignored). MetricCard and ChartCard pass it to their Card"
+        "neutral (default) · brand · cyan · violet · green · yellow · orange · blue · purple · accent, for pale and subtle (Support/<Color>/Pale or /Subtle, the nine hues; a Pale or Subtle accent renders as Neutral) and solid (neutral: Background/Neutral/Solid with Content/Inverse/* content; brand · cyan · orange: Support/<Color>/Solid with Content/On-Colors; yellow: with Content/On-Brights; accent: Background/Accent/Solid with Content/On-Accent; violet, green, blue and purple render as Solid Neutral, harness card/solid-color). Shadow, Default, Border, Flat-Border and On-Container ignore it (harness card/color-ignored). MetricCard and ChartCard pass it to their Card"
       ],
       [
         "Surface",
         "surface",
-        "default · alt · flat — Figma Surface per theme: alt on Flat and Border (Shadow on alt draws as Flat on Surface/Alt), flat on Border only (a Border card on a Canvas/Flat page); Pale, Subtle, On-Container and Solid keep their own fill (harness card/surface-ignored). On a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default. ChartCard passes it to its Card"
+        "default · alt — Figma Surface per theme: alt on Default and Border (Shadow on alt draws as Default on Surface/Alt); Pale, Subtle, Flat-Border, On-Container and Solid keep their own fill (harness card/surface-ignored). A card on a Canvas/Flat page is theme=\"flat-border\" (surface=\"flat\" is gone). On a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default. ChartCard passes it to its Card"
       ],
       [
         "Spacing",
@@ -4218,19 +4218,19 @@
     ],
     "do": [
       "On a phone, count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge). Desktop cards keep Medium whatever their number.",
-      "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
+      "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), theme=\"default\" on Canvas/Default: no border, no shadow (usage rules §16). On a Canvas/Flat page, Flat-Border: Surface/Flat inside a Pale frame. Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
       "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
       "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
       "Make the whole card clickable when it opens one thing, and name it with aria-label when the content doesn't start with a title.",
       "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
       "Put secondary card actions in the Sub-Action menu.",
       "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
-      "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"border\" surface=\"flat\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
+      "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Default cards only, which is what a Canvas/Alt page takes anyway.",
       "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
       "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
       "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
       "On Brand, Cyan, Orange and Accent the white On-Colors text measures about 3:1: keep what you write there short and large (the number, a title), and put long or small text on another card.",
-      "Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
+      "Pricing plans: Default cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
     ],
     "dont": [
       "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
@@ -4279,13 +4279,13 @@
       {
         "id": "card/color-ignored",
         "severity": "warn",
-        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Default, Border, Flat-Border and On-Container have no Color and ignore it.",
         "allow": "card-color"
       },
       {
         "id": "card/surface-ignored",
         "severity": "warn",
-        "summary": "Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill.",
+        "summary": "Figma Card Surface per theme: alt on Default and Border (Shadow on alt renders as Default); Pale, Subtle, Flat-Border, On-Container and Solid keep their own fill. A card on a Canvas/Flat page is theme=\"flat-border\".",
         "allow": "card-surface"
       },
       {
@@ -4587,7 +4587,7 @@
       [
         "ListBox",
         "<ListBox header footer theme>",
-        "Figma Component/List-Box: the white box of rows, one component for every device (only the tokens change by mode). theme = elevation as Card's Figma Theme: flat (default, Surface alone) · shadow (Shadow/Bottom/Level-1) · pale (Support/Neutral/Pale + blur) · border (1px Border/Neutral/Pale inside) · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet). Surface/Default, Corner-Radius/2XLarge (24px), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile; the header Padding/XSmall below, the body List-Container-Vertical-Padding above and below: 12px desktop, 8px tablet and mobile); body gap 3XSmall, header/footer gap Medium. The row fill sits 12px (desktop) / 8px (phone) from its edge, concentric with Interactive-List-Item-Radius"
+        "Figma Component/List-Box: the white box of rows, one component for every device (only the tokens change by mode). theme = elevation as Card's Figma Theme: default (the default: Surface alone; `flat` until 2026-10-21) · shadow (Shadow/Bottom/Level-1) · pale (Support/Neutral/Pale + blur) · border (1px Border/Neutral/Pale inside) · flat-border (Surface/Flat inside that ring, on a Canvas/Flat page) · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet). Surface/Default, Corner-Radius/2XLarge (24px), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile; the header Padding/XSmall below, the body List-Container-Vertical-Padding above and below: 12px desktop, 8px tablet and mobile); body gap 3XSmall, header/footer gap Medium. The row fill sits 12px (desktop) / 8px (phone) from its edge, concentric with Interactive-List-Item-Radius"
       ]
     ],
     "keyboard": [
@@ -4605,7 +4605,7 @@
       "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
       "Wrap rows in <List aria-label> so the group is named.",
       "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
-      "Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).",
+      "Pick the ListBox theme by where it sits (usage rules §16): default on Canvas/Default and on a Surface-Alt phone screen; flat-border on a Canvas/Flat page; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).",
       "Make the whole row the target (onClick / href) when it opens one thing; for drill-down add a passive chevron.",
       "Put quick actions in the trailing slot as Button/Icon-Flat Medium (IconButton appearance=\"flat\" size=\"md\") with an aria-label. They work on clickable rows too — Figma keeps the trailing action in Hover, Pressed and Selected — and stay separate targets that don't open the row.",
       "Keep to one or two trailing actions; move the rest into a More (…) menu.",
@@ -5471,7 +5471,7 @@
       {
         "id": "card/color-ignored",
         "severity": "warn",
-        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Default, Border, Flat-Border and On-Container have no Color and ignore it.",
         "allow": "card-color"
       },
       {
@@ -7370,13 +7370,13 @@
       {
         "id": "card/color-ignored",
         "severity": "warn",
-        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "summary": "Card color is the Figma Color of theme=\"pale\" and theme=\"subtle\" (nine hues) and theme=\"solid\"; Shadow, Default, Border, Flat-Border and On-Container have no Color and ignore it.",
         "allow": "card-color"
       },
       {
         "id": "card/surface-ignored",
         "severity": "warn",
-        "summary": "Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill.",
+        "summary": "Figma Card Surface per theme: alt on Default and Border (Shadow on alt renders as Default); Pale, Subtle, Flat-Border, On-Container and Solid keep their own fill. A card on a Canvas/Flat page is theme=\"flat-border\".",
         "allow": "card-surface"
       },
       {

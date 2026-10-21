@@ -275,6 +275,10 @@ export const FIGMA_PROPS = {
       "Header-Slot": skip("content slot (Slots section)"),
       "Body-Slot": skip("content slot (Slots section)"),
       Theme: "theme",
+      // Color (Neutral … Purple) and Surface (Default · Alt), live in Figma 2026-10-21: ListBox has no color / surface
+      // prop yet (a new API waits for the user's go); it draws Color=Neutral, Surface=Default.
+      Color: skip("no code prop yet: ListBox draws Color=Neutral"),
+      Surface: skip("no code prop yet: ListBox draws Surface=Default"),
       Footer: { toggle: "footer", on: "slot" },
       "Footer-Slot": skip("content slot (Slots section)"),
     },

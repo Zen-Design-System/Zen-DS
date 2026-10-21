@@ -1023,21 +1023,23 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Theme",
           "names": [
             "Shadow",
-            "Flat",
             "Pale",
             "Border",
             "On-Container",
             "Solid",
-            "Subtle"
+            "Subtle",
+            "Default",
+            "Flat-Border"
           ],
           "values": [
             "shadow",
-            "flat",
             "pale",
             "border",
             "on-container",
             "solid",
-            "subtle"
+            "subtle",
+            "default",
+            "flat-border"
           ],
           "default": "shadow"
         },
@@ -1075,13 +1077,11 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Surface",
           "names": [
             "Default",
-            "Alt",
-            "Flat"
+            "Alt"
           ],
           "values": [
             "default",
-            "alt",
-            "flat"
+            "alt"
           ],
           "default": "default"
         },
@@ -2017,20 +2017,22 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "prop": "theme",
           "label": "Theme",
           "names": [
-            "Flat",
             "Shadow",
             "Pale",
             "Border",
-            "On-Container"
+            "On-Container",
+            "Default",
+            "Flat-Border"
           ],
           "values": [
-            "flat",
             "shadow",
             "pale",
             "border",
-            "on-container"
+            "on-container",
+            "default",
+            "flat-border"
           ],
-          "default": "flat"
+          "default": "default"
         }
       ],
       "toggles": []

@@ -668,12 +668,13 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Shadow": "shadow",
-          "Flat": "flat",
           "Pale": "pale",
           "Border": "border",
           "On-Container": "on-container",
           "Solid": "solid",
-          "Subtle": "subtle"
+          "Subtle": "subtle",
+          "Default": "default",
+          "Flat-Border": "flat-border"
         }
       },
       {
@@ -699,8 +700,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Default": "default",
-          "Alt": "alt",
-          "Flat": "flat"
+          "Alt": "alt"
         }
       },
       {
@@ -1488,11 +1488,12 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "label": "Theme",
         "type": "VARIANT",
         "options": {
-          "Flat": "flat",
           "Shadow": "shadow",
           "Pale": "pale",
           "Border": "border",
-          "On-Container": "on-container"
+          "On-Container": "on-container",
+          "Default": "default",
+          "Flat-Border": "flat-border"
         }
       }
     ],
