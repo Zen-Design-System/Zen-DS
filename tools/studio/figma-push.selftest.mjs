@@ -205,7 +205,48 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
 // 7. What is not written yet is named, never dropped silently.
 {
   const { notes } = push(PAGE.replace('<Card theme="flat">\n              <Text>Loyalty app</Text>', '<Card theme="flat" subAction={{ label: "More" }}>\n              <Text>Loyalty app</Text>'));
-  ok("a data prop (subAction) is named as not written", notes.some((note) => /subAction is data/.test(note)));
+  ok("Card subAction is Figma's Sub-Action (no \"is data\" note); a label Figma has no place for is named", !notes.some((note) => /subAction is data/.test(note)) && notes.some((note) => /its subAction label "More" has no place in Figma/.test(note)));
+}
+{
+  // Card subAction ↔ Figma's Sub-Action (BACKLOG P3, 2026-10-21): on with the prop, its icon the Sub-Action's
+  // Leading-Icon-Src when not the default ⋮; back as subAction with the built-in label. MetricCard's through its Card.
+  const page = `// @zen-page {"format":1,"title":"Sub"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Card, IconButton, Menu, MetricCard, Stack, Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Sub" device="desktop">
+        <Stack>
+          <Card width={280} subAction={{ label: "More actions", icon: "icon-share-01-line" }}>
+            <Text>A</Text>
+          </Card>
+          <Card subAction={{ label: "More actions" }}>
+            <Text>B</Text>
+          </Card>
+          <Card subAction={<IconButton appearance="flat" icon="icon-edit-01-line" aria-label="Edit" />}>
+            <Text>C</Text>
+          </Card>
+          <MetricCard type="sparkline" label="Revenue" value="$12k" subAction={{ label: "More actions", icon: "icon-share-01-line" }} width={320} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [shared, plain, edited, metric] = frame.children;
+  check("Card subAction with an icon: Sub-Action on, its Button/Icon-Flat's Leading-Icon-Src", [shared.props["Sub-Action"], shared.nested?.find((entry) => entry.path === "Sub-Action")], [true, { path: "Sub-Action", set: { id: "234:43906", name: "Button/Icon-Flat" }, props: { "Leading-Icon-Src": "icon-share-01-line" } }]);
+  check("Card subAction with the default ⋮: Sub-Action on, nothing nested; the built-in label needs no note", [plain.props["Sub-Action"], plain.nested ?? null, notes.some((note) => /label .* has no place/.test(note))], [true, null, false]);
+  check("a subAction IconButton gives its icon", edited.nested?.find((entry) => entry.path === "Sub-Action")?.props, { "Leading-Icon-Src": "icon-edit-01-line" });
+  ok("MetricCard subAction icon: its Card's Sub-Action", metric.nested?.some((entry) => entry.path === "Card/Sub-Action" && entry.props["Leading-Icon-Src"] === "icon-share-01-line"));
+  const menu = push(page.replace('<IconButton appearance="flat" icon="icon-edit-01-line" aria-label="Edit" />', '<Menu items={[{ id: "a", label: "A" }]} />'));
+  ok("a subAction node that is not an IconButton shows as Figma's ⋮, noted", menu.notes.some((note) => /its subAction Menu shows as Figma's ⋮ Sub-Action/.test(note)));
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("Card width={280} is the instance's Fixed width; MetricCard takes no width (its API), so none is written", [shared.fixedWidth, metric.fixedWidth ?? null], [280, null]);
+  check("round trip: subAction comes back with its icon (and none for the default ⋮)", [back.includes('<Card width={280} subAction={{ label: "More actions", icon: "icon-share-01-line" }}>'), back.includes('<Card subAction={{ label: "More actions" }}>'), back.includes('subAction={{ label: "More actions", icon: "icon-share-01-line" }} label="Revenue"')], [true, true, true]);
+  ok("round trip: no Sub-Action override is left from what Card draws (flat, Secondary, Small)", !/"Sub-Action": \{/.test(back));
 }
 
 // 8. A component with no Figma set keeps what it holds (2026-10-12: an AppShell page imported as an empty frame): the
@@ -1829,8 +1870,8 @@ export default function Page() {
   // A fresh Hero placed in Figma: its Card is Solid Brand (fill overridden to Brand Pale) with ⋮ on — the code's default Hero.
   const fresh = { type: "FRAME", name: "Board", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [{ type: "INSTANCE", name: "Metric-Card", set: { id: "6643:64008", name: "Metric-Card" }, props: { Type: "Hero" }, texts: { Label: "Invoiced this year", "Metric-Number": "$798,300" }, nested: [{ path: "Card", props: { Theme: "Solid", Color: "Brand", "Sub-Action": true } }, { path: "Title-Highlight", props: { Trend: false } }, { path: "Button", textList: ["View report"] }] }] };
   const { text: freshBack, notes: freshNotes } = pageFromFigma(fresh, { mapping });
-  ok("metric type pull: Figma's own Hero is the code's default Hero (no theme or color written)", /<MetricCard type="hero" label="Invoiced this year" value="\$798,300" series=/.test(freshBack) && !/<MetricCard type="hero"[^>]*theme=/.test(freshBack));
-  ok("metric type pull: Figma's ⋮ on is a note (subAction needs its handler)", freshNotes.some((note) => /Sub-Action shows in Figma; set subAction/.test(note)));
+  ok("metric type pull: Figma's own Hero is the code's default Hero (no theme or color written)", /<MetricCard type="hero" subAction=\{\{ label: "More actions" \}\} label="Invoiced this year" value="\$798,300" series=/.test(freshBack) && !/<MetricCard type="hero"[^>]*theme=/.test(freshBack));
+  ok("metric type pull: Figma's ⋮ on is the MetricCard's subAction (the built-in label), not a note", freshBack.includes('subAction={{ label: "More actions" }}') && !freshNotes.some((note) => /Sub-Action shows in Figma/.test(note)));
 }
 
 // MetricCard type="tile" (2026-10-17): Figma Metric-Card Type=Tile, its Metric-Tile's own TEXT properties, Size, Trend and

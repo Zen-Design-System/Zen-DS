@@ -64,8 +64,20 @@ ok("a horizontal frame: a row Stack, gap xs from 8 px, centred (a row Stack's de
 ok("Badges: the label as children, Theme only where it differs", text.includes("<Badge>Active</Badge>") && text.includes('<Badge theme="red">Blocked</Badge>'));
 ok("Button/Main: the label as children; Medium (Base) = code md and Figma's default level Primary left out", text.includes("<Button>Save changes</Button>"));
 ok("a Badge size Medium matches the code default md: left out", !/<Badge size=/.test(text));
-check("a layer Figma shows that the code draws only from a prop (Card Sub-Action) is named", notes.filter((note) => note.includes("Sub-Action shows in Figma")).length, 1);
-check("nothing else needs a note", notes.filter((note) => !note.includes("Logo") && !note.includes("Sub-Action shows")), []);
+ok("Figma's ⋮ Sub-Action shown is the Card's subAction (the built-in label), its overrides kept", text.includes('<Card theme="border" subAction={{ label: "More actions" }} overrides={{ "Sub-Action": { size: "xlarge", level: "danger" } }}'));
+check("nothing else needs a note", notes.filter((note) => !note.includes("Logo")), []);
+{
+  // Card's Sub-Action as the read gives it since Figma wraps the button in a Sub-Action frame (2026-10-18): the nested
+  // path is the button's own ("Button"); its swapped icon is the subAction's icon, the rest what Card draws.
+  const read = { type: "FRAME", name: "Cards", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], primary: "MIN", counter: "MIN" }, children: [
+    { type: "INSTANCE", name: "Card", set: { id: "6643:51021", name: "Card" }, props: { "Sub-Action": true, Theme: "Shadow" }, nested: [{ path: "Button", set: { id: "234:43906", name: "Button/Icon-Flat" }, props: { "Leading-Icon-Src": "icon-share-01-line", Size: "Small", Level: "Secondary", State: "Default" }, text: null }], slots: [{ name: "Content", children: [{ type: "TEXT", characters: "Q4", textStyle: "Body/Base/Regular" }] }] },
+    { type: "INSTANCE", name: "Card", set: { id: "6643:51021", name: "Card" }, props: { "Sub-Action": false, Theme: "Shadow" }, slots: [{ name: "Content", children: [{ type: "TEXT", characters: "Q3", textStyle: "Body/Base/Regular" }] }] },
+  ] };
+  const { text: cards, notes: cardNotes } = pageFromFigma(read, { mapping });
+  ok("live shape: the wrapped Sub-Action's button is the Card's subAction with its icon, no override left", cards.includes('<Card subAction={{ label: "More actions", icon: "icon-share-01-line" }}>') && !cards.includes("overrides="));
+  ok("live shape: Sub-Action off is no subAction", /<Card>\s*<Text>Q3<\/Text>/.test(cards));
+  check("live shape: no notes", cardNotes, []);
+}
 check("what has no Zen component is named", notes.filter((note) => note.includes("Logo")).length, 1);
 // M7: one name for a layer named after its component (paths cannot hold "/"), the same in Figma's read and the check.
 check("layerKey: a primitive by its last part, a library component by its first, other names as they are",

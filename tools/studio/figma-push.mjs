@@ -22,7 +22,7 @@ import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
 import { FIGMA_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
-import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
+import { SUB_ACTION_ICON, metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { textSegments } from "./text-runs.mjs";
@@ -149,7 +149,7 @@ const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new
  *  Title-Highlight has Custom, Icon-Highlight no Custom-Slot at all). */
 const SLOT_SHOWN_BY = { MetricCard: { custom: "Custom" }, Metric: { custom: "Custom" } };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
-const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), Metric: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
+const DRAWN_PARTS = { Card: new Set(["subAction"]), MetricCard: new Set(["trend", "action"]), Metric: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
 /** What the page holds but does not show: screen-reader text. */
 const NOT_DRAWN = new Set(["VisuallyHidden"]);
 /**
@@ -458,9 +458,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // The name the person gave a frame, shape or text (data-name, layer-meta.mjs) is its Figma name.
     const given = element.kind === "element" && FIGMA_NAMED.has(element.name) ? givenNameOf(element) : null;
     if (node && given) node.name = given;
-    // A component sized like a layout layer (Card, ListBox: width / minWidth / maxWidth): the instance's min and max width.
+    // A component sized like a layout layer (Card, ListBox: width / minWidth / maxWidth, sizing.ts): Fixed or Fill, and
+    // the instance's min and max width.
     if (node?.type === "INSTANCE" && element.kind === "element") {
       const own = codeProps(element);
+      if (mapping.apiProps[element.name]?.has("width")) {
+        if (typeof own.width === "number" && node.fixedWidth === undefined && !node.fillW) node.fixedWidth = own.width;
+        if (own.width === "fill") node.fillW = true;
+        if (own.width === "hug") delete node.fillW;
+      }
       if (typeof own.minWidth === "number") node.minW ??= own.minWidth;
       if (typeof own.maxWidth === "number") node.maxW ??= own.maxWidth;
     }
@@ -1895,6 +1901,27 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (lead?.type === "INSTANCE" && (lead.sizeVar || lead.size)) notes.push(`${where}: its leading ${leading.name} shows at its own size in Figma (a layer inside a List-Item cannot be resized)`);
   }
 
+  /**
+   * A Card's `subAction` in Figma's Sub-Action (Button/Icon-Flat Small Secondary, its Leading-Icon-Src): the icon when it
+   * is not the default ⋮. Its label (the button's aria-label) and handler have no place in Figma; a node there (a Menu's
+   * trigger) shows as Figma's ⋮, with a note unless it is an IconButton.
+   */
+  function subActionIcon(value, where) {
+    if (value?.kind === "object") {
+      const label = literalOf(value.fields.label);
+      if (typeof label === "string" && label !== zenLabels.en.moreActions) notes.push(`${where}: its subAction label "${label}" has no place in Figma (it reads back as "${zenLabels.en.moreActions}")`);
+      const icon = literalOf(value.fields.icon);
+      return typeof icon === "string" && icon !== SUB_ACTION_ICON ? icon : null;
+    }
+    if (value?.kind !== "element") return null;
+    if (value.node.name === "IconButton") {
+      const icon = literalOf(value.node.props.icon);
+      return typeof icon === "string" && icon !== SUB_ACTION_ICON ? icon : null;
+    }
+    notes.push(`${where}: its subAction ${value.node.name} shows as Figma's ⋮ Sub-Action`);
+    return null;
+  }
+
   function instanceNode(element, code, id, parent = null) {
     const where = `${element.name}${id ? ` (${id})` : ""}`;
     const entry = entryFor(element.name, code, byCode, mapping);
@@ -1948,7 +1975,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // Segmented is as wide as its items (inline, max-content) unless fullWidth: it never stretches with its column.
     if (element.name === "Segmented") node[code.fullWidth === true ? "fillW" : "hugW"] = true;
     // Card's ⋮ Sub-Action shows by default in Figma; the page shows it only with `subAction`.
-    if (element.name === "Card") cardVariant(Object.assign(node.props, onlyOwn(node.set, { "Sub-Action": Boolean(element.props.subAction) })), notes, where);
+    if (element.name === "Card") {
+      cardVariant(Object.assign(node.props, onlyOwn(node.set, { "Sub-Action": Boolean(element.props.subAction) })), notes, where);
+      const icon = subActionIcon(element.props.subAction, where);
+      const flat = icon ? entryFor("IconButton", { appearance: "flat" }, byCode, mapping) : null;
+      if (icon) (node.nested ??= []).push({ path: "Sub-Action", ...(flat ? { set: { id: flat.id, name: flat.name } } : {}), props: { "Leading-Icon-Src": icon } });
+    }
     if (element.name === "ListItem") listItemParts(element, code, node, where, slots);
     if (FIELDS.has(element.name)) fieldParts(element, code, node);
     // Progress: its label (a string, else the percentage) in Text; the bar's fill step by its value (Progress-Bar).
