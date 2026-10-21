@@ -5343,7 +5343,7 @@
       [
         "Variant",
         "variant",
-        "MetricCard KPI: title-highlight (default since 2026-10-16: title on top, number and trend at the foot, Dock-Icon in the bottom-right corner; Large) · icon-highlight (the Dock-Icon leads; XLarge)"
+        "MetricCard KPI: title-highlight (default since 2026-10-16: title on top in Body/Extra/Medium, number and trend at the foot, Dock-Icon in the bottom-right corner; Large) · icon-highlight (the Dock-Icon leads; XLarge)"
       ],
       [
         "Label / Value",
@@ -5373,12 +5373,12 @@
       [
         "Type",
         "MetricCard type",
-        "kpi (default: Icon-Highlight XLarge) · sparkline · spark-bars · goal-progress · category-bar (Title-Highlight Large) · comparison (Heading/Subheading title + Small columns) · hero (Title-Highlight XLarge) · tile (Metric-Tile in a Card Spacing=Small); Figma Metric-Card Type"
+        "kpi (default: Icon-Highlight XLarge) · sparkline · spark-bars · goal-progress · category-bar (Title-Highlight Large) · comparison (Body/Extra/Medium title + Small columns) · hero (Title-Highlight XLarge, its number Display/1) · tile (Metric-Tile in a Card Spacing=Small); Figma Metric-Card Type"
       ],
       [
         "Tile",
         "type=\"tile\" · size · icon · iconTheme",
-        "Figma Metric-Tile: medium (default, two-up: Body/Small/Medium title, Display/3 number, Dock-Icon Medium) · small (three-up: Caption/Medium, Heading/3, Dock-Icon Small); title Neutral/Base, number Neutral/Strongest, Gap/2XSmall, then the Dock-Icon (Neutral Solid, icon-activity-line) Gap/Small below. Its Figma Content follows the card: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on Yellow"
+        "Figma Metric-Tile: medium (default, two-up: Body/Small/Medium title, Display/4 number, Dock-Icon Medium) · small (three-up: Caption/Medium, Heading/3, Dock-Icon Small); title Neutral/Base, number Neutral/Strongest, Gap/2XSmall, then the Dock-Icon (Neutral Solid, icon-activity-line) Gap/Small below. Its Figma Content follows the card: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on Yellow"
       ],
       [
         "Series",
@@ -7285,7 +7285,7 @@
       [
         "Card",
         "ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
-        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/2 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
+        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Body/Extra/Medium title + chevron, then the Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card), then the Metric under it: Body/Small description over a Display/4 value, Gap/3XSmall apart, Padding/Small above (Figma Chart/Line-Chart, every chart since 2026-10-21)"
       ]
     ],
     "keyboard": [

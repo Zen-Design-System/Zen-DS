@@ -17,6 +17,14 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Chart and Metric text follow Figma (2026-10-21, user: every chart's description and value as Chart/Line-Chart, "value
+  luôn nằm dưới segmented", and the updated chart card and metric widget text styles):
+  - ChartCard is now header · Segmented · Metric, the Metric being the description (Body/Small/Regular) over the value
+    (Display/4, was Heading/2), Gap/3XSmall apart, Padding/Small above. Its title is Body/Extra/Medium (was Heading/Subheading).
+  - MetricCard: the Title-Highlight and comparison titles are Body/Extra/Medium, the Tile number is Display/4 (was
+    Display/3), the Hero number is Display/1.
+  - Other card, ListBox and table-in-card titles keep Heading/Subheading (the user: "Chỉ Chart và Metric").
+  - In Figma, every chart set now has the Line-Chart Metric frame below its Segmented.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra

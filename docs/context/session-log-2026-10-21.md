@@ -52,3 +52,26 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
 - tokens/source/figma/mode-colors-semantic.json, then `tokens:build`: web, Swift and Flutter. tokens:check,
   tokens:native:check and high contrast (0 failures) all pass.
 - No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
+
+## AppShell session · Chart/Metric text follows Chart/Line-Chart (tier M, branch `zen/fix/chart-metric-text-20261021`)
+
+The user asked:
+- "Kiểm tra lại đồng bộ cách sắp vị trí và spacing giữa description và value … theo cách sắp của Chart/Line-Chart"
+- "value luôn nằm dưới segmented"
+- "Chart/Bar-List còn xót"
+- "Vừa update lại text style của các metric widget và chart card", with the scope "Chỉ Chart và Metric".
+
+Figma, done with use_figma once the user added the permission:
+- Bar, Area, Combo, Gauge, Funnel, Bullet, Bar-List, Donut, Radial and Heatmap now each have a Metric frame below the
+  Segmented, as Line-Chart has: Padding/Small above, Gap/3XSmall between, Description Body/Small/Regular over Value
+  Display/4. Combo's Value was Heading/2.
+- The Metric frame shows with Show Value, as on Line-Chart; on Radial and Heatmap it shows with Show Description.
+- Funnel and Bullet variants are fixed at 318 / 294. They were HUG with a Fill body, which overflowed.
+- Checked: same Metric signature in all 10 sets, and no overlaps.
+
+Code:
+- ChartCard: header, then the Segmented, then the Metric; title Body/Extra/Medium.
+- MetricWidget: the Title-Highlight and comparison titles are Body/Extra/Medium; Tile number Display/4; Hero number
+  Display/1, unless the card sets a size.
+- Guidelines and JSDoc updated. New test: `tests/interaction/chart-card-metric.test.tsx`.
+- Card, ListBox and table-in-card titles keep Heading/Subheading. The harness rule is unchanged.
