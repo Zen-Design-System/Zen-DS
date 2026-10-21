@@ -6,6 +6,7 @@ import { typographyStyles } from "../tokens/typography.generated";
 import { Avatar, AvatarStack } from "../components/Avatar";
 import { Badge, BadgeCounter } from "../components/Badge";
 import { BadgeStatus } from "../components/BadgeStatus";
+import { PropertyDate, PropertyField, PropertyStatus } from "../components/PropertyField";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { AppShellAction, AppShellHeader } from "../components/AppShell";
 import { PageHeader } from "../components/PageHeader";
@@ -145,6 +146,9 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-field"><InputField label="Workspace ID" disabled value="zen-7f3k2" /></div>, caption: "Disabled text is faint, skipped by Tab and can't be copied: a value to read is Read-only." } },
     { do: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Enter a full address, like name@company.com" /></div>, caption: "Errors say how to fix the value." },
       dont: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Invalid input" /></div>, caption: "A generic error leaves users guessing." } },
+    { do: { preview: <div className="pgv-wide"><PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus defaultValue="in-progress" /></PropertyField><PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate defaultValue={new Date(2026, 5, 7)} /></PropertyField></div>, caption: "A record's properties are PropertyFields: the value is the field, edited in place." },
+      // zen-allow-property-value: the Don't preview shows the rule broken.
+      dont: { preview: <div className="pgv-wide"><PropertyField label="Due Date" icon="icon-calendar-line"><InputField aria-label="Due Date" size="small" defaultValue="06/07/2026" /></PropertyField></div>, caption: "A bordered field in the value column breaks the row's alignment and its keyboard pattern." } },
   ],
   "app-shell": [
     // User rule 2026-10-18 (Figma audit navigation/collapse-beside-master-crumb, harness app-shell/collapse-beside-master-crumb).

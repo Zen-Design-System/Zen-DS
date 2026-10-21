@@ -18,7 +18,7 @@ const list = (items) => items.map((item) => `- ${safe(item)}`).join("\n");
 // JSX tags each guideline covers: a page lists every rule that checks its components,
 // not only the rules whose primary guideline is this file (e.g. Toggle shows choice/needs-label).
 const tagsFor = {
-  button: ["Button", "IconButton"], chip: ["Chip", "ChipGroup"], input: ["InputField", "SelectField", "DateField", "ColorField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"],
+  button: ["Button", "IconButton"], chip: ["Chip", "ChipGroup"], input: ["InputField", "SelectField", "DateField", "ColorField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField", "PropertyField", "PropertyText", "PropertySelect", "PropertyStatus", "PropertyDate", "PropertyPeople", "PropertyTags"],
   search: ["Search"], segmented: ["Segmented"], toggle: ["Toggle"], checkbox: ["Checkbox"], "radio-button": ["RadioButton"], badge: ["Badge", "BadgeCounter", "BadgeStatus"], tag: ["Tag"],
   avatar: ["Avatar", "AvatarStack"], popover: ["Popover"], sidebar: ["Sidebar", "SidebarMenuItem", "SidebarMenuSection", "SidebarSubHeader"], "date-picker": ["DatePicker", "DateField", "DatePickerSheet"], tooltip: ["Tooltip"], tabs: ["Tabs", "TabItem"],
   breadcrumbs: ["Breadcrumbs", "BreadcrumbItem"], progress: ["ProgressBar", "ProgressCircle"], dialog: ["Dialog", "ModalForm"], icon: ["Icon"],

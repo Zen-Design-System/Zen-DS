@@ -1432,6 +1432,14 @@ export const rules = [
       const step = { "to do": "to-do", todo: "to-do", "cần làm": "to-do", "in progress": "in-progress", "đang làm": "in-progress", "in review": "in-review", "đang duyệt": "in-review", done: "done", "hoàn thành": "done", blocked: "blocked", "bị chặn": "blocked", cancelled: "cancelled", canceled: "cancelled", "đã huỷ": "cancelled", "đã hủy": "cancelled" }[c];
       return step && `shows the workflow step \`${c}\` — use <BadgeStatus status="${step}" /> (its ring and colours come from the step).`;
     } },
+  { id: "property-field/one-value", components: ["PropertyField"], severity: "error", allow: "property-value", guideline: "docs/guidelines/input.md",
+    summary: "A PropertyField holds exactly one value cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags — the borderless cell that edits the value in place; a bordered field or loose text breaks the row's alignment and its keyboard pattern.",
+    check: ({ children }) => {
+      const c = children ?? "";
+      if (!c.trim() || /^\s*\{[^}]*\}\s*$/.test(c)) return false;
+      const cells = (c.match(/<Property(Text|Select|Status|Date|People|Tags)\b/g) ?? []).length;
+      return cells !== 1 && (cells === 0 ? "has no Property* value cell — put one of PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags inside." : `has ${cells} value cells — one PropertyField per property.`);
+    } },
   { id: "badge/count-text-uses-counter", components: ["span", "Text"], severity: "error", allow: "count-text", guideline: "docs/guidelines/badge.md",
     summary: "A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something.",
     check: ({ attrs, children }) => {

@@ -140,6 +140,10 @@ export type ZenLabels = {
   statusCancelled: string;
   /** BadgeStatus: the ring's value read after the label when `progress` is set ("60% complete"). */
   statusPercent: (percent: number) => string;
+  /** PropertyField: an empty value (Figma State=Default). */
+  propertyEmpty: string;
+  /** PropertyField: the + after the label that adds a value to its People or Tags ("Add Labels"). */
+  propertyAdd: (label: string) => string;
   rating: string;
   stars: (count: number) => string;
   /** RatingDisplay: "4.5 out of 5 stars"; `value` arrives formatted for the locale. */
@@ -458,6 +462,8 @@ const en: ZenLabels = {
   statusBlocked: "Blocked",
   statusCancelled: "Cancelled",
   statusPercent: (percent) => `${percent}% complete`,
+  propertyEmpty: "Empty",
+  propertyAdd: (label) => `Add ${label}`,
   rating: "Rating",
   stars: (count) => `${count} ${count === 1 ? "star" : "stars"}`,
   ratingValue: (value, max) => `${value} out of ${max} stars`,
@@ -725,6 +731,8 @@ const vi: ZenLabels = {
   statusBlocked: "Bị chặn",
   statusCancelled: "Đã huỷ",
   statusPercent: (percent) => `hoàn thành ${percent}%`,
+  propertyEmpty: "Trống",
+  propertyAdd: (label) => `Thêm ${label}`,
   rating: "Đánh giá",
   stars: (count) => `${count} sao`,
   ratingValue: (value, max) => `${value} trên ${max} sao`,

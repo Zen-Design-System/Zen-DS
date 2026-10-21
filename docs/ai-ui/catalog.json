@@ -1337,7 +1337,7 @@
       "slug": "input",
       "folder": "Input",
       "status": "verified",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -1348,7 +1348,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -4820,7 +4821,7 @@
       "slug": "input",
       "folder": "Input",
       "status": "verified",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -4831,7 +4832,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -5543,7 +5545,7 @@
       "slug": "input",
       "folder": "Input",
       "status": "verified",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -5554,7 +5556,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -9823,7 +9826,7 @@
       "slug": "input",
       "folder": "Input",
       "status": "verified",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -9834,7 +9837,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -11676,7 +11680,7 @@
       "slug": "input",
       "folder": "Input",
       "status": "verified",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -11687,7 +11691,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -12415,6 +12420,664 @@
         "ref (not for a generated UI)"
       ]
     },
+    "PropertyDate": {
+      "name": "PropertyDate",
+      "slug": "input",
+      "folder": "PropertyField",
+      "status": "stable",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "use": [
+        "Free text → InputField.",
+        "Long text → TextAreaField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
+        "Dates → DateField.",
+        "Any colour → ColorField (it opens ColorPicker).",
+        "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
+        "Quantities → NumberField (steppers).",
+        "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
+      ],
+      "avoid": [
+        "Searching/filtering content → Search.",
+        "Binary settings → Toggle or Checkbox.",
+        "2–5 mutually exclusive visible options → RadioButton group or Segmented."
+      ],
+      "description": "Figma Property-Value Type=Date: the day as text; opens the Date-Picker under the cell.",
+      "props": {
+        "placeholder": {
+          "x-kind": "node",
+          "description": "Shown while there is no value (Figma State=Default)."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label)."
+        },
+        "value": {
+          "type": "string",
+          "x-kind": "date",
+          "x-nullable": true,
+          "description": "The day."
+        },
+        "defaultValue": {
+          "type": "string",
+          "x-kind": "date",
+          "x-nullable": true,
+          "default": null
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "value",
+              "type": "Date | null",
+              "json": true
+            }
+          ]
+        },
+        "format": {
+          "description": "How the day reads, for the locale (Intl.DateTimeFormat)."
+        },
+        "minDate": {
+          "type": "string",
+          "x-kind": "date"
+        },
+        "maxDate": {
+          "type": "string",
+          "x-kind": "date"
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "ref (not for a generated UI)",
+        "state (not for a generated UI)",
+        "className (not for a generated UI)"
+      ]
+    },
+    "PropertyField": {
+      "name": "PropertyField",
+      "slug": "input",
+      "folder": "PropertyField",
+      "status": "stable",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "use": [
+        "Free text → InputField.",
+        "Long text → TextAreaField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
+        "Dates → DateField.",
+        "Any colour → ColorField (it opens ColorPicker).",
+        "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
+        "Quantities → NumberField (steppers).",
+        "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
+      ],
+      "avoid": [
+        "Searching/filtering content → Search.",
+        "Binary settings → Toggle or Checkbox.",
+        "2–5 mutually exclusive visible options → RadioButton group or Segmented."
+      ],
+      "description": "Figma Input/Property-Field (16923:6031, page ❖ Input): a property of a record (a task, ticket, deal or file) — an icon and a label on the left, the value on the right, edited in pl",
+      "props": {
+        "label": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a 128px column so every row's value lines up."
+        },
+        "icon": {
+          "x-kind": "node",
+          "x-icon": true,
+          "description": "Figma Icon + Icon-Src: the property's line icon (Content/Neutral/Light)."
+        },
+        "action": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "onClick": {
+              "x-kind": "action",
+              "params": []
+            }
+          },
+          "required": [
+            "label",
+            "onClick"
+          ],
+          "additionalProperties": false,
+          "description": "Figma Action: the + after the label (Button/Icon-Main XSmall Tertiary)."
+        },
+        "children": {
+          "x-kind": "node",
+          "description": "The value: one cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)",
+        "className (not for a generated UI)"
+      ]
+    },
+    "PropertyPeople": {
+      "name": "PropertyPeople",
+      "slug": "input",
+      "folder": "PropertyField",
+      "status": "stable",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "use": [
+        "Free text → InputField.",
+        "Long text → TextAreaField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
+        "Dates → DateField.",
+        "Any colour → ColorField (it opens ColorPicker).",
+        "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
+        "Quantities → NumberField (steppers).",
+        "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
+      ],
+      "avoid": [
+        "Searching/filtering content → Search.",
+        "Binary settings → Toggle or Checkbox.",
+        "2–5 mutually exclusive visible options → RadioButton group or Segmented."
+      ],
+      "description": "Figma Property-Value Type=Person: Tag Leading-Photo chips with Remove; the + opens Popover/Default with Search and Avatar Small items.",
+      "props": {
+        "placeholder": {
+          "x-kind": "node",
+          "description": "Shown while there is no value (Figma State=Default)."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label)."
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PropertyFieldOption"
+          },
+          "x-required": true,
+          "description": "Everyone or every label that can be added."
+        },
+        "value": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The chosen values, in order."
+        },
+        "defaultValue": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "value",
+              "type": "string[]",
+              "json": true
+            }
+          ]
+        },
+        "addLabel": {
+          "type": "string",
+          "description": "Names the + (Figma Action)."
+        },
+        "popoverLabel": {
+          "x-kind": "node",
+          "description": "Names the list (Popover label)."
+        },
+        "single": {
+          "type": "boolean",
+          "description": "One person only (a Reporter): picking replaces and closes."
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "ref (not for a generated UI)",
+        "state (not for a generated UI)",
+        "className (not for a generated UI)"
+      ]
+    },
+    "PropertySelect": {
+      "name": "PropertySelect",
+      "slug": "input",
+      "folder": "PropertyField",
+      "status": "stable",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "use": [
+        "Free text → InputField.",
+        "Long text → TextAreaField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
+        "Dates → DateField.",
+        "Any colour → ColorField (it opens ColorPicker).",
+        "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
+        "Quantities → NumberField (steppers).",
+        "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
+      ],
+      "avoid": [
+        "Searching/filtering content → Search.",
+        "Binary settings → Toggle or Checkbox.",
+        "2–5 mutually exclusive visible options → RadioButton group or Segmented."
+      ],
+      "description": "Figma Property-Value Type=Select: one option (its icon and name); opens Popover/Default under the cell.",
+      "props": {
+        "placeholder": {
+          "x-kind": "node",
+          "description": "Shown while there is no value (Figma State=Default)."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label)."
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PropertyFieldOption"
+          },
+          "x-required": true,
+          "description": "The options of the Popover; each may carry an icon and its tone (a priority's flag)."
+        },
+        "value": {
+          "type": "string",
+          "x-nullable": true,
+          "description": "The chosen option's value."
+        },
+        "defaultValue": {
+          "type": "string",
+          "x-nullable": true,
+          "default": null
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "value",
+              "type": "string",
+              "json": true
+            }
+          ]
+        },
+        "popoverLabel": {
+          "x-kind": "node",
+          "description": "Names the option list (Popover label)."
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "ref (not for a generated UI)",
+        "state (not for a generated UI)",
+        "className (not for a generated UI)"
+      ]
+    },
+    "PropertyStatus": {
+      "name": "PropertyStatus",
+      "slug": "input",
+      "folder": "PropertyField",
+      "status": "stable",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "use": [
+        "Free text → InputField.",
+        "Long text → TextAreaField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
+        "Dates → DateField.",
+        "Any colour → ColorField (it opens ColorPicker).",
+        "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
+        "Quantities → NumberField (steppers).",
+        "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
+      ],
+      "avoid": [
+        "Searching/filtering content → Search.",
+        "Binary settings → Toggle or Checkbox.",
+        "2–5 mutually exclusive visible options → RadioButton group or Segmented."
+      ],
+      "description": "Figma Property-Value Type=Status: a BadgeStatus Medium; opens Popover/Default of BadgeStatus items.",
+      "props": {
+        "placeholder": {
+          "x-kind": "node",
+          "description": "Shown while there is no value (Figma State=Default)."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label)."
+        },
+        "value": {
+          "enum": [
+            "to-do",
+            "in-progress",
+            "in-review",
+            "done",
+            "blocked",
+            "cancelled"
+          ],
+          "x-nullable": true,
+          "description": "The workflow step (a BadgeStatus)."
+        },
+        "defaultValue": {
+          "enum": [
+            "to-do",
+            "in-progress",
+            "in-review",
+            "done",
+            "blocked",
+            "cancelled"
+          ],
+          "x-nullable": true,
+          "default": null
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "value",
+              "type": "BadgeStatusValue",
+              "json": true
+            }
+          ]
+        },
+        "statuses": {
+          "default": [
+            "to-do",
+            "in-progress",
+            "in-review",
+            "done",
+            "blocked",
+            "cancelled"
+          ],
+          "description": "The steps the picker offers, in order."
+        },
+        "labels": {
+          "type": "object",
+          "properties": {
+            "to-do": {
+              "x-kind": "node"
+            },
+            "in-progress": {
+              "x-kind": "node"
+            },
+            "in-review": {
+              "x-kind": "node"
+            },
+            "done": {
+              "x-kind": "node"
+            },
+            "blocked": {
+              "x-kind": "node"
+            },
+            "cancelled": {
+              "x-kind": "node"
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "A product's own words for the steps (`{ \"in-review\": \"QA\" }`); the step keeps its colour and ring."
+        },
+        "progress": {
+          "type": "number",
+          "description": "The ring's exact value for the current step (0–100), as BadgeStatus `progress`."
+        },
+        "popoverLabel": {
+          "x-kind": "node",
+          "description": "Names the list of steps (Popover label)."
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "ref (not for a generated UI)",
+        "state (not for a generated UI)",
+        "className (not for a generated UI)"
+      ]
+    },
+    "PropertyTags": {
+      "name": "PropertyTags",
+      "slug": "input",
+      "folder": "PropertyField",
+      "status": "stable",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "use": [
+        "Free text → InputField.",
+        "Long text → TextAreaField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
+        "Dates → DateField.",
+        "Any colour → ColorField (it opens ColorPicker).",
+        "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
+        "Quantities → NumberField (steppers).",
+        "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
+      ],
+      "avoid": [
+        "Searching/filtering content → Search.",
+        "Binary settings → Toggle or Checkbox.",
+        "2–5 mutually exclusive visible options → RadioButton group or Segmented."
+      ],
+      "description": "Figma Property-Value Type=Tags: Badges Medium Subtle with Remove, wrapping; the + opens Popover/Default with Search.",
+      "props": {
+        "placeholder": {
+          "x-kind": "node",
+          "description": "Shown while there is no value (Figma State=Default)."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label)."
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PropertyFieldOption"
+          },
+          "x-required": true,
+          "description": "Everyone or every label that can be added."
+        },
+        "value": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The chosen values, in order."
+        },
+        "defaultValue": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "value",
+              "type": "string[]",
+              "json": true
+            }
+          ]
+        },
+        "addLabel": {
+          "type": "string",
+          "description": "Names the + (Figma Action)."
+        },
+        "popoverLabel": {
+          "x-kind": "node",
+          "description": "Names the list (Popover label)."
+        },
+        "onCreate": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "label",
+              "type": "string",
+              "json": true
+            }
+          ],
+          "description": "Lets people create a label that is not listed: called with the typed text (Create \"…\" row)."
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "ref (not for a generated UI)",
+        "state (not for a generated UI)",
+        "className (not for a generated UI)"
+      ]
+    },
+    "PropertyText": {
+      "name": "PropertyText",
+      "slug": "input",
+      "folder": "PropertyField",
+      "status": "stable",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "use": [
+        "Free text → InputField.",
+        "Long text → TextAreaField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
+        "Dates → DateField.",
+        "Any colour → ColorField (it opens ColorPicker).",
+        "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
+        "Quantities → NumberField (steppers).",
+        "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
+      ],
+      "avoid": [
+        "Searching/filtering content → Search.",
+        "Binary settings → Toggle or Checkbox.",
+        "2–5 mutually exclusive visible options → RadioButton group or Segmented."
+      ],
+      "description": "Figma Property-Value Type=Text: free text that turns into an input in place (the Input focus look while editing).",
+      "props": {
+        "placeholder": {
+          "x-kind": "node",
+          "description": "Shown while there is no value (Figma State=Default)."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label)."
+        },
+        "value": {
+          "type": "string",
+          "description": "The text."
+        },
+        "defaultValue": {
+          "type": "string",
+          "default": ""
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "value",
+              "type": "string",
+              "json": true
+            }
+          ],
+          "description": "Called with the new text when an edit is committed (Enter or leaving the field); Escape keeps the old one."
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "ref (not for a generated UI)",
+        "state (not for a generated UI)",
+        "className (not for a generated UI)"
+      ]
+    },
     "RadialChart": {
       "name": "RadialChart",
       "slug": "chart",
@@ -12787,7 +13450,7 @@
       "slug": "input",
       "folder": "Input",
       "status": "verified",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -12798,7 +13461,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -13319,7 +13983,7 @@
       "slug": "input",
       "folder": "Input",
       "status": "verified",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -13330,7 +13994,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -16942,7 +17607,7 @@
       "slug": "input",
       "folder": "Input",
       "status": "verified",
-      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
@@ -16953,7 +17618,8 @@
         "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-        "Formatted long text (announcements, descriptions) → RichTextField."
+        "Formatted long text (announcements, descriptions) → RichTextField.",
+        "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
       ],
       "avoid": [
         "Searching/filtering content → Search.",
@@ -18699,7 +19365,9 @@
         "RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.",
         "RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.",
         "RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.",
-        "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view."
+        "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view.",
+        "PropertyField: one value cell per row (harness: property-field/one-value), one label column for the whole list, two columns Spacing/Gap/XLarge apart; an empty value says the locale's \"Empty\"; give a select option's icon a tone by meaning (Urgent Negative, High Warning, Normal Info, Low Neutral).",
+        "PropertyField: pass readOnly for people who may not change the record, so nothing looks clickable."
       ],
       "dont": [
         "Don't disable a field whose value people need to read or copy; use Read-only (disabled text is faint, skipped by Tab and not submitted).",
@@ -18710,13 +19378,15 @@
         "Don't open a Date/Select popover on a read-only or disabled field.",
         "Don't repeat the label as placeholder; show an example or the format (harness: input/placeholder-not-label).",
         "Don't use RichTextField for plain notes (→ TextAreaField) or single-line input (→ InputField).",
-        "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange)."
+        "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange).",
+        "Don't put a bordered InputField or SelectField in a PropertyField: the borderless value cell is the field."
       ],
       "rules": [
         "input/no-disabled",
         "input/needs-label",
         "input/placeholder-not-label",
         "richtext/value-not-onchange",
+        "property-field/one-value",
         "color-picker/hex-value",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -21571,6 +22241,68 @@
       },
       "required": [
         "id",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "PropertyFieldOption": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "x-kind": "node"
+        },
+        "icon": {
+          "x-kind": "node",
+          "x-icon": true
+        },
+        "tone": {
+          "enum": [
+            "neutral",
+            "accent",
+            "info",
+            "positive",
+            "warning",
+            "negative"
+          ]
+        },
+        "photoSrc": {
+          "type": "string"
+        },
+        "theme": {
+          "enum": [
+            "accent",
+            "neutral",
+            "yellow",
+            "orange",
+            "red",
+            "crimson",
+            "pink",
+            "plum",
+            "purple",
+            "violet",
+            "indigo",
+            "blue",
+            "cyan",
+            "teal",
+            "green",
+            "brown",
+            "inverse",
+            "on-color",
+            "sky",
+            "mint",
+            "bronze",
+            "golden"
+          ]
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
         "label"
       ],
       "additionalProperties": false

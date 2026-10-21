@@ -550,3 +550,23 @@ are not workflow steps (Live, Paid, Draft, Overdue) stay Badges.
 ```
 
 Harness (`npm run usage:check`): `badge/workflow-status-uses-badge-status` (error).
+
+## 20. A record's properties are PropertyFields
+
+A property of a task, ticket, deal or file that people change in place (status, priority, dates, assignee, labels) is a
+**PropertyField** (Figma Input/Property-Field) holding exactly one value cell: PropertyText, PropertySelect,
+PropertyStatus, PropertyDate, PropertyPeople or PropertyTags. The borderless cell is the field: it hovers with the
+Flat ramp, opens its picker under itself, and Text becomes an input in place. One label column for the whole list; an
+empty value says the locale's "Empty"; status and priority icons take their tone's Light level.
+
+- **Applies to:** `PropertyField` children.
+- User decision 2026-10-21: Figma first, approved ("duyệt"), then code.
+
+```tsx
+// ✅
+<PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate value={due} onValueChange={setDue} /></PropertyField>
+// ❌
+<PropertyField label="Due Date"><InputField aria-label="Due Date" value={due} /></PropertyField>
+```
+
+Harness (`npm run usage:check`): `property-field/one-value` (error).

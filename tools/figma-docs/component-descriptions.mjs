@@ -715,6 +715,16 @@ export const componentDescriptions = {
     ],
     code: "`<InputField layout=\"inline\">` · `<SelectField layout=\"inline\">` · `<ColorField layout=\"inline\">` · `<NumberField layout=\"inline\">`",
   }),
+  "Input/Property-Field": card({
+    what: "A property row of a record (a task, ticket, deal or file): an icon and a label on the left, the value on the right, edited in place. Rows stack in one or two columns of a detail view.",
+    use: ["Task, ticket and record details people scan and change one value at a time: status, priority, dates, assignee, reporter, labels.", "Side panels and the header area of a detail page."],
+    instead: ["Read-only details → Description List.", "A form people fill in one go → Input/Text-Field, Input/Select-Field, Input/Date-Field (label above).", "Dense settings and inspectors → Input/Inline-Field."],
+    props: [["Label", "the property name (Body/Base/Regular, Content/Neutral/Base)"], ["Icon · Icon-Src", "the property's line icon (Content/Neutral/Light)"], ["Action", "the + (Button/Icon-Main XSmall Tertiary) that adds a value to a Person or Tags list"], ["Value", "the nested .Primitives/Input/Property-Value: Type (Text, Select, Status, Date, Person, Tags) and State (Default empty, Inputted, Hover, Editing)"]],
+    rules: ["One label column (128) for every row of a list; rows Spacing/Gap/2XSmall apart, two columns Spacing/Gap/XLarge apart.", "An empty value reads \"Empty\" (Content/Placeholder), never a dash.", "Clicking the value opens its picker under the cell with the cell in State=Editing; Text turns into an input in place."],
+    code: "`<PropertyField label icon>` + one of `<PropertyText>` · `<PropertySelect>` · `<PropertyStatus>` · `<PropertyDate>` · `<PropertyPeople>` · `<PropertyTags>`",
+  }),
+  ".Primitives/Input/Property-Value": part("The value cell of Input/Property-Field: borderless at rest, Flat/Hover on hover, Flat/Pressed while its picker is open, the Input focus look while Text is typed; Type picks the content (Text, Select, Status = Badge-Status, Date, Person = Tag photos, Tags = Subtle Badges).", "Input/Property-Field"),
+  ".Primitives/Input/Property-Icon": part("The 20px icon of a Select option (a priority flag, a project glyph), Tone by meaning in Content/<Tone>/Light — status and priority icons always take the Light tone.", "Input/Property-Field"),
   "Input/Color-Field": card({
     what: "Pick or type one colour (any hex): the field shows the value as a Color-Swatch (leading) and its hex; clicking it opens Color-Picker under the field (State=Focused), typing edits the hex (State=Typing).",
     use: ["Brand, theme, chart or shadow colours where any value is allowed, in a form or settings."],

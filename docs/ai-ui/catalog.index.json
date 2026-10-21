@@ -590,6 +590,48 @@
       "props": "value theme? label? aria-label?"
     },
     {
+      "name": "PropertyDate",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange? format? minDate? maxDate?"
+    },
+    {
+      "name": "PropertyField",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "label icon? action? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "PropertyPeople",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? addLabel? popoverLabel? single?"
+    },
+    {
+      "name": "PropertySelect",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? popoverLabel?"
+    },
+    {
+      "name": "PropertyStatus",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange? statuses? labels? progress? popoverLabel?"
+    },
+    {
+      "name": "PropertyTags",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? addLabel? popoverLabel? onCreate?"
+    },
+    {
+      "name": "PropertyText",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange?"
+    },
+    {
       "name": "RadialChart",
       "status": "stable",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",

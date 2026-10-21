@@ -240,3 +240,18 @@ original stays, one ⌘Z each) waits for a gate slot.
 - Not done here (proposed as follow-ups): other platform pages and the HR templates still show task statuses as
   `Badge theme={taskStatusTheme[…]}` (dynamic text, not caught by the rule); Studio support (Main board, push/pull);
   Input/Property-Field code.
+
+## PropertyField (same session, stacked branch zen/feat/property-field-20261021 on badge-status)
+
+- Started while BadgeStatus waits in the gate queue (Giám sát: 7th). User approval: "duyệt, làm code BadgeStatus
+  trước" (both Figma drafts approved; BadgeStatus first).
+- API: composition, one-to-one with Figma — `PropertyField` (row: label, icon, action) + one value cell (`PropertyText`,
+  `PropertySelect`, `PropertyStatus`, `PropertyDate`, `PropertyPeople`, `PropertyTags`), each value/defaultValue/
+  onValueChange, placeholder ("Empty"/"Trống"), readOnly, state (Figma State, docs only). A union prop on one component was
+  dropped: react-docgen would not document it.
+- People and Tags always show the + (the keyboard path to add; a Tag with onClick around a Remove button would nest
+  interactives). The label column scales with Component Size (6.4 × Element-Size/Popular/Base: 128 Compact, 154
+  Comfortable) after "Assignee" was cut beside the + on a phone; Figma's column stays 128 (Compact).
+- Docs live with the Input fields (as Inline-Field): input guideline + tagsFor, harness property-field/one-value, usage
+  rules §20, figma-docs cards, four Input-page examples, a Do/Don't pair; smoke fixtures + tests/interaction/property-field
+  (6 tests: names, text Enter/Escape, status pick, people remove/add, create label, readOnly).

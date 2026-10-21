@@ -21,6 +21,8 @@ export const Good = () => <>
   <BadgeCounter value="99+" />
   {/* A workflow step is a BadgeStatus; other statuses stay Badges (badge/workflow-status-uses-badge-status). */}
   <BadgeStatus status="in-progress" progress={60} />
+  {/* One value cell per PropertyField (property-field/one-value). */}
+  <PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus value={status} onValueChange={setStatus} /></PropertyField>
   <Badge theme="green" background="subtle">Paid</Badge>
   <Avatar theme="photo" src={url} alt="Ava Chen" />
   <Avatar theme="blue" alt="">AC</Avatar>

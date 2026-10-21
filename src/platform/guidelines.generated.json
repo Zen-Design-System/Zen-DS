@@ -445,7 +445,8 @@
       "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
       "Quantities → NumberField (steppers).",
       "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-      "Formatted long text (announcements, descriptions) → RichTextField."
+      "Formatted long text (announcements, descriptions) → RichTextField.",
+      "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
     ],
     "avoid": [
       "Searching/filtering content → Search.",
@@ -512,6 +513,16 @@
         "Heading",
         "<HeadingField headingSize multiline onValueChange>",
         "h1–h3 (Heading/1–3); one line by default, multiline wraps and grows (Figma Inputted-Multi-Line)"
+      ],
+      [
+        "Property-Field",
+        "<PropertyField label icon action> + one value cell",
+        "the 128px label column (Body/Base/Regular, Content/Neutral/Light icon); the + (action) after the label, shown by PropertyPeople/PropertyTags themselves"
+      ],
+      [
+        "Property-Value Type",
+        "PropertyText · PropertySelect (options with icon + tone) · PropertyStatus (BadgeStatus; statuses, labels, progress) · PropertyDate (format) · PropertyPeople (single) · PropertyTags (onCreate)",
+        "value / defaultValue / onValueChange each; placeholder (\"Empty\"), readOnly, state (default · inputted · hover · editing, only to draw a fixed state)"
       ]
     ],
     "keyboard": [
@@ -554,7 +565,9 @@
       "RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.",
       "RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.",
       "RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.",
-      "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view."
+      "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view.",
+      "PropertyField: one value cell per row (harness: property-field/one-value), one label column for the whole list, two columns Spacing/Gap/XLarge apart; an empty value says the locale's \"Empty\"; give a select option's icon a tone by meaning (Urgent Negative, High Warning, Normal Info, Low Neutral).",
+      "PropertyField: pass readOnly for people who may not change the record, so nothing looks clickable."
     ],
     "dont": [
       "Don't disable a field whose value people need to read or copy; use Read-only (disabled text is faint, skipped by Tab and not submitted).",
@@ -565,7 +578,8 @@
       "Don't open a Date/Select popover on a read-only or disabled field.",
       "Don't repeat the label as placeholder; show an example or the format (harness: input/placeholder-not-label).",
       "Don't use RichTextField for plain notes (→ TextAreaField) or single-line input (→ InputField).",
-      "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange)."
+      "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange).",
+      "Don't put a bordered InputField or SelectField in a PropertyField: the borderless value cell is the field."
     ],
     "a11y": [
       "The whole field is the click target (padding/icons focus the native field; Select opens).",
@@ -575,7 +589,8 @@
       "HeadingField multiline is a textarea: Enter never adds a line break; handle it in onKeyDown when Enter should move on.",
       "An invalid field keeps its Negative border while focused and adds the 3px focus ring: error styling never hides focus (WCAG 2.4.7; harness: focus/state-parity).",
       "A disabled field leaves the tab order and is not submitted: put the reason in visible help text, never only in a tooltip.",
-      "AutocompleteField: removing a tag moves focus to the next tag's Remove button, else the previous one, else Add Item; focus never falls back to the page."
+      "AutocompleteField: removing a tag moves focus to the next tag's Remove button, else the previous one, else Add Item; focus never falls back to the page.",
+      "PropertyField: each row is a group named by its label; a value's button reads the label and the value and says it opens a list; PropertyText starts editing on Enter or a click, saves on Enter, cancels on Escape and hands focus back to the value; People and Tags remove a chip with its own button and add through the +."
     ],
     "content": [
       "Labels are nouns (\"Work email\"); errors are sentences with the fix (\"Enter a valid email address, like name@company.com\")."
@@ -623,6 +638,12 @@
         "severity": "error",
         "summary": "RichTextField reports content through onValueChange(html, text); it has no onChange(event).",
         "allow": "richtext-onchange"
+      },
+      {
+        "id": "property-field/one-value",
+        "severity": "error",
+        "summary": "A PropertyField holds exactly one value cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags — the borderless cell that edits the value in place; a bordered field or loose text breaks the row's alignment and its keyboard pattern.",
+        "allow": "property-value"
       },
       {
         "id": "color-picker/hex-value",

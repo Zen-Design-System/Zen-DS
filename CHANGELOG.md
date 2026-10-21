@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- New `PropertyField` (2026-10-21, Figma Input/Property-Field 16923:6031, user-approved): a record's property edited in
+  place — a 128px label column (icon, label, the + Action) and one value cell: `PropertyText` (an input in place),
+  `PropertySelect` (options with icon + tone), `PropertyStatus` (BadgeStatus steps), `PropertyDate` (DatePicker),
+  `PropertyPeople` (Tag photos, `single`), `PropertyTags` (Subtle Badges, `onCreate`); each `value`/`defaultValue`/
+  `onValueChange`, `readOnly`, `placeholder` ("Empty"/"Trống"). Documented with the Input fields; four examples on the
+  Input page; harness `property-field/one-value` (usage rules §20).
 - New `BadgeStatus` (2026-10-21, Figma Badge-Status 16932:195, user-approved): a task's or project's workflow step —
   to-do · in-progress · in-review · done · blocked · cancelled, sm/md — with a progress ring that fills as the work moves
   on; `progress` (0–100) sets an exact value and is read after the label; the label defaults from the locale (en/vi).
