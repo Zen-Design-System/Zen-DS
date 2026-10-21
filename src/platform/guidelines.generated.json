@@ -2246,7 +2246,7 @@
       ],
       [
         "Type",
-        "resources[].type · ScheduleResource type",
+        "resources[].kind · ScheduleResource type",
         "person · room"
       ],
       [

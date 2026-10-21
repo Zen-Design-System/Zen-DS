@@ -15,7 +15,7 @@ import "./schedule.css";
 
 export interface ScheduleDayPlannerProps extends Omit<HTMLAttributes<HTMLDivElement>, "title" | "defaultValue" | "onChange"> {
   /** The cards (any days); the planner shows the selected day's. */
-  events?: readonly ScheduleCardData[];
+  events?: ScheduleCardData[];
   /** The selected day (controlled). */
   value?: CalendarDateInput | null;
   /** The selected day at first (uncontrolled). Default: today. */

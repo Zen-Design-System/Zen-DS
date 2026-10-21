@@ -14,8 +14,9 @@ export interface ScheduleResourceData {
   shortName?: string;
   /** A role or a capacity ("Designer", "8 seats"). */
   meta?: string;
-  /** `person` (Avatar) or `room` (Dock-Icon). Default person. */
-  type?: "person" | "room";
+  /** `person` (Avatar) or `room` (Dock-Icon). Default person. (`kind`, not `type`: a data object with `type` reads as a
+   * component node in an AI UI spec.) */
+  kind?: "person" | "room";
   /** Person: the photo. */
   avatarSrc?: string;
 }

@@ -23,7 +23,7 @@ Plan time around people, rooms and stops: who is booked when (Resource-Grid), a 
 | --- | --- | --- |
 | Device | `device` | desktop · mobile; unset follows the breakpoint |
 | Scale | `ScheduleResourceGrid scale` | hours · days |
-| Type | `resources[].type · ScheduleResource type` | person · room |
+| Type | `resources[].kind · ScheduleResource type` | person · room |
 | Status | `(from now) · ScheduleItineraryItem status` | past · now · upcoming |
 | State=Selected | `ScheduleSlotPicker value · ScheduleSlot checked` | the chosen time |
 | State=Disabled | `slots[].disabled` | taken or past, struck through |
@@ -39,8 +39,8 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `resources` (required) | _HTML attribute_ | — | The rows: people and rooms, in order. |
-| `bookings` | _HTML attribute_ | `[]` | The bookings, shifts and leave on them (by `resourceId`). |
+| `resources` (required) | `ScheduleResourceData[]` | — | The rows: people and rooms, in order. |
+| `bookings` | `ScheduleBookingData[]` | `[]` | The bookings, shifts and leave on them (by `resourceId`). |
 | `scale` | `"hours" \| "days"` | `"hours"` | Figma Scale: `hours` (one day, a column per hour) or `days` (one week, Monday first). Default hours. |
 | `date` | `Date \| string` | — | The day shown (Hours) or any day of the week shown (Days). Default: today. |
 | `startHour` | `number` | `9` | First hour of the Hours scale (default 9). |
@@ -62,7 +62,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `stops` (required) | _HTML attribute_ | — | The stops, in order. |
+| `stops` (required) | `ScheduleStopData[]` | — | The stops, in order. |
 | `title` | `ReactNode` | — | Figma Kicker: the day and the plan's name ("Wed, Sep 30 · Design Day"). |
 | `now` | `Date \| string` | — | The current time: stops that ended are Past, the running one Now, the rest Upcoming. Default: the device clock. |
 | `device` | `"desktop" \| "mobile"` | — | Figma Device: `desktop` (640) or `mobile` (358); the stops are the same. Default: from the breakpoint. |
@@ -76,8 +76,8 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `slots` (required) | _HTML attribute_ | — | The bookable times (any days); a day shows its slots in time order. |
-| `days` | _HTML attribute_ | — | The days to offer (desktop columns, the phone's week strip). Default: the days the slots fall on, at most five. |
+| `slots` (required) | `ScheduleSlotData[]` | — | The bookable times (any days); a day shows its slots in time order. |
+| `days` | `CalendarDateInput[]` | — | The days to offer (desktop columns, the phone's week strip). Default: the days the slots fall on, at most five. |
 | `value` | `string \| null` | — | The chosen slot's id (controlled). |
 | `defaultValue` | `string \| null` | `null` | The chosen slot at first (uncontrolled). |
 | `onValueChange` | `(id: string, slot: ScheduleSlotData) => void` | — | Called with the slot the person picks. The confirm action ("Book 10:00") belongs to the page or sheet footer. |
@@ -97,7 +97,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title" | "defaultValue" | "o
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `events` | _HTML attribute_ | `[]` | The cards (any days); the planner shows the selected day's. |
+| `events` | `ScheduleCardData[]` | `[]` | The cards (any days); the planner shows the selected day's. |
 | `value` | `CalendarDateInput \| null` | — | The selected day (controlled). |
 | `defaultValue` | `CalendarDateInput \| null` | — | The selected day at first (uncontrolled). Default: today. |
 | `onValueChange` | `(day: Date) => void` | — | Called with the day picked on the week strip. |
@@ -198,7 +198,9 @@ type CalendarDateInput = Date | string
 interface ScheduleBookingData { id: string; resourceId: string; title: string; start: CalendarDateInput; end: CalendarDateInput; color?: CalendarColor; time?: string; }
 interface ScheduleCardData { id: string; title: string; start: CalendarDateInput; end: CalendarDateInput; color?: ScheduleColor; status?: string; note?: string; attendees?: Array<{ src?: string; alt?: string }>; }
 type ScheduleColor = CalendarColor | "neutral"
+interface ScheduleResourceData { id: string; name: string; shortName?: string; meta?: string; kind?: "person" | "room"; avatarSrc?: string; }
 interface ScheduleSlotData { id: string; start: CalendarDateInput; disabled?: boolean; }
+interface ScheduleStopData { id: string; title: string; start: CalendarDateInput; end: CalendarDateInput; meta?: string; }
 ```
 
 ## Keyboard

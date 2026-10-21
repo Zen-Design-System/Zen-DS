@@ -7,7 +7,7 @@ import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
 import { ScheduleDayPlanner, ScheduleItinerary, ScheduleResourceGrid, ScheduleSlotPicker, ZenProvider } from "../../src/index";
 
-const resources = [{ id: "alex", name: "Alex Duong", meta: "Designer" }, { id: "lotus", name: "Room 2 · Lotus", meta: "8 seats", type: "room" as const }];
+const resources = [{ id: "alex", name: "Alex Duong", meta: "Designer" }, { id: "lotus", name: "Room 2 · Lotus", meta: "8 seats", kind: "room" as const }];
 const bookings = [
   { id: "q4", resourceId: "alex", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue" as const },
   { id: "early", resourceId: "lotus", title: "Night shift", start: "2026-09-30T06:00", end: "2026-09-30T10:00" },

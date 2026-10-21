@@ -1471,6 +1471,8 @@
       ],
       "props": {
         "ScheduleResourceGrid": [
+          "resources: ScheduleResourceData[]",
+          "bookings?: ScheduleBookingData[] = []",
           "scale?: hours|days = hours",
           "date?: Date|string",
           "startHour?: number = 9",
@@ -1486,6 +1488,7 @@
           "ref?: Ref<HTMLDivElement>"
         ],
         "ScheduleItinerary": [
+          "stops: ScheduleStopData[]",
           "title?: ReactNode",
           "now?: Date|string",
           "device?: desktop|mobile",
@@ -1493,6 +1496,8 @@
           "ref?: Ref<HTMLDivElement>"
         ],
         "ScheduleSlotPicker": [
+          "slots: ScheduleSlotData[]",
+          "days?: CalendarDateInput[]",
           "value?: string|null",
           "defaultValue?: string|null = null",
           "onValueChange?: (id: string, slot: ScheduleSlotData) => void",
@@ -1506,6 +1511,7 @@
           "ref?: Ref<HTMLDivElement>"
         ],
         "ScheduleDayPlanner": [
+          "events?: ScheduleCardData[] = []",
           "value?: CalendarDateInput|null",
           "defaultValue?: CalendarDateInput|null",
           "onValueChange?: (day: Date) => void",

@@ -12,9 +12,9 @@ import "./schedule.css";
 
 export interface ScheduleSlotPickerProps extends Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange"> {
   /** The bookable times (any days); a day shows its slots in time order. */
-  slots: readonly ScheduleSlotData[];
+  slots: ScheduleSlotData[];
   /** The days to offer (desktop columns, the phone's week strip). Default: the days the slots fall on, at most five. */
-  days?: readonly CalendarDateInput[];
+  days?: CalendarDateInput[];
   /** The chosen slot's id (controlled). */
   value?: string | null;
   /** The chosen slot at first (uncontrolled). */
