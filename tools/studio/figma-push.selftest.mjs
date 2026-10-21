@@ -34,7 +34,7 @@ const masterSidebar = (frame) => {
   const master = find(frame, (node) => node.set?.name === "Patterns/Pages/Density-Medium");
   if (!master) return null;
   const at = (path) => master.nested?.find((entry) => entry.path === path);
-  return { master, pattern: at("Patterns")?.props ?? {}, props: at("Patterns/Patterns")?.props ?? {}, slots: master.slots.filter((slot) => slot.within?.[0] === "Patterns/Sidebar/Density-Medium") };
+  return { master, pattern: at("Patterns")?.props ?? {}, props: at("Patterns/Patterns")?.props ?? {}, slots: master.slots.filter((slot) => slot.within?.[0] === "Patterns/Sidebar") };
 };
 
 // 1. A pulled frame (figma-pull.selftest's Team, without the shape outside the library) goes up and comes back the same.
@@ -161,7 +161,7 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
   check("Overviews: nothing left out", notes, []);
   // AppShell as Figma's Master-Layout: the Sidebar's slots sit in the Side-Bar its Sidebar pattern holds.
   const master = find(frame, (node) => node.set?.name === "Patterns/Pages/Density-Medium");
-  const sidebarSlots = (master?.slots ?? []).filter((slot) => slot.within?.[0] === "Patterns/Sidebar/Density-Medium");
+  const sidebarSlots = (master?.slots ?? []).filter((slot) => slot.within?.[0] === "Patterns/Sidebar");
   check("Overviews: the Sidebar's slots (brand, sections, footer)", sidebarSlots.map((slot) => slot.name), ["Header-Content", "Body-Content", "Footer-Content"]);
   const body = sidebarSlots.find((slot) => slot.name === "Body-Content").children;
   const selected = body.flatMap((section) => section.children).find((item) => item.props?.Select === "Yes");
@@ -234,7 +234,7 @@ export default function Page() {
   // AppShell as Figma's ◇ Master-Layout (user 2026-10-17: "app shell và master layout không khớp …"): one instance.
   check("AppShell: Figma's Master-Layout (Patterns/Pages/Density-Medium Level=Master) filling the frame: Sidebar on, no Side-Panel, no floating action", { name: shell?.name, set: shell?.set?.name, props: shell?.props, fillW: shell?.fillW }, { name: "AppShell", set: "Patterns/Pages/Density-Medium", props: { Level: "Master", Sidebar: true, "Side-Panel": false, "Floating-Actions": false }, fillW: true });
   const slotOf = (name) => shell.slots.find((slot) => slot.name === name);
-  const inner = ["Patterns/Sidebar/Density-Medium", "Patterns/Density/Comfortable/Sidebar/Yes"];
+  const inner = ["Patterns/Sidebar", "Patterns/Density/Comfortable/Sidebar/Yes"];
   check("AppShell: the Sidebar pattern Expand=Yes; its Side-Bar's rows in Body-Content (the selected one Select Yes), no logo: Header-Content emptied, no footer: Footer-Content emptied, its container hidden inside the Side-Bar (not the master's first layer of that name)", { expand: shell.nested.find((entry) => entry.path === "Patterns")?.props, slots: shell.slots.filter((slot) => slot.within?.[0] === inner[0]).map((slot) => [slot.name, slot.within, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), hide: shell.hide, hidden: shell.edits.filter((edit) => edit.visible === false).map((edit) => edit.layer) }, { expand: { Expand: "Yes" }, slots: [["Header-Content", inner, []], ["Body-Content", inner, ["Home:No", "People:Yes"]], ["Footer-Content", inner, []]], hide: undefined, hidden: [[...inner, "Divider"], [...inner, "Footer-Container"]] });
   const sections = slotOf("Sections");
   const bar = sections.children[0];
@@ -527,7 +527,7 @@ export default function Page() {
   const side = masterSidebar(frame);
   const header = side.slots.find((slot) => slot.name === "Header-Content").children;
   const groups = side.slots.find((slot) => slot.name === "Body-Content").children;
-  check("collapsed Sidebar: the pattern and its Side-Bar Expand No (the pattern's Sidebar/No layer), the brand's mark alone in the header", [side.pattern.Expand, side.props.Expand, side.slots[0].within, header.map((layer) => layer.set?.name ?? layer.type)], ["No", "No", ["Patterns/Sidebar/Density-Medium", "Patterns/Density/Comfortable/Sidebar/No"], ["Avatar/Single"]]);
+  check("collapsed Sidebar: the pattern and its Side-Bar Expand No (the pattern's Sidebar/No layer), the brand's mark alone in the header", [side.pattern.Expand, side.props.Expand, side.slots[0].within, header.map((layer) => layer.set?.name ?? layer.type)], ["No", "No", ["Patterns/Sidebar", "Patterns/Density/Comfortable/Sidebar/No"], ["Avatar/Single"]]);
   check("collapsed Sidebar: rows their icon alone (no label, as wide as it), titles gone, a Divider opening the later group", groups.map((group) => group.children.map((layer) => [layer.set?.name, layer.props?.Label, layer.hugW ?? layer.fillW, layer.text, layer.hugLayers?.[0]?.name])), [[["Primitives/Side-Bar/Menu-Item/Master", false, true, undefined, "Element"]], [["Divider", undefined, true, undefined, undefined], ["Primitives/Side-Bar/Menu-Item/Master", false, true, undefined, "Element"]]]);
   // 1440 − 80 (rail) − 48 (Container's gutter) = 1312: (1312 + 16) / (400 + 16) → 3 columns (an open Sidebar leaves room for 2).
   check("the page beside the rail is 80 narrower than the frame, not 240: 3 columns of 400", find(frame, (node) => node.name === "Grid")?.layout.grid?.columns, 3);

@@ -1946,7 +1946,13 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Footer",
+        "prop": "footer",
+        "on": "slot"
+      }
+    ]
   },
   "SkeletonText": {
     "figma": "1556:17566",

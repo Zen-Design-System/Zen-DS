@@ -89,3 +89,30 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
 - tokens/source/figma/mode-colors-semantic.json, then `tokens:build`: web, Swift and Flutter. tokens:check,
   tokens:native:check and high contrast (0 failures) all pass.
 - No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
+
+## AppShell session · Patterns/Sidebar → Studio, Sidebar themes (tier M, branch `zen/feat/studio-patterns-sidebar-20261021`, stacked on #179)
+
+The user asked: "Update cả Patterns/Sidebar từ figma lên Studio", "Cập nhật boolean cho footer của sidebar từ figma lên
+studio", and (through the Bug session) "bổ sung variant của Patterns/Sidebar". They approved Carved and
+Carved-Floating: "Có, cùng đợt Studio". Borderless appeared in Figma while I worked.
+
+Live Patterns/Sidebar 6040:67524, renamed from "…/Density-Medium":
+- Theme = Default | Border | Borderless | Carved | Carved-Floating; Density = Medium | Small; plus Shadow and Expand.
+- The flush themes (Border, Borderless, Carved): inset 0, rail 64, header gap 24, body padding 4·8.
+- Carved-Floating: inset 8·0·8·8, panel in Background/Carved, radius 20, no shadow.
+
+Code:
+- `sidebarThemes` has all five values, with CSS for each.
+- New test in app-shell-grid.test.tsx.
+- Guideline row updated.
+
+Studio:
+- Contract: the ❖ Sidebar page re-read (Basic and Small-Density gained Collapse Button and Footer, Workspace gained
+  Footer) and Patterns/Sidebar added under ◇ Master-Layout.
+- Map: Footer → { toggle: "footer", on: "slot" }; Collapse Button → skip.
+- figmaProps regenerated (48 toggles).
+- MASTER_SIDEBAR_PATTERN, library-keys and the push selftest use the new name.
+- `studio:selftest` exit 0.
+
+The Bug session wires Patterns/Sidebar into Properties and the Main component, and captures the native pack together
+with Header/AppShell.

@@ -1416,7 +1416,8 @@ function appShellElement(node, ctx) {
 
 /** Figma's ◇ Master-Layout page pattern and the Sidebar pattern in it (figma-push.mjs MASTER_LAYOUT_SET). */
 const MASTER_LAYOUT = "Patterns/Pages/Density-Medium";
-const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar/Density-Medium";
+/** Figma Patterns/Sidebar (6040:67524), renamed from "Patterns/Sidebar/Density-Medium" on 2026-10-21. */
+const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar";
 /**
  * Figma's ◇ Master-Layout as the push writes it (figma-push.mjs masterLayoutNode: an instance of Patterns/Pages/
  * Density-Medium with nested writes and slots) in the shape appShellElement reads, the one a placed master gives the

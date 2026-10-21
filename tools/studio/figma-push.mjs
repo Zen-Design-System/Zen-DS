@@ -231,7 +231,8 @@ const SHELL_ROW_PADDING_VARS = ["Spacing/Padding/Small", "Margin-Comfortable", "
 const MASTER_LAYOUT_SET = { id: "4122:41886", name: "Patterns/Pages/Density-Medium" };
 /** The master layout's own height (its Viewport-Height): a shorter page keeps it, a longer one grows it. */
 const MASTER_LAYOUT_HEIGHT = 982;
-const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar/Density-Medium";
+/** Figma Patterns/Sidebar (6040:67524), renamed from "Patterns/Sidebar/Density-Medium" on 2026-10-21. */
+const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar";
 const MASTER_SIDEBAR = "Side-Bar/Master/Basic";
 /** The top bar's Search at its widest (app-shell.css). */
 const HEADER_SEARCH_MAX = 400;
