@@ -17,6 +17,8 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
+  read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
   CalendarMonth, CalendarTimeGrid (Week / Day, Mobile 3-Day), CalendarAgenda and CalendarWeekStrip (Dot / Tile) take
   events as data (`CalendarEventData`: id, title, start, end, allDay, color, meta, attendees); the primitives
