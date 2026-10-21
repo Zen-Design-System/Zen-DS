@@ -113,7 +113,7 @@
 .zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); flex: 0 0 auto; background: var(--zen-app-shell-canvas); }
 .zen-app-shell-header { display: flex; min-width: 0; flex: 0 0 auto; flex-direction: column; }
 /* Main: Margin-Comfortable above and at the sides, Spacing/Padding/XSmall below, Spacing/Gap/Medium between the rows. */
-.zen-app-shell-header__main { display: flex; box-sizing: border-box; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xsmall, 8px); }
+.zen-app-shell-header__main { display: flex; box-sizing: border-box; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-small, 12px); }
 /* Top-Header: the toggle, then Top-Elements (Leading · Center · Trailing), Spacing/Gap/Medium apart, on a Button/Size/Medium row. */
 .zen-app-shell-header__top { display: flex; min-width: 0; min-height: var(--zen-button-size-medium, 40px); align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-app-shell-header__bar { min-width: 0; flex: 1 1 auto; }

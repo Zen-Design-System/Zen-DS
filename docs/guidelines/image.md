@@ -22,6 +22,7 @@ Shows a picture in a ratio frame that keeps its size while loading (Skeleton) an
 | --- | --- | --- |
 | Ratio | `ratio` | 1:1 · 4:3 · 3:2 · 16:9 · 3:4 or width ÷ height; unset = the picture's own ratio (4:3 while loading) |
 | Fit | `fit` | cover (default, crops) · contain (the whole picture on Neutral/Pale) |
+| Frame | `frame` | true (default: Neutral/Pale fill + 1px Border/Neutral/Pale hairline) · false (a cut-out picture with no fill or hairline) |
 | Corner-Radius | `radius` | none · 2xs … 3xl · full; default md (Corner-Radius/Base) |
 | Loading | `loading` | lazy (default) · eager for the first picture on screen |
 | States | `src` | undefined → Skeleton; a load error → placeholder with icon-image-line, alt stays its name |
@@ -47,6 +48,7 @@ Also accepts `Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "loading
 | `alt` (required) | `string` | — | Required text alternative: what the picture shows, in context ("Matte black pour-over kettle, side view"). Use "" only for a decorative picture that repeats text next to it; never a file name or "image of…". |
 | `ratio` | `ImageRatioName \| number` | — | Frame ratio (width : height): "1:1" · "4:3" · "3:2" · "16:9" · "3:4", or a number (2.35). The frame keeps its size while loading, so nothing jumps. Unset: the picture's own ratio (4:3 while it loads or fails). |
 | `fit` | `"cover" \| "contain"` | `"cover"` | cover (default): fills the frame and crops. contain: shows the whole picture on Neutral/Pale bars (logos, documents). |
+| `frame` | `boolean` | `true` | The frame behind the picture: Neutral/Pale with a 1px Border/Neutral/Pale hairline (default true), so a light photo keeps its edge. `false` for a cut-out picture on a transparent background (a mascot, a product without its backdrop, Figma's bare image fill): no fill and no hairline, so no faint square shows around it. The Skeleton and the error placeholder still fill the box. |
 | `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | `"md"` | Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full. `radiusTopLeft` … `radiusBottomLeft` override single corners (Figma per-corner radius, e.g. top media in a card: `radius="none" radiusTopLeft="2xl" radiusTopRight="2xl"`); unset corners keep this radius (md by default). |
 | `loading` | `"lazy" \| "eager"` | `"lazy"` | Native loading: lazy (default) waits until the picture nears the viewport; eager for the first picture on screen. |
 | `caption` | `ReactNode` | — | A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption. |
@@ -82,6 +84,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ```
 
 ## ✅ Do
+- Use frame={false} for a cut-out picture on a transparent background (a mascot, a product without its backdrop): the frame would show as a faint square around it.
 - Always pass alt: what the picture shows in context; alt="" only when it is decorative or text beside it names it (harness: image/needs-alt).
 - Set ratio so the frame keeps its size while loading and nothing jumps when the picture arrives.
 - Use loading="eager" only for the first picture on screen; keep the rest lazy.

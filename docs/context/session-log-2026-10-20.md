@@ -324,6 +324,59 @@ skill không phải rule hay hardness", then "Nghiên cứu cả những princip
   `tools/ai-kit/kit.mjs` copies both into `skills/zen-figma-design/references/`; `build.mjs` reads and checks them,
   `src/platform/aiKit.ts` globs them; kit README and AGENTS.md mention them. `ai-kit:check` 164 ✓, 85 files.
 
+## Image `frame` (AppShell session, follow-up to #168) — tier S, branch `zen/feat/image-frameless-20261020`
+
+The user approved it on 2026-10-20, answering the open #168 questions ("Image không khung … -> OK"). Figma has no
+Image component; E1's Character is a 100 × 100 frame with an IMAGE fill (Fit), no fill behind it and no stroke
+(use_figma on 15991:9673).
+- `Image frame` (default true). `false` sets `data-frame="none"`: no Neutral/Pale fill and no hairline `::after`;
+  the Skeleton and the error placeholder are unchanged.
+- E1's mascot (render and code) now uses `frame={false}`. The Image page has a new example, "A cut-out picture",
+  showing both frames.
+- Guideline: the api row and a do line. Docs, api and ai-ui regenerated. Test: `tests/interaction/image-frame.test.tsx`.
+- Other #168 answers: Card spacing xs is approved, but Figma's Card has Spacing Medium | Small only, and E6's
+  Intent tiles are plain frames (padding 8/12, radius 20). This needs the user's call on Figma first. The E7
+  Segmented and the F4 crop are explained to the user again.
+- The user's answers, then the work:
+  - **E7.** The user updated Segmented in Figma twice. White-Overlay labels are now On-White-Overlay Light at rest,
+    Strongest when hovered, focused or selected; the overlay Focused ring is Border/Overlay/Solid.
+    - Code: `segmented.css`. The ring stays currentColor on the white selected segment.
+    - The contract's changed variants were re-captured by a sub-agent; the hashes match the live file.
+    - E7 is back on White-Overlay.
+  - **F4: "Xuất ảnh crop riêng cho F4".** `device-robot-vacuum-f4.webp` (867 × 595) is cut from the 1024 source with
+    the Device Crop fill's imageTransform, encoded with Chromium's canvas. The cut-out devices in F1, F3, F4 and F5
+    take `frame={false}`: Figma draws no fill behind them.
+  - **Card XSmall: "Thêm Spacing=XSmall vào Figma trước", padding "8px đều", radius 12 (Corner-Radius/Base).**
+    - A sub-agent added the variable `Card-padding-xsmall` (VariableID:16772:3, Breakpoint & Grids, Spacing/Padding/XSmall
+      in every mode) and 40 Spacing=XSmall variants (rows 15–22 of the set). It checked them against the Small sources
+      by tree signature: 40/40 pass, and the Sub-Action top padding follows the card padding.
+    - Code: `cardSpacings` xsmall, card.css xsmall (the mobile radius rule is now Medium-only), the token source, the
+      Studio props (`component-properties.json`), the harness spacing-by-count (xs counts as compact) and its good
+      fixture.
+    - E6's intents are four xs cards in a row.
+
+    - Figma descriptions (2026-10-21): `tools/figma-docs` sources now name XSmall. Written to the live file:
+      the Card set, `Card-padding-xsmall` and Corner-Radius/Base. The old text is backed up in frame 16784:3
+      ("Description backup 2026-10-21") on 🔒 ARCHIVED.
+      - Only these three were written, not the whole `variables` command. A dry run showed ~110 other variables
+        would also change: the stored `&#39;` escapes, and source edits that other sessions have not written yet.
+        Spacing/Gap/3XSmall still says "outside the ladder" in Figma.
+- Gate 2026-10-21 (follow-ups): PASS with 50 new warnings.
+  - Fixed in 3a26589a:
+    - The Image cut-out example now uses Flat cards.
+    - The xs Card playground slot has concentric corners (4px).
+    - Two dead clicks (A1–A4 Workspace crumb, B2 rail items) now show a toast.
+    - app-shell gets 6× the behaviour budget. It had timed out at 2× in every gate run, so its later screens were never checked.
+  - Moved into `quality-baseline.json` (40 keys), on the user's answers:
+    - E7's White-Overlay "Activity" label (Lc 38.6 on the #F755C9 band): "Giữ Light như Figma".
+    - The rhythm counts of A1–A4, B5, E2, E7, the App Shell playground's side-panel state and three templates:
+      "Baseline, giữ như Figma". Figma's own A1 uses ~13 styles; the check also counts component-owned text
+      (Table headers, Metric values).
+- 2026-10-21, Header/AppShell drift (the Bug session found it; I checked it with use_figma). Sections/Main pads
+  24·24·12·24, with the bottom bound to Spacing/Padding/Small. app-shell.css had XSmall (8); now Small, in 0b91bed4.
+  Bug's Studio mapping (Header/AppShell in component-properties.json) will conflict textually with this branch's Card
+  Spacing patch. Whoever lands second re-applies it (guidelines:build, then figma-props-build and variant-sets-build).
+
 ## Blend mode in the direct paste (Session C) — tier XS, branch `zen/feat/studio-native-blend-mode-20261020`
 Session B's Blend mode (user-given; push / pull / plugin on B's branch) left the native ⌘C → ⌘V to C. figma-native writes
 a frame's or a shape's `blendMode` (Figma's enum, as figma-push writes it off the default) on the node, nothing at the

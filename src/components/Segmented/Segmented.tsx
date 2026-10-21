@@ -53,7 +53,7 @@ export interface SegmentedProps {
   onChange?: (value: string) => void;
   /** Secondary (default) is the common case; Primary (the same filled track, an Inverse solid selected segment) adds emphasis.
    *  On a colour band or photo: `black-overlay` (or `"overlay"`, the default overlay: a Black-Overlay track, light text)
-   *  or `white-overlay` (on a solid colour: a White-Overlay track, light text); both select with a White/Solid segment
+   *  or `white-overlay` (on a solid colour: a White-Overlay track, dark text); both select with a White/Solid segment
    *  and look the same in light and dark mode. */
   level?: SegmentedLevel;
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
@@ -75,8 +75,10 @@ export interface SegmentedProps {
  * segments (Segmented/Size/Small or Medium) on a Neutral/Subtle track; Secondary (default) selects with Neutral/Solid,
  * Primary with Inverse/Solid (its outlined track became filled in the live file, 2026-10-18). Black-Overlay and White-Overlay put it on a colour band or photo
  * in static tokens that do not switch with the mode (as Button's overlay levels): a Background/Black-Overlay or
- * White-Overlay track, light text (Content/On-Black-Overlay, Content/On-Colors) and a Background/White/Solid selected
- * segment with On-White-Overlay text. An icon-only segment (Item Label=false:
+ * White-Overlay track, with light text on Black-Overlay (Content/On-Black-Overlay) and dark text on White-Overlay
+ * (Content/On-White-Overlay/Light at rest, Strongest hovered, focused or selected: Figma 2026-10-20), a
+ * Background/White/Solid selected segment with
+ * On-White-Overlay text and a Border/Overlay/Solid focus ring. An icon-only segment (Item Label=false:
  * `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
  */
 export function Segmented({ ref, options, value, defaultValue, onValueChange, onChange, level: levelProp = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp, overrides }: SegmentedProps) {

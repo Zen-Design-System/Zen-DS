@@ -34,6 +34,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
+- **P3 · Card Spacing=XSmall follow-ups (2026-10-20, AppShell session):**
+  - The 40 XSmall variants and `Card-padding-xsmall` are in Figma, code and the Studio props.
+  - Still to do: `docs/figma-contracts/native-pack.json` has no XSmall Card. It needs a probe-frame rebuild
+    (`node tools/studio/native-pack.mjs --help`), so a direct paste of an xs Card notes "no variant"; the plugin import
+    works.
 - **P3 · Card `subAction` to and from Figma (2026-10-20, Session B):** the push writes no Sub-Action for a Card's
   `subAction` ("data with no Figma slot"), so Figma's Card shows none and an override of `Card/Sub-Action` lands on a
   hidden layer; the pull notes a shown Sub-Action instead of reading it. Map it as Sub-Action on + the IconButton's

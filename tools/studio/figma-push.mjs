@@ -221,10 +221,11 @@ const WRAPPER_LAYOUT = {
 const PAGE_HEADER_PROPS = { title: "title", childTitle: "childTitle", description: "subheading", actions: "actions", trailing: "trailing" };
 /** AppShell's section rows (app-shell.css): Padding/Small above and below, Margin-Comfortable on the sides. */
 const SHELL_ROW_PADDING = [12, 24, 12, 24];
-/** AppShell's top bar, as Figma's Navigation row: Margin-Comfortable above and on the sides, Padding/XSmall below. */
-const TOP_BAR_PADDING = [24, 24, 8, 24];
+/** AppShell's top bar, as Figma's Navigation row: Margin-Comfortable above and on the sides, Padding/Small below
+ *  (Header/AppShell › Sections/Main pads 24 · 24 · 12 · 24, read 2026-10-21; app-shell.css .zen-app-shell-header__main). */
+const TOP_BAR_PADDING = [24, 24, 12, 24];
 /** The variables the master layout's own Dashboard header rows bind those paddings to (Header/Dashboard, read 2026-10-17). */
-const TOP_BAR_PADDING_VARS = ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/XSmall", "Margin-Comfortable"];
+const TOP_BAR_PADDING_VARS = ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/Small", "Margin-Comfortable"];
 const SHELL_ROW_PADDING_VARS = ["Spacing/Padding/Small", "Margin-Comfortable", "Spacing/Padding/Small", "Margin-Comfortable"];
 /** Figma's ◇ Master-Layout (page 1128:29541): the page pattern, its Sidebar pattern and the Side-Bar that pattern holds. */
 const MASTER_LAYOUT_SET = { id: "4122:41886", name: "Patterns/Pages/Density-Medium" };
@@ -799,7 +800,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
    * AppShell as Figma's ◇ Master-Layout (Patterns/Pages/Density-Medium Level=Master, read 2026-10-17; user: "app shell và
    * master layout không khớp với nhau thành component master layout"): the Sidebar pattern (Expand by the collapsed state)
    * around the Side-Bar the Sidebar converts to; Header/Dashboard's Sections slot with the top bar and the section rows,
-   * Dashboard header rows padded as the master's own rows are (the top bar Margin-Comfortable · Padding/XSmall below, a
+   * Dashboard header rows padded as the master's own rows are (the top bar Margin-Comfortable · Padding/Small below, a
    * section Padding/Small · Margin-Comfortable); Body's Content slot with the page, Body padded Margin-Comfortable and
    * Gap/XSmall apart as AppShell's Body is (app-shell.css .zen-app-shell__body); Floating-Item; the Side-Panel. Null when
    * a part has no place in it (an aside that is no SidePanel, a sidebar that is no instance): the frames then.
