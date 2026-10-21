@@ -242,9 +242,10 @@ const CONTAINER_MAX = { sm: 640, md: 960, lg: 1280, xl: 1440 };
 const AI_GREETING_LAYER = "How can I help you today?";
 const AI_BLOCK_MAX = 800;
 /** Sidebar's width open (sidebar.css --zen-sidebar-width; Figma's Side-Bar measures the same) and as the collapsed rail
- *  (basic: min-width 84px, Figma's Expand=No; small-density: 20px + 4 × Padding/XSmall). */
+ *  (basic: min-width 80px, Figma Patterns/Sidebar Expand=No · Density=Medium, 2026-10-21; small-density: 20px + 4 ×
+ *  Padding/XSmall). */
 const SIDEBAR_WIDTH = 240;
-const SIDEBAR_RAIL_WIDTH = { basic: 84, "small-density": 52 };
+const SIDEBAR_RAIL_WIDTH = { basic: 80, "small-density": 52 };
 /** Margin-Comfortable: Container's gutter (layout.css) and the floating action's inset (app-shell.css). */
 const MARGIN_COMFORTABLE = 24;
 

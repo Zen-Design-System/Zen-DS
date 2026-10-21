@@ -519,7 +519,7 @@ export default function Page() {
   ok("round trip: the even grid of columns that fit comes back a Grid (minColumnWidth)", /<Grid minColumnWidth=\{480\}/.test(back));
 }
 {
-  // A collapsed Sidebar (HR Home, 2026-10-12: drawn open in Figma, 240 wide) is Figma's rail: Expand No, 84 wide.
+  // A collapsed Sidebar (HR Home, 2026-10-12: drawn open in Figma, 240 wide) is Figma's rail: Expand No, 80 wide (Patterns/Sidebar, 2026-10-21).
   const rail = WIDTHS.replace('<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>', '<Sidebar aria-label="Main" collapsed selectedId="home" brand={<Stack direction="row" gap="xs"><Avatar size="small" shape="square" theme="violet">D</Avatar><Text>Dizai</Text></Stack>} sections={[{ id: "main", label: "Main", items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }] }, { id: "modules", label: "Modules", items: [{ id: "people", label: "People", icon: "icon-users-line" }] }]} />')
     .replace("import { AppShell,", "import { AppShell, Avatar,")
     .replace('<Grid minColumnWidth={480} gap="lg">', '<Grid minColumnWidth={400}>');
@@ -529,8 +529,8 @@ export default function Page() {
   const groups = side.slots.find((slot) => slot.name === "Body-Content").children;
   check("collapsed Sidebar: the pattern and its Side-Bar Expand No (the pattern's Sidebar/No layer), the brand's mark alone in the header", [side.pattern.Expand, side.props.Expand, side.slots[0].within, header.map((layer) => layer.set?.name ?? layer.type)], ["No", "No", ["Patterns/Sidebar/Density-Medium", "Patterns/Density/Comfortable/Sidebar/No"], ["Avatar/Single"]]);
   check("collapsed Sidebar: rows their icon alone (no label, as wide as it), titles gone, a Divider opening the later group", groups.map((group) => group.children.map((layer) => [layer.set?.name, layer.props?.Label, layer.hugW ?? layer.fillW, layer.text, layer.hugLayers?.[0]?.name])), [[["Primitives/Side-Bar/Menu-Item/Master", false, true, undefined, "Element"]], [["Divider", undefined, true, undefined, undefined], ["Primitives/Side-Bar/Menu-Item/Master", false, true, undefined, "Element"]]]);
-  // 1440 − 84 (rail) − 48 (Container's gutter) = 1308: (1308 + 16) / (400 + 16) → 3 columns (an open Sidebar leaves room for 2).
-  check("the page beside the rail is 84 narrower than the frame, not 240: 3 columns of 400", find(frame, (node) => node.name === "Grid")?.layout.grid?.columns, 3);
+  // 1440 − 80 (rail) − 48 (Container's gutter) = 1312: (1312 + 16) / (400 + 16) → 3 columns (an open Sidebar leaves room for 2).
+  check("the page beside the rail is 80 narrower than the frame, not 240: 3 columns of 400", find(frame, (node) => node.name === "Grid")?.layout.grid?.columns, 3);
   ok("logoCollapsed / the rail noted as nothing", !notes.some((note) => /Sidebar.*(logoCollapsed|not written)/.test(note)));
   const back = pageFromFigma(frame, { mapping }).text;
   ok("round trip: the rail comes back a collapsed Sidebar, its rows' labels and its groups' titles kept, no Divider row", /<Sidebar[^>]*\bcollapsed\b/.test(back) && /label: "Modules"/.test(back) && /label: "People"/.test(back) && !/Divider/.test(back.slice(back.indexOf("<Sidebar"), back.indexOf("/>", back.indexOf("<Sidebar")))));

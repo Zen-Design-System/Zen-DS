@@ -2,7 +2,7 @@
 # Sidebar
 
 **Figma:** Patterns/Sidebar (page 1536:27287)  
-**Import:** `import { Sidebar, SidebarMenuItem, SidebarMenuSection } from "@zen-ds/react";`
+**Import:** `import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubHeader } from "@zen-ds/react";`
 
 Primary app navigation with sections, nested items and a collapsible rail.
 
@@ -18,6 +18,8 @@ Primary app navigation with sections, nested items and a collapsible rail.
 | --- | --- | --- |
 | Links | `items[].href · linkAs · selectedId` | href rows render as links (linkAs = your router link; it receives href); selectedId marks the current route (aria-current="page") and opens its group |
 | Variant | `variant` | basic · small-density · workspace |
+| Theme | `theme` | default (a Surface panel inset Padding/XSmall) · border (Figma Theme=Border: flush with the page edge, no fill, corners or shadow, a Pale line on the inner edge; the rail is the 64px panel). Unset follows the AppShell: pattern="grid" sets border and Density=Small (36px Basic rows) |
+| Sub-header | `subHeader = <SidebarSubHeader title onBack backLabel headingLevel>` | Figma Primitives/Sub-Header-Sidebar: the back control (Button/Icon-Main Small Tertiary) over the level's title (Heading/4, one line) at the top of Body-Content, while the Sidebar shows a level inside the app; on the rail only the back control shows |
 | Collapse | `collapsed / onCollapsedChange` | control renders only with onCollapsedChange; workspace never collapses |
 | Items | `sections[] items {id,label,icon,selected,counter,notificationDot,children}` |  |
 | Slots (Figma) | `brand · search · children · footer · subMenu · workspaceBrand` | Header-Content · Search · Body-Content: <SidebarMenuItem> rows and <SidebarMenuSection label> groups as children, after sections (nested rows as SidebarMenuItem children) · Footer-Content: <SidebarMenuItem> rows · Sub-Item · Master-Header-Content; slot rows share selectedId, the rail and onItemClick |
@@ -53,6 +55,8 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `background` | `"default" \| "alt" \| "flat" \| "inverse"` | `"default"` | Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. |
 | `divider` | `boolean` | `false` | A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it. |
 | `shadow` | `boolean` | `true` | Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes). Yes: the Surface/Default Sidebar takes Shadow/Bottom/Level-1 (a Canvas/Default page whose cards are shadowed). `shadow={false}` is Shadow=No: Surface/Default with no shadow (◇ Master-Layout · Example A2 · Tiles, 15904:2813, beside flat tiles). Unlike `background="flat"` (Surface/Flat, which is the page colour in dark mode), the Sidebar stays a Surface in both modes. Alt, Flat, the small density and the workspace panel carry no shadow either way. |
+| `theme` | `"default" \| "border"` | — | Figma Patterns/Sidebar Theme (6040:67524): `default` (a Surface panel inset Padding/XSmall from the page edge) · `border` (Theme=Border: no fill, no corners and no shadow, the Sidebar flush with the page edge and a 1px Border/Neutral/Pale line on its inner edge; the rail is the panel's own 64px). Unset follows the AppShell: `pattern="grid"` draws border (and Density=Small: 36px rows), other patterns default. |
+| `subHeader` | `ReactNode` | — | Figma Primitives/Sub-Header-Sidebar (16823:88101): a `<SidebarSubHeader>` at the top of Body-Content, the back control and the title of the level the Sidebar shows (a project inside a workspace). |
 | `workspaceBrand` | `ReactNode` | — |  |
 | `workspaceItems` | `SidebarItem[]` | `[]` |  |
 | `workspaceFooter` | `ReactNode` | — |  |
@@ -96,6 +100,18 @@ A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `section
 | `action` | `ReactNode` | — | Section-title action: a Button/Icon-Flat Small, as `SidebarSection.action`. |
 | `children` | `ReactNode` | — | The section's `<SidebarMenuItem>` rows. |
 | `ref` | `Ref<HTMLElement>` | — | Ref to the section's root `<section>`. |
+
+### SidebarSubHeader
+Figma Primitives/Sub-Header-Sidebar (16823:88101; ◇ Master-Layout · Example for Subheader-sidebar, 16823:89311): the top of Body-Content while the Sidebar shows a level inside the app (a project, a space), the back control over the level's title. Density=Medium pads Padding/2XSmall · Padding/Small · Padding/XSmall · Padding/Small with Spacing/Gap/Medium between them; Density=Small (the Sidebar's `density`) Padding/2XSmall · Padding/XSmall and Spacing/Gap/Small. Pass it as the Sidebar's `subHeader`; on the rail only the back control shows.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` (required) | `ReactNode` | — | Figma Sub-Header-Text: the name of the level the Sidebar shows, Heading/4 in Content/Neutral/Strongest, one line that truncates. |
+| `onBack` | `() => void` | — | The back control (Figma Button/Icon-Main Small Tertiary, chevron left): back to the level above. |
+| `backLabel` | `string` | — | The back control's accessible name. Default: the built-in "Back" label. |
+| `headingLevel` | `(typeof headingLevels)[number]` | `2` | The title's heading level. Default 2: the first heading inside the navigation. |
+| `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The root element. |
 
 ### SidebarSubMenu
 Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master menu items (gap Small).
