@@ -149,7 +149,7 @@ export const brand = (
 export const mark = <Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
 
 /** The width of an element, kept current: the KPI row folds to two columns when the page beside the Sidebar is narrow. */
-function useWidth() {
+export function useWidth() {
   const [element, setElement] = useState<HTMLElement | null>(null);
   const [width, setWidth] = useState(0);
   useEffect(() => {

@@ -32,7 +32,7 @@ import { DockIcon } from "../../../../components/DockIcon";
 import { PreviewAppFrame } from "../../../PlatformFrames";
 import { studio } from "../../data";
 import type { ExampleDef } from "../../types";
-import { brand, maya, navSections } from "./a-compositions";
+import { brand, maya, navSections, useWidth } from "./a-compositions";
 
 /** The rail keeps the workspace's mark: Figma's Avatar/Single 32 in the 64px Border rail. */
 const railMark = <Avatar size="sm" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
@@ -98,6 +98,9 @@ function TeamPerformance() {
   const [sort, setSort] = useState<TableSort | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
+  const [measure, width] = useWidth();
+  // Four KPI cards need about 1,040px to keep each value on one line (Figma: 294 each at 1,224), as A1–A4 do.
+  const kpiColumns = width > 0 && width < 1040 ? 2 : 4;
   const notHere = (label: string) => toast({ title: `${label} isn't part of this example`, children: "Team performance shows the Grid pattern." });
   const hours = hoursBy[range];
   const q = query.trim().toLowerCase();
@@ -159,9 +162,9 @@ function TeamPerformance() {
           />
         )}
       >
-        <Stack gap="xl">
+        <Stack gap="xl" ref={measure}>
           <Stack gap="md">
-            <Grid columns={4} stackBelow={720} gap="md">
+            <Grid columns={kpiColumns} stackBelow={560} gap="md">
               {kpis.map((kpi) => (
                 <MetricCard key={kpi.id} type="kpi" size="xl" label={kpi.label} value={kpi.value} trend={kpi.trend}
                   icon={kpi.icon} iconTheme={kpi.hue} iconBackground="solid" iconSize="lg"
