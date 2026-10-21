@@ -112,6 +112,13 @@ Code:
   Display/1, unless the card sets a size.
 - Guidelines and JSDoc updated. New test: `tests/interaction/chart-card-metric.test.tsx`.
 - Card, ListBox and table-in-card titles keep Heading/Subheading. The harness rule is unchanged.
+- A1–A4 drift (reported by the Bug session, which re-read 15904:1616 / 2813 / 6185 / 8996 for the user):
+  - In Figma, Patterns/Sidebar and Header/AppShell are both Density=Small. Canvas, Shadow (A1 only) and
+    Collapse=Sidebar already matched.
+  - `a-compositions.tsx` now sets `density="small"` on the Sidebar and the AppShellHeader, in the render and in
+    codeFor. Bug's Card/List-Box rename covers the cards' "flat" → "default".
+  - It needs #181 (bce44e61) in main: before that, `density="small"` alone picks the old Small-Density variant. Merge
+    main after #181 lands, before this branch's gate.
 
 ## Copy a Section with its frames (Session C) — tier S, branch `zen/feat/studio-section-duplicate-20261021`
 The user picked it (2026-10-21) from the BACKLOG P1 "Studio design page = Figma" leftovers (F4, C's area). ⌥-drag, ⌘D
