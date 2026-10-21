@@ -2033,6 +2033,46 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "flat-border"
           ],
           "default": "default"
+        },
+        {
+          "prop": "color",
+          "label": "Color",
+          "names": [
+            "Neutral",
+            "Brand",
+            "Cyan",
+            "Violet",
+            "Green",
+            "Yellow",
+            "Orange",
+            "Blue",
+            "Purple"
+          ],
+          "values": [
+            "neutral",
+            "brand",
+            "cyan",
+            "violet",
+            "green",
+            "yellow",
+            "orange",
+            "blue",
+            "purple"
+          ],
+          "default": "neutral"
+        },
+        {
+          "prop": "surface",
+          "label": "Surface",
+          "names": [
+            "Default",
+            "Alt"
+          ],
+          "values": [
+            "default",
+            "alt"
+          ],
+          "default": "default"
         }
       ],
       "toggles": []

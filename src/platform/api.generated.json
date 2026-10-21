@@ -9736,6 +9736,22 @@
           "deprecated": null
         },
         {
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Figma Color: the hue of a Pale box, Support/<Hue>/Pale (one hue per family, as Card's Pale). Neutral by default;\n the other themes have no Color and ignore it.",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Surface: Surface/Alt for a Default or Border box (Theme × Surface=Alt), chosen to suit the page's Canvas, as\n Card's Surface. Default by default; the other themes keep their own fill and ignore it.",
+          "deprecated": null
+        },
+        {
           "name": "as",
           "type": "\"div\" | \"section\"",
           "required": false,

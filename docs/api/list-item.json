@@ -192,7 +192,7 @@
     {
       "name": "ListBox",
       "file": "src/components/ListItem/ListItem.tsx",
-      "description": "Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the\ntokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill:\nInteractive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium\nsideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and\nFooter are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: default, shadow, pale, border,\nflat-border or on-container.",
+      "description": "Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the\ntokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill:\nInteractive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium\nsideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and\nFooter are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: default, shadow, pale, border,\nflat-border or on-container; `color` the Pale box's hue and `surface` the Default or Border box's Surface.",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">, LayoutWidthProps",
       "props": [
@@ -266,6 +266,22 @@
           "required": false,
           "default": "\"default\"",
           "description": "Elevation, Figma Theme (the tokens of Card's Theme). Default: Surface/Default alone — on Canvas/Default it\n needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).\n Flat-Border: Surface/Flat inside that ring, the box of a Canvas/Flat page (Figma Theme=Flat-Border, 15531:3660).\n On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16).",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Figma Color: the hue of a Pale box, Support/<Hue>/Pale (one hue per family, as Card's Pale). Neutral by default;\n the other themes have no Color and ignore it.",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Surface: Surface/Alt for a Default or Border box (Theme × Surface=Alt), chosen to suit the page's Canvas, as\n Card's Surface. Default by default; the other themes keep their own fill and ignore it.",
           "deprecated": null
         },
         {

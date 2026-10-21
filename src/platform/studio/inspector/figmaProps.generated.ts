@@ -1495,6 +1495,31 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Default": "default",
           "Flat-Border": "flat-border"
         }
+      },
+      {
+        "prop": "color",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Neutral": "neutral",
+          "Brand": "brand",
+          "Cyan": "cyan",
+          "Violet": "violet",
+          "Green": "green",
+          "Yellow": "yellow",
+          "Orange": "orange",
+          "Blue": "blue",
+          "Purple": "purple"
+        }
+      },
+      {
+        "prop": "surface",
+        "label": "Surface",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Alt": "alt"
+        }
       }
     ],
     "toggles": [

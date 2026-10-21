@@ -29,7 +29,7 @@ import { Stepper, type StepperOrientation } from "../components/Stepper";
 import { Slider, sliderSizes, sliderThemes, type SliderSize, type SliderTheme } from "../components/Slider";
 import { Card, cardSpacings, cardThemes, type CardSpacing, type CardTheme } from "../components/Card";
 import { DockIcon, dockIconSizes, dockIconThemes, type DockIconBackground, type DockIconSize, type DockIconTheme } from "../components/DockIcon";
-import { List, ListBox, ListItem, listBoxThemes, type ListBoxTheme } from "../components/ListItem";
+import { List, ListBox, ListItem, listBoxColors, listBoxSurfaces, listBoxThemes, type ListBoxColor, type ListBoxSurface, type ListBoxTheme } from "../components/ListItem";
 import { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, TableTrend, type TableSort } from "../components/Table";
 import { VisuallyHidden } from "../components/VisuallyHidden";
 import { NpsScale, OpinionScale, Rating, RatingDisplay, ratingSizes, ratingThemes, type RatingSize, type RatingTheme } from "../components/Rating";
@@ -416,7 +416,9 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [listTrailing, setListTrailing] = useState(true);
   const [listInteractive, setListInteractive] = useState(true);
   const [listSelected, setListSelected] = useState("ava");
-  const [listBoxTheme, setListBoxTheme] = useState<ListBoxTheme>("flat");
+  const [listBoxTheme, setListBoxTheme] = useState<ListBoxTheme>("default");
+  const [listBoxColor, setListBoxColor] = useState<ListBoxColor>("neutral");
+  const [listBoxSurface, setListBoxSurface] = useState<ListBoxSurface>("default");
   const [tableSelectable, setTableSelectable] = useState(true);
   const [tableSelected, setTableSelected] = useState<string[]>(["zen-web"]);
   const [tableBulk, setTableBulk] = useState(true);
@@ -2044,10 +2046,13 @@ ${code}`} />
           <PlaygroundToggle label="Caption" selected={listCaption} onChange={setListCaption} />
           <PlaygroundToggle label="Trailing" selected={listTrailing} onChange={setListTrailing} />
           <PlaygroundToggle label="Interactive" selected={listInteractive} onChange={setListInteractive} />
-          <PlaygroundFilterChip label="Box theme" value={listBoxTheme} onChange={(value) => setListBoxTheme((String(value) || "flat") as ListBoxTheme)} options={listBoxThemes.map((id) => ({ id, label: id[0].toUpperCase() + id.slice(1) }))} />
+          <PlaygroundFilterChip label="Box theme" value={listBoxTheme} onChange={(value) => setListBoxTheme((String(value) || "default") as ListBoxTheme)} options={listBoxThemes.map((id) => ({ id, label: id[0].toUpperCase() + id.slice(1) }))} />
+          {/* Figma List-Box Color is the Pale theme's hue; Surface=Alt exists on Default and Border. */}
+          {listBoxTheme === "pale" ? <PlaygroundFilterChip label="Box colour" value={listBoxColor} onChange={(value) => setListBoxColor((String(value) || "neutral") as ListBoxColor)} options={listBoxColors.map((id) => ({ id, label: id[0].toUpperCase() + id.slice(1) }))} /> : null}
+          {listBoxSurfaces[listBoxTheme].length > 1 ? <PlaygroundFilterChip label="Box surface" value={listBoxSurface} onChange={(value) => setListBoxSurface((String(value) || "default") as ListBoxSurface)} options={listBoxSurfaces[listBoxTheme].map((id) => ({ id, label: id[0].toUpperCase() + id.slice(1) }))} /> : null}
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-list-preview">
-          <ListBox theme={listBoxTheme}>
+          <ListBox theme={listBoxTheme} color={listBoxTheme === "pale" ? listBoxColor : undefined} surface={listBoxSurfaces[listBoxTheme].includes(listBoxSurface) ? listBoxSurface : undefined}>
             <List aria-label="Team">
               {people.map((person) => (
                 <ListItem key={person.id} title={person.name} caption={listCaption ? person.role : undefined}
@@ -2061,7 +2066,7 @@ ${code}`} />
         {actionNote}
         <PlatformCode code={`import { List, ListBox, ListItem } from "@zen-ds/react";
 
-<ListBox${listBoxTheme === "flat" ? "" : ` theme="${listBoxTheme}"`}>
+<ListBox${listBoxTheme === "default" ? "" : ` theme="${listBoxTheme}"`}${listBoxTheme === "pale" && listBoxColor !== "neutral" ? ` color="${listBoxColor}"` : ""}${listBoxSurface === "alt" && listBoxSurfaces[listBoxTheme].includes("alt") ? ` surface="alt"` : ""}>
 <List aria-label="Team">
   {people.map((person) => (
     <ListItem

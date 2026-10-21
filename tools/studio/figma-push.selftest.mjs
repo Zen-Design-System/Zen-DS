@@ -404,6 +404,10 @@ export default function Page() {
   const bordered = find(push(DASH.replace("<ListBox header=", '<ListBox theme="border" header=')).frame, (node) => node.set?.name === "Component/List-Box");
   const onContainer = find(push(DASH.replace("<ListBox header=", '<ListBox theme="on-container" header=')).frame, (node) => node.set?.name === "Component/List-Box");
   check("ListBox theme: Figma's Theme (Default by default, Border and On-Container by theme)", [listBox.props.Theme, bordered.props.Theme, onContainer.props.Theme], ["Default", "Border", "On-Container"]);
+  const paleHue = find(push(DASH.replace("<ListBox header=", '<ListBox theme="pale" color="green" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  const borderAlt = find(push(DASH.replace("<ListBox header=", '<ListBox theme="border" surface="alt" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  const shadowHue = find(push(DASH.replace("<ListBox header=", '<ListBox theme="shadow" color="green" surface="alt" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  check("ListBox color / surface: Figma's Color on Pale and Surface=Alt on Border; a Shadow box keeps Neutral on Surface Default (Figma has no other)", [[paleHue.props.Color, paleHue.props.Surface], [borderAlt.props.Color, borderAlt.props.Surface], [shadowHue.props.Color, shadowHue.props.Surface], [listBox.props.Color, listBox.props.Surface]], [["Green", "Default"], ["Neutral", "Alt"], ["Neutral", "Default"], ["Neutral", "Default"]]);
   const [withAvatar, withDock] = listBox.slots[1].children[0].children;
   check("ListItem: Title and Subtitle, its leading Avatar (theme, initials) in Figma's Avatar", [withAvatar.texts, withAvatar.nested[0].set.name, withAvatar.nested[0].props.Theme, withAvatar.nested[0].text], [{ Title: "Checkout shared", Subtitle: "Bao Nguyen" }, "Avatar/Single", "Green", "BN"]);
   check("ListItem: a Dock Icon swaps in for the Avatar; no caption hides Subtitle", [withDock.nested[0].set.name, withDock.nested[0].props["Icon-Src"], withDock.hide], ["Dock-Icon", "icon-file-check-line", ["Subtitle"]]);

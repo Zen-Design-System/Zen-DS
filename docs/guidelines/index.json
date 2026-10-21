@@ -2626,6 +2626,8 @@
           "children: ReactNode",
           "footer?: ReactNode",
           "theme?: default|shadow|pale|border|flat-border|on-container = default",
+          "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple = neutral",
+          "surface?: default|alt = default",
           "as?: div|section = div",
           "className?: string"
         ],

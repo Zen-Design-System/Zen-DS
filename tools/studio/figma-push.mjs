@@ -194,6 +194,19 @@ function cardVariant(props, notes, where) {
   } else if (props.Active === "Yes" && "Color" in props) props.Color = "Neutral";
   return props;
 }
+/**
+ * A List-Box's Theme × Color × Surface as a variant Figma has (Component/List-Box 14922:75297), drawn as the code draws
+ * it: Color only on Pale (ListBox ignores it elsewhere), Surface=Alt only on Default and Border (the others keep their
+ * own fill).
+ */
+function listBoxVariant(props, notes, where) {
+  if ("Color" in props && props.Theme !== "Pale") props.Color = "Neutral";
+  if ("Surface" in props && props.Surface !== "Default" && props.Theme !== "Default" && props.Theme !== "Border") {
+    notes.push(`${where}: Figma has no ${props.Theme} List-Box on Surface ${props.Surface} (the code ignores it): Surface Default`);
+    props.Surface = "Default";
+  }
+  return props;
+}
 /** Side-Bar/Master/Workspace names its panel's slots Child-… (Master-… are its workspace column's): figma-pull maps them back. */
 export const WORKSPACE_SLOTS = { "Header-Content": "Child-Header-Content", "Body-Content": "Child-Body-Content", "Footer-Content": "Child-Footer-Content" };
 /** The slot a component's children go in, where it is not the set's first. */
@@ -1933,6 +1946,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // ListBox is as tall as its rows (Figma's List-Box starts at its sample's fixed height, in its Container-Slot frame
     // and its Body-Slot too).
     if (element.name === "ListBox") {
+      listBoxVariant(node.props, notes, where);
       node.hugH = true;
       node.hugLayers = [{ name: "Container-Slot", h: true }];
     }
