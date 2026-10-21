@@ -54,7 +54,7 @@ export async function pageFromSnapshot(shot: Snapshot, { title, from }: { title:
   // In a Studio project (the one open), the page is the project's from its first write (header `project`): set after
   // it opened, the page's document, built from the first text, wrote it back without the project (2026-10-18).
   await putPage(id, withHeaderProject(text, activeProjectId()), { title });
-  openLocalPage(id);
+  openLocalPage(id, { made: true });
   const notes = shot.notes.length > LISTED ? [...shot.notes.slice(0, LISTED), `${shot.notes.length - LISTED} more`] : shot.notes;
   const overlays = shot.overlays.length ? `${shot.overlays.length === 1 ? "1 overlay" : `${shot.overlays.length} overlays`} as Overlay frames (link their triggers in Prototype)` : null;
   inspectorStatus.set(notes.length ? "neutral" : "positive", [`New page "${title}" from ${from}`, overlays, notes.length ? `Not kept: ${notes.join("; ")}` : null].filter(Boolean).join(" · "));
