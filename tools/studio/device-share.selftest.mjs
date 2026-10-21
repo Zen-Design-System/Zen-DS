@@ -23,6 +23,9 @@ check("a page engine module", allowedPath("/tools/studio/dialect.mjs?import"), "
 check("no other tools folder", allowedPath("/tools/qa/run.mjs"), null);
 check("the share's route", allowedPath("/__zen-studio/device/page?t=abc"), "/__zen-studio/device/page?t=abc");
 check("no other Studio route", allowedPath("/__zen-studio/ping"), null);
+check("never the Studio MCP", allowedPath("/__zen-studio/mcp"), null);
+check("never Zen Agent", allowedPath("/__zen-studio/agent/send"), null);
+check("never a save", allowedPath("/__zen-studio/save"), null);
 check("no share writes", allowedPath("/__zen-studio/device/share"), null);
 check("dot segments resolve first", allowedPath("/src/../__zen-studio/ping"), null);
 check("encoded dot segments resolve too", allowedPath("/src/%2e%2e/__zen-studio/ping"), null);

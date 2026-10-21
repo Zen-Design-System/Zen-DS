@@ -26,6 +26,7 @@ import { runsFromSegments } from "./text-runs.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
 import { zenBlendOf } from "./blend-modes.mjs";
+import { takesInstanceLook } from "./instance-look.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { arcFromData, parseVectorPath, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
@@ -173,7 +174,8 @@ const readChart = async (instance, set) => {
 ${READ_METRIC_CARD}
 const readInstance = async (instance) => {
   const set = await setOf(instance);
-  if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name };
+  // Its variant values too (Patterns/Sidebar: the Sidebar's theme, density and shadow).
+  if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name, compositionProps: await propsOf(instance) };
   if (set && set.name === "Top-Navigation/Mobile") return readTopNav(instance, set);
   if (set && CHART_SET.test(set.name)) return readChart(instance, set);
   if (set && set.name === "Metric-Card") return readMetricCard(instance, set);
@@ -251,6 +253,9 @@ const readInstance = async (instance) => {
     const glyph = instance.findOne((n) => n.type === "INSTANCE" && n.visible && /^(icon|ic)-/.test(n.name));
     if (glyph) out.icon = glyph.name;
   }
+  // The instance's own layer opacity and blend (Figma's Appearance), when not the defaults (instance-look.mjs).
+  if (typeof instance.opacity === "number" && instance.opacity < 1) out.opacity = instance.opacity;
+  if (typeof instance.blendMode === "string" && instance.blendMode !== "PASS_THROUGH") out.blendMode = instance.blendMode;
   return out;
 };
 // What the Zen plugin's Import from Studio left on a layer (shared plugin data "zenstudio"): its Studio key (the element
@@ -1301,6 +1306,8 @@ const codeOf = (node, ctx) => (node?.type === "INSTANCE" && node.set ? (ctx.mapp
 const instanceIn = (node, code, ctx) => {
   if (!node) return null;
   if (codeOf(node, ctx) === code) return node;
+  // Patterns/Sidebar around its Side-Bar: the pattern itself, which reads as the Sidebar with its look (sidebarPattern).
+  if (code === "Sidebar" && codeOf(sidebarPattern(node)?.inner, ctx) === "Sidebar") return node;
   return node.type !== "INSTANCE" && node.children?.length === 1 ? instanceIn(node.children[0], code, ctx) : null;
 };
 const isNavigation = (node, ctx) => codeOf(node, ctx) === "DashboardHeader" && node.props?.Type === "Navigation";
@@ -1416,7 +1423,56 @@ function appShellElement(node, ctx) {
 
 /** Figma's ◇ Master-Layout page pattern and the Sidebar pattern in it (figma-push.mjs MASTER_LAYOUT_SET). */
 const MASTER_LAYOUT = "Patterns/Pages/Density-Medium";
-const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar/Density-Medium";
+/** Figma Patterns/Sidebar (6040:67524), renamed from "Patterns/Sidebar/Density-Medium" on 2026-10-21. */
+const MASTER_SIDEBAR_PATTERN = "Patterns/Sidebar";
+/** An instance's own writes the push placed under `path` of `owner` (its nested entries, its slots `within` starting with
+ *  `layers`), at its own root again: the part as an instance of its own. */
+function partOf(owner, path, layers, fallbackSet) {
+  const nested = owner.nested ?? [];
+  const own = nested.find((entry) => entry.path === path) ?? {};
+  const prefix = `${path}/`;
+  return {
+    type: "INSTANCE", name: own.name ?? path, set: own.set ?? fallbackSet, props: own.props ?? {},
+    ...(own.text !== undefined ? { text: own.text } : {}), ...(own.texts ? { texts: own.texts } : {}),
+    nested: nested.filter((entry) => entry.path.startsWith(prefix)).map((entry) => ({ ...entry, path: entry.path.slice(prefix.length) })),
+    slots: (owner.slots ?? []).filter((slot) => Array.isArray(slot.within) && layers.every((name, i) => slot.within[i] === name)).map((slot) => {
+      const rest = slot.within.slice(layers.length);
+      const { within, ...bare } = slot;
+      return rest.length ? { ...bare, within: rest.length === 1 ? rest[0] : rest } : bare;
+    }),
+  };
+}
+
+/** Patterns/Sidebar's Theme → Sidebar.tsx theme (figma-push.mjs SIDEBAR_PATTERN_THEME, the other way). */
+const SIDEBAR_THEME_OF = { Border: "border", Borderless: "borderless", Carved: "carved", "Carved-Floating": "carved-floating" };
+/**
+ * Figma's Patterns/Sidebar around its Side-Bar → { inner, props }: the Side-Bar and the pattern's variant. A placed one
+ * comes as a composition frame (readInstance), the push's as an instance with the Side-Bar's writes nested in it
+ * (figma-push.mjs sidebarPatternNode). Null for anything else.
+ */
+function sidebarPattern(node) {
+  if (node?.type === "FRAME" && node.composition === MASTER_SIDEBAR_PATTERN) {
+    const shown = (node.children ?? []).filter((child) => child.visible !== false);
+    return shown.length === 1 && shown[0].type === "INSTANCE" ? { inner: shown[0], props: node.compositionProps ?? {} } : null;
+  }
+  if (node?.type !== "INSTANCE" || node.set?.name !== MASTER_SIDEBAR_PATTERN) return null;
+  const props = node.props ?? {};
+  const layer = `Patterns/Density/Comfortable/Sidebar/${props.Expand === "No" ? "No" : "Yes"}`;
+  // The Side-Bar's hidden layers: the pattern's edits inside it.
+  const hide = (node.edits ?? []).filter((edit) => edit.visible === false && Array.isArray(edit.layer) && edit.layer.length === 2 && edit.layer[0] === layer).map((edit) => edit.layer[1]);
+  const inner = partOf(node, "Patterns", [layer], { name: "Side-Bar/Master/Basic" });
+  return { inner: { ...inner, name: node.name === MASTER_SIDEBAR_PATTERN ? "Side-Bar/Master/Basic" : node.name, ...(hide.length ? { hide } : {}) }, props };
+}
+/** A Sidebar's theme, density and shadow from its Patterns/Sidebar variant (Shadow=No on the Default theme only: the
+ *  other themes' Shadow is the one variant Figma has). */
+function sidebarLookProps(props) {
+  const out = {};
+  if (SIDEBAR_THEME_OF[props.Theme]) out.theme = literal(SIDEBAR_THEME_OF[props.Theme]);
+  if (props.Density === "Small") out.density = literal("small");
+  if (props.Shadow === "No" && (props.Theme ?? "Default") === "Default") out.shadow = literal(false);
+  return out;
+}
+
 /**
  * Figma's ◇ Master-Layout as the push writes it (figma-push.mjs masterLayoutNode: an instance of Patterns/Pages/
  * Density-Medium with nested writes and slots) in the shape appShellElement reads, the one a placed master gives the
@@ -1430,28 +1486,16 @@ function masterLayoutFrame(node) {
   const slots = node.slots ?? [];
   const firstOf = (slot) => (Array.isArray(slot.within) ? slot.within[0] : slot.within);
   const slotNamed = (name) => slots.find((slot) => slot.name === name && firstOf(slot) !== MASTER_SIDEBAR_PATTERN);
-  /** An instance's own writes the push placed under `path` (`within` starting with `layers`), at its own root again. */
-  const partAt = (path, layers, fallbackSet) => {
-    const own = nested.find((entry) => entry.path === path) ?? {};
-    const prefix = `${path}/`;
-    return {
-      type: "INSTANCE", name: own.name ?? path, set: own.set ?? fallbackSet, props: own.props ?? {},
-      ...(own.text !== undefined ? { text: own.text } : {}), ...(own.texts ? { texts: own.texts } : {}),
-      nested: nested.filter((entry) => entry.path.startsWith(prefix)).map((entry) => ({ ...entry, path: entry.path.slice(prefix.length) })),
-      slots: slots.filter((slot) => Array.isArray(slot.within) && layers.every((name, i) => slot.within[i] === name)).map((slot) => {
-        const rest = slot.within.slice(layers.length);
-        const { within, ...bare } = slot;
-        return rest.length ? { ...bare, within: rest.length === 1 ? rest[0] : rest } : bare;
-      }),
-    };
-  };
+  const partAt = (path, layers, fallbackSet) => partOf(node, path, layers, fallbackSet);
   const layers = [];
   if (props.Sidebar !== false) {
     const sidebarSlot = slots.find((slot) => firstOf(slot) === MASTER_SIDEBAR_PATTERN);
     const inner = sidebarSlot ? sidebarSlot.within.slice(0, 2) : [MASTER_SIDEBAR_PATTERN, "Patterns/Density/Comfortable/Sidebar/Yes"];
     // The Side-Bar's hidden layers: the master's edits inside it.
     const hide = (node.edits ?? []).filter((edit) => edit.visible === false && Array.isArray(edit.layer) && edit.layer.length === inner.length + 1 && inner.every((name, i) => edit.layer[i] === name)).map((edit) => edit.layer[inner.length]);
-    layers.push({ ...partAt("Patterns/Patterns", inner, { name: "Side-Bar/Master/Basic" }), ...(hide.length ? { hide } : {}) });
+    const side = { ...partAt("Patterns/Patterns", inner, { name: "Side-Bar/Master/Basic" }), ...(hide.length ? { hide } : {}) };
+    // In its pattern, whose variant gives the Sidebar's theme, density and shadow (sidebarPattern).
+    layers.push({ type: "FRAME", name: MASTER_SIDEBAR_PATTERN, composition: MASTER_SIDEBAR_PATTERN, compositionProps: nested.find((entry) => entry.path === "Patterns")?.props ?? {}, layout: { mode: "VERTICAL" }, children: [side] });
   }
   // The rows as the read gives them: Dashboard header instances (their padding is the master's own).
   const rows = (slotNamed("Sections")?.children ?? []).map(({ padding, paddingVars, ...row }) => row);
@@ -1497,6 +1541,13 @@ function bindings(element, node) {
 }
 function convert(node, ctx) {
   let element = convertNode(node, ctx);
+  // A Zen instance's own opacity and blend (Figma's Appearance): `opacity` / `blendMode` on it, as a frame's
+  // (instance-look.mjs; the code draws them on its style).
+  if (element && node.type === "INSTANCE" && !node.local && takesInstanceLook(element.name)) {
+    if (typeof node.opacity === "number" && node.opacity < 1) element.props.opacity = literal(Math.round(node.opacity * 100));
+    const blend = zenBlendOf(node.blendMode, true);
+    if (blend) element.props.blendMode = literal(blend);
+  }
   bindings(element, node);
   if (element && !element.id) { const id = idOf(node, ctx); if (id) element.id = id; }
   // The layer's own element (not a wrapper that places it): an instance's overrides find its main's layers by it.
@@ -1716,6 +1767,12 @@ function convertNode(node, ctx) {
   // Figma's ◇ Master-Layout written by the push: AppShell (the read of a placed one comes as frames, below).
   const master = masterLayoutFrame(node);
   if (master) { const shell = appShellElement(master, ctx); if (shell) return shell; }
+  // Figma's Patterns/Sidebar: the Sidebar it holds, with the pattern's theme, density and shadow.
+  const pattern = sidebarPattern(node);
+  if (pattern && codeOf(pattern.inner, ctx) === "Sidebar") {
+    const sidebar = convertNode(pattern.inner, ctx);
+    if (sidebar?.name === "Sidebar") return { ...sidebar, props: { ...sidebar.props, ...sidebarLookProps(pattern.props) } };
+  }
   if (node.shape) return shapeElement(node, ctx);
   if (DRAWINGS.has(node.type)) { ctx.drawings.push(node.name); return null; }
   // A page's own components (figma-push localModel, the other way): a set of variants, a main, an instance of either.

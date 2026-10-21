@@ -10,6 +10,7 @@ import { PALETTE, type PaletteItem } from "../slots/palette";
 import { useStudio } from "../store";
 import { cellKey, MAIN_FRAME, variantLabel } from "./model";
 import { OverlayPreviewContext } from "../../../components/_shared/overlay";
+import { AppShellChromeContext, type AppShellChrome } from "../../../components/AppShell/context";
 import { MAIN_SAMPLES } from "./samples";
 import { filterStore, setsOf, toggleOn } from "./sets";
 import type { VariantAxis, VariantSet } from "./variantSets.generated";
@@ -89,6 +90,8 @@ const ROW_SETS: Readonly<Record<string, number | undefined>> = { "Primitives/Das
 /** Sets drawn at their Figma width (FIXED there, the code fills its container): a phone's bottom bar is 390
  *  (Bottom-Navigation width = Viewport-Width). */
 const FIXED_WIDTHS: Readonly<Record<string, number | undefined>> = {
+  // Header/AppShell is FIXED 1272 (a 1512 desktop beside its 240 Sidebar).
+  "Header/AppShell": 1272,
   "Bottom-Navigation/Mobile/Default": 390,
   "Bottom-Navigation/Mobile/Floating": 390,
   "Bottom-Navigation/Mobile/Floating-Glass": 390,
@@ -100,6 +103,12 @@ const gridAxes = (set: VariantSet): [VariantAxis | undefined, VariantAxis | unde
 /** A component that fills its container would collapse in the cell (it sizes to its content, as in Figma): it takes
  *  its set's Figma width, else 360, so no variant ever draws as an empty cell. */
 const FILL_FALLBACK = 360;
+
+/** What an AppShell tells its header, for a header drawn on its own: Figma's Header/AppShell shows the Collapse Button by
+ *  default (Collapse Button = true), which the shell's collapse="header" draws beside its Sidebar. Nothing it calls acts. */
+const PREVIEW_CHROME: AppShellChrome = { toggle: "collapse", sidebarCollapsed: false, toggleSidebar: () => {}, sidebarId: "", navOpen: false, openNav: () => {}, registerHeader: () => {}, phone: false };
+/** Components drawn inside a shell's chrome (their own cell has no AppShell around it). */
+const IN_SHELL = new Set(["AppShellHeader"]);
 
 function Stage({ component, set, variant, children }: { component: string; set: string; variant: Readonly<Record<string, string>>; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -127,7 +136,8 @@ function Stage({ component, set, variant, children }: { component: string; set: 
   const fixed = ROW_SETS[set] ?? FIXED_WIDTHS[set];
   const width = fixed ?? FILL_WIDTHS[set];
   const style = fill || fixed ? ({ "--studio-mc-fill": `${typeof width === "function" ? width(variant) : width ?? FILL_FALLBACK}px` } as CSSProperties) : undefined;
-  return <div ref={ref} className="studio-mc__stage" data-fill={fill || fixed ? true : undefined} style={style}>{children}</div>;
+  const content = IN_SHELL.has(component) ? <AppShellChromeContext.Provider value={PREVIEW_CHROME}>{children}</AppShellChromeContext.Provider> : children;
+  return <div ref={ref} className="studio-mc__stage" data-fill={fill || fixed ? true : undefined} style={style}>{content}</div>;
 }
 
 export function MainComponentFrame({ page }: { page: PlatformPage }) {
