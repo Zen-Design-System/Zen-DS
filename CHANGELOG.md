@@ -17,6 +17,8 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- AppShellHeader `theme="border-divider"`: the Main row pads Padding/Large (20) above and Padding/Medium (16) below,
+  as Figma's Header/AppShell Theme=Border & Divider now draws it (was 16 above; re-read 2026-10-21).
 - Chart and Metric text follow Figma (2026-10-21, user: every chart's description and value as Chart/Line-Chart, "value
   luôn nằm dưới segmented", and the updated chart card and metric widget text styles):
   - ChartCard is now header · Segmented · Metric, the Metric being the description (Body/Small/Regular) over the value

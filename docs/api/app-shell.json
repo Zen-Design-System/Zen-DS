@@ -304,7 +304,7 @@
           "type": "\"default\" | \"border-divider\"",
           "required": false,
           "default": null,
-          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Medium ·\nMargin-Comfortable). Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
+          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Large\nabove, Padding/Medium below, Margin-Comfortable at the sides). Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
           "deprecated": null
         },
         {

@@ -31,7 +31,7 @@ describe("AppShellHeader Theme and Density", () => {
     expect(px(container.querySelector(".zen-app-shell-header__main")!, "padding-top")).toBe(20);
   });
 
-  it("Theme=Border & Divider: the top row pads 12 · 24 over a 1px Pale line, the Main row 16 · 24", async () => {
+  it("Theme=Border & Divider: the top row pads 12 · 24 over a 1px Pale line, the Main row 20 · 24 · 16", async () => {
     const { container } = await render(shell({}, undefined, <AppShellHeader theme="border-divider" leading={<span>Top</span>} main={<span>Page</span>} />));
     const header = container.querySelector(".zen-app-shell-header")!;
     expect(header.getAttribute("data-theme")).toBe("border-divider");
@@ -41,7 +41,7 @@ describe("AppShellHeader Theme and Density", () => {
     expect([px(top, "padding-top"), px(top, "padding-left"), px(top, "border-bottom-width")]).toEqual([12, 24, 1]);
     expect(top.getBoundingClientRect().height).toBe(65);
     const element = header.querySelector(".zen-app-shell-header__element")!;
-    expect([px(element, "padding-top"), px(element, "padding-left")]).toEqual([16, 24]);
+    expect([px(element, "padding-top"), px(element, "padding-left"), px(element, "padding-bottom")]).toEqual([20, 24, 16]);
   });
 });
 

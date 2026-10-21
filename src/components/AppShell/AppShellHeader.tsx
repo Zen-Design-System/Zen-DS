@@ -37,8 +37,8 @@ export interface AppShellHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "
   /**
    * Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,
    * Spacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads
-   * Padding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Medium ·
-   * Margin-Comfortable). Unset follows the AppShell: `pattern="grid"` draws border-divider, other patterns default.
+   * Padding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Large
+   * above, Padding/Medium below, Margin-Comfortable at the sides). Unset follows the AppShell: `pattern="grid"` draws border-divider, other patterns default.
    */
   theme?: AppShellHeaderTheme;
   /** Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows
