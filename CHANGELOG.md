@@ -23,6 +23,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (1280 × 800, rotates), in Present and Play's Device menu, the Frame tool's presets, New page and the Screen's Size.
   A device draws its own system's bars in Present and Play; an Android page plays on the Android phone and tablet in
   Auto, and New page on an Android device makes an Android page. Present now draws an Android page's bars (it drew iOS's).
+- Zen Studio's Open on phone (2026-10-21): Play's bar shows a QR code; a phone on the same Wi-Fi opens it and plays the
+  page in its own browser (real engine, touch and safe areas), from the Screen Play is on, in Play's modes and the
+  project's theme. The link works for two hours. The dev server stays on localhost; a proxy forwards only the shared
+  page, to the browser that opened its link. New dev dependency `uqr` (QR codes): run `npm install`.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
   làm lại từ đầu", "Phá hẳn, migrate hết": no deprecated aliases). Figma Pattern/AppShell/Desktop 16258:1857, Mobile
   16261:136204, Header/AppShell 16243:290461, .Primitives/AppShell/Pane 16254:1099.
