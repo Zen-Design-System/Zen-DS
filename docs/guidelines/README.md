@@ -23,6 +23,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Sidebar](sidebar.md) | `sidebar/submenu-close`, `api/deprecated-prop`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
 | [Date Picker](date-picker.md) | `input/needs-label`, `input/placeholder-not-label`, `api/deprecated-prop`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `date-picker/actions-need-apply` |
 | [Calendar](calendar.md) | `interaction/no-noop-handler`, `calendar/toolbar-navigation`, `calendar/week-on-phone`, `calendar/selected-needs-handler` |
+| [Schedule](schedule.md) | `interaction/no-noop-handler`, `schedule/slot-picker-confirm`, `schedule/selected-needs-handler` |
 | [Tooltip](tooltip.md) | `tooltip/focusable-trigger`, `tooltip/short`, `tooltip/no-interactive-content`, `tooltip/disabled-trigger`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Tabs](tabs.md) | `tabs/needs-label`, `tabs/item-count`, `api/deprecated-prop`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Breadcrumbs](breadcrumbs.md) | `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/action-without-handler` |

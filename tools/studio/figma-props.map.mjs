@@ -502,6 +502,11 @@ export const FIGMA_PROPS = {
   CalendarMonth: { sets: { "Calendar/Month": null }, props: { Device: "device", "Sixth-Week": skip("the month's own weeks: six when it spans six") } },
   CalendarTimeGrid: { sets: { "Calendar/Time-Grid": null }, props: { Device: "device", View: "view" } },
   CalendarAgenda: { sets: { "Calendar/Agenda": null }, props: { Device: "device" } },
+  // ❖ Schedule (16121:6, approved 2026-10-21): the public sets; .Primitives/Schedule/* are drawn inside them.
+  ScheduleResourceGrid: { sets: { "Schedule/Resource-Grid": null }, props: { Device: "device", Scale: "scale" } },
+  ScheduleItinerary: { sets: { "Schedule/Itinerary": null }, props: { Device: "device" } },
+  ScheduleSlotPicker: { sets: { "Schedule/Slot-Picker": null }, props: { Device: "device" } },
+  ScheduleDayPlanner: { sets: { "Schedule/Day-Planner": null }, props: { Device: "device" } },
   DatePicker: {
     // Date-Picker/Mobile is the device prop (device="mobile"), not a third calendar: left out.
     sets: { "Date-Picker/Single-Calendar": "single", "Date-Picker/Dual-Calendar": "dual" },

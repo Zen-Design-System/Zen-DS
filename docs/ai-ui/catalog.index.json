@@ -734,6 +734,60 @@
       "props": "id? size? value? defaultValue? onValueChange? placeholder? readOnly? required? maxLength? editorBar? editorBarTheme? onFocus? onBlur? label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error?"
     },
     {
+      "name": "ScheduleDayPlanner",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "events? value? defaultValue? onValueChange? title? titleLevel? onMonthClick? startHour? endHour? now? today? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleEventCard",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "title status? time? color? attendees? note? onMenuClick? menuLabel? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleHourLabel",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "hour now? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleItinerary",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "stops title? now? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleItineraryItem",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "start duration? title meta? status? connector? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleResource",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "name meta? type? avatarSrc? avatarTheme? icon? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleResourceGrid",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "resources bookings? scale? date? startHour? endHour? now? today? resourcesLabel? selectedBookingId? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleSlot",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "time size? checked? disabled? aria-label? aria-labelledby? aria-describedby? readOnly? required? placeholder? name? autoComplete? inputMode? maxLength? min? max? step?"
+    },
+    {
+      "name": "ScheduleSlotPicker",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "slots days? value? defaultValue? onValueChange? day? onDayChange? today? device? aria-label? name? aria-labelledby? aria-describedby?"
+    },
+    {
       "name": "Search",
       "status": "verified",
       "purpose": "Find or filter content by typing.",

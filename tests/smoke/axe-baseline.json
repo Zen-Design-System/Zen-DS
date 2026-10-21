@@ -87,6 +87,18 @@
   "PopoverManualAddNew": [
     "color-contrast"
   ],
+  "ScheduleDayPlanner": [
+    "color-contrast"
+  ],
+  "ScheduleHourLabel": [
+    "color-contrast"
+  ],
+  "ScheduleItinerary": [
+    "color-contrast"
+  ],
+  "ScheduleResourceGrid": [
+    "color-contrast"
+  ],
   "Segmented": [
     "color-contrast"
   ],

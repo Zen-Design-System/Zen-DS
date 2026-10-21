@@ -2812,6 +2812,75 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "ScheduleResourceGrid": {
+    "figma": "16135:145822",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      },
+      {
+        "prop": "scale",
+        "label": "Scale",
+        "type": "VARIANT",
+        "options": {
+          "Hours": "hours",
+          "Days": "days"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleItinerary": {
+    "figma": "16135:13820",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleSlotPicker": {
+    "figma": "16135:14046",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleDayPlanner": {
+    "figma": "16143:1439",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "DatePicker": {
     "figma": "895:31954",
     "own": [
