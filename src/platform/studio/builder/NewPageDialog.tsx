@@ -88,7 +88,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
     await putPage(page, withHeaderProject(engine.newPageText({ title: name, device: entry.device, layout: entry.layout, width: entry.width, height: entry.height, empty: start === "empty" }), project), { title: name, folder });
     reset();
     onOpenChange(false);
-    openLocalPage(page);
+    openLocalPage(page, { made: true });
   };
   return (
     <Dialog
