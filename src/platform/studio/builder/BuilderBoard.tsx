@@ -124,9 +124,12 @@ export function BuilderBoard({ id }: { id: string }) {
     if (!tree?.board) return [];
     // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
     const ctx = { file, mock: tree.mock, proto, cache: cacheRef.current ?? undefined, ids: places?.idAt, components };
+    // The page's OS goes with each frame, so Present (outside the board) draws its Screens' bars and picks their device
+    // as the canvas does.
+    const os = pageOsOf(tree.header);
     return tree.board.children.filter((child): child is PageNode => child.kind === "element" && !isSectionNode(child)).map((node) => {
       const frame = frameOf(node);
-      const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => renderFrame(node, ctx) };
+      const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => <PageOsContext value={os}>{renderFrame(node, ctx)}</PageOsContext> };
       return { ...frame, example };
     });
   }, [tree, file, text, proto, places]);

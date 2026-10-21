@@ -17,6 +17,18 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- AppShellHeader `theme="borderless"` (Figma Header/AppShell Theme=Borderless, user-approved 2026-10-21): the
+  border-divider rows without the 1px line under the top row. Zen Studio maps it both ways.
+- AppShellHeader `theme="border-divider"`: the Main row pads Padding/Large (20) above and Padding/Medium (16) below,
+  as Figma's Header/AppShell Theme=Border & Divider now draws it (was 16 above; re-read 2026-10-21).
+- Chart and Metric text follow Figma (2026-10-21, user: every chart's description and value as Chart/Line-Chart, "value
+  luôn nằm dưới segmented", and the updated chart card and metric widget text styles):
+  - ChartCard is now header · Segmented · Metric, the Metric being the description (Body/Small/Regular) over the value
+    (Display/4, was Heading/2), Gap/3XSmall apart, Padding/Small above. Its title is Body/Extra/Medium (was Heading/Subheading).
+  - MetricCard: the Title-Highlight and comparison titles are Body/Extra/Medium, the Tile number is Display/4 (was
+    Display/3), the Hero number is Display/1.
+  - Other card, ListBox and table-in-card titles keep Heading/Subheading (the user: "Chỉ Chart và Metric").
+  - In Figma, every chart set now has the Line-Chart Metric frame below its Segmented.
 - A list that closes a phone page (transactions, tasks, activity: nothing after it, not in a widget grid) is an open
   section, not a ListBox, as Figma's ◆ Finance Transactions: the title row over a List at the page margin (usage rules
   §19, user rule 2026-10-21). Harness `listbox/closing-list-on-phone` (error) and Figma audit
@@ -47,6 +59,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Web, SwiftUI and Flutter tokens regenerated.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
+- Zen Studio's device simulator has Android devices (2026-10-21): Android phone (412 × 917) and Android tablet
+  (1280 × 800, rotates), in Present and Play's Device menu, the Frame tool's presets, New page and the Screen's Size.
+  A device draws its own system's bars in Present and Play; an Android page plays on the Android phone and tablet in
+  Auto, and New page on an Android device makes an Android page. Present now draws an Android page's bars (it drew iOS's).
+- Zen Studio's Open on phone (2026-10-21): Play's bar shows a QR code; a phone on the same Wi-Fi opens it and plays the
+  page in its own browser (real engine, touch and safe areas), from the Screen Play is on, in Play's modes and the
+  project's theme. The link works for two hours. The dev server stays on localhost; a proxy forwards only the shared
+  page, to the browser that opened its link. New dev dependency `uqr` (QR codes): run `npm install`.
 - **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
   CalendarMonth, CalendarTimeGrid (Week / Day, Mobile 3-Day), CalendarAgenda and CalendarWeekStrip (Dot / Tile) take
   events as data (`CalendarEventData`: id, title, start, end, allDay, color, meta, attendees); the primitives

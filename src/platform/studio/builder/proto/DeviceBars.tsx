@@ -3,7 +3,8 @@ import "./deviceBars.css";
 
 /*
  * The system bars a phone or tablet Screen of a builder page simulates (user, 2026-10-10: the page picks iOS or Android;
- * the icons are dummies — circles and squares, not exact glyphs). What is exact is the room they take, because the app
+ * Present and Play draw the simulated device's, user 2026-10-21: an Android phone or tablet, an iPhone, an iPad; the
+ * icons are dummies — circles and squares, not exact glyphs). What is exact is the room they take, because the app
  * pads by it (`--zen-safe-area-top/-bottom`, as PlatformPhone publishes):
  * - iOS: Figma Status-bar/IOS/Mobile (12013:39833) 50 high with the island, Status-bar/IOS/Tablet (12013:39942) 24;
  *   the home indicator (System/Bottom-Indicator 308:46297) in 28 (phone) / 20 (tablet), as PlatformPhone draws it.
@@ -33,7 +34,7 @@ export const DUO_SAFE_AREAS: Readonly<Record<DuoStatus, { top: number; bottom: n
 
 /** The Duo status a device's `bars` names, or undefined (not a Duo). */
 export const duoStatusOf = (bars: string | undefined): DuoStatus | undefined => (bars === "duo-side" ? "side" : bars === "duo-corner" ? "corner" : bars === "duo-island" ? "island" : undefined);
-/** The room a device's bars take: the Duo's, or the page OS's for a phone or tablet. */
+/** The room a device's bars take: the Duo's, or the OS's for a phone or tablet. */
 export const safeAreasOf = (os: DeviceOs, device: BarsDevice, duo?: DuoStatus) => (duo ? DUO_SAFE_AREAS[duo] : SAFE_AREAS[os][device]);
 
 /** The Duo's status ring, drawn from Duo-Status (30 × 30): a 2 px arc from 148° to 32° over the top, five 2.6 dots on
