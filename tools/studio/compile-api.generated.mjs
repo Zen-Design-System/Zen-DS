@@ -49,13 +49,6 @@ export const REQUIRED_FUNCTIONS = {
       }
     }
   },
-  "PropertyField": {
-    "fields": {
-      "action": {
-        "onClick": "() => void"
-      }
-    }
-  },
   "PageHeader": {
     "fields": {
       "back": {

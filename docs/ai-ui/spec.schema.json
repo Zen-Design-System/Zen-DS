@@ -25610,21 +25610,19 @@
               "value": {
                 "anyOf": [
                   {
-                    "type": "string",
-                    "format": "date-time",
+                    "$ref": "#/$defs/PropertyDateValue",
                     "nullable": true
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The day."
+                "description": "The day: a Date or an ISO string (\"2026-06-07\", local time)."
               },
               "defaultValue": {
                 "anyOf": [
                   {
-                    "type": "string",
-                    "format": "date-time",
+                    "$ref": "#/$defs/PropertyDateValue",
                     "nullable": true
                   },
                   {
@@ -25743,7 +25741,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a 128px column so every row's value lines up."
+                "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every"
               },
               "icon": {
                 "anyOf": [
@@ -25799,8 +25797,7 @@
                       }
                     },
                     "required": [
-                      "label",
-                      "onClick"
+                      "label"
                     ],
                     "additionalProperties": false
                   },
@@ -40787,6 +40784,17 @@
         "label"
       ],
       "additionalProperties": false
+    },
+    "PropertyDateValue": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string"
+        }
+      ]
     },
     "PropertyFieldOption": {
       "type": "object",

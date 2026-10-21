@@ -1660,7 +1660,7 @@
         },
         {
           "name": "action",
-          "type": "{ label: string; onClick: () => void }",
+          "type": "{ label: string; onClick?: () => void }",
           "required": false,
           "default": null,
           "description": "Figma Action: the + after the label (Button/Icon-Main XSmall Tertiary). PropertyPeople and PropertyTags show it by\nthemselves, opening their picker; pass `action` to add something else.",
@@ -2032,15 +2032,15 @@
         },
         {
           "name": "value",
-          "type": "Date | null",
+          "type": "PropertyDateValue | null",
           "required": false,
           "default": null,
-          "description": "The day. Controlled with onValueChange; null = no date.",
+          "description": "The day: a Date or an ISO string (\"2026-06-07\", local time). Controlled with onValueChange; null = no date.",
           "deprecated": null
         },
         {
           "name": "defaultValue",
-          "type": "Date | null",
+          "type": "PropertyDateValue | null",
           "required": false,
           "default": "null",
           "description": "",
@@ -2906,6 +2906,7 @@
     "BadgeTheme": "type BadgeTheme = \"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
     "InputLeadingTrailingOption": "type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }",
     "InputSize": "type InputSize = \"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+    "PropertyDateValue": "type PropertyDateValue = Date | string",
     "PropertyFieldOption": "type PropertyFieldOption = { value: string; label: ReactNode; icon?: IconName | ReactNode; tone?: PropertyIconTone; photoSrc?: string; theme?: BadgeTheme; disabled?: boolean; }",
     "PropertyIconTone": "type PropertyIconTone = \"neutral\" | \"accent\" | \"info\" | \"positive\" | \"warning\" | \"negative\"",
     "RichTextBlockType": "type RichTextBlockType = \"p\" | \"h1\" | \"h2\" | \"h3\"",

@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio places and round-trips `BadgeStatus` and `PropertyField` (2026-10-21): Assets items (Badge status, Property
+  field, Task properties), Figma-named properties (Badge-Status Status/Size; Property-Field Label, Icon, Action), and the
+  Figma push/pull — a row's cell is the nested Property-Value's Type, State and content (figma-property.mjs); contract,
+  library keys and the native-paste pack hold the three sets. `PropertyDate` takes ISO strings ("2026-06-07").
 - New `PropertyField` (2026-10-21, Figma Input/Property-Field 16923:6031, user-approved): a record's property edited in
   place — a 128px label column (icon, label, the + Action) and one value cell: `PropertyText` (an input in place),
   `PropertySelect` (options with icon + tone), `PropertyStatus` (BadgeStatus steps), `PropertyDate` (DatePicker),

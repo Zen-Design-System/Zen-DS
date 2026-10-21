@@ -296,7 +296,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `ref` | `Ref<HTMLDivElement>` | — | The root `<div role="group">`, named by the label. |
 | `label` (required) | `ReactNode` | — | The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every row's value lines up. |
 | `icon` | `IconName \| ReactNode` | — | Figma Icon + Icon-Src: the property's line icon (Content/Neutral/Light). |
-| `action` | `{ label: string; onClick: () => void }` | — | Figma Action: the + after the label (Button/Icon-Main XSmall Tertiary). PropertyPeople and PropertyTags show it by themselves, opening their picker; pass `action` to add something else. |
+| `action` | `{ label: string; onClick?: () => void }` | — | Figma Action: the + after the label (Button/Icon-Main XSmall Tertiary). PropertyPeople and PropertyTags show it by themselves, opening their picker; pass `action` to add something else. |
 | `children` | `ReactNode` | — | The value: one cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags. |
 | `className` | `string` | — |  |
 
@@ -370,8 +370,8 @@ Also accepts `PropertyValueBaseProps`.
 | `state` | `"default" \| "inputted" \| "hover" \| "editing"` | — | Draw a fixed Figma state (docs, matrices); a live cell finds its own. |
 | `aria-label` | `string` | — | Names the cell when it is not inside a PropertyField (which names it by its label). |
 | `className` | `string` | — |  |
-| `value` | `Date \| null` | — | The day. Controlled with onValueChange; null = no date. |
-| `defaultValue` | `Date \| null` | `null` |  |
+| `value` | `PropertyDateValue \| null` | — | The day: a Date or an ISO string ("2026-06-07", local time). Controlled with onValueChange; null = no date. |
+| `defaultValue` | `PropertyDateValue \| null` | `null` |  |
 | `onValueChange` | `(value: Date \| null) => void` | — |  |
 | `format` | `Intl.DateTimeFormatOptions` | `{ dateStyle: "long" }` | How the day reads, for the locale (Intl.DateTimeFormat). Default `{ dateStyle: "long" }`: "June 7, 2026". |
 | `minDate` | `Date` | — |  |
@@ -548,6 +548,7 @@ type BadgeStatusValue = "to-do" | "in-progress" | "in-review" | "done" | "blocke
 type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color" | "sky" | "mint" | "bronze" | "golden"
 type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }
 type InputSize = "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large" | "xlarge"
+type PropertyDateValue = Date | string
 type PropertyFieldOption = { value: string; label: ReactNode; icon?: IconName | ReactNode; tone?: PropertyIconTone; photoSrc?: string; theme?: BadgeTheme; disabled?: boolean; }
 type PropertyIconTone = "neutral" | "accent" | "info" | "positive" | "warning" | "negative"
 type RichTextBlockType = "p" | "h1" | "h2" | "h3"

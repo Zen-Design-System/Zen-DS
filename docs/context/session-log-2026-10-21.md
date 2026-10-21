@@ -255,3 +255,20 @@ original stays, one ⌘Z each) waits for a gate slot.
 - Docs live with the Input fields (as Inline-Field): input guideline + tagsFor, harness property-field/one-value, usage
   rules §20, figma-docs cards, four Input-page examples, a Do/Don't pair; smoke fixtures + tests/interaction/property-field
   (6 tests: names, text Enter/Escape, status pick, people remove/add, create label, readOnly).
+
+## Studio for BadgeStatus + PropertyField (same session, same branch zen/feat/property-field-20261021)
+
+- User: "làm tiếp Studio trong lúc chờ gate". studio:selftest required it anyway (palette "every library component
+  folder is offered" failed for the two new folders), so Studio lands in the same PR.
+- Map: BadgeStatus ↔ Badge-Status (Status, Size); PropertyField ↔ Input/Property-Field (Label, Icon/Icon-Src toggle,
+  Action toggle → `{ label: "Add" }`). One Figma set maps to one code component, so the six cells are not mapped: push
+  draws a cell as the nested Value (.Primitives/Input/Property-Value Type/State + Badge-Status / texts / Tag / Badges via
+  `nested`), pull rebuilds the cell from `nested`/`texts` (tools/studio/figma-property.mjs). Gotchas: figmaFromPage has a
+  local PROPERTY_TYPE (import aliased); the row's child must not also go to a Content slot; pull drops a TEXT equal to
+  Figma's default, so PropertyField's required label is put back.
+- Contract (component-properties.json, one line), library-keys (append, order kept), native pack: probe 16977:125164
+  (37 instances) captured with clipboard save/restore (8/8 types back), merged additively (+3 sets, +44 symbols), probe
+  removed; copy kept in this session's scratchpad pack/probe-badge-property.html for re-merges.
+- PropertyDate takes ISO strings (Studio dialect drops Date objects); PropertyField action.onClick optional.
+- Checks: studio:selftest ✓ (2447+), figma-push 356 ✓, figma-pull 114 ✓, tsc, usage, guidelines, ai-ui, tests ✓.
+  studio:e2e (BL-01/02 etc.) runs in the gate.

@@ -12459,14 +12459,12 @@
           "description": "Names the cell when it is not inside a PropertyField (which names it by its label)."
         },
         "value": {
-          "type": "string",
-          "x-kind": "date",
+          "$ref": "#/$defs/PropertyDateValue",
           "x-nullable": true,
-          "description": "The day."
+          "description": "The day: a Date or an ISO string (\"2026-06-07\", local time)."
         },
         "defaultValue": {
-          "type": "string",
-          "x-kind": "date",
+          "$ref": "#/$defs/PropertyDateValue",
           "x-nullable": true,
           "default": null
         },
@@ -12536,7 +12534,7 @@
         "label": {
           "x-kind": "node",
           "x-required": true,
-          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a 128px column so every row's value lines up."
+          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every"
         },
         "icon": {
           "x-kind": "node",
@@ -12555,8 +12553,7 @@
             }
           },
           "required": [
-            "label",
-            "onClick"
+            "label"
           ],
           "additionalProperties": false,
           "description": "Figma Action: the + after the label (Button/Icon-Main XSmall Tertiary)."
@@ -22244,6 +22241,17 @@
         "label"
       ],
       "additionalProperties": false
+    },
+    "PropertyDateValue": {
+      "anyOf": [
+        {
+          "type": "string",
+          "x-kind": "date"
+        },
+        {
+          "type": "string"
+        }
+      ]
     },
     "PropertyFieldOption": {
       "type": "object",
