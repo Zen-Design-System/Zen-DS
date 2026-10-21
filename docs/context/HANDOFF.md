@@ -92,7 +92,9 @@ Last updated: 2026-10-21.
 - **Calendar / Schedule / Timeline:** Figma pages ❖ Calendar 16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (2026-10-17,
   approved by the user 2026-10-21). **Calendar is in code + Studio** (branch `zen/feat/calendar-20261021`, worktree
   `../Zen-DS-calendar`): 5 views + 7 primitives, platform page `calendar`; spec `docs/research/calendar-2026-10-21.md`,
-  detail session-log-2026-10-21. Schedule, then Timeline, come next (tier L each).
+  detail session-log-2026-10-21. **Schedule is in code + Studio** on `zen/feat/schedule-20261021` (worktree
+  `../Zen-DS-schedule`, on top of Calendar): 4 views + 5 primitives, page `schedule`, spec
+  `docs/research/schedule-2026-10-21.md`. Timeline comes next (tier L).
 - **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
   gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
   Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
