@@ -13,7 +13,7 @@ import { DockIcon, type DockIconTheme } from "../../../../components/DockIcon";
 import { Icon, type IconName } from "../../../../components/Icon";
 import { Image } from "../../../../components/Image";
 import { Box, Grid, Stack } from "../../../../components/Layout";
-import { List, ListBox, ToggleListItem } from "../../../../components/ListItem";
+import { List, ToggleListItem } from "../../../../components/ListItem";
 import { SliderField } from "../../../../components/SliderField";
 import { Heading, Text } from "../../../../components/Text";
 import { useToast } from "../../../../components/Toast";
@@ -154,14 +154,14 @@ function BlindsPhone() {
           <Button level="tertiary" onClick={() => toast({ title: "Bedroom blinds stopped", children: `Held at ${level}% open` })}>Stop</Button>
           <Button level="tertiary" onClick={() => move(0, "closing")}>Close</Button>
         </Stack>
-        <ListBox as="section" theme="shadow" aria-label="Automations">
+        <Stack as="section" aria-label="Automations">
           <List aria-label="Sunrise and sunset automations">
             <ToggleListItem title="Open at sunrise" caption="06:10 · weekdays" toggleSize="lg" checked={sunrise} onCheckedChange={setSunrise}
               leading={<DockIcon size="md" icon="icon-sunrise-line" theme="neutral" background="subtle" />} />
             <ToggleListItem title="Close at sunset" caption="17:45 · every day" toggleSize="lg" checked={sunset} onCheckedChange={setSunset}
               leading={<DockIcon size="md" icon="icon-sunset-line" theme="neutral" background="subtle" />} />
           </List>
-        </ListBox>
+        </Stack>
       </AppShell>
     </PlatformPhone>
   );
@@ -210,7 +210,7 @@ function EnergyPhone() {
           <LineChart key={rangeId} aria-label={`Energy used ${range.span}`} label={range.current} data={range.labels.map((label, index) => ({ label, value: range.values[index] }))}
             compare={{ label: range.previous, values: range.compare }} legendPosition="top" format={kwh} height={232} />
         </ChartCard>
-        <ListBox as="section" theme="shadow" aria-label="Smart plugs">
+        <Stack as="section" aria-label="Smart plugs">
           <List aria-label="Smart plugs">
             {plugs.map((plug) => (
               <ToggleListItem key={plug.id} title={plug.title} caption={plugsOn[plug.id] ? plug.watts : "Off · 0 W"} toggleSize="lg" checked={plugsOn[plug.id]}
@@ -218,7 +218,7 @@ function EnergyPhone() {
                 leading={<DockIcon size="md" icon={plug.icon} theme={plug.theme} background="subtle" />} />
             ))}
           </List>
-        </ListBox>
+        </Stack>
       </AppShell>
     </PlatformPhone>
   );
@@ -277,15 +277,13 @@ function ScenesPhone() {
             <Heading level={2} id={automationsId} textStyle="Heading/4">Automations</Heading>
             <Button appearance="flat" level="primary" size="sm" onClick={() => toast({ title: "New automation", children: "Choose a trigger: a time, a sensor or leaving home." })}>New</Button>
           </Stack>
-          <ListBox theme="shadow">
-            <List aria-labelledby={automationsId}>
-              {automations.map((item) => (
-                <ToggleListItem key={item.id} title={item.title} caption={item.caption} toggleSize="lg" checked={enabled[item.id]}
-                  onCheckedChange={(next) => setEnabled((value) => ({ ...value, [item.id]: next }))}
-                  leading={<DockIcon size="md" icon={item.icon} theme="neutral" background="subtle" />} />
-              ))}
-            </List>
-          </ListBox>
+          <List aria-labelledby={automationsId}>
+            {automations.map((item) => (
+              <ToggleListItem key={item.id} title={item.title} caption={item.caption} toggleSize="lg" checked={enabled[item.id]}
+                onCheckedChange={(next) => setEnabled((value) => ({ ...value, [item.id]: next }))}
+                leading={<DockIcon size="md" icon={item.icon} theme="neutral" background="subtle" />} />
+            ))}
+          </List>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -375,14 +373,14 @@ export const examples: ExampleDef[] = [
     <Button level="tertiary" onClick={stop}>Stop</Button>
     <Button level="tertiary" onClick={() => setLevel(0)}>Close</Button>
   </Stack>
-  <ListBox as="section" theme="shadow" aria-label="Automations">
+  <Stack as="section" aria-label="Automations">
     <List aria-label="Sunrise and sunset automations">
       <ToggleListItem title="Open at sunrise" caption="06:10 · weekdays" toggleSize="lg" checked={sunrise} onCheckedChange={setSunrise}
         leading={<DockIcon size="md" icon="icon-sunrise-line" theme="neutral" background="subtle" />} />
       <ToggleListItem title="Close at sunset" caption="17:45 · every day" toggleSize="lg" checked={sunset} onCheckedChange={setSunset}
         leading={<DockIcon size="md" icon="icon-sunset-line" theme="neutral" background="subtle" />} />
     </List>
-  </ListBox>
+  </Stack>
 </AppShell>`,
   },
   {
@@ -408,14 +406,14 @@ export const examples: ExampleDef[] = [
       compare={{ label: "Last week", values: [9.9, 9.1, 10.6, 10.2, 8.9, 12.4, 11.2] }}
       legendPosition="top" format={(value) => \`\${value} kWh\`} height={232} />
   </ChartCard>
-  <ListBox as="section" theme="shadow" aria-label="Smart plugs">
+  <Stack as="section" aria-label="Smart plugs">
     <List aria-label="Smart plugs">
       <ToggleListItem title="Washing machine" caption="1,240 W now" toggleSize="lg" checked={washer} onCheckedChange={setWasher}
         leading={<DockIcon size="md" icon="icon-droplets-02-line" theme="accent" background="subtle" />} />
       <ToggleListItem title="Fridge" caption="120 W now" toggleSize="lg" checked={fridge} onCheckedChange={setFridge}
         leading={<DockIcon size="md" icon="icon-snowflake-01-line" theme="accent" background="subtle" />} />
     </List>
-  </ListBox>
+  </Stack>
 </AppShell>`,
   },
   {
@@ -450,13 +448,11 @@ export const examples: ExampleDef[] = [
       <Heading level={2} id="automations" textStyle="Heading/4">Automations</Heading>
       <Button appearance="flat" level="primary" size="sm" onClick={newAutomation}>New</Button>
     </Stack>
-    <ListBox theme="shadow">
-      <List aria-labelledby="automations">
-        <ToggleListItem title="When I leave home" caption="Lock door · lights off · start vacuum" toggleSize="lg" checked={leaving} onCheckedChange={setLeaving}
-          leading={<DockIcon size="md" icon="icon-lock-01-line" theme="neutral" background="subtle" />} />
-        …When motion at night · Every weekday 10:00 (off)
-      </List>
-    </ListBox>
+    <List aria-labelledby="automations">
+      <ToggleListItem title="When I leave home" caption="Lock door · lights off · start vacuum" toggleSize="lg" checked={leaving} onCheckedChange={setLeaving}
+        leading={<DockIcon size="md" icon="icon-lock-01-line" theme="neutral" background="subtle" />} />
+      …When motion at night · Every weekday 10:00 (off)
+    </List>
   </Stack>
 </AppShell>`,
   },
