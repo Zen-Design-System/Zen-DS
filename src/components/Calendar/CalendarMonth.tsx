@@ -108,7 +108,10 @@ export function CalendarMonth({ month: monthProp, value, defaultValue = null, on
     <div {...rest} ref={mergedRef} role="grid" aria-label={label} className={["zen-calendar-month", className].filter(Boolean).join(" ")} data-device="desktop" onKeyDown={keys}>
       <div className="zen-calendar-month__weekdays" role="row">
         {weeks[0].map((date) => (
-          <span key={date.getDay()} role="columnheader" className={typographyStyles["Caption/Medium"]} aria-label={new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date)}>{formatWeekday(date, locale)}</span>
+          <span key={date.getDay()} role="columnheader" className={["zen-calendar-month__weekday", typographyStyles["Caption/Medium"]].join(" ")} aria-label={new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date)}>
+            <span className="zen-calendar-month__weekday-short">{formatWeekday(date, locale)}</span>
+            <span className="zen-calendar-month__weekday-narrow" aria-hidden="true">{formatWeekdayNarrow(date, locale)}</span>
+          </span>
         ))}
       </div>
       {weeks.map((week, row) => (

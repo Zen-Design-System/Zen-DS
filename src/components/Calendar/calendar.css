@@ -115,6 +115,14 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 .zen-calendar-month[data-device="desktop"] { display: flex; min-width: 0; box-sizing: border-box; flex-direction: column; overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
 .zen-calendar-month[data-device="desktop"] .zen-calendar-month__weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
 .zen-calendar-month[data-device="desktop"] .zen-calendar-month__weekdays > span { padding: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
+/* A desktop month squeezed narrower than its weekday names (a phone-width preview) writes them as single letters. Each
+   header cell is its own size container: its width comes from the grid track, never from the text. */
+.zen-calendar-month__weekday { min-width: 0; container-type: inline-size; }
+.zen-calendar-month__weekday-narrow { display: none; }
+@container (max-width: 44px) {
+  .zen-calendar-month__weekday-short { display: none; }
+  .zen-calendar-month__weekday-narrow { display: inline; }
+}
 .zen-calendar-month[data-device="desktop"] .zen-calendar-month__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .zen-calendar-month[data-device="desktop"] .zen-calendar-month__week > .zen-calendar-cell:last-child { border-right: 0; }
 .zen-calendar-month[data-device="desktop"] .zen-calendar-month__week:last-child > .zen-calendar-cell { border-bottom: 0; }
@@ -140,8 +148,10 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 .zen-calendar-time-grid__hours > .zen-calendar-time-grid__gutter { display: flex; flex-direction: column; }
 .zen-calendar-time-grid__hour { display: flex; height: var(--zen-calendar-hour); box-sizing: border-box; flex: 0 0 auto; justify-content: flex-end; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px) 0; color: var(--zen-color-content-neutral-light); }
 /* The day column: .Primitives/Calendar/Slot rows, the hour rule (Line=Hour) on top of every second one. */
-.zen-calendar-time-grid__column { position: relative; min-width: 0; border-left: 1px solid var(--zen-color-border-neutral-pale-default); background-image: linear-gradient(var(--zen-color-border-neutral-pale-default) 1px, transparent 1px); background-size: 100% var(--zen-calendar-hour); }
+.zen-calendar-time-grid__column { position: relative; min-width: 0; container-type: inline-size; border-left: 1px solid var(--zen-color-border-neutral-pale-default); background-image: linear-gradient(var(--zen-color-border-neutral-pale-default) 1px, transparent 1px); background-size: 100% var(--zen-calendar-hour); }
 .zen-calendar-time-grid__block { position: absolute; top: calc(var(--zen-calendar-top) * var(--zen-calendar-hour) / 60 + 1px); left: calc(1px + (100% - 5px) * var(--zen-calendar-lane) / var(--zen-calendar-lanes)); width: calc((100% - 5px) / var(--zen-calendar-lanes) - (var(--zen-calendar-lanes) - 1) * 2px / var(--zen-calendar-lanes)); height: calc(var(--zen-calendar-length) * var(--zen-calendar-hour) / 60 - 2px); }
+/* A column narrower than a phone's (a squeezed desktop week) keeps a block's text by trimming its side padding. */
+@container (max-width: 64px) { .zen-calendar-time-grid__block { padding-right: var(--zen-spacing-padding-3-xsmall, 2px); padding-left: var(--zen-spacing-padding-2-xsmall, 4px); } }
 .zen-calendar-time-grid__now { position: absolute; z-index: 1; top: calc(var(--zen-calendar-top) * var(--zen-calendar-hour) / 60 - 4px); right: 0; left: 0; }
 
 /* Calendar/Agenda (16128:1036) */
