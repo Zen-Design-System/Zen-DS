@@ -3,7 +3,7 @@ import { IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
 import { ToastProvider, useToast, type ToastOptions } from "../../../../components/Toast";
 import { PresentBar } from "../../board/PresentBar";
-import { deviceOfScreen } from "../../../../../tools/studio/screen-devices.mjs";
+import { deviceOfScreen, deviceOs } from "../../../../../tools/studio/screen-devices.mjs";
 import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportFit, viewportDevice, ViewportHandles, type PresentViewport } from "../../board/presentViewport";
 import { canvasApi } from "../../canvas/viewport";
 import { previewAttributes, type ModeKey } from "../../shell/modes";
@@ -221,14 +221,14 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const os = pageOsOf(tree?.header);
   // The device simulator (presentViewport.tsx): the Screen plays on the shown device, which takes its type, layout and
   // bars (SimulatedDeviceContext); a typed size keeps the Screen's own.
-  const drawnOn = screen ? deviceOfScreen(device, literal(screen, "layout") as string | undefined, literal(screen, "width"), literal(screen, "height")) : undefined;
+  const drawnOn = screen ? deviceOfScreen(device, literal(screen, "layout") as string | undefined, literal(screen, "width"), literal(screen, "height"), os) : undefined;
   const shown = viewport ?? deviceViewport(drawnOn);
   const shownDevice = viewportDevice(shown);
   const fit = useViewportFit(shown, stageRef, bezelOf(shownDevice, framed), shownDevice?.radius);
-  // An overlay layer pads by the bars of the device it plays on.
+  // An overlay layer pads by the bars of the device it plays on (its OS's: an Android phone's on an iOS page).
   const barsDevice = shownDevice?.device ?? device;
   const duo = duoStatusOf((shownDevice ?? drawnOn)?.bars);
-  const overlaySafe = barsDevice === "desktop" ? null : safeAreasOf(duo ? "ios" : os, barsDevice, duo);
+  const overlaySafe = barsDevice === "desktop" ? null : safeAreasOf(shownDevice ? deviceOs(shownDevice) : duo ? "ios" : os, barsDevice, duo);
 
   // After delay (a Screen's): once the screen shows, its action runs when the delay is over (again on each visit).
   const delayed = screen?.props.onDelay;

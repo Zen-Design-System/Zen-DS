@@ -77,6 +77,26 @@ ${Array.from({ length: 40 }, (_, index) => `          <Text>Expense ${index + 1}
 }
 `;
 
+/** An Android page (header `os`) whose phone Screen is at the iPhone's size (PT-16). */
+const androidPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title, os: "android" })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="phone" width={390} height={844}>
+        <Stack gap="md" padding="lg">
+          <Text>Android</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** Scrolls what scrolls the shown page (the window's layer, or a box under Present's / Play's bar: the nearest ancestor of
  *  its Sidebar that really scrolls) 400px and checks the AppShell Sidebar stays at the top of that box, at its height,
  *  its rows scrolling inside (PT-11 Play, PT-14 Present). In CSS px, so a scaled fixed viewport measures the same;
@@ -512,6 +532,56 @@ export const rows = [
       await page.keyboard.press("Escape");
       await present.waitFor({ state: "detached", timeout: 5000 });
       return "Present: iPhone in its frame → iPad, portrait (tablet, mobile layout, 744 × 1133) → frame off/on → Duo open (side status, fold)";
+    },
+  },
+  {
+    id: "PT-16", feature: "Android in the simulator (user 2026-10-21: \"thêm máy Android vào simulator\"): Present on an Android page's 390 × 844 phone Screen plays it on the Android phone (412 × 917, Android's bars and safe areas, its device frame); Viewport › Device › Android tablet, landscape lays it out as a desktop tablet with Android's bars and Rotate turns it to portrait; Device › iPhone draws iOS bars whatever the page's OS", wp: "simulator android 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, androidPage, /"os":"android"/);
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id="frame:screen:screen-1"]').click();
+      await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      const present = page.locator(".studio-present");
+      await present.waitFor({ state: "visible", timeout: 5000 });
+      const screen = present.locator(".studio-builder-screen").first();
+      const read = () => screen.evaluate((node) => {
+        const style = getComputedStyle(node);
+        const status = node.querySelector(".studio-device-status");
+        return { device: node.getAttribute("data-device"), layout: node.getAttribute("data-layout"), os: node.getAttribute("data-os"), status: status ? `${status.getAttribute("data-os")}/${status.getAttribute("data-device")}` : null, safe: `${style.getPropertyValue("--zen-safe-area-top").trim()}/${style.getPropertyValue("--zen-safe-area-bottom").trim()}` };
+      });
+      const expect = async (want, message) => {
+        const got = await until(async () => { const value = await read(); return Object.entries(want).every(([key, wanted]) => value[key] === wanted) ? value : null; }, { message }).catch(async () => { throw new Error(`${message}: ${JSON.stringify(await read())}`); });
+        return got;
+      };
+      const ratio = async (width, height, what) => {
+        const box = await present.locator(".studio-present__viewport").boundingBox();
+        if (!box || Math.abs(box.width / box.height - width / height) > 0.01) throw new Error(`the ${what} viewport is not ${width} × ${height} (${box ? `${Math.round(box.width)} × ${Math.round(box.height)}` : "none"})`);
+      };
+      // Auto: the Android page's Screen plays on the Android phone, not the iPhone of its size.
+      await until(async () => (await screen.getAttribute("data-hardware")) === "android-phone", { message: "Auto takes the Android phone for the Android page's Screen" });
+      await expect({ device: "phone", os: "android", status: "android/phone", safe: "24px/24px" }, "the Android phone's bars");
+      await present.locator(".studio-device-status__camera").waitFor({ state: "attached", timeout: 5000 });
+      await present.locator(".studio-device-frame").waitFor({ state: "visible", timeout: 5000 });
+      await ratio(412, 917, "Android phone");
+      const pick = async (label) => {
+        const trigger = present.locator('[id$="-viewport-device-trigger"]');
+        await trigger.waitFor({ state: "visible", timeout: 5000 });
+        await trigger.click();
+        await page.getByRole("option", { name: new RegExp(`^${label}`) }).first().click();
+      };
+      await present.getByRole("button", { name: /^Viewport:/ }).click();
+      await pick("Android tablet, landscape");
+      await expect({ device: "tablet", layout: "desktop", os: "android", status: "android/tablet" }, "Android tablet, landscape");
+      await ratio(1280, 800, "Android tablet");
+      await present.getByRole("button", { name: "Rotate", exact: true }).click();
+      await expect({ device: "tablet", layout: "mobile", os: "android" }, "Rotate turns the Android tablet to portrait");
+      await ratio(800, 1280, "Android tablet, portrait");
+      await pick("iPhone");
+      await expect({ device: "phone", os: "ios", status: "ios/phone", safe: "50px/28px" }, "the iPhone draws iOS bars on the Android page");
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await present.waitFor({ state: "detached", timeout: 5000 });
+      return "Android page: Auto on the Android phone (412 × 917, bars 24/24, camera, frame) → Android tablet, landscape (desktop layout) → Rotate (portrait) → iPhone (iOS bars 50/28)";
     },
   },
 ];
