@@ -169,6 +169,48 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
     14 / 14 in 40 steps, the same as Figma's 40, with 0 refusals.
   - FW-132 / FW-133: 2 / 2.
 
+## AppShell session · Forms in overlays: rules, harness, Figma Modal/Forms stretch (tier S, branch `zen/feat/form-overlay-rules-20261021`)
+
+The user asked, all on 2026-10-21:
+- "Viết thêm rule và hardness. Các form nhập liệu nhiều, phức tạp mà bật modal thì không dùng dialog. Dialog thường
+  dùng chức năng thông báo/confirm nhanh, còn nhập liệu, tạo form..v..v thì dùng forms";
+- "form thì k dùng Action direction vertical";
+- "không dùng form cho mobile. Mobile forms thay thế bằng bottom sheet";
+- "Cần kiểm tra lại constrain và stretch của các layout bên trong forms", "không để khoản trống vô duyên".
+
+Code harness (check-usage.mjs; bad and good fixtures; 224 rules self-tested):
+- `dialog/form-uses-modal-form`: a Dialog with two or more fields. One field stays a quick confirm, even inside a Form
+  (the dialog example's type-the-name delete).
+- `modal-form/actions-horizontal`: a ModalForm with `actionsDirection="vertical"`.
+- `modal-form/not-on-phone`: a ModalForm in a PlatformPhone, or in a Studio Screen with device="phone".
+- The repo had one hit, Zen Studio's Rename layers (3 fields). The user picked "Đổi sang ModalForm": Enter or Rename
+  submits, and E2E FW-14 keeps its names (dialog "Rename 2 layers", "Rename to", the Preview list, Rename).
+
+ModalForm CSS: the footer no longer stacks its actions vertically below 720px or in a ≤ 688px device frame. The side
+column still stacks. dialog-modal.test expects a row now.
+
+Guidelines, AGENTS.consumer rule 11, the zen-component-usage skill, and the Figma screen rules and audit table are
+updated.
+
+Figma audit (zen-figma-audit.js, `checkModalForms`):
+- The rules: `modal/dialog-form`, `modal/form-actions-vertical`, `modal/form-on-phone`, and `modal/form-side-taller`
+  (warning).
+- Smoke-tested live on a temporary QA frame: a 390px phone with a 1-3 form, vertical actions and a tall side, then a
+  desktop Basic. Three findings, the desktop clean. The frame was removed.
+
+Figma Modal/Forms (841:17182), measured live with temporary instances:
+- Most of it already fits: the Close is pinned right and top, the grids are FIXED 240 + flex or even flex, and the
+  slots fill their width.
+- Two real bugs, both fixed in the library:
+  - Big: Body was FIXED height and Main-Contents FILL. A tall form ran under the Actions and was clipped (304 vs 740).
+    Both now hug.
+  - 1-3, Half-Half, 3-4: the Side-Content column and slot were FILL, and the slot's Item placeholder was FILL. A tall
+    side was clipped (304 vs 561). The column and slot now hug, and the placeholder has a fixed height (256 / 276 /
+    276, as before).
+- Re-test: every tall main or side content fits, and the default sizes are unchanged.
+- Figma's grid cannot stretch the form column to a taller side, so a side taller than the form leaves an empty band
+  under the actions. The guideline and `modal/form-side-taller` keep the side no taller than the form.
+
 ## AppShell session · Token Color/Background/Carved (tier XS; user: "Update token background-carved")
 
 - Read live (use_figma, Mode Colors (Semantic), VariableID:12082:86877): Light {Light/Neutral-Alpha/2} (the repo had

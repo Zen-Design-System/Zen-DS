@@ -68,6 +68,9 @@ export const Good = () => <>
   {/* Keeps its own choice (no onPopoverSelect): it counts the picked items itself. */}
   <Chip variant="advanced" selectionMode="multiple" popoverMultiple popoverLabel="Status" popoverItems={[{ id: "open", label: "Open", selected: true }, { id: "done", label: "Done" }]}>Status</Chip>
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><InputField label="Workspace name" /></Dialog>
+  <ModalForm open={open} onOpenChange={setOpen} title="New project" primaryAction={{ label: "Create" }} secondaryAction={{ label: "Cancel" }}><InputField label="Name" /><SelectField label="Owner" options={owners} /></ModalForm>
+  <Dialog open={open} onOpenChange={setOpen} theme="negative" title="Delete this project?" primaryAction={{ label: "Delete project", level: "danger" }}><Form onSubmit={remove}><InputField label="Project name" /></Form></Dialog>
+  <PlatformPhone label="New task"><BottomSheet open title="New task"><InputField label="Title" size="lg" /><DateField label="Due" size="lg" /></BottomSheet></PlatformPhone>
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="on-container">Brief</Card></SidePanel>
   <Dialog open={open} onOpenChange={setOpen} title="Project"><Card theme="on-container"><ListBox theme="border"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox></Card></Dialog>
   <BottomSheet open={open} onOpenChange={setOpen} title="Members"><ListBox theme="on-container"><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></BottomSheet>

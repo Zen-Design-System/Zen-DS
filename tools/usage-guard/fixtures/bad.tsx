@@ -127,6 +127,14 @@ export const Bad = () => <>
   <Chip variant="advanced" selectionMode="multiple" popoverItems={items} onPopoverSelect={toggleOwner} popoverMultiple>Owner</Chip>
   {/* expect: dialog/no-nested */}
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><Dialog open title="Confirm" /></Dialog>
+  {/* expect: dialog/form-uses-modal-form */}
+  <Dialog open={open} onOpenChange={setOpen} title="New project"><InputField label="Name" /><SelectField label="Owner" options={owners} /></Dialog>
+  {/* expect: dialog/form-uses-modal-form */}
+  <Dialog open={open} onOpenChange={setOpen} title="Invite"><Form onSubmit={invite}><InputField label="Email" /><TextAreaField label="Message" /></Form></Dialog>
+  {/* expect: modal-form/actions-horizontal */}
+  <ModalForm open={open} onOpenChange={setOpen} title="New project" actionsDirection="vertical" primaryAction={{ label: "Create" }} secondaryAction={{ label: "Cancel" }}><InputField label="Name" /></ModalForm>
+  {/* expect: modal-form/not-on-phone */}
+  <PlatformPhone label="New task"><ModalForm open title="New task" primaryAction={{ label: "Create" }}><InputField label="Title" size="lg" /></ModalForm></PlatformPhone>
   {/* expect: accordion/no-nested */}
   <Accordion title="Billing"><Accordion title="Invoices">Monthly PDFs</Accordion></Accordion>
   {/* expect: pagination/worth-paging */}

@@ -18,6 +18,8 @@ export const isRepo = fs.existsSync(path.join(root, "src/components"));
 /** Shipped with the package by `npm run build:lib` (Zen's own layout classes; the package has no src/**\/*.css). */
 const packagedContext = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, "dist/usage-context.json"), "utf8")); } catch { return null; } })();
 const INPUTS = ["InputField", "SelectField", "DateField", "ColorField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"];
+/** The fields a data-entry form is made of (dialog/form-uses-modal-form counts them). */
+const FORM_FIELDS = [...INPUTS, "HeadingField", "SliderField", "FileUpload"];
 const FOCUSABLE_TRIGGERS = ["Button", "IconButton", "button", "a", "Chip", "Link", "input", "TabItem", "Toggle", ...INPUTS, "Search"];
 
 /* ── attribute helpers ─────────────────────────────────────────────── */
@@ -1145,6 +1147,22 @@ export const rules = [
   { id: "dialog/no-nested", components: ["Dialog"], severity: "error", allow: "nested-dialog", guideline: "docs/guidelines/dialog.md",
     summary: "Never stack dialogs: a Dialog does not open another Dialog.",
     check: ({ children }) => /<Dialog\b/.test(children) && "contains another Dialog — replace the content in place or use a page." },
+  // Forms in overlays (user rule 2026-10-21: "Các form nhập liệu nhiều, phức tạp mà bật modal thì không dùng dialog.
+  // Dialog thường dùng chức năng thông báo/confirm nhanh, còn nhập liệu, tạo form… thì dùng forms", "form thì không dùng
+  // Action direction vertical", "không dùng form cho mobile. Mobile forms thay thế bằng bottom sheet").
+  { id: "dialog/form-uses-modal-form", components: ["Dialog"], severity: "error", allow: "dialog-form", guideline: "docs/guidelines/dialog.md",
+    summary: "Dialog is for a notice or a quick confirm (one field at most, such as typing a name to confirm). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet and in a BottomSheet on a phone.",
+    check: ({ children }) => {
+      // One field is still a quick confirm (type the name to delete), even wrapped in a Form so Enter confirms.
+      const fields = FORM_FIELDS.reduce((count, tag) => count + openingTags(children ?? "", tag).length, 0);
+      return fields >= 2 && `holds ${fields} fields — Dialog is for a notice or a quick confirm: put the form in a ModalForm (desktop and tablet) or a BottomSheet (phone).`;
+    } },
+  { id: "modal-form/actions-horizontal", components: ["ModalForm"], severity: "error", allow: "modal-form-actions", guideline: "docs/guidelines/dialog.md",
+    summary: "A ModalForm's footer keeps its actions in a row (Tertiary cancel, Primary submit): actionsDirection=\"vertical\" belongs to a Dialog's equal-weight choices, never to a form.",
+    check: ({ attrs }) => literal(attrs, "actionsDirection") === "vertical" && "stacks its actions vertically — a form's footer keeps them in a row: leave actionsDirection out (horizontal)." },
+  { id: "modal-form/not-on-phone", components: ["PlatformPhone", "Screen"], severity: "error", allow: "modal-form-phone", guideline: "docs/guidelines/bottom-sheet.md",
+    summary: "On a phone a form opens in a BottomSheet, never a ModalForm (Figma's Modal/Forms has no Mobile device). A phone is a PlatformPhone frame or a Studio Screen with device=\"phone\".",
+    check: ({ tag, attrs, children }) => (tag !== "Screen" || literal(attrs, "device") === "phone") && openingTags(children ?? "", "ModalForm").length > 0 && "opens a ModalForm on a phone — put the form in a BottomSheet (its title, the fields, the actions in its footer)." },
   { id: "accordion/no-nested", components: ["Accordion"], severity: "error", allow: "nested-accordion", guideline: "docs/guidelines/accordion.md",
     summary: "Accordions are one level deep: no Accordion inside an Accordion.",
     check: ({ children }) => /<Accordion\b/.test(children) && "contains another Accordion — flatten the list or link to a page." },

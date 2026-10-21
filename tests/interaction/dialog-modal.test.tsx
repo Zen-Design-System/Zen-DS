@@ -213,7 +213,7 @@ describe("Dialog / ModalForm inside a device frame ([data-zen-overlay-root])", (
     expect(getComputedStyle(panel.querySelector(".zen-dialog__actions")!).flexDirection).toBe("row");
   });
 
-  it("ModalForm opens in the frame too", async () => {
+  it("ModalForm opens in the frame too, its actions still in a row", async () => {
     const screen = await render(
       <ZenProvider>
         <div data-zen-overlay-root="" data-testid="phone" style={frame}>
@@ -225,7 +225,9 @@ describe("Dialog / ModalForm inside a device frame ([data-zen-overlay-root])", (
     );
     const panel = screen.getByRole("dialog", { name: "Rename file" }).element() as HTMLElement;
     expect(panel.parentElement?.parentElement).toBe(screen.getByTestId("phone").element());
-    expect(getComputedStyle(panel.querySelector(".zen-modal-form__footer")!).flexDirection).toBe("column-reverse");
+    // A form keeps its actions in a row at every width (user rule 2026-10-21: a form never stacks them; a phone opens
+    // the form in a BottomSheet instead).
+    expect(getComputedStyle(panel.querySelector(".zen-modal-form__footer")!).flexDirection).toBe("row");
     await expect.element(screen.getByLabelText("File name")).toHaveFocus();
   });
 });

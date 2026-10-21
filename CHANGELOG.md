@@ -29,6 +29,20 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   "sửa push Sidebar đứng riêng luôn"). The set has 16 of its 40 combinations, so the push takes the nearest one: the
   themes other than Default exist only at Density=Small. An AppShell's master writes the same variant (`pattern="grid"`
   gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
+- Forms in overlays (user rules 2026-10-21):
+  - A Dialog is for a notice or a quick confirm, with one field at most. A data-entry form of two or more fields is a
+    ModalForm on desktop and tablet, and a BottomSheet on a phone.
+  - A ModalForm keeps its actions in a row. Its footer no longer stacks them below 720px or in a narrow device frame.
+  - New harness rules: `dialog/form-uses-modal-form`, `modal-form/actions-horizontal` and `modal-form/not-on-phone`.
+  - The Figma audit gains `modal/dialog-form`, `modal/form-actions-vertical`, `modal/form-on-phone` and
+    `modal/form-side-taller`.
+  - Zen Studio's Rename layers (⌘R on several layers) is now a ModalForm.
+- Figma Modal/Forms content now grows the modal instead of being cut off (2026-10-21, user: "kiểm tra lại constrain và
+  stretch của các layout bên trong forms, không để khoảng trống vô duyên"):
+  - Big's Body and Main-Contents hug their content; they had a fixed height and a Fill height.
+  - The 1-3, Half-Half and 3-4 Side-Content columns hug theirs. Their placeholder was Fill, which kept the slot from
+    growing.
+  - Default sizes are unchanged.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
