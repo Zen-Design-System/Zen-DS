@@ -625,3 +625,20 @@ Branch `zen/feat/schedule-20261021` (worktree `../Zen-DS-schedule`, on top of th
   tests. Studio: component-properties page ❖ Schedule (4 public sets), figma-props map, 4 Assets items, library keys.
 - Native pack (user: "Làm luôn"): probe of the 4 sets on the QA page, one Figma desktop copy (the clipboard was empty and
   stays empty), merged additively (9 sets, 34 symbols), no picture layers, probe removed; native-pack check green.
+
+## Timeline in code + Studio (session "Calendar", tier L; approved with the three pages)
+
+Branch `zen/feat/timeline-20261021` (worktree `../Zen-DS-timeline`, on top of Schedule). Spec card:
+`docs/research/timeline-2026-10-21.md`.
+
+- `src/components/Timeline/`: TimelineActivity, TimelineMilestones, TimelineGantt and the primitives TimelineItem,
+  TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel; dates through Calendar's `toDate`.
+- The Gantt splits its own width into weeks, so (as Resource-Grid) its scroll box takes `contain: inline-size` and a
+  sizer gives Figma's width (1120 / 358) where the parent hugs; the phone Gantt and Resource-Grid re-align to today / now
+  once their columns are measured (they opened half a column early).
+- Platform page `timeline` (playground + 6 examples incl. PlatformPhone), Do/Don't visuals, guideline + keyboard map,
+  harness rule (1, fixtures), smoke fixtures, axe baseline (colour-contrast only), 3 interaction tests; Studio
+  contract page ❖ Timeline (4 public sets), figma-props map, 3 Assets items, library keys.
+- Native pack (user: "Làm luôn"): probe of the 4 Timeline sets, one Figma desktop copy (clipboard empty before and after),
+  merged additively (8 sets, 36 symbols), no picture layers, probe removed. Figma descriptions of the 8 sets updated.
+

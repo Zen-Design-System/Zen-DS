@@ -377,6 +377,22 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Leading": "Icon",
     "Trailing": "Icon"
   },
+  "TimelineActivity": {
+    "Item": "TimelineItem"
+  },
+  "TimelineGantt": {
+    "Bar": "TimelineGanttBar",
+    "Label": "TimelineGanttLabel"
+  },
+  "TimelineItem": {
+    "Avatar": "Avatar",
+    "Icon": "DockIcon",
+    "Marker": "TimelineMarker"
+  },
+  "TimelineMarker": {
+    "Avatar": "Avatar",
+    "Icon": "DockIcon"
+  },
   "Toast": {
     "Action": "Button",
     "Leading": "Icon"
