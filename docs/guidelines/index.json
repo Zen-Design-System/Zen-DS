@@ -4653,8 +4653,8 @@
           "title?: ReactNode",
           "headingLevel?: 2|3|4 = 2",
           "action?: ReactNode",
-          "theme?: shadow|flat|border|pale|subtle|on-container|canvas = shadow",
-          "surface?: default|alt|flat = default",
+          "theme?: shadow|default|border|flat-border|pale|subtle|on-container|canvas = shadow",
+          "surface?: default|alt = default",
           "children?: ReactNode",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "ref?: Ref<HTMLElement>"

@@ -8005,7 +8005,7 @@
       [
         "Pane",
         "leadingPane · trailingPane = <AppShellPane title action theme surface>",
-        "Theme shadow (default) · flat · border · pale · subtle · on-container · canvas × Surface default · alt · flat; Heading/3 title (one line), one flat Small action; its content scrolls inside it"
+        "Theme shadow (default) · default · border · flat-border · pale · subtle · on-container · canvas × Surface default · alt (on default and border; Figma renamed Flat → Default and Border × Flat → Flat-Border on 2026-10-21); Heading/3 title (one line), one flat Small action; its content scrolls inside it"
       ],
       [
         "Progress",

@@ -39,7 +39,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   `theme="default"` (no alias: every example, template and doc migrated), `theme="border" surface="flat"` →
   `theme="flat-border"`, and `surface="flat"` is gone (CardSurface is default | alt). MetricCard and ChartCard take the
   same themes (ChartCard's default is `default`). On-Container is unchanged. Studio's Properties, Main component,
-  effects row and detach follow; the Figma audit and screen rules name Default and Flat-Border.
+  effects row and detach follow; the Figma audit and screen rules name Default and Flat-Border. AppShellPane follows
+  (Figma .Primitives/AppShell/Pane 16254:1099 renamed too; user: "Đổi theo Card"): `default`, `flat-border`, Surface
+  default | alt; the app layer pairs Canvas/Flat with flat-border panes and cards.
 - ListBox takes Figma List-Box's Color and Surface (2026-10-21, user: "Thêm luôn trong đợt này"): `color` is the Pale
   box's hue (Support/<Hue>/Pale, neutral … purple) and `surface="alt"` puts a Default or Border box on Surface/Alt, as
   Card does. Studio's Properties panel and the Figma push and pull carry both (the push keeps to Figma's variants).

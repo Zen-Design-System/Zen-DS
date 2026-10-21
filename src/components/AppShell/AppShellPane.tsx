@@ -2,9 +2,10 @@ import { useId, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { typographyStyles } from "../../tokens/typography.generated";
 
-export const appShellPaneThemes = ["shadow", "flat", "border", "pale", "subtle", "on-container", "canvas"] as const;
+/** Figma Pane Theme, renamed with Card on 2026-10-21: Flat → Default, Border × Surface=Flat → Flat-Border. */
+export const appShellPaneThemes = ["shadow", "default", "border", "flat-border", "pale", "subtle", "on-container", "canvas"] as const;
 export type AppShellPaneTheme = (typeof appShellPaneThemes)[number];
-export const appShellPaneSurfaces = ["default", "alt", "flat"] as const;
+export const appShellPaneSurfaces = ["default", "alt"] as const;
 export type AppShellPaneSurface = (typeof appShellPaneSurfaces)[number];
 
 export interface AppShellPaneProps extends Omit<HTMLAttributes<HTMLElement>, "title" | "children"> {
@@ -18,12 +19,14 @@ export interface AppShellPaneProps extends Omit<HTMLAttributes<HTMLElement>, "ti
    */
   action?: ReactNode;
   /**
-   * Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `flat` · `border`
-   * Border/Neutral/Pale · `pale` Support/Neutral/Pale · `subtle` Support/Neutral/Subtle (both with the Overlay blur) ·
-   * `on-container` Surface/Flat, for a pane on a container · `canvas` no fill, for reading layouts (Docs).
+   * Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `default` the Surface
+   * alone (`flat` until 2026-10-21) · `border` Border/Neutral/Pale · `flat-border` Surface/Flat inside that line, on a
+   * Canvas/Flat page (Border × Surface=Flat until 2026-10-21) · `pale` Support/Neutral/Pale · `subtle`
+   * Support/Neutral/Subtle (both with the Overlay blur) · `on-container` Surface/Flat, for a pane on a container ·
+   * `canvas` no fill, for reading layouts (Docs).
    */
   theme?: AppShellPaneTheme;
-  /** Figma Surface for the flat and border themes: `default` Surface/Default · `alt` Surface/Alt · `flat` Surface/Flat (border only). */
+  /** Figma Surface for the default and border themes: `default` Surface/Default · `alt` Surface/Alt. */
   surface?: AppShellPaneSurface;
   /** Figma Pane-Content: the pane's body (a List, a tree, filters, a summary). */
   children?: ReactNode;

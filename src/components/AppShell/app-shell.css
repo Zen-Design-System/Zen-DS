@@ -167,9 +167,10 @@
 /* Surface/Alt never casts an outer shadow (component-usage-rules §9). */
 .zen-app-shell-pane[data-tone="shadow"][data-surface="alt"] { box-shadow: none; }
 .zen-app-shell-pane[data-surface="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
-.zen-app-shell-pane[data-tone="border"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
-/* zen-allow-surface-flat: Figma .Primitives/AppShell/Pane Theme=Border Surface=Flat (16254:1099), as Card's Border/Flat. */
-.zen-app-shell-pane[data-tone="border"][data-surface="flat"] { background: var(--zen-color-background-surface-flat); }
+.zen-app-shell-pane:is([data-tone="border"], [data-tone="flat-border"]) { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* zen-allow-surface-flat: Figma .Primitives/AppShell/Pane Theme=Flat-Border (16254:1099; Border × Surface=Flat until
+   2026-10-21), as Card's Flat-Border: the pane of a Canvas/Flat page. */
+.zen-app-shell-pane[data-tone="flat-border"] { background: var(--zen-color-background-surface-flat); }
 .zen-app-shell-pane[data-tone="pale"] { background: var(--zen-color-background-support-neutral-pale); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 .zen-app-shell-pane[data-tone="subtle"] { background: var(--zen-color-background-support-neutral-subtle); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 /* zen-allow-surface-flat: Figma Pane Theme=On-Container is Surface/Flat on a container's fill, as Card on-container. */
