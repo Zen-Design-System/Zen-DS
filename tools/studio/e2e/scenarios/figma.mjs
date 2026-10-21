@@ -584,12 +584,16 @@ async function typeText(page, name, value, index = 0) {
 
 /* ── Gap / padding drag (Figma's auto layout handles) helpers ──────────────────────────────────────────────────────── */
 
-/** A phone page with a row Stack (gap Small, paddingX Medium, paddingY XSmall), a 2-column Grid and a free frame (Box). */
+/**
+ * A phone page with a row Stack (gap Small, paddingX Large 20, paddingY XLarge 24), a 2-column Grid and a free frame
+ * (Box). The paddings are thick enough that each area's centre lies clear of the resize strip on the frame's edge
+ * (ResizeLayer STRIP, 4 screen px inside the edge) at the canvas's fit zoom.
+ */
 const spacingText = (title) => {
   let text = newPageText({ title, device: "phone", chrome: true });
-  text = grow(text, "Stack", '<Stack direction="row" gap="sm" paddingX="md" paddingY="xs">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="ellipse" width={60} height={40} />\n</Stack>');
+  text = grow(text, "Stack", '<Stack direction="row" gap="sm" paddingX="lg" paddingY="xl">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="ellipse" width={60} height={40} />\n</Stack>');
   text = grow(text, "Stack", '<Grid columns={2} gap="sm" padding="sm">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="star" width={40} height={40} />\n</Grid>');
-  return grow(text, "Stack", '<Box width={200} height={64} padding="md">\n<Shape type="ellipse" position="absolute" insetLeft={20} insetTop={12} width={40} height={40} />\n</Box>');
+  return grow(text, "Stack", '<Box width={200} height={64} padding="lg">\n<Shape type="ellipse" position="absolute" insetLeft={20} insetTop={12} width={40} height={40} />\n</Box>');
 };
 let spacingMade = null;
 async function spacingPage(ctx) {
@@ -628,6 +632,18 @@ const dragAreas = (page) => page.locator(".studio-selection__spacing-hit[data-dr
   const r = node.getBoundingClientRect();
   return { axis: node.getAttribute("data-drag"), x: r.x, y: r.y, width: r.width, height: r.height, cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
 }));
+/** The spacing hit area on `side` of the selection (the outermost along it): its box and centre (screen px). */
+async function sideArea(page, side) {
+  const areas = await page.locator(".studio-selection__spacing-hit").evaluateAll((nodes) => nodes.map((node) => {
+    const r = node.getBoundingClientRect();
+    return { axis: node.getAttribute("data-drag"), x: r.x, y: r.y, width: r.width, height: r.height, cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
+  }));
+  const by = { left: (a) => a.x, right: (a) => -(a.x + a.width), top: (a) => a.y, bottom: (a) => -(a.y + a.height) }[side];
+  const along = side === "left" || side === "right" ? (a) => a.height >= a.width : (a) => a.width > a.height;
+  const area = areas.filter(along).sort((a, b) => by(a) - by(b))[0];
+  if (!area) throw new Error(`no ${side} spacing area on the canvas`);
+  return area;
+}
 const spacingPill = async (page) => (await page.locator(".studio-selection__spacing-label").allInnerTexts()).join(" | ");
 /** How many padding / gap tints are pink (hovered or set by the drag). */
 const pinkTints = (page, kind) => page.locator(`.studio-selection__${kind}[data-drag][data-hover="true"]`).count();
@@ -3523,11 +3539,11 @@ export const rows = [
       });
       if (look.handle !== look.pink || look.label !== look.pink) throw new Error(`not Figma's pink: handle ${look.handle}, pill ${look.label} (Support/Pink/Solid ${look.pink})`);
       if (!look.tint || !look.hexagon || look.cursor !== "ew-resize") throw new Error(`gap hover: ${JSON.stringify(look)}`);
-      const stack = await layoutOf(page, id, "Stack").boundingBox();
-      const scale = a.width / 60;
-      await page.mouse.move(stack.x + 8 * scale, stack.y + stack.height / 2);
-      await page.mouse.move(stack.x + 7 * scale, stack.y + stack.height / 2);
-      const padPill = await until(async () => { const text = await spacingPill(page); return /Horizontal padding · Medium · 16/.test(text) ? text : null; }, { message: 'the "Horizontal padding · Medium · 16" pill' });
+      const left = await sideArea(page, "left");
+      await page.mouse.move(left.cx + 1, left.cy);
+      await page.mouse.move(left.cx, left.cy);
+      const padPill = await until(async () => { const text = await spacingPill(page); return /Horizontal padding · Large · 20/.test(text) ? text : null; }, { message: 'the "Horizontal padding · Large · 20" pill' })
+        .catch(async (error) => { throw new Error(`${error.message} (pill: "${await spacingPill(page)}")`); });
       if (!(await pinkTints(page, "padding"))) throw new Error("the hovered padding is not pink");
       // A click without moving: the scale opens where it was clicked, as before the drag handles.
       await page.mouse.move(gap.x, gap.y);
@@ -3553,55 +3569,58 @@ export const rows = [
       if (during.text !== before) throw new Error("written before the release");
       await until(async () => /gap="xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'the row Stack at gap="xl"' });
       const tag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
-      if (!/paddingX="md"/.test(tag) || !/paddingY="xs"/.test(tag)) throw new Error(`the padding changed too: ${tag}`);
+      if (!/paddingX="lg"/.test(tag) || !/paddingY="xl"/.test(tag)) throw new Error(`the padding changed too: ${tag}`);
       const status = await until(async () => { const text = await statusText(page); return /Gap XLarge/.test(text) ? text : null; }, { timeout: 5000, message: 'the status line "Gap XLarge"' });
       await oneUndo(page, id, before);
       return `pill "${during.pill}" · the Ellipse moved ${during.moved.toFixed(0)} px · ${tag} · "${status.split(" | ").find((line) => /Gap XLarge/.test(line))}" · one ⌘Z`;
     },
   },
   {
-    id: "FW-157", feature: "Dragging an auto layout frame's left padding changes Horizontal padding (Zen's paddingX: the right side moves with it), snapped to Spacing/Padding (Medium 16 + 8 → XLarge 24); one write, one ⌘Z", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    id: "FW-157", feature: "Dragging an auto layout frame's left padding changes Horizontal padding (Zen's paddingX: the right side moves with it), snapped to Spacing/Padding (Large 20 + 12 → 2XLarge 32); one write, one ⌘Z", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await spacingPage(ctx);
       const before = (await pageText(page, id)) ?? "";
-      const stack = await selectLayout(page, id, "Stack", 0);
+      await selectLayout(page, id, "Stack", 0);
       const scale = (await shapeBox(page, id, 0)).width / 60;
       const host = layoutOf(page, id, "Stack");
-      const during = await dragSpacing(page, { x: stack.x + 8 * scale, y: stack.y + stack.height / 2 }, { dx: 8 * scale, during: async () => ({
+      const left = await sideArea(page, "left");
+      const during = await dragSpacing(page, { x: left.cx, y: left.cy }, { dx: 12 * scale, during: async () => ({
         pill: await spacingPill(page), tints: await pinkTints(page, "padding"),
         padding: await host.evaluate((el) => { const style = getComputedStyle(el); return [style.paddingLeft, style.paddingRight, style.paddingTop].join(" "); }),
       }) });
-      if (!/Horizontal padding · XLarge · 24/.test(during.pill)) throw new Error(`the pill while dragging reads "${during.pill}"`);
-      if (during.padding !== "24px 24px 8px") throw new Error(`the preview's padding (left right top) is ${during.padding}, not 24px 24px 8px`);
+      if (!/Horizontal padding · 2XLarge · 32/.test(during.pill)) throw new Error(`the pill while dragging reads "${during.pill}"`);
+      if (during.padding !== "32px 32px 24px") throw new Error(`the preview's padding (left right top) is ${during.padding}, not 32px 32px 24px`);
       if (during.tints !== 2) throw new Error(`${during.tints} padding areas pink while dragging, not 2 (left and right)`);
-      await until(async () => /paddingX="xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'paddingX="xl"' });
+      await until(async () => /paddingX="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'paddingX="2xl"' });
       const tag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
-      if (!/paddingY="xs"/.test(tag) || !/gap="sm"/.test(tag)) throw new Error(`more than paddingX changed: ${tag}`);
-      await until(async () => /Horizontal padding XLarge/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Horizontal padding XLarge"' });
+      if (!/paddingY="xl"/.test(tag) || !/gap="sm"/.test(tag)) throw new Error(`more than paddingX changed: ${tag}`);
+      await until(async () => /Horizontal padding 2XLarge/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Horizontal padding 2XLarge"' });
       await oneUndo(page, id, before);
       return `pill "${during.pill}" · preview ${during.padding} · ${tag} · one ⌘Z`;
     },
   },
   {
-    id: "FW-158", feature: "Modifiers as Figma's: ⌥ dragging the top padding sets the bottom too (Vertical padding Small); ⇧ dragging the left padding sets all four (padding Large, paddingX / paddingY removed in the same edit); one ⌘Z each", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 60_000,
+    id: "FW-158", feature: "Modifiers as Figma's: ⌥ dragging the top padding sets the bottom too (Vertical padding 2XLarge); ⇧ dragging the left padding sets all four (padding 2XLarge, paddingX / paddingY removed in the same edit); one ⌘Z each", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await spacingPage(ctx);
       const before = (await pageText(page, id)) ?? "";
-      let stack = await selectLayout(page, id, "Stack", 0);
+      await selectLayout(page, id, "Stack", 0);
       const scale = (await shapeBox(page, id, 0)).width / 60;
-      const alt = await dragSpacing(page, { x: stack.x + stack.width / 2, y: stack.y + 4 * scale }, { dy: 4 * scale, keys: ["Alt"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
-      if (!/Vertical padding · Small · 12/.test(alt.pill) || alt.tints !== 2) throw new Error(`⌥: pill "${alt.pill}", ${alt.tints} padding areas pink (want top and bottom)`);
-      await until(async () => /paddingY="sm"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⌥: paddingY="sm"' });
+      const top = await sideArea(page, "top");
+      const alt = await dragSpacing(page, { x: top.cx, y: top.cy }, { dy: 8 * scale, keys: ["Alt"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
+      if (!/Vertical padding · 2XLarge · 32/.test(alt.pill) || alt.tints !== 2) throw new Error(`⌥: pill "${alt.pill}", ${alt.tints} padding areas pink (want top and bottom)`);
+      await until(async () => /paddingY="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⌥: paddingY="2xl"' });
       const altTag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
-      if (!/paddingX="md"/.test(altTag)) throw new Error(`⌥ changed the sides too: ${altTag}`);
+      if (!/paddingX="lg"/.test(altTag)) throw new Error(`⌥ changed the sides too: ${altTag}`);
       await oneUndo(page, id, before);
-      stack = await selectLayout(page, id, "Stack", 0);
-      const all = await dragSpacing(page, { x: stack.x + 8 * scale, y: stack.y + stack.height / 2 }, { dx: 4 * scale, keys: ["Shift"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
-      if (!/^Padding · Large · 20/.test(all.pill) || all.tints !== 4) throw new Error(`⇧: pill "${all.pill}", ${all.tints} padding areas pink (want all four)`);
-      await until(async () => /\spadding="lg"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⇧: padding="lg"' });
+      await selectLayout(page, id, "Stack", 0);
+      const left = await sideArea(page, "left");
+      const all = await dragSpacing(page, { x: left.cx, y: left.cy }, { dx: 12 * scale, keys: ["Shift"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
+      if (!/^Padding · 2XLarge · 32/.test(all.pill) || all.tints !== 4) throw new Error(`⇧: pill "${all.pill}", ${all.tints} padding areas pink (want all four)`);
+      await until(async () => /\spadding="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⇧: padding="2xl"' });
       const allTag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
       if (/paddingX=|paddingY=/.test(allTag)) throw new Error(`⇧ kept a side prop: ${allTag}`);
-      await until(async () => /Padding Large/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Padding Large"' });
+      await until(async () => /Padding 2XLarge/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Padding 2XLarge"' });
       await oneUndo(page, id, before);
       return `⌥ top: "${alt.pill}" → ${altTag} · ⇧ left: "${all.pill}" → ${allTag} · one ⌘Z each`;
     },
@@ -3638,10 +3657,11 @@ export const rows = [
       if (preview === after || after !== "12px") throw new Error(`Escape: column gap ${preview} while dragging, ${after} after (want back to 12px)`);
       if ((await pageText(page, id)) !== before) throw new Error("Escape still wrote the drag");
       // A free frame: its padding shows (and clicks to the scale), but nothing drags.
-      const box = await selectLayout(page, id, "Box", 4);
+      await selectLayout(page, id, "Box", 4);
       const handles = await page.locator(".studio-selection__spacing-hit[data-drag]").count();
       if (handles) throw new Error(`${handles} drag handles on a free frame`);
-      await dragSpacing(page, { x: box.x + box.width / 2, y: box.y + 8 * scale }, { dy: 10 * scale });
+      const boxTop = await sideArea(page, "top");
+      await dragSpacing(page, { x: boxTop.cx, y: boxTop.cy }, { dy: 10 * scale });
       await page.keyboard.press("Escape");
       await sleep(400);
       if ((await pageText(page, id)) !== before) throw new Error("a drag on the free frame's padding wrote something");

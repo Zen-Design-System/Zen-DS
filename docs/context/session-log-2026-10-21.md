@@ -650,3 +650,8 @@ Approved scope (user 2026-10-21, "mở phiên nhận các phần đó"): BACKLOG
   left padding (both sides), ⌥ top and ⇧ left, Grid column gap + Escape + free frame. No studio:dnd rows: the
   matrix covers layer drops, not spacing.
 - BACKLOG entry trimmed to ⇧⌘G of several layers (ungroupSelection acts on the primary only).
+- Gate (2026-10-22, main 8c973b40 merged, `--isolated --files=…`): PASS, Studio E2E 338 / 0 (1508 s); FW-155…159 5 / 0,
+  SE-20 ✓. First FW try: 2 broken because the fixture's 8 px padding (≈ 4 screen px at fit zoom) lay under the resize
+  strip on the frame's edge (ResizeLayer STRIP, 4 px inside), which keeps the press as Figma's edge resize does; the
+  fixture pads 20 / 24 now and the rows aim at each area's centre read from the canvas. A padding thinner than ≈ 8
+  screen px drags only after zooming in.
