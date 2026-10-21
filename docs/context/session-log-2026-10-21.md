@@ -244,4 +244,13 @@ original stays, one ⌘Z each) waits for a gate slot.
   renamed library come back right. Push writes the new names only.
 - Not changed: AppShellPane (its own Figma Pane set still has Flat / Border × Surface=Flat) — question for the user.
   figma-push/pull Card mapping and their selftests are B's (asked); native-pack names are C's (asked).
+- Rebuilt on main ac3ae48f (2026-10-21 afternoon, Supervisor: card-themes last in the queue): new branch from main,
+  cherry-picked the rename and the pull's legacy names; the codemod commit dropped (it runs again right before the
+  gate: .qa/card-migrate/migrate.mjs + hand-fixes.py + card-color.test.tsx.migrated, then guidelines:build, ai-ui:build,
+  library-keywords). Contract: the Card and List-Box sets spliced onto main's (only this branch changed them); live
+  List-Box also has Color (Neutral … Purple, Pale only) and Surface (Default · Alt on Default and Border).
+- Native pack: re-captured Card (Figma 120 variants; the pack had 80) and List-Box with the new names instead of a
+  name-only rename (user OK'd the clipboard; dropped 2 sets / 144 symbols, merged 184; check 177/177, native 130 ✓).
+- ListBox `color` / `surface` (user: "Thêm luôn trong đợt này"): Pale hues and Surface=Alt as Figma's variants, playground
+  chips, Studio map rows, push listBoxVariant (push selftest 348 ✓). No new harness rule (asked the user separately).
 
