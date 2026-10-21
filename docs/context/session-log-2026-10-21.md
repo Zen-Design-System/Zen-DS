@@ -1,5 +1,20 @@
 # Session log 2026-10-21
 
+## Session B · Card subAction to and from Figma (tier S; user: "làm hết" while the header PR waits for its gate)
+
+Branch zen/feat/card-subaction-figma-20261021 (from main 73e88b15).
+- Push: Sub-Action on with `subAction`, its icon (not the default ⋮) as Sub-Action's Leading-Icon-Src; MetricCard through
+  Card/Sub-Action; a label other than "More actions" is noted; a node that is not an IconButton shows as ⋮ (noted).
+- Pull: Sub-Action on → subAction {label: "More actions", icon}; what Card draws (flat, Secondary, Small) is no override.
+- Found live: Figma's Card wraps the button in Sub-Action › Wrapper frames (2026-10-18), so a nested "Sub-Action" path
+  only worked by luck through the set fallback ("Button", the first button in the card). Plugin `studio-import`
+  833ea0e: paths go through a wrapper frame and, ending there, take its one top-level instance; the pull maps the
+  read's "Button" back to "Sub-Action"; the Metric-Card reader takes the Sub-Action frame's button.
+- Also found: a Card/ListBox `width` was never pushed (the card hugged, ⋮ over its text). Now Fixed width out, and back
+  from the push JSON or a read whose instance is resized off its main.
+- Live (QA page, removed): Card with icon-share-01-line, Card without, MetricCard with share icon. Checks: push 358,
+  pull 117, native 130, studio:selftest, tsc, usage, ai-ui, style, guidelines, figma-props, plugin npm test.
+
 ## Simulator Android (tier S; user: "Ừ, thêm máy Android vào simulator đi"), worktree `../Zen-DS-android`, branch `zen/feat/studio-android-devices-20261021`
 - `tools/studio/screen-devices.mjs`: Android phone 412 × 917 (Figma Android Compact), Android tablet 1280 × 800 / 800 × 1280
   (Figma Android Expanded, turned), `os: "android"`, `deviceOs()`. Radii 39 / 20 are estimates (Google publishes none;

@@ -44,10 +44,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Child-Heading toggle and the Figma parity contract follow the old read. The push and pull already use the eyes.
   Pointer: re-read the ❖ Dashboard page with `tools/studio/figma-props-read.js`, then `figma-props-build.mjs`; the
   contract re-capture in `tools/figma-contract/README.md`.
-- **P3 · Card `subAction` to and from Figma (2026-10-20, Session B):** the push writes no Sub-Action for a Card's
-  `subAction` ("data with no Figma slot"), so Figma's Card shows none and an override of `Card/Sub-Action` lands on a
-  hidden layer; the pull notes a shown Sub-Action instead of reading it. Map it as Sub-Action on + the IconButton's
-  icon (label: its aria). Pointer: figma-push.mjs Card node, figma-pull.mjs "shows in Figma; set it on the Card".
 - **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
   changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*); Figma pull of overrides and
   slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20. Open:

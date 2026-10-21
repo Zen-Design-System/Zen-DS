@@ -21,7 +21,7 @@ import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_VARIABLE, PADDING_PX, sameVa
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
-import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-metric.mjs";
+import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma, subActionFromFigma } from "./figma-metric.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
@@ -268,6 +268,9 @@ const readInstance = async (instance) => {
     const glyph = instance.findOne((n) => n.type === "INSTANCE" && n.visible && /^(icon|ic)-/.test(n.name));
     if (glyph) out.icon = glyph.name;
   }
+  // Resized to a fixed width of its own (not its main's): the code's width (Card, ListBox).
+  const mainOf = await instance.getMainComponentAsync();
+  if (instance.layoutSizingHorizontal === "FIXED" && mainOf && Math.round(mainOf.width) !== Math.round(instance.width)) out.fixedWidth = Math.round(instance.width);
   // The instance's own layer opacity and blend (Figma's Appearance), when not the defaults (instance-look.mjs).
   if (typeof instance.opacity === "number" && instance.opacity < 1) out.opacity = instance.opacity;
   if (typeof instance.blendMode === "string" && instance.blendMode !== "PASS_THROUGH") out.blendMode = instance.blendMode;
@@ -1120,6 +1123,17 @@ function padded(element, node, ctx) {
   return { kind: "element", ...(idOf(node, ctx, "pad") ? { id: idOf(node, ctx, "pad") } : {}), name: "Stack", props, children: [element] };
 }
 
+/**
+ * The code's layer for a nested path the read names otherwise: Card's Sub-Action is a frame around its Button/Icon-Flat
+ * since 2026-10-18, so the read (instances only) names the button "Button".
+ */
+const NESTED_ALIASES = { Card: { Button: "Sub-Action" } };
+const nestedAlias = (code, path) => {
+  const [first, ...rest] = String(path).split("/");
+  const alias = NESTED_ALIASES[code]?.[first];
+  return alias ? [alias, ...rest].join("/") : path;
+};
+
 /** Every text layer in a slot's layers, with its layer name (a text layer named after its words has none). */
 const slotTexts = (nodes) => nodes.flatMap((node) => (node.type === "TEXT" ? [node] : slotTexts(node.children ?? [])));
 
@@ -1953,6 +1967,9 @@ function convertNode(node, ctx) {
       if (!named && icon) notes.push(`${where}: its aria-label "${iconWords(icon)}" comes from its icon (Figma has no name for it)`);
     }
     const takesChildren = !mapping.apiProps[set.code] || mapping.apiProps[set.code].has("children");
+    // A component sized like a layout layer (Card, ListBox: sizing.ts) resized to a fixed width (the read gives it when
+    // it is not its main's; the push writes it): its width.
+    if (typeof node.fixedWidth === "number" && mapping.apiProps[set.code]?.has("width") && !props.width) props.width = literal(node.fixedWidth);
     const { handled, children: slotsAreChildren } = set.code === "DashboardHeader" ? dashboardHeaderParts(node, props, ctx) : { handled: new Set(), children: false };
     // Parts a component reads from its own layers (a ListItem's title and leading, a field's label and help): the
     // slots and nested instances they used are not read again below.
@@ -2048,12 +2065,28 @@ function convertNode(node, ctx) {
     for (const nested of (node.nested ?? []).filter((nested) => !ownParts(nested))) {
       const inner = nested.set ? mapping.sets.get(nested.set.id) ?? mapping.sets.get(nested.set.name) : null;
       if (!inner) { notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
-      const fields = instanceProps(nested, inner, mapping, notes, `${set.code} › ${nested.path}`);
-      if (Object.keys(fields).length) overrides[nested.path] = { kind: "object", fields };
+      const path = nestedAlias(set.code, nested.path);
+      const fields = instanceProps(nested, inner, mapping, notes, `${set.code} › ${path}`);
+      if (Object.keys(fields).length) overrides[path] = { kind: "object", fields };
+    }
+    // Card's ⋮ Sub-Action shown is its subAction, the icon the Sub-Action's own (Card.tsx draws it so).
+    const subAction = set.code === "Card" && node.props?.["Sub-Action"] === true;
+    if (subAction) {
+      const own = overrides["Sub-Action"];
+      const icon = own?.fields.icon?.kind === "literal" ? own.fields.icon.value : undefined;
+      // What Card.tsx draws there is no override: the icon, and its Button/Icon-Flat Small Secondary.
+      const drawn = { appearance: ["flat"], level: ["secondary"], size: ["sm", "small"] };
+      if (own) {
+        delete own.fields.icon;
+        for (const [name, values] of Object.entries(drawn)) if (own.fields[name]?.kind === "literal" && values.includes(own.fields[name].value)) delete own.fields[name];
+        if (!Object.keys(own.fields).length) delete overrides["Sub-Action"];
+      }
+      props.subAction = subActionFromFigma(icon);
     }
     if (Object.keys(overrides).length) props.overrides = { kind: "object", fields: overrides };
-    // A layer Figma shows with a boolean of its name (Card's Sub-Action) that the code draws only when a prop is set.
+    // A layer Figma shows with a boolean of its name that the code draws only when a prop is set.
     for (const layer of new Set((node.nested ?? []).filter((nested) => !ownParts(nested)).map((nested) => nested.path.split("/")[0]))) {
+      if (subAction && layer === "Sub-Action") continue;
       if (node.props?.[layer] === true && !set.toggles?.some((toggle) => toggle.label === layer)) notes.push(`${where}: ${layer} shows in Figma; set it on the ${set.code} in the Studio (its overrides apply once it is there)`);
     }
     // Metric-Inline alone is a Metric; a Card holding only one is the MetricCard (figma-push draws it so).

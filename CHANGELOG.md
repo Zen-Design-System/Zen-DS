@@ -53,6 +53,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   E4, E7 keep their rhythm as one section each. The Figma audit no longer reads a heading over its own paragraph as a
   lone title, a floating bar's own scrim as a painted gradient, or a Large Indicator Tab-Bar's even bleed out of a
   header row as an overflow.
+- Zen Studio ↔ Figma: a Card's (and MetricCard's) `subAction` is Figma's ⋮ Sub-Action with its icon (the button's
+  Leading-Icon-Src), and Figma's Sub-Action shown reads back as `subAction` with the built-in "More actions" label (Figma
+  has no words for it; a different label is noted on push). Since Figma wraps the button in a Sub-Action › Wrapper
+  frame, the plugin's nested paths go through wrapper frames (`studio-import` 833ea0e) and the pull maps the read's
+  "Button" back to "Sub-Action". A Card or ListBox `width` goes to Figma as its Fixed width and comes back.
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
