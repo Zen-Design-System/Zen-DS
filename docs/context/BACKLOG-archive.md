@@ -2,6 +2,32 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-21 (Search Shape follow-ups)
+
+- Done 2026-10-21 (Bottom-Sheet re-probed and replaced in the pack; its Search is Search/Default Small Rounded there now):
+  **P3 · native-pack Bottom-Sheet is stale (2026-10-21, session log "Search Rounded in the Figma library"):** the pack
+  (read 2026-10-18) still draws Bottom-Sheet's search as Search/Popover; the live set holds Search/Default Small,
+  Shape=Rounded since 2026-10-21. A direct ⌘V of a BottomSheet may paste the old search. Re-probe Bottom-Sheet
+  (4059:14161) the incremental way (memory native-pack-incremental-merge; the capture uses the clipboard).
+
+- Done 2026-10-21 ((a) Figma Bottom-Sheet's Search is Shape=Rounded; Top-Navigation/Mobile's Control-Bar is an empty
+  slot, so there is no library Search to set; (b) the pack has Search/Default Shape since its 2026-10-18 read):
+  **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) settled 2026-10-17 (user:
+  "mặc định nhưng cho sửa"): TopNavigation control bars and BottomSheets give their Search `rounded` in code and
+  Studio; for the designer: set Shape=Rounded on the Search instance in Figma Top-Navigation/Mobile's Control-Bar and
+  Bottom-Sheet's search so the library matches. (b) native
+  paste: `docs/figma-contracts/native-pack.json` has no Search/Default Shape yet, so a direct ⌘V of `shape="rounded"`
+  lands as Default with a note (the plugin import is right); re-capture the Search/Default probe (`native-pack.mjs
+  probe-code` + `capture`, Figma desktop).
+
+## Archived 2026-10-21 (section rules, Master-Layout · Example)
+
+- Done 2026-10-21 (all 9 grouped in Figma and code, audit 0 section findings): **P2 · Figma ◇ Master-Layout · Example: 9 more screens break the section rules (2026-10-21, question for the user):**
+  C1, C2, C7, D3, D4 were fixed (open closing lists, grouped sections, Section-Gap). The audit's `spacing/section-gap` /
+  `section/title-apart` still flag B3 (two rows of one widget grid at 24), B5 (docs steps: titles apart from their
+  content), C4, C5, C6, D2, D5 (Section-Header over loose List-Items), E4, E7 (title, Segmented and Card as siblings):
+  group each into whole sections and bind the gap? Code examples follow. Session log 2026-10-21.
+
 ## Archived 2026-10-11 (core rebuild M4, M7)
 
 - Done 2026-10-11 (M4, "Changes go to · Row N · All rows"): **P1 · Figma usability — "This row / All rows" as a control (2026-10-10):** the repeated-layer heading says it; a

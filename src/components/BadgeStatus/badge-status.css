@@ -1,0 +1,16 @@
+/* Figma Badge-Status (16932:195): the Badge pill (badge.css: height, padding, gap, radius, text) with a status ring.
+   Paint per Status: bg = container fill, icon = the ring (Ring + Progress) or library icon, content = Label fill. */
+.zen-badge-status[data-status="to-do"] { --zen-badge-bg: var(--zen-color-background-neutral-subtle-default); --zen-badge-icon: var(--zen-color-content-neutral-light); --zen-badge-content: var(--zen-color-content-neutral-strongest); }
+.zen-badge-status[data-status="in-progress"] { --zen-badge-bg: var(--zen-color-background-info-subtle-default); --zen-badge-icon: var(--zen-color-content-info-light); --zen-badge-content: var(--zen-color-content-info-strongest); }
+.zen-badge-status[data-status="in-review"] { --zen-badge-bg: var(--zen-color-background-warning-subtle-default); --zen-badge-icon: var(--zen-color-content-warning-light); --zen-badge-content: var(--zen-color-content-warning-strongest); }
+.zen-badge-status[data-status="done"] { --zen-badge-bg: var(--zen-color-background-positive-subtle-default); --zen-badge-icon: var(--zen-color-content-positive-light); --zen-badge-content: var(--zen-color-content-positive-strongest); }
+.zen-badge-status[data-status="blocked"] { --zen-badge-bg: var(--zen-color-background-negative-subtle-default); --zen-badge-icon: var(--zen-color-content-negative-light); --zen-badge-content: var(--zen-color-content-negative-strongest); }
+/* Cancelled: the muted label (Content/Neutral/Base) reads as stopped work beside To Do. */
+.zen-badge-status[data-status="cancelled"] { --zen-badge-bg: var(--zen-color-background-neutral-subtle-default); --zen-badge-icon: var(--zen-color-content-neutral-light); --zen-badge-content: var(--zen-color-content-neutral-base); }
+/* The ring sits as far from the left edge as from the top (Medium Spacing/Padding/2XSmall, Small 3XSmall). */
+.zen-badge-status[data-size="medium"] { padding-left: var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-badge-status[data-size="small"] { padding-left: var(--zen-spacing-padding-3-xsmall, 2px); }
+/* Ring: Element-Size/Popular/Base on Medium, Popular/Small on Small (Figma .Primitives/Badge/Progress-Icon). */
+.zen-badge-status__leading { display: inline-flex; flex-shrink: 0; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; color: var(--zen-badge-icon); }
+.zen-badge-status[data-size="small"] .zen-badge-status__leading { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); }
+.zen-badge-status__leading > .zen-icon, .zen-badge-status__ring { display: block; width: 100%; height: 100%; }

@@ -40,6 +40,27 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (usage rules §13, user rule 2026-10-21). Figma audit `spacing/section-gap` now reads the AppShell Content slot and
   desktop, and `section/title-apart` warns on a title alone. AppShell C1, C2, C7 group their widgets into one section
   above the closing list, in code and in Figma (◇ Master-Layout · Example, also D3, D4 opened).
+- Nine more AppShell screens follow the section rules, in Figma (◇ Master-Layout · Example) and in code: B3's two
+  widget rows are one grid (cards 16 apart), B5's docs steps are sections 32 apart with the React 19 note inside step 1,
+  C5's Segmented sits with the groups it switches, D5's closing quiz list is open (title row over a List); C4, C6, D2,
+  E4, E7 keep their rhythm as one section each. The Figma audit no longer reads a heading over its own paragraph as a
+  lone title, a floating bar's own scrim as a painted gradient, or a Large Indicator Tab-Bar's even bleed out of a
+  header row as an overflow.
+- Zen Studio places and round-trips `BadgeStatus` and `PropertyField` (2026-10-21): Assets items (Badge status, Property
+  field, Task properties), Figma-named properties (Badge-Status Status/Size; Property-Field Label, Icon, Action), and the
+  Figma push/pull — a row's cell is the nested Property-Value's Type, State and content (figma-property.mjs); contract,
+  library keys and the native-paste pack hold the three sets. `PropertyDate` takes ISO strings ("2026-06-07").
+- New `PropertyField` (2026-10-21, Figma Input/Property-Field 16923:6031, user-approved): a record's property edited in
+  place — a 128px label column (icon, label, the + Action) and one value cell: `PropertyText` (an input in place),
+  `PropertySelect` (options with icon + tone), `PropertyStatus` (BadgeStatus steps), `PropertyDate` (DatePicker),
+  `PropertyPeople` (Tag photos, `single`), `PropertyTags` (Subtle Badges, `onCreate`); each `value`/`defaultValue`/
+  `onValueChange`, `readOnly`, `placeholder` ("Empty"/"Trống"). Documented with the Input fields; four examples on the
+  Input page; harness `property-field/one-value` (usage rules §21).
+- New `BadgeStatus` (2026-10-21, Figma Badge-Status 16932:195, user-approved): a task's or project's workflow step —
+  to-do · in-progress · in-review · done · blocked · cancelled, sm/md — with a progress ring that fills as the work moves
+  on; `progress` (0–100) sets an exact value and is read after the label; the label defaults from the locale (en/vi).
+  The Badge page shows it in five examples and a playground; harness `badge/workflow-status-uses-badge-status` (error)
+  flags a Badge whose text is a workflow step (usage rules §20).
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
@@ -52,6 +73,20 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   "sửa push Sidebar đứng riêng luôn"). The set has 16 of its 40 combinations, so the push takes the nearest one: the
   themes other than Default exist only at Density=Small. An AppShell's master writes the same variant (`pattern="grid"`
   gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
+- Forms in overlays (user rules 2026-10-21):
+  - A Dialog is for a notice or a quick confirm, with one field at most. A data-entry form of two or more fields is a
+    ModalForm on desktop and tablet, and a BottomSheet on a phone.
+  - A ModalForm keeps its actions in a row. Its footer no longer stacks them below 720px or in a narrow device frame.
+  - New harness rules: `dialog/form-uses-modal-form`, `modal-form/actions-horizontal` and `modal-form/not-on-phone`.
+  - The Figma audit gains `modal/dialog-form`, `modal/form-actions-vertical`, `modal/form-on-phone` and
+    `modal/form-side-taller`.
+  - Zen Studio's Rename layers (⌘R on several layers) is now a ModalForm.
+- Figma Modal/Forms content now grows the modal instead of being cut off (2026-10-21, user: "kiểm tra lại constrain và
+  stretch của các layout bên trong forms, không để khoảng trống vô duyên"):
+  - Big's Body and Main-Contents hug their content; they had a fixed height and a Fill height.
+  - The 1-3, Half-Half and 3-4 Side-Content columns hug theirs. Their placeholder was Fill, which kept the slot from
+    growing.
+  - Default sizes are unchanged.
 - Four Breakpoint & Grids tokens from Figma, for Bento layouts (2026-10-21, user: "Kiểm tra update thêm token trong
   Breakpoints từ Figma"), the same in Desktop, Tablet and Mobile: `--zen-margin-bento-grid` (Padding/XSmall 8),
   `--zen-margin-bento-layout` (Padding/Medium 16), `--zen-gutter-bento-grid` (Gap/XSmall 8) and
@@ -67,6 +102,21 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   page in its own browser (real engine, touch and safe areas), from the Screen Play is on, in Play's modes and the
   project's theme. The link works for two hours. The dev server stays on localhost; a proxy forwards only the shared
   page, to the browser that opened its link. New dev dependency `uqr` (QR codes): run `npm install`.
+- **Timeline** (2026-10-21, approved with Calendar and Schedule; Figma ❖ Timeline 16121:9): TimelineActivity (an
+  activity feed of TimelineItem rows, newest first by day; Avatar / Icon / Dot markers whose tone is status),
+  TimelineMilestones (Done / Current / Upcoming from `today`, a row on desktop, a column on a phone) and TimelineGantt
+  (groups that collapse, task / summary / milestone bars by date that keep their real dates, today's line; a phone keeps
+  a 128px task column and scrolls three weeks, opening at today); primitives TimelineMarker, TimelineMilestone,
+  TimelineGanttBar, TimelineGanttLabel. Platform page `timeline`, guideline, harness rule `timeline/gantt-names-plan`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys).
+- **Schedule** (2026-10-21, user: "xong gate thì làm tiếp Schedule"; Figma ❖ Schedule 16121:6): ScheduleResourceGrid
+  (people and rooms by hour or by day, bookings as Event-Block bars, the vertical now line; a phone keeps the resource
+  column and scrolls four hours, opening at now), ScheduleItinerary (Past / Now / Upcoming stops from `now`),
+  ScheduleSlotPicker (one native radio group across days; taken times disabled and struck through; Morning / Afternoon
+  on a phone under a Week-Strip) and ScheduleDayPlanner (Event-Cards at their start time, the hour grows so they never
+  overlap); primitives ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard.
+  Platform page `schedule`, guideline, harness rules `schedule/slot-picker-confirm`, `schedule/selected-needs-handler`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys).
 - **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
   CalendarMonth, CalendarTimeGrid (Week / Day, Mobile 3-Day), CalendarAgenda and CalendarWeekStrip (Dot / Tile) take
   events as data (`CalendarEventData`: id, title, start, end, allDay, color, meta, attendees); the primitives
@@ -148,6 +198,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Sidebar rail at Density=Medium follows Figma's Patterns/Sidebar (user 2026-10-21: "Sửa rail Medium theo Figma"): 80
   wide (was 84 / 88), the Padding/XSmall inset on the outer edge only, the logo and collapse control Spacing/Gap/Large
   apart (was Medium); the AppShell no longer pulls the page over the rail. The Studio push writes the 80px rail.
+- Zen Studio's gap and padding handles, as Figma's: on a selected auto layout frame (Stack, Grid) a hovered gap or
+  padding turns Figma's pink with a handle and its value as a variable pill ("Gap · Small · 12"); dragging it changes
+  the gap or the padding, snapped to the Spacing/Gap or Spacing/Padding ladder and previewed while dragging, written
+  once on release (one ⌘Z; Escape cancels). ⌥ sets the opposite side too (Zen's paddingX / paddingY always do), ⇧ (or
+  ⇧⌥) all four sides; the status line names the variable ("Gap XLarge"). A click still opens the scale; free frames
+  (Box) keep the click only. The spacing undo line now reads Figma's words ("Undid “Stack Gap → XLarge”").
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
@@ -213,6 +269,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
   and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
+- Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
+  tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
   (⌘D on a Section copied only the Section before, under a Screen's id).
 - The direct paste brings a frame's whole look: its stroke inside at its weight (one side, or Zen's dash), each corner
@@ -467,6 +525,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   TopNavigation control bar or a BottomSheet (so also the Input family's phone sheet) takes `shape="rounded"` unless it
   sets its own `shape`; elsewhere Search keeps the default shape. Zen Studio pushes a control-bar Search as
   Shape=Rounded and pulls it back without the prop.
+  - The Figma library matches (2026-10-21, user: "có"): Bottom-Sheet's search is Shape=Rounded, and the phone
+    examples E1 · Delivery home, E2 · Shop home and E6 · Discover use a Rounded Search. Top-Navigation/Mobile's
+    Control-Bar is an empty slot: the Search a designer puts there takes Rounded.
+  - An AppShell on a phone does the same (2026-10-21, user: "AppShell mobile cũng mặc định Rounded … nhưng cho phép
+    đổi"): in its mobile structure, or its drawer layout under tablet width, every Search that sets no `shape` is a pill;
+    `shape="default"` keeps the square field. Desktop AppShells are unchanged.
 - AppShell collapses a customised Sidebar (2026-10-18, user: "lỗi sidebar lúc expand và collapse khi dùng template"):
   the Sidebar now tells the shell what it is wherever it sits, so one wrapped in an app component, a Stack or a Studio
   component gets the top-bar toggle, starts from its own `collapsed`, and a Sidebar with its own `onCollapsedChange`

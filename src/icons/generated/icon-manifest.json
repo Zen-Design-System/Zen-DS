@@ -2,7 +2,7 @@
   "count": 1598,
   "monochrome": 1598,
   "multicolor": 0,
-  "core": 103,
+  "core": 109,
   "buckets": 256,
   "aliases": {
     "icon-chevron-left-line": "icon-chevron-left-line-medium",
@@ -2097,7 +2097,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 1,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-building-02-solid",
@@ -2881,7 +2881,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 40,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-clock-refresh-line",
@@ -4497,7 +4497,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 105,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-edit-02-solid",
@@ -5081,7 +5081,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 12,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-flag-01-solid",
@@ -7649,7 +7649,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 35,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-message-chat-circle-solid",
@@ -12609,7 +12609,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 65,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-x-circle-solid",
