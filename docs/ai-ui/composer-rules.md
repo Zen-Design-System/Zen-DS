@@ -53,7 +53,9 @@ a rejected spec comes back with the error paths and hints, fix those and resend.
    (secondary), `-light` (tertiary). No hex values.
 10. **Copy and counts:** pluralise ("1 file", "3 files"); Toggle labels name the setting; Toast titles ≤ 60
    characters and never a question; Tabs hold 2–7 items, Segmented 2–5; no Pagination under 3 pages.
-11. **Structure:** no Dialog inside a Dialog, no Accordion inside an Accordion, no Tooltip on a disabled control.
+11. **Structure:** no Dialog inside a Dialog, no Accordion inside an Accordion, no Tooltip on a disabled control. A Dialog
+   is a notice or a quick confirm (one field at most); a form of two or more fields is a `ModalForm` (actions in a row,
+   never `actionsDirection="vertical"`) on desktop and tablet, a `BottomSheet` on a phone.
 12. **Mobile:** Back is `icon-chevron-left-line-medium` (never an arrow); on an icon-only TopNavigation Back the
    label is "Back", while PageHeader's visible Back names the destination ("Invoices"); footer CTAs go in an `ActionBar` (Large,
    full width, Primary on top, clears the home indicator); filter chips sit in one horizontally scrolling row and
