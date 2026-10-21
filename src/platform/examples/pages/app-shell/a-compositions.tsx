@@ -50,9 +50,9 @@ const looks = {
 } satisfies Record<string, Look>;
 
 // ——— The workspace's content (Figma texts) ——————————————————————————————————————————————————————————————————
-const maya = { name: "Maya Chen", photo: people.ava.photo };
+export const maya = { name: "Maya Chen", photo: people.ava.photo };
 
-const navSections: SidebarSection[] = [
+export const navSections: SidebarSection[] = [
   { items: [
     { id: "overview", label: "Overview", icon: "icon-home-03-line" },
     { id: "inbox", label: "Inbox", icon: "ic-inbox-01-line", counter: 3 },
@@ -137,7 +137,7 @@ const projectPagination = {
 // ——— The screen ————————————————————————————————————————————————————————————————————————————————————————————
 /* The workspace's mark and name (Figma Header-Content: an Avatar Small square, Body/Extra/Bold, the switcher chevron);
    the collapsed rail keeps the mark. */
-const brand = (
+export const brand = (
   <Stack direction="row" gap="xs" align="center">
     <Avatar size="sm" shape="square" theme="photo" src={studio.logo} alt="" />
     <Stack direction="row" gap="3xs" align="center">
@@ -146,10 +146,10 @@ const brand = (
     </Stack>
   </Stack>
 );
-const mark = <Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
+export const mark = <Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
 
 /** The width of an element, kept current: the KPI row folds to two columns when the page beside the Sidebar is narrow. */
-function useWidth() {
+export function useWidth() {
   const [element, setElement] = useState<HTMLElement | null>(null);
   const [width, setWidth] = useState(0);
   useEffect(() => {

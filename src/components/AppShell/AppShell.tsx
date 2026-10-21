@@ -22,7 +22,7 @@ import { AppShellChromeContext, AppShellContext, type AppShellChrome, type AppSh
 export { useAppShell, type AppShellContextValue, type AppShellLayout } from "./context";
 
 /** Figma Pattern/AppShell/Desktop Layout (16258:1857). */
-export const appShellPatterns = ["sidebar", "list-detail", "top-bar", "workspace", "docs", "focus"] as const;
+export const appShellPatterns = ["sidebar", "list-detail", "top-bar", "workspace", "docs", "focus", "grid"] as const;
 export type AppShellPattern = (typeof appShellPatterns)[number];
 /** Figma Pattern/AppShell/Desktop Collapse: where the Sidebar's collapse toggle sits. */
 export const appShellCollapses = ["header", "sidebar", "none"] as const;
@@ -43,6 +43,10 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
    * - `workspace`: the header across the top · `leadingPane` · page · `trailingPane` (tools, properties).
    * - `docs`: as workspace, the page a centred 720 column for reading, the panes on the Canvas.
    * - `focus`: one task: the header across · `progress` · a 680 column with the `trailingPane` (a summary) beside it.
+   * - `grid`: as `sidebar`, drawn in lines instead of surfaces (Layout=Grid, 16258:1857): the Sidebar takes Theme=Border,
+   *   Density=Small (no fill, a Pale line on its inner edge) and the header Theme=Border & Divider, Density=Small (a
+   *   Pale line under its top row), unless they set their own `theme` / `density`. Pair it with Boxes and Flat Cards;
+   *   keep Subtle for the metric cards that should stand out (◇ Master-Layout Rule, 16823:85229).
    */
   pattern?: AppShellPattern;
   /**
@@ -139,7 +143,7 @@ const TABLET_MIN_WIDTH = 744;
 const SIDE_PANEL_DEFAULT_WIDTH = 360;
 const DRAWER_SHELL = { drawer: true };
 /** The patterns that keep the Sidebar beside the page; the others put the header across the top. */
-const SIDEBAR_PATTERNS = new Set<AppShellPattern>(["sidebar", "list-detail"]);
+const SIDEBAR_PATTERNS = new Set<AppShellPattern>(["sidebar", "list-detail", "grid"]);
 /** Figma's TopNavigation type for each mobile Top, when the screen's own TopNavigation sets none. */
 const TOP_NAV_TYPE: Record<AppShellMobileTop, TopNavigationProps["type"]> = { bar: "alt", band: "transparent", "band-sheet": "transparent", media: "liquid-overlay" };
 
@@ -371,7 +375,9 @@ export function AppShell({
     openNav: () => setNavOpen(true),
     registerHeader: setHeaderEl,
     phone: layout === "drawer" && shellWidth > 0 && shellWidth < TABLET_MIN_WIDTH,
-  }), [toggle, sidebarCollapsed, setSidebarCollapsed, sidebarId, open, setNavOpen, layout, shellWidth]);
+    headerTheme: pattern === "grid" ? "border-divider" : undefined,
+    headerDensity: pattern === "grid" ? "small" : undefined,
+  }), [toggle, sidebarCollapsed, setSidebarCollapsed, sidebarId, open, setNavOpen, layout, shellWidth, pattern]);
   // Sidebar reads these through SidebarShellContext, so a Sidebar wrapped in an app component follows the rail too. The
   // drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
   const inlineShell = useMemo<SidebarShellState>(() => ({
@@ -379,7 +385,9 @@ export function AppShell({
     expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined,
     toggleHere: shellToggles && collapse === "sidebar" ? setSidebarCollapsed : undefined,
     register,
-  }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed, shellToggles, collapse, register]);
+    theme: pattern === "grid" ? "border" : undefined,
+    density: pattern === "grid" ? "small" : undefined,
+  }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed, shellToggles, collapse, register, pattern]);
 
   // The side panel docks beside the page (Figma Side-Panel Type=Standard) only while the page keeps a Tablet width next
   // to it; otherwise a SidePanel opens as the modal panel (Type=Modal) and anything else stacks under the page.
@@ -501,5 +509,5 @@ export function AppShell({
   );
 }
 
-export { AppShellHeader, AppShellAction, AppShellAccount, type AppShellHeaderProps, type AppShellActionProps, type AppShellAccountProps, type AppShellActionTone } from "./AppShellHeader";
+export { AppShellHeader, AppShellAction, AppShellAccount, appShellHeaderThemes, appShellHeaderDensities, type AppShellHeaderProps, type AppShellHeaderTheme, type AppShellHeaderDensity, type AppShellActionProps, type AppShellAccountProps, type AppShellActionTone } from "./AppShellHeader";
 export { AppShellPane, appShellPaneThemes, appShellPaneSurfaces, type AppShellPaneProps, type AppShellPaneTheme, type AppShellPaneSurface } from "./AppShellPane";
