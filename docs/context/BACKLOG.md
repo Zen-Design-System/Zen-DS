@@ -58,13 +58,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,
   Enter = all children, Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles,
   frame presets. Pointer: same doc §8.
-- **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) settled 2026-10-17 (user:
-  "mặc định nhưng cho sửa"): TopNavigation control bars and BottomSheets give their Search `rounded` in code and
-  Studio; for the designer: set Shape=Rounded on the Search instance in Figma Top-Navigation/Mobile's Control-Bar and
-  Bottom-Sheet's search so the library matches. (b) native
-  paste: `docs/figma-contracts/native-pack.json` has no Search/Default Shape yet, so a direct ⌘V of `shape="rounded"`
-  lands as Default with a note (the plugin import is right); re-capture the Search/Default probe (`native-pack.mjs
-  probe-code` + `capture`, Figma desktop).
 - **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
   unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
   (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).
