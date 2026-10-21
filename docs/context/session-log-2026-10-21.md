@@ -642,6 +642,36 @@ Branch `zen/feat/timeline-20261021` (worktree `../Zen-DS-timeline`, on top of Sc
 - Native pack (user: "Làm luôn"): probe of the 4 Timeline sets, one Figma desktop copy (clipboard empty before and after),
   merged additively (8 sets, 36 symbols), no picture layers, probe removed. Figma descriptions of the 8 sets updated.
 
+
+## Gap / padding drag handles (side session, tier S, branch `claude/vigorous-kalam-46a23f`)
+
+Approved scope (user 2026-10-21, "mở phiên nhận các phần đó"): BACKLOG "rest of P2–P3", gap / padding drag handles.
+- Spec card (changed elements only): spacing hit areas of a selected Stack / Grid (SpacingLayer). Hover / drag tint
+  Support/Pink/Subtle (padding fill, gap fill under Support/Pink/Solid stripes), handle Support/Pink/Solid with
+  Corner-Radius/Rounded, pill Support/Pink/Solid + Content/On-Colors, Caption/Medium, Gap/3XSmall before the hexagon
+  (icon-hexagon-01-line, Figma's variable pill), Gap/XSmall below the handle. States: rest (Info tints as before),
+  hover (pink + handle + pill), dragging (every area the prop sets pink, cursor ew/ns-resize everywhere), held
+  preview until the re-render. Keyboard: no new tab stops (the Inspector's Layout section stays the keyboard path);
+  Escape cancels a drag, ⇧ / ⌥ read live while dragging.
+- `select/spacingDrag.ts` (+ selftest 24, in studio:selftest): drag axis and sign per side, CSS px travel, nearest
+  step (smaller on a tie), longhand preview properties, DRAG_LAYOUTS = Stack / Grid. SpacingLayer: a press on a
+  draggable area waits for 3 px; a drag previews the step inline on the host (longhands React never writes), writes
+  once on release (setProp + removeProp of the written side props for ⇧, one undo step), holds the preview until the
+  re-render (ResizeLayer's pattern); a press that never moved is the old click (the scale opens on release; ⇧ goes on
+  to the selection logic). Zen pads per axis, so a plain and a ⌥ drag both set paddingX / paddingY; ⇧ or ⇧⌥ (Figma's
+  all-sides gesture; ⇧'s big nudge means nothing on a ladder) sets `padding`. Status line "Gap XLarge · 32 · ⌘Z to
+  undo"; the picker's undo label now uses Figma's words too (was `gap → "xl"`).
+- Grid's padding is one prop, so any side drags all four there; Box (free frame), Card, Form keep the click.
+- E2E FW-155…159 (figma.mjs, own seeded page): hover pink / handle / pill / click, gap drag + preview + one ⌘Z,
+  left padding (both sides), ⌥ top and ⇧ left, Grid column gap + Escape + free frame. No studio:dnd rows: the
+  matrix covers layer drops, not spacing.
+- BACKLOG entry trimmed to ⇧⌘G of several layers (ungroupSelection acts on the primary only).
+- Gate (2026-10-22, main 8c973b40 merged, `--isolated --files=…`): PASS, Studio E2E 338 / 0 (1508 s); FW-155…159 5 / 0,
+  SE-20 ✓. First FW try: 2 broken because the fixture's 8 px padding (≈ 4 screen px at fit zoom) lay under the resize
+  strip on the frame's edge (ResizeLayer STRIP, 4 px inside), which keeps the press as Figma's edge resize does; the
+  fixture pads 20 / 24 now and the rows aim at each area's centre read from the canvas. A padding thinner than ≈ 8
+  screen px drags only after zooming in.
+
 ## Code properties move to the Code tab (tier S, branch `zen/feat/studio-code-props-code-tab-20261021`)
 
 Parity plan §3a ("Properties: code-only ones on the Code tab"), the BACKLOG P1 item; one of the sessions opened for the

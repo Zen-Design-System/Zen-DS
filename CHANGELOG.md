@@ -201,6 +201,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Sidebar rail at Density=Medium follows Figma's Patterns/Sidebar (user 2026-10-21: "Sửa rail Medium theo Figma"): 80
   wide (was 84 / 88), the Padding/XSmall inset on the outer edge only, the logo and collapse control Spacing/Gap/Large
   apart (was Medium); the AppShell no longer pulls the page over the rail. The Studio push writes the 80px rail.
+- Zen Studio's gap and padding handles, as Figma's: on a selected auto layout frame (Stack, Grid) a hovered gap or
+  padding turns Figma's pink with a handle and its value as a variable pill ("Gap · Small · 12"); dragging it changes
+  the gap or the padding, snapped to the Spacing/Gap or Spacing/Padding ladder and previewed while dragging, written
+  once on release (one ⌘Z; Escape cancels). ⌥ sets the opposite side too (Zen's paddingX / paddingY always do), ⇧ (or
+  ⇧⌥) all four sides; the status line names the variable ("Gap XLarge"). A click still opens the scale; free frames
+  (Box) keep the click only. The spacing undo line now reads Figma's words ("Undid “Stack Gap → XLarge”").
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and

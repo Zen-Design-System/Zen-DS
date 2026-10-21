@@ -62,9 +62,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.
-- **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,
-  Enter = all children, Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles,
-  frame presets. Pointer: same doc §8.
+- **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17; re-checked 2026-10-21):** ⇧⌘G of several layers (it ungroups
+  the primary selection only: edit/groupLayers.ts `ungroupSelection`). The rest shipped (⌘G, Enter = all children,
+  Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles, frame presets, gap /
+  padding drag handles 2026-10-21). Pointer: same doc §8.
 - **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
   unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
   (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).
