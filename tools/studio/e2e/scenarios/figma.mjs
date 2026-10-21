@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
-import { inspectorRow, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 
 /** A new page of the Studio space titled `title` (its name). */
@@ -590,6 +590,114 @@ export function forgetPages() {
   shapesMade = null;
   twoMade = null;
   setsMade = null;
+  slotsMade = null;
+}
+
+/* ── F7c (an instance's slot from the canvas) helpers ────────────────────────────────────────────────────────────── */
+
+/** A page with a Panel main whose Content slot shows "Empty" until an instance puts layers there, an instance that puts
+ *  none, one that puts two (Filled, Second), and a row of two loose layers to drag in. */
+const slotsText = (title) => [
+  `// @zen-page {"format":1,"title":${JSON.stringify(title)}}`,
+  'import { Board, Component, Screen, Use } from "@zen-ds/react/builder";',
+  'import { Badge, Stack, Text } from "@zen-ds/react";',
+  "",
+  "export const mock = {};",
+  "",
+  "export default function Page() {",
+  "  return (",
+  "    <Board>",
+  `      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">`,
+  '        <Stack gap="xl" padding="xl">',
+  '          <Component id="panel" name="Panel" properties={{ Content: { type: "slot" } }}>',
+  '            <Stack gap="sm" padding="lg" surface="subtle" width={320}>',
+  "              <Text>Panel</Text>",
+  '              <Stack data-prop-slot="Content" gap="lg" padding="lg" border="subtle">',
+  "                <Text>Empty</Text>",
+  "              </Stack>",
+  "            </Stack>",
+  "          </Component>",
+  '          <Stack direction="row" gap="xl" align="start">',
+  '            <Use of="panel" />',
+  '            <Use of="panel" slots={{ Content: <>',
+  "              <Text>Filled</Text>",
+  "              <Text>Second</Text>",
+  "            </> }} />",
+  "          </Stack>",
+  '          <Stack direction="row" gap="md">',
+  "            <Badge>Loose</Badge>",
+  "            <Text>Spare</Text>",
+  "          </Stack>",
+  "        </Stack>",
+  "      </Screen>",
+  "    </Board>",
+  "  );",
+  "}",
+  "",
+].join("\n");
+let slotsMade = null;
+async function slotsPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!slotsMade) {
+    const seeded = await seededPage(ctx, slotsText, /data-prop-slot="Content"/);
+    slotsMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${slotsMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${slotsMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await showLeftTab(page, "layers");
+  await deselect(page);
+  return { page, id: slotsMade };
+}
+/** The n-th Panel instance of the slots page (0: puts nothing in its slot, 1: Filled and Second) and its slot. */
+const panelAt = (page, id, n) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-instance="panel"]`).nth(n);
+const slotOf = (page, id, n) => panelAt(page, id, n).locator('[data-zen-slot="Content"]').first();
+/** The main's slot layer as written: untouched by every row. */
+const MAIN_SLOT = /<Stack data-prop-slot="Content" gap="lg" padding="lg" border="subtle">\s*<Text>Empty<\/Text>\s*<\/Stack>/;
+/** A text layer of the slots page by its words (`n`: which one with those words). */
+const wordsOn = (page, id, words, n = 0) => page.locator(`[data-studio-frame="screen:screen-1"]`).getByText(words, { exact: true }).nth(n);
+/**
+ * A drag in small steps from `from` to `to` (screen px; ⌥ held with `copy`); `during` reads the canvas just before the
+ * drop: what the overlay draws there (the slot's outline and its tag, the insertion line).
+ */
+async function slotDrag(page, from, to, { copy = false } = {}) {
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  if (copy) await page.keyboard.down("Alt");
+  try {
+    for (let step = 1; step <= 12; step += 1) {
+      await page.mouse.move(from.x + ((to.x - from.x) * step) / 12, from.y + ((to.y - from.y) * step) / 12);
+      await sleep(16);
+    }
+    await sleep(150);
+    return await page.evaluate(() => {
+      const into = document.querySelector(".studio-drag__into");
+      return {
+        slot: into?.getAttribute("data-slot") === "true",
+        tag: into?.querySelector(".studio-drag__slot-tag")?.textContent ?? null,
+        line: Boolean(document.querySelector(".studio-drag__line")),
+        label: document.querySelector(".studio-drag__label")?.textContent?.trim() ?? null,
+        outline: into ? getComputedStyle(into).boxShadow : null,
+      };
+    });
+  } finally {
+    await page.mouse.up();
+    if (copy) await page.keyboard.up("Alt");
+  }
+}
+const middle = (box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
+/** One ⌘Z takes the page back to `text` (Figma: one gesture, one undo step). */
+async function oneUndo(page, id, text) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+KeyZ");
+  await until(async () => (await pageText(page, id)) === text, { timeout: 5000, message: "one ⌘Z takes the page back" });
+}
+/** Selects a layer as Figma's ⌘-click does (the deepest layer: one in an instance's slot, one in a row), then checks it:
+ *  a press on it then drags that layer. */
+async function selectDeep(page, layer, name) {
+  await deepInto(page, layer);
+  await until(async () => (await selectedName(page)) === name, { message: `${name} selected` }).catch(async (error) => { throw new Error(`${error.message} · selected ${await selectedName(page)}`); });
 }
 
 export const rows = [
@@ -2947,6 +3055,109 @@ export const rows = [
         await until(async () => ((((await pageText(page, id)) ?? "").match(/<Use of="chip" \/>/g) ?? []).length) === before + 1, { message: "one more instance of the set" });
         await showLeftTab(page, "layers");
         return names.join(" · ");
+      });
+    },
+  },
+  // F7c · putting layers into an instance's slot from the canvas.
+  {
+    id: "FW-160", feature: "An Assets item dragged over an instance's empty slot: the slot outlined in violet with its name; the drop keeps the main's layers there and adds the item after them; the main is untouched; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await openAssetLibrary(page, "Components");
+        const panel = page.locator("#studio-left-panel-assets");
+        await panel.getByLabel("Search components").fill("Badge");
+        const tile = panel.locator('[data-asset="badge"]').first();
+        await tile.waitFor({ state: "visible", timeout: 5000 });
+        const slot = await slotOf(page, id, 0).boundingBox();
+        if (!slot) throw new Error("the empty instance's slot is not on the canvas (no data-zen-slot)");
+        const seen = await slotDrag(page, middle(await tile.boundingBox()), { x: slot.x + slot.width / 2, y: slot.y + slot.height - 6 });
+        if (!seen.slot || seen.tag !== "Content") throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
+        await written(page, id, /<Use of="panel" slots=\{\{ Content: <>\s*<Text>Empty<\/Text>\s*<Badge[^>]*>Active<\/Badge>\s*<\/> \}\} \/>/, "the slot: the main's Empty, then the Badge");
+        const after = (await pageText(page, id)) ?? "";
+        if (!MAIN_SLOT.test(after)) throw new Error("the main's slot layer changed");
+        await until(async () => (await panelAt(page, id, 0).getByText("Active", { exact: true }).count()) === 1, { message: "the instance draws the Badge in its slot" });
+        await showLeftTab(page, "layers");
+        await oneUndo(page, id, before);
+        return `over the slot: violet outline, tag ${seen.tag}, line ${seen.line} · Content = Empty + Badge · one ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-161", feature: "A layer dragged into an instance's slot between the layers the instance puts there lands at that place; the main is untouched; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await selectDeep(page, wordsOn(page, id, "Loose"), "Badge");
+        const badge = await wordsOn(page, id, "Loose").boundingBox();
+        const filled = await panelAt(page, id, 1).getByText("Filled", { exact: true }).boundingBox();
+        const second = await panelAt(page, id, 1).getByText("Second", { exact: true }).boundingBox();
+        // Between the two layers of the slot (their gap's middle).
+        const seen = await slotDrag(page, middle(badge), { x: filled.x + filled.width / 2, y: (filled.y + filled.height + second.y) / 2 });
+        if (!seen.slot || !seen.line) throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
+        await written(page, id, /slots=\{\{ Content: <>\s*<Text>Filled<\/Text>\s*<Badge>Loose<\/Badge>\s*<Text>Second<\/Text>\s*<\/> \}\}/, "Loose between Filled and Second");
+        const after = (await pageText(page, id)) ?? "";
+        if (after.split("<Badge>Loose</Badge>").length !== 2) throw new Error("the Badge was copied, not moved");
+        if (!MAIN_SLOT.test(after)) throw new Error("the main's slot layer changed");
+        await oneUndo(page, id, before);
+        return "Loose → between Filled and Second · main untouched · one ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-162", feature: "A layer dragged out of an instance's slot leaves it (the slot keeps its other layer) and lands where it is dropped; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const second = panelAt(page, id, 1).getByText("Second", { exact: true });
+        await selectDeep(page, second, "Text");
+        const spare = await wordsOn(page, id, "Spare").boundingBox();
+        const seen = await slotDrag(page, middle(await second.boundingBox()), { x: spare.x + spare.width - 2, y: spare.y + spare.height / 2 });
+        if (seen.slot) throw new Error(`over the row the overlay still shows a slot: ${JSON.stringify(seen)}`);
+        await written(page, id, /slots=\{\{ Content: <>\s*<Text>Filled<\/Text>\s*<\/> \}\}[\s\S]*<Badge>Loose<\/Badge>\s*<Text>Spare<\/Text>\s*<Text>Second<\/Text>/, "Second out of the slot, after Spare");
+        if (!MAIN_SLOT.test((await pageText(page, id)) ?? "")) throw new Error("the main's slot layer changed");
+        await oneUndo(page, id, before);
+        return "Second → after Spare · the slot keeps Filled · one ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-163", feature: "A layer of an instance's slot dragged above its sibling there changes places in the slot; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const second = panelAt(page, id, 1).getByText("Second", { exact: true });
+        await selectDeep(page, second, "Text");
+        const filled = await panelAt(page, id, 1).getByText("Filled", { exact: true }).boundingBox();
+        const seen = await slotDrag(page, middle(await second.boundingBox()), { x: filled.x + filled.width / 2, y: filled.y + 2 });
+        if (!seen.slot || seen.tag !== "Content") throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
+        await written(page, id, /slots=\{\{ Content: <>\s*<Text>Second<\/Text>\s*<Text>Filled<\/Text>\s*<\/> \}\}/, "Second before Filled");
+        await oneUndo(page, id, before);
+        return "Second ↑ Filled inside the slot · one ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-164", feature: "⌥-drag of a slot's layer into another instance's empty slot: a copy there (with that slot's main layers), the original stays; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const filled = panelAt(page, id, 1).getByText("Filled", { exact: true });
+        await selectDeep(page, filled, "Text");
+        const empty = await panelAt(page, id, 0).getByText("Empty", { exact: true }).boundingBox();
+        const seen = await slotDrag(page, middle(await filled.boundingBox()), { x: empty.x + empty.width / 2, y: empty.y + empty.height + 4 }, { copy: true });
+        if (!seen.slot || seen.label !== "Copy") throw new Error(`⌥ over the slot the overlay shows ${JSON.stringify(seen)}`);
+        await written(page, id, /<Use of="panel" slots=\{\{ Content: <>\s*<Text>Empty<\/Text>\s*<Text>Filled<\/Text>\s*<\/> \}\} \/>/, "a copy of Filled after Empty in the first instance");
+        const after = (await pageText(page, id)) ?? "";
+        if (!/slots=\{\{ Content: <>\s*<Text>Filled<\/Text>\s*<Text>Second<\/Text>/.test(after)) throw new Error("the original left its slot");
+        if (!MAIN_SLOT.test(after)) throw new Error("the main's slot layer changed");
+        await oneUndo(page, id, before);
+        return "⌥ Filled → the empty slot (Empty + Filled) · original stays · one ⌘Z";
       });
     },
   },

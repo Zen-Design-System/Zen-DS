@@ -580,4 +580,115 @@ test("replaceElement refuses what is not one JSX element, unknown names, data-ze
   assert.ok(!trigger.error, trigger.error);
 });
 
+/* ── F7c: an instance's slot from the canvas (slot-fill.mjs) ─────────────────────────────────────────────────────── */
+
+const PAGE_FILE = "local:slots-demo.zen.tsx";
+const SLOTTED = `// @zen-page {"format":1,"title":"Slots"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { Badge, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Slots" device="desktop">
+        <Stack gap="xl" padding="xl">
+          <Component id="panel" name="Panel" properties={{ Content: { type: "slot" }, Footer: { type: "slot" } }}>
+            <Stack padding="md">
+              <Text>Title</Text>
+              <Stack data-prop-slot="Content" gap="sm">
+                <Text>Empty</Text>
+              </Stack>
+              <Stack data-prop-slot="Footer" direction="row" />
+            </Stack>
+          </Component>
+          <Use of="panel" />
+          <Use of="panel" slots={{ Content: <Text>Filled</Text> }} />
+          <Badge>Loose</Badge>
+          <Text>Spare</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+const onPage = (loc, name, op, code = SLOTTED) => applySlotOp(code, loc, name, op, { file: PAGE_FILE, hash: sha1(code) });
+const bare = locOf(SLOTTED, '<Use of="panel" />');
+const filled = locOf(SLOTTED, '<Use of="panel" slots');
+const loose = locOf(SLOTTED, "<Badge>Loose");
+/** The page's code from its first instance on (the main's own layers left out). */
+const instances = (code) => code.slice(code.indexOf("<Use of="));
+
+test("slot: a layer dropped into an instance's empty slot keeps its main's layers there (Figma's default content)", () => {
+  const result = onPage(loose, "Badge", { op: "moveTo", parent: bare, slot: "Content", index: 1 });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Use of="panel" slots=\{\{ Content: <>\n {12}<Text>Empty<\/Text>\n {12}<Badge>Loose<\/Badge>\n {10}<\/> \}\} \/>/);
+  assert.equal(result.code.split("<Badge>Loose").length, 2, "moved, not copied");
+  assert.equal(result.moved.loc, locOf(result.code, "<Badge>Loose"));
+  assert.match(result.code, /<Stack data-prop-slot="Content" gap="sm">\n {16}<Text>Empty<\/Text>/, "the main is untouched");
+  assert.ok(parseSource(result.code));
+});
+
+test("slot: index 0 puts it before the main's layers; another slot of the same instance is its own entry", () => {
+  const first = onPage(loose, "Badge", { op: "moveTo", parent: bare, slot: "Content", index: 0 });
+  assert.ok(!first.error, first.error);
+  const [badge, empty] = order(instances(first.code), "<Badge>Loose", "<Text>Empty");
+  assert.ok(badge < empty);
+  const footer = onPage(locOf(SLOTTED, "<Text>Spare"), "Text", { op: "moveTo", parent: bare, slot: "Footer" });
+  assert.ok(!footer.error, footer.error);
+  assert.match(footer.code, /<Use of="panel" slots=\{\{ Footer: <Text>Spare<\/Text> \}\} \/>/, "an empty slot of the main takes the one layer as its value");
+});
+
+test("slot: into a filled slot before its layer (a fragment of both); pasteCode of an Assets item after it", () => {
+  const moved = onPage(loose, "Badge", { op: "moveTo", parent: filled, slot: "Content", before: locOf(SLOTTED, "<Text>Filled") });
+  assert.ok(!moved.error, moved.error);
+  assert.match(moved.code, /slots=\{\{ Content: <>\n {12}<Badge>Loose<\/Badge>\n {12}<Text>Filled<\/Text>\n {10}<\/> \}\}/);
+  const pasted = onPage(filled, "Use", { op: "pasteCode", code: "<Text>New</Text>", slot: "Content", index: 1 });
+  assert.ok(!pasted.error, pasted.error);
+  assert.match(pasted.code, /slots=\{\{ Content: <>\n {12}<Text>Filled<\/Text>\n {12}<Text>New<\/Text>\n {10}<\/> \}\}/);
+  assert.equal(pasted.inserted.loc, locOf(pasted.code, "<Text>New"));
+});
+
+test("slot: the last layer dragged out of a slot takes `slots` away; one of several leaves the others", () => {
+  const out = onPage(locOf(SLOTTED, "<Text>Filled"), "Text", { op: "moveTo", parent: locOf(SLOTTED, '<Stack gap="xl"'), after: loose });
+  assert.ok(!out.error, out.error);
+  assert.equal(out.code.split('<Use of="panel" />').length, 3, "both instances plain");
+  const [badge, text] = order(out.code, "<Badge>Loose", "<Text>Filled");
+  assert.ok(badge < text);
+  const two = onPage(loose, "Badge", { op: "moveTo", parent: filled, slot: "Content", index: 1 });
+  const back = onPage(locOf(two.code, "<Badge>Loose"), "Badge", { op: "moveTo", parent: locOf(two.code, '<Stack gap="xl"') }, two.code);
+  assert.ok(!back.error, back.error);
+  assert.match(back.code, /slots=\{\{ Content: <>\n {12}<Text>Filled<\/Text>\n {10}<\/> \}\}/);
+  assert.ok(parseSource(back.code));
+});
+
+test("slot: reorder inside a slot; its own place is refused; ⌥ copy to another instance's slot", () => {
+  const two = onPage(loose, "Badge", { op: "moveTo", parent: filled, slot: "Content", index: 1 }).code;
+  const use = locOf(two, '<Use of="panel" slots');
+  const reordered = onPage(locOf(two, "<Badge>Loose"), "Badge", { op: "moveTo", parent: use, slot: "Content", index: 0 }, two);
+  assert.ok(!reordered.error, reordered.error);
+  const [badge, text] = order(reordered.code, "<Badge>Loose", "<Text>Filled");
+  assert.ok(badge < text);
+  assert.match(onPage(locOf(SLOTTED, "<Text>Filled"), "Text", { op: "moveTo", parent: filled, slot: "Content", index: 0 }).error, /already there/);
+  const copied = onPage(locOf(SLOTTED, "<Text>Filled"), "Text", { op: "moveTo", parent: bare, slot: "Content", copy: true });
+  assert.ok(!copied.error, copied.error);
+  assert.equal(copied.code.split("<Text>Filled").length, 3, "the original stays");
+  assert.ok(copied.inserted?.loc);
+});
+
+test("slot: a layer inside the slot's one layer moves beside it (the slot becomes a fragment of both)", () => {
+  const nested = SLOTTED.replace("slots={{ Content: <Text>Filled</Text> }}", "slots={{ Content: <Stack><Text>In</Text><Badge>Deep</Badge></Stack> }}");
+  const result = onPage(locOf(nested, "<Badge>Deep"), "Badge", { op: "moveTo", parent: locOf(nested, '<Use of="panel" slots'), slot: "Content", index: 1 }, nested);
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /slots=\{\{ Content: <>\n {12}<Stack><Text>In<\/Text><\/Stack>\n {12}<Badge>Deep<\/Badge>\n {10}<\/> \}\}/);
+});
+
+test("slot: refused on a layer that is no instance, a slot the main lacks, several layers at once", () => {
+  assert.match(onPage(loose, "Badge", { op: "moveTo", parent: locOf(SLOTTED, '<Stack gap="xl"'), slot: "Content" }).error, /<Use>/);
+  assert.match(onPage(loose, "Badge", { op: "moveTo", parent: bare, slot: "Header" }).error, /Panel has no slot Header/);
+  assert.match(onPage(bare, "Use", { op: "many", action: "moveTo", locs: [loose], parent: filled, slot: "Content" }).error ?? "", /one layer at a time/);
+  assert.match(onPage(loose, "Badge", { op: "moveTo", parent: bare, slot: "Content", index: -1 }).error, /index/);
+});
+
 console.log(`✓ arrange (moveTo · pasteCode · replaceElement · many) self-test: ${passed} cases`);
