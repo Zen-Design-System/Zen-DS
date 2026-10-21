@@ -4822,7 +4822,7 @@
           "actions?: ReactNode",
           "main?: ReactNode",
           "sections?: ReactNode",
-          "theme?: default|border-divider",
+          "theme?: default|border-divider|borderless",
           "density?: medium|small",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "ref?: Ref<HTMLElement>"
