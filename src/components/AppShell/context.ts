@@ -43,6 +43,10 @@ export interface AppShellChrome {
   registerHeader: (element: HTMLElement | null) => void;
   /** The drawer layout on a phone (the shell narrower than 744): the header's trail gives way to Back (§17). */
   phone: boolean;
+  /** The header's Theme and Density when the AppShellHeader sets none: Figma Layout=Grid draws Header/AppShell
+   *  Theme=Border & Divider, Density=Small (`pattern="grid"`); unset elsewhere (Default, Medium). */
+  headerTheme?: "border-divider";
+  headerDensity?: "small";
 }
 
 export const AppShellChromeContext = createContext<AppShellChrome | null>(null);

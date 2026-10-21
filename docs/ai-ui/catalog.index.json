@@ -48,31 +48,31 @@
       "name": "AppShell",
       "status": "stable",
       "chrome": true,
-      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus · Grid, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
       "props": "pattern? collapse? sidebar? header? leadingPane? trailingPane? sidePanel? progress? floatingActions? banner? canvas? mobileTop? band? topNavigation? hero? backdrop? bottomNavigation? actionBar? sidebarCollapsed? defaultSidebarCollapsed? onSidebarCollapsedChange? navOpen? defaultNavOpen? onNavOpenChange? navLabel? mainId? layout? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "AppShellAccount",
       "status": "stable",
-      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus · Grid, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
       "props": "name src? theme? type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
     },
     {
       "name": "AppShellAction",
       "status": "stable",
-      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus · Grid, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
       "props": "icon aria-label count? dot? tone? appearance? tooltip? aria-labelledby? aria-describedby? disabled? onClick?"
     },
     {
       "name": "AppShellHeader",
       "status": "stable",
-      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
-      "props": "leading? center? actions? main? sections? aria-label? aria-labelledby? aria-describedby?"
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus · Grid, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
+      "props": "leading? center? actions? main? sections? theme? density? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "AppShellPane",
       "status": "stable",
-      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
+      "purpose": "The frame of an app, built on Figma's AppShell patterns. From 1024px (desktops, iPad landscape) a desktop pattern: Sidebar · List-Detail · Top-Bar · Workspace · Docs · Focus · Grid, with Header/AppShell, panes, progress, a docked side panel and floating actions. Narrower, with mobile parts (phones, iPad portrait), a mobile pattern: the TopNavigation as a Bar, a Band with a hero, a Band-Sheet or over Media, then the Tab-Bar, a floating glass bar or an Action bar. Without mobile parts a narrow shell keeps its header and opens the Sidebar as a modal drawer. The Body pads Margin-Comfortable, so the page needs no Container for the margins.",
       "props": "title? headingLevel? action? theme? surface? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
@@ -768,7 +768,7 @@
       "status": "verified",
       "chrome": true,
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
-      "props": "variant? density? collapsed? onCollapsedChange? brand? logo? logoCollapsed? productName? aria-label? sections? selectedId? children? footer? search? searchCollapsed? onItemClick? background? divider? shadow? workspaceBrand? workspaceItems? workspaceFooter? workspaceAction? headerAction? workspaceBar? subMenu? subMenuLabel? onSubMenuClose?"
+      "props": "variant? density? collapsed? onCollapsedChange? brand? logo? logoCollapsed? productName? aria-label? sections? selectedId? children? footer? search? searchCollapsed? onItemClick? background? divider? shadow? theme? subHeader? workspaceBrand? workspaceItems? workspaceFooter? workspaceAction? headerAction? workspaceBar? subMenu? subMenuLabel? onSubMenuClose?"
     },
     {
       "name": "SidebarMenuItem",
@@ -781,6 +781,12 @@
       "status": "verified",
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
       "props": "label? action? children?"
+    },
+    {
+      "name": "SidebarSubHeader",
+      "status": "verified",
+      "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
+      "props": "title onBack? backLabel? headingLevel?"
     },
     {
       "name": "SidePanel",

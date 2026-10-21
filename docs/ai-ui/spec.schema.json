@@ -414,6 +414,9 @@
           "$ref": "#/$defs/components/SidebarMenuSection"
         },
         {
+          "$ref": "#/$defs/components/SidebarSubHeader"
+        },
+        {
           "$ref": "#/$defs/components/SidePanel"
         },
         {
@@ -2269,7 +2272,8 @@
                       "top-bar",
                       "workspace",
                       "docs",
-                      "focus"
+                      "focus",
+                      "grid"
                     ]
                   },
                   {
@@ -3457,6 +3461,34 @@
                   }
                 ],
                 "description": "Figma Sections: rows under the Main row, e.g."
+              },
+              "theme": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "border-divider"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below, Spacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divid"
+              },
+              "density": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "medium",
+                      "small"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454)."
               },
               "aria-label": {
                 "anyOf": [
@@ -33661,6 +33693,50 @@
                 ],
                 "description": "Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes)."
               },
+              "theme": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "border"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Patterns/Sidebar Theme (6040:67524): `default` (a Surface panel inset Padding/XSmall from the page edge) · `border` (Theme=Border: no fill, no corners and no shadow, the Side"
+              },
+              "subHeader": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Primitives/Sub-Header-Sidebar (16823:88101): a `<SidebarSubHeader>` at the top of Body-Content, the back control and the title of the level the Sidebar shows (a project insid"
+              },
               "workspaceBrand": {
                 "anyOf": [
                   {
@@ -34235,6 +34311,111 @@
               }
             },
             "required": [],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "SidebarSubHeader": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "SidebarSubHeader"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Sub-Header-Text: the name of the level the Sidebar shows, Heading/4 in Content/Neutral/Strongest, one line that truncates."
+              },
+              "onBack": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "$action": {
+                        "type": "string"
+                      },
+                      "args": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "$action"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The back control (Figma Button/Icon-Main Small Tertiary, chevron left): back to the level above."
+              },
+              "backLabel": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The back control's accessible name."
+              },
+              "headingLevel": {
+                "anyOf": [
+                  {},
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The title's heading level."
+              }
+            },
+            "required": [
+              "title"
+            ],
             "additionalProperties": false
           },
           "children": {

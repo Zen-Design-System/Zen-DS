@@ -263,8 +263,8 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
       guides = snap.guides.filter((guide) => guide.axis !== lock);
     }
     target = { x: Math.round(box.x), y: Math.round(box.y) };
-    // ⌥ copies a frame; a Section moves (a copy of a Section with its frames is not in Zen Studio yet).
-    copy = keys.alt && !section;
+    // ⌥ copies a frame, or a Section with everything it holds (frameEdit copySection); the original stays.
+    copy = keys.alt;
     if (copy) {
       live.delete(frameId);
       show(start);
@@ -312,7 +312,7 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
       if (!dragging) { onClick?.(); return; }
       swallowClick();
       if (copy) {
-        void copyFrame(localPage, frameId, target, { label: "Duplicate frame", heights });
+        void copyFrame(localPage, frameId, target, { label: section ? "Duplicate section" : "Duplicate frame", heights });
         return;
       }
       if (target.x === start.x && target.y === start.y) { live.delete(frameId); return; }

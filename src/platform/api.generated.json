@@ -4600,6 +4600,22 @@
           "deprecated": null
         },
         {
+          "name": "theme",
+          "type": "\"default\" | \"border\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Patterns/Sidebar Theme (6040:67524): `default` (a Surface panel inset Padding/XSmall from the page edge) ·\n`border` (Theme=Border: no fill, no corners and no shadow, the Sidebar flush with the page edge and a 1px\nBorder/Neutral/Pale line on its inner edge; the rail is the panel's own 64px). Unset follows the AppShell:\n`pattern=\"grid\"` draws border (and Density=Small: 36px rows), other patterns default.",
+          "deprecated": null
+        },
+        {
+          "name": "subHeader",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Primitives/Sub-Header-Sidebar (16823:88101): a `<SidebarSubHeader>` at the top of Body-Content, the back\n control and the title of the level the Sidebar shows (a project inside a workspace).",
+          "deprecated": null
+        },
+        {
           "name": "workspaceBrand",
           "type": "ReactNode",
           "required": false,
@@ -4857,6 +4873,60 @@
           "required": false,
           "default": null,
           "description": "Ref to the section's root `<section>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SidebarSubHeader",
+      "extends": null,
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Sub-Header-Text: the name of the level the Sidebar shows, Heading/4 in Content/Neutral/Strongest, one line\n that truncates.",
+          "deprecated": null
+        },
+        {
+          "name": "onBack",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "The back control (Figma Button/Icon-Main Small Tertiary, chevron left): back to the level above.",
+          "deprecated": null
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The back control's accessible name. Default: the built-in \"Back\" label.",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "(typeof headingLevels)[number]",
+          "required": false,
+          "default": "2",
+          "description": "The title's heading level. Default 2: the first heading inside the navigation.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element.",
           "deprecated": null
         }
       ]
@@ -18753,10 +18823,10 @@
       "props": [
         {
           "name": "pattern",
-          "type": "\"sidebar\" | \"list-detail\" | \"top-bar\" | \"workspace\" | \"docs\" | \"focus\"",
+          "type": "\"sidebar\" | \"list-detail\" | \"top-bar\" | \"workspace\" | \"docs\" | \"focus\" | \"grid\"",
           "required": false,
           "default": "\"sidebar\"",
-          "description": "Figma Layout, the desktop structure (from 1024px: desktops and iPad landscape):\n- `sidebar` (default): Sidebar · header + page · docked side panel.\n- `list-detail`: the Sidebar's rail · `leadingPane` (a 360 list) · header + the selected item.\n- `top-bar`: no Sidebar; the header across, its sections or centre holding the navigation.\n- `workspace`: the header across the top · `leadingPane` · page · `trailingPane` (tools, properties).\n- `docs`: as workspace, the page a centred 720 column for reading, the panes on the Canvas.\n- `focus`: one task: the header across · `progress` · a 680 column with the `trailingPane` (a summary) beside it.",
+          "description": "Figma Layout, the desktop structure (from 1024px: desktops and iPad landscape):\n- `sidebar` (default): Sidebar · header + page · docked side panel.\n- `list-detail`: the Sidebar's rail · `leadingPane` (a 360 list) · header + the selected item.\n- `top-bar`: no Sidebar; the header across, its sections or centre holding the navigation.\n- `workspace`: the header across the top · `leadingPane` · page · `trailingPane` (tools, properties).\n- `docs`: as workspace, the page a centred 720 column for reading, the panes on the Canvas.\n- `focus`: one task: the header across · `progress` · a 680 column with the `trailingPane` (a summary) beside it.\n- `grid`: as `sidebar`, drawn in lines instead of surfaces (Layout=Grid, 16258:1857): the Sidebar takes Theme=Border,\n  Density=Small (no fill, a Pale line on its inner edge) and the header Theme=Border & Divider, Density=Small (a\n  Pale line under its top row), unless they set their own `theme` / `density`. Pair it with Boxes and Flat Cards;\n  keep Subtle for the metric cards that should stand out (◇ Master-Layout Rule, 16823:85229).",
           "deprecated": null
         },
         {
@@ -19035,6 +19105,22 @@
           "required": false,
           "default": null,
           "description": "Figma Sections: rows under the Main row, e.g. `<Tabs>` for the page's views or a toolbar of Search + filters.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"default\" | \"border-divider\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Medium ·\nMargin-Comfortable). Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
+          "deprecated": null
+        },
+        {
+          "name": "density",
+          "type": "\"medium\" | \"small\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider theme pads its rows itself.",
           "deprecated": null
         },
         {
