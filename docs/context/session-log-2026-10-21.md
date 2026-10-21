@@ -607,3 +607,21 @@ cell height or row sizes, so the page round-trips unchanged. Selftests: push 343
   returns focus to its opener, and a second press on the + closes the list (it counted as outside, then reopened).
 - Contact sheets: badge@390 Release checklist pushed Status off the phone (Owner 160px) → on a phone the owner joins
   the caption, as in Task status. Gate 3 (badge + input, files after run 2): PASS; run 2 Studio E2E 338 works · 0 broken.
+
+
+## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
+
+Branch `zen/feat/schedule-20261021` (worktree `../Zen-DS-schedule`, on top of the Calendar branch). Spec card:
+`docs/research/schedule-2026-10-21.md` (read from ❖ Schedule 16121:6 with read-only use_figma dumps).
+
+- `src/components/Schedule/`: ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner and the
+  primitives; dates through Calendar's `toDate` (ISO strings for Studio pages). Reuses Event-Block, Now-Line, Week-Strip,
+  Avatar / AvatarStack, Dock-Icon, Badge, Divider, IconButton.
+- Choices: Slot heights from Select-Item Medium / Small (Comfortable 40 / 32 on phones; Figma's text says 44); Past stop
+  titles Neutral/Base (zen-allow, Figma 16133:1131); the Slot label keeps Corner-Radius/Action/Small (it is the radio's
+  box); Event-Card meta wraps on a narrow card; bars and the now line are placed through CSS variables.
+- Platform page `schedule` (playground + 6 examples incl. PlatformPhone booking), Do/Don't visuals, guideline + keyboard
+  map, harness rules (2, fixtures), smoke fixtures, axe baseline (colour-contrast only: Neutral/Light text), 4 interaction
+  tests. Studio: component-properties page ❖ Schedule (4 public sets), figma-props map, 4 Assets items, library keys.
+- Native pack (user: "Làm luôn"): probe of the 4 sets on the QA page, one Figma desktop copy (the clipboard was empty and
+  stays empty), merged additively (9 sets, 34 symbols), no picture layers, probe removed; native-pack check green.

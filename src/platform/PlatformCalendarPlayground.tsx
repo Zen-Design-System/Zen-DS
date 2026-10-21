@@ -4,6 +4,7 @@ import {
   type CalendarDevice, type CalendarEventData, type CalendarView,
 } from "../components/Calendar";
 import { Stack } from "../components/Layout";
+import { ScheduleDayPlanner, ScheduleItinerary, ScheduleResourceGrid, ScheduleSlotPicker } from "../components/Schedule";
 import { PlatformCode } from "./PlatformCode";
 import { PlatformTypographyContext } from "./PlatformTemplate";
 import { ComponentPreview, PlaygroundControls, PlaygroundFilterChip } from "./appLayer/playgroundParts";
@@ -73,6 +74,70 @@ ${view === "month" ? `<CalendarMonth${mobile ? ` device="mobile"` : ""} month={d
   : view === "agenda" ? `<CalendarAgenda${mobile ? ` device="mobile"` : ""} from={date} events={events} />`
   : `<CalendarTimeGrid${mobile ? ` device="mobile"` : ""} view="${view}" date={date} events={events} />`}
 // events: { id, title, start, end?, allDay?, color?: "brand" | "blue" | "violet" | "teal" | "green" | "orange" | "pink", meta?, attendees? }[]`} />
+    </ComponentPreview>
+  );
+}
+
+/* The Schedule page playground: one of the four Schedule views, on desktop or mobile (the same demo day). */
+
+const RESOURCES = [
+  { id: "alex", name: "Alex Duong", meta: "Design Lead" },
+  { id: "maya", name: "Maya Chen", meta: "Product lead" },
+  { id: "linh", name: "Linh Tran", meta: "Engineer" },
+  { id: "lotus", name: "Room 2 · Lotus", shortName: "Lotus", meta: "8 seats", kind: "room" as const },
+];
+const BOOKINGS = [
+  { id: "q4", resourceId: "alex", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue" as const },
+  { id: "1-1", resourceId: "alex", title: "1:1 Maya", start: "2026-09-30T14:00", end: "2026-09-30T15:00", color: "teal" as const },
+  { id: "hiring", resourceId: "maya", title: "Hiring panel", start: "2026-09-30T15:00", end: "2026-09-30T17:00", color: "pink" as const },
+  { id: "leave", resourceId: "linh", title: "Annual leave", start: "2026-09-30T09:00", end: "2026-09-30T12:00", color: "orange" as const, time: "Morning" },
+  { id: "critique", resourceId: "lotus", title: "Design critique", start: "2026-09-30T16:00", end: "2026-09-30T17:00", color: "violet" as const },
+];
+const STOPS = [
+  { id: "keynote", title: "Opening keynote", start: "2026-09-30T09:00", end: "2026-09-30T09:45", meta: "Hall A · Alex Duong" },
+  { id: "lunch", title: "Lunch", start: "2026-09-30T12:00", end: "2026-09-30T13:00", meta: "Garden" },
+  { id: "workshop", title: "Workshop: prototyping in Zen Studio", start: "2026-09-30T13:00", end: "2026-09-30T14:30", meta: "Room 2 · Linh Tran" },
+  { id: "closing", title: "Closing talk", start: "2026-09-30T15:00", end: "2026-09-30T15:45", meta: "Hall A" },
+];
+const SLOTS = ["2026-09-30", "2026-10-01", "2026-10-02", "2026-10-05", "2026-10-06"].flatMap((day) => ["09:00", "10:00", "11:00", "14:00", "15:00"].map((hour) => `${day}T${hour}`)).map((id, index) => ({ id, start: id, disabled: index % 4 === 1 }));
+const CARDS = [
+  { id: "wire", title: "Wireframing and brainstorming", start: "2026-09-30T09:00", end: "2026-09-30T10:00", color: "violet" as const, status: "Done" },
+  { id: "explore", title: "Exploration phase", start: "2026-09-30T13:00", end: "2026-09-30T16:00", status: "In progress", note: "Review the new high-fidelity screens before the client call." },
+  { id: "style", title: "Style finalisation", start: "2026-09-30T16:30", end: "2026-09-30T17:30", color: "teal" as const, status: "Upcoming" },
+];
+const SCHEDULE_VIEWS = [{ id: "resource-grid", label: "Resource grid" }, { id: "itinerary", label: "Itinerary" }, { id: "slot-picker", label: "Slot picker" }, { id: "day-planner", label: "Day planner" }];
+
+export function SchedulePlayground() {
+  const previewTypography = useContext(PlatformTypographyContext);
+  const [view, setView] = useState<string>("resource-grid");
+  const [deviceChoice, setDeviceChoice] = useState<string | undefined>(undefined);
+  const [scaleChoice, setScaleChoice] = useState<string | undefined>(undefined);
+  const [slot, setSlot] = useState<string | null>(null);
+  // Unset follows the breakpoint, as in the Calendar playground (a phone shows the mobile views).
+  const previewRef = useRef<HTMLDivElement>(null);
+  const device = useCalendarDevice(deviceChoice as CalendarDevice | undefined, previewRef);
+  const scale = (scaleChoice ?? "hours") as "hours" | "days";
+  const code = view === "resource-grid" ? `<ScheduleResourceGrid${device === "mobile" ? ` device="mobile"` : ""}${scale === "days" ? ` scale="days"` : ""} resources={resources} bookings={bookings} date="2026-09-30" />`
+    : view === "itinerary" ? `<ScheduleItinerary title="Wed, Sep 30 · Design Day" stops={stops} />`
+    : view === "slot-picker" ? `<ScheduleSlotPicker${device === "mobile" ? ` device="mobile"` : ""} slots={slots} value={slot} onValueChange={setSlot} aria-label="Review times" />`
+    : `<ScheduleDayPlanner${device === "mobile" ? ` device="mobile"` : ""} events={cards} defaultValue="2026-09-30" />`;
+  return (
+    <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+      <h2 className="platform-main-component__title">Schedule</h2>
+      <PlaygroundControls aria-label="Schedule playground controls">
+        <PlaygroundFilterChip label="View" value={view} onChange={(value) => setView(String(value) || "resource-grid")} options={SCHEDULE_VIEWS} />
+        <PlaygroundFilterChip label="Device" value={deviceChoice} onChange={(value) => setDeviceChoice(String(value) || undefined)} options={[{ id: "desktop", label: "Desktop" }, { id: "mobile", label: "Mobile" }]} />
+        {view === "resource-grid" ? <PlaygroundFilterChip label="Scale" value={scaleChoice} onChange={(value) => setScaleChoice(String(value) || undefined)} options={[{ id: "hours", label: "Hours" }, { id: "days", label: "Days" }]} /> : null}
+      </PlaygroundControls>
+      <div ref={previewRef} data-typography={previewTypography} className="platform-example-row platform-calendar-preview" data-device={device}>
+        {view === "resource-grid" ? <ScheduleResourceGrid device={device} scale={scale} resources={RESOURCES} bookings={scale === "days" ? BOOKINGS.map((item, index) => ({ ...item, start: `2026-09-${28 + (index % 3)}`, end: `2026-10-0${1 + (index % 2)}` })) : BOOKINGS} date="2026-09-30" now="2026-09-30T13:15" /> : null}
+        {view === "itinerary" ? <ScheduleItinerary device={device} title="Wed, Sep 30 · Design Day" stops={STOPS} now="2026-09-30T13:15" /> : null}
+        {view === "slot-picker" ? <ScheduleSlotPicker device={device} slots={SLOTS} today="2026-09-30" value={slot} onValueChange={setSlot} aria-label="Review times" /> : null}
+        {view === "day-planner" ? <ScheduleDayPlanner device={device} events={CARDS} defaultValue="2026-09-30" now="2026-09-30T13:15" /> : null}
+      </div>
+      <PlatformCode code={`import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner } from "@zen-ds/react";
+
+${code}`} />
     </ComponentPreview>
   );
 }

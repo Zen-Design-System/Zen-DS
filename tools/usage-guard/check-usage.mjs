@@ -1980,6 +1980,21 @@ export const rules = [
       return null;
     } },
   // The behaviour probes (2026-09-28): an inline "Report period" whose Cancel and Submit both only closed, doing nothing.
+  { id: "schedule/slot-picker-confirm", components: ["ScheduleSlotPicker"], severity: "warn", allow: "schedule-confirm", guideline: "docs/guidelines/schedule.md",
+    summary: "A Slot-Picker only chooses a time: without onValueChange the app never hears the choice, and the confirm action (\"Book 10:00\") in the page or sheet footer has nothing to book.",
+    check: ({ attrs, src }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      return topAttrs(attrs).has("onValueChange") ? null : "has no onValueChange: keep the chosen slot (value / onValueChange) so the footer's Book action can confirm it.";
+    } },
+  { id: "schedule/selected-needs-handler", components: ["ScheduleResourceGrid"], severity: "warn", allow: "schedule-selected", guideline: "docs/guidelines/schedule.md",
+    summary: "selectedBookingId marks the booking whose details are open; without onBookingClick the bars are static, so the selection can never change.",
+    check: ({ attrs, src }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      const own = topAttrs(attrs);
+      const selected = own.get("selectedBookingId");
+      if (!selected || /^\s*null\s*$/.test(selected.expr ?? "") || own.has("onBookingClick")) return null;
+      return "passes selectedBookingId without onBookingClick: open the booking from onBookingClick.";
+    } },
   { id: "calendar/toolbar-navigation", components: ["CalendarToolbar"], severity: "warn", allow: "calendar-navigation", guideline: "docs/guidelines/calendar.md",
     summary: "A CalendarToolbar moves the period and switches the view: without onPrevious / onNext its arrows are disabled, and while its view switch is shown (views not empty) it needs onViewChange, or pressing a view does nothing.",
     check: ({ attrs, src }) => {

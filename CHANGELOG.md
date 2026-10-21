@@ -102,6 +102,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   page in its own browser (real engine, touch and safe areas), from the Screen Play is on, in Play's modes and the
   project's theme. The link works for two hours. The dev server stays on localhost; a proxy forwards only the shared
   page, to the browser that opened its link. New dev dependency `uqr` (QR codes): run `npm install`.
+- **Schedule** (2026-10-21, user: "xong gate thì làm tiếp Schedule"; Figma ❖ Schedule 16121:6): ScheduleResourceGrid
+  (people and rooms by hour or by day, bookings as Event-Block bars, the vertical now line; a phone keeps the resource
+  column and scrolls four hours, opening at now), ScheduleItinerary (Past / Now / Upcoming stops from `now`),
+  ScheduleSlotPicker (one native radio group across days; taken times disabled and struck through; Morning / Afternoon
+  on a phone under a Week-Strip) and ScheduleDayPlanner (Event-Cards at their start time, the hour grows so they never
+  overlap); primitives ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard.
+  Platform page `schedule`, guideline, harness rules `schedule/slot-picker-confirm`, `schedule/selected-needs-handler`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys).
 - **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
   CalendarMonth, CalendarTimeGrid (Week / Day, Mobile 3-Day), CalendarAgenda and CalendarWeekStrip (Dot / Tile) take
   events as data (`CalendarEventData`: id, title, start, end, allDay, color, meta, attendees); the primitives

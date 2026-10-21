@@ -603,6 +603,19 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "theme": "editorBarTheme"
     }
   },
+  "ScheduleEventCard": {
+    "AvatarStack": {
+      "items": "attendees"
+    }
+  },
+  "ScheduleResource": {
+    "Avatar": {
+      "src": "avatarSrc"
+    },
+    "DockIcon": {
+      "icon": "icon"
+    }
+  },
   "Search": {
     "InputField": {
       "disabled": "disabled",

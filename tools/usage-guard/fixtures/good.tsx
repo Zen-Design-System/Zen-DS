@@ -300,6 +300,8 @@ export const Good = () => <>
   <CalendarToolbar date={day} view={view} onViewChange={setView} onToday={goToday} onPrevious={() => setDay(shiftPeriod(day, view, -1))} onNext={() => setDay(shiftPeriod(day, view, 1))} />
   <CalendarToolbar date={day} views={[]} onPrevious={previousWeek} onNext={nextWeek} />
   <CalendarTimeGrid device="mobile" view="3-day" date={day} events={events} />
+  <ScheduleSlotPicker slots={slots} value={slot} onValueChange={setSlot} aria-label="Review times" />
+  <ScheduleResourceGrid resources={resources} bookings={bookings} selectedBookingId={open} onBookingClick={(booking) => setOpen(booking.id)} />
   <CalendarMonth month={day} events={events} selectedEventId={open} onEventClick={(event) => setOpen(event.id)} />
   <DatePicker calendar="dual" selectionMode="range" range={period} showActions onApply={(_, picked) => picked && setPeriod(picked)} />
   <Pagination theme="inline" page={page} onPageChange={setPage} total={120} pageSize={pageSize} onPageSizeChange={setPageSize} aria-label="Invoice pages" />

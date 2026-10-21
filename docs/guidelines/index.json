@@ -1560,6 +1560,148 @@
       ]
     },
     {
+      "slug": "schedule",
+      "title": "Schedule",
+      "file": "docs/guidelines/schedule.md",
+      "apiFile": "docs/api/schedule.json",
+      "figma": "Schedule/Resource-Grid, Itinerary, Slot-Picker, Day-Planner and .Primitives/Schedule/* (page ❖ Schedule 16121:6)",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "props": {
+        "ScheduleResourceGrid": [
+          "resources: ScheduleResourceData[]",
+          "bookings?: ScheduleBookingData[] = []",
+          "scale?: hours|days = hours",
+          "date?: Date|string",
+          "startHour?: number = 9",
+          "endHour?: number = 17",
+          "now?: Date|string",
+          "today?: Date|string",
+          "resourcesLabel?: ReactNode",
+          "onBookingClick?: (booking: ScheduleBookingData, target: HTMLElement) => void",
+          "selectedBookingId?: string|null = null",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleItinerary": [
+          "stops: ScheduleStopData[]",
+          "title?: ReactNode",
+          "now?: Date|string",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleSlotPicker": [
+          "slots: ScheduleSlotData[]",
+          "days?: CalendarDateInput[]",
+          "value?: string|null",
+          "defaultValue?: string|null = null",
+          "onValueChange?: (id: string, slot: ScheduleSlotData) => void",
+          "day?: Date|string",
+          "onDayChange?: (day: Date) => void",
+          "today?: Date|string",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "name?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleDayPlanner": [
+          "events?: ScheduleCardData[] = []",
+          "value?: CalendarDateInput|null",
+          "defaultValue?: CalendarDateInput|null",
+          "onValueChange?: (day: Date) => void",
+          "title?: ReactNode",
+          "titleLevel?: 2|3|4 = 2",
+          "onMonthClick?: () => void",
+          "onCardMenu?: (card: ScheduleCardData, target: HTMLElement) => void",
+          "startHour?: number = 9",
+          "endHour?: number = 18",
+          "now?: Date|string",
+          "today?: Date|string",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleResource": [
+          "name: ReactNode",
+          "meta?: ReactNode",
+          "type?: person|room = person",
+          "avatarSrc?: string",
+          "avatarTheme?: Exclude<AvatarTheme, photo> = violet",
+          "icon?: IconName = icon-building-02-line",
+          "device?: desktop|mobile = desktop",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleSlot": [
+          "time: ReactNode",
+          "size?: md|sm|medium|small = md",
+          "checked?: boolean",
+          "disabled?: boolean",
+          "ref?: Ref<HTMLInputElement>"
+        ],
+        "ScheduleItineraryItem": [
+          "start: ReactNode",
+          "duration?: ReactNode",
+          "title: ReactNode",
+          "meta?: ReactNode",
+          "status?: past|now|upcoming = upcoming",
+          "connector?: boolean = true",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleHourLabel": [
+          "hour: ReactNode",
+          "now?: boolean = false",
+          "ref?: Ref<HTMLSpanElement>"
+        ],
+        "ScheduleEventCard": [
+          "title: ReactNode",
+          "status?: ReactNode",
+          "time?: ReactNode",
+          "color?: CalendarColor|neutral = brand",
+          "attendees?: Array<{ src?: string; alt?: string }>",
+          "note?: ReactNode",
+          "onMenuClick?: MouseEventHandler<HTMLButtonElement>",
+          "menuLabel?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
+        ]
+      },
+      "do": [
+        "Keep the confirm action (\"Book 10:00\") in the page or sheet footer, enabled once a time is chosen.",
+        "Keep taken or past times in place (disabled, struck through) so the day keeps its rhythm.",
+        "Pass `now` (and `today`) when your app's clock is not the device's, so Past / Now and the now line agree with your data.",
+        "Give bars real start and end dates: a bar past the visible range scrolls with the track."
+      ],
+      "dont": [
+        "Don't hide taken slots: people then cannot tell a full day from an empty one.",
+        "Don't use a Slot-Picker for filters or scopes: that is Chip advanced.",
+        "Don't put several Now stops in an itinerary: one stop runs at a time.",
+        "Don't stack many overlapping events in a Day-Planner: use CalendarTimeGrid, which splits the column."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "schedule/slot-picker-confirm",
+        "schedule/selected-needs-handler"
+      ]
+    },
+    {
       "slug": "tooltip",
       "title": "Tooltip",
       "file": "docs/guidelines/tooltip.md",

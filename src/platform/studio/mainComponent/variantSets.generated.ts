@@ -3913,6 +3913,111 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "ScheduleResourceGrid": [
+    {
+      "name": "Schedule/Resource-Grid",
+      "figma": "16135:145822",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        },
+        {
+          "prop": "scale",
+          "label": "Scale",
+          "names": [
+            "Hours",
+            "Days"
+          ],
+          "values": [
+            "hours",
+            "days"
+          ],
+          "default": "hours"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "ScheduleItinerary": [
+    {
+      "name": "Schedule/Itinerary",
+      "figma": "16135:13820",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "ScheduleSlotPicker": [
+    {
+      "name": "Schedule/Slot-Picker",
+      "figma": "16135:14046",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "ScheduleDayPlanner": [
+    {
+      "name": "Schedule/Day-Planner",
+      "figma": "16143:1439",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "DatePicker": [
     {
       "name": "Date-Picker/Single-Calendar",
