@@ -438,10 +438,12 @@ The last Present item of BACKLOG P1 "Studio design page = Figma" (user 2026-10-2
   `playStartOf(frameId)` (protoModel.ts, Node-tested) maps the selected frame; ⌥⌘↵, the canvas menu, the Prototype tab's
   Present and `presentFrame` (the Design tab's Present, ⌘K › Present) use it. A Screen frame keeps its old path (the
   Design tab and ⌘K still present it as a frame; ⌥⌘↵ plays it).
-- Player: the Overlay starts open, no animation, over `openerOf(tree, id)` — the first Screen (default state first)
+- `playFlow.tsx` (usePlayFlow, shared with Open on phone since #191; ported after it landed): the Overlay starts open,
+  no animation, over `openerOf(tree, id)` — the first Screen (default state first)
   with a layer or After delay that opens it — on that Screen's device, size and frame; closing it (Esc, its close
   action, a press outside, Back) goes on from that Screen; R restarts on it. With no opener it shows over a blank Screen
-  of the first Screen's device; closing it leaves Present, Back is off, and Back from a Screen it led to re-opens it.
+  of the first Screen's device; closing it calls `onLeave` (Play leaves Present), Back is off, and Back from a Screen it
+  led to re-opens it. The phone's DevicePlay keeps `usePlayFlow(tree, start)` unchanged.
 - `?play=overlay:<id>` keeps it through a reload. ⌘K › Interact stays on pages you made: templates' forms are tried in
   place with it (SP-23 / SP-24), but it is no longer the way to try an Overlay.
 - E2E (figma.mjs, own seeded page): FW-170 ⌥⌘↵ + reload + Esc ×2, FW-171 Prototype › Present + Move to trash / Back / R /
