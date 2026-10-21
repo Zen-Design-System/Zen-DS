@@ -63,10 +63,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,
   Enter = all children, Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles,
   frame presets. Pointer: same doc §8.
-- **P3 · native-pack Bottom-Sheet is stale (2026-10-21, session log "Search Rounded in the Figma library"):** the pack
-  (read 2026-10-18) still draws Bottom-Sheet's search as Search/Popover; the live set holds Search/Default Small,
-  Shape=Rounded since 2026-10-21. A direct ⌘V of a BottomSheet may paste the old search. Re-probe Bottom-Sheet
-  (4059:14161) the incremental way (memory native-pack-incremental-merge; the capture uses the clipboard).
 - **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
   unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
   (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).

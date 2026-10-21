@@ -4,6 +4,12 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
 
 ## Archived 2026-10-21 (Search Shape follow-ups)
 
+- Done 2026-10-21 (Bottom-Sheet re-probed and replaced in the pack; its Search is Search/Default Small Rounded there now):
+  **P3 · native-pack Bottom-Sheet is stale (2026-10-21, session log "Search Rounded in the Figma library"):** the pack
+  (read 2026-10-18) still draws Bottom-Sheet's search as Search/Popover; the live set holds Search/Default Small,
+  Shape=Rounded since 2026-10-21. A direct ⌘V of a BottomSheet may paste the old search. Re-probe Bottom-Sheet
+  (4059:14161) the incremental way (memory native-pack-incremental-merge; the capture uses the clipboard).
+
 - Done 2026-10-21 ((a) Figma Bottom-Sheet's Search is Shape=Rounded; Top-Navigation/Mobile's Control-Bar is an empty
   slot, so there is no library Search to set; (b) the pack has Search/Default Shape since its 2026-10-18 read):
   **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) settled 2026-10-17 (user:

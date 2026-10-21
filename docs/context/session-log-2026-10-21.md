@@ -419,3 +419,13 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
   search-shape-on-phones +1 (mobile rounded, explicit default, desktop default); app-shell tests 61/61.
 - Docs: Figma skill screen-rules row, CHANGELOG, BACKLOG (P2 → archive; new P3: native-pack's Bottom-Sheet still
   draws Search/Popover from its 2026-10-18 read, re-probe incremental).
+- Gate (user: "chạy gate luôn đi, đừng chờ"): PASS, report .qa/reports/2026-10-21T14-53-08-c9cbf549.md (isolated,
+  ZEN_QA_SHARDS=4, app-shell/search/templates/sidebar + representative set; Vitest 78/78, all Figma suites, audits 0
+  new); CI job-1 steps run locally (build, verify:package …). PR #194; GitHub auto-merge is off for the repo, so Giám sát
+  merges it on green.
+- Native pack (user: "chụp lại native pack Bottom-Sheet luôn đi"), branch zen/fix/native-pack-bottom-sheet-20261021 on
+  top of #194: probe frame of the 4 Bottom-Sheet variants on the QA page (17022:4), copied from Figma desktop (the
+  clipboard was empty and was put back empty), set 4059:14161 and its 4 variant symbols REPLACED (the add-only merge
+  keeps stale entries), 1 missing nested symbol added (16327:6722 Style=Black Overlay); the Action variants' Search now
+  points at Search/Default Size=Small, Shape=Rounded. Probe removed; native-pack check + figma-native selftest 130 ✓.
+  BACKLOG P3 archived.
