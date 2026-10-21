@@ -44,3 +44,15 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
   - Re-run on `main` 1bd55975 with the script fixed (keys held, the ⌘D copy moved aside, the page made with New page):
     14 / 14 in 40 steps, the same as Figma's 40, with 0 refusals.
   - FW-132 / FW-133: 2 / 2.
+
+## Copy a Section with its frames (Session C) — tier S, branch `zen/feat/studio-section-duplicate-20261021`
+The user picked it (2026-10-21) from the BACKLOG P1 "Studio design page = Figma" leftovers (F4, C's area). ⌥-drag, ⌘D
+and ⌘C ⌘V of a Section copy it with the frames and Sections it holds (board/sections.ts, any depth), all moved by the
+same amount, in one edit and one ⌘Z; the copy is selected. `frameEdit.ts` `copySection`: one `insertChild` `paste` of
+the Section copies first (they draw behind the frames) then the frame copies, after the original Section; each copy a
+new id (`freeFrameId` per kind); links stay as written (Figma's copies on a page keep pointing at the originals:
+forum reports). `copyFrame` hands a Section to it, so ⌥-drag (`frameMove.ts`, the Section no longer refuses ⌥), ⌘D
+and paste all take it; a Section's ⌘C clip carries what it holds (`frameClip` `held`). Fix met on the way: ⌘D on a
+Section copied only the Section, under a Screen's id (`freeFrameId("screen")`). Checked in Node: the paste edit on a
+builder page puts Section 2 after Section 1, then its Screen. E2E FW-106 (⌘D beside, ⌥-drag where it ends, the
+original stays, one ⌘Z each) waits for a gate slot.

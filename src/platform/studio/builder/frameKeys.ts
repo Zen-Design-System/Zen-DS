@@ -8,7 +8,7 @@ import { dropLivePlace, livePlace, showLivePlace } from "./frameMove";
 
 /*
  * Keys for a selected frame on a page you made (Figma's): ⌘D duplicates it beside itself, ⌘C / ⌘V copy and paste it
- * (onto this page or another page you made), the arrow keys nudge it 1 px (⇧ 10 px; one undo step per burst). Taken
+ * (onto this page or another page you made; a Section with everything it holds), the arrow keys nudge it 1 px (⇧ 10 px; one undo step per burst). Taken
  * in the capture phase before the Studio's layer keys and clipboard, which act on layers only. ⌘C also carries the
  * frame's Figma export (export/figmaClipboard.ts), which ⌘V on the Zen file's canvas or in the Zen plugin places in Figma.
  */

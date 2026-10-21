@@ -2,7 +2,8 @@
  * Which frames a Section holds (Figma's sections, F4): a Section is a Board child beside the frames (dialect
  * boardSections), so what it holds is read from where things are on the board. A frame or a Section belongs to the
  * smallest other Section its middle lies in; moving a Section moves everything whose middle lies in it (frameMove.ts),
- * deleting it deletes them (Figma's Delete; ⌘⌫ keeps them). Boxes are the board's frame px (offsets in
+ * copying it (⌥-drag, ⌘D, ⌘C ⌘V) copies them (frameEdit.ts copySection), deleting it deletes them (Figma's Delete; ⌘⌫
+ * keeps them). Boxes are the board's frame px (offsets in
  * `.studio-builder-board__frames`), so they hold at every zoom. Layers (select/LayersPanel.tsx) nests rows with
  * sectionOf; ⌘A takes the top-level ones (sectionOf null). No imports: `node sections.selftest.mjs` runs it as is.
  */

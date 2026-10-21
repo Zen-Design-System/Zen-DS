@@ -1072,6 +1072,62 @@ export const rows = [
     },
   },
   {
+    id: "FW-106", feature: "⌘D on a selected Section copies it beside itself with the frame it holds (new ids, one edit, the copy selected); ⌥-drag of its name drops a copy with its frame where it ends, the original stays; one ⌘Z each", wp: "F4 2026-10-21",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await roomAround(page);
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await drawSection(page, { x: frame.x - 60, y: frame.y - 60 }, { x: frame.x + frame.width + 60, y: frame.y + frame.height + 60 });
+        await until(async () => /<Section id="section-1"/.test((await pageText(page, id)) ?? ""), { message: "Section 1" });
+        await until(async () => (await page.locator('[data-studio-frame="section:section-1"]').getAttribute("data-selected")) === "true", { message: "Section 1 selected" });
+        const drawn = (await pageText(page, id)) ?? "";
+        const screens = (text) => [...text.matchAll(/<Screen id="([^"]+)"/g)].map((match) => match[1]);
+        const placeOf = (text, tag, frameId) => { const tag0 = boardTag(text, tag, frameId); return { x: numberAttr(tag0, "x"), y: numberAttr(tag0, "y") }; };
+        const section0 = placeOf(drawn, "Section", "section-1");
+        const screen0 = placeOf(drawn, "Screen", "screen-1");
+        // The copy's Section and Screen moved by the same amount from the originals, which stay.
+        const copyOf = (text) => {
+          const screen = screens(text).find((screenId) => !screens(drawn).includes(screenId));
+          const section1 = placeOf(text, "Section", "section-2");
+          const screen1 = screen ? placeOf(text, "Screen", screen) : null;
+          if (!screen1 || section1.x === null) return null;
+          if (section1.x - section0.x !== screen1.x - screen0.x || section1.y - section0.y !== screen1.y - screen0.y) throw new Error(`the frame did not move with its Section's copy (${JSON.stringify({ section0, section1, screen0, screen1 })})`);
+          const still = placeOf(text, "Section", "section-1");
+          if (still.x !== section0.x || still.y !== section0.y) throw new Error("the original Section moved");
+          return { screen, dx: section1.x - section0.x, dy: section1.y - section0.y };
+        };
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyD");
+        let duplicated = null;
+        await until(async () => (duplicated = copyOf((await pageText(page, id)) ?? "")) !== null, { message: "⌘D: a second Section with a copy of its frame" });
+        if (duplicated.dx <= 0 || duplicated.dy !== 0) throw new Error(`the copy is not beside the Section (${duplicated.dx}, ${duplicated.dy})`);
+        await until(async () => (await page.locator('[data-studio-frame="section:section-2"]').getAttribute("data-selected")) === "true", { message: "the copy selected" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === drawn, { message: "one ⌘Z takes the copy away" });
+        // ⌥-drag of the Section's name: a copy where the drag ends, the original where it was.
+        const tab = await page.locator('.studio-frame-label[data-chrome-key="label:section:section-1"]').boundingBox();
+        await page.mouse.move(tab.x + 8, tab.y + tab.height / 2);
+        await page.keyboard.down("Alt");
+        await page.mouse.down();
+        await page.mouse.move(tab.x + 40, tab.y + tab.height / 2 + 60, { steps: 5 });
+        await page.mouse.move(tab.x + 90, tab.y + tab.height / 2 + 160, { steps: 5 });
+        await page.mouse.up();
+        await page.keyboard.up("Alt");
+        let dragged = null;
+        await until(async () => (dragged = copyOf((await pageText(page, id)) ?? "")) !== null, { message: "⌥-drag: a copy of the Section with its frame" });
+        if (dragged.dy <= 0) throw new Error(`the copy is not where the drag ended (${dragged.dx}, ${dragged.dy})`);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === drawn, { message: "one ⌘Z takes the dragged copy away" });
+        await undoTo(page, id, before, 4);
+        return `⌘D → section-2 + ${duplicated.screen} at +${duplicated.dx}, 0; ⌘Z; ⌥-drag → copy at +${dragged.dx}, +${dragged.dy}, original stays; ⌘Z`;
+      });
+    },
+  },
+  {
     id: "FW-46", feature: "Right-click a frame › Wrap in new section: a Section around the frame (80 px of room on each side), selected; ⌘Z", wp: "F4 2026-10-19",
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
