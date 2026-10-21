@@ -97,6 +97,32 @@ export default function Page() {
 }
 `;
 
+/** Two phone Screens, Next on the first leading to the second (PT-17). */
+const phonePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Home" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>First screen</Text>
+          <Button onClick={proto.navigate("screen-2")}>Next</Button>
+        </Stack>
+      </Screen>
+      <Screen id="screen-2" title="Details" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>Second screen</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** Scrolls what scrolls the shown page (the window's layer, or a box under Present's / Play's bar: the nearest ancestor of
  *  its Sidebar that really scrolls) 400px and checks the AppShell Sidebar stays at the top of that box, at its height,
  *  its rows scrolling inside (PT-11 Play, PT-14 Present). In CSS px, so a scaled fixed viewport measures the same;
@@ -582,6 +608,37 @@ export const rows = [
       await page.keyboard.press("Escape");
       await present.waitFor({ state: "detached", timeout: 5000 });
       return "Android page: Auto on the Android phone (412 × 917, bars 24/24, camera, frame) → Android tablet, landscape (desktop layout) → Rotate (portrait) → iPhone (iOS bars 50/28)";
+    },
+  },
+  {
+    id: "PT-17", feature: "Open on phone (user 2026-10-21: Play on a real phone, \"Tương tác (Play)\"): Play's bar shares the page and shows a QR code of a network link; Escape closes that dialog and keeps Play; the link opened in a phone-sized browser plays the page from the Screen Play is on, with no simulated bars, and its proto actions run (Next → screen-2)", wp: "open on phone 2026-10-21", timeout: 90_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, phonePage, /proto\.navigate\("screen-2"\)/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await playing(page).getByRole("button", { name: "Open on phone" }).click();
+      const dialog = page.locator(".studio-open-phone");
+      await dialog.locator("svg.studio-open-phone__qr").waitFor({ state: "visible", timeout: 15_000 });
+      const link = (await dialog.locator(".studio-open-phone__url").innerText()).trim();
+      if (!/^http:\/\/\d+\.\d+\.\d+\.\d+:\d+\/d\/[\w-]+$/.test(link)) throw new Error(`not a network link: ${link}`);
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({ state: "detached", timeout: 5000 });
+      if (!(await playing(page).isVisible())) throw new Error("Escape left Play instead of closing the dialog");
+      const phone = await ctx.browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
+      try {
+        const tab = await phone.newPage();
+        await tab.goto(link, { waitUntil: "domcontentloaded", timeout: 60_000 });
+        await tab.waitForSelector(".studio-builder-screen", { timeout: 60_000 });
+        const first = await tab.evaluate(() => ({ screen: document.querySelector("[data-screen-id]")?.getAttribute("data-screen-id"), bars: document.querySelectorAll(".studio-device-status, .studio-device-home").length }));
+        if (first.screen !== "screen-1" || first.bars) throw new Error(`the phone: ${JSON.stringify(first)}`);
+        await tab.getByRole("button", { name: "Next" }).tap();
+        await until(async () => (await tab.locator("[data-screen-id]").getAttribute("data-screen-id")) === "screen-2", { message: "Next → screen-2 on the phone" });
+      } finally {
+        await phone.close();
+      }
+      await page.keyboard.press("Escape");
+      return "Play › Open on phone: QR + network link → Esc keeps Play → a 390 × 844 phone plays screen-1 (no simulated bars) → Next → screen-2";
     },
   },
 ];

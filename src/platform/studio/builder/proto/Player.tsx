@@ -1,32 +1,31 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
-import { ToastProvider, useToast, type ToastOptions } from "../../../../components/Toast";
+import { ToastProvider } from "../../../../components/Toast";
 import { PresentBar } from "../../board/PresentBar";
 import { deviceOfScreen, deviceOs } from "../../../../../tools/studio/screen-devices.mjs";
 import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportFit, viewportDevice, ViewportHandles, type PresentViewport } from "../../board/presentViewport";
 import { canvasApi } from "../../canvas/viewport";
+import { OpenOnPhone } from "../../device/OpenOnPhone";
 import { previewAttributes, type ModeKey } from "../../shell/modes";
 import { studioStore, useStudio } from "../../store";
 import type { StudioPreviewSettings } from "../../types";
-import { componentsOf, renderNode, type PageNode, type PageTree } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { useUploadsVersion } from "../assets/uploads";
 import { duoStatusOf, safeAreasOf } from "./DeviceBars";
-import { frameMotion, motionProps } from "./playMotion";
 import { CLICKABLE, itemElement, layerElements } from "./protoDom";
-import { DEFAULT_DELAY, optionsOf, protoSourcesOf, type ProtoOptions } from "./protoModel";
-import { placesItself } from "./protoTriggers";
-import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, protoHandler, SimulatedDeviceContext, type PageDevice, type ProtoActions } from "./runtime";
+import { protoSourcesOf } from "./protoModel";
+import { literal, PlayScreens, usePlayFlow } from "./playFlow";
+import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, SimulatedDeviceContext, type PageDevice } from "./runtime";
 import { useCanvasPreview } from "../../project/activeProject";
 
 /*
  * Play (Studio builder GĐ2 M3, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d): the page runs full
- * screen from its first Screen (or the one named), and its proto actions are live: navigate opens a Screen's default
- * state, open shows an Overlay over the current Screen, close / back undo them, toast shows a Toast, link opens the URL
- * in a new tab. ⌥⌘↵ (Figma's Present) starts it on a builder page, R restarts, Esc leaves. Play is Present's layer
+ * screen from its first Screen (or the one named), and its proto actions are live (playFlow.tsx: navigate, open, close,
+ * back, toast, link). ⌥⌘↵ (Figma's Present) starts it on a builder page, R restarts, Esc leaves. Play is Present's layer
  * under the name `presenting: "play:<screen>"`, so the Studio behind it is inert and its shortcuts wait, as for Present.
+ * Open on phone (device/OpenOnPhone.tsx) plays the same page on a phone's own browser.
  */
 
 export const PLAY_PREFIX = "play:";
@@ -44,17 +43,6 @@ export const stopPlay = () => { if (isPlaying(studioStore.getState().presenting)
 /** How long the hotspot hints stay (their fade is in builder.css). */
 const HINT_MS = 900;
 type HintBox = { x: number; y: number; width: number; height: number; radius: string };
-/** A step of the flow: the Screen shown and the options of the action that showed it (Back plays them backwards). */
-type Step = { screen: string; options?: ProtoOptions };
-/** The open overlay: shown by a press (`options`: its animation) or while the pointer stays on a layer (`hover`). */
-type OpenOverlay = { id: string; options?: ProtoOptions; hover?: boolean };
-/** The frame going away while the next one comes in (`reverse`: Back). */
-type Leaving = { key: string; screen: string; options?: ProtoOptions; reverse: boolean };
-/** A frame going away is dropped after this long even if its animation never reports its end (no animation running). */
-const LEAVE_MS = 700;
-
-const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
-const elements = (tree: PageTree | null) => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element");
 
 /** StudioApp renders it beside Present: the Play layer while `presenting` is "play:…" on a builder page. */
 export function Player() {
@@ -73,25 +61,9 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const tree = usePageTree(page?.text);
   // Uploaded photos show once they have loaded.
   useUploadsVersion();
-  const frames = useMemo(() => elements(tree), [tree]);
-  const screens = frames.filter((node) => node.name === "Screen");
-  const first = start && screens.some((node) => literal(node, "id") === start) ? start : String(literal(screens[0] ?? { props: {} } as PageNode, "id") ?? "");
-  const [history, setHistory] = useState<Step[]>([]);
-  const [overlay, setOverlay] = useState<OpenOverlay | null>(null);
-  const current = history.at(-1)?.screen ?? first;
-  const currentKey = `${history.length}:${current}`;
-  // The animation between two frames: the one going away stays drawn under (or over) the one coming in until it ends.
-  const [leaving, setLeaving] = useState<Leaving | null>(null);
-  const [entering, setEntering] = useState<{ options?: ProtoOptions; reverse: boolean } | null>(null);
-  const flow = useRef({ history, current, currentKey, overlay });
-  flow.current = { history, current, currentKey, overlay };
-  useEffect(() => {
-    if (!leaving) return undefined;
-    const timer = window.setTimeout(() => { setLeaving(null); setEntering(null); }, LEAVE_MS);
-    return () => window.clearTimeout(timer);
-  }, [leaving]);
+  const flow = usePlayFlow(tree, start);
+  const { screen, current, history, overlay, setOverlay, actions, restart } = flow;
   const layerRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
   // Preview modes change here and in Present only (the toolbar has none): Play's own, light/dark included, over the
   // canvas modes. They change the page being played, never the Studio's UI (its bar keeps the chrome modes).
   const { preview: canvasModes, brand } = useCanvasPreview();
@@ -138,46 +110,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
     if (boxes.length) setHints({ key: Date.now(), boxes });
   };
 
-  const restart = useCallback(() => { setHistory([]); setOverlay(null); setLeaving(null); setEntering(null); }, []);
   const exit = useCallback(() => stopPlay(), []);
-  const screenOf = useCallback((screenId: string) => screens.find((node) => literal(node, "id") === screenId && literal(node, "state") === undefined) ?? screens.find((node) => literal(node, "id") === screenId), [screens]);
-  const missing = useCallback((what: string, target: string) => toast({ title: `No ${what} “${target}” on this page`, type: "warning" }), [toast]);
-
-  const hasOverlay = useCallback((target: string) => frames.some((node) => node.name === "Overlay" && literal(node, "id") === target), [frames]);
-  const actions = useMemo<ProtoActions>(() => ({
-    navigate: (target, raw) => {
-      if (!screenOf(String(target))) { missing("screen", String(target)); return; }
-      const options = optionsOf("navigate", [target, raw]);
-      const { history: stack, current: from, currentKey: fromKey } = flow.current;
-      setOverlay(null);
-      setLeaving(options.animation === "instant" ? null : { key: fromKey, screen: from, options, reverse: false });
-      setEntering(options.animation === "instant" ? null : { options, reverse: false });
-      setHistory([...(stack.length ? stack : [{ screen: first }]), { screen: String(target), options }]);
-    },
-    open: (target, raw) => {
-      if (!hasOverlay(String(target))) { missing("overlay", String(target)); return; }
-      setOverlay({ id: String(target), options: optionsOf("open", [target, raw]) });
-    },
-    close: () => setOverlay(null),
-    back: () => {
-      const { history: stack, overlay: open, currentKey: fromKey } = flow.current;
-      if (open) { setOverlay(null); return; }
-      const step = stack.at(-1);
-      if (!step) return;
-      // Back plays the way in backwards: the frame leaves the way it came.
-      const instant = step.options?.animation === "instant";
-      setLeaving(instant ? null : { key: fromKey, screen: step.screen, options: step.options, reverse: true });
-      setEntering(instant ? null : { options: step.options, reverse: true });
-      setHistory(stack.slice(0, -1));
-    },
-    toast: (options) => toast((options && typeof options === "object" ? options : { title: String(options ?? "") }) as ToastOptions),
-    link: (url) => { if (/^(https?:|mailto:)/i.test(String(url))) window.open(String(url), "_blank", "noopener,noreferrer"); },
-    // While hovering: the overlay shows while the pointer stays on the layer, then goes (an overlay opened by a press stays).
-    hover: {
-      enter: (target, raw) => { if (hasOverlay(target)) setOverlay({ id: target, options: optionsOf("open", [target, raw]), hover: true }); },
-      leave: () => setOverlay((open) => (open?.hover ? null : open)),
-    },
-  }), [first, hasOverlay, missing, screenOf, toast]);
 
   useEffect(() => {
     layerRef.current?.focus({ preventScroll: true });
@@ -192,8 +125,9 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       const target = event.target instanceof HTMLElement ? event.target : null;
       if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
       if (event.key === "Escape") {
-        // An open overlay (Dialog, Menu…) takes Escape first; one the Overlay places (a Card…) closes.
-        if (layerRef.current?.querySelector(presentEscapeOwners)) return;
+        // An open overlay (Dialog, Menu…) takes Escape first; one the Overlay places (a Card…) closes. Open on phone's
+        // dialog sits in the chrome's portal, outside the layer.
+        if (layerRef.current?.querySelector(presentEscapeOwners) || document.querySelector(".studio-open-phone")) return;
         if (layerRef.current?.querySelector(".studio-player__overlay")) { event.preventDefault(); setOverlay(null); return; }
         event.preventDefault();
         exit();
@@ -211,13 +145,9 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       window.history.replaceState(window.history.state, "", back);
       requestAnimationFrame(() => { if (!studioStore.getState().presenting) canvasApi.getViewportElement()?.focus({ preventScroll: true }); });
     };
-  }, [exit, restart, start]);
+  }, [exit, restart, setOverlay, start]);
 
-  const screen = screenOf(current);
-  const overlayNode = overlay ? frames.find((node) => node.name === "Overlay" && literal(node, "id") === overlay.id) : undefined;
-  const overlayChild = overlayNode?.children.find((child): child is PageNode => child.kind === "element");
   const device = (screen ? (literal(screen, "device") as PageDevice | undefined) : undefined) ?? "desktop";
-  const leavingNode = leaving ? screenOf(leaving.screen) : undefined;
   const os = pageOsOf(tree?.header);
   // The device simulator (presentViewport.tsx): the Screen plays on the shown device, which takes its type, layout and
   // bars (SimulatedDeviceContext); a typed size keeps the Screen's own.
@@ -229,17 +159,6 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const barsDevice = shownDevice?.device ?? device;
   const duo = duoStatusOf((shownDevice ?? drawnOn)?.bars);
   const overlaySafe = barsDevice === "desktop" ? null : safeAreasOf(shownDevice ? deviceOs(shownDevice) : duo ? "ios" : os, barsDevice, duo);
-
-  // After delay (a Screen's): once the screen shows, its action runs when the delay is over (again on each visit).
-  const delayed = screen?.props.onDelay;
-  const live = useRef(actions);
-  live.current = actions;
-  useEffect(() => {
-    if (delayed?.kind !== "proto") return undefined;
-    const timer = window.setTimeout(() => protoHandler(live.current, delayed.action, delayed.args)(), optionsOf(delayed.action, delayed.args).delay ?? DEFAULT_DELAY);
-    return () => window.clearTimeout(timer);
-  }, [currentKey, delayed]);
-  const ctx = { file: pageFile(id), mock: tree?.mock ?? {}, proto: actions, components: componentsOf(tree?.board ?? null) };
   const title = page?.title ?? id;
   const screenTitle = screen ? String(literal(screen, "title") ?? current) : "";
 
@@ -250,6 +169,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
         leading={<>
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && !overlay} onClick={() => actions.back()} />
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />
+          <OpenOnPhone page={id} title={title} text={page?.text} start={current || null} modes={modes} brand={brand} />
         </>} />
       {/* The page under the bar (Present's): the device scrolls in it, never under the bar. */}
       <div className="studio-present__page">
@@ -261,45 +181,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
             <DeviceFrame device={shownDevice} fit={fit} part="body" />
             <div ref={deviceRef} onPointerDownCapture={showHotspots} className="studio-player__device" style={fit.boxStyle ?? { width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
               <SimulatedDeviceContext value={shownDevice ?? null}>
-              <div className="studio-player__screens">
-                {screen ? (
-                  <div key={currentKey} className="studio-player__screen" {...motionProps(entering ? frameMotion(entering.options, "enter", entering.reverse) : null)}>
-                    {renderNode(screen, { mock: ctx.mock }, ctx)}
-                  </div>
-                ) : <p className="studio-player__empty">{tree ? "This page has no Screen to play." : ""}</p>}
-                {leaving && leavingNode ? (
-                  <div
-                    key={leaving.key}
-                    className="studio-player__screen"
-                    data-leaving=""
-                    inert
-                    aria-hidden="true"
-                    {...motionProps(frameMotion(leaving.options, "leave", leaving.reverse))}
-                    onAnimationEnd={(event) => { if (event.target === event.currentTarget) { setLeaving(null); setEntering(null); } }}
-                  >
-                    {renderNode(leavingNode, { mock: ctx.mock }, ctx)}
-                  </div>
-                ) : null}
-              </div>
-              {overlayChild && overlayNode && overlay ? (placesItself(overlayChild.name)
-                // A Dialog, Side Panel, Bottom Sheet… places and animates itself.
-                ? renderNode(overlayChild, { mock: ctx.mock }, ctx, `overlay:${overlay.id}`, { open: true, onOpenChange: (open: boolean) => { if (!open) setOverlay(null); } })
-                : (
-                  // Any other layer: where the Overlay says (Figma's overlay position), over a dimmed screen when asked;
-                  // a press outside it closes it unless the Overlay says not to.
-                  <div
-                    className="studio-player__overlay"
-                    data-position={String(literal(overlayNode, "position") ?? "center")}
-                    data-background={literal(overlayNode, "background") === true || undefined}
-                    data-hover={overlay.hover || undefined}
-                    style={overlaySafe ? { "--zen-safe-area-top": `${overlaySafe.top}px`, "--zen-safe-area-bottom": `${overlaySafe.bottom}px` } as CSSProperties : undefined}
-                    onPointerDown={(event) => { if (event.target === event.currentTarget && literal(overlayNode, "closeOnOutside") !== false) setOverlay(null); }}
-                  >
-                    <div key={overlay.id} className="studio-player__overlay-content" {...motionProps(overlay.hover ? null : frameMotion(overlay.options, "enter"))}>
-                      {renderNode(overlayChild, { mock: ctx.mock }, ctx, `overlay:${overlay.id}`)}
-                    </div>
-                  </div>
-                )) : null}
+              <PlayScreens flow={flow} file={pageFile(id)} overlaySafe={overlaySafe} />
               {hints ? (
                 <div key={hints.key} className="studio-player__hotspots" aria-hidden="true">
                   {hints.boxes.map((hint, index) => <span key={index} className="studio-player__hotspot" style={{ transform: `translate(${hint.x}px, ${hint.y}px)`, width: hint.width, height: hint.height, borderRadius: hint.radius }} />)}

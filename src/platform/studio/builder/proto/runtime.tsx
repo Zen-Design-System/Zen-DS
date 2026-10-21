@@ -45,6 +45,12 @@ export const pageOsOf = (header: Record<string, unknown> | null | undefined): De
  *  type and layout, its bars and safe areas, and its height. `null` (the canvas, a typed size): the Screen's own. */
 export const SimulatedDeviceContext = createContext<ScreenDevice | null>(null);
 
+/** A real phone's browser (Open on phone, device/DevicePlay.tsx): no simulated bars, the phone's own safe areas
+ *  (viewport-fit=cover) and the window's height. */
+export const RealDeviceContext = createContext(false);
+const REAL_SAFE_AREAS = { "--zen-safe-area-top": "env(safe-area-inset-top, 0px)", "--zen-safe-area-bottom": "env(safe-area-inset-bottom, 0px)" } as CSSProperties;
+const REAL_HEIGHT = { "--studio-screen-height": "100dvh" } as CSSProperties;
+
 /** The item a choice control hands its handler, as the key of a per-item action: the value itself, or the item's id. */
 const itemKey = (choice: unknown): string => {
   if (choice && typeof choice === "object") { const item = choice as { id?: unknown; value?: unknown }; return String(item.id ?? item.value ?? ""); }
@@ -137,13 +143,15 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
   // is iOS whatever the page's OS.
   const duo = duoStatusOf(hardware?.bars);
   const barsOs: DeviceOs = simulated ? deviceOs(simulated) : duo ? "ios" : os;
-  const bars = device === "desktop" ? null : safeAreasOf(barsOs, device, duo);
-  const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
+  // On a real phone (Open on phone) the phone draws its own bars: the app pads by its real safe areas and fills the window.
+  const real = useContext(RealDeviceContext);
+  const bars = device === "desktop" || real ? null : safeAreasOf(barsOs, device, duo);
+  const safe = real ? REAL_SAFE_AREAS : bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
   const tall = simulated ? simulated.height : height;
-  const drawn = typeof tall === "number" ? ({ "--studio-screen-height": `${tall}px` } as CSSProperties) : null;
+  const drawn = real ? REAL_HEIGHT : typeof tall === "number" ? ({ "--studio-screen-height": `${tall}px` } as CSSProperties) : null;
   const active = screenLayoutOf(device, simulated ? simulated.layout : layout);
   // The sides the content keeps clear itself: a Top / Bottom Navigation (the mobile layout's) pads by the safe area.
-  const inset = bars ? [!(active === "mobile" && topNavigation) && "top", !(active === "mobile" && bottomNavigation) && "bottom"].filter(Boolean).join(" ") : "";
+  const inset = bars || (real && device !== "desktop") ? [!(active === "mobile" && topNavigation) && "top", !(active === "mobile" && bottomNavigation) && "bottom"].filter(Boolean).join(" ") : "";
   const desktop = active === "desktop";
   const chrome = desktop ? Boolean(sidebar || header) : Boolean(topNavigation || bottomNavigation);
   const content = desktop ? children : withoutMasterLayout(children);
