@@ -132,6 +132,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
   and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
+- The direct paste brings a frame's whole look: its stroke inside at its weight (one side, or Zen's dash), each corner
+  on its Corner-Radius variable, its effect style with its shadows, its opacity, and its rotation and flip (it had the
+  fill, one corner radius and the blend mode).
 - A Studio arrow lands in Figma with one head, at its end, as Figma's own arrow (⇧L) draws it (it had a head at both
   ends); pulling Figma's arrows brings them back as Shape arrows.
 - The direct paste places a page's own components (`<Component>`, `<ComponentSet>`) as Figma components with their
