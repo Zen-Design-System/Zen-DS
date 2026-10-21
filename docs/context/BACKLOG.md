@@ -151,10 +151,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   + 8 Nav-Action sets), ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat parts, Metric
   (re-capture); the chart family now belongs to session "Chart components với animation". P4: raw HTML and className in
   examples. Audit and numbers: `docs/research/studio-figma-push-spec-2026-10-12.md` §8.
-- **P3 · Export › Figma: a Grid inside a Grid cell does not stretch to its row (2026-10-14, seen on Dashboard):** CSS
-  stretches both inner Grids of the metric row, so all four MetricCards match the tallest. Figma keeps the second pair
-  at its own height (168 vs 248 when one card has `custom`). The push hugs frame cells on purpose (figma-push.mjs: "Fill
-  inside Fill leaves Figma a height it cannot settle"). A fix needs push, importer (FLEX rows) and pull, plus a live check.
 - **P3 · Zen plugin `code.js` Swap Project Colors reads `getVariableById` (sync) (2026-10-14):** under the manifest's
   `dynamic-page` it throws (caught), so a Global Color that is an alias derives from nothing (`getBgColor`, ~line 5655).
   Import from Studio no longer uses any sync API (`tests/plugin-source-safety.test.js` checks it).

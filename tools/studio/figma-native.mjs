@@ -566,6 +566,12 @@ class Writer {
   }
 
   frame(spec, parent, parentInfo, { root = false, id: given = null } = {}) {
+    // A Grid in a grid cell: the push stretches it with Flex rows, which the Zen plugin settles by measuring
+    // (settleGridRows). A paste cannot measure, and a Grid with Flex rows keeps the height it lands at (Figma,
+    // 2026-10-21), so here it hugs with Hug rows: its cards keep their own heights, as before.
+    if (parentInfo?.mode === "GRID" && spec.fillH && spec.layout?.mode === "GRID" && spec.layout.grid?.rowSizes?.every((size) => size.type === "FLEX" && size.value === 1)) {
+      spec = { ...spec, fillH: false, layout: { ...spec.layout, grid: { ...spec.layout.grid, rowSizes: undefined } } };
+    }
     const id = given ?? this.fresh();
     const fill = this.fills(spec, parentInfo);
     const sizing = root ? { w: "FIXED", h: "HUG" } : { w: fill.w ? "FILL" : spec.fixedWidth ? "FIXED" : "HUG", h: fill.h ? "FILL" : "HUG" };
