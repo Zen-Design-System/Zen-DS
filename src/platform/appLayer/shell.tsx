@@ -224,15 +224,15 @@ function StepActions({ step, onBack, last, inActionBar }: { step: number; onBack
 
 /* ───────────── AppShell builder ───────────── */
 
-const patternOptions = [option("sidebar", "Sidebar"), option("list-detail", "List-Detail"), option("top-bar", "Top-Bar"), option("workspace", "Workspace"), option("docs", "Docs"), option("focus", "Focus")];
+const patternOptions = [option("sidebar", "Sidebar"), option("list-detail", "List-Detail"), option("top-bar", "Top-Bar"), option("workspace", "Workspace"), option("docs", "Docs"), option("focus", "Focus"), option("grid", "Grid")];
 const patternLabel = Object.fromEntries(patternOptions.map((entry) => [entry.id, entry.label])) as Record<AppShellPattern, string>;
 type Bottom = "tab-bar" | "floating" | "actions" | "none";
 const bottomOptions = [option("tab-bar", "Tab-Bar"), option("floating", "Floating"), option("actions", "Actions"), option("none", "None")];
 const topOptions = [option("bar", "Bar"), option("band", "Band"), option("band-sheet", "Band-Sheet"), option("media", "Media")];
 const optionLabel = (options: { id: string; label: string }[], id: string) => options.find((entry) => entry.id === id)?.label ?? id;
 /** What each pattern's phone screen ends with by default: roots keep the Tab-Bar, a task its actions, reading nothing. */
-const defaultBottom: Record<AppShellPattern, Bottom> = { sidebar: "tab-bar", "list-detail": "actions", "top-bar": "tab-bar", workspace: "actions", docs: "none", focus: "actions" };
-const SIDEBAR_PATTERNS: AppShellPattern[] = ["sidebar", "list-detail"];
+const defaultBottom: Record<AppShellPattern, Bottom> = { sidebar: "tab-bar", "list-detail": "actions", "top-bar": "tab-bar", workspace: "actions", docs: "none", focus: "actions", grid: "tab-bar" };
+const SIDEBAR_PATTERNS: AppShellPattern[] = ["sidebar", "list-detail", "grid"];
 
 function AppShellPlayground() {
   // Desktop screens start on a 1440 window (Figma's desktop frame), scaled into the preview; phones start on the phone,
@@ -291,6 +291,8 @@ function AppShellPlayground() {
   const report = (message: string) => setRan(message);
 
   const sidebarPattern = SIDEBAR_PATTERNS.includes(pattern);
+  // Grid is the Sidebar workspace drawn in lines (Layout=Grid): the same directory, with its Sidebar and header themes.
+  const directoryPattern = pattern === "sidebar" || pattern === "grid";
   const navigate = (next: NavPage) => { setPage(next); setPanel(false); };
   const person = people[personId];
   const paneTheme = canvas === "default" ? "shadow" : "border";
@@ -320,7 +322,7 @@ function AppShellPlayground() {
     : crumbs([{ id: "home", label: studio.name }, ...trail.filter((item) => item.id !== "home")], (id) => { if (id in navPages) navigate(id as NavPage); }, true));
 
   /* ——— The People pages (Sidebar and Top-Bar): a directory table, or an empty page ——— */
-  const shown = teamOf(pattern === "sidebar" ? team : "all").filter((row) => !query.trim() || `${row.name} ${row.role} ${row.team}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const shown = teamOf(directoryPattern ? team : "all").filter((row) => !query.trim() || `${row.name} ${row.role} ${row.team}`.toLowerCase().includes(query.trim().toLowerCase()));
   const columns: TableColumn<Person>[] = [
     { id: "name", header: "Name", cell: (row) => <TableMedia bold media={<Avatar size="small" {...avatarOf(row)} />} caption={narrow ? row.role : row.email}>{row.name}</TableMedia> },
     ...(narrow ? [] : [{ id: "role", header: "Role", width: "200px", cell: (row: Person) => <TableText>{row.role}</TableText> }]),
@@ -334,7 +336,7 @@ function AppShellPlayground() {
   );
   const peopleBody = part(
     <div ref={measure}>
-      <Table aria-label={team === "all" || pattern !== "sidebar" ? "People" : `${team} team`} rows={shown} columns={columns} onRowClick={(row) => openPerson(row.id)}
+      <Table aria-label={team === "all" || !directoryPattern ? "People" : `${team} team`} rows={shown} columns={columns} onRowClick={(row) => openPerson(row.id)}
         empty={<EmptyState size="sm" headingLevel={2} icon="icon-search-medium-line" title="No one matches" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Try a first name, a role or a team.</EmptyState>} />
     </div>,
     `<Table aria-label="People" rows={people} columns={columns} onRowClick={(person) => openPerson(person.id)} />`,
@@ -386,11 +388,11 @@ function AppShellPlayground() {
   // Figma's Backdrop is 390 × 520 on a phone: a 3:4 photo without corners fills it (wider screens crop it).
   const photo = (index: number) => part(<Image src={platformMedia.site[index].src} alt={platformMedia.site[index].alt} ratio="3:4" radius="none" />, `<Image src={cover.src} alt="${platformMedia.site[index].alt}" ratio="3:4" radius="none" />`);
 
-  if (pattern === "sidebar" || pattern === "top-bar") {
+  if (directoryPattern || pattern === "top-bar") {
     // A navigation app (Sidebar) or one product with its navigation in the header (Top-Bar): the directory.
     title = navPages[page].label;
     actions = [plan, bell, account];
-    if (pattern === "sidebar") {
+    if (directoryPattern) {
       leading = topRow ? sidebarCrumbs(page === "home" ? [{ id: "home", label: "Home" }] : [{ id: "home", label: "Home" }, { id: page, label: navPages[page].label }]) : undefined;
       if (!topRow) actions = [];
       sections = withSections && page === "people" ? part(
