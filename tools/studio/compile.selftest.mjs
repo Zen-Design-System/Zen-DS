@@ -52,6 +52,15 @@ check("blank: component and screens", [blank.component, blank.screens], ["Checko
 // The app frame: the master layout (the Screen's root AppShell: Sidebar + Page header) exports one AppShell that also
 // carries the Screen's phone parts as topNavigation / bottomNavigation, drawn under 744px (component-usage-rules §17).
 const framedDesktop = compileReact(newPageText({ title: "Orders" }), { file: "orders.zen.tsx" }).code ?? "";
+// A Zen instance's own look (instance-look.mjs; Figma's Appearance on an instance): its style in the code, not props
+// Button has none of; Pass through writes nothing.
+const looked = compileReact(`// @zen-page {"format":1,"title":"Looks"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Button, Stack } from "@zen-ds/react";
+export default function Looks() { return (<Board><Screen id="s" title="Looks" device="desktop"><Stack><Button opacity={40} blendMode="multiply">Go</Button><Button blendMode="pass-through">Two</Button></Stack></Screen></Board>); }
+`, { file: "looks.zen.tsx" }).code ?? "";
+check("instance look: on the Button's style; Pass through writes nothing", [/<Button style=\{\{ opacity: 0\.4, mixBlendMode: "multiply" \}\}>Go<\/Button>/.test(looked), /<Button>Two<\/Button>/.test(looked), /opacity=|blendMode=/.test(looked)], [true, true, false]);
+
 ok("frame (desktop): the AppShell with the Sidebar and the Page header (its header's Main row) around the page", /<AppShell\n\s*sidebar=\{<Sidebar [^>]*>\n(\s*<SidebarMenuItem [^>]*\/>\n){3}\s*<\/Sidebar>\}\n\s*header=\{<AppShellHeader main=\{<PageHeader title="Orders" \/>\} \/>\}/.test(framedDesktop) && /<\/Stack>\n\s*<\/AppShell>/.test(framedDesktop));
 ok("frame (desktop): the phone parts ride on the AppShell", /\btopNavigation=\{<TopNavigation type="compact" title="Orders" \/>\}/.test(framedDesktop) && /\bbottomNavigation=\{<BottomNavigation/.test(framedDesktop) && framedDesktop.includes('import { AppShell, AppShellHeader, BottomNavigation, PageHeader, Sidebar, SidebarMenuItem, Stack, Text, TopNavigation } from "@zen-ds/react";'));
 // A desktop page turned phone exports the same AppShell: one code for both widths.

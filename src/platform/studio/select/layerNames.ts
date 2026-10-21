@@ -22,6 +22,19 @@ export function layerName(name: string, props: Record<string, unknown> | null | 
   return name;
 }
 
+/**
+ * The Design panel's heading, as Figma UI3 heads its panel: a frame (Box, Stack, Grid) reads "Frame" and a group (Box
+ * group, ⌘G) "Group"; every other layer as `layerName` (a page's own component by its name, a shape as drawn). Only the
+ * heading: Layers, the canvas labels and export names keep the code name (Zen's layer names; user 2026-10-21 picked the
+ * heading alone).
+ */
+export function panelTitle(name: string, props: Record<string, unknown> | null | undefined): string {
+  const named = layerName(name, props);
+  if (named !== name) return named;
+  if (name === "Box" && props?.group) return "Group";
+  return name === "Box" || name === "Stack" || name === "Grid" ? "Frame" : named;
+}
+
 /** A boolean group reads as its operation (Figma's Union, Subtract, Intersect, Exclude). */
 const BOOLEAN_LABELS: Readonly<Record<string, string>> = { union: "Union", subtract: "Subtract", intersect: "Intersect", exclude: "Exclude" };
 

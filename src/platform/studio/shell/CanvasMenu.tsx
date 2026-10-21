@@ -28,7 +28,8 @@ import { canvasApi } from "../canvas/viewport";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
 import { maskShortcut, modKey, presentShortcut } from "./modKey";
-import { combineAsVariants, createComponent, createComponentOfLayers, createComponents, pushChangesToMain, resetInstance } from "../edit/localComponents";
+import { combineAsVariants, createComponent, createComponentOfLayers, createComponents, goToMain, pushChangesToMain, resetInstance } from "../edit/localComponents";
+import { goToZenMain, instanceActionsFor, instanceActionsVersion, mainPageOf, subscribeInstanceActions } from "../inspector/instanceActions";
 import { removeFrames, wrapInSection } from "../builder/proto/addFrame";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
@@ -94,6 +95,8 @@ const framesOf = (frameId: string) => { const all = selectedFrames(); return all
 
 export function CanvasMenu() {
   const menu = useSyncExternalStore(subscribe, () => state, () => null);
+  // The Design panel publishes a Zen instance's reset after the click that opened the menu selected it.
+  useSyncExternalStore(subscribeInstanceActions, instanceActionsVersion, () => 0);
   const [point, setPoint] = useState({ x: 0, y: 0 });
   const [plan, setPlan] = useState<{ at: number; reply: DetachPlanReply } | null>(null);
   // Its own viewport-sized layer (chrome modes): the menu then opens to the right of the pointer, like Figma's, and
@@ -209,9 +212,18 @@ export function CanvasMenu() {
   const componentItems: MenuEntry[] = selection && !selection.part && selection.name !== "Use" && studioStore.getState().localPage ? [
     { id: "create-component", label: "Create component", icon: "icon-diamond-line" as const, shortcut: `⌥${modKey}K`, disabled: Boolean(editOff), onSelect: () => { void createComponent(selection); } },
   ] : selection && !selection.part && selection.name === "Use" && studioStore.getState().localPage ? [
-    // Figma's Main component › Push changes / Reset all changes on an instance of a page's own component (F7b).
+    // Figma's Main component › Go to main component / Push changes / Reset all changes on an instance of a page's own
+    // component (F7b; Go to main from A's re-measure K-70).
+    { id: "go-to-main", label: "Go to main component", icon: "icon-diamond-line" as const, onSelect: () => { void goToMain(selection); } },
     { id: "push-changes", label: "Push changes to main component", icon: "icon-upload-01-line" as const, disabled: Boolean(editOff), onSelect: () => { void pushChangesToMain(selection); } },
     { id: "reset-instance", label: "Reset all changes", icon: "icon-reverse-left-line" as const, disabled: Boolean(editOff), onSelect: () => { void resetInstance(selection); } },
+  ] : [];
+  // A Zen component's instance (K-70): Go to main component opens its page on the Main component frame; Reset all
+  // changes runs the Design panel's header reset (instanceActions.ts), disabled when nothing is changed.
+  const zenActions = selection && !selection.part && mainPageOf(selection.name) ? instanceActionsFor(selection) : null;
+  const zenInstanceItems: MenuEntry[] = selection && !selection.part && mainPageOf(selection.name) ? [
+    { id: "go-to-zen-main", label: "Go to main component", icon: "icon-diamond-line" as const, onSelect: () => { goToZenMain(selection.name); } },
+    ...(zenActions ? [{ id: "reset-zen-instance", label: "Reset all changes", icon: "icon-reverse-left-line" as const, disabled: Boolean(editOff) || !zenActions.changes, caption: editOff ?? (zenActions.changes ? undefined : "No changes"), onSelect: () => zenActions.reset() }] : []),
   ] : [];
   const frame = menu?.target.kind === "frame" ? findFrame(menu.target.frameId) : null;
   const localPage = studioStore.getState().localPage;
@@ -263,7 +275,7 @@ export function CanvasMenu() {
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...shapeItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
+        : [...selectLayer, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...zenInstanceItems, ...shapeItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 

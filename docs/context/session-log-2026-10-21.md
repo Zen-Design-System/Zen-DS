@@ -20,6 +20,43 @@
 - PageHeader `description` Text tone base → light (DashboardHeader type="main" renders PageHeader, so its subheading
   follows). JSDoc cites the node; guidelines + api docs rebuilt.
 
+## Session B · Instance menu, instance Appearance, Frame / Group heading (user, 2026-10-21: three of A's re-measure gaps)
+
+A's re-measure on main e99c5408: §2 keys 65 ✅ · 7 🟡 · 4 ❌ (2026-10-18: 36 · 14 · 26); §6.3 14/14 in 44 steps against
+Figma's 39. The user picked three of the four gaps in B's area: "Menu chuột phải instance", "Appearance cho Button" and
+"Tên Group/Frame ở header" (not "Bỏ mục Content"). Branch `zen/feat/studio-instance-menu-appearance-20261021`. Tier M.
+Spec card `docs/research/studio-instance-panel-parity-spec-2026-10-21.md`. Plugin `studio-import` 8248c59.
+
+- Layer menu (K-70), in `inspector/instanceActions.ts` and `shell/CanvasMenu.tsx`:
+  - A Zen instance gets Go to main component: its Studio page opens on the Main component frame, selected and zoomed.
+    It skips the old page's frame while the board changes.
+  - It also gets Reset all changes. The Design panel publishes its header reset for the layer it shows; the menu
+    subscribes, since the same click selects the layer, and runs it: one request, one ⌘Z. It is disabled with "No
+    changes" when nothing is written.
+  - A page's own `<Use>` gains Go to main component (`goToMain`).
+- Instance Appearance (K-74):
+  - A page has no `style` (dialect), so the look is written as on a frame: `opacity={40}` and `blendMode="multiply"`.
+  - `tools/studio/instance-look.mjs` takes them off the component's props: renderPage and compile.mjs put them on its
+    `style`, figma-push on the INSTANCE (0–1, the enum), and figma-pull reads them back.
+  - The plugin sets the instance's opacity and blend, else 1 and Pass through.
+  - Only the components whose `style` reaches their root take it. A probe over every public component found 69 (59
+    instances plus primitives); about 100 drop `style`. The conformance test now pins that list.
+  - Studio: DesignPanel shows the frames' AppearanceSection on such an instance, on pages made in the Studio.
+- Heading: `panelTitle` (select/layerNames.ts) reads Frame for Box / Stack / Grid and Group for a group. Only the
+  Design panel heading changes; its title attribute keeps the code name. Eight E2E heading checks follow (builder,
+  library, build-check, dnd, draw, figma).
+- Live Zen file: the real importer placed a Button at 0.4 MULTIPLY, a plain Button (1, PASS_THROUGH) and a Badge at
+  0.6, with no notes. The screenshot matched, and the QA frame was removed.
+- Checks:
+  - Selftests: push 345, compile 77, the new layerNames selftest 7; studio:selftest passes and tsc is clean.
+  - Conformance 180/180; the plugin's full `npm test` passes.
+  - New E2E rows FW-99, FW-141 and FW-142 (figma group).
+- Gate (15:16–15:52, main 51dffc2b): static checks, TypeScript and browser tests (76/76) pass. Studio E2E is
+  332 / 336: MC-02…05 fail as on main. The cause is LayersPanel watching a stale canvas world, and A fixes it
+  (53e87642). FW-99/141/142 pass alone, and every changed heading check passes. FW-100/101 were renumbered to
+  FW-141/142 because they collided with F10's rows.
+- BACKLOG P3 (waits for the user): AppShellHeader `theme` / `density` (#179) are not pushed to Figma yet.
+
 ## AppShell session · Figma sync: Grid, Header Theme/Density, Sidebar Theme, Sub-Header (tier M, branch `zen/feat/appshell-figma-sync-20261021`)
 
 The user updated Pattern Sidebar, AppShell and Header/AppShell in Figma, pointed to the Rule section 16823:85229, and
@@ -56,6 +93,56 @@ The Medium rail: code had 84 / 88 (an 8px right inset, header gap 16), while the
 - figma-push SIDEBAR_RAIL_WIDTH.basic is 80, with its selftest (B's file; B to be told);
 - test: `Sidebar rail, Density=Medium`.
 Studio's Theme/Density mapping waits for this merge (Bug session).
+
+## Session "Bug" · Header/AppShell to Studio (tier M; user: "Update Header/AppShell component từ Figma lên studio")
+
+- Live read: Header/AppShell became a set 16783:71068 (Theme Default 16243:290461 · Border 16783:71137 · Border &
+  Divider 16783:72140) while the work ran; props Collapse Button, Top-Elements, Main-Element, Top-Header, Main,
+  Sections. Contract (◇ Master-Layout) and library-keys (set key 1081dfd3…) hold the set.
+- Map AppShellHeader: Main / Sections switches (slot), leading · center · actions as the Slots rows (propSchema
+  names), Collapse Button / Top-Header / Top-Elements / Main-Element skipped with reasons, Theme skipped until
+  AppShell ships `theme` (approved by the user, its own PR). Main component: MAIN_SAMPLES.AppShellHeader (Figma's
+  default content), FIXED_WIDTHS 1272, an AppShellChromeContext preview (toggle "collapse") so the Collapse button draws.
+- Native pack: C added `--merge` / `probe-code --ids` (#176). First capture copied the user's selection (C now checks
+  the copied node); second capture of the set merged 1 set + 3 symbols, clipboard put back 4/4, probe frame removed.
+  Drift found and handed over: header bottom padding 12 (Figma) vs 8 (code) → AppShell; the push's top bar → B.
+- Next (agreed with AppShell, user: "Studio vẽ đủ các variant" of Patterns/Sidebar): after #179 and AppShell's
+  patterns-sidebar branch, map Header Theme/Density; Sidebar.sets gains "Patterns/Sidebar": "basic" (6040:67524,
+  16 variants, wraps Side-Bar/Master/Basic) with Theme/Density/Shadow rows and Expand as `main` collapsed (inverted);
+  one desktop capture refreshes Header/AppShell + Patterns/Sidebar + 19 chart sets (drop then `--merge`).
+- Built (worktree `../Zen-DS-header-sidebar`, branch `zen/feat/studio-header-sidebar-20261021` on AppShell's
+  426a569a): Header Theme {Default, Border & Divider → border-divider} / Density; Sidebar Theme · Density · Shadow
+  rows, Expand `main` (Yes → false, No → true). Found by figma-push.selftest (crash at the AppShell master): the push's
+  entryFor() picks a set by `setValue`, and a second "basic" set took Side-Bar/Master/Basic's place (the first set is
+  re-registered without its setProp). Fix at the owner of the SET row, figma-props-build.mjs: a set that repeats a
+  value adds its props and Main component variants, not a choice (first wins), and a boolean's `when` counts values,
+  not sets. Push selftest 342 ✓ again; Sidebar is the only map entry with a repeated value.
+- Native pack refresh (user: Patterns/Sidebar final, clipboard OK): a drop script took 20 sets out of the pack (19 chart
+  sets incl. .Primitives/Chart/Sector, Trend, Hatch, Legend-Item, Stack-Bar Single/Value-Sector, and Patterns/Sidebar's
+  4 old variants) with their 149 symbols and 0 slot contents; probe 16897:29494 (164 instances: charts 145, Patterns/
+  Sidebar 16, Header/AppShell 3) captured with `--merge --keep`: 21 sets + 164 symbols added, the 211 sets kept stay,
+  clipboard put back 6/6, probe removed. check 177/177, figma-native selftest 130 ✓, studio:selftest exit 0.
+- Probe (private server): Header/AppShell draws its 4 Theme × Density cells; Patterns/Sidebar switches all 5 themes
+  through the variant panel, Medium rail 80, expanded 240; the Small rails measured 60 / 52 (Figma 72 / 64) without a
+  logo → AppShell fixed sidebar.css at its owner (e94c0f3c, min-width 72 / 64), stacked under this branch.
+- Stack gate (one run for AppShell's #181 + this branch, Supervisor's plan; report .qa/reports/2026-10-21T07-13-11-
+  92715053.md): static ✓, Vitest 76/76, behaviour 0 errors, runtime 0 errors + 4 new [rhythm] warnings on AppShell's
+  G1 · Grid (10 text styles, already on main), Studio E2E 329 works / 7 broken. B-28 passes on a rerun (flaky under
+  load); MC-02…07 fail on main as well (shared checkout at 51dffc2b, and b454389b / 3c77ff96 / e94c0f3c without this
+  branch's commits): the click selects the variant but the Layers row never shows selected. Last worked 12:09 today
+  (Zen-DS-appshell); handed to B (mainComponent / Layers) and the Supervisor.
+
+## Session "Bug" · Chart responsive in Figma (Figma library only; user: "kiểm tra lại responsive tất cả các chart trong figma", "tất cả các chiều", "Sửa hết")
+
+- Audit: temporary instances of every chart variant on the QA page 15872:3 at 280/343/600/1200 wide (and 0.8×/1.6×
+  height for fixed-height ones), clip-aware, shapes by render bounds; flags x/y overflow > 1.5px and a gap > 24px below.
+- Fixes: .Primitives/Chart/Sector 4388:8677 last grid row → HUG (labels hung 12px under Line/Multi-Line), Trend
+  4401:7782 Sector overrides too; the selected sector (tooltip) moved to the middle in 4 Line Trend + 8 Stack-Bar
+  variants (instance constraints cannot be overridden); Radial/Donut Chart frame HUG + minWidth per Size (ring
+  120/168/240/320, +124 Start/End legend; Radial End 286–486); Bar Vertical 12-sector minWidth 324, Horizontal minHeight
+  290/370/410/610 (4 Secondary made FIXED 290 like Primary); Funnel minHeight 318, Bullet 294.
+- Re-audit: 580 instances, 0 issues. The native pack still holds the old chart skeletons (merge keeps what it holds):
+  refresh them with the Header/AppShell capture after AppShell's #179 lands.
 
 ## Figma walks re-measured (Session A, worktree `../Zen-DS-f9b`, branch `zen/docs/figma-walk-remeasure-20261020`)
 
@@ -103,6 +190,69 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
   tokens:native:check and high contrast (0 failures) all pass.
 - No component CSS and no Figma contract binds Carved: it reaches apps, the Design Tokens page and Studio's Variables.
 
+## AppShell session · Patterns/Sidebar → Studio, Sidebar themes (tier M, branch `zen/feat/studio-patterns-sidebar-20261021`, stacked on #179)
+
+The user asked: "Update cả Patterns/Sidebar từ figma lên Studio", "Cập nhật boolean cho footer của sidebar từ figma lên
+studio", and (through the Bug session) "bổ sung variant của Patterns/Sidebar". They approved Carved and
+Carved-Floating: "Có, cùng đợt Studio". Borderless appeared in Figma while I worked.
+
+Live Patterns/Sidebar 6040:67524, renamed from "…/Density-Medium":
+- Theme = Default | Border | Borderless | Carved | Carved-Floating; Density = Medium | Small; plus Shadow and Expand.
+- The flush themes (Border, Borderless, Carved): inset 0, rail 64, header gap 24, body padding 4·8.
+- Carved-Floating: inset 8·0·8·8, panel in Background/Carved, radius 20, no shadow.
+
+Code:
+- `sidebarThemes` has all five values, with CSS for each.
+- New test in app-shell-grid.test.tsx.
+- Guideline row updated.
+
+Studio:
+- Contract: the ❖ Sidebar page re-read (Basic and Small-Density gained Collapse Button and Footer, Workspace gained
+  Footer) and Patterns/Sidebar added under ◇ Master-Layout.
+- Map: Footer → { toggle: "footer", on: "slot" }; Collapse Button → skip.
+- figmaProps regenerated (48 toggles).
+- MASTER_SIDEBAR_PATTERN, library-keys and the push selftest use the new name.
+- `studio:selftest` exit 0.
+
+The Bug session wires Patterns/Sidebar into Properties and the Main component, and captures the native pack together
+with Header/AppShell.
+
+### Standalone Sidebar → Patterns/Sidebar (same branch; user: "Có, sửa push Sidebar đứng riêng luôn")
+
+- Live set read (use_figma, read-only): 16 variants. Border, Borderless, Carved and Carved-Floating exist only at
+  Density=Small, and their Shadow is fixed (No when open, Yes on the flush rails). The Side-Bar inside is named
+  Patterns/Density/Comfortable/Sidebar/Yes|No.
+- Push (`figma-push.mjs`):
+  - `sidebarPatternProps(look)` picks the nearest variant: Theme and Expand first, then Density, then Shadow.
+  - `sidebarPatternNode` wraps a Basic Side-Bar on its own: its props go to nested "Patterns", its slots and edits move
+    inside the Sidebar/Yes|No layer, and that layer fills the pattern's height. Workspace and Small-Density stay as
+    they are.
+  - The AppShell master writes the same variant (`pattern="grid"` gives Border · Small). Its frames fallback wraps too.
+  - Rail widths follow the look: 80 · 72 (Small) · 64 (flush).
+- Pull (`figma-pull.mjs`):
+  - The composition read keeps its variant (`compositionProps`), and `sidebarPattern` reads a placed pattern or the
+    push's instance.
+  - `sidebarLookProps` gives back theme, density and shadow. Shadow=No is read on Default only.
+  - `instanceIn` and the master frame carry the look, so it survives the AppShell read too.
+- Checks:
+  - Push selftest 347 (5 new: variant choice, a carved small rail, the grid master, two round trips). `studio:selftest`
+    exit 0. library-keys check: all 176 sets keyed.
+  - Live-shaped reads of three placed patterns (16783:66571 Border·Small, 16272:135322, 16256:1944) give
+    `theme="border" density="small"`, `density="small"` and `collapsed density="small"`.
+- BACKLOG P2 "A standalone Sidebar pushes without its theme" removed.
+- Real Figma: the plugin's importer was run on "Studio exports — QA" (unused paths stubbed, one use_figma call) with
+  three Sidebars: carved small, a border rail, and default with shadow={false}.
+  - Each became Patterns/Sidebar with its exact variant: 240 / 64 / 240 wide, the Side-Bar filling 982, rows and
+    selection right.
+  - The screenshot matches: a flush Carved column, the rail with its line, the inset panel without a shadow.
+  - The frame was removed afterwards.
+  - The bed's notes about Footer-Container and Divider are use_figma skipping hidden layers. The Footer boolean already
+    hides them, and the plugin finds hidden layers.
+- Fix from Bug's gate on 3af0dfb9 (Studio Main component probe). Collapsed without a 32px logo, the Density=Small rail
+  hugged its content: 60 for default/carved-floating, 52 for the flush themes. Figma's rails are a fixed 72 and 64.
+  sidebar.css now gives the small rail min-width 72 and the flush rails 64, as Medium has 80. The new test in
+  app-shell-grid.test.tsx runs in Bug's re-run; I ran no browser test, so as not to overlap Bug's gate.
+
 ## Copy a Section with its frames (Session C) — tier S, branch `zen/feat/studio-section-duplicate-20261021`
 The user picked it (2026-10-21) from the BACKLOG P1 "Studio design page = Figma" leftovers (F4, C's area). ⌥-drag, ⌘D
 and ⌘C ⌘V of a Section copy it with the frames and Sections it holds (board/sections.ts, any depth), all moved by the
@@ -121,3 +271,12 @@ original stays, one ⌘Z each) waits for a gate slot.
   start) and passed the row's 20 s. Fixed at its owner, the shared helper: each ⌘Z waits for its own step (the page
   changes). FW-66 + FW-106 ✓ in 12 s. The whole Figma walk again: 125 / 126, FW-02 (⌘F) timed out once and passed
   alone (8 s; it passed in the first walk run).
+
+## Layers missed the Main component's variant cells (Session A, branch `zen/fix/layers-variant-cells-20261021`)
+
+B and Bug found MC-02 flaky alone: "its Layers row selected" timed out, and the set row in Layers had no children.
+LayersPanel's MutationObserver took the canvas world once, when its effect ran. A world the canvas mounted later (a
+page opened directly) was never watched, so the async variant cells never rebuilt the tree. Now the observer is
+re-pointed whenever `attachCanvas` notifies (`canvasApi.onChange`), and a rebuild is scheduled each time it starts
+watching a world.
+

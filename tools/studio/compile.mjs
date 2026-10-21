@@ -18,6 +18,7 @@
 import { PROPERTY_BINDINGS, SCREEN_CHROME, componentSets, eachElement, localComponents, mainLayerPaths, parsePage, resolveInstance, screenLayout } from "./dialect.mjs";
 import { LOCKED_PROP } from "./layer-meta.mjs";
 import { literalProp, objectFields, opensItself, requiredFunctions, standInKind } from "./standins.mjs";
+import { INSTANCE_LOOK_PROPS, instanceLookCode, instanceLookStyle, takesInstanceLook } from "./instance-look.mjs";
 import { pruneHidden } from "./visibility.mjs";
 
 const UNIT = "  ";
@@ -454,6 +455,12 @@ function elementCode(node, ctx, indent, extra = []) {
       ctx.actions.push({ frame: ctx.frame, where: `<${node.name}> whileHovering`, action: "hover", target: hover.args[0] });
       hovering.push(["onPointerEnter", `() => setOverlay(${json(hover.args[0])})`], ["onPointerLeave", "() => setOverlay(null)"]);
     }
+  }
+  // A Zen instance's own opacity and blend (Figma's Appearance, instance-look.mjs): its style in the code.
+  if (takesInstanceLook(node.name) && INSTANCE_LOOK_PROPS.some((name) => node.props[name])) {
+    const style = instanceLookStyle({ opacity: literalOf(node, "opacity"), blendMode: literalOf(node, "blendMode") });
+    node = { ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => !INSTANCE_LOOK_PROPS.includes(name))) };
+    if (style) extra = [...extra, ["style", instanceLookCode(style)]];
   }
   const props = [
     ...[...extra, ...hovering].map(([name, code]) => `${name}={${code}}`),
