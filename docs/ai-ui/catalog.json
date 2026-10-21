@@ -14672,7 +14672,7 @@
             "desktop",
             "mobile"
           ],
-          "description": "Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours visible: the track scrolls sideways and opens at the current hour)."
+          "description": "Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours or three days visible: the track scrolls sideways and opens at the cur"
         },
         "aria-label": {
           "type": "string",

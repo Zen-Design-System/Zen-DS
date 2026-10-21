@@ -6,7 +6,7 @@
     {
       "name": "ScheduleResourceGrid",
       "file": "src/components/Schedule/ScheduleResourceGrid.tsx",
-      "description": "Figma `Schedule/Resource-Grid` (16135:145822): a resource timeline. A Border box (`Color/Background/Surface/Default`, 1px\n`Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped): a 40px header (the resource column's label and the\nscale, Caption/Medium Neutral/Base; today in Accent on the Days scale) over rows of `.Primitives/Schedule/Resource`\nbeside their track, one fixed height (56 desktop, 64 mobile), split by Pale rules that sit outside the layout. Bookings\nare `.Primitives/Calendar/Event-Block` bars: x = start on the scale × column + 2, width = length × column − 4, 4px from\nthe row's top and bottom; a bar that runs past the range scrolls with the track and is never squeezed to its edge; under\n80px it hides its time. A vertical `.Primitives/Calendar/Now-Line` crosses the tracks at now.\n\nSemantics: a `role=\"table\"` — the header row's column headers, then per resource a row header and one cell with the\nbars (buttons with `onBookingClick`, named by title and time). On a phone the resource column stays while the scale\nscrolls.",
+      "description": "Figma `Schedule/Resource-Grid` (16135:145822): a resource timeline. A Border box (`Color/Background/Surface/Default`, 1px\n`Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped): a 40px header (the resource column's label and the\nscale, Caption/Medium Neutral/Base; today in Accent on the Days scale) over rows of `.Primitives/Schedule/Resource`\nbeside their track (56 desktop, 64 mobile at Compact; a row grows with a larger density), split by Pale rules. Bookings\nare `.Primitives/Calendar/Event-Block` bars: x = start on the scale × column + 2, width = length × column − 4, 4px from\nthe row's top and bottom; a bar that runs past the range scrolls with the track and is never squeezed to its edge; under\n80px it hides its time. A vertical `.Primitives/Calendar/Now-Line` crosses the tracks at now.\n\nSemantics: a `role=\"table\"` — the header row's column headers, then per resource a row header and one cell with the\nbars (buttons with `onBookingClick`, named by title and time). On a phone the resource column stays while the scale\nscrolls.",
       "deprecated": null,
       "extends": "HTMLAttributes<HTMLDivElement>",
       "props": [
@@ -103,7 +103,7 @@
           "type": "\"desktop\" | \"mobile\"",
           "required": false,
           "default": null,
-          "description": "Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours\nvisible: the track scrolls sideways and opens at the current hour). Default: from the breakpoint.",
+          "description": "Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours or\nthree days visible: the track scrolls sideways and opens at the current hour or today). Default: from the\nbreakpoint.",
           "deprecated": null
         },
         {
