@@ -456,3 +456,19 @@ API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:
 - Gate (run at once on the user's word, isolated, `ZEN_QA_SHARDS=4 --pages=app-shell --files=<4 tsx>`): PASS, static ✓,
   audit 1512/390/320 + smoke/quality/density 0 errors (33 baseline), dark 0 (9 baseline), behaviour 0; B3, B5, C5, D5
   shots match Figma (B3's ChartCard now has #189's metric under the Segmented). PR #192.
+
+
+## A Grid in a Grid cell stretches in Figma (Session C) — tier S, branch `zen/fix/figma-grid-in-grid-20261021`
+The user picked BACKLOG P3 "Export › Figma: a Grid inside a Grid cell does not stretch to its row" (Dashboard: the
+second metric pair at 168 where CSS gives all four cards 248). Measured in Figma with use_figma on the QA page (every
+test node removed in the same call), with raw frames and then real Card instances:
+- the push hugged a frame cell, so the inner Grid kept its own height and its cards theirs (63 / 198 reproduced);
+- a Grid with Flex rows keeps whatever height it has, Hug or not (100, 400, 10 as left); with Hug rows it hugs;
+- what works: the inner Grid measured with Hug rows, given that minimum and Fill, then its Flex rows back: four
+  cards at the row's tallest (138), stable when settled again.
+Changes: `figma-push.mjs` gives a Grid in a stretching grid cell `fillH` and Flex rows (another frame cell still hugs);
+the Zen plugin's `settleGridRows` settles such a Grid as it settles a card, with Hug rows while measuring (plugin
+7a996a8 on studio-import, its test, full `npm test`; `dist/` rebuilt, the old one in
+`backups/dist-before-grid-in-grid-20261021.tgz`). The direct paste cannot measure, and a pasted Grid with Flex rows
+would stay at its estimated 100: `figma-native` keeps it hugging with Hug rows, as before (selftest). Pull reads no
+cell height or row sizes, so the page round-trips unchanged. Selftests: push 343, native 131, pull 114.
