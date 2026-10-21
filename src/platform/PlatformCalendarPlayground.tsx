@@ -114,7 +114,9 @@ export function SchedulePlayground() {
   const [deviceChoice, setDeviceChoice] = useState<string | undefined>(undefined);
   const [scaleChoice, setScaleChoice] = useState<string | undefined>(undefined);
   const [slot, setSlot] = useState<string | null>(null);
-  const device = (deviceChoice ?? "desktop") as CalendarDevice;
+  // Unset follows the breakpoint, as in the Calendar playground (a phone shows the mobile views).
+  const previewRef = useRef<HTMLDivElement>(null);
+  const device = useCalendarDevice(deviceChoice as CalendarDevice | undefined, previewRef);
   const scale = (scaleChoice ?? "hours") as "hours" | "days";
   const code = view === "resource-grid" ? `<ScheduleResourceGrid${device === "mobile" ? ` device="mobile"` : ""}${scale === "days" ? ` scale="days"` : ""} resources={resources} bookings={bookings} date="2026-09-30" />`
     : view === "itinerary" ? `<ScheduleItinerary title="Wed, Sep 30 · Design Day" stops={stops} />`
@@ -128,7 +130,7 @@ export function SchedulePlayground() {
         <PlaygroundFilterChip label="Device" value={deviceChoice} onChange={(value) => setDeviceChoice(String(value) || undefined)} options={[{ id: "desktop", label: "Desktop" }, { id: "mobile", label: "Mobile" }]} />
         {view === "resource-grid" ? <PlaygroundFilterChip label="Scale" value={scaleChoice} onChange={(value) => setScaleChoice(String(value) || undefined)} options={[{ id: "hours", label: "Hours" }, { id: "days", label: "Days" }]} /> : null}
       </PlaygroundControls>
-      <div data-typography={previewTypography} className="platform-example-row platform-calendar-preview" data-device={device}>
+      <div ref={previewRef} data-typography={previewTypography} className="platform-example-row platform-calendar-preview" data-device={device}>
         {view === "resource-grid" ? <ScheduleResourceGrid device={device} scale={scale} resources={RESOURCES} bookings={scale === "days" ? BOOKINGS.map((item, index) => ({ ...item, start: `2026-09-${28 + (index % 3)}`, end: `2026-10-0${1 + (index % 2)}` })) : BOOKINGS} date="2026-09-30" now="2026-09-30T13:15" /> : null}
         {view === "itinerary" ? <ScheduleItinerary device={device} title="Wed, Sep 30 · Design Day" stops={STOPS} now="2026-09-30T13:15" /> : null}
         {view === "slot-picker" ? <ScheduleSlotPicker device={device} slots={SLOTS} today="2026-09-30" value={slot} onValueChange={setSlot} aria-label="Review times" /> : null}

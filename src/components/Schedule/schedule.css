@@ -86,8 +86,9 @@
 .zen-schedule-grid__scale + .zen-schedule-grid__scale { border-left: 1px solid var(--zen-color-border-neutral-pale-default); }
 .zen-schedule-grid__scale[data-today] { color: var(--zen-color-content-accent-base); }
 .zen-schedule-grid__body { position: relative; }
-.zen-schedule-grid__row { height: 56px; border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
-.zen-schedule-grid[data-device="mobile"] .zen-schedule-grid__row { height: 64px; }
+.zen-schedule-grid__row { min-height: 56px; border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+/* Figma's 56 / 64 rows at Compact; a larger density grows the row with its resource instead of clipping it. */
+.zen-schedule-grid[data-device="mobile"] .zen-schedule-grid__row { min-height: 64px; }
 .zen-schedule-grid__row:last-child { border-bottom: 0; }
 .zen-schedule-grid__resource > .zen-schedule-resource { height: 100%; }
 .zen-schedule-grid__track { position: relative; display: grid; grid-column: 2 / -1; grid-template-columns: repeat(var(--zen-schedule-columns), var(--zen-schedule-column)); }
@@ -101,7 +102,8 @@
 .zen-schedule-itinerary__stops { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
 
 /* Schedule/Slot-Picker (16135:14046) */
-.zen-schedule-picker[data-device="desktop"] { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: var(--zen-spacing-gap-small, 12px); }
+/* Days side by side (Figma: five columns); a box too narrow for a 72px day (a slot's time and padding) wraps the days. */
+.zen-schedule-picker[data-device="desktop"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
 .zen-schedule-picker__day { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-schedule-picker__header { display: flex; flex-direction: column; }
 .zen-schedule-picker__weekday { color: var(--zen-color-content-neutral-light); }

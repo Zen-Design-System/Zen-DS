@@ -6054,7 +6054,7 @@
           "type": "\"desktop\" | \"mobile\"",
           "required": false,
           "default": null,
-          "description": "Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours\nvisible: the track scrolls sideways and opens at the current hour). Default: from the breakpoint.",
+          "description": "Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours or\nthree days visible: the track scrolls sideways and opens at the current hour or today). Default: from the\nbreakpoint.",
           "deprecated": null
         },
         {

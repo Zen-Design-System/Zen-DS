@@ -32,8 +32,9 @@ export interface ScheduleResourceGridProps extends HTMLAttributes<HTMLDivElement
   onBookingClick?: (booking: ScheduleBookingData, target: HTMLElement) => void;
   /** The booking whose details are open: its bar shows State=Selected. */
   selectedBookingId?: string | null;
-  /** Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours
-   * visible: the track scrolls sideways and opens at the current hour). Default: from the breakpoint. */
+  /** Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours or
+   * three days visible: the track scrolls sideways and opens at the current hour or today). Default: from the
+   * breakpoint. */
   device?: CalendarDevice;
   /** Names the grid (default: "Team & rooms" and the period). */
   "aria-label"?: string;
@@ -46,6 +47,10 @@ export interface ScheduleResourceGridProps extends HTMLAttributes<HTMLDivElement
 
 const RESOURCE_WIDTH = { desktop: 200, mobile: 64 } as const;
 const VISIBLE_HOURS = { desktop: 8, mobile: 4 } as const;
+/** The Days scale shows the week on desktop and three days on a phone (as Calendar's mobile 3-Day), scrolling the rest. */
+const VISIBLE_DAYS = { desktop: 7, mobile: 3 } as const;
+/** The narrowest column that still holds its scale label ("09:00", "Wed 30") in the header's padding: narrower, it scrolls. */
+const MIN_COLUMN = { hours: 48, days: 64 } as const;
 /** Below this width a bar hides its time (Figma: Show-Time off under 80px). */
 const SHOW_TIME_MIN = 80;
 
@@ -53,7 +58,7 @@ const SHOW_TIME_MIN = 80;
  * Figma `Schedule/Resource-Grid` (16135:145822): a resource timeline. A Border box (`Color/Background/Surface/Default`, 1px
  * `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped): a 40px header (the resource column's label and the
  * scale, Caption/Medium Neutral/Base; today in Accent on the Days scale) over rows of `.Primitives/Schedule/Resource`
- * beside their track, one fixed height (56 desktop, 64 mobile), split by Pale rules that sit outside the layout. Bookings
+ * beside their track (56 desktop, 64 mobile at Compact; a row grows with a larger density), split by Pale rules. Bookings
  * are `.Primitives/Calendar/Event-Block` bars: x = start on the scale × column + 2, width = length × column − 4, 4px from
  * the row's top and bottom; a bar that runs past the range scrolls with the track and is never squeezed to its edge; under
  * 80px it hides its time. A vertical `.Primitives/Calendar/Now-Line` crosses the tracks at now.
@@ -78,8 +83,9 @@ export function ScheduleResourceGrid({ resources, bookings = [], scale = "hours"
   const columns = useMemo(() => scaleColumns(date ?? today, scale, startHour, endHour), [date, today.getTime(), scale, startHour, endHour]); // eslint-disable-line react-hooks/exhaustive-deps
   const step = columns[0].end.getTime() - columns[0].start.getTime();
   const from = columns[0].start;
-  // Column width: the box split over the visible columns (all of a week, eight hours on desktop, four on a phone).
-  const visible = scale === "days" ? columns.length : Math.min(columns.length, VISIBLE_HOURS[device]);
+  // Column width: the box split over the visible columns (eight hours or the week on desktop; four hours or three days on
+  // a phone), never narrower than its label.
+  const visible = Math.min(columns.length, (scale === "days" ? VISIBLE_DAYS : VISIBLE_HOURS)[device]);
   const [width, setWidth] = useState(0);
   useLayoutEffect(() => {
     const node = scrollRef.current;
@@ -91,13 +97,13 @@ export function ScheduleResourceGrid({ resources, bookings = [], scale = "hours"
     return () => observer.disconnect();
   }, []);
   const resourceWidth = RESOURCE_WIDTH[device];
-  const column = Math.max(48, ((width || resourceWidth + visible * 115) - resourceWidth) / visible);
+  const column = Math.max(MIN_COLUMN[scale], ((width || resourceWidth + visible * 115) - resourceWidth) / visible);
   const nowAt = columnsAt(now, from, step);
   const nowInside = nowAt >= 0 && nowAt <= columns.length;
-  // A phone opens at the current hour (Figma Mobile shows 13:00 first at 13:15).
+  // A phone opens at the current hour (Figma Mobile shows 13:00 first at 13:15), or at today on the Days scale.
   useLayoutEffect(() => {
     const node = scrollRef.current;
-    if (!node || !mobile || scale !== "hours" || !nowInside) return;
+    if (!node || !mobile || !nowInside) return;
     node.scrollLeft = Math.max(0, Math.floor(nowAt) * column);
   }, [mobile, scale, column]); // eslint-disable-line react-hooks/exhaustive-deps
   const read = useMemo(() => bookings.map((booking) => ({ booking, start: toDate(booking.start), end: toDate(booking.end) })), [bookings]);
