@@ -111,6 +111,18 @@ describe("Sidebar rail, Density=Medium (Patterns/Sidebar Expand=No; user 2026-10
   });
 });
 
+describe("Sidebar rail, Density=Small and the flush themes (Patterns/Sidebar Expand=No)", () => {
+  // Figma's rails are fixed whatever the logo (Bug session's probe, 2026-10-21: 60 and 52 without a 32px logo).
+  it("is 72 at Density=Small (default, carved-floating) and 64 on border, borderless and carved", async () => {
+    const rail = (props: Partial<React.ComponentProps<typeof Sidebar>>) => <div style={{ height: 400, display: "flex" }}><Sidebar aria-label="Main" collapsed onCollapsedChange={() => undefined} sections={sections} {...props} /></div>;
+    const { container } = await render(<ZenProvider>
+      {rail({ density: "small" })}{rail({ density: "small", theme: "carved-floating" })}
+      {rail({ theme: "border" })}{rail({ density: "small", theme: "borderless" })}{rail({ density: "small", theme: "carved" })}
+    </ZenProvider>);
+    expect([...container.querySelectorAll(".zen-sidebar")].map((nav) => nav.getBoundingClientRect().width)).toEqual([72, 72, 64, 64, 64]);
+  });
+});
+
 describe("AppShell pattern=\"grid\"", () => {
   it("draws the Sidebar Border · Small and the header Border & Divider · Small", async () => {
     const { container } = await render(shell({ pattern: "grid" }));

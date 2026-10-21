@@ -148,4 +148,7 @@ with Header/AppShell.
   - The frame was removed afterwards.
   - The bed's notes about Footer-Container and Divider are use_figma skipping hidden layers. The Footer boolean already
     hides them, and the plugin finds hidden layers.
-
+- Fix from Bug's gate on 3af0dfb9 (Studio Main component probe). Collapsed without a 32px logo, the Density=Small rail
+  hugged its content: 60 for default/carved-floating, 52 for the flush themes. Figma's rails are a fixed 72 and 64.
+  sidebar.css now gives the small rail min-width 72 and the flush rails 64, as Medium has 80. The new test in
+  app-shell-grid.test.tsx runs in Bug's re-run; I ran no browser test, so as not to overlap Bug's gate.

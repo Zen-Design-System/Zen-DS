@@ -178,17 +178,17 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__footer { padding: var(--zen-spacing-padding-small, 12px); }
 
 /* Patterns/Sidebar Density=Small on the Basic panel (AppShell pattern="grid", or variant="basic" density="small"): the
-   header pads Padding/Medium (64 high with a 32px logo), rows are 36px, the footer keeps its 44px rows. The rail hugs
-   the 64px panel: 72 with the Padding/XSmall inset (default, carved-floating), 64 for the flush themes (border,
-   borderless, carved); its logo and collapse control sit Spacing/Gap/Medium apart (Gap/Large on the flush rails, as on
-   Medium). */
+   header pads Padding/Medium (64 high with a 32px logo), rows are 36px, the footer keeps its 44px rows. The rail is
+   the 64px panel, at least as wide as Figma's whatever the logo: 72 with the Padding/XSmall inset (default,
+   carved-floating), 64 for the flush themes (border, borderless, carved; at either density). Its logo and collapse
+   control sit Spacing/Gap/Medium apart (Gap/Large on the flush rails, as on Medium). */
 .zen-sidebar[data-variant="basic"][data-sidebar-density="small"] .zen-sidebar__header { min-height: 64px; padding: var(--zen-spacing-padding-medium, 16px); }
 .zen-sidebar[data-variant="basic"][data-sidebar-density="small"] .zen-sidebar__footer-content { --zen-sidebar-item-padding: var(--zen-spacing-padding-small, 12px); --zen-sidebar-item-gap: var(--zen-spacing-gap-small, 12px); }
 .zen-sidebar[data-variant="basic"][data-sidebar-density="small"] .zen-sidebar__footer-content .zen-sidebar__item { min-height: 44px; }
-.zen-sidebar[data-variant="basic"][data-sidebar-density="small"][data-collapsed="true"] { min-width: 0; }
+.zen-sidebar[data-variant="basic"][data-sidebar-density="small"][data-collapsed="true"] { min-width: 72px; }
 .zen-sidebar[data-variant="basic"][data-sidebar-density="small"][data-collapsed="true"]:not([data-theme="border"], [data-theme="borderless"], [data-theme="carved"]) :is(.zen-sidebar__header, .zen-sidebar__default-brand) { gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-sidebar[data-variant="basic"][data-sidebar-density="small"][data-collapsed="true"] .zen-sidebar__header { padding: var(--zen-spacing-padding-medium, 16px); }
-.zen-sidebar[data-variant="basic"]:is([data-theme="border"], [data-theme="borderless"], [data-theme="carved"])[data-collapsed="true"] { min-width: 0; padding: 0; }
+.zen-sidebar[data-variant="basic"]:is([data-theme="border"], [data-theme="borderless"], [data-theme="carved"])[data-collapsed="true"] { min-width: 64px; padding: 0; }
 
 /* Primitives/Sub-Header-Sidebar (16823:88101): the back control over the level's title, at the top of Body-Content and
    Spacing/Gap/3XSmall above the rows. Density=Medium pads 4 · 12 · 8 · 12 with Gap/Medium; Density=Small 4 · 8 · 8 · 8
