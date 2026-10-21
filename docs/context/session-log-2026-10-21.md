@@ -239,6 +239,9 @@ original stays, one ⌘Z each) waits for a gate slot.
   guidelines, usage rules §16 (+ a Canvas/Flat row), AGENTS.consumer, Figma skill screen-rules/audit-rules and the
   audit's family names; Studio map note, appearance effects (Default theme), detach (flat-border = Box surface + pale
   border, approx), selftests, MCP E2E AI-04, nested pull row, handoff fixture, registry login page; ai-ui catalog rebuilt.
+- Pull reads an older library's names (B's suggestion, read only): Theme=Flat → theme="default", Border × Surface=Flat →
+  "flat-border" (figma-pull legacyThemeProps for Card and ListBox; selftest 115), so frames from files not yet on the
+  renamed library come back right. Push writes the new names only.
 - Not changed: AppShellPane (its own Figma Pane set still has Flat / Border × Surface=Flat) — question for the user.
   figma-push/pull Card mapping and their selftests are B's (asked); native-pack names are C's (asked).
 

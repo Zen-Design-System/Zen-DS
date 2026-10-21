@@ -220,6 +220,9 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
       card("8:1", { Theme: "Solid", Color: "Neutral" }, [{ type: "TEXT", name: "Title", characters: "Invoiced this year", textStyle: "Heading/Subheading" }]),
       card("8:2", { Theme: "Pale", Color: "Violet", Spacing: "Small" }, [{ type: "TEXT", name: "Title", characters: "Design hours", textStyle: "Heading/Subheading" }]),
       card("8:5", { Theme: "Flat-Border", Color: "Neutral", Surface: "Default" }, [{ type: "TEXT", name: "Title", characters: "Hours", textStyle: "Heading/Subheading" }]),
+      // A file on the library before the 2026-10-21 rename: Theme=Flat and Border × Surface=Flat read as the new themes.
+      card("8:6", { Theme: "Flat", Color: "Neutral", Surface: "Alt" }, [{ type: "TEXT", name: "Title", characters: "Old flat", textStyle: "Heading/Subheading" }]),
+      card("8:7", { Theme: "Border", Color: "Neutral", Surface: "Flat" }, [{ type: "TEXT", name: "Title", characters: "Old border flat", textStyle: "Heading/Subheading" }]),
       card("8:3", { Theme: "Solid", Color: "Yellow" }, [{ type: "INSTANCE", id: "8:4", name: "Chart/Line-Chart", set: { id: "6643:63324", name: "Chart/Line-Chart" }, props: { "Show Icon": false, Title: "Revenue", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false } }]),
     ],
   };
@@ -228,6 +231,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("card colour: Theme Solid + Color Neutral (the dark widget) is theme=\"solid\" with the default colour left out", /<Card theme="solid">/.test(page));
   ok("card colour: Theme Pale + Color Violet keeps its colour", /<Card theme="pale" color="violet" spacing="small">/.test(page));
   ok("card surface: Theme Flat-Border (Border × Surface=Flat until 2026-10-21) is theme=\"flat-border\"", /<Card theme="flat-border">/.test(page));
+  ok("card theme: an older library's Theme=Flat is theme=\"default\", its Border × Surface=Flat theme=\"flat-border\"", /<Card theme="default" surface="alt">\s*<Text[^>]*>Old flat/.test(page) && /<Card theme="flat-border">\s*<Text[^>]*>Old border flat/.test(page));
   ok("card colour: a Solid Yellow Card around a chart with its Heading is a ChartCard that passes its colour on", /<ChartCard title="Revenue" theme="solid" color="yellow">/.test(page));
 }
 
