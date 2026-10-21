@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
-import { inspectorRow, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, openCodeProperties, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 
 /** A new page of the Studio space titled `title` (its name). */
@@ -413,6 +413,44 @@ async function shot(page, name) {
 }
 /** Section titles of the Design tab, in order. */
 const sections = async (page) => (await right(page).locator("h3").allInnerTexts()).map((text) => text.trim());
+
+/* ── Code properties on the Code tab (§3a "code-only ones on the Code tab") helpers ──────────────────────────────── */
+
+/** The Code tab's Properties (CodeProperties.tsx): the selected layer's code-only rows. */
+const codeProperties = (page) => right(page).locator('[data-e2e="code-properties"]');
+/** The Design tab shows only Figma's sections: no Code properties block or heading, none of `props`' rows. Returns its
+ *  section titles. */
+async function noCodeOnDesign(page, props) {
+  const headings = await sections(page);
+  if (headings.includes("Code properties")) throw new Error(`a Code properties section on the Design tab (${headings.join(", ")})`);
+  if (await codeProperties(page).count()) throw new Error("code properties on the Design tab");
+  const shown = [];
+  for (const prop of props) if (await inspectorRow(page, prop).count()) shown.push(prop);
+  if (shown.length) throw new Error(`code-only rows on the Design tab: ${shown.join(", ")}`);
+  return headings;
+}
+/** Runs `work` on the Code tab (its Properties shown), then shows the Design tab again: the tab persists across rows. */
+async function onCodeTab(page, work) {
+  await openCodeProperties(page);
+  try {
+    return await work();
+  } finally {
+    await showDesignTab(page).catch(() => undefined);
+  }
+}
+/** Types into the text field of the Inspector row `data-prop="prop"` and commits it (Enter). */
+async function typeInRow(page, prop, value) {
+  const field = inspectorRow(page, prop).locator("input, textarea").first();
+  await field.click();
+  await field.fill(value);
+  await field.press("Enter");
+}
+/** ⌘Z on the canvas until `pattern` is gone from the page's code. */
+async function undoUntilGone(page, id, pattern, message) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+KeyZ");
+  await written(page, id, pattern, message, true);
+}
 
 /* ── F7 (components: sets, variants, properties) helpers ─────────────────────────────────────────────────────────── */
 
@@ -3514,6 +3552,121 @@ export const rows = [
         .catch(async (error) => { throw new Error(`${error.message} (shown: ${(await tab.innerText().catch(() => "?")).trim()})`); });
       await page.locator(".studio-layers__tree").waitFor({ state: "visible", timeout: 5000 });
       return "New page › Create → Layers";
+    },
+  },
+  {
+    id: "FW-165", feature: "A Zen instance's Design tab has no Code properties (Figma's sections only); its HTML button type is on the Code tab's Properties, where typing submit writes type=\"submit\"; ⌘Z takes it back", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const design = await noCodeOnDesign(page, ["type"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "type").waitFor({ state: "visible", timeout: 5000 });
+        await typeInRow(page, "type", "submit");
+        await written(page, id, /<Button\b[^>]*type="submit"/, 'type="submit" on the Button');
+        await shot(page, "fw-165-instance-code-tab");
+        await undoUntilGone(page, id, /<Button\b[^>]*type="submit"/, "⌘Z takes the type back");
+        return `Design: ${design.join(", ")} · Code › Properties › Type → submit → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-166", feature: "An auto layout frame's HTML element is on the Code tab: section writes as=\"section\" on the Stack, ⌘Z takes it back; its Design tab keeps Figma's sections", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      await until(async () => (await selectedName(page)) === "Frame", { message: "the body frame selected" });
+      const design = await noCodeOnDesign(page, ["as", "scroll"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "as").waitFor({ state: "visible", timeout: 5000 });
+        await pickOption(page, "as", "section");
+        await written(page, id, /<Stack\b[^>]*as="section"/, 'as="section" on the Stack');
+        await undoUntilGone(page, id, /<Stack\b[^>]*as="section"/, "⌘Z takes the element back");
+        return `Design: ${design.join(", ")} · Code › Properties › HTML element → section → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-167", feature: "A text layer's HTML element is on the Code tab: span writes as=\"span\" on the Text, ⌘Z takes it back; its Design tab shows Typography and no code rows", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Text");
+      await until(async () => (await sections(page)).includes("Typography"), { message: "the text selected" });
+      const design = await noCodeOnDesign(page, ["as"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "as").waitFor({ state: "visible", timeout: 5000 });
+        await pickOption(page, "as", "span");
+        await written(page, id, /<Text\b[^>]*as="span"/, 'as="span" on the Text');
+        await undoUntilGone(page, id, /<Text\b[^>]*as="span"/, "⌘Z takes the element back");
+        return `Design: ${design.join(", ")} · Code › Properties › HTML element → span → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-168", feature: "Attributes no API lists (aria-label, data-testid on a Button) are on the Code tab's Properties under their written names and edit there; the Design header's Show code opens them", wp: "§3a Properties 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const text = (title) => [
+        `// @zen-page ${JSON.stringify({ format: 1, title })}`,
+        'import { Board, Screen } from "@zen-ds/react/builder";',
+        'import { Button, Stack } from "@zen-ds/react";',
+        "export const mock = {};",
+        "",
+        "export default function Page() {",
+        "  return (",
+        "    <Board>",
+        `      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop" width={800} height={500}>`,
+        '        <Stack gap="md" padding="lg">',
+        '          <Button level="primary" aria-label="Save the draft" data-testid="save">Save</Button>',
+        "        </Stack>",
+        "      </Screen>",
+        "    </Board>",
+        "  );",
+        "}",
+        "",
+      ].join("\n");
+      const { page, id } = await seededPage(ctx, text, /data-testid="save"/);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const design = await noCodeOnDesign(page, ["aria-label", "data-testid", "type"]);
+      const before = (await pageText(page, id)) ?? "";
+      await right(page).getByRole("button", { name: "Show code", exact: true }).click();
+      try {
+        await codeProperties(page).waitFor({ state: "visible", timeout: 5000 });
+        for (const prop of ["aria-label", "data-testid", "type"]) await inspectorRow(page, prop).waitFor({ state: "visible", timeout: 5000 });
+        const labels = await codeProperties(page).locator('[data-prop="aria-label"], [data-prop="data-testid"]').allInnerTexts();
+        if (!labels.every((label, index) => label.includes(["aria-label", "data-testid"][index]))) throw new Error(`rows not under their written names: ${labels.join(" · ")}`);
+        await typeInRow(page, "aria-label", "Save");
+        await written(page, id, /<Button\b[^>]*aria-label="Save"/, 'aria-label="Save" on the Button');
+        await undoTo(page, id, before, 2);
+      } finally {
+        await showDesignTab(page).catch(() => undefined);
+      }
+      return `Design: ${design.join(", ")} · Show code → Code › Properties: aria-label, data-testid, Type · aria-label → Save → ⌘Z`;
+    },
+  },
+  {
+    id: "FW-169", feature: "The Code tab's Properties sit on the panel's one grid (Inline-Field rows, panelFits) for an instance, a frame and a text, above the layer's Code", wp: "§3a Properties 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      const seen = [];
+      const layers = [
+        ["the Button", () => clickNamed(page, id, "Button")],
+        ["the body frame", () => selectBody(page, id)],
+        ["the text", () => clickNamed(page, id, "Text")],
+      ];
+      for (const [what, select] of layers) {
+        await select();
+        await sleep(300);
+        await onCodeTab(page, async () => {
+          await expectPanelFits(page, `${what}'s Code tab`);
+          const order = await sections(page);
+          if (!(order.indexOf("Properties") >= 0 && order.indexOf("Properties") < order.indexOf("Code"))) throw new Error(`${what}: the Code tab reads ${order.join(", ")}`);
+          seen.push(`${what}: ${await codeProperties(page).locator(".studio-inspector__row").count()} rows`);
+          await shot(page, `fw-169-${what.split(" ").at(-1)}`);
+        });
+      }
+      return seen.join(" · ");
     },
   },
   {

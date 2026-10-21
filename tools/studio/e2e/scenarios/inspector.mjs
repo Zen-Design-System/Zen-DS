@@ -1,6 +1,6 @@
 // Inspector rows: every kind of property control writes the source it says, one undo step at a time.
 import { element, locOf } from "../lib/source.mjs";
-import { clickLoc, focusFrame, inspectorRow, openCodeProperties, rectOf, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickLoc, focusFrame, inspectorRow, openCodeProperties, rectOf, showDesignTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 import { optionLabel } from "../../../../src/platform/studio/inspector/controls/scale.ts";
 
@@ -119,12 +119,17 @@ export const rows = [
       await sleep(300);
       await inspectorRow(page, "disabled").getByRole("switch").click();
       await expectSource(ctx, "btn-a", (el) => el.attr("disabled") === undefined, "disabled removed again");
-      // What only code reads (the HTML button type) waits in Code properties, closed (user, 2026-10-17: Figma's panel).
-      const code = page.locator('#studio-right [data-e2e="code-properties"]').first();
-      if (await code.evaluate((el) => el.open)) throw new Error("Code properties open by default");
-      await openCodeProperties(page);
-      await inspectorRow(page, "type").waitFor({ state: "visible", timeout: 5000 });
-      return "on → disabled written, off → removed; Type in Code properties";
+      // What only code reads (the HTML button type) is on the Code tab, never the Design tab (user, 2026-10-17: Figma's
+      // panel; §3a "code-only ones on the Code tab").
+      if (await page.locator('#studio-right [data-e2e="code-properties"]').count()) throw new Error("Code properties on the Design tab");
+      if (await inspectorRow(page, "type").count()) throw new Error("the button type on the Design tab");
+      try {
+        await openCodeProperties(page);
+        await inspectorRow(page, "type").waitFor({ state: "visible", timeout: 5000 });
+      } finally {
+        await showDesignTab(page).catch(() => undefined);
+      }
+      return "on → disabled written, off → removed; Type on the Code tab";
     },
   },
   {
