@@ -672,7 +672,27 @@ Approved scope (user 2026-10-21, "mở phiên nhận các phần đó"): BACKLOG
   fixture pads 20 / 24 now and the rows aim at each area's centre read from the canvas. A padding thinner than ≈ 8
   screen px drags only after zooming in.
 
-## Present from a selected Overlay frame (tier S, branch `claude/compassionate-ardinghelli-fde6d6`)
+## Code properties move to the Code tab (tier S, branch `zen/feat/studio-code-props-code-tab-20261021`)
+
+Parity plan §3a ("Properties: code-only ones on the Code tab"), the BACKLOG P1 item; one of the sessions opened for the
+plan's remaining pieces (user, 2026-10-21: "mở phiên nhận các phần đó").
+
+- The Design tab lost both code blocks: the closed "Code properties" disclosure (a frame's, text's or shape's own props;
+  a component's code-only props inside Properties) and the "Code properties" section of attributes no API lists.
+- The Code tab has them as **Properties**, between Example code and Code: `DesignPanel view="code"` renders only those
+  rows with the Design tab's own FieldApi (queue, hash, optimistic values, .map rows), so every edit writes as before;
+  `Inspector` hands it to `CodePanel`. `GroupedProperties view="code"` gives a component's code-only rows;
+  `propGroups.codeOnlyProps` is the one rule (selftest). The disclosure CSS went; no detach plan is read on the Code tab.
+- E2E: I-02 checks the Design tab has no button type and finds it on the Code tab; lib `openCodeProperties` opens the
+  Code tab (`showDesignTab` after). New FW-165 (instance type → submit, ⌘Z), FW-166 (frame `as` → section), FW-167
+  (text `as` → span), FW-168 (aria-label / data-testid by their written names, Show code, edit), FW-169 (panelFits on
+  the Code tab for an instance, a frame and a text; Properties above Code).
+- Static: tsc, words lint (1851 UI strings after main c548520a), e2e selftest (480 rows), propGroups selftest,
+  usage:check, style:check ✓. Gate (`qa --isolated --files=…`, 2026-10-22 05:10): PASS, Studio E2E 338/0 (1505 s, I-02
+  in it); `studio:e2e --only=figma --rows=FW-10,FW-142,FW-165…169` 7/0 (34 s); the FW-165/169 panel shots read right.
+- Left as is: PartPanel (a Table part) still titles its rows "Props" / "Attributes" (§3a glossary row, not this item).
+
+## Present from a selected Overlay frame (tier S, branch `zen/feat/studio-present-overlay-20261021`)
 
 The last Present item of BACKLOG P1 "Studio design page = Figma" (user 2026-10-21: "mở phiên nhận các phần đó").
 - `builder/proto/playStart.ts` holds Play's start (`presenting: "play:<start>"`): a Screen id, `overlay:<id>`, or empty.
@@ -696,3 +716,5 @@ The last Present item of BACKLOG P1 "Studio design page = Figma" (user 2026-10-2
   (inert under Play) mounted last, so useModal's stack made it the topmost and gave it Escape and Tab. Fixed at its
   owner, `Dialog.tsx` useModal: a modal whose parent is inert is never the topmost. Interaction test added in
   dialog-modal.test.tsx; it fails without the fix.
+- Gate again with the fix (f282db11): static ✓, browser tests 81 / 81, audit 0, Studio E2E 338 / 338; FW-06 and
+  FW-170…174 6 / 6. main be387faf (#200, #201) merged after it; the BACKLOG entry keeps only its data-name line.
