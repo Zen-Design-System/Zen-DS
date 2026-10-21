@@ -475,6 +475,34 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "BadgeStatus": {
+    "figma": "16932:195",
+    "own": [
+      {
+        "prop": "status",
+        "label": "Status",
+        "type": "VARIANT",
+        "options": {
+          "To Do": "to-do",
+          "In Progress": "in-progress",
+          "In Review": "in-review",
+          "Done": "done",
+          "Blocked": "blocked",
+          "Cancelled": "cancelled"
+        }
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "BottomSheet": {
     "figma": "4059:14161",
     "own": [
@@ -934,6 +962,36 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ],
     "toggles": []
+  },
+  "PropertyField": {
+    "figma": "16923:6031",
+    "own": [
+      {
+        "prop": "label",
+        "label": "Label",
+        "type": "TEXT"
+      },
+      {
+        "prop": "icon",
+        "label": "Icon-Src",
+        "type": "INSTANCE_SWAP",
+        "default": "icon-loading-02-line"
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Icon",
+        "prop": "icon",
+        "on": "icon-loading-02-line"
+      },
+      {
+        "label": "Action",
+        "prop": "action",
+        "on": {
+          "code": "{ label: \"Add\" }"
+        }
+      }
+    ]
   },
   "InputField": {
     "figma": "421:4108",

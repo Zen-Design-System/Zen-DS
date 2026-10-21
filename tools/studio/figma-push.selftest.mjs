@@ -2112,6 +2112,51 @@ export default function Page() {
     /<Box width=\{560\} height=\{240\} surface="surface">/.test(back) && /<Shape [^>]*position="absolute" insetLeft=\{20\} insetTop=\{30\}/.test(back) && /<Box position="absolute" insetLeft=\{140\} insetTop=\{40\}>\s*<Text[^>]*>Label<\/Text>/.test(back) && !/no auto layout/.test(pageFromFigma(read, { mapping }).notes.join(" ")));
 }
 
+// 2026-10-21: BadgeStatus is Figma's Badge-Status; a PropertyField is Input/Property-Field whose nested Value
+// (.Primitives/Input/Property-Value) takes the cell's Type, State and content (figma-property.mjs), and comes back.
+const PROPERTIES = `// @zen-page {"format":1,"title":"Task"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { BadgeStatus, PropertyDate, PropertyField, PropertyPeople, PropertySelect, PropertyStatus, PropertyTags, PropertyText, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Task" device="desktop">
+        <Stack gap="2xs" align="stretch">
+          <BadgeStatus status="in-review" size="sm" />
+          <PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus defaultValue="done" /></PropertyField>
+          <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect defaultValue="urgent" options={[{ value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" }]} /></PropertyField>
+          <PropertyField label="Start Date" icon="icon-calendar-line"><PropertyDate /></PropertyField>
+          <PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate defaultValue="2026-06-07" /></PropertyField>
+          <PropertyField label="Assignee" icon="icon-users-plus-line" action={{ label: "Add" }}><PropertyPeople defaultValue={["alex"]} options={[{ value: "alex", label: "Alex Duong" }]} /></PropertyField>
+          <PropertyField label="Labels" icon="icon-tag-line"><PropertyTags defaultValue={["ds"]} options={[{ value: "ds", label: "Design System", theme: "blue" }]} /></PropertyField>
+          <PropertyField label="Sprint"><PropertyText state="editing" defaultValue="Sprint 42" /></PropertyField>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+{
+  const { frame, notes } = push(PROPERTIES);
+  const all = []; const walk = (node) => { all.push(node); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame);
+  const rows = all.filter((node) => node.set?.name === "Input/Property-Field");
+  const badge = all.find((node) => node.set?.name === "Badge-Status");
+  check("BadgeStatus: Badge-Status Status and Size", [badge?.props?.Status, badge?.props?.Size], ["In Review", "Small"]);
+  check("PropertyField: one Input/Property-Field per row, Label in its text property", rows.map((row) => row.props.Label), ["Status", "Priority", "Start Date", "Due Date", "Assignee", "Labels", "Sprint"]);
+  check("PropertyField: Icon on with an icon (its swap), off without; Action on with action", [rows[0].props.Icon, rows[0].props["Icon-Src"], rows[6].props.Icon, rows[4].props.Action, rows[0].props.Action], [true, "icon-loading-02-line", false, true, false]);
+  check("PropertyField: the nested Value's Type and State from the cell", rows.map((row) => row.nested?.[0]?.props && [row.nested[0].path, row.nested[0].props.Type, row.nested[0].props.State]), [["Value", "Status", "Inputted"], ["Value", "Select", "Inputted"], ["Value", "Date", "Default"], ["Value", "Date", "Inputted"], ["Value", "Person", "Inputted"], ["Value", "Tags", "Inputted"], ["Value", "Text", "Editing"]]);
+  check("PropertyField: the content in the Value's layers", [rows[0].nested[1], rows[1].nested[0].texts, rows[1].nested[1], rows[3].nested[0].texts, rows[4].nested[1], rows[5].nested[1], rows[5].hide, rows[6].nested[0].texts],
+    [{ path: "Value/Status", props: { Status: "Done" } }, { Value: "Urgent" }, { path: "Value/Leading", props: { Tone: "Negative" }, swapIcon: "icon-flag-01-solid" }, { Value: "June 7, 2026" }, { path: "Value/Person", props: {}, text: "Alex Duong" }, { path: "Value/Tag-1", props: { Theme: "Blue" }, text: "Design System" }, ["Tag-2"], { Value: "Sprint 42" }]);
+  ok("PropertyField: no note about its cell (every cell drawn)", !notes.some((note) => /PropertyField/.test(note) && /value cell/.test(note)));
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("pull: BadgeStatus comes back (Size as its long spelling)", /<BadgeStatus status="in-review" size="small" \/>/.test(back));
+  ok("pull: a row whose label is Figma's default keeps it (label is required)", back.includes('<PropertyField label="Status" icon="icon-loading-02-line">'));
+  ok("pull: PropertyField rows come back with their cells", ['<PropertyStatus defaultValue="done" />', '<PropertyDate defaultValue="2026-06-07" />', '<PropertyText state="editing" defaultValue="Sprint 42" />', "<PropertyDate />"].every((cell) => back.includes(cell)) && /<PropertyTags defaultValue=\{\["design-system"\]\} options=\{\[\{ value: "design-system", label: "Design System", theme: "blue" \}\]\} \/>/.test(back));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

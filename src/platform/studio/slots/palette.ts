@@ -103,7 +103,8 @@ export type PaletteResult = { items: PaletteItem[]; warnings: Readonly<Record<st
 
 /** src/components/<Folder> for every name a snippet uses, and useToast. Server: extend detach.mjs COMPONENT_FOLDER. */
 export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
-  Heading: "Text", Text: "Text", Button: "Button", IconButton: "Button", Link: "Link", Avatar: "Avatar", Badge: "Badge",
+  Heading: "Text", Text: "Text", Button: "Button", IconButton: "Button", Link: "Link", Avatar: "Avatar", Badge: "Badge", BadgeStatus: "BadgeStatus",
+  PropertyField: "PropertyField", PropertyText: "PropertyField", PropertySelect: "PropertyField", PropertyStatus: "PropertyField", PropertyDate: "PropertyField", PropertyPeople: "PropertyField", PropertyTags: "PropertyField",
   Tag: "Tag", DockIcon: "DockIcon", List: "ListItem", ListItem: "ListItem", ListBox: "ListItem", DescriptionList: "DescriptionList",
   Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", ProgressCircle: "Progress", InlineMessage: "InlineMessage",
   EmptyState: "EmptyState", InputField: "Input", TextAreaField: "Input", SelectField: "Input", Checkbox: "Checkbox",
@@ -288,6 +289,10 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "badge", label: "Badge", group: "Data display", caption: "Status", root: "Badge", components: ["Badge"], interactive: false, input: false,
     build: () => `<Badge theme="green" background="subtle">Active</Badge>`,
+  },
+  {
+    id: "badge-status", label: "Badge status", group: "Data display", caption: "Workflow step", root: "BadgeStatus", components: ["BadgeStatus"], interactive: false, input: false,
+    build: () => `<BadgeStatus status="in-progress" />`,
   },
   {
     id: "tag-group", label: "Tag group", group: "Data display", root: "Stack", components: ["Stack", "Tag"], interactive: false, input: false,
@@ -837,6 +842,36 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "input-field", label: "Text field", group: "Inputs", root: "InputField", components: ["InputField"], interactive: true, input: true,
     build: () => `<InputField label="Project name" placeholder="e.g. Loyalty app" />`,
+  },
+  {
+    id: "property-field", label: "Property field", group: "Inputs", caption: "Edited in place", root: "PropertyField", components: ["PropertyField", "PropertyStatus"], interactive: true, input: true,
+    build: () => lines(
+      `<PropertyField label="Status" icon="icon-loading-02-line">`,
+      `  <PropertyStatus defaultValue="to-do" />`,
+      `</PropertyField>`,
+    ),
+  },
+  {
+    id: "task-properties", label: "Task properties", group: "Inputs", caption: "Status, dates, people", root: "Stack", components: ["Stack", "PropertyField", "PropertyStatus", "PropertySelect", "PropertyDate", "PropertyPeople", "PropertyTags"], interactive: true, input: true,
+    build: () => lines(
+      `<Stack gap="2xs" align="stretch">`,
+      `  <PropertyField label="Status" icon="icon-loading-02-line">`,
+      `    <PropertyStatus defaultValue="in-progress" />`,
+      `  </PropertyField>`,
+      `  <PropertyField label="Priority" icon="icon-flag-01-line">`,
+      `    <PropertySelect defaultValue="urgent" options={[{ value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-01-solid", tone: "neutral" }]} />`,
+      `  </PropertyField>`,
+      `  <PropertyField label="Due Date" icon="icon-calendar-line">`,
+      `    <PropertyDate defaultValue="2026-06-07" />`,
+      `  </PropertyField>`,
+      `  <PropertyField label="Assignee" icon="icon-users-plus-line">`,
+      `    <PropertyPeople defaultValue={["alex"]} options={[{ value: "alex", label: "Alex Duong" }, { value: "sun", label: "Sun Hung" }]} />`,
+      `  </PropertyField>`,
+      `  <PropertyField label="Labels" icon="icon-tag-line">`,
+      `    <PropertyTags defaultValue={["ds"]} options={[{ value: "ds", label: "Design System", theme: "blue" }, { value: "ui", label: "UI Design", theme: "orange" }]} />`,
+      `  </PropertyField>`,
+      `</Stack>`,
+    ),
   },
   {
     id: "textarea-field", label: "Text area", group: "Inputs", root: "TextAreaField", components: ["TextAreaField"], interactive: true, input: true,

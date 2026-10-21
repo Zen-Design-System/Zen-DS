@@ -51,7 +51,7 @@ export interface PropertyFieldProps extends Omit<HTMLAttributes<HTMLDivElement>,
    * Figma Action: the + after the label (Button/Icon-Main XSmall Tertiary). PropertyPeople and PropertyTags show it by
    * themselves, opening their picker; pass `action` to add something else.
    */
-  action?: { label: string; onClick: () => void };
+  action?: { label: string; onClick?: () => void };
   /** The value: one cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags. */
   children?: ReactNode;
   className?: string;
@@ -66,7 +66,7 @@ export interface PropertyFieldProps extends Omit<HTMLAttributes<HTMLDivElement>,
 export function PropertyField({ ref, label, icon, action, children, className, ...rest }: PropertyFieldProps) {
   const labelId = useId();
   const [add, setAdd] = useState<AddRequest | null>(null);
-  const plus = action ? { label: action.label, open: action.onClick, expanded: undefined, controls: undefined } : add;
+  const plus = action ? { label: action.label, open: () => action.onClick?.(), expanded: undefined, controls: undefined } : add;
   return (
     <div {...rest} ref={ref} role="group" aria-labelledby={labelId} className={["zen-property-field", className].filter(Boolean).join(" ")}>
       <div className="zen-property-field__label">
@@ -273,10 +273,18 @@ export function PropertyStatus({ ref, value, defaultValue = null, onValueChange,
 
 // ——— PropertyDate ————————————————————————————————————————————————————————————————————————————————————————
 
+/** A day as a Date or an ISO string ("2026-06-07", "2026-06-07T09:00"), read in local time (never UTC). */
+export type PropertyDateValue = Date | string;
+const toDate = (value: PropertyDateValue | null | undefined): Date | null | undefined => {
+  if (value === undefined || value === null || value instanceof Date) return value;
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(value);
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4] ?? 0), Number(m[5] ?? 0)) : null;
+};
+
 export interface PropertyDateProps extends PropertyValueBaseProps {
-  /** The day. Controlled with onValueChange; null = no date. */
-  value?: Date | null;
-  defaultValue?: Date | null;
+  /** The day: a Date or an ISO string ("2026-06-07", local time). Controlled with onValueChange; null = no date. */
+  value?: PropertyDateValue | null;
+  defaultValue?: PropertyDateValue | null;
   onValueChange?: (value: Date | null) => void;
   /** How the day reads, for the locale (Intl.DateTimeFormat). Default `{ dateStyle: "long" }`: "June 7, 2026". */
   format?: Intl.DateTimeFormatOptions;
@@ -289,7 +297,7 @@ export function PropertyDate({ ref, value, defaultValue = null, onValueChange, f
   const row = useContext(PropertyFieldContext);
   const locale = useZenLocale();
   const valueId = useId();
-  const [current, setCurrent] = useControllableState<Date | null>({ value, defaultValue, onChange: onValueChange, name: "PropertyDate value" });
+  const [current, setCurrent] = useControllableState<Date | null>({ value: toDate(value), defaultValue: toDate(defaultValue) ?? null, onChange: onValueChange, name: "PropertyDate value" });
   const [open, setOpen] = useState(false);
   const cellRef = useRef<HTMLButtonElement>(null);
   useReturnFocus(open, cellRef);

@@ -893,6 +893,50 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "BadgeStatus": [
+    {
+      "name": "Badge-Status",
+      "figma": "16932:195",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "status",
+          "label": "Status",
+          "names": [
+            "To Do",
+            "In Progress",
+            "In Review",
+            "Done",
+            "Blocked",
+            "Cancelled"
+          ],
+          "values": [
+            "to-do",
+            "in-progress",
+            "in-review",
+            "done",
+            "blocked",
+            "cancelled"
+          ],
+          "default": "to-do"
+        },
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "BottomSheet": [
     {
       "name": "Bottom-Sheet",
@@ -1564,6 +1608,30 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
         }
       ],
       "toggles": []
+    }
+  ],
+  "PropertyField": [
+    {
+      "name": "Input/Property-Field",
+      "figma": "16923:6031",
+      "fixed": {},
+      "axes": [],
+      "toggles": [
+        {
+          "prop": "icon",
+          "label": "Icon",
+          "on": "icon-loading-02-line",
+          "default": true
+        },
+        {
+          "prop": "action",
+          "label": "Action",
+          "on": {
+            "label": "Add"
+          },
+          "default": false
+        }
+      ]
     }
   ],
   "InputField": [
