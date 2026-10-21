@@ -624,6 +624,41 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ]
   },
+  "AppShellHeader": {
+    "figma": "16783:71068",
+    "own": [
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Border & Divider": "border-divider"
+        }
+      },
+      {
+        "prop": "density",
+        "label": "Density",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Main",
+        "prop": "main",
+        "on": "slot"
+      },
+      {
+        "label": "Sections",
+        "prop": "sections",
+        "on": "slot"
+      }
+    ]
+  },
   "Card": {
     "figma": "6643:51021",
     "own": [
@@ -1944,9 +1979,45 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Default": "default",
           "Inverse": "inverse"
         }
+      },
+      {
+        "prop": "shadow",
+        "label": "Shadow",
+        "type": "VARIANT",
+        "options": {
+          "Yes": "true",
+          "No": "false"
+        }
+      },
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Border": "border",
+          "Carved": "carved",
+          "Carved-Floating": "carved-floating",
+          "Borderless": "borderless"
+        }
+      },
+      {
+        "prop": "density",
+        "label": "Density",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Footer",
+        "prop": "footer",
+        "on": "slot"
+      }
+    ]
   },
   "SkeletonText": {
     "figma": "1556:17566",
@@ -2582,6 +2653,105 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         ]
       }
     ]
+  },
+  "CalendarToolbar": {
+    "figma": "16125:399",
+    "own": [
+      {
+        "prop": "title",
+        "label": "Title",
+        "type": "TEXT"
+      },
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "CalendarWeekStrip": {
+    "figma": "16125:520",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      },
+      {
+        "prop": "variant",
+        "label": "Style",
+        "type": "VARIANT",
+        "options": {
+          "Dot": "dot",
+          "Tile": "tile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "CalendarMonth": {
+    "figma": "16126:1093",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "CalendarTimeGrid": {
+    "figma": "16127:1172",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      },
+      {
+        "prop": "view",
+        "label": "View",
+        "type": "VARIANT",
+        "options": {
+          "Week": "week",
+          "Day": "day",
+          "3-Day": "3-day"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "CalendarAgenda": {
+    "figma": "16128:1036",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
   },
   "DatePicker": {
     "figma": "895:31954",

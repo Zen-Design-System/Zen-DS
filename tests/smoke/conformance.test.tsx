@@ -5,6 +5,10 @@
  *
  * NO_REF lists components that have no single DOM root to hand out (providers, portals, wrappers that clone their child);
  * every other component puts a `ref` on its root.
+ *
+ * `style` on the root: Zen Studio gives an instance of the components that forward it Figma's layer opacity and blend
+ * (tools/studio/instance-look.mjs STYLE_ON_ROOT). The list stays exact: a component that starts or stops forwarding
+ * `style` to its root fails here until the list says so.
  */
 import { StrictMode, createElement, createRef, type ComponentType, type ReactElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
@@ -12,6 +16,7 @@ import { render } from "vitest-browser-react";
 import * as Zen from "../../src/index";
 import { fixtures } from "./fixtures";
 import { components, noop, synthesise } from "./api-components";
+import { STYLE_ON_ROOT, STYLE_ON_ROOT_NOT_INSTANCES } from "../../tools/studio/instance-look.mjs";
 
 const NO_REF: Record<string, string> = {
   ZenPortalProvider: "context provider",
@@ -43,6 +48,7 @@ describe("every public component conforms", () => {
       const ref = createRef<Element>();
       props.ref = ref;
       if (documents("className")) props.className = "zen-conformance";
+      props.style = { outlineOffset: "13px" };
 
       const element = createElement(Component!, props) as ReactElement;
       const content: ReactNode = fixture.wrap ? fixture.wrap(element) : element;
@@ -53,6 +59,11 @@ describe("every public component conforms", () => {
         expect(ref.current, `${component.name} now hands out a ref: remove it from NO_REF`).toBeNull();
       } else {
         expect(ref.current, `${component.name}'s ref did not reach a DOM element (React 19: \`ref?: Ref<El>\` on its props, put on the root)`).toBeInstanceOf(Element);
+        const styled = (ref.current as HTMLElement | null)?.style?.outlineOffset === "13px";
+        const listed = STYLE_ON_ROOT.has(component.name) || STYLE_ON_ROOT_NOT_INSTANCES.has(component.name);
+        expect(styled, styled
+          ? `${component.name} now puts \`style\` on its root: add it to STYLE_ON_ROOT in tools/studio/instance-look.mjs`
+          : `${component.name} no longer puts \`style\` on its root: take it out of STYLE_ON_ROOT in tools/studio/instance-look.mjs`).toBe(listed);
       }
       if (documents("className")) {
         expect(document.querySelector(".zen-conformance"), `${component.name} dropped className`).not.toBeNull();

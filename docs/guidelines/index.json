@@ -1056,7 +1056,7 @@
           "background?: default|alt|flat|inverse = default",
           "divider?: boolean = false",
           "shadow?: boolean = true",
-          "theme?: default|border",
+          "theme?: default|border|borderless|carved|carved-floating",
           "subHeader?: ReactNode",
           "workspaceBrand?: ReactNode",
           "workspaceItems?: SidebarItem[] = []",
@@ -1273,6 +1273,180 @@
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "date-picker/actions-need-apply"
+      ]
+    },
+    {
+      "slug": "calendar",
+      "title": "Calendar",
+      "file": "docs/guidelines/calendar.md",
+      "apiFile": "docs/api/calendar.json",
+      "figma": "Calendar/Toolbar, Week-Strip, Month, Time-Grid, Agenda and .Primitives/Calendar/* (page ❖ Calendar 16121:3)",
+      "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
+      "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+      "use": [
+        "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+        "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+        "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+      ],
+      "avoid": [
+        "Picking a date in a form → DatePicker / DateField.",
+        "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+        "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+      ],
+      "props": {
+        "CalendarMonth": [
+          "month?: Date|string",
+          "value?: CalendarDateInput|null",
+          "defaultValue?: CalendarDateInput|null = null",
+          "onValueChange?: (date: Date) => void",
+          "events?: CalendarEventData[] = []",
+          "onEventClick?: (event: CalendarEventData, target: HTMLElement) => void",
+          "selectedEventId?: string|null = null",
+          "onMoreClick?: (date: Date) => void",
+          "device?: desktop|mobile",
+          "today?: Date|string",
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "CalendarToolbar": [
+          "title?: ReactNode",
+          "date?: Date|string",
+          "today?: Date|string",
+          "titleLevel?: 2|3|4 = 2",
+          "view?: month|week|day|3-day|agenda = month",
+          "views?: CalendarView[] = [month, week, day, agenda]",
+          "onViewChange?: (view: CalendarView) => void",
+          "onToday?: () => void",
+          "onPrevious?: () => void",
+          "onNext?: () => void",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "CalendarTimeGrid": [
+          "view?: week|day|3-day",
+          "date?: Date|string",
+          "events?: CalendarEventData[] = []",
+          "startHour?: number = 8",
+          "endHour?: number = 18",
+          "now?: Date|string",
+          "today?: Date|string",
+          "onEventClick?: (event: CalendarEventData, target: HTMLElement) => void",
+          "selectedEventId?: string|null = null",
+          "onSlotPress?: (start: Date) => void",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "CalendarAgenda": [
+          "events?: CalendarEventData[] = []",
+          "from?: Date|string",
+          "days?: number = 7",
+          "onEventClick?: (event: CalendarEventData, target: HTMLElement) => void",
+          "device?: desktop|mobile",
+          "today?: Date|string",
+          "empty?: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "CalendarWeekStrip": [
+          "week?: Date|string",
+          "value?: CalendarDateInput|null",
+          "defaultValue?: CalendarDateInput|null",
+          "onValueChange?: (date: Date) => void",
+          "events?: CalendarEventData[] = []",
+          "variant?: dot|tile = dot",
+          "device?: desktop|mobile",
+          "today?: Date|string",
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "CalendarEvent": [
+          "title: ReactNode",
+          "time?: ReactNode",
+          "kind?: timed|all-day = timed",
+          "color?: brand|blue|violet|teal|green|orange|pink = brand",
+          "selected?: boolean = false",
+          "onClick?: MouseEventHandler<HTMLButtonElement>",
+          "ref?: Ref<HTMLElement>"
+        ],
+        "CalendarEventBlock": [
+          "title: ReactNode",
+          "time?: ReactNode",
+          "showTime?: boolean = true",
+          "titleLines?: 1|2 = 2",
+          "color?: brand|blue|violet|teal|green|orange|pink = brand",
+          "selected?: boolean = false",
+          "onClick?: MouseEventHandler<HTMLButtonElement>",
+          "ref?: Ref<HTMLElement>"
+        ],
+        "CalendarDate": [
+          "day: ReactNode",
+          "size?: md|lg|medium|large = md",
+          "state?: default|today|muted = default",
+          "ref?: Ref<HTMLSpanElement>"
+        ],
+        "CalendarNowLine": [
+          "orientation?: horizontal|vertical = horizontal",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "CalendarDayCell": [
+          "day: ReactNode",
+          "label?: string",
+          "state?: default|today|selected|outside = default",
+          "today?: boolean = false",
+          "children?: ReactNode",
+          "more?: number = 0",
+          "onMoreClick?: () => void",
+          "onSelect?: () => void",
+          "focusable?: boolean = true",
+          "dateProps?: ButtonHTMLAttributes<HTMLButtonElement> & { ref?: Ref<HTMLButtonElement> } & Record<`data-${string}`, string|number|undefined>",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "CalendarAgendaItem": [
+          "start: ReactNode",
+          "end?: ReactNode",
+          "title: ReactNode",
+          "meta?: ReactNode",
+          "color?: brand|blue|violet|teal|green|orange|pink = brand",
+          "attendees?: Array<{ src?: string; alt?: string }>",
+          "device?: desktop|mobile = desktop",
+          "onClick?: MouseEventHandler<HTMLButtonElement>",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
+        ],
+        "CalendarDayTile": [
+          "weekday: ReactNode",
+          "day: ReactNode",
+          "selected?: boolean = false",
+          "today?: boolean = false",
+          "label?: string",
+          "ref?: Ref<HTMLButtonElement>"
+        ]
+      },
+      "do": [
+        "Put CalendarToolbar above the view and move the period with shiftPeriod(date, view, ±1); Today returns to today's period.",
+        "Give every calendar a colour and keep it: Brand for the main calendar, the other hues only to tell calendars apart.",
+        "Pass `today` (and `now` for the Time-Grid) when your app's date is not the device clock, so Today and the now line agree with your data.",
+        "Open an event's details from onEventClick and set selectedEventId while they are open (State=Selected).",
+        "Give the Time-Grid a height (or max-height) so the hours scroll under the fixed day header."
+      ],
+      "dont": [
+        "Don't put the page's main action (New event) in the Toolbar: it belongs to the page header; the Toolbar has only Tertiary buttons.",
+        "Don't use buttons for the view switch: the Toolbar's switch is a Segmented.",
+        "Don't put filters (which calendars) in the Toolbar: they are Chip advanced in the page's Control-Bar.",
+        "Don't colour events with Accent: Today and the now line are the only Accent on a grid.",
+        "Don't draw a week CalendarTimeGrid on a phone: it shows the 3-Day grid there."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "calendar/toolbar-navigation",
+        "calendar/week-on-phone",
+        "calendar/selected-needs-handler"
       ]
     },
     {
@@ -2660,6 +2834,7 @@
         "Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.",
         "Pick the Figma case by what the row does: Interactive (onClick or href) when the whole row opens, selects or navigates; static (neither) when it only shows information, even with trailing buttons. Both pad Padding/Small (12px) above and below and nothing at the sides; Interactive only adds the fill and its states.",
         "Give every list its side inset from the container: a ListBox (Card-padding-medium), or the page margin on a full-bleed phone screen (Box paddingX=\"lg\" paddingY=\"xs\"). Leave at least 12px beside clickable rows so the fill is not clipped.",
+        "On a phone, make the list that closes the page (transactions, tasks, activity: nothing after it, not in a widget grid) an open section, as Figma's ◆ Finance Transactions: a title row (Heading/4 and its See all Link) over a <List> at the page margin, straight on the screen, no ListBox (usage rules §19, user rule 2026-10-21; harness: listbox/closing-list-on-phone). Lists in a widget grid, inside a box, and grouped settings lists (§15) keep their ListBox.",
         "Split long settings into groups: a visible group header per group and one List per group named after it (aria-label or aria-labelledby). The header is a Heading one level below the nearest heading above (h2 on a screen whose h1 is the title), Body/Small/Bold in tone \"light\" (Content/Neutral/Light, 3.7:1 — Apple's 3:1 for bold text): a kicker label, not a Strongest title.",
         "Keep the row title in its Body/Base/Bold (Figma Info-Content Title) on read and unread rows alike. Mark unread with a dot or Badge plus a visually hidden \"Unread\" (WCAG 1.3.1); the caption may go Strongest.",
         "A kicker above a ListBox lines up with the row text: Box paddingX=\"xl\" (24px) on desktop, paddingX=\"lg\" (20px) on a phone, xs (8px) above the box."
@@ -2678,6 +2853,7 @@
         "Don't hand-build rows (a div with a Text and a Badge or Button); use ListItem so padding, hit area and focus are consistent.",
         "Don't make a row title a heading, and don't signal unread by weight alone.",
         "Don't make group labels inside a Menu, Popover, Select or Listbox headings; they are labels.",
+        "Don't box the list that closes a phone page in a ListBox (a Transactions or To-do list under the screen's widgets): it joins the page as an open section (§19).",
         "Don't put content that is not List-Item rows (a DescriptionList, Toggles, a form) in a ListBox — use a Card. Don't frame a ListBox on Canvas/Default with border or shadow when no condition asks for it, and never give a ListBox on Surface-Alt or a Pale fill a drop shadow (§9)."
       ],
       "rules": [
@@ -2685,6 +2861,7 @@
         "list-item/inset-not-padding",
         "listbox/on-container-in-overlay",
         "listbox/footer-action-tertiary",
+        "listbox/closing-list-on-phone",
         "list-item/clickable-row-toggle",
         "list-item/switch-row",
         "list-item/trailing-button-medium",

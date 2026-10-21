@@ -276,7 +276,7 @@ export const rows = [
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => tagCount(await pageText(page, id), "Badge") === 0, { message: "⌘Z removes the Badge" });
-      await until(async () => (await selectedName(page)) === "Stack", { message: "the Stack selected again" });
+      await until(async () => (await selectedName(page)) === "Frame", { message: "the Stack selected again (heading Frame)" });
       return "Badge in, selected → ⌘Z → Stack selected";
     },
   },

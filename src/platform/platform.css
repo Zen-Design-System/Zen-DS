@@ -1331,3 +1331,7 @@
 .pth-outline__tag { min-width: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-base, #95197b); text-align: center; }
 .pth-outline__text { overflow: hidden; font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 900px) { .pth-demo { grid-template-columns: minmax(0, 1fr); } }
+
+/* Calendar playground: the views fill the preview; a phone-width column on mobile. */
+.platform-calendar-preview { flex-direction: column; align-items: stretch; }
+.platform-calendar-preview[data-device="mobile"] { width: min(390px, 100%); align-self: center; }

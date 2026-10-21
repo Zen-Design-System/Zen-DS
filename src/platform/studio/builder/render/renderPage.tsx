@@ -2,6 +2,7 @@ import { createElement, Fragment, isValidElement, type ReactNode } from "react";
 import { screenLayout } from "../../../../../tools/studio/screen-chrome.mjs";
 import { requiredFunctions, standInKind } from "../../../../../tools/studio/standins.mjs";
 import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, STUDIO_ONLY_PROPS, hiddenOn, hiddenSlotsOf } from "../../../../../tools/studio/visibility.mjs";
+import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "../../../../../tools/studio/instance-look.mjs";
 import { LOCKED_PROP, NAME_PROP } from "../../../../../tools/studio/layer-meta.mjs";
 import { instanceLayerPaths, NESTED_VALUE_KEY, WORDS_KEY } from "../../../../../tools/studio/instance-paths.mjs";
 import * as Zen from "../../../../index";
@@ -440,12 +441,17 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   const props: Record<string, unknown> = { key, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": ctx.instance ? undefined : node.name, ...extra };
   // A builder page's photo is `zen-media:<key>` (builder/library/media.ts): this build's URL, in a prop's data too (a
   // Table row's picture).
+  // A Zen instance's own opacity and blend (Figma's Appearance, instance-look.mjs): on its style, not its props.
+  const look = takesInstanceLook(node.name);
   for (const [name, value] of Object.entries(node.props)) {
     if (STUDIO_ONLY_PROPS.has(name) || slotsOff.has(name)) continue;
+    if (look && INSTANCE_LOOK_PROPS.includes(name)) continue;
     // An instance's root takes the instance's name and lock (renderComponentNode), not its main's.
     if (extra?.["data-zen-instance"] && (name === NAME_PROP || name === LOCKED_PROP)) continue;
     props[name] = resolveMediaDeep(valueOf(value, scope, ctx));
   }
+  const lookStyle = look ? instanceLookStyle({ opacity: literalOf(node.props.opacity), blendMode: literalOf(node.props.blendMode) }) : null;
+  if (lookStyle) props.style = lookStyle;
   prototypeProps(node, props, ctx);
   withStandIns(node.name, props);
   if (bound && typeof bound.swap === "string" && node.name === "Icon" && typeof ctx.values?.[bound.swap] === "string") props.name = ctx.values[bound.swap];

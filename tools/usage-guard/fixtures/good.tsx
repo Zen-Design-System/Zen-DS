@@ -76,6 +76,13 @@ export const Good = () => <>
   <ListBox footer={<Button onClick={openInbox}>Go to Inbox</Button>}><List aria-label="Messages"><ListItem title="Sarah Kim" /></List></ListBox>
   <ListBox footer={<Stack direction="row" gap="xs" align="center"><Button onClick={openInbox}>Go to Inbox</Button><Button onClick={archiveAll}>Archive all</Button></Stack>}><List aria-label="Messages"><ListItem title="Sarah Kim" /></List></ListBox>
   <ListBox footer={<Text textStyle="Body/Small/Regular" tone="light">Updated 2 minutes ago</Text>}><List aria-label="Activity"><ListItem title="Brief shared" /></List></ListBox>
+  {/* listbox/closing-list-on-phone: the closing list is open; a ListBox stays when content follows it, in a widget grid, or in grouped lists (§15). */}
+  <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="flat">Balance</Card><Box paddingX="lg"><List aria-label="Transactions"><ListItem title="From Sea Group" /></List></Box></Stack></PlatformPhone>
+  <PlatformPhone label="Files"><Stack gap="lg"><ListBox><List aria-label="Pinned"><ListItem title="Brief.pdf" /></List></ListBox><Card theme="flat">Storage</Card></Stack></PlatformPhone>
+  <PlatformPhone label="Home"><Grid columns={2} gap="sm"><Card theme="flat">Energy</Card><ListBox><List aria-label="Rooms"><ListItem title="Kitchen" /></List></ListBox></Grid></PlatformPhone>
+  <PlatformPhone label="Account"><Stack gap="lg"><ListBox><List aria-label="Account"><ListItem title="Profile" /></List></ListBox><ListBox><List aria-label="Privacy"><ListItem title="Blocked people" /></List></ListBox></Stack></PlatformPhone>
+  <PlatformPhone label="Focus"><Stack gap="lg"><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Turn on automatically</Text></Box><Card theme="flat">Weeknights</Card></Stack><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Allowed while on</Text></Box><ListBox><List aria-label="Allowed while on"><ListItem title="Ava Chen" /></List></ListBox></Stack></Stack></PlatformPhone>
+  <Screen id="screen-desk" title="Tasks" device="desktop"><ListBox><List aria-label="Tasks"><ListItem title="Review the brief" /></List></ListBox></Screen>
   <Accordion title="Billing">Invoices are emailed monthly.</Accordion>
   <Pagination page={1} onPageChange={setPage} pageCount={10} />
   <ProgressBar value={100} label />
@@ -282,6 +289,10 @@ export const Good = () => <>
   <DatePicker value={date} onValueChange={setDate} month={month} onMonthChange={setMonth} />
   {/* With actions, onApply commits the draft: it is the handler of value and range. */}
   <DatePicker value={date} showActions onApply={(picked) => setDate(picked)} />
+  <CalendarToolbar date={day} view={view} onViewChange={setView} onToday={goToday} onPrevious={() => setDay(shiftPeriod(day, view, -1))} onNext={() => setDay(shiftPeriod(day, view, 1))} />
+  <CalendarToolbar date={day} views={[]} onPrevious={previousWeek} onNext={nextWeek} />
+  <CalendarTimeGrid device="mobile" view="3-day" date={day} events={events} />
+  <CalendarMonth month={day} events={events} selectedEventId={open} onEventClick={(event) => setOpen(event.id)} />
   <DatePicker calendar="dual" selectionMode="range" range={period} showActions onApply={(_, picked) => picked && setPeriod(picked)} />
   <Pagination theme="inline" page={page} onPageChange={setPage} total={120} pageSize={pageSize} onPageSizeChange={setPageSize} aria-label="Invoice pages" />
   {/* A pin (expanded only while pinned, uncontrolled otherwise) and a disabled preview are not frozen controls. */}
