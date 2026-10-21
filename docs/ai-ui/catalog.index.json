@@ -102,14 +102,20 @@
     {
       "name": "Badge",
       "status": "verified",
-      "purpose": "Non-interactive status, category or count labels.",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "props": "children? size? theme? background? leading? leadingIcon? remove? onRemove? removeLabel? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BadgeCounter",
       "status": "verified",
-      "purpose": "Non-interactive status, category or count labels.",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "props": "value? size?"
+    },
+    {
+      "name": "BadgeStatus",
+      "status": "stable",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
+      "props": "status? size? progress? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BarChart",
@@ -654,6 +660,48 @@
       "status": "stable",
       "purpose": "Show determinate progress of a task or a step.",
       "props": "value theme? label? aria-label?"
+    },
+    {
+      "name": "PropertyDate",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange? format? minDate? maxDate?"
+    },
+    {
+      "name": "PropertyField",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "label icon? action? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "PropertyPeople",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? addLabel? popoverLabel? single?"
+    },
+    {
+      "name": "PropertySelect",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? popoverLabel?"
+    },
+    {
+      "name": "PropertyStatus",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange? statuses? labels? progress? popoverLabel?"
+    },
+    {
+      "name": "PropertyTags",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? addLabel? popoverLabel? onCreate?"
+    },
+    {
+      "name": "PropertyText",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange?"
     },
     {
       "name": "RadialChart",

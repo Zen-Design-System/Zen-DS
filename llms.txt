@@ -24,7 +24,7 @@
 - [Toggle](docs/guidelines/toggle.md): Turn a setting on or off with immediate effect. Props: docs/api/toggle.json
 - [Checkbox](docs/guidelines/checkbox.md): Select zero, one or many independent options, or confirm a single statement. Props: docs/api/checkbox.json
 - [Radio Button](docs/guidelines/radio-button.md): Pick exactly one option from a small visible set. Props: docs/api/radio-button.json
-- [Badge & Badge-Counter](docs/guidelines/badge.md): Non-interactive status, category or count labels. Props: docs/api/badge.json
+- [Badge, Badge-Counter & Badge-Status](docs/guidelines/badge.md): Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow. Props: docs/api/badge.json
 - [Tag](docs/guidelines/tag.md): A chosen value inside a field (keywords, recipients), usually removable. Props: docs/api/tag.json
 - [Avatar & Avatar Stack](docs/guidelines/avatar.md): Represent a person or workspace with a photo or initials. Props: docs/api/avatar.json
 - [Popover](docs/guidelines/popover.md): The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing pickers. Props: docs/api/popover.json
