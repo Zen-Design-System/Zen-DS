@@ -289,6 +289,19 @@
 .studio-builder-board__frames > .studio-board-section[data-hovered="true"] { outline: calc(1px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
 .studio-builder-board__frames > .studio-board-section[data-selected="true"] { outline: calc(2px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
 
+/* Figma's slice on a builder page (SliceFrame.tsx): an export area above the frames, its outline only (a dashed edge,
+   one screen pixel at every zoom), never taking a click: what is under it stays selectable. Selected as a frame is. */
+.studio-builder-board__frames > .studio-board-slice {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border: calc(1px / var(--studio-zoom, 1)) dashed var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 20%));
+  pointer-events: none;
+}
+.studio-builder-board__frames > .studio-board-slice[data-hovered="true"] { border-style: solid; border-color: var(--zen-color-border-info-solid-default, #0a85ff); }
+.studio-builder-board__frames > .studio-board-slice[data-selected="true"] { border-style: solid; border-color: var(--zen-color-border-info-solid-default, #0a85ff); outline: calc(1px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
+
 /* A frame's X / Y and W / H on a page you made (FrameGeometry.tsx): two of Figma's number fields side by side, as the
    Position section's pair (position.css), with the same trailing room. */
 .studio-frame-geometry__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }

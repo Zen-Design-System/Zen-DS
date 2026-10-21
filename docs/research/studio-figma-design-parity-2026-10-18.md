@@ -89,7 +89,9 @@ so on the status line.
 Up since 2026-10-18 (29): ⇧S (Section) (❌ → ✅) · ⇧P (Pencil) (❌ → ✅) · ⇧⌘K (Place image/video) (❌ → ✅) · ⌘K (Actions) (❌ → ✅) · ⌘F (Find and replace) (❌ → ✅) · ⇧R (Rulers) (❌ → ✅) · ⌃G (Show layout guides) (❌ → ✅) · ⌘Y (Outlines) (❌ → ✅) · N (Next frame) (❌ → ✅) · P (Pen) (🟡 → ✅) · ⌘/ (Actions) (🟡 → ✅) · Enter (Select children) (🟡 → ✅) · ⌘A with nothing selected (Select all) (❌ → ✅) · ⇧H (Flip horizontal) (❌ → ✅) · ⇧V (Flip vertical) (❌ → ✅) · ⌃⌥T (Tidy up) (❌ → ✅) · ⌃⌥H (Distribute horizontal spacing) (❌ → ✅) · Delete (nothing selected after) (🟡 → ✅) · ⌥⌘C ⌥⌘V (Copy / Paste properties) (🟡 → ✅) · ⌘G (Group selection) (❌ → ✅) · ⇧⌘G (Ungroup / Remove frame) (❌ → ✅) · ⌃⌘M (Use as mask) (❌ → ✅) · ⌘E (Flatten) (❌ → ✅) · ⌥⌘O (Outline stroke) on a Line (❌ → ✅) · ⇧⌘L (Lock) (❌ → ✅) · ⌘R (Rename) (❌ → ✅) · ⇧⌘C (Copy as PNG) (❌ → ✅) · A frame (free Box) (🟡 → ✅) · An auto layout frame (Stack) (🟡 → ✅).
 
 What is still not Figma's:
-- **Missing, and the status line says so:** K (Scale), S (Slice), C (Comment), ⌥⌘A (Select matching layers).
+- **Missing, and the status line says so:** K (Scale), C (Comment), ⌥⌘A (Select matching layers). S (Slice) since
+  2026-10-22 (Session C, the user's pick): the Frame menu's Slice and S draw an export area over the board; its panel
+  exports the area under it (Figma's 1x PNG first); Layers lists it; not pushed to Figma yet (the push notes it).
 - **Detach instance on a Button:** kept on purpose (user, 2026-10-03: an interactive component stops working when
   detached).
 - **Menus:**

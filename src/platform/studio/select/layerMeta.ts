@@ -65,8 +65,8 @@ export function setLayerMeta(file: string, tree: { board: PageNode | null } | nu
     const id = String(literal("id") ?? "untitled");
     const state = literal("state");
     const self = isLockedValue(frame.props[LOCKED_PROP]);
-    // A Section (F4) is a frame of the board too ("section:<id>"): renamed and locked as one.
-    const frameId = frame.name === "Overlay" ? `overlay:${id}` : frame.name === "Section" ? `section:${id}` : `screen:${id}${typeof state === "string" ? `:${state}` : ""}`;
+    // A Section (F4) and a Slice are frames of the board too ("section:<id>", "slice:<id>"): renamed and locked as one.
+    const frameId = frame.name === "Overlay" ? `overlay:${id}` : frame.name === "Section" ? `section:${id}` : frame.name === "Slice" ? `slice:${id}` : `screen:${id}${typeof state === "string" ? `:${state}` : ""}`;
     frameNodes.set(frameId, { loc: frame.loc, name: frame.name });
     if (self) frames.add(frameId);
     if (self) own.add(src(frame));

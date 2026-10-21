@@ -16,6 +16,7 @@ const hints: Record<StudioTool, string> = {
   hand: "Hand H · drag to pan",
   frame: "Frame F · drag to draw a frame, click for 100 × 100, or pick a preset · ⇧ square · ⌥ from center",
   section: "Section ⇧S · drag to draw a section around frames, or click · ⇧ square · ⌥ from center",
+  slice: "Slice S · drag over what to export, or click for 100 × 100 · ⇧ square · ⌥ from center",
   rectangle: "Rectangle R · drag, or click for 100 × 100 · ⇧ square · ⌥ from center · Space to move",
   ellipse: "Ellipse O · drag, or click for 100 × 100 · ⇧ circle · ⌥ from center · Space to move",
   line: "Line L · drag · ⇧ 45° steps · ⌥ from center · Space to move",

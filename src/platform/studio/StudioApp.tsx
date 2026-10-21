@@ -588,6 +588,8 @@ export function StudioApp() {
       else if (key === "n" && state.localPage) stepFrame(1);
       // Figma's shape tools, on a page you made (draw/drawTool.ts): R rectangle, O ellipse, L line (⇧L arrow, above).
       else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
+      // S: Figma's Slice tool, on a page you made (builder/SliceFrame.tsx; ⇧S is the Section tool, above).
+      else if (key === "s" && state.localPage) studioStore.setState({ tool: "slice" });
       // P: Figma's Pen, on a page you made (draw/penTool.ts).
       else if (key === "p" && state.localPage) studioStore.setState({ tool: "pen" });
       else if (key === "f") {

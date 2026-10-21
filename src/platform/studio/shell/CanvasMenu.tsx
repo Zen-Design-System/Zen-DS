@@ -227,8 +227,8 @@ export function CanvasMenu() {
   ] : [];
   const frame = menu?.target.kind === "frame" ? findFrame(menu.target.frameId) : null;
   const localPage = studioStore.getState().localPage;
-  // A Section of a page you made (F4) is a board area: no Present, no Copy for Figma of its own.
-  const section = Boolean(frame?.id.startsWith("section:"));
+  // A Section of a page you made (F4) is a board area, a Slice an export area: no Present, no Copy for Figma of their own.
+  const section = Boolean(frame?.id.startsWith("section:") || frame?.id.startsWith("slice:"));
   const frameItems: MenuEntry[] = frame ? [
     // Figma's Paste here: the clipboard at the pointer, in the layout or frame under it (edit/clipboard.ts, F3).
     ...(menu ? [pasteHereItem({ x: menu.x, y: menu.y }), { type: "separator" as const, id: "frame-paste-separator" }] : []),
@@ -246,7 +246,7 @@ export function CanvasMenu() {
     { id: "frame-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
     // A Screen, Overlay or Section of a page you made deletes as one edit (Figma deletes a frame from its menu too); a
     // frame can be wrapped in a new Section (Figma's Wrap in new section).
-    ...(localPage && /^(screen|overlay|section):/.test(frame.id) ? [
+    ...(localPage && /^(screen|overlay|section|slice):/.test(frame.id) ? [
       { type: "separator" as const, id: "frame-name-separator" },
       ...(!section ? [{ id: "frame-wrap-section", label: "Wrap in new section", icon: "icon-browser-line" as const, disabled: Boolean(editOff), onSelect: () => { void wrapInSection(localPage, framesOf(frame.id)); } }] : []),
       ...lockMenuItems({ kind: "frame", frameId: frame.id }),

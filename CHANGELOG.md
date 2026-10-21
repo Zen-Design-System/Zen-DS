@@ -229,6 +229,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
   and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
+- Zen Studio: Figma's Slice tool (S, or Slice in the Frame menu) on a page you made: drag over the board to mark an
+  area, then Export it (1x PNG to start; PNG, JPG or SVG at any scale) as a picture of the frames under it. A slice
+  draws its dashed outline only, so a click inside it still selects what is under it; it is renamed, moved, resized,
+  copied and deleted as a frame is, and Layers lists it. Not sent to Figma yet.
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does

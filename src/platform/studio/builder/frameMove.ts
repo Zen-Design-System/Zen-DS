@@ -4,7 +4,7 @@ import { notifyFramesMoved } from "../board/frames";
 import { canvasApi, getSafeBox, getViewport, getViewportBox, notifyCanvas, panBy } from "../canvas/viewport";
 import { canEdit, studioStore } from "../store";
 import { startDraw } from "../draw/drawTool";
-import { addFrame, addSection } from "./proto/addFrame";
+import { addFrame, addSection, addSlice } from "./proto/addFrame";
 import { boardBoxes, isSectionId, sectionContents } from "../board/sections";
 import { isLockedFrame } from "../select/layerMeta";
 import { pageFile } from "./store/pageStore";
@@ -415,9 +415,10 @@ const SECTION_CLICK = { width: 400, height: 400 };
 /**
  * Arms the Frame tool on the page `localPage`: a press on the canvas draws (or, a click, places) a frame. `kind`
  * "section": Figma's Section tool (⇧S), the same gesture for a Section, drawn on the board even over a frame (a Section
- * never sits inside a frame; the frames under it become its frames).
+ * never sits inside a frame; the frames under it become its frames). "slice": Figma's Slice tool (S), the same gesture
+ * for an export area, drawn over anything (a click leaves a 100 × 100 one).
  */
-export function armFrameDraw(localPage: string, kind: "frame" | "section" = "frame"): boolean {
+export function armFrameDraw(localPage: string, kind: "frame" | "section" | "slice" = "frame"): boolean {
   disarmFrameDraw();
   if (!canEdit()) {
     announceEditStatus({ kind: "error", message: "View only — switch to Admin to edit", at: Date.now() });
@@ -516,6 +517,11 @@ export function armFrameDraw(localPage: string, kind: "frame" | "section" = "fra
         if (kind === "section") {
           const size = dragged ? { width: Math.max(FRAME_MIN, box.width), height: Math.max(FRAME_MIN, box.height) } : SECTION_CLICK;
           void addSection(localPage, { x: dragged ? box.x : Math.round(start.x), y: dragged ? box.y : Math.round(start.y), ...size });
+          return;
+        }
+        if (kind === "slice") {
+          const size = dragged ? { width: Math.max(1, box.width), height: Math.max(1, box.height) } : FRAME_CLICK;
+          void addSlice(localPage, { x: dragged ? box.x : Math.round(start.x), y: dragged ? box.y : Math.round(start.y), ...size });
           return;
         }
         if (!dragged) {

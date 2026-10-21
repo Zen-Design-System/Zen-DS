@@ -51,7 +51,7 @@ async function selectBody(page, id) {
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
   ["KeyK", "Scale"], ["KeyC", "Comment"],
-  ["KeyI", "Pick color"], ["KeyS", "Slice"],
+  ["KeyI", "Pick color"],
 ];
 
 
@@ -1129,6 +1129,93 @@ export const rows = [
         await until(async () => (await pageText(page, id)) === drawn, { message: "one ⌘Z takes the dragged copy away" });
         await undoTo(page, id, before, 4);
         return `⌘D → section-2 + ${duplicated.screen} at +${duplicated.dx}, 0; ⌘Z; ⌥-drag → copy at +${dragged.dx}, +${dragged.dy}, original stays; ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-190", feature: "S (Slice): drag over the frame draws Slice 1 last on the Board, selected, its panel with Figma's 1x PNG export; ⌘Z", wp: "Slice tool 2026-10-22",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await roomAround(page);
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyS");
+        await until(async () => (await pressedTool(page)) === "Slice", { message: "the Slice tool" });
+        const from = { x: frame.x + 10, y: frame.y + 10 }, to = { x: frame.x + frame.width / 2, y: frame.y + frame.height / 3 };
+        await page.mouse.move(from.x, from.y);
+        await page.mouse.down();
+        await page.mouse.move((from.x + to.x) / 2, (from.y + to.y) / 2, { steps: 4 });
+        await page.mouse.move(to.x, to.y, { steps: 4 });
+        await page.mouse.up();
+        await until(async () => /<Slice id="slice-1" title="Slice 1" x=\{-?\d+\} y=\{-?\d+\} width=\{\d+\} height=\{\d+\} \/>\s*<\/Board>/.test((await pageText(page, id)) ?? ""), { message: "Slice 1 last on the Board" });
+        await until(async () => (await page.locator('[data-studio-frame="slice:slice-1"]').getAttribute("data-selected")) === "true", { message: "Slice 1 selected" });
+        await right(page).getByRole("button", { name: "Export Slice 1", exact: true }).waitFor({ state: "visible", timeout: 5000 });
+        const scale = (await right(page).getByRole("button", { name: /^Scale/ }).first().innerText()).trim();
+        await undoTo(page, id, before, 3);
+        return `S + drag over screen-1 → Slice 1 (last on the Board), selected · Export ${scale} PNG ready · ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-191", feature: "Export Slice 1 downloads Slice 1.png, the area under it as a picture", wp: "Slice tool 2026-10-22",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await roomAround(page);
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyS");
+        await page.mouse.move(frame.x + 10, frame.y + 10);
+        await page.mouse.down();
+        await page.mouse.move(frame.x + 120, frame.y + 90, { steps: 6 });
+        await page.mouse.up();
+        await until(async () => /<Slice id="slice-1"/.test((await pageText(page, id)) ?? ""), { message: "Slice 1" });
+        const exportButton = right(page).getByRole("button", { name: "Export Slice 1", exact: true });
+        await exportButton.waitFor({ state: "visible", timeout: 5000 });
+        const [download] = await Promise.all([page.waitForEvent("download", { timeout: 30_000 }), exportButton.click()]);
+        const file = download.suggestedFilename();
+        if (file !== "Slice 1.png") throw new Error(`downloaded ${file}`);
+        const bytes = fs.readFileSync(await download.path());
+        const png = bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+        const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
+        if (!png || width < 10 || height < 10) throw new Error(`not a picture of the slice: png ${png}, ${width} × ${height}`);
+        const tag = ((await pageText(page, id)) ?? "").match(/<Slice [^>]*\/>/)?.[0] ?? "";
+        const w = Number(tag.match(/width=\{(\d+)\}/)?.[1]), h = Number(tag.match(/height=\{(\d+)\}/)?.[1]);
+        if (Math.abs(width - w) > 1 || Math.abs(height - h) > 1) throw new Error(`the picture is ${width} × ${height}, the slice ${w} × ${h}`);
+        return `Export Slice 1 → ${file} ${width} × ${height} (the slice ${w} × ${h})`;
+      });
+    },
+  },
+  {
+    id: "FW-192", feature: "A click inside a slice reaches the layer under it (the slice draws its outline only); Delete on the selected slice removes the slice alone", wp: "Slice tool 2026-10-22",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await roomAround(page);
+        const button = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox();
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyS");
+        await page.mouse.move(button.x - 20, button.y - 20);
+        await page.mouse.down();
+        await page.mouse.move(button.x + button.width + 20, button.y + button.height + 20, { steps: 6 });
+        await page.mouse.up();
+        await until(async () => /<Slice id="slice-1"/.test((await pageText(page, id)) ?? ""), { message: "Slice 1" });
+        const drawn = (await pageText(page, id)) ?? "";
+        await page.keyboard.press("KeyV");
+        await clickNamed(page, id, "Button");
+        await until(async () => (await selectedName(page)) === "Button", { message: "the Button under the slice selected" });
+        await selectFrame(page, "slice:slice-1");
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Delete");
+        await until(async () => { const text = (await pageText(page, id)) ?? ""; return !/<Slice /.test(text) && /<Button/.test(text) && /<Screen id="screen-1"/.test(text); }, { message: "Delete takes the slice alone" });
+        if (((await pageText(page, id)) ?? "") !== before) throw new Error("Delete changed more than the slice");
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === drawn, { message: "⌘Z brings it back" });
+        await undoTo(page, id, before, 3);
+        return "Slice over the Button · click → Button · Delete → slice only · ⌘Z";
       });
     },
   },

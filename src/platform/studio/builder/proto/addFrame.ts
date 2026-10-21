@@ -30,7 +30,7 @@ async function readBoard(localPage: string) {
   return tree.board ? { engine, tree: tree as PageTree & { board: PageNode }, frames: tree.board.children.filter((child): child is PageNode => child.kind === "element") } : null;
 }
 
-const TAGS: Record<string, string> = { screen: "Screen", overlay: "Overlay", section: "Section" };
+const TAGS: Record<string, string> = { screen: "Screen", overlay: "Overlay", section: "Section", slice: "Slice" };
 
 /** A Board child by its frame id (`screen:<id>[:<state>]`, `overlay:<id>`, `section:<id>`). */
 function boardNode(frames: readonly PageNode[], frameId: string) {
@@ -77,7 +77,7 @@ export const SECTION_PADDING = 80;
 export async function addSection(localPage: string, box: { x: number; y: number; width: number; height: number }, label = "Add section"): Promise<string | null> {
   let board = await readBoard(localPage);
   if (!board) return null;
-  if (board.frames.some((frame) => frame.name !== "Section" && literal(frame, "x") === undefined)) {
+  if (board.frames.some((frame) => frame.name !== "Section" && frame.name !== "Slice" && literal(frame, "x") === undefined)) {
     if (!(await pinRow(localPage))) return null;
     board = await readBoard(localPage);
     if (!board) return null;
@@ -88,6 +88,28 @@ export async function addSection(localPage: string, box: { x: number; y: number;
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, index: 0 } as EditOp] }, label);
   if (!response.ok) return null;
   const frameId = `section:${id}`;
+  selectFrameWhenShown(frameId, (shown) => studioStore.setState({ selection: { kind: "frame", frameId: shown } }));
+  return frameId;
+}
+
+/**
+ * A new Slice on a builder page (Figma's Slice tool S): at `box` (board frame px), named "Slice N", last on the Board so
+ * its outline draws above the frames; selected. One edit and one undo step (frames still in the row are pinned first).
+ */
+export async function addSlice(localPage: string, box: { x: number; y: number; width: number; height: number }): Promise<string | null> {
+  let board = await readBoard(localPage);
+  if (!board) return null;
+  if (board.frames.some((frame) => frame.name !== "Section" && frame.name !== "Slice" && literal(frame, "x") === undefined)) {
+    if (!(await pinRow(localPage))) return null;
+    board = await readBoard(localPage);
+    if (!board) return null;
+  }
+  const { engine, tree, frames } = board;
+  const id = engine.freeFrameId("slice", frames.filter((frame) => frame.name === "Slice").map((frame) => String(literal(frame, "id") ?? "")));
+  const code = engine.sliceCode({ id, title: `Slice ${id.split("-").at(-1)}`, x: box.x, y: box.y, width: Math.max(1, box.width), height: Math.max(1, box.height) });
+  const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, "Add slice");
+  if (!response.ok) return null;
+  const frameId = `slice:${id}`;
   selectFrameWhenShown(frameId, (shown) => studioStore.setState({ selection: { kind: "frame", frameId: shown } }));
   return frameId;
 }
