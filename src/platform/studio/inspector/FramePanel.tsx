@@ -13,7 +13,7 @@ import { useStudioFrames } from "../board/frames";
 import { presentFrame } from "../board/presentFrame";
 import { pageKey, setFrameOverride, useStudio } from "../store";
 import { applyEdit } from "../api";
-import { DEVICE_WIDTH, type PageDevice, type ScreenCanvas } from "../builder/proto/runtime";
+import { DEVICE_WIDTH, pageOsOf, type PageDevice, type ScreenCanvas } from "../builder/proto/runtime";
 import type { PageChild, PageNode } from "../builder/render/renderPage";
 import { pageFile, usePage } from "../builder/store/pageStore";
 import { usePageTree } from "../builder/usePageTree";
@@ -85,9 +85,9 @@ function ScreenSection({ frameId }: { frameId: string }) {
   const sized = deviceOfSize(width, heightPx);
   const write = (next: PageDevice) => {
     if (next === device) return;
-    // A Screen at a device's size takes the new device's (its type's iPhone, iPad or Desktop), as a Figma frame preset
-    // does; a drawn or typed size stays.
-    const resized = sized ? (next === "desktop" ? screenDevice("desktop") : deviceOfScreen(next, literal(node, "layout") as string | undefined, undefined, undefined)) : undefined;
+    // A Screen at a device's size takes the new device's (its type's on the page's OS: iPhone or Android phone, iPad or
+    // Android tablet, or Desktop), as a Figma frame preset does; a drawn or typed size stays.
+    const resized = sized ? (next === "desktop" ? screenDevice("desktop") : deviceOfScreen(next, literal(node, "layout") as string | undefined, undefined, undefined, pageOsOf(tree?.header))) : undefined;
     const size = resized ? [
       { op: "setProp" as const, name: "width", value: { kind: "number" as const, value: resized.width } },
       { op: "setProp" as const, name: "height", value: { kind: "number" as const, value: resized.height } },

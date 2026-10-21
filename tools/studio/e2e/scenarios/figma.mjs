@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
-import { inspectorRow, openAssetLibrary, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, openCodeProperties, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 
 /** A new page of the Studio space titled `title` (its name). */
@@ -414,6 +414,44 @@ async function shot(page, name) {
 /** Section titles of the Design tab, in order. */
 const sections = async (page) => (await right(page).locator("h3").allInnerTexts()).map((text) => text.trim());
 
+/* ── Code properties on the Code tab (§3a "code-only ones on the Code tab") helpers ──────────────────────────────── */
+
+/** The Code tab's Properties (CodeProperties.tsx): the selected layer's code-only rows. */
+const codeProperties = (page) => right(page).locator('[data-e2e="code-properties"]');
+/** The Design tab shows only Figma's sections: no Code properties block or heading, none of `props`' rows. Returns its
+ *  section titles. */
+async function noCodeOnDesign(page, props) {
+  const headings = await sections(page);
+  if (headings.includes("Code properties")) throw new Error(`a Code properties section on the Design tab (${headings.join(", ")})`);
+  if (await codeProperties(page).count()) throw new Error("code properties on the Design tab");
+  const shown = [];
+  for (const prop of props) if (await inspectorRow(page, prop).count()) shown.push(prop);
+  if (shown.length) throw new Error(`code-only rows on the Design tab: ${shown.join(", ")}`);
+  return headings;
+}
+/** Runs `work` on the Code tab (its Properties shown), then shows the Design tab again: the tab persists across rows. */
+async function onCodeTab(page, work) {
+  await openCodeProperties(page);
+  try {
+    return await work();
+  } finally {
+    await showDesignTab(page).catch(() => undefined);
+  }
+}
+/** Types into the text field of the Inspector row `data-prop="prop"` and commits it (Enter). */
+async function typeInRow(page, prop, value) {
+  const field = inspectorRow(page, prop).locator("input, textarea").first();
+  await field.click();
+  await field.fill(value);
+  await field.press("Enter");
+}
+/** ⌘Z on the canvas until `pattern` is gone from the page's code. */
+async function undoUntilGone(page, id, pattern, message) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+KeyZ");
+  await written(page, id, pattern, message, true);
+}
+
 /* ── F7 (components: sets, variants, properties) helpers ─────────────────────────────────────────────────────────── */
 
 /** A page with two lone mains side by side (Tag small, Tag large), a Chip set of two variants with a text and a boolean
@@ -582,6 +620,96 @@ async function typeText(page, name, value, index = 0) {
   await field.press("Enter");
 }
 
+/* ── Gap / padding drag (Figma's auto layout handles) helpers ──────────────────────────────────────────────────────── */
+
+/**
+ * A phone page with a row Stack (gap Small, paddingX Large 20, paddingY XLarge 24), a 2-column Grid and a free frame
+ * (Box). The paddings are thick enough that each area's centre lies clear of the resize strip on the frame's edge
+ * (ResizeLayer STRIP, 4 screen px inside the edge) at the canvas's fit zoom.
+ */
+const spacingText = (title) => {
+  let text = newPageText({ title, device: "phone", chrome: true });
+  text = grow(text, "Stack", '<Stack direction="row" gap="sm" paddingX="lg" paddingY="xl">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="ellipse" width={60} height={40} />\n</Stack>');
+  text = grow(text, "Stack", '<Grid columns={2} gap="sm" padding="sm">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="star" width={40} height={40} />\n</Grid>');
+  return grow(text, "Stack", '<Box width={200} height={64} padding="lg">\n<Shape type="ellipse" position="absolute" insetLeft={20} insetTop={12} width={40} height={40} />\n</Box>');
+};
+let spacingMade = null;
+async function spacingPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!spacingMade) {
+    const seeded = await seededPage(ctx, spacingText, /<Box width=\{200\} height=\{64\}/);
+    spacingMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${spacingMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${spacingMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: spacingMade };
+}
+/** The spacing page's innermost `name` layout (the one holding Shapes). */
+const layoutOf = (page, id, name) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).filter({ has: page.locator('[data-zen-name="Shape"]') }).last();
+const shapeBox = (page, id, index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index).boundingBox();
+/** Selects the layout holding Shape `shape` (⌘-click the Shape, Esc to its parent, as Figma's Select parent). */
+async function selectLayout(page, id, name, shape) {
+  await selectShape(page, id, shape);
+  await page.keyboard.press("Escape");
+  const want = await layoutOf(page, id, name).boundingBox();
+  await until(async () => {
+    const box = await page.locator('.studio-selection__outline[data-kind="selected"]').first().boundingBox().catch(() => null);
+    return box && Math.abs(box.x - want.x) < 3 && Math.abs(box.width - want.width) < 3 ? box : null;
+  }, { message: `the ${name} selected` });
+  await until(async () => (await page.locator(".studio-selection__spacing-hit").count()) > 0, { message: `the ${name}'s spacing areas` });
+  await sleep(300);
+  return want;
+}
+/** The draggable spacing areas on the canvas: axis and box (screen px). */
+const dragAreas = (page) => page.locator(".studio-selection__spacing-hit[data-drag]").evaluateAll((nodes) => nodes.map((node) => {
+  const r = node.getBoundingClientRect();
+  return { axis: node.getAttribute("data-drag"), x: r.x, y: r.y, width: r.width, height: r.height, cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
+}));
+/** The spacing hit area on `side` of the selection (the outermost along it): its box and centre (screen px). */
+async function sideArea(page, side) {
+  const areas = await page.locator(".studio-selection__spacing-hit").evaluateAll((nodes) => nodes.map((node) => {
+    const r = node.getBoundingClientRect();
+    return { axis: node.getAttribute("data-drag"), x: r.x, y: r.y, width: r.width, height: r.height, cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
+  }));
+  const by = { left: (a) => a.x, right: (a) => -(a.x + a.width), top: (a) => a.y, bottom: (a) => -(a.y + a.height) }[side];
+  const along = side === "left" || side === "right" ? (a) => a.height >= a.width : (a) => a.width > a.height;
+  const area = areas.filter(along).sort((a, b) => by(a) - by(b))[0];
+  if (!area) throw new Error(`no ${side} spacing area on the canvas`);
+  return area;
+}
+const spacingPill = async (page) => (await page.locator(".studio-selection__spacing-label").allInnerTexts()).join(" | ");
+/** How many padding / gap tints are pink (hovered or set by the drag). */
+const pinkTints = (page, kind) => page.locator(`.studio-selection__${kind}[data-drag][data-hover="true"]`).count();
+/** Presses at `from`, drags by `dx` / `dy` screen px in steps (`keys` held from before the press), runs `during` before the release. */
+async function dragSpacing(page, from, { dx = 0, dy = 0, keys = [], during } = {}) {
+  await page.mouse.move(from.x, from.y);
+  for (const key of keys) await page.keyboard.down(key);
+  await page.mouse.down();
+  let seen;
+  try {
+    for (let step = 1; step <= 6; step++) { await page.mouse.move(from.x + (dx * step) / 6, from.y + (dy * step) / 6); await sleep(30); }
+    await sleep(250);
+    seen = during ? await during() : undefined;
+  } finally {
+    await page.mouse.up();
+    for (const key of [...keys].reverse()) await page.keyboard.up(key);
+  }
+  return seen;
+}
+/** The open tag of the spacing page's first `<name …` whose text matches `marker`. */
+const tagWith = (text, name, marker) => [...text.matchAll(new RegExp(`<${name}\\b[^>]*>`, "g"))].map(([tag]) => tag).find((tag) => marker.test(tag)) ?? "";
+/** One ⌘Z puts the page back to `before` (the drag was one write). */
+async function oneUndo(page, id, before) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+KeyZ");
+  await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+}
+
 /** Before a row's retry (run.mjs): the pages this module made are forgotten, so the retry seeds them again from scratch
  *  (the runner removes the files the first try added). */
 export function forgetPages() {
@@ -590,6 +718,7 @@ export function forgetPages() {
   shapesMade = null;
   twoMade = null;
   setsMade = null;
+  spacingMade = null;
   slotsMade = null;
 }
 
@@ -687,12 +816,6 @@ async function slotDrag(page, from, to, { copy = false } = {}) {
   }
 }
 const middle = (box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
-/** One ⌘Z takes the page back to `text` (Figma: one gesture, one undo step). */
-async function oneUndo(page, id, text) {
-  await page.locator(".studio-viewport").focus();
-  await page.keyboard.press("ControlOrMeta+KeyZ");
-  await until(async () => (await pageText(page, id)) === text, { timeout: 5000, message: "one ⌘Z takes the page back" });
-}
 /** Selects a layer as Figma's ⌘-click does (the deepest layer: one in an instance's slot, one in a row), then checks it:
  *  a press on it then drags that layer. */
 async function selectDeep(page, layer, name) {
@@ -3634,6 +3757,273 @@ export const rows = [
         .catch(async (error) => { throw new Error(`${error.message} (shown: ${(await tab.innerText().catch(() => "?")).trim()})`); });
       await page.locator(".studio-layers__tree").waitFor({ state: "visible", timeout: 5000 });
       return "New page › Create → Layers";
+    },
+  },
+  {
+    id: "FW-165", feature: "A Zen instance's Design tab has no Code properties (Figma's sections only); its HTML button type is on the Code tab's Properties, where typing submit writes type=\"submit\"; ⌘Z takes it back", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const design = await noCodeOnDesign(page, ["type"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "type").waitFor({ state: "visible", timeout: 5000 });
+        await typeInRow(page, "type", "submit");
+        await written(page, id, /<Button\b[^>]*type="submit"/, 'type="submit" on the Button');
+        await shot(page, "fw-165-instance-code-tab");
+        await undoUntilGone(page, id, /<Button\b[^>]*type="submit"/, "⌘Z takes the type back");
+        return `Design: ${design.join(", ")} · Code › Properties › Type → submit → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-166", feature: "An auto layout frame's HTML element is on the Code tab: section writes as=\"section\" on the Stack, ⌘Z takes it back; its Design tab keeps Figma's sections", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      await until(async () => (await selectedName(page)) === "Frame", { message: "the body frame selected" });
+      const design = await noCodeOnDesign(page, ["as", "scroll"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "as").waitFor({ state: "visible", timeout: 5000 });
+        await pickOption(page, "as", "section");
+        await written(page, id, /<Stack\b[^>]*as="section"/, 'as="section" on the Stack');
+        await undoUntilGone(page, id, /<Stack\b[^>]*as="section"/, "⌘Z takes the element back");
+        return `Design: ${design.join(", ")} · Code › Properties › HTML element → section → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-167", feature: "A text layer's HTML element is on the Code tab: span writes as=\"span\" on the Text, ⌘Z takes it back; its Design tab shows Typography and no code rows", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Text");
+      await until(async () => (await sections(page)).includes("Typography"), { message: "the text selected" });
+      const design = await noCodeOnDesign(page, ["as"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "as").waitFor({ state: "visible", timeout: 5000 });
+        await pickOption(page, "as", "span");
+        await written(page, id, /<Text\b[^>]*as="span"/, 'as="span" on the Text');
+        await undoUntilGone(page, id, /<Text\b[^>]*as="span"/, "⌘Z takes the element back");
+        return `Design: ${design.join(", ")} · Code › Properties › HTML element → span → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-168", feature: "Attributes no API lists (aria-label, data-testid on a Button) are on the Code tab's Properties under their written names and edit there; the Design header's Show code opens them", wp: "§3a Properties 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const text = (title) => [
+        `// @zen-page ${JSON.stringify({ format: 1, title })}`,
+        'import { Board, Screen } from "@zen-ds/react/builder";',
+        'import { Button, Stack } from "@zen-ds/react";',
+        "export const mock = {};",
+        "",
+        "export default function Page() {",
+        "  return (",
+        "    <Board>",
+        `      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop" width={800} height={500}>`,
+        '        <Stack gap="md" padding="lg">',
+        '          <Button level="primary" aria-label="Save the draft" data-testid="save">Save</Button>',
+        "        </Stack>",
+        "      </Screen>",
+        "    </Board>",
+        "  );",
+        "}",
+        "",
+      ].join("\n");
+      const { page, id } = await seededPage(ctx, text, /data-testid="save"/);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const design = await noCodeOnDesign(page, ["aria-label", "data-testid", "type"]);
+      const before = (await pageText(page, id)) ?? "";
+      await right(page).getByRole("button", { name: "Show code", exact: true }).click();
+      try {
+        await codeProperties(page).waitFor({ state: "visible", timeout: 5000 });
+        for (const prop of ["aria-label", "data-testid", "type"]) await inspectorRow(page, prop).waitFor({ state: "visible", timeout: 5000 });
+        const labels = await codeProperties(page).locator('[data-prop="aria-label"], [data-prop="data-testid"]').allInnerTexts();
+        if (!labels.every((label, index) => label.includes(["aria-label", "data-testid"][index]))) throw new Error(`rows not under their written names: ${labels.join(" · ")}`);
+        await typeInRow(page, "aria-label", "Save");
+        await written(page, id, /<Button\b[^>]*aria-label="Save"/, 'aria-label="Save" on the Button');
+        await undoTo(page, id, before, 2);
+      } finally {
+        await showDesignTab(page).catch(() => undefined);
+      }
+      return `Design: ${design.join(", ")} · Show code → Code › Properties: aria-label, data-testid, Type · aria-label → Save → ⌘Z`;
+    },
+  },
+  {
+    id: "FW-169", feature: "The Code tab's Properties sit on the panel's one grid (Inline-Field rows, panelFits) for an instance, a frame and a text, above the layer's Code", wp: "§3a Properties 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      const seen = [];
+      const layers = [
+        ["the Button", () => clickNamed(page, id, "Button")],
+        ["the body frame", () => selectBody(page, id)],
+        ["the text", () => clickNamed(page, id, "Text")],
+      ];
+      for (const [what, select] of layers) {
+        await select();
+        await sleep(300);
+        await onCodeTab(page, async () => {
+          await expectPanelFits(page, `${what}'s Code tab`);
+          const order = await sections(page);
+          if (!(order.indexOf("Properties") >= 0 && order.indexOf("Properties") < order.indexOf("Code"))) throw new Error(`${what}: the Code tab reads ${order.join(", ")}`);
+          seen.push(`${what}: ${await codeProperties(page).locator(".studio-inspector__row").count()} rows`);
+          await shot(page, `fw-169-${what.split(" ").at(-1)}`);
+        });
+      }
+      return seen.join(" · ");
+    },
+  },
+  {
+    id: "FW-155", feature: "Hovering a selected auto layout frame's gap or padding shows Figma's pink area, a handle and its value as a variable pill (Gap · Small · 12); a click still opens the scale", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      await selectLayout(page, id, "Stack", 0);
+      const [a, b] = [await shapeBox(page, id, 0), await shapeBox(page, id, 1)];
+      const gap = { x: (a.x + a.width + b.x) / 2, y: a.y + a.height / 2 };
+      await page.mouse.move(gap.x - 1, gap.y);
+      await page.mouse.move(gap.x, gap.y);
+      const gapPill = await until(async () => { const text = await spacingPill(page); return /Gap · Small · 12/.test(text) ? text : null; }, { message: 'the "Gap · Small · 12" pill' });
+      const look = await page.evaluate(() => {
+        const probe = document.createElement("div");
+        probe.style.color = "var(--zen-color-background-support-pink-solid)";
+        document.body.append(probe);
+        const pink = getComputedStyle(probe).color;
+        probe.remove();
+        const handle = document.querySelector(".studio-selection__spacing-handle");
+        const label = document.querySelector(".studio-selection__spacing-label[data-drag]");
+        const hit = document.querySelector('.studio-selection__spacing-hit[data-drag="x"]');
+        return { pink, handle: handle ? getComputedStyle(handle).backgroundColor : null, label: label ? getComputedStyle(label).backgroundColor : null, hexagon: Boolean(label?.querySelector("svg")), tint: document.querySelectorAll('.studio-selection__gap[data-drag][data-hover="true"]').length, cursor: hit ? getComputedStyle(hit).cursor : null };
+      });
+      if (look.handle !== look.pink || look.label !== look.pink) throw new Error(`not Figma's pink: handle ${look.handle}, pill ${look.label} (Support/Pink/Solid ${look.pink})`);
+      if (!look.tint || !look.hexagon || look.cursor !== "ew-resize") throw new Error(`gap hover: ${JSON.stringify(look)}`);
+      const left = await sideArea(page, "left");
+      await page.mouse.move(left.cx + 1, left.cy);
+      await page.mouse.move(left.cx, left.cy);
+      const padPill = await until(async () => { const text = await spacingPill(page); return /Horizontal padding · Large · 20/.test(text) ? text : null; }, { message: 'the "Horizontal padding · Large · 20" pill' })
+        .catch(async (error) => { throw new Error(`${error.message} (pill: "${await spacingPill(page)}")`); });
+      if (!(await pinkTints(page, "padding"))) throw new Error("the hovered padding is not pink");
+      // A click without moving: the scale opens where it was clicked, as before the drag handles.
+      await page.mouse.move(gap.x, gap.y);
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.getByRole("option", { name: /^XLarge\b/ }).waitFor({ state: "visible", timeout: 4000 });
+      await page.keyboard.press("Escape");
+      return `gap "${gapPill}" (pink, handle, hexagon, ew-resize) · padding "${padPill}" · click → the scale`;
+    },
+  },
+  {
+    id: "FW-156", feature: "Dragging the gap of an auto layout frame changes it, snapped to the Spacing/Gap ladder and previewed while dragging (Small 12 + 20 → XLarge 32); one write, one ⌘Z; the status line names it Gap XLarge", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectLayout(page, id, "Stack", 0);
+      const [a, b] = [await shapeBox(page, id, 0), await shapeBox(page, id, 1)];
+      const scale = a.width / 60;
+      const gap = { x: (a.x + a.width + b.x) / 2, y: a.y + a.height / 2 };
+      const during = await dragSpacing(page, gap, { dx: 20 * scale, during: async () => ({ pill: await spacingPill(page), moved: ((await shapeBox(page, id, 1)).x - b.x) / scale, text: await pageText(page, id) }) });
+      if (!/Gap · XLarge · 32/.test(during.pill)) throw new Error(`the pill while dragging reads "${during.pill}"`);
+      if (Math.abs(during.moved - 20) > 1.5) throw new Error(`the preview moved the second layer ${during.moved.toFixed(1)} px, not 20`);
+      if (during.text !== before) throw new Error("written before the release");
+      await until(async () => /gap="xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'the row Stack at gap="xl"' });
+      const tag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingX="lg"/.test(tag) || !/paddingY="xl"/.test(tag)) throw new Error(`the padding changed too: ${tag}`);
+      const status = await until(async () => { const text = await statusText(page); return /Gap XLarge/.test(text) ? text : null; }, { timeout: 5000, message: 'the status line "Gap XLarge"' });
+      await oneUndo(page, id, before);
+      return `pill "${during.pill}" · the Ellipse moved ${during.moved.toFixed(0)} px · ${tag} · "${status.split(" | ").find((line) => /Gap XLarge/.test(line))}" · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-157", feature: "Dragging an auto layout frame's left padding changes Horizontal padding (Zen's paddingX: the right side moves with it), snapped to Spacing/Padding (Large 20 + 12 → 2XLarge 32); one write, one ⌘Z", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectLayout(page, id, "Stack", 0);
+      const scale = (await shapeBox(page, id, 0)).width / 60;
+      const host = layoutOf(page, id, "Stack");
+      const left = await sideArea(page, "left");
+      const during = await dragSpacing(page, { x: left.cx, y: left.cy }, { dx: 12 * scale, during: async () => ({
+        pill: await spacingPill(page), tints: await pinkTints(page, "padding"),
+        padding: await host.evaluate((el) => { const style = getComputedStyle(el); return [style.paddingLeft, style.paddingRight, style.paddingTop].join(" "); }),
+      }) });
+      if (!/Horizontal padding · 2XLarge · 32/.test(during.pill)) throw new Error(`the pill while dragging reads "${during.pill}"`);
+      if (during.padding !== "32px 32px 24px") throw new Error(`the preview's padding (left right top) is ${during.padding}, not 32px 32px 24px`);
+      if (during.tints !== 2) throw new Error(`${during.tints} padding areas pink while dragging, not 2 (left and right)`);
+      await until(async () => /paddingX="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'paddingX="2xl"' });
+      const tag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingY="xl"/.test(tag) || !/gap="sm"/.test(tag)) throw new Error(`more than paddingX changed: ${tag}`);
+      await until(async () => /Horizontal padding 2XLarge/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Horizontal padding 2XLarge"' });
+      await oneUndo(page, id, before);
+      return `pill "${during.pill}" · preview ${during.padding} · ${tag} · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-158", feature: "Modifiers as Figma's: ⌥ dragging the top padding sets the bottom too (Vertical padding 2XLarge); ⇧ dragging the left padding sets all four (padding 2XLarge, paddingX / paddingY removed in the same edit); one ⌘Z each", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectLayout(page, id, "Stack", 0);
+      const scale = (await shapeBox(page, id, 0)).width / 60;
+      const top = await sideArea(page, "top");
+      const alt = await dragSpacing(page, { x: top.cx, y: top.cy }, { dy: 8 * scale, keys: ["Alt"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
+      if (!/Vertical padding · 2XLarge · 32/.test(alt.pill) || alt.tints !== 2) throw new Error(`⌥: pill "${alt.pill}", ${alt.tints} padding areas pink (want top and bottom)`);
+      await until(async () => /paddingY="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⌥: paddingY="2xl"' });
+      const altTag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingX="lg"/.test(altTag)) throw new Error(`⌥ changed the sides too: ${altTag}`);
+      await oneUndo(page, id, before);
+      await selectLayout(page, id, "Stack", 0);
+      const left = await sideArea(page, "left");
+      const all = await dragSpacing(page, { x: left.cx, y: left.cy }, { dx: 12 * scale, keys: ["Shift"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
+      if (!/^Padding · 2XLarge · 32/.test(all.pill) || all.tints !== 4) throw new Error(`⇧: pill "${all.pill}", ${all.tints} padding areas pink (want all four)`);
+      await until(async () => /\spadding="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⇧: padding="2xl"' });
+      const allTag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (/paddingX=|paddingY=/.test(allTag)) throw new Error(`⇧ kept a side prop: ${allTag}`);
+      await until(async () => /Padding 2XLarge/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Padding 2XLarge"' });
+      await oneUndo(page, id, before);
+      return `⌥ top: "${alt.pill}" → ${altTag} · ⇧ left: "${all.pill}" → ${allTag} · one ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-159", feature: "A Grid's column gap drags too (gap Small → Large); Escape mid-drag writes nothing and drops the preview; a free frame (Box) has no drag handles and a drag on its padding writes nothing", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const grid = await selectLayout(page, id, "Grid", 2);
+      const scale = (await shapeBox(page, id, 2)).width / 60;
+      const columnGap = (await dragAreas(page)).filter((area) => area.axis === "x").sort((p, q) => Math.abs(p.cx - (grid.x + grid.width / 2)) - Math.abs(q.cx - (grid.x + grid.width / 2)))[0];
+      if (!columnGap) throw new Error("no draggable column gap on the Grid");
+      const from = { x: columnGap.cx, y: columnGap.cy };
+      const pill = await dragSpacing(page, from, { dx: 12 * scale, during: () => spacingPill(page) });
+      if (!/Gap · Large · 24/.test(pill)) throw new Error(`the Grid's pill while dragging reads "${pill}"`);
+      await until(async () => /gap="lg"/.test(tagWith((await pageText(page, id)) ?? "", "Grid", /columns=/)), { message: 'the Grid at gap="lg"' });
+      await oneUndo(page, id, before);
+      // Escape while the button is still down: the drag ends, nothing is written, the Grid lays out as before.
+      await selectLayout(page, id, "Grid", 2);
+      const gridHost = layoutOf(page, id, "Grid");
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      let preview = "";
+      try {
+        for (let step = 1; step <= 6; step++) { await page.mouse.move(from.x + (20 * scale * step) / 6, from.y); await sleep(30); }
+        preview = await gridHost.evaluate((el) => getComputedStyle(el).columnGap);
+        await page.keyboard.press("Escape");
+      } finally {
+        await page.mouse.up();
+      }
+      await sleep(600);
+      const after = await gridHost.evaluate((el) => getComputedStyle(el).columnGap);
+      if (preview === after || after !== "12px") throw new Error(`Escape: column gap ${preview} while dragging, ${after} after (want back to 12px)`);
+      if ((await pageText(page, id)) !== before) throw new Error("Escape still wrote the drag");
+      // A free frame: its padding shows (and clicks to the scale), but nothing drags.
+      await selectLayout(page, id, "Box", 4);
+      const handles = await page.locator(".studio-selection__spacing-hit[data-drag]").count();
+      if (handles) throw new Error(`${handles} drag handles on a free frame`);
+      const boxTop = await sideArea(page, "top");
+      await dragSpacing(page, { x: boxTop.cx, y: boxTop.cy }, { dy: 10 * scale });
+      await page.keyboard.press("Escape");
+      await sleep(400);
+      if ((await pageText(page, id)) !== before) throw new Error("a drag on the free frame's padding wrote something");
+      return `Grid "${pill}" → gap="lg", one ⌘Z · Escape: ${preview} → ${after}, nothing written · free frame: no handles, nothing written`;
     },
   },
 ];

@@ -127,6 +127,14 @@ export const Bad = () => <>
   <Chip variant="advanced" selectionMode="multiple" popoverItems={items} onPopoverSelect={toggleOwner} popoverMultiple>Owner</Chip>
   {/* expect: dialog/no-nested */}
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><Dialog open title="Confirm" /></Dialog>
+  {/* expect: dialog/form-uses-modal-form */}
+  <Dialog open={open} onOpenChange={setOpen} title="New project"><InputField label="Name" /><SelectField label="Owner" options={owners} /></Dialog>
+  {/* expect: dialog/form-uses-modal-form */}
+  <Dialog open={open} onOpenChange={setOpen} title="Invite"><Form onSubmit={invite}><InputField label="Email" /><TextAreaField label="Message" /></Form></Dialog>
+  {/* expect: modal-form/actions-horizontal */}
+  <ModalForm open={open} onOpenChange={setOpen} title="New project" actionsDirection="vertical" primaryAction={{ label: "Create" }} secondaryAction={{ label: "Cancel" }}><InputField label="Name" /></ModalForm>
+  {/* expect: modal-form/not-on-phone */}
+  <PlatformPhone label="New task"><ModalForm open title="New task" primaryAction={{ label: "Create" }}><InputField label="Title" size="lg" /></ModalForm></PlatformPhone>
   {/* expect: accordion/no-nested */}
   <Accordion title="Billing"><Accordion title="Invoices">Monthly PDFs</Accordion></Accordion>
   {/* expect: pagination/worth-paging */}
@@ -366,6 +374,10 @@ export const Bad = () => <>
   <FileUpload label="Avatar" caption="PNG or JPG. Max 2 MB" accept="image/*" files={files} onReplace={() => {}} />
   {/* expect: badge/count-uses-counter */}
   <Badge size="small">12</Badge>
+  {/* expect: property-field/one-value */}
+  <PropertyField label="Due Date" icon="icon-calendar-line"><InputField label="Due" defaultValue="06/07/2026" /></PropertyField>
+  {/* expect: badge/workflow-status-uses-badge-status */}
+  <Badge theme="blue" background="subtle">In progress</Badge>
   {/* expect: badge/count-text-uses-counter */}
   <span className="panel__count">{items.length}</span>
   {/* expect: button/filter-is-chip */}
@@ -477,6 +489,12 @@ export const Bad = () => <>
   <DatePicker value={date} onValueChange={setDate} month={new Date(1995, 5, 1)} />
   {/* expect: interaction/controlled-needs-handler */}
   <DatePicker selectionMode="range" range={period} />
+  {/* expect: timeline/gantt-names-plan */}
+  <TimelineGantt groups={plan} />
+  {/* expect: schedule/slot-picker-confirm */}
+  <ScheduleSlotPicker slots={slots} aria-label="Review times" />
+  {/* expect: schedule/selected-needs-handler */}
+  <ScheduleResourceGrid resources={resources} bookings={bookings} selectedBookingId="hiring" />
   {/* A toolbar whose arrows and view switch do nothing. */}
   {/* expect: calendar/toolbar-navigation */}
   <CalendarToolbar date={day} view="month" onToday={goToday} />

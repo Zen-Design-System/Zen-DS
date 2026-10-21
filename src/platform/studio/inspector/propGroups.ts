@@ -186,17 +186,25 @@ export const entryShown = (entry: PropEntry, props: Readonly<Record<string, unkn
 export const entryWarnings = (entry: PropEntry, props: Readonly<Record<string, unknown>>): string[] =>
   typeof entry === "string" ? [] : (entry.warn ?? []).filter((warning) => holds(warning.when, props)).map((warning) => warning.text);
 
-/** Every prop the groups place (in a nested group or the component's own list). */
 /**
  * A prop only code reads, which no Figma panel has: the HTML element and its type, ids, links, form attributes,
- * accessibility names and handlers. The Inspector folds these into Code properties (user, 2026-10-17: "Còn dùng ngôn ngữ
- * dev nhiều quá"); content and state (title, value, label, src, disabled, open…) stay with Figma's rows.
+ * accessibility names and handlers. The Inspector shows these on the Code tab (user, 2026-10-17: "Còn dùng ngôn ngữ
+ * dev nhiều quá"; §3a: "code-only ones on the Code tab"); content and state (title, value, label, src, disabled, open…)
+ * stay with Figma's rows on the Design tab.
  */
 const CODE_PROPS = new Set(["as", "type", "id", "idPrefix", "href", "linkAs", "htmlFor", "role", "tabIndex", "autoFocus", "noValidate", "maxLength", "accept", "anchorRef", "popoverPortal", "className", "style", "ref"]);
 export const isCodeProp = (prop: string) => CODE_PROPS.has(prop) || /^(aria|data)-/.test(prop) || /^on[A-Z]/.test(prop);
 
+/** Every prop the groups place (in a nested group or the component's own list). */
 export function placedProps(groups: ComponentGroups): Set<string> {
   return new Set([...groups.own.map(entryProp), ...groups.after.map(entryProp), ...groups.nested.flatMap((group) => group.props.map(entryProp))]);
+}
+
+/** The props of `props` the groups leave to code: placed by no group, no boolean's own value, and code-only (isCodeProp). */
+export function codeOnlyProps(groups: ComponentGroups, props: readonly string[]): string[] {
+  const placed = placedProps(groups);
+  const toggled = new Set(groups.toggles.map((toggle) => toggle.prop));
+  return props.filter((prop) => !placed.has(prop) && !toggled.has(prop) && isCodeProp(prop));
 }
 
 /**

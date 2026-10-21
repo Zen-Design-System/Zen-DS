@@ -1077,6 +1077,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         onPassPointerMove={trackPointer}
         onPassDoubleClick={onDoubleClick}
         onPassContextMenu={onContextMenu}
+        onPreview={schedule}
       />
       {/* Figma's crop on a selected layer whose image fill is in Crop mode (F8b, draw/CropHandles.tsx). */}
       <CropHandles

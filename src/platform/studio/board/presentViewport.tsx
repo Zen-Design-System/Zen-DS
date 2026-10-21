@@ -22,8 +22,8 @@ import { FRAME_MAX_WIDTH, FRAME_MIN_WIDTH } from "./frameLayout";
  * bottom edge and corner drag to a free size (ViewportHandles).
  *
  * The device simulator (user, 2026-10-18): the devices are tools/studio/screen-devices.mjs's, the ones a Screen is made
- * for. A builder Screen previewed on one takes its device type, layout, system bars and safe areas
- * (SimulatedDeviceContext); Rotate turns it, Fold / Unfold switches the iPhone Duo's display, and Device frame draws the
+ * for. A builder Screen previewed on one takes its device type, layout, system bars and safe areas, its OS's whatever
+ * the page's (SimulatedDeviceContext; user 2026-10-21: Android phone and tablet beside Apple's); Rotate turns it, Fold / Unfold switches the iPhone Duo's display, and Device frame draws the
  * hardware around the screen: a bezel concentric with the screen's corners and the Duo's hinge.
  */
 

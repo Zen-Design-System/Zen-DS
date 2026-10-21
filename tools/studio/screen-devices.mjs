@@ -6,16 +6,21 @@
  * Sizes are CSS px. Desktop and the iPads are Zen's Figma Viewport (Breakpoint & Grids: Desktop 1512 × 982, Tablet
  * 744 × 1133; landscape turned). iPhone Duo is Apple's foldable (Sep 2026): Apple publishes pixels only
  * (inner 1878 × 2670, outer 1398 × 2034), these points are the iOS 27.1 simulator's (inner 951 × 669 open in
- * landscape, outer 466 × 678), so they are estimates until Apple documents them.
+ * landscape, outer 466 × 678), so they are estimates until Apple documents them. The Androids (user, 2026-10-21: "thêm
+ * máy Android vào simulator") are Figma's presets and Google's reference sizes: the phone is Android Compact (412 × 917,
+ * the Pixel 8 class), the tablet Android Expanded (1280 × 800, the Pixel Tablet), portrait turned. Google publishes no
+ * corner radius (apps read RoundedCorner at run time): the phone's 39 is the Pixel 8's reported 102 device px at its
+ * 2.625 density, the tablet's 20 an estimate, both until measured on a device.
  *
  * `device` and `layout` are what the Screen gets (dialect PAGE_DEVICES, SCREEN_LAYOUTS); `bars` is the system chrome
- * the preview draws (DeviceBars): iOS phone, iPad, or where the Duo's status sits (Figma Status-bar/IOS/Duo 16287:5822:
- * Placement=Side at the top of the open display's right strip, Side-Island under the outer display's camera, Corner at
- * the top right of the open display turned upright). `radius` is the screen's corner, `turn` the same device turned,
- * `fold` the other display of a foldable and `foldAt` its hinge (Figma Pattern/AppShell/Duo › Fold: 40 at 455).
+ * the preview draws (DeviceBars) for `os` (iOS unless `android`): a phone's, a tablet's, or where the Duo's status sits
+ * (Figma Status-bar/IOS/Duo 16287:5822: Placement=Side at the top of the open display's right strip, Side-Island under
+ * the outer display's camera, Corner at the top right of the open display turned upright). `radius` is the screen's
+ * corner, `turn` the same device turned, `fold` the other display of a foldable and `foldAt` its hinge (Figma
+ * Pattern/AppShell/Duo › Fold: 40 at 455).
  */
 
-/** @typedef {{ id: string, label: string, short: string, device: "phone" | "tablet" | "desktop", layout?: "mobile" | "desktop", width: number, height: number, icon: string, bars: "none" | "phone" | "tablet" | "duo-side" | "duo-corner" | "duo-island", radius: number, turn?: string, fold?: string, foldAt?: { axis: "x" | "y", at: number, size: number } }} ScreenDevice */
+/** @typedef {{ id: string, label: string, short: string, device: "phone" | "tablet" | "desktop", layout?: "mobile" | "desktop", width: number, height: number, icon: string, os?: "ios" | "android", bars: "none" | "phone" | "tablet" | "duo-side" | "duo-corner" | "duo-island", radius: number, turn?: string, fold?: string, foldAt?: { axis: "x" | "y", at: number, size: number } }} ScreenDevice */
 
 /** @type {ReadonlyArray<ScreenDevice>} */
 export const SCREEN_DEVICES = Object.freeze([
@@ -26,6 +31,9 @@ export const SCREEN_DEVICES = Object.freeze([
   { id: "duo-open", label: "iPhone Duo, open", short: "Duo", device: "tablet", layout: "desktop", width: 951, height: 669, icon: "icon-book-open-line", bars: "duo-side", radius: 28, turn: "duo-open-portrait", fold: "duo-closed", foldAt: { axis: "x", at: 455, size: 40 } },
   { id: "duo-open-portrait", label: "iPhone Duo, open (portrait)", short: "Duo", device: "phone", width: 669, height: 951, icon: "icon-book-open-line", bars: "duo-corner", radius: 28, turn: "duo-open", fold: "duo-closed", foldAt: { axis: "y", at: 455, size: 40 } },
   { id: "duo-closed", label: "iPhone Duo, closed", short: "Duo", device: "phone", width: 466, height: 678, icon: "icon-mobile-line", bars: "duo-island", radius: 46, fold: "duo-open" },
+  { id: "android-phone", label: "Android phone", short: "Android", device: "phone", width: 412, height: 917, icon: "icon-mobile-line", os: "android", bars: "phone", radius: 39 },
+  { id: "android-tablet-landscape", label: "Android tablet, landscape", short: "Android tablet", device: "tablet", layout: "desktop", width: 1280, height: 800, icon: "icon-tablet-line", os: "android", bars: "tablet", radius: 20, turn: "android-tablet-portrait" },
+  { id: "android-tablet-portrait", label: "Android tablet, portrait", short: "Android tablet", device: "tablet", layout: "mobile", width: 800, height: 1280, icon: "icon-tablet-line", os: "android", bars: "tablet", radius: 20, turn: "android-tablet-landscape" },
 ]);
 
 /** The devices offered when a Screen is made (the Duo's portrait inner display is a turn of the open one, not a frame). */
@@ -37,15 +45,27 @@ export const screenDevice = (id) => SCREEN_DEVICES.find((entry) => entry.id === 
 /** The device whose size is exactly `width` × `height`, or undefined (a custom size). */
 export const deviceOfSize = (width, height) => SCREEN_DEVICES.find((entry) => entry.width === width && entry.height === height);
 
+/** The system a device's bars draw: "android" or "ios" (every Apple device, and Desktop, which draws none). */
+export const deviceOs = (entry) => (entry?.os === "android" ? "android" : "ios");
+
+/** Each OS's own phone and tablet: what a Screen of no device's size is drawn for. */
+const OWN_DEVICES = {
+  ios: { phone: "iphone", landscape: "ipad-landscape", portrait: "ipad-portrait" },
+  android: { phone: "android-phone", landscape: "android-tablet-landscape", portrait: "android-tablet-portrait" },
+};
+
 /**
  * The device a Screen is drawn for (Present and Play show it there in Auto; the Screen draws its bars): the device of
- * its size, else its device type's own (a tablet by its layout). A desktop Screen has none: Auto fills the window.
+ * its size among the page's OS's (`os`, the page header's; a foldable has its own bars, so the Duo is one whatever the
+ * OS), else its device type's own on that OS (a tablet by its layout). A desktop Screen has none: Auto fills the window.
+ * So a 390 × 844 Screen of an Android page plays on the Android phone, as its canvas frame draws Android's bars.
  */
-export const deviceOfScreen = (device, layout, width, height) => {
+export const deviceOfScreen = (device, layout, width, height, os = "ios") => {
   if (device !== "phone" && device !== "tablet") return undefined;
   const sized = deviceOfSize(width, height);
-  if (sized && sized.device === device) return sized;
-  return screenDevice(device === "phone" ? "iphone" : layout === "desktop" ? "ipad-landscape" : "ipad-portrait");
+  if (sized && sized.device === device && (deviceOs(sized) === os || sized.fold)) return sized;
+  const own = OWN_DEVICES[os === "android" ? "android" : "ios"];
+  return screenDevice(device === "phone" ? own.phone : layout === "desktop" ? own.landscape : own.portrait);
 };
 
 /** "390 × 844" */

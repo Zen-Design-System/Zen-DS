@@ -445,7 +445,8 @@
       "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
       "Quantities → NumberField (steppers).",
       "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
-      "Formatted long text (announcements, descriptions) → RichTextField."
+      "Formatted long text (announcements, descriptions) → RichTextField.",
+      "A record's properties edited in place — status, priority, dates, people, labels on a task, ticket or deal → PropertyField with one value cell (PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags): the label column on the left, the borderless value on the right, rows Spacing/Gap/2XSmall apart."
     ],
     "avoid": [
       "Searching/filtering content → Search.",
@@ -512,6 +513,16 @@
         "Heading",
         "<HeadingField headingSize multiline onValueChange>",
         "h1–h3 (Heading/1–3); one line by default, multiline wraps and grows (Figma Inputted-Multi-Line)"
+      ],
+      [
+        "Property-Field",
+        "<PropertyField label icon action> + one value cell",
+        "the 128px label column (Body/Base/Regular, Content/Neutral/Light icon); the + (action) after the label, shown by PropertyPeople/PropertyTags themselves"
+      ],
+      [
+        "Property-Value Type",
+        "PropertyText · PropertySelect (options with icon + tone) · PropertyStatus (BadgeStatus; statuses, labels, progress) · PropertyDate (format) · PropertyPeople (single) · PropertyTags (onCreate)",
+        "value / defaultValue / onValueChange each; placeholder (\"Empty\"), readOnly, state (default · inputted · hover · editing, only to draw a fixed state)"
       ]
     ],
     "keyboard": [
@@ -554,7 +565,9 @@
       "RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.",
       "RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.",
       "RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.",
-      "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view."
+      "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view.",
+      "PropertyField: one value cell per row (harness: property-field/one-value), one label column for the whole list, two columns Spacing/Gap/XLarge apart; an empty value says the locale's \"Empty\"; give a select option's icon a tone by meaning (Urgent Negative, High Warning, Normal Info, Low Neutral).",
+      "PropertyField: pass readOnly for people who may not change the record, so nothing looks clickable."
     ],
     "dont": [
       "Don't disable a field whose value people need to read or copy; use Read-only (disabled text is faint, skipped by Tab and not submitted).",
@@ -565,7 +578,8 @@
       "Don't open a Date/Select popover on a read-only or disabled field.",
       "Don't repeat the label as placeholder; show an example or the format (harness: input/placeholder-not-label).",
       "Don't use RichTextField for plain notes (→ TextAreaField) or single-line input (→ InputField).",
-      "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange)."
+      "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange).",
+      "Don't put a bordered InputField or SelectField in a PropertyField: the borderless value cell is the field."
     ],
     "a11y": [
       "The whole field is the click target (padding/icons focus the native field; Select opens).",
@@ -575,7 +589,8 @@
       "HeadingField multiline is a textarea: Enter never adds a line break; handle it in onKeyDown when Enter should move on.",
       "An invalid field keeps its Negative border while focused and adds the 3px focus ring: error styling never hides focus (WCAG 2.4.7; harness: focus/state-parity).",
       "A disabled field leaves the tab order and is not submitted: put the reason in visible help text, never only in a tooltip.",
-      "AutocompleteField: removing a tag moves focus to the next tag's Remove button, else the previous one, else Add Item; focus never falls back to the page."
+      "AutocompleteField: removing a tag moves focus to the next tag's Remove button, else the previous one, else Add Item; focus never falls back to the page.",
+      "PropertyField: each row is a group named by its label; a value's button reads the label and the value and says it opens a list; PropertyText starts editing on Enter or a click, saves on Enter, cancels on Escape and hands focus back to the value; People and Tags remove a chip with its own button and add through the +."
     ],
     "content": [
       "Labels are nouns (\"Work email\"); errors are sentences with the fix (\"Enter a valid email address, like name@company.com\")."
@@ -623,6 +638,12 @@
         "severity": "error",
         "summary": "RichTextField reports content through onValueChange(html, text); it has no onChange(event).",
         "allow": "richtext-onchange"
+      },
+      {
+        "id": "property-field/one-value",
+        "severity": "error",
+        "summary": "A PropertyField holds exactly one value cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags — the borderless cell that edits the value in place; a bordered field or loose text breaks the row's alignment and its keyboard pattern.",
+        "allow": "property-value"
       },
       {
         "id": "color-picker/hex-value",
@@ -736,7 +757,7 @@
     ],
     "do": [
       "Describe the scope in the placeholder (\"Search components\").",
-      "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded); a Search in a TopNavigation control bar or a BottomSheet is rounded by default (set shape=\"default\" to keep the square field). Desktop toolbars keep the default shape.",
+      "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded); a Search in a TopNavigation control bar, a BottomSheet or an AppShell on a phone is rounded by default (set shape=\"default\" to keep the square field). Desktop toolbars keep the default shape.",
       "Filter live and show an empty state that echoes the query.",
       "Let Enter open the first result; the clear button resets to recent items.",
       "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",
@@ -1272,16 +1293,18 @@
     ]
   },
   "badge": {
-    "title": "Badge & Badge-Counter",
-    "purpose": "Non-interactive status, category or count labels.",
+    "title": "Badge, Badge-Counter & Badge-Status",
+    "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
     "use": [
       "Status in lists (Live, Failed).",
       "Unread/notification counts (BadgeCounter).",
-      "Removable labels on an item (remove + onRemove)."
+      "Removable labels on an item (remove + onRemove).",
+      "A task's or project's workflow step — To Do, In Progress, In Review, Done, Blocked, Cancelled — in tables, boards, detail views and status pickers (BadgeStatus)."
     ],
     "avoid": [
       "Selectable filters → Chip.",
-      "Values inside an input → Tag."
+      "Values inside an input → Tag.",
+      "A percentage people read as a number → ProgressBar / ProgressCircle."
     ],
     "api": [
       [
@@ -1308,6 +1331,26 @@
         "Remove",
         "remove / onRemove / removeLabel",
         "icon-x-circle-solid; removeLabel names the button when the label is not text"
+      ],
+      [
+        "Badge-Status Status",
+        "BadgeStatus status",
+        "to-do (Neutral) · in-progress (Info) · in-review (Warning) · done (Positive) · blocked (Negative, icon-slash-circle-01-line) · cancelled (Neutral, icon-x-circle-line, muted label)"
+      ],
+      [
+        "Badge-Status Size",
+        "BadgeStatus size",
+        "small (20, ring 16) · medium (28, ring 20)"
+      ],
+      [
+        "Progress-Icon arc",
+        "BadgeStatus progress",
+        "0–100; default per step (0 · 25 · 50 · 100); a set value is read after the label (\"60% complete\")"
+      ],
+      [
+        "Badge-Status label",
+        "BadgeStatus children",
+        "default from the locale (en \"In Progress\", vi \"Đang làm\")"
       ]
     ],
     "keyboard": [],
@@ -1316,19 +1359,25 @@
       "Use Subtle backgrounds in dense tables and Solid for emphasis.",
       "Cap counters at \"99+\" and hide them at zero.",
       "Show counts (unread, items, filters applied, a section's or folder's item count) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height — never a Badge holding a number nor bare text beside a label; keep Badge for words and statuses (harness: badge/count-uses-counter, badge/count-text-uses-counter; component-usage-rules §18).",
-      "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count)."
+      "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count).",
+      "Show a workflow step with BadgeStatus, never a Badge themed by hand: the step sets the colour and the ring, so every screen reads one workflow the same way (harness: badge/workflow-status-uses-badge-status).",
+      "Keep one workflow per product, in order: To Do → In Progress → In Review → Done; Blocked and Cancelled sit outside it. Rename a step only by its label (children), never by repainting another step.",
+      "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough."
     ],
     "dont": [
       "Don't make a badge clickable (use Chip).",
+      "Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).",
       "Don't rely on colour alone; keep the text.",
       "Don't use more than two badges on one row item; summarise the rest.",
       "Don't show counters at zero."
     ],
     "a11y": [
-      "The remove button is named \"Remove <label>\" (vi \"Xoá <label>\") from a text label. Pass removeLabel when the label is an icon or other node; without it the button falls back to \"Remove\"."
+      "The remove button is named \"Remove <label>\" (vi \"Xoá <label>\") from a text label. Pass removeLabel when the label is an icon or other node; without it the button falls back to \"Remove\".",
+      "BadgeStatus: the ring is decorative and the label carries the step, so colour is never the only cue. With progress set, the value is read after the label (\"In Progress, 60% complete\")."
     ],
     "content": [
-      "One or two words; no punctuation."
+      "One or two words; no punctuation.",
+      "BadgeStatus labels name the step, not the action (\"In Review\", not \"Review now\")."
     ],
     "refs": [
       [
@@ -1365,6 +1414,12 @@
         "severity": "error",
         "summary": "A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height.",
         "allow": "badge-count"
+      },
+      {
+        "id": "badge/workflow-status-uses-badge-status",
+        "severity": "error",
+        "summary": "A workflow step (To Do, In Progress, In Review, Done, Blocked, Cancelled; vi Cần làm, Đang làm, Đang duyệt, Hoàn thành, Bị chặn, Đã huỷ) is a BadgeStatus: its ring shows how far the work has moved and the step picks its colours. Other statuses (Live, Paid, Draft) stay Badges.",
+        "allow": "badge-workflow-status"
       },
       {
         "id": "badge/count-text-uses-counter",
@@ -2218,6 +2273,237 @@
       }
     ]
   },
+  "schedule": {
+    "title": "Schedule",
+    "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+    "use": [
+      "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+      "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+      "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+      "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+    ],
+    "avoid": [
+      "One person's week of hours → CalendarTimeGrid.",
+      "Unrelated events in date order → CalendarAgenda.",
+      "Any time of day in a form → DatePicker with timePicker.",
+      "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+    ],
+    "api": [
+      [
+        "Device",
+        "device",
+        "desktop · mobile; unset follows the breakpoint"
+      ],
+      [
+        "Scale",
+        "ScheduleResourceGrid scale",
+        "hours · days"
+      ],
+      [
+        "Type",
+        "resources[].kind · ScheduleResource type",
+        "person · room"
+      ],
+      [
+        "Status",
+        "(from now) · ScheduleItineraryItem status",
+        "past · now · upcoming"
+      ],
+      [
+        "State=Selected",
+        "ScheduleSlotPicker value · ScheduleSlot checked",
+        "the chosen time"
+      ],
+      [
+        "State=Disabled",
+        "slots[].disabled",
+        "taken or past, struck through"
+      ],
+      [
+        "Color",
+        "bookings[].color · cards[].color",
+        "brand · blue · violet · teal · green · orange · pink (cards also neutral)"
+      ]
+    ],
+    "keyboard": [
+      [
+        "Tab / Shift+Tab",
+        "Move between bookings, the slot group, the week strip and the cards' menus"
+      ],
+      [
+        "← / → · ↑ / ↓",
+        "Slot-Picker: the previous / next time (the radio group)"
+      ],
+      [
+        "← / →",
+        "Week strip: the previous / next day"
+      ],
+      [
+        "Enter / Space",
+        "Open the focused booking; pick the focused day"
+      ]
+    ],
+    "do": [
+      "Keep the confirm action (\"Book 10:00\") in the page or sheet footer, enabled once a time is chosen.",
+      "Keep taken or past times in place (disabled, struck through) so the day keeps its rhythm.",
+      "Pass `now` (and `today`) when your app's clock is not the device's, so Past / Now and the now line agree with your data.",
+      "Give bars real start and end dates: a bar past the visible range scrolls with the track."
+    ],
+    "dont": [
+      "Don't hide taken slots: people then cannot tell a full day from an empty one.",
+      "Don't use a Slot-Picker for filters or scopes: that is Chip advanced.",
+      "Don't put several Now stops in an itinerary: one stop runs at a time.",
+      "Don't stack many overlapping events in a Day-Planner: use CalendarTimeGrid, which splits the column."
+    ],
+    "a11y": [
+      "The Resource-Grid is a table: the scale's column headers, then a row header (the resource) and one cell of bars per row; bars are buttons with onBookingClick, named by title and time.",
+      "The Slot-Picker is a radio group of native radios, each named with its day and time (\"…, unavailable\" when taken); the arrow keys move between them.",
+      "The Itinerary is an ordered list; the running stop carries aria-current=\"step\" and a Now badge.",
+      "Day-Planner cards are a list named by the day; a card's ⋮ is named \"Actions for {title}\"."
+    ],
+    "content": [
+      "Statuses in words (Done, In progress, Upcoming); colour stays on the rule.",
+      "Times are 24-hour in the locale (09:00); durations in minutes (90 min)."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Radio group",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/radio/"
+      ],
+      [
+        "WAI-ARIA APG — Table",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/table/"
+      ]
+    ],
+    "file": "docs/guidelines/schedule.md",
+    "rules": [
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      },
+      {
+        "id": "schedule/slot-picker-confirm",
+        "severity": "warn",
+        "summary": "A Slot-Picker only chooses a time: without onValueChange the app never hears the choice, and the confirm action (\"Book 10:00\") in the page or sheet footer has nothing to book.",
+        "allow": "schedule-confirm"
+      },
+      {
+        "id": "schedule/selected-needs-handler",
+        "severity": "warn",
+        "summary": "selectedBookingId marks the booking whose details are open; without onBookingClick the bars are static, so the selection can never change.",
+        "allow": "schedule-selected"
+      }
+    ]
+  },
+  "timeline": {
+    "title": "Timeline",
+    "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+    "use": [
+      "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+      "Project phases on an overview page, a release plan: TimelineMilestones.",
+      "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+    ],
+    "avoid": [
+      "Steps the user moves through in a form → Stepper.",
+      "A timed plan of one day → ScheduleItinerary.",
+      "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+      "A chat thread → Chat."
+    ],
+    "api": [
+      [
+        "Size",
+        "TimelineItem size · TimelineActivity size",
+        "md · sm"
+      ],
+      [
+        "Kind / Tone",
+        "marker.kind · marker.tone",
+        "dot · icon · avatar; neutral · accent · positive · warning · negative"
+      ],
+      [
+        "Status",
+        "(from today) · TimelineMilestone status",
+        "done · current · upcoming"
+      ],
+      [
+        "Orientation",
+        "TimelineMilestone orientation (device)",
+        "horizontal · vertical"
+      ],
+      [
+        "Kind",
+        "TimelineGanttBar kind · tasks[].kind",
+        "task · summary · milestone"
+      ],
+      [
+        "Level",
+        "TimelineGanttLabel level",
+        "group · task"
+      ],
+      [
+        "Device",
+        "device",
+        "desktop · mobile; unset follows the breakpoint"
+      ]
+    ],
+    "keyboard": [
+      [
+        "Tab / Shift+Tab",
+        "Move between the Gantt's group toggles and task bars"
+      ],
+      [
+        "Enter / Space",
+        "A group row: show or hide its tasks; a bar: open its task"
+      ]
+    ],
+    "do": [
+      "Use an Avatar marker when a person acted, an Icon when the system did, a Dot in compact logs.",
+      "Let the tone carry status: Positive approved, Negative rejected, Warning waiting, Accent the newest or current.",
+      "Name the Gantt after the plan (aria-label) so its table reads as more than \"Tasks\".",
+      "Keep bars on their real dates: the track scrolls; never squeeze a bar to fit."
+    ],
+    "dont": [
+      "Don't colour markers for decoration: tone is status.",
+      "Don't use Milestones or the Gantt for a form the user steps through: use Stepper.",
+      "Don't mark more than one milestone Current."
+    ],
+    "a11y": [
+      "Activity days are sections named by their kicker, each a list of items; the actor is bold text, not a heading.",
+      "Milestones are an ordered list; the Current one carries aria-current=\"step\".",
+      "The Gantt is a table: week column headers, a row header per task (a group's is a disclosure button with aria-expanded) and one cell with its bar; bars are buttons with onTaskClick, named by name and dates."
+    ],
+    "content": [
+      "Item titles name the actor first, then the action in plain words (\"Maya Chen approved your leave request\").",
+      "Dates are short (Sep 25); times 24-hour (10:42)."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Table",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/table/"
+      ],
+      [
+        "WAI-ARIA APG — Disclosure",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/"
+      ]
+    ],
+    "file": "docs/guidelines/timeline.md",
+    "rules": [
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      },
+      {
+        "id": "timeline/gantt-names-plan",
+        "severity": "warn",
+        "summary": "Name the Gantt after its plan (aria-label=\"Lotus banking redesign\"): without it the table is only \"Tasks\", and a page with two plans reads them the same.",
+        "allow": "gantt-name"
+      }
+    ]
+  },
   "tooltip": {
     "title": "Tooltip",
     "purpose": "Name or briefly describe a control on hover and keyboard focus.",
@@ -2684,7 +2970,7 @@
     ],
     "avoid": [
       "Non-blocking feedback → Toast.",
-      "Long forms → a page or Side Panel.",
+      "A data-entry form (two or more fields) → ModalForm on desktop and tablet, BottomSheet on a phone; a long form → a page.",
       "Hints → Tooltip/Popover."
     ],
     "api": [
@@ -2696,7 +2982,7 @@
       [
         "Actions direction",
         "actionsDirection",
-        "horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical"
+        "horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical. Dialog only: a ModalForm keeps its actions in a row at every width"
       ],
       [
         "Modal/Forms",
@@ -2753,8 +3039,9 @@
       ]
     ],
     "do": [
-      "Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.",
-      "Use actionsDirection=\"vertical\" when the choices deserve equal weight or labels are long.",
+      "Use Dialog for a notice or a quick confirm, with one field at most (type the name to delete). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet (harness: dialog/form-uses-modal-form) and in a BottomSheet on a phone (harness: modal-form/not-on-phone).",
+      "Use actionsDirection=\"vertical\" on a Dialog when the choices deserve equal weight or labels are long; a ModalForm keeps its actions in a row (harness: modal-form/actions-horizontal).",
+      "Keep a ModalForm's side column (side) no taller than the form, a summary or an illustration, so the actions sit under the fields with no empty band; longer side content belongs in the form.",
       "Phrase the title as the question (\"Delete “Marketing site”?\") and repeat the verb in the primary action.",
       "Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: \"Cancel\", autoFocus: true }}` (otherwise the primary action takes it).",
       "Require typing the name for high-impact deletes.",
@@ -2770,6 +3057,7 @@
       "Don't use a dialog for information the user can ignore.",
       "Don't hide the only way out (always Escape or a cancel action).",
       "Don't open a dialog from a dialog (harness: dialog/no-nested).",
+      "Don't put a form in a Dialog, and don't open a ModalForm on a phone.",
       "Don't open a dialog on page load without a user action.",
       "Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser."
     ],
@@ -2815,6 +3103,18 @@
         "severity": "error",
         "summary": "Never stack dialogs: a Dialog does not open another Dialog.",
         "allow": "nested-dialog"
+      },
+      {
+        "id": "dialog/form-uses-modal-form",
+        "severity": "error",
+        "summary": "Dialog is for a notice or a quick confirm (one field at most, such as typing a name to confirm). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet and in a BottomSheet on a phone.",
+        "allow": "dialog-form"
+      },
+      {
+        "id": "modal-form/actions-horizontal",
+        "severity": "error",
+        "summary": "A ModalForm's footer keeps its actions in a row (Tertiary cancel, Primary submit): actionsDirection=\"vertical\" belongs to a Dialog's equal-weight choices, never to a form.",
+        "allow": "modal-form-actions"
       },
       {
         "id": "api/deprecated-prop",
@@ -5506,7 +5806,7 @@
       [
         "Variant",
         "variant",
-        "MetricCard KPI: title-highlight (default since 2026-10-16: title on top, number and trend at the foot, Dock-Icon in the bottom-right corner; Large) · icon-highlight (the Dock-Icon leads; XLarge)"
+        "MetricCard KPI: title-highlight (default since 2026-10-16: title on top in Body/Extra/Medium, number and trend at the foot, Dock-Icon in the bottom-right corner; Large) · icon-highlight (the Dock-Icon leads; XLarge)"
       ],
       [
         "Label / Value",
@@ -5536,12 +5836,12 @@
       [
         "Type",
         "MetricCard type",
-        "kpi (default: Icon-Highlight XLarge) · sparkline · spark-bars · goal-progress · category-bar (Title-Highlight Large) · comparison (Heading/Subheading title + Small columns) · hero (Title-Highlight XLarge) · tile (Metric-Tile in a Card Spacing=Small); Figma Metric-Card Type"
+        "kpi (default: Icon-Highlight XLarge) · sparkline · spark-bars · goal-progress · category-bar (Title-Highlight Large) · comparison (Body/Extra/Medium title + Small columns) · hero (Title-Highlight XLarge, its number Display/1) · tile (Metric-Tile in a Card Spacing=Small); Figma Metric-Card Type"
       ],
       [
         "Tile",
         "type=\"tile\" · size · icon · iconTheme",
-        "Figma Metric-Tile: medium (default, two-up: Body/Small/Medium title, Display/3 number, Dock-Icon Medium) · small (three-up: Caption/Medium, Heading/3, Dock-Icon Small); title Neutral/Base, number Neutral/Strongest, Gap/2XSmall, then the Dock-Icon (Neutral Solid, icon-activity-line) Gap/Small below. Its Figma Content follows the card: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on Yellow"
+        "Figma Metric-Tile: medium (default, two-up: Body/Small/Medium title, Display/4 number, Dock-Icon Medium) · small (three-up: Caption/Medium, Heading/3, Dock-Icon Small); title Neutral/Base, number Neutral/Strongest, Gap/2XSmall, then the Dock-Icon (Neutral Solid, icon-activity-line) Gap/Small below. Its Figma Content follows the card: Inverse on Solid Neutral, On-Accent, On-Color on Brand/Cyan/Orange, On-Bright on Yellow"
       ],
       [
         "Series",
@@ -6857,6 +7157,7 @@
     ],
     "do": [
       "Keep one task per sheet and one primary action.",
+      "On a phone, open a form in a BottomSheet (its title, the fields, the actions in its footer), never in a ModalForm (harness: modal-form/not-on-phone).",
       "Let the user drag, tap the scrim or press Escape to dismiss.",
       "For a single choice, fill the sheet with List + ListItem: the picked row is `selected` (Active/Neutral/Subtle) with a trailing check, and picking closes the sheet. The Action type's `selectedId` row (Accent/Subtle) is Figma's state, not the house pattern for choices (user, 2026-09-30).",
       "Lists inside the sheet use List/ListItem (the sheet sets --zen-list-inset: 0).",
@@ -6890,6 +7191,12 @@
     ],
     "file": "docs/guidelines/bottom-sheet.md",
     "rules": [
+      {
+        "id": "modal-form/not-on-phone",
+        "severity": "error",
+        "summary": "On a phone a form opens in a BottomSheet, never a ModalForm (Figma's Modal/Forms has no Mobile device). A phone is a PlatformPhone frame or a Studio Screen with device=\"phone\".",
+        "allow": "modal-form-phone"
+      },
       {
         "id": "segmented/control-bar-full-width",
         "severity": "warn",
@@ -7448,7 +7755,7 @@
       [
         "Card",
         "ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
-        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/2 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
+        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Body/Extra/Medium title + chevron, then the Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card), then the Metric under it: Body/Small description over a Display/4 value, Gap/3XSmall apart, Padding/Small above (Figma Chart/Line-Chart, every chart since 2026-10-21)"
       ]
     ],
     "keyboard": [
@@ -8135,7 +8442,7 @@
       [
         "Header/AppShell",
         "header = <AppShellHeader leading center actions main sections>",
-        "top row: the toggle (or the drawer's menu button), leading (Breadcrumbs size sm, master={false} beside the toggle; or a Search), center (≤ 400, a Search), actions (plan Badge, AppShellAction, the account); main: the page's PageHeader; sections: Tabs or a toolbar. Sticks to the top. theme: default (Main pads Margin-Comfortable above, Padding/Small below, Gap/Large between rows) · border-divider (the top row pads Padding/Small with a Pale line under it, the Main row Padding/Medium); density: medium · small (Margin-Compact above). Unset follows the pattern (grid → border-divider, small)"
+        "top row: the toggle (or the drawer's menu button), leading (Breadcrumbs size sm, master={false} beside the toggle; or a Search), center (≤ 400, a Search), actions (plan Badge, AppShellAction, the account); main: the page's PageHeader; sections: Tabs or a toolbar. Sticks to the top. theme: default (Main pads Margin-Comfortable above, Padding/Small below, Gap/Large between rows) · border-divider (the top row pads Padding/Small with a Pale line under it, the Main row Padding/Large above · Padding/Medium below) · borderless (the same rows without the line); density: medium · small (Margin-Compact above). Unset follows the pattern (grid → border-divider, small)"
       ],
       [
         "Pane",
