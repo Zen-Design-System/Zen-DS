@@ -320,6 +320,20 @@ picks the step, and the same relationship gets the same step on every screen:
 - **Phone sections** (user rule 2026-10-17) are spaced by `--zen-layout-mobile-section-gap` (Figma Component Size
   `Layout-Mobile/Section-Gap`): Compact 24, Comfortable 32, never less. The domain picks the Component Size and
   Typography modes, and the section gap follows them. Groups inside a section keep their own ladder step.
+- **A section is a group of content that belongs together** (user rule 2026-10-21: "Spacing giữa các section trong
+  mobile nên là 32px", "section khác với spacing trong 1 nhóm grid widget", "trong Desktop cũng vậy", "Các nhóm nội
+  dung cùng nhau nên gom vào cùng 1 section", "không để title riêng, listing riêng"):
+  - sections are 32 apart on phones (Comfortable; the section gap above) and on desktop (`xl`, Figma Spacing/Gap/XLarge
+    in the AppShell Content slot);
+  - a widget grid is one section: its cards keep `md` 16 between them (and between rows of one grid), never the
+    section gap;
+  - content that belongs together is one section: a balance card and its quick actions, a day's summary line with its
+    cards (Figma ◆ Finance "Main" holds the balance and its actions);
+  - a title row and the content it names are one section (`<Stack as="section" gap="md">` title row + List or cards),
+    never a title alone a section gap above its list.
+  On a phone in an AppShell, put the sections straight in the AppShell (its body spaces them); a wrapping
+  `<Stack gap="md">` around every section squeezes them to 16. Figma audit: `spacing/section-gap` (the Content slot's
+  gap) and `section/title-apart`.
 - A surface is a Card with `spacing` (small 16, medium 24); content inside keeps the surface's inset. A strip inside a
   surface (toolbar, summary, footer) has `sm` block padding and the surface's horizontal inset.
 - The gap between groups is always at least one step larger than the gap inside them. Siblings are spaced by the
@@ -528,3 +542,41 @@ never bare text beside the label. A count inside a sentence ("3 files", "12 of 4
 
 Harness (`npm run usage:check`): `badge/count-uses-counter` and `badge/count-text-uses-counter` (errors). Figma audit
 (`skills/zen-figma-design`): `badge/count-uses-counter` on a Badge instance whose label is a number.
+
+## 19. A list that closes a phone page is an open section
+
+User rule 2026-10-21: "nếu list-box (hoặc danh sách các list item) nằm cuối trang ở mobile thì không bỏ vào list box mà
+đưa thành 1 danh sách nối thành 1 section giống trong example Finance trong Figma", and "cuối trang nghĩa là bên dưới nó
+không nằm trong grid của các widget, mà là 1 danh sách độc lập liệt kê như task, transaction".
+
+On a phone, the list that ends the page (transactions, tasks, activity, courses, doctors: rows that run on and scroll
+with the page) is not a `ListBox`. It joins the page as one open section, as Figma's `◆ Finance` Transactions
+(4595:17267):
+
+- **Title row:** the section's heading (Figma Heading/4, `<Heading level={2} textStyle="Heading/4">`; a kicker when the
+  screen's other sections use kickers) with its See all `Link` at the end (underlined text, not a button: the ListItem
+  guideline).
+- **Rows:** a `<List>` of `ListItem`s straight on the screen's Canvas, at the page margin: the AppShell body pads
+  Margin/Comfortable already; on a bare `PlatformPhone` screen wrap the section in `<Box paddingX="lg">`. Title row →
+  rows `md` (Figma: Padding/Medium under the heading); a kicker keeps its `xs`. Rows keep their own 12px; a clickable row's fill hangs 12px past
+  them, 8px from the screen edge (Figma's Interactive-Background, 374 on a 390 screen).
+- **What stays boxed:** a list in a grid or row of widgets (a dashboard tile beside other tiles), a list inside a Card,
+  sheet, dialog or panel, a list with more content after it, and grouped lists (§15: settings, profile, several groups
+  each under its kicker). Desktop and tablet keep the ListBox.
+
+```tsx
+// ✅ the last section of a phone screen (inside AppShell: the body already pads the page margin)
+<Stack as="section" gap="md" aria-labelledby={transactionsId}>
+  <Stack direction="row" justify="between" align="center" gap="xs">
+    <Heading level={2} id={transactionsId} textStyle="Heading/4">Transactions</Heading>
+    <Text as="span" textStyle="Body/Base/Medium"><Link href="/transactions" tone="inherit">See all</Link></Text>
+  </Stack>
+  <List aria-labelledby={transactionsId}>{rows}</List>
+</Stack>
+// ❌ the same list closing the phone screen in a box
+<ListBox as="section" aria-labelledby={transactionsId} header={titleRow}><List aria-labelledby={transactionsId}>{rows}</List></ListBox>
+```
+
+Harness (`npm run usage:check`): `listbox/closing-list-on-phone` (error) on a ListBox in a `PlatformPhone` or a Studio
+`<Screen device="phone">` with nothing after it, outside any Grid, row Stack or box, and not a §15 group. Figma audit
+(`skills/zen-figma-design`): `list-box/closing-list-on-phone` on a phone screen's last List-Box.

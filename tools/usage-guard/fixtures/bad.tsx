@@ -224,6 +224,14 @@ export const Bad = () => <>
   <ListBox footer={<Button level="primary" onClick={openInbox}>Go to Inbox</Button>}><List aria-label="Messages"><ListItem title="Sarah Kim" /></List></ListBox>
   {/* expect: listbox/footer-action-tertiary */}
   <ListBox footer={<Stack align="start"><Button level="tertiary" onClick={showAll}>Show all files</Button></Stack>}><List aria-label="Recent files"><ListItem title="Brief.pdf" /></List></ListBox>
+  {/* A list that closes a phone screen is an open section, not a box (usage rules §19). */}
+  {/* expect: listbox/closing-list-on-phone */}
+  <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="flat">Balance</Card><ListBox as="section" aria-label="Transactions"><List aria-label="Transactions"><ListItem title="From Sea Group" /></List></ListBox></Stack></PlatformPhone>
+  {/* expect: listbox/closing-list-on-phone */}
+  <Screen id="screen-tasks" title="Tasks" device="phone"><Stack gap="lg"><Card theme="flat">Due today</Card><ListBox><List aria-label="Tasks"><ListItem title="Review the brief" /></List></ListBox></Stack></Screen>
+  {/* An apostrophe in a prop's JSX text ("I'm") opens no string: the AppShell still ends where its tag does. */}
+  {/* expect: listbox/closing-list-on-phone */}
+  <PlatformPhone label="Coach"><AppShell hero={<Text>I'm Blinky, your buddy</Text>}><Card theme="flat">Coach Avo</Card><ListBox><List aria-label="Today's plan"><ListItem title="Breakfast" /></List></ListBox></AppShell></PlatformPhone>
   {/* expect: list-item/switch-row */}
   <ListItem title="Daily digest" trailing={<ToggleButton aria-label="Daily digest" />} />
   {/* expect: chip/radio-is-chip-group */}
@@ -565,3 +573,8 @@ export const Bad = () => <>
 // expect: card/spacing-by-count
 function StatCard({ label }: { label: string }) { return <Card theme="flat">{label}</Card>; }
 export const Stats = () => <PlatformPhone label="Home"><Grid columns={3} gap="md"><StatCard label="Inside" /><StatCard label="Humidity" /><StatCard label="kWh today" /></Grid></PlatformPhone>;
+
+// A ListBox at a component's root is judged where the component is used: here it closes the phone screen.
+// expect: listbox/closing-list-on-phone
+function RecentTransactions() { return <ListBox><List aria-label="Transactions"><ListItem title="From Sea Group" /></List></ListBox>; }
+export const Wallet = () => <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="flat">Balance</Card><RecentTransactions /></Stack></PlatformPhone>;

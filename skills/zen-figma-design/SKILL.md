@@ -136,7 +136,8 @@ Files in this skill:
    - Before a screen like one of Zen's templates (`◆ HR-Platform`, `◆ Finance`, `◆ Social`, `◆ Logistic`,
      `◆ Ecommerce`), read that template's frame and copy its structure, not only its parts.
 2. **Lay out the content** in the Content slot by screen-rules.md: one surface pairing, the spacing ladder, tables on
-   the canvas, grouped lists in List-Box, one Primary button per area.
+   the canvas, grouped lists in List-Box, the list that closes a phone screen open as `◆ Finance` Transactions (no
+   List-Box), one Primary button per area.
 3. **Fill it** with real content and pick every component's variant and state on purpose.
 4. **Add the states** the brief needs as separate frames next to the screen (a copy of the page-pattern instance with
    the state applied: open menu, dialog, empty, error, loading with Skeleton).
