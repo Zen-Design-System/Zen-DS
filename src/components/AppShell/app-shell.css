@@ -38,9 +38,6 @@
    header's Canvas never cuts its shadow. */
 .zen-app-shell__sidebar { position: sticky; z-index: 21; top: var(--zen-app-shell-top); display: flex; height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); flex: 0 0 auto; }
 .zen-app-shell__sidebar > * { height: 100%; }
-/* The collapsed Basic Sidebar keeps an 8px inset on both sides; the shell drops the right one, so the page stays
-   Margin-Comfortable from the rail as from the expanded Sidebar. */
-.zen-app-shell__sidebar:has(> .zen-sidebar[data-variant="basic"][data-collapsed="true"]) { margin-inline-end: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); }
 
 /* Body (Figma Body): the page, Margin-Comfortable on every side, Spacing/Gap/XSmall between its blocks. */
 .zen-app-shell__body { display: flex; box-sizing: border-box; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-margin-comfortable, 24px); outline: none; }
@@ -112,8 +109,9 @@
 /* zen-allow-canvas-layer: the sticky header continues the page Canvas so content scrolls under it. */
 .zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); flex: 0 0 auto; background: var(--zen-app-shell-canvas); }
 .zen-app-shell-header { display: flex; min-width: 0; flex: 0 0 auto; flex-direction: column; }
-/* Main: Margin-Comfortable above and at the sides, Spacing/Padding/XSmall below, Spacing/Gap/Medium between the rows. */
-.zen-app-shell-header__main { display: flex; box-sizing: border-box; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-small, 12px); }
+/* Main (Header/AppShell Theme=Default, 16243:290461): Margin-Comfortable above and at the sides, Spacing/Padding/Small
+   below, Spacing/Gap/Large between the rows. */
+.zen-app-shell-header__main { display: flex; box-sizing: border-box; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-small, 12px); }
 /* Top-Header: the toggle, then Top-Elements (Leading · Center · Trailing), Spacing/Gap/Medium apart, on a Button/Size/Medium row. */
 .zen-app-shell-header__top { display: flex; min-width: 0; min-height: var(--zen-button-size-medium, 40px); align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-app-shell-header__bar { min-width: 0; flex: 1 1 auto; }
@@ -151,6 +149,13 @@
 /* Main-Element: the page's own header, the row's full width. */
 .zen-app-shell-header__element { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-app-shell-header__element > * { min-width: 0; flex: 1 1 auto; }
+/* Density=Small (16823:76454): Margin-Compact above the Main frame. */
+.zen-app-shell-header[data-density="small"] .zen-app-shell-header__main { padding-top: var(--zen-margin-compact, 20px); }
+/* Theme=Border & Divider (16783:72140): the Main frame adds nothing; the top row pads Padding/Small · Margin-Comfortable
+   with a 1px Border/Neutral/Pale line under it (40 + 2 × 12 + 1 = 65), the Main row Padding/Medium · Margin-Comfortable. */
+.zen-app-shell-header[data-theme="border-divider"] .zen-app-shell-header__main { gap: 0; padding: 0; }
+.zen-app-shell-header[data-theme="border-divider"] .zen-app-shell-header__top { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.zen-app-shell-header[data-theme="border-divider"] .zen-app-shell-header__element { padding: var(--zen-spacing-padding-medium, 16px) var(--zen-margin-comfortable, 24px); }
 /* Sections: rows under the Main frame (Tabs, a toolbar), at the page margins. */
 .zen-app-shell-header__sections { display: flex; box-sizing: border-box; min-width: 0; flex-direction: column; padding-inline: var(--zen-margin-comfortable, 24px); }
 

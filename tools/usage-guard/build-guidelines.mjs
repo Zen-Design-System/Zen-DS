@@ -20,7 +20,7 @@ const list = (items) => items.map((item) => `- ${safe(item)}`).join("\n");
 const tagsFor = {
   button: ["Button", "IconButton"], chip: ["Chip", "ChipGroup"], input: ["InputField", "SelectField", "DateField", "ColorField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"],
   search: ["Search"], segmented: ["Segmented"], toggle: ["Toggle"], checkbox: ["Checkbox"], "radio-button": ["RadioButton"], badge: ["Badge", "BadgeCounter"], tag: ["Tag"],
-  avatar: ["Avatar", "AvatarStack"], popover: ["Popover"], sidebar: ["Sidebar", "SidebarMenuItem", "SidebarMenuSection"], "date-picker": ["DatePicker", "DateField", "DatePickerSheet"], tooltip: ["Tooltip"], tabs: ["Tabs", "TabItem"],
+  avatar: ["Avatar", "AvatarStack"], popover: ["Popover"], sidebar: ["Sidebar", "SidebarMenuItem", "SidebarMenuSection", "SidebarSubHeader"], "date-picker": ["DatePicker", "DateField", "DatePickerSheet"], tooltip: ["Tooltip"], tabs: ["Tabs", "TabItem"],
   breadcrumbs: ["Breadcrumbs", "BreadcrumbItem"], progress: ["ProgressBar", "ProgressCircle"], dialog: ["Dialog", "ModalForm"], icon: ["Icon"],
   toast: ["Toast", "ToastStack", "ToastProvider"], "alert-banner": ["AlertBanner"], accordion: ["Accordion"], pagination: ["Pagination"], skeleton: ["SkeletonText", "SkeletonHeading", "SkeletonShape"],
   divider: ["Divider"], shape: ["Shape"], "inline-message": ["InlineMessage"], "empty-state": ["EmptyState"], stepper: ["Stepper", "StepperStep"], slider: ["Slider"], "slider-field": ["SliderField"], "curve-preview": ["CurvePreview"],
