@@ -396,6 +396,17 @@ export function areaProp(area: SpacingArea, attributes: SourceAttr[] | null, alt
   return written ?? area.props[area.props.length - 1];
 }
 
+/** The prop a plain drag of the area sets, or null: a read-only area, or a value an expression or a spread passes. */
+export function dragProp(area: SpacingArea, owner: SpacingOwner, attributes: SourceAttr[] | null): string | null {
+  if (!owner.editable || !attributes || area.kind === "free") return null;
+  const prop = areaProp(area, attributes, false);
+  if (!prop) return null;
+  const found = valueOf(attributes, prop, owner.props);
+  // A spread the live props show not to set the prop leaves it unset (areaState reads it so too).
+  if (found.state === "bound" || (found.state === "spread" && !(owner.props && found.live === undefined))) return null;
+  return prop;
+}
+
 export type AreaState = {
   prop: string | null;
   /** How the prop is written in the source (null while the source is not read, and for read-only areas). */

@@ -1,16 +1,19 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
+import { Icon } from "../../../components/Icon";
 import { Popover, useAnchoredPosition, type PopoverItemData } from "../../../components/Popover";
+import { gapValue, paddingValue, type ZenGap, type ZenPadding } from "../../../components/_shared/scale";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
-import { inspectorStatus } from "../inspector/status";
+import { inspectorStatus, undoShortcut } from "../inspector/status";
 import { ChromePortalContext, ChromeScope } from "../shell/ChromeScope";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, SourceElement } from "../types";
 import { onSourceUpdate } from "./picker";
 import { liveSrc, noteEditTarget } from "./remap";
-import { areaLabel, areaState, fitColumn, freeLabel, kebab, spacingWords, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { areaLabel, areaState, dragProp, fitColumn, freeLabel, kebab, spacingWords, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { DRAG_LAYOUTS, DRAG_START, dragAxis, draggedPx, everySide, nearestStep, previewProperties } from "./spacingDrag";
 import { useSpacingHover } from "./spacingHover";
 import { tokenName } from "../inspector/controls/scale";
 
@@ -24,6 +27,11 @@ import { tokenName } from "../inspector/controls/scale";
  * column in px): a click offers Fit column to content, which writes the column at the item's width.
  * A spacing field hovered or focused in the inspector (spacingHover) emphasises the areas its prop sets, labelled with
  * the step it names; a 0 side or gap (`none`) is a thin band that shows only while hovered (spacing.ts ZERO_BAND).
+ * An auto layout frame's (Stack, Grid) gap and padding also drag, as Figma's handles: hovered, the area turns Figma's
+ * pink with a handle at its centre; a press that moves DRAG_START px drags the length (spacingDrag.ts), snapped to the
+ * prop's token ladder and previewed on the frame, the pill naming the variable ("Gap · 2XLarge · 40"); the release
+ * writes once (one ⌘Z), Escape cancels. ⇧ (or ⇧⌥) held sets `padding` on every side; ⌥ and a plain drag set the side's
+ * own prop, which in Zen is both opposite sides. A press that does not move is a click (the scale opens on release).
  */
 
 type Props = {
@@ -39,7 +47,30 @@ type Props = {
   onPassDoubleClick: (event: ReactMouseEvent<HTMLDivElement>) => void;
   /** A right-click on an area opens the canvas menu as it would on the canvas: the gap and padding are the owner's. */
   onPassContextMenu: (event: ReactMouseEvent<HTMLDivElement>) => void;
+  /** A drag's preview moved the frame's layout: the overlay measures the areas again. */
+  onPreview: () => void;
 };
+
+/**
+ * A press on a draggable area (an auto layout frame's gap or padding): a drag once it moved DRAG_START px, else a click.
+ * `plain` is the area as a plain or ⌥ drag sets it, `every` as ⇧ sets every side (null: not a padding, or bound).
+ */
+type Press = {
+  pointerId: number; index: number; area: SpacingArea; owner: SpacingOwner; host: HTMLElement;
+  start: { x: number; y: number }; last: { x: number; y: number; shift: boolean; alt: boolean };
+  scale: number; axis: "x" | "y"; sign: 1 | -1; plain: AreaState; every: AreaState | null;
+  /** The press itself: a ⇧ click that never moved goes on to the canvas's selection logic on release. */
+  down: ReactPointerEvent<HTMLDivElement>; captor: HTMLElement; root: DOMRect | null;
+  active: boolean; step: { key: string; px: number } | null; all: boolean;
+  /** Inline values the preview replaced on the host (CSS property → value, "" when none was set). */
+  saved: Map<string, string>;
+};
+
+/** What the canvas shows of a drag: the area dragged, the prop it sets and the step reached. */
+type DragView = { index: number; kind: SpacingArea["kind"]; side: SpacingArea["side"]; axis: "x" | "y"; prop: string; key: string; px: number; all: boolean };
+
+/** A step as its prop's value on the frame ("var(--zen-spacing-gap-large)", "0"). */
+const stepValue = (prop: string, key: string) => (/gap/i.test(prop) ? gapValue(key as ZenGap) : paddingValue(key as ZenPadding)) ?? "0px";
 
 /** The open picker (or read-only note): which area, which prop, and a small anchor box inside the area (at the click). */
 type OpenState = { src: string; index: number; kind: SpacingArea["kind"]; side: SpacingArea["side"]; prop: string; alt: boolean; mode: "picker" | "note" | "fit"; area: Box; anchor: Box };
@@ -73,7 +104,7 @@ function useOwnerSource(src: string | null, enabled: boolean): SourceElement | n
   return read && read.src === src ? read.element : null;
 }
 
-export function SpacingLayer({ areas: measured, owner, interactive, viewport, onPassPointerDown, onPassPointerMove, onPassDoubleClick, onPassContextMenu }: Props) {
+export function SpacingLayer({ areas: measured, owner, interactive, viewport, onPassPointerDown, onPassPointerMove, onPassDoubleClick, onPassContextMenu, onPreview }: Props) {
   const role = useStudio((state) => state.role);
   const server = useStudioServer();
   const writable = canEdit() && role === "admin" && server.writable;
@@ -88,14 +119,68 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
   const fieldHover = useSpacingHover();
   const anchorRef = useRef<HTMLDivElement>(null);
   const src = owner?.src ?? null;
+  const [drag, setDrag] = useState<DragView | null>(null);
+  const pressRef = useRef<Press | null>(null);
+  const stopListening = useRef<() => void>(() => undefined);
+  /** A preview held after its write until the re-render shows the new step (or 3 s). */
+  const heldRef = useRef<(() => void) | null>(null);
+  const previewRef = useRef(onPreview);
+  previewRef.current = onPreview;
 
   const close = useCallback((focusCanvas = false) => {
     setOpen(null);
     if (focusCanvas) viewport?.focus({ preventScroll: true });
   }, [viewport]);
 
-  // A new selection, another tool, a pan or zoom: the picker and the hover go away.
-  useEffect(() => { setHovered(null); setOpen(null); }, [src, interactive]);
+  /** Puts back the host's inline values the preview replaced. */
+  const restorePreview = useCallback((press: Press) => {
+    for (const [property, value] of press.saved) {
+      if (value) press.host.style.setProperty(property, value);
+      else press.host.style.removeProperty(property);
+    }
+    press.saved.clear();
+    previewRef.current();
+  }, []);
+
+  const releaseHeld = useCallback(() => {
+    const release = heldRef.current;
+    heldRef.current = null;
+    release?.();
+  }, []);
+
+  /** Keeps the preview until Vite re-rendered the write (or 3 s), so the frame never jumps back in between. */
+  const holdPreview = useCallback((press: Press) => {
+    releaseHeld();
+    let frame = 0;
+    const clear = () => {
+      off();
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      restorePreview(press);
+      if (heldRef.current === clear) heldRef.current = null;
+    };
+    const off = onSourceUpdate(() => { frame = requestAnimationFrame(() => { frame = requestAnimationFrame(clear); }); });
+    const timer = window.setTimeout(clear, 3000);
+    heldRef.current = clear;
+  }, [releaseHeld, restorePreview]);
+
+  /** Ends a press: the listeners and the pill go, the preview stays only when its write is on its way. */
+  const finish = useCallback((keepPreview: boolean) => {
+    const press = pressRef.current;
+    pressRef.current = null;
+    stopListening.current();
+    stopListening.current = () => undefined;
+    setDrag(null);
+    if (!press) return null;
+    try { if (press.captor.hasPointerCapture(press.pointerId)) press.captor.releasePointerCapture(press.pointerId); } catch { /* already released */ }
+    if (keepPreview) holdPreview(press);
+    else restorePreview(press);
+    return press;
+  }, [holdPreview, restorePreview]);
+
+  // A new selection, another tool, a pan or zoom: the picker and the hover go away (a drag is cancelled, nothing written).
+  useEffect(() => { setHovered(null); setOpen(null); if (pressRef.current) finish(false); }, [src, interactive, finish]);
+  useEffect(() => () => { if (pressRef.current) finish(false); releaseHeld(); }, [finish, releaseHeld]);
   useEffect(() => (open ? canvasApi.onChange(() => setOpen(null)) : undefined), [open]);
 
   // Alt pressed or released while hovering an area: the label follows (padding on every side).
@@ -118,18 +203,20 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
   }, [open, owner, liveArea, areas, attributes]);
   const openScale = (liveArea ?? (open ? areas.find((candidate) => candidate.kind === open.kind && candidate.side === open.side) : undefined))?.scale ?? "gap";
 
-  const writeOps = useCallback(async (ops: EditOp[], label: string) => {
+  /** Writes `ops` on the owner; true when the file changed. */
+  const writeOps = useCallback(async (ops: EditOp[], label: string): Promise<boolean> => {
     const parsed = owner ? parseSrc(owner.src) : null;
-    if (!parsed || !owner) return;
+    if (!parsed || !owner) return false;
     const done = noteEditTarget(`${parsed.file}:${parsed.loc}`);
     try {
       // Read the element again: the write carries the file's current hash, and a moved element is never written.
       const fresh = await studioApi.element(parsed.file, parsed.loc);
       if (!fresh || fresh.name !== owner.name) {
         inspectorStatus.set("negative", `${owner.name} moved before the change was saved; nothing was written`);
-        return;
+        return false;
       }
-      await applyEdit({ file: parsed.file, loc: parsed.loc, name: fresh.name, ops, hash: fresh.hash }, label);
+      const response = await applyEdit({ file: parsed.file, loc: parsed.loc, name: fresh.name, ops, hash: fresh.hash }, label);
+      return response.ok && response.before !== response.after;
     } finally {
       done();
     }
@@ -151,16 +238,17 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
     const prop = open.prop;
     close(true);
     if (item.id === RESET) {
-      void writeOps([{ op: "removeProp", name: prop }], `${owner.name} reset ${prop}`);
+      void writeOps([{ op: "removeProp", name: prop }], `${owner.name} reset ${spacingWords(prop)}`);
       return;
     }
     // The step it already has (written, or the default it shows) is no change.
     if (!openState.clears.length && !openState.mixed && item.id === openState.key) return;
     // Alt: `padding` on every side, so the side props written beside it are removed in the same edit (one undo step).
     const ops: EditOp[] = [{ op: "setProp", name: prop, value: { kind: "string", value: item.id } }, ...openState.clears.map((name): EditOp => ({ op: "removeProp", name }))];
-    const label = `${owner.name} ${prop} → "${item.id}"${openState.clears.length ? " (all sides)" : ""}`;
+    // Figma's words in the undo line ("Undid “Stack Gap → XLarge”"), never the code's "gap → xl".
+    const label = `${owner.name} ${spacingWords(prop)} → ${tokenName(item.id, openScale)}${openState.clears.length ? " (all sides)" : ""}`;
     void writeOps(ops, label);
-  }, [open, openState, openFit, owner, close, writeOps]);
+  }, [open, openState, openFit, owner, openScale, close, writeOps]);
 
   const onPickerKeyDown = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Escape" && event.key !== "Tab") return;
@@ -169,6 +257,142 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
     event.stopPropagation();
     close(true);
   }, [close]);
+
+  /** Opens the area's scale (or its note, or Fit column to content) at a point of the overlay. */
+  const openAt = (index: number, area: SpacingArea, state: AreaState, alt: boolean, pointX: number, pointY: number) => {
+    if (!owner) return;
+    if (open && open.src === owner.src && open.index === index && open.prop === (area.kind === "free" ? "columns" : state.prop)) return;
+    const w = Math.min(ANCHOR, area.w);
+    const h = Math.min(ANCHOR, area.h);
+    const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), Math.max(min, max));
+    const anchorBox = { x: clamp(pointX - w / 2, area.x, area.x + area.w - w), y: clamp(pointY - h / 2, area.y, area.y + area.h - h), w, h };
+    const mode = area.kind === "free" ? "fit" : state.bound ? "note" : "picker";
+    setOpen({ src: owner.src, index, kind: area.kind, side: area.side, prop: area.kind === "free" ? "columns" : state.prop!, alt, mode, area: { x: area.x, y: area.y, w: area.w, h: area.h }, anchor: anchorBox });
+  };
+
+  /** Previews `key` of `prop` on the frame (the previous preview goes first: ⇧ let go is back to one axis). */
+  const previewStep = (press: Press, prop: string, key: string) => {
+    const style = press.host.style;
+    for (const [property, value] of press.saved) {
+      if (value) style.setProperty(property, value);
+      else style.removeProperty(property);
+    }
+    press.saved.clear();
+    for (const property of previewProperties(prop)) {
+      press.saved.set(property, style.getPropertyValue(property));
+      style.setProperty(property, stepValue(prop, key));
+    }
+    previewRef.current();
+  };
+
+  /** The pointer at `x`, `y` with ⇧ / ⌥ as held: past DRAG_START the press drags, to the nearest step of the ladder. */
+  const dragTo = (press: Press, x: number, y: number, shift: boolean, alt: boolean) => {
+    press.last = { x, y, shift, alt };
+    if (!press.active) {
+      if (Math.max(Math.abs(x - press.start.x), Math.abs(y - press.start.y)) < DRAG_START) return;
+      press.active = true;
+      setOpen(null);
+      setHovered(null);
+    }
+    const all = Boolean(press.every) && everySide({ shift, alt });
+    const state = all && press.every ? press.every : press.plain;
+    const prop = state.prop;
+    if (!prop) return;
+    const travel = press.axis === "x" ? x - press.start.x : y - press.start.y;
+    const step = nearestStep(state.options, draggedPx(press.area.px, travel, press.sign, press.scale));
+    if (!step) return;
+    if (!press.step || press.step.key !== step.key || press.all !== all) previewStep(press, prop, step.key);
+    press.step = step;
+    press.all = all;
+    setDrag({ index: press.index, kind: press.area.kind, side: press.area.side, axis: press.axis, prop, key: step.key, px: step.px, all });
+  };
+
+  /** The release: a press that never moved is a click (the scale opens; ⇧ goes on to the selection), a drag writes once. */
+  const release = async (press: Press) => {
+    if (!press.active) {
+      finish(false);
+      if (press.down.shiftKey) {
+        onPassPointerDown(press.down);
+        return;
+      }
+      const state = areaState(press.area, press.owner, attributes, press.down.altKey);
+      openAt(press.index, press.area, state, press.down.altKey, press.start.x - (press.root?.left ?? 0), press.start.y - (press.root?.top ?? 0));
+      return;
+    }
+    const state = press.all && press.every ? press.every : press.plain;
+    const step = press.step;
+    const prop = state.prop;
+    // The step it already has (written, or the default it shows) is no change.
+    if (!step || !prop || (step.key === state.key && !state.clears.length && !state.mixed)) {
+      finish(false);
+      return;
+    }
+    // ⇧: `padding` on every side, so the side props written beside it are removed in the same edit (one undo step).
+    const ops: EditOp[] = [{ op: "setProp", name: prop, value: { kind: "string", value: step.key } }, ...state.clears.map((name): EditOp => ({ op: "removeProp", name }))];
+    const name = tokenName(step.key, press.area.scale);
+    finish(true);
+    const written = await writeOps(ops, `${press.owner.name} ${spacingWords(prop)} → ${name}${state.clears.length ? " (all sides)" : ""}`);
+    if (!written) {
+      releaseHeld();
+      return;
+    }
+    // The status line names the variable as Figma does ("Gap 2XLarge"), with its length here.
+    inspectorStatus.set("positive", `${spacingWords(prop)} ${name} · ${formatPx(step.px)} · ${undoShortcut} to undo`);
+  };
+
+  /** A press on an auto layout frame's gap or padding: listens until the release (or Escape, a cancel, a blur). */
+  const startPress = (event: ReactPointerEvent<HTMLDivElement>, index: number, area: SpacingArea, plain: AreaState) => {
+    if (!owner || area.kind === "free" || !(owner.host instanceof HTMLElement)) return;
+    releaseHeld();
+    const host = owner.host;
+    const { axis, sign } = dragAxis(area.kind, area.side);
+    const every = area.kind === "padding" ? areaState(area, owner, attributes, true) : null;
+    const captor = event.currentTarget;
+    const pointerId = event.pointerId;
+    try { captor.setPointerCapture(pointerId); } catch { /* the pointer may already be gone */ }
+    const press: Press = {
+      pointerId, index, area, owner, host, captor, down: event, root: captor.parentElement?.getBoundingClientRect() ?? null,
+      start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey, alt: event.altKey },
+      scale: host.offsetWidth ? host.getBoundingClientRect().width / host.offsetWidth || 1 : 1, axis, sign, plain,
+      every: every?.prop && !every.bound ? every : null, active: false, step: null, all: false, saved: new Map(),
+    };
+    pressRef.current = press;
+    const onMove = (move: PointerEvent) => { if (move.pointerId === pointerId) dragTo(press, move.clientX, move.clientY, move.shiftKey, move.altKey); };
+    const onUp = (up: PointerEvent) => {
+      if (up.pointerId !== pointerId) return;
+      dragTo(press, up.clientX, up.clientY, up.shiftKey, up.altKey);
+      void release(press);
+    };
+    const onCancel = (cancel: PointerEvent) => { if (cancel.pointerId === pointerId) finish(false); };
+    const onKey = (key: KeyboardEvent) => {
+      if (pressRef.current !== press) return;
+      if (key.key === "Escape" && key.type === "keydown") {
+        // Escape cancels the drag only (no parent selection step); nothing is written.
+        key.preventDefault();
+        key.stopPropagation();
+        finish(false);
+      } else if ((key.key === "Shift" || key.key === "Alt") && press.active) {
+        // ⇧ / ⌥ pressed or let go mid-drag (Figma reads them while dragging).
+        key.preventDefault();
+        dragTo(press, press.last.x, press.last.y, key.shiftKey, key.altKey);
+      }
+    };
+    const onBlur = () => finish(false);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("keyup", onKey, true);
+    window.addEventListener("blur", onBlur);
+    stopListening.current = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("keyup", onKey, true);
+      window.removeEventListener("blur", onBlur);
+    };
+  };
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>, index: number) => {
     const area = areas[index];
@@ -183,23 +407,22 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
     const fit = area.kind === "free" ? fitColumn(area, owner, attributes) : null;
     const state = areaState(area, owner, attributes, event.altKey);
     const usable = writable && interactive && Boolean(attributes) && (area.kind === "free" ? Boolean(fit) : Boolean(state.prop));
-    if (!usable || event.metaKey || event.ctrlKey || event.shiftKey) {
+    // An auto layout frame's gap or padding drags (⇧ held too: Figma's every side); a click on it still opens the scale.
+    const plain = usable && area.kind !== "free" && DRAG_LAYOUTS.has(owner.name) && !event.metaKey && !event.ctrlKey ? areaState(area, owner, attributes, false) : null;
+    const draggable = Boolean(plain?.prop && !plain.bound);
+    if (!usable || event.metaKey || event.ctrlKey || (event.shiftKey && !draggable)) {
       onPassPointerDown(event);
       return;
     }
     // The press is the area's: no selection change, no pan, no light dismiss of the picker it opens.
     event.preventDefault();
     event.stopPropagation();
-    if (open && open.src === owner.src && open.index === index && open.prop === (area.kind === "free" ? "columns" : state.prop)) return;
+    if (draggable && plain) {
+      startPress(event, index, area, plain);
+      return;
+    }
     const root = event.currentTarget.parentElement?.getBoundingClientRect();
-    const pointX = event.clientX - (root?.left ?? 0);
-    const pointY = event.clientY - (root?.top ?? 0);
-    const w = Math.min(ANCHOR, area.w);
-    const h = Math.min(ANCHOR, area.h);
-    const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), Math.max(min, max));
-    const anchorBox = { x: clamp(pointX - w / 2, area.x, area.x + area.w - w), y: clamp(pointY - h / 2, area.y, area.y + area.h - h), w, h };
-    const mode = area.kind === "free" ? "fit" : state.bound ? "note" : "picker";
-    setOpen({ src: owner.src, index, kind: area.kind, side: area.side, prop: area.kind === "free" ? "columns" : state.prop!, alt: event.altKey, mode, area: { x: area.x, y: area.y, w: area.w, h: area.h }, anchor: anchorBox });
+    openAt(index, area, state, event.altKey, event.clientX - (root?.left ?? 0), event.clientY - (root?.top ?? 0));
   };
 
   if (!areas.length || !owner) return null;
@@ -207,11 +430,23 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
   const emphasis = fieldHover && fieldHover.src === owner.src ? fieldHover : null;
   const emphasised = (area: SpacingArea) => Boolean(emphasis && area.kind !== "free" && (area.props.includes(emphasis.prop) || area.altProp === emphasis.prop));
   const fieldArea = emphasis && hovered === null && !open ? areas.find(emphasised) : undefined;
-  const pillArea = hovered !== null && !(open && open.index === hovered) ? areas[hovered] : fieldArea;
-  const pillState = pillArea ? areaState(pillArea, owner, attributes, alt) : null;
-  const pillText = pillArea === fieldArea && fieldArea && emphasis
-    ? fieldLabel(fieldArea, owner, emphasis.prop, emphasis.key ?? null, pillState)
-    : pillArea && pillState ? (pillArea.kind === "free" ? freeLabel(pillArea) : areaLabel(pillArea, pillState)) : null;
+  // A drag: the area dragged as rendered now (the preview re-lays the frame out), and every area its prop sets.
+  const dragArea = drag ? (areas[drag.index]?.kind === drag.kind && areas[drag.index]?.side === drag.side ? areas[drag.index] : areas.find((area) => area.kind === drag.kind && area.side === drag.side)) : undefined;
+  const dragged = (area: SpacingArea) => Boolean(drag && area.kind === drag.kind && (drag.all || area.props.includes(drag.prop)));
+  // The axis an area drags along: an auto layout frame's gap or padding the source writes as a step.
+  const dragAxisOf = (area: SpacingArea) => (writable && interactive && area.kind !== "free" && DRAG_LAYOUTS.has(owner.name) && dragProp(area, owner, attributes) ? dragAxis(area.kind, area.side).axis : undefined);
+  const pillArea = drag ? dragArea : hovered !== null && !(open && open.index === hovered) ? areas[hovered] : fieldArea;
+  const pillState = pillArea && !drag ? areaState(pillArea, owner, attributes, alt) : null;
+  const pillText = drag
+    ? [spacingWords(drag.prop), tokenName(drag.key, dragArea?.scale ?? "gap"), formatPx(drag.px)].join(" · ")
+    : pillArea === fieldArea && fieldArea && emphasis
+      ? fieldLabel(fieldArea, owner, emphasis.prop, emphasis.key ?? null, pillState)
+      : pillArea && pillState ? (pillArea.kind === "free" ? freeLabel(pillArea) : areaLabel(pillArea, pillState)) : null;
+  const pillAxis = pillArea ? (drag ? drag.axis : dragAxisOf(pillArea)) : undefined;
+  // Figma's variable pill on an auto layout frame: the hexagon before a value that is a token step (a drag lands on one).
+  const pillVariable = Boolean(pillAxis && (drag || (pillState?.key && !pillState.mixed)));
+  // The handle at the centre of the hovered (or dragged) area of an auto layout frame.
+  const handleArea = drag ? dragArea : hovered !== null && !(open && open.index === hovered) && areas[hovered] && dragAxisOf(areas[hovered]) ? areas[hovered] : undefined;
   const openIndex = open && open.src === owner.src ? open.index : null;
 
   const items: PopoverItemData[] = openState && open?.mode === "picker" ? [
@@ -242,7 +477,8 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
         <div
           key={`t${index}`}
           className={area.kind === "gap" ? "studio-selection__gap" : area.kind === "free" ? "studio-selection__free" : "studio-selection__padding"}
-          data-hover={hovered === index || openIndex === index ? "true" : undefined}
+          data-hover={(!drag && hovered === index) || openIndex === index || dragged(area) ? "true" : undefined}
+          data-drag={dragAxisOf(area)}
           data-zero={area.zero ? "true" : undefined}
           data-emphasis={emphasised(area) ? "true" : undefined}
           style={boxStyle(area)}
@@ -253,6 +489,7 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
           key={`h${index}`}
           className="studio-selection__spacing-hit"
           data-editable={writable && owner.editable && (area.props.length || area.kind === "free") ? "true" : undefined}
+          data-drag={dragAxisOf(area)}
           style={boxStyle(area)}
           onPointerEnter={(event) => { setHovered(index); setAlt(event.altKey); }}
           onPointerLeave={() => setHovered((current) => (current === index ? null : current))}
@@ -262,11 +499,15 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
           onContextMenu={onPassContextMenu}
         />
       )) : null}
+      {handleArea && pillAxis ? <span className="studio-selection__spacing-handle" data-axis={pillAxis} style={{ transform: `translate(${handleArea.x + handleArea.w / 2}px, ${handleArea.y + handleArea.h / 2}px) translate(-50%, -50%)` }} /> : null}
       {pillArea && pillText ? (
-        <span className={`studio-selection__spacing-label ${typographyStyles["Caption/Medium"]}`} style={{ transform: `translate(${pillArea.x + pillArea.w / 2}px, ${pillArea.y + pillArea.h / 2}px) translate(-50%, -50%)` }}>
+        <span className={`studio-selection__spacing-label ${typographyStyles["Caption/Medium"]}`} data-drag={pillAxis} style={{ transform: `translate(${pillArea.x + pillArea.w / 2}px, ${pillArea.y + pillArea.h / 2}px) translate(-50%, -50%)` }}>
+          {pillVariable ? <Icon name="icon-hexagon-01-line" size={12} decorative /> : null}
           {pillText}
         </span>
       ) : null}
+      {/* While dragging: the resize cursor everywhere and no hover underneath (window listeners follow the pointer). */}
+      {drag ? <div className="studio-selection__spacing-cover" data-axis={drag.axis} /> : null}
       {anchor ? <div ref={anchorRef} className="studio-selection__spacing-anchor" style={boxStyle(anchor)} /> : null}
       {open && (openState || openFit) && anchor && chromePortal ? createPortal(
         <ChromeScope className="studio-spacing-scope">
