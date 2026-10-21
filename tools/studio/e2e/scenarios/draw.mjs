@@ -199,7 +199,7 @@ export const rows = [
       const frame = await page.locator('[data-studio-frame="screen:screen-1"] .zen-box').first().boundingBox();
       // ⌘-click the frame's empty corner: the Box itself, not one of its shapes.
       await page.mouse.click(frame.x + frame.width - 4, frame.y + frame.height - 4);
-      await until(async () => (await page.locator("#studio-right h2").first().innerText()).trim() === "Box", { message: "the Box selected" });
+      await until(async () => (await page.locator("#studio-right h2").first().innerText()).trim() === "Frame", { message: "the Box selected (heading Frame)" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Shift+KeyA");
       await until(async () => /<Stack [^>]*direction="row"/.test(await text()), { message: "the frame as a row Stack" });
@@ -217,7 +217,7 @@ export const rows = [
       await focusScreen(page);
       const stack = await page.locator('[data-studio-frame="screen:screen-1"] .zen-stack').first().boundingBox();
       await page.mouse.click(stack.x + stack.width - 3, stack.y + 3);
-      await until(async () => (await page.locator("#studio-right h2").first().innerText()).trim() === "Stack", { message: "the Stack selected" });
+      await until(async () => (await page.locator("#studio-right h2").first().innerText()).trim() === "Frame", { message: "the Stack selected (heading Frame)" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Alt+Shift+KeyA");
       await until(async () => !/<Stack\b/.test(await text()), { message: "the Stack as a Box" });

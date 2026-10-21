@@ -517,7 +517,7 @@ async function autoLayoutItems(ctx, all) {
       // The Frame selected from its Layers row (the first Box: its layers' rows follow it), then ⇧A.
       await showLeftTab(page, "layers");
       await page.locator('.studio-layers__tree [role="treeitem"][data-kind="node"]').filter({ hasText: /^\s*Box\b/ }).first().click();
-      await until(async () => (await selectedName(page)) === "Box", { timeout: 3000 }).catch(() => undefined);
+      await until(async () => (await selectedName(page)) === "Frame", { timeout: 3000 }).catch(() => undefined);
       await key(page, "Shift+A");
       const added = await next(page, id, dropped, `${item.id} ⇧A`);
       const stack = frameIn(added);

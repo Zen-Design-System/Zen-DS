@@ -1571,7 +1571,7 @@ export const rows = [
       const now = await where();
       const moved = now.filter((point, k) => Math.abs(point.x - start[k].x) > 1 || Math.abs(point.y - start[k].y) > 1);
       if (moved.length) throw new Error(`moved on the canvas: ${JSON.stringify(start)} → ${JSON.stringify(now)}`);
-      await until(async () => (await selectedName(page)) === "Box" || /^Frame/.test(await selectedName(page)), { timeout: 4000, message: "the Box selected" }).catch(() => undefined);
+      await until(async () => /^Frame/.test(await selectedName(page)), { timeout: 4000, message: "the Box selected" }).catch(() => undefined);
       await undoTo(page, id, before);
       return "Box 20, 20, 180 × 80 · offsets 0, 0 and 120, 20 · nothing moved · ⌘Z";
     },
@@ -2848,6 +2848,86 @@ export const rows = [
       await page.getByRole("option", { name: "Pass through", exact: true }).click();
       await written(page, id, /<Stack\b[^>]*blendMode=/, "blendMode removed at Pass through", true);
       return "◐ → Multiply → blendMode=\"multiply\", mix-blend-mode multiply → Pass through → removed";
+    },
+  },
+  {
+    id: "FW-99", feature: "A Zen instance's layer menu (Figma's): Reset all changes takes its written props back to the defaults in one edit (one ⌘Z), and Go to main component opens its page on the Main component frame", wp: "re-measure K-70 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      const openMenu = async () => {
+        await clickNamed(page, id, "Button");
+        await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+        const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox();
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+        const menu = page.getByRole("menu").last();
+        await menu.waitFor({ state: "visible", timeout: 5000 });
+        return menu;
+      };
+      let menu = await openMenu();
+      const reset = menu.getByRole("menuitem", { name: /^Reset all changes/ });
+      await until(async () => (await reset.count()) > 0 && !(await reset.isDisabled()), { message: "Reset all changes on (the Button writes its level)" });
+      await reset.click();
+      await written(page, id, /<Button\b[^>]*level=/, "the Button's level reset", true);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await written(page, id, /<Button level="primary">Save/, "one ⌘Z brings it back");
+      menu = await openMenu();
+      await menu.getByRole("menuitem", { name: /^Go to main component/ }).click();
+      await until(async () => /[?&]page=button\b/.test(page.url()), { timeout: 15_000, message: "the Button page open" });
+      await until(async () => (await page.locator('[data-studio-frame="main-component"]').first().getAttribute("data-selected").catch(() => null)) === "true", { timeout: 15_000, message: "its Main component frame selected" });
+      await shot(page, "fw-99-go-to-main");
+      return "Reset all changes → level gone · ⌘Z → back · Go to main component → the Button page, Main component selected";
+    },
+  },
+  {
+    id: "FW-141", feature: "A Zen instance's Appearance (Figma's): opacity 40 % and ◐ Multiply write opacity / blendMode on the Button, its root draws them, the eye is there; 100 % and Pass through take them away", wp: "re-measure K-74 2026-10-21",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      if (!(await right(page).getByRole("button", { name: "Hide", exact: true }).count())) throw new Error("no eye in the Button's Appearance");
+      await typeNumber(page, "Opacity", 40);
+      await written(page, id, /<Button\b[^>]*opacity=\{40\}/, "opacity={40}");
+      const blend = right(page).getByRole("button", { name: "Blend mode", exact: true });
+      await blend.click();
+      await page.getByRole("option", { name: "Multiply", exact: true }).click();
+      await written(page, id, /<Button\b[^>]*blendMode="multiply"/, "blendMode=\"multiply\"");
+      await until(async () => page.evaluate((key) => {
+        const button = document.querySelector(`.studio-world [data-zen-src^="local:${key}.zen.tsx:"][data-zen-name="Button"]`);
+        if (!button) return false;
+        const style = getComputedStyle(button);
+        return style.opacity === "0.4" && style.mixBlendMode === "multiply";
+      }, id), { message: "the Button draws at 40 % in Multiply" });
+      await shot(page, "fw-141-instance-appearance");
+      await expectPanelFits(page, "a Button's Appearance");
+      await typeNumber(page, "Opacity", 100);
+      await blend.click();
+      await page.getByRole("option", { name: "Pass through", exact: true }).click();
+      await written(page, id, /<Button\b[^>]*(opacity=|blendMode=)/, "100 % and Pass through write nothing", true);
+      return "Opacity 40 % + Multiply → opacity={40} blendMode=\"multiply\", drawn so · 100 % + Pass through → removed";
+    },
+  },
+  {
+    id: "FW-142", feature: "The Design panel heads a frame Frame and a group Group (Figma UI3), its code name on hover", wp: "re-measure 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      const heading = right(page).locator("h2").first();
+      await until(async () => (await selectedName(page)) === "Frame", { message: "the body Stack heads Frame" });
+      const hover = await heading.getAttribute("title");
+      if (hover !== "Stack") throw new Error(`its code name on hover reads ${hover}`);
+      const clip = await clipPage(ctx);
+      const before = (await pageText(clip.page, clip.id)) ?? "";
+      try {
+        await selectShapes(clip.page, clip.id, [0, 1]);
+        await clip.page.locator(".studio-viewport").focus();
+        await clip.page.keyboard.press("ControlOrMeta+KeyG");
+        await until(async () => / group>/.test((await pageText(clip.page, clip.id)) ?? ""), { message: "a group" });
+        await until(async () => (await selectedName(clip.page)) === "Group", { message: "the group heads Group" });
+      } finally {
+        await undoTo(clip.page, clip.id, before, 4).catch(() => undefined);
+      }
+      return "Stack → Frame (title Stack) · ⌘G → Group";
     },
   },
   {
