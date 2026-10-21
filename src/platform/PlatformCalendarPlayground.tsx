@@ -5,6 +5,7 @@ import {
 } from "../components/Calendar";
 import { Stack } from "../components/Layout";
 import { ScheduleDayPlanner, ScheduleItinerary, ScheduleResourceGrid, ScheduleSlotPicker } from "../components/Schedule";
+import { TimelineActivity, TimelineGantt, TimelineMilestones } from "../components/Timeline";
 import { PlatformCode } from "./PlatformCode";
 import { PlatformTypographyContext } from "./PlatformTemplate";
 import { ComponentPreview, PlaygroundControls, PlaygroundFilterChip } from "./appLayer/playgroundParts";
@@ -136,6 +137,59 @@ export function SchedulePlayground() {
         {view === "day-planner" ? <ScheduleDayPlanner device={device} events={CARDS} defaultValue="2026-09-30" now="2026-09-30T13:15" /> : null}
       </div>
       <PlatformCode code={`import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner } from "@zen-ds/react";
+
+${code}`} />
+    </ComponentPreview>
+  );
+}
+
+/* The Timeline page playground: an Activity feed, the Milestones or the Gantt, on desktop or mobile. */
+
+const ENTRIES = [
+  { id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { kind: "avatar" as const, avatarName: "Maya Chen", tone: "positive" as const } },
+  { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday?", marker: { kind: "icon" as const, tone: "accent" as const } },
+  { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", description: "Shared with 12 people", marker: { kind: "icon" as const, tone: "neutral" as const } },
+  { id: "rejected", at: "2026-09-29T11:00", actor: "Finance", title: "rejected the invoice draft", marker: { kind: "icon" as const, tone: "negative" as const } },
+];
+const MILESTONES = [
+  { id: "kickoff", date: "2026-08-03", title: "Kickoff" },
+  { id: "research", date: "2026-08-28", title: "Research wrap-up" },
+  { id: "signoff", date: "2026-09-25", title: "Design sign-off" },
+  { id: "beta", date: "2026-10-23", title: "Beta launch", description: "Invite 40 studio clients" },
+  { id: "launch", date: "2026-11-16", title: "Public launch" },
+];
+const GROUPS = [
+  { id: "design", name: "Design", tasks: [
+    { id: "wire", name: "Wireframes", start: "2026-09-14", end: "2026-09-26", assignee: { alt: "Alex Duong" } },
+    { id: "ui", name: "UI design", start: "2026-09-21", end: "2026-10-10", assignee: { alt: "Chi Tran" } },
+    { id: "signoff", name: "Design sign-off", start: "2026-10-09", kind: "milestone" as const },
+  ] },
+  { id: "build", name: "Build", tasks: [
+    { id: "fe", name: "Frontend", start: "2026-09-28", end: "2026-10-17", color: "teal" as const, assignee: { alt: "Linh Tran" } },
+    { id: "qa", name: "QA & fixes", start: "2026-10-12", end: "2026-10-24", color: "orange" as const, assignee: { alt: "Minh Vo" } },
+  ] },
+];
+const TIMELINE_VIEWS = [{ id: "activity", label: "Activity" }, { id: "milestones", label: "Milestones" }, { id: "gantt", label: "Gantt" }];
+
+export function TimelinePlayground() {
+  const previewTypography = useContext(PlatformTypographyContext);
+  const [view, setView] = useState<string>("activity");
+  const [deviceChoice, setDeviceChoice] = useState<string | undefined>(undefined);
+  const device = deviceChoice as CalendarDevice | undefined;
+  const code = view === "activity" ? `<TimelineActivity entries={entries} />` : view === "milestones" ? `<TimelineMilestones milestones={milestones} />` : `<TimelineGantt groups={groups} aria-label="Lotus banking redesign" />`;
+  return (
+    <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+      <h2 className="platform-main-component__title">Timeline</h2>
+      <PlaygroundControls aria-label="Timeline playground controls">
+        <PlaygroundFilterChip label="View" value={view} onChange={(value) => setView(String(value) || "activity")} options={TIMELINE_VIEWS} />
+        <PlaygroundFilterChip label="Device" value={deviceChoice} onChange={(value) => setDeviceChoice(String(value) || undefined)} options={[{ id: "desktop", label: "Desktop" }, { id: "mobile", label: "Mobile" }]} />
+      </PlaygroundControls>
+      <div data-typography={previewTypography} className="platform-example-row platform-calendar-preview" data-device={device}>
+        {view === "activity" ? <TimelineActivity device={device} entries={ENTRIES} today="2026-09-30" /> : null}
+        {view === "milestones" ? <TimelineMilestones device={device} milestones={MILESTONES} today="2026-09-30" /> : null}
+        {view === "gantt" ? <TimelineGantt device={device} groups={GROUPS} start="2026-08-31" today="2026-09-30" aria-label="Lotus banking redesign" /> : null}
+      </div>
+      <PlatformCode code={`import { TimelineActivity, TimelineMilestones, TimelineGantt } from "@zen-ds/react";
 
 ${code}`} />
     </ComponentPreview>

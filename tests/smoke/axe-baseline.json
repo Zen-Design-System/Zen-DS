@@ -117,6 +117,18 @@
   "Tabs": [
     "color-contrast"
   ],
+  "TimelineActivity": [
+    "color-contrast"
+  ],
+  "TimelineItem": [
+    "color-contrast"
+  ],
+  "TimelineMilestone": [
+    "color-contrast"
+  ],
+  "TimelineMilestones": [
+    "color-contrast"
+  ],
   "UploaderFileItem": [
     "color-contrast"
   ],

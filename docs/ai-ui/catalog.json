@@ -20213,6 +20213,662 @@
         "ref (not for a generated UI)"
       ]
     },
+    "TimelineActivity": {
+      "name": "TimelineActivity",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `Timeline/Activity` (16131:1311): an activity feed — day kickers (Body/Small/Bold, Neutral/Light: \"Today\", \"Yesterday\", then the date) over `Timeline/Item` rows, kicker → ite",
+      "props": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineEntryData"
+          },
+          "x-required": true,
+          "description": "The entries (any order): shown newest first, grouped by day."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today (\"Today\", \"Yesterday\" kickers)."
+        },
+        "size": {
+          "enum": [
+            "md",
+            "sm",
+            "medium",
+            "small"
+          ],
+          "default": "md",
+          "description": "Item size: `md` (default) or `sm` (a compact log)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (640) or `mobile` (358); the items are the same."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineGantt": {
+      "name": "TimelineGantt",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `Timeline/Gantt` (16136:859): a Border box (`Color/Background/Surface/Default`, 1px Pale, Corner-Radius/Base, clipped) — a 40px header (\"Tasks\" and the week starts, Caption/M",
+      "props": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineGroupData"
+          },
+          "x-required": true,
+          "description": "The plan: groups of tasks."
+        },
+        "start": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "First day of the scale (rounded to its Monday)."
+        },
+        "weeks": {
+          "type": "number",
+          "default": 9,
+          "description": "How many weeks the scale shows (default 9)."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today: the vertical now line."
+        },
+        "defaultCollapsed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Groups collapsed at first (by id)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (240px task column, the whole scale) or `mobile` (128px column, three weeks visible; the track scrolls and opens at today, else the plan's start)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the plan (default the locale's \"Tasks\")."
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "onTaskClick ((task: TimelineTaskData, target: HTMLEle)",
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineGanttBar": {
+      "name": "TimelineGanttBar",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high.",
+      "props": {
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title (inside a task, beside a milestone; a summary shows none)."
+        },
+        "kind": {
+          "enum": [
+            "task",
+            "summary",
+            "milestone"
+          ],
+          "default": "task",
+          "description": "Figma Kind: `task` (Subtle hue with a Solid leading rule, the title inside), `summary` (a group's span: an 8px Neutral bar) or `milestone` (an Accent diamond with the title beside"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ],
+          "default": "brand",
+          "description": "Figma Color for tasks: the workstream (default brand)."
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "default": false,
+          "description": "Hide a milestone's title (the phone Gantt shows it in the task column only)."
+        },
+        "onClick": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "event",
+              "type": "MouseEventHandler<HTMLButtonElement>",
+              "json": false
+            }
+          ],
+          "description": "Pressing the bar (open the task)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineGanttLabel": {
+      "name": "TimelineGanttLabel",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `.Primitives/Timeline/Gantt-Label` (16130:90): a 44px row of the Gantt's task column with a Pale rule below — Group: Padding 0 · Small, Gap/XSmall, icon-chevron-down-line, Bo",
+      "props": {
+        "name": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Name."
+        },
+        "level": {
+          "enum": [
+            "group",
+            "task"
+          ],
+          "default": "task",
+          "description": "Figma Level: `group` (a chevron and Body/Small/Bold; collapses its tasks) or `task` (indented 32, Body/Small/Regular, the assignee)."
+        },
+        "assignee": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "alt": {
+              "type": "string"
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "Figma Assignee (task): the person, as an Avatar XSmall."
+        },
+        "expanded": {
+          "type": "boolean",
+          "default": true,
+          "description": "Group: whether its tasks show (the chevron points down)."
+        },
+        "onToggle": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Group: show or hide its tasks."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineItem": {
+      "name": "TimelineItem",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `Timeline/Item` (16131:1090): one entry of an activity history — a 24px rail (the marker, then a 2px Border/Neutral/Subtle connector, Gap/2XSmall), then the body (Padding-top",
+      "props": {
+        "actor": {
+          "x-kind": "node",
+          "description": "The actor, in Body/Small/Bold (\"Maya Chen\")."
+        },
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "What happened, after the actor (\" approved your leave request\")."
+        },
+        "time": {
+          "x-kind": "node",
+          "description": "Figma Time (\"10:42\")."
+        },
+        "description": {
+          "x-kind": "node",
+          "description": "Figma Description + Detail: one line of detail (\"Annual leave · Oct 12 – Oct 16\")."
+        },
+        "attachment": {
+          "x-kind": "node",
+          "description": "Figma Attachment + Attachment-Slot: a comment, a file, a change."
+        },
+        "connector": {
+          "type": "boolean",
+          "default": true,
+          "description": "Figma Connector: the rail down to the next item (off on a group's last item)."
+        },
+        "size": {
+          "enum": [
+            "md",
+            "sm",
+            "medium",
+            "small"
+          ],
+          "default": "md",
+          "description": "Figma Size: `md` (24px marker, Large after each item, default) or `sm` (Small after; a Dot marker suits it)."
+        },
+        "marker": {
+          "$ref": "#/$defs/TimelineMarkerData",
+          "description": "The marker (Kind = Figma Type, Tone, icon, avatar)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineMarker": {
+      "name": "TimelineMarker",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `.Primitives/Timeline/Marker` (16130:55): the marker on a timeline rail, Image-Size/XSmall (24px).",
+      "props": {
+        "type": {
+          "enum": [
+            "dot",
+            "icon",
+            "avatar"
+          ],
+          "default": "dot",
+          "description": "Figma Type: `dot` (10px; Neutral is hollow), `icon` (Dock-Icon XSmall, Subtle) or `avatar` (Avatar XSmall, one initial)."
+        },
+        "tone": {
+          "enum": [
+            "neutral",
+            "accent",
+            "positive",
+            "warning",
+            "negative"
+          ],
+          "default": "neutral",
+          "description": "Figma Tone (status, not decoration)."
+        },
+        "icon": {
+          "type": "string",
+          "x-kind": "icon",
+          "description": "Type=Icon: the icon (default the tone's: edit, message, check, clock, flag)."
+        },
+        "avatarName": {
+          "type": "string",
+          "default": "",
+          "description": "Type=Avatar: the person's name (its initial) and photo."
+        },
+        "avatarSrc": {
+          "type": "string"
+        },
+        "avatarTheme": {
+          "enum": [
+            "accent",
+            "blue",
+            "brown",
+            "crimson",
+            "cyan",
+            "green",
+            "indigo",
+            "neutral",
+            "orange",
+            "pink",
+            "plum",
+            "purple",
+            "red",
+            "teal",
+            "violet",
+            "yellow",
+            "sky",
+            "mint",
+            "bronze",
+            "golden"
+          ],
+          "default": "teal",
+          "description": "Type=Avatar without a photo: the initial's theme (default teal)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineMilestone": {
+      "name": "TimelineMilestone",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `.Primitives/Timeline/Milestone` (16130:147): one dated milestone.",
+      "props": {
+        "date": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Date (\"Sep 25\")."
+        },
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title (\"Design sign-off\")."
+        },
+        "description": {
+          "x-kind": "node",
+          "description": "Figma Description: one line of detail (shown on the Current milestone)."
+        },
+        "status": {
+          "enum": [
+            "done",
+            "current",
+            "upcoming"
+          ],
+          "default": "upcoming",
+          "description": "Figma Status: `done` (Accent dot and connector), `current` (Accent ring, Accent date, bold title) or `upcoming` (a hollow neutral dot)."
+        },
+        "orientation": {
+          "enum": [
+            "horizontal",
+            "vertical"
+          ],
+          "default": "horizontal",
+          "description": "Figma Orientation: `horizontal` (marker and connector above the text; desktop) or `vertical` (the rail on the left; phones)."
+        },
+        "connector": {
+          "type": "boolean",
+          "default": true,
+          "description": "Figma Connector (off on the last milestone)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineMilestones": {
+      "name": "TimelineMilestones",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `Timeline/Milestones` (16132:777): a row (desktop, Horizontal) or a column (phone, Vertical) of `.Primitives/Timeline/Milestone` — Done ones in Accent, exactly one Current (w",
+      "props": {
+        "milestones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineMilestoneData"
+          },
+          "x-required": true,
+          "description": "The milestones, in date order."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today: milestones before it are Done, the first on or after it is Current, the rest Upcoming."
+        },
+        "currentId": {
+          "type": "string",
+          "description": "The Current milestone by id, when it is not the date's (a late phase)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (a row; items share the width) or `mobile` (a column)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
     "Toast": {
       "name": "Toast",
       "slug": "toast",
@@ -21828,6 +22484,25 @@
         "interaction/no-noop-handler",
         "schedule/slot-picker-confirm",
         "schedule/selected-needs-handler"
+      ]
+    },
+    "timeline": {
+      "title": "Timeline",
+      "file": "docs/guidelines/timeline.md",
+      "do": [
+        "Use an Avatar marker when a person acted, an Icon when the system did, a Dot in compact logs.",
+        "Let the tone carry status: Positive approved, Negative rejected, Warning waiting, Accent the newest or current.",
+        "Name the Gantt after the plan (aria-label) so its table reads as more than \"Tasks\".",
+        "Keep bars on their real dates: the track scrolls; never squeeze a bar to fit."
+      ],
+      "dont": [
+        "Don't colour markers for decoration: tone is status.",
+        "Don't use Milestones or the Gantt for a form the user steps through: use Stepper.",
+        "Don't mark more than one milestone Current."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "timeline/gantt-names-plan"
       ]
     },
     "tooltip": {
@@ -25207,6 +25882,145 @@
       },
       "required": [
         "id"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineEntryData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "at": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "attachment": {
+          "x-kind": "node"
+        },
+        "marker": {
+          "$ref": "#/$defs/TimelineMarkerData"
+        }
+      },
+      "required": [
+        "id",
+        "at",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineGroupData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineTaskData"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "tasks"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineMarkerData": {
+      "type": "object",
+      "properties": {
+        "kind": {}
+      },
+      "required": [],
+      "additionalProperties": true
+    },
+    "TimelineMilestoneData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineTaskData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "kind": {
+          "enum": [
+            "task",
+            "milestone"
+          ]
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "assignee": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "alt": {
+              "type": "string"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "start"
       ],
       "additionalProperties": false
     },

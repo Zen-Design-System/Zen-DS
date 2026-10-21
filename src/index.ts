@@ -14,6 +14,7 @@ export * from "./components/Flag";
 export * from "./components/Input";
 export * from "./components/Calendar";
 export * from "./components/Schedule";
+export * from "./components/Timeline";
 export * from "./components/DatePicker";
 export * from "./components/Popover";
 export * from "./components/Search";
