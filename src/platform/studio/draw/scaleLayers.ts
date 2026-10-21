@@ -21,6 +21,25 @@ const baseName = (name: string) => name.slice(name.lastIndexOf(".") + 1);
 
 type Collected = { opsByLoc: Record<string, EditOp[]>; kept: Set<string>; count: number };
 
+/** The elements read for one scale, by loc (a layer and what it holds are read once). */
+const cache = new Map<string, Promise<SourceElement | null>>();
+const read = (file: string, loc: string) => {
+  const key = `${file}:${loc}`;
+  if (!cache.has(key)) cache.set(key, studioApi.element(file, loc));
+  return cache.get(key)!;
+};
+
+/** Every element inside `element` (any depth), by loc. */
+async function insideOf(file: string, element: SourceElement, into = new Set<string>()): Promise<Set<string>> {
+  for (const child of element.children) {
+    if (child.kind !== "element" || into.has(child.loc)) continue;
+    into.add(child.loc);
+    const inner = await read(file, child.loc);
+    if (inner) await insideOf(file, inner, into);
+  }
+  return into;
+}
+
 /** The edits for `element` and everything inside it (its children, any depth; slot props are its component's). */
 async function collect(file: string, element: SourceElement, factor: number, into: Collected, rootOps: EditOp[] = [], ownPlace = false): Promise<boolean> {
   const { ops, kept } = scaleOps(baseName(element.name), element.attributes, factor, { ownPlace });
@@ -30,7 +49,7 @@ async function collect(file: string, element: SourceElement, factor: number, int
   if (into.count > MAX_LAYERS) return false;
   for (const child of element.children) {
     if (child.kind !== "element") continue;
-    const inner = await studioApi.element(file, child.loc);
+    const inner = await read(file, child.loc);
     if (inner && !(await collect(file, inner, factor, into))) return false;
   }
   return true;
@@ -75,20 +94,29 @@ export async function scaleSelection(factor: number, anchor: ScaleAnchor): Promi
   }
   const around = floating.size ? unionOf([...floating.values()].map((item) => item.box)) : null;
   const into: Collected = { opsByLoc: {}, kept: new Set(), count: 0 };
-  let file = "";
-  let first: SourceElement | null = null;
+  cache.clear();
+  // A layer selected with one it is inside scales once, with that one (Figma's).
+  const roots: Array<{ layer: (typeof layers)[number]; at: { file: string; loc: string }; element: SourceElement }> = [];
   for (const layer of layers) {
     const at = parseSrc(layer.src);
-    const element = at ? await studioApi.element(at.file, at.loc) : null;
+    const element = at ? await read(at.file, at.loc) : null;
     if (!at || !element) { say(`${layer.name} is no longer there — select it again`); return false; }
-    if (file && at.file !== file) { say("Scale layers of one page at a time"); return false; }
+    if (roots.length && at.file !== roots[0].at.file) { say("Scale layers of one page at a time"); return false; }
+    roots.push({ layer, at, element });
+  }
+  const nested = new Set<string>();
+  for (const root of roots) await insideOf(root.at.file, root.element, nested);
+  let file = "";
+  let first: SourceElement | null = null;
+  for (const { layer, at, element } of roots) {
+    if (nested.has(at.loc)) continue;
     file = at.file;
     first ??= element;
     const item = floating.get(layer.src);
     // A component floating in a Box of its own: the Box moves, the component scales.
     if (item && around && item.target.src !== layer.src) {
       const host = parseSrc(item.target.src);
-      const box = host ? await studioApi.element(host.file, host.loc) : null;
+      const box = host ? await read(host.file, host.loc) : null;
       if (box) { into.opsByLoc[box.loc] = placeOps(item, factor, anchor, around, box.attributes); into.count += 1; }
       if (!(await collect(at.file, element, factor, into))) { say(`Scale up to ${MAX_LAYERS} layers at once`); return false; }
       continue;
@@ -104,8 +132,9 @@ async function scaleFrame(frameId: string, factor: number, anchor: ScaleAnchor):
   const localPage = studioStore.getState().localPage;
   if (!localPage) return false;
   if (frameId.startsWith("section:")) { say("A Section doesn't scale — select its frames and scale them"); return false; }
+  cache.clear();
   const node = await frameNodeOf(localPage, frameId);
-  const element = node ? await studioApi.element(node.file, node.loc) : null;
+  const element = node ? await read(node.file, node.loc) : null;
   if (!node || !element) { say("That frame is no longer on the page"); return false; }
   const shown = document.querySelector<HTMLElement>(`.studio-builder-board__frames > [data-studio-frame="${CSS.escape(frameId)}"]`);
   const box = { x: node.place.x, y: node.place.y, width: shown?.offsetWidth || node.width, height: shown?.offsetHeight || 0 };
@@ -120,7 +149,7 @@ async function scaleFrame(frameId: string, factor: number, anchor: ScaleAnchor):
   const into: Collected = { opsByLoc: { [element.loc]: rootOps }, kept: new Set(), count: 1 };
   for (const child of element.children) {
     if (child.kind !== "element") continue;
-    const inner = await studioApi.element(node.file, child.loc);
+    const inner = await read(node.file, child.loc);
     if (inner && !(await collect(node.file, inner, factor, into))) { say(`Scale up to ${MAX_LAYERS} layers at once`); return false; }
   }
   return send(node.file, element, into, factor);

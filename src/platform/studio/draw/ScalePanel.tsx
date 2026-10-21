@@ -42,6 +42,8 @@ export function ScalePanel() {
   const apply = () => {
     const factor = parseFactor(draft);
     if (factor === null) { announceEditStatus({ kind: "error", message: "Type a scale such as 2, 1.5x or 200%", at: Date.now() }); return; }
+    // Back to the canvas, as a field's Enter does (the tool keys work again: V for Move).
+    document.querySelector<HTMLElement>(".studio-viewport")?.focus();
     if (factor === 1) return;
     void scaleSelection(factor, anchor).then((done) => { if (done) setDraft(factorText(1)); });
   };
