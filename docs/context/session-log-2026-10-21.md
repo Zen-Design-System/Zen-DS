@@ -258,3 +258,12 @@ original stays, one ⌘Z each) waits for a gate slot.
   start) and passed the row's 20 s. Fixed at its owner, the shared helper: each ⌘Z waits for its own step (the page
   changes). FW-66 + FW-106 ✓ in 12 s. The whole Figma walk again: 125 / 126, FW-02 (⌘F) timed out once and passed
   alone (8 s; it passed in the first walk run).
+
+## Layers missed the Main component's variant cells (Session A, branch `zen/fix/layers-variant-cells-20261021`)
+
+B and Bug found MC-02 flaky alone: "its Layers row selected" timed out, and the set row in Layers had no children.
+LayersPanel's MutationObserver took the canvas world once, when its effect ran. A world the canvas mounted later (a
+page opened directly) was never watched, so the async variant cells never rebuilt the tree. Now the observer is
+re-pointed whenever `attachCanvas` notifies (`canvasApi.onChange`), and a rebuild is scheduled each time it starts
+watching a world.
+
