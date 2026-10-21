@@ -36,8 +36,13 @@ Other changes:
 - Docs: guideline rows, the Grid do line, and the skill texts (screen-rules, design-principles).
 - Regenerated: compile-api, library keywords, part props.
 
-Not changed, for the user to decide: the Medium rail in code is 84 / 88 (8px right inset, header gap 16), while the
-Pattern now draws 80 (no right inset, header gap 24). Studio's Theme/Density mapping waits for this merge (Bug session).
+The Medium rail: code had 84 / 88 (an 8px right inset, header gap 16), while the Pattern draws 80 (no right inset, gap
+24). The user said "Sửa rail Medium theo Figma luôn", so now:
+- sidebar.css: min-width 80, no right inset, Gap/Large;
+- app-shell.css: the shell's -8px rail offset is gone;
+- figma-push SIDEBAR_RAIL_WIDTH.basic is 80, with its selftest (B's file; B to be told);
+- test: `Sidebar rail, Density=Medium`.
+Studio's Theme/Density mapping waits for this merge (Bug session).
 
 ## Figma walks re-measured (Session A, worktree `../Zen-DS-f9b`, branch `zen/docs/figma-walk-remeasure-20261020`)
 

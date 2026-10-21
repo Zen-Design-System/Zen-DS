@@ -71,6 +71,16 @@ describe("Sidebar Theme=Border and the sub-header", () => {
   });
 });
 
+describe("Sidebar rail, Density=Medium (Patterns/Sidebar Expand=No; user 2026-10-21: \"Sửa rail Medium theo Figma\")", () => {
+  it("is 80 wide: the Padding/XSmall inset on the outer edge only, the logo and collapse control Gap/Large apart", async () => {
+    const { container } = await render(<ZenProvider><div style={{ height: 600, display: "flex" }}><Sidebar aria-label="Main" collapsed onCollapsedChange={() => undefined} sections={sections} /></div></ZenProvider>);
+    const nav = container.querySelector(".zen-sidebar")!;
+    expect(nav.getBoundingClientRect().width).toBe(80);
+    expect([px(nav, "padding-left"), px(nav, "padding-right")]).toEqual([8, 0]);
+    expect(px(nav.querySelector(".zen-sidebar__default-brand")!, "row-gap")).toBe(24);
+  });
+});
+
 describe("AppShell pattern=\"grid\"", () => {
   it("draws the Sidebar Border · Small and the header Border & Divider · Small", async () => {
     const { container } = await render(shell({ pattern: "grid" }));

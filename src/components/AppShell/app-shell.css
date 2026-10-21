@@ -38,9 +38,6 @@
    header's Canvas never cuts its shadow. */
 .zen-app-shell__sidebar { position: sticky; z-index: 21; top: var(--zen-app-shell-top); display: flex; height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); flex: 0 0 auto; }
 .zen-app-shell__sidebar > * { height: 100%; }
-/* The collapsed Basic Sidebar keeps an 8px inset on both sides; the shell drops the right one, so the page stays
-   Margin-Comfortable from the rail as from the expanded Sidebar. The Density=Small and Border rails have no right inset. */
-.zen-app-shell__sidebar:has(> .zen-sidebar[data-variant="basic"][data-collapsed="true"]:not([data-sidebar-density="small"], [data-theme="border"])) { margin-inline-end: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); }
 
 /* Body (Figma Body): the page, Margin-Comfortable on every side, Spacing/Gap/XSmall between its blocks. */
 .zen-app-shell__body { display: flex; box-sizing: border-box; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-margin-comfortable, 24px); outline: none; }
