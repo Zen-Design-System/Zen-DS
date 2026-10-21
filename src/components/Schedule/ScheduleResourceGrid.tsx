@@ -99,7 +99,7 @@ export function ScheduleResourceGrid({ resources, bookings = [], scale = "hours"
     const node = scrollRef.current;
     if (!node || !mobile || scale !== "hours" || !nowInside) return;
     node.scrollLeft = Math.max(0, Math.floor(nowAt) * column);
-  }, [mobile, scale, column > 0 && width > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mobile, scale, column]); // eslint-disable-line react-hooks/exhaustive-deps
   const read = useMemo(() => bookings.map((booking) => ({ booking, start: toDate(booking.start), end: toDate(booking.end) })), [bookings]);
   const dayLabel = (day: Date) => `${new Intl.DateTimeFormat(locale, { weekday: "short" }).format(day)} ${day.getDate()}`;
   const label = ariaLabel ?? `${mobile ? t.team : t.teamAndRooms}, ${scale === "days" ? `${dayLabel(columns[0].start)} – ${dayLabel(columns[columns.length - 1].start)}` : new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric" }).format(from)}`;
