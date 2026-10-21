@@ -272,7 +272,7 @@ try {
     await sleep(400);
     await clickNamed(page, id, "Text");
     await page.keyboard.press("Escape");
-    await until(async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim() === "Stack", { message: "the Stack selected" });
+    await until(async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim() === "Frame", { message: "the Stack selected (heading Frame)" });
     await openAssetLibrary(page, "Components");
     await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Button");
     await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Button/ }).first().click();

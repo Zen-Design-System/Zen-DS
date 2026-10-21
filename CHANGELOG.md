@@ -17,6 +17,17 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- A list that closes a phone page (transactions, tasks, activity: nothing after it, not in a widget grid) is an open
+  section, not a ListBox, as Figma's ◆ Finance Transactions: the title row over a List at the page margin (usage rules
+  §19, user rule 2026-10-21). Harness `listbox/closing-list-on-phone` (error) and Figma audit
+  `list-box/closing-list-on-phone`; the phone examples that boxed it (Button, Chart, VisuallyHidden, AppShell C1, C2, C7,
+  D3, D4, F10–F12) now show it open. Grouped settings lists (§15) and lists in a widget grid keep their ListBox. The
+  harness no longer reads an apostrophe in a prop's JSX text (`hero={<Text>I'm …</Text>}`) as an open string.
+- A section is a group of content that belongs together, 32 apart on phones (Layout-Mobile/Section-Gap, Comfortable)
+  and on desktop (Gap/XLarge): a widget grid keeps its own gap inside, a title row and its list share one section
+  (usage rules §13, user rule 2026-10-21). Figma audit `spacing/section-gap` now reads the AppShell Content slot and
+  desktop, and `section/title-apart` warns on a title alone. AppShell C1, C2, C7 group their widgets into one section
+  above the closing list, in code and in Figma (◇ Master-Layout · Example, also D3, D4 opened).
 - Sidebar `theme` follows all of Figma's Patterns/Sidebar themes (2026-10-21, user-approved: "Có, cùng đợt Studio"):
   default · carved-floating (the inset panel in Background/Carved, no shadow) · border · borderless (flush, no line) ·
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
@@ -29,6 +40,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   "sửa push Sidebar đứng riêng luôn"). The set has 16 of its 40 combinations, so the push takes the nearest one: the
   themes other than Default exist only at Density=Small. An AppShell's master writes the same variant (`pattern="grid"`
   gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
+- Four Breakpoint & Grids tokens from Figma, for Bento layouts (2026-10-21, user: "Kiểm tra update thêm token trong
+  Breakpoints từ Figma"), the same in Desktop, Tablet and Mobile: `--zen-margin-bento-grid` (Padding/XSmall 8),
+  `--zen-margin-bento-layout` (Padding/Medium 16), `--zen-gutter-bento-grid` (Gap/XSmall 8) and
+  `--zen-modal-padding-bento` (Padding/XSmall 8). The other twelve Breakpoint & Grids tokens already matched Figma.
+  Web, SwiftUI and Flutter tokens regenerated.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Breaking: Card and ListBox themes renamed, Figma and code** (2026-10-21, user: "Flat hiện tại nên là default, còn
@@ -46,6 +62,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   box's hue (Support/<Hue>/Pale, neutral … purple) and `surface="alt"` puts a Default or Border box on Surface/Alt, as
   Card does. Studio's Properties panel and the Figma push and pull carry both (the push keeps to Figma's variants).
   Harness: listbox/color-ignored and listbox/surface-ignored warn when they would do nothing.
+- **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
+  CalendarMonth, CalendarTimeGrid (Week / Day, Mobile 3-Day), CalendarAgenda and CalendarWeekStrip (Dot / Tile) take
+  events as data (`CalendarEventData`: id, title, start, end, allDay, color, meta, attendees); the primitives
+  CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem and
+  CalendarDayTile are public too. Dates are a `Date` or an ISO string read in local time ("2026-09-30T09:00"), so Studio
+  pages and AI UI specs can hold them. Month: one date in the tab order, arrows a day / a week, Home / End; overlapping
+  Time-Grid events share the column in lanes; the now line only in today's column. Platform page `calendar`,
+  guideline, harness rules `calendar/toolbar-navigation`, `calendar/week-on-phone`, `calendar/selected-needs-handler`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys, native paste pack).
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra
   làm lại từ đầu", "Phá hẳn, migrate hết": no deprecated aliases). Figma Pattern/AppShell/Desktop 16258:1857, Mobile
   16261:136204, Header/AppShell 16243:290461, .Primitives/AppShell/Pane 16254:1099.
@@ -131,6 +156,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   frame's `normal` keeps its layers' blending inside it. Zen Studio's Appearance header has Figma UI3's ◐ before the eye
   (frames and shapes): the list in Figma's groups, the current one checked, one ⌘Z. Figma push / pull carry it (Zen
   plugin updated; a row page frame is now placed the device wide, not hugging its row).
+- Zen Studio, three gaps from the Figma walk's re-measure (14 tasks in 44 steps against Figma's 39):
+  - A Zen instance's layer menu has Go to main component (it opens the component's page on its Main component) and
+    Reset all changes (the panel's reset, one ⌘Z). A page's own instance also gets Go to main component.
+  - A Zen instance on a page you made has Appearance: opacity, the ◐ blend and the eye. The page writes `opacity` and
+    `blendMode` as a frame does. The canvas, the exported code (`style={{ opacity, mixBlendMode }}`) and Figma push /
+    pull carry them (Zen plugin updated). This covers the 59 components whose `style` reaches their root; the
+    conformance test keeps that list exact.
+  - The Design panel heads a frame "Frame" and a group "Group", as Figma; the code name shows on hover, and Layers keep
+    it.
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and
@@ -1011,6 +1045,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: Layers lists the Main component's variants also when the page opens straight on them (their rows
+  were sometimes empty).
 - Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
 - Zen Studio: a click on a Line or an Arrow selects it, as in Figma. Before, a horizontal line had no height to click
   and the click selected its frame.

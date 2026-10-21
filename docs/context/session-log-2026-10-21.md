@@ -7,6 +7,43 @@
 - PageHeader `description` Text tone base → light (DashboardHeader type="main" renders PageHeader, so its subheading
   follows). JSDoc cites the node; guidelines + api docs rebuilt.
 
+## Session B · Instance menu, instance Appearance, Frame / Group heading (user, 2026-10-21: three of A's re-measure gaps)
+
+A's re-measure on main e99c5408: §2 keys 65 ✅ · 7 🟡 · 4 ❌ (2026-10-18: 36 · 14 · 26); §6.3 14/14 in 44 steps against
+Figma's 39. The user picked three of the four gaps in B's area: "Menu chuột phải instance", "Appearance cho Button" and
+"Tên Group/Frame ở header" (not "Bỏ mục Content"). Branch `zen/feat/studio-instance-menu-appearance-20261021`. Tier M.
+Spec card `docs/research/studio-instance-panel-parity-spec-2026-10-21.md`. Plugin `studio-import` 8248c59.
+
+- Layer menu (K-70), in `inspector/instanceActions.ts` and `shell/CanvasMenu.tsx`:
+  - A Zen instance gets Go to main component: its Studio page opens on the Main component frame, selected and zoomed.
+    It skips the old page's frame while the board changes.
+  - It also gets Reset all changes. The Design panel publishes its header reset for the layer it shows; the menu
+    subscribes, since the same click selects the layer, and runs it: one request, one ⌘Z. It is disabled with "No
+    changes" when nothing is written.
+  - A page's own `<Use>` gains Go to main component (`goToMain`).
+- Instance Appearance (K-74):
+  - A page has no `style` (dialect), so the look is written as on a frame: `opacity={40}` and `blendMode="multiply"`.
+  - `tools/studio/instance-look.mjs` takes them off the component's props: renderPage and compile.mjs put them on its
+    `style`, figma-push on the INSTANCE (0–1, the enum), and figma-pull reads them back.
+  - The plugin sets the instance's opacity and blend, else 1 and Pass through.
+  - Only the components whose `style` reaches their root take it. A probe over every public component found 69 (59
+    instances plus primitives); about 100 drop `style`. The conformance test now pins that list.
+  - Studio: DesignPanel shows the frames' AppearanceSection on such an instance, on pages made in the Studio.
+- Heading: `panelTitle` (select/layerNames.ts) reads Frame for Box / Stack / Grid and Group for a group. Only the
+  Design panel heading changes; its title attribute keeps the code name. Eight E2E heading checks follow (builder,
+  library, build-check, dnd, draw, figma).
+- Live Zen file: the real importer placed a Button at 0.4 MULTIPLY, a plain Button (1, PASS_THROUGH) and a Badge at
+  0.6, with no notes. The screenshot matched, and the QA frame was removed.
+- Checks:
+  - Selftests: push 345, compile 77, the new layerNames selftest 7; studio:selftest passes and tsc is clean.
+  - Conformance 180/180; the plugin's full `npm test` passes.
+  - New E2E rows FW-99, FW-141 and FW-142 (figma group).
+- Gate (15:16–15:52, main 51dffc2b): static checks, TypeScript and browser tests (76/76) pass. Studio E2E is
+  332 / 336: MC-02…05 fail as on main. The cause is LayersPanel watching a stale canvas world, and A fixes it
+  (53e87642). FW-99/141/142 pass alone, and every changed heading check passes. FW-100/101 were renumbered to
+  FW-141/142 because they collided with F10's rows.
+- BACKLOG P3 (waits for the user): AppShellHeader `theme` / `density` (#179) are not pushed to Figma yet.
+
 ## AppShell session · Figma sync: Grid, Header Theme/Density, Sidebar Theme, Sub-Header (tier M, branch `zen/feat/appshell-figma-sync-20261021`)
 
 The user updated Pattern Sidebar, AppShell and Header/AppShell in Figma, pointed to the Rule section 16823:85229, and
@@ -131,6 +168,27 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
   - Re-run on `main` 1bd55975 with the script fixed (keys held, the ⌘D copy moved aside, the page made with New page):
     14 / 14 in 40 steps, the same as Figma's 40, with 0 refusals.
   - FW-132 / FW-133: 2 / 2.
+
+## AppShell session · Breakpoint & Grids tokens (tier XS, branch `zen/fix/tokens-breakpoint-bento-20261021`; user: "Kiểm tra update thêm token trong Breakpoints từ Figma")
+
+- Read live (use_figma, the Breakpoint & Grids collection: Desktop · Tablet · Mobile, 16 variables). The repo's 12
+  tokens match Figma value for value, aliases included.
+- New in Figma, the same in every mode:
+  - Margin-Bento-Grid {Spacing/Padding/XSmall};
+  - Margin-Bento-Layout {Spacing/Padding/Medium};
+  - Gutter-Bento-Grid {Spacing/Gap/XSmall};
+  - Modal-Padding-Bento {Spacing/Padding/XSmall}.
+- Added to tokens/source/figma/breakpoint-grids.json, then `tokens:build` for web, Swift and Flutter (2234 tokens,
+  830 vectors). Checks pass: tokens:check, tokens:native:check, style, tsc, studio:selftest, ai-kit, guidelines and
+  usage.
+- No component uses them yet. They reach apps, the Design Tokens page and Studio's Variables.
+- Gate (2026-10-21 18:13, main b0c48b29 merged in) **PASS**:
+  - The token scope saw no diff against HEAD, so it checked the representative set (button, card, dialog, popover,
+    list-item, chat, templates).
+  - Static checks green.
+  - Platform audit 1512 + 390 + 320: 0 errors, 0 new warnings. Dark: 0 errors.
+  - Behaviour: 0 errors.
+  - I looked at the dialog 390 sheet: unchanged, as expected for unused tokens.
 
 ## AppShell session · Token Color/Background/Carved (tier XS; user: "Update token background-carved")
 
@@ -259,3 +317,73 @@ original stays, one ⌘Z each) waits for a gate slot.
   Surface default | alt, app-shell.css, b-desktop-1, the app layer's Canvas/Flat → flat-border panes and cards. The
   BACKLOG question is closed. Pane is not in the contract, pack or library keys (no Studio mapping).
 
+
+## Layers missed the Main component's variant cells (Session A, branch `zen/fix/layers-variant-cells-20261021`)
+
+B and Bug found MC-02 flaky alone: "its Layers row selected" timed out, and the set row in Layers had no children.
+LayersPanel's MutationObserver took the canvas world once, when its effect ran. A world the canvas mounted later (a
+page opened directly) was never watched, so the async variant cells never rebuilt the tree. Now the observer is
+re-pointed whenever `attachCanvas` notifies (`canvasApi.onChange`), and a rebuild is scheduled each time it starts
+watching a world.
+
+## A list that closes a phone page is an open section — tier M, branch `zen/feat/list-section-rule-20261021`
+User (2026-10-21): "Thêm rule và hardness là nếu list-box (hoặc danh sách các list item) nằm cuối trang ở mobile thì
+không bỏ vào list box mà đưa thành 1 danh sách nối thành 1 section giống trong example Finance trong Figma", then
+"cuối trang nghĩa là bên dưới nó không nằm trong grid của các widget, mà là 1 danh sách độc lập liệt kê như task,
+transaction". Read from Figma ◆ Finance (4595:17267, "Transactions" I16342:3863;…;16342:4266): a Heading frame
+(Heading/4 + See All, Margin-Comfortable sideways, Padding/Medium above and below), then a frame of List-Item
+(Interactive=Yes) padded Margin-Comfortable, gap 0, straight on Canvas/Default; the List-Box set has no open variant.
+- Rule: usage rules §19, ListItem guideline Do/Don't, Figma skill (screen-rules table + §4, audit-rules row, SKILL.md).
+- Code harness `listbox/closing-list-on-phone` (error, allow `closing-list`): a ListBox in a PlatformPhone or Studio
+  `<Screen device="phone">` with nothing after it up to the phone, outside Grid / row Stack / box, the only ListBox of
+  a Canvas/Default screen and not a §15 group (a kicker over it and an earlier kicker over a Card or ListBox). A ListBox
+  at a component's root is judged where it is used. Fixtures: 4 bad, 6 good.
+- Fixes met: `openRepeat` missed `(…).map(` receivers (a cast: layout's task groups read as one list); `tagClose` read
+  the apostrophe in `hero={<Text>I'm …</Text>}` as a string and ended AppShell's tag in its children (D3 was missed;
+  the new apostrophe fixture fails without the fix). Neither changed another rule's findings on the repo.
+- Opened 13 lists on phones: Button (Also off), Chart (Budget left, Entries, Six-week totals), VisuallyHidden (Inbox),
+  AppShell C1, C2, C7, D3, D4, F10, F11, F12 (render and code samples). Toggle and ColorPicker settings screens stay
+  boxed (§15 groups).
+- Figma audit `list-box/closing-list-on-phone`: checked by id (instance sublayers are new objects, indexOf = -1). Run on
+  ◆ Finance: 0; on ◇ Master-Layout · Example: C1, C2, C7, D3, D4 (15921:7245, 15921:8204, 15942:120713, 15950:9324,
+  15950:9696) still box their closing list. Not changed in Figma: waits for the user (BACKLOG).
+- Static: usage selftest + check, tsc, guidelines build/check, ai-kit check, mcp selftest, style check ✓.
+- Figma (user: "Sửa luôn 5 màn C1, C2, C7, D3, D4 trong Figma"): each closing List-Box became an open section (the
+  Header-Slot Title-Row cloned, a `List` frame Gap/3XSmall of the same List-Items via `instance.clone()`), old box hidden,
+  checked next call, then removed. Clones rendered at the components page's mode (Avatar 40, rows 70) until a Component
+  Size mode was set and cleared on the new frame (rows 72). C1's See all was a Button/Flat: now the underlined text link.
+- Then (user: section spacing 32 on phone and desktop; a widget grid keeps its gap; related content in one section;
+  never a title apart from its list): C1 Progress (Card + Stats), C2 Balance (Card + Quick-Actions, as Finance "Main"),
+  C7 Today (date line + Card + Stats) grouped (clones verified against the hidden originals), Content slot gap →
+  Layout-Mobile/Section-Gap (was 24 / 16 / 16). Code C1, C2, C7 match (groups in `<Stack gap="md">`, sections straight
+  in the AppShell body). Usage rules §13, screen-rules, audit-rules updated; audit `spacing/section-gap` extended to
+  AppShell Content slots and desktop (XLarge), skips panes with a FILL child and Dividers; new `section/title-apart`.
+- Full audit on the 5 screens: 0 findings from these rules; 4 older ones left (Liquid/Floating-Glass bars read as
+  Gradient by `theme/navigation-surface` ×3, D3's streak Badge "3" `badge/count-uses-counter`). Page scan: B3, B5, C4,
+  C5, C6, D2, D5, E4, E7 still break the section rules (BACKLOG, asked the user).
+
+
+## Calendar in code + Studio (session "Calendar", tier L; user: "Đã duyệt, làm Calendar trước")
+
+Branch `zen/feat/calendar-20261021`, worktree `../Zen-DS-calendar` (from main e99c5408). Spec card, page manifest and
+API: `docs/research/calendar-2026-10-21.md` (read from Figma ❖ Calendar 16121:3 with read-only use_figma dumps).
+
+- Library `src/components/Calendar/`: views CalendarToolbar, CalendarWeekStrip, CalendarMonth, CalendarTimeGrid,
+  CalendarAgenda; primitives CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell,
+  CalendarAgendaItem, CalendarDayTile (Slot = the time grid's rows). Reuses DatePickerItem (Week-Strip Dot, mobile
+  Month), Button / IconButton, Segmented, AvatarStack, EmptyState. `calendarDates.ts`: Monday-first weeks, lanes for
+  overlapping events, Intl formats, `shiftPeriod`, `calendarTitle`, `toDate` (ISO strings in local time).
+- Figma choices kept: event hues Support/<Hue>, Brand text Content/Accent; hover steps one ramp step (Subtle → Soft,
+  Solid → Rich; Figma draws none); Day-Tile Selected keeps its Pale border (zen-allow, Figma 16142:3915).
+- Found and fixed while building: `font: inherit` on calendar buttons overrode "+N more"'s Caption style; the phone
+  toolbar title clipped ("Septemb…": Heading/3 is 26px in the Mobile typography) → short default title on mobile
+  ("Sep 2026") + BACKLOG P2 question for the designer; the phone example offers three views (a fourth label clips at
+  Comfortable). Studio's page dialect drops `new Date(…)` props → every date prop also takes an ISO string.
+- Platform page `calendar` (playground + 6 examples incl. PlatformPhone and keyboard), Do/Don't visuals, guideline +
+  keyboard map, harness rules (3, fixtures), smoke fixtures, axe baseline (colour-contrast only: Neutral/Light text,
+  white on Zen/9 and Support Orange/Pink Solid — token level, as DatePicker), tests/interaction/calendar.test.tsx (9).
+- Studio: component-properties.json page ❖ Calendar (5 public sets), figma-props.map entries, generated props / variant
+  sets, 5 Assets items (ISO dates), library keys (5), native pack: a probe frame of the 5 sets on the QA page, copied
+  from Figma desktop with the clipboard saved and restored through files (6 types back), merged into the pack (13 sets,
+  88 symbols, 32 contents added; nothing replaced), probe removed. studio:selftest green.
+- Figma: the 13 Calendar descriptions' "Draft 2026-10-17, not yet in code." → "In code since 2026-10-21: <Component>".

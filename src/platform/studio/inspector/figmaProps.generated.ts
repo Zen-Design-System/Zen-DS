@@ -2680,6 +2680,105 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ]
   },
+  "CalendarToolbar": {
+    "figma": "16125:399",
+    "own": [
+      {
+        "prop": "title",
+        "label": "Title",
+        "type": "TEXT"
+      },
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "CalendarWeekStrip": {
+    "figma": "16125:520",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      },
+      {
+        "prop": "variant",
+        "label": "Style",
+        "type": "VARIANT",
+        "options": {
+          "Dot": "dot",
+          "Tile": "tile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "CalendarMonth": {
+    "figma": "16126:1093",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "CalendarTimeGrid": {
+    "figma": "16127:1172",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      },
+      {
+        "prop": "view",
+        "label": "View",
+        "type": "VARIANT",
+        "options": {
+          "Week": "week",
+          "Day": "day",
+          "3-Day": "3-day"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "CalendarAgenda": {
+    "figma": "16128:1036",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "DatePicker": {
     "figma": "895:31954",
     "own": [

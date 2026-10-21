@@ -260,7 +260,9 @@ const tagClose = (text, from) => {
   for (let i = from, depth = 0, quote = null; i < text.length; i++) {
     const c = text[i];
     if (c === "\\") { i++; continue; }
-    if (quote) { if (c === quote) quote = null; } else if (c === '"' || c === "'" || c === "`") quote = c;
+    // An apostrophe in JSX text inside a prop (hero={<Text>I'm …</Text>}) sits between two letters: no string opens.
+    const apostrophe = c === "'" && depth > 0 && /\p{L}/u.test(text[i - 1] ?? "") && /\p{L}/u.test(text[i + 1] ?? "");
+    if (quote) { if (c === quote) quote = null; } else if (c === '"' || (c === "'" && !apostrophe) || c === "`") quote = c;
     else if (c === "{") depth++; else if (c === "}") depth--;
     else if (c === ">" && depth === 0 && text[i - 1] !== "=") return i;
   }
@@ -291,8 +293,9 @@ const openRepeat = (text, from, to) => {
   for (const at of open.reverse()) {
     const head = text.slice(Math.max(0, at - 200), at);
     if (/Array\.from\s*$/.test(head)) return { count: Number(text.slice(at, at + 40).match(/^\(\s*\{\s*length\s*:\s*(\d+)\s*\}/)?.[1] ?? NaN) };
-    const receiver = head.match(/(\]|[A-Za-z_$][\w$]*)\s*\.\s*(?:flatMap|map)\s*$/);
+    const receiver = head.match(/(\]|\)|[A-Za-z_$][\w$]*)\s*\.\s*(?:flatMap|map)\s*$/);
     if (!receiver) continue;
+    if (receiver[1] === ")") return { count: NaN }; // a call or a cast: `(Object.keys(groups) as Group[]).map(`
     if (receiver[1] !== "]") {
       const decl = new RegExp(`(?:const|let|var)\\s+${receiver[1]}\\b(?:\\s*:[^=;]+)?\\s*=\\s*\\[`).exec(text);
       return { count: decl ? arrayLength(text, decl.index + decl[0].length - 1) : NaN };
@@ -349,10 +352,11 @@ const cardTree = (src) => {
     const repeat = openRepeat(text, parent ? parent.body : Math.max(0, m.index - 3000), m.index);
     const node = { name: name.replace(/^\w+\.(?=Card$)/, ""), start: m.index, id: nodes.length, body: close + 1, parent: parent ? parent.id : -1,
       count: repeat ? repeat.count : 1, inRepeat: Boolean(parent?.repeats), repeats: Boolean(parent?.repeats || repeat), owner: null };
-    // A root card that the function returns (`return <Card …>`, `=> cond ? <Card …>`), not one kept in a variable.
-    if (!parent && ["Card", "MetricCard"].includes(node.name) && /(?:\breturn|=>)[^;{}]*$/.test(text.slice(Math.max(0, m.index - 400), m.index))) {
+    // A root card (or ListBox) that the function returns (`return <Card …>`, `=> cond ? <Card …>`), not one kept in a
+    // variable. Only a card's component counts as a card where it is used.
+    if (!parent && ["Card", "MetricCard", "ListBox"].includes(node.name) && /(?:\breturn|=>)[^;{}]*$/.test(text.slice(Math.max(0, m.index - 400), m.index))) {
       node.owner = enclosingFunction(text, decls, m.index);
-      if (/^[A-Z]/.test(node.owner ?? "")) cardNames.add(node.owner);
+      if (node.name !== "ListBox" && /^[A-Z]/.test(node.owner ?? "")) cardNames.add(node.owner);
     }
     nodes.push(node);
     if (text[close - 1] !== "/") stack.push(node);
@@ -396,6 +400,60 @@ const cardSpacingFinding = (attrs, src, start, children) => {
   // three actions keep their row on a phone.
   if (/<(VoiceRecorder|AiVoiceConversation)\b/.test(children) || tile) return false;
   return spacing === "sm" && most < 3 && sites.every((s) => s.exact) && `is ${most === 1 ? "a card on its own" : `one of ${most} cards`}${where} on a phone at Spacing=Small — Small is for groups of three or more cards; fewer keep Medium (the default).`;
+};
+/** A phone screen whose content ends the page: a PlatformPhone frame or a Studio `<Screen device="phone">`. */
+const isPhoneScreen = (src, n) => n.name === "PlatformPhone" || (n.name === "Screen" && /\sdevice="phone"/.test(src.slice(n.start, n.body)));
+/** Siblings that float over the screen or render nothing on it: they never make a section after the list. */
+const FLOATING_TAGS = new Set([...OVERLAYS, "Toast", "Popover", "Tooltip", "Menu", "VisuallyHidden", "Portal", "ActionBar", "DatePickerSheet"]);
+/**
+ * listbox/closing-list-on-phone (user rule 2026-10-21, Figma ◆ Finance "Transactions"): on a phone, a ListBox that
+ * closes the screen — nothing after it up to the phone frame, not in a Grid or a row of widgets, the only ListBox on a
+ * screen that is not a Surface-Alt grouped list (§15) — is an open section: a title row over a List inset by the page
+ * margin, no box. A ListBox at the root of a component is judged where the component is used. Message, or false.
+ */
+const closingListFinding = (attrs, src, start, end) => {
+  if (inCodeSample(src, end) || opaque(attrs)) return false;
+  const tree = cardTree(src);
+  const { nodes } = tree;
+  const me = nodes.find((n) => n.start === start);
+  if (!me || me.count !== 1 || me.inRepeat) return false;
+  const within = (n, root) => { for (let p = n.parent; p >= 0; p = nodes[p].parent) if (p === root.id) return n.start >= root.body; return false; };
+  const childrenOf = (p) => nodes.filter((n) => n.parent === p.id && n.start >= p.body);
+  // A §15 group: the ListBox sits under a kicker (Body/Small/Bold) and an earlier group of the screen is a kicker over a
+  // box too (settings: a Card of toggles, then a ListBox of people). Its blocks keep their boxes.
+  const KICKER = /textStyle="Body\/Small\/Bold"/;
+  const groupBlock = (site) => {
+    const section = nodes[site.parent];
+    if (!section || !KICKER.test(src.slice(section.body, site.start)) || section.parent < 0) return false;
+    const groups = childrenOf(nodes[section.parent]);
+    const at = groups.indexOf(section);
+    return groups.slice(0, Math.max(0, at)).some((g, i) => { const own = src.slice(g.start, groups[i + 1].start); return KICKER.test(own) && /<(Card|ListBox)\b/.test(own); });
+  };
+  const closes = (site) => {
+    if (groupBlock(site)) return null;
+    let cur = site;
+    for (let p = site.parent; p >= 0; cur = nodes[p], p = nodes[p].parent) {
+      const parent = nodes[p];
+      if (cur.start < parent.body) return null; // in a prop of the parent (a header, a footer, a trigger)
+      const after = nodes.some((n) => n.parent === p && n.start > cur.start && n.start >= parent.body && !FLOATING_TAGS.has(n.name));
+      if (after) return null; // a section follows
+      if (isPhoneScreen(src, parent)) {
+        const canvas = /\scanvas=(?:"([\w-]+)"|\{)/.exec(src.slice(parent.start, parent.body));
+        if (canvas && canvas[1] !== "default" && canvas[1] !== "canvas") return null; // a white or Surface-Alt screen, or a canvas that varies
+        const others = nodes.filter((n) => n.name === "ListBox" && n !== me && within(n, parent));
+        return others.length ? null : parent;
+      }
+      const own = src.slice(parent.start, parent.body);
+      if (BOX_TAGS.includes(parent.name) || parent.name === "Popover" || parent.name === "Grid") return null; // in a box or a widget grid
+      if (parent.name === "Stack" && /\sdirection=(?:"row"|\{)/.test(own)) return null; // beside other widgets (or a direction that varies)
+    }
+    return null;
+  };
+  const sites = me.parent < 0 && /^[A-Z]/.test(me.owner ?? "") ? nodes.filter((n) => n.name === me.owner && n.count === 1 && !n.inRepeat) : [me];
+  const phone = sites.map(closes).find(Boolean);
+  if (!phone) return false;
+  const where = sites[0] === me ? "" : ` (where <${me.owner}> is used)`;
+  return `closes a phone screen${where}: a list at the end of a phone page (tasks, transactions, activity) is an open section, not a box — its title row (Heading, See all Link) over a <List> at the page margin (the AppShell body's own padding, or <Box paddingX="lg"> on a bare screen), straight on the screen, as Figma's ◆ Finance Transactions (usage rules §19). Lists in a widget grid and grouped lists (§15) keep their ListBox.`;
 };
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
@@ -1357,6 +1415,9 @@ export const rules = [
       const label = footer.match(/<Text\b[^>]*>\s*([^<{]+)/)?.[1] ?? footer.match(/^\s*["'`]([^"'`]+)/)?.[1];
       return Boolean(label) && /^(open|go to|view|see|show|manage|browse|all)\b/i.test(label.trim()) && `writes the footer action "${label.trim()}" as text: use a Tertiary Button (it fills the box on desktop and tablet, hugs on mobile).`;
     } },
+  { id: "listbox/closing-list-on-phone", components: ["ListBox"], severity: "error", allow: "closing-list", guideline: "docs/guidelines/list-item.md",
+    summary: "On a phone, a list that closes the page (tasks, transactions, activity: nothing after it, not in a widget grid) is an open section, not a ListBox: a title row (Heading + See all Link) over a <List> inset by the page margin, straight on the screen (Figma ◆ Finance Transactions; usage rules §19, user rule 2026-10-21). Lists in a widget grid and grouped lists (§15) keep their ListBox.",
+    check: ({ attrs, src, start, end }) => closingListFinding(attrs, src, start, end) },
   { id: "list-item/clickable-row-toggle", components: ["ListItem"], severity: "warn", allow: "row-toggle", guideline: "docs/guidelines/list-item.md",
     summary: "A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions).",
     check: ({ attrs }) => (has(topLevel(attrs), "onClick") || has(topLevel(attrs), "href")) && !opaque(attrs) && /<(Toggle|ToggleButton|Checkbox|RadioButton)\b/.test(`${value(attrs, "trailing") ?? ""} ${value(attrs, "leading") ?? ""}`) && "is clickable and also holds a Toggle/Checkbox/Radio (leading or trailing) — an input inside the row button is invalid; keep the row static and let the control own the click." },
@@ -1903,6 +1964,28 @@ export const rules = [
       return null;
     } },
   // The behaviour probes (2026-09-28): an inline "Report period" whose Cancel and Submit both only closed, doing nothing.
+  { id: "calendar/toolbar-navigation", components: ["CalendarToolbar"], severity: "warn", allow: "calendar-navigation", guideline: "docs/guidelines/calendar.md",
+    summary: "A CalendarToolbar moves the period and switches the view: without onPrevious / onNext its arrows are disabled, and while its view switch is shown (views not empty) it needs onViewChange, or pressing a view does nothing.",
+    check: ({ attrs, src }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      const own = topAttrs(attrs);
+      const missing = ["onPrevious", "onNext"].filter((name) => !own.has(name));
+      const views = own.get("views");
+      if (!(views?.expr && /^\s*\[\s*\]\s*$/.test(views.expr)) && !own.has("onViewChange")) missing.push("onViewChange");
+      return missing.length ? `has no ${missing.join(" / ")}: wire Previous / Next with shiftPeriod(date, view, ±1) and the switch with onViewChange (or pass views={[]} to hide it).` : null;
+    } },
+  { id: "calendar/week-on-phone", components: ["CalendarTimeGrid"], severity: "warn", allow: "calendar-week-phone", guideline: "docs/guidelines/calendar.md",
+    summary: "A week does not fit a phone: CalendarTimeGrid device=\"mobile\" draws view=\"week\" as the 3-Day grid (Figma Time-Grid Mobile has 3-Day and Day). Write view=\"3-day\" so the code says what the screen shows.",
+    check: ({ attrs }) => literal(attrs, "device") === "mobile" && literal(attrs, "view") === "week" && "asks for a week on a phone, which draws the 3-Day grid: write view=\"3-day\" (or \"day\")." },
+  { id: "calendar/selected-needs-handler", components: ["CalendarMonth", "CalendarTimeGrid"], severity: "warn", allow: "calendar-selected", guideline: "docs/guidelines/calendar.md",
+    summary: "selectedEventId marks the event whose details are open (Figma State=Selected); without onEventClick the events are not buttons, so nothing opens or closes the details and the selection never changes.",
+    check: ({ attrs, src }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      const own = topAttrs(attrs);
+      const selected = own.get("selectedEventId");
+      if (!selected || /^\s*null\s*$/.test(selected.expr ?? "") || own.has("onEventClick")) return null;
+      return "passes selectedEventId without onEventClick: the events are static, so the selection can never change — open the details from onEventClick.";
+    } },
   { id: "date-picker/actions-need-apply", components: ["DatePicker"], severity: "warn", allow: "date-apply", guideline: "docs/guidelines/date-picker.md",
     summary: "A DatePicker with showActions commits in onApply(value, range): picks are a draft that Submit applies and Cancel drops. Without onApply the app never hears what Submit applied.",
     check: ({ attrs, src, end }) => {

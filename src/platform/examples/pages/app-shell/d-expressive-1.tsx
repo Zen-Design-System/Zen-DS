@@ -282,7 +282,7 @@ function CompanionHomePhone() {
               <ProgressBar value={33} aria-label="Coach plan: day 1 of 3" />
             </Stack>
           </Card>
-          <ListBox as="section" theme="shadow" aria-labelledby={planId} header={(
+          <Stack as="section" gap="md" aria-labelledby={planId}>
             <Stack direction="row" justify="between" align="center" gap="xs">
               <Heading level={2} id={planId} textStyle="Heading/4">Today's plan</Heading>
               {/* A section head's action is underlined text, not a button (Zen rule, as See all). */}
@@ -290,7 +290,6 @@ function CompanionHomePhone() {
                 <Link as="button" tone="inherit" onClick={() => toast({ title: "Edit today's plan", children: "Swap a meal, move the walk or add a snack." })}>Edit</Link>
               </Text>
             </Stack>
-          )}>
             <List aria-labelledby={planId}>
               {plan.map((item) => (
                 <ListItem key={item.id} title={item.title} caption={item.caption} onClick={() => toast({ title: item.title, children: item.caption })}
@@ -298,7 +297,7 @@ function CompanionHomePhone() {
                   trailing={<Icon name="icon-chevron-right-line-medium" decorative />} />
               ))}
             </List>
-          </ListBox>
+          </Stack>
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -408,7 +407,7 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "D3 · Companion home",
-    description: "A character talks to you. A buddy at the top of the home: a Pale band from the top edge holds the bar (Transparent, large \"Home\" title, streak, avatar), a speech bubble (Tooltip) and a character (Zen emoji, scaled); then a row of round trackers and a coach card. Warm and personal. Shell: AppShell/Mobile · Phone · Top=Band · Bottom=Tab-Bar. Fits: Health coach, Habits / Diet, AI assistant, Kids learning.",
+    description: "A character talks to you. A buddy at the top of the home: a Pale band from the top edge holds the bar (Transparent, large \"Home\" title, streak, avatar), a speech bubble (Tooltip) and a character (Zen emoji, scaled); then a row of round trackers, a coach card and today's plan, which closes the screen as an open list. Warm and personal. Shell: AppShell/Mobile · Phone · Top=Band · Bottom=Tab-Bar. Fits: Health coach, Habits / Diet, AI assistant, Kids learning.",
     render: () => <CompanionHomePhone />,
     code: `<PlatformPhone canvas="default">
   <AppShell
@@ -451,14 +450,15 @@ export const examples: ExampleDef[] = [
           <ProgressBar value={33} aria-label="Coach plan: day 1 of 3" />
         </Stack>
       </Card>
-      <ListBox as="section" theme="shadow" aria-labelledby="plan" header={…Today's plan · Edit (Link)…}>
+      <Stack as="section" gap="md" aria-labelledby="plan">
+        …Today's plan · Edit (Link) (the title row)…
         <List aria-labelledby="plan">
           <ListItem title="Breakfast: oats & berries" caption="08:00 · 350 kcal" onClick={open}
             leading={<Avatar size="md" shape="square" theme="green" background="subtle" alt="">Br</Avatar>}
             trailing={<Icon name="icon-chevron-right-line-medium" decorative />} />
           …
         </List>
-      </ListBox>
+      </Stack>
     </Stack>
   </AppShell>
 </PlatformPhone>`,

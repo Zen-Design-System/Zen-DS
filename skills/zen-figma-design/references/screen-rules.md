@@ -71,9 +71,16 @@ Components own their inner padding and gap; never change them. Between elements,
 | Sections of a page (the Content slot's sections) | `Spacing/Gap/XLarge` | 32 |
 
 - Page margins come from Breakpoint & Grids: `Margin-Comfortable` (24 desktop) and `Margin-Compact` (20 phone).
-- **Phone sections:** bind the Body's gap (the frame that stacks the sections under the Top-Navigation) to Component
-  Size `Layout-Mobile/Section-Gap`: Compact 24, Comfortable 32, never less (user rule 2026-10-17; audit
-  `spacing/section-gap`).
+- **Phone sections:** bind the Body's gap (the frame that stacks the sections under the Top-Navigation, or the
+  AppShell pattern's Content slot) to Component Size `Layout-Mobile/Section-Gap`: Compact 24, Comfortable 32, never
+  less (user rule 2026-10-17; audit `spacing/section-gap`). Desktop: the Content slot's gap is `Spacing/Gap/XLarge` 32
+  (user 2026-10-21: "trong Desktop cũng vậy").
+- **One section per group of content** (user 2026-10-21: "Các nhóm nội dung cùng nhau nên gom vào cùng 1 section",
+  "không để title riêng, listing riêng", "section khác với spacing trong 1 nhóm grid widget"): every child of the
+  Content slot is a section frame. Content that belongs together shares one (◆ Finance "Main": the balance with its
+  quick actions; a day's summary line with its cards), a widget grid is one section with its own `Spacing/Gap/Medium`
+  (or Small) between cards, and a title row sits in the same frame as the list or cards it names (`Spacing/Gap/Medium`
+  between them), never alone a section gap above them (audit `section/title-apart`).
   - The domain picks the Component Size and Typography modes, so a screen must hold up in each: bind sizes and gaps,
     let text wrap or truncate, and keep rows that may grow scrollable.
   - A Body longer than the screen sits in a screen set to scroll vertically, with the bars fixed.
@@ -112,6 +119,7 @@ Components own their inner padding and gap; never change them. Between elements,
 | Switching views or sections | `Segmented` or `Tab-Bar` | Chips |
 | Search | `Search/Default`; on phone screens prefer `Shape=Rounded` (a pill; recommended, not required) | a Text-Field with a magnifier |
 | A list of people, items, approvals, settings | `Component/List-Box` holding `List-Item` rows | a Card with hand-made rows |
+| The list that closes a phone screen (transactions, tasks, activity: nothing after it, not in a widget grid) | an open section as `◆ Finance` Transactions: a `Heading` row (Heading/4 + See All, `Margin-Comfortable` sideways, `Spacing/Padding/Medium` above and below) over the `List-Item` rows in a frame padded `Margin-Comfortable` sideways, gap 0, straight on the Canvas (audit `list-box/closing-list-on-phone`) | a `Component/List-Box` at the end of the phone screen |
 | Tabular data | Table cells (`Table/Cell/*`, `Primitives/Table/*`) on the canvas, full width | a Table inside a Card (unless it is a dashboard widget) |
 | A number that matters (KPI) | `Metric-Card` / `Primitives/Metric/*` | a Card with big text |
 | Status | `Badge` (short state) or `Tag` (removable label) | coloured text |
@@ -145,6 +153,12 @@ Pick each component's guideline (`guidelines/<slug>.md`) before placing it.
 - **Side-Panel content.** Group it like a phone settings screen: a kicker over each block, blocks with
   `Theme=On-Container` (Card or List-Box), people as List-Items, the header through the panel's Header-Contents slot
   with a 44px Dock-Icon, the body set to fill so Actions sit at the bottom, and content ending above them.
+- **A list that closes a phone screen** (user 2026-10-21: "nếu list-box nằm cuối trang ở mobile thì không bỏ vào list
+  box mà đưa thành 1 danh sách nối thành 1 section giống example Finance"). The last section of a phone screen that
+  lists rows (transactions, tasks, activity, courses), not part of a grid or row of widgets, has no List-Box: copy
+  `◆ Finance` Transactions (a `Heading` frame, then a frame of `List-Item`s padded `Margin-Comfortable`, both FILL in
+  the Body). Lists in a widget grid or inside a box, and grouped lists (below), keep their List-Box; desktop and tablet
+  too. Audit `list-box/closing-list-on-phone`.
 - **Grouped lists (settings, profile).** Phone: a Surface-Alt screen, each group a white List-Box under its kicker
   (kicker → block XSmall, group → group Large), no border or shadow. Desktop: one Card per group, or a Heading/4
   section over a bordered list.

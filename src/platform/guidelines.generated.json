@@ -2078,6 +2078,146 @@
       }
     ]
   },
+  "calendar": {
+    "title": "Calendar",
+    "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
+    "use": [
+      "A team or personal calendar page: CalendarToolbar over CalendarMonth, CalendarTimeGrid (week / day) or CalendarAgenda.",
+      "On a phone: CalendarMonth device mobile with the picked day's CalendarAgenda under it, or CalendarWeekStrip over a Day CalendarTimeGrid.",
+      "A day planner or side panel: CalendarWeekStrip variant tile over a one-day CalendarAgenda."
+    ],
+    "avoid": [
+      "Picking a date in a form → DatePicker / DateField.",
+      "An activity history (who did what) → a List or Timeline, not CalendarAgenda.",
+      "Resources side by side (people, rooms) → Schedule (not in code yet), not one Time-Grid per person."
+    ],
+    "api": [
+      [
+        "Views",
+        "CalendarMonth · CalendarTimeGrid view · CalendarAgenda",
+        "Month · Week / Day (Mobile 3-Day) · Agenda"
+      ],
+      [
+        "Device",
+        "device",
+        "desktop · mobile; unset follows the breakpoint"
+      ],
+      [
+        "Color",
+        "events[].color · CalendarEvent color",
+        "brand (default) · blue · violet · teal · green · orange · pink"
+      ],
+      [
+        "Kind",
+        "events[].allDay · CalendarEvent kind",
+        "timed · all-day"
+      ],
+      [
+        "State=Selected",
+        "selectedEventId · selected",
+        "the event whose details are open"
+      ],
+      [
+        "Sixth-Week",
+        "(automatic)",
+        "a month that spans six weeks"
+      ],
+      [
+        "Style",
+        "CalendarWeekStrip variant",
+        "dot · tile"
+      ],
+      [
+        "Title",
+        "CalendarToolbar title · date",
+        "the period; default from date and view"
+      ]
+    ],
+    "keyboard": [
+      [
+        "Tab / Shift+Tab",
+        "Move between the Toolbar's buttons, the view switch, the month's one focusable date and the events"
+      ],
+      [
+        "← / →",
+        "Month and week strip: the previous / next day"
+      ],
+      [
+        "↑ / ↓",
+        "Month: the same day a week before / after"
+      ],
+      [
+        "Home / End",
+        "Month and week strip: the first / last day of the week"
+      ],
+      [
+        "Enter / Space",
+        "Select the focused day; open the focused event"
+      ]
+    ],
+    "do": [
+      "Put CalendarToolbar above the view and move the period with shiftPeriod(date, view, ±1); Today returns to today's period.",
+      "Give every calendar a colour and keep it: Brand for the main calendar, the other hues only to tell calendars apart.",
+      "Pass `today` (and `now` for the Time-Grid) when your app's date is not the device clock, so Today and the now line agree with your data.",
+      "Open an event's details from onEventClick and set selectedEventId while they are open (State=Selected).",
+      "Give the Time-Grid a height (or max-height) so the hours scroll under the fixed day header."
+    ],
+    "dont": [
+      "Don't put the page's main action (New event) in the Toolbar: it belongs to the page header; the Toolbar has only Tertiary buttons.",
+      "Don't use buttons for the view switch: the Toolbar's switch is a Segmented.",
+      "Don't put filters (which calendars) in the Toolbar: they are Chip advanced in the page's Control-Bar.",
+      "Don't colour events with Accent: Today and the now line are the only Accent on a grid.",
+      "Don't draw a week CalendarTimeGrid on a phone: it shows the 3-Day grid there."
+    ],
+    "a11y": [
+      "The Toolbar title is a heading with aria-live, so Previous, Next and Today announce the new period; the arrows are named \"Previous month\" / \"Next week\" by the view.",
+      "The month is an APG grid (weekday column headers, a row per week): each date is a button named with its full date and event count (\"Wednesday, September 30, 2026, 3 events\"), aria-pressed on the selected day and aria-current=\"date\" on today.",
+      "One date of the month (and of the week strip) is in the tab order; the arrow keys move a day or a week, Home / End to the week's ends.",
+      "Time-Grid day columns are groups named with their date; event blocks are buttons with onEventClick, named by title and time. Hours, slots and the now line are decorative.",
+      "Pressing an empty slot (onSlotPress) is pointer-only: offer New event in the page header for keyboard users."
+    ],
+    "content": [
+      "Event titles are short and specific (\"Q4 planning\", \"1:1 Maya Chen\"); the place or link goes in meta.",
+      "Times are 24-hour in the locale (09:00); all-day events say \"All day\"."
+    ],
+    "refs": [
+      [
+        "Material 3 — Date pickers",
+        "https://m3.material.io/components/date-pickers/guidelines"
+      ],
+      [
+        "WAI-ARIA APG — Grid pattern (day navigation keys)",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/grid/"
+      ]
+    ],
+    "file": "docs/guidelines/calendar.md",
+    "rules": [
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      },
+      {
+        "id": "calendar/toolbar-navigation",
+        "severity": "warn",
+        "summary": "A CalendarToolbar moves the period and switches the view: without onPrevious / onNext its arrows are disabled, and while its view switch is shown (views not empty) it needs onViewChange, or pressing a view does nothing.",
+        "allow": "calendar-navigation"
+      },
+      {
+        "id": "calendar/week-on-phone",
+        "severity": "warn",
+        "summary": "A week does not fit a phone: CalendarTimeGrid device=\"mobile\" draws view=\"week\" as the 3-Day grid (Figma Time-Grid Mobile has 3-Day and Day). Write view=\"3-day\" so the code says what the screen shows.",
+        "allow": "calendar-week-phone"
+      },
+      {
+        "id": "calendar/selected-needs-handler",
+        "severity": "warn",
+        "summary": "selectedEventId marks the event whose details are open (Figma State=Selected); without onEventClick the events are not buttons, so nothing opens or closes the details and the selection never changes.",
+        "allow": "calendar-selected"
+      }
+    ]
+  },
   "tooltip": {
     "title": "Tooltip",
     "purpose": "Name or briefly describe a control on hover and keyboard focus.",
@@ -4615,6 +4755,7 @@
       "Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.",
       "Pick the Figma case by what the row does: Interactive (onClick or href) when the whole row opens, selects or navigates; static (neither) when it only shows information, even with trailing buttons. Both pad Padding/Small (12px) above and below and nothing at the sides; Interactive only adds the fill and its states.",
       "Give every list its side inset from the container: a ListBox (Card-padding-medium), or the page margin on a full-bleed phone screen (Box paddingX=\"lg\" paddingY=\"xs\"). Leave at least 12px beside clickable rows so the fill is not clipped.",
+      "On a phone, make the list that closes the page (transactions, tasks, activity: nothing after it, not in a widget grid) an open section, as Figma's ◆ Finance Transactions: a title row (Heading/4 and its See all Link) over a <List> at the page margin, straight on the screen, no ListBox (usage rules §19, user rule 2026-10-21; harness: listbox/closing-list-on-phone). Lists in a widget grid, inside a box, and grouped settings lists (§15) keep their ListBox.",
       "Split long settings into groups: a visible group header per group and one List per group named after it (aria-label or aria-labelledby). The header is a Heading one level below the nearest heading above (h2 on a screen whose h1 is the title), Body/Small/Bold in tone \"light\" (Content/Neutral/Light, 3.7:1 — Apple's 3:1 for bold text): a kicker label, not a Strongest title.",
       "Keep the row title in its Body/Base/Bold (Figma Info-Content Title) on read and unread rows alike. Mark unread with a dot or Badge plus a visually hidden \"Unread\" (WCAG 1.3.1); the caption may go Strongest.",
       "A kicker above a ListBox lines up with the row text: Box paddingX=\"xl\" (24px) on desktop, paddingX=\"lg\" (20px) on a phone, xs (8px) above the box."
@@ -4633,6 +4774,7 @@
       "Don't hand-build rows (a div with a Text and a Badge or Button); use ListItem so padding, hit area and focus are consistent.",
       "Don't make a row title a heading, and don't signal unread by weight alone.",
       "Don't make group labels inside a Menu, Popover, Select or Listbox headings; they are labels.",
+      "Don't box the list that closes a phone page in a ListBox (a Transactions or To-do list under the screen's widgets): it joins the page as an open section (§19).",
       "Don't put content that is not List-Item rows (a DescriptionList, Toggles, a form) in a ListBox — use a Card. Don't frame a ListBox on Canvas/Default with border or shadow when no condition asks for it, and never give a ListBox on Surface-Alt or a Pale fill a drop shadow (§9).",
       "Don't give a ListBox a color unless it is theme=\"pale\", or surface=\"alt\" unless it is default or border: Figma's List-Box has no such variant and the code ignores it (harness: listbox/color-ignored, listbox/surface-ignored)."
     ],
@@ -4690,6 +4832,12 @@
         "severity": "error",
         "summary": "A ListBox footer action (\"Open calendar\", \"Go to Inbox\") is a Tertiary Button, the Button default: it fills the box on desktop and tablet and hugs its label on mobile, never plain text or a Link (user rule 2026-10-16).",
         "allow": "footer-action"
+      },
+      {
+        "id": "listbox/closing-list-on-phone",
+        "severity": "error",
+        "summary": "On a phone, a list that closes the page (tasks, transactions, activity: nothing after it, not in a widget grid) is an open section, not a ListBox: a title row (Heading + See all Link) over a <List> inset by the page margin, straight on the screen (Figma ◆ Finance Transactions; usage rules §19, user rule 2026-10-21). Lists in a widget grid and grouped lists (§15) keep their ListBox.",
+        "allow": "closing-list"
       },
       {
         "id": "list-item/clickable-row-toggle",

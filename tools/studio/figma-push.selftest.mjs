@@ -1202,6 +1202,31 @@ export default function Blends() {
   frameBlends.children = frameBlends.children.slice(0, 3);
   const backBlends = shape(pageFromFigma(frameBlends, { mapping }).text);
   check("round trip: a frame's blend mode comes back on the same frame", backBlends.children[0].children[0].children.map((node) => node.props.blendMode ?? null), ["multiply", "normal", null]);
+  // An instance's own look (instance-look.mjs; Figma's Appearance on an instance): a Button's opacity and blend go on the
+  // INSTANCE, never as Figma properties of Button; a Badge without them has none; and they come back as the Button's.
+  const instanceLooks = `// @zen-page {"format":1,"title":"Instance looks"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Badge, Button, Stack } from "@zen-ds/react";
+
+export default function InstanceLooks() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Instance looks" device="desktop">
+        <Stack gap="lg" padding="xl">
+          <Button opacity={40} blendMode="multiply">Go</Button>
+          <Badge>New</Badge>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const lookPush = push(instanceLooks);
+  const [lookButton, lookBadge] = lookPush.frame.children;
+  check("instance look: the Button's opacity (0–1) and blend on the INSTANCE; the Badge has none", [lookButton.type, lookButton.opacity, lookButton.blendMode, lookBadge.opacity ?? null, lookBadge.blendMode ?? null], ["INSTANCE", 0.4, "MULTIPLY", null, null]);
+  check("instance look: not a Figma property of Button, no note", [Object.keys(lookButton.props ?? {}).some((key) => /opacity|blend/i.test(key)), (lookPush.notes ?? []).some((note) => /opacity|blendMode/.test(note))], [false, false]);
+  const lookBack = shape(pageFromFigma(lookPush.frame, { mapping }).text).children[0].children[0];
+  check("round trip: the Button's opacity and blend come back as its props", lookBack.children.map((node) => [node.name, node.props.opacity ?? null, node.props.blendMode ?? null]), [["Button", 40, "multiply"], ["Badge", null, null]]);
   // A component set (F7): COMPONENT_SET of variants named by their values, its properties defined on it, a bound layer's
   // references, an instance's variant and property values.
   const chips = `// @zen-page {"format":1,"title":"Chips"}
