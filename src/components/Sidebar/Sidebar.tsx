@@ -79,7 +79,10 @@ export type SidebarSection = {
 
 export interface SidebarProps {
   variant?: SidebarVariant;
-  /** Compatibility alias for the earlier component API. */
+  /** Figma Patterns/Sidebar Density (6040:67524): `small` is the Basic panel with 36px rows and a Padding/Medium header
+   *  (the rail 72, 64 for the flush themes). Unset follows the AppShell (`pattern="grid"` draws small), else medium.
+   *  Figma's separate Side-Bar/Master/Small-Density is `variant="small-density"` (since 2026-10-21 `density="small"` alone
+   *  no longer picks it). */
   density?: "medium" | "small";
   /** The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it
    *  from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps
@@ -669,7 +672,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   const rootRef = useRef<HTMLElement>(null);
   const navRef = useMergedRefs(ref, rootRef);
   const flyout = subMenu ? <SidebarFlyout label={subMenuLabel} onClose={onSubMenuClose} rootRef={rootRef}>{subMenu}</SidebarFlyout> : null;
-  const variant = requestedVariant ?? (requestedDensity === "small" ? "small-density" : "basic");
+  const variant = requestedVariant ?? "basic";
   // AppShell pattern="grid" (Figma Layout=Grid) draws Patterns/Sidebar Theme=Border, Density=Small: Basic rows at 36px.
   const theme = themeProp ?? shell?.theme ?? "default";
   const density = requestedDensity ?? shell?.density ?? (variant === "small-density" ? "small" : "medium");

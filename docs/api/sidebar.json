@@ -23,7 +23,7 @@
           "type": "\"medium\" | \"small\"",
           "required": false,
           "default": null,
-          "description": "Compatibility alias for the earlier component API.",
+          "description": "Figma Patterns/Sidebar Density (6040:67524): `small` is the Basic panel with 36px rows and a Padding/Medium header\n (the rail 72, 64 for the flush themes). Unset follows the AppShell (`pattern=\"grid\"` draws small), else medium.\n Figma's separate Side-Bar/Master/Small-Density is `variant=\"small-density\"` (since 2026-10-21 `density=\"small\"` alone\n no longer picks it).",
           "deprecated": null
         },
         {

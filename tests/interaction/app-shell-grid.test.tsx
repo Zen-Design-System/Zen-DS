@@ -80,6 +80,14 @@ describe("Sidebar Theme=Border and the sub-header", () => {
     expect(px(panel, "border-top-left-radius")).toBe(20);
   });
 
+  it("density=\"small\" alone is the Basic panel at Density=Small, not the old Small-Density variant", async () => {
+    const { container } = await render(<ZenProvider><div style={{ height: 400 }}><Sidebar aria-label="Main" density="small" sections={sections} /></div></ZenProvider>);
+    const nav = container.querySelector(".zen-sidebar")!;
+    expect(nav.getAttribute("data-variant")).toBe("basic");
+    expect(nav.getAttribute("data-sidebar-density")).toBe("small");
+    expect(container.querySelector(".zen-sidebar__item")!.getBoundingClientRect().height).toBe(36);
+  });
+
   it("subHeader: the back control over the level's title, at the top of the body", async () => {
     let back = 0;
     const { container, getByRole } = await render(<ZenProvider><Sidebar aria-label="Main" sections={sections} subHeader={<SidebarSubHeader title="Brand refresh" onBack={() => { back += 1; }} />} /></ZenProvider>);

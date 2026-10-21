@@ -18,6 +18,7 @@ Primary app navigation with sections, nested items and a collapsible rail.
 | --- | --- | --- |
 | Links | `items[].href · linkAs · selectedId` | href rows render as links (linkAs = your router link; it receives href); selectedId marks the current route (aria-current="page") and opens its group |
 | Variant | `variant` | basic · small-density · workspace |
+| Density | `density` | medium · small: Figma Patterns/Sidebar Density on the Basic panel (small: 36px rows, Padding/Medium header, a 72px rail). variant="small-density" is Figma's separate Side-Bar/Master/Small-Density; density="small" alone no longer picks it (2026-10-21) |
 | Theme | `theme` | Figma Patterns/Sidebar Theme: default (a Surface panel inset Padding/XSmall) · carved-floating (the same inset panel in Background/Carved, no shadow) · border (flush with the page edge, no fill, corners or shadow, a Pale line on the inner edge) · borderless (flush, no line) · carved (flush, the column in Background/Carved). The flush themes' rail is the 64px panel. Unset follows the AppShell: pattern="grid" sets border and Density=Small (36px Basic rows) |
 | Sub-header | `subHeader = <SidebarSubHeader title onBack backLabel headingLevel>` | Figma Primitives/Sub-Header-Sidebar: the back control (Button/Icon-Main Small Tertiary) over the level's title (Heading/4, one line) at the top of Body-Content, while the Sidebar shows a level inside the app; on the rail only the back control shows |
 | Collapse | `collapsed / onCollapsedChange` | control renders only with onCollapsedChange; workspace never collapses |
@@ -34,7 +35,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `variant` | `"basic" \| "workspace" \| "small-density"` | — |  |
-| `density` | `"medium" \| "small"` | — | Compatibility alias for the earlier component API. |
+| `density` | `"medium" \| "small"` | — | Figma Patterns/Sidebar Density (6040:67524): `small` is the Basic panel with 36px rows and a Padding/Medium header (the rail 72, 64 for the flush themes). Unset follows the AppShell (`pattern="grid"` draws small), else medium. Figma's separate Side-Bar/Master/Small-Density is `variant="small-density"` (since 2026-10-21 `density="small"` alone no longer picks it). |
 | `collapsed` | `boolean` | — | The icon rail (Figma Expand=No). Inside an AppShell it is where the rail starts and the shell's toggle moves it from there, also when the Sidebar is wrapped in a component of your own; with `onCollapsedChange` the Sidebar keeps it (controlled). |
 | `onCollapsedChange` | `(collapsed: boolean) => void` | — | Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is not rendered. Ignored by `variant="workspace"`, which has no collapsed state. |
 | `brand` | `ReactNode` | — | Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and hides the rest visually. |

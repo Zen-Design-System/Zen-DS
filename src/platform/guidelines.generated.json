@@ -1786,6 +1786,11 @@
         "basic · small-density · workspace"
       ],
       [
+        "Density",
+        "density",
+        "medium · small: Figma Patterns/Sidebar Density on the Basic panel (small: 36px rows, Padding/Medium header, a 72px rail). variant=\"small-density\" is Figma's separate Side-Bar/Master/Small-Density; density=\"small\" alone no longer picks it (2026-10-21)"
+      ],
+      [
         "Theme",
         "theme",
         "Figma Patterns/Sidebar Theme: default (a Surface panel inset Padding/XSmall) · carved-floating (the same inset panel in Background/Carved, no shadow) · border (flush with the page edge, no fill, corners or shadow, a Pale line on the inner edge) · borderless (flush, no line) · carved (flush, the column in Background/Carved). The flush themes' rail is the 64px panel. Unset follows the AppShell: pattern=\"grid\" sets border and Density=Small (36px Basic rows)"

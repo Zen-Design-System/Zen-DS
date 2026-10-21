@@ -22,6 +22,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   carved (flush, the column in Background/Carved). Zen Studio maps the Side-Bar sets' new Footer boolean to the `footer`
   slot (Collapse Button has no prop: the collapse control follows onCollapsedChange or the AppShell), and the push/pull
   use Patterns/Sidebar's new name (was "Patterns/Sidebar/Density-Medium").
+  `density="small"` now means Figma's Patterns/Sidebar Density=Small on the Basic panel (36px rows, a 72px rail);
+  the old Small-Density look is `variant="small-density"`, which density alone no longer picks.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
 - **Breaking: AppShell rebuilt from scratch on Figma's AppShell patterns** (2026-10-19, user: "đập appshell hiện có ra

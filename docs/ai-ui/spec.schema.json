@@ -29085,7 +29085,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Compatibility alias for the earlier component API."
+                "description": "Figma Patterns/Sidebar Density (6040:67524): `small` is the Basic panel with 36px rows and a Padding/Medium header (the rail 72, 64 for the flush themes)."
               },
               "collapsed": {
                 "anyOf": [
