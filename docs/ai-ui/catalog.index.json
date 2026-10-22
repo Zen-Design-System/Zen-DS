@@ -254,7 +254,7 @@
       "name": "ChartCard",
       "status": "stable",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "title headingLevel? icon? description? value? onOpen? openLabel? ranges? range? onRangeChange? rangesFullWidth? theme? color? surface? children"
+      "props": "title headingLevel? icon? description? value? onOpen? openLabel? ranges? range? onRangeChange? rangesFullWidth? theme? color? surface? spacing? children"
     },
     {
       "name": "ChatComposer",
@@ -604,7 +604,7 @@
       "name": "MetricCard",
       "status": "stable",
       "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
-      "props": "variant? value? theme? color? subAction? spacing? type? series? seriesLabel? goal? comparison? categories? footer? headingLevel? animate? label trend? icon? iconTheme? iconBackground? iconEmoji? size? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
+      "props": "variant? value? theme? color? surface? subAction? spacing? type? series? seriesLabel? goal? comparison? categories? footer? headingLevel? animate? label trend? icon? iconTheme? iconBackground? iconEmoji? size? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
     },
     {
       "name": "ModalForm",

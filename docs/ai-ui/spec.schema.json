@@ -10571,7 +10571,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard)."
+                "description": "Figma nested Card Theme: Default (default, the Surface alone) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a"
               },
               "color": {
                 "anyOf": [
@@ -10608,6 +10608,24 @@
                   }
                 ],
                 "description": "Figma nested Card Surface: default · alt (Default, Border); see Card."
+              },
+              "spacing": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "md",
+                      "sm",
+                      "xs",
+                      "medium",
+                      "small",
+                      "xsmall"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma nested Card Spacing: Medium (default; Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large) · XSmall (Card-padding-xsmall, Corner-Radi"
               },
               "children": {
                 "anyOf": [
@@ -24902,6 +24920,20 @@
                 ],
                 "description": "Card Color (Figma Card Color, for theme=\"pale\", \"subtle\" or \"solid\"): the Card's hue."
               },
+              "surface": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "alt"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Metric-Card's exposed Card Surface: default · alt (Default and Border; Shadow on alt drops its shadow), chosen to suit the page's Canvas, as on Card."
+              },
               "subAction": {
                 "anyOf": [
                   {
@@ -35409,7 +35441,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border)."
+                "description": "The Sidebar's fill, matched to the page's Canvas (Figma theme pairing, harness theme/navigation-surface): Default = Surface/Default, with a shadow on a Canvas/Default page (cards t"
               },
               "divider": {
                 "anyOf": [
@@ -35420,7 +35452,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the page on a Canvas/Alt (white) page."
+                "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates a Sidebar that sits on the canvas (no shadow) from the page, as on a Canvas/Alt (white) page."
               },
               "shadow": {
                 "anyOf": [
