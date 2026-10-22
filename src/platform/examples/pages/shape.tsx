@@ -64,10 +64,10 @@ function TourTip() {
 
 /** The Phin & Co tasting table on Saturday, Nov 2: four seats around it, one already taken. */
 const seats = [
-  { id: "1", x: 92, y: 6, taken: false },
-  { id: "2", x: 140, y: 6, taken: true },
-  { id: "3", x: 92, y: 110, taken: false },
-  { id: "4", x: 140, y: 110, taken: false },
+  { id: "1", x: 80, y: 6, taken: false },
+  { id: "2", x: 128, y: 6, taken: true },
+  { id: "3", x: 80, y: 110, taken: false },
+  { id: "4", x: 128, y: 110, taken: false },
 ];
 type SeatState = "free" | "taken" | "yours";
 /** Free seats are filled, taken ones only outlined, yours Accent: the form differs, not only the hue. */
@@ -83,8 +83,8 @@ function SeatPicker() {
   const stateOf = (seat: (typeof seats)[number]): SeatState => (seat.taken ? "taken" : seat.id === mine ? "yours" : "free");
   return (
     <Stack gap="md">
-      <Box width={264} height={148} surface="surface-alt" radius="md">
-        <Shape position="absolute" insetLeft={72} insetTop={44} width={120} height={60} radius="lg" fill="support-brown-subtle" />
+      <Box width={240} height={148} surface="surface-alt" radius="md">
+        <Shape position="absolute" insetLeft={60} insetTop={44} width={120} height={60} radius="lg" fill="support-brown-subtle" />
         {seats.map((seat) => {
           const state = stateOf(seat);
           return (
@@ -374,8 +374,8 @@ const paint = {
 } as const;
 
 <Stack gap="md">
-  <Box width={264} height={148} surface="surface-alt" radius="md">
-    <Shape position="absolute" insetLeft={72} insetTop={44} width={120} height={60} radius="lg" fill="support-brown-subtle" />
+  <Box width={240} height={148} surface="surface-alt" radius="md">
+    <Shape position="absolute" insetLeft={60} insetTop={44} width={120} height={60} radius="lg" fill="support-brown-subtle" />
     {seats.map((seat) => {
       const state = seat.taken ? "taken" : seat.id === mine ? "yours" : "free";
       return (
