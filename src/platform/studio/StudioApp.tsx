@@ -583,7 +583,8 @@ export function StudioApp() {
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
       // K: Figma's Scale tool, on a page you made (draw/ScalePanel.tsx); K again puts the focus in its factor.
-      else if (key === "k" && state.localPage) { if (state.tool === "scale") focusScaleField(); else studioStore.setState({ tool: "scale" }); }
+      // The key's own letter never lands in the factor, which takes the focus while it is down.
+      else if (key === "k" && state.localPage) { event.preventDefault(); if (state.tool === "scale") focusScaleField(); else studioStore.setState({ tool: "scale" }); }
       else if (key === "i") studioStore.setState({ tool: "interact" });
       // Figma's A is the Frame tool too (on a page you made; elsewhere the Stack placement tool); T places text.
       else if (key === "a") studioStore.setState({ tool: state.localPage ? "frame" : "stack" });

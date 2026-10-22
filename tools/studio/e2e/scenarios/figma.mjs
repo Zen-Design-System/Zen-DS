@@ -1532,7 +1532,8 @@ export const rows = [
         const before = (await pageText(page, id)) ?? "";
         await selectShape(page, id, 0);
         await page.keyboard.press("Escape");
-        await until(async () => (await selectedName(page)) === "Box", { message: "the Box selected" });
+        // The Design panel heads a Box "Frame", as Figma UI3 does.
+        await until(async () => /^Frame/.test(await selectedName(page)), { message: "the Box selected" });
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("KeyK");
         const field = page.locator('#studio-right input[aria-label="Scale"]');
