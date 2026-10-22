@@ -447,6 +447,12 @@ original stays, one ⌘Z each) waits for a gate slot.
   Default/Alt, Flat-Border · Default) and its description rewritten; code appShellPaneThemes default / flat-border,
   Surface default | alt, app-shell.css, b-desktop-1, the app layer's Canvas/Flat → flat-border panes and cards. The
   BACKLOG question is closed. Pane is not in the contract, pack or library keys (no Studio mapping).
+- Gate (2026-10-22, Supervisor GO 12:37): merged main 6f894b5e; codemod 351 tags in 153 files + hand fixes (union
+  types, card-color test incl. its data-tone list, the slots selftest's escaped sources and shifted columns, AP-06 writes
+  theme="default", two docs). First full run: static ✓ but the light audit's 4 shards hit the 30-min part timeout
+  ("crashed") and the Studio E2E its 2400 s cap — page count, not errors. Re-run (15:51–16:55) as two --only halves
+  (30 + 29 pages, shards 4, non-Studio --files) + studio:e2e --shard=1/2 and 2/2: both PASS (audit 1310 s, 0 new),
+  E2E 169/169 + 169/169. One ⚠ (ai-ui dead click, unrelated to the rename) → BACKLOG P3 on the user's word.
 
 
 ## Layers missed the Main component's variant cells (Session A, branch `zen/fix/layers-variant-cells-20261021`)
