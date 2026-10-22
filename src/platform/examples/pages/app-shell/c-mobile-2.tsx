@@ -231,7 +231,7 @@ function GreetingHomePhone() {
         {/* One section per group of content (a section gap apart, from the AppShell body); the widgets inside keep md. */}
         <Stack gap="md">
           <Text as="p" tone="light">Thursday, Oct 16 · 3 things need you today</Text>
-          <Card theme="flat" as="section" aria-label="Up next">
+          <Card theme="default" as="section" aria-label="Up next">
             <Stack gap="sm">
               <Text textStyle="All-Caps/S" tone="light">Up next · 09:30</Text>
               <Stack gap="2xs">
@@ -250,7 +250,7 @@ function GreetingHomePhone() {
           </Card>
           <Stack direction="row" gap="sm" fillChildren>
             {stats.map((stat) => (
-              <Card key={stat.id} theme="flat" spacing="sm">
+              <Card key={stat.id} theme="default" spacing="sm">
                 <Stack gap="xs">
                   <DockIcon icon={stat.icon} theme={stat.theme} background="subtle" size="sm" />
                   <Stack gap="3xs">
@@ -390,7 +390,7 @@ export const examples: ExampleDef[] = [
   >
     <Stack gap="md">
       <Text as="p" tone="light">Thursday, Oct 16 · 3 things need you today</Text>
-      <Card theme="flat" as="section" aria-label="Up next">
+      <Card theme="default" as="section" aria-label="Up next">
         <Stack gap="sm">
           <Text textStyle="All-Caps/S" tone="light">Up next · 09:30</Text>
           <Stack gap="2xs">
@@ -404,7 +404,7 @@ export const examples: ExampleDef[] = [
         </Stack>
       </Card>
       <Stack direction="row" gap="sm" fillChildren>
-        <Card theme="flat" spacing="sm">
+        <Card theme="default" spacing="sm">
           <Stack gap="xs">
             <DockIcon icon="icon-activity-line" theme="green" background="subtle" size="sm" />
             <Stack gap="3xs">

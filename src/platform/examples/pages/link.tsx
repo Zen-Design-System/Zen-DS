@@ -128,7 +128,7 @@ function LeaveHelp() {
   }
   return (
     <NavigateContext.Provider value={go}>
-      <Card as="section" ref={ref} theme="flat" aria-labelledby={titleId}>{view}</Card>
+      <Card as="section" ref={ref} theme="default" aria-labelledby={titleId}>{view}</Card>
     </NavigateContext.Provider>
   );
 }
@@ -139,7 +139,7 @@ const auditTask = tasks.find((task) => task.id === "t5")!;
 function ExternalLinks() {
   const titleId = useId();
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${auditTask.key} · ${projectById(auditTask.project).name}`}</Text>
@@ -194,7 +194,7 @@ function DueThisWeek() {
   const open = (item: Task) => { setFrom(path); go(`/tasks/${item.id}`); };
   return (
     <NavigateContext.Provider value={navigate}>
-      <Card as="section" ref={ref} theme="flat" aria-labelledby={titleId}>
+      <Card as="section" ref={ref} theme="default" aria-labelledby={titleId}>
         {task ? (
           <Stack gap="md">
             <Stack gap="xs">
@@ -512,7 +512,7 @@ const taskRow = (task) => {
   );
 };
 
-<Card as="section" theme="flat" aria-labelledby={titleId}>
+<Card as="section" theme="default" aria-labelledby={titleId}>
   <Stack gap="md">
     <Stack gap="xs">
       <Heading level={4} id={titleId} textStyle="Heading/Subheading">Due this week</Heading>

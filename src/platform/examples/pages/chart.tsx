@@ -153,11 +153,11 @@ function FinanceDashboardExample() {
       <Stack gap="md">
         {/* Three tiles share the row: each column at least 30% wide, one per row once 220px no longer fits. */}
         <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
-          <MetricCard theme="flat" label="Invoiced in September" value={formatMoney(september.invoiced)} icon="icon-currency-dollar-circle-line" iconTheme="green"
+          <MetricCard theme="default" label="Invoiced in September" value={formatMoney(september.invoiced)} icon="icon-currency-dollar-circle-line" iconTheme="green"
             trend={{ direction: september.invoiced >= august.invoiced ? "positive" : "negative", label: `${changeOf(september.invoiced, august.invoiced)} vs. August` }} />
-          <MetricCard theme="flat" label="Collected in September" value={formatMoney(september.collected)} icon="icon-bank-note-01-line" iconTheme="blue"
+          <MetricCard theme="default" label="Collected in September" value={formatMoney(september.collected)} icon="icon-bank-note-01-line" iconTheme="blue"
             trend={{ direction: september.collected >= august.collected ? "positive" : "negative", label: `${changeOf(september.collected, august.collected)} vs. August` }} />
-          <MetricCard theme="flat" label="Overdue" value={formatMoney(overdue.reduce((total, invoice) => total + invoice.amount, 0))} icon="icon-alert-triangle-line" iconTheme="red"
+          <MetricCard theme="default" label="Overdue" value={formatMoney(overdue.reduce((total, invoice) => total + invoice.amount, 0))} icon="icon-alert-triangle-line" iconTheme="red"
             trend={{ direction: "normal", label: overdue.length ? `${plural(overdue.length, "invoice")} · ${formatDue(overdue[0].due)}` : "Nothing overdue" }} />
         </Grid>
         {/* Flat on the canvas, like the tiles. Right under the page h1: an h2. A wide card hugs its range switch. */}
@@ -841,7 +841,7 @@ const [reportOpen, setReportOpen] = useState(false);
   }
 >
   <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
-    <MetricCard theme="flat" label="Invoiced in September" value="$105,700" icon="icon-currency-dollar-circle-line" iconTheme="green"
+    <MetricCard theme="default" label="Invoiced in September" value="$105,700" icon="icon-currency-dollar-circle-line" iconTheme="green"
       trend={{ direction: "positive", label: "+9% vs. August" }} />
     {/* Collected in September, Overdue */}
   </Grid>

@@ -1882,7 +1882,7 @@ ${code}`} />
           <PlaygroundToggle label="Card" selected={metricCard} onChange={setMetricCard} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-metric-preview">
-          {metricCard ? <MetricCard theme="flat" {...props} subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line", onClick: () => logAction("Metric actions", "subAction.onClick") }} /> : <Metric {...props} />}
+          {metricCard ? <MetricCard theme="default" {...props} subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line", onClick: () => logAction("Metric actions", "subAction.onClick") }} /> : <Metric {...props} />}
         </div>
         {actionNote}
         <PlatformCode code={`import { ${metricCard ? "MetricCard" : "Metric"} } from "@zen-ds/react";

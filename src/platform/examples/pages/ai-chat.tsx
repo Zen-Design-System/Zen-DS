@@ -546,7 +546,7 @@ function DictatePrompt() {
   const [muted, setMuted] = useState(false);
   if (voice) {
     return (
-      <Card theme="flat" spacing="sm">
+      <Card theme="default" spacing="sm">
         <AiVoiceConversation state={voice} muted={muted} onMutedChange={setMuted}
           transcript={voice === "responding" ? "Here is a two-line update for Lumen Bank: the transfer flow tests pass, and the release stays on Friday." : "Draft a two-line update for Lumen Bank…"}
           onStart={() => setVoice("listening")} onDone={() => setVoice("responding")} onInterrupt={() => setVoice("listening")}
@@ -575,7 +575,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "The field's Voice state: the microphone starts dictation, the prompt reads Listening… and the microphone turns into Stop. Stop puts the words in the field to edit before sending. The Primary Voice action opens voice mode (AI Voice Conversation) until End.",
     render: () => <DictatePrompt />,
     code: `{voiceMode ? (
-  <Card theme="flat" spacing="sm">
+  <Card theme="default" spacing="sm">
     <AiVoiceConversation state={state} transcript={transcript} muted={muted} onMutedChange={setMuted}
       onStart={listen} onDone={answer} onInterrupt={listen} onEnd={() => setVoiceMode(false)} />
   </Card>

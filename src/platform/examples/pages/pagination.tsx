@@ -318,7 +318,7 @@ function MoodboardExample() {
   const [pageNo, setPageNo] = useState(1);
   const pageCount = Math.ceil(moodboard.length / PHOTOS_PER_PAGE);
   return (
-    <Card theme="flat" as="section" aria-labelledby={titleId}>
+    <Card theme="default" as="section" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Brand refresh moodboard</Heading>

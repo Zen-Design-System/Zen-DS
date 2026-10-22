@@ -184,7 +184,7 @@ function PhoneRewardsExample() {
           <DockIcon icon={reward.icon} theme={reward.theme} background="subtle" size="2xl" />
           <Text tone="base" align="center">{reward.about}</Text>
         </Stack>
-        <Card theme="flat">
+        <Card theme="default">
           <DescriptionList divider layout="inline" items={[
             ...(code ? [{ id: "code", term: "Your code", description: code }] : []),
             { id: "cost", term: "Cost", description: pointsLabel(reward.points) },
@@ -564,7 +564,7 @@ function PhoneOrderExample() {
               </List>
             </ListBox>
           </Stack>
-          <Card theme="flat">
+          <Card theme="default">
             <DescriptionList divider layout="inline" items={[
               { id: "total", term: "Total", description: formatMoney(placed.total, true) },
               { id: "paid", term: "Paid with", description: "Phin card" },
@@ -651,7 +651,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       <DockIcon icon={reward.icon} theme={reward.theme} background="subtle" size="2xl" />
       <Text tone="base" align="center">{reward.about}</Text>
     </Stack>
-    <Card theme="flat">
+    <Card theme="default">
       <DescriptionList divider layout="inline" items={[{ term: "Cost", description: "120 points" }, …]} />
     </Card>
   </AppShell>

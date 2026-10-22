@@ -41,7 +41,7 @@ describe("Card colour", () => {
         <Card theme="pale" color="violet">a</Card>
         <Card theme="solid" color="violet">b</Card>
         <Card theme="solid" color="brand">c</Card>
-        <Card theme="flat" color="brand">d</Card>
+        <Card theme="default" color="brand">d</Card>
         <Card theme="semi-pale" color="cyan">e</Card>
         <Card theme="pale" color="accent">f</Card>
         <Card theme="solid" color="accent">g</Card>
@@ -108,19 +108,22 @@ describe("Card colour", () => {
     expect(resolve(badge, "--zen-color-background-neutral-solid-default")).toBe(resolve(page, "--zen-color-background-neutral-solid-default"));
   });
 
-  it("Surface: Border takes flat (Surface/Flat inside its Pale frame); flat on another theme is ignored", async () => {
+  it("Flat-Border is Surface/Flat inside its Pale frame, whatever the surface; Default and Border take theirs", async () => {
     const screen = await render(
       <ZenProvider theme="dark">
-        <Card theme="border" surface="flat" data-testid="border-flat">a</Card>
-        <Card theme="flat" surface="flat" data-testid="flat-flat">b</Card>
-        <Card theme="border" surface="alt" data-testid="border-alt">c</Card>
+        <Card theme="flat-border" data-testid="flat-border">a</Card>
+        <Card theme="flat-border" surface="alt" data-testid="flat-border-alt">b</Card>
+        <Card theme="default" data-testid="default">c</Card>
+        <Card theme="border" surface="alt" data-testid="border-alt">d</Card>
       </ZenProvider>,
     );
     const page = screen.container.querySelector("[data-theme]")!;
     const card = (id: string) => screen.container.querySelector(`[data-testid="${id}"]`)!;
-    expect(getComputedStyle(card("border-flat")).backgroundColor).toBe(resolve(page, "--zen-color-background-surface-flat"));
-    expect(card("flat-flat").getAttribute("data-surface")).toBeNull();
-    expect(getComputedStyle(card("flat-flat")).backgroundColor).toBe(resolve(page, "--zen-color-background-surface-default"));
+    expect(getComputedStyle(card("flat-border")).backgroundColor).toBe(resolve(page, "--zen-color-background-surface-flat"));
+    expect(getComputedStyle(card("flat-border")).boxShadow).toContain("inset");
+    expect(getComputedStyle(card("flat-border-alt")).backgroundColor).toBe(resolve(page, "--zen-color-background-surface-flat"));
+    expect(getComputedStyle(card("default")).backgroundColor).toBe(resolve(page, "--zen-color-background-surface-default"));
+    expect(getComputedStyle(card("default")).boxShadow).toBe("none");
     expect(getComputedStyle(card("border-alt")).backgroundColor).toBe(resolve(page, "--zen-color-background-surface-alt"));
   });
 

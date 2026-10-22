@@ -37,7 +37,7 @@ function TransitionPanelExample() {
   const [duration, setDuration] = useState(0.5);
   const [bounce, setBounce] = useState(0.3);
   return (
-    <Card theme="flat" maxWidth={360}>
+    <Card theme="default" maxWidth={360}>
       <Stack gap="none">
         <Stack gap="xs" paddingY="md">
           <Heading level={3} textStyle="Heading/4">Photo Stack</Heading>
@@ -140,7 +140,7 @@ function PhoneMotionExample() {
       >
         <Stack as="section" gap="xs" aria-labelledby={interactionId}>
           <Box paddingX="lg"><Heading level={2} id={interactionId} textStyle="Body/Small/Bold" tone="light">Interaction</Heading></Box>
-          <ListBox theme="flat">
+          <ListBox theme="default">
             <List aria-labelledby={interactionId}>
               <ListItem leading={<DockIcon icon="icon-cursor-click-line" theme="orange" background="subtle" size="medium" />} title="On tap · Rewards card"
                 caption="Opens Reward detail · Loyalty app" />
@@ -149,7 +149,7 @@ function PhoneMotionExample() {
         </Stack>
         <Stack as="section" gap="xs" aria-labelledby={animationId}>
           <Box paddingX="lg"><Heading level={2} id={animationId} textStyle="Body/Small/Bold" tone="light">Animation</Heading></Box>
-          <Card theme="flat">
+          <Card theme="default">
             <Stack gap="xs">
               {/* The preview takes the block's width; its height stays 176, so the overshoot stays readable. */}
               <CurvePreview type={type} bounce={isSpring(type) ? bounce : undefined} />
@@ -161,7 +161,7 @@ function PhoneMotionExample() {
         </Stack>
         <Stack as="section" gap="xs" aria-labelledby={accessId}>
           <Box paddingX="lg"><Heading level={2} id={accessId} textStyle="Body/Small/Bold" tone="light">Reduce Motion</Heading></Box>
-          <ListBox theme="flat">
+          <ListBox theme="default">
             <List aria-labelledby={accessId}>
               <ToggleListItem title="Fade instead" caption={fade ? "A 0.20\u00a0s fade when motion is off" : "No transition when motion is off"}
                 checked={fade} onCheckedChange={setFade} />
@@ -236,7 +236,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       primaryAction={{ label: "Apply transition", onClick: apply }} />}
   >
     {/* The Body pads the screen and spaces its sections */}
-    <Card theme="flat">
+    <Card theme="default">
       <Stack gap="xs">
         <CurvePreview type={type} bounce={isSpring ? bounce : undefined} />
         <SelectField layout="inline" label="Type" value={type} onValueChange={setType} options={curveOptions} />
@@ -244,7 +244,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
         {isSpring && <SliderField label="Bounce" value={bounce} onValueChange={setBounce} min={0} max={0.9} step={0.01} />}
       </Stack>
     </Card>
-    <ListBox theme="flat">
+    <ListBox theme="default">
       <List aria-label="Reduce Motion">
         <ToggleListItem title="Fade instead" caption="A 0.20 s fade when motion is off" checked={fade} onCheckedChange={setFade} />
       </List>

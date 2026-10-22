@@ -107,7 +107,7 @@ function CardsGallery() {
           <Heading level={3} textStyle="Display/4" tone="accent-strongest">Track your trips</Heading>
         </Stack>
       </Card>
-      <Card theme="flat" spacing="sm">
+      <Card theme="default" spacing="sm">
         <Stack gap="xs">
           <Text textStyle="Body/Base/Medium">Expenses</Text>
           <Heading level={3} textStyle="Heading/1">$12,543</Heading>
@@ -120,13 +120,13 @@ function CardsGallery() {
           <Heading level={3} textStyle="Display/4">Gain control</Heading>
         </Stack>
       </Card>
-      <Card theme="flat" spacing="sm">
+      <Card theme="default" spacing="sm">
         <Stack gap="md">
           <Text textStyle="Body/Base/Medium">Revenue by service</Text>
           <DonutChart aria-label="Revenue by service, 2026" data={shares} value="$148K" label="This year" size="medium" legendPosition="bottom" animate={false} format={percent} />
         </Stack>
       </Card>
-      <Card theme="flat" spacing="sm">
+      <Card theme="default" spacing="sm">
         <Stack gap="md">
           <Text textStyle="Body/Base/Medium">Journal</Text>
           {[
@@ -175,7 +175,7 @@ function SectorKey() {
 function ChartsGallery() {
   return (
     <Stack gap="md">
-      <Card theme="flat">
+      <Card theme="default">
         <Stack gap="sm">
           <Text textStyle="Body/Base/Medium">Chart sectors</Text>
           <SectorKey />
@@ -231,8 +231,8 @@ function DashboardGallery() {
       </Stack>
       <Grid columns={useColumns(3, 3)} gap="md">
         <MetricCard type="tile" theme="solid" color="accent" label="Invoiced" value="$64.3K" icon="icon-receipt-check-line" />
-        <MetricCard type="tile" theme="flat" label="Collected" value="$58.9K" icon="icon-wallet-02-line" />
-        <MetricCard type="tile" theme="flat" label="Overdue" value="$3.1K" icon="icon-alarm-clock-line" />
+        <MetricCard type="tile" theme="default" label="Collected" value="$58.9K" icon="icon-wallet-02-line" />
+        <MetricCard type="tile" theme="default" label="Overdue" value="$3.1K" icon="icon-alarm-clock-line" />
       </Grid>
       <Grid columns={three} gap="md">
         <ChartCard title="Revenue" value="$64.3K" description="Apr – Sep 2026">
@@ -245,7 +245,7 @@ function DashboardGallery() {
           <BarList aria-label="Revenue by client this quarter" data={clients} format={money} animate={false} />
         </ChartCard>
       </Grid>
-      <Card theme="flat">
+      <Card theme="default">
         <Stack gap="sm">
           <Text textStyle="Body/Base/Medium">Latest invoices</Text>
           {[
@@ -293,7 +293,7 @@ function WebsiteGallery() {
           { icon: "icon-map-line" as const, title: "Offline maps", text: "Every booking, no signal needed." },
           { icon: "icon-users-line" as const, title: "Trip boards", text: "Vote on plans together." },
         ].map((feature) => (
-          <Card key={feature.title} theme="flat" spacing="sm">
+          <Card key={feature.title} theme="default" spacing="sm">
             <Stack gap="sm" align="start">
               <DockIcon icon={feature.icon} theme="accent" background="subtle" />
               <Text textStyle="Body/Base/Bold">{feature.title}</Text>
@@ -303,7 +303,7 @@ function WebsiteGallery() {
         ))}
       </Grid>
       <Grid columns={useColumns(2, 2)} gap="md">
-        <Card theme="flat">
+        <Card theme="default">
           <Stack gap="md" align="start">
             <Text textStyle="Body/Base/Medium">Solo</Text>
             <Heading level={3} textStyle="Heading/1">Free</Heading>
@@ -344,13 +344,13 @@ function ComponentsGallery({ theme }: { theme: Theme }) {
   const press = usePress();
   return (
     <Grid columns={useColumns(2, 1)} gap="md">
-      <Card theme="flat" spacing="sm">
+      <Card theme="default" spacing="sm">
         <Stack gap="md">
           <Ramp role="brand" label="Primary" theme={theme} />
           <Ramp role="neutral" label="Neutral" theme={theme} />
         </Stack>
       </Card>
-      <Card theme="flat" spacing="sm">
+      <Card theme="default" spacing="sm">
         <Stack gap="md">
           <Stack direction="row" gap="xs" wrap align="center">
             {/* Every level the component theme colours, side by side: the theme page's specimen, not an app's button row. */}
@@ -371,7 +371,7 @@ function ComponentsGallery({ theme }: { theme: Theme }) {
           </Stack>
         </Stack>
       </Card>
-      <Card theme="flat" spacing="sm">
+      <Card theme="default" spacing="sm">
         <Stack gap="md">
           <InputField label="Client" defaultValue="Lumen Coffee" />
           <SelectField label="Payment terms" defaultValue="30" options={[{ value: "15", label: "15 days" }, { value: "30", label: "30 days" }, { value: "60", label: "60 days" }]} />
@@ -383,7 +383,7 @@ function ComponentsGallery({ theme }: { theme: Theme }) {
           </Stack>
         </Stack>
       </Card>
-      <Card theme="flat" spacing="sm">
+      <Card theme="default" spacing="sm">
         <Stack gap="md">
           <Stack direction="row" gap="xs" wrap>
             <Badge theme="accent">New</Badge>

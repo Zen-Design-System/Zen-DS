@@ -169,7 +169,7 @@ function ColourBandPhone() {
           // Spacing/Padding/Medium above and below, the Box Padding/XSmall more below.
           <Box style={{ paddingBottom: "var(--zen-spacing-padding-xsmall)" }}>
             <Stack gap="md" paddingY="md">
-              <Card theme="flat">
+              <Card theme="default">
                 <Stack gap="sm">
                   <Stack direction="row" gap="sm" align="center">
                     <Stack gap="3xs" width="fill">
@@ -304,7 +304,7 @@ export const examples: ExampleDef[] = [
     hero={(
       <Box style={{ paddingBottom: "var(--zen-spacing-padding-xsmall)" }}>
         <Stack gap="md" paddingY="md">
-          <Card theme="flat">
+          <Card theme="default">
             <Stack gap="sm">
               <Stack direction="row" gap="sm" align="center">
                 <Stack gap="3xs" width="fill">
