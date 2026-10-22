@@ -165,11 +165,16 @@ async function commenting(page, work) {
     await clearComments(page).catch(() => undefined);
   }
 }
+/** The right panel's Show resolved, set by a click on its label as a person does (Zen's box hides the native input). */
+async function showResolved(page, on) {
+  const box = right(page).getByRole("checkbox", { name: "Show resolved" });
+  if ((await box.isChecked()) !== on) await right(page).locator(".zen-checkbox", { hasText: "Show resolved" }).click();
+  await until(async () => (await box.isChecked()) === on, { message: `Show resolved ${on ? "on" : "off"}` });
+}
 async function clearComments(page) {
   await page.locator(".studio-viewport").focus();
   if ((await pressedTool(page)) !== "Comment") await page.keyboard.press("KeyC");
-  const resolved = right(page).getByRole("checkbox", { name: "Show resolved" });
-  if (!(await resolved.isChecked())) await resolved.check();
+  await showResolved(page, true);
   const rows = right(page).locator(".studio-comments-list__row");
   for (let left = await rows.count(); left > 0; left = await rows.count()) {
     await rows.first().click();
@@ -177,7 +182,7 @@ async function clearComments(page) {
     await page.getByRole("menuitem", { name: "Delete thread" }).click();
     await until(async () => (await rows.count()) < left, { message: "the thread deleted" });
   }
-  await resolved.uncheck();
+  await showResolved(page, false);
   await page.keyboard.press("Escape");
 }
 
@@ -1739,13 +1744,13 @@ export const rows = [
         await until(async () => /1 reply/.test(await right(page).locator(".studio-comments-list").innerText()), { message: "1 reply in the list" });
         await popover.getByRole("button", { name: "Resolve" }).click();
         await until(async () => (await commentPin(page, "First note").count()) === 0 && (await popover.count()) === 0, { message: "resolved: pin and thread gone" });
-        await right(page).getByRole("checkbox", { name: "Show resolved" }).check();
+        await showResolved(page, true);
         const pin = commentPin(page, "First note");
         await until(async () => /resolved$/.test((await pin.getAttribute("aria-label")) ?? ""), { message: "the resolved pin shown" });
         await pin.click();
         await popover.getByRole("button", { name: "Reopen" }).click();
         await until(async () => !/resolved$/.test((await pin.getAttribute("aria-label")) ?? ""), { message: "reopened" });
-        await right(page).getByRole("checkbox", { name: "Show resolved" }).uncheck();
+        await showResolved(page, false);
         await pin.waitFor({ state: "visible", timeout: 5000 });
         return "reply → 1 reply · Resolve → hidden · Show resolved → shown · Reopen";
       });
