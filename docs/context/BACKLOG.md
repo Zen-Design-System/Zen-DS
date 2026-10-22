@@ -7,6 +7,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P3 · Project components as real instances in Figma (2026-10-22, Session C, Libraries phase 2; needs a multi-page push):**
+  a `<Use page>` is pushed as its main's layers with a note, because a push sends one page. A real INSTANCE needs the main's
+  page pushed with it (several pages at once) and the importer to link them. Pointer: `tools/studio/figma-push.mjs` `pages`.
 - **P2 · Workflow steps still drawn as themed Badges (2026-10-21, BadgeStatus in code; multi-file migration):** other
   platform pages and the HR templates show a task's step as `Badge theme={taskStatusTheme[…]}`; the new rule
   `badge/workflow-status-uses-badge-status` flags new ones only. Move them to `<BadgeStatus>` (and Figma instances to
