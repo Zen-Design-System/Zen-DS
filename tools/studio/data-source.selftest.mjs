@@ -559,5 +559,163 @@ test("param: a prop of a component of the file is edited where it is used; `path
   });
 }
 
+// ── a row's picture through a helper; pictures inside list props (BACKLOG P1 2026-10-10) ──────────────────────────
+{
+  const HDATA = "src/platform/examples/team.ts";
+  const HPAGE = "src/platform/examples/pages/helpers.tsx";
+  const helperFiles = new Map([[HDATA, [
+    "const person = (id: string, name: string, theme: string, extra: Partial<{ photo: string }> = {}) => ({ id, name, theme, ...extra });",
+    "export const people = {",
+    "  alex: person(\"alex\", \"Alex Duong\", \"indigo\", { photo: \"alex.webp\" }),",
+    "  bao: person(\"bao\", \"Bao Nguyen\", \"teal\"),",
+    "  chi: person(\"chi\", \"Chi Tran\", \"pink\", { photo: \"chi.webp\" }),",
+    "};",
+    "export const tasks = [",
+    "  { id: \"t1\", title: \"Wireframes\", assignee: \"chi\", done: false },",
+    "  { id: \"t2\", title: \"Prototype\", assignee: \"bao\", done: true },",
+    "  { id: \"t3\", title: \"Usability\", assignee: \"alex\", done: false },",
+    "];",
+    "export const requests = [{ id: \"r1\", person: \"bao\" }, { id: \"r2\", person: \"alex\" }];",
+    "export const gia = { name: \"Gia Ho\", src: \"gia.webp\" };",
+    "export const emi = { name: \"Emi Sato\" };",
+    "",
+  ].join("\n")]]);
+  const readHelpers = (rel) => helperFiles.get(rel) ?? null;
+  const helperPage = [
+    "import { people, tasks, requests, gia, emi } from \"../team\";",
+    "type Person = (typeof people)[keyof typeof people];",
+    "const personAvatar = (p: Person) => p.photo",
+    "  ? <Avatar theme=\"photo\" src={p.photo} alt=\"\" />",
+    "  : <Avatar theme={p.theme} alt=\"\">{p.name}</Avatar>;",
+    "const avatarOf = (id: keyof typeof people) => {",
+    "  const one = people[id];",
+    "  return <Avatar src={one.photo} alt=\"\" />;",
+    "};",
+    "const taskRow = (t: (typeof tasks)[number]) => ({ id: t.id, title: t.title, leading: personAvatar(people[t.assignee]) });",
+    "const open = tasks.filter((t) => !t.done);",
+    "function RowCard({ rows }: { rows: Array<{ id: string; title: string; leading: unknown }> }) {",
+    "  return <List>{rows.map(({ id, ...row }) => <ListItem key={id} {...row} />)}</List>;",
+    "}",
+    "const taskList = (label: string, list: typeof tasks) => <RowCard label={label} rows={list.map((t) => taskRow(t))} />;",
+    "export function Page({ wide }: { wide: boolean }) {",
+    "  const team = [people.alex, people.bao];",
+    "  return (",
+    "    <Stack>",
+    "      <RowCard rows={open.map((t) => taskRow(t))} />",
+    "      {requests.map((r) => <ListItem key={r.id} title=\"Leave\" leading={avatarOf(r.person)} />)}",
+    "      <ListItem title=\"Chi\" leading={personAvatar(people.chi)} />",
+    "      <Box>{taskList(\"Mine\", tasks)}</Box>",
+    "      <ListItem title=\"Pick\" leading={wide ? personAvatar(people.alex) : personAvatar(people.bao)} />",
+    "      <AvatarStack items={[{ src: \"a.webp\", alt: \"A\" }, { alt: \"B\" }]} />",
+    "      <AvatarStack items={team.map((p) => ({ src: p.photo, alt: p.name }))} />",
+    "      <AvatarStack items={tasks.map((t) => people[t.assignee].photo ? { src: people[t.assignee].photo, alt: t.title } : { alt: t.title })} />",
+    "      <ChatMessage seenBy={[gia, emi]}>Hi</ChatMessage>",
+    "      {requests.map((r) => <AvatarStack key={r.id} items={[people[r.person]].map((p) => ({ src: p.photo }))} />)}",
+    "    </Stack>",
+    "  );",
+    "}",
+    "",
+  ].join("\n");
+  const at = (needle, name, nth = 0) => {
+    let index = -1;
+    for (let i = 0; i <= nth; i += 1) index = helperPage.indexOf(needle, index + 1);
+    assert.ok(index >= 0, `no ${needle}`);
+    const start = helperPage.indexOf(`<${name}`, index);
+    const before = helperPage.slice(0, start);
+    return `${before.split("\n").length}:${start - (before.lastIndexOf("\n") + 1)}`;
+  };
+  const photo = { kind: "string", value: "new.webp" };
+  const edit = (loc, name, op) => dataFieldEdit(helperPage, HPAGE, loc, name, { op: "setDataField", value: photo, ...op }, { read: readHelpers });
+  const AVATAR = at("const personAvatar", "Avatar");
+  const INITIALS = at("  : <Avatar", "Avatar");
+  const BY_ID = at("const avatarOf", "Avatar");
+  const OPEN_CARD = at("<RowCard rows={open", "RowCard");
+
+  test("helper: a helper's parameter is kind param with the helper's name (an object, or a lookup by its id)", () => {
+    const origin = originOf(helperPage, HPAGE, AVATAR, { prop: "src" }, { read: readHelpers });
+    assert.equal(origin.kind, "param");
+    assert.equal(origin.helper, "personAvatar");
+    assert.equal(origin.prop, "src");
+    assert.equal(origin.editable, true);
+    assert.equal(originOf(helperPage, HPAGE, BY_ID, { prop: "src" }, { read: readHelpers }).helper, "avatarOf");
+    assert.equal(originOf(helperPage, HPAGE, INITIALS, { child: 0 }, { read: readHelpers }).helper, "personAvatar");
+  });
+  test("helper: rows a filter moved, built by a row helper, drawn by a component: the row is found by the fields it passes on", () => {
+    // RowCard's rows[1] is open[1] = t3 (t2 is done): Alex's photo.
+    const result = edit(AVATAR, "Avatar", { prop: "src", via: [
+      { loc: at("<ListItem key={id}", "ListItem"), prop: "leading", path: [] },
+      { loc: OPEN_CARD, prop: "rows", path: [{ index: 1, fields: { id: "t3", title: "Usability" } }, "leading"] },
+    ] });
+    assert.ok(!result.error, result.error);
+    assert.equal(result.file, HDATA);
+    assert.match(result.code, /alex: person\("alex", "Alex Duong", "indigo", \{ photo: "new\.webp" \}\)/);
+    assert.match(result.source, /personAvatar\(…\) → people\.alex\.photo/);
+  });
+  test("helper: a person with no photo yet (the initials branch drew it) gets one in the factory's call", () => {
+    // taskList("Mine", tasks) draws rows[1] = t2: Bao, who has no photo; the initials Avatar has no src of its own.
+    const result = edit(INITIALS, "Avatar", { prop: "src", via: [
+      { loc: at("const taskList", "RowCard"), prop: "rows", path: [{ index: 1, fields: { id: "t2" } }, "leading"] },
+      { loc: at("<Box>", "Box"), prop: "children", path: [], holds: 0 },
+    ] });
+    assert.ok(!result.error, result.error);
+    assert.match(result.code, /bao: person\("bao", "Bao Nguyen", "teal", \{ photo: "new\.webp" \}\)/);
+    const name = edit(INITIALS, "Avatar", { child: 0, via: [{ loc: OPEN_CARD, prop: "rows", path: [{ index: 0, fields: { id: "t1" } }, "leading"] }] });
+    assert.match(name.code, /chi: person\("chi", "new\.webp", "pink"/, "its text child is the person's name");
+    const box = edit(AVATAR, "Avatar", { prop: "src", via: [{ loc: at("<Box>", "Box"), prop: "children", path: [] }] });
+    assert.ok(box.error, "a Box's children are the RowCard, not the Avatar");
+  });
+  test("helper: a holder that is a .map row (its key and place), and a helper reading people[id]", () => {
+    const result = edit(BY_ID, "Avatar", { prop: "src", via: [{ loc: at("{requests.map((r) => <ListItem", "ListItem"), prop: "leading", path: [], row: 1, fields: { key: "r2", title: "Leave" } }] });
+    assert.ok(!result.error, result.error);
+    assert.match(result.code, /alex: person\("alex", "Alex Duong", "indigo", \{ photo: "new\.webp" \}\)/);
+  });
+  test("helper: a literal argument (personAvatar(people.chi)), and a chain through a helper that draws the holder (holds)", () => {
+    const chi = edit(AVATAR, "Avatar", { prop: "src", via: [{ loc: at("<ListItem title=\"Chi\"", "ListItem"), prop: "leading", path: [] }] });
+    assert.ok(!chi.error, chi.error);
+    assert.match(chi.code, /chi: person\("chi", "Chi Tran", "pink", \{ photo: "new\.webp" \}\)/);
+    // taskList("Mine", tasks) returns the RowCard: the Box holds it, the RowCard holds the Avatar (rows[1] = t2: Bao).
+    const mine = edit(AVATAR, "Avatar", { prop: "src", via: [
+      { loc: at("const taskList", "RowCard"), prop: "rows", path: [{ index: 1, fields: { id: "t2", title: "Prototype" } }, "leading"] },
+      { loc: at("<Box>", "Box"), prop: "children", path: [], holds: 0 },
+    ] });
+    assert.ok(!mine.error, mine.error);
+    assert.match(mine.code, /bao: person\("bao", "Bao Nguyen", "teal", \{ photo: "new\.webp" \}\)/);
+    const alone = edit(AVATAR, "Avatar", { prop: "src", via: [{ loc: at("const taskList", "RowCard"), prop: "rows", path: [{ index: 1 }, "leading"] }] });
+    assert.match(alone.error, /list is a parameter/, "without the Box the call's list is unknown");
+  });
+  test("helper: refusals stay clear (no via, a condition that draws either call, no row to tell)", () => {
+    assert.equal(edit(AVATAR, "Avatar", { prop: "src" }).code, "invalid");
+    assert.match(edit(AVATAR, "Avatar", { prop: "src", via: [{ loc: at("<ListItem title=\"Pick\"", "ListItem"), prop: "leading", path: [] }] }).error, /condition/);
+    const unknown = edit(AVATAR, "Avatar", { prop: "src", via: [{ loc: OPEN_CARD, prop: "rows", path: [{ index: 0, fields: { title: "Nope" } }, "leading"] }] });
+    assert.match(unknown.error, /go through filter\(…\), and the Studio cannot tell which row/);
+  });
+  test("list props: an item written in place gets its picture, or a new src field", () => {
+    const stack = at("<AvatarStack items={[{ src: \"a.webp\"", "AvatarStack");
+    const first = edit(stack, "AvatarStack", { prop: "items", path: ["0", "src"] });
+    assert.ok(!first.error, first.error);
+    assert.match(first.code, /items=\{\[\{ src: "new\.webp", alt: "A" \}, \{ alt: "B" \}\]\}/);
+    const second = edit(stack, "AvatarStack", { prop: "items", path: ["1", "src"] });
+    assert.ok(!second.error, second.error);
+    assert.match(second.code, /\{ alt: "B", src: "new\.webp" \}/);
+  });
+  test("list props: items a .map builds from data write that row's data; a condition in the map picks the branch with the field", () => {
+    const mapped = edit(at("<AvatarStack items={team.map", "AvatarStack"), "AvatarStack", { prop: "items", path: ["1", "src"] });
+    assert.ok(!mapped.error, mapped.error);
+    assert.equal(mapped.file, HDATA);
+    assert.match(mapped.code, /bao: person\("bao", "Bao Nguyen", "teal", \{ photo: "new\.webp" \}\)/);
+    const branch = edit(at("<AvatarStack items={tasks.map", "AvatarStack"), "AvatarStack", { prop: "items", path: ["2", "src"] });
+    assert.ok(!branch.error, branch.error);
+    assert.match(branch.code, /alex: person\("alex", "Alex Duong", "indigo", \{ photo: "new\.webp" \}\)/);
+  });
+  test("list props: a list of consts (seenBy={[gia, emi]}) and an owner that is a .map row", () => {
+    const seen = edit(at("<ChatMessage", "ChatMessage"), "ChatMessage", { prop: "seenBy", path: ["1", "src"] });
+    assert.ok(!seen.error, seen.error);
+    assert.match(seen.code, /export const emi = \{ name: "Emi Sato", src: "new\.webp" \};/);
+    const row = edit(at("{requests.map((r) => <AvatarStack", "AvatarStack"), "AvatarStack", { prop: "items", path: ["0", "src"], row: 0 });
+    assert.ok(!row.error, row.error);
+    assert.match(row.code, /bao: person\("bao", "Bao Nguyen", "teal", \{ photo: "new\.webp" \}\)/);
+  });
+}
+
 if (process.exitCode) console.log(`data-source self-test: failures above (${passed} passed)`);
 else console.log(`✓ data-source (originOf · setDataField · row edits) self-test: ${passed} cases`);

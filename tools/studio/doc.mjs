@@ -280,7 +280,7 @@ function translateOp(op, map) {
         ...(op.before ? { before: one(op.before) } : {}),
         ...(op.after ? { after: one(op.after) } : {}),
       };
-    case "setDataField": return op.table ? { ...op, table: one(op.table) } : op;
+    case "setDataField": return { ...op, ...(op.table ? { table: one(op.table) } : {}), ...(Array.isArray(op.via) ? { via: op.via.map((holder) => (holder && typeof holder === "object" ? { ...holder, loc: one(holder.loc) } : holder)) } : {}) };
     default: return op;
   }
 }

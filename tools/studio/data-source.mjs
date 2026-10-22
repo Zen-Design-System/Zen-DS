@@ -39,6 +39,8 @@ class Refusal extends Error {
   constructor(message, code = "forbidden") { super(message); this.code = code; }
 }
 const refuse = (message, code) => { throw new Refusal(message, code); };
+/** A refusal at a call `follow` does not read (a `.map`, a helper): the walk (reach) reads it instead. */
+const refuseCall = (message) => { const error = new Refusal(message); error.call = true; throw error; };
 
 const unwrap = (node) => {
   let current = node;
@@ -252,7 +254,7 @@ function follow(mod, expr, path, read, seen = new Set()) {
     if (argument.type === "SpreadElement") refuse(`${node.callee.name}(…) gets its arguments from a spread here`);
     return follow(mod, argument, [...param.path, ...rest], read, seen);
   }
-  if (node.type === "CallExpression") refuse("The data is computed by a call; edit it in the code");
+  if (node.type === "CallExpression") refuseCall("The data is computed by a call; edit it in the code");
   refuse("The value is computed in the code, not written as data");
   return null;
 }
@@ -272,7 +274,7 @@ function resolveFactory(mod, name, at, read) {
   if (!fn || !FUNCTION_TYPES.has(fn.type)) refuse(`${name}(…) is not a function the Studio can read`);
   let body = fn.body.type === "BlockStatement" ? fn.body.body.find((statement) => statement.type === "ReturnStatement")?.argument : fn.body;
   body = unwrap(body);
-  if (body?.type !== "ObjectExpression") refuse(`${name}(…) does not return an object literal`);
+  if (body?.type !== "ObjectExpression") refuseCall(`${name}(…) does not return an object literal`);
   const params = new Map(fn.params.map((param, index) => [param.type === "AssignmentPattern" ? param.left.name : param.name, index]).filter(([key]) => typeof key === "string"));
   const fields = new Map();
   // `({ id, name, …, ...extra })`: the fields the caller's `extra` object holds (person(…, { photo, online })) live in
@@ -320,10 +322,27 @@ function locate(mod, loc, name) {
   return element;
 }
 
-/** The expression a prop or an expression child holds, or null for a literal / missing value. */
-function valueExpression(element, target) {
+/**
+ * The same prop of the element a condition draws in this one's place (`p.photo ? <Avatar src={p.photo} /> : <Avatar>…`):
+ * an initials Avatar's picture is the data the photo branch reads (a dropped photo makes the condition draw it). Null
+ * when there is none.
+ */
+function siblingExpression(mod, element, prop) {
+  const path = pathTo(mod.ast.program, element) ?? [];
+  const up = path[above(path, path.length - 1)];
+  if (up?.type !== "ConditionalExpression") return null;
+  const other = unwrap(unwrap(up.consequent) === element ? up.alternate : up.consequent);
+  if (other?.type !== "JSXElement" || jsxName(other.openingElement.name) !== jsxName(element.openingElement.name)) return null;
+  const attr = other.openingElement.attributes.find((a) => a.type === "JSXAttribute" && jsxName(a.name) === prop);
+  return attr?.value?.type === "JSXExpressionContainer" ? unwrap(attr.value.expression) : null;
+}
+
+/** The expression a prop or an expression child holds, or null for a literal / missing value; `mod`: a missing prop the other branch of a condition reads. */
+function valueExpression(element, target, mod = null) {
   if (typeof target.prop === "string") {
     const attr = element.openingElement.attributes.find((a) => a.type === "JSXAttribute" && jsxName(a.name) === target.prop);
+    const sibling = !attr && mod ? siblingExpression(mod, element, target.prop) : null;
+    if (sibling) return sibling;
     if (!attr) refuse(`<${jsxName(element.openingElement.name)}> has no ${target.prop}`, "not-found");
     if (!attr.value || attr.value.type === "StringLiteral") return null;
     if (attr.value.type !== "JSXExpressionContainer") return null;
@@ -462,7 +481,8 @@ function followAdding(mod, node, path, read) {
     return { found: follow(mod, node, path, read) };
   } catch (error) {
     if (!(error instanceof Refusal) || error.code !== "not-found" || !path.length) throw error;
-    const parent = follow(mod, node, path.slice(0, -1), read);
+    // An item named by a const or a path (`seenBy={[gia, emi]}`, `[people.alex, people.bao]`): where it is written.
+    const parent = writtenAt(follow(mod, node, path.slice(0, -1), read), read);
     const object = unwrap(parent.node);
     const key = path[path.length - 1];
     if (object?.type === "CallExpression") {
@@ -476,6 +496,25 @@ function followAdding(mod, node, path, read) {
     if (object?.type !== "ObjectExpression" || object.properties.some((property) => property.type !== "ObjectProperty")) throw error;
     return { add: { mod: parent.mod, object, key } };
   }
+}
+
+/** Where a value named by a const, an import or a member path is written ({ mod, node }), else the value itself. */
+function writtenAt(at, read) {
+  let current = at;
+  for (let guard = 0; guard < 8; guard++) {
+    const node = unwrap(current.node);
+    const chain = node?.type === "MemberExpression" ? memberPath(node) : null;
+    if (chain?.path.length) { current = follow(current.mod, chain.root, chain.path, read); continue; }
+    if (node?.type !== "Identifier") return current;
+    const binding = bindingOf(current.mod, node.name, node);
+    if (binding?.kind === "const" && binding.init) { current = { mod: current.mod, node: binding.init }; continue; }
+    if (binding?.kind !== "import") return current;
+    const target = importedModule(current.mod, binding.source, read);
+    const value = target ? exportedValue(target, binding.imported) : null;
+    if (!value) return current;
+    current = { mod: target, node: value.node };
+  }
+  return current;
 }
 
 /** The text with `{ key: value }` as the call's new last argument (the factory's spread object). */
@@ -894,6 +933,20 @@ function componentName(mod, fn) {
   return holder?.type === "VariableDeclarator" && holder.id.type === "Identifier" && /^[A-Z]/.test(holder.id.name) ? holder.id.name : null;
 }
 
+/** classify's answer for a value a helper reads from its parameters: kind "param" with `helper`, `prop` / `child` the element's own. */
+function helperOrigin(mod, expr, helper, target) {
+  const text = mod.code.slice(expr.start, expr.end).replace(/\s+/g, " ");
+  return { kind: "param", helper, ...(typeof target.prop === "string" ? { prop: target.prop } : { child: target.child }), source: `${helper}(…): ${text.length > 32 ? `${text.slice(0, 31)}…` : text}` };
+}
+
+/** The name a helper of the file is called by (`const personAvatar = (p) => …`, `function taskRow(t)`), or null (a component, an inline callback). */
+function helperName(mod, fn) {
+  if (fn.type === "FunctionDeclaration") return fn.id && !/^[A-Z]/.test(fn.id.name) ? fn.id.name : null;
+  const path = pathTo(mod.ast.program, fn) ?? [];
+  const holder = path[above(path, path.length - 1)];
+  return holder?.type === "VariableDeclarator" && holder.id.type === "Identifier" && !/^[A-Z]/.test(holder.id.name) ? holder.id.name : null;
+}
+
 /** A row read with more fields after it (op setDataField `path`: `person={people[row.id]}` then `.theme`). */
 function readWith(read, extra) {
   if (!extra.length) return read;
@@ -906,7 +959,7 @@ function readWith(read, extra) {
  * · { kind: "conditional" | "expression", reason } — `source` names the list or object ("crew", "people.ava").
  */
 function classify(mod, element, target) {
-  const expr = valueExpression(element, target);
+  const expr = valueExpression(element, target, mod);
   if (!expr || isLiteralNode(expr)) return { kind: "literal" };
   if (expr.type === "ConditionalExpression" || expr.type === "LogicalExpression") return { kind: "conditional", reason: "The value is chosen by a condition in the code" };
   // A row's value: a .map callback's item, a Table column cell's row, or a lookup keyed by it (`people[row.id].name`).
@@ -922,6 +975,9 @@ function classify(mod, element, target) {
       const text = mod.code.slice(expr.start, expr.end).replace(/\s+/g, " ");
       return { kind: "cell", source: text.length > 40 ? `${text.slice(0, 37)}…` : text, path: rowRead.read.path ?? [], read: rowRead.read, cell };
     }
+    // A helper's argument, read through a lookup (`const person = people[id]` then `person.photo`): the call's data.
+    const helper = helperName(mod, rowRead.fn);
+    if (helper && !componentName(mod, rowRead.fn)) return helperOrigin(mod, expr, helper, target);
   }
   const chain = memberPath(expr);
   if (!chain) return { kind: "expression", reason: "The value is computed in the code" };
@@ -935,6 +991,10 @@ function classify(mod, element, target) {
       const component = binding.position === 0 ? componentName(mod, binding.fn) : null;
       const path = [...binding.path, ...chain.path];
       if (component && path.length) return { kind: "param", component, prop: path[0], path: path.slice(1), source: `${component} ${path.join(".")}` };
+      // A helper's parameter (`const personAvatar = (p) => <Avatar src={p.photo} />`): the call's argument, which the
+      // client names by the call that drew this instance (op setDataField `via`).
+      const helper = componentName(mod, binding.fn) ? null : helperName(mod, binding.fn);
+      if (helper) return helperOrigin(mod, expr, helper, target);
       return { kind: "expression", reason: `${chain.root.name} is a parameter; its value comes from where the component is used` };
     }
     if (binding.position !== 0) return { kind: "expression", reason: `${chain.root.name} is the row's index, not data` };
@@ -1031,8 +1091,505 @@ function describeOrigin(mod, element, target, read) {
     }
   }
   // A prop of a component of this file: edited where that component is used (the client finds the use on the canvas).
+  // A helper's parameter: edited in the data of the call that drew the instance (the client names it: `via`).
+  if (origin.kind === "param" && origin.helper) return { kind: "param", editable: true, source: origin.source, helper: origin.helper, ...(typeof origin.prop === "string" ? { prop: origin.prop } : { child: origin.child }) };
   if (origin.kind === "param") return { kind: "param", editable: true, source: origin.source, component: origin.component, prop: origin.prop, path: origin.path };
   return { ...origin, editable: origin.kind === "literal" };
+}
+
+/* ── through helpers, and inside a prop's value (op setDataField `via` and `path`) ──────────────────────────────── */
+
+/*
+ * A row's picture through a helper (BACKLOG P1 2026-10-10, docs/research/studio-usability-eval-2026-10-10.md §5): the
+ * sidebar example draws each row's avatar with `personAvatar(people[t.assignee])`, a plain function, inside rows that
+ * `taskRow(t)` builds and a RowCard draws. A value inside a helper is its call's argument's, and only the canvas knows
+ * which call drew the instance: the client names it by the annotated elements above the instance that hold it in their
+ * props (`via`, nearest first: `{ loc, prop: "rows", path: [{ index: 3, fields }, "leading"] }` — RowCard's rows[3].leading
+ * is this Avatar), with the plain fields of each object on the way (a row's `id`, `title`), and its own row and fields
+ * when the holder is a .map row. The walk follows that place through the code — props, spreads, lists, `.map` rows,
+ * helper calls — binding each function's parameters to the call's arguments (a `.map` callback's to its row), until it
+ * reaches the element; the value (`p.photo`) is then read with those bindings down to where it is written
+ * (examples/data.ts `people.alex.photo`). A row of a list a filter or sort moved is found by the fields its object passes
+ * on (`id: t.id`). The same walk writes a field inside a prop's value written in place (`items={[{ src }, …]}`,
+ * `items={team.map((p) => ({ src: p.photo }))}`): op setDataField `path` (pictures inside list props, 2026-10-10).
+ *
+ * A place is `{ mod, node, env }`: env maps a function node to its parameters' values — { args } (the call's arguments,
+ * places themselves), { row } (a .map row: { list, index, fields, fn, … }) or { symbol } (the row whose fields are
+ * being matched).
+ */
+
+const NO_ENV = new Map();
+const place = (mod, node, env = NO_ENV) => ({ mod, node, env });
+const isIndexStep = (step) => typeof step === "object" ? Number.isInteger(step?.index) : typeof step === "string" && /^\d+$/.test(step);
+const stepKey = (step) => (typeof step === "object" ? String(step.index) : String(step));
+
+/** Whether `node` reads no parameter, directly or through a local const (its value is the module's data, as `follow` reads it). */
+function envFree(mod, node, env, depth = 0) {
+  if (depth > 6) return false;
+  let free = true;
+  walk(node, (child) => {
+    if (!free) return false;
+    if (child.type === "Identifier") {
+      const binding = bindingOf(mod, child.name, child);
+      // A parameter (bound or not) is never the module's data: the walk binds it, or says it comes from the call.
+      if (binding?.kind === "param") free = false;
+      else if (binding?.kind === "const" && binding.init && !isModuleLevel(mod, binding.declarator) && !envFree(mod, binding.init, env, depth + 1)) free = false;
+    }
+    return true;
+  });
+  return free;
+}
+
+/** The function a callee or a .map callback names: { mod, fn } (inline, a const or function of the file, an import), or null. */
+function functionOf(at, read) {
+  const node = unwrap(at.node);
+  if (node && FUNCTION_TYPES.has(node.type)) return { mod: at.mod, fn: node };
+  if (node?.type !== "Identifier") return null;
+  const binding = bindingOf(at.mod, node.name, node);
+  if (binding?.kind === "function") return { mod: at.mod, fn: binding.fn };
+  if (binding?.kind === "const" && binding.init && FUNCTION_TYPES.has(unwrap(binding.init).type)) return { mod: at.mod, fn: unwrap(binding.init) };
+  if (binding?.kind === "import") {
+    const target = importedModule(at.mod, binding.source, read);
+    const value = target ? exportedValue(target, binding.imported) : null;
+    if (value?.node && FUNCTION_TYPES.has(value.node.type)) return { mod: target, fn: value.node };
+  }
+  return null;
+}
+
+/** The places a call of a function of the file returns, its parameters bound to the call's arguments; null for other calls. */
+function callResults(at, call, read) {
+  const target = functionOf(place(at.mod, call.callee, at.env), read);
+  if (!target) return null;
+  const env = new Map(at.env);
+  env.set(target.fn, { args: call.arguments.map((argument) => (argument.type === "SpreadElement" ? null : place(at.mod, argument, at.env))) });
+  return returnedValues(target.fn).map((value) => place(target.mod, value, env));
+}
+
+/** A JSX element's children as React gets them (whitespace lines dropped, comments out): one child, or a list. */
+function childrenNode(element) {
+  const kids = element.children
+    .filter((child) => !(child.type === "JSXText" && !child.value.trim() && child.value.includes("\n")) && !(child.type === "JSXExpressionContainer" && child.expression.type === "JSXEmptyExpression"))
+    .map((child) => (child.type === "JSXExpressionContainer" ? child.expression : child));
+  if (!kids.length) refuse(`<${jsxName(element.openingElement.name)}> has no children here`, "not-found");
+  return kids.length === 1 ? kids[0] : { type: "ArrayExpression", elements: kids, start: element.start, end: element.end };
+}
+
+/** Two answers of reach that name the same thing (two parses of one file give different nodes: compared by place). */
+function sameResult(a, b) {
+  const at = (mod, node) => (mod && node ? `${mod.file}:${node.start}:${node.end}` : null);
+  if (a.add || b.add) return Boolean(a.add && b.add && at(a.add.mod, a.add.object ?? a.add.call) === at(b.add.mod, b.add.object ?? b.add.call) && a.add.key === b.add.key);
+  if (a.symbol || b.symbol) return a.symbol === b.symbol && a.path?.join("\u0000") === b.path?.join("\u0000");
+  if (a.node || b.node) return at(a.mod, a.node) === at(b.mod, b.node);
+  return a.env === b.env;
+}
+
+/** Tries each place (a condition's branches, a function's returns): the one that resolves, else a refusal (none, or two that differ). */
+function oneOf(places, path, ctx) {
+  const results = [];
+  let reason = null;
+  for (const option of places) {
+    try {
+      results.push(reach(option, path, ctx));
+    } catch (error) {
+      if (!(error instanceof Refusal)) throw error;
+      reason ??= error;
+    }
+  }
+  if (!results.length) throw reason ?? new Refusal("The value is computed in the code, not written as data", "not-found");
+  if (results.every((result) => sameResult(result, results[0]))) return results[0];
+  refuse("The value is chosen by a condition in the code; edit it there");
+  return null;
+}
+
+/**
+ * The value at `path` from place `at` (steps: field names, or list places — a number, or { index, fields } from the
+ * canvas). Returns a place, or — in the walk (`ctx.target`, the element looked for) — { env } once the element is
+ * reached; with `ctx.adding`, { add } where a missing last field is added; { symbol, path } for a read of the row being
+ * matched (rowConstraints). Refusals say why; code "not-found" lets a caller try another way.
+ */
+function reach(at, path, ctx) {
+  if ((ctx.steps = (ctx.steps ?? 0) + 1) > 600) refuse("The data goes through too many steps to follow");
+  const node = unwrap(at.node);
+  if (!node) refuse("The value is empty");
+  // Data the module writes (a const, an import, a literal list): read where it is written, as setDataField always has;
+  // a call there (`team.map(…)`, a helper) is read by the walk below.
+  if (!ctx.target && envFree(at.mod, node, at.env)) {
+    try {
+      return dataAt(at, node, path, ctx);
+    } catch (error) {
+      if (!(error instanceof Refusal) || !error.call) throw error;
+    }
+  }
+  if (!path.length && ctx.target) return { env: produce(at, ctx.target, ctx) };
+  const [step, ...rest] = path;
+  switch (node.type) {
+    case "Identifier": {
+      const binding = bindingOf(at.mod, node.name, node);
+      if (binding?.kind === "param") {
+        const bound = at.env.get(binding.fn);
+        if (!bound) refuse(`${node.name} is a parameter; its value comes from where the function is called`, "not-found");
+        if (bound.symbol) return { symbol: bound.symbol, path: [...binding.path, ...path.map(stepKey)] };
+        if (bound.row) {
+          if (binding.position !== 0) refuse(`${node.name} is the row's index, not data`);
+          return reach(rowItem(bound.row, ctx), [...binding.path, ...path], ctx);
+        }
+        const argument = bound.args[binding.position];
+        if (argument === null) refuse(`${helperName(at.mod, binding.fn) ?? "The function"}(…) gets its arguments from a spread here`);
+        if (!argument) refuse(`${helperName(at.mod, binding.fn) ?? "The function"}(…) is not given ${node.name} here: its default is the function's own code; edit it there`);
+        return reach(argument, [...binding.path, ...path], ctx);
+      }
+      if (binding?.kind === "const" && binding.init) return reach(place(at.mod, binding.init, isModuleLevel(at.mod, binding.declarator) ? NO_ENV : at.env), path, ctx);
+      if (binding?.kind === "state") {
+        const initial = unwrap(binding.init.arguments[0]);
+        if (!initial || FUNCTION_TYPES.has(initial.type)) refuse(`${node.name} starts from code, not data the Studio can edit`);
+        (ctx.states ??= []).push(initial);
+        return reach(place(at.mod, initial, at.env), path, ctx);
+      }
+      if (binding?.kind === "import") {
+        const target = importedModule(at.mod, binding.source, ctx.read);
+        const value = target ? exportedValue(target, binding.imported) : null;
+        if (!value) refuse(`${node.name} comes from ${binding.source}, which the Studio cannot read`);
+        return reach(place(target, value.node), path, ctx);
+      }
+      refuse(`${node.name} is computed in the code, not data the Studio can edit`);
+      break;
+    }
+    case "MemberExpression":
+    case "OptionalMemberExpression": {
+      const key = node.computed ? keyText(place(at.mod, node.property, at.env), ctx) : keyName(node.property);
+      return reach(place(at.mod, node.object, at.env), [key, ...path], ctx);
+    }
+    case "ObjectExpression": {
+      if (!path.length) break;
+      const key = stepKey(step);
+      for (const property of [...node.properties].reverse()) {
+        if (property.type === "ObjectProperty" && !property.computed && keyName(property.key) === key) return reach(place(at.mod, property.value, at.env), rest, ctx);
+        if (property.type === "ObjectMethod" && !property.computed && keyName(property.key) === key) refuse(`"${key}" is a function`);
+        if (property.type !== "SpreadElement") continue;
+        try {
+          return reach(place(at.mod, property.argument, at.env), path, ctx);
+        } catch (error) {
+          if (!(error instanceof Refusal) || error.code !== "not-found") throw error;
+        }
+      }
+      refuse(`The value has no "${key}" field`, "not-found");
+      break;
+    }
+    case "ArrayExpression": {
+      if (!path.length) break;
+      if (!isIndexStep(step)) refuse(`A list has no "${stepKey(step)}" field`, "not-found");
+      const index = Number(stepKey(step));
+      const items = node.elements;
+      if (items.slice(0, index + 1).some((item) => item?.type === "SpreadElement")) refuse("The list has a spread before this item; edit it in the code");
+      if (!items[index]) refuse(`The list has no item ${index + 1}`, "not-found");
+      return reach(place(at.mod, items[index], at.env), rest, ctx);
+    }
+    case "JSXElement": {
+      if (!path.length) break;
+      const key = stepKey(step);
+      if (key === "children") return reach(place(at.mod, childrenNode(node), at.env), rest, ctx);
+      for (const attr of [...node.openingElement.attributes].reverse()) {
+        if (attr.type === "JSXAttribute" && jsxName(attr.name) === key) {
+          if (!attr.value) refuse(`${key} is written as a fixed value`, "not-found");
+          return reach(place(at.mod, attr.value.type === "JSXExpressionContainer" ? attr.value.expression : attr.value, at.env), rest, ctx);
+        }
+        if (attr.type !== "JSXSpreadAttribute") continue;
+        try {
+          return reach(place(at.mod, attr.argument, at.env), path, ctx);
+        } catch (error) {
+          if (!(error instanceof Refusal) || error.code !== "not-found") throw error;
+        }
+      }
+      refuse(`<${jsxName(node.openingElement.name)}> has no ${key} here`, "not-found");
+      break;
+    }
+    case "CallExpression":
+    case "OptionalCallExpression": {
+      const callee = unwrap(node.callee);
+      // A .map row: the callback's result for that place, its parameter bound to the row.
+      if (path.length && isIndexStep(step) && (callee?.type === "MemberExpression" || callee?.type === "OptionalMemberExpression") && !callee.computed && MAP_METHODS.has(keyName(callee.property))) {
+        const callback = functionOf(place(at.mod, node.arguments[0], at.env), ctx.read);
+        if (!callback) refuse("The list's rows are drawn by code the Studio cannot read");
+        const row = { list: place(at.mod, callee.object, at.env), index: Number(stepKey(step)), fields: typeof step === "object" ? step.fields ?? null : null, fn: callback.fn, mod: callback.mod, env: at.env };
+        const env = new Map(at.env);
+        env.set(callback.fn, { row });
+        return oneOf(returnedValues(callback.fn).map((value) => place(callback.mod, value, env)), rest, ctx);
+      }
+      const results = callResults(at, node, ctx.read);
+      if (results) return oneOf(results, path, ctx);
+      refuse("The value is computed by a call in the code; edit it there");
+      break;
+    }
+    case "ConditionalExpression":
+      return oneOf([node.consequent, node.alternate].map((branch) => place(at.mod, branch, at.env)), path, ctx);
+    case "LogicalExpression":
+      return oneOf([node.right, node.left].map((branch) => place(at.mod, branch, at.env)), path, ctx);
+    default:
+  }
+  if (!path.length) return at;
+  refuse("The value is computed in the code, not written as data");
+  return null;
+}
+
+/** Data written in the module, read (or, with `ctx.adding`, given its missing last field) by `follow`: a place or { add }. */
+function dataAt(at, node, path, ctx) {
+  const keys = path.map(stepKey);
+  const target = ctx.adding ? followAdding(at.mod, node, keys, ctx.read) : { found: follow(at.mod, node, keys, ctx.read) };
+  const root = node.type === "Identifier" ? node.name : null;
+  ctx.source = root ? [root, ...keys].join(".") : keys.join(".");
+  if (target.add) return { add: target.add };
+  return place(target.found.mod, target.found.node);
+}
+
+/** The text of a computed key (`people[t.assignee]`: the row's assignee), followed through bindings and consts. */
+function keyText(at, ctx) {
+  const end = reach(at, [], { read: ctx.read, steps: ctx.steps });
+  if (end.symbol) refuse("The key is the row's own field", "not-found");
+  let node = unwrap(end.node);
+  let mod = end.mod;
+  for (let guard = 0; node?.type === "Identifier" && guard < 6; guard++) {
+    const binding = bindingOf(mod, node.name, node);
+    if (binding?.kind !== "const" || !binding.init) break;
+    node = unwrap(binding.init);
+  }
+  const text = literalText(node);
+  if (text === null) refuse("The Studio cannot tell which entry the data reads: its key is computed in the code");
+  return text;
+}
+
+/** Whether `inner` sits inside `outer` with no function between them (the same call draws both). */
+function drawnWithin(mod, outer, inner) {
+  if (inner.start < outer.start || inner.end > outer.end) return false;
+  const path = pathTo(mod.ast.program, inner) ?? [];
+  const from = path.indexOf(outer);
+  return from >= 0 && !path.slice(from + 1).some((node) => FUNCTION_TYPES.has(node.type));
+}
+
+/** The bindings the element `target` is drawn with when the place is it, holds it (no function between) or returns it. */
+function produce(at, target, ctx, depth = 0) {
+  if (depth > 16) refuse("The element is drawn through too many steps to follow");
+  const node = unwrap(at.node);
+  if (!node || at.mod.file !== ctx.targetFile) refuse("The element is not drawn here", "not-found");
+  if (node === target || ((node.type === "JSXElement" || node.type === "JSXFragment") && drawnWithin(at.mod, node, target))) return at.env;
+  // The one place that draws it: a condition whose branches both draw it (`wide ? personAvatar(a) : personAvatar(b)`)
+  // cannot tell which data this instance shows.
+  const first = (places) => {
+    let reason = null;
+    const found = [];
+    for (const option of places) {
+      try {
+        found.push(produce(option, target, ctx, depth + 1));
+      } catch (error) {
+        if (!(error instanceof Refusal)) throw error;
+        reason ??= error;
+      }
+    }
+    if (found.length > 1) refuse("The layer is drawn by either side of a condition in the code, so the Studio cannot tell which data it shows; edit it in the code");
+    if (found.length) return found[0];
+    throw reason ?? new Refusal("The element is not drawn here", "not-found");
+  };
+  switch (node.type) {
+    case "ConditionalExpression":
+      return first([place(at.mod, node.consequent, at.env), place(at.mod, node.alternate, at.env)]);
+    case "LogicalExpression":
+      return first([place(at.mod, node.right, at.env), place(at.mod, node.left, at.env)]);
+    case "Identifier": {
+      const binding = bindingOf(at.mod, node.name, node);
+      if (binding?.kind === "param" && at.env.get(binding.fn)?.args && !binding.path.length) {
+        const argument = at.env.get(binding.fn).args[binding.position];
+        if (argument) return produce(argument, target, ctx, depth + 1);
+      }
+      if (binding?.kind === "const" && binding.init) return produce(place(at.mod, binding.init, isModuleLevel(at.mod, binding.declarator) ? NO_ENV : at.env), target, ctx, depth + 1);
+      break;
+    }
+    case "CallExpression": {
+      const results = callResults(at, node, ctx.read);
+      if (results) return first(results);
+      break;
+    }
+    default:
+  }
+  refuse("The element is not drawn here", "not-found");
+  return null;
+}
+
+/**
+ * The item of a `.map` row: by its place when the list is written as is (a const, an import, `.slice(n)`), else — a
+ * filter or sort moved it — the one item whose written fields equal what the row's object passes on (rowConstraints).
+ */
+function rowItem(row, ctx) {
+  if (row.item) return row.item;
+  let list = row.list;
+  let offset = 0;
+  const node = unwrap(list.node);
+  if (node?.type === "CallExpression" && node.callee.type === "MemberExpression" && keyName(node.callee.property) === "slice" && (!node.arguments[0] || node.arguments[0].type === "NumericLiteral")) {
+    offset = node.arguments[0]?.value ?? 0;
+    list = place(list.mod, node.callee.object, list.env);
+  }
+  let reason = null;
+  if (Number.isInteger(row.index)) {
+    try {
+      const item = reach(list, [String(row.index + offset)], { read: ctx.read, steps: ctx.steps, states: ctx.states });
+      if (item.node) return (row.item = place(item.mod, item.node, item.env));
+    } catch (error) {
+      if (!(error instanceof Refusal)) throw error;
+      reason = error;
+    }
+  }
+  const constraints = rowConstraints(row, ctx);
+  const lists = listsRead(row.list.mod, row.list.node, ctx.read);
+  const found = constraints.length ? itemByPaths(lists, constraints, ctx.read) : null;
+  if (found) return (row.item = place(found.list.mod, found.item));
+  const call = listCall(row.list);
+  refuse(call
+    ? `The rows go through ${call}(…), and the Studio cannot tell which row of the data this is; edit the data in the code`
+    : (reason?.message ?? "The Studio cannot tell which row of the data this is; edit the data in the code"));
+  return null;
+}
+
+/** The call a list is computed by (`tasks.filter(…)`, through the consts that hold it), or null. */
+function listCall(list) {
+  let node = unwrap(list.node);
+  for (let guard = 0; node?.type === "Identifier" && guard < 6; guard++) {
+    const binding = bindingOf(list.mod, node.name, node);
+    if (binding?.kind !== "const" || !binding.init) return null;
+    node = unwrap(binding.init);
+  }
+  if (node?.type !== "CallExpression" && node?.type !== "OptionalCallExpression") return null;
+  const callee = unwrap(node.callee);
+  return callee?.type === "MemberExpression" ? keyName(callee.property) : keyName(callee);
+}
+
+/**
+ * What the canvas read of a row (`fields`: the plain fields of the object it became, `key`) says about the row's item:
+ * [{ path, value }] for each field the row's object copies from it (`id: t.id`, `title={row.title}`, `key={row.id}`).
+ */
+function rowConstraints(row, ctx) {
+  if (!row.fields || typeof row.fields !== "object") return [];
+  const env = new Map(row.env);
+  env.set(row.fn, { symbol: row });
+  const shapes = row.shape ? [place(row.shape.mod, row.shape.node, env)] : returnedValues(row.fn).map((value) => place(row.mod, value, env));
+  const out = [];
+  for (const [key, value] of Object.entries(row.fields).slice(0, 24)) {
+    if (!["string", "number", "boolean"].includes(typeof value) || !/^[\w$-]+$/.test(key)) continue;
+    for (const shape of shapes) {
+      try {
+        const read = reach(shape, [key], { read: ctx.read, steps: ctx.steps });
+        if (read.symbol === row) { out.push({ path: read.path, value, key }); break; }
+      } catch (error) {
+        if (!(error instanceof Refusal)) throw error;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * The one item of `lists` whose fields written as literals equal the constraints: a key (`id`, `key`) that matches, or two
+ * fields, and none that differ. Null when no item, or more than one, fits.
+ */
+function itemByPaths(lists, constraints, read) {
+  let best = null;
+  let tie = false;
+  for (const list of lists) {
+    for (const item of list.node.elements) {
+      if (!item || item.type === "SpreadElement") continue;
+      let same = 0;
+      let keyed = false;
+      let differs = false;
+      for (const { path, value } of constraints) {
+        let node;
+        try {
+          node = unwrap(follow(list.mod, item, path, read).node);
+        } catch (error) {
+          if (error instanceof Refusal) continue;
+          throw error;
+        }
+        if (!isLiteralNode(node)) continue;
+        const written = node.type === "BooleanLiteral" ? node.value : literalText(node);
+        if (written !== (typeof value === "boolean" ? value : String(value))) { differs = true; break; }
+        same += 1;
+        if (["id", "key"].includes(path[path.length - 1])) keyed = true;
+      }
+      if (differs || !(keyed || same >= 2)) continue;
+      const score = same + (keyed ? 10 : 0);
+      if (!best || score > best.score) { best = { list, item, score }; tie = false; } else if (score === best.score && item !== best.item) tie = true;
+    }
+  }
+  if (tie) refuse("Several rows of the data match this row; edit it in the code");
+  return best ? { list: best.list, item: best.item } : null;
+}
+
+/** The bindings an element is drawn with when a `.map` callback draws it (its row by place `row`, or by `fields`). */
+function rowEnv(mod, element, row, fields, base = NO_ENV) {
+  const path = pathTo(mod.ast.program, element) ?? [];
+  for (let index = path.length - 1; index >= 1; index -= 1) {
+    const fn = path[index];
+    if (!FUNCTION_TYPES.has(fn.type)) continue;
+    const call = path[index - 1];
+    const callee = call?.type === "CallExpression" || call?.type === "OptionalCallExpression" ? unwrap(call.callee) : null;
+    if (call.arguments?.[0] !== fn || callee?.type !== "MemberExpression" || callee.computed || !MAP_METHODS.has(keyName(callee.property))) return base;
+    const env = new Map(base);
+    env.set(fn, { row: { list: place(mod, callee.object, base), index: Number.isInteger(row) ? row : null, fields: fields && typeof fields === "object" ? fields : null, fn, mod, env: base, shape: place(mod, element) } });
+    return env;
+  }
+  return base;
+}
+
+/**
+ * Op setDataField `via` (a value a helper builds from its argument): the first holder whose place leads to the element,
+ * then the value read with the bindings the walk made. { found } or { add }, `source`, `state`; a refusal when no holder
+ * leads there (the nearest reason).
+ */
+function throughHolders(mod, element, expr, extra, op, read) {
+  if (!Array.isArray(op.via) || !op.via.length) refuse("This value is drawn by a helper for each place it is used; select the layer on the canvas so the Studio knows which one", "invalid");
+  const via = op.via.slice(0, 12).map((holder) => (holder && typeof holder.loc === "string" && typeof holder.prop === "string" && Array.isArray(holder.path ?? []) ? holder : null));
+  // The bindings holder k's own element is drawn with: its .map row, and — when it sits in a helper (`taskList(label,
+  // list)` returns `<PhoneList rows={list.map(…)} />`) — the call a farther holder draws it from (`holds: k`).
+  const envOf = (k, depth) => {
+    const holder = via[k];
+    const at = locate(mod, holder.loc);
+    let base = NO_ENV;
+    if (depth < 6) {
+      for (let m = k + 1; m < via.length; m += 1) {
+        if (via[m]?.holds !== k) continue;
+        try {
+          base = walkFrom(m, at, depth + 1);
+          break;
+        } catch (error) {
+          if (!(error instanceof Refusal)) throw error;
+        }
+      }
+    }
+    return { at, env: rowEnv(mod, at, holder.row, holder.fields, base) };
+  };
+  const walkFrom = (k, target, depth) => {
+    const { at, env } = envOf(k, depth);
+    const steps = [via[k].prop, ...(via[k].path ?? [])].map((step) => (typeof step === "object" && step ? { index: Number(step.index), fields: step.fields } : String(step)));
+    return reach(place(mod, at, env), steps, { read, target, targetFile: mod.file }).env;
+  };
+  let reason = null;
+  for (let k = 0; k < via.length; k += 1) {
+    if (!via[k] || (Number.isInteger(via[k].holds) && via[k].holds >= 0)) continue;
+    try {
+      return valueAt(place(mod, expr, walkFrom(k, element, 0)), extra, read);
+    } catch (error) {
+      if (!(error instanceof Refusal)) throw error;
+      // The nearest holder's reason, unless a farther one reached the element (its reason is about the value).
+      if (!reason || error.code !== "not-found") reason = error;
+    }
+  }
+  throw reason ?? new Refusal("The Studio cannot tell which call drew this layer; select it on the canvas", "not-found");
+}
+
+/** The value at `path` from a place, where it is written: { found, source, state } or { add, source, state }. */
+function valueAt(at, path, read) {
+  const ctx = { read, adding: true, states: [] };
+  const end = reach(at, path, ctx);
+  if (end.symbol || (!end.add && !end.node)) refuse("The value is computed in the code, not written as data");
+  const inState = (node, mod) => ctx.states.some((list) => mod.file === at.mod.file && node.start >= list.start && node.end <= list.end);
+  if (end.add) return { add: end.add, source: ctx.source ?? "the data", state: inState(end.add.object ?? end.add.call, end.add.mod) };
+  return { found: { mod: end.mod, node: end.node }, source: ctx.source ?? "the data", state: inState(end.node, end.mod) };
 }
 
 /* ── the edit ────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -1373,10 +1930,22 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
       if (extra.some((key) => typeof key !== "string" || !key)) refuse("`path` names fields", "invalid");
       if (origin.read) origin.read = readWith(origin.read, extra);
       if (origin.path && origin.kind !== "row" && origin.kind !== "cell") origin.path = [...origin.path, ...extra];
+      // A field further inside a list the data builds with a call (`seenBy: crew.map(…)`): the walk reads the call.
+      const inside = (error) => {
+        if (!(error instanceof Refusal) || !error.call || !extra.length) throw error;
+        const result = valueAt(place(mod, valueExpression(element, target), rowEnv(mod, element, op.row, op.rowFields)), extra, read);
+        return result;
+      };
       if (origin.kind === "row") {
         if (!Number.isInteger(op.row) || op.row < 0) refuse("setDataField on a .map row needs the row index (`row`)", "invalid");
         const item = follow(mod, origin.array, [String(op.row + origin.offset)], read);
-        found = readFromItem(item.mod, item.node, origin.read, mod, read);
+        try {
+          found = readFromItem(item.mod, item.node, origin.read, mod, read);
+        } catch (error) {
+          const result = inside(error);
+          if (result.add) adding = result.add;
+          else found = result.found;
+        }
         source = origin.read.root ? `${origin.source}[${op.row + origin.offset}] → ${[origin.read.root.name, ...origin.read.segments.map((segment) => (typeof segment === "string" ? segment : "[…]"))].join(".").replaceAll(".[", "[")}`
           : `${origin.source}[${op.row + origin.offset}]${origin.path.map((key) => `.${key}`).join("")}`;
       } else if (origin.kind === "cell") {
@@ -1389,16 +1958,36 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
         source = `${origin.source} (${rowName()})`;
         state = row.list.state;
       } else if (origin.kind === "data") {
-        const target = followAdding(mod, origin.root, origin.path, read);
+        let target;
+        try {
+          target = followAdding(mod, origin.root, origin.path, read);
+        } catch (error) {
+          target = inside(error);
+        }
         if (target.add) adding = target.add;
         else found = target.found;
         source = origin.source;
+      } else if (origin.kind === "param" && origin.helper) {
+        // A helper's argument: through the call that drew this instance (`via`, read on the canvas).
+        const result = throughHolders(mod, element, valueExpression(element, target, mod), extra, op, read);
+        if (result.add) adding = result.add;
+        else found = result.found;
+        source = `${origin.helper}(…) → ${result.source}`;
+        state = result.state;
       } else if (origin.kind === "param") {
         refuse(`${origin.component}'s ${origin.prop} comes from where <${origin.component}> is used; edit it there`);
       } else if (origin.kind === "state") {
         refuse(`${origin.name} is state: edit its initial value (the useState initializer) instead`);
       } else if (origin.kind === "literal") {
         refuse("The value is written right here; edit the prop itself", "invalid");
+      } else if (extra.length && (origin.kind === "expression" || origin.kind === "conditional")) {
+        // A field inside the prop's value (an AvatarStack's items[2].src): written in place (`items={[{ src }, …]}`), or
+        // where the list's rows read it (`items={team.map((p) => ({ src: p.photo }))}` → team[2].photo).
+        const result = valueAt(place(mod, valueExpression(element, target), rowEnv(mod, element, op.row, op.rowFields)), extra, read);
+        if (result.add) adding = result.add;
+        else found = result.found;
+        source = `${typeof op.prop === "string" ? op.prop : "children"}${extra.map((key) => (/^\d+$/.test(key) ? `[${key}]` : `.${key}`)).join("")} → ${result.source}`;
+        state = result.state;
       } else {
         refuse(origin.reason ?? "The value is computed in the code");
       }
