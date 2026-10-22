@@ -1,5 +1,20 @@
 # Session log 2026-10-22
 
+## Session B · Corner smoothing (tier M; parity ❌, user decisions in session B: CSS corner-shape)
+
+Branch zen/feat/studio-corner-smoothing-20261022. Spec card: docs/research/studio-fill-gradient-smoothing-eyedropper-spec-2026-10-22.md
+(gradient and Pick color follow, one PR each).
+- Library: `cornerSmoothing` (%) in _shared/corners.ts (CornerSmoothingProps, cornerShapeValue: superellipse(1 + s/60),
+  60 % = superellipse(2), the squircle), on Box / Stack / Grid / rectangle Shape through `data-corner-smoothing` and
+  `--zen-corner-shape` (layout.css, shape.css: read next to the attribute only). Docs/api, guidelines, ai-ui rebuilt.
+- Studio: Appearance › Corner smoothing (ScrubNumberField, %) under the independent corners, opening them while set; 0
+  removes the prop. In radiusPropNames so Properties does not list it twice.
+- Figma: push frameLook / rectangle `cornerSmoothing` 0–1; the read's frames and shapes, pulled back in %; native paste
+  (C's figma-native.mjs, targeted, C told) the kiwi `cornerSmoothing`; plugin ef17610 sets it (0 when absent). Live:
+  Figma keeps 0.6 as 0.6000000238 (float32), pulled back as 60.
+- Checks: push selftest +3 (363), pull 114, native +2 (133), compile 77, studio:selftest, tsc, usage, ai-ui, style,
+  guidelines, compile-api, plugin npm test. E2E FW-180 (needs the gate slot).
+
 ## Select matching layers ⌥⌘A + Select all with same › (Session A, branch `zen/feat/studio-select-matching-20261022`)
 
 The user's ask, relayed by the progress session: "điều phối cho session nhận scope chưa ai nhận đi". ⌥⌘A was one of
@@ -100,3 +115,11 @@ E2E steps ran 3163–3377 s against that cap: the limit was sent to `npm`, not t
   shows, `SlotChips` drew the read-only people/place values as Chips with no handler (a `<button>` that does nothing;
   seen in the appshell and card-themes gates too). The chip guideline says a read-only label is a Tag: they are Tags
   now. Scoped gate `--only=ai-ui`: PASS, behaviour 0 warnings. Its BACKLOG P3 line (from #210) is removed.
+
+## AppShell session · BACKLOG: two items already done (tier XS, docs only)
+
+- "P3 · Card Spacing=XSmall follow-ups" is done: native-pack.json on main has the 40 Spacing=XSmall Card variants,
+  from Bug's card-themes re-capture (#210).
+- "P3 · Designer question: the mobile playground's 'Sort by' Action sheet marks the current sort" is answered: #213
+  (06df41f4) turned the Action example into commands and made the rule strict, and usage:check shows 0 warnings.
+
