@@ -7,6 +7,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P3 · A Vite "Maximum call stack size exceeded" rejection in `studio:e2e --only=figma` (2026-10-22, session B):** the
+  run ends 171/171 but logs "Vite errors during the run (2, 1 distinct): [Unhandled rejection] RangeError: Maximum call
+  stack size exceeded"; seen on 10-21 too (another branch), so not from the header change. Next: run the figma group
+  with the dev server's stack traces kept (or row by row) to find the row and the recursion. Pointer:
+  `tools/studio/e2e/run.mjs` "Vite errors during the run".
 - **P2 · Workflow steps still drawn as themed Badges (2026-10-21, BadgeStatus in code; multi-file migration):** other
   platform pages and the HR templates show a task's step as `Badge theme={taskStatusTheme[…]}`; the new rule
   `badge/workflow-status-uses-badge-status` flags new ones only. Move them to `<BadgeStatus>` (and Figma instances to
@@ -43,6 +48,15 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
+- **P3 · Card Spacing=XSmall follow-ups (2026-10-20, AppShell session):**
+  - The 40 XSmall variants and `Card-padding-xsmall` are in Figma, code and the Studio props.
+  - Still to do: `docs/figma-contracts/native-pack.json` has no XSmall Card. It needs a probe-frame rebuild
+    (`node tools/studio/native-pack.mjs --help`), so a direct paste of an xs Card notes "no variant"; the plugin import
+    works.
+- **P3 · Card contract predates Figma's Sub-Action wrapper (2026-10-21, Session B):** since 2026-10-18 Figma's Card draws
+  Sub-Action › Wrapper › Button/Icon-Flat, but `docs/figma-contracts/card.json` still has Sub-Action as the instance, so
+  `nested-paths.mjs --check` passes on the old shape. The push, pull and plugin (833ea0e) handle the wrapper already.
+  Pointer: re-capture the Card set with `tools/figma-contract/mcp-capture` (about 1 MB, several calls).
 - **P3 · AppShellHeader `theme` / `density` to and from Figma (2026-10-21, Session B; waits for the user):** since #179 the
   header takes `theme="border-divider"` and `density="small"` (Figma Header/AppShell 16783:71068 Theme × Density), but
   the push still draws an AppShell's header as Dashboard header rows in the master layout, so either look arrives in

@@ -20,6 +20,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio's Design panel has no Content section, as Figma's: an instance's words are its Text property in its
   Properties block, a text layer's a Text row first in Typography; a component without Figma properties shows one
   Properties block in its prop order instead of Appearance / Content / Icon / State / Actions groups (2026-10-22).
+- Zen Studio ↔ Figma: AppShellHeader arrives as Figma's Header/AppShell with its `theme` and `density` (Border & Divider
+  is Small-only in Figma: a Medium one goes as Small, with a note), on its own or swapped into the master layout, its
+  leading · center · actions in Top-Elements, `main` in Main-Element and `sections` in Sections (emptied when there are
+  none), and reads back, also from a placed master. The collapse toggle is the header's or the Side-Bar's Collapse Button
+  (`collapse="sidebar"`); a short page's main column starts at the top (plugin `studio-import` bf300bc, `edits.counter`);
+  a PageHeader's childTitle and description show their Header-Text layers; the read keeps a nested variant change (a
+  first crumb at Level Master).
 - Zen Studio: the Design tab shows only Figma's sections; what only code reads (an HTML element, Scroll, a button's
   type, ids, aria-* and the attributes no API lists) moved from the closed "Code properties" section to the Code tab's
   Properties, above the layer's code, edited there the same way (2026-10-21, parity plan §3a; E2E FW-165…169).
@@ -52,6 +59,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   E4, E7 keep their rhythm as one section each. The Figma audit no longer reads a heading over its own paragraph as a
   lone title, a floating bar's own scrim as a painted gradient, or a Large Indicator Tab-Bar's even bleed out of a
   header row as an overflow.
+- Zen Studio ↔ Figma: a Card's (and MetricCard's) `subAction` is Figma's ⋮ Sub-Action with its icon (the button's
+  Leading-Icon-Src), and Figma's Sub-Action shown reads back as `subAction` with the built-in "More actions" label (Figma
+  has no words for it; a different label is noted on push). Since Figma wraps the button in a Sub-Action › Wrapper
+  frame, the plugin's nested paths go through wrapper frames (`studio-import` 833ea0e) and the pull maps the read's
+  "Button" back to "Sub-Action". A Card or ListBox `width` goes to Figma as its Fixed width and comes back.
+- Zen Studio: Figma's Primitives/Dashboard/Header no longer has Child-Heading (Header-Text is a slot whose Child and
+  SubHeading show by their own visibility), so the Studio panel and Main component drop its toggle; the props read and
+  the dashboard-header contract follow the live file.
 - Zen Studio places and round-trips `BadgeStatus` and `PropertyField` (2026-10-21): Assets items (Badge status, Property
   field, Task properties), Figma-named properties (Badge-Status Status/Size; Property-Field Label, Icon, Action), and the
   Figma push/pull — a row's cell is the nested Property-Value's Type, State and content (figma-property.mjs); contract,

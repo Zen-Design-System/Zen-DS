@@ -164,14 +164,15 @@ export const FIGMA_PROPS = {
       Actions: { toggle: "actions", on: "slot", when: [{ prop: "type", oneOf: ["control-bar", "main"] }] },
       "Nav-Center-Block": { toggle: "center", on: "slot", when: [{ prop: "type", oneOf: ["navigation"] }] },
       "Nav-Trailing-Block": { toggle: "trailing", on: "slot", when: [{ prop: "type", oneOf: ["navigation", "main"] }] },
-      "Child-Heading": { toggle: "childTitle", on: "2026", when: [{ prop: "type", oneOf: ["main"] }] },
       "Leading-Slots": skip("content slot (Slots section)"),
       "Center-Slots": skip("content slot (Slots section)"),
       "Trailing-Slots": skip("content slot (Slots section)"),
       "Control-Slots": skip("content slot (Slots section)"),
       "Action-Slots": skip("content slot (Slots section)"),
       "Custome-Elements": skip("the row's children (Slots section)"),
-      "Header-Text": skip("the title text (title prop)"),
+      // Type=Main's title, Child and SubHeading: Header-Text is a slot whose layers show by their own eyes (Figma dropped
+      // the Child-Heading switch, read 2026-10-21); figma-push and figma-pull write and read them as layers.
+      "Header-Text": skip("the title text (title, childTitle and subheading)"),
     },
   },
   // Figma ◇ Master-Layout Header/AppShell (16783:71068, read 2026-10-21; user: "Update Header/AppShell component từ Figma
