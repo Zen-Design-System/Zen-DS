@@ -13,8 +13,9 @@ import { updateProject } from "./projectStore";
 /*
  * Figma's Libraries (⌥⌘O, Assets' book button, ⌘K › Libraries; spec docs/research/studio-libraries-spec-2026-10-22.md)
  * for the open project, Studio's Figma file: a switch per library its pages use. Zen off takes Zen's components and
- * icons out of Assets and Quick insert (what the pages hold stays); the project's theme off draws its pages in Zen's
- * shipped theme. Saved in project.json at once; Drafts use Zen only. An Admin changes them.
+ * icons out of Assets and Quick insert (what the pages hold stays); the project's components off takes the other pages'
+ * mains out of Assets (their instances keep following them); the project's theme off draws its pages in Zen's shipped
+ * theme. Saved in project.json at once; Drafts use Zen only. An Admin changes them.
  */
 
 export function LibrariesDialog() {
@@ -46,6 +47,15 @@ export function LibrariesDialog() {
         disabled={off}
         onCheckedChange={(on) => set("zen", on)}
       />
+      {project ? (
+        <Toggle
+          label={`${project.name} components`}
+          caption="Components made on the project's pages (⌥⌘K), in Assets on every page"
+          checked={libraries.components}
+          disabled={off}
+          onCheckedChange={(on) => set("components", on)}
+        />
+      ) : null}
       {project ? (
         <Toggle
           label={`${project.name} theme`}
