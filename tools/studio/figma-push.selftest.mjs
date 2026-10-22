@@ -2320,6 +2320,8 @@ export default function Page() {
   const { frame } = push(page);
   const [squircle, box, rect, round] = frame.children;
   check("cornerSmoothing: Figma's 0–1 on frames and a rectangle; none where the page gives none", [squircle.cornerSmoothing, box.cornerSmoothing, rect.cornerSmoothing, round.cornerSmoothing ?? 0], [0.6, 1, 0.6, 0]);
+  // CSS: a set width wins over a column's stretch, so the shape keeps it (a 200-wide rectangle pasted 1392 wide, 2026-10-22).
+  check("a rectangle of a set width keeps it in a stretching column", [rect.fixedWidth, Boolean(rect.fillW), Boolean(rect.fillH)], [80, false, false]);
   const back = pageFromFigma(frame, { mapping }).text;
   check("round trip: a frame's cornerSmoothing comes back in %", [back.includes('radius="lg" cornerSmoothing={60}'), back.includes("cornerSmoothing={100}")], [true, true]);
   // The read's shapes: a rectangle's smoothing under `shape`.
