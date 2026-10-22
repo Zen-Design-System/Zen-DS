@@ -63,7 +63,7 @@ export function CommentPopover({ page, thread, draft, style }: { page: string; t
   const close = () => commentUi.set({ open: null, draft: null });
   const say = (message: string) => announceEditStatus({ kind: "unchanged", message, at: Date.now() });
 
-  const post = async () => {
+  const post = () => {
     const body = text.trim();
     if (!body) return;
     let author = me;
@@ -74,18 +74,19 @@ export function CommentPopover({ page, thread, draft, style }: { page: string; t
     }
     const comment = { id: newCommentId("c"), author, text: body, at: Date.now() };
     if (thread) {
-      if (await changeComments(page, (doc) => reply(doc, thread.id, comment))) setText("");
+      if (changeComments(page, (doc) => reply(doc, thread.id, comment))) setText("");
       return;
     }
     if (!draft) return;
     const id = newCommentId("t");
-    if (await changeComments(page, (doc) => addThread(doc, { id, anchor: draft, comment }))) {
+    // The thread opens at once (its popover takes the next words as a reply), while it is written in the background.
+    if (changeComments(page, (doc) => addThread(doc, { id, anchor: draft, comment }))) {
       setText("");
       commentUi.set({ open: id, draft: null });
     }
   };
   const onKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void post(); }
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); post(); }
   };
   const mine = (comment: PageComment) => Boolean(me && comment.author.name === me.name);
 
@@ -102,13 +103,13 @@ export function CommentPopover({ page, thread, draft, style }: { page: string; t
               appearance="flat"
               level="secondary"
               size="xs"
-              onClick={() => void changeComments(page, (doc) => resolve(doc, thread.id, !thread.resolved, Date.now())).then(() => { if (!thread.resolved) close(); })}
+              onClick={() => { if (changeComments(page, (doc) => resolve(doc, thread.id, !thread.resolved, Date.now())) && !thread.resolved) close(); }}
             />
             {admin || mine(thread.comments[0]) ? (
               <Menu
                 align="end"
                 trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="More thread actions" appearance="flat" level="secondary" size="xs" />}
-                items={[{ id: "delete-thread", label: "Delete thread", icon: "icon-trash-line", danger: true, onSelect: () => { void changeComments(page, (doc) => deleteThread(doc, thread.id, Date.now())).then(close); } }]}
+                items={[{ id: "delete-thread", label: "Delete thread", icon: "icon-trash-line", danger: true, onSelect: () => { if (changeComments(page, (doc) => deleteThread(doc, thread.id, Date.now()))) close(); } }]}
               />
             ) : null}
             <IconButton icon="icon-x-line" aria-label="Close" appearance="flat" level="secondary" size="xs" onClick={close} />
@@ -118,14 +119,14 @@ export function CommentPopover({ page, thread, draft, style }: { page: string; t
       {thread ? (
         <ul className="studio-comment-popover__list">
           {shownComments(thread).map((comment) => (
-            <CommentRow key={comment.id} comment={comment} canDelete={admin || mine(comment)} onDelete={() => void changeComments(page, (doc) => deleteComment(doc, thread.id, comment.id, Date.now()))} />
+            <CommentRow key={comment.id} comment={comment} canDelete={admin || mine(comment)} onDelete={() => { changeComments(page, (doc) => deleteComment(doc, thread.id, comment.id, Date.now())); }} />
           ))}
         </ul>
       ) : null}
       {me ? null : <InputField size="sm" label="Your name" value={name} maxLength={60} onValueChange={setName} placeholder="Shown with your comments" />}
       <div className="studio-comment-popover__compose">
         <TextAreaField ref={field} aria-label={thread ? "Reply" : "Add a comment"} placeholder={thread ? "Reply" : "Add a comment"} rows={2} value={text} maxLength={4000} onValueChange={setText} onKeyDown={onKey} />
-        <Button level="primary" size="sm" style={{ justifySelf: "end" }} disabled={!text.trim()} onClick={() => void post()}>{thread ? "Reply" : "Post"}</Button>
+        <Button level="primary" size="sm" style={{ justifySelf: "end" }} disabled={!text.trim()} onClick={() => post()}>{thread ? "Reply" : "Post"}</Button>
       </div>
     </div>
   );

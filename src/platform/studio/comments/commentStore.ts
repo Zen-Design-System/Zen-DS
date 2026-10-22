@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { emptyComments, mergeComments, validateComments, type CommentAuthor, type PageComments } from "../../../../tools/studio/page-comments.mjs";
+import { announceEditStatus } from "../api";
 import { activeMirror, run, SETTINGS } from "../builder/store/pageStore";
 
 /*
@@ -64,14 +65,23 @@ export async function loadComments(page: string): Promise<PageComments> {
   return joined;
 }
 
-/** Changes the page's comments (`change` gets the current ones, returns the next): here, the folder and the other tabs. */
-export async function changeComments(page: string, change: (doc: PageComments) => PageComments): Promise<boolean> {
+/**
+ * Changes the page's comments (`change` gets the current ones, returns the next): shown at once (false: refused), then
+ * written here and to the folder in the background, and the other tabs told once it is.
+ */
+export function changeComments(page: string, change: (doc: PageComments) => PageComments): boolean {
   const next = change(cache.get(page) ?? emptyComments());
   if (!valid(next)) return false;
   cache.set(page, next);
   notify();
-  channel?.postMessage({ page });
-  await queue(page, () => store(page, next, true));
+  void queue(page, async () => {
+    try {
+      await store(page, next, true);
+      channel?.postMessage({ page });
+    } catch (error) {
+      announceEditStatus({ kind: "error", message: `Comment not saved: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() });
+    }
+  });
   return true;
 }
 
