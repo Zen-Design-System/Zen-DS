@@ -69,6 +69,22 @@ the four ❌ keys of the walk's §2a.
   selftest, the push resolving the wrong page, the phone library, the detach self-link, a missing-component placeholder,
   the cross-page cycle in the push, and gone-main messages.
 
+## AppShell session · Bottom Sheet playground's Action example (tier S, branch `zen/fix/bottom-sheet-action-demo-20261022`)
+
+Giám sát passed on a gate finding. Main a2143e36's `usage:check` had 1 ⚠ at
+src/platform/PlatformMobilePlaygrounds.tsx:240 [bottom-sheet/choice-uses-list-item], there since 10-08. I fixed it at
+the owner, under the "fix findings at once" rule.
+
+- The demo: the Action type showed "Sort by" with `selectedId`/`onSelect`, a single choice. The guideline says a
+  choice is a Modal sheet with a List, and Action items are commands. It now shows the Action commands of a project:
+  "Brand refresh", with Share, Duplicate, Rename and Archive. There is no selected item; picking one runs it, closes
+  the sheet, and names the last command under the button. The live playground and the code string match.
+- The harness: the rule is a prohibition, but it used the lenient `present`, which counts any `${…}` in a code sample
+  as a selectedId. It now uses `has`, as the file's own note says prohibitions should.
+- Checks: `usage:check` shows 0 warnings; `usage:selftest` passes all 235 rules (the bad fixture's literal selectedId
+  still trips it); tsc, style, guidelines, ai-ui and studio pass.
+
+
 ## QA gate: shards sized from measured time (gate-shards session, branch `zen/fix/qa-gate-shards-20261022`)
 
 Asked by the progress session: every full gate failed on time limits, not findings. Bug's card-theme gate (12:47): the

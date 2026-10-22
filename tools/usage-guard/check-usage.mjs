@@ -1636,7 +1636,8 @@ export const rules = [
     check: ({ attrs }) => literal(attrs, "type") === "action" && !present(attrs, "items") && "is type=\"action\" without items — pass the actions as items (or use the Modal type for content)." },
   { id: "bottom-sheet/choice-uses-list-item", components: ["BottomSheet"], severity: "warn", allow: "sheet-choice", guideline: "docs/guidelines/bottom-sheet.md",
     summary: "Picking one value in a sheet (Sort by, a time zone) is a Modal sheet holding a List of ListItem rows with the current one `selected` (the house rule the templates follow), not an Action sheet with `selectedId`: Action items are commands.",
-    check: ({ attrs }) => literal(attrs, "type") === "action" && present(attrs, "selectedId") && "is an Action sheet with selectedId — a single choice is a Modal sheet with <List> of <ListItem selected onClick> rows (Action items are commands)." },
+    // A prohibition: `has`, not the lenient `present`, or a code sample's ${…} reads as a selectedId it does not write.
+    check: ({ attrs }) => literal(attrs, "type") === "action" && has(attrs, "selectedId") && "is an Action sheet with selectedId — a single choice is a Modal sheet with <List> of <ListItem selected onClick> rows (Action items are commands)." },
   { id: "chat/others-need-author", components: ["ChatMessage"], severity: "warn", allow: "chat-author", guideline: "docs/guidelines/chat.md",
     summary: "Messages from others name their author (avatar + accessible name).",
     check: ({ attrs }) => literal(attrs, "side") === "others" && !present(attrs, "author") && "is from others without an author — pass author={{ name, src }}." },
