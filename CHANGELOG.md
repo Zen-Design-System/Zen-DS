@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Layout: `sticky="top" | "bottom"` on Stack, Grid, Box and Shape (Figma's Fix position when scrolling): the layer
+  stays in the flow and sticks to its scrolling ancestor's edge. In an AppShell Body a bottom dock takes the page margin
+  inside itself, so the chat, AI chat and AI UI composers dock without example CSS. Zen Studio sets it in Prototype ›
+  Scroll behavior (in place on the canvas, stuck in Play and Present); Figma push and pull map bottom to Fixed and top
+  to Sticky. `surface="canvas"` paints the AppShell's canvas inside a shell (2026-10-23).
 - Zen Studio: copying a Section onto its own place (⌘D, ⌥-drag) no longer overflows the page's stack: of two
   Sections the same size the one written first holds the other, as documented, never both each other. The Studio E2E
   report (and the gate's) now names the row and the stack of every Vite error, so a page error that fails no row is

@@ -1,102 +1,129 @@
-# `sticky` on Box / Stack / Grid — spec card (PR 3 of examples className round 2)
+# `sticky` on Stack / Grid / Box / Shape — spec card (PR 3 of examples className round 2)
 
 Session B, 2026-10-23. Tier M. Decision 2 of `examples-classnames-round2-spec-2026-10-23.md`, approved by the user:
-"Thêm prop sticky cho Box (Recommended)".
+"Thêm prop sticky cho Box (Recommended)". The Figma mapping is the user's too: "Bottom = Fixed, Top = Sticky".
 
 ## What Figma has
 
-- Figma calls it "Fix position when scrolling" (Prototype → Scroll behavior: Scroll with parent · Fixed · Sticky).
-- Measured with use_figma in the Zen file on 2026-10-23 (QA page 15872:3; the throwaway frames were deleted):
+Figma calls it "Fix position when scrolling" (Prototype → Scroll behavior: Scroll with parent · Fixed · Sticky).
+
+- **Help centre:** a Fixed layer in an auto layout frame must be absolute. Sticky scrolls until its top reaches the
+  frame's top, then stays; it fits any layer of a vertically scrolling frame, auto layout included.
+- **use_figma in the Zen file, 2026-10-23** (QA page 15872:3, throwaway frames deleted):
   - `numberOfFixedChildren` works on a frame without auto layout.
-  - In an auto layout frame it works only when the fixed child is **absolute** (`layoutPositioning = "ABSOLUTE"`). An
-    in-flow child is refused silently (the value reads back 0).
-  - Fixed children are the last N children (topmost in the layer list).
-  - `scrollBehavior` (`STICKY_SCROLLS`) does not exist in the use_figma runtime. Check it in the real plugin runtime
-    (`studio-import.js`) before the plugin uses it.
+  - In an auto layout frame it works only when the fixed layers are absolute. An in-flow child is refused silently:
+    the value reads back 0.
+  - Fixed layers are the frame's last N children (topmost).
+  - `scrollBehavior` is not in the Plugin API, so Sticky cannot be set there. A 2024 forum answer reads it through
+    `exportAsync({ format: "JSON_REST_V1" })`.
+- **Figma's clipboard (kiwi schema v106):**
+  - `NodeChange.scrollBehavior` takes SCROLLS · FIXED_WHEN_CHILD_OF_SCROLLING_FRAME · STICKY_SCROLLS;
+  - there is also a `fixedChildrenDivider` field.
+  - So a native paste can carry both.
 
 ## API
 
-`sticky?: "top" | "bottom"` on Stack, Grid and Box (the layout primitives, beside `position`). Unset means it scrolls
-with its parent, and renders nothing.
+`sticky?: "top" | "bottom"` on Stack, Grid, Box and Shape, in `LayoutPositionProps` beside `position`. Unset means it
+scrolls with its parent and renders nothing.
 
-- `data-sticky="top|bottom"`.
-- layout.css: `position: sticky; inset-block-start: 0` (or `-end`), and `z-index: 3`, the docks' current value. It
-  stays in flow, so it keeps its place in the auto layout: CSS sticky is Figma's Sticky, and at the end of the content
-  it is also Figma's Fixed.
-- `sticky` together with `position="absolute"`: absolute wins. The harness warns (`layout/sticky-absolute`, approval
-  needed: see Open).
-- JSDoc and props docs say:
-  - it sticks to the nearest scrolling ancestor (an AppShell Body, a pane, a scroll box);
-  - put `sticky="bottom"` last and `sticky="top"` first.
+- It renders `data-sticky`.
+- position.css: `position: sticky; z-index: 3` with `top: 0` or `bottom: 0`. It stays in flow, so the auto layout keeps
+  its room.
+- With `position="absolute"`, absolute wins. The JSDoc says so; there is no harness rule (a new rule needs approval).
+- The JSDoc also says:
+  - it sticks to the nearest scrolling ancestor;
+  - put `sticky="bottom"` last and `"top"` first;
+  - in an AppShell Body it takes the page margin (below).
 
-## AppShell Body (owner: the AppShell session; one CSS rule, coordinate first)
+## AppShell Body
 
-The page margin below a bottom dock belongs to the shell, not to each example:
+The AppShell session agreed and handed the rule to B.
 
-```css
-/* A last child that sticks to the bottom takes the Body's bottom margin inside itself, so the content scrolls under it
-   and the field keeps the page margin below it. */
-.zen-app-shell__body > [data-sticky="bottom"]:last-child { margin-block-end: calc(-1 * <body padding-end>); padding-block-end: <body padding-end>; }
-```
-
-- `<body padding-end>` is the Body's own token for each layout: desktop Margin-Comfortable, mobile Padding/Large.
-- A `--zen-app-shell-body-pad-end` custom property set next to the existing padding rules keeps the two in step.
-
-`surface="canvas"` inside an AppShell paints the shell's canvas: `var(--zen-app-shell-canvas, canvas-default)`. Today it
-is always Canvas/Default, so on a `canvas="alt"` shell a dock painted with it would show the wrong colour.
+- **Bottom padding:** every Body bottom padding rule goes through `--zen-app-shell-body-pad-end`, so a dock and the
+  floating row cannot drift apart. The three rules are desktop Margin-Comfortable, `:has(floating)` +56 +8, and mobile
+  Padding/Large.
+- **Bottom dock:** a `[data-sticky="bottom"]` anywhere in the Body takes the Body's bottom margin inside itself
+  (−margin and +padding of that variable).
+  - This covers a dock nested in its conversation section or TabPanel (the chat page) as well as a direct child.
+  - It does not apply inside a `scroll` Stack or Box, nor with `position="absolute"`.
+  - Its footprint in the flow is unchanged; its own bottom padding gives way to the page margin.
+- **`surface="canvas"`** paints `var(--zen-app-shell-canvas, canvas-default)`, so on a `canvas="alt"` shell a dock
+  follows the shell. Outside a shell nothing changes.
 
 ## The examples
 
-| Page | Now | After |
+| Page | Before | After |
 | --- | --- | --- |
-| chat | `.px-chat-dock` (sticky, -24 margin, canvas background) | `<Box sticky="bottom" surface="canvas">` |
+| chat (3 desktop screens) | `.px-chat-dock` (sticky, −24 margin, canvas background) | `<Box sticky="bottom" surface="canvas">` |
 | ai-chat | `.px-ai-chat-dock` (same) | `<Box sticky="bottom" surface="canvas">` |
-| ai-ui | `.px-ai-ui-dock` (sticky, -24 margin, no fill: the bubbles pass under the glass) | `<Box sticky="bottom">` |
+| ai-ui | `.px-ai-ui-dock` (sticky, −24 margin, no fill: bubbles pass under the glass) | `<Box sticky="bottom">` |
 
-- The phone docks (`px-ai-chat-phone-dock`, `px-ai-ui-phone-dock`) already sit in AppShell `actionBar`. Their padding
-  (Padding/Small, the page margin at the sides, the safe area) is the Bottom Actions strip's own padding, so it moves
-  into AppShell's `actionBar` wrapper only if the AppShell session agrees. Otherwise they stay (see Open).
-- `table.css` / `platform.css` sticky headers are a table head and the docs chrome, not this prop. They stay.
+- The code samples (chat, ai-chat) show the same.
+- The phone docks sit in AppShell `actionBar` and keep their classes (the AppShell session asked for that).
 
 ## Studio
 
-- **Field:** "Scroll behavior" in Figma's place:
-  - the Prototype panel when the layer is selected there;
-  - otherwise a Position row (Design panel, under Position).
-  - Options: Scroll with parent · Sticky top · Sticky bottom (Figma words: "Scroll with parent"; "Sticky"/"Fixed"
-    become top/bottom because CSS needs an edge).
-- **Canvas:** relative, as all sticky in builder CSS (memory: frames clip, `.studio-viewport` is the scroller). It
-  sticks only in Play, Present and the HTML export. Test with a short viewport (DV-03 sets 560 px).
-- **E2E:** FW-210…: set it in the panel, the code gets `sticky="bottom"`, and in Play it stays at the frame's foot
-  while the content scrolls. Undo works too.
+- **Field:** Prototype tab → **Scroll behavior** section, a Position row, where Figma has it. Options:
+  - Scroll with parent
+  - Stick to top
+  - Stick to bottom
 
-## Figma push / pull / native / plugin
+  It shows for a selected Stack, Grid, Box or Shape. The Design tab lists no sticky row.
+- **Canvas:** the layer is drawn in place (`.studio-world … [data-sticky] { position: relative }`), as the Screen bars
+  are. It sticks only in Play, Present and the export.
+- **E2E:**
+  - FW-210: the field writes `sticky="bottom"`, the Design tab lists no sticky row, the canvas keeps it relative, and
+    ⌘Z takes it back.
+  - FW-211: in Present it is sticky and sits on the screen's bottom edge at the top of a page taller than the screen.
 
-- **Push:**
-  - `sticky="bottom"`: the layer goes absolute, constraint bottom and left-right, with the parent's padding as insets.
-    It moves to the end of the children and counts in the parent's `numberOfFixedChildren`.
-  - `sticky="top"`: the same at the top. Use `scrollBehavior = "STICKY_SCROLLS"` instead if the plugin runtime has it,
-    since that keeps the layer in flow.
-- **Pull:**
-  - a fixed child (or `STICKY_SCROLLS`) → `sticky`, by its vertical constraint (MAX → bottom, else top);
-  - absolute + fixed → `sticky` only (no `position`);
-  - a fixed child of a frame without auto layout keeps its free X/Y and gets `sticky`.
-- **Native (kiwi):** find the field that matches `numberOfFixedChildren` / `scrollBehavior` from a paste of a real fixed
-  layer. If there is none, the native path leaves sticky out and says so.
-- **Plugin:**
-  - same mapping in `studio-import.js` (async APIs only);
-  - selftests in push / pull / native / plugin;
-  - one live import into the Zen file (QA page, removed after).
+## Figma
+
+**Push (figma-push):**
+
+- `sticky="bottom"` → `scrollBehavior: "FIXED"` and `absolute`:
+  - pinned to the bottom (MAX), stretched across (left-right) unless the layer sets its own width;
+  - its insets are the frame's padding, where CSS sticky leaves a last child;
+  - it moves to the frame's end (Figma's fixed layers are its topmost).
+- `sticky="top"` → `scrollBehavior: "STICKY_SCROLLS"`, in flow.
+
+**Native paste (figma-native):** writes `NodeChange.scrollBehavior` (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME or
+STICKY_SCROLLS); the absolute part is already there.
+
+**Plugin (`studio-import.js`, 397fc74 on `studio-import`):**
+
+- The fixed run at the end of a frame goes on top and `numberOfFixedChildren` counts it. It goes back to 0 when every
+  fixed layer was the page's own and the page has none any more.
+- Sticky cannot be set through the Plugin API. The layer stays in flow and the import notes name it ("set Prototype >
+  Scroll behavior > Sticky by hand").
+
+**Pull (figma-pull):**
+
+- The reader marks a frame's last `numberOfFixedChildren` children FIXED.
+- Where something scrolls, it reads Sticky from the frame's `JSON_REST_V1` export.
+- `pageFromFigma`:
+  - a Fixed Zen frame (Stack, Grid, Box, Shape) → `sticky` by its vertical constraint (MAX → bottom, else top), in
+    flow, with no `position`;
+  - Sticky → `sticky="top"`;
+  - other fixed layers (instances) keep their absolute place, as before.
+
+**Measured:**
+
+- Selftests: push (round trip included), pull, native and plugin `npm test`.
+- The plugin's API sequence ran live in the Zen file: absolute + STRETCH/MAX + moved on top +
+  `numberOfFixedChildren = 1` read back, then 0. The frame was deleted.
+
+**Not run:**
+
+- A live native paste (scripted pastes are unreliable and risk the user's clipboard and front page; memory
+  paste-into-figma-myself).
+- Whether Figma also needs `fixedChildrenDivider` for a pasted Fixed layer.
+
+Both are in BACKLOG P3 next to the native gradient paste.
 
 ## Checks
 
-- static gates, `npm run usage:selftest` (if a rule is approved), push / pull / native selftests, plugin `npm test`;
-- visual diff before / after on chat, ai-chat, ai-ui (1512 / 390): 0 changed panels expected at rest, and a scrolled
-  shot by hand (the dock covers the bubbles, the margin under the field is unchanged);
-- Studio E2E FW-210…; scoped `npm run qa`.
-
-## Open (not blocking; default in brackets)
-
-1. The harness rule `layout/sticky-absolute` is a new harness rule, so it needs the user's approval [JSDoc only, no
-   rule].
-2. The phone dock padding moving into AppShell `actionBar` is the AppShell session's area [leave the two phone classes].
+- static gates, push / pull / native selftests, plugin `npm test`;
+- visual diff before / after on chat, ai-chat, ai-ui and app-shell (1512 / 390): at rest the docks sit where they did;
+- Studio E2E FW-210/211;
+- scoped `npm run qa` with the app-shell page (A1–A4 floating rows: bottom padding unchanged) and
+  `tests/interaction/app-shell-grid.test.tsx`.

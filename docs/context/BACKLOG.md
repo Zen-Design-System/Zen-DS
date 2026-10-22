@@ -219,6 +219,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   settleGridRows.
 - **P3 · Direct paste parity left after native-diff (2026-10-17):** slot contents written at Figma's outer level, grid row
   minimum heights, kept overrides by resolved variable, and a smaller pack (18.9 MB). Pointer: research doc §8.
+- **P3 · Native paste of a sticky layer not tried live (2026-10-23, B):** figma-native writes `scrollBehavior`
+  (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the absolute dock, STICKY_SCROLLS in flow) from Figma's own clipboard schema;
+  the plugin path was checked live. Still to see in a real ⌘V: Figma keeps both, and whether it also wants
+  `fixedChildrenDivider` on the parent. Pointer: `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
 - **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
   studio"):** the Figma side is fixed (`.Chart/Line-Chart/Trend` 6/7-Sectors label layers now run top → bottom like 4/12,
   so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in

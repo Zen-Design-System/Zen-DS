@@ -724,9 +724,14 @@ const readFrame = async (node, root = false) => {
   }
   const layout = await layoutOf(node);
   if (layout) out.layout = layout;
+  // Fix position when scrolling: Figma's Fixed layers are a frame's last numberOfFixedChildren (figma-push sticky).
+  const fixedFrom = (node.children || []).length - (own("numberOfFixedChildren") || 0);
+  let index = -1;
   for (const child of node.children || []) {
+    index += 1;
     const read_ = await read(child);
     if (!read_) continue;
+    if (index >= fixedFrom) read_.scrollBehavior = "FIXED";
     // A grid's child: its cell (column and row from 0, its spans).
     if (own("layoutMode") === "GRID") read_.cell = { col: child.gridColumnAnchorIndex, row: child.gridRowAnchorIndex, span: child.gridColumnSpan, rowSpan: child.gridRowSpan };
     else placed(read_, child, node);
@@ -735,10 +740,30 @@ const readFrame = async (node, root = false) => {
   }
   return out;
 };
+// Figma's Sticky (Prototype > Scroll behavior) is not in the Plugin API; the frame's REST export carries it. Read only
+// where something scrolls (a Sticky layer sticks to a scrolling frame).
+const stickyIdsOf = async (root) => {
+  const ids = new Set();
+  try {
+    const rest = await root.exportAsync({ format: "JSON_REST_V1" });
+    const walk = (entry) => { if (entry.scrollBehavior === "STICKY_SCROLLS") ids.add(entry.id); (entry.children || []).forEach(walk); };
+    walk(rest.document);
+  } catch (e) { /* no REST export here: Sticky layers read as scrolling */ }
+  return ids;
+};
+const scrolls = (entry) => Boolean(entry && (entry.scroll || (entry.children || []).some(scrolls) || (entry.slots || []).some((slot) => (slot.children || []).some(scrolls))));
+const markSticky = (entry, ids) => {
+  if (!entry || typeof entry !== "object") return;
+  if (entry.id && ids.has(entry.id) && !entry.scrollBehavior) entry.scrollBehavior = "STICKY_SCROLLS";
+  for (const child of entry.children || []) markSticky(child, ids);
+  for (const slot of entry.slots || []) for (const child of slot.children || []) markSticky(child, ids);
+};
 const node = await figma.getNodeByIdAsync(${JSON.stringify(nodeId)});
 if (!node) throw new Error("No node " + ${JSON.stringify(nodeId)});
 // ASCII only (\\uXXXX for the rest): an answer with many non-ASCII characters was cut short in transit.
-const json = JSON.stringify(node.type === "INSTANCE" || node.type === "TEXT" ? await read(node) : await readFrame(node, true)).replace(/[\\u0080-\\uffff]/g, (char) => "\\\\u" + char.charCodeAt(0).toString(16).padStart(4, "0"));
+const result = node.type === "INSTANCE" || node.type === "TEXT" ? await read(node) : await readFrame(node, true);
+if (("overflowDirection" in node && node.overflowDirection !== "NONE") || scrolls(result)) markSticky(result, await stickyIdsOf(node));
+const json = JSON.stringify(result).replace(/[\\u0080-\\uffff]/g, (char) => "\\\\u" + char.charCodeAt(0).toString(16).padStart(4, "0"));
 const parts = Math.max(1, Math.ceil(json.length / ${PART_SIZE}));
 return "PART " + (${part} + 1) + "/" + parts + "\\n" + json.slice(${part} * ${PART_SIZE}, (${part} + 1) * ${PART_SIZE});
 `.trim();
@@ -1669,10 +1694,19 @@ function convert(node, ctx) {
   if (element && !element.id) { const id = idOf(node, ctx); if (id) element.id = id; }
   // The layer's own element (not a wrapper that places it): an instance's overrides find its main's layers by it.
   if (element && ctx.innerOf) ctx.innerOf.set(node, element);
-  if (element && node.absolute) element = positioned(element, node, ctx);
+  // Fix position when scrolling (figma-push sticky): a Zen frame's Fixed is sticky by the edge it pins to (bottom: Figma
+  // pins it out of the auto layout, the code keeps it in flow); Sticky is sticky="top", in flow. Other layers keep
+  // their absolute place.
+  if (element && node.scrollBehavior === "FIXED" && STICKY_ELEMENTS.has(element.name) && !node.absolute?.free) {
+    element.props.sticky = literal(node.absolute?.cy === "MAX" ? "bottom" : "top");
+  } else if (element && node.absolute) element = positioned(element, node, ctx);
+  if (element && node.scrollBehavior === "STICKY_SCROLLS" && STICKY_ELEMENTS.has(element.name) && !element.props.position) element.props.sticky = literal("top");
   if (element && !SOURCE.has(element)) SOURCE.set(element, node);
   return element;
 }
+
+/** The layers that take `sticky` (Layout/position.ts), as figma-push's STICKY_FRAMES. */
+const STICKY_ELEMENTS = new Set(["Stack", "Grid", "Box", "Shape"]);
 
 /**
  * A layer Figma places outside the auto layout (Ignore auto layout): position="absolute" with its constraints and the
