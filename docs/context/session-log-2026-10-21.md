@@ -852,6 +852,7 @@ User: "A, liên kết sống". Map of the same-page assumptions from an Explore 
 - Figma push: the instance goes as its main's layers with a note (`pages` option, keys stay this page's; selftest
   +3, 363); React export: a comment naming the page.
 - E2E FW-199…201 (ids asked of Giám sát for 200+), waiting for a slot.
-- Not yet: Assets' search and ⇧I list only this page's own components and Zen; a real cross-page instance in Figma
-  waits for pushing several pages together.
+- Assets' search and ⇧I list the project's components too (first, as Figma lists the file's own;
+  `edit/assets/projectAssets.ts`). Not yet: a real cross-page instance in Figma (it waits for pushing several pages
+  together). E2E ids FW-200…204 are C's (Giám sát, 2026-10-22).
 

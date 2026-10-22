@@ -18,6 +18,7 @@ import { describeTarget, insertTarget } from "./target";
 import "./library.css";
 import { useCanvasPreview } from "../../project/activeProject";
 import { useLibraries } from "../../project/libraries";
+import { projectInsertable, useProjectComponents, type ProjectAsset } from "../../edit/assets/projectAssets";
 
 /*
  * Quick insert (Studio builder GĐ3 M2, spec docs/research/studio-builder-library-spec-2026-10-06.md §3c), Figma's ⇧I:
@@ -42,21 +43,25 @@ export function QuickInsert() {
 const MAX = { component: 20, icon: 12, photo: 6 } as const;
 
 type Entry =
+  | { kind: "project"; id: string; label: string; caption: string; asset: ProjectAsset }
   | { kind: "component"; id: string; label: string; caption: string; item: PaletteItem }
   | { kind: "icon"; id: string; label: string; caption: string; name: IconName }
   | { kind: "photo"; id: string; label: string; caption: string; photo: LibraryPhoto };
-const GROUP_LABEL: Record<Entry["kind"], string> = { component: "Components", icon: "Icons", photo: "Photos" };
+const GROUP_LABEL: Record<Entry["kind"], string> = { project: "Project components", component: "Components", icon: "Icons", photo: "Photos" };
 
 /**
  * The results for `query`: components only for an empty one (the whole palette) or a swap, else every kind that matches.
  * `zen` false (Libraries, ⌥⌘O): no Zen components or icons, photos only.
  */
-function entriesFor(query: string, mode: QuickInsertMode, zen: boolean): Entry[] {
+function entriesFor(query: string, mode: QuickInsertMode, zen: boolean, project: readonly ProjectAsset[] = []): Entry[] {
+  // The components of the project's other pages (Libraries' project components), first as Figma lists the file's own.
+  const words = query.trim().toLowerCase();
+  const own: Entry[] = mode === "swap" ? [] : project.filter((asset) => !words || `${asset.name} ${asset.pageTitle}`.toLowerCase().includes(words)).slice(0, MAX.component).map((asset) => ({ kind: "project", id: `p-${asset.page}-${asset.id}`, label: asset.name, caption: asset.pageTitle, asset }));
   const components: Entry[] = !zen ? [] : searchCatalog(query).slice(0, query.trim() ? MAX.component : 40).map((entry) => ({ kind: "component", id: `c-${entry.id}`, label: entry.label, caption: entry.caption ?? entry.group, item: entry.item }));
-  if (!query.trim() || mode === "swap") return components;
+  if (!query.trim() || mode === "swap") return [...own, ...components];
   const icons: Entry[] = !zen ? [] : searchIconGlyphs(query).slice(0, MAX.icon).map((glyph) => ({ kind: "icon", id: `i-${glyph.id}`, label: iconTitle(glyph), caption: "Icon", name: (glyph.line ?? glyph.solid) as IconName }));
   const photos: Entry[] = searchLibraryPhotos(query).slice(0, MAX.photo).map((entry) => ({ kind: "photo", id: `p-${entry.key}`, label: entry.photo.alt, caption: "Photo", photo: entry }));
-  return [...components, ...icons, ...photos];
+  return [...own, ...components, ...icons, ...photos];
 }
 
 function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
@@ -70,7 +75,10 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
   const selection = useStudio((state) => state.selection);
   const { preview, brand } = useCanvasPreview();
   const zen = useLibraries().zen;
-  const results = useMemo(() => entriesFor(query, mode, zen), [query, mode, zen]);
+  const project = useProjectComponents();
+  const projectKey = project.map((asset) => `${asset.page}/${asset.id}:${asset.name}`).join("|");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the list is new each render; its key says when it changed.
+  const results = useMemo(() => entriesFor(query, mode, zen, project), [query, mode, zen, projectKey]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the target follows the selection (and is read again on open)
   const target = useMemo(() => insertTarget(), [selection]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the same: the layer a swap replaces
@@ -87,7 +95,8 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
     if (!next) return;
     close();
     if (mode === "swap") { if (next.kind === "component") swapItem(paletteInsertable(next.item)); return; }
-    if (next.kind === "component") insertAsset(next.item);
+    if (next.kind === "project") insertItem(projectInsertable(next.asset));
+    else if (next.kind === "component") insertAsset(next.item);
     else if (next.kind === "icon") insertItem(iconInsertable(next.name, next.label));
     else insertItem(photoInsertable(next.photo));
   };
@@ -127,7 +136,7 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
     ? (typeof replaced === "string" ? replaced : `Swap ${replaced?.name ?? "the layer"} for the chosen component`)
     : swapping ? "Swap the selected Icon" : typeof target === "string" ? target : describeTarget(target);
   const optionId = (id: string) => `studio-qi-option-${id}`;
-  const groups = (["component", "icon", "photo"] as const).map((kind) => ({ kind, entries: results.filter((row) => row.kind === kind) })).filter((group) => group.entries.length);
+  const groups = (["project", "component", "icon", "photo"] as const).map((kind) => ({ kind, entries: results.filter((row) => row.kind === kind) })).filter((group) => group.entries.length);
   return (
     <div ref={panelRef} className="studio-qi" role="dialog" aria-label={mode === "swap" ? "Swap instance" : "Assets"} data-e2e="quick-insert" data-mode={mode}>
       <div className="studio-qi__search">
@@ -175,7 +184,8 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
                         }}
                         onClick={() => choose(row)}
                       >
-                        {row.kind === "component" ? <Icon name={GROUP_ICON[row.item.group]} size="sm" decorative />
+                        {row.kind === "project" ? <Icon name="icon-diamond-line" size="sm" decorative />
+                          : row.kind === "component" ? <Icon name={GROUP_ICON[row.item.group]} size="sm" decorative />
                           : row.kind === "icon" ? <Icon name={row.name} size="sm" decorative />
                             : <img className="studio-qi__thumb" src={row.photo.photo.src} alt="" loading="lazy" />}
                         <span className={`studio-qi__name ${typographyStyles["Body/Small/Medium"]}`}>{row.label}</span>
