@@ -8,6 +8,7 @@ import { detachSelection, detachShortcut, offersDetach } from "../../inspector/d
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../../select/wrapSelection";
 import { openShortcuts } from "../../shell/shortcutsOpen";
 import { openVariables } from "../../variables/variablesState";
+import { openLibraries } from "../../project/libraries";
 import { toggleSidePanels } from "../../shell/layout";
 import { duplicateSelection, duplicateShortcut, removeSelection, removeShortcut } from "../../slots/actions";
 import { toggleStudioTheme } from "../../shell/modes";
@@ -129,6 +130,7 @@ export function commands(): Command[] {
     { id: "variables", group: "Panels", label: "Local variables", keywords: "tokens variables colors modes collection open", run: openVariables },
     { id: "layers", group: "Panels", label: "Show layers", run: () => studioStore.setState({ leftTab: "layers" }) },
     { id: "assets", group: "Panels", label: "Show assets", keywords: "components insert add", run: () => studioStore.setState({ leftTab: "assets" }) },
+    { id: "libraries", group: "Panels", label: "Libraries", shortcut: `⌥${modKey}O`, keywords: "library zen theme components enable turn on off", run: openLibraries },
     { id: "design", group: "Panels", label: "Show design", keywords: "inspector properties", run: () => studioStore.setState({ inspectorTab: "design" }) },
     { id: "code", group: "Panels", label: "Show code", keywords: "source", run: () => studioStore.setState({ inspectorTab: "code" }) },
     { id: "search-pages", group: "Navigate", label: "Search pages", keywords: "go to open find", run: () => window.dispatchEvent(new Event("zen-studio:search-pages")) },

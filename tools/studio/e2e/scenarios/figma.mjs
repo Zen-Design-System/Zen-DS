@@ -181,6 +181,40 @@ async function clearComments(page) {
   await page.keyboard.press("Escape");
 }
 
+/* ── Libraries (Figma's ⌥⌘O: project/LibrariesDialog.tsx) ─────────────────────────────────────────────────────── */
+
+const LIBRARY_PROJECT = "e2e-libraries";
+const projectFile = (ctx) => path.join(ctx.root, path.dirname(pagesDirOf(ctx.server.port)), "projects", LIBRARY_PROJECT, "project.json");
+let libraryMade = null;
+/** A page of the project "E2E Libraries" (written to the server's projects folder) with the walk page's Button. */
+async function libraryPage(ctx) {
+  if (!libraryMade) {
+    fs.mkdirSync(path.dirname(projectFile(ctx)), { recursive: true });
+    fs.writeFileSync(projectFile(ctx), JSON.stringify({ format: 1, id: LIBRARY_PROJECT, name: "E2E Libraries", createdAt: Date.now(), updatedAt: Date.now() }));
+    const text = (title) => seedText(title).replace(/^\/\/ @zen-page (\{.*\})$/m, (_, json) => `// @zen-page ${JSON.stringify({ ...JSON.parse(json), project: LIBRARY_PROJECT })}`);
+    libraryMade = (await seededPage(ctx, text, new RegExp(`"project":"${LIBRARY_PROJECT}"`))).id;
+  }
+  const { page } = await ctx.studio();
+  if (!page.url().includes(encodeURIComponent(`local:${libraryMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${libraryMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+  }
+  await until(async () => (await page.locator(".studio-world").getAttribute("data-brand")) === `p-${LIBRARY_PROJECT}`, { timeout: 10_000, message: "the page draws in its project's theme" });
+  return { page, id: libraryMade };
+}
+/** ⌥⌘O, the switch `name` set to `on`, Done; then project.json says so. */
+async function setLibrary(ctx, page, name, key, on) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+Alt+KeyO");
+  const dialog = page.getByRole("dialog", { name: "Libraries" });
+  await dialog.waitFor({ state: "visible", timeout: 5000 });
+  const toggle = dialog.getByRole("switch", { name });
+  if ((await toggle.getAttribute("aria-checked")) !== String(on)) await toggle.click();
+  await until(async () => JSON.parse(fs.readFileSync(projectFile(ctx), "utf8")).libraries?.[key] === on, { message: `project.json libraries.${key} ${on}` });
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await dialog.waitFor({ state: "hidden", timeout: 5000 });
+}
+
 /** Zooms out so the walk page's frame and room around it show (⇧1, then one zoom-out step). */
 async function roomAround(page) {
   await page.locator(".studio-viewport").focus();
@@ -1353,6 +1387,45 @@ export const rows = [
         if (await pin.count()) throw new Error("the pin shows with the Move tool");
         return "pin stays at its place in screen-1 through a zoom · Esc → thread closed · Esc → Move, pins hidden";
       });
+    },
+  },
+  {
+    id: "FW-197", feature: "⌥⌘O opens Libraries on a project's page; Zen off: Assets keeps Photos only and Assets' search finds no Zen component, the page's Button still draws; Zen on: Components and Icons are back (project.json)", wp: "Libraries 2026-10-22",
+    async run(ctx) {
+      const { page, id } = await libraryPage(ctx);
+      try {
+        await showLeftTab(page, "assets");
+        const libraries = page.locator('[aria-label="Libraries"].studio-assets__list');
+        await libraries.getByRole("button", { name: "Components" }).waitFor({ state: "visible", timeout: 5000 });
+        await setLibrary(ctx, page, "Zen Design System", "zen", false);
+        await until(async () => (await libraries.getByRole("button", { name: "Components" }).count()) === 0 && (await libraries.getByRole("button", { name: "Icons" }).count()) === 0, { message: "Components and Icons gone from Assets" });
+        await libraries.getByRole("button", { name: "Photos" }).waitFor({ state: "visible", timeout: 5000 });
+        await page.locator(".studio-assets__search input").fill("button");
+        await until(async () => (await page.locator(".studio-assets").getByText("Components", { exact: true }).count()) === 0, { message: "no Zen components found" });
+        await page.locator(".studio-assets__search input").fill("");
+        if (!(await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).count())) throw new Error("the page's Button stopped drawing");
+        await setLibrary(ctx, page, "Zen Design System", "zen", true);
+        await libraries.getByRole("button", { name: "Components" }).waitFor({ state: "visible", timeout: 5000 });
+        return "⌥⌘O · Zen off → Assets: Photos only, search finds no component, the Button stays · Zen on → back";
+      } finally {
+        await setLibrary(ctx, page, "Zen Design System", "zen", true).catch(() => undefined);
+      }
+    },
+  },
+  {
+    id: "FW-198", feature: "The project's theme off in Libraries: its page draws in Zen's shipped theme; on: the project's again (project.json)", wp: "Libraries 2026-10-22",
+    async run(ctx) {
+      const { page } = await libraryPage(ctx);
+      const world = page.locator(".studio-world");
+      try {
+        await setLibrary(ctx, page, "E2E Libraries theme", "theme", false);
+        await until(async () => (await world.getAttribute("data-brand")) === "zen", { message: "Zen's theme on the canvas" });
+        await setLibrary(ctx, page, "E2E Libraries theme", "theme", true);
+        await until(async () => (await world.getAttribute("data-brand")) === `p-${LIBRARY_PROJECT}`, { message: "the project's theme again" });
+        return `theme off → data-brand zen · on → p-${LIBRARY_PROJECT}`;
+      } finally {
+        await setLibrary(ctx, page, "E2E Libraries theme", "theme", true).catch(() => undefined);
+      }
     },
   },
   {

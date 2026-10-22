@@ -111,6 +111,17 @@ export function normalizeTheme(input, errors = []) {
   };
 }
 
+/**
+ * The libraries a project's pages use (its Libraries dialog, Figma's ⌥⌘O; spec docs/research/studio-libraries-spec-
+ * 2026-10-22.md): Zen, the project's own components and its theme, each on unless project.json says false.
+ */
+export const PROJECT_LIBRARIES = ["zen", "components", "theme"];
+export const defaultLibraries = () => ({ zen: true, components: true, theme: true });
+export function normalizeLibraries(input) {
+  const value = input && typeof input === "object" ? input : {};
+  return Object.fromEntries(PROJECT_LIBRARIES.map((key) => [key, value[key] !== false]));
+}
+
 /** project.json made safe. `errors` names what was replaced by a default; a bad id or name is fatal (project null). */
 export function normalizeProject(input) {
   const errors = [];
@@ -126,6 +137,7 @@ export function normalizeProject(input) {
     createdAt: Number.isFinite(value.createdAt) ? value.createdAt : now,
     updatedAt: Number.isFinite(value.updatedAt) ? value.updatedAt : now,
     theme: normalizeTheme(value.theme, errors),
+    libraries: normalizeLibraries(value.libraries),
   };
   return { project, errors };
 }
