@@ -16,7 +16,7 @@
 //   node tools/studio/figma-pull.mjs page <part files…> [--title=…] [--file=<key>] [--out=<file.zen.tsx>] [--no-ids]
 //                                                              use_figma's answers → the page to import
 import { printPage } from "./doc.mjs";
-import { FIGMA_NAMED, NAME_PROP, isAutomaticName } from "./layer-meta.mjs";
+import { FIGMA_NAMED, LABEL_NAMED, NAME_PROP, isAutomaticName } from "./layer-meta.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_VARIABLE, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
@@ -440,6 +440,10 @@ const read = async (node) => {
   const out = await readLayer(node);
   const key = out ? studioData(node, "key") : null;
   if (key) out.key = key;
+  // An instance the Zen plugin named (figma-push nameGiven): the person's name, or a name changed in Figma since, is its
+  // layer's name; the one the import wrote otherwise is its component's or its content.
+  const wrote = key && out.type === "INSTANCE" ? studioData(node, "name") : null;
+  if (wrote) out.nameGiven = node.name !== wrote || studioData(node, "given") === "1";
   // A layer bound to its main's component property: the property's name by field (figma-push propRefs).
   let refs = null;
   try { refs = out ? node.componentPropertyReferences : null; } catch (e) { refs = null; }
@@ -1232,7 +1236,7 @@ function actionItem(node, ctx) {
 }
 
 /** Icon-only controls the harness wants named (icon-button/needs-name): they get an aria-label. */
-const NEEDS_NAME = new Set(["IconButton"]);
+const NEEDS_NAME = LABEL_NAMED;
 /** The elements that take Figma's resizing (width / height fill), src/components/Layout/sizing.ts. */
 const SIZED = new Set(["Stack", "Grid", "Box", "Text", "Card", "ListBox"]);
 /** Components sized like a layout layer whose Figma min / max width comes back as minWidth / maxWidth (Card.tsx, ListBox). */
@@ -1634,7 +1638,8 @@ function masterLayoutFrame(node) {
  * push gives by itself (Frame 3, Stack, Rectangle, the layer's words, a value it already carries as a prop).
  */
 function givenName(element, node) {
-  if (element.kind !== "element" || !FIGMA_NAMED.has(element.name) || element.props[NAME_PROP]) return;
+  // An instance whose name the person gave names its own element (instanceName), not a frame that places it.
+  if (element.kind !== "element" || !FIGMA_NAMED.has(element.name) || element.props[NAME_PROP] || node.nameGiven) return;
   // A text layer names its Text, not the Stack that places it (an absolute text's wrapper).
   if (node.type === "TEXT" && element.name !== "Text") return;
   const name = typeof node.name === "string" ? node.name.trim() : "";
@@ -1644,6 +1649,23 @@ function givenName(element, node) {
   if (LAYOUT_FRAMES.has(element.name) && LAYOUT_FRAMES.has(name)) return;
   if (Object.values(element.props).some((value) => value?.kind === "literal" && value.value === name)) return;
   element.props[NAME_PROP] = { kind: "literal", value: name };
+}
+
+/**
+ * An instance's own name back from Figma (layer-meta.mjs data-name), the accessible name first (user 2026-10-23): one the
+ * Zen plugin placed gives its name when the push wrote the person's data-name there or it was renamed in Figma since
+ * (nameGiven); an icon button's name is its aria-label (above), never its data-name. Other instance names are their
+ * component's, their content or the library's own layer names ("Item", "Action"): left alone. A component Figma pads
+ * sits in the Stack that takes its padding (padded): the component takes the name.
+ */
+function instanceName(element, node, ctx) {
+  if (!node.nameGiven || element?.kind !== "element") return;
+  const own = element.name === "Stack" && element.children?.length === 1 && PADDED.has(element.children[0].name) ? element.children[0] : element;
+  if (own.props[NAME_PROP] || NEEDS_NAME.has(own.name)) return;
+  const name = typeof node.name === "string" ? node.name.trim() : "";
+  if (!name || name === own.name || name === node.set?.name) return;
+  if (node.local && name === ctx.local?.names.get(ctx.local.ids.get(node.local))) return;
+  own.props[NAME_PROP] = literal(name);
 }
 
 /** Each element's Figma layer: its parent reads its Fill container from it. */
@@ -1666,6 +1688,7 @@ function convert(node, ctx) {
     if (blend) element.props.blendMode = literal(blend);
   }
   bindings(element, node);
+  if (element && node.type === "INSTANCE") instanceName(element, node, ctx);
   if (element && !element.id) { const id = idOf(node, ctx); if (id) element.id = id; }
   // The layer's own element (not a wrapper that places it): an instance's overrides find its main's layers by it.
   if (element && ctx.innerOf) ctx.innerOf.set(node, element);

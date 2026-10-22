@@ -20,7 +20,7 @@ import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "./ins
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
-import { FIGMA_NAMED, givenNameOf } from "./layer-meta.mjs";
+import { FIGMA_NAMED, LABEL_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { SUB_ACTION_ICON, metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma } from "./figma-property.mjs";
@@ -495,9 +495,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
       // A layer an instance fills: Figma's slot in its main (the importer's createSlot), named as its property.
       if (element.props["data-prop-slot"]?.kind === "literal") node.slot = String(element.props["data-prop-slot"].value);
     }
-    // The name the person gave a frame, shape or text (data-name, layer-meta.mjs) is its Figma name.
-    const given = element.kind === "element" && FIGMA_NAMED.has(element.name) ? givenNameOf(element) : null;
-    if (node && given) node.name = given;
+    // The name the person gave a layer (data-name, layer-meta.mjs) is its Figma name: a frame's, shape's or text's, and an
+    // instance's whose Figma name carries nothing else (its component's). One named by its content keeps it there: an
+    // aria-label (an icon button's label, which pull reads back), a person, an icon (the accessible name first, user
+    // 2026-10-23).
+    const given = element.kind === "element" ? givenNameOf(element) : null;
+    if (node && given && FIGMA_NAMED.has(element.name)) node.name = given;
+    else if (node?.type === "INSTANCE" && given && !LABEL_NAMED.has(element.name)) {
+      if (node.name === (node.local ? localNames.get(node.local) ?? "Instance" : node.set?.name)) Object.assign(node, { name: given, nameGiven: true });
+      else if (element.props["aria-label"]?.kind === "literal") notes.push(`${element.name} "${given}": its Figma name is its accessible name "${node.name}", so its layer name stays in the Studio`);
+    }
     // A component sized like a layout layer (Card, ListBox: width / minWidth / maxWidth, sizing.ts): Fixed or Fill, and
     // the instance's min and max width.
     if (node?.type === "INSTANCE" && element.kind === "element") {

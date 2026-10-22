@@ -1629,10 +1629,19 @@ export default function Page() {
 `;
   const pushedNames = push(names).frame;
   const row = pushedNames.children[0];
-  check("push: a frame's, a text's and a shape's data-name is its Figma name; an instance keeps its own", [row.name, row.children[0].name, row.children[1].name, pushedNames.children[1].name === "Main action"], ["Price row", "Price", "Dot", false]);
+  check("push: a frame's, a text's and a shape's data-name is its Figma name, and an instance's (marked nameGiven)", [row.name, row.children[0].name, row.children[1].name, pushedNames.children[1].name, pushedNames.children[1].nameGiven], ["Price row", "Price", "Dot", "Main action", true]);
   check("push: a lock is the Studio's (no locked on the layer)", JSON.stringify(pushedNames).includes("locked"), false);
   const back = pageFromFigma(pushedNames, { mapping }).text;
-  check("round trip: the names come back as data-name, the lock and the instance's name do not", ['data-name="Price row"', 'data-name="Price"', 'data-name="Dot"', 'data-name="Main action"', "data-locked"].map((part) => back.includes(part)), [true, true, true, false, false]);
+  check("round trip: the names come back as data-name, the instance's too; the lock does not", ['data-name="Price row"', 'data-name="Price"', 'data-name="Dot"', '<Button data-name="Main action">', "data-locked"].map((part) => back.includes(part)), [true, true, true, true, false]);
+  // The accessible name first (user 2026-10-23): an aria-label stays the Figma name (a note says the layer name stays in
+  // the Studio); an icon button's Figma name is its label, so its data-name never goes there.
+  const labelled = push(names.replace("{ Button, Shape", "{ Button, IconButton, Shape").replace('<Button data-name="Main action">Buy</Button>', '<Button data-name="Main action" aria-label="Buy the plan">Buy</Button>\n          <IconButton icon="icon-plus-line" data-name="Add row" />'));
+  const [labelledButton, iconButton] = labelled.frame.children.slice(1);
+  check("push: an aria-label stays an instance's Figma name over its data-name (noted); an icon button keeps its own", [labelledButton.name, Boolean(labelledButton.nameGiven), labelled.notes.filter((note) => /layer name stays in the Studio/.test(note)).length, iconButton.name === "Add row", Boolean(iconButton.nameGiven)], ["Buy the plan", false, 1, false, false]);
+  // Back from Figma: a layer the Zen plugin placed (its key) gives its name only when the plugin marked it the person's or
+  // it was renamed in Figma since (the reader's nameGiven); a content name ("Brief.pdf") and the library's own names stay.
+  const placed = (name, nameGiven) => ({ ...pushedNames, children: [{ ...pushedNames.children[1], name, key: "placed", nameGiven }] });
+  check("pull: a placed instance's name comes back when marked given, not otherwise", [pageFromFigma(placed("Checkout", true), { mapping }).text.includes('data-name="Checkout"'), pageFromFigma(placed("Checkout", false), { mapping }).text.includes("data-name")], [true, false]);
 
   // F9: a vector goes as Figma's VECTOR (its path fitted to its size, stroke centred, no fill) and comes back the same.
   const vectorPage = names.replace('<Shape type="ellipse" width={24} height={24} data-name="Dot" />', '<Shape type="vector" width={80} height={40} d="M 0 10 C 5 0 15 0 20 10 Z" viewBox="0 0 20 10" fillRule="evenodd" />');
