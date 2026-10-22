@@ -238,7 +238,7 @@ export const rows = [
     },
   },
   {
-    id: "HO-10", feature: "Export › Figma of an app page: the AppShell as Figma's Master-Layout (its Sidebar pattern, the top bar as the Dashboard header Type=Navigation in its Sections) and the Container and List as frames that keep their layers, never an empty frame", wp: "figma push coverage P1 2026-10-12; master layout 2026-10-18",
+    id: "HO-10", feature: "Export › Figma of an app page: the AppShell as Figma's Master-Layout (its Sidebar pattern, its AppShellHeader as Header/AppShell swapped in for the master's Header/Dashboard, the Search in Top-Elements' Leading-Slots) and the Container and List as frames that keep their layers, never an empty frame", wp: "figma push coverage P1 2026-10-12; master layout 2026-10-18; Header/AppShell 2026-10-21",
     async run(ctx) {
       const { page } = await ctx.studio();
       const id = await importHtmlPage(page, FIGMA_SHELL_PAGE, "screen:screen-1");
@@ -251,17 +251,20 @@ export const rows = [
       const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
       const all = nodes(pkg.frame);
       const shell = pkg.frame.children?.[0];
-      const bar = all.find((node) => node.set?.name === "Primitives/Dashboard/Header");
+      // The header (2026-10-21): Figma's Header/AppShell in the master's Header/Dashboard place, its leading in Top-Elements.
+      const header = shell?.nested?.find((entry) => entry.path === "Header/Dashboard");
+      const leading = shell?.slots?.find((slot) => slot.name === "Top-Elements")?.children?.find((frame) => frame.name === "Leading-Slots");
       const problems = [
         (shell?.name !== "AppShell" || shell?.set?.name !== "Patterns/Pages/Density-Medium") && `first layer ${shell?.name ?? "none"} (${shell?.set?.name ?? "no set"})`,
         !(shell?.props?.Sidebar === true && shell?.nested?.some((entry) => entry.path === "Patterns")) && "no Sidebar",
-        bar?.props?.Type !== "Navigation" && `top bar ${bar?.props?.Type}`,
+        header?.set?.name !== "Header/AppShell" && `header ${header?.set?.name ?? "none"}`,
+        !leading?.children?.some((child) => child.set?.name?.startsWith("Search")) && `Leading-Slots ${JSON.stringify(leading?.children?.map((child) => child.set?.name) ?? null)}`,
         !all.some((node) => node.type === "FRAME" && node.name === "List" && node.children?.some((row) => row.set?.name === "List-Item")) && "the List lost its row",
         !all.some((node) => node.type === "FRAME" && node.name === "Container") && "no Container frame",
       ].filter(Boolean);
       if (problems.length) throw new Error(problems.join(" · "));
       await page.keyboard.press("Escape");
-      return `${all.length} layers: AppShell (Master-Layout) › Sidebar, Dashboard header Navigation, Container › List › List-Item`;
+      return `${all.length} layers: AppShell (Master-Layout) › Sidebar, Header/AppShell › Search, Container › List › List-Item`;
     },
   },
   {
