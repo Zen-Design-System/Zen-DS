@@ -1,11 +1,17 @@
+import { useState, type ReactNode } from "react";
+import { ActionBar } from "../../../components/ActionBar";
 import { Badge } from "../../../components/Badge";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Box, Stack } from "../../../components/Layout";
+import { Segmented } from "../../../components/Segmented";
 import { Shape } from "../../../components/Shape";
 import { Heading, Text } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
+import { TopNavigation } from "../../../components/TopNavigation";
+import { keepOnHotUpdate } from "../../hotData";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PlatformPhone } from "../../PlatformPhone";
 import { studio } from "../data";
 import santorini from "../../../assets/media/site-santorini.webp";
 import type { ExampleDef } from "../types";
@@ -56,7 +62,117 @@ function TourTip() {
   );
 }
 
-export const examples: ExampleDef[] = [
+/** The Phin & Co tasting table on Saturday, Nov 2: six seats around it, two already taken. */
+const seats = [
+  { id: "1", x: 76, y: 6, taken: false },
+  { id: "2", x: 116, y: 6, taken: true },
+  { id: "3", x: 156, y: 6, taken: false },
+  { id: "4", x: 76, y: 110, taken: false },
+  { id: "5", x: 116, y: 110, taken: true },
+  { id: "6", x: 156, y: 110, taken: false },
+];
+type SeatState = "free" | "taken" | "yours";
+/** Free seats are filled, taken ones only outlined, yours Accent: the form differs, not only the hue. */
+const seatPaint = {
+  free: { fill: "positive-subtle", stroke: "none", tone: "positive-strongest" },
+  taken: { fill: "none", stroke: "neutral-subtle", tone: "light" },
+  yours: { fill: "accent-solid", stroke: "none", tone: "on-accent" },
+} as const;
+
+/** A seat map whose marks carry names: each seat is a labelled Shape, the seats are picked with real buttons. */
+function SeatPicker() {
+  const [mine, setMine] = useState("3");
+  const stateOf = (seat: (typeof seats)[number]): SeatState => (seat.taken ? "taken" : seat.id === mine ? "yours" : "free");
+  return (
+    <Stack gap="md">
+      <Box width={264} height={148} surface="surface-alt" radius="md">
+        <Shape position="absolute" insetLeft={72} insetTop={44} width={120} height={60} radius="lg" fill="support-brown-subtle" />
+        {seats.map((seat) => {
+          const state = stateOf(seat);
+          return (
+            <Stack key={seat.id} position="absolute" insetLeft={seat.x} insetTop={seat.y} width={32} height={32} align="center" justify="center">
+              <Shape type="ellipse" position="absolute" width="fill" height="fill" fill={seatPaint[state].fill} stroke={seatPaint[state].stroke} label={`Seat ${seat.id}, ${state === "yours" ? "your seat" : state}`} />
+              <Text textStyle="Caption/Medium" tone={seatPaint[state].tone} aria-hidden>{seat.id}</Text>
+            </Stack>
+          );
+        })}
+      </Box>
+      <Segmented aria-label="Choose a seat" value={mine} onValueChange={setMine}
+        options={seats.map((seat) => ({ id: seat.id, label: seat.id, "aria-label": `Seat ${seat.id}${seat.taken ? ", taken" : ""}`, disabled: seat.taken }))} />
+      <Text role="status" tone="base">Seat {mine} is yours · Sat, Nov 2 · 10:00</Text>
+    </Stack>
+  );
+}
+
+/** The three onboarding screens of the Phin & Co app. */
+const tour = [
+  { title: "Collect stamps", body: "Every drink adds a stamp to your card." },
+  { title: "Earn a free drink", body: "Ten stamps make a free drink, any size." },
+  { title: "Order ahead", body: "Skip the line at Nguyen Hue and Thao Dien." },
+];
+
+/** Each screen's art: shapes at their X / Y in one 240 × 200 free frame, Accent leading, Support colours beside. */
+function TourArt({ step }: { step: number }) {
+  return (
+    <Box width={240} height={200}>
+      {step === 0 && <>
+        <Shape type="ellipse" position="absolute" insetLeft={40} insetTop={20} width={160} height={160} arcStart={135} arcSweep={75} arcRatio={82} fill="accent-solid" />
+        <Shape type="ellipse" position="absolute" insetLeft={64} insetTop={44} width={112} height={112} arcStart={315} arcSweep={50} arcRatio={70} fill="accent-subtle" />
+        <Shape type="ellipse" position="absolute" insetLeft={96} insetTop={76} width={48} height={48} fill="support-brown-solid" />
+      </>}
+      {step === 1 && <>
+        <Shape type="star" position="absolute" insetLeft={40} insetTop={20} width={160} height={160} pointCount={12} starRatio={80} fill="accent-subtle" />
+        <Shape type="ellipse" position="absolute" insetLeft={84} insetTop={64} width={72} height={72} fill="accent-solid" />
+        <Shape type="star" position="absolute" insetLeft={176} insetTop={8} width={40} height={40} fill="support-yellow-solid" />
+      </>}
+      {step === 2 && <>
+        <Shape position="absolute" insetLeft={68} insetTop={20} width={104} height={160} radius="xl" fill="accent-subtle" />
+        <Shape type="ellipse" position="absolute" insetLeft={96} insetTop={76} width={48} height={48} fill="accent-solid" />
+        <Shape type="arrow" position="absolute" insetLeft={12} insetTop={100} width={48} strokeWeight={3} stroke="support-sky-solid" />
+      </>}
+    </Box>
+  );
+}
+
+/** Onboarding on a phone: the art changes per screen, Next / Skip in the footer, Back in the bar. */
+function OnboardingPhone() {
+  const [step, setStep] = useState(0);
+  const { toast } = useToast();
+  const last = step === tour.length - 1;
+  const finish = () => { toast({ title: "Welcome to Phin & Co", children: "Your stamp card is ready" }); setStep(0); };
+  return (
+    <PlatformPhone label="Phin & Co onboarding"
+      header={<TopNavigation type="compact-alt" title="Welcome"
+        leading={step > 0 ? { icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setStep(step - 1) } : undefined} />}
+      footer={<ActionBar position="static"
+        primaryAction={last ? { label: "Start collecting", onClick: finish } : { label: "Next", onClick: () => setStep(step + 1) }}
+        secondaryAction={last ? undefined : { label: "Skip", onClick: () => setStep(tour.length - 1) }} />}>
+      <Stack gap="2xl" padding="lg" align="center">
+        <TourArt step={step} />
+        <Stack gap="xs" align="center">
+          <Text role="status" textStyle="Body/Small/Medium" tone="light">{step + 1} of {tour.length}</Text>
+          <Heading level={2} textStyle="Heading/2" align="center">{tour[step].title}</Heading>
+          <Text tone="base" align="center">{tour[step].body}</Text>
+        </Stack>
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
+/** One cell of the limits row: the layer's 72 × 72 box outlined, the shape in it, its setting below. */
+function Limit({ caption, children }: { caption: string; children: ReactNode }) {
+  return (
+    <Stack gap="xs" align="center">
+      <Box width={72} height={72}>
+        <Shape position="absolute" insetLeft={0} insetTop={0} width={72} height={72} fill="none" stroke="neutral-subtle" />
+        {children}
+      </Box>
+      <Text textStyle="Caption/Medium" tone="base">{caption}</Text>
+    </Stack>
+  );
+}
+
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Welcome card art",
     description: "Decoration drawn in a free frame beside the copy: a ring, a half pie and a star at their X / Y, in Accent and Support colours. They are decorative, so they carry no label.",
@@ -249,4 +365,97 @@ export const examples: ExampleDef[] = [
       </Stack>
     ),
   },
-];
+  {
+    title: "A seat map with labelled marks",
+    description: "Each seat is a Shape with a label (role img: \"Seat 3, your seat\"), so a screen reader hears the map; the number on it is hidden as a duplicate. Seats are picked with Segmented buttons (Tab, then Enter or Space); taken seats are disabled there and drawn as outlines, so the state shows in form and words, not colour alone. The status line announces the choice.",
+    code: `const [mine, setMine] = useState("3");
+const paint = {
+  free: { fill: "positive-subtle", stroke: "none", tone: "positive-strongest" },
+  taken: { fill: "none", stroke: "neutral-subtle", tone: "light" },
+  yours: { fill: "accent-solid", stroke: "none", tone: "on-accent" },
+} as const;
+
+<Stack gap="md">
+  <Box width={264} height={148} surface="surface-alt" radius="md">
+    <Shape position="absolute" insetLeft={72} insetTop={44} width={120} height={60} radius="lg" fill="support-brown-subtle" />
+    {seats.map((seat) => {
+      const state = seat.taken ? "taken" : seat.id === mine ? "yours" : "free";
+      return (
+        <Stack key={seat.id} position="absolute" insetLeft={seat.x} insetTop={seat.y} width={32} height={32} align="center" justify="center">
+          <Shape type="ellipse" position="absolute" width="fill" height="fill" fill={paint[state].fill} stroke={paint[state].stroke}
+            label={\`Seat \${seat.id}, \${state === "yours" ? "your seat" : state}\`} />
+          <Text textStyle="Caption/Medium" tone={paint[state].tone} aria-hidden>{seat.id}</Text>
+        </Stack>
+      );
+    })}
+  </Box>
+  <Segmented aria-label="Choose a seat" value={mine} onValueChange={setMine}
+    options={seats.map((seat) => ({ id: seat.id, label: seat.id, "aria-label": \`Seat \${seat.id}\${seat.taken ? ", taken" : ""}\`, disabled: seat.taken }))} />
+  <Text role="status" tone="base">Seat {mine} is yours · Sat, Nov 2 · 10:00</Text>
+</Stack>`,
+    render: () => <SeatPicker />,
+  },
+  {
+    title: "Arc and star at the edge of their range",
+    description: "What the handles draw at their limits, each in its 72 × 72 box (outlined): Sweep 0 % draws nothing but keeps its box, so the layout holds; Ratio 96 % leaves a hairline ring; a 16-tip Star at Ratio 10 % is a thin burst, and at Ratio 0 % its fill has no area left, so only a centred stroke shows the spikes.",
+    code: `<Stack direction="row" gap="lg" wrap>
+  <Limit caption="Sweep 0 %">
+    <Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={72} height={72} arcSweep={0} fill="accent-solid" />
+  </Limit>
+  <Limit caption="Ratio 96 %">
+    <Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={72} height={72} arcRatio={96} fill="accent-solid" />
+  </Limit>
+  <Limit caption="Star, ratio 10 %">
+    <Shape type="star" position="absolute" insetLeft={0} insetTop={0} width={72} height={72} pointCount={16} starRatio={10} fill="support-yellow-solid" />
+  </Limit>
+  <Limit caption="Star, ratio 0 %">
+    <Shape type="star" position="absolute" insetLeft={0} insetTop={0} width={72} height={72} pointCount={16} starRatio={0}
+      fill="none" stroke="support-yellow-solid" strokeWeight={2} strokeAlign="center" />
+  </Limit>
+</Stack>`,
+    render: () => (
+      <Stack direction="row" gap="lg" wrap>
+        <Limit caption="Sweep 0 %">
+          <Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={72} height={72} arcSweep={0} fill="accent-solid" />
+        </Limit>
+        <Limit caption="Ratio 96 %">
+          <Shape type="ellipse" position="absolute" insetLeft={0} insetTop={0} width={72} height={72} arcRatio={96} fill="accent-solid" />
+        </Limit>
+        <Limit caption="Star, ratio 10 %">
+          <Shape type="star" position="absolute" insetLeft={0} insetTop={0} width={72} height={72} pointCount={16} starRatio={10} fill="support-yellow-solid" />
+        </Limit>
+        <Limit caption="Star, ratio 0 %">
+          <Shape type="star" position="absolute" insetLeft={0} insetTop={0} width={72} height={72} pointCount={16} starRatio={0} fill="none" stroke="support-yellow-solid" strokeWeight={2} strokeAlign="center" />
+        </Limit>
+      </Stack>
+    ),
+  },
+  {
+    title: "Onboarding art on a phone",
+    description: "Three onboarding screens of the Phin & Co app, each with its own art drawn as shapes in a 240 × 200 free frame (Accent leads, a Support colour beside it). Tap Next or Skip in the footer, Back in the bar; Start collecting welcomes you and starts over. The art is decorative, so the words carry the screen.",
+    code: `const [step, setStep] = useState(0);
+const last = step === tour.length - 1;
+
+<PlatformPhone
+  header={<TopNavigation type="compact-alt" title="Welcome"
+    leading={step > 0 ? { icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setStep(step - 1) } : undefined} />}
+  footer={<ActionBar position="static"
+    primaryAction={last ? { label: "Start collecting", onClick: finish } : { label: "Next", onClick: () => setStep(step + 1) }}
+    secondaryAction={last ? undefined : { label: "Skip", onClick: () => setStep(tour.length - 1) }} />}>
+  <Stack gap="2xl" padding="lg" align="center">
+    <Box width={240} height={200}>
+      {/* step 1: a ring segment, an inner arc and a centre dot */}
+      <Shape type="ellipse" position="absolute" insetLeft={40} insetTop={20} width={160} height={160} arcStart={135} arcSweep={75} arcRatio={82} fill="accent-solid" />
+      <Shape type="ellipse" position="absolute" insetLeft={64} insetTop={44} width={112} height={112} arcStart={315} arcSweep={50} arcRatio={70} fill="accent-subtle" />
+      <Shape type="ellipse" position="absolute" insetLeft={96} insetTop={76} width={48} height={48} fill="support-brown-solid" />
+    </Box>
+    <Stack gap="xs" align="center">
+      <Text role="status" textStyle="Body/Small/Medium" tone="light">{step + 1} of {tour.length}</Text>
+      <Heading level={2} textStyle="Heading/2" align="center">{tour[step].title}</Heading>
+      <Text tone="base" align="center">{tour[step].body}</Text>
+    </Stack>
+  </Stack>
+</PlatformPhone>`,
+    render: () => <OnboardingPhone />,
+  },
+]);

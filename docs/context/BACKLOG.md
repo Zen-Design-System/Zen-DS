@@ -64,9 +64,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20; layers into a slot
   from the canvas since 2026-10-21 (F7c). Open, a question for the user: should the React export inline an instance
   whose overrides no property takes (now a comment)? Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
-- **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
-  edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
-  `src/platform/examples/pages/shape.tsx`.
 - **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17; re-checked 2026-10-21):** ⇧⌘G of several layers (it ungroups
   the primary selection only: edit/groupLayers.ts `ungroupSelection`). The rest shipped (⌘G, Enter = all children,
   Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles, frame presets, gap /
