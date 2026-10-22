@@ -8,6 +8,7 @@ import { DockIcon } from "../components/DockIcon";
 import { Box } from "../components/Layout";
 import { EmptyState } from "../components/EmptyState";
 import { InputField } from "../components/Input";
+import { Text } from "../components/Text";
 import { PlatformChatHeader } from "./PlatformChatHeader";
 import { TopNavigation, topNavigationTypes, type TopNavigationHeading, type TopNavigationMargin, type TopNavigationType } from "../components/TopNavigation";
 import { BottomNavigation, type BottomNavigationSelection, type BottomNavigationTheme, type BottomNavigationType } from "../components/BottomNavigation";
@@ -53,10 +54,13 @@ const projectOrder: Record<ProjectSort, (a: Project, b: Project) => number> = {
   name: (a, b) => a.title.localeCompare(b.title),
   pages: (a, b) => b.pages - a.pages,
 };
-const sortItems: BottomSheetItem[] = [
-  { id: "recent", label: "Most recent", icon: "icon-clock-line" },
-  { id: "name", label: "Name", icon: "icon-type-01-line" },
-  { id: "pages", label: "Most pages", icon: "icon-layers-three-01-line" },
+/** The Action type's items are commands (bottom-sheet guideline): picking one runs it and closes the sheet. A single
+ *  choice, such as a sort order, is a Modal sheet with a List of selectable ListItems instead. */
+const projectActions: BottomSheetItem[] = [
+  { id: "share", label: "Share", icon: "icon-share-01-line" },
+  { id: "duplicate", label: "Duplicate", icon: "icon-duplicate-line" },
+  { id: "rename", label: "Rename", icon: "icon-edit-01-line" },
+  { id: "archive", label: "Archive", icon: "icon-archive-line" },
 ];
 
 function ScreenList({ extra = [], query = "", sort = "recent", onClearQuery }: { extra?: string[]; query?: string; sort?: ProjectSort; onClearQuery?: () => void }) {
@@ -220,7 +224,8 @@ export function BottomSheetPlayground() {
   const [search, setSearch] = useState(false);
   const [vertical, setVertical] = useState(false);
   const [open, setOpen] = useState(false);
-  const [sort, setSort] = useState<ProjectSort>("recent");
+  // The command the Action sheet ran last, shown under the button.
+  const [ran, setRan] = useState<string | null>(null);
   // The sheet's Search narrows its options; closing the sheet clears it.
   const [query, setQuery] = useState("");
   const openChange = (next: boolean) => { setOpen(next); if (!next) setQuery(""); };
@@ -240,14 +245,14 @@ export function BottomSheetPlayground() {
 <BottomSheet
   open={open}
   onOpenChange={setOpen}${t === "action" ? `\n  type="action"` : ""}${size === "max" ? `\n  size="max"` : ""}
-  title="${t === "action" ? "Sort by" : "New project"}"${search ? `\n  search={<Search shape="rounded" placeholder="Search" />}` : ""}${t === "action" ? `
+  title="${t === "action" ? "Brand refresh" : "New project"}"${search ? `\n  search={<Search shape="rounded" placeholder="Search" />}` : ""}${t === "action" ? `
   items={[
-    { id: "recent", label: "Most recent", icon: "icon-clock-line" },
-    { id: "name", label: "Name", icon: "icon-type-01-line" },
-    { id: "pages", label: "Most pages", icon: "icon-layers-three-01-line" },
+    { id: "share", label: "Share", icon: "icon-share-01-line" },
+    { id: "duplicate", label: "Duplicate", icon: "icon-duplicate-line" },
+    { id: "rename", label: "Rename", icon: "icon-edit-01-line" },
+    { id: "archive", label: "Archive", icon: "icon-archive-line" },
   ]}
-  selectedId={sort}
-  onSelect={(item) => setSort(item.id)}
+  onSelect={(item) => run(item.id)}
 />` : `${vertical ? `\n  actionsDirection="vertical"` : ""}
   primaryAction={{ label: "Create", onClick: create }}
   secondaryAction={{ label: "Cancel" }}
@@ -255,12 +260,13 @@ export function BottomSheetPlayground() {
   {/* Contents slot: your own content */}
 </BottomSheet>`}`}>
       <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} topBar={false} />}>
-        <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><Button appearance="main" level="primary" size="lg" onClick={() => setOpen(true)}>{t === "action" ? "Sort projects" : "New project"}</Button></div>
-        <ScreenList sort={sort} />
-        <BottomSheet inline open={open} onOpenChange={openChange} type={t} size={(size ?? "flex") as BottomSheetSize} title={t === "action" ? "Sort by" : "New project"}
+        <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><Button appearance="main" level="primary" size="lg" onClick={() => setOpen(true)}>{t === "action" ? "Project actions" : "New project"}</Button></div>
+        {t === "action" && ran ? <Text as="p" textStyle="Body/Small/Regular" tone="base" style={{ margin: 0, padding: "0 var(--zen-spacing-padding-large, 20px)" }}>{`${ran} · Brand refresh`}</Text> : null}
+        <ScreenList />
+        <BottomSheet inline open={open} onOpenChange={openChange} type={t} size={(size ?? "flex") as BottomSheetSize} title={t === "action" ? "Brand refresh" : "New project"}
           search={search ? <Search shape="rounded" placeholder="Search" value={query} onValueChange={setQuery} /> : undefined} actionsDirection={vertical ? "vertical" : "horizontal"}
-          items={sortItems.filter((item) => String(item.label).toLowerCase().includes(query.trim().toLowerCase()))}
-          selectedId={sort} onSelect={(item) => setSort(item.id as ProjectSort)}
+          items={projectActions.filter((item) => String(item.label).toLowerCase().includes(query.trim().toLowerCase()))}
+          onSelect={(item) => setRan(String(item.label))}
           primaryAction={{ label: "Create", onClick: () => openChange(false) }} secondaryAction={{ label: "Cancel" }}>
           <PlaygroundSlot name="Contents slot" />
         </BottomSheet>
