@@ -72,6 +72,17 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
 - My slip: I stopped my isolated server with pattern kills (`pkill -f "tail -f /dev/null"`), which can hit another
   session's processes; memory updated (TaskStop or exact PIDs only).
 
+## Backlog triage · P2 / P3 open items (tier XS, docs only; user: "rà 54 mục P2/P3")
+- Each of the 53 P2 / P3 entries (B's className round 2 left to B) checked against main 4b96bbb8, merged PRs and open
+  branches. 5 done or answered (#155, #193, #50/#99, the user's White-Overlay call, round 2 supersedes the 112 classes);
+  20 merged into 5 (chart designer questions, AI UI × 2, direct paste, Figma contracts) and the Popover label into
+  QUESTIONS.md "Contrast in light mode"; 4 rewritten to what is left (Variables v2: E5 came with #151; navigation
+  surfaces; chart push data; UX polish → the design check); 8 are closed by open PRs or branches (#223, #225, #226,
+  workflow-badge-status, studio-parity-leftovers). Also archived: the P6b remains, the empty "Phone decisions" heading,
+  and 9 plan-section entries already marked done (PR #5, I-15) or done by #141. 38 archive entries in all.
+- Merged main twice (#223, then #225–#227): conflicts kept both sides (their removals and the P2 "Code-side rules"
+  line, my rewrites); no entry is archived twice and none of mine came back. Open after #230: 5 P1, 19 P2, 12 P3.
+
 ## Colour P1s: On-Brand on Zen/9 and the Chart On-Color styles (session "colour P1s", tier S)
 
 Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết backlog", clear the P1s before the next phase).
