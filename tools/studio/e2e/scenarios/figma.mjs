@@ -5198,6 +5198,8 @@ async function pickLayer(page, id, name) {
   await page.keyboard.down("ControlOrMeta");
   await page.mouse.click(at.x, at.y);
   await page.keyboard.up("ControlOrMeta");
+  // The selection is read from Layers: a row before may have left the left panel on Pages.
+  await showLeftTab(page, "layers");
   await until(async () => (await selectedSrc(page)).some((selected) => Boolean(selected) && src?.replace(/#\d+$/, "") === selected), { message: `${name} selected` });
   return async () => ((await pageText(page, id)) ?? "").match(new RegExp(`<(?:Shape|Box) data-name="${name}"[^\\n]*?/?>`))?.[0] ?? "";
 }
