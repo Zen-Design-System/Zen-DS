@@ -23,6 +23,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio ↔ Figma: an instance's layer name (data-name) is its Figma name and comes back with Pull from Figma, and so
   does a name changed in Figma since; an instance's accessible name (aria-label, an icon button's label) stays its Figma
   name first (2026-10-23).
+- Chart and metric marks on a colour Solid Card (Brand, Accent, Cyan, Yellow, Orange) draw their second series (the
+  current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
+  (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
+  The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
 - **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
   buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
   stars) and onboarding art on a phone (2026-10-23).
