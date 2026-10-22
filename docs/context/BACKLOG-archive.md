@@ -2,6 +2,237 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (backlog triage of the P2 / P3 open items)
+
+- Answered and done 2026-10-19/20 (#155, 7db4c184: the React export turns an instance's overrides that no property carries into props of the component's function; the user's "cách 3", 2026-10-20):
+  **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
+  changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*); Figma pull of overrides and
+  slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20; layers into a slot
+  from the canvas since 2026-10-21 (F7c). Open, a question for the user: should the React export inline an instance
+  whose overrides no property takes (now a comment)? Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
+
+- Answered 2026-10-21 (user: "Giữ Light như Figma"; Figma's White-Overlay labels rest on On-White-Overlay/Light, the E7 band is baselined, session-log-2026-10-20 "E7"; contrast is judged by APCA since 2026-10-19):
+  **P3 · White-Overlay label contrast (2026-10-17, for the designer):** Chip/Segmented `white-overlay` (user's choice:
+  light text on a White-Overlay fill, as Button/Overlay White-Overlay) reads 1.8:1 on Brand/Accent #FF6BD5 (white on
+  the bare band is already 2.5:1); it suits darker solid colours. Decide whether to keep it for light brand colours or
+  steer them to `black-overlay` in the guideline (session log 2026-10-17, "Chip + Segmented overlay").
+
+- Done 2026-10-21 (#193, c06c307e: a Grid in a Grid cell stretches to its row in Figma, the Dashboard's metric pairs):
+  **P2 · A Grid stretched in its parent's row keeps its own row at content height (2026-10-18, AppShell paste):** the
+  Dashboard's two metric Grids sit side by side in an outer Grid; in Figma the second Grid is stretched to 228 but its
+  Hug row stays 198, so Utilization and Active projects are shorter than Revenue and Profit margin (CSS stretches the
+  row). Both the plugin's import and the direct paste; existed before the master layout. Likely: such a Grid's rows
+  Flex (needs a Figma check: use_figma does not lay out new grids). Pointer: figma-push.mjs Grid rows, plugin
+  settleGridRows.
+
+- Superseded 2026-10-23 by "Example className, round 2" (session B; spec `docs/research/examples-classnames-round2-spec-2026-10-23.md`): its rule, approved by the user, makes a Figma concept a prop and keeps ch / rem widths, component insides, media and container queries as the example's CSS:
+  **P2 · Examples' last 112 classNames (2026-10-13, branch zen/feat/examples-classnames):** P1–P5 of the Studio → Figma
+  coverage are done (spec §8). What is left has no Zen prop, so it waits for the user: (1) per-side padding (Figma auto
+  layout has it; the page-margin padding is done since 2026-10-17: `padding="margin-comfortable"`): ai-chat,
+  bottom-navigation safe area, checkbox indent; (2) component internals: Table min-width, ProgressBar label width,
+  Toggle width, a Card's content filling its height, SidePanel height when docked, Segmented hug; (3) Skeleton widths,
+  `ch` / rem widths and min-heights on mode tokens (Badge size, line heights); (4) media (img / video / photo buttons);
+  (5) bespoke responsive rules (divider zoom group, search split borders, image channels, visually-hidden site header).
+  Session log 2026-10-13 "P5".
+
+- Done 2026-10-14 (#50, ff0b8ed7, and #99, e3467f4f: `CHART_SETS` in `tools/studio/figma-charts.mjs` maps Bar, Donut, Radial, Heatmap and Multi-Line with the other chart sets; push / pull of every chart set):
+  **P2 · Chart family in Studio Export › Figma (2026-10-12, unblocked 2026-10-13):** map `BarChart`, `DonutChart`,
+  `RadialChart`, `HeatmapChart` and series `LineChart` in `tools/studio/figma-push.mjs` (SETS / CHART_SETS) to Figma
+  Chart/Bar-Chart 15321:84071, Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart
+  15326:1043, Chart/Multi-Line-Chart 15426:2521 (header properties: spec `docs/research/chart-family-spec-2026-10-12.md`
+  §5.1). The chart mapping itself (CHART_SETS, chartCardNode) landed on main with PR #26; extend it, then run the real
+  importer in the Zen file (memory: test in real Figma). Needs the user's go-ahead (new scope).
+
+- Done 2026-10-19 (#141, dff1c688: the Main component draws every component, overlays open in a screen per variant, E2E BL-02 fails a set that is not drawn):
+  **Zen Studio Main component (user, 2026-10-09; spec docs/research/studio-main-component-spec-2026-10-09.md):** M1–M3 done
+  (frame, selection, Layers, Inspector; token edits of component CSS as drafts with undo; Figma check on save with keep /
+  undo the save). P2 · not drawn yet: overlays (Dialog, ModalForm, SidePanel, BottomSheet, Toast) and 12
+  components no Assets item uses (spec §3.2).
+
+- Stale 2026-10-23: a heading with no items left under it:
+  Phone decisions from the Top Navigation research (2026-10-01, `docs/research/top-navigation-mobile-rules-2026-10-01.md`):
+
+- Done 2026-10-13 (#41); its first P3 is a limit, not work (nothing in Figma holds code-only detail); the second stays open as "Update from Figma in another browser":
+  ~~**P2 · Studio ↔ Figma P6b: round trip by push key**~~ done 2026-10-13 (user approved; branch zen/feat/figma-keys,
+  spec §8 "P6b"). Update from Figma on an exported page now lists only the designer's edits and keeps code-only
+  detail. Still open, P3:
+  - A frame a designer made from scratch still pulls without code-only detail (Container / Box / Form come back as
+    Stack). This is inherent, since nothing in Figma holds that detail.
+  - A pull in another browser has no export kept, so it falls back to a two-way comparison.
+
+- Merged 2026-10-23 into "Chart questions for the designer":
+  **P2 · Chart parity, designer decisions and Figma active states (2026-10-17):** active X pill (20px hug, Medium vs
+  sector-wide 16px Bold), 88% dim of inactive columns, Bar label padding/thinning, Tooltip anchor and lanes, Heatmap
+  density token, Chart Card description gap; Figma lacks the Line/Multi-Line active dot, Area Stacked and Grouped/Combo
+  active states, Radial default variant. Pointer: `docs/research/chart-parity-audit-2026-10-17.md` §2–§4.
+
+- Merged 2026-10-23 into "Chart questions for the designer":
+  **P3 · BarList rows spread out in a stretched ChartCard (2026-10-18, V-1; designer):** next to a taller LineChart card
+  (Grid stretch, equal-height cards) the 5 BarList rows sit ~72px apart. Hug at the top, or fill as now? Pointer: same §7.
+
+- Merged 2026-10-23 into "Chart questions for the designer":
+  **P2 · Figma chart/widget bugs found in the widgets batch (designer, 2026-10-14; Figma not edited):** Bar-Chart
+  Vertical `Average › Rule` 15335:2421 strokeCap NONE (no dots); Segmented `Item-List` FIXED 114 in Line, Stack-Bar,
+  Multi-Line, Chart-Card and Heatmap (labels overlap); Area fills bound to Background/Accent|Neutral while lines use the
+  Chart Sector styles (drift in a theme where they differ); (settled 2026-10-17: Solid Card content follows the fill,
+  On-Colors / On-Brights / On-Accent in Figma and code); Solid hue cards: the series in the card's own hue uses Brand in code
+  (On-Color/Tertiary washes out as an area); no Border/Inverse/Pale|Subtle token;
+  Metric-Card Hero keeps a Brand Pale fill override on a Solid Brand Card (make it Pale/Brand?). Older chart diffs
+  to settle: X-label pill (16 tall Bold full-width vs 20 Medium hug), bar lanes
+  38/26 vs 36/28, horizontal/heatmap axis gaps 8 vs 16. Detail: `docs/research/widget-patterns-spec-2026-10-14.md`,
+  `docs/research/chart-phase2-spec-2026-10-14.md` §4.
+
+- Merged 2026-10-23 into "Chart questions for the designer":
+  **P2 · Older chart sets bake their card (designer, 2026-10-13):** Bar, Donut, Radial, Heatmap (and Multi-Line) draw
+  their own Surface/Default card, so they cannot take Card Theme/Color; the new charts are card-less content that sits
+  in a Card. Align the old ones the same way? (a component property cannot reach slot content of a nested Card).
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P2 · AI UI: `verified` status is a heuristic (2026-10-14, user):** `tools/ai-ui/build-catalog.mjs` marks a component
+  `verified` when a Figma contract file or suite name matches its folder (41 components). Confirm the list or set it in
+  `tools/ai-ui/catalog.config.mjs` `STATUS_OVERRIDES`. Pointer: docs/ai-ui/README.md "Open decisions".
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P3 · AI UI: classifier placement in the product (2026-10-15, user; handoff Q4):** the user chose "UI while typing"
+  (Q1 decided). The kit classifies on the device (`keywordClassifier`) and asks the model only once an intent is likely;
+  a smarter classifier (embeddings or a small model) is the product's choice: on-device keeps keystrokes private, a
+  server one needs consent. Pointer: docs/ai-ui/README.md "Composing while typing".
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P2 · AI UI: a tentative look for a guessed form (2026-10-15, designer; ShapeShift reference):** while the intent
+  is only likely, ShapeShift shows the form faded with its empty slots as dashed "+ Add date" chips; Zen has no
+  tentative state or token (Chip `state="placeholder"` only recolours the label). Needs Figma: a state on the form's
+  components or an opacity token, and the dashed add-chip. Pointer: docs/ai-ui/README.md "Composing while typing".
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P3 · AI UI: the recognised span underlined in the prompt field (2026-10-15, designer):** ShapeShift underlines the
+  words a slot came from; `extractSlots` returns the `spans`, but `AiChatField` is a plain textarea (an overlay or a
+  contenteditable, tier M). Needs Figma.
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P3 · Keycap component (2026-10-15, designer):** keyboard hints ("Tab to keep as booking") need a Kbd; the AI UI demo
+  uses Tag for now.
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P2 · AI UI: "AI glow" gradient tokens (2026-10-15, designer):** the Zen AI screen on Patterns › AI UI draws the
+  "AI is working" sphere (after Dribbble "Sphere AI Assistant") from Support Pink Solid/Soft, Violet Soft, Cyan
+  Solid/Soft + Surface/Default (demo CSS; a page tint and a ring around the field were tried and dropped at the
+  user's word); the product's own gradient for it (ring, card edge, thinking dots) needs colours in Figma first, then `tokens:build` —
+  `tokens.css` has no gradient token today. Pointer: `src/platform/examples/pages/ai-ui.css` (`.px-ai-ui-orb`); if the orb stays, it becomes a
+  component (AiChatBubble `thinking="orb"`?) with Figma first.
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P2 · AI UI: spec format, this tree or A2UI / json-render (2026-10-14, user; handoff Q2):** the runtime uses Zen's own
+  node tree (Studio dialect shape). An A2UI exporter is possible on top; decide before a native renderer is needed.
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P2 · AI UI: a 4-column Table in a 600 / 390 px chat column (2026-10-14, designer):** needs ~608 px and scrolls
+  sideways in its own box (tests/ai-ui/narrow.test.tsx). Keep, or a compact mode that folds columns (Figma first)?
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P3 · AI UI: prose has no code block (2026-10-14, designer):** `markdownToSpec` renders fenced code as `Text as="code"`;
+  no mono text style or CodeBlock / Prose component exists. Needs Figma.
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P3 · AI UI: ChatReactorsPanel is experimental (2026-10-14, user):** its required `glyph` is a formatter function with
+  no JSON form (`unavailable` in the catalog). Give it a JSON form if chat reactions should be composable.
+
+- Merged 2026-10-23 into "AI UI: decisions for the user" / "AI UI: Figma first, for the designer":
+  **P3 · AI UI: `data-ai-ui-id` on components that do not forward HTML attributes (2026-10-14):** the Skeletons (and any
+  part that keeps `...rest`) carry no id in the DOM; decide whether every component should forward `data-*`.
+
+- Merged 2026-10-23 into QUESTIONS.md "Contrast in light mode (designer decision)" (the same grey-text question):
+  **P3 · Designer question: Popover label at 3.75:1 (2026-10-14):** `.zen-popover__label` ("Select an option or create one" in
+  PopoverManualAddNew) uses Content/Neutral/Light, #838383 on white at 12px, under AA's 4.5:1. Baselined in
+  tests/smoke/axe-baseline.json. Keep, or move the label to Content/Neutral/Medium?
+
+- Merged 2026-10-23 into "Direct paste (⌘V on the canvas), what is left":
+  **P2 · Direct paste (⌘V on the canvas) outside the Zen file (2026-10-17):** it binds by node id, so only the Zen file
+  takes it; other files need the published library and full component definitions in the paste (instances by
+  `componentKey`, as Figma's own copies carry). Also open: the frame menu's Copy for Figma (async write: Chromium rewrites
+  the html, only the plugin reads it). Pictures go since 2026-10-19 (F8c). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §6, §7c.
+
+- Merged 2026-10-23 into "Direct paste (⌘V on the canvas), what is left":
+  **P3 · Direct paste parity left after native-diff (2026-10-17):** slot contents written at Figma's outer level, grid row
+  minimum heights, kept overrides by resolved variable, and a smaller pack (18.9 MB). Pointer: research doc §8.
+
+- Merged 2026-10-23 into "Figma contracts to capture or refresh":
+  **P3 · Chart family Figma contracts (2026-10-12):** capture `docs/figma-contracts/chart-*.json` for the five new sets
+  (`tools/figma-contract/mcp-capture`) and add parity suites, so a later Figma edit is caught like the other components.
+
+- Merged 2026-10-23 into "Figma contracts to capture or refresh":
+  **P3 · Figma contracts without a suite are out of date (2026-10-08):** the contracts every suite reads were
+  re-captured on 2026-10-08 through `use_figma` (button-text, button-icon, checkbox-radio-chip-popover, the Input/Heading
+  entry of input-search; all 23 suites match). `avatar-single`, `chat-bubbles`, `datepicker-sidebar`,
+  `input-search-primitives`, the rest of `input-search`, `segmented-toggle-badge-avatarstack` (but its two Segmented sets,
+  re-captured 2026-10-14) and `table-cells` still
+  hold the September capture (26 of the checked sets changed in Figma). No test reads them; re-capture each when its
+  suite is written (the same LZ-chunk capture, `tools/figma-contract/README.md`).
+
+- Rewritten 2026-10-23 to its open part, the native mapping ("Zen-High-Contrast in the native packages"):
+  **Zen-High-Contrast, next steps (prototype in code since 2026-10-05; user: keep step 9, no new tokens):**
+  - Done (2026-10-05 evening, export "Zen-Variables 2"): Global Colors now carries the Zen-High-Contrast mode, which
+    equals the algorithm on all 960 values; build-tokens takes Figma's mode and tokens:check verifies it. The Mint ramp
+    was synced in the same export and matches the live file (Mint/9 #40E7AD). The native packages carry the second mode
+    as data (resolver default Zen); mapping it to iOS accessibilityContrast / Flutter highContrast is still open.
+
+- Done 2026-10-08 (PR #5), marked in place:
+  ~~**P1 · CI "Package" step: `npm pack --json` output mixed with the build log**~~ fixed 2026-10-08 (PR #5: build:lib, then `npm pack --json --ignore-scripts`; verified under npm 11). Was: **(2026-10-08, cause of the P2 below):**
+  on CI (Node 24 / npm 11) the prepack `build:lib` output (vite "building…") lands in `npm pack --json`'s stdout, so
+  `scripts/verify-package.mjs:48` `JSON.parse` fails; same on main run 37602020509. Locally (npm 10) it passes.
+  Fix idea: build first, then `npm pack --json --ignore-scripts`. Blocks the Release workflow and CI green on PR #5.
+
+- Done 2026-10-08 (PR #5), marked in place:
+  ~~**P1 · verify:package fails "zen-ds-mcp answers over stdio"**~~ fixed 2026-10-08 (PR #5: the server answers what is in flight and flushes stdout before exiting). Was: **(2026-10-08, same on clean main):** `mcp/server.mjs`
+  exits when stdin ends, before the async replies to requests 4 (check_usage) and 5 (get_component) are written; the
+  check reads ids 1–3 only. Likely the cause of the P2 CI "Package" failures below. Blocks the Release workflow
+  (it runs verify:package). Pointer: `mcp/server.mjs` stdin end, `scripts/verify-package.mjs` §7.
+
+- Done 2026-10-08 (PR #5), marked in place:
+  ~~**P1 · usage:selftest crashes: `--list` JSON cut at 8 KB**~~ fixed 2026-10-08 (PR #5: `process.exitCode` instead of `process.exit()` in check-usage.mjs and cli.mjs). Was: **(2026-10-08, same on clean main):** `check-usage.mjs` ends
+  with `process.exit(main())`, which drops unflushed piped stdout (62 KB); the selftest's `JSON.parse` fails. CI runs it.
+  Pointer: `tools/usage-guard/check-usage.mjs:1330`, `tools/usage-guard/selftest.mjs:11`.
+
+- Done 2026-10-08 (PR #5), marked in place:
+  ~~**P2 · Private registry Phase 5, customer docs (2026-10-08):**~~ **Done 2026-10-08 (PR #5):** getting-started
+  (scope line, `npm login`, CI token, error table checked against a live npm), README, `AGENTS.consumer.md`, the platform
+  Installation page; `zen-ds init` writes the `.npmrc` line, `doctor` requires it and flags a committed token.
+
+- Fixed live 2026-10-08, marked in place:
+  ~~**P0 · Live license backend: anonymous read of licenses by id**~~ fixed live 2026-10-08 (user-approved, with the registry access change; verified anonymous 404 on all 30). Was: **(2026-10-08, found by the registry e2e test):**
+  `licenses.viewRule` `owner.id = @request.auth.id || team_members_via_license.user ?= @request.auth.id` lets a
+  request with no auth read any license that has no team members (26 of 30 live): `?=` over an empty back-relation
+  matches the empty auth id. Exposes owner id, type, credits, purchase date. Fix: prefix `@request.auth.id != "" && (…)`.
+  Pointer: zen-license-management `licenses` rules; `tools/registry/test/pocketbase/pb_migrations/`.
+
+- Done 2026-10-08 (PR #5), marked in place; its full text was a second entry (next):
+  ~~**P2 · CI "Package" step fails on every run of the 0.4.0 branch**~~ cause found and fixed 2026-10-08 (PR #5: npm 11 pack JSON + MCP replies). Was: ** (2026-10-07, seen when merging PR #1):** 14 of 14
+
+- Done 2026-10-08 (PR #5: npm 11 pack JSON + MCP replies), the unmarked copy of the entry above:
+  **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
+  finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
+  MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
+  The job log could not be read from the cloud session (its storage host is blocked). PR #1 was merged with it on the
+  user's call. Pointer: `.github/workflows/ci.yml` step "Package", `scripts/verify-package.mjs`.
+
+- Done 2026-10-07 (GĐ4 M4), marked in place:
+  ~~**P3 · Studio E2E I-15 is flaky**~~ done 2026-10-07 (GĐ4 M4, the user chose to fix the row: it waits for the field to
+  read "sm · …" before ⌫; 5/5 alone, full matrix). Was: **(2026-10-06, session "Studio builder tool planning", seen during GĐ2 M2):** "Timed out
+  waiting for ⌫ removes gap" on the first try in 2 of 3 full runs (passes on retry and alone, 2/2); the gate counts a
+  failed try as a regression. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-15, ScaleField ⌫ reset.
+  2026-10-07 (GĐ4 M1): 3/5 alone, both tries failed once in a gate run. Likely race: ⌫ right after ⌘Z is planned from
+  the element and hash read before the undo's refetch, so the server refuses it as stale; the row could wait for the
+  field to read "sm · …" again before ⌫.
+
+- Done 2026-10-19 (#141, dff1c688: the Main component draws every component; E2E BL-02):
+  P2 (2026-10-18, session "Bug") · **Studio Main component still incomplete** (needs the user's go-ahead: Assets items +
+  map entries): not drawn for lack of an Assets item — ToggleButton, BadgeCounter, HeadingField, SkeletonShape,
+  OpinionScale, UploaderFileItem, ControlBarSelectItem, InputConditionItem, ChatConversationItem/Bubble/File/Call/AvatarGroup;
+  the 5 overlays (Dialog, ModalForm, SidePanel, BottomSheet, Toast) by design; no variant set mapped — ListItem, Popover,
+  EmptyState, BottomNavigation, DatePicker, DatePickerSheet, Stepper, ChatPhotos, InputConditions, AutocompleteField,
+  RichTextField; Dashboard header Navigation/Custom rows draw without their content. Pointer: session-log-2026-10-18
+  "Studio component boards"; E2E BL-02 guards what is drawn.
+
 ## Archived 2026-10-23 (cross-page instances in Figma, done on `zen/feat/studio-cross-page-figma-20261023`)
 
 - **P3 · Project components as real instances in Figma (2026-10-22, Session C, Libraries phase 2; needs a multi-page push):**
