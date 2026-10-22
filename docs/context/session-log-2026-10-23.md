@@ -72,6 +72,19 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
 - My slip: I stopped my isolated server with pattern kills (`pkill -f "tail -f /dev/null"`), which can hit another
   session's processes; memory updated (TaskStop or exact PIDs only).
 
+## Session B · Example className round 2, PR 2: Card / ListBox content column (tier L; user "Content-Slot là cột auto layout")
+
+- `.zen-card__content` grows (flex 1 1 auto): Figma's Content-Slot fills the card; a `height="fill"` child of the card
+  content or of `.zen-list-box__body` grows into it. MetricCard / ChartCard dropped their own copy of the rule.
+- Examples: px-card-plan, px-card-grow, px-card-plan__cta (plan cards: a Fill-height Stack, justify between),
+  px-layout-template(-body) and px-layout-cover-body went; px-layout-cover stays (26rem follows the type scale). Dead
+  platform.css `.pe-plan*` / `.pe-checklist` removed.
+- Visual diff, all 72 pages at 1512 + 390, before = a scratch worktree of main 25a86b67 (the classifier refused
+  overwriting files or a detached checkout in this worktree): 1194 identical, 4 changed, all noise (lazy photo in
+  top-navigation 06, 3 px in chat 01 and form 01, the voice wave).
+- Gate `--isolated` (card, layout, list-item, metric, chart): PASS, 0 errors / 0 new warnings, Studio E2E 338 works;
+  contact sheets card-1512 and layout-390 looked at.
+
 ## Backlog triage · P2 / P3 open items (tier XS, docs only; user: "rà 54 mục P2/P3")
 - Each of the 53 P2 / P3 entries (B's className round 2 left to B) checked against main 4b96bbb8, merged PRs and open
   branches. 5 done or answered (#155, #193, #50/#99, the user's White-Overlay call, round 2 supersedes the 112 classes);
