@@ -44,7 +44,8 @@ import "./chart.css";
 export const page: PlatformPage = "chart";
 
 /** "1,540 h" — hours read in full, also on the axis. */
-const hours = (value: number) => `${value.toLocaleString("en-US")} h`;
+// A no-break space keeps the unit with its number when a figure wraps ("5,900 of 7,564 h" on a phone).
+const hours = (value: number) => `${value.toLocaleString("en-US")}\u00a0h`;
 
 /* ───────────── The studio app's chrome ───────────── */
 
@@ -904,7 +905,7 @@ const [reportOpen, setReportOpen] = useState(false);
     render: () => <HoursByTeamExample />,
     code: `const teams = [{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" },
   { id: "delivery", label: "Delivery" }, { id: "client-services", label: "Client Services" }];
-const hours = (value: number) => \`\${value.toLocaleString("en-US")} h\`;
+const hours = (value: number) => \`\${value.toLocaleString("en-US")}\\u00a0h\`;
 const [range, setRange] = useState("3m");
 
 <ChartCard title="Billable hours" ranges={[{ id: "3m", label: "3 months" }, { id: "6m", label: "6 months" }]}

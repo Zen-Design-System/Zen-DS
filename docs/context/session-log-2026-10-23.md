@@ -161,3 +161,7 @@ Branch claude/interesting-yonath-0da9e0 (worktree agitated-leakey-b2b41c). BACKL
   "Led by the neutral colour" (Bar, Gauge, Donut), a story; Figma descriptions of the ten sets gained a "Color:" line
   (decoded first; Stack-Bar's stacked `&amp;lt;` escape fixed). No chart contract suite exists (BACKLOG P3), and the
   component-properties contract still has no chart sets (BACKLOG P2 inspector item, Color added to it).
+- Gate (isolated, chart + 23 files): static ✓, Vitest 79 / 79, audit 1512 / 390 / 320 + dark + behaviour 0 new, Studio
+  E2E 338 / 338 (3 shards), Build-QA PASS. Contact sheets: the 390 sheet showed "5,900 of 7,564 h" leaving the unit "h"
+  alone on its line (in the new example and the older "Utilisation against a target"): the chart page's `hours()` now
+  puts a no-break space before "h". Re-gate of the chart page PASS; the unit stays with its number.
