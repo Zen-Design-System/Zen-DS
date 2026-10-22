@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -26,7 +27,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
-  TODAY, daysFromToday, formatDate, formatDay, formatMoney, invoiceStatusTheme, invoices, leaveRequests, leaveStatusTheme, people, peopleList, taskStatusTheme,
+  TODAY, daysFromToday, formatDate, formatDay, formatMoney, invoiceStatusTheme, invoices, leaveRequests, leaveStatusTheme, people, peopleList, taskStep,
   type LeaveStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -327,7 +328,7 @@ function TaskDetailExample() {
             <HeadingField headingSize="h3" multiline aria-label="Task title" placeholder="Task title" value={title} onValueChange={setTitle} />
           </Stack>
           <Stack direction="row" gap="xs" align="center" wrap>
-            <Badge theme={taskStatusTheme[taskSaved.status]} background="subtle">{taskSaved.status}</Badge>
+            <BadgeStatus status={taskStep[taskSaved.status]}>{taskSaved.status}</BadgeStatus>
             <Stack direction="row" gap="xs" align="center">
               <Avatar size="xs" theme="photo" src={ava.photo} alt="" />
               <Text as="span" textStyle="Body/Small/Regular" tone="base">{ava.name}</Text>

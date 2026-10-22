@@ -8,6 +8,7 @@ import { ActionBar } from "../../../components/ActionBar";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { BottomSheet } from "../../../components/BottomSheet";
@@ -39,7 +40,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   TODAY, activity, daysFromToday, files as studioFiles, formatBytes, formatDate, formatDue, formatMoney, formatRelative, initials, invoiceStatusTheme, invoices, me, people,
-  projectById, projects, projectStatusTheme, studio, taskStatusTheme, tasks, type Invoice, type Person, type PersonId, type Project, type Task,
+  projectById, projects, projectProgress, projectStep, studio, taskStep, tasks, type Invoice, type Person, type PersonId, type Project, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -316,7 +317,7 @@ function ProjectActions() {
           {rows.map((item) => (
             <ListItem key={item.id} data-project={item.id} title={item.name} caption={`${item.client} · ${timing(item)}`}
               leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" />}
-              trailing={<Badge theme={projectStatusTheme[item.status]} background="subtle">{item.status}</Badge>}
+              trailing={<BadgeStatus status={projectStep[item.status]} progress={projectProgress(item)}>{item.status}</BadgeStatus>}
               onClick={() => open(item.id)} />
           ))}
         </List>
@@ -380,7 +381,7 @@ function ProjectActions() {
         actions={<StudioActions />}
         main={(
           <PageHeader eyebrow={project.client} title={project.name}
-            meta={<Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>}
+            meta={<BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>}
             description={`Led by ${people[project.lead].name} · ${timing(project)}`}
             actions={<>
               <Button level="tertiary" startIcon="icon-user-plus-line" onClick={() => setSharing(true)}>Share</Button>
@@ -406,7 +407,7 @@ function ProjectActions() {
                   <ListItem key={task.id} title={task.title} titleLines={2}
                     caption={narrowTasks ? `${task.status} · ${task.key} · ${formatDue(task.due)}` : `${task.key} · ${people[task.assignee].name} · ${formatDue(task.due)}`}
                     leading={narrowTasks ? undefined : <Avatar size="md" {...avatarOf(people[task.assignee])} />}
-                    trailing={narrowTasks ? undefined : <Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+                    trailing={narrowTasks ? undefined : <BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
                 ))}
               </List>
             </ListBox>
@@ -600,7 +601,7 @@ function TaskActionsKeyboard() {
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">{task.title}</Heading>
         </Stack>
         <DescriptionList items={[
-          { term: "Status", description: <Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge> },
+          { term: "Status", description: <BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus> },
           { term: "Assignee", description: people[task.assignee].name },
           { term: "Due", description: formatDate(task.due) },
           { term: "Watchers", description: plural(watching ? 3 : 2, "person", "people") },

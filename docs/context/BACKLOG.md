@@ -7,10 +7,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P2 · Workflow steps still drawn as themed Badges (2026-10-21, BadgeStatus in code; multi-file migration):** other
-  platform pages and the HR templates show a task's step as `Badge theme={taskStatusTheme[…]}`; the new rule
-  `badge/workflow-status-uses-badge-status` flags new ones only. Move them to `<BadgeStatus>` (and Figma instances to
-  Badge-Status). Pointer: `grep -rn taskStatusTheme src/platform`.
+- **P3 · Figma instances of a workflow step still drawn as themed Badges (2026-10-21; code done 2026-10-23):** the
+  code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
+  screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
+  for the user: a write to the Zen Figma file.
 - **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
   Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
   Figma). Pointer: `tools/studio/figma-property.mjs`.
@@ -120,6 +120,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma's outer level, grid row minimum heights, kept overrides by resolved variable, and a smaller pack (23 MB on
   2026-10-23). Pictures go since 2026-10-19 (F8c), a frame's whole look since #177. Pointer:
   `docs/research/studio-native-paste-2026-10-17.md` §6, §7c, §8.
+- **P3 · AppShell phone bars in Figma (2026-10-23, B; found by AppShell, needs the user's OK):** figma-push draws a
+  phone frame's top and bottom bars only from the builder Screen's own `topNavigation` / `bottomNavigation`. An
+  AppShell's own phone bars are named in the push notes and not drawn: a root AppShell on a phone Screen keeps only its
+  content, as the runtime shows it, and an AppShell inside a page draws only its desktop parts. Drawing them (Figma
+  Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
+  Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
 - **P2 · Figma library gaps the 438-page Studio → Figma test found (2026-10-18, questions for the designer):** (a)
   Accordion/Text has no content slot, so an open Accordion's content cannot be drawn (the push notes it); (b) Dock-Icon
   has Theme=Emoji only at Medium and Large (the HR templates use XSmall in table cells: the default variant shows);

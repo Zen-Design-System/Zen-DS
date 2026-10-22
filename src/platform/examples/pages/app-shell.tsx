@@ -9,6 +9,7 @@ import { AlertBanner } from "../../../components/AlertBanner";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge, type BadgeTheme } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
@@ -38,7 +39,7 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import {
   activity, daysFromToday, files, formatBytes, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRelative, initials,
-  invoiceStatusTheme, invoices, me, people, peopleList, priorityTheme, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks,
+  invoiceStatusTheme, invoices, me, people, peopleList, priorityTheme, projectById, projectProgress, projectStep, projects, studio, taskStep, tasks,
   type Invoice, type Person, type Project, type StudioFile, type Task, type TaskStatus, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -65,7 +66,8 @@ const avatarOf = (person: Person) => person.photo
   ? { theme: "photo" as const, src: person.photo, alt: "" }
   : { theme: person.theme, alt: "", children: initials(person.name) };
 const badge = (label: string, theme: BadgeTheme) => <Badge theme={theme} background="subtle">{label}</Badge>;
-const taskBadge = (status: TaskStatus) => badge(status, taskStatusTheme[status]);
+const taskBadge = (status: TaskStatus) => <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus>;
+const projectBadge = (project: Project) => <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>;
 /** The caption follows the status: open work shows when it is due, finished work when it was done. */
 const taskWhen = (task: Task) => (task.status === "Done" ? `Done ${formatDay(task.due)}` : formatDue(task.due));
 /** A run of words that never breaks: its spaces are no-break spaces. */
@@ -191,7 +193,7 @@ function StudioApp({ windowWidth, notice = false }: { windowWidth?: number; noti
   const dueId = useId();
   const projectColumns: TableColumn<Project>[] = [
     { id: "project", header: "Project", cell: (row) => <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.client}>{row.name}</TableMedia> },
-    { id: "status", header: "Status", width: narrow ? undefined : "128px", cell: (row) => badge(row.status, projectStatusTheme[row.status]) },
+    { id: "status", header: "Status", width: narrow ? undefined : "128px", cell: (row) => projectBadge(row) },
     ...(narrow ? [] : [
       { id: "lead", header: "Lead", width: "168px", cell: (row: Project) => <TableMedia bold={false} media={<Avatar size="xsmall" {...avatarOf(people[row.lead])} />}>{people[row.lead].name}</TableMedia> },
       { id: "due", header: "Due", width: "152px", cell: (row: Project) => <TableText>{formatDate(row.due)}</TableText> },
@@ -580,7 +582,7 @@ function TabletPortraitApp() {
               <Stack gap="md">
                 <Stack direction="row" gap="sm" align="center" justify="between">
                   <DockIcon icon={project.icon} theme={project.theme} background="subtle" />
-                  {badge(project.status, projectStatusTheme[project.status])}
+                  {projectBadge(project)}
                 </Stack>
                 <Stack gap="xs">
                   <Heading level={2} textStyle="Heading/Subheading">{project.name}</Heading>

@@ -198,6 +198,8 @@ export const Good = () => <>
   <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} main={<PageHeader title="Invoices" />} />} topNavigation={<TopNavigation title="Invoices" largeTitle="Invoices" />} bottomNavigation={<BottomNavigation value="invoices" onValueChange={go} items={roots} />}>{page}</AppShell>
   {/* The Master crumb stays when the toggle moves into the Sidebar; each pattern gets the panes it draws. */}
   <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
+  {/* A part's content carries its own props: the header's BadgeStatus progress is not the shell's progress. */}
+  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Loyalty app" meta={<BadgeStatus status="in-progress" progress={64}>Active</BadgeStatus>} />} />}>{page}</AppShell>
   <AppShell pattern="workspace" header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />} leadingPane={<AppShellPane title="Files">{fileList}</AppShellPane>} trailingPane={<AppShellPane title="Comments">{comments}</AppShellPane>}>{page}</AppShell>
   {/* A comment with an apostrophe inside an attribute's expression is no string: the tag still reads as one AppShell. */}
   <AppShell sidebar={(

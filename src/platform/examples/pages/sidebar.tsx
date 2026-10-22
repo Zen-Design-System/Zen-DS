@@ -9,6 +9,7 @@ import { createContext, useContext, useEffect, useId, useRef, useState, type Anc
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, useAppShell, type AppShellLayout } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, type BadgeTheme } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Breadcrumbs, type BreadcrumbItemData } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -32,7 +33,7 @@ import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone } from "../../PlatformPhone";
 import {
   activity, daysFromToday, files, formatBytes, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRelative, initials,
-  invoiceStatusTheme, invoices, me, people, peopleList, plans, priorityTheme, projectById, projectStatusTheme, projects, studio, taskStatusTheme,
+  invoiceStatusTheme, invoices, me, people, peopleList, plans, priorityTheme, projectById, projectProgress, projectStep, projects, studio, taskStep,
   tasks, workspacePlan, type Activity, type Invoice, type Person, type PersonId, type Project, type StudioFile, type Task, type Team,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -53,13 +54,16 @@ const personAvatar = (p: Person) => p.photo
   ? <Avatar size="medium" theme="photo" src={p.photo} alt="" />
   : <Avatar size="medium" theme={p.theme} alt="">{initials(p.name)}</Avatar>;
 const statusBadge = (label: string, theme: BadgeTheme) => <Badge theme={theme} background="subtle">{label}</Badge>;
+/** A task's and a project's workflow step: BadgeStatus, the label in the data's words. */
+const taskBadge = (task: Task) => <BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>;
+const projectBadge = (project: Project) => <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>;
 const itemIcon = (icon: IconName) => <DockIcon icon={icon} theme="neutral" background="subtle" size="medium" />;
 const firstName = (p: Person) => p.name.split(" ")[0];
 
 /** The caption follows the status: open work shows when it is due, finished work when it was done. */
 const taskWhen = (t: Task) => (t.status === "Done" ? `Done ${formatDay(t.due)}` : formatDue(t.due));
 /** Task rows open the task’s own page (its title reads in full there). */
-const taskRow = (t: Task, open: (t: Task) => void): Row => ({ id: t.id, title: t.title, caption: `${t.key} · ${taskWhen(t)}`, leading: personAvatar(people[t.assignee]), trailing: statusBadge(t.status, taskStatusTheme[t.status]), onClick: () => open(t) });
+const taskRow = (t: Task, open: (t: Task) => void): Row => ({ id: t.id, title: t.title, caption: `${t.key} · ${taskWhen(t)}`, leading: personAvatar(people[t.assignee]), trailing: taskBadge(t), onClick: () => open(t) });
 const fileRow = (f: StudioFile, open?: (f: StudioFile) => void): Row => ({ id: f.id, title: f.name, caption: `${formatBytes(f.bytes)} · ${people[f.owner].name} · ${formatRelative(f.updated)}`, leading: <FileIcon format={fileIconFormatOf(f.name)} size="xl" />, onClick: open ? () => open(f) : undefined });
 const personRow = (p: Person): Row => ({ id: p.id, title: p.name, caption: `${p.role} · ${p.location}`, leading: personAvatar(p) });
 const activityRow = (a: Activity, unread: boolean): Row => ({ id: a.id, title: people[a.actor].name, caption: `${a.verb[0].toUpperCase()}${a.verb.slice(1)} ${a.object} · ${formatRelative(a.at)}`, leading: personAvatar(people[a.actor]), trailing: unread ? <Badge theme="accent" background="subtle">New</Badge> : undefined });
@@ -67,9 +71,9 @@ const invoiceRow = (i: Invoice): Row => ({
   id: i.id, title: i.number, caption: `${i.client} · ${formatMoney(i.amount, true)} · Due ${formatDate(i.due)}`, leading: itemIcon("icon-receipt-line"),
   trailing: statusBadge(i.status, invoiceStatusTheme[i.status]),
 });
-const projectRow = (p: Project): Row => ({ id: p.id, title: p.name, caption: `${p.client} · Due ${formatDate(p.due)}`, leading: itemIcon(p.icon), trailing: statusBadge(p.status, projectStatusTheme[p.status]) });
+const projectRow = (p: Project): Row => ({ id: p.id, title: p.name, caption: `${p.client} · Due ${formatDate(p.due)}`, leading: itemIcon(p.icon), trailing: projectBadge(p) });
 /** Hours and money by project, for Reports: how far along it is and how much of the budget is spent. */
-const reportRow = (p: Project): Row => ({ id: p.id, title: p.name, caption: `${p.progress}% done · ${formatCompactMoney(p.spent)} of ${formatCompactMoney(p.budget)} spent`, leading: itemIcon(p.icon), trailing: statusBadge(p.status, projectStatusTheme[p.status]) });
+const reportRow = (p: Project): Row => ({ id: p.id, title: p.name, caption: `${p.progress}% done · ${formatCompactMoney(p.spent)} of ${formatCompactMoney(p.budget)} spent`, leading: itemIcon(p.icon), trailing: projectBadge(p) });
 
 /** A list’s elevation follows the Sidebar: beside the default Sidebar on the grey Default Canvas it takes the Sidebar’s
  *  shadow; the Alt and Flat Canvases are white like Surface/Default (with an Alt or Flat Sidebar), so the ListBox takes
@@ -142,7 +146,7 @@ function taskView(task: Task, back: Crumb[], project: Project | undefined, canva
   return {
     crumbs: [...back, { id: task.id, label: task.key }],
     title: task.title,
-    meta: statusBadge(task.status, taskStatusTheme[task.status]),
+    meta: taskBadge(task),
     description: project ? `${project.name} · ${taskWhen(task)}` : taskWhen(task),
     body: (
       <Pair>
@@ -281,7 +285,7 @@ function StudioNavigationExample() {
     const hasTasks = tasksOf(project.id).length + extra.length > 0;
     view = {
       title: project.name,
-      meta: statusBadge(project.status, projectStatusTheme[project.status]),
+      meta: projectBadge(project),
       description: `${project.client} · Led by ${people[project.lead].name} · Due ${formatDate(project.due)}`,
       // The page’s one Primary; an empty project offers it in its empty state instead.
       actions: hasTasks ? <Button level="primary" startIcon="icon-plus-line" onClick={() => setDialog("task")}>Add task</Button> : undefined,
@@ -415,7 +419,7 @@ function ProjectsFlyoutExample() {
     view = {
       crumbs: [toProjects, { id: project.id, label: project.name }],
       title: project.name,
-      meta: statusBadge(project.status, projectStatusTheme[project.status]),
+      meta: projectBadge(project),
       description: `${project.client} · Led by ${people[project.lead].name} · Due ${formatDate(project.due)}`,
       body: projectBody(project, "alt", [], openTask, download, (
         <EmptyState headingLevel={2} title="Nothing here yet" icon="icon-folder-line" secondaryAction={{ label: "Show all projects", onClick: () => open("projects") }}>
@@ -572,7 +576,7 @@ function SwitchWorkspaceExample() {
           : (
             <Pair>
               <Stack gap="md">
-                {detailsCard([{ term: "Project", description: p.name }, { term: "Lead", description: people[p.lead].name }, { term: "Status", description: statusBadge(p.status, projectStatusTheme[p.status]) }, { term: "Due", description: formatDate(p.due) }], "alt")}
+                {detailsCard([{ term: "Project", description: p.name }, { term: "Lead", description: people[p.lead].name }, { term: "Status", description: projectBadge(p) }, { term: "Due", description: formatDate(p.due) }], "alt")}
                 {latest}
               </Stack>
               <RowCard heading label="Open tasks" rows={open.map((t) => taskRow(t, openTask))} canvas="alt" seeAll={() => setPage("tasks")} />
@@ -815,7 +819,7 @@ function LinksForRoutingExample() {
     view = {
       crumbs: [projectsCrumb, { id: project.id, label: project.name }],
       title: project.name,
-      meta: statusBadge(project.status, projectStatusTheme[project.status]),
+      meta: projectBadge(project),
       description: `${project.client} · Led by ${people[project.lead].name} · Due ${formatDate(project.due)}`,
       body: projectBody(project, "default", [], (open) => setPath(`/projects/${project.id}/${open.id}`), download, (
         <EmptyState headingLevel={2} title="Nothing here yet" icon="icon-folder-line" secondaryAction={{ label: "Show all projects", onClick: () => setPath("/projects") }}>

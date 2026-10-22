@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Button, IconButton } from "../../../components/Button";
 import { Card, type CardColor } from "../../../components/Card";
 import { ChartCard, LineChart } from "../../../components/Chart";
@@ -35,7 +36,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   daysFromToday, formatCompactMoney, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, people, plans, projectById, projects,
-  projectStatusTheme, studioMonths, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
+  projectProgress, projectStep, studioMonths, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -96,7 +97,7 @@ function BrowseProjects() {
               <Stack gap="md">
                 <Stack direction="row" justify="between" align="start">
                   <DockIcon icon={project.icon} theme={project.theme} background="solid" />
-                  <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>
+                  <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>
                 </Stack>
                 <Stack gap="xs">
                   <Heading level={4} textStyle="Heading/Subheading" truncate={2}>{project.name}</Heading>
@@ -119,7 +120,7 @@ function BrowseProjects() {
         {opened ? (
           <Stack gap="lg">
             <DescriptionList divider items={[
-              { term: "Status", description: <Badge theme={projectStatusTheme[opened.status]} background="subtle">{opened.status}</Badge> },
+              { term: "Status", description: <BadgeStatus status={projectStep[opened.status]} progress={projectProgress(opened)}>{opened.status}</BadgeStatus> },
               { term: "Lead", description: people[opened.lead].name },
               { term: "Dates", description: formatRange(opened.start, opened.due) },
               { term: "Progress", description: `${opened.progress}%` },

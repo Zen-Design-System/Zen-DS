@@ -8,6 +8,7 @@ import { useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNod
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
@@ -32,7 +33,7 @@ import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   TODAY, activity, daysFromToday, formatBytes, formatDate, formatDue, formatRelative, initials, me, people, priorityTheme, projectById, studio,
-  taskStatusTheme, tasks, type Person, type PersonId, type Task,
+  taskStep, tasks, type Person, type PersonId, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -173,7 +174,7 @@ function ProjectPage() {
                   // No leading visual: the title keeps the room to wrap beside the status, even on a narrow screen. The
                   // whole row opens the task.
                   <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${people[task.assignee].name} · ${formatDue(task.due)}`}
-                    trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} onClick={() => setOpenId(task.id)} />
+                    trailing={<BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} onClick={() => setOpenId(task.id)} />
                 ))}
               </List>
             </ListBox>
@@ -196,7 +197,7 @@ function ProjectPage() {
         title={opened?.title ?? ""} description={opened ? `${opened.key} · ${loyalty.name}` : undefined}>
         {opened ? (
           <DescriptionList divider items={[
-            { id: "status", term: "Status", description: <Badge theme={taskStatusTheme[opened.status]} background="subtle">{opened.status}</Badge> },
+            { id: "status", term: "Status", description: <BadgeStatus status={taskStep[opened.status]}>{opened.status}</BadgeStatus> },
             { id: "assignee", term: "Assignee", description: people[opened.assignee].name },
             { id: "priority", term: "Priority", description: <Badge theme={priorityTheme[opened.priority]} background="subtle">{opened.priority}</Badge> },
             { id: "due", term: "Due", description: formatDate(opened.due) },
@@ -475,7 +476,7 @@ function PhoneHeadings() {
             <Text textStyle="Body/Small/Regular" tone="base">{`${project.name} · ${project.client}`}</Text>
           </Stack>
           <DescriptionList items={[
-            { id: "status", term: "Status", description: <Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge> },
+            { id: "status", term: "Status", description: <BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus> },
             { id: "assignee", term: "Assignee", description: people[task.assignee].name },
             { id: "priority", term: "Priority", description: <Badge theme={priorityTheme[task.priority]} background="subtle">{task.priority}</Badge> },
             // Open work says when it is due; a Done task's status already says it is finished.

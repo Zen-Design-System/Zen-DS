@@ -7,7 +7,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
-import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BreadcrumbItem, Breadcrumbs, type BreadcrumbItemData } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -27,7 +27,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import {
-  TODAY, activity, daysFromToday, formatBytes, formatDate, formatMoney, formatRelative, initials, me, people, peopleList, projectStatusTheme, projects, studio,
+  TODAY, activity, daysFromToday, formatBytes, formatDate, formatMoney, formatRelative, initials, me, people, peopleList, projectProgress, projectStep, projects, studio,
   type Person, type PersonId, type Team,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -227,7 +227,7 @@ function TopBarTrailExample() {
   const openPerson = (p: Person) => setRoute({ section: "people", team: teamOf(p).id, person: p.id as PersonId });
   const projectRow = (p: (typeof projects)[number]) => (
     <ListItem key={p.id} title={p.name} titleLines={2} caption={`${p.client} · ${p.status === "Completed" ? "Finished" : "Due"} ${formatDate(p.due)}`} leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="medium" />}
-      trailing={<Badge theme={projectStatusTheme[p.status]} background="subtle">{p.status}</Badge>} onClick={() => openProject(p.id)} />
+      trailing={<BadgeStatus status={projectStep[p.status]} progress={projectProgress(p)}>{p.status}</BadgeStatus>} onClick={() => openProject(p.id)} />
   );
   const go = (id: string) => {
     if (id === "home" || id === "projects" || id === "people") setRoute({ section: id });
@@ -245,7 +245,7 @@ function TopBarTrailExample() {
   if (project) {
     // Reached from a profile or from Projects, the trail is the same: it shows where the page sits, not the way here.
     const members = project.members.map((id) => people[id]);
-    header = { title: project.name, meta: <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>, description: `${project.client} · ${project.status === "Completed" ? "Finished" : "Due"} ${formatDate(project.due)}` };
+    header = { title: project.name, meta: <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>, description: `${project.client} · ${project.status === "Completed" ? "Finished" : "Due"} ${formatDate(project.due)}` };
     content = (
       <Grid columns={2} stackBelow={720} gap="md" align="start">
         <Card theme="shadow">
