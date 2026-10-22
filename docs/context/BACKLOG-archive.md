@@ -2,6 +2,12 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (cross-page instances in Figma, done on `zen/feat/studio-cross-page-figma-20261023`)
+
+- **P3 · Project components as real instances in Figma (2026-10-22, Session C, Libraries phase 2; needs a multi-page push):**
+  a `<Use page>` is pushed as its main's layers with a note, because a push sends one page. A real INSTANCE needs the main's
+  page pushed with it (several pages at once) and the importer to link them. Pointer: `tools/studio/figma-push.mjs` `pages`.
+
 ## Archived 2026-10-21 (Search Shape follow-ups)
 
 - Done 2026-10-21 (Bottom-Sheet re-probed and replaced in the pack; its Search is Search/Default Small Rounded there now):
