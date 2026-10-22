@@ -100,6 +100,10 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
   "Uzbekista N", "andorra", "Marshall Island", "Sao Tome and Prince".
 - **P2 · Contrast in light mode (designer decision):** Content/Neutral/Tertiary #828282 on white 3.84:1 (ListItem and
   Table captions, chart axis), Table header 3.78:1, tonal destructive Button 3.8:1; every app inherits them (axe AA). **Sweep 2026-10-07:** the Tabs inactive label, Light kickers and Table headers (3.74–3.79:1) and the Danger button text (3.74:1) from the Studio polish list are the same question.
+  **Added 2026-10-23 (from BACKLOG):** the Popover label `.zen-popover__label` ("Select an option or create one" in
+  PopoverManualAddNew), Content/Neutral/Light #838383 on white at 12px = 3.75:1, baselined in
+  `tests/smoke/axe-baseline.json`: keep, or Content/Neutral/Medium? Since 2026-10-19 the user judges contrast by APCA,
+  not fixed WCAG ratios (High Contrast mode covers strict needs), so the answer may be "keep" for all of these.
 - **List-Box master (user decision 2026-10-08: code stays):** in Figma the variants have a FIXED height and
   Header-Slot / Footer-Slot centre their content; code hugs its rows and left-aligns header text and footer actions.
   Ask the designer to update the master to Hug and left alignment.

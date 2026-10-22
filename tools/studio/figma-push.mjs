@@ -20,7 +20,7 @@ import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "./ins
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
-import { FIGMA_NAMED, givenNameOf } from "./layer-meta.mjs";
+import { FIGMA_NAMED, LABEL_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { SUB_ACTION_ICON, metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma } from "./figma-property.mjs";
@@ -421,7 +421,15 @@ function fragmentsAsRows(doc) {
   return { ...doc, board: doc.board ? node(doc.board) : doc.board };
 }
 
-export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages = {}, pageId } = {}) {
+/** A page's title, from its header line (`// @zen-page {"title": …}`), or null. */
+function titleOf(text) {
+  const header = /^\/\/ @zen-page (\{.*\})$/m.exec(String(text ?? ""));
+  try { return header ? JSON.parse(header[1]).title ?? null : null; } catch { return null; }
+}
+
+export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: given = {}, pageId, componentOf, components: shared, rootPageId = pageId } = {}) {
+  // The pushing page is one of the pages too (another page's component may hold one of its).
+  const pages = pageId && typeof given[pageId] !== "string" ? { ...given, [pageId]: text } : given;
   const notes = [];
   const read = docFromText(text, newId ? { newId } : {});
   const { errors } = read;
@@ -463,8 +471,6 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
   const localModel = { mains: localComponents(doc.board), sets: componentSets(doc.board) };
   /** The project's other pages (`pages`: id → text), read once each, for `<Use page>` (Libraries' project components). */
   const otherPages = new Map();
-  /** The other pages' mains being pushed, outermost first (`page/id`): one inside itself is left out, as the canvas does. */
-  const drawing = new Set();
   const otherPage = (page) => {
     if (!otherPages.has(page)) {
       const board = typeof pages[page] === "string" ? docFromText(pages[page]).doc?.board : null;
@@ -472,15 +478,32 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
     }
     return otherPages.get(page);
   };
-  /** A main of page `home` as this page pushes it: its own instances (no `page`) name `home`, so they resolve there. */
-  const onPage = (node, home) => {
-    if (!node || node.kind !== "element") return node?.kind === "map" ? { ...node, node: onPage(node.node, home) } : node;
-    const props = Object.fromEntries(Object.entries(node.props).map(([name, value]) => [name, value?.kind === "element" ? { ...value, node: onPage(value.node, home) } : value]));
-    if (node.name === "Use" && !props.page) props.page = { kind: "literal", value: home };
-    return { ...node, props, children: (node.children ?? []).map((child) => onPage(child, home)) };
+  /**
+   * The project's other pages' components this page's instances show (Libraries' project components, a live link), by
+   * `page/local`: each one's definition as its own page pushes it, with its keys (the importer makes it, or finds the
+   * one already in the file, and links the instances to it). Its own instances name their page and come too; null while
+   * one is being made, so a component inside itself through another page stops there.
+   */
+  const components = shared ?? new Map();
+  const needComponent = (home, local) => {
+    const key = `${home}/${local}`;
+    if (components.has(key)) return components.get(key) !== null;
+    if (typeof pages[home] !== "string") return false;
+    components.set(key, null);
+    const made = figmaFromPage(pages[home], { mapping, nestedLayers, newId, pages, pageId: home, componentOf: local, components, rootPageId });
+    if (!made.component) { components.delete(key); return false; }
+    const own = (node) => {
+      if (!node || typeof node !== "object") return;
+      if (node.type === "COMPONENT" || node.type === "COMPONENT_SET") node.page = home;
+      for (const child of node.children ?? []) own(child);
+      for (const slot of node.slots ?? []) for (const child of slot.children ?? []) own(child);
+    };
+    own(made.component);
+    for (const src of made.images ?? []) images.add(src);
+    for (const note of made.notes ?? []) notes.push(`${made.component.name ?? local} (page ${home}): ${note}`);
+    components.set(key, { page: home, title: titleOf(pages[home]) ?? home, local, spec: made.component });
+    return true;
   };
-  /** A layer tree made from another page's nodes keeps no ids of that page (they would meet this page's keys). */
-  const withoutKeys = (node) => { if (!node || typeof node !== "object") return node; delete node.id; delete node.key; for (const child of node.children ?? []) withoutKeys(child); return node; };
   /** Figma's component property types by the page's (dialect.mjs COMPONENT_PROPERTY_TYPES). */
   const PROPERTY_TYPE = { text: "TEXT", boolean: "BOOLEAN", swap: "INSTANCE_SWAP", slot: "SLOT" };
   const figmaProperties = (properties) => properties.map((property) => ({ name: property.name, type: PROPERTY_TYPE[property.type], ...(property.default !== undefined ? { default: property.default } : {}), ...(property.preferred ? { preferred: property.preferred } : {}) }));
@@ -495,9 +518,17 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
       // A layer an instance fills: Figma's slot in its main (the importer's createSlot), named as its property.
       if (element.props["data-prop-slot"]?.kind === "literal") node.slot = String(element.props["data-prop-slot"].value);
     }
-    // The name the person gave a frame, shape or text (data-name, layer-meta.mjs) is its Figma name.
-    const given = element.kind === "element" && FIGMA_NAMED.has(element.name) ? givenNameOf(element) : null;
-    if (node && given) node.name = given;
+    // The name the person gave a layer (data-name, layer-meta.mjs) is its Figma name: a frame's, shape's or text's, and an
+    // instance's whose Figma name carries nothing else (its component's). One named by its content keeps it there: an
+    // aria-label (an icon button's label, which pull reads back), a person, an icon (the accessible name first, user
+    // 2026-10-23).
+    const given = element.kind === "element" ? givenNameOf(element) : null;
+    if (node && given && FIGMA_NAMED.has(element.name)) node.name = given;
+    else if (node?.type === "INSTANCE" && given && !LABEL_NAMED.has(element.name)) {
+      // An instance of a page's own component (this page's or another's) is always named by it.
+      if (node.local || node.name === node.set?.name) Object.assign(node, { name: given, nameGiven: true });
+      else if (element.props["aria-label"]?.kind === "literal") notes.push(`${element.name} "${given}": its Figma name is its accessible name "${node.name}", so its layer name stays in the Studio`);
+    }
     // A component sized like a layout layer (Card, ListBox: width / minWidth / maxWidth, sizing.ts): Fixed or Fill, and
     // the instance's min and max width.
     if (node?.type === "INSTANCE" && element.kind === "element") {
@@ -553,33 +584,24 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
       const named = main?.set ? { name: variantName(main.variant), variant: main.variant } : { name: String(code.name ?? code.id ?? "Component"), ...(main?.properties.length ? { properties: figmaProperties(main.properties) } : {}) };
       // The main hugs its layer (Figma's component frame around one layer); the layer keeps its own sizing inside.
       node = { type: "COMPONENT", local: String(code.id ?? ""), ...named, ...(typeof code.description === "string" ? { description: code.description } : {}), ...(typeof code.link === "string" ? { link: code.link } : {}), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
-    } else if (element.name === "Use" && element.props.page?.kind === "literal") {
-      // An instance of another page's component (Libraries' project components, a live link): a push sends one page, so
-      // its main's layers go in its place, named after it.
-      const home = String(element.props.page.value);
-      // One of this page's own components, named by its page (a main on another page may hold one): the local way.
-      if (pageId && home === pageId) return convertElement({ ...element, props: Object.fromEntries(Object.entries(element.props).filter(([name]) => name !== "page")) }, parent);
-      const other = otherPage(home);
-      const resolved = other ? resolveInstance(other.board, element, other.model) : null;
-      const main = resolved ? other.model.mains.find((entry) => entry.id === resolved.main.id) : null;
-      const root = main?.node.children.find((child) => child.kind === "element");
-      if (!root) { notes.push(`An instance of ${String(code.of ?? "")} on page ${home} is not pushed: that page's component is not here`); return null; }
-      const link = `${home}/${resolved.main.id}`;
-      if (drawing.has(link)) { notes.push(`${resolved.set?.name ?? resolved.main.name} (page ${home}) sits inside itself through another page: that layer is not pushed`); return null; }
-      drawing.add(link);
-      try {
-        node = withoutKeys(convert(onPage(root, home), parent));
-      } finally {
-        drawing.delete(link);
-      }
-      if (!node) return null;
-      node.name = resolved.set?.name ?? resolved.main.name;
-      notes.push(`${node.name} (a component of page ${home}): pushed as its layers, without its instance changes`);
     } else if (element.name === "Use") {
       // An instance of a set or a main, with its variant values and its property values (setProperties in the importer).
-      const resolved = resolveInstance(doc.board, element, localModel);
+      // One of another page's (`page`, Libraries' project components): read on that page, its definition in the
+      // package's `components`; one naming this page is one of its own.
+      // Drawing another page's component (`componentOf`), its own instances are that page's too.
+      const named = element.props.page?.kind === "literal" ? String(element.props.page.value) : null;
+      const home = componentOf ? named ?? pageId : named && named !== pageId ? named : null;
+      const scope = home ? otherPage(home) : { board: doc.board, model: localModel };
+      const resolved = scope ? resolveInstance(scope.board, element, scope.model) : null;
       const local = resolved?.set?.id ?? String(code.of ?? "");
-      node = { type: "INSTANCE", local, name: localNames.get(local) ?? "Instance", ...(resolved?.set ? { variant: resolved.variant } : {}), ...(resolved && Object.keys(resolved.values).length ? { props: resolved.values } : {}), ...(id ? { id } : {}), hugW: true, hugH: true };
+      // One of the pushing page's own components (another page's holds it): it is in the frame itself.
+      const inFrame = home !== null && home === rootPageId;
+      if (home && !inFrame && !(resolved && needComponent(home, local))) {
+        notes.push(components.get(`${home}/${local}`) === null ? `${local} (page ${home}) sits inside itself through another page: that layer is not pushed` : `An instance of ${local} on page ${home} is not pushed: that page's component is not here`);
+        return null;
+      }
+      const name = home ? resolved.set?.name ?? resolved.main.name : localNames.get(local) ?? "Instance";
+      node = { type: "INSTANCE", local, ...(home ? { page: home } : {}), name, ...(resolved?.set ? { variant: resolved.variant } : {}), ...(resolved && Object.keys(resolved.values).length ? { props: resolved.values } : {}), ...(id ? { id } : {}), hugW: true, hugH: true };
       // What it puts in its main's slots (F7b): Figma's slot content, by the slot's name (the importer fills it).
       const fills = element.props.slots?.kind === "object" ? element.props.slots.fields : null;
       if (fills) {
@@ -591,14 +613,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
       }
       // Its overrides of its main's layers (F7b): placed by the main's drawn layers once the frame is built (below).
       const table = element.props.overrides?.kind === "object" ? element.props.overrides.fields : null;
-      const main = resolved ? localModel.mains.find((entry) => entry.id === resolved.main.id) : null;
+      const main = resolved ? scope.model.mains.find((entry) => entry.id === resolved.main.id) : null;
       if (table && main) {
         const plain = Object.fromEntries(Object.entries(table).map(([path, layer]) => [path, layer.kind === "object" ? Object.fromEntries(Object.entries(layer.fields).flatMap(([name, value]) => (value.kind === "literal" ? [[name, value.value]] : []))) : {}]));
         const pending = [];
         for (const [path, props] of Object.entries(plain)) {
           // The layer, through the nested instances of the page's own components it is in (Chip/Text): one step each,
           // in the main that draws it.
-          const steps = layerChain(doc.board, main, path, localModel, plain);
+          const steps = layerChain(scope.board, main, path, scope.model, plain);
           if (!steps?.every((step) => step.layer.id)) { notes.push(`${node.name}: its override of ${path} is not pushed (no such layer in its main)`); continue; }
           const last = steps.at(-1);
           const keys = steps.map((step) => ({ main: step.main.id, key: step.layer.id }));
@@ -2237,6 +2259,21 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
   const chromeSidebar = chrome && active === "desktop" ? chromeOf("sidebar") : null;
   const chromeSide = chromeSidebar ? sidebarWidth(chromeSidebar, literalOf(chromeSidebar.props.collapsed) === true) : 0;
   const pageWidth = chromeSide === null ? null : frameWidth - chromeSide;
+  // One component of this page alone (another page's instance needs its definition: `componentOf`), drawn as this page
+  // draws it; only the notes its own layers give.
+  if (componentOf) {
+    let found = null;
+    const find = (node) => {
+      if (found || !node || node.kind !== "element") return;
+      if ((node.name === "Component" || node.name === "ComponentSet") && literalOf(node.props.id) === componentOf) { found = node; return; }
+      for (const value of Object.values(node.props)) if (value?.kind === "element") find(value.node);
+      for (const child of node.children ?? []) find(child.kind === "map" ? child.node : child);
+    };
+    find(doc.board);
+    const before = notes.length;
+    const component = found ? convert(found, { direction: "column", stretch: false, width: null }) : null;
+    return { component, notes: notes.slice(before), images: [...images] };
+  }
   const page = rootStack ? [] : layers.map((layer) => convert(layer, { direction: "column", stretch: true, width: pageWidth })).filter(Boolean).map(filled);
   const column = (name, children, extra = {}) => ({ type: "FRAME", name, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: children.filter(Boolean), ...extra });
   const part = (prop, parent) => (chromeOf(prop) ? convert(chromeOf(prop), parent) : null);
@@ -2351,7 +2388,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
   // The same note for several layers (a MetricCard's trend on four cards) once, with its count.
   const counted = new Map();
   for (const note of notes) counted.set(note, (counted.get(note) ?? 0) + 1);
-  return { frame, notes: [...counted].map(([note, count]) => (count > 1 ? `${note} (×${count})` : note)), images: [...images] };
+  const used = [...components.values()].filter(Boolean);
+  return { frame, notes: [...counted].map(([note, count]) => (count > 1 ? `${note} (×${count})` : note)), images: [...images], ...(used.length ? { components: used } : {}) };
 }
 
 /**
@@ -2360,13 +2398,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
  * and variable collections it uses, so the plugin imports them from the published library in a file other than Zen's.
  */
 export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId, libraryKeys, pages } = {}) {
-  const { frame, notes, images } = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id });
+  const { frame, notes, images, components } = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id });
   if (!frame) return { pkg: null, notes, images: [] };
   // A frame with nothing in it would import as an empty frame: say why instead.
   if (!frame.children?.length) return { pkg: null, notes: [`nothing on the page has a place in Figma${notes.length ? ` (${notes.join("; ")})` : ""}`], images: [] };
   // `images`: picture source → base64 bytes, which the caller fills (the Studio reads its uploads and the dev server's
   // files; the CLI reads repo files): a picture left null keeps the component's own.
   const pkg = { format: "zen-studio-figma", version: 1, page: { id: page.id ?? null, title: page.title ?? frame.name }, frame, images: Object.fromEntries(images.map((src) => [src, null])) };
+  // The project's other pages' components its instances show (Libraries' project components): the importer finds each in
+  // the file (placed with its own page) or makes it beside the frame, and links the instances to it.
+  if (components?.length) pkg.components = components;
   if (libraryKeys) pkg.library = libraryKeysFor(pkg, libraryKeys);
   return { pkg, notes, images };
 }

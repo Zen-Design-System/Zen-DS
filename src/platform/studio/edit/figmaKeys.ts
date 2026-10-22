@@ -12,7 +12,7 @@ import { alignLayers, distributeLayers, tidyUpLayers } from "./alignLayers";
 import { stepLayer } from "./arrange";
 import { copyAsPng } from "./copyAs";
 import { flipLayers } from "./flipLayers";
-import { groupSelection, maskSelection, ungroupSelection } from "./groupLayers";
+import { groupSelection, maskSelection, ungroupLayers } from "./groupLayers";
 import { selectMatchingLayers } from "./selectMatching";
 import { booleanSelection, flattenSelection, outlineStrokeSelection, type BooleanOperation } from "./pathOps";
 import { textEditSession } from "./textEdit";
@@ -222,10 +222,11 @@ export function useFigmaKeys() {
         run(booleanKey ? booleanSelection(booleanKey) : flatten ? flattenSelection() : outlineStrokeSelection());
         return;
       }
-      // ⇧⌘G: Ungroup / Remove frame — the layers take its place and keep theirs (edit/groupLayers.ts).
+      // ⇧⌘G: Ungroup / Remove frame — every selected group or frame; the layers take its place and keep theirs
+      // (edit/groupLayers.ts).
       if (ungroup) {
         event.preventDefault();
-        run(ungroupSelection(selection));
+        run(ungroupLayers());
         return;
       }
       if (arrange) {
