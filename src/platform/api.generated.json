@@ -10827,7 +10827,7 @@
   "shape": [
     {
       "name": "Shape",
-      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, CornerSmoothingProps, ImageFillProps",
       "props": [
         {
           "name": "width",
@@ -10971,6 +10971,14 @@
           "required": false,
           "default": null,
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "cornerSmoothing",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle\narc. Drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium); other browsers keep plain\nrounded corners. It shapes the corners `radius` sets, so it needs a radius.",
           "deprecated": null
         },
         {
@@ -18682,6 +18690,14 @@
           "deprecated": null
         },
         {
+          "name": "cornerSmoothing",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle\narc. Drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium); other browsers keep plain\nrounded corners. It shapes the corners `radius` sets, so it needs a radius.",
+          "deprecated": null
+        },
+        {
           "name": "image",
           "type": "string",
           "required": false,
@@ -19064,6 +19080,14 @@
           "deprecated": null
         },
         {
+          "name": "cornerSmoothing",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle\narc. Drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium); other browsers keep plain\nrounded corners. It shapes the corners `radius` sets, so it needs a radius.",
+          "deprecated": null
+        },
+        {
           "name": "image",
           "type": "string",
           "required": false,
@@ -19443,6 +19467,14 @@
           "required": false,
           "default": null,
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "cornerSmoothing",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle\narc. Drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium); other browsers keep plain\nrounded corners. It shapes the corners `radius` sets, so it needs a radius.",
           "deprecated": null
         },
         {

@@ -2186,6 +2186,48 @@ export default function Page() {
   ok("pull: PropertyField rows come back with their cells", ['<PropertyStatus defaultValue="done" />', '<PropertyDate defaultValue="2026-06-07" />', '<PropertyText state="editing" defaultValue="Sprint 42" />', "<PropertyDate />"].every((cell) => back.includes(cell)) && /<PropertyTags defaultValue=\{\["design-system"\]\} options=\{\[\{ value: "design-system", label: "Design System", theme: "blue" \}\]\} \/>/.test(back));
 }
 
+{
+  // Corner smoothing (spec docs/research/studio-fill-gradient-smoothing-eyedropper-spec-2026-10-22.md §2): the code's % as
+  // Figma's cornerSmoothing 0–1, on frames and rectangles, and back.
+  const page = `// @zen-page {"format":1,"title":"Smooth"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack, Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Smooth" device="desktop">
+        <Stack>
+          <Stack surface="surface" radius="lg" cornerSmoothing={60} padding="md">
+            <Text>Squircle</Text>
+          </Stack>
+          <Box surface="subtle" radius="md" cornerSmoothing={100} padding="md">
+            <Text>Box</Text>
+          </Box>
+          <Shape type="rectangle" radius="md" cornerSmoothing={60} width={80} height={40} />
+          <Stack surface="surface" radius="lg" padding="md">
+            <Text>Round</Text>
+          </Stack>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const [squircle, box, rect, round] = frame.children;
+  check("cornerSmoothing: Figma's 0–1 on frames and a rectangle; none where the page gives none", [squircle.cornerSmoothing, box.cornerSmoothing, rect.cornerSmoothing, round.cornerSmoothing ?? 0], [0.6, 1, 0.6, 0]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("round trip: a frame's cornerSmoothing comes back in %", [back.includes('radius="lg" cornerSmoothing={60}'), back.includes("cornerSmoothing={100}")], [true, true]);
+  // The read's shapes: a rectangle's smoothing under `shape`.
+  const read = { type: "FRAME", name: "Read", layout: { mode: "VERTICAL" }, children: [
+    { type: "RECTANGLE", name: "Rectangle", shape: { w: 80, h: 40, fill: "Color/Background/Neutral/Subtle/Default", stroke: null, strokeWeight: 1, radius: 12, radiusVar: "Corner-Radius/Base", smoothing: 0.6, rotation: 0, opacity: 1 } },
+    { type: "FRAME", name: "Card", fill: "Color/Background/Surface/Default", radii: [16, 16, 16, 16], radiiVars: ["Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/Large"], cornerSmoothing: 0.6, layout: { mode: "VERTICAL" }, children: [] },
+  ] };
+  const readBack = pageFromFigma(read, { mapping }).text;
+  check("pull of a read: a rectangle's and a frame's smoothing in %", [/<Shape type="rectangle"[^>]*cornerSmoothing=\{60\}/.test(readBack), /radius="lg" cornerSmoothing=\{60\}/.test(readBack)], [true, true]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

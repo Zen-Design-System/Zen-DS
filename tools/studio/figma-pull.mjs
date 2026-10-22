@@ -599,6 +599,8 @@ const readFrame = async (node, root = false) => {
       strokeWeight: typeof own("strokeWeight") === "number" ? node.strokeWeight : 1, strokeAlign: own("strokeAlign"), cap: typeof own("strokeCap") === "string" ? node.strokeCap : null, arrowLine: arrowLineOf(node),
       arc: node.type === "ELLIPSE" ? node.arcData : null, pointCount: own("pointCount"), innerRadius: own("innerRadius"),
       radius: typeof own("cornerRadius") === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
+      // Corner smoothing (0–1), when set.
+      ...(typeof own("cornerSmoothing") === "number" && node.cornerSmoothing > 0 ? { smoothing: node.cornerSmoothing } : {}),
       rotation: turn, ...(mirrored ? { flip: "horizontal" } : {}), opacity: node.opacity, imageFill: readImageFill(node),
       // Its layer blend (Appearance › blend mode): Normal is a shape's default.
       ...("blendMode" in node && typeof node.blendMode === "string" && node.blendMode !== "NORMAL" ? { blendMode: node.blendMode } : {}),
@@ -679,6 +681,8 @@ const readFrame = async (node, root = false) => {
       out.radii = corners;
       out.radiiVars = await Promise.all(["topLeftRadius", "topRightRadius", "bottomRightRadius", "bottomLeftRadius"].map((field) => variableName(bound[field] && bound[field].id)));
     }
+    // Corner smoothing (0–1), when set.
+    if (typeof own("cornerSmoothing") === "number" && node.cornerSmoothing > 0) out.cornerSmoothing = node.cornerSmoothing;
     if (typeof own("effectStyleId") === "string" && node.effectStyleId) {
       const style = await figma.getStyleByIdAsync(node.effectStyleId);
       if (style) out.effectStyle = style.name;
@@ -1753,6 +1757,9 @@ function shapeElement(node, ctx) {
     const step = shape.radiusVar ? RADIUS_OF[shape.radiusVar] : null;
     if (step) props.radius = literal(step);
     else if (shape.radius) ctx.notes.push(`${where}: its corner radius ${shape.radius} px is no Corner-Radius variable; left square`);
+    // Corner smoothing: Figma's 0–1 as the code's % (the read's `smoothing`, the push's `cornerSmoothing`).
+    const smoothing = shape.smoothing ?? node.cornerSmoothing;
+    if (typeof smoothing === "number" && smoothing > 0) props.cornerSmoothing = literal(Math.round(smoothing * 100));
   }
   if (shape.rotation) props.rotation = literal(shape.rotation);
   if (shape.flip) props.flip = literal(shape.flip);
@@ -2420,6 +2427,8 @@ function frameLookProps(node, ctx) {
       ["radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft"].forEach((name, index) => { if (steps[index] !== radius) props[name] = literal(steps[index]); });
     }
   }
+  // Corner smoothing: Figma's 0–1 as the code's %.
+  if (typeof node.cornerSmoothing === "number" && node.cornerSmoothing > 0) props.cornerSmoothing = literal(Math.round(node.cornerSmoothing * 100));
   if (node.effectStyle) {
     if (FRAME_EFFECT_STYLES.has(node.effectStyle)) props.effectStyle = literal(node.effectStyle);
     else ctx.notes.push(`${where}: its effect style ${node.effectStyle} is not one a frame takes; left out`);

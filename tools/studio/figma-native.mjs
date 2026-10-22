@@ -619,6 +619,8 @@ class Writer {
       });
       node.rectangleCornerRadiiIndependent = true;
     }
+    // Corner smoothing (0–1; Zen Studio's cornerSmoothing %).
+    if (typeof spec.cornerSmoothing === "number" && spec.cornerSmoothing > 0) node.cornerSmoothing = spec.cornerSmoothing;
     if (spec.effectStyle) {
       const style = this.style(spec.effectStyle, where);
       if (style) node.styleIdForEffect = { guid: guid(style[0]) };
@@ -793,6 +795,7 @@ class Writer {
       node.rectangleCornerRadiiIndependent = true;
       if (spec.radiusVar) Object.assign(node, this.bindings(["RECTANGLE_TOP_LEFT_CORNER_RADIUS", "RECTANGLE_TOP_RIGHT_CORNER_RADIUS", "RECTANGLE_BOTTOM_LEFT_CORNER_RADIUS", "RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS"].map((field) => [field, spec.radiusVar])));
     }
+    if (spec.type === "RECTANGLE" && typeof spec.cornerSmoothing === "number" && spec.cornerSmoothing > 0) node.cornerSmoothing = spec.cornerSmoothing;
     if (spec.type === "ELLIPSE" && spec.arc) node.arcData = { startingAngle: spec.arc.start || 0, endingAngle: spec.arc.end || 0, innerRadius: spec.arc.inner || 0 };
     // An arrow is Figma's own (⇧L): a VECTOR of two vertices whose end has the cap (a LINE's strokeCap caps both ends).
     if (line && spec.endCap) Object.assign(node, arrowVector(pos.w, spec.endCap));
