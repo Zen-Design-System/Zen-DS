@@ -1,10 +1,4 @@
-/* Equal-height cards: the grid stretches every card to the tallest in its row, and the card's content column grows
-   with it, so the footer row (justify between) sits on the same line in every card. */
-.px-layout-template > .zen-card__content { flex: 1 1 auto; }
-.px-layout-template-body { flex: 1 1 auto; }
-
-/* The cover: a panel of fixed height whose middle grows, so an empty state sits in its optical centre and the footnote
-   stays at the bottom. */
+/* The cover: a panel of fixed height (rem: it follows the type scale) whose middle grows (height="fill"), so an empty
+   state sits in its optical centre and the footnote stays at the bottom. */
 .px-layout-cover { min-height: 26rem; }
-.px-layout-cover-body { flex: 1 1 auto; }
 
