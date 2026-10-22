@@ -40,10 +40,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   collections, description / scoping / code syntax, rename of a variable code reads (rewrite its CSS readers), Change
   variable mode per frame / section / page (E6; today a frame's Theme Light/Dark, for the session only). Pointer:
   `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P3 · Card contract predates Figma's Sub-Action wrapper (2026-10-21, Session B):** since 2026-10-18 Figma's Card draws
-  Sub-Action › Wrapper › Button/Icon-Flat, but `docs/figma-contracts/card.json` still has Sub-Action as the instance, so
-  `nested-paths.mjs --check` passes on the old shape. The push, pull and plugin (833ea0e) handle the wrapper already.
-  Pointer: re-capture the Card set with `tools/figma-contract/mcp-capture` (about 1 MB, several calls).
 - **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17; re-checked 2026-10-21):** ⇧⌘G of several layers (it ungroups
   the primary selection only: edit/groupLayers.ts `ungroupSelection`). The rest shipped (⌘G, Enter = all children,
   Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles, frame presets, gap /
@@ -58,11 +54,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   raw CSS, so the prop needs its own name), stacked/single area fill to the Neutral pair; Studio figma-charts push/pull
   of `Color`; Gauge/Funnel/Bullet are sets now (ids in `CHART_SETS` are their Primary variants, keys unchanged);
   re-capture library-keys + component-properties; figma-docs text for the property.
-- **P2 · Templates take the phone chrome (2026-10-16, follow-up of the responsive header P3, waits for the user):**
-  AdminList, Detail, Dashboard, SettingsForm and HrShell keep their PageHeader in the content and have no
-  `topNavigation` / `bottomNavigation`, so on a phone they show the drawer and the desktop header rows. Each needs its
-  PageHeader moved into `sections` (a small desktop spacing change to review at 1512 / 390) and its phone parts by
-  `docs/component-usage-rules.md` §17. Zen Studio pages made from them already get the phone parts (P4).
 - **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
   chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
   examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read
@@ -122,26 +113,18 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   opacity follows the variable's alpha, so they drew solid everywhere. Now bound to Content/Neutral/Light (49% light /
   60% dark) and Border/Neutral/Subtle/Pressed (18% / 23%); the Bullet-Chart main's Track and the widget boards use them.
   If the user rejects it, restore the old binding (and the layer-opacity workaround). Session log 2026-10-13.
-- **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
-  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale hues), Metric-Card and Chart-Card
-  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `surface` + `color`,
-  MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
-  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation, one
-  colour mode, no gradient box). Gradient themes are gone in Figma (user 2026-10-14 "Giữ solid, xoá gradient"):
-  Card Gradient, every Semi-Pale (Neutral too) and List-Box Semi-Pale deleted; code's Card `theme="semi-pale"` is a
-  deprecated alias of pale (2026-10-14, user "OK"). The Card contract still lists Semi-Pale until this re-capture, so
-  the Studio map keeps offering it (renders pale).
-  Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
+- **P2 · Code-side rules for the Figma theme audit — waits for the user (2026-10-13, rest of "Box theme vocabulary in
+  code"; re-checked 2026-10-23):** the vocabulary is in code: Card / ListBox `theme` · `color` · `surface`, MetricCard
+  and ChartCard pass it through, the Studio map and the Card contract follow #210 (no Semi-Pale; `semi-pale` is a
+  deprecated alias of pale). Left: usage-guard rules mirroring the Figma audit's `theme/mixed-elevation`,
+  `theme/mode-override`, `theme/mixed-boxes`, `theme/on-solid-content` and `theme/on-white-solid`
+  (`skills/zen-figma-design/harness/zen-figma-audit.js`); code already has card/pale-on-canvas-default,
+  layer/surface-on-canvas-alt-border, layer/surface-flat-is-navigation and surface/no-shadow-on-tinted. New harness
+  rules need the user's yes, and colour / composition principles stay skill guidance unless the user says otherwise.
 - **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13; re-checked 2026-10-23):** Patterns/Sidebar
   takes Theme · Density · Shadow since 2026-10-21 (#181) and Top-Navigation/Mobile has Type=Transparent /
   Transparent-On-Color since 2026-10-17. Left: Bottom-Navigation has no surface choice and its main carries an unstyled
   drop shadow (not re-read since 2026-10-13). Screens override by variable until then (screen-rules §1).
-- **P1 · Widget themes phase 2 — code + Studio (user, 2026-10-13; waits for the user's review of phase 1):** mirror the
-  Figma build in code and Studio: Card `color` + themes `gradient`/`solid` (Solid sets `data-theme`), MetricCard `type`
-  (7), the new paint styles in `styles/source/figma`, `tools/figma-docs` description source (the seven new chart sets'
-  Figma descriptions still say Value Heading/3, Semi-Pale and Gradient), Studio figma-props map. Detail:
-  `docs/context/session-log-2026-10-13.md` ("Widget themes phase 1"). The charts part is done (2026-10-14, branch
-  `zen/feat/charts-phase2`: seven components, Studio palette, push/pull of all 15 chart sets).
 - **P2 · Studio inspector has no chart Figma properties (charts phase 2, 2026-10-14):** the chart sets are missing from
   `docs/figma-contracts/component-properties.json` (captured 2026-10-05), so the inspector's Figma-props rows (Show
   Legend, Show Average, Type, Orientation …) are absent for charts; push/pull carry them. Needs a contract re-capture.
