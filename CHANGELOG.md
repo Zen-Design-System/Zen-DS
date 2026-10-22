@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
+  buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
+  stars) and onboarding art on a phone (2026-10-23).
+- Usage harness: a tag quoted in a `//` line comment is documentation, as in a block comment, so it no longer trips a
+  rule (Zen Studio's Design panel showed a false "Save has no onClick"); a URL's `//` still leaves the rest of the line
+  checked (2026-10-23).
 - Zen Studio: copying a Section onto its own place (⌘D, ⌥-drag) no longer overflows the page's stack: of two
   Sections the same size the one written first holds the other, as documented, never both each other. The Studio E2E
   report (and the gate's) now names the row and the stack of every Vite error, so a page error that fails no row is
