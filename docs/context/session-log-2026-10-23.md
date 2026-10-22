@@ -41,3 +41,7 @@ since 2026-10-12; native-pack.json has the wrapper too (#210). What was stale: t
   16339:135 (v 2, read in a 5th call).
 - `nested-paths.mjs --check` 45/45 (EmptyState now covered: Illustration, Primary, Secondary, Icon); `run-all.mjs`
   25/25. BACKLOG line removed; CHANGELOG line.
+- Stale BACKLOG line removed too: "P2 · Templates take the phone chrome" — since the AppShell rebuild (71d3a22c,
+  2026-10-19) AdminList, Dashboard, Detail, SettingsForm and HrShell put their PageHeader in AppShellHeader's `main`
+  and pass `topNavigation` (AdminList, Dashboard and HrShell also `bottomNavigation`; Detail and SettingsForm are
+  pushed pages with a Back chevron).
