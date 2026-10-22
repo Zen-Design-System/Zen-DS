@@ -508,6 +508,7 @@ export default function Page() {
               <Grid columns="repeat(auto-fill, minmax(360px, 1fr))"><Card><Text>A</Text></Card><Card><Text>B</Text></Card></Grid>
               <Grid columns="repeat(auto-fit, minmax(360px, 1fr))"><Card><Text>A</Text></Card><Card><Text>B</Text></Card></Grid>
               <Grid columns="2fr 1fr"><Grid><Card><Text>One</Text></Card></Grid><Grid><Card><Text>Two</Text></Card></Grid></Grid>
+              <Grid columns={2}><Stack><Text>Left</Text></Stack><Card><Text>Right</Text></Card></Grid>
               <Card><Grid><Text>In a card</Text></Grid></Card>
               <InlineMessage theme="warning" title="Overdue">Send a reminder.</InlineMessage>
               <InlineMessage theme="info" title="Closable" onClose={proto.close()}>It closes.</InlineMessage>
@@ -524,7 +525,7 @@ export default function Page() {
 {
   const { frame } = push(WIDTHS);
   const stack = find(frame, (node) => node.name === "Stack" && node.children?.filter((child) => child.name === "Grid").length >= 4);
-  const [halves, fill, fitted, tracks] = stack.children.filter((child) => child.name === "Grid");
+  const [halves, fill, fitted, tracks, mixed] = stack.children.filter((child) => child.name === "Grid");
   const columnsOf = (grid) => [grid.layout.mode, grid.layout.grid?.columns, grid.layout.grid?.rows, grid.layout.grid?.sizes?.map((size) => `${size.type} ${size.value}`)];
   // 1440 − 240 (Sidebar) − 2 × 24 (Container's gutter) = 1152: (1152 + 24) / (480 + 24) → 2 columns of 564.
   check("Grid minColumnWidth 480 in AppShell › Container (1152 wide): 2 even columns, a cell each", [columnsOf(halves), halves.children.map((cell) => [cell.cell.col, cell.cell.row, cell.minW])], [["GRID", 2, 1, ["FLEX 1", "FLEX 1"]], [[0, 0, 480], [1, 0, 480]]]);
@@ -532,6 +533,9 @@ export default function Page() {
   check("auto-fit lets the cards take them: 2 columns", columnsOf(fitted), ["GRID", 2, 1, ["FLEX 1", "FLEX 1"]]);
   // "2fr 1fr" of 1152: (1152 − 16) × 2/3 = 757 takes 3 columns of 240, 379 one.
   check("a grid track's share is the width inside it (2fr: 3 columns of 240, 1fr: 1)", tracks.children.map((cell) => cell.layout.grid?.columns), [3, 1]);
+  // CSS stretches a Grid in a cell to its row and shares the height among its auto rows: Fill, rows Flex (measured in
+  // Figma, 2026-10-21: the Dashboard's second pair of cards came out at their own height). Another frame cell hugs.
+  check("a Grid in a grid cell stretches to its row, its rows Flex; a Stack cell hugs, a Card fills", [tracks.children.map((cell) => [cell.fillH, cell.layout.grid?.rowSizes?.map((size) => `${size.type} ${size.value}`)]), mixed.children.map((cell) => cell.fillH)], [[[true, ["FLEX 1"]], [true, ["FLEX 1"]]], [undefined, true]]);
   const inCard = find(frame, (node) => node.name === "Grid" && node.children?.some((child) => child.characters === "In a card"));
   check("in an instance's slot the width is unknown: a wrapping row of cells no narrower than the minimum", [inCard.layout.mode, inCard.layout.wrap, inCard.children[0].minW], ["HORIZONTAL", true, 240]);
   const crumbs = find(frame, (node) => node.set?.name === "Breadcrumbs")?.slots[0].children ?? [];
@@ -2135,6 +2139,51 @@ export default function Page() {
   const back = pageFromFigma(read, { mapping }).text;
   ok("free frame pulled: a Box of its size, the shape at its px X / Y, the text in a float Box at its px X / Y",
     /<Box width=\{560\} height=\{240\} surface="surface">/.test(back) && /<Shape [^>]*position="absolute" insetLeft=\{20\} insetTop=\{30\}/.test(back) && /<Box position="absolute" insetLeft=\{140\} insetTop=\{40\}>\s*<Text[^>]*>Label<\/Text>/.test(back) && !/no auto layout/.test(pageFromFigma(read, { mapping }).notes.join(" ")));
+}
+
+// 2026-10-21: BadgeStatus is Figma's Badge-Status; a PropertyField is Input/Property-Field whose nested Value
+// (.Primitives/Input/Property-Value) takes the cell's Type, State and content (figma-property.mjs), and comes back.
+const PROPERTIES = `// @zen-page {"format":1,"title":"Task"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { BadgeStatus, PropertyDate, PropertyField, PropertyPeople, PropertySelect, PropertyStatus, PropertyTags, PropertyText, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Task" device="desktop">
+        <Stack gap="2xs" align="stretch">
+          <BadgeStatus status="in-review" size="sm" />
+          <PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus defaultValue="done" /></PropertyField>
+          <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect defaultValue="urgent" options={[{ value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" }]} /></PropertyField>
+          <PropertyField label="Start Date" icon="icon-calendar-line"><PropertyDate /></PropertyField>
+          <PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate defaultValue="2026-06-07" /></PropertyField>
+          <PropertyField label="Assignee" icon="icon-users-plus-line" action={{ label: "Add" }}><PropertyPeople defaultValue={["alex"]} options={[{ value: "alex", label: "Alex Duong" }]} /></PropertyField>
+          <PropertyField label="Labels" icon="icon-tag-line"><PropertyTags defaultValue={["ds"]} options={[{ value: "ds", label: "Design System", theme: "blue" }]} /></PropertyField>
+          <PropertyField label="Sprint"><PropertyText state="editing" defaultValue="Sprint 42" /></PropertyField>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+{
+  const { frame, notes } = push(PROPERTIES);
+  const all = []; const walk = (node) => { all.push(node); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame);
+  const rows = all.filter((node) => node.set?.name === "Input/Property-Field");
+  const badge = all.find((node) => node.set?.name === "Badge-Status");
+  check("BadgeStatus: Badge-Status Status and Size", [badge?.props?.Status, badge?.props?.Size], ["In Review", "Small"]);
+  check("PropertyField: one Input/Property-Field per row, Label in its text property", rows.map((row) => row.props.Label), ["Status", "Priority", "Start Date", "Due Date", "Assignee", "Labels", "Sprint"]);
+  check("PropertyField: Icon on with an icon (its swap), off without; Action on with action", [rows[0].props.Icon, rows[0].props["Icon-Src"], rows[6].props.Icon, rows[4].props.Action, rows[0].props.Action], [true, "icon-loading-02-line", false, true, false]);
+  check("PropertyField: the nested Value's Type and State from the cell", rows.map((row) => row.nested?.[0]?.props && [row.nested[0].path, row.nested[0].props.Type, row.nested[0].props.State]), [["Value", "Status", "Inputted"], ["Value", "Select", "Inputted"], ["Value", "Date", "Default"], ["Value", "Date", "Inputted"], ["Value", "Person", "Inputted"], ["Value", "Tags", "Inputted"], ["Value", "Text", "Editing"]]);
+  check("PropertyField: the content in the Value's layers", [rows[0].nested[1], rows[1].nested[0].texts, rows[1].nested[1], rows[3].nested[0].texts, rows[4].nested[1], rows[5].nested[1], rows[5].hide, rows[6].nested[0].texts],
+    [{ path: "Value/Status", props: { Status: "Done" } }, { Value: "Urgent" }, { path: "Value/Leading", props: { Tone: "Negative" }, swapIcon: "icon-flag-01-solid" }, { Value: "June 7, 2026" }, { path: "Value/Person", props: {}, text: "Alex Duong" }, { path: "Value/Tag-1", props: { Theme: "Blue" }, text: "Design System" }, ["Tag-2"], { Value: "Sprint 42" }]);
+  ok("PropertyField: no note about its cell (every cell drawn)", !notes.some((note) => /PropertyField/.test(note) && /value cell/.test(note)));
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("pull: BadgeStatus comes back (Size as its long spelling)", /<BadgeStatus status="in-review" size="small" \/>/.test(back));
+  ok("pull: a row whose label is Figma's default keeps it (label is required)", back.includes('<PropertyField label="Status" icon="icon-loading-02-line">'));
+  ok("pull: PropertyField rows come back with their cells", ['<PropertyStatus defaultValue="done" />', '<PropertyDate defaultValue="2026-06-07" />', '<PropertyText state="editing" defaultValue="Sprint 42" />', "<PropertyDate />"].every((cell) => back.includes(cell)) && /<PropertyTags defaultValue=\{\["design-system"\]\} options=\{\[\{ value: "design-system", label: "Design System", theme: "blue" \}\]\} \/>/.test(back));
 }
 
 if (failures.length) {

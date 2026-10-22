@@ -11,14 +11,14 @@ Interrupt to confirm a decision or deliver critical information.
 
 ## Use something else for
 - Non-blocking feedback → Toast.
-- Long forms → a page or Side Panel.
+- A data-entry form (two or more fields) → ModalForm on desktop and tablet, BottomSheet on a phone; a long form → a page.
 - Hints → Tooltip/Popover.
 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Title | `title · headingLevel` | h2 by default (h1 also accepted); the style follows Figma per overlay: Dialog Heading/3, ModalForm Heading/2, never Heading/1 |
-| Actions direction | `actionsDirection` | horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical |
+| Actions direction | `actionsDirection` | horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical. Dialog only: a ModalForm keeps its actions in a row at every width |
 | Modal/Forms | `<ModalForm layout title description side top closeButton onSubmit …actions>` | Layout basic 440 · 1-3 876 (240px side) · half-half 876 · 3-4 767 · big 960; onSubmit makes Enter / primary submit, may return a promise, and a blocked submit (fields left aria-invalid) focuses the first invalid field, as Form does |
 | Theme | `theme` | default · info · positive · warning · negative |
 | Icon | `icon` | themed 44px icon |
@@ -120,8 +120,9 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 | Enter | Submit a ModalForm |
 
 ## ✅ Do
-- Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.
-- Use actionsDirection="vertical" when the choices deserve equal weight or labels are long.
+- Use Dialog for a notice or a quick confirm, with one field at most (type the name to delete). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet (harness: dialog/form-uses-modal-form) and in a BottomSheet on a phone (harness: modal-form/not-on-phone).
+- Use actionsDirection="vertical" on a Dialog when the choices deserve equal weight or labels are long; a ModalForm keeps its actions in a row (harness: modal-form/actions-horizontal).
+- Keep a ModalForm's side column (side) no taller than the form, a summary or an illustration, so the actions sit under the fields with no empty band; longer side content belongs in the form.
 - Phrase the title as the question ("Delete “Marketing site”?") and repeat the verb in the primary action.
 - Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: "Cancel", autoFocus: true }}` (otherwise the primary action takes it).
 - Require typing the name for high-impact deletes.
@@ -137,6 +138,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 - Don't use a dialog for information the user can ignore.
 - Don't hide the only way out (always Escape or a cancel action).
 - Don't open a dialog from a dialog (harness: dialog/no-nested).
+- Don't put a form in a Dialog, and don't open a ModalForm on a phone.
 - Don't open a dialog on page load without a user action.
 - Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser.
 
@@ -155,6 +157,8 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 | `dialog/needs-title` | error | Dialogs always have a title. | `zen-allow-dialog-title: <reason>` |
 | `dialog/negative-uses-danger` | error | A negative (destructive) dialog's primary action uses level danger. | `zen-allow-dialog-danger: <reason>` |
 | `dialog/no-nested` | error | Never stack dialogs: a Dialog does not open another Dialog. | `zen-allow-nested-dialog: <reason>` |
+| `dialog/form-uses-modal-form` | error | Dialog is for a notice or a quick confirm (one field at most, such as typing a name to confirm). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet and in a BottomSheet on a phone. | `zen-allow-dialog-form: <reason>` |
+| `modal-form/actions-horizontal` | error | A ModalForm's footer keeps its actions in a row (Tertiary cancel, Primary submit): actionsDirection="vertical" belongs to a Dialog's equal-weight choices, never to a form. | `zen-allow-modal-form-actions: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |

@@ -13,6 +13,7 @@ import { ActionBar } from "../../../components/ActionBar";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus, type BadgeStatusValue } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -39,7 +40,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import {
   TODAY, activity, daysFromToday, files, formatBytes, formatDate, formatDay, formatDue, formatMoney, formatRelative, initials, me, people, projectById,
-  projects, studio, taskStatusTheme, type Person, type PersonId, type Priority, type StudioFile, type TaskStatus,
+  projects, studio, type Person, type PersonId, type Priority, type StudioFile, type TaskStatus,
 } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
 import "./empty-state.css";
@@ -53,6 +54,8 @@ const avatarOf = (person: Person) => person.photo
   : { theme: person.theme, children: initials(person.name) };
 /** Focus a control once the next render has put it on screen (the button that was pressed may be gone by then). */
 const focusSoon = (find: () => HTMLElement | null | undefined) => requestAnimationFrame(() => find()?.focus());
+/** A task's workflow step is a BadgeStatus (harness: badge/workflow-status-uses-badge-status). */
+const taskStep: Record<TaskStatus, BadgeStatusValue> = { "To do": "to-do", "In progress": "in-progress", "In review": "in-review", Done: "done" };
 
 /** A place this example does not draw: the toast says so, and the navigation keeps the current page. */
 function useNotHere() {
@@ -264,7 +267,7 @@ function FilteredToNothing() {
             return (
               <ListItem key={task.id} title={task.title} caption={`${task.key} · ${formatDue(task.due)}`}
                 leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
-                trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+                trailing={<BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
             );
           })}
         </List>
@@ -311,7 +314,7 @@ function AllCaughtUp() {
           {approved.map((review) => (
             <ListItem key={review.id} title={review.task} caption={`${people[review.by].name} · ${formatRelative(review.at)}`}
               leading={<Avatar size="md" {...avatarOf(people[review.by])} />}
-              trailing={<Badge theme={taskStatusTheme.Done} background="subtle">Done</Badge>} />
+              trailing={<BadgeStatus status="done" />} />
           ))}
         </List>
       )}
