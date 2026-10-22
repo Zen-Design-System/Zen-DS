@@ -301,6 +301,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   1.5x, 200%) with an anchor point, or drag a corner: the layer, or a Screen, and everything in it scale by that
   factor, its ratio kept, in one ⌘Z. What is written in px scales (sizes, positions in free frames, strokes); Zen
   steps stay (gap, padding, radius, text styles, component sizes), and the status line names them.
+- Zen Studio: Figma's Slice tool (S, or Slice in the Frame menu) on a page you made: drag over the board to mark an
+  area, then Export it (1x PNG to start; PNG, JPG or SVG at any scale) as a picture of the frames under it. A slice
+  draws its dashed outline only, so a click inside it still selects what is under it; it is renamed, moved, resized,
+  copied and deleted as a frame is, and Layers lists it. Not sent to Figma yet.
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does

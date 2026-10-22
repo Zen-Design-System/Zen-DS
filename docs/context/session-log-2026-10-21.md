@@ -671,6 +671,23 @@ token": px values scale, Zen steps stay (Figma scales everything; Zen has no px 
 - Contact sheets: badge@390 Release checklist pushed Status off the phone (Owner 160px) → on a phone the owner joins
   the caption, as in Task status. Gate 3 (badge + input, files after run 2): PASS; run 2 Studio E2E 338 works · 0 broken.
 
+## Figma's Slice tool S (Session C) — tier M, branch `zen/feat/studio-slice-20261022`
+The progress session relayed the user's "điều phối cho session nhận scope chưa ai nhận đi"; the user confirmed in
+Session C (2026-10-22): Slice first, then Comment (beside the page file, no Figma sync), then a Libraries dialog
+(Zen, project components, project theme). E2E ids FW-190…199.
+- Dialect: `<Slice id title x y width height />`, a Board child beside the frames like a Section (no layers, 1 px to
+  40000), `sliceCode`, `SLICE_SIZE`; not one of `boardFrames` (prototype, visibility, push skip it). doc.mjs prints its
+  import, slots.mjs inserts it, the runtime's `Slice` renders nothing.
+- Board: `builder/SliceFrame.tsx`, drawn last (above the frames) as a dashed outline that takes no click; its name stays
+  visible over frames (FrameChrome) and selects / drags it; handles resize it (1 px min); ⌥-drag / ⌘D / ⌘C ⌘V copy it
+  (`slice-N`), Delete removes it alone, rename and lock as a frame; Layers shows it with the scissors icon.
+- Tool: S and the Frame menu's Slice (Figma UI3: Frame · Section · Slice), the drag of the Section tool, a click =
+  100 × 100 (`armFrameDraw(…, "slice")`, `addSlice`); ⌘K, the canvas status, Keyboard shortcuts; S out of figmaNotYet.
+- Panel: `builder/SlicePanel.tsx`, X / Y / W / H and Export (Figma's 1x PNG first): `htmlExport.ts regionPicture` draws
+  the frames under the area at their places, cut at its edges; ExportSection takes a `picture` (and `initial`).
+- Push: a note ("Slices (export areas of the board): not pushed"); SLICE in Figma is a follow-up.
+- Selftests: dialect 54 (+6), doc, push, sections; tsc; style guard. E2E FW-190…192 wait for a slot.
+
 
 ## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
 
