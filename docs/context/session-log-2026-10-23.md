@@ -71,3 +71,55 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
   looked at).
 - My slip: I stopped my isolated server with pattern kills (`pkill -f "tail -f /dev/null"`), which can hit another
   session's processes; memory updated (TaskStop or exact PIDs only).
+
+## Backlog triage · P2 / P3 open items (tier XS, docs only; user: "rà 54 mục P2/P3")
+- Each of the 53 P2 / P3 entries (B's className round 2 left to B) checked against main 4b96bbb8, merged PRs and open
+  branches. 5 done or answered (#155, #193, #50/#99, the user's White-Overlay call, round 2 supersedes the 112 classes);
+  20 merged into 5 (chart designer questions, AI UI × 2, direct paste, Figma contracts) and the Popover label into
+  QUESTIONS.md "Contrast in light mode"; 4 rewritten to what is left (Variables v2: E5 came with #151; navigation
+  surfaces; chart push data; UX polish → the design check); 8 are closed by open PRs or branches (#223, #225, #226,
+  workflow-badge-status, studio-parity-leftovers). Also archived: the P6b remains, the empty "Phone decisions" heading,
+  and 9 plan-section entries already marked done (PR #5, I-15) or done by #141. 38 archive entries in all.
+- Merged main twice (#223, then #225–#227): conflicts kept both sides (their removals and the P2 "Code-side rules"
+  line, my rewrites); no entry is archived twice and none of mine came back. Open after #230: 5 P1, 19 P2, 12 P3.
+
+## Colour P1s: On-Brand on Zen/9 and the Chart On-Color styles (session "colour P1s", tier S)
+
+Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết backlog", clear the P1s before the next phase).
+- **White on Zen/9 (closed, no change).** Measured with the ramp's APCA (`tools/studio/zen-ramp.generated.mjs`): white on
+  Light Zen/9 #F755C9 Lc 60 / 2.96:1, black 86% Lc 48 / 6.22:1; Zen/10 white Lc 71; Dark hover #FF7BD6 white Lc 50
+  (ramp floor 50); Dark pressed keeps black 86% (Lc 73). White is the APCA pick on every Light step. The user decided the
+  measure on 2026-10-19 ("không áp dụng cứng nhắc WCAG … dùng APCA … có mode High Contrast"), and the audit's
+  `apcaPick` already passes the pair, so the item was closed without asking again.
+- **Color Chart Sector/On-Color/Secondary and /Tertiary (user: "Giữ binding mới").** Live Figma: Secondary →
+  Content/Neutral/Light (black 49% Light), Tertiary → Border/Neutral/Subtle/Pressed (18%), Primary → Content/On-Colors.
+  Live consumers: only the 6 Bullet-Chart Tracks (Tertiary × layer 50%); the 11 Spark-Bars bars that use Secondary sit
+  in a detached frame. Options shown with swatches on Brand / Cyan / Yellow / Orange solids (Secondary Lc 31–46,
+  ~2.9:1; Neutral/Base 69% Lc 42–62; the old binding drew solid #121212).
+  - Figma: the three style descriptions said "Content/Neutral/Strongest at 48% / 20%" (Primary too, though it is
+    On-Colors) and were rewritten; `tools/figma-docs/style-descriptions.mjs` now has an On-Color branch (it wrote
+    "Chart series colour :" for them before).
+  - Code: Card Solid's `--zen-card-mark-ink` (the second series on a hue Solid) Neutral/Base 69% → Content/Neutral/Light
+    49%, Inverse/Light in dark mode, to match the style.
+  - Gate PASS (isolated; card, widgets, metric; audit 1512/390/320, dark, behaviour, 80 browser tests; report
+    2026-10-22T19-17-48-192108d7). No platform example draws a second series on a hue Solid, so a throwaway browser test
+    measured the Bullet target on Brand / Cyan / Yellow / Orange Solid cards: rgba(0, 0, 0, 0.486) in light and dark.
+
+## Session C · Figma-parity leftovers (tier S each; Giám sát's queue, plan studio-figma-design-parity-2026-10-18.md)
+Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
+- ⇧⌘G on several layers (BACKLOG P2): `ungroupLayers` in edit/groupLayers.ts ungroups every selected group or frame,
+  the last in the code first, each once the canvas drew the one before (it reads its layers' places there); other
+  selected srcs follow each write (`mapSrc`); the writes are squashed into one ⌘Z. The canvas menu offers Ungroup on
+  several layers. E2E FW-220 (two seeded groups → four shapes in place, all selected, one ⌘Z).
+- An instance's data-name (BACKLOG P1 leftover). User's choice (AskUserQuestion): the accessible name first. Push:
+  an instance named by its component takes the data-name as its Figma name (`nameGiven`); an aria-label keeps the name
+  (note), IconButton never (layer-meta `LABEL_NAMED`). Plugin (studio-import c95084e): plugin data "name" (what the
+  import wrote) and "given". Pull reader: `nameGiven` when given or renamed in Figma since; pull writes data-name only
+  then. A first try reading every non-default instance name made the library's own names ("Item", "Main") data-names
+  on a live Zen screen and kept a padded wrapper: dropped.
+- Real Figma (QA page): the import wrote name/given as planned; the real reader marked given ✓ / plain ✗ / renamed in
+  Figma ✓; pageFromFigma gave `<Use data-name="Hero note">`, `<Use>`, `<Use data-name="Renamed in Figma">`. Test frame
+  removed. Selftests push 402, pull 130, layer-meta 15, plugin `npm test` ✓.
+- Gate (01:45–02:14, isolated, the 8 files): static ✓, Studio E2E 338 / 338 (3 shards), Build-QA PASS. FW rows run
+  apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
+  nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.
