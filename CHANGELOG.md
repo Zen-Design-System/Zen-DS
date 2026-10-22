@@ -101,6 +101,21 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Web, SwiftUI and Flutter tokens regenerated.
 - Token Color/Background/Carved (light) follows Figma: Light/Neutral-Alpha/2 instead of /3, a lighter well (2026-10-21,
   read live in the Zen file); dark stays Dark/Carved. Web, SwiftUI and Flutter tokens regenerated.
+- **Breaking: Card and ListBox themes renamed, Figma and code** (2026-10-21, user: "Flat hiện tại nên là default, còn
+  flat phải là dùng đổ màu surface-flat … Khi phối card flat (surface-flat) thì cũng nên dùng canvas-flat"; "làm tương tự
+  cho cả box list"). Figma Card 6643:51021 and Component/List-Box 14922:75297: Theme=Flat is now **Default** (the
+  Surface alone, unchanged look); Border × Surface=Flat is its own Theme **Flat-Border** (Surface/Flat inside a
+  Border/Neutral/Pale frame: the box of a Canvas/Flat page); Surface keeps Default | Alt. Code: `theme="flat"` →
+  `theme="default"` (no alias: every example, template and doc migrated), `theme="border" surface="flat"` →
+  `theme="flat-border"`, and `surface="flat"` is gone (CardSurface is default | alt). MetricCard and ChartCard take the
+  same themes (ChartCard's default is `default`). On-Container is unchanged. Studio's Properties, Main component,
+  effects row and detach follow; the Figma audit and screen rules name Default and Flat-Border. AppShellPane follows
+  (Figma .Primitives/AppShell/Pane 16254:1099 renamed too; user: "Đổi theo Card"): `default`, `flat-border`, Surface
+  default | alt; the app layer pairs Canvas/Flat with flat-border panes and cards.
+- ListBox takes Figma List-Box's Color and Surface (2026-10-21, user: "Thêm luôn trong đợt này"): `color` is the Pale
+  box's hue (Support/<Hue>/Pale, neutral … purple) and `surface="alt"` puts a Default or Border box on Surface/Alt, as
+  Card does. Studio's Properties panel and the Figma push and pull carry both (the push keeps to Figma's variants).
+  Harness: listbox/color-ignored and listbox/surface-ignored warn when they would do nothing.
 - Zen Studio's device simulator has Android devices (2026-10-21): Android phone (412 × 917) and Android tablet
   (1280 × 800, rotates), in Present and Play's Device menu, the Frame tool's presets, New page and the Screen's Size.
   A device draws its own system's bars in Present and Play; an Android page plays on the Android phone and tablet in
@@ -238,19 +253,16 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
     conformance test keeps that list exact.
   - The Design panel heads a frame "Frame" and a group "Group", as Figma; the code name shows on hover, and Layers keep
     it.
-<<<<<<< HEAD
 - Zen Studio's menus, two more gaps from the re-measure: the layer menu has Flip horizontal ⇧H and Flip vertical ⇧V
   after Lock, as Figma's, on frames and shapes (the layers that turn). The empty canvas menu of a
   page you made starts with Paste here (dimmed with nothing to paste): a copied frame lands there as a frame, copied
   layers in a new frame of their size, both with their corner at the pointer, one ⌘Z. A frame placed on a page whose
   frames had no place yet (drawn, pasted, duplicated, a Section) is now one ⌘Z with the pin of the others, not two.
-=======
 - Zen Studio presents an Overlay frame as Figma presents any frame: with a Dialog, Bottom Sheet, Side Panel or Card
   Overlay selected, ⌥⌘↵, the Present buttons (Prototype and Design tabs), the canvas menu and ⌘K › Present open it at
   once over the Screen that opens it, on that Screen's device, size and device frame; its interactions run, and closing
   it (Esc, its close action, a press outside) goes on from that Screen. An Overlay no Screen opens shows over a blank
   screen of the page's device, and closing it leaves Present. A reload keeps it (`?play=overlay:<id>`).
->>>>>>> origin/main
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and
@@ -289,6 +301,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   lands as Figma's own layer; other Shape kinds are named in the paste's notes (Import from Studio places them).
 - The direct paste places every Studio Shape as Figma's own layer: lines and arrows, polygons, stars, Pen paths (curves
   and even-odd holes as drawn) and boolean groups (Union, Subtract, Intersect, Exclude) with their shapes.
+- Zen Studio: Figma's Scale tool (K, or Scale in the toolbar) on a page you made. Type a factor in the right panel (2,
+  1.5x, 200%) with an anchor point, or drag a corner: the layer, or a Screen, and everything in it scale by that
+  factor, its ratio kept, in one ⌘Z. What is written in px scales (sizes, positions in free frames, strokes); Zen
+  steps stay (gap, padding, radius, text styles, component sizes), and the status line names them.
+- Zen Studio: Figma's Slice tool (S, or Slice in the Frame menu) on a page you made: drag over the board to mark an
+  area, then Export it (1x PNG to start; PNG, JPG or SVG at any scale) as a picture of the frames under it. A slice
+  draws its dashed outline only, so a click inside it still selects what is under it; it is renamed, moved, resized,
+  copied and deleted as a frame is, and Layers lists it. Not sent to Figma yet.
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does

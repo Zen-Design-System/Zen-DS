@@ -661,11 +661,11 @@ export const rows = [
         const response = await api.applyEdit({ file: parsed.file, loc: parsed.loc, name: tag, ops: [{ op: "setProp", name: key, value: { kind: "string", value: next } }] }, `${key} → ${next}`);
         return response.ok ? null : response.error;
       }, { src, name, prop, value });
-      for (const [name, text, prop, value] of [["Card", "Components", "theme", "flat"], ["Text", "comprehensive set", "align", "start"]]) {
+      for (const [name, text, prop, value] of [["Card", "Components", "theme", "default"], ["Text", "comprehensive set", "align", "start"]]) {
         const problem = await edit(await srcOf(name, text), name, prop, value);
         if (problem) throw new Error(`Studio edit ${prop}: ${problem}`);
       }
-      await until(async () => { const text = (await pageText(page, id)) ?? ""; return /theme="flat"/.test(text) && /align="start"/.test(text); }, { message: "the Studio's edits written" });
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; return /theme="default"/.test(text) && /align="start"/.test(text); }, { message: "the Studio's edits written" });
       const edited = (await pageText(page, id)) ?? "";
       // The later pull: a heading renamed, the same card re-themed (a conflict), the Button resized, Development gone,
       // Templates added, Foundation and Components swapped.
@@ -694,7 +694,7 @@ export const rows = [
       const after = async () => (await pageText(page, id)) ?? "";
       await until(async () => /Foundations/.test(await after()), { timeout: 15000, message: "the update written" });
       const text = await after();
-      const landed = { renamed: /Foundations/.test(text), added: /Templates/.test(text), removed: !/Development/.test(text), resized: /<Button size="small"/.test(text), keptTheme: /theme="flat"/.test(text), keptAlign: /align="start"/.test(text), noIds: !/data-zen-id/.test(text) };
+      const landed = { renamed: /Foundations/.test(text), added: /Templates/.test(text), removed: !/Development/.test(text), resized: /<Button size="small"/.test(text), keptTheme: /theme="default"/.test(text), keptAlign: /align="start"/.test(text), noIds: !/data-zen-id/.test(text) };
       if (Object.values(landed).some((value) => !value)) throw new Error(`after Apply: ${JSON.stringify(landed)}`);
       const cards = await page.locator(`${scope}[data-zen-name="Card"]`).evaluateAll((els) => els.map((el) => el.innerText.trim().split("\n")[0]).join(", "));
       if (cards !== "Components, Foundations, Patterns, Resources & Tools, Templates") throw new Error(`cards ${cards}`);

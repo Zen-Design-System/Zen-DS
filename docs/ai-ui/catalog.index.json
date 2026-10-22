@@ -562,7 +562,7 @@
       "name": "ListBox",
       "status": "stable",
       "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
-      "props": "width? minWidth? maxWidth? alignSelf? header? children footer? theme? as? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? header? children footer? theme? color? surface? as? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "ListItem",

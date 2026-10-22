@@ -107,7 +107,7 @@ const src = page(
   "      <Card theme=\"border\">",
   "        <Text>Pro</Text>",
   "      </Card>",
-  "      <Card theme=\"flat\" />",
+  "      <Card theme=\"default\" />",
   "      <List aria-label=\"Team\">",
   "        {items.map((item) => (",
   "          <ListItem key={item.id} title={item.name} leading={<DockIcon icon=\"icon-user-line\" />} />",
@@ -185,7 +185,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "  <Stack>",
     "    <p>Hello <b>x</b></p>",
     "    <span>Save</span>",
-    "    {open ? <Card theme=\"flat\"></Card> : null}",
+    "    {open ? <Card theme=\"default\"></Card> : null}",
     "    {open ? <Card theme=\"pale\" /> : null}",
     "    <Card theme=\"border\">",
     "    </Card>",
@@ -201,8 +201,8 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("insert inline text: same line, after the last child", [rows(p, 10, 10), p.inserted.loc], [["    <p>Hello <b>x</b><i>y</i></p>"], "10:21"]);
   const span = run("insert before text", inline, "<span>", "span", ins("<i>y</i>", { index: 0 }));
   check("insert before text: inline", [rows(span, 11, 11), span.inserted.loc], [["    <span><i>y</i>Save</span>"], "11:10"]);
-  const empty = run("insert empty inline", inline, "<Card theme=\"flat\"", "Card", ins("<Text>Hi</Text>"));
-  check("insert into an empty inline parent", [rows(empty, 12, 12), empty.inserted.loc], [['    {open ? <Card theme="flat"><Text>Hi</Text></Card> : null}'], "12:31"]);
+  const empty = run("insert empty inline", inline, "<Card theme=\"default\"", "Card", ins("<Text>Hi</Text>"));
+  check("insert into an empty inline parent", [rows(empty, 12, 12), empty.inserted.loc], [['    {open ? <Card theme="default"><Text>Hi</Text></Card> : null}'], "12:34"]);
   const closing = run("insert self-closing inline", inline, "<Card theme=\"pale\"", "Card", ins("<Text>Hi</Text>"));
   check("insert into a self-closing inline parent", [rows(closing, 13, 13), closing.inserted.loc], [['    {open ? <Card theme="pale"><Text>Hi</Text></Card> : null}'], "13:31"]);
   const block = run("insert empty block", inline, "<Card theme=\"border\"", "Card", ins("<Text>Hi</Text>"));
@@ -252,7 +252,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "      <Text>",
     "        Hello world.",
     "      </Text>",
-    "      <Card theme=\"flat\">",
+    "      <Card theme=\"default\">",
     "        Hello there",
     "        <b>x</b>",
     "        bye",
@@ -263,9 +263,9 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   ).replace(/\n/g, "\r\n");
   const afterText = run("insert CRLF after a text child", prose, "<Text>", "Text", ins(BADGE));
   check("insert CRLF after a text child: its own line, no lone LF", [rows(afterText, 11, 14), afterText.inserted.loc], [["      <Text>", "        Hello world.", '        <Badge theme="blue">Pro plan</Badge>', "      </Text>"], "13:8"]);
-  const wrapText = run("wrap CRLF text children", prose, "<Card theme=\"flat\"", "Card", ins(BADGE, { index: 1, wrap: { tag: "Stack", props: { gap: str("md") } } }));
+  const wrapText = run("wrap CRLF text children", prose, "<Card theme=\"default\"", "Card", ins(BADGE, { index: 1, wrap: { tag: "Stack", props: { gap: str("md") } } }));
   check("wrap CRLF content that starts and ends with text: indented one level", [rows(wrapText, 14, 21), wrapText.inserted.loc], [[
-    '      <Card theme="flat">',
+    '      <Card theme="default">',
     '        <Stack gap="md">',
     "          Hello there",
     '          <Badge theme="blue">Pro plan</Badge>',
@@ -283,15 +283,15 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "\t\t<Card theme=\"border\">",
     "\t\t\t<Text>Hi</Text>",
     "\t\t</Card>",
-    "\t\t<Card theme=\"flat\" />",
+    "\t\t<Card theme=\"default\" />",
     "\t</Stack>",
     ");",
     "",
   ].join("\n");
   const tabbed = run("insert tabs", tabs, "<Card theme=\"border\"", "Card", ins("<Stack gap=\"xs\">\n  <Text>A</Text>\n</Stack>"));
   check("insert tabs: nested levels become tabs", rows(tabbed, 7, 10), ["\t\t\t<Text>Hi</Text>", "\t\t\t<Stack gap=\"xs\">", "\t\t\t\t<Text>A</Text>", "\t\t\t</Stack>"]);
-  const opened = run("insert tabs self-closing", tabs, "<Card theme=\"flat\"", "Card", ins("<Text>A</Text>"));
-  check("insert tabs self-closing: a tab deeper", rows(opened, 9, 11), ["\t\t<Card theme=\"flat\">", "\t\t\t<Text>A</Text>", "\t\t</Card>"]);
+  const opened = run("insert tabs self-closing", tabs, "<Card theme=\"default\"", "Card", ins("<Text>A</Text>"));
+  check("insert tabs self-closing: a tab deeper", rows(opened, 9, 11), ["\t\t<Card theme=\"default\">", "\t\t\t<Text>A</Text>", "\t\t</Card>"]);
 }
 
 /* ── insertChild: prop slots ──────────────────────────────────────────────────────────────────────────────────────── */
@@ -419,7 +419,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "  return wide ? (",
     "    <Stack gap=\"md\">",
     "      <ListItem title=\"Wide\" trailing={apps} leading={pair} />",
-    "      <Card theme=\"flat\">{loose}</Card>",
+    "      <Card theme=\"default\">{loose}</Card>",
     "    </Stack>",
     "  ) : (",
     "    <ListItem title=\"Narrow\" trailing={apps} />",
@@ -471,7 +471,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "      <Text>First</Text>",
     "      {summary}",
     "      <Text>Last</Text>",
-    "      <Card theme=\"flat\">{twice}{twice}</Card>",
+    "      <Card theme=\"default\">{twice}{twice}</Card>",
     "    </Stack>",
     "  );",
     "}",
@@ -488,7 +488,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "      {summary}",
     "    </Stack>",
     "  ) : (",
-    "    <Card theme=\"flat\">",
+    "    <Card theme=\"default\">",
     "      <Text>Desk</Text>",
     "      {summary}",
     "    </Card>",
@@ -498,7 +498,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const inCard = run("const shown in two branches: move the one in the Card", twiceBoth, "<Badge>Summary", "Badge", { op: "moveElement", to: "prev", parent: locOf(twiceBoth, "<Card") });
   check("const shown in two branches: only the Card's {summary} moves", [inCard.code.indexOf("{summary}", inCard.code.indexOf("<Card")) < inCard.code.indexOf("<Text>Desk"), inCard.code.indexOf("<Text>Phone") < inCard.code.indexOf("{summary}")], [true, true]);
   const dragged = applySlotOp(stacked, locOf(stacked, "<Badge>Summary"), "Badge", { op: "moveTo", parent: locOf(stacked, "<Card") }, options({ hash: sha1(stacked) }));
-  check("const child: dragged into the Card as {summary}", [dragged.error ?? null, /<Card theme="flat">\{twice\}\{twice\}\s*\{summary\}/.test(dragged.code ?? "") || /<Card theme="flat">[\s\S]*\{summary\}[\s\S]*<\/Card>/.test(dragged.code ?? ""), (dragged.code ?? "").split("{summary}").length - 1], [null, true, 1]);
+  check("const child: dragged into the Card as {summary}", [dragged.error ?? null, /<Card theme="default">\{twice\}\{twice\}\s*\{summary\}/.test(dragged.code ?? "") || /<Card theme="default">[\s\S]*\{summary\}[\s\S]*<\/Card>/.test(dragged.code ?? ""), (dragged.code ?? "").split("{summary}").length - 1], [null, true, 1]);
   const described = describeSlots(shared, PAGE, locOf(shared, "<ListItem title=\"Wide"));
   const at = (attr) => described.attributes[["title", "trailing", "leading"].indexOf(attr)];
   check("describeSlots: a const's elements, where the const writes them", [at("trailing"), at("leading")?.form, at("leading")?.elements.map((ref) => ref.name)], [{ elements: [{ name: "Badge", loc: locOf(shared, "<Badge>Apps") }], form: "element", const: "apps" }, "fragment", ["Badge", "Badge"]]);
@@ -515,7 +515,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "      <Card theme=\"border\">",
     "        <Text>Pro</Text>",
     "      </Card>",
-    "      <Card theme=\"flat\"><Text>Inline</Text></Card>",
+    "      <Card theme=\"default\"><Text>Inline</Text></Card>",
     "      <Card theme=\"pale\" />",
     "      <ListItem title=\"Bao\" leading={<DockIcon icon=\"icon-user-line\" />} />",
     "      <Card theme=\"shadow\">",
@@ -535,10 +535,10 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("wrap: not copied into a snippet (none here)", "snippet" in wrapped, false);
   const firstIn = run("wrap index 0", wrapSrc, "<Card theme=\"border\"", "Card", ins(NEW, { wrap: WRAP, index: 0 }));
   check("wrap index 0: the new element first", [rows(firstIn, 12, 15), firstIn.inserted.loc], [['        <Stack gap="md">', "          <Badge>New</Badge>", "          <Text>Pro</Text>", "        </Stack>"], "13:10"]);
-  const inline = run("wrap inline", wrapSrc, "<Card theme=\"flat\"", "Card", ins(NEW, { wrap: WRAP }));
-  check("wrap inline content: inline", [rows(inline, 14, 14), inline.inserted.loc], [['      <Card theme="flat"><Stack gap="md"><Text>Inline</Text><Badge>New</Badge></Stack></Card>'], "14:60"]);
-  const inlineFirst = run("wrap inline index 0", wrapSrc, "<Card theme=\"flat\"", "Card", ins(NEW, { wrap: WRAP, index: 0 }));
-  check("wrap inline content, index 0", rows(inlineFirst, 14, 14), ['      <Card theme="flat"><Stack gap="md"><Badge>New</Badge><Text>Inline</Text></Stack></Card>']);
+  const inline = run("wrap inline", wrapSrc, "<Card theme=\"default\"", "Card", ins(NEW, { wrap: WRAP }));
+  check("wrap inline content: inline", [rows(inline, 14, 14), inline.inserted.loc], [['      <Card theme="default"><Stack gap="md"><Text>Inline</Text><Badge>New</Badge></Stack></Card>'], "14:63"]);
+  const inlineFirst = run("wrap inline index 0", wrapSrc, "<Card theme=\"default\"", "Card", ins(NEW, { wrap: WRAP, index: 0 }));
+  check("wrap inline content, index 0", rows(inlineFirst, 14, 14), ['      <Card theme="default"><Stack gap="md"><Badge>New</Badge><Text>Inline</Text></Stack></Card>']);
   const empty = run("wrap empty", wrapSrc, "<Card theme=\"pale\"", "Card", ins(NEW, { wrap: WRAP }));
   check("wrap an empty slot: no wrapper", rows(empty, 15, 17), ['      <Card theme="pale">', "        <Badge>New</Badge>", "      </Card>"]);
   const prop = run("wrap prop", wrapSrc, "<ListItem", "ListItem", ins(NEW, { prop: "leading", wrap: WRAP }));
@@ -547,12 +547,12 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("wrap: lines inside a template literal keep theirs", rows(literal, 17, 23), ['      <Card theme="shadow">', '        <Stack gap="md">', "          <Text>{`a", "b`}</Text>", "          <Text>Two</Text>", "          <Badge>New</Badge>", "        </Stack>"]);
   const middle = run("wrap middle", wrapSrc, "<Card theme=\"shadow\"", "Card", ins(NEW, { wrap: WRAP, index: 1 }));
   check("wrap index 1: before the second child, a level deeper", rows(middle, 18, 22), ['        <Stack gap="md">', "          <Text>{`a", "b`}</Text>", "          <Badge>New</Badge>", "          <Text>Two</Text>"]);
-  const grid = page("export const G = () => <Card theme=\"flat\"><Text>A</Text></Card>;").replace('import { Stack } from "../../../components/Layout";', 'import { Grid } from "../../../components/Layout";');
+  const grid = page("export const G = () => <Card theme=\"default\"><Text>A</Text></Card>;").replace('import { Stack } from "../../../components/Layout";', 'import { Grid } from "../../../components/Layout";');
   const intoGrid = run("wrap Stack merged into Layout", grid, "<Card", "Card", ins(NEW, { wrap: WRAP }));
   check("wrap: Stack merged into the Layout import", importLines(intoGrid)[3], 'import { Grid, Stack } from "../../../components/Layout";');
-  const gridTag = run("wrap Grid", wrapSrc, "<Card theme=\"flat\"", "Card", ins(NEW, { wrap: { tag: "Grid", props: { columns: { kind: "number", value: 2 } } } }));
-  check("wrap in a Grid", rows(gridTag, 14, 14), ['      <Card theme="flat"><Grid columns={2}><Text>Inline</Text><Badge>New</Badge></Grid></Card>']);
-  const loc = locOf(wrapSrc, "<Card theme=\"flat\"");
+  const gridTag = run("wrap Grid", wrapSrc, "<Card theme=\"default\"", "Card", ins(NEW, { wrap: { tag: "Grid", props: { columns: { kind: "number", value: 2 } } } }));
+  check("wrap in a Grid", rows(gridTag, 14, 14), ['      <Card theme="default"><Grid columns={2}><Text>Inline</Text><Badge>New</Badge></Grid></Card>']);
+  const loc = locOf(wrapSrc, "<Card theme=\"default\"");
   check("wrap refusals: tag, key, children, props", [
     applySlotOp(wrapSrc, loc, "Card", ins(NEW, { wrap: { tag: "div" } }), options()).error,
     applySlotOp(wrapSrc, loc, "Card", ins(NEW, { wrap: { tag: "Stack", props: { key: str("k") } } }), options()).code,
@@ -603,7 +603,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "}",
     "export function B() {",
     "  const { toast } = useToast();",
-    "  return <Card theme=\"flat\" />;",
+    "  return <Card theme=\"default\" />;",
     "}",
     "export const C = () => <Card theme=\"pale\" />;",
     "function helper() {",
@@ -621,20 +621,20 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "  return <Card theme=\"border\" spacing=\"sm\" />;",
     "});",
     "export function F({ toast }: { toast: (options: { title: string }) => void }) {",
-    "  return <Card theme=\"flat\" spacing=\"sm\" />;",
+    "  return <Card theme=\"default\" spacing=\"sm\" />;",
     "}",
-    "export const examples = [{ title: \"x\", render: () => <Card theme=\"flat\" spacing=\"md\" /> }];",
+    "export const examples = [{ title: \"x\", render: () => <Card theme=\"default\" spacing=\"md\" /> }];",
   );
   const BUTTON = '<Button level="tertiary" onClick={() => toast({ title: "Report exported" })}>Export report</Button>';
   const opts = { requires: ["toast"] };
   const a = run("toast hook", toastPage, "<Card theme=\"border\">", "Card", ins(BUTTON, opts));
   ok("toast hook: first statement of A", a.code.includes("export function A() {\n  const { toast } = useToast();\n  return ("));
   check("toast hook: useToast and Button imported", importLines(a), [IMPORTS[0], 'import { Button } from "../../../components/Button";', ...IMPORTS.slice(1), 'import { useToast } from "../../../components/Toast";']);
-  const b = run("toast reuse", toastPage, "<Card theme=\"flat\" />", "Card", ins(BUTTON, opts));
+  const b = run("toast reuse", toastPage, "<Card theme=\"default\" />", "Card", ins(BUTTON, opts));
   check("toast reuse: no second hook, no useToast import", [b.code.split("useToast()").length, importLines(b).some((line) => line.includes("Toast"))], [2, false]);
   check("toast in an arrow without a body: refused", /returns its JSX directly/.test(applySlotOp(toastPage, locOf(toastPage, "<Card theme=\"pale\""), "Card", ins(BUTTON, opts), options()).error), true);
   check("toast in a lowercase helper: refused", /no component encloses this slot/.test(applySlotOp(toastPage, locOf(toastPage, "<Card theme=\"shadow\""), "Card", ins(BUTTON, opts), options()).error), true);
-  check("toast in an example's render: refused", /no component encloses this slot/.test(applySlotOp(toastPage, locOf(toastPage, "<Card theme=\"flat\" spacing=\"md\""), "Card", ins(BUTTON, opts), options()).error), true);
+  check("toast in an example's render: refused", /no component encloses this slot/.test(applySlotOp(toastPage, locOf(toastPage, "<Card theme=\"default\" spacing=\"md\""), "Card", ins(BUTTON, opts), options()).error), true);
   const d = run("toast in a .map row", toastPage, "<ListItem key", "ListItem", ins(BUTTON, opts));
   ok("toast in a .map row: the hook goes in the component around the callback", d.code.includes("export function D({ items }: { items: string[] }) {\n  const { toast } = useToast();\n  return ("));
   ok("toast in a .map row: the row opens inline", d.code.includes('{items.map((item) => <ListItem key={item} title={item}><Button level="tertiary"'));
@@ -642,26 +642,26 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   ok("toast one-line body: the hook after {", e.code.includes("export function E() { const { toast } = useToast(); return <Card"));
   const m = run("toast memo", toastPage, "<Card theme=\"border\" spacing", "Card", ins(BUTTON, opts));
   ok("toast memo(() => {…}): the hook in M", m.code.includes("export const M = memo(() => {\n  const { toast } = useToast();\n  return"));
-  const f = run("toast parameter", toastPage, "<Card theme=\"flat\" spacing=\"sm\"", "Card", ins(BUTTON, opts));
+  const f = run("toast parameter", toastPage, "<Card theme=\"default\" spacing=\"sm\"", "Card", ins(BUTTON, opts));
   check("toast parameter in scope: reused", f.code.split("useToast()").length, 2);
   // Another `toast` in scope is not called (tsc would fail, the click would throw): refused with a reason.
   const ownToast = (...body) => { const code = page(...body); return applySlotOp(code, locOf(code, "<Card"), "Card", ins(BUTTON, opts), options()).error; };
   const another = (what) => `The action calls toast, but this slot already sees another \`toast\` (${what}), not useToast's; rename it before inserting an action.`;
   check("toast: another toast in scope → refused", [
-    ownToast("export function G({ toast }: { toast: string }) {", "  return <Card theme=\"flat\" title={toast} />;", "}"),
-    ownToast("export function G(props: { note: string }) {", "  const items = [props.note].map((toast) => <Card theme=\"flat\" title={toast} />);", "  return <>{items}</>;", "}"),
-    ownToast("export function H() {", "  const [toast, setToast] = useState(\"\");", "  return <Card theme=\"flat\" title={toast} onClick={() => setToast(\"x\")} />;", "}"),
-    ownToast("const toast = \"Saved\";", "export function K() {", "  return <Card theme=\"flat\" title={toast} />;", "}"),
-    ownToast("export function O() {", "  const toast = useToast();", "  return <Card theme=\"flat\" />;", "}"),
+    ownToast("export function G({ toast }: { toast: string }) {", "  return <Card theme=\"default\" title={toast} />;", "}"),
+    ownToast("export function G(props: { note: string }) {", "  const items = [props.note].map((toast) => <Card theme=\"default\" title={toast} />);", "  return <>{items}</>;", "}"),
+    ownToast("export function H() {", "  const [toast, setToast] = useState(\"\");", "  return <Card theme=\"default\" title={toast} onClick={() => setToast(\"x\")} />;", "}"),
+    ownToast("const toast = \"Saved\";", "export function K() {", "  return <Card theme=\"default\" title={toast} />;", "}"),
+    ownToast("export function O() {", "  const toast = useToast();", "  return <Card theme=\"default\" />;", "}"),
   ], [another("a prop or parameter"), another("a prop or parameter"), another("a variable or state"), another("a variable or state"), another("a variable or state")]);
-  const typed = page("export function L({ toast }: { toast: ToastApi[\"toast\"] }) {", "  return <Card theme=\"flat\" />;", "}");
+  const typed = page("export function L({ toast }: { toast: ToastApi[\"toast\"] }) {", "  return <Card theme=\"default\" />;", "}");
   check("toast: a ToastApi[\"toast\"] parameter is reused", run("toast ToastApi parameter", typed, "<Card", "Card", ins(BUTTON, opts)).code.includes("useToast"), false);
-  const member = page("export function Q() {", "  const toast = useToast().toast;", "  return <Card theme=\"flat\" />;", "}");
+  const member = page("export function Q() {", "  const toast = useToast().toast;", "  return <Card theme=\"default\" />;", "}");
   check("toast: useToast().toast is reused", run("toast member", member, "<Card", "Card", ins(BUTTON, opts)).code.split("useToast()").length, 2);
-  const noSemi = page("export function N() {", "  return <Card theme=\"flat\" />", "}").replace(/;$/gm, "");
+  const noSemi = page("export function N() {", "  return <Card theme=\"default\" />", "}").replace(/;$/gm, "");
   const n = run("toast no semicolons", noSemi, "<Card", "Card", ins(BUTTON, opts));
   ok("toast in a file without semicolons: none added", n.code.includes("  const { toast } = useToast()\n") && importLines(n).every((line) => !line.endsWith(";")));
-  const template = ["import { useState } from \"react\";", "import {", "  Card,", "  Stack,", "  type IconName,", "} from \"@zen-ds/react\";", "export function T() {", "  const [open] = useState(false);", "  return <Card theme=\"flat\" />;", "}", ""].join("\n");
+  const template = ["import { useState } from \"react\";", "import {", "  Card,", "  Stack,", "  type IconName,", "} from \"@zen-ds/react\";", "export function T() {", "  const [open] = useState(false);", "  return <Card theme=\"default\" />;", "}", ""].join("\n");
   const t = run("toast template", template, "<Card", "Card", ins(BUTTON, { ...opts }), { file: TEMPLATE });
   check("toast template: names merged into @zen-ds/react, one per line", t.code.split("\n").slice(1, 9), ["import {", "  Button,", "  Card,", "  Stack,", "  useToast,", "  type IconName,", '} from "@zen-ds/react";', "export function T() {"]);
   ok("toast template: the hook before the first statement", t.code.includes("export function T() {\n  const { toast } = useToast();\n  const [open] = useState(false);"));
@@ -689,9 +689,9 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("code: empty or not a string", [refusal(""), refusal(42)], ["insertChild needs `code`: one JSX element", "insertChild needs `code`: one JSX element"]);
   check("code: requires lists only toast and media", refusal(BADGE, { requires: ["router"] }), '`requires` lists what the code needs: "toast" or "media"');
   check("code: undefined, parameters and member names are not free", applySlotOp(src, loc, "Card", ins('<InputField label="Name" helpText={undefined} onChange={(event) => toast({ title: event.target.value })} />'), options()).code.includes("useToast()"), true);
-  const local = page("const Divider = () => null;", "export const L = () => <Card theme=\"flat\" />;");
+  const local = page("const Divider = () => null;", "export const L = () => <Card theme=\"default\" />;");
   check("code: the file's own Divider", applySlotOp(local, locOf(local, "<Card"), "Card", ins("<Divider />"), options()).error, "The file declares its own Divider; rename it before inserting.");
-  const foreign = ['import { Divider } from "./my-divider";', ...IMPORTS, "export const L = () => <Card theme=\"flat\" />;", ""].join("\n");
+  const foreign = ['import { Divider } from "./my-divider";', ...IMPORTS, "export const L = () => <Card theme=\"default\" />;", ""].join("\n");
   check("code: a foreign Divider import", applySlotOp(foreign, locOf(foreign, "<Card"), "Card", ins("<Divider />"), options()).error, 'The file\'s own Divider (imported from "./my-divider") is not Zen\'s Divider; rename it before inserting.');
   const fallback = applySlotOp(src, loc, "Card", ins("<Divider />"), { file: PAGE });
   check("code: without componentModules the common names still import", importLines(fallback).includes('import { Divider } from "../../../components/Divider";'), true);
@@ -708,13 +708,13 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("import: merged into the folder's import", importLines(merged)[5], 'import { Heading, Text } from "../../../components/Text";');
   const member = run("import member tag", src, "<Card theme=\"border\"", "Card", ins("<Text.Fake>Hi</Text.Fake>"));
   check("import: a member tag needs its root only", importLines(member), IMPORTS);
-  const oneLine = ["import { Card, Stack } from \"@zen-ds/react\";", "export const T = () => <Card theme=\"flat\" />;", ""].join("\n");
+  const oneLine = ["import { Card, Stack } from \"@zen-ds/react\";", "export const T = () => <Card theme=\"default\" />;", ""].join("\n");
   const pkg = run("import template one line", oneLine, "<Card", "Card", ins(BADGE), { file: TEMPLATE });
   check("import: a template's package import", importLines(pkg), ['import { Badge, Card, Stack } from "@zen-ds/react";']);
   const bare = ["export const T = () => <div />;", ""].join("\n");
   const fresh = run("import template without imports", bare, "<div", "div", ins(BADGE), { file: TEMPLATE });
   check("import: a template without imports gets a package line; loc moved", [importLines(fresh), fresh.inserted.loc], [['import { Badge } from "@zen-ds/react";'], "2:28"]);
-  const platformPkg = ['import { Card } from "@zen-ds/react";', "export const T = () => <Card theme=\"flat\" />;", ""].join("\n");
+  const platformPkg = ['import { Card } from "@zen-ds/react";', "export const T = () => <Card theme=\"default\" />;", ""].join("\n");
   check("import: an example importing the package keeps to it", importLines(run("import platform package", platformPkg, "<Card", "Card", ins(BADGE))), ['import { Badge, Card } from "@zen-ds/react";']);
 }
 
@@ -728,16 +728,16 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("guard: shared code after the yes", applySlotOp(src, loc, "Card", ins(BADGE), options({ file: "src/platform/PlatformDemoActions.tsx", shared: true })).error, undefined);
   const chrome = page("// zen-studio-chrome", "export function ExampleCard() {", "  return <div><span>x</span></div>;", "}");
   check("guard: inside docs chrome", applySlotOp(chrome, locOf(chrome, "<span"), "span", ins(BADGE), options()).code, "forbidden");
-  const playground = page("export function CardPlayground() {", "  return <Card theme=\"flat\" />;", "}");
+  const playground = page("export function CardPlayground() {", "  return <Card theme=\"default\" />;", "}");
   check("guard: a *Playground declaration", errorOf(applySlotOp(playground, locOf(playground, "<Card"), "Card", ins(BADGE), options())), ["forbidden", "It is in <CardPlayground>: a playground's slots stay empty (add content in an example)."]);
   // An example's own screens (`if (step === "cart")`, `else if (opened)`) are instance content: the platform's
   // `if (page === …)` playgrounds live in PlatformExamples.tsx, which isSlotFile refuses above.
-  const branch = page("export function Checkout({ step }: { step: string }) {", "  if (step === \"cart\") {", "    return <Card theme=\"flat\" />;", "  } else if (step) {", "    return <Card theme=\"pale\" />;", "  }", "  return null;", "}");
+  const branch = page("export function Checkout({ step }: { step: string }) {", "  if (step === \"cart\") {", "    return <Card theme=\"default\" />;", "  } else if (step) {", "    return <Card theme=\"pale\" />;", "  }", "  return null;", "}");
   check("guard: an example's if (step === …) screens stay editable", [
-    run("guard: if branch", branch, "<Card theme=\"flat\"", "Card", ins(BADGE)).inserted?.loc,
+    run("guard: if branch", branch, "<Card theme=\"default\"", "Card", ins(BADGE)).inserted?.loc,
     run("guard: else-if branch", branch, "<Card theme=\"pale\"", "Card", ins(BADGE)).inserted?.loc,
-  ], ["10:30", "12:30"]);
-  const slot = page("export function S() {", "  return (", "    <Card theme=\"flat\">", "      <PlaygroundSlot name=\"Content slot\" />", "      <Text>Note</Text>", "    </Card>", "  );", "}");
+  ], ["10:33", "12:30"]);
+  const slot = page("export function S() {", "  return (", "    <Card theme=\"default\">", "      <PlaygroundSlot name=\"Content slot\" />", "      <Text>Note</Text>", "    </Card>", "  );", "}");
   const slotOpts = options({ hash: sha1(slot) });
   check("guard: a parent holding a PlaygroundSlot", [
     applySlotOp(slot, locOf(slot, "<Card"), "Card", ins(BADGE), slotOpts).code,
@@ -773,7 +773,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const badge = run("remove last use", src, "<Badge theme", "Badge", REMOVE);
   check("remove the last Badge: its import goes too", [importLines(badge), badge.changed], [IMPORTS.slice(1), { from: 21, to: 21 }]);
   const card = run("remove multi-line child", src, "<Card theme=\"border\"", "Card", REMOVE);
-  check("remove a multi-line child: all its lines", rows(card, 10, 12), ['    <Stack gap="md">', '      <Card theme="flat" />', '      <List aria-label="Team">']);
+  check("remove a multi-line child: all its lines", rows(card, 10, 12), ['    <Stack gap="md">', '      <Card theme="default" />', '      <List aria-label="Team">']);
   const leading = run("remove attribute value", src, "<DockIcon", "DockIcon", REMOVE);
   check("remove a prop's element: the attribute goes, DockIcon's import too", [rows(leading, 16, 16), importLines(leading).some((line) => line.includes("DockIcon"))], [["          <ListItem key={item.id} title={item.name} />"], false]);
   const and = run("remove && right side", src, "<Text>Open", "Text", REMOVE);
@@ -783,7 +783,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("remove a .map row: refused", applySlotOp(src, locOf(src, "<ListItem"), "ListItem", REMOVE, options({ hash: sha1(src) })).error, "<ListItem> is the row of a .map list; select one row on the canvas to remove it from its data (here it would remove every row).");
   check("remove a component's root: refused", applySlotOp(src, locOf(src, "<Stack"), "Stack", REMOVE, options({ hash: sha1(src) })).error, "<Stack> is the root of Plans; there would be nothing left to render.");
   const roots = page(
-    "export const C = () => <Card theme=\"flat\" />;",
+    "export const C = () => <Card theme=\"default\" />;",
     "const body = <Text>Hi</Text>;",
     "export const examples = [{ render: () => <Card theme=\"pale\" /> }];",
     "export const wrapped = String(<Text>Wrapped</Text>);",
@@ -794,7 +794,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   );
   const reason = (needle, name) => applySlotOp(roots, locOf(roots, needle), name, REMOVE, options({ hash: sha1(roots) })).error;
   check("remove roots: refused with their reason", [
-    reason("<Card theme=\"flat\"", "Card"),
+    reason("<Card theme=\"default\"", "Card"),
     reason("<Text>Hi", "Text"),
     reason("<Card theme=\"pale\"", "Card"),
     reason("<Text>Wrapped", "Text"),
@@ -865,7 +865,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "    <Stack>",
     "      <Text>Top</Text>",
     "",
-    "      <Card theme=\"flat\" />",
+    "      <Card theme=\"default\" />",
     "",
     "      <Text>Bottom</Text>",
     "",
@@ -876,8 +876,8 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   );
   // (the Card was the last one: its import line goes too, one row up)
   check("remove between blank lines: one blank line stays", rows(run("remove between blanks", spaced, "<Card", "Card", REMOVE), 10, 14), ["      <Text>Top</Text>", "", "      <Text>Bottom</Text>", "", "      <Badge>Last</Badge>"]);
-  check("remove between blank lines, CRLF", rows(run("remove between blanks CRLF", spaced.replace(/\n/g, "\r\n"), "<Text>Bottom", "Text", REMOVE), 13, 16), ['      <Card theme="flat" />', "", "      <Badge>Last</Badge>", "    </Stack>"]);
-  check("remove after one blank line: it stays", rows(run("remove after a blank", spaced, "<Text>Top", "Text", REMOVE), 10, 12), ["    <Stack>", "", '      <Card theme="flat" />']);
+  check("remove between blank lines, CRLF", rows(run("remove between blanks CRLF", spaced.replace(/\n/g, "\r\n"), "<Text>Bottom", "Text", REMOVE), 13, 16), ['      <Card theme="default" />', "", "      <Badge>Last</Badge>", "    </Stack>"]);
+  check("remove after one blank line: it stays", rows(run("remove after a blank", spaced, "<Text>Top", "Text", REMOVE), 10, 12), ["    <Stack>", "", '      <Card theme="default" />']);
   const commented = src.replace(IMPORTS[0], `${IMPORTS[0]} // status chips`);
   const dropped = run("remove last use, import with a comment", commented, "<Badge theme", "Badge", REMOVE);
   check("remove the last Badge: its import line goes with its trailing comment", [importLines(dropped), dropped.code.includes("status chips"), dropped.code.startsWith(IMPORTS[1])], [IMPORTS.slice(1), false, true]);
@@ -911,8 +911,8 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
 /* ── moveElement ──────────────────────────────────────────────────────────────────────────────────────────────────── */
 {
   const down = run("move next", src, "<Card theme=\"border\"", "Card", move("next"));
-  check("move next: swapped with the next sibling", [rows(down, 11, 14), down.moved.loc, down.changed], [['      <Card theme="flat" />', '      <Card theme="border">', "        <Text>Pro</Text>", "      </Card>"], "12:6", { from: 11, to: 14 }]);
-  const up = run("move prev", src, "<Card theme=\"flat\"", "Card", move("prev"));
+  check("move next: swapped with the next sibling", [rows(down, 11, 14), down.moved.loc, down.changed], [['      <Card theme="default" />', '      <Card theme="border">', "        <Text>Pro</Text>", "      </Card>"], "12:6", { from: 11, to: 14 }]);
+  const up = run("move prev", src, "<Card theme=\"default\"", "Card", move("prev"));
   check("move prev: the same text, the moved element first", [up.code === down.code, up.moved.loc], [true, "11:6"]);
   const around = run("move past a condition", src, "<Badge theme", "Badge", move("prev"));
   check("move past an expression sibling", rows(around, 21, 22), ['      <Badge theme="green">Active</Badge>', "      {open ? <Text>Shown</Text> : <Text>Hidden</Text>}"]);
@@ -926,9 +926,9 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const words = ["export const I = () => <p>Hello <b>x</b> and <i>y</i></p>;", ""].join("\n");
   const swapped = run("move over text", words, "<b>", "b", move("next"));
   check("move over text: text stays, elements swap", [rows(swapped, 1, 1), swapped.moved.loc], [["export const I = () => <p>Hello <i>y</i> and <b>x</b></p>;"], "1:45"]);
-  const uneven = ["export const U = () => (", "  <Stack>", "    <Text>A</Text>", "        <Card theme=\"flat\">", "          <Text>B</Text>", "        </Card>", "  </Stack>", ");", ""].join("\n");
+  const uneven = ["export const U = () => (", "  <Stack>", "    <Text>A</Text>", "        <Card theme=\"default\">", "          <Text>B</Text>", "        </Card>", "  </Stack>", ");", ""].join("\n");
   const reindented = run("move uneven", uneven, "<Card", "Card", move("prev"));
-  check("move between indentations: each piece re-indented", rows(reindented, 3, 6), ['    <Card theme="flat">', "      <Text>B</Text>", "    </Card>", "        <Text>A</Text>"]);
+  check("move between indentations: each piece re-indented", rows(reindented, 3, 6), ['    <Card theme="default">', "      <Text>B</Text>", "    </Card>", "        <Text>A</Text>"]);
   const braces = ["export const B = () => <Stack>{<Text>A</Text>}<Text>B</Text></Stack>;", ""].join("\n");
   const fromBraces = run("move braced child", braces, "<Text>A", "Text", move("next"));
   check("move a {<X />} child: the braces move with it", [rows(fromBraces, 1, 1), fromBraces.moved.loc], [["export const B = () => <Stack><Text>B</Text>{<Text>A</Text>}</Stack>;"], "1:45"]);
@@ -941,7 +941,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
 /* ── clearSlot ────────────────────────────────────────────────────────────────────────────────────────────────────── */
 {
   const card = run("clear children", src, "<Card theme=\"border\"", "Card", clear());
-  check("clear children: the tag closes itself; Text is still used, its import stays", [rows(card, 10, 13), card.changed, importLines(card), "snippet" in card], [['    <Stack gap="md">', '      <Card theme="border" />', '      <Card theme="flat" />', '      <List aria-label="Team">'], { from: 11, to: 11 }, IMPORTS, false]);
+  check("clear children: the tag closes itself; Text is still used, its import stays", [rows(card, 10, 13), card.changed, importLines(card), "snippet" in card], [['    <Stack gap="md">', '      <Card theme="border" />', '      <Card theme="default" />', '      <List aria-label="Team">'], { from: 11, to: 11 }, IMPORTS, false]);
   const all = run("clear every kind of child", src, "<Stack gap", "Stack", clear());
   check("clear every kind of child (elements, .map, &&, ternary): their imports go", all.code, [IMPORTS[3], "", "export function Plans({ items, open }: { items: { id: string; name: string }[]; open: boolean }) {", "  return (", '    <Stack gap="md" />', "  );", "}", ""].join("\n"));
   check("clear: \"children\" is the children slot", run("clear prop children", src, "<Card theme=\"border\"", "Card", clear("children")).code, card.code);
@@ -964,7 +964,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   );
   const emptied = run("clear text and comments", mixed, "<Card", "Card", clear());
   check("clear text and comments: all of it, and the imports only it used", [rows(emptied, 5, 8), importLines(emptied)], [["export function M() {", "  return (", '    <Card theme="border" />', "  );"], [IMPORTS[1], IMPORTS[2], IMPORTS[4]]]);
-  const notes = page("export function N() {", "  return (", "    <Card theme=\"flat\">", "      {/* filled per example */}", "    </Card>", "  );", "}");
+  const notes = page("export function N() {", "  return (", "    <Card theme=\"default\">", "      {/* filled per example */}", "    </Card>", "  );", "}");
   check("clear: comments alone are no content", errorOf(applySlotOp(notes, locOf(notes, "<Card"), "Card", clear(), options({ hash: sha1(notes) }))), ["invalid", "Nothing to clear: <Card> has no content."]);
 
   // Multi-line opening tags keep their attributes' layout; `/>` goes where the file's other multi-line self-closing
@@ -982,7 +982,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "        <Text>Pro</Text>",
     "      </Card>",
     "      <Card",
-    "        theme=\"flat\"",
+    "        theme=\"default\"",
     "        padding=\"md\">",
     "        <Text>Flat</Text>",
     "      </Card>",
@@ -1004,18 +1004,18 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   };
   check("clear multi-line: `/>` after the attributes, per the file", [
     block("own", "<Card\n        theme=\"border\""),
-    block("own", "<Card\n        theme=\"flat\""),
+    block("own", "<Card\n        theme=\"default\""),
     block("after", "<Card\n        theme=\"border\""),
-    block("after", "<Card\n        theme=\"flat\""),
+    block("after", "<Card\n        theme=\"default\""),
     block("none", "<Card\n        theme=\"border\""),
-    block("none", "<Card\n        theme=\"flat\""),
+    block("none", "<Card\n        theme=\"default\""),
   ], [
     '      <Card|        theme="border"|        padding="md"|      />',
-    '      <Card|        theme="flat"|        padding="md"|      />',
+    '      <Card|        theme="default"|        padding="md"|      />',
     '      <Card|        theme="border"|        padding="md" />|      <Card',
-    '      <Card|        theme="flat"|        padding="md" />|      <Card',
+    '      <Card|        theme="default"|        padding="md" />|      <Card',
     '      <Card|        theme="border"|        padding="md"|      />',
-    '      <Card|        theme="flat"|        padding="md" />|      <Card',
+    '      <Card|        theme="default"|        padding="md" />|      <Card',
   ]);
   check("clear multi-line: a comment before `>` keeps `/>` on `>`'s line", block("after", "<Card\n        theme=\"pale\""), '      <Card|        theme="pale" // the plan\'s card|      />|    </Stack>');
   const tight = ["import { Badge } from \"../../../components/Badge\";", "import { Stack } from \"../../../components/Layout\";", "", "export const I = () => <Stack direction=\"row\"><Badge/>New</Stack>;", "export const J = () => <Badge/>;", ""].join("\n");
@@ -1047,7 +1047,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("clear a fragment prop: the attribute, DockIcon's import (Badge still used)", [rows(fragment, 14, 15), importLines(fragment).map((line) => /\{ (\w+)/.exec(line)[1])], [["        }", "      />"], ["Badge", "Card", "Stack", "List", "Text"]]);
   const refused = (code, needle, name, op, extra = {}) => errorOf(applySlotOp(code, locOf(code, needle), name, op, options({ hash: sha1(code), ...extra })));
   check("clear refusals", [
-    refused(src, "<Card theme=\"flat\"", "Card", clear()),
+    refused(src, "<Card theme=\"default\"", "Card", clear()),
     refused(props, "<ListItem title=\"Empty\"", "ListItem", clear("leading")),
     refused(props, "<ListItem title=\"Empty\"", "ListItem", clear("trailing")),
     refused(src, "<List aria", "List", clear()),
@@ -1069,15 +1069,15 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     applySlotOp(src, loc, "Card", clear(), options()).error,
     applySlotOp(src, loc, "Card", clear(), options({ hash: sha1(`${src} `) })).code,
   ], ["Clear and reset need the file's hash (send `hash` with the request)", "stale"]);
-  const slot = page("export function S() {", "  return (", "    <Card theme=\"flat\">", "      <PlaygroundSlot name=\"Content slot\" />", "    </Card>", "  );", "}");
-  const playground = page("export function CardPlayground() {", "  return <Card theme=\"flat\"><Text>Hi</Text></Card>;", "}");
+  const slot = page("export function S() {", "  return (", "    <Card theme=\"default\">", "      <PlaygroundSlot name=\"Content slot\" />", "    </Card>", "  );", "}");
+  const playground = page("export function CardPlayground() {", "  return <Card theme=\"default\"><Text>Hi</Text></Card>;", "}");
   check("clear guards", [
     refused(slot, "<Card", "Card", clear())[0],
     refused(playground, "<Card", "Card", clear())[0],
     applySlotOp(src, loc, "Card", clear(), options({ file: "src/platform/PlatformExamples.tsx", hash: sha1(src) })).code,
   ], ["forbidden", "forbidden", "forbidden"]);
   const crlf = BOM + src.replace(/\n/g, "\r\n");
-  check("clear CRLF BOM", rows(run("clear CRLF BOM", crlf, "<Card theme=\"border\"", "Card", clear()), 11, 12), ['      <Card theme="border" />', '      <Card theme="flat" />']);
+  check("clear CRLF BOM", rows(run("clear CRLF BOM", crlf, "<Card theme=\"border\"", "Card", clear()), 11, 12), ['      <Card theme="border" />', '      <Card theme="default" />']);
 }
 
 /* ── resetSlot ────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -1108,18 +1108,18 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("reset after clearing everything: content and imports", back("reset after clear all", emptied.code, "<Stack gap", "Stack", src).code === src, true);
   // A sequence on one slot: insert, duplicate, move, remove, then reset.
   let draft = run("sequence insert", src, "<Stack gap", "Stack", ins(BADGE, { index: 0 })).code;
-  draft = run("sequence duplicate", draft, "<Card theme=\"flat\"", "Card", DUPLICATE).code;
+  draft = run("sequence duplicate", draft, "<Card theme=\"default\"", "Card", DUPLICATE).code;
   draft = run("sequence move", draft, "<List aria", "List", move("prev")).code;
   draft = run("sequence remove", draft, "<Text>Open", "Text", REMOVE).code;
   draft = run("sequence clear", draft, "<Card theme=\"border\"", "Card", clear()).code;
   check("reset after a sequence of ops", back("reset after a sequence", draft, "<Stack gap", "Stack", src).code === src, true);
 
   // Only that slot: other draft changes stay; the host found when its lines moved.
-  const both = run("reset: second insert", inserted.code, "<Card theme=\"flat\"", "Card", ins(BADGE));
-  const one = back("reset one of two", both.code, "<Card theme=\"flat\"", "Card", src);
+  const both = run("reset: second insert", inserted.code, "<Card theme=\"default\"", "Card", ins(BADGE));
+  const one = back("reset one of two", both.code, "<Card theme=\"default\"", "Card", src);
   check("reset one slot: the other draft change stays", one.code, inserted.code);
   const shifted = back("reset below an insert", both.code, "<Card theme=\"border\"", "Card", src);
-  check("reset when lines above changed: the flat card keeps its insert", shifted.code, run("reset: flat alone", src, "<Card theme=\"flat\"", "Card", ins(BADGE)).code);
+  check("reset when lines above changed: the flat card keeps its insert", shifted.code, run("reset: flat alone", src, "<Card theme=\"default\"", "Card", ins(BADGE)).code);
   // The host itself moved (its line is unmatched now): found by its opening tag on a line the diff left unmatched.
   const badgeMoved = run("reset: badge up", run("reset: badge up once", src, "<Badge theme", "Badge", move("prev")).code, "<Badge theme", "Badge", move("prev"));
   const badgeEdited = run("reset: badge edited", badgeMoved.code, "<Badge theme", "Badge", ins("<Text>Now</Text>"));
@@ -1135,7 +1135,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const quotedDeeper = quoted.replace('      <Card theme="border">\n        <Text>{`Pro\n  billed yearly`}</Text>\n      </Card>', '      <Box>\n        <Card theme="border" />\n      </Box>');
   check("reset re-indents around a template literal", rows(back("reset template literal", quotedDeeper, "<Card theme=\"border\"", "Card", quoted), 11, 16), ["      <Box>", '        <Card theme="border">', "          <Text>{`Pro", "  billed yearly`}</Text>", "        </Card>", "      </Box>"]);
   // An import the saved file has stays, even when the reset leaves it unused (the saved file did not use it either).
-  const unusedSaved = page("export function U() {", "  return <Card theme=\"flat\" />;", "}");
+  const unusedSaved = page("export function U() {", "  return <Card theme=\"default\" />;", "}");
   const badged = run("reset: badge into an unused import's file", unusedSaved, "<Card", "Card", ins(BADGE));
   check("reset keeps the saved file's imports", back("reset keeps imports", badged.code, "<Card", "Card", unusedSaved).code === unusedSaved, true);
 
@@ -1257,9 +1257,9 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const editedAlone = run("twins: Basic removed after the edit", proEdited.code, CARD, "Card", REMOVE);
   check("twins edited + sibling removed: reset gives Pro its content", back("twins reset after remove", editedAlone.code, CARD, "Card", twins).code, removed.code);
   // The host's own opening tag edited (an inspector prop) and moved: still the saved card, Clear then Reset works.
-  const retagged = moved.code.replace('<Card theme="border">\n        <Text>Pro', '<Card theme="flat">\n        <Text>Pro');
-  const retaggedCleared = run("twins: retagged card cleared", retagged, "<Card theme=\"flat\"", "Card", clear());
-  check("twins: an edited tag that moved is no new element", [states(retagged, "<Card theme=\"flat\"", twins), back("twins reset retagged", retaggedCleared.code, "<Card theme=\"flat\"", "Card", twins).code], [[[false, false]], retagged]);
+  const retagged = moved.code.replace('<Card theme="border">\n        <Text>Pro', '<Card theme="default">\n        <Text>Pro');
+  const retaggedCleared = run("twins: retagged card cleared", retagged, "<Card theme=\"default\"", "Card", clear());
+  check("twins: an edited tag that moved is no new element", [states(retagged, "<Card theme=\"default\"", twins), back("twins reset retagged", retaggedCleared.code, "<Card theme=\"default\"", "Card", twins).code], [[[false, false]], retagged]);
   // Nested frames that open alike (input.tsx's two `<Stack gap="md">` forms): move, and a palette Stack inserted before one.
   const forms = page(
     "export function Billing() {",
@@ -1390,7 +1390,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "}",
     "export function B() {",
     "  const { toast } = useToast();",
-    `  return <Card theme="flat">${ACTION.replace("Save", "Send")}</Card>;`,
+    `  return <Card theme="default">${ACTION.replace("Save", "Send")}</Card>;`,
     "}",
   );
   const quietA = run("toast scope: clear A's card", two, "<Card theme=\"border\"", "Card", clear());
@@ -1491,7 +1491,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "  );",
     "}",
     "function EmptyCard() {",
-    "  return <Card theme=\"flat\" />;",
+    "  return <Card theme=\"default\" />;",
     "}",
     "export const examples = [",
     "  {",
@@ -1501,7 +1501,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "  },",
     "  {",
     "    title: \"Empty\",",
-    "    code: `<Card theme=\"flat\" />`,",
+    "    code: `<Card theme=\"default\" />`,",
     "    render: () => <EmptyCard />,",
     `  },${extra}`,
     "];",
@@ -1517,9 +1517,9 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("snippet insert first: after the parent's opening tag", [first.snippet, literal(first)], [{ synced: true }, ['    code: `<Card theme="border">', '  <Badge theme="blue">Pro plan</Badge>', "  <Text>Pro</Text>", "  <Text>Billed yearly</Text>", "</Card>`,"]]);
   const middle = run("snippet insert middle", base, "<Card theme=\"border\"", "Card", ins('<Stack gap="xs">\n  <Text>A</Text>\n</Stack>', { index: 1 }));
   check("snippet insert middle: re-indented in the snippet", [middle.snippet, middle.code.split("\n").slice(23, 30)], [{ synced: true }, ['    code: `<Card theme="border">', "  <Text>Pro</Text>", '  <Stack gap="xs">', "    <Text>A</Text>", "  </Stack>", "  <Text>Billed yearly</Text>", "</Card>`,"]]);
-  const empty = run("snippet self-closing", base, "<Card theme=\"flat\"", "Card", ins(BADGE));
-  check("snippet self-closing: the snippet's one-line copy opened on its own lines", [empty.snippet, empty.code.split("\n").slice(28, 31)], [{ synced: true }, ['    code: `<Card theme="flat">', '  <Badge theme="blue">Pro plan</Badge>', "</Card>`,"]]);
-  check("snippet self-closing: the source opened inline after return", empty.code.split("\n")[15], '  return <Card theme="flat"><Badge theme="blue">Pro plan</Badge></Card>;');
+  const empty = run("snippet self-closing", base, "<Card theme=\"default\"", "Card", ins(BADGE));
+  check("snippet self-closing: the snippet's one-line copy opened on its own lines", [empty.snippet, empty.code.split("\n").slice(28, 31)], [{ synced: true }, ['    code: `<Card theme="default">', '  <Badge theme="blue">Pro plan</Badge>', "</Card>`,"]]);
+  check("snippet self-closing: the source opened inline after return", empty.code.split("\n")[15], '  return <Card theme="default"><Badge theme="blue">Pro plan</Badge></Card>;');
   const escaped = run("snippet escapes", base, "<Card theme=\"border\"", "Card", ins("<Text>{`Due ${1}`}</Text>"));
   check("snippet escapes: backticks and ${ escaped", [escaped.snippet, escaped.code.split("\n")[24]], [{ synced: true }, "  <Text>{\\`Due \\${1}\\`}</Text>"]);
   const removed = run("snippet remove", base, "<Text>Pro", "Text", REMOVE);
@@ -1647,7 +1647,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   );
   const loc = locOf(shapes, "<ModalForm");
   const slots = describeSlots(shapes, PAGE, loc);
-  check("describeSlots: selfClosing", [slots.selfClosing, describeSlots(src, PAGE, locOf(src, "<Card theme=\"flat\"")).selfClosing], [false, true]);
+  check("describeSlots: selfClosing", [slots.selfClosing, describeSlots(src, PAGE, locOf(src, "<Card theme=\"default\"")).selfClosing], [false, true]);
   check("describeSlots: attributes", slots.attributes, [
     null,
     { elements: [{ name: "DockIcon", loc: "12:12" }], form: "element" },
@@ -1666,7 +1666,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const element = describeElement(shapes, PAGE, loc);
   const merged = withSlots(element, slots);
   check("withSlots: merged by position", [merged.selfClosing, merged.attributes[1].elements.length, merged.attributes[0].elements, merged.children[0].form, merged.children[4].kind, merged.children[4].form], [false, 1, undefined, "map", "element", undefined]);
-  check("withSlots: another element's slots are ignored", withSlots(element, describeSlots(src, PAGE, locOf(src, "<Card theme=\"flat\""))), element);
+  check("withSlots: another element's slots are ignored", withSlots(element, describeSlots(src, PAGE, locOf(src, "<Card theme=\"default\""))), element);
   check("describeSlots: no element → null", [describeSlots(shapes, PAGE, "1:0"), describeSlots(shapes, PAGE, "x")], [null, null]);
 }
 
@@ -1681,7 +1681,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const draft = run("modified: insert", src, "<Card theme=\"border\"", "Card", ins(BADGE)).code;
   check("modified: the changed slot and its ancestors' children, not the rest", [
     flags(draft, "<Card theme=\"border\"", src),
-    flags(draft, "<Card theme=\"flat\"", src),
+    flags(draft, "<Card theme=\"default\"", src),
     flags(draft, "<Stack gap", src),
     flags(draft, "<ListItem", src),
     flags(src, "<Card theme=\"border\"", src),
@@ -1779,8 +1779,8 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     check("mapLine: the same answers as diff.ts (300 random edits)", same, cases);
     // changedBlockOf (the Studio's selection remap, select/remap.ts mapInChangedBlock): the changed lines around a line
     // in both texts. A slot Clear (host line changed, an import above removed) and a removed element (empty after).
-    const cleared = [["import A;", "import B;", "", "    <Card theme=\"flat\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"flat\">", "    </Card>", "end"], ["import A;", "", "    <Card theme=\"flat\" />", "    <Card theme=\"flat\">", "    </Card>", "end"]].map((lines) => lines.join("\n"));
-    const removed = [["x", "    <Card theme=\"flat\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"pale\">", "    </Card>"], ["x", "    <Card theme=\"pale\">", "    </Card>"]].map((lines) => lines.join("\n"));
+    const cleared = [["import A;", "import B;", "", "    <Card theme=\"default\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"default\">", "    </Card>", "end"], ["import A;", "", "    <Card theme=\"default\" />", "    <Card theme=\"default\">", "    </Card>", "end"]].map((lines) => lines.join("\n"));
+    const removed = [["x", "    <Card theme=\"default\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"pale\">", "    </Card>"], ["x", "    <Card theme=\"pale\">", "    </Card>"]].map((lines) => lines.join("\n"));
     check("changedBlockOf: a cleared host, a removed element, an unchanged line", [diff.changedBlockOf(...cleared, 4), diff.changedBlockOf(...removed, 2), diff.changedBlockOf(...cleared, 1)], [{ before: [4, 6], after: [3, 3] }, { before: [2, 4], after: [2, 1] }, null]);
   }
   check("mapLine: small cases", [mapLine("a\nb\nc", "a\nx\nb\nc", 2), mapLine("a\nb\nc", "a\nc", 2), mapLine("a\nb", "a\nb", 5), mapLine("a\r\nb", "z\nb", 2), mapLine("a\nb", "a\nc", 0)], [3, null, 5, 2, null]);

@@ -156,7 +156,7 @@ function InvoiceSide() {
   };
   return (
     <Stack gap="md">
-      <Card as="section" theme="flat" aria-labelledby={clientId}
+      <Card as="section" theme="default" aria-labelledby={clientId}
         subAction={{ label: "Edit billing contact", icon: "icon-edit-02-line", onClick: () => setEditing(true) }}>
         <Stack gap="md">
           <Heading level={4} id={clientId} textStyle="Heading/Subheading">Client</Heading>
@@ -168,7 +168,7 @@ function InvoiceSide() {
           ]} />
         </Stack>
       </Card>
-      <Card ref={invoiceCard} as="section" theme="flat" aria-labelledby={invoiceId}
+      <Card ref={invoiceCard} as="section" theme="default" aria-labelledby={invoiceId}
         subAction={
           <Menu align="end"
             trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Invoice actions" />}
@@ -222,7 +222,7 @@ function DueThisWeek() {
     }, 1200);
   };
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId} aria-busy={loading || undefined}
+    <Card as="section" theme="default" aria-labelledby={titleId} aria-busy={loading || undefined}
       subAction={{ label: "Refresh", icon: "icon-refresh-cw-01-line", onClick: refresh }}>
       <Stack gap="md">
         <Stack gap="xs">
@@ -322,7 +322,7 @@ function WorkspacePlan() {
         {plans.map((plan) => {
           const titleId = `${baseId}-${plan.id}`;
           return (
-            <Card key={plan.id} as="section" theme="flat" selected={plan.id === current} aria-labelledby={titleId} className="px-card-plan">
+            <Card key={plan.id} as="section" theme="default" selected={plan.id === current} aria-labelledby={titleId} className="px-card-plan">
               <Stack gap="md" className="px-card-grow">
                 <Stack gap="xs">
                   {/* Every title row keeps the Badge's height, so the prices line up across the row of cards. */}
@@ -403,7 +403,7 @@ function NotificationSettings() {
   };
   const baseId = useId();
   return (
-    // A flat settings page (Canvas/Flat: page and bars one plane in both modes): its cards are Border on Surface/Flat.
+    // A flat settings page (Canvas/Flat: page and bars one plane in both modes): its cards are Flat-Border (Surface/Flat in a Pale frame).
     <Stack gap="xl" className="pe-shell px-card-flat-page" data-canvas="flat">
       {settingGroups.map((group, index) => {
         const titleId = `${baseId}-${group.id}`;
@@ -415,7 +415,7 @@ function NotificationSettings() {
                 <Heading level={4} id={titleId} textStyle="Heading/4">{group.title}</Heading>
                 <Text textStyle="Body/Small/Regular" tone="base">{group.summary}</Text>
               </Stack>
-              <Card theme="border" surface="flat">
+              <Card theme="flat-border">
                 {/* A toggle group: each switch lines up on the card's right edge. */}
                 <FormFieldset kind="toggle" legend={group.title} hideLegend>
                   {group.settings.map((setting) => (
@@ -585,7 +585,7 @@ function QuarterWidgets() {
             </Stack>
           </Stack>
         </Card>
-        <Card as="section" theme="flat" aria-labelledby={collectedId}>
+        <Card as="section" theme="default" aria-labelledby={collectedId}>
           <Stack gap="md">
             <Stack gap="xs" align="start">
               <Heading level={4} id={collectedId} textStyle="Heading/Subheading">Collected in Q3</Heading>
@@ -595,7 +595,7 @@ function QuarterWidgets() {
             <ProgressBar value={Math.round((q3Collected / q3Invoiced) * 100)} label layout="stacked" valueLabel={`${Math.round((q3Collected / q3Invoiced) * 100)}% of invoiced`} aria-label="Collected of invoiced" />
           </Stack>
         </Card>
-        <Card as="section" theme="flat" aria-labelledby={outstandingId}>
+        <Card as="section" theme="default" aria-labelledby={outstandingId}>
           <Stack gap="md">
             <Stack gap="xs" align="start">
               <Heading level={4} id={outstandingId} textStyle="Heading/Subheading">Outstanding</Heading>
@@ -689,7 +689,7 @@ function PayrollStandOut() {
           </Stack>
         </Stack>
       </Card>
-      <Card as="section" theme="flat" aria-labelledby={hoursId}>
+      <Card as="section" theme="default" aria-labelledby={hoursId}>
         <Stack gap="md">
           <Stack gap="xs" align="start">
             <Heading level={4} id={hoursId} textStyle="Heading/Subheading">Hours this week</Heading>
@@ -759,13 +759,13 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Card header actions",
     description: "A card's header action is its Sub-Action: one flat icon button with a tooltip, or a ⋯ Menu when there are several. The action that moves the task on, Mark as paid, sits at the bottom of the card, not in the header.",
     render: () => <InvoiceSide />,
-    code: `<Card as="section" theme="flat" aria-labelledby={clientId}
+    code: `<Card as="section" theme="default" aria-labelledby={clientId}
   subAction={{ label: "Edit billing contact", icon: "icon-edit-02-line", onClick: () => setEditing(true) }}>
   <Heading level={4} id={clientId} textStyle="Heading/Subheading">Client</Heading>
   <DescriptionList layout="stacked" items={client} />
 </Card>
 
-<Card as="section" theme="flat" aria-labelledby={invoiceId}
+<Card as="section" theme="default" aria-labelledby={invoiceId}
   subAction={<Menu align="end"
     trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Invoice actions" />}
     items={[
@@ -818,7 +818,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 <Grid columns={{ mobile: 1, desktop: 3 }}>
   {plans.map((plan) => (
-    <Card key={plan.id} as="section" theme="flat" selected={plan.id === current} aria-labelledby={plan.id}>
+    <Card key={plan.id} as="section" theme="default" selected={plan.id === current} aria-labelledby={plan.id}>
       <Heading level={4} id={plan.id} textStyle="Heading/Subheading">{plan.name}</Heading>
       {plan.id === recommended ? <Badge theme="accent" background="subtle">Recommended</Badge> : null}
       <Text as="span" textStyle="Heading/2">{price(plan) ? formatMoney(price(plan)) : "Free"}</Text>
@@ -841,7 +841,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Settings section",
     wide: true,
-    description: "A settings page puts the section title and one line about it on the left and a card of related toggles on the right; on a phone they stack. On a Canvas/Flat page the card is Border on Surface/Flat (surface=\"flat\"). Toggles apply at once, and the toast can undo the change.",
+    description: "A settings page puts the section title and one line about it on the left and a card of related toggles on the right; on a phone they stack. On a Canvas/Flat page the card is Flat-Border: Surface/Flat inside a Pale frame (theme=\"flat-border\"). Toggles apply at once, and the toast can undo the change.",
     render: () => <NotificationSettings />,
     code: `{/* The page is Canvas/Flat (background: var(--zen-color-background-canvas-flat)) */}
 <Grid as="section" aria-labelledby="email" columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start">
@@ -849,7 +849,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     <Heading level={4} id="email" textStyle="Heading/4">Email</Heading>
     <Text textStyle="Body/Small/Regular" tone="base">Sent to alex@dizai.studio.</Text>
   </Stack>
-  <Card theme="border" surface="flat">
+  <Card theme="flat-border">
     <FormFieldset kind="toggle" legend="Email" hideLegend>
       {settings.map((setting) => (
         <Toggle key={setting.id} size="md" label={setting.label} caption={setting.caption}
@@ -863,7 +863,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Refresh a card",
     description: "Refresh is the card's Sub-Action. While the list reloads, the card keeps its title and size and shows Skeleton rows in place of the tasks; the status line then says when it was updated.",
     render: () => <DueThisWeek />,
-    code: `<Card as="section" theme="flat" aria-labelledby={titleId} aria-busy={loading || undefined}
+    code: `<Card as="section" theme="default" aria-labelledby={titleId} aria-busy={loading || undefined}
   subAction={{ label: "Refresh", icon: "icon-refresh-cw-01-line", onClick: refresh }}>
   <Heading level={4} id={titleId} textStyle="Heading/Subheading">Due this week</Heading>
   <Text as="span" role="status" textStyle="Caption/Regular" tone="light">
@@ -904,7 +904,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       </Stack>
     </Stack>
   </Card>
-  <Card as="section" theme="flat" aria-labelledby={collectedId}>
+  <Card as="section" theme="default" aria-labelledby={collectedId}>
     <Stack gap="md">
       <Stack gap="xs" align="start">
         <Heading level={4} id={collectedId} textStyle="Heading/Subheading">Collected in Q3</Heading>
@@ -914,7 +914,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       <ProgressBar value={93} label layout="stacked" valueLabel="93% of invoiced" aria-label="Collected of invoiced" />
     </Stack>
   </Card>
-  <Card as="section" theme="flat" aria-labelledby={outstandingId}>
+  <Card as="section" theme="default" aria-labelledby={outstandingId}>
     <Stack gap="md">
       <Stack gap="xs" align="start">
         <Heading level={4} id={outstandingId} textStyle="Heading/Subheading">Outstanding</Heading>
@@ -985,7 +985,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       </Stack>
     </Stack>
   </Card>
-  <Card as="section" theme="flat" aria-labelledby={hoursId}>
+  <Card as="section" theme="default" aria-labelledby={hoursId}>
     <Stack gap="md">
       <Stack gap="xs" align="start">
         <Heading level={4} id={hoursId} textStyle="Heading/Subheading">Hours this week</Heading>

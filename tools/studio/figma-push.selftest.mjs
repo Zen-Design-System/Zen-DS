@@ -83,10 +83,10 @@ export default function Page() {
             <IconButton icon="icon-settings-01-line" aria-label="Settings" />
           </Stack>
           <Grid columns={2} gap="sm">
-            <Card theme="flat">
+            <Card theme="default">
               <Text>Loyalty app</Text>
             </Card>
-            <Card theme="flat">
+            <Card theme="default">
               <Icon name="icon-star-01-line" />
             </Card>
           </Grid>
@@ -204,7 +204,7 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
 
 // 7. What is not written yet is named, never dropped silently.
 {
-  const { notes } = push(PAGE.replace('<Card theme="flat">\n              <Text>Loyalty app</Text>', '<Card theme="flat" subAction={{ label: "More" }}>\n              <Text>Loyalty app</Text>'));
+  const { notes } = push(PAGE.replace('<Card theme="default">\n              <Text>Loyalty app</Text>', '<Card theme="default" subAction={{ label: "More" }}>\n              <Text>Loyalty app</Text>'));
   ok("a data prop (subAction) is named as not written", notes.some((note) => /subAction is data/.test(note)));
 }
 
@@ -403,7 +403,11 @@ export default function Page() {
   check("ListBox: Header on, its header row one frame filling Header-Slot, the List filling Body-Slot", { header: listBox.props.Header, slots: listBox.slots.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.layout?.mode, child.fillW])]) }, { header: true, slots: [["Header-Slot", [["FRAME", "HORIZONTAL", true]]], ["Body-Slot", [["FRAME", "VERTICAL", true]]]] });
   const bordered = find(push(DASH.replace("<ListBox header=", '<ListBox theme="border" header=')).frame, (node) => node.set?.name === "Component/List-Box");
   const onContainer = find(push(DASH.replace("<ListBox header=", '<ListBox theme="on-container" header=')).frame, (node) => node.set?.name === "Component/List-Box");
-  check("ListBox theme: Figma's Theme (Flat by default, Border and On-Container by theme)", [listBox.props.Theme, bordered.props.Theme, onContainer.props.Theme], ["Flat", "Border", "On-Container"]);
+  check("ListBox theme: Figma's Theme (Default by default, Border and On-Container by theme)", [listBox.props.Theme, bordered.props.Theme, onContainer.props.Theme], ["Default", "Border", "On-Container"]);
+  const paleHue = find(push(DASH.replace("<ListBox header=", '<ListBox theme="pale" color="green" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  const borderAlt = find(push(DASH.replace("<ListBox header=", '<ListBox theme="border" surface="alt" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  const shadowHue = find(push(DASH.replace("<ListBox header=", '<ListBox theme="shadow" color="green" surface="alt" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  check("ListBox color / surface: Figma's Color on Pale and Surface=Alt on Border; a Shadow box keeps Neutral on Surface Default (Figma has no other)", [[paleHue.props.Color, paleHue.props.Surface], [borderAlt.props.Color, borderAlt.props.Surface], [shadowHue.props.Color, shadowHue.props.Surface], [listBox.props.Color, listBox.props.Surface]], [["Green", "Default"], ["Neutral", "Alt"], ["Neutral", "Default"], ["Neutral", "Default"]]);
   const [withAvatar, withDock] = listBox.slots[1].children[0].children;
   check("ListItem: Title and Subtitle, its leading Avatar (theme, initials) in Figma's Avatar", [withAvatar.texts, withAvatar.nested[0].set.name, withAvatar.nested[0].props.Theme, withAvatar.nested[0].text], [{ Title: "Checkout shared", Subtitle: "Bao Nguyen" }, "Avatar/Single", "Green", "BN"]);
   check("ListItem: a Dock Icon swaps in for the Avatar; no caption hides Subtitle", [withDock.nested[0].set.name, withDock.nested[0].props["Icon-Src"], withDock.hide], ["Dock-Icon", "icon-file-check-line", ["Subtitle"]]);
@@ -1640,7 +1644,7 @@ export default function Page() {
   const bare = frame.children.filter((node) => node.set?.name?.startsWith("Chart/"));
   check("every chart: its ❖ Chart set (LineChart with compare → Multi-Line, Bar/Donut/Radial/Area…)", [...charts, ...bare].map((chart) => chart.set.name), ["Chart/Line-Chart", "Chart/Multi-Line-Chart", "Chart/Stack-Bar-Chart", "Chart/Bar-Chart", "Chart/Donut-Chart", "Chart/Radial-Chart", "Chart/Heatmap-Chart", "Chart/Area-Chart", "Chart/Grouped-Bar-Chart", "Chart/Combo-Chart", "Chart/Gauge-Chart", "Chart/Funnel-Chart", "Chart/Bar-List", "Chart/Bullet-Chart", "Chart/Area-Chart", "Chart/Bar-Chart"]);
   ok("every chart set by its id (the plugin finds it by id, then name)", [...charts, ...bare].every((chart) => /^\d+:\d+$/.test(chart.set.id)));
-  check("ChartCard: Card by its theme (Shadow, Flat by default, Border, Pale)", cards.slice(0, 5).map((card) => card.props.Theme), ["Shadow", "Flat", "Border", "Pale", "Flat"]);
+  check("ChartCard: Card by its theme (Shadow, Default by default, Border, Pale)", cards.slice(0, 5).map((card) => card.props.Theme), ["Shadow", "Default", "Border", "Pale", "Default"]);
   const head = ["Show Icon", "Icon", "Title", "Show Description", "Description", "Show Value", "Value", "Show Ranges", "Show Open"];
   check("ChartCard header: every header property from its props (icon, title, description, value, ranges, onOpen)", Object.fromEntries(head.map((name) => [name, charts[0].props[name]])), { "Show Icon": true, Icon: "icon-coins-stacked-01-line", Title: "Revenue", "Show Description": true, Description: "Invoiced so far in 2026", "Show Value": true, Value: "$541.4K", "Show Ranges": true, "Show Open": true });
   check("ChartCard header: a title alone turns the rest off and writes no texts", Object.fromEntries(head.map((name) => [name, charts[2].props[name]])), { "Show Icon": false, Title: "Hours", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false });
@@ -1702,7 +1706,7 @@ export default function Page() {
           <Card theme="solid" color="brand"><Text>Invoiced</Text></Card>
           <Card theme="pale" color="violet" spacing="small"><Text>Design hours</Text></Card>
           <Card theme="solid" color="green"><Text>Collected</Text></Card>
-          <Card theme="flat" color="cyan"><Text>Outstanding</Text></Card>
+          <Card theme="default" color="cyan"><Text>Outstanding</Text></Card>
           <Card theme="pale" color="orange" selected><Text>Plan</Text></Card>
           <MetricCard theme="solid" color="neutral" label="Invoiced this year" value="$798,300" />
           <ChartCard title="Revenue" theme="pale" color="cyan"><LineChart data={[{ label: "Apr", value: 1 }]} /></ChartCard>
@@ -1716,8 +1720,8 @@ export default function Page() {
   const cards = [];
   const walk = (node) => { if (node.set?.name === "Card") cards.push([node.props.Theme, node.props.Color, node.props.Active ?? null]); for (const child of [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)]) walk(child); };
   walk(frame);
-  check("card colour: Theme × Color × Active as Figma variants (Solid Green → Neutral, Flat takes no Color, a selected card is Neutral)", cards, [
-    ["Solid", "Brand", null], ["Pale", "Violet", null], ["Solid", "Neutral", null], ["Flat", "Neutral", null], ["Pale", "Neutral", "Yes"], ["Solid", "Neutral", null], ["Pale", "Cyan", null],
+  check("card colour: Theme × Color × Active as Figma variants (Solid Green → Neutral, Default takes no Color, a selected card is Neutral)", cards, [
+    ["Solid", "Brand", null], ["Pale", "Violet", null], ["Solid", "Neutral", null], ["Default", "Neutral", null], ["Pale", "Neutral", "Yes"], ["Solid", "Neutral", null], ["Pale", "Cyan", null],
   ]);
   ok("card colour: a note names the Solid hue Figma does not draw", colourNotes.some((note) => /Figma has no Solid Green/.test(note)));
   const { text: back } = pageFromFigma(frame, { mapping });
@@ -1740,10 +1744,10 @@ export default function Page() {
     <Board>
       <Screen id="screen-1" title="Surfaces" device="desktop">
         <Stack>
-          <Card theme="border" surface="flat"><Text>Hours</Text></Card>
-          <Card theme="flat" surface="alt"><Text>Leave</Text></Card>
+          <Card theme="flat-border"><Text>Hours</Text></Card>
+          <Card theme="default" surface="alt"><Text>Leave</Text></Card>
           <Card theme="shadow" surface="alt"><Text>Invoices</Text></Card>
-          <Card theme="flat" surface="flat"><Text>Clients</Text></Card>
+          <Card theme="flat-border" surface="alt"><Text>Clients</Text></Card>
           <Card theme="pale" color="green" surface="alt"><Text>Budget</Text></Card>
           <ChartCard title="Revenue" theme="border" surface="alt"><LineChart data={[{ label: "Apr", value: 1 }]} /></ChartCard>
           <MetricCard label="Collected" value="$275,800" />
@@ -1757,12 +1761,12 @@ export default function Page() {
   const cards = [];
   const walk = (node) => { if (node.set?.name === "Card") cards.push([node.props.Theme, node.props.Surface ?? null, node.slots?.[0]?.children?.[0]?.set?.name ?? null]); for (const child of [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)]) walk(child); };
   walk(frame);
-  check("card surface: Theme × Surface as Figma variants (Shadow on Alt → Flat, Flat on Flat → Default, Pale on Alt → Default); the KPI MetricCard a Card around Metric-Inline", cards.map(([theme, surface, inner]) => [theme, surface, inner && /Metric-Inline/.test(inner) ? "Metric-Inline" : null]), [
-    ["Border", "Flat", null], ["Flat", "Alt", null], ["Flat", "Alt", null], ["Flat", "Default", null], ["Pale", "Default", null], ["Border", "Alt", null], ["Shadow", null, "Metric-Inline"],
+  check("card surface: Theme × Surface as Figma variants (Shadow on Alt → Default, Flat-Border on Alt → Default, Pale on Alt → Default); the KPI MetricCard a Card around Metric-Inline", cards.map(([theme, surface, inner]) => [theme, surface, inner && /Metric-Inline/.test(inner) ? "Metric-Inline" : null]), [
+    ["Flat-Border", null, null], ["Default", "Alt", null], ["Default", "Alt", null], ["Flat-Border", "Default", null], ["Pale", "Default", null], ["Border", "Alt", null], ["Shadow", null, "Metric-Inline"],
   ]);
-  ok("card surface: notes name Shadow on Alt and the surfaces a theme does not take", surfaceNotes.some((note) => /Shadow on Surface\/Alt draws as Flat/.test(note)) && surfaceNotes.some((note) => /no Flat card on Surface Flat/.test(note)) && surfaceNotes.some((note) => /no Pale card on Surface Alt/.test(note)));
+  ok("card surface: notes name Shadow on Alt and the surfaces a theme does not take", surfaceNotes.some((note) => /Shadow on Surface\/Alt draws as Default/.test(note)) && surfaceNotes.some((note) => /no Flat-Border card on Surface Alt/.test(note)) && surfaceNotes.some((note) => /no Pale card on Surface Alt/.test(note)));
   const { text: back } = pageFromFigma(frame, { mapping });
-  ok("card surface round trip: Border on Flat, Flat on Alt and the ChartCard's Border on Alt come back", /<Card theme="border" surface="flat">/.test(back) && /<Card theme="flat" surface="alt">/.test(back) && /<ChartCard title="Revenue" theme="border" surface="alt">/.test(back));
+  ok("card surface round trip: Flat-Border, Default on Alt and the ChartCard's Border on Alt come back", /<Card theme="flat-border">/.test(back) && /<Card theme="default" surface="alt">/.test(back) && /<ChartCard title="Revenue" theme="border" surface="alt">/.test(back));
   ok("card surface round trip: the KPI MetricCard comes back", /<MetricCard [^>]*label="Collected"/.test(back));
 }
 
@@ -1784,10 +1788,10 @@ export default function Page() {
     <Board>
       <Screen id="screen-1" title="Metric types" device="desktop">
         <Stack gap="md">
-          <MetricCard theme="flat" type="sparkline" label="Revenue" value="$105,700" trend={{ direction: "positive", label: "+9% vs. August" }} series={[1, 2, 3]} />
+          <MetricCard theme="default" type="sparkline" label="Revenue" value="$105,700" trend={{ direction: "positive", label: "+9% vs. August" }} series={[1, 2, 3]} />
           <MetricCard type="comparison" label="Cash flow · October" comparison={[{ id: "in", label: "Invoiced", value: "$98,100", trend: { direction: "negative", label: "−7% vs. September" } }, { id: "out", label: "Collected", value: "$91,000" }]} />
           <MetricCard type="hero" theme="solid" color="neutral" label="Invoiced this year" value="$798,300" series={[1, 2]} footer={<Button size="sm" appearance="overlay" level="inverse">Open report</Button>} />
-          <MetricCard theme="flat" label="Billable hours" value="5,900 h" />
+          <MetricCard theme="default" label="Billable hours" value="5,900 h" />
           <MetricCard type="spark-bars" label="Awaiting approval" value="$6,340" series={[2, 0, 4]} />
           <MetricCard type="goal-progress" label="October budget" value="$26,480" goal={{ value: 26480, target: 72000, label: "of $72,000 budget", valueLabel: "37%" }} footer={<Text textStyle="Body/Small/Regular" tone="base">On pace for $51,300 by Oct 31</Text>} />
           <MetricCard type="goal-progress" label="Q4 revenue" value="$108,400" goal={{ value: 108400, target: 135000 }} />
@@ -1802,7 +1806,7 @@ export default function Page() {
   const walk = (node) => { if (node.set?.name === "Metric-Card" || node.set?.name === "Card") found.push(node); else [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(walk); };
   walk(frame);
   const [spark, compare, hero, kpi, bars, goal, goalDefault] = found;
-  check("metric type: a typed MetricCard is one Metric-Card instance of its Type; KPI stays a Card", found.map((node) => [node.set.name, node.props.Type ?? node.props.Theme]), [["Metric-Card", "Sparkline"], ["Metric-Card", "Comparison"], ["Metric-Card", "Hero"], ["Card", "Flat"], ["Metric-Card", "Spark-Bars"], ["Metric-Card", "Goal-Progress"], ["Metric-Card", "Goal-Progress"]]);
+  check("metric type: a typed MetricCard is one Metric-Card instance of its Type; KPI stays a Card", found.map((node) => [node.set.name, node.props.Type ?? node.props.Theme]), [["Metric-Card", "Sparkline"], ["Metric-Card", "Comparison"], ["Metric-Card", "Hero"], ["Card", "Default"], ["Metric-Card", "Spark-Bars"], ["Metric-Card", "Goal-Progress"], ["Metric-Card", "Goal-Progress"]]);
   // MetricMarks.tsx in the slot content (the Expenses import, 2026-10-16: Figma's sample marks): the line 4px inside the
   // 64px frame (min at 60, max at 4), its area closed at the bottom; no footer drops an earlier one.
   check("metric marks: Sparkline's line and area from its series, in the code's 100 × 64 box", spark.edits, [
@@ -1817,7 +1821,7 @@ export default function Page() {
   check("metric marks: the goal's Progress-Bar (label, value text, nearest step: 37% → Medium 40%)", goal.nested.find((entry) => entry.path === "Progress-Bar"), { path: "Progress-Bar", props: { Text: "of $72,000 budget", Progress: "Medium" }, texts: { Value: "37%" } });
   check("metric marks: a goal without words takes the code's (of 135K goal, 80%)", goalDefault.nested.find((entry) => entry.path === "Progress-Bar"), { path: "Progress-Bar", props: { Text: "of 135K goal", Progress: "Good" }, texts: { Value: "80%" } });
   check("metric marks: the goal's exact fill, then the footer under the drawing, across the card", goal.edits.map((edit) => [edit.layer, edit.columns?.map(Math.round), edit.append?.map((layer) => [layer.type, layer.characters, layer.textStyle, layer.fillW])]), [["Progress-Bar/Container", [37, 63], undefined], ["Metric-Body", undefined, [["TEXT", "On pace for $51,300 by Oct 31", "Body/Small/Regular", true]]]]);
-  check("metric type: Sparkline's title, number, trend and Card (Flat, no ⋮)", [spark.texts, spark.nested], [{ Label: "Revenue", "Metric-Number": "$105,700" }, [{ path: "Card", props: { "Sub-Action": false, Theme: "Flat" } }, { path: "Title-Highlight", props: { Trend: true } }, { path: "Title-Highlight/Trend", props: { Trend: "Positive" }, textList: ["+9% vs. August"] }]]);
+  check("metric type: Sparkline's title, number, trend and Card (Default, no ⋮)", [spark.texts, spark.nested], [{ Label: "Revenue", "Metric-Number": "$105,700" }, [{ path: "Card", props: { "Sub-Action": false, Theme: "Default" } }, { path: "Title-Highlight", props: { Trend: true } }, { path: "Title-Highlight/Trend", props: { Trend: "Positive" }, textList: ["+9% vs. August"] }]]);
   check("metric type: Comparison's title and its columns (one without a trend), the variant's Shadow left alone", [compare.texts, compare.nested], [{ "Cash flow · September": "Cash flow · October" }, [
     { path: "Card", props: { "Sub-Action": false } },
     { path: "Title-Highlight[0]", props: { Trend: true }, texts: { Label: "Invoiced", "Metric-Number": "$98,100" } }, { path: "Title-Highlight[0]/Trend", props: { Trend: "Negative" }, textList: ["−7% vs. September"] },
@@ -1827,7 +1831,7 @@ export default function Page() {
   ok("metric type: notes say Figma keeps three comparison columns, and no sample marks where the page has data", !typedNotes.some((note) => /draws its own sample/.test(note)) && typedNotes.some((note) => /2 comparison columns; Figma's Comparison draws 3/.test(note)));
   ok("metric type: KPI keeps its Metric-Inline", kpi.slots?.[0]?.children?.[0]?.set?.name === "Primitives/Metric/Metric-Inline/Icon-Highlight");
   const { text: back } = pageFromFigma(frame, { mapping });
-  ok("metric type round trip: Sparkline comes back typed, its texts, trend and theme, its series the Studio sample's", /<MetricCard theme="flat" type="sparkline" label="Revenue" value="\$105,700" trend=\{\{ direction: "positive", label: "\+9% vs\. August" \}\} series=\{\[71200,/.test(back));
+  ok("metric type round trip: Sparkline comes back typed, its texts, trend and theme, its series the Studio sample's", /<MetricCard theme="default" type="sparkline" label="Revenue" value="\$105,700" trend=\{\{ direction: "positive", label: "\+9% vs\. August" \}\} series=\{\[71200,/.test(back));
   ok("metric type round trip: Comparison's columns come back from Figma's texts", /<MetricCard type="comparison" label="Cash flow · October" comparison=\{\[\{ id: "invoiced", label: "Invoiced", value: "\$98,100", trend: \{ direction: "negative", label: "−7% vs\. September" \} \}, \{ id: "collected", label: "Collected", value: "\$91,000" \}\]\} \/>/.test(back));
   ok("metric type round trip: the dark Hero keeps Solid Neutral and its button words", /<MetricCard theme="solid" color="neutral" type="hero"[^]*?footer=\{<Button[^>]*>Open report<\/Button>\}/.test(back));
   // A fresh Hero placed in Figma: its Card is Solid Brand (fill overridden to Brand Pale) with ⋮ on — the code's default Hero.

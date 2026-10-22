@@ -1178,24 +1178,24 @@
         "theme": {
           "enum": [
             "shadow",
-            "flat",
+            "default",
             "border",
+            "flat-border",
             "pale",
             "subtle",
             "on-container",
             "canvas"
           ],
           "default": "shadow",
-          "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `flat` · `border` Border/Neutral/Pale · `pale` Support/Neutral/Pale · `subtle` Support/Neu"
+          "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `default` the Surface alone (`flat` until 2026-10-21) · `border` Border/Neutral/Pale · `fl"
         },
         "surface": {
           "enum": [
             "default",
-            "alt",
-            "flat"
+            "alt"
           ],
           "default": "default",
-          "description": "Figma Surface for the flat and border themes: `default` Surface/Default · `alt` Surface/Alt · `flat` Surface/Flat (border only)."
+          "description": "Figma Surface for the default and border themes: `default` Surface/Default · `alt` Surface/Alt."
         },
         "children": {
           "x-kind": "node",
@@ -4563,7 +4563,7 @@
       "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
       "use": [
         "Grids of objects users scan and pick (projects, templates, plans).",
-        "KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).",
+        "KPI / stat tiles (theme=\"default\", the Surface alone, with nothing else deciding; Shadow beside a shadowed Sidebar).",
         "A selectable option with rich content (Active marks the choice).",
         "Framing a List or a group of settings (Border).",
         "A dashboard widget in colour: Subtle on the grey Canvas/Default, Pale on a white page, in any of the nine hues; or the one widget of a row that stands out (Solid)."
@@ -4614,16 +4614,17 @@
         "theme": {
           "enum": [
             "shadow",
-            "flat",
+            "default",
             "pale",
             "border",
+            "flat-border",
             "on-container",
             "solid",
             "subtle",
             "semi-pale"
           ],
           "default": "shadow",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/<Color>/Pale + Effect/Overlay blur) · Border · On-Container (Surface/Flat: a card inside a Modal, Side Panel or B"
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Default (the Surface fill alone: no border, no shadow) · Pale (Support/<Color>/Pale + Effect/Overlay blur) · Border (Border/Neutral/Pa"
         },
         "color": {
           "enum": [
@@ -4660,10 +4661,9 @@
         "surface": {
           "enum": [
             "default",
-            "alt",
-            "flat"
+            "alt"
           ],
-          "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Flat and Border: 15530:454–496) · Surface/Flat (Border only, 15530:502–520: a Border card on a Canva"
+          "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Default and Border: 15530:454–496)."
         },
         "aria-label": {
           "type": "string",
@@ -4820,15 +4820,16 @@
         "theme": {
           "enum": [
             "shadow",
-            "flat",
+            "default",
             "pale",
             "border",
+            "flat-border",
             "on-container",
             "solid",
             "subtle",
             "semi-pale"
           ],
-          "default": "flat",
+          "default": "default",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard)."
         },
         "color": {
@@ -4849,10 +4850,9 @@
         "surface": {
           "enum": [
             "default",
-            "alt",
-            "flat"
+            "alt"
           ],
-          "description": "Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card."
+          "description": "Figma nested Card Surface: default · alt (Default, Border); see Card."
         },
         "children": {
           "x-kind": "node",
@@ -11515,14 +11515,38 @@
         },
         "theme": {
           "enum": [
-            "flat",
+            "default",
             "shadow",
             "pale",
             "border",
+            "flat-border",
             "on-container"
           ],
-          "default": "flat",
+          "default": "default",
           "description": "Elevation, Figma Theme (the tokens of Card's Theme)."
+        },
+        "color": {
+          "enum": [
+            "neutral",
+            "brand",
+            "cyan",
+            "violet",
+            "green",
+            "yellow",
+            "orange",
+            "blue",
+            "purple"
+          ],
+          "default": "neutral",
+          "description": "Figma Color: the hue of a Pale box, Support/<Hue>/Pale (one hue per family, as Card's Pale)."
+        },
+        "surface": {
+          "enum": [
+            "default",
+            "alt"
+          ],
+          "default": "default",
+          "description": "Figma Surface: Surface/Alt for a Default or Border box (Theme × Surface=Alt), chosen to suit the page's Canvas, as Card's Surface."
         },
         "as": {
           "enum": [
@@ -12229,9 +12253,10 @@
         "theme": {
           "enum": [
             "shadow",
-            "flat",
+            "default",
             "pale",
             "border",
+            "flat-border",
             "on-container",
             "solid",
             "subtle",
@@ -22964,19 +22989,19 @@
       "file": "docs/guidelines/card.md",
       "do": [
         "On a phone, count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge). Desktop cards keep Medium whatever their number.",
-        "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
+        "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), theme=\"default\" on Canvas/Default: no border, no shadow (usage rules §16). On a Canvas/Flat page, Flat-Border: Surface/Flat inside a Pale frame. Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
         "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
         "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
         "Make the whole card clickable when it opens one thing, and name it with aria-label when the content doesn't start with a title.",
         "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
         "Put secondary card actions in the Sub-Action menu.",
         "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
-        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"border\" surface=\"flat\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
+        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Default cards only, which is what a Canvas/Alt page takes anyway.",
         "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
         "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
         "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
         "On Brand, Cyan, Orange and Accent the white On-Colors text measures about 3:1: keep what you write there short and large (the number, a title), and put long or small text on another card.",
-        "Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
+        "Pricing plans: Default cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
       ],
       "dont": [
         "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
@@ -23053,7 +23078,7 @@
         "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
         "Wrap rows in <List aria-label> so the group is named.",
         "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
-        "Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).",
+        "Pick the ListBox theme by where it sits (usage rules §16): default on Canvas/Default and on a Surface-Alt phone screen; flat-border on a Canvas/Flat page; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).",
         "Make the whole row the target (onClick / href) when it opens one thing; for drill-down add a passive chevron.",
         "Put quick actions in the trailing slot as Button/Icon-Flat Medium (IconButton appearance=\"flat\" size=\"md\") with an aria-label. They work on clickable rows too — Figma keeps the trailing action in Hover, Pressed and Selected — and stay separate targets that don't open the row.",
         "Keep to one or two trailing actions; move the rest into a More (…) menu.",
@@ -23083,11 +23108,14 @@
         "Don't make a row title a heading, and don't signal unread by weight alone.",
         "Don't make group labels inside a Menu, Popover, Select or Listbox headings; they are labels.",
         "Don't box the list that closes a phone page in a ListBox (a Transactions or To-do list under the screen's widgets): it joins the page as an open section (§19).",
-        "Don't put content that is not List-Item rows (a DescriptionList, Toggles, a form) in a ListBox — use a Card. Don't frame a ListBox on Canvas/Default with border or shadow when no condition asks for it, and never give a ListBox on Surface-Alt or a Pale fill a drop shadow (§9)."
+        "Don't put content that is not List-Item rows (a DescriptionList, Toggles, a form) in a ListBox — use a Card. Don't frame a ListBox on Canvas/Default with border or shadow when no condition asks for it, and never give a ListBox on Surface-Alt or a Pale fill a drop shadow (§9).",
+        "Don't give a ListBox a color unless it is theme=\"pale\", or surface=\"alt\" unless it is default or border: Figma's List-Box has no such variant and the code ignores it (harness: listbox/color-ignored, listbox/surface-ignored)."
       ],
       "rules": [
         "flag/no-emoji-flag",
         "list-item/inset-not-padding",
+        "listbox/color-ignored",
+        "listbox/surface-ignored",
         "listbox/on-container-in-overlay",
         "listbox/footer-action-tertiary",
         "listbox/closing-list-on-phone",

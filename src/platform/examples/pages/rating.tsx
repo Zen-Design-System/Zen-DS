@@ -45,7 +45,7 @@ function ReviewSummaryExample() {
   const [scope, setScope] = useState<RatingScope>("all");
   const data = appRatings[scope];
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm" wrap>
           <Stack gap="xs">
@@ -102,7 +102,7 @@ function ScorecardExample() {
   };
   // The whole card is the form: header, skills and actions take the Form's gap.
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={submit}>
         <Stack direction="row" gap="sm" align="center">
           <PersonAvatar person={candidate} size="md" />
@@ -270,7 +270,7 @@ function PulseExample() {
   const low = mood === "disappointed";
   // On a narrow card the faces keep one row and drop their labels.
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => setSent(true)}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">How was this week's design critique?</Heading>
@@ -306,7 +306,7 @@ function NpsExample() {
   const [reason, setReason] = useState("");
   const [sent, setSent] = useState(false);
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => setSent(true)}>
         <Heading level={4} textStyle="Heading/Subheading">How likely are you to recommend Zen?</Heading>
         {sent && score !== null ? (
@@ -498,7 +498,7 @@ const send = () => {
     code: `const [mood, setMood] = useState<OpinionEmotion | null>(null);
 const low = mood === "disappointed";
 
-<Card theme="flat">
+<Card theme="default">
   <Form onSubmit={send}>
     <Heading level={4} textStyle="Heading/Subheading">How was this week's design critique?</Heading>
     <OpinionScale scale={3} aria-label="How was this week's design critique?" value={mood} onValueChange={setMood} />
@@ -513,7 +513,7 @@ const low = mood === "disappointed";
     render: () => <NpsExample />,
     code: `const followUp = (score) => score <= 6 ? "What should we fix first" : score <= 8 ? "What would make Zen a 10" : "What do you like most about Zen";
 
-<Card theme="flat">
+<Card theme="default">
   <Form onSubmit={send}>
     <Heading level={4} textStyle="Heading/Subheading">How likely are you to recommend Zen?</Heading>
     <NpsScale scale={10} aria-label="How likely are you to recommend Zen?"

@@ -9,8 +9,9 @@ import { zoomToFrame } from "../board/presentFrame";
 import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
 import { PageOsContext, pageOsOf, ProtoContext, type ProtoActions } from "./proto/runtime";
-import { frameOf, isSectionNode } from "./render/frames";
+import { frameOf, isSectionNode, isSliceNode } from "./render/frames";
 import { SectionFrame } from "./SectionFrame";
+import { SliceFrame } from "./SliceFrame";
 import { placeFrames } from "./render/framePlace";
 import { livePlace, settleLivePlace } from "./frameMove";
 import { useFrameKeys } from "./frameKeys";
@@ -127,7 +128,7 @@ export function BuilderBoard({ id }: { id: string }) {
     // The page's OS goes with each frame, so Present (outside the board) draws its Screens' bars and picks their device
     // as the canvas does.
     const os = pageOsOf(tree.header);
-    return tree.board.children.filter((child): child is PageNode => child.kind === "element" && !isSectionNode(child)).map((node) => {
+    return tree.board.children.filter((child): child is PageNode => child.kind === "element" && !isSectionNode(child) && !isSliceNode(child)).map((node) => {
       const frame = frameOf(node);
       const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => <PageOsContext value={os}>{renderFrame(node, ctx)}</PageOsContext> };
       return { ...frame, example };
@@ -138,8 +139,10 @@ export function BuilderBoard({ id }: { id: string }) {
   // the component board places its examples; the box spans the frames for the board's size.
   // Figma's sections (F4): drawn first, behind the frames; placed like them (always at their own place).
   const sections = useMemo(() => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && isSectionNode(child)).map(frameOf), [tree]);
-  const allPlaces = useMemo(() => placeFrames([...sections, ...frames]), [sections, frames]);
-  const framePlaces = useMemo(() => allPlaces.slice(sections.length), [allPlaces, sections.length]);
+  // Figma's slices: drawn last, above the frames (their outline only; a click goes through to what is under them).
+  const slices = useMemo(() => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && isSliceNode(child)).map(frameOf), [tree]);
+  const allPlaces = useMemo(() => placeFrames([...sections, ...frames, ...slices]), [sections, frames, slices]);
+  const framePlaces = useMemo(() => allPlaces.slice(sections.length, sections.length + frames.length), [allPlaces, sections.length, frames.length]);
   // A selected frame the page no longer has (⌘Z took back the copy or the drawn frame): nothing stays selected. A frame
   // the Studio has just added keeps its selection a moment (a render of an older text can come after its own, board/
   // frames.ts arrivingFor), then the check runs again.
@@ -147,19 +150,19 @@ export function BuilderBoard({ id }: { id: string }) {
   useEffect(() => {
     if (!tree?.board || tree.errors.length) return;
     const selection = studioStore.getState().selection;
-    if (selection?.kind !== "frame" || !/^(screen|overlay|section):/.test(selection.frameId) || frames.some((frame) => frame.id === selection.frameId) || sections.some((section) => section.id === selection.frameId)) return;
+    if (selection?.kind !== "frame" || !/^(screen|overlay|section|slice):/.test(selection.frameId) || frames.some((frame) => frame.id === selection.frameId) || [...sections, ...slices].some((area) => area.id === selection.frameId)) return;
     const wait = arrivingFor(selection.frameId);
     if (!wait) { studioStore.setState({ selection: null }); return; }
     const timer = window.setTimeout(() => setRecheck((n) => n + 1), wait + 50);
     return () => window.clearTimeout(timer);
-  }, [tree, frames, sections, recheck]);
+  }, [tree, frames, sections, slices, recheck]);
   useLayoutEffect(() => {
     const container = framesRef.current;
     if (!container) return;
     let moved = false;
     let right = 0;
     let bottom = 0;
-    [...sections, ...frames].forEach((frame, index) => {
+    [...sections, ...frames, ...slices].forEach((frame, index) => {
       const element = container.querySelector<HTMLElement>(`:scope > [data-studio-frame="${CSS.escape(frame.id)}"]`);
       if (!element) return;
       settleLivePlace(frame.id, allPlaces[index]);
@@ -216,6 +219,7 @@ export function BuilderBoard({ id }: { id: string }) {
               {frame.example.render()}
             </StudioFrame>
           ))}
+          {slices.map((slice) => <SliceFrame key={slice.id} id={slice.id} label={slice.label} width={slice.width} height={slice.height ?? 100} />)}
         </div>
         {showLinks ? <ProtoLinks tree={tree} file={file} boardRef={boardRef} /> : null}
       </div>

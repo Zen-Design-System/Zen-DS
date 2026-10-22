@@ -9,6 +9,7 @@
 //   boardFrames(tree), freeFrameId(base, taken), frameCode({ kind, id, title, device }), protoCode(action, arg)   (M3)
 //   FRAME_SIZE   free frames: x / y on a Board child, width / height on a Screen (2026-10-15)
 //   SECTION_SIZE, boardSections(tree), sectionCode({ id, title, x, y, width, height })   Figma's sections (F4, 2026-10-19)
+//   SLICE_SIZE, sliceCode({ id, title, x, y, width, height })   Figma's slices (an area exported as a picture, 2026-10-22)
 //
 // Tree: Node = { kind: "element", name, loc: "line:col", props: { [name]: Value }, children: Child[] }
 //       Value = { kind: "literal", value } | { kind: "array", items } | { kind: "object", fields } | { kind: "element", node }
@@ -30,7 +31,7 @@ export const FRAME_SIZE = { min: 100, max: 4096 };
 const FRAME_PLACE = 100000;
 /** A Section's size (Figma's section: a named board area the frames inside it belong to; F4 2026-10-19). */
 export const SECTION_SIZE = { min: 100, max: 40000 };
-const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "Section", "proto", "Component", "ComponentSet", "Use"]);
+const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "Section", "Slice", "proto", "Component", "ComponentSet", "Use"]);
 /** A page-local main component's id (Figma's main component, Zen Studio 2026-10-17): lowercase letters, digits, dashes. */
 const COMPONENT_ID = /^[a-z][a-z0-9-]*$/;
 const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link"]);
@@ -128,7 +129,7 @@ export function newPageText({ title = "Untitled", device = "desktop", layout, wi
 /** The Board's Screens and Overlays: [{ kind: "screen" | "overlay", id, state?, title, device?, x?, y?, loc }] (a parsed page's tree). */
 export function boardFrames(tree) {
   const literal = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
-  return (tree?.board?.children ?? []).filter((child) => child.kind === "element" && child.name !== "Section").map((node) => {
+  return (tree?.board?.children ?? []).filter((child) => child.kind === "element" && child.name !== "Section" && child.name !== "Slice").map((node) => {
     const id = String(literal(node, "id") ?? "");
     const x = literal(node, "x");
     const y = literal(node, "y");
@@ -150,6 +151,15 @@ export function boardSections(tree) {
     const id = String(literal(node, "id") ?? "");
     return { id, title: String(literal(node, "title") ?? id), x: Number(literal(node, "x") ?? 0), y: Number(literal(node, "y") ?? 0), width: Number(literal(node, "width") ?? SECTION_SIZE.min), height: Number(literal(node, "height") ?? SECTION_SIZE.min), loc: node.loc };
   });
+}
+
+/** A Slice's size (Figma's slice: an area of the board exported as a picture; it draws nothing on the page). */
+export const SLICE_SIZE = { min: 1, max: 40000 };
+
+/** The code of a new Slice (inserted with insertChild at the Board's end: its outline draws above the frames). */
+export function sliceCode({ id, title, x, y, width, height }) {
+  const name = String(title ?? id).replace(/[{}<>]/g, "");
+  return `<Slice id=${quote(id)} title=${quote(name)}${placeAttrs({ x, y, width, height })} />`;
 }
 
 /** The code of a new Section (inserted with insertChild on the Board, before the frames: it draws behind them). */
@@ -431,7 +441,7 @@ export function parsePage(text, { components } = {}) {
   if (board && board.name !== "Board") fail(returned, "The page returns a <Board>");
   if (board) {
     for (const child of board.children) {
-      if (child.kind !== "element" || (child.name !== "Screen" && child.name !== "Overlay" && child.name !== "Section")) { errors.push({ line: 1, column: 0, message: "A Board holds <Screen>, <Overlay> and <Section> only" }); continue; }
+      if (child.kind !== "element" || !["Screen", "Overlay", "Section", "Slice"].includes(child.name)) { errors.push({ line: 1, column: 0, message: "A Board holds <Screen>, <Overlay>, <Section> and <Slice> only" }); continue; }
       const id = child.props.id;
       if (id?.kind !== "literal" || typeof id.value !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(id.value)) errors.push({ line: Number(child.loc.split(":")[0]), column: Number(child.loc.split(":")[1]), message: `<${child.name}> needs an id of lowercase letters, digits and dashes` });
       // Free frames: a place on the board (both or neither), and a Screen's drawn size.
@@ -442,15 +452,17 @@ export function parsePage(text, { components } = {}) {
       number("x", -FRAME_PLACE, FRAME_PLACE);
       number("y", -FRAME_PLACE, FRAME_PLACE);
       if (Boolean(child.props.x) !== Boolean(child.props.y)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `<${child.name}> takes x and y together` });
-      if (child.name === "Section") {
-        // A named board area: its place and size, a title, no layers (the frames inside it sit on the Board).
+      if (child.name === "Section" || child.name === "Slice") {
+        // A named board area: its place and size, a title, no layers (a Section's frames sit on the Board; a Slice
+        // only marks what to export).
         const line = Number(child.loc.split(":")[0]);
-        for (const name of ["x", "y", "width", "height"]) if (!child.props[name]) errors.push({ line, column: 0, message: `<Section> needs ${name}` });
-        number("width", SECTION_SIZE.min, SECTION_SIZE.max);
-        number("height", SECTION_SIZE.min, SECTION_SIZE.max);
+        const size = child.name === "Slice" ? SLICE_SIZE : SECTION_SIZE;
+        for (const name of ["x", "y", "width", "height"]) if (!child.props[name]) errors.push({ line, column: 0, message: `<${child.name}> needs ${name}` });
+        number("width", size.min, size.max);
+        number("height", size.min, size.max);
         const title = child.props.title;
-        if (title && !(title.kind === "literal" && typeof title.value === "string")) errors.push({ line, column: 0, message: "A Section's title is text" });
-        if (child.children.some((item) => item.kind !== "text" || item.value.trim())) errors.push({ line, column: 0, message: "A Section holds no layers: the frames inside it sit on the Board" });
+        if (title && !(title.kind === "literal" && typeof title.value === "string")) errors.push({ line, column: 0, message: `A ${child.name}'s title is text` });
+        if (child.children.some((item) => item.kind !== "text" || item.value.trim())) errors.push({ line, column: 0, message: child.name === "Slice" ? "A Slice holds no layers: it marks an area of the board to export" : "A Section holds no layers: the frames inside it sit on the Board" });
         continue;
       }
       if (child.name === "Overlay" && (child.props.width || child.props.height)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "An Overlay takes its dialog's size (no width or height)" });

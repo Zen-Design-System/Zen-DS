@@ -240,7 +240,7 @@ export default function Page() {
       <Screen id="s" title="Plans">
         <Stack>
           <Component id="price-card" name="Price card">
-            <Card theme="flat">
+            <Card theme="default">
               <Text>Starter</Text>
             </Card>
           </Component>

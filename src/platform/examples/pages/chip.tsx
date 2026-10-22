@@ -140,7 +140,7 @@ function OwnerFilterExample() {
           </List>
         </ListBox>
       ) : (
-        <Card theme="flat">
+        <Card theme="default">
           <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No files match" secondaryAction={{ label: "Show all files", onClick: () => setOwnerId(null) }}>
             {`${owner?.name} doesn't own any files yet.`}
           </EmptyState>
@@ -168,7 +168,7 @@ function DigestTopicsExample() {
     toast({ type: "positive", title: "Digest saved" });
   };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Weekly digest</Heading>
@@ -202,7 +202,7 @@ const votes: { person: PersonId; points: number }[] = [{ person: "bao", points: 
 function StoryPointsExample() {
   const [vote, setVote] = useState<number | null>(null);
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Estimate PHIN-223</Heading>

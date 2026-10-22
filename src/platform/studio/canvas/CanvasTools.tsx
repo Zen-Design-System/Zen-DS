@@ -32,12 +32,13 @@ export const shapeTools: ReadonlyArray<ToolEntry & { id: StudioShapeTool }> = [
 ];
 const isShapeTool = (tool: StudioTool): tool is StudioShapeTool => shapeTools.some((entry) => entry.id === tool);
 
-/** Figma UI3's Frame button and its menu: Frame F and Section ⇧S (Slice S is not in Zen Studio yet). */
-export const frameTools: ReadonlyArray<ToolEntry & { id: "frame" | "section" }> = [
+/** Figma UI3's Frame button and its menu: Frame F, Section ⇧S and Slice S. */
+export const frameTools: ReadonlyArray<ToolEntry & { id: "frame" | "section" | "slice" }> = [
   { id: "frame", label: "Frame", key: "F", icon: "icon-layout-alt-01-line" },
   { id: "section", label: "Section", key: "⇧S", icon: "icon-browser-line" },
+  { id: "slice", label: "Slice", key: "S", icon: "icon-scissors-line" },
 ];
-const isFrameTool = (tool: StudioTool): tool is "frame" | "section" => tool === "frame" || tool === "section";
+const isFrameTool = (tool: StudioTool): tool is "frame" | "section" | "slice" => tool === "frame" || tool === "section" || tool === "slice";
 
 /** Figma's Pen tools (UI3: the Pen button's menu), F9: draw/penTool.ts. */
 export const penTools: ReadonlyArray<ToolEntry & { id: StudioPenTool }> = [
@@ -51,7 +52,7 @@ const isPenTool = (tool: StudioTool): tool is StudioPenTool => penTools.some((en
  * have Stack (placed in a layout) and Interact (use the examples).
  */
 export const canvasToolGroups: ReadonlyArray<ReadonlyArray<ToolEntry>> = [
-  [{ id: "select", label: "Move", key: "V", icon: "icon-cursor-line" }, { id: "hand", label: "Hand", key: "H", icon: "icon-hand-line" }],
+  [{ id: "select", label: "Move", key: "V", icon: "icon-cursor-line" }, { id: "hand", label: "Hand", key: "H", icon: "icon-hand-line" }, { id: "scale", label: "Scale", key: "K", icon: "icon-scale-02-line" }],
   frameTools,
   shapeTools,
   penTools,
@@ -72,14 +73,14 @@ function placed(tool: StudioTool): Insertable | null {
 
 /** The shape tool the toolbar shows: the one in use, else the last one used (Figma keeps the last). */
 let lastShape: StudioShapeTool = "rectangle";
-let lastFrame: "frame" | "section" = "frame";
+let lastFrame: "frame" | "section" | "slice" = "frame";
 
 /** Figma UI3's Frame button: the last of Frame / Section, and a chevron that lists both with their keys. */
 function FrameTools({ tool, off }: { tool: StudioTool; off: boolean }) {
-  const [shown, setShown] = useState<"frame" | "section">(isFrameTool(tool) ? tool : lastFrame);
+  const [shown, setShown] = useState<"frame" | "section" | "slice">(isFrameTool(tool) ? tool : lastFrame);
   useEffect(() => { if (isFrameTool(tool)) { lastFrame = tool; setShown(tool); } }, [tool]);
   const entry = frameTools.find((item) => item.id === shown) ?? frameTools[0];
-  const pick = (id: "frame" | "section") => { lastFrame = id; setShown(id); studioStore.setState({ tool: id }); };
+  const pick = (id: "frame" | "section" | "slice") => { lastFrame = id; setShown(id); studioStore.setState({ tool: id }); };
   return (
     <span className="studio-canvas-tools__split">
       <IconButton

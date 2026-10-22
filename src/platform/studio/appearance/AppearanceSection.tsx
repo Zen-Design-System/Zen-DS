@@ -356,14 +356,14 @@ function EffectSettings({ id, style }: { id: string; style: string }) {
 
 /**
  * Effects of a Card, MetricCard or ChartCard: its theme draws them (shadow: the Level-1 drop shadow; pale, semi-pale: the
- * background blur; flat and border: none). One Figma effect row, no label (user, 2026-10-13: the label, a two-line
+ * background blur; default, border and flat-border: none). One Figma effect row, no label (user, 2026-10-13: the label, a two-line
  * "From … theme" note and a floating "Edit theme" button read oddly): the style's swatch and full name, which opens the
  * effects a card can have — each picks the theme that draws it — and one short line saying the theme sets it.
  */
 const CARD_EFFECT_CHOICES: ReadonlyArray<{ theme: string; label: string; caption: string }> = [
   { theme: "shadow", label: "Shadow/Bottom/Level-1", caption: "Shadow theme" },
   { theme: "pale", label: "Effect/Overlay", caption: "Pale theme" },
-  { theme: "flat", label: "No effect", caption: "Flat theme" },
+  { theme: "default", label: "No effect", caption: "Default theme" },
 ];
 
 export function CardEffectsSection({ api, component }: { api: FieldApi; component: string }) {
