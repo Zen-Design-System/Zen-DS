@@ -816,6 +816,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- The Bottom Sheet playground's Action example now shows commands (Share, Duplicate, Rename, Archive on a project) and
+  no selected item. It used to show a single choice, sort order, with `selectedId`; per the guideline a choice is a
+  Modal sheet with a List. The harness rule `bottom-sheet/choice-uses-list-item` now reads `selectedId` strictly:
+  as a prohibition, it no longer fires on a code sample's `${…}`. (A gate finding on main since 2026-10-08, fixed at
+  its owner.)
 - Studio → Figma: copy a frame straight into Figma (2026-10-16, user: "copy trực tiếp frame vào figma … tự bind lại
   component, style và variables"): ⌘C on a frame (or its Screen layer; menu Copy for Figma) also carries the frame's
   Figma export, which ⌘V in the Zen plugin places on the page you have open. Exports carry the library's keys
