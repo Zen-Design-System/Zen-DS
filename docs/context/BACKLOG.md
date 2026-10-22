@@ -141,26 +141,18 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   opacity follows the variable's alpha, so they drew solid everywhere. Now bound to Content/Neutral/Light (49% light /
   60% dark) and Border/Neutral/Subtle/Pressed (18% / 23%); the Bullet-Chart main's Track and the widget boards use them.
   If the user rejects it, restore the old binding (and the layer-opacity workaround). Session log 2026-10-13.
-- **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
-  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale hues), Metric-Card and Chart-Card
-  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `surface` + `color`,
-  MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
-  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation, one
-  colour mode, no gradient box). Gradient themes are gone in Figma (user 2026-10-14 "Giữ solid, xoá gradient"):
-  Card Gradient, every Semi-Pale (Neutral too) and List-Box Semi-Pale deleted; code's Card `theme="semi-pale"` is a
-  deprecated alias of pale (2026-10-14, user "OK"). The Card contract still lists Semi-Pale until this re-capture, so
-  the Studio map keeps offering it (renders pale).
-  Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
+- **P2 · Code-side rules for the Figma theme audit — waits for the user (2026-10-13, rest of "Box theme vocabulary in
+  code"; re-checked 2026-10-23):** the vocabulary is in code: Card / ListBox `theme` · `color` · `surface`, MetricCard
+  and ChartCard pass it through, the Studio map and the Card contract follow #210 (no Semi-Pale; `semi-pale` is a
+  deprecated alias of pale). Left: usage-guard rules mirroring the Figma audit's `theme/mixed-elevation`,
+  `theme/mode-override`, `theme/mixed-boxes`, `theme/on-solid-content` and `theme/on-white-solid`
+  (`skills/zen-figma-design/harness/zen-figma-audit.js`); code already has card/pale-on-canvas-default,
+  layer/surface-on-canvas-alt-border, layer/surface-flat-is-navigation and surface/no-shadow-on-tinted. New harness
+  rules need the user's yes, and colour / composition principles stay skill guidance unless the user says otherwise.
 - **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
   background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,
   Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow. Screens override by variable
   until then (screen-rules §1).
-- **P1 · Widget themes phase 2 — code + Studio (user, 2026-10-13; waits for the user's review of phase 1):** mirror the
-  Figma build in code and Studio: Card `color` + themes `gradient`/`solid` (Solid sets `data-theme`), MetricCard `type`
-  (7), the new paint styles in `styles/source/figma`, `tools/figma-docs` description source (the seven new chart sets'
-  Figma descriptions still say Value Heading/3, Semi-Pale and Gradient), Studio figma-props map. Detail:
-  `docs/context/session-log-2026-10-13.md` ("Widget themes phase 1"). The charts part is done (2026-10-14, branch
-  `zen/feat/charts-phase2`: seven components, Studio palette, push/pull of all 15 chart sets).
 - **P2 · Studio inspector has no chart Figma properties (charts phase 2, 2026-10-14):** the chart sets are missing from
   `docs/figma-contracts/component-properties.json` (captured 2026-10-05), so the inspector's Figma-props rows (Show
   Legend, Show Average, Type, Orientation …) are absent for charts; push/pull carry them. Needs a contract re-capture.
